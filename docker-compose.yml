@@ -5,5 +5,5 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./frontend/public:/usr/share/nginx/html:ro
+      - ./frontend:/usr/share/nginx/html:ro
     restart: always
