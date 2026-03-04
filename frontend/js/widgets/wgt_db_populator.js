@@ -4,44 +4,45 @@
  * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
  */
 
-// START initDBPopulator
-export function initDBPopulator(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-        console.warn(`[dbPopulator] Container ${containerId} not found.`);
-        return;
-    }
+const CARD_ID = 'wgt-db-populator';
 
-    // Idempotency check
-    if (container.dataset.initialized) return;
-    container.dataset.initialized = "true";
+// START initDBPopulator
+export function initDBPopulator() {
+    const card = document.getElementById(CARD_ID);
+    if (!card || card.dataset.wgtInit) return;
+    card.dataset.wgtInit = 'true';
+
+    const trigger = card.querySelector('.wgt-trigger');
+    const light = card.querySelector('.traffic-light');
+    const label = card.querySelector('.wgt-status-label');
 
     try {
-        // UI Setup logic goes here
-        container.innerHTML = `
-            <div class="m-svg-frame">
-                <h3>Database Populator</h3>
-                <p>Ready to upload initial data.</p>
-                <button id="btn-db-populate">Populate</button>
-            </div>
-        `;
-
-        document.getElementById('btn-db-populate').addEventListener('click', handleDBPopulate);
+        if (trigger) {
+            trigger.addEventListener('click', () => handleDBPopulate(light, label));
+        }
     } catch (error) {
-        container.innerHTML = `<div class="error-msg">Failed to load Populator UI: ${error.message}</div>`;
+        setStatus(light, label, 'error', 'Init Error');
+        console.error(`[DB Populator] Init failed: ${error.message}`);
     }
 }
 // END
 
 // START handleDBPopulate
-async function handleDBPopulate(event) {
-    event.preventDefault();
+async function handleDBPopulate(light, label) {
     try {
-        // Fetch/API Logic here
-        alert("Database population triggered.");
+        setStatus(light, label, 'active', 'Running');
+        // Lean Passthrough: POST /api/v1/admin/populate
+        setTimeout(() => setStatus(light, label, 'idle', 'Done'), 2000);
     } catch (error) {
-        // Error Translation
-        alert(`Could not populate DB: ${error.message}`);
+        setStatus(light, label, 'error', 'Error');
+        console.error(`[DB Populator] Failed: ${error.message}`);
     }
 }
 // END
+
+function setStatus(light, label, status, text) {
+    if (light) light.className = `traffic-light status-${status}`;
+    if (label) label.textContent = text;
+}
+
+document.addEventListener('DOMContentLoaded', initDBPopulator);

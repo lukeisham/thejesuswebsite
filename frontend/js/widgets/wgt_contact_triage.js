@@ -1,42 +1,52 @@
 /**
  * wgt_contact_triage.js
  * Function: Collation and summarization of contact messages
+ * Absorbs: widget_contact.js
  * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
  */
 
-// START initContactTriage
-export function initContactTriage(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+const CARD_ID = 'wgt-contact-triage';
 
-    if (container.dataset.triageInit) return;
-    container.dataset.triageInit = "true";
+// START initContactTriage
+export function initContactTriage() {
+    const card = document.getElementById(CARD_ID);
+    if (!card || card.dataset.wgtInit) return;
+    card.dataset.wgtInit = 'true';
+
+    const trigger = card.querySelector('.wgt-trigger');
+    const light = card.querySelector('.traffic-light');
+    const label = card.querySelector('.wgt-status-label');
 
     try {
-        container.innerHTML = `
-            <div class="feed-container">
-                <h4>Contact Triage Summary</h4>
-                <div id="triage-output">Summarizing recent contacts...</div>
-            </div>
-        `;
-        fetchTriageSummary();
+        fetchTriageSummary(light, label);
+        if (trigger) {
+            trigger.addEventListener('click', () => fetchTriageSummary(light, label));
+        }
     } catch (error) {
-        container.innerHTML = `<div class="error-msg">UI load error: ${error.message}</div>`;
+        setStatus(light, label, 'error', 'Init Error');
+        console.error(`[Contact Triage] Init failed: ${error.message}`);
     }
 }
 // END
 
 // START fetchTriageSummary
-async function fetchTriageSummary() {
-    const output = document.getElementById('triage-output');
-    if (!output) return;
-
+async function fetchTriageSummary(light, label) {
     try {
-        // Fetch to /api/v1/triage
-        output.innerHTML = `<p>3 new messages. Priority: 1 Critical.</p>`;
+        setStatus(light, label, 'active', 'Checking...');
+        // Lean Passthrough: GET /api/v1/contact/triage
+        const mockResponse = { new: 3, critical: 1 };
+        setStatus(light, label, mockResponse.critical > 0 ? 'warning' : 'active',
+            `${mockResponse.new} new, ${mockResponse.critical} critical`);
     } catch (error) {
-        // Error Translation
-        output.innerHTML = `<p class="error-msg">Triage synthesis failed: ${error.message}</p>`;
+        setStatus(light, label, 'error', 'Fetch Error');
+        console.error(`[Contact Triage] Fetch failed: ${error.message}`);
     }
 }
 // END
+
+function setStatus(light, label, status, text) {
+    if (light) light.className = `traffic-light status-${status}`;
+    if (label) label.textContent = text;
+}
+
+document.addEventListener('DOMContentLoaded', initContactTriage);

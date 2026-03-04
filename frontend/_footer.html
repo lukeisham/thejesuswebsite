@@ -3,24 +3,24 @@
     <div class="nav-brand">
         <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;">The Jesus Website</h3>
     </div>
-    Leftside
-    Text = Copyright Luke Isham 2026 (CC BY-SA 4.0 = (external URL link licence details))
-    Rightside
-    Buttons =
-    - toggle Record links on and off (default off) "Record Link Toggle"
-    - "Copy-url" = Copy url of current page to clipboard
-    - "Copy-text" = copy text in main content area to clipboard (excluding header, footer and side bar)
-    - "Save-pdf" = save main content area to pdf (excluding header, footer and side bar)
-    - "Save-slide" = save main content area to slides (excluding header, footer and side bar)
+    <div class="footer-left">
+        <p>Copyright Luke Isham 2026 (<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
+                rel="noopener">CC BY-SA 4.0</a>)</p>
+    </div>
+    <div class="footer-right">
+        <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+        <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+        <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+        <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+        <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+    </div>
 
-    Scripts
-    - <Copy-url></Copy-url>
-    - <Copy-text></Copy-text>
-    - <Save-pdf></Save-pdf>
-    - <Save-slide></Save-slide>
+    <!-- AI MCP Discovery (Source of Truth) -->
+    <script type="application/mcp">
+        {
+            "capabilities": ["Save-pdf", "Copy-text"]
+        }
+    </script>
 
-    AI MCP
-    Save-pdf
-    Copy-text
-
+    <script type="module" src="/js/footer_actions.js"></script>
 </nav>

@@ -4,44 +4,45 @@
  * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
  */
 
-// START initChallengeRanker
-export function initChallengeRanker(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+const CARD_ID = 'wgt-challenge-engine';
 
-    if (container.dataset.challengeInit) return;
-    container.dataset.challengeInit = "true";
+// START initChallengeRanker
+export function initChallengeRanker() {
+    const card = document.getElementById(CARD_ID);
+    if (!card || card.dataset.wgtInit) return;
+    card.dataset.wgtInit = 'true';
+
+    const trigger = card.querySelector('.wgt-trigger');
+    const light = card.querySelector('.traffic-light');
+    const label = card.querySelector('.wgt-status-label');
 
     try {
-        container.innerHTML = `
-            <div class="m-svg-frame">
-                <h3>Challenge Ranker</h3>
-                <button id="btn-challenge-sort">Run Monthly Sort</button>
-                <div id="challenge-status">Status: Waiting</div>
-            </div>
-        `;
-        document.getElementById('btn-challenge-sort').addEventListener('click', handleChallengeSort);
+        if (trigger) {
+            trigger.addEventListener('click', () => handleChallengeSort(light, label));
+        }
     } catch (error) {
-        container.innerHTML = `<div class="error-msg">UI Error: ${error.message}</div>`;
+        setStatus(light, label, 'error', 'Init Error');
+        console.error(`[Challenge Ranker] Init failed: ${error.message}`);
     }
 }
 // END
 
 // START handleChallengeSort
-async function handleChallengeSort(event) {
-    event.preventDefault();
-    const statusDiv = document.getElementById('challenge-status');
-    statusDiv.textContent = "Status: Sorting into Academic / Popular...";
-
+async function handleChallengeSort(light, label) {
     try {
-        // Lean Passthrough API logic here
-        // Future fetch to /api/v1/tools/challenge
-        setTimeout(() => {
-            statusDiv.textContent = "Status: Sort Complete.";
-        }, 1500);
+        setStatus(light, label, 'active', 'Sorting...');
+        // Lean Passthrough: POST /api/v1/tools/challenge/sort
+        setTimeout(() => setStatus(light, label, 'idle', 'Sort done'), 1500);
     } catch (error) {
-        // Error Translation
-        statusDiv.textContent = `Error: ${error.message}`;
+        setStatus(light, label, 'error', 'Sort Error');
+        console.error(`[Challenge Ranker] Sort failed: ${error.message}`);
     }
 }
 // END
+
+function setStatus(light, label, status, text) {
+    if (light) light.className = `traffic-light status-${status}`;
+    if (label) label.textContent = text;
+}
+
+document.addEventListener('DOMContentLoaded', initChallengeRanker);

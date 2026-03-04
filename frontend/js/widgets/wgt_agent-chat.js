@@ -5,25 +5,26 @@
  */
 
 // START initAgentChat
-export function initAgentChat(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+export function initAgentChat() {
+    // The new 3-row layout explicitly provides the chat container and UI elements
+    const chatPanel = document.getElementById('chat-messages');
+    const inputField = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send');
 
-    if (container.dataset.chatInit) return;
-    container.dataset.chatInit = "true";
+    if (!chatPanel || !inputField || !sendBtn) return;
+
+    if (chatPanel.dataset.chatInit) return;
+    chatPanel.dataset.chatInit = "true";
 
     try {
-        container.innerHTML = `
-            <div class="chat-container">
-                <h4>Agent Command Interface</h4>
-                <div id="chat-history" class="chat-log"></div>
-                <input type="text" id="chat-input" placeholder="Type a command or mode (e.g., /monitor)..." />
-                <button id="btn-chat-send">Send</button>
-            </div>
-        `;
-        document.getElementById('btn-chat-send').addEventListener('click', handleChatSubmit);
+        sendBtn.addEventListener('click', handleChatSubmit);
+
+        // Add "Enter" key trigger
+        inputField.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') handleChatSubmit();
+        });
     } catch (error) {
-        container.innerHTML = `<div class="error-msg">Chat initialization failed: ${error.message}</div>`;
+        chatPanel.innerHTML = `<div class="error-msg" style="color:var(--ui-error)">Chat initialization failed: ${error.message}</div>`;
     }
 }
 // END
@@ -31,24 +32,28 @@ export function initAgentChat(containerId) {
 // START handleChatSubmit
 async function handleChatSubmit() {
     const inputField = document.getElementById('chat-input');
-    const history = document.getElementById('chat-history');
+    const history = document.getElementById('chat-messages');
     const message = inputField.value.trim();
 
     if (!message) return;
 
     try {
-        history.innerHTML += `<div><strong>Admin:</strong> ${message}</div>`;
+        history.innerHTML += `<div style="margin-bottom:8px;"><strong>Admin:</strong> <span style="color:#555;">${message}</span></div>`;
         inputField.value = '';
 
         // Lean Passthrough API logic here
         // Fetch to /api/v1/agent/chat
         setTimeout(() => {
-            history.innerHTML += `<div><strong>Agent:</strong> Acknowledged. Working on task.</div>`;
+            history.innerHTML += `<div style="margin-bottom:8px; border-left: 2px solid var(--accent-color); padding-left: 5px;"><strong>Agent:</strong> Acknowledged. Working on task.</div>`;
             history.scrollTop = history.scrollHeight;
         }, 500);
     } catch (error) {
         // Error Translation
-        history.innerHTML += `<div class="error-msg">Failed to send message: ${error.message}</div>`;
+        history.innerHTML += `<div class="error-msg" style="color: red;">Failed to send message: ${error.message}</div>`;
     }
 }
 // END
+
+document.addEventListener('DOMContentLoaded', () => {
+    initAgentChat();
+});

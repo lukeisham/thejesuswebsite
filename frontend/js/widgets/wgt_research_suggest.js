@@ -4,44 +4,45 @@
  * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
  */
 
-// START initResearchSuggest
-export function initResearchSuggest(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+const CARD_ID = 'wgt-research-suggest';
 
-    if (container.dataset.researchInit) return;
-    container.dataset.researchInit = "true";
+// START initResearchSuggest
+export function initResearchSuggest() {
+    const card = document.getElementById(CARD_ID);
+    if (!card || card.dataset.wgtInit) return;
+    card.dataset.wgtInit = 'true';
+
+    const trigger = card.querySelector('.wgt-trigger');
+    const light = card.querySelector('.traffic-light');
+    const label = card.querySelector('.wgt-status-label');
 
     try {
-        container.innerHTML = `
-            <div class="feed-container">
-                <h4>Suggested Next Actions</h4>
-                <ul id="research-feed">
-                    <li>Loading suggestions...</li>
-                </ul>
-            </div>
-        `;
-        fetchSuggestions();
+        if (trigger) {
+            trigger.addEventListener('click', () => fetchSuggestions(light, label));
+        }
     } catch (error) {
-        container.innerHTML = `<div class="error-msg">Failed to load suggestions: ${error.message}</div>`;
+        setStatus(light, label, 'error', 'Init Error');
+        console.error(`[Research Suggest] Init failed: ${error.message}`);
     }
 }
 // END
 
 // START fetchSuggestions
-async function fetchSuggestions() {
-    const feed = document.getElementById('research-feed');
-    if (!feed) return;
-
+async function fetchSuggestions(light, label) {
     try {
-        // Fetch to /api/v1/research/suggest
-        feed.innerHTML = `
-            <li>Review incomplete record: [UUID]</li>
-            <li>Draft essay on recent Wikipedia edits.</li>
-        `;
+        setStatus(light, label, 'active', 'Generating...');
+        // Lean Passthrough: GET /api/v1/research/suggest
+        setTimeout(() => setStatus(light, label, 'idle', 'Done'), 1500);
     } catch (error) {
-        // Error Translation
-        feed.innerHTML = `<li class="error-msg">Could not retrieve suggestions: ${error.message}</li>`;
+        setStatus(light, label, 'error', 'Error');
+        console.error(`[Research Suggest] Fetch failed: ${error.message}`);
     }
 }
 // END
+
+function setStatus(light, label, status, text) {
+    if (light) light.className = `traffic-light status-${status}`;
+    if (label) label.textContent = text;
+}
+
+document.addEventListener('DOMContentLoaded', initResearchSuggest);

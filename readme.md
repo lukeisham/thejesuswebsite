@@ -18,8 +18,10 @@ thejesuswebsite/
 │   └── app_ui/               # Axum web server (entry point binary)
 ├── frontend/                 # Root HTML views
 │   ├── js/                   # Centralized JS logic
+│   │   └── widgets/          # Traffic-light widget modules (wgt_*.js)
 │   ├── maps/                 # Static map resources
 │   └── private/              # Authenticated admin pages
+│       └── js/               # Authenticated detail scripts (widget_*.js)
 ├── .github/workflows/ci.yml  # GitHub Actions CI pipeline
 ├── cargo.toml                # Workspace manifest
 ├── dockerfile                # Multi-stage production build
@@ -44,7 +46,7 @@ Coding checklist
 
 HTML/CSS = Atomic Design, Global consistency, Responsive Flow / CSS Grid for Layout, Flexbox for Components. / does the page still function? 
 
-JS = Strict Interface, Error Translation, Lean Passthrough, Idempotency / One script per task / No lose of functionality during rewrites!
+JS = Strict Interface, Error Translation, Lean Passthrough, Idempotency / One script per task / No loss of functionality during rewrites! / Dashboard widgets follow a two-layer pattern: thin traffic-light card wrapper (wgt_*.js) + expandable detail panel (private/js/ script).
 
 RUST = No-Panic, Async First, Type Safety, Security Gatekeeping / Documentation Comments (///) on all Public Traits and Tools. / Don't drop code during rewrites!
 
@@ -66,15 +68,16 @@ Security = private html obfesucated, DDos attack guards, rate limiting, special 
 
 ### AI-Agent integration 
 
-AI-Agent integration = monitors sever information + uses widgets to support codebase logic. / Widgets = intial-database population, spelling, deadlinks, page (views, mentions, rankings etc), Wikipedia engine, Challenge ranking engine, contact triage and summary and research next actions. / Resource lists + agent_guide.yml ("Living Manifest") = loaded daily to set context for AI-Agent / Research next action = static resource set (database) + dymanic search results for suggested resources. 
+AI-Agent integration = monitors server information + uses widgets to support codebase logic. / Widgets = initial database population, spelling (absorbs spellcheck), deadlinks scanner, page metrics (absorbs scraper), Wikipedia engine, Challenge ranking engine, contact triage (absorbs contact), research next actions, server metrics (absorbs server info), token metrics, agent chat, self-reflection (absorbs trace reasoning), agent workflow (absorbs queue), sources manager, security logs, user manager. / Resource lists + agent_guide.yml ("Living Manifest") = loaded daily to set context for AI-Agent / Research next action = static resource set (database) + dynamic search results for suggested resources.
 
 ### Codebase nomenclature
 
-Widgets	= wgt_[name].js	 /frontend/js/widgets/
-Tools	tool_[name].rs	/app_core/src/tools/
-Response = response_[slug].html	/frontend/response/
-Essays	= essay_[slug].html	/frontend/context/
-Blog = blog_[blogpost].html /frontend/blog/
+Widgets		= wgt_[name].js		/frontend/js/widgets/     # Traffic-light card wrappers
+Detail Scripts	= widget_[name].js	/frontend/private/js/     # Full UI — bound by wgt_ wrappers
+Tools		= tool_[name].rs	/app_core/src/tools/
+Response	= response_[slug].html	/frontend/response/
+Essays		= essay_[slug].html	/frontend/context/
+Blog		= blog_[blogpost].html	/frontend/blog/
 Wikipedia Engine = describes the files to support the Wikipdia search and ranking process
 Challenge Engine = describes the files to suppport the Challenge search and ranking process
 Metadata = srict RUST type that supports AI searching and scrapping

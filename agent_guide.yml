@@ -1,6 +1,6 @@
 # AI Agent Manifest & Context Guide
-version: 1.1.0
-last_updated: 2026-03-05T08:50:00Z
+version: 1.2.0
+last_updated: 2026-03-05T10:44:00Z
 environment: Production
 
 # 1. Core Source of Truth & Memory
@@ -21,18 +21,27 @@ capabilities:
   - tool: "Link_Janitor"
     path: "/backend/src/tools/link_check.rs"
     action: "Scan for deadlinks in resources.html"
+    frontend_binding: "wgt_deadlinks.js → widget_deadlinks.js"
   - tool: "Vector_Embedder"
     path: "/backend/src/tools/chroma_sync.rs"
     action: "Updates ChromaDB collections from Record.rs changes"
 
 # 3. JS Widget Inventory (Frontend Interface)
 widgets:
+  # Core agent widgets
+  - id: "wgt_agent-chat.js"
+    function: "Create and manage agent chat sessions"
+  - id: "wgt_agent-self_reflection.js"
+    function: "Monitor agent reasoning, searching and data access. Absorbs: show_trace_reasoning.js"
+  - id: "wgt_agent_workflow.js"
+    function: "Manage tasks by priority or user input. Absorbs: show_queue.js"
+  # Data & content widgets
   - id: "wgt_db_populator.js"
     function: "Initial database population and data entry"
   - id: "wgt_spelling.js"
-    function: "Real-time grammar and spell-check in dashboard"
+    function: "Real-time grammar and spell-check in dashboard. Absorbs: widget_spellcheck.js"
   - id: "wgt_page_metrics.js"
-    function: "Visualizes views, mentions, and rankings"
+    function: "Visualizes views, mentions, rankings. Auto-scrape trigger. Absorbs: widget_spider.js"
   - id: "wgt_wiki_interface.js"
     function: "UI for Wikipedia engine search/merge actions"
   - id: "wgt_challenge_ranker.js"
@@ -40,15 +49,21 @@ widgets:
   - id: "wgt_research_suggest.js"
     function: "Dynamic search results for suggested resources"
   - id: "wgt_contact_triage.js"
-    function: "collation and summarization of contact message"
+    function: "Collation and summarization of contact messages. Absorbs: widget_contact.js"
+  # System health widgets
   - id: "wgt_server_metrics.js"
-    function: "Monitor server metrics"
+    function: "Monitor server metrics (CPU, Memory, Disk). Absorbs: show_server_info.js"
   - id: "wgt_token_metrics.js"
-    function: "Monitor token metrics"
-  - id: "wgt_agent-chat.js"
-    function: "Create and manage agent chat sessions"
-  - id: "wgt_agent-self_reflection.js"
-    function: "Monitor agent reasoning, searching and data access"
+    function: "Monitor AI token usage and budget"
+  # Restored panel widgets (traffic-light card + expandable detail panel)
+  - id: "wgt_sources.js"
+    function: "Sources manager — polls count, opens expandable CRUD panel. Detail: widget_sources.js"
+  - id: "wgt_security.js"
+    function: "Security log viewer — alerts on Honeypot/LoginFail. Detail: widget_security.js"
+  - id: "wgt_users.js"
+    function: "User manager — polls count, opens expandable user panel. Detail: widget_user_manager.js"
+  - id: "wgt_deadlinks.js"
+    function: "Deadlink scanner — mirrors scan state via MutationObserver. Detail: widget_deadlinks.js"
 
 # 4. Contextual Index (The Map)
 content_index:
