@@ -53,6 +53,9 @@ ready: fmt lint test
 build:
 	$(CARGO) build --release
 
+build-wasm:
+	wasm-pack build app/app_core --target web --out-dir ../../frontend/js/pkg
+
 test:
 	$(CARGO) test --workspace
 

@@ -128,6 +128,9 @@
 │   ├── assets
 │   │   ├── fonts/
 │   │   └── images/
+│   ├── js
+│   │   ├── react_flow.js
+│   │   └── wasm_interop_demo.js
 │   ├── navigation_sidebar
 │   │   ├── js/
 │   │   └── navigation.html
@@ -151,19 +154,21 @@
 │   │   ├── readme.md
 │   │   └── robots.txt
 │   └── static
-│       ├── js
-│       │   └── wasm_interop_demo.js
 │       └── style.css
+├── node_modules/
 ├── test/
 ├── Cargo.lock
 ├── build.rs
 ├── cargo.toml
 ├── clippy.toml
-├── clippyerrors.log
+├── docker-compose.yml
 ├── docker.yml
 ├── dockerfile
+├── LICENCE
 ├── makefile
 ├── openai.yml
+├── package-lock.json
+├── package.json
 ├── readme.md
 ├── rust_toolchain.toml
 ├── rustfmt.toml

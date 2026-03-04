@@ -101,6 +101,37 @@ input,
 // Offset Text  => Row 3 | Col 2 / span 2
 // ==========================================
 */
+/*
+// ==========================================
+// CONTAINER: .m-content-grid (The Box-Area)
+// ==========================================
+// Context: display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-flow: dense;
+// 
+// Short Box (Standard)  => grid-column: span 1; grid-row: span 1;
+// Long Box (Horizontal) => grid-column: span 2; grid-row: span 1;
+// Tall Box (Vertical)   => grid-column: span 1; grid-row: span 2;
+// Featured Hero Box     => grid-column: span 3; grid-row: span 2;
+//
+// 💡 Note: "grid-auto-flow: dense" will automatically tuck short boxes 
+// into gaps left by tall/long boxes.
+// ==========================================
+*/
+/* // ==========================================
+// CONTAINER: .m-svg-frame (The Wrapper)
+// ==========================================
+// Context: display: grid; place-items: center; overflow: hidden;
+// 
+// Frame Border  => border: 2px solid var(--primary); border-radius: 8px;
+// Aspect Ratio  => aspect-ratio: 1 / 1; (Keeps it a perfect square)
+// Max Size      => width: 100%; height: auto;
+// 
+// ==========================================
+// CHILD: .a-svg-asset (The SVG itself)
+// ==========================================
+// Fit Strategy  => width: 100%; height: 100%; object-fit: contain;
+// Vibe Rule     => "Never hardcode pixels." Use % or fr to stay responsive.
+// ==========================================
+*/
 
 /* --- GRID CONTAINERS --- */
 .a-grid {
@@ -619,6 +650,33 @@ input,
     gap: 20px;
 }
 
+/* --- SVG Asset Frames --- */
+.m-svg-frame {
+    display: grid;
+    place-items: center;
+    /* Centers the SVG horizontally and vertically */
+    aspect-ratio: 16 / 9;
+    /* Or 1 / 1 for icons */
+    padding: 1rem;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease;
+    /* Global consistency for hover states */
+}
+
+.m-svg-frame:hover {
+    transform: scale(1.02);
+    /* Subtle feedback vibe */
+}
+
+.a-svg-asset {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    display: block;
+    /* Removes the bottom whitespace gap */
+}
+
 /*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -698,6 +756,57 @@ button:hover {
     display: block;
     padding: 10px 0;
     border-bottom: 1px solid var(--border-color);
+}
+
+/* // ==========================================
+// CONTAINER: .m-dual-frame (The Outer Shell)
+// ==========================================
+// Context: display: grid; grid-template-rows: auto auto;
+// 
+// Inner Core (SVG/IMG) => Row 1 | Border: 1px solid
+// Caption Base         => Row 2 | Expansion Area
+// Outer Boundary       => Wrapper Border: 1px solid
+// ==========================================
+*/
+
+.m-dual-frame {
+    display: inline-grid;
+    grid-template-rows: 1fr auto;
+    /* Image takes top, caption takes bottom */
+    padding: 8px;
+    /* The gap between the two lines */
+    border: 1px solid var(--accent);
+    /* THE OUTER LINE */
+    background: var(--surface);
+    gap: 8px;
+    /* Distance between inner core and caption */
+}
+
+.a-inner-core {
+    display: block;
+    border: 1px solid var(--accent);
+    /* THE INNER LINE */
+    padding: 4px;
+    line-height: 0;
+    /* Removes bottom ghost padding */
+}
+
+.a-inner-core img,
+.a-inner-core svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.a-frame-caption {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 4px 0 2px 0;
+    text-align: center;
+    /* This line "completes" the base expansion vibe */
+    border-top: 1px double var(--accent);
 }
 
 /*
