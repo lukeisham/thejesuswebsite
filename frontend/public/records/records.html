@@ -107,9 +107,14 @@
     <script src="js/admin_edit_view.js"></script>
     <script>
         async function loadData() {
-            const response = await fetch('http://72.60.197.13:8080/api/records');
-            const data = await response.json();
-            console.log("Data from Rust:", data);
+            try {
+                // Changed from 3080 to 3000 to match your Rust logs!
+                const response = await fetch('http://72.60.197.13:3000/api/records');
+                const data = await response.json();
+                console.log("Data from Rust:", data);
+            } catch (error) {
+                console.error("The Brain is still shy:", error);
+            }
         }
         loadData();
     </script>
