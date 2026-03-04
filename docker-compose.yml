@@ -1,4 +1,13 @@
 services:
+  # The Brain (Your Rust App)
+  app:
+    build: .
+    container_name: jesus-app
+    restart: always
+    ports:
+      - "8080:8080" # Assuming your Rust app listens on 8080
+
+  # The Face (Nginx)
   website:
     image: nginx:alpine
     container_name: jesus-website
