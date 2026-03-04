@@ -1,9 +1,23 @@
-// 🦴 Skeleton
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               1. THE SKELETON                               //
+//                             (Frontend View Models)                         //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
 use app_core::types::essay::Essay;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS; // The "Type Safety" bridge
 
-// 🧠 Brain
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                                2. THE BRAIN                                //
+//                          (View Model Projections)                          //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
 
 /// While `codegen.rs` is the action of generating files, `frontend.rs` is
 /// the Definition of what the frontend is allowed to see.
@@ -35,7 +49,14 @@ impl From<Essay> for EssayView {
     }
 }
 
-// 🛡️ Gatekeeper
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                             3. THE GATEKEEPER                              //
+//                          (Security & Type Safety)                          //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
 
 /// Defines the "Skeleton" of a Search Response for the UI.
 #[derive(Debug, Serialize, Deserialize, TS)]

@@ -4,6 +4,90 @@ A historical evidence platform for the life of Jesus. Records (the core data ele
 
 An admin dashboard provides AI-powered tools for collating challenges and Wikipedia articles.
 
+## Contents
+
+- [Coding process](#coding-process)
+- [AI Coding Standards](#ai-coding-standards)
+- [App Logic](#app-logic)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Development Commands](#development-commands)
+- [CI Pipeline](#ci-pipeline)
+- [Building for Production](#building-for-production)
+- [Deploying to VPS](#deploying-to-vps)
+- [Environment Variables](#environment-variables)
+
+---
+
+## AI Coding Standards
+
+To ensure architectural clarity and ease of maintenance by multiple AI agents (Gemini, Claude, Grok), this project follows a strict **Block Heading** structure. Every core logic file is divided into the following functional sections:
+
+### 📐 Standard Block Template
+```rust
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                             [NUMBER]. [TITLE]                              //
+//                         ([Short Description])                       //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+```
+
+### 🏷️ Section Definitions
+
+| Title | Purpose | Typical Contents |
+|---|---|---|
+| **THE SKELETON** | Foundation & Data | Structs, Enums, Type aliases, Schema definitions |
+| **THE BRAIN** | Logic & Processing | Core business logic, Algorithms, Request handlers |
+| **THE GATEKEEPER** | Security & Validation | Middleware, Auth checks, Input sanitization |
+| **THE ORCHESTRATOR** | Startup & Lifecycle | `main()` function, Server init, Dependency injection |
+
+### Vibe coding rules for RUST files
+
+No-Panic, Async First, Type Safety, Security Gatekeeping, WASM compatibility / Don't drop code during rewrites
+
+### Vibe coding rules for JS files
+
+Strict Interface, Error Translation, Lean Passthrough / Don't drop code during rewrites
+
+### Vibe coding rules for HTML files
+
+Atomic Design, Global consistency (style.css), Grids everywhere / Don't drop code during rewrites
+
+---
+
+## App Logic & System Architecture
+
+This project is built as an **AI-friendly knowledge graph**. The core architecture separates public-facing data discovery from secure administrative management.
+
+### 1. Core Data Entity: The Record
+The central unit of the application is the **Record** (referred to internally as "Evidence").
+* **Primary View:** The homepage provides discovery, searching, and viewing of `Record` entities.
+* **State Management:** Only users with `Admin` or `Contributor` roles can modify a `Record`.
+* **Data Visualization:** `Record` data is the source of truth for the **Map**, **Timeline**, and the **Ardor Tree-style layout**.
+
+### 2. Supporting Content Modules
+* **Contextual Layers:** `Records` are supported by `Essay` and `Response` entities (which address specific `Challenges`).
+* **Resources:** `ResourceLists` provide curated external references linked to specific records.
+* **Wikipedia:** A ranking module that processes and displays Wikipedia-based data.
+* **Support Pages:** Support features including `About`, `Donate`, and `Contact`.
+
+### 3. Technical Implementation
+AI agents should follow these structural patterns when contributing to the codebase:
+
+* **Logic Layer (Rust):** * Data structures are defined as strict Rust types.
+    * **AI Actions:** Automation and API interactions (e.g., list processing) are implemented as **Traits**.
+* **Persistence Layer (Hybrid Database):**
+    * **ChromaDB:** Stores vector embeddings for semantic search and AI-driven retrieval.
+    * **SQLite:** Stores all structured relational data, hierarchies, and user metadata.
+* **Frontend Layer:** * Built with HTML/CSS and vanilla JS.
+    * **AI-Friendliness:** The DOM structure is optimized for scraping and LLM readability.
+* **Security Model:** * **Public Layer:** Open-access data schema intended for AI transparency.
+    * **Admin Layer:** Secure middleware gates all mutation logic and sensitive configurations.
+
 ---
 
 ## Architecture
@@ -67,7 +151,7 @@ thejesuswebsite/
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/thejesuswebsite.git
+git clone https://github.com/lukeisham/thejesuswebsite.git
 cd thejesuswebsite
 cp .env.example .env
 # Edit .env with your real keys
@@ -104,6 +188,8 @@ All commands are defined in the `makefile`. Run `make help` for the full list.
 | `make fmt` | Format all code (uses `rustfmt.toml`) |
 | `make lint` | Run Clippy with `-D warnings` |
 | `make test` | Run all workspace tests |
+| `make test-unit` | Run only unit tests — no external services needed |
+| `make test-integration` | Run integration tests — requires `make docker-up` first |
 | `make build` | Build the release binary |
 | `make ready` | **Pre-push gate**: fmt → lint → test |
 | `make docker-up` | Start ChromaDB and services |
@@ -226,3 +312,4 @@ See `.env.example` for all available variables. Critical ones:
 | `GITHUB_CLIENT_ID` | No | For GitHub OAuth login |
 | `GITHUB_CLIENT_SECRET` | No | For GitHub OAuth login |
 | `OPENAI_ORG_ID` | No | OpenAI organization ID |
+

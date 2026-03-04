@@ -29,6 +29,7 @@ WORKDIR /app
 # Install OpenSSL and CA-certificates (needed for OpenAI/API calls)
 RUN apt-get update && apt-get install -y \
     ca-certificates \
+    curl \
     libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -46,6 +47,10 @@ ENV APP_ENVIRONMENT=production
 
 # Expose the port your server.rs likely listens on
 EXPOSE 8080
+
+# Health check — Docker will restart the container if this fails 3 times
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8080/ || exit 1
 
 # Run the app
 ENTRYPOINT ["/usr/local/bin/app_ui"]

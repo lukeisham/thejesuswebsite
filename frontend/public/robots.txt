@@ -1,0 +1,40 @@
+# ==========================================================
+# ROBOTS.TXT FOR THE JESUS WEBSITE
+# Purpose: AI-First Indexing & Semantic Scraping
+# ==========================================================
+
+# 1. Encourage General AI Crawlers
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: Google-Extended
+User-agent: Anthropic-ai
+User-agent: Claude-Web
+User-agent: ClaudeBot
+User-agent: PerplexityBot
+User-agent: YouBot
+User-agent: OAI-SearchBot
+Allow: /
+
+# 2. Open doors for Research & Common Crawl
+User-agent: CCBot
+User-agent: facebookexternalhit
+User-agent: MetaExternalFetcher
+Allow: /
+
+# 3. Standard Search Engines
+User-agent: *
+Allow: /
+
+# 4. Technical Guidance for Robots
+# Point them directly to the map of your content
+Sitemap: https://thejesuswebsite.com/sitemap.xml
+
+# 5. Semantic Optimization
+# We explicitly encourage deep-crawling of all public directories
+Allow: /essays/
+Allow: /records/
+Allow: /wikipedia-rankings/
+
+# Disallow only sensitive system paths (Gatekeepers)
+Disallow: /admin/
+Disallow: /api/internal/

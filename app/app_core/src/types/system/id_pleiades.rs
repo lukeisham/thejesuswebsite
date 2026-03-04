@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::num::NonZeroU64;
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
 /*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -13,6 +16,7 @@ use std::num::NonZeroU64;
 
 /// A unique identifier for a historical place in the Pleiades Gazetteer.
 /// Example: 579885 (Syracuse)
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct PleiadesId(NonZeroU64);
 

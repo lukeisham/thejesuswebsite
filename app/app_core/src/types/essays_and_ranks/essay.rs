@@ -27,6 +27,20 @@ pub struct Essay {
     pub status: PublicationStatus,
 }
 
+impl Essay {
+    /// Returns a human-readable summary of the essay.
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    pub fn display_summary(&self) -> String {
+        return format!("By {} | {}", self.author, self.metadata.created_at().format("%Y"));
+    }
+
+    /// Returns the text content (or a snippet).
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    pub fn display_text(&self) -> String {
+        return self.text.clone();
+    }
+}
+
 /*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //

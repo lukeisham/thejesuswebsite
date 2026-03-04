@@ -2,6 +2,15 @@ use axum::extract::ws::{Message, WebSocket};
 use futures::{sink::SinkExt, stream::StreamExt};
 use tokio::sync::mpsc;
 
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                                1. THE BRAIN                                //
+//                             (Core Socket Logic)                            //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
 /// Handles the actual lifecycle of the WebSocket connection (The Brain).
 pub async fn handle_socket(socket: WebSocket) {
     // Split the socket into a sender and receiver

@@ -24,3 +24,8 @@ npm-debug.log*
 
 # --- Documentation & Meta ---
 clippyerrors.log
+
+# --- Database ---
+*.db
+*.db-shm
+*.db-wal

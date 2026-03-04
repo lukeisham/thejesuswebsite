@@ -16,10 +16,19 @@ use wasm_bindgen::prelude::*;
 ////////////////////////////////////////////////////////////////////////////////
 */
 
+/// Granular chronological tracking for the 168 hours of the Passion.
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct PassionInfo {
+    pub day: u8,  // 1 (Palm Sunday) to 7 (Easter Sunday)
+    pub hour: u8, // 1 to 24
+}
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Record {
     pub id: Ulid,
+    pub parent_id: Option<Ulid>,
     pub metadata: Metadata, // Must also derive Serialize/Deserialize
     pub name: String,
     pub picture_bytes: Vec<u8>, // Standard JSON will make this a [u8] array
@@ -30,6 +39,7 @@ pub struct Record {
     pub category: Classification,
     pub primary_verse: BibleVerse,
     pub secondary_verse: Option<BibleVerse>,
+    pub passion_info: Option<PassionInfo>,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
 }
@@ -46,6 +56,7 @@ pub struct Record {
 impl Record {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
     pub async fn try_new(
+        parent_id: Option<Ulid>,
         metadata: Metadata,
         name: String,
         picture_bytes: Vec<u8>,
@@ -56,6 +67,7 @@ impl Record {
         category: Classification,
         primary_verse: BibleVerse,
         secondary_verse: Option<BibleVerse>,
+        passion_info: Option<PassionInfo>,
     ) -> Result<Self, RecordError> {
         RecordGatekeeper::validate_name(&name)?;
         RecordGatekeeper::validate_image_format(&picture_bytes)?;
@@ -63,6 +75,7 @@ impl Record {
 
         Ok(Self {
             id: Ulid::new(),
+            parent_id,
             metadata,
             name: name.trim().to_string(),
             picture_bytes,
@@ -73,6 +86,7 @@ impl Record {
             category,
             primary_verse,
             secondary_verse,
+            passion_info,
             created_at: Utc::now(),
             updated_at: None,
         })
@@ -83,6 +97,22 @@ impl Record {
     pub fn to_json(&self) -> Result<String, RecordError> {
         serde_json::to_string(self)
             .map_err(|e| RecordError::SystemError(format!("JSON Serialization failed: {}", e)))
+    }
+
+    /// Returns the description as a single formatted string.
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    pub fn display_description(&self) -> String {
+        self.description.join("\n")
+    }
+
+    /// Returns a human-readable summary of the record's metadata.
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    pub fn display_metadata_summary(&self) -> String {
+        return format!(
+            "Category: {:?} | Created: {}",
+            self.category,
+            self.created_at.format("%Y-%m-%d")
+        );
     }
 
     /// Creates a record from a JSON string.

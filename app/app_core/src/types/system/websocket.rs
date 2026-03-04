@@ -34,7 +34,7 @@ pub enum WsMessageKind {
 /// A single message travelling over a WebSocket connection.
 /// This is the canonical in-memory representation — WASM-safe and serialisable
 /// so the frontend can inspect it without any server-side coupling.
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WebSocketMessage {
     /// Monotonic position of this message in the session timeline.
@@ -48,7 +48,7 @@ pub struct WebSocketMessage {
 /// A lightweight token representing a pending WebSocket upgrade request.
 /// Carries only the metadata needed to decide whether to accept the handshake;
 /// the actual socket handle lives server-side and is never passed to WASM.
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WebSocketUpgradeRequest {
     /// Unique ID for correlating the upgrade with a session.

@@ -100,6 +100,7 @@ impl TryFrom<[u8; 16]> for UlidNumber {
 ////////////////////////////////////////////////////////////////////////////////
 */
 
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, thiserror::Error)]
 pub enum UlidError {
     #[error("Invalid ULID length: expected 26, got {0}")]

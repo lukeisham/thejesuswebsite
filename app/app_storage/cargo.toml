@@ -11,6 +11,10 @@ serde       = { workspace = true }
 tokio       = { workspace = true }
 async-trait = { workspace = true }
 thiserror   = { workspace = true }
+tracing     = { workspace = true }
 
 # Crate-specific: Storage backends
 chromadb = "2.3.0"
+sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite", "macros"] }
+serde_json.workspace = true
+uuid.workspace = true

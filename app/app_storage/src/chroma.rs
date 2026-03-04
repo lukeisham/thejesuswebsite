@@ -54,6 +54,22 @@ pub struct ChromaStorage {
 */
 
 impl ChromaStorage {
+    /// Creates a new ChromaStorage instance.
+    pub async fn new(
+        config: Arc<ChromaConfig>,
+        engine: Arc<dyn InferenceEngine>,
+    ) -> Result<Self, AppError> {
+        let client = ChromaClient::new(chromadb::client::ChromaClientOptions {
+            url: Some(config.url.clone()),
+            database: config.database.as_deref().unwrap_or("default").to_string(),
+            auth: chromadb::client::ChromaAuthMethod::None,
+        })
+        .await
+        .map_err(|e| AppError::StorageError(e.to_string()))?;
+
+        Ok(Self { client, engine })
+    }
+
     // ── ESSAYS ───────────────────────────────────────────────────────────
 
     /// Stores an essay in the "essays" collection.
@@ -169,10 +185,20 @@ impl ChromaStorage {
         let searchable_text = format!("{} {}", picture.label, picture.alt_text);
         let vector = self.engine.embed_text(&searchable_text).await?;
 
+        let filename = if picture.label.ends_with(".png") {
+            picture.label.clone()
+        } else {
+            format!("{}.png", picture.label)
+        };
+        let relative_path = format!("/assets/images/{}", filename);
+
+        let mut metadata = serde_json::Map::new();
+        metadata.insert("file_path".to_string(), serde_json::Value::String(relative_path));
+
         let entries = CollectionEntries {
             ids: vec![&picture.label],
             embeddings: Some(vec![vector]),
-            metadatas: None,
+            metadatas: Some(vec![metadata]),
             documents: Some(vec![&searchable_text]),
         };
 
@@ -262,10 +288,123 @@ impl ChromaStorage {
             .await
             .map_err(|e| AppError::StorageError(e.to_string()))?;
 
-        if results.ids.is_empty() {
+        if results.ids.is_empty() || results.ids[0].is_empty() {
             return Ok(Vec::new());
         }
 
         Ok(results.ids[0].clone())
+    }
+}
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               3. THE HELPER                                //
+//                           (Mock Engine for Testing)                        //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
+/// A zero-cost mock embedding engine for unit tests.
+/// Returns a fixed-dimension vector of zeros — no network, no model weights.
+pub struct MockEngine {
+    dimensions: usize,
+}
+
+impl MockEngine {
+    pub fn new(dimensions: usize) -> Self {
+        Self { dimensions }
+    }
+}
+
+#[async_trait::async_trait]
+impl InferenceEngine for MockEngine {
+    async fn embed_text(&self, _text: &str) -> Result<Vec<f32>, AppError> {
+        Ok(vec![0.0_f32; self.dimensions])
+    }
+}
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               5. UNIT TESTS                                //
+//          MockInferenceEngine replaces ChromaDB/OpenAI for unit tests       //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use app_core::types::traits::InferenceEngine;
+    use std::sync::Arc;
+
+    // ── ChromaCollections constants ───────────────────────────────────────────
+
+    #[test]
+    fn collection_names_are_correct() {
+        assert_eq!(ChromaCollections::ESSAYS, "essays");
+        assert_eq!(ChromaCollections::RECORDS, "records");
+        assert_eq!(ChromaCollections::RESPONSES, "responses");
+        assert_eq!(ChromaCollections::PICTURES, "pictures");
+        assert_eq!(ChromaCollections::BLOG_POSTS, "blog_posts");
+    }
+
+    // ── ChromaConfig construction ─────────────────────────────────────────────
+
+    #[test]
+    fn chroma_config_stores_url_and_collection() {
+        let config = ChromaConfig {
+            url: "http://localhost:8000".to_string(),
+            collection_name: "essays".to_string(),
+            database: None,
+        };
+        assert_eq!(config.url, "http://localhost:8000");
+        assert_eq!(config.collection_name, "essays");
+        assert!(config.database.is_none());
+    }
+
+    #[test]
+    fn chroma_config_supports_optional_database() {
+        let config = ChromaConfig {
+            url: "http://chroma:8000".to_string(),
+            collection_name: "records".to_string(),
+            database: Some("production".to_string()),
+        };
+        assert_eq!(config.database.unwrap(), "production");
+    }
+
+    // ── MockEngine — validates the mock itself ────────────────────────────────
+
+    #[tokio::test]
+    async fn mock_engine_returns_correct_dimension() {
+        let engine = MockEngine::new(1536);
+        let result = engine
+            .embed_text("the resurrection of Jesus")
+            .await
+            .unwrap();
+        assert_eq!(result.len(), 1536);
+    }
+
+    #[tokio::test]
+    async fn mock_engine_returns_zeros() {
+        let engine = MockEngine::new(4);
+        let result = engine.embed_text("test").await.unwrap();
+        assert_eq!(result, vec![0.0, 0.0, 0.0, 0.0]);
+    }
+
+    #[tokio::test]
+    async fn mock_engine_accepts_empty_text() {
+        let engine = MockEngine::new(8);
+        let result = engine.embed_text("").await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn mock_engine_via_arc_trait_object() {
+        // Validates the Arc<dyn InferenceEngine> pattern used by ChromaStorage
+        let engine: Arc<dyn InferenceEngine> = Arc::new(MockEngine::new(768));
+        let embedding = engine.embed_text("Josephus").await.unwrap();
+        assert_eq!(embedding.len(), 768);
     }
 }

@@ -29,10 +29,21 @@ pub struct SourceTitle {
     pub identity: Option<SourceIdentity>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum SourceType {
+    Book,
+    AcademicPaper,
+    Website,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Source {
+    pub id: uuid::Uuid,
     pub author: Author,
     pub title: SourceTitle,
+    pub publication_name: Option<String>,
+    pub source_type: SourceType,
+    pub year: Option<i32>,
 }
 
 /*
@@ -47,11 +58,24 @@ pub struct Source {
 impl Source {
     /// Delegates construction and validation to `SourceGatekeeper`.
     pub async fn try_new(
+        id: uuid::Uuid,
         author: Author,
         title_text: String,
         identity: Option<SourceIdentity>,
+        publication_name: Option<String>,
+        source_type: SourceType,
+        year: Option<i32>,
     ) -> Result<Self, SourceError> {
-        Ok(SourceGatekeeper::new(author, title_text, identity)?.into_inner())
+        Ok(SourceGatekeeper::new(
+            id,
+            author,
+            title_text,
+            identity,
+            publication_name,
+            source_type,
+            year,
+        )?
+        .into_inner())
     }
 }
 
@@ -71,9 +95,13 @@ pub struct SourceGatekeeper(Source);
 impl SourceGatekeeper {
     /// Validates title and author, then wraps the resulting `Source`.
     pub fn new(
+        id: uuid::Uuid,
         author: Author,
         title_text: String,
         identity: Option<SourceIdentity>,
+        publication_name: Option<String>,
+        source_type: SourceType,
+        year: Option<i32>,
     ) -> Result<Self, SourceError> {
         let len = title_text.trim().len();
 
@@ -92,11 +120,15 @@ impl SourceGatekeeper {
         }
 
         Ok(Self(Source {
+            id,
             author,
             title: SourceTitle {
                 text: title_text.trim().to_string(),
                 identity,
             },
+            publication_name,
+            source_type,
+            year,
         }))
     }
 

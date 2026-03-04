@@ -24,8 +24,6 @@ pub struct BibleVerse {
     pub verse: u16,
 }
 
-/// The 66 books of the standard Protestant canon (expandable for Deuterocanon).
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum BibleBook {
     Genesis,

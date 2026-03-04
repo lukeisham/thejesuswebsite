@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
 /*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -10,6 +13,7 @@ use std::fmt;
 ////////////////////////////////////////////////////////////////////////////////
 */
 
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AcademicArticleId {
     /// The raw string representation of a Digital Object Identifier (DOI)

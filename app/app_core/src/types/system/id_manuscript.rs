@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
 /*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -11,6 +14,7 @@ use std::fmt;
 */
 
 /// Categories of New Testament Greek Manuscripts based on the Gregory-Aland system.
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ManuscriptCategory {
     Papyri,     // e.g., P52
@@ -21,6 +25,7 @@ pub enum ManuscriptCategory {
 
 /// A validated Gregory-Aland (GA) Manuscript Number.
 /// Example: "P46", "01", "1739", "L241"
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct GregoryAlandId {
     pub category: ManuscriptCategory,

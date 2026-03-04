@@ -12,17 +12,22 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY} # Passed from your host shell
       - RUST_LOG=info
     depends_on:
-      - chroma
+      chroma:
+        condition: service_healthy
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 
   # Vector Database for app_storage/src/chroma.rs
   chroma:
     image: chromadb/chroma:latest
     container_name: chroma_db
-    ports:
-      - "8000:8000"
     volumes:
       - chroma_data:/chroma/data
     environment:
@@ -30,7 +35,15 @@ services:
       - ANONYMIZED_TELEMETRY=FALSE
     networks:
       - app-network
+    ports:
+      - "8000:8000"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 
 networks:
   app-network:

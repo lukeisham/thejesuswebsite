@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use ulid::Ulid;
@@ -27,6 +28,7 @@ pub enum EntryToggle {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Metadata {
     pub id: Ulid,
+    pub author: String,
     pub keywords: Vec<String>,
     pub toggle: EntryToggle,
 }
@@ -44,10 +46,19 @@ impl Metadata {
     /// Delegates construction and keyword validation to `MetadataGatekeeper`.
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
     pub async fn try_new(
+        author: String,
         keywords: Vec<String>,
         toggle: EntryToggle,
     ) -> Result<Metadata, MetadataError> {
-        Ok(MetadataGatekeeper::new(keywords, toggle)?.into_inner())
+        Ok(MetadataGatekeeper::new(author, keywords, toggle)?.into_inner())
+    }
+
+    pub fn author(&self) -> String {
+        self.author.clone()
+    }
+
+    pub fn created_at(&self) -> DateTime<Utc> {
+        DateTime::<Utc>::from(self.id.datetime())
     }
 
     pub async fn switch_toggle(&mut self, new_state: EntryToggle) {
@@ -66,11 +77,16 @@ impl Metadata {
 
 /// A validated `Metadata`. Possession of this type guarantees that keywords
 /// are non-empty, within bounds (1–10), and free of blank entries.
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct MetadataGatekeeper(Metadata);
 
 impl MetadataGatekeeper {
     /// Enforces the strict rule of 1–10 keywords and prevents empty strings.
-    pub fn new(keywords: Vec<String>, toggle: EntryToggle) -> Result<Self, MetadataError> {
+    pub fn new(
+        author: String,
+        keywords: Vec<String>,
+        toggle: EntryToggle,
+    ) -> Result<Self, MetadataError> {
         let count = keywords.len();
 
         if count < 1 {
@@ -87,6 +103,7 @@ impl MetadataGatekeeper {
 
         Ok(Self(Metadata {
             id: Ulid::new(),
+            author,
             keywords,
             toggle,
         }))
@@ -112,6 +129,7 @@ impl MetadataGatekeeper {
 ////////////////////////////////////////////////////////////////////////////////
 */
 
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Serialize)]
 pub enum MetadataError {
     Underflow,      // Less than 1 keyword

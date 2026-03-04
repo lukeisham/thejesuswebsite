@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::num::NonZeroU64;
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
 /*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -14,6 +17,7 @@ use std::num::NonZeroU64;
 /// A unique identifier for a specific individual in the
 /// Lexicon of Greek Personal Names (LGPN).
 /// Example: V5b-42791 (An individual named 'Sogenes')
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct LgpnId(NonZeroU64);
 
