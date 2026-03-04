@@ -105,6 +105,14 @@
     <script src="js/refresh_records.js"></script>
     <script src="js/show_draft_record.js"></script>
     <script src="js/admin_edit_view.js"></script>
+    <script>
+        async function loadData() {
+            const response = await fetch('http://72.60.197.13:8080/api/records');
+            const data = await response.json();
+            console.log("Data from Rust:", data);
+        }
+        loadData();
+    </script>
 </body>
 
 </html>
