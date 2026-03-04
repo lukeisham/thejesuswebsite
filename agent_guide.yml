@@ -1,0 +1,98 @@
+# AI Agent Manifest & Context Guide
+version: 1.1.0
+last_updated: 2026-03-05T08:50:00Z
+environment: Production
+
+# 1. Core Source of Truth & Memory
+source_of_truth:
+  primary_record: "/app/app_core/src/types/record/record.rs"
+  relational_db: "SQL / Normalized (Persistence)"
+  vector_db: "ChromaDB (Contextual Retrieval & Vibe Search)"
+  sync_frequency: "Real-time via Dashboard"
+
+# 2. Agent Capabilities (Tools / Rust-backed)
+capabilities:
+  - tool: "Wikipedia_Engine"
+    path: "/backend/src/tools/wiki_engine.rs"
+    action: "Weekly rank/merge Wikipedia metadata"
+  - tool: "Challenge_Engine"
+    path: "/backend/src/tools/challenge_engine.rs"
+    action: "Monthly academic vs popular sorting & ranking"
+  - tool: "Link_Janitor"
+    path: "/backend/src/tools/link_check.rs"
+    action: "Scan for deadlinks in resources.html"
+  - tool: "Vector_Embedder"
+    path: "/backend/src/tools/chroma_sync.rs"
+    action: "Updates ChromaDB collections from Record.rs changes"
+
+# 3. JS Widget Inventory (Frontend Interface)
+widgets:
+  - id: "wgt_db_populator.js"
+    function: "Initial database population and data entry"
+  - id: "wgt_spelling.js"
+    function: "Real-time grammar and spell-check in dashboard"
+  - id: "wgt_page_metrics.js"
+    function: "Visualizes views, mentions, and rankings"
+  - id: "wgt_wiki_interface.js"
+    function: "UI for Wikipedia engine search/merge actions"
+  - id: "wgt_challenge_ranker.js"
+    function: "UI for Challenge engine search/merge actions"
+  - id: "wgt_research_suggest.js"
+    function: "Dynamic search results for suggested resources"
+  - id: "wgt_contact_triage.js"
+    function: "collation and summarization of contact message"
+  - id: "wgt_server_metrics.js"
+    function: "Monitor server metrics"
+  - id: "wgt_token_metrics.js"
+    function: "Monitor token metrics"
+  - id: "wgt_agent-chat.js"
+    function: "Create and manage agent chat sessions"
+  - id: "wgt_agent-self_reflection.js"
+    function: "Monitor agent reasoning, searching and data access"
+
+# 4. Contextual Index (The Map)
+content_index:
+  records: "ChromaDB (Query via Vector_Embedder tool)"
+  essays: "/frontend/essays/"
+  responses: "/frontend/responses/"
+  blog: "/frontend/blog/"
+  metadata: "/app/app_core/src/types/system/metadata.rs"
+  resources: "/frontend/resources/"
+
+# 5. Agentic Logic Rules (The "Vibe")
+logic_constraints:
+  - "Merge logic: Never overwrite existing UUIDs; merge new Metadata only."
+  - "Security: Private HTML obfuscated; restrict Dashboard access."
+  - "Accessibility: Public pages must support robot scraping and text-copy."
+  - "Consistency: Use CSS Grids and Rust Type-Safety across all rewrites."
+  - "Schema Versioning: The 'Record' struct is the absolute source of truth. Any change to it MUST simultaneously update its SCHEMA_VERSION constant, the corresponding SQL/ChromaDB migration scripts, and this agent_guide.yml. NEVER change it implicitly."
+  - "Priority of existing information: Current records and essays determine search scope, but adjacent results are encouraged."
+
+# 6. Dynamic Research State (Priority: 1 = Critical, 8 = Background)
+current_focus:
+  - "Priority 1: [Token Usage: [Token count, token usage]]"
+  - "Priority 2: [Critical Contact Triage - Agent-populated]"
+  - "Priority 3: [Incomplete Records & Wiki-Merge Status]"
+  - "Priority 4: [Potential Essays & Research Actions]"
+  - "Priority 5: [Self-reflection: monitor trace_reasoning and database logs]"
+  - "Priority 6: [ChromaDB Status: [Collection health/count]]"
+  - "Priority 7: [User metrics: [Views, Mentions, Rankings]]"
+  - "Priority 8: [Server Status: [CPU, Memory, Disk Space]]"
+
+# 7. Communication Protocol (Dashboard Chat)
+interaction_modes:
+  - mode: "Execution" # Trigger: Brief commands or "Do X"
+    vibe: "Concise, silent, report success/failure only."
+  - mode: "Collaborative" # Trigger: "What do you think?", "Brainstorm", "How"
+    vibe: "Iterative, analytical, proactive. Suggest 3 alternatives."
+  - mode: "Review" # Trigger: "Check this", "Is this right?"
+    vibe: "Critical, detailed, security-first. Highlight breaking changes."
+  - mode: "Monitor" # Trigger: "This is getting high", "Should I throttle token usage?"
+    vibe: "Prompt, clear, concise."
+
+chat_rules:
+  - "Helpful: Always explain concepts and offer step by step guidence"
+  - "Data-First: Always reference existing data before collecting new data."
+  - "Verification: Ask 'Proceed with deployment?' before executing heavy Rust tool-calls (Wiki/Challenge Engines)."
+  - "Contextual Anchoring: Every response regarding research must cite a UUID from Record.rs or a ChromaDB collection."
+  - "Proactive: Offer up contact summaries, token usage or server stats when appropriate."

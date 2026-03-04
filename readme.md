@@ -16,10 +16,10 @@ thejesuswebsite/
 │   ├── app_storage/          # Persistence layer (ChromaDB)
 │   ├── app_schema/           # Schema codegen and definitions
 │   └── app_ui/               # Axum web server (entry point binary)
-├── frontend/
-│   ├── public/               # JS served to all visitors
-│   ├── private/              # JS for authenticated admin pages
-│   └── static/               # CSS, images, fonts
+├── frontend/                 # Root HTML views
+│   ├── js/                   # Centralized JS logic
+│   ├── maps/                 # Static map resources
+│   └── private/              # Authenticated admin pages
 ├── .github/workflows/ci.yml  # GitHub Actions CI pipeline
 ├── cargo.toml                # Workspace manifest
 ├── dockerfile                # Multi-stage production build
@@ -29,36 +29,62 @@ thejesuswebsite/
 ├── build.rs                  # Injects BUILD_TIMESTAMP and GIT_HASH
 ├── rust_toolchain.toml       # Pins Rust to 1.85.0
 ├── rustfmt.toml              # Code formatting rules
-├── clippy.toml               # Linting thresholds (MSRV 1.85.0)
 └── sitemap.md                # Full project structure reference
 ```
+--
 
-### Tech Stack
+### Vibe Coding Rules
 
-| Layer | Technology |
-|---|---|
-| Frontend | HTML/CSS/JS (served by Axum) |
-| Backend | Rust 1.85.0, Axum |
-| AI | OpenAI API, Candle (local inference) |
-| Database | ChromaDB (vector store) |
-| CI/CD | GitHub Actions |
-| Deployment | Docker → VPS |
+Coding checklist
+- Is the new content indexed in agent_guide.yml?
+- Did I break the Record.rs type safety?
+- Are the new Rust functions exposed as Tools?
+- Did I update the OpenAPI schema?
 
-### Key Config Files
 
-| File | Purpose |
-|---|---|
-| `openai.yml` | Model profiles (`reasoning`, `structured_data`, `utility`), embedding config, budget limits |
-| `.env` / `.env.example` | Runtime secrets — **never commit `.env`** |
-| `build.rs` | Embeds `BUILD_TIMESTAMP` and `GIT_HASH` at compile time |
+HTML/CSS = Atomic Design, Global consistency, Responsive Flow / CSS Grid for Layout, Flexbox for Components. / does the page still function? 
+
+JS = Strict Interface, Error Translation, Lean Passthrough, Idempotency / One script per task / No lose of functionality during rewrites!
+
+RUST = No-Panic, Async First, Type Safety, Security Gatekeeping / Documentation Comments (///) on all Public Traits and Tools. / Don't drop code during rewrites!
+
+SQL =  Migration-First, Atomic Transactions, Explicit Relationships, Normalized Integrity / keep the code tidy / is all the data still being stored? 
 
 ---
 
-## Prerequisites
+### Codebase logic
 
-- **Rust 1.85.0** — installed automatically via `rust_toolchain.toml`
-- **Docker & Docker Compose** — for ChromaDB and production builds
-- **An OpenAI API key** — for AI features
+Record.rs (source of turth) = containts key data -> edited in dashboard.html -> presented in evidence.html and timeline.html and maps.html -> linked to lists in resources.html and essays.html and responses.html / Bonus news-crawler and blog, contextual essay + Wikipedia ranking + Challenge response system. Blog articles, Essays and responses created in dashboard.html. 
+
+Wikipedia Engine-loop (weekly) = results collected from Wikipedia -> ranked + Metadata -> pushed to wikiepedia.html -> new search results merge (but does not replace) previous search results -> ranked + Metadata -> pushed to wikiepedia.html / use UUIDs as primary keys to prevent duplicate entries during these weekly merges
+
+Challenge Engine-loop (monthly) = results collected from challenges -> ranked + Metadata + sorted into academic or popular lists -> pushed to popular_challenge.html or academic_challenge.html -> new search results merge (but does not replace) previous search results -> ranked + Metadata -> pushed to popular_challenge.html or academic_challenge.html / use UUIDs as primary keys to prevent duplicate entries during these weekly merges
+
+Agentic friendliness = every public page must include a <script type="application/ld+json">, plus easy access to Metadata, pdf-print and text-copy functions 
+
+Security = private html obfesucated, DDos attack guards, rate limiting, special code password login for dashboard 
+
+### AI-Agent integration 
+
+AI-Agent integration = monitors sever information + uses widgets to support codebase logic. / Widgets = intial-database population, spelling, deadlinks, page (views, mentions, rankings etc), Wikipedia engine, Challenge ranking engine, contact triage and summary and research next actions. / Resource lists + agent_guide.yml ("Living Manifest") = loaded daily to set context for AI-Agent / Research next action = static resource set (database) + dymanic search results for suggested resources. 
+
+### Codebase nomenclature
+
+Widgets	= wgt_[name].js	 /frontend/js/widgets/
+Tools	tool_[name].rs	/app_core/src/tools/
+Response = response_[slug].html	/frontend/response/
+Essays	= essay_[slug].html	/frontend/context/
+Blog = blog_[blogpost].html /frontend/blog/
+Wikipedia Engine = describes the files to support the Wikipdia search and ranking process
+Challenge Engine = describes the files to suppport the Challenge search and ranking process
+Metadata = srict RUST type that supports AI searching and scrapping
+
+### Codebase user-comments
+
+JS Script = highlight the key function + Sticky Comments: "Crucial logic blocks must be wrapped in // START [FUNCTION_NAME] and // END tags." 
+RUST = use big headings seperating the definitions from handling and actions and error handling + Sticky Comments: "Crucial logic blocks must be wrapped in // START [FUNCTION_NAME] and // END tags." 
+SQL = very structured very clear comemnts everywhere
+HMTL = use comemnts only to highligth variations 
 
 ---
 

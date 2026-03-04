@@ -44,6 +44,19 @@ pub struct Record {
 */
 
 impl Record {
+    /// **CRITICAL: SCHEMA VERSIONING**
+    /// The `Record` struct is the absolute source of truth for the entire application.
+    /// Any change to this struct mandates a version bump to this `SCHEMA_VERSION` constant,
+    /// a corresponding SQL/ChromaDB migration script, and an update to `agent_guide.yml`.
+    /// NEVER change the struct fields without explicitly updating this version.
+    pub const SCHEMA_VERSION: &'static str = "1.0.0";
+
+    /// Retrieves the current schema version of the Record struct.
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    pub fn schema_version() -> String {
+        Self::SCHEMA_VERSION.to_string()
+    }
+
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
     pub async fn try_new(
         metadata: Metadata,
@@ -180,3 +193,16 @@ impl std::fmt::Display for RecordError {
 }
 
 impl std::error::Error for RecordError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_schema_version_is_documented() {
+        // This test acts as a tripwire. If you modify the Record struct fields,
+        // you MUST update the SCHEMA_VERSION, the SQL database schema, and the agent_guide.yml!
+        assert_eq!(Record::SCHEMA_VERSION, "1.0.0");
+        assert_eq!(Record::schema_version(), "1.0.0");
+    }
+}

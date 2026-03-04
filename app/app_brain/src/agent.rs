@@ -1,4 +1,6 @@
 use crate::candle::CandleEngine;
+use crate::challenge_engine::ChallengeEngine;
+use crate::wiki_engine::WikiEngine;
 use async_trait::async_trait;
 
 #[cfg(target_arch = "wasm32")]
@@ -109,16 +111,24 @@ impl Agent {
                 todo!("EssayEngine not yet implemented")
             }
             Intent::Wikipedia => {
-                // Future: wikipedia_calculations::WikiEngine::calculate(&safe_query).await
-                todo!("WikiEngine not yet implemented")
+                let result = WikiEngine::calculate(&safe_query).await?;
+                Ok(AgentResponse {
+                    data: result,
+                    confidence: 0.8,
+                    metadata: vec![],
+                })
             }
             Intent::Record => {
                 // Future: record_search::RecordEngine::search(&safe_query).await
                 todo!("RecordEngine not yet implemented")
             }
             Intent::Challenge => {
-                // Future: challenge_calculations::ChallengeEngine::run(&safe_query).await
-                todo!("ChallengeEngine not yet implemented")
+                let result = ChallengeEngine::run(&safe_query).await?;
+                Ok(AgentResponse {
+                    data: result,
+                    confidence: 0.8,
+                    metadata: vec![],
+                })
             }
             Intent::Response => {
                 // Future: response_calculations::ResponseEngine::generate(&safe_query).await
