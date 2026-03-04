@@ -72,3 +72,7 @@ git commit -m "Update openai.yml for DeepSeek and cleanup"
 
 # 3. Send the changes to GitHub
 git push origin main
+
+git add .
+git commit -m "Update openai.yml for DeepSeek and cleanup"
+git push origin main

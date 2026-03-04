@@ -35,9 +35,8 @@ RUN apt-get update && apt-get install -y \
 # Copy the binary from the builder
 COPY --from=builder /app/target/release/app_ui /usr/local/bin/app_ui
 
-# Copy frontend static assets and config
-COPY --from=builder /app/frontend/static ./frontend/static
-COPY --from=builder /app/frontend/public ./frontend/public
+# Copy frontend assets
+COPY --from=builder /app/frontend ./frontend
 COPY --from=builder /app/openai.yml ./openai.yml
 
 # Set environment variables

@@ -125,36 +125,46 @@
 │       │   └── lib.rs
 │       └── cargo.toml
 ├── frontend
-│   ├── assets
-│   │   ├── fonts/
-│   │   └── images/
-│   ├── js
+│   ├── _footer.html
+│   ├── _header.html
+│   ├── _sidebar.html
+│   ├── about.html
+│   ├── challenge.html
+│   ├── context.html
+│   ├── evidence.html
+│   ├── index.html
+│   ├── news_and_blog.html
+│   ├── records.html
+│   ├── resources.html
+│   ├── timeline.html
+│   ├── wikipedia.html
+│   ├── readme.md
+│   ├── robots.txt
+│   ├── style.css
+│   ├── js/
+│   │   ├── current_item_highlight.js
+│   │   ├── display_academic_list.js
+│   │   ├── display_popular_list.js
+│   │   ├── display_top_blog_post.js
+│   │   ├── display_top_four_news_items.js
 │   │   ├── react_flow.js
+│   │   ├── refresh_list.js
+│   │   ├── refresh_records.js
+│   │   ├── search_records.js
+│   │   ├── store_contact.js
+│   │   ├── store_donor.js
 │   │   └── wasm_interop_demo.js
-│   ├── navigation_sidebar
-│   │   ├── js/
-│   │   └── navigation.html
-│   ├── private
-│   │   ├── dashboard/
-│   │   ├── login/
-│   │   ├── template_ response/
-│   │   └── template_essay/
-│   ├── public
-│   │   ├── about/
-│   │   ├── challenge/
-│   │   ├── context/
-│   │   ├── evidence/
-│   │   ├── maps/
-│   │   ├── news_and_blog/
-│   │   ├── records/
-│   │   ├── resources/
-│   │   ├── robot_header/
-│   │   ├── timeline/
-│   │   ├── wikipedia/
-│   │   ├── readme.md
-│   │   └── robots.txt
-│   └── static
-│       └── style.css
+│   ├── maps/
+│   ├── private/
+│   │   ├── blog_post.html
+│   │   ├── dashboard.html
+│   │   ├── essay.html
+│   │   ├── login.html
+│   │   └── response.html
+│   └── public/ (legacy folders)
+│       ├── context/
+│       ├── maps/
+│       └── responses/
 ├── node_modules/
 ├── test/
 ├── Cargo.lock

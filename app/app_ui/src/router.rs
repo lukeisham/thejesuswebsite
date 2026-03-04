@@ -16,13 +16,10 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/ws", get(ws::ws_handler))
         // 3. API v1 Endpoints
         .nest("/api/v1", api_routes())
-        // 4. Static Frontend — serves the website pages and assets
-        .nest_service("/static", ServeDir::new("frontend/static"))
-        .nest_service("/assets", ServeDir::new("frontend/assets"))
-        // 5. Shared State Injection
+        // 4. Shared State Injection
         .with_state(state)
-        // 6. Fallback — try frontend/public, then 404
-        .fallback_service(ServeDir::new("frontend/public").fallback(handle_404.into_service()))
+        // 5. Serve all frontend files (HTML, JS, CSS) from the root and map to /
+        .fallback_service(ServeDir::new("frontend").fallback(handle_404.into_service()))
 }
 
 /// Sub-router for API endpoints.
