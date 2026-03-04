@@ -1,4 +1,3 @@
-use crate::types::system::S2CellId;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
@@ -35,7 +34,8 @@ pub struct MapPoint {
     pub id: Uuid,
     pub title: String,
     pub description: String,
-    pub cell_id: S2CellId,
+    pub latitude: f64,
+    pub longitude: f64,
     /// Extensible data for specific "vibe" metadata (e.g., "ScriptureRef": "Mark 1:16")
     pub metadata: HashMap<String, String>,
 }
@@ -107,6 +107,14 @@ pub trait MapSecurity {
 impl MapSecurity for InteractiveMap {
     /// Strictly validates coordinates and string content to prevent injection or crashes.
     fn validate_point(&self, point: &MapPoint) -> Result<(), MapError> {
+        // Coordinate Boundary Gatekeeping
+        if !(-90.0..=90.0).contains(&point.latitude) {
+            return Err(MapError::InvalidBounds("Latitude must be -90 to 90".into()));
+        }
+        if !(-180.0..=180.0).contains(&point.longitude) {
+            return Err(MapError::InvalidBounds("Longitude must be -180 to 180".into()));
+        }
+
         // Content Gatekeeping
         if point.title.is_empty() {
             return Err(MapError::SecurityViolation("Title cannot be empty".into()));

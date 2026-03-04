@@ -1,25 +1,11 @@
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                               1. THE SKELETON                               //
-//                           (Schema Specification)                           //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
+// 🦴 Skeleton
 
 /// Its job is to weave your Rust types into other languages
 /// (like TypeScript for your frontend or OpenAPI specs for app_ui).
 /// This is the ultimate Security Gatekeeping move: it ensures that your
 /// Frontend cannot even try to send a request that your Backend doesn't recognize.
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                                2. THE BRAIN                                //
-//                            (Codegen Orchestrator)                          //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
+// 🧠 Brain
 
 /// Entry point for generating all external schemas.
 /// Called by a build script or a specific CLI command.
@@ -43,14 +29,7 @@ fn generate_typescript_bindings() -> Result<(), std::io::Error> {
 }
 
 fn generate_openapi_spec() -> Result<(), std::io::Error> {
-    /*
-    ////////////////////////////////////////////////////////////////////////////////
-    //                                                                            //
-    //                             3. THE GATEKEEPER                              //
-    //                          (API Spec Enforcement)                            //
-    //                                                                            //
-    ////////////////////////////////////////////////////////////////////////////////
-    */
+    // 🛡️ Gatekeeper
 
     // Logic for utoipa or similar crates to create the JSON/YAML
     // that describes your app_brain/api.rs endpoints.

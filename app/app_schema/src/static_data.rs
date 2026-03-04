@@ -1,11 +1,4 @@
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                               1. THE SKELETON                               //
-//                           (Constants & Taxonomies)                         //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
+// 🦴 Skeleton
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -26,14 +19,7 @@ pub enum ContentCategory {
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const MAX_SEARCH_RESULTS: usize = 50;
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                                2. THE BRAIN                                //
-//                          (Vibe & Logic Mappings)                           //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
+// 🧠 Brain
 
 /// Static mapping of Vibes to their numerical weights.
 /// This is used by the Brain in `response_calculations`.
@@ -46,14 +32,7 @@ pub fn get_vibe_weight(category: ContentCategory) -> f32 {
     }
 }
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                             3. THE GATEKEEPER                              //
-//                          (Validation & Sanitization)                       //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
+// 🛡️ Gatekeeper
 
 /// Security Gatekeeping: Helper to validate raw strings into Static Enums.
 /// No-Panic: Returns an Option/Result instead of crashing.

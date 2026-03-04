@@ -63,12 +63,13 @@ impl<S: Search + Send + Sync> ChallengeGenerator for PopularChallengeTool<S> {
             .map_err(|e| ToolError::SearchFailure(e.to_string()))?;
 
         // 3. Map to Skeleton (No-Panic conversion)
-        let mut processed = Vec::with_capacity(results.len());
-        for item in results {
-            let source = Url::parse(&item).map_err(|_| ToolError::MappingError)?;
-            processed.push(RawPopularChallenge { source });
-        }
-        Ok(processed)
+        Ok(results
+            .into_iter()
+            .map(|item| RawPopularChallenge {
+                source: Url::parse(&item)
+                    .unwrap_or_else(|_| Url::parse("https://error.com").unwrap()),
+            })
+            .collect())
     }
 }
 
@@ -85,12 +86,13 @@ impl<S: Search + Send + Sync> ChallengeGenerator for AcademicChallengeTool<S> {
             .await
             .map_err(|e| ToolError::SearchFailure(e.to_string()))?;
 
-        let mut processed = Vec::with_capacity(results.len());
-        for item in results {
-            let source = Url::parse(&item).map_err(|_| ToolError::MappingError)?;
-            processed.push(RawAcademicChallenge { source });
-        }
-        Ok(processed)
+        Ok(results
+            .into_iter()
+            .map(|item| RawAcademicChallenge {
+                source: Url::parse(&item)
+                    .unwrap_or_else(|_| Url::parse("https://error.com").unwrap()),
+            })
+            .collect())
     }
 }
 

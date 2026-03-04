@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News &amp; Blog | The Jesus Website</title>
+    <meta name="description"
+        content="Latest news updates and blog posts from The Jesus Website — new records, site updates and historical insights.">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <header style="grid-column: 1 / -1;">
+            <h1>News &amp; Blog</h1>
+            <p>Site updates, new record additions, and longer-form blog posts exploring topics related to the historical
+                Jesus.</p>
+        </header>
+
+        <!-- Featured Blog Post -->
+        <section style="grid-column: 1 / 8;">
+            <h2>Latest Blog Post</h2>
+            <article class="feed-container" id="top-blog-post"
+                style="border: 1px solid var(--border-color); padding: 2rem;">
+                <div class="essay-kicker"
+                    style="font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-color);">
+                    Featured</div>
+                <h3 style="font-size: 1.6rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">Blog posts will be loaded
+                    dynamically</h3>
+                <p style="font-size: 0.9rem; color: #666;">The latest blog post will appear here, fetched from the
+                    server. Posts cover new record discoveries, site feature announcements and deep-dive articles on
+                    historical topics.</p>
+                <div class="essay-meta" style="margin-top: 1rem;">
+                    <span>Author: —</span>
+                    <span>Date: —</span>
+                </div>
+                <a href="#" class="nav-link" style="display: inline-block; margin-top: 1rem; font-size: 0.85rem;">Read
+                    Full Post →</a>
+            </article>
+        </section>
+
+        <!-- News Feed -->
+        <aside style="grid-column: 9 / 13;">
+            <h2>Recent News</h2>
+            <div id="news-feed">
+                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 0.25rem;">News Item</h4>
+                    <p style="font-size: 0.8rem; color: #666; margin: 0;">News items will be loaded from the server —
+                        site updates, new records added, feature launches.</p>
+                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
+                </article>
+
+                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 0.25rem;">News Item</h4>
+                    <p style="font-size: 0.8rem; color: #666; margin: 0;">Placeholder for the second news item.</p>
+                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
+                </article>
+
+                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 0.25rem;">News Item</h4>
+                    <p style="font-size: 0.8rem; color: #666; margin: 0;">Placeholder for the third news item.</p>
+                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
+                </article>
+
+                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 0.25rem;">News Item</h4>
+                    <p style="font-size: 0.8rem; color: #666; margin: 0;">Placeholder for the fourth news item.</p>
+                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
+                </article>
+            </div>
+        </aside>
+
+    </div>
+
+    <script src="js/display_top_blog_post.js"></script>
+    <script src="js/display_top_four_news_items.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+services:
+  website:
+    image: nginx:alpine
+    container_name: jesus-website
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/public:/usr/share/nginx/html:ro
+    restart: always

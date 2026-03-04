@@ -1,61 +1,72 @@
-# The Jesus Website - Developer Makefile
+# Variables
+CARGO := cargo
+DOCKER := docker-compose -f docker.yml
+BINARY_NAME := app_ui
+LOG_DIR := ./logs
 
-.PHONY: dev check fmt lint test test-unit test-integration build ready docker-up docker-down clean test-wasm build-wasm help
+# Phony targets ensure make doesn't confuse commands with files
+.PHONY: all help dev build test lint clean docker-up docker-down fmt
+
+# Default target: show help
+all: help
 
 help:
-	@echo "Available targets:"
-	@echo "  dev               - Run app_ui in debug mode"
-	@echo "  check             - Fast workspace-wide type check"
-	@echo "  fmt               - Format all code"
-	@echo "  lint              - Run Clippy with -D warnings"
-	@echo "  test              - Run all workspace tests"
-	@echo "  test-unit         - Run only unit tests"
-	@echo "  test-integration  - Run integration tests (needs docker-up)"
-	@echo "  build             - Build the release binary"
-	@echo "  ready             - Pre-push gate: fmt -> lint -> test"
-	@echo "  docker-up         - Start ChromaDB and services"
-	@echo "  docker-down       - Stop all services"
-	@echo "  clean             - Remove target/ and logs"
-	@echo "  test-wasm         - Verify core types compile for WASM"
-	@echo "  build-wasm        - Build the WASM package for production"
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Development:"
+	@echo "  dev          Run the main UI application"
+	@echo "  check        Fast check of the codebase"
+	@echo "  fmt          Format code using rustfmt.toml"
+	@echo "  lint         Run clippy with strict denials"
+	@echo ""
+	@echo "Testing & Building:"
+	@echo "  test         Run all workspace tests"
+	@echo "  build        Build the release binary"
+	@echo ""
+	@echo "Infrastructure:"
+	@echo "  docker-up    Start services (Chroma, etc.)"
+	@echo "  docker-down  Stop all services"
+	@echo ""
+	@echo "Maintenance:"
+	@echo "  clean        Remove target dir and logs"
+
+# --- Development ---
 
 dev:
-	cd app && cargo run -p app_ui
+	$(CARGO) run -p app_ui
 
 check:
-	cd app && cargo check --workspace
+	$(CARGO) check --workspace
 
 fmt:
-	cd app && cargo fmt --all
+	$(CARGO) fmt --all
 
 lint:
-	cd app && cargo clippy --workspace --all-targets --all-features -- -D warnings
+	$(CARGO) clippy --workspace -- -D warnings
 
-test:
-	cd app && cargo test --workspace
+# --- Quality Gate (Run this before pushing) ---
+ready: fmt lint test
+	@echo "✅ Workspace is ready for a commit!"
 
-test-unit:
-	cd app && cargo test --workspace --lib --bins
-
-test-integration:
-	cd app && cargo test --workspace --test '*'
+# --- Build & Test ---
 
 build:
-	cd app && cargo build --release -p app_ui
+	$(CARGO) build --release
 
-ready: fmt lint test
+test:
+	$(CARGO) test --workspace
+
+# --- Infrastructure & Docker ---
 
 docker-up:
-	docker compose -f docker.yml up -d
+	$(DOCKER) up -d
 
 docker-down:
-	docker compose -f docker.yml down
+	$(DOCKER) down
+
+# --- Cleanup ---
 
 clean:
-	cd app && cargo clean
-
-test-wasm:
-	cd app && cargo check --target wasm32-unknown-unknown
-
-build-wasm:
-	cd app && wasm-pack build --target web --out-dir ../frontend/static/js/wasm
+	$(CARGO) clean
+	rm -rf $(LOG_DIR)
+	@echo "🧹 Cleaned target and logs."

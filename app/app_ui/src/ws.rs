@@ -9,15 +9,6 @@ use axum::{
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                             1. THE GATEKEEPER                              //
-//                          (Upgrade & Auth Handover)                         //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
-
 /// The entry point for the WebSocket upgrade.
 /// Following the Gatekeeper pattern: we handle metadata and connection logic here
 /// before delegating the "Brain" work to websocket.rs.
@@ -31,15 +22,6 @@ pub async fn ws_handler(
     // Delegate the actual socket handling to the websocket module (The Brain)
     ws.on_upgrade(move |socket| handle_connection(socket, addr))
 }
-
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                                2. THE BRAIN                                //
-//                             (Connection Handler)                           //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
 
 async fn handle_connection(socket: WebSocket, addr: SocketAddr) {
     tracing::debug!("WebSocket session established: {}", addr);

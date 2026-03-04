@@ -110,7 +110,6 @@ impl NewsEngine {
         // Move to Feed
         let mut feed = self.feed.write().await;
         feed.items.insert(0, processed_item); // Sequential: Newest at top
-        feed.items.truncate(25); // Cap at 25 items
 
         Ok(id)
     }

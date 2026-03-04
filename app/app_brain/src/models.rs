@@ -1,9 +1,4 @@
-/*
-////////////////////////////////////////////////////////////////////////////////
-*/
-
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
+// 🦴 Skeleton
 
 // Challenge Types
 pub use app_core::types::essays_and_ranks::{

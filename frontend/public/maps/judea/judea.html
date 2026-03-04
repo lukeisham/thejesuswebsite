@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Judea Map | The Jesus Website</title>
+    <meta name="description"
+        content="Explore records from Judea — Bethlehem, Jericho, the Jordan River and the wilderness where Jesus was baptised and tempted.">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <header style="grid-column: 1 / -1;">
+            <nav><a href="../maps.html" class="nav-link">← All Maps</a></nav>
+            <h1>Judea</h1>
+            <p>The region of Jesus' birth and baptism — Bethlehem, the Jordan River, Jericho and the Judean wilderness.
+                This area provides the setting for the nativity, the temptation and key moments of public ministry.</p>
+        </header>
+
+        <!-- Zoomable Map -->
+        <main style="grid-column: 1 / 9;">
+            <div class="map-container" id="map-canvas"
+                style="height: 500px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; position: relative; cursor: grab;">
+                <h2 style="color: var(--accent-color); opacity: 0.4;">[ Judea Map — awaiting map library ]</h2>
+                <div id="map-controls"
+                    style="position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 5px;">
+                    <button id="zoom-in" style="width: 36px; height: 36px; font-size: 1.2rem;">+</button>
+                    <button id="zoom-out" style="width: 36px; height: 36px; font-size: 1.2rem;">−</button>
+                    <button id="zoom-reset" style="width: 36px; height: 36px; font-size: 0.7rem;">⟲</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Key Locations Sidebar -->
+        <aside
+            style="grid-column: 9 / 13; background: var(--card-bg); padding: 20px; border-left: 1px solid var(--border-color);">
+            <h3 class="label">Key Locations</h3>
+            <ul class="record-list" id="location-list">
+                <li><a href="#" data-loc="bethlehem">Bethlehem</a></li>
+                <li><a href="#" data-loc="jordan-river">Jordan River</a></li>
+                <li><a href="#" data-loc="jericho">Jericho</a></li>
+                <li><a href="#" data-loc="qumran">Qumran</a></li>
+                <li><a href="#" data-loc="hebron">Hebron</a></li>
+                <li><a href="#" data-loc="judean-wilderness">Judean Wilderness</a></li>
+                <li><a href="#" data-loc="ein-gedi">Ein Gedi</a></li>
+                <li><a href="#" data-loc="bethany">Bethany</a></li>
+            </ul>
+        </aside>
+
+    </div>
+
+    <script src="js/map_zoom.js"></script>
+</body>
+
+</html>

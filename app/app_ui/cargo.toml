@@ -11,7 +11,6 @@ app_storage = { path = "../app_storage" }
 
 # Workspace-managed
 serde       = { workspace = true }
-serde_json  = { workspace = true }
 tokio       = { workspace = true }
 async-trait = { workspace = true }
 thiserror   = { workspace = true }
@@ -26,9 +25,6 @@ tower-http       = { version = "0.5", features = ["fs", "trace", "cors", "timeou
 tower            = { version = "0.4", features = ["util"] }
 dotenvy          = "0.15"
 rand             = "0.8"
-lettre           = { version = "0.11", features = ["builder", "smtp-transport", "tokio1", "tokio1-native-tls"] }
-sqlx             = { version = "0.7", features = ["runtime-tokio", "sqlite", "macros"] }
-chrono           = { workspace = true }
 
 # Crate-specific: WASM bindings (login.rs)
 wasm-bindgen         = "0.2"

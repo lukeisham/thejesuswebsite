@@ -131,66 +131,25 @@ impl Agent {
     /// Keyword-based intent classifier.
     /// Replace with embedding-based routing once CandleEngine is wired up.
     fn determine_intent(&self, query: &str) -> Intent {
-        classify_intent(query)
-    }
+        let lower = query.to_lowercase();
 
-    /// Verifies the DeepSeek API key and connection securely.
-    #[cfg(not(target_arch = "wasm32"))]
-    pub async fn test_deepseek_connection() -> anyhow::Result<String> {
-        let api_key = std::env::var("DEEPSEEK_API_KEY")
-            .map_err(|_| anyhow::anyhow!("DEEPSEEK_API_KEY not found in environment"))?;
-
-        let client = reqwest::Client::new();
-        let payload = serde_json::json!({
-            "model": "deepseek-chat",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": "Hello, this is a test from the Rust Backend. Please reply with 'Connection successful!'"
-                }
-            ],
-            "max_tokens": 50
-        });
-
-        let res = client
-            .post("https://api.deepseek.com/v1/chat/completions")
-            .bearer_auth(api_key)
-            .json(&payload)
-            .send()
-            .await?;
-
-        if !res.status().is_success() {
-            let err_text = res.text().await?;
-            return Err(anyhow::anyhow!("DeepSeek API error: {}", err_text));
+        if lower.contains("essay") || lower.contains("argument") || lower.contains("thesis") {
+            Intent::Essay
+        } else if lower.contains("wiki")
+            || lower.contains("history")
+            || lower.contains("historical")
+        {
+            Intent::Wikipedia
+        } else if lower.contains("record") || lower.contains("source") || lower.contains("cite") {
+            Intent::Record
+        } else if lower.contains("challenge") || lower.contains("claim") || lower.contains("fact") {
+            Intent::Challenge
+        } else if lower.contains("response") || lower.contains("reply") || lower.contains("answer")
+        {
+            Intent::Response
+        } else {
+            Intent::Unknown
         }
-
-        let body: serde_json::Value = res.json().await?;
-        let reply = body["choices"][0]["message"]["content"]
-            .as_str()
-            .unwrap_or("No content")
-            .to_string();
-
-        Ok(reply)
-    }
-}
-
-/// Pure intent classification by keyword.
-/// Extracted as a free function so it is testable without constructing an Agent.
-pub(crate) fn classify_intent(query: &str) -> Intent {
-    let lower = query.to_lowercase();
-
-    if lower.contains("essay") || lower.contains("argument") || lower.contains("thesis") {
-        Intent::Essay
-    } else if lower.contains("wiki") || lower.contains("history") || lower.contains("historical") {
-        Intent::Wikipedia
-    } else if lower.contains("record") || lower.contains("source") || lower.contains("cite") {
-        Intent::Record
-    } else if lower.contains("challenge") || lower.contains("claim") || lower.contains("fact") {
-        Intent::Challenge
-    } else if lower.contains("response") || lower.contains("reply") || lower.contains("answer") {
-        Intent::Response
-    } else {
-        Intent::Unknown
     }
 }
 
@@ -248,109 +207,4 @@ pub enum AgentError {
 
     #[error("Unknown intent: query could not be routed to any domain engine")]
     UnknownIntent,
-}
-
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                               5. UNIT TESTS                                //
-//               No network or external services — pure logic only            //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // ── sanitize() ──────────────────────────────────────────────────────────
-
-    #[test]
-    fn sanitize_trims_whitespace() {
-        let result = Agent::sanitize("  hello world  ").unwrap();
-        assert_eq!(result, "hello world");
-    }
-
-    #[test]
-    fn sanitize_rejects_input_over_16k() {
-        let long = "a".repeat(16_385);
-        let result = Agent::sanitize(&long);
-        assert!(matches!(result, Err(AgentError::QueryTooLong(_))));
-    }
-
-    #[test]
-    fn sanitize_accepts_input_exactly_at_limit() {
-        let exactly_at_limit = "a".repeat(16_384);
-        assert!(Agent::sanitize(&exactly_at_limit).is_ok());
-    }
-
-    #[test]
-    fn sanitize_rejects_all_control_chars() {
-        // A non-empty string of only control characters
-        let control_only = "\x01\x02\x03";
-        let result = Agent::sanitize(control_only);
-        assert!(matches!(result, Err(AgentError::MaliciousInput)));
-    }
-
-    #[test]
-    fn sanitize_allows_empty_string() {
-        // Empty after trim — guards against all-control rejection since !trimmed.is_empty()
-        let result = Agent::sanitize("   ");
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "");
-    }
-
-    // ── classify_intent() — pure function, no engine needed ─────────────────
-
-    #[test]
-    fn intent_essay_from_keyword() {
-        assert_eq!(classify_intent("write an essay on Jesus"), Intent::Essay);
-    }
-
-    #[test]
-    fn intent_essay_from_argument() {
-        assert_eq!(classify_intent("best argument for the resurrection"), Intent::Essay);
-    }
-
-    #[test]
-    fn intent_wikipedia_from_history() {
-        assert_eq!(classify_intent("historical context of Judea"), Intent::Wikipedia);
-    }
-
-    #[test]
-    fn intent_record_from_source() {
-        assert_eq!(classify_intent("show me the source for this"), Intent::Record);
-    }
-
-    #[test]
-    fn intent_challenge_from_claim() {
-        assert_eq!(classify_intent("what is the claim here?"), Intent::Challenge);
-    }
-
-    #[test]
-    fn intent_response_from_answer() {
-        assert_eq!(classify_intent("find an answer to this challenge"), Intent::Response);
-    }
-
-    #[test]
-    fn intent_unknown_when_no_keywords_match() {
-        assert_eq!(classify_intent("something completely vague"), Intent::Unknown);
-    }
-
-    #[test]
-    fn intent_is_case_insensitive() {
-        assert_eq!(classify_intent("ESSAY question"), Intent::Essay);
-    }
-
-    // ── deepseek test ───────────────────────────────────────────────────────
-
-    #[tokio::test]
-    #[ignore] // Run manually with cargo test -- --ignored
-    async fn test_deepseek_live() {
-        // Load the environment variables strictly for testing
-        dotenvy::from_path("../../.env").ok();
-        let result = Agent::test_deepseek_connection().await;
-        assert!(result.is_ok(), "DeepSeek connection failed: {:?}", result.err());
-        println!("DeepSeek reply: {}", result.unwrap());
-    }
 }

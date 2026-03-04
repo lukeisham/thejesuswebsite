@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
 /*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -16,7 +13,6 @@ use wasm_bindgen::prelude::*;
 /// A validated ORCID iD.
 /// Stored as a normalized string (0000-0000-0000-0000) to preserve
 /// the 'X' checksum digit if present.
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct OrcidId(String);
 
@@ -81,7 +77,7 @@ impl OrcidId {
 
         let compact = compact.to_uppercase();
         let base_digits = &compact[..15];
-        let check_digit = compact.chars().last().ok_or(OrcidError::InvalidCharacter)?;
+        let check_digit = compact.chars().last().unwrap();
 
         // 3. Checksum Validation (Brain logic moved to Gatekeeper for safety)
         let mut total = 0;
@@ -96,7 +92,7 @@ impl OrcidId {
         let expected_check = if result == 10 {
             'X'
         } else {
-            char::from_digit(result, 10).ok_or(OrcidError::ChecksumMismatch)?
+            char::from_digit(result, 10).unwrap()
         };
 
         if check_digit != expected_check {

@@ -17,31 +17,6 @@ PRAGMA foreign_keys = ON;
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- USERS & AUTHENTICATION
--- ─────────────────────────────────────────────────────────────────────────────
-
-CREATE TABLE IF NOT EXISTS users (
-    id         TEXT PRIMARY KEY,         -- ULID
-    email      TEXT NOT NULL UNIQUE,
-    role       TEXT NOT NULL CHECK (role IN ('Admin', 'Contributor')),
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS pending_auths (
-    email      TEXT PRIMARY KEY REFERENCES users(email),
-    passcode   TEXT NOT NULL,
-    expires_at INTEGER NOT NULL          -- Unix timestamp
-);
-
-CREATE TABLE IF NOT EXISTS sessions (
-    token      TEXT PRIMARY KEY,
-    email      TEXT NOT NULL REFERENCES users(email),
-    role       TEXT NOT NULL,
-    expires_at INTEGER NOT NULL
-);
-
-
--- ─────────────────────────────────────────────────────────────────────────────
 -- NEWS ITEMS
 -- ─────────────────────────────────────────────────────────────────────────────
 
@@ -65,57 +40,13 @@ CREATE TABLE IF NOT EXISTS news_holding_area (
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- CORE DATA (HYBRID)
--- ─────────────────────────────────────────────────────────────────────────────
-
-CREATE TABLE IF NOT EXISTS records (
-    id          TEXT PRIMARY KEY,         -- ULID
-    parent_id   TEXT REFERENCES records(id), -- Hierarchy support
-    name        TEXT NOT NULL,
-    category    TEXT NOT NULL,            -- e.g. 'Event', 'Location', 'Person', 'Theme'
-    era         TEXT NOT NULL,            -- e.g. 'AD 30' (Timeline support)
-    latitude    REAL,                     -- Map support
-    longitude   REAL,                     -- Map support
-    primary_verse TEXT,                   -- Bible Reference (e.g. John 1:1)
-    secondary_verse TEXT,                 -- Additional verses
-    description TEXT,                     -- Description content
-    passion_day INTEGER,                  -- 1-7 (Palm Sunday to Easter)
-    passion_hour INTEGER,                 -- 1-24
-    created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS essays (
-    id          TEXT PRIMARY KEY,         -- ULID
-    title       TEXT NOT NULL,
-    author      TEXT NOT NULL,
-    created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS essay_drafts (
-    slug        TEXT PRIMARY KEY, -- e.g., '1st_century_judaism'
-    kicker      TEXT,
-    title       TEXT,
-    subtitle    TEXT,
-    body        TEXT,
-    updated_at  TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS record_drafts (
-    id          TEXT PRIMARY KEY,
-    payload     TEXT NOT NULL,
-    updated_at  TEXT NOT NULL
-);
-
-
--- ─────────────────────────────────────────────────────────────────────────────
 -- CONTACTS
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS contacts (
-    id          TEXT PRIMARY KEY,              -- ULID
-    name        TEXT NOT NULL,
-    email       TEXT NOT NULL,
-    source_type TEXT NOT NULL DEFAULT 'Human' CHECK (source_type IN ('Human', 'Agent'))
+    id    TEXT PRIMARY KEY,              -- ULID
+    name  TEXT NOT NULL,
+    email TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS contact_messages (
@@ -123,8 +54,7 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     contact_id TEXT NOT NULL REFERENCES contacts(id),
     subject    TEXT NOT NULL,
     body       TEXT NOT NULL,
-    sent_at    TEXT NOT NULL,             -- ISO 8601
-    status     TEXT NOT NULL DEFAULT 'Unread' CHECK (status IN ('Unread', 'Read'))
+    sent_at    TEXT NOT NULL              -- ISO 8601
 );
 
 
@@ -152,7 +82,7 @@ CREATE TABLE IF NOT EXISTS donors (
 
 CREATE TABLE IF NOT EXISTS challenges_popular (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    url         TEXT NOT NULL UNIQUE,
+    url         TEXT NOT NULL,
     name        TEXT NOT NULL,
     ranking     INTEGER NOT NULL CHECK (ranking BETWEEN 1 AND 100),
     metadata_id TEXT REFERENCES metadata(id)
@@ -160,7 +90,7 @@ CREATE TABLE IF NOT EXISTS challenges_popular (
 
 CREATE TABLE IF NOT EXISTS challenges_academic (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    url         TEXT NOT NULL UNIQUE,
+    url         TEXT NOT NULL,
     name        TEXT NOT NULL,
     ranking     INTEGER NOT NULL CHECK (ranking BETWEEN 1 AND 100),
     metadata_id TEXT REFERENCES metadata(id)
@@ -203,14 +133,11 @@ CREATE TABLE IF NOT EXISTS metadata (
 
 -- Sources (bibliography entries)
 CREATE TABLE IF NOT EXISTS sources (
-    id               TEXT PRIMARY KEY,
-    author_type      TEXT NOT NULL CHECK (author_type IN ('Name', 'Orcid')),
-    author_val       TEXT NOT NULL,
-    title_text       TEXT NOT NULL,
-    identity         TEXT,                     -- JSON SourceIdentity or NULL
-    publication_name TEXT,
-    source_type      TEXT NOT NULL CHECK (source_type IN ('Book', 'AcademicPaper', 'Website')),
-    year             INTEGER
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    author_type TEXT NOT NULL CHECK (author_type IN ('Name', 'Orcid')),
+    author_val  TEXT NOT NULL,
+    title_text  TEXT NOT NULL,
+    identity    TEXT                     -- JSON SourceIdentity or NULL
 );
 
 -- Bible verses
@@ -329,31 +256,4 @@ CREATE TABLE IF NOT EXISTS work_queue (
     status     TEXT NOT NULL CHECK (status IN ('Pending', 'InProgress', 'Done', 'Failed')),
     created_at TEXT NOT NULL,
     updated_at TEXT
-);
-
--- Security & Audit Logs
-CREATE TABLE IF NOT EXISTS security_logs (
-    id         TEXT PRIMARY KEY,         -- ULID
-    event_type TEXT NOT NULL CHECK (event_type IN ('Honeypot', 'RateLimit', 'LoginRequest', 'LoginSuccess', 'LoginFail')),
-    ip_address TEXT,
-    details    TEXT,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Site Mentions (90-day retention)
-CREATE TABLE IF NOT EXISTS site_mentions (
-    id          TEXT PRIMARY KEY,         -- ULID
-    url         TEXT NOT NULL,
-    snippet     TEXT NOT NULL,
-    source_type TEXT NOT NULL CHECK (source_type IN ('Human', 'Agent')),
-    created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Rate limits
-CREATE TABLE IF NOT EXISTS ip_rate_limits (
-    ip_address TEXT NOT NULL,
-    endpoint   TEXT NOT NULL,
-    window_start TEXT NOT NULL,
-    request_count INTEGER NOT NULL DEFAULT 1,
-    PRIMARY KEY (ip_address, endpoint, window_start)
 );

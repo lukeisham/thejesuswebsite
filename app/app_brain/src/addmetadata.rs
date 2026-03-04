@@ -72,7 +72,6 @@ impl MetadataService {
     async fn generate_contextual_metadata(&self) -> Result<Metadata, ToolError> {
         Ok(Metadata {
             id: Ulid::new(),
-            author: "System Engine".to_string(),
             keywords: vec!["contextual".to_string()],
             toggle: EntryToggle::Context,
         })

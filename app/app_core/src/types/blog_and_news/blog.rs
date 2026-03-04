@@ -31,39 +31,6 @@ pub struct BlogPost {
     pub is_published: bool,
 }
 
-impl BlogPost {
-    /// Returns the first label as the primary category.
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-    pub fn display_category(&self) -> String {
-        self.labels
-            .first()
-            .cloned()
-            .unwrap_or_else(|| "Featured".to_string())
-    }
-
-    /// Returns a truncated excerpt of the content.
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-    pub fn display_excerpt(&self) -> String {
-        if self.content.len() > 150 {
-            return format!("{}...", &self.content[..147]);
-        } else {
-            return self.content.clone();
-        }
-    }
-
-    /// Returns the author from metadata.
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-    pub fn display_author(&self) -> String {
-        return self.metadata.author();
-    }
-
-    /// Returns the date from metadata.
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-    pub fn display_date(&self) -> String {
-        return self.metadata.created_at().format("%B %d, %Y").to_string();
-    }
-}
-
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DraftBlogPost {

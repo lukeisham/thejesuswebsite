@@ -2,9 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::num::NonZeroU64;
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
 /*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -17,7 +14,6 @@ use wasm_bindgen::prelude::*;
 /// A monotonic Sequence Identifier.
 /// Uses NonZeroU64 to ensure 0 is never a valid sequence,
 /// often useful for database optimization and "None" representation.
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SequenceId(NonZeroU64);
 

@@ -237,10 +237,6 @@ impl Popular {
             Ok(Self(val))
         }
     }
-
-    pub fn value(&self) -> u8 {
-        self.0
-    }
 }
 
 impl Academic {
@@ -253,10 +249,6 @@ impl Academic {
         } else {
             Ok(Self(val))
         }
-    }
-
-    pub fn value(&self) -> u8 {
-        self.0
     }
 }
 

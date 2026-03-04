@@ -1,8 +1,6 @@
-use serde::{Deserialize, Serialize};
-use std::fmt;
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
+use serde::{Serialize, Deserialize};
+use std::fmt;
 
 /*
 ////////////////////////////////////////////////////////////////////////////////
@@ -14,9 +12,8 @@ use wasm_bindgen::prelude::*;
 */
 
 /// A validated ISBN identifier.
-/// Internally stored as a 13-digit string (normalized) to ensure
+/// Internally stored as a 13-digit string (normalized) to ensure 
 /// compatibility with modern systems, while supporting ISBN-10 inputs.
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Isbn(String);
 
@@ -34,7 +31,7 @@ impl Isbn {
     /// Handles both ISBN-10 and ISBN-13, normalizing to ISBN-13.
     pub async fn parse(raw: &str) -> Result<Self, IsbnError> {
         let cleaned = Self::clean_input(raw);
-
+        
         // The Brain decides which Gatekeeper to call based on length
         let normalized = match cleaned.len() {
             10 => Self::gatekeep_isbn10(&cleaned)?,
@@ -54,19 +51,24 @@ impl Isbn {
     }
 
     /// Returns a hyphenated version for human readability (EAN format).
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
     pub fn display_formatted(&self) -> String {
-        let s = format!(
+        format!(
             "{}-{}-{}-{}-{}",
-            &self.0[0..3],
-            &self.0[3..4],
-            &self.0[4..7],
-            &self.0[7..12],
-            &self.0[12..13]
-        );
-        return s;
+            &self.0[0..3], &self.0[3..4], &self.0[4..7], &self.0[7..12], &self.0[12..13]
+        )
     }
+}
 
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                             3. THE GATEKEEPER                              //
+//                        (Security Gatekeeping & Validators)                 //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
+impl Isbn {
     /// Security Gate: Validates ISBN-13 using MOD 10 checksum.
     fn gatekeep_isbn13(s: &str) -> Result<String, IsbnError> {
         let mut sum = 0;
@@ -94,7 +96,7 @@ impl Isbn {
             sum += (10 - i as u32) * digit;
         }
 
-        let check_char = s.chars().nth(9).ok_or(IsbnError::InvalidLength(s.len()))?;
+        let check_char = s.chars().nth(9).unwrap();
         let check_val = if check_char == 'X' {
             10
         } else {
@@ -113,7 +115,7 @@ impl Isbn {
     fn calc_isbn13_check(s: &str) -> u32 {
         let mut sum = 0;
         for (i, c) in s.chars().enumerate() {
-            let digit = c.to_digit(10).unwrap_or(0); // Input is pre-validated to be numeric
+            let digit = c.to_digit(10).unwrap();
             sum += if i % 2 == 0 { digit } else { digit * 3 };
         }
         (10 - (sum % 10)) % 10
