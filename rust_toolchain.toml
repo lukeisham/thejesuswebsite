@@ -1,0 +1,22 @@
+[toolchain]
+# Use the latest stable version or a specific one for strict consistency
+channel = "1.85.0"
+
+# Components required for development and CI
+components = [ 
+    "rustfmt",   # For code styling
+    "clippy",    # For static analysis/linting
+    "rust-src"   # Helpful for IDE autocomplete and source navigation
+]
+
+# Targets ensure your environment can cross-compile if needed
+# Common example: x86_64-unknown-linux-gnu for server deployment
+targets = [ 
+    "x86_64-unknown-linux-gnu", 
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin"
+]
+
+# Set the profile to 'minimal' to speed up CI/CD installation
+# Options: "minimal", "default", or "complete"
+profile = "default"

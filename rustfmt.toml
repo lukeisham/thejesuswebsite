@@ -1,0 +1,30 @@
+# Maximum line length before wrapping. 100 is a sweet spot for modern monitors.
+max_width = 100
+
+# Use 4 spaces for indentation (Rust standard).
+tab_spaces = 4
+use_field_init_shorthand = true
+
+# Formatting of 'use' statements.
+# This groups imports into 'std', 'external crates', and 'local modules'.
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+
+# Visual layout improvements
+brace_style = "SameLineWhere"
+control_brace_style = "AlwaysSameLine"
+
+# Clean up trailing commas in lists and calls (makes diffs cleaner).
+trailing_comma = "Vertical"
+
+# Heuristic to determine if a function call should be wrapped.
+fn_call_width = 80
+
+# Documentation formatting
+wrap_comments = true
+doc_comment_code_block_width = 80
+
+# Miscellaneous 
+remove_nested_parens = true
+edition = "2021"
+newline_style = "Unix"

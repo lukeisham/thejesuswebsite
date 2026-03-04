@@ -1,0 +1,25 @@
+[package]
+name    = "app_brain"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+app_core = { path = "../app_core" }
+
+# Workspace-managed
+serde       = { workspace = true }
+serde_json  = { workspace = true }
+tokio       = { workspace = true }
+async-trait = { workspace = true }
+thiserror   = { workspace = true }
+anyhow      = { workspace = true }
+ulid        = { workspace = true }
+url         = { workspace = true }
+wasm-bindgen = "0.2"
+
+# Crate-specific: ML / NLP stack
+candle-core         = "0.8.0"
+candle-nn           = "0.8.0"
+candle-transformers = "0.8.0"
+tokenizers          = "0.21.0"
+strsim              = "0.11"

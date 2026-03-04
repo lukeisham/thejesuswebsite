@@ -1,0 +1,16 @@
+[package]
+name    = "app_storage"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+app_core = { path = "../app_core" }
+
+# Workspace-managed
+serde       = { workspace = true }
+tokio       = { workspace = true }
+async-trait = { workspace = true }
+thiserror   = { workspace = true }
+
+# Crate-specific: Storage backends
+chromadb = "2.3.0"

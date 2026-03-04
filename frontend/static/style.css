@@ -1,0 +1,359 @@
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                        1. TYPOGRAPHY & VARIABLES                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+:root {
+    /* Subdued Palette */
+    --bg-color: #f4f4f2;
+    --text-color: #333330;
+    --accent-color: #5b7065;
+    /* Muted Sage */
+    --border-color: #d1d1cf;
+    --card-bg: #ffffff;
+
+    /* --- Fonts --- */
+    --font-serif: 'Georgia', serif;
+    --font-sans: 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-serif);
+    /* Default to Serif */
+    line-height: 1.6;
+    margin: 0;
+}
+
+h1,
+h2,
+h3 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    margin-bottom: 0.5em;
+}
+
+h1 {
+    font-size: 3.5rem;
+    /* larger for impact */
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--text-color);
+}
+
+h2 {
+    font-size: 2.5rem;
+    /* larger subheading */
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-color);
+}
+
+h3 {
+    font-size: 2rem;
+    /* clear sub‑subheading */
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-color);
+}
+
+/* Sans-serif for UI elements */
+button,
+.tab,
+.nav-link,
+input,
+.label {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    /* increased from 0.9rem */
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                           2. THE GRID SYSTEM                               //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+.container {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Dashboard Layout Example */
+.dashboard-grid {
+    display: grid;
+    grid-template-areas:
+        "nav nav nav nav nav nav nav nav nav nav nav nav"
+        "sidebar main main main main main main main main main main main"
+        "sidebar feed feed feed feed feed feed news news news news news";
+    grid-template-columns: 250px repeat(11, 1fr);
+    gap: 20px;
+}
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                              3. COMPONENTS                                 //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
+/* --- Login Box --- */
+.login-box {
+    grid-column: 4 / 10;
+    /* Centered in a 12-col grid */
+    background: var(--card-bg);
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Map & Diagrams --- */
+.map-container {
+    height: 400px;
+    background: #e0e0df;
+    overflow: hidden;
+    /* For zoomable maps */
+    position: relative;
+}
+
+.ardor-tree {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-left: 2px solid var(--accent-color);
+    padding-left: 20px;
+}
+
+/* --- Timeline --- */
+.timeline {
+    position: relative;
+    border-top: 2px solid var(--accent-color);
+    margin-top: 40px;
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* --- Feeds --- */
+.feed-container {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 4px;
+}
+
+/* --- Buttons & Navigation --- */
+button,
+.cta-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+/* --- Records List --- */
+.record-list {
+    list-style: none;
+    padding: 0;
+}
+
+.record-list li a {
+    text-decoration: none;
+    color: var(--accent-color);
+    display: block;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                           4. ESSAY PAGE                                    //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
+/* --- Layout: Centered long-form reading column --- */
+.essay-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 4rem 2rem 6rem;
+}
+
+/* --- Header Block --- */
+.essay-header {
+    border-bottom: 2px solid var(--accent-color);
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+}
+
+.essay-header .essay-kicker {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent-color);
+    margin-bottom: 0.75rem;
+}
+
+.essay-header h1 {
+    font-size: 2.8rem;
+    line-height: 1.15;
+    margin-bottom: 0.5em;
+}
+
+.essay-header .essay-subtitle {
+    font-size: 1.25rem;
+    font-style: italic;
+    color: #666663;
+    margin-bottom: 1.25rem;
+}
+
+.essay-meta {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999997;
+}
+
+/* --- Body Text --- */
+.essay-body {
+    font-size: 1.15rem;
+    line-height: 1.85;
+    color: var(--text-color);
+}
+
+.essay-body p {
+    margin-bottom: 1.5em;
+}
+
+/* Drop cap on the first paragraph */
+.essay-body>p:first-of-type::first-letter {
+    font-size: 4rem;
+    font-weight: 800;
+    float: left;
+    line-height: 0.8;
+    margin: 0.1em 0.1em 0 0;
+    color: var(--accent-color);
+}
+
+/* Section headings within the essay */
+.essay-body h2 {
+    font-size: 1.6rem;
+    margin-top: 3rem;
+    margin-bottom: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.essay-body h3 {
+    font-size: 1.25rem;
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-color);
+}
+
+/* --- Pull Quote --- */
+.essay-pull-quote {
+    border-left: 4px solid var(--accent-color);
+    margin: 2.5rem 0;
+    padding: 0.75rem 1.5rem;
+    font-style: italic;
+    font-size: 1.3rem;
+    line-height: 1.55;
+    color: #55706a;
+    background: rgba(91, 112, 101, 0.05);
+}
+
+/* --- Inline Citation Marker --- */
+.essay-body sup a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+}
+
+.essay-body sup a:hover {
+    text-decoration: underline;
+}
+
+/* --- Footnotes / Bibliography --- */
+.essay-footnotes {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: #666663;
+}
+
+.essay-footnotes h4 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+.essay-footnotes ol {
+    padding-left: 1.25rem;
+}
+
+.essay-footnotes li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+/* --- Status Badge (Draft / Published) --- */
+.essay-status-badge {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.essay-status-badge.draft {
+    background-color: #b5a07a;
+}
+
+/* --- Responsive Tweaks --- */
+@media (max-width: 768px) {
+    .essay-page {
+        padding: 2rem 1.25rem 4rem;
+    }
+
+    .essay-header h1 {
+        font-size: 2rem;
+    }
+
+    .essay-body {
+        font-size: 1.05rem;
+    }
+
+    .essay-body>p:first-of-type::first-letter {
+        font-size: 3rem;
+    }
+}

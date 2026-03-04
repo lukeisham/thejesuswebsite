@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evidence — Ardor Diagram | The Jesus Website</title>
+    <meta name="description"
+        content="Explore the evidence for Jesus using an interactive ardor (branching tree) diagram that maps sources, manuscripts and attestations.">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .tree-node {
+            margin: 10px 0;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            background: white;
+            width: fit-content;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .tree-node:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 2px 8px rgba(91, 112, 101, 0.15);
+        }
+
+        .tree-node::before {
+            content: "";
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            width: 20px;
+            border-top: 2px solid var(--accent-color);
+        }
+
+        .tree-branch {
+            margin-left: 40px;
+            border-left: 2px solid var(--border-color);
+            padding-left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <header style="grid-column: 1 / -1;">
+            <h1>Evidence — Ardor Diagram</h1>
+            <p>A branching tree diagram that maps the sources and attestations for the historical Jesus. Click any node
+                to view its details, source text and related records.</p>
+        </header>
+
+        <!-- Ardor Tree -->
+        <main style="grid-column: 1 / 8;">
+            <div class="ardor-tree" id="ardor-tree">
+
+                <div class="tree-node" data-node="root"><strong>Historical Jesus</strong></div>
+
+                <div class="tree-branch">
+                    <div class="tree-node" data-node="christian-sources"><strong>Christian Sources</strong></div>
+                    <div class="tree-branch">
+                        <div class="tree-node" data-node="gospels">Canonical Gospels</div>
+                        <div class="tree-branch">
+                            <div class="tree-node" data-node="mark">Mark (c. AD 65–70)</div>
+                            <div class="tree-node" data-node="matthew">Matthew (c. AD 80–90)</div>
+                            <div class="tree-node" data-node="luke">Luke (c. AD 80–90)</div>
+                            <div class="tree-node" data-node="john">John (c. AD 90–100)</div>
+                        </div>
+                        <div class="tree-node" data-node="pauline">Pauline Epistles (c. AD 49–64)</div>
+                        <div class="tree-node" data-node="acts">Acts of the Apostles</div>
+                        <div class="tree-node" data-node="early-church-fathers">Early Church Fathers</div>
+                    </div>
+
+                    <div class="tree-node" data-node="non-christian-sources"><strong>Non-Christian Sources</strong>
+                    </div>
+                    <div class="tree-branch">
+                        <div class="tree-node" data-node="josephus">Josephus (c. AD 93–94)</div>
+                        <div class="tree-node" data-node="tacitus">Tacitus (c. AD 116)</div>
+                        <div class="tree-node" data-node="pliny">Pliny the Younger (c. AD 112)</div>
+                        <div class="tree-node" data-node="suetonius">Suetonius (c. AD 121)</div>
+                        <div class="tree-node" data-node="talmud">Babylonian Talmud</div>
+                        <div class="tree-node" data-node="lucian">Lucian of Samosata (c. AD 170)</div>
+                    </div>
+
+                    <div class="tree-node" data-node="archaeological"><strong>Archaeological Evidence</strong></div>
+                    <div class="tree-branch">
+                        <div class="tree-node" data-node="pilate-stone">Pilate Stone</div>
+                        <div class="tree-node" data-node="caiaphas-ossuary">Caiaphas Ossuary</div>
+                        <div class="tree-node" data-node="james-ossuary">James Ossuary</div>
+                        <div class="tree-node" data-node="nazareth-inscription">Nazareth Inscription</div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Node Detail Panel -->
+        <aside
+            style="grid-column: 9 / 13; background: var(--card-bg); padding: 20px; border-left: 1px solid var(--border-color);">
+            <h3 class="label">Node Details</h3>
+            <div id="node-detail">
+                <p style="font-size: 0.9rem;">Select a node in the tree to view its source text, date, scholarly
+                    consensus and links to related records.</p>
+            </div>
+        </aside>
+
+    </div>
+
+    <script src="js/ardor_tree.js"></script>
+</body>
+
+</html>

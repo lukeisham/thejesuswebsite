@@ -1,0 +1,28 @@
+[workspace]
+resolver = "2"
+members = [
+    "app/app_core",
+    "app/app_brain",
+    "app/app_storage",
+    "app/app_ui",
+    "app/app_schema",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+# Shared dependency versions — pin once, inherit everywhere with dep = { workspace = true }
+[workspace.dependencies]
+serde       = { version = "1.0", features = ["derive"] }
+serde_json  = "1.0"
+tokio       = { version = "1.37", features = ["full"] }
+async-trait = "0.1"
+thiserror   = "1.0"
+anyhow      = "1.0"
+ulid        = { version = "1.1", features = ["serde"] }
+uuid        = { version = "1.8", features = ["v4", "serde", "js"] }
+chrono      = { version = "0.4", features = ["serde", "wasmbind"] }
+url         = { version = "2.5", features = ["serde"] }
+tracing     = "0.1"
+getrandom   = { version = "0.2", features = ["js"] }

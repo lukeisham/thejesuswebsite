@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline | The Jesus Website</title>
+    <meta name="description"
+        content="A chronological timeline of the life and times of Jesus — from birth through ministry, crucifixion and the early church.">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .time-point {
+            text-align: center;
+            flex: 1;
+            position: relative;
+            cursor: pointer;
+            padding: 15px 5px;
+            transition: background 0.2s;
+        }
+
+        .time-point:hover {
+            background: rgba(91, 112, 101, 0.08);
+        }
+
+        .time-point::after {
+            content: "";
+            width: 14px;
+            height: 14px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            display: block;
+            margin: 10px auto 0;
+        }
+
+        .period-detail {
+            background: var(--card-bg);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            margin-top: 1rem;
+        }
+
+        .timeline-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <header style="grid-column: 1 / -1;">
+            <h1>Timeline</h1>
+            <p>Navigate the key periods of Jesus' life and the events surrounding him — arranged chronologically from
+                birth to the early church.</p>
+        </header>
+
+        <!-- Timeline Controls -->
+        <section style="grid-column: 1 / -1;">
+            <div class="timeline-controls">
+                <button id="shuffle-left" title="Earlier period">← Earlier</button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="zoom-in-timeline">Zoom In</button>
+                    <button id="zoom-out-timeline">Zoom Out</button>
+                </div>
+                <button id="shuffle-right" title="Later period">Later →</button>
+            </div>
+        </section>
+
+        <!-- Main Timeline Bar -->
+        <main style="grid-column: 1 / -1;">
+            <div class="timeline" id="timeline-bar" style="border-top: 3px solid var(--accent-color);">
+                <div class="time-point" data-period="birth">
+                    <span class="label">c. 6–4 BC</span><br>Birth &amp; Early Life
+                </div>
+                <div class="time-point" data-period="preparation">
+                    <span class="label">c. AD 26–27</span><br>Baptism &amp; Preparation
+                </div>
+                <div class="time-point" data-period="galilee-ministry">
+                    <span class="label">c. AD 27–29</span><br>Galilean Ministry
+                </div>
+                <div class="time-point" data-period="judean-ministry">
+                    <span class="label">c. AD 29–30</span><br>Judean Ministry
+                </div>
+                <div class="time-point" data-period="passion">
+                    <span class="label">c. AD 30</span><br>Passion &amp; Crucifixion
+                </div>
+                <div class="time-point" data-period="resurrection">
+                    <span class="label">c. AD 30</span><br>Resurrection
+                </div>
+                <div class="time-point" data-period="early-church">
+                    <span class="label">c. AD 30–70</span><br>Early Church
+                </div>
+            </div>
+        </main>
+
+        <!-- Period Detail Panel -->
+        <section style="grid-column: 1 / 8; margin-top: 2rem;">
+            <div class="period-detail" id="period-detail">
+                <h3>Select a period above</h3>
+                <p>Click on any point in the timeline to see the associated records, events and historical context for
+                    that period.</p>
+            </div>
+        </section>
+
+        <!-- Related Records -->
+        <aside style="grid-column: 9 / 13; margin-top: 2rem;">
+            <div class="feed-container">
+                <h3 class="label">Records in this Period</h3>
+                <ul class="record-list" id="period-records">
+                    <li><a href="#">Records will load for the selected period</a></li>
+                </ul>
+            </div>
+        </aside>
+
+    </div>
+
+    <script src="js/shuffle_left.js"></script>
+    <script src="js/suffle_right.js"></script>
+    <script src="js/zoom.js"></script>
+</body>
+
+</html>

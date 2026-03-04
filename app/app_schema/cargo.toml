@@ -1,0 +1,14 @@
+[package]
+name    = "app_schema"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+app_core = { path = "../app_core" }
+
+# Workspace-managed
+serde      = { workspace = true }
+serde_json = { workspace = true }
+
+# Crate-specific: TypeScript codegen
+ts-rs = "7.0"

@@ -1,0 +1,26 @@
+# --- Build Artifacts ---
+target/
+**/*.rs.bk
+debug/
+release/
+
+# --- Secrets & Environment ---
+.env
+*.env
+
+# --- Version Control & IDEs ---
+.git
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Frontend & Assets ---
+frontend/private/
+**/node_modules/
+**/.DS_Store
+npm-debug.log*
+
+# --- Documentation & Meta ---
+clippyerrors.log
