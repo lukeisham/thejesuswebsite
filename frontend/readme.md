@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "favicon"
+git commit -m "Resources update"
 git push origin main
 
 update files
