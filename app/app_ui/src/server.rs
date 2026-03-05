@@ -22,6 +22,10 @@ pub struct AppState {
     pub brain: Option<Arc<CandleEngine>>,
     pub storage_config: Arc<ChromaConfig>,
     pub sessions: Arc<SessionRegistry>,
+    pub session_secret: String,
+    pub slack_webhook_url: String,
+    pub pending_passcodes:
+        Arc<tokio::sync::RwLock<std::collections::HashMap<String, (String, std::time::Instant)>>>,
 }
 
 /// The entry point for starting the web service.

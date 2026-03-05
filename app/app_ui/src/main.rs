@@ -27,6 +27,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         database: None,
     });
 
+    let session_secret =
+        std::env::var("SESSION_SECRET").expect("SESSION_SECRET must be set in .env");
+
+    let slack_webhook_url =
+        std::env::var("SLACK_WEBHOOK_URL").expect("SLACK_WEBHOOK_URL must be set in .env");
+
+    let pending_passcodes = Arc::new(RwLock::new(HashMap::new()));
+
     // Brain (Candle) might not be fully loaded yet
     let brain = None; // Placeholder for future model loading
 
@@ -37,6 +45,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         brain,
         storage_config,
         sessions,
+        session_secret,
+        slack_webhook_url,
+        pending_passcodes,
     });
 
     // 4. Run the Server

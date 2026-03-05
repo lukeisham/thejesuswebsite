@@ -1,6 +1,8 @@
 use crate::{server::AppState, ws};
 use axum::{
+    extract::{Json, State},
     handler::HandlerWithoutStateExt,
+    http::{header, header::HeaderValue, HeaderMap},
     routing::{get, post},
     Router,
 };
@@ -18,9 +20,22 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/ws", get(ws::ws_handler))
         // 3. API v1 Endpoints
         .nest("/api/v1", api_routes())
-        // 4. Shared State Injection
-        .with_state(state)
-        // 5. Serve all frontend files (HTML, JS, CSS) from the root and map to /
+        // 4. Auth Endpoints
+        .nest("/api/auth", auth_routes())
+        // 5. Shared State Injection
+        .with_state(state.clone())
+        // 6. Protected /private routes
+        .nest(
+            "/private",
+            Router::new()
+                .nest_service("/", ServeDir::new("frontend/private"))
+                .route_layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    crate::auth::auth_middleware,
+                )),
+        )
+        // 7. Serve all frontend files (HTML, JS, CSS) from the root and map to /
+        // This won't overlap with /private because .nest takes precedence
         .fallback_service(ServeDir::new("frontend").fallback(handle_404.into_service()))
 }
 
@@ -30,6 +45,14 @@ fn api_routes() -> Router<Arc<AppState>> {
         .route("/challenge", post(handle_challenge))
         .route("/search/essays", get(handle_essay_search))
         .route("/expand_verse", get(handle_expand_verse))
+}
+
+/// Sub-router for Auth endpoints.
+fn auth_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/send-passcode", post(crate::login::handle_send_passcode))
+        .route("/verify-passcode", post(crate::login::handle_verify_passcode))
+        .route("/logout", post(crate::login::handle_logout))
 }
 
 // --- Handler Stubs ---

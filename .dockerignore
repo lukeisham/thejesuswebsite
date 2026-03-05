@@ -17,7 +17,6 @@ release/
 *.swo
 
 # --- Frontend & Assets ---
-frontend/private/
 **/node_modules/
 **/.DS_Store
 npm-debug.log*

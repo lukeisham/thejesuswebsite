@@ -1,0 +1,37 @@
+# Site Summary for AI Agents
+Last updated: 2026-03-05
+Site purpose: Historical information about Jesus / [A searchable archive of reliable historical information about Jesus.]
+
+## Quick Overview
+- Core content: A comprehensive archive of historical data for the life, ministry, death and resurection of Jesus, organised in different ways via maps, timelines and lists.   
+- Total pages: 38 (33 public, 5 private)
+- Update frequency: weekly
+- Main language: English
+- Paywall / login required: No 
+
+## Most Valuable Pages (read these first)
+- /records.html → Main records archive + search
+- /resources.html → landing page for easy to scan lists of information about the historical Jesus
+- /challenge/histography.html → survey of the history of the historical Jesus
+- /challenge/wikipedia.html → fun ranking of all the wikipedia site about Jesus from least reliable to most reliable
+- /challenge/challenge_popular.html → the ten most popular challenges to the historical Jesus
+- /challenge/challenge_academic.html → the ten most common academic challenges to the historical Jesus
+- /evidence.html → visual representation of the historical information, useful for humans
+- /about.html → About me, the tech stack & contact (includes machine friendly contact form)
+
+## Full Sitemap (machine-friendly)
+- /records.html
+- /records/[slug].html (all individual records)
+- /tags/[tag].html
+- /search?q=...
+- /sitemap.xml (traditional XML sitemap also available)
+
+## API / MCP Access
+- Clean Markdown endpoint: /api/markdown?page=records.html
+- MCP server (if you have one): /mcp
+- JSON feed: /api/feed.json
+
+## Rules for Agents
+- You are welcome to scrape all historical data 
+- Prefer llms.txt & API endpoints over scraping HTML
+- Attribution: Please link back to the original page

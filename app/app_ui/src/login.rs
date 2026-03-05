@@ -1,16 +1,14 @@
+use crate::{auth, server::AppState};
 use async_trait::async_trait;
+use axum::{
+    extract::{Json, State},
+    http::{header, header::HeaderValue, HeaderMap, StatusCode},
+    response::IntoResponse,
+};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use wasm_bindgen::prelude::*; // For passcode generation
-
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                             1. THE SKELETON                                //
-//                          (The Trait Definition)                            //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthSession {
@@ -23,24 +21,21 @@ pub struct AuthSession {
 pub trait Authenticator {
     type Credentials;
 
-    /// Step 1: Initiates the challenge (sends email)
-    async fn request_challenge(&self, email: &str, bot_field: &str) -> Result<(), AuthError>;
-
-    /// Step 2: Validates the passcode
-    async fn verify_challenge(&self, email: &str, code: &str) -> Result<AuthSession, AuthError>;
+    async fn request_challenge(
+        &self,
+        state: &Arc<AppState>,
+        email: &str,
+        bot_field: &str,
+    ) -> Result<(), AuthError>;
+    async fn verify_challenge(
+        &self,
+        state: &Arc<AppState>,
+        email: &str,
+        code: &str,
+    ) -> Result<AuthSession, AuthError>;
 }
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                               2. THE BRAIN                                 //
-//                          (Implementation Logic)                            //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
-
 pub struct AdminPortal {
-    // Hardcoded for security gatekeeping
     pub master_email: &'static str,
 }
 
@@ -48,28 +43,43 @@ pub struct AdminPortal {
 impl Authenticator for AdminPortal {
     type Credentials = (String, String);
 
-    async fn request_challenge(&self, email: &str, bot_field: &str) -> Result<(), AuthError> {
-        // 3. THE GATEKEEPER: Honeypot & Email Check
+    async fn request_challenge(
+        &self,
+        state: &Arc<AppState>,
+        email: &str,
+        bot_field: &str,
+    ) -> Result<(), AuthError> {
         self.check_honeypot(bot_field)?;
         self.validate_email(email)?;
 
-        // Brain Logic: Generate 6-digit passcode
         let passcode: String = rand::thread_rng().gen_range(100_000..999_999).to_string();
 
-        // Async First: Send the email (Mocked here)
-        println!("Sending logic for email to {}: Passcode is {}", self.master_email, passcode);
+        let expiry = Instant::now() + Duration::from_secs(5 * 60);
 
-        // In a real impl, you'd store the passcode in a KV store or DB with a TTL
-        self.store_passcode(email, &passcode).await?;
+        {
+            let mut pending = state.pending_passcodes.write().await;
+            pending.insert(email.to_string(), (passcode.clone(), expiry));
+        }
 
-        Ok(())
+        // Send logic using Slack
+        match auth::send_passcode_to_slack(&passcode, &state.slack_webhook_url).await {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                tracing::error!("Failed to send to slack: {}", e);
+                Err(AuthError::InternalError)
+            }
+        }
     }
 
-    async fn verify_challenge(&self, email: &str, code: &str) -> Result<AuthSession, AuthError> {
+    async fn verify_challenge(
+        &self,
+        state: &Arc<AppState>,
+        email: &str,
+        code: &str,
+    ) -> Result<AuthSession, AuthError> {
         self.validate_email(email)?;
 
-        // Verify and immediately purge to prevent reuse
-        let is_valid = self.check_and_purge_passcode(email, code).await?;
+        let is_valid = self.check_and_purge_passcode(state, email, code).await?;
 
         if !is_valid {
             return Err(AuthError::InvalidPasscode);
@@ -77,27 +87,15 @@ impl Authenticator for AdminPortal {
 
         Ok(AuthSession {
             email: email.to_string(),
-            token: "secure_wasm_session_token".to_string(),
-            expires_at: 3600, // 1 hour session
+            token: "secure_server_session_token".to_string(),
+            expires_at: 3600, // Deprecated, unused in cookie auth
         })
     }
 }
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                             3. THE GATEKEEPER                              //
-//                        (Security & Constraints)                            //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
-
 impl AdminPortal {
-    /// THE AI HONEYPOT: Bots see an 'extra' field and fill it out.
-    /// In the HTML, this field is hidden via CSS.
     fn check_honeypot(&self, bot_field: &str) -> Result<(), AuthError> {
         if !bot_field.is_empty() {
-            // Log this as a bot attempt
             return Err(AuthError::SecurityViolation("Bot activity detected".into()));
         }
         Ok(())
@@ -105,73 +103,152 @@ impl AdminPortal {
 
     fn validate_email(&self, email: &str) -> Result<(), AuthError> {
         if email != self.master_email {
-            // We return 'Success' even if the email is wrong to prevent user enumeration
-            // but we only actually send the code if it matches Luke.
             return Err(AuthError::Unauthorized);
         }
         Ok(())
     }
 
-    async fn store_passcode(&self, _email: &str, _code: &str) -> Result<(), AuthError> {
-        // Logic to store in LocalStorage or Redis
-        Ok(())
-    }
+    async fn check_and_purge_passcode(
+        &self,
+        state: &Arc<AppState>,
+        email: &str,
+        code: &str,
+    ) -> Result<bool, AuthError> {
+        let mut pending = state.pending_passcodes.write().await;
 
-    async fn check_and_purge_passcode(&self, _email: &str, _code: &str) -> Result<bool, AuthError> {
-        // Logic to check code and DELETE it immediately
-        Ok(true)
+        if let Some((stored_code, expiry)) = pending.get(email) {
+            if Instant::now() > *expiry {
+                pending.remove(email);
+                return Ok(false);
+            }
+            if stored_code == code {
+                pending.remove(email);
+                return Ok(true);
+            }
+        }
+        Ok(false)
     }
 }
-
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                               4. THE ERRORS                                //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-*/
 
 #[derive(Debug, thiserror::Error)]
 pub enum AuthError {
     #[error("Security Breach: {0}")]
     SecurityViolation(String),
-
     #[error("Invalid Passcode")]
     InvalidPasscode,
-
     #[error("Access Denied")]
     Unauthorized,
-
     #[error("System Error")]
     InternalError,
 }
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-//                             WASM BINDINGS                                  //
-////////////////////////////////////////////////////////////////////////////////
-*/
+// --- Axum API Handlers ---
 
-#[wasm_bindgen]
-pub async fn login_request(email: String, honey: String) -> Result<(), JsValue> {
-    let portal = AdminPortal {
-        master_email: "luke.isham@gmail.com",
-    };
-    portal
-        .request_challenge(&email, &honey)
-        .await
-        .map_err(|e| JsValue::from_str(&e.to_string()))
+#[derive(Deserialize)]
+pub struct SendPasscodeReq {
+    pub email: String,
+    pub user_name: Option<String>,
 }
 
-#[wasm_bindgen]
-pub async fn login_verify(email: String, code: String) -> Result<JsValue, JsValue> {
+#[derive(Deserialize)]
+pub struct VerifyPasscodeReq {
+    pub email: String,
+    pub passcode: String,
+}
+
+#[derive(Serialize)]
+pub struct AuthResponse {
+    pub success: bool,
+    pub error: Option<String>,
+}
+
+pub async fn handle_send_passcode(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<SendPasscodeReq>,
+) -> impl IntoResponse {
     let portal = AdminPortal {
         master_email: "luke.isham@gmail.com",
     };
-    let session = portal
-        .verify_challenge(&email, &code)
-        .await
-        .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    serde_wasm_bindgen::to_value(&session).map_err(|e| JsValue::from_str(&e.to_string()))
+    let honey = payload.user_name.unwrap_or_default();
+
+    match portal
+        .request_challenge(&state, &payload.email, &honey)
+        .await
+    {
+        Ok(_) => Json(AuthResponse {
+            success: true,
+            error: None,
+        })
+        .into_response(),
+        Err(e) => {
+            // We still return 200 Success even if unauthorized to prevent email enumeration
+            let success = !matches!(e, AuthError::InternalError | AuthError::SecurityViolation(_));
+            let error = if !success { Some(e.to_string()) } else { None };
+            Json(AuthResponse { success, error }).into_response()
+        }
+    }
+}
+
+pub async fn handle_verify_passcode(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<VerifyPasscodeReq>,
+) -> impl IntoResponse {
+    let portal = AdminPortal {
+        master_email: "luke.isham@gmail.com",
+    };
+
+    match portal
+        .verify_challenge(&state, &payload.email, &payload.passcode)
+        .await
+    {
+        Ok(_) => {
+            // Set Cookie!
+            let cookie_val = auth::create_session_cookie(&payload.email, &state.session_secret);
+
+            let mut headers = HeaderMap::new();
+            let cookie_str =
+                format!("admin_session={}; Path=/; HttpOnly; SameSite=Lax", cookie_val);
+            if let Ok(hv) = HeaderValue::from_str(&cookie_str) {
+                headers.insert(header::SET_COOKIE, hv);
+            }
+
+            (
+                StatusCode::OK,
+                headers,
+                Json(AuthResponse {
+                    success: true,
+                    error: None,
+                }),
+            )
+                .into_response()
+        }
+        Err(e) => (
+            StatusCode::UNAUTHORIZED,
+            Json(AuthResponse {
+                success: false,
+                error: Some(e.to_string()),
+            }),
+        )
+            .into_response(),
+    }
+}
+
+pub async fn handle_logout() -> impl IntoResponse {
+    let mut headers = HeaderMap::new();
+    // Clear cookie by setting expiry in the past
+    let cookie_str = "admin_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0";
+    if let Ok(hv) = HeaderValue::from_str(cookie_str) {
+        headers.insert(header::SET_COOKIE, hv);
+    }
+
+    (
+        StatusCode::OK,
+        headers,
+        Json(AuthResponse {
+            success: true,
+            error: None,
+        }),
+    )
+        .into_response()
 }
