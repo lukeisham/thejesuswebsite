@@ -108,5 +108,5 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "Update openai.yml for DeepSeek and cleanup"
+git commit -m "Post Launch fixes"
 git push origin main
