@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Shared _header.html content (SEO + MCP Discovery) — public pages only -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Jesus Website">
+    <meta name="theme-color" content="#5b7065">
+    <!-- Page-specific -->
+    <title>List of Manuscripts | The Jesus Website</title>
+    <meta name="description"
+        content="A chronological list of early Christian manuscripts from 0 to 500 AD, organised in 100-year blocks.">
+    <link rel="stylesheet" href="/style.css">
+    <!-- Agentic Friendliness & MCP Discovery -->
+    <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
+    <script type="application/ld+json" id="page-metadata">{}</script>
+</head>
+
+<body>
+    <!-- Layer 1: Macro-Layout — 2-column asymmetric track (sidebar-rail + content) -->
+    <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr; gap: 20px; padding: 20px;">
+
+        <!-- Sidebar Rail (Col 1, spans all content rows) — from _sidebar.html -->
+        <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation">
+            <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-brand">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;">The Jesus Website</h3>
+            </div>
+            <ul class="record-list" id="nav-main-links">
+                <li><a href="/records.html" class="nav-link" data-page="records">Home</a></li>
+                <li><a href="/evidence.html" class="nav-link" data-page="evidence">Evidence</a></li>
+                <li><a href="/maps/maps.html" class="nav-link" data-page="maps">Maps</a></li>
+                <li><a href="/timeline.html" class="nav-link" data-page="timeline">Timeline</a></li>
+                <li><a href="/context.html" class="nav-link" data-page="context">Context</a></li>
+                <li><a href="/challenge.html" class="nav-link" data-page="challenge">Challenges</a></li>
+                <li><a href="/resources.html" class="nav-link" data-page="resources">Resources</a></li>
+                <li><a href="/news_and_blog.html" class="nav-link" data-page="news">News</a></li>
+                <li><a href="/about.html" class="nav-link" data-page="about">About</a></li>
+            </ul>
+            <ul class="record-list">
+                <li><a href="/private/dashboard.html" class="nav-link" data-page="admin">Admin</a></li>
+            </ul>
+            <script src="/js/sidebar_toggle.js"></script>
+            <script src="/js/current_item_highlight.js"></script>
+        </nav>
+
+        <!-- Main Content (Col 2, natural flow) -->
+        <main>
+            <!-- Page Header & Intro -->
+            <header class="nav-header">
+                <h1>List of Manuscripts</h1>
+                <p>Early Christian manuscripts dating from the first five centuries, organised chronologically in
+                    100-year blocks. This list covers key papyri and major uncial codices.</p>
+            </header>
+
+            <!-- Hero: Categorised Manuscript Lists -->
+            <section>
+
+                <!-- 0–100 AD -->
+                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h2 style="margin-top: 0;">0 – 100 AD</h2>
+                    <ul class="record-list">
+                        <li><strong>Fragmentary Evidence</strong> — While no complete New Testament manuscripts date to
+                            this first century, the oral and early written traditions that form the basis of the records
+                            are active.</li>
+                    </ul>
+                </div>
+
+                <!-- 100–200 AD -->
+                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h2 style="margin-top: 0;">100 – 200 AD</h2>
+                    <ul class="record-list">
+                        <li><strong>P52 (Rylands Library Papyrus P52)</strong> <span class="label"
+                                style="font-size: 0.7rem;">c. AD 125</span> — The oldest widely accepted fragment of the
+                            New Testament (John 18).</li>
+                        <li><strong>P66 (Papyrus Bodmer II)</strong> <span class="label" style="font-size: 0.7rem;">c.
+                                AD 200</span> — A near-complete codex of the Gospel of John.</li>
+                        <li><strong>P46 (Chester Beatty Papyrus II)</strong> <span class="label"
+                                style="font-size: 0.7rem;">c. AD 175-225</span> — The earliest collection of Pauline
+                            epistles.</li>
+                        <li><strong>P75 (Papyrus Bodmer XIV–XV)</strong> <span class="label"
+                                style="font-size: 0.7rem;">c. AD 175-225</span> — Extensive remains of Luke and John.
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 200–300 AD -->
+                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h2 style="margin-top: 0;">200 – 300 AD</h2>
+                    <ul class="record-list">
+                        <li><strong>P45 (Chester Beatty Papyrus I)</strong> <span class="label"
+                                style="font-size: 0.7rem;">c. AD 250</span> — Fragments of all four Gospels and Acts.
+                        </li>
+                        <li><strong>P47 (Chester Beatty Papyrus III)</strong> <span class="label"
+                                style="font-size: 0.7rem;">c. AD 250-300</span> — Portions of the Book of Revelation.
+                        </li>
+                        <li><strong>Oxyrhynchus Papyri</strong> <span class="label" style="font-size: 0.7rem;">3rd
+                                Century</span> — Numerous fragments including portions of Matthew and various
+                            non-canonical works.</li>
+                    </ul>
+                </div>
+
+                <!-- 300–400 AD -->
+                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h2 style="margin-top: 0;">300 – 400 AD</h2>
+                    <ul class="record-list">
+                        <li><strong>Codex Sinaiticus</strong> <span class="label" style="font-size: 0.7rem;">c. AD
+                                330-360</span> — One of the most important complete manuscripts of the Bible.</li>
+                        <li><strong>Codex Vaticanus</strong> <span class="label" style="font-size: 0.7rem;">c. AD
+                                325-350</span> — A world-class uncial manuscript containing most of the Old and New
+                            Testaments.</li>
+                    </ul>
+                </div>
+
+                <!-- 400–500 AD -->
+                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h2 style="margin-top: 0;">400 – 500 AD</h2>
+                    <ul class="record-list">
+                        <li><strong>Codex Alexandrinus</strong> <span class="label" style="font-size: 0.7rem;">5th
+                                Century</span> — A major uncial manuscript containing the Septuagint and the New
+                            Testament.</li>
+                        <li><strong>Codex Ephraemi Rescriptus</strong> <span class="label"
+                                style="font-size: 0.7rem;">5th Century</span> — A palimpsest containing much of the New
+                            Testament.</li>
+                        <li><strong>Codex Bezae</strong> <span class="label" style="font-size: 0.7rem;">c. AD 400</span>
+                            — A bilingual (Greek/Latin) manuscript of the Gospels and Acts.</li>
+                    </ul>
+                </div>
+
+            </section>
+        </main>
+
+        <!-- Footer (last row, full width) — from _footer.html -->
+        <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
+            <div class="footer-left">
+                <p>&copy; Luke Isham 2026 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
+                        rel="noopener">CC BY-SA 4.0</a></p>
+            </div>
+            <div class="footer-right">
+                <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+            </div>
+            <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
+            <script type="module" src="/js/footer_actions.js"></script>
+        </nav>
+
+    </div>
+</body>
+
+</html>

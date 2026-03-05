@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Shared _header.html content (SEO + MCP Discovery) — public pages only -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Jesus Website">
+    <meta name="theme-color" content="#5b7065">
+    <!-- Page-specific -->
+    <title>List of Sites | The Jesus Website</title>
+    <meta name="description"
+        content="A list of archaeological sites related to Jesus and the Gospels, including both active excavations and former historical sites.">
+    <link rel="stylesheet" href="/style.css">
+    <!-- Agentic Friendliness & MCP Discovery -->
+    <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
+    <script type="application/ld+json" id="page-metadata">{}</script>
+</head>
+
+<body>
+    <!-- Layer 1: Macro-Layout — 2-column asymmetric track (sidebar-rail + content) -->
+    <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr; gap: 20px; padding: 20px;">
+
+        <!-- Sidebar Rail (Col 1, spans all content rows) — from _sidebar.html -->
+        <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation">
+            <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-brand">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;">The Jesus Website</h3>
+            </div>
+            <ul class="record-list" id="nav-main-links">
+                <li><a href="/records.html" class="nav-link" data-page="records">Home</a></li>
+                <li><a href="/evidence.html" class="nav-link" data-page="evidence">Evidence</a></li>
+                <li><a href="/maps/maps.html" class="nav-link" data-page="maps">Maps</a></li>
+                <li><a href="/timeline.html" class="nav-link" data-page="timeline">Timeline</a></li>
+                <li><a href="/context.html" class="nav-link" data-page="context">Context</a></li>
+                <li><a href="/challenge.html" class="nav-link" data-page="challenge">Challenges</a></li>
+                <li><a href="/resources.html" class="nav-link" data-page="resources">Resources</a></li>
+                <li><a href="/news_and_blog.html" class="nav-link" data-page="news">News</a></li>
+                <li><a href="/about.html" class="nav-link" data-page="about">About</a></li>
+            </ul>
+            <ul class="record-list">
+                <li><a href="/private/dashboard.html" class="nav-link" data-page="admin">Admin</a></li>
+            </ul>
+            <script src="/js/sidebar_toggle.js"></script>
+            <script src="/js/current_item_highlight.js"></script>
+        </nav>
+
+        <!-- Main Content (Col 2, natural flow) -->
+        <main>
+            <!-- Page Header & Intro -->
+            <header class="nav-header">
+                <h1>List of Archaeological Sites</h1>
+                <p>Archaeological sites in Israel and surrounding regions related to the life of Jesus, the Gospels, and
+                    the people mentioned in the records.</p>
+            </header>
+
+            <!-- Hero: Categorised Site Lists -->
+            <section>
+
+                <!-- Current & Active Sites -->
+                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h2 style="margin-top: 0;">Current & Active Archaeological Sites</h2>
+                    <ul class="record-list">
+                        <li><strong>Magdala</strong> — Significant excavations reveling a first-century synagogue and
+                            town on the Sea of Galilee.</li>
+                        <li><strong>Pool of Siloam</strong> — Recent excavations in Jerusalem continue to uncover the
+                            full extent of this Gospel-related pool.</li>
+                        <li><strong>Capernaum (Synagogue & House of Peter)</strong> — Highly active destination; ongoing
+                            preservation and study of the basalt ruins.</li>
+                        <li><strong>Caesarea Maritima</strong> — Massive site on the coast; active excavations of the
+                            Roman theatre, palace, and harbour.</li>
+                        <li><strong>Sepphoris (Zippori)</strong> — Extensive excavations of the Roman-era city near
+                            Nazareth.</li>
+                        <li><strong>Mount Zion/Caiaphas House</strong> — Continued exploration of the Herodian-era
+                            remains on the southern slope.</li>
+                    </ul>
+                </div>
+
+                <!-- Former & Historically Significant Sites -->
+                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h2 style="margin-top: 0;">Former & Historically Significant Sites</h2>
+                    <ul class="record-list">
+                        <li><strong>Pools of Bethesda</strong> — Early 20th-century excavations that confirmed the
+                            five-porch structure described in John.</li>
+                        <li><strong>Masada</strong> — Major excavations in the 1960s; now primarily a preserved historic
+                            monument.</li>
+                        <li><strong>The Garden Tomb</strong> — Identified in the late 19th century as a potential site
+                            for the crucifixion and burial.</li>
+                        <li><strong>Church of the Holy Sepulchre</strong> — Built over the traditional site identified
+                            in the 4th century; site of countless historical surveys.</li>
+                        <li><strong>Herodium</strong> — The palace-fortress of Herod the Great, excavated extensively in
+                            the 20th century.</li>
+                    </ul>
+                </div>
+
+            </section>
+        </main>
+
+        <!-- Footer (last row, full width) — from _footer.html -->
+        <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
+            <div class="footer-left">
+                <p>&copy; Luke Isham 2026 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
+                        rel="noopener">CC BY-SA 4.0</a></p>
+            </div>
+            <div class="footer-right">
+                <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+            </div>
+            <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
+            <script type="module" src="/js/footer_actions.js"></script>
+        </nav>
+
+    </div>
+</body>
+
+</html>
