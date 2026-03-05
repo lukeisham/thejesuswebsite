@@ -1,4 +1,4 @@
-use crate::types::jesus::{Classification, InteractiveMap, TimelineEntry};
+use crate::types::jesus::{Classification, ContentEntry, InteractiveMap, TimelineEntry};
 use crate::types::system::{BibleVerse, Metadata, Source};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -28,6 +28,7 @@ pub struct Record {
     pub timeline: TimelineEntry,
     pub map_data: InteractiveMap,
     pub category: Classification,
+    pub content: ContentEntry,
     pub primary_verse: BibleVerse,
     pub secondary_verse: Option<BibleVerse>,
     pub created_at: DateTime<Utc>,
@@ -49,7 +50,7 @@ impl Record {
     /// Any change to this struct mandates a version bump to this `SCHEMA_VERSION` constant,
     /// a corresponding SQL/ChromaDB migration script, and an update to `agent_guide.yml`.
     /// NEVER change the struct fields without explicitly updating this version.
-    pub const SCHEMA_VERSION: &'static str = "1.0.0";
+    pub const SCHEMA_VERSION: &'static str = "1.1.0";
 
     /// Retrieves the current schema version of the Record struct.
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
@@ -67,6 +68,7 @@ impl Record {
         timeline: TimelineEntry,
         map_data: InteractiveMap,
         category: Classification,
+        content: ContentEntry,
         primary_verse: BibleVerse,
         secondary_verse: Option<BibleVerse>,
     ) -> Result<Self, RecordError> {
@@ -84,6 +86,7 @@ impl Record {
             timeline,
             map_data,
             category,
+            content,
             primary_verse,
             secondary_verse,
             created_at: Utc::now(),
@@ -202,7 +205,7 @@ mod tests {
     fn test_schema_version_is_documented() {
         // This test acts as a tripwire. If you modify the Record struct fields,
         // you MUST update the SCHEMA_VERSION, the SQL database schema, and the agent_guide.yml!
-        assert_eq!(Record::SCHEMA_VERSION, "1.0.0");
-        assert_eq!(Record::schema_version(), "1.0.0");
+        assert_eq!(Record::SCHEMA_VERSION, "1.1.0");
+        assert_eq!(Record::schema_version(), "1.1.0");
     }
 }

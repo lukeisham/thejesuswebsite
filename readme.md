@@ -43,7 +43,6 @@ Coding checklist
 - Are the new Rust functions exposed as Tools?
 - Did I update the OpenAPI schema?
 
-
 HTML/CSS = Atomic Design, Global consistency, Responsive Flow / CSS Grid for Layout, Flexbox for Components. / does the page still function? 
 
 JS = Strict Interface, Error Translation, Lean Passthrough, Idempotency / One script per task / No loss of functionality during rewrites! / Dashboard widgets follow a two-layer pattern: thin traffic-light card wrapper (wgt_*.js) + expandable detail panel (private/js/ script).

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use std::fmt;
+use uuid::Uuid;
 
 /*
 ////////////////////////////////////////////////////////////////////////////////
@@ -15,12 +15,11 @@ use std::fmt;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum Content {
-    Context,
-    Person,
     Miracle,
     Parable,
     Saying,
     Sermon,
+    Other,
 }
 
 /// The base data structure for a Content Entry.
@@ -80,7 +79,8 @@ impl SecurityGuard for ContentEntry {
             Some(valid_type) => Ok(valid_type),
             None => Err(EntryError::MissingSelection(
                 "Selection Required: You must categorize this content as either: \
-                context, person, miracle, parable, saying, or sermon.".into()
+                miracle, parable, saying, sermon, or other."
+                    .into(),
             )),
         }
     }
