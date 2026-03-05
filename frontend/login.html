@@ -7,7 +7,7 @@
     <title>Secure Login | Admin</title>
     <meta name="description" content="Admin login for The Jesus Website dashboard.">
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/style.css">
     <style>
         body.login-screen {
             display: flex;
@@ -15,34 +15,132 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: var(--bg-color);
+            background-color: var(--bg-color-alt);
+            /* Soft off-white */
+            font-family: var(--font-sans);
+            position: relative;
+            /* For absolute positioning of the back button */
+        }
+
+        .back-nav {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.2s ease, transform 0.1s;
+        }
+
+        .btn-back:hover {
+            background: rgba(0, 0, 0, 0.05);
+            transform: translateX(-2px);
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            background: #ffffff;
+            padding: 3rem 2.5rem;
+            border-radius: 16px;
+            /* modern softer rounding */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            /* Sleek shadow */
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .login-box h1 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: var(--text-color);
+            font-family: var(--font-serif);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(91, 112, 101, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-primary:hover {
+            background: #4a5c53;
+            /* Darker accent */
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
         }
     </style>
 </head>
 
 <body class="login-screen">
+    <nav class="back-nav">
+        <a href="/records.html" class="btn-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Back to Records
+        </a>
+    </nav>
+
     <!-- Single centered container matching the 12-col grid gap structure loosely for layout -->
     <div class="container"
-        style="display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%;">
+        style="display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; padding: 20px;">
 
-        <main class="login-box card" style="width: 100%; max-width: 400px; text-align: center;">
-            <h1 style="font-size: 1.8rem; margin-bottom: 2rem;">Admin Login</h1>
+        <main class="login-box">
+            <h1>Admin Login</h1>
 
             <!-- Step 1: Send Passcode -->
             <form id="send-passcode-form">
                 <!-- Primary Input -->
-                <div class="mb-2">
+                <div class="mb-2" style="margin-bottom: 1.5rem;">
                     <input type="email" id="admin-email" name="email" class="input-field" placeholder="Email Address"
                         required>
                 </div>
 
                 <!-- INVISIBLE HONEYPOT -> Baits automated scripts relying on generic form names -->
-                <div class="visually-hidden" aria-hidden="true" tabindex="-1">
+                <div class="visually-hidden" aria-hidden="true" tabindex="-1" style="position: absolute; left:-9999px;">
                     <label for="user-name">Username (Do not fill)</label>
                     <input type="text" id="user-name" name="user_name" autocomplete="off" tabindex="-1">
                 </div>
 
-                <button type="submit" id="send-passcode-btn" class="btn-primary" style="width: 100%;">Send
+                <button type="submit" id="send-passcode-btn" class="btn-primary">Send
                     Passcode</button>
             </form>
 
@@ -50,17 +148,17 @@
             <form id="check-passcode-form" style="display: none; margin-top: 1.5rem;">
                 <div style="margin-bottom: 1.5rem;">
                     <label for="passcode" class="label"
-                        style="display: block; text-align: left; margin-bottom: 0.5rem;">Passcode</label>
-                    <input type="text" id="passcode" name="passcode" placeholder="Enter 6-digit code" required
-                        maxlength="6"
-                        style="width: 100%; padding: 10px; border: 1px solid var(--border-color); box-sizing: border-box; text-align: center; font-size: 1.5rem; letter-spacing: 8px;">
+                        style="display: block; text-align: left; margin-bottom: 0.5rem; font-weight: 500;">One-Time
+                        Passcode</label>
+                    <input type="text" id="passcode" name="passcode" placeholder="------" required maxlength="6"
+                        class="input-field"
+                        style="text-align: center; font-size: 2rem; letter-spacing: 12px; font-weight: 600; font-family: monospace;">
                 </div>
-                <button type="submit" id="check-passcode-btn" class="btn-primary" style="width: 100%;">Sign In</button>
+                <button type="submit" id="check-passcode-btn" class="btn-primary">Verify &amp; Sign In</button>
             </form>
 
-            <p id="login-status" style="margin-top: 1rem; font-size: 0.85rem; text-align: center; color: #666;"></p>
-
-
+            <p id="login-status"
+                style="margin-top: 1.5rem; font-size: 0.9rem; text-align: center; color: #666; min-height: 1.2em;"></p>
 
         </main>
     </div>
