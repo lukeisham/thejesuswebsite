@@ -1141,3 +1141,134 @@ button:hover {
         grid-row: span 2;
     }
 }
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                         4. NAVIGATION COMPONENTS                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
+/* --- Sidebar --- */
+.sidebar {
+    background: var(--card-bg);
+    padding: 1rem;
+    border-right: 1px solid var(--border-color);
+    transition: width 0.25s ease, padding 0.25s ease, opacity 0.25s ease;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.sidebar--collapsed .nav-brand,
+.sidebar--collapsed .record-list {
+    display: none;
+}
+
+.sidebar--collapsed {
+    width: 48px;
+    padding: 0.5rem;
+    border-right: 1px solid var(--border-color);
+}
+
+/* --- Hamburger Button --- */
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 8px 6px;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--text-color);
+    border-radius: 1px;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.hamburger:hover span {
+    background: var(--accent-color);
+}
+
+/* On mobile, sidebar is hidden by default */
+@media (max-width: 767px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 100;
+        width: 250px;
+    }
+
+    .sidebar--collapsed {
+        width: 0;
+        padding: 0;
+        border-right: none;
+    }
+
+    .sidebar--collapsed .hamburger {
+        display: none;
+    }
+}
+
+/* --- Footer --- */
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.8rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--card-bg);
+}
+
+.footer-left {
+    flex: 1 1 auto;
+    font-size: 0.85rem;
+    color: var(--muted-text, #6b7280);
+}
+
+.footer-left p {
+    margin: 0;
+}
+
+.footer-left a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.footer-right {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+}
+
+/* --- Footer Action Buttons --- */
+.btn-footer {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--accent-color);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-footer:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}

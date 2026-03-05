@@ -108,20 +108,28 @@
 │   ├── app_storage
 │   │   ├── src
 │   │   │   ├── chroma.rs
+│   │   │   ├── manager.rs
 │   │   │   └── lib.rs
 │   │   └── cargo.toml
 │   └── app_ui
 │       ├── src
 │       │   ├── bin
 │       │   │   └── export_openapi.rs
+│       │   ├── api_agents.rs
+│       │   ├── api_records.rs
+│       │   ├── api_security.rs
+│       │   ├── api_sources.rs
+│       │   ├── api_spider.rs
+│       │   ├── api_widgets.rs
 │       │   ├── login.rs
+│       │   ├── main.rs
 │       │   ├── middleware.rs
+│       │   ├── rate_limit.rs
 │       │   ├── router.rs
 │       │   ├── security.rs
 │       │   ├── server.rs
 │       │   ├── websocket.rs
 │       │   ├── ws.rs
-│       │   ├── main.rs
 │       │   └── lib.rs
 │       └── cargo.toml
 ├── frontend
@@ -141,27 +149,38 @@
 │   ├── readme.md
 │   ├── robots.txt
 │   ├── style.css
-│   ├── js/
+│   ├── js
+│   │   ├── widgets
+│   │   │   └── wgt_[name].js (17 widgets)
 │   │   ├── current_item_highlight.js
 │   │   ├── display_academic_list.js
 │   │   ├── display_popular_list.js
 │   │   ├── display_top_blog_post.js
 │   │   ├── display_top_four_news_items.js
+│   │   ├── expand_verse.js
+│   │   ├── footer_actions.js
 │   │   ├── react_flow.js
+│   │   ├── record_card.js
 │   │   ├── refresh_list.js
 │   │   ├── refresh_records.js
 │   │   ├── search_records.js
 │   │   ├── store_contact.js
 │   │   ├── store_donor.js
 │   │   └── wasm_interop_demo.js
-│   ├── maps/
-│   ├── private/
+│   ├── maps
+│   ├── private
+│   │   ├── js
+│   │   │   ├── widget_[name].js (20 detail scripts)
+│   │   │   ├── blog_crud.js
+│   │   │   ├── dashboard_tabs.js
+│   │   │   ├── edit_records.js
+│   │   │   └── record_card.js
 │   │   ├── blog_post.html
 │   │   ├── dashboard.html
 │   │   ├── essay.html
 │   │   ├── login.html
 │   │   └── response.html
-│   └── public/ (legacy folders)
+│   └── public (legacy folders)
 │       ├── context/
 │       ├── maps/
 │       └── responses/
