@@ -1,4 +1,5 @@
 pub mod api_records;
+pub mod api_tools;
 pub mod auth;
 pub mod login;
 pub mod middleware;

@@ -26,8 +26,8 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .nest(
             "/private",
             Router::new()
-                .nest_service("/", ServeDir::new("frontend/private"))
-                .route_layer(axum::middleware::from_fn_with_state(
+                .fallback_service(ServeDir::new("frontend/private"))
+                .layer(axum::middleware::from_fn_with_state(
                     state.clone(),
                     crate::auth::auth_middleware,
                 )),
@@ -43,6 +43,7 @@ fn api_routes() -> Router<Arc<AppState>> {
         .route("/challenge", post(handle_challenge))
         .route("/search/essays", get(handle_essay_search))
         .route("/expand_verse", get(handle_expand_verse))
+        .route("/markdown", get(crate::api_tools::handle_markdown))
 }
 
 /// Sub-router for Auth endpoints.
