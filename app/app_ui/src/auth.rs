@@ -84,8 +84,12 @@ pub async fn auth_middleware(
 ) -> Result<Response<Body>, StatusCode> {
     let path = req.uri().path();
 
-    // Exemptions
-    if path == "/private/login.html" || path.starts_with("/private/js/") {
+    // Exemptions (handle both absolute and relative paths for nesting)
+    if path == "/private/login.html"
+        || path == "/login.html"
+        || path.starts_with("/private/js/")
+        || path.starts_with("/js/")
+    {
         return Ok(next.run(req).await);
     }
 
