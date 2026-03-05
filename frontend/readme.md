@@ -108,11 +108,15 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "login fix"
+git commit -m "favicon"
 git push origin main
 
 update files
 
-JSON feed: /api/feed.json
-Clean Markdown endpoint: /api/markdown?page=records.html
 
+
+on my VPS
+
+git pull
+docker compose build agentic_hub
+docker compose up -d agentic_hub
