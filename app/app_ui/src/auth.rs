@@ -118,7 +118,7 @@ pub async fn auth_middleware(
         Ok(next.run(req).await)
     } else {
         // Redirect to login
-        Ok(Redirect::temporary("/private/login.html").into_response())
+        Ok(Redirect::temporary("/login.html").into_response())
     }
 }
 
