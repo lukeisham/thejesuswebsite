@@ -33,7 +33,8 @@ pub fn create_session_cookie(email: &str, secret: &str) -> String {
     let signature = mac.finalize().into_bytes();
     let signature_hex = hex::encode(signature);
 
-    format!("{}|{}", payload, signature_hex)
+    let result = format!("{}|{}", payload, signature_hex);
+    result
 }
 
 /// Validates a session cookie value. Returns Ok(email) if valid and not expired.

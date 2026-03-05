@@ -1,0 +1,35 @@
+├── frontend
+│   ├── _footer.html
+│   ├── _header.html
+│   ├── _sidebar.html
+│   ├── about.html
+│   ├── blog_feed.html
+│   ├── challenge.html
+│   ├── challenge_academic.html
+│   ├── challenge_popular.html
+│   ├── context.html
+│   ├── evidence.html
+│   ├── historgraphy.html
+│   ├── index.html
+│   ├── list_events.html
+│   ├── list_manuscripts.html
+│   ├── list_miracles.html
+│   ├── list_objects.html
+│   ├── list_ot_verses.html
+│   ├── list_parables.html
+│   ├── list_people.html
+│   ├── list_places.html
+│   ├── list_sayings_and_sermons.html
+│   ├── list_sites.html
+│   ├── list_sources.html
+│   ├── news_and_blog.html
+│   ├── news_feed.html
+│   ├── records.html
+│   ├── resources.html
+│   ├── timeline.html
+│   ├── wikipedia.html
+│   ├── readme.md
+│   ├── robots.txt
+├── LICENCE
+├── llms.txt
+└── sitemap.xml

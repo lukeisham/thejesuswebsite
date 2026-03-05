@@ -20,11 +20,38 @@ Site purpose: Historical information about Jesus / [A searchable archive of reli
 - /about.html → About me, the tech stack & contact (includes machine friendly contact form)
 
 ## Full Sitemap (machine-friendly)
-- /records.html
-- /records/[slug].html (all individual records)
-- /tags/[tag].html
-- /search?q=...
-- /sitemap.xml (traditional XML sitemap also available)
+├── frontend
+│   ├── _footer.html
+│   ├── _header.html
+│   ├── _sidebar.html
+│   ├── about.html
+│   ├── blog_feed.html
+│   ├── challenge.html
+│   ├── challenge_academic.html
+│   ├── challenge_popular.html
+│   ├── context.html
+│   ├── evidence.html
+│   ├── historgraphy.html
+│   ├── index.html
+│   ├── list_events.html
+│   ├── list_manuscripts.html
+│   ├── list_miracles.html
+│   ├── list_objects.html
+│   ├── list_ot_verses.html
+│   ├── list_parables.html
+│   ├── list_people.html
+│   ├── list_places.html
+│   ├── list_sayings_and_sermons.html
+│   ├── list_sites.html
+│   ├── list_sources.html
+│   ├── news_and_blog.html
+│   ├── news_feed.html
+│   ├── records.html
+│   ├── resources.html
+│   ├── timeline.html
+│   ├── wikipedia.html
+│   ├── readme.md
+│   ├── robots.txt
 
 ## API / MCP Access
 - Clean Markdown endpoint: /api/markdown?page=records.html
@@ -33,5 +60,6 @@ Site purpose: Historical information about Jesus / [A searchable archive of reli
 
 ## Rules for Agents
 - You are welcome to scrape all historical data 
+- there are copy-text and save-pdf buttons on each page for you to use 
 - Prefer llms.txt & API endpoints over scraping HTML
 - Attribution: Please link back to the original page

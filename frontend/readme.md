@@ -63,7 +63,7 @@ Challenge Engine-loop (monthly) = results collected from challenges -> ranked + 
 
 Agentic friendliness = every public page must include a <script type="application/ld+json">, plus easy access to Metadata, pdf-print and text-copy functions 
 
-Security = private html obfesucated, DDos attack guards, rate limiting, special code password login for dashboard 
+Security = ******
 
 ### AI-Agent integration 
 
@@ -105,16 +105,7 @@ Row N+1 │ Footer (a-col-span-full) │
 
 ---
 
-## Pushing to Github and related BASH
-
-# 1. Add all changed files to the 'staging area'
-git add .
-
-# 2. Create a snapshot of these changes with a message
-git commit -m "Update openai.yml for DeepSeek and cleanup"
-
-# 3. Send the changes to GitHub
-git push origin main
+## Pushing to Github
 
 git add .
 git commit -m "Update openai.yml for DeepSeek and cleanup"
