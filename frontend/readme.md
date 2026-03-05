@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "moved login"
+git commit -m "new favicon"
 git push origin main
 
 update files
