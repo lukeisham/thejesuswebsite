@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "Resources update"
+git commit -m "moved login"
 git push origin main
 
 update files

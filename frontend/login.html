@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Login | Admin</title>
+    <meta name="description" content="Admin login for The Jesus Website dashboard.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body.login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--bg-color);
+        }
+    </style>
+</head>
+
+<body class="login-screen">
+    <!-- Single centered container matching the 12-col grid gap structure loosely for layout -->
+    <div class="container"
+        style="display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%;">
+
+        <main class="login-box card" style="width: 100%; max-width: 400px; text-align: center;">
+            <h1 style="font-size: 1.8rem; margin-bottom: 2rem;">Admin Login</h1>
+
+            <!-- Step 1: Send Passcode -->
+            <form id="send-passcode-form">
+                <!-- Primary Input -->
+                <div class="mb-2">
+                    <input type="email" id="admin-email" name="email" class="input-field" placeholder="Email Address"
+                        required>
+                </div>
+
+                <!-- INVISIBLE HONEYPOT -> Baits automated scripts relying on generic form names -->
+                <div class="visually-hidden" aria-hidden="true" tabindex="-1">
+                    <label for="user-name">Username (Do not fill)</label>
+                    <input type="text" id="user-name" name="user_name" autocomplete="off" tabindex="-1">
+                </div>
+
+                <button type="submit" id="send-passcode-btn" class="btn-primary" style="width: 100%;">Send
+                    Passcode</button>
+            </form>
+
+            <!-- Step 2: Enter Passcode (shown after email sent) -->
+            <form id="check-passcode-form" style="display: none; margin-top: 1.5rem;">
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="passcode" class="label"
+                        style="display: block; text-align: left; margin-bottom: 0.5rem;">Passcode</label>
+                    <input type="text" id="passcode" name="passcode" placeholder="Enter 6-digit code" required
+                        maxlength="6"
+                        style="width: 100%; padding: 10px; border: 1px solid var(--border-color); box-sizing: border-box; text-align: center; font-size: 1.5rem; letter-spacing: 8px;">
+                </div>
+                <button type="submit" id="check-passcode-btn" class="btn-primary" style="width: 100%;">Sign In</button>
+            </form>
+
+            <p id="login-status" style="margin-top: 1rem; font-size: 0.85rem; text-align: center; color: #666;"></p>
+
+
+
+        </main>
+    </div>
+
+    <script src="js/send_passcode.js"></script>
+    <script src="js/check_passcode.js"></script>
+</body>
+
+</html>
