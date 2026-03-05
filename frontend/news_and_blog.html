@@ -61,7 +61,10 @@
 
             <!-- News Feed -->
             <section style="margin-top: 2rem;">
-                <h2>Recent News</h2>
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <h2>Recent News</h2>
+                    <a href="/news_feed.html" class="nav-link" style="font-size: 0.85rem;">View Global News Feed →</a>
+                </div>
                 <div id="news-feed"
                     style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                     <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
@@ -93,7 +96,10 @@
             </section>
 
             <section>
-                <h2>Latest Blog Post</h2>
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <h2>Latest Blog Post</h2>
+                    <a href="/blog_feed.html" class="nav-link" style="font-size: 0.85rem;">View Global Blog Feed →</a>
+                </div>
                 <article class="feed-container" id="top-blog-post"
                     style="border: 1px solid var(--border-color); padding: 2rem;">
                     <div class="essay-kicker"

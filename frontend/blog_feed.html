@@ -59,52 +59,9 @@
             </header>
 
             <!-- Hero: Blog Post List -->
-            <section id="blog-feed-list"
-                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-
-                <!-- Placeholder cards — replaced dynamically by display_blog_feed.js -->
-                <article class="feed-container" style="border: 1px solid var(--border-color); padding: 1.5rem;">
-                    <div class="essay-kicker"
-                        style="font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-color);">
-                        Featured</div>
-                    <h3 style="font-size: 1.3rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">Blog posts will be loaded
-                        dynamically</h3>
-                    <p style="font-size: 0.9rem; color: #666;">The full list of published blog posts will appear here,
-                        fetched from the server.</p>
-                    <div class="essay-meta" style="margin-top: 1rem; font-size: 0.8rem; color: #888;">
-                        <span>Author: —</span>&ensp;<span>Date: —</span>
-                    </div>
-                    <a href="#" class="nav-link"
-                        style="display: inline-block; margin-top: 1rem; font-size: 0.85rem;">Read Full Post →</a>
-                </article>
-
-                <article class="feed-container" style="border: 1px solid var(--border-color); padding: 1.5rem;">
-                    <div class="essay-kicker"
-                        style="font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-color);">
-                        Essay</div>
-                    <h3 style="font-size: 1.3rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">Placeholder Post</h3>
-                    <p style="font-size: 0.9rem; color: #666;">A second post will appear here once the server is
-                        running.</p>
-                    <div class="essay-meta" style="margin-top: 1rem; font-size: 0.8rem; color: #888;">
-                        <span>Author: —</span>&ensp;<span>Date: —</span>
-                    </div>
-                    <a href="#" class="nav-link"
-                        style="display: inline-block; margin-top: 1rem; font-size: 0.85rem;">Read Full Post →</a>
-                </article>
-
-                <article class="feed-container" style="border: 1px solid var(--border-color); padding: 1.5rem;">
-                    <div class="essay-kicker"
-                        style="font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-color);">
-                        Essay</div>
-                    <h3 style="font-size: 1.3rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">Placeholder Post</h3>
-                    <p style="font-size: 0.9rem; color: #666;">A third post will appear here once the server is
-                        running.</p>
-                    <div class="essay-meta" style="margin-top: 1rem; font-size: 0.8rem; color: #888;">
-                        <span>Author: —</span>&ensp;<span>Date: —</span>
-                    </div>
-                    <a href="#" class="nav-link"
-                        style="display: inline-block; margin-top: 1rem; font-size: 0.85rem;">Read Full Post →</a>
-                </article>
+            <section id="hero-placeholder" class="hero-container"
+                style="margin-top: 2rem; min-height: 200px; border: 1px solid var(--border-color); padding: 2rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5);">
+                <p style="font-family: var(--font-sans); color: #666; font-style: italic;">Loading blog feed...</p>
             </section>
         </main>
 
@@ -123,12 +80,12 @@
             </div>
             <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
             <script type="module" src="/js/footer_actions.js"></script>
+            <script type="module" src="/js/blog_feed_hero.js"></script>
         </nav>
 
     </div>
 
     <!-- Scripts -->
-    <script src="/js/display_blog_feed.js"></script>
 </body>
 
 </html>

@@ -58,38 +58,9 @@
             </header>
 
             <!-- Hero: News Item List -->
-            <section id="news-feed-list"
-                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-
-                <!-- Placeholder cards — replaced dynamically by display_news_feed.js -->
-                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
-                    <h4 style="margin: 0 0 0.25rem;">News items will be loaded dynamically</h4>
-                    <p style="font-size: 0.8rem; color: #666; margin: 0;">The full list of news updates will appear
-                        here,
-                        fetched from the server.</p>
-                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
-                    <h4 style="margin: 0 0 0.25rem;">Placeholder Item</h4>
-                    <p style="font-size: 0.8rem; color: #666; margin: 0;">A second news item will appear here once the
-                        server is running.</p>
-                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
-                    <h4 style="margin: 0 0 0.25rem;">Placeholder Item</h4>
-                    <p style="font-size: 0.8rem; color: #666; margin: 0;">A third news item will appear here once the
-                        server is running.</p>
-                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
-                    <h4 style="margin: 0 0 0.25rem;">Placeholder Item</h4>
-                    <p style="font-size: 0.8rem; color: #666; margin: 0;">A fourth news item will appear here once the
-                        server is running.</p>
-                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
-                </article>
+            <section id="hero-placeholder" class="hero-container"
+                style="margin-top: 2rem; min-height: 200px; border: 1px solid var(--border-color); padding: 2rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5);">
+                <p style="font-family: var(--font-sans); color: #666; font-style: italic;">Loading news feed...</p>
             </section>
         </main>
 
@@ -108,12 +79,12 @@
             </div>
             <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
             <script type="module" src="/js/footer_actions.js"></script>
+            <script type="module" src="/js/news_feed_hero.js"></script>
         </nav>
 
     </div>
 
     <!-- Scripts -->
-    <script src="/js/display_news_feed.js"></script>
 </body>
 
 </html>

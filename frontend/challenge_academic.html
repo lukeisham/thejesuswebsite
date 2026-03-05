@@ -59,56 +59,10 @@
             </header>
 
             <!-- Hero: Academic Challenge Results -->
-            <section id="academic-results"
-                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-
-                <!-- Placeholder cards — replaced dynamically by display_academic_results.js -->
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Did Jesus Exist?</h3>
-                    <p style="font-size: 0.9rem;">The mythicist challenge — examining the claim that Jesus was a purely
-                        mythological figure, and the overwhelming scholarly consensus to the contrary.</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Historicity | Difficulty:
-                        Introductory</span>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Are the Gospels Reliable?</h3>
-                    <p style="font-size: 0.9rem;">Exploring genre, dating, authorship and eyewitness testimony — what
-                        can we reasonably conclude about the historical reliability of the Gospel texts?</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Textual Criticism | Difficulty:
-                        Intermediate</span>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Wasn't the Resurrection a Legend?</h3>
-                    <p style="font-size: 0.9rem;">Examining the legendary development hypothesis — how quickly did the
-                        resurrection accounts appear, and do they show signs of embellishment over time?</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Resurrection | Difficulty: Advanced</span>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Were the Disciples Deluded or Lying?</h3>
-                    <p style="font-size: 0.9rem;">A critical assessment of alternative explanations for the disciples'
-                        resurrection testimony, from hallucination theory to deliberate fraud.</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Resurrection | Difficulty:
-                        Intermediate</span>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Is Paul's Evidence Reliable?</h3>
-                    <p style="font-size: 0.9rem;">Evaluating the earliest written sources — the Pauline epistles — for
-                        what they tell us about the historical Jesus and the resurrection tradition.</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Textual Criticism | Difficulty:
-                        Intermediate</span>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Are There Pagan Parallels?</h3>
-                    <p style="font-size: 0.9rem;">Addressing claims that Jesus mirrors earlier pagan dying-and-rising
-                        god myths, with a close look at the relevant evidence and historical method.</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Pagan Parallels | Difficulty:
-                        Advanced</span>
-                </article>
+            <section id="hero-placeholder" class="hero-container"
+                style="margin-top: 2rem; min-height: 200px; border: 1px solid var(--border-color); padding: 2rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5);">
+                <p style="font-family: var(--font-sans); color: #666; font-style: italic;">Loading academic content...
+                </p>
             </section>
         </main>
 
@@ -127,12 +81,12 @@
             </div>
             <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
             <script type="module" src="/js/footer_actions.js"></script>
+            <script type="module" src="/js/challenge_academic_hero.js"></script>
         </nav>
 
     </div>
 
     <!-- Scripts -->
-    <script src="/js/display_academic_results.js"></script>
 </body>
 
 </html>

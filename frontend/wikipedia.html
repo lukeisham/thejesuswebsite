@@ -109,66 +109,10 @@
             </header>
 
             <!-- Hero: Ranking Table -->
-            <section>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <span class="label" style="font-size: 0.7rem;">Showing ranked articles</span>
-                    <button id="refresh-rankings">Refresh Rankings</button>
-                </div>
-
-                <table class="rank-table" id="ranking-table">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Article</th>
-                            <th>Category</th>
-                            <th>Sources</th>
-                            <th>Neutrality</th>
-                            <th>Overall Score</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ranking-body">
-                        <tr>
-                            <td>1</td>
-                            <td><a href="#" style="color: var(--accent-color);">Historicity of Jesus</a></td>
-                            <td>Historicity</td>
-                            <td>142</td>
-                            <td><span class="score-badge score-high">Good</span></td>
-                            <td><span class="score-badge score-high">8.7</span></td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td><a href="#" style="color: var(--accent-color);">Jesus</a></td>
-                            <td>Biography</td>
-                            <td>389</td>
-                            <td><span class="score-badge score-mid">Mixed</span></td>
-                            <td><span class="score-badge score-high">8.2</span></td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td><a href="#" style="color: var(--accent-color);">Crucifixion of Jesus</a></td>
-                            <td>Events</td>
-                            <td>98</td>
-                            <td><span class="score-badge score-high">Good</span></td>
-                            <td><span class="score-badge score-high">7.9</span></td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td><a href="#" style="color: var(--accent-color);">Josephus on Jesus</a></td>
-                            <td>Sources</td>
-                            <td>76</td>
-                            <td><span class="score-badge score-high">Good</span></td>
-                            <td><span class="score-badge score-mid">7.4</span></td>
-                        </tr>
-                        <tr>
-                            <td>5</td>
-                            <td><a href="#" style="color: var(--accent-color);">Christ myth theory</a></td>
-                            <td>Historicity</td>
-                            <td>203</td>
-                            <td><span class="score-badge score-low">Poor</span></td>
-                            <td><span class="score-badge score-low">5.1</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+            <section id="hero-placeholder" class="hero-container"
+                style="margin-top: 2rem; min-height: 200px; border: 1px solid var(--border-color); padding: 2rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5);">
+                <p style="font-family: var(--font-sans); color: #666; font-style: italic;">Loading Wikipedia rankings...
+                </p>
             </section>
         </main>
 
@@ -187,12 +131,12 @@
             </div>
             <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
             <script type="module" src="/js/footer_actions.js"></script>
+            <script type="module" src="/js/wikipedia_hero.js"></script>
         </nav>
 
     </div>
 
     <!-- Scripts -->
-    <script src="/js/refresh_list.js"></script>
 </body>
 
 </html>
