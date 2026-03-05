@@ -2,16 +2,24 @@
 <html lang="en">
 
 <head>
+    <!-- Shared _header.html content (SEO + MCP Discovery) -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Jesus Website">
+    <meta name="theme-color" content="#5b7065">
+    <!-- Page-specific -->
     <title>Records | The Jesus Website</title>
     <meta name="description"
         content="Search and browse historical records about Jesus — the key data elements of the project, viewable by map, timeline or ardor diagram.">
     <link rel="stylesheet" href="/style.css">
+    <!-- Agentic Friendliness & MCP Discovery -->
+    <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
+    <script type="application/ld+json" id="page-metadata">{}</script>
 </head>
 
 <body>
-    <!-- Layer 1: Macro-Layout -->
+    <!-- Layer 1: Macro-Layout (grid-template-columns: 250px 1fr 1fr) -->
     <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr 1fr; gap: 20px; padding: 20px;">
 
         <!-- Header (Row 1, Full Width) -->
@@ -20,22 +28,27 @@
             <p>The primary data elements — historical evidence viewable by location, date or thematic connection.</p>
         </header>
 
-        <!-- Navigation Sidebar (Row 2, Col 1) -->
-        <aside class="sidebar" id="nav-sidebar">
-            <h3 class="sidebar-title" style="margin: 0 0 1.5rem 0; font-size: 1.1rem;">The Jesus Website</h3>
+        <!-- Sidebar (Row 2, Col 1) — from _sidebar.html -->
+        <nav id="nav-sidebar" class="sidebar" aria-label="Main navigation">
+            <div class="nav-brand">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;">The Jesus Website</h3>
+            </div>
             <ul class="record-list" id="nav-main-links">
-                <li><a href="/records.html" class="nav-link">Records</a></li>
-                <li><a href="/maps.html" class="nav-link">Maps</a></li>
-                <li><a href="/timeline.html" class="nav-link">Timeline</a></li>
-                <li><a href="/evidence.html" class="nav-link">Evidence</a></li>
-                <li><a href="/context.html" class="nav-link">Context</a></li>
-                <li><a href="/challenge.html" class="nav-link">Challenges</a></li>
-                <li><a href="/resources.html" class="nav-link">Resources</a></li>
-                <li><a href="/wikipedia.html" class="nav-link">Wikipedia Ranking</a></li>
-                <li><a href="/news_and_blog.html" class="nav-link">News &amp; Blog</a></li>
-                <li><a href="/about.html" class="nav-link">About</a></li>
+                <li><a href="/records.html" class="nav-link" data-page="records">Home</a></li>
+                <li><a href="/evidence.html" class="nav-link" data-page="evidence">Evidence</a></li>
+                <li><a href="/maps.html" class="nav-link" data-page="maps">Maps</a></li>
+                <li><a href="/timeline.html" class="nav-link" data-page="timeline">Timeline</a></li>
+                <li><a href="/context.html" class="nav-link" data-page="context">Context</a></li>
+                <li><a href="/challenge.html" class="nav-link" data-page="challenge">Challenges</a></li>
+                <li><a href="/resources.html" class="nav-link" data-page="resources">Resources</a></li>
+                <li><a href="/news_and_blog.html" class="nav-link" data-page="news">News</a></li>
+                <li><a href="/about.html" class="nav-link" data-page="about">About</a></li>
             </ul>
-        </aside>
+            <ul class="record-list">
+                <li><a href="/private/dashboard.html" class="nav-link" data-page="admin">Admin</a></li>
+            </ul>
+            <script src="/js/current_item_highlight.js"></script>
+        </nav>
 
         <!-- Main Content (Row 2, Col 2 to End) -->
         <main class="a-col-span-2">
@@ -53,15 +66,41 @@
             </section>
         </main>
 
+        <!-- Footer (Row 3, Full Width) — from _footer.html -->
+        <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
+            <div class="nav-brand">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;">The Jesus Website</h3>
+            </div>
+            <div class="footer-left">
+                <p>Copyright Luke Isham 2026 (<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
+                        rel="noopener">CC BY-SA 4.0</a>)</p>
+            </div>
+            <div class="footer-right">
+                <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+            </div>
+
+            <!-- AI MCP Discovery (Source of Truth) -->
+            <script type="application/mcp">
+                {
+                    "capabilities": ["Save-pdf", "Copy-text"]
+                }
+            </script>
+            <script type="module" src="/js/footer_actions.js"></script>
+        </nav>
+
     </div>
 
     <!-- Scripts -->
-    <script src="js/record_card.js"></script>
-    <script src="js/search_records.js"></script>
-    <script src="js/expand_verse.js"></script>
-    <script src="js/refresh_records.js"></script>
-    <script src="js/show_draft_record.js"></script>
-    <script src="js/admin_edit_view.js"></script>
+    <script src="/js/record_card.js"></script>
+    <script src="/js/search_records.js"></script>
+    <script src="/js/expand_verse.js"></script>
+    <script src="/js/refresh_records.js"></script>
+    <script src="/js/show_draft_record.js"></script>
+    <script src="/js/admin_edit_view.js"></script>
 </body>
 
 </html>
