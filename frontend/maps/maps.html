@@ -2,71 +2,131 @@
 <html lang="en">
 
 <head>
+    <!-- Shared _header.html content (SEO + MCP Discovery) — public pages only -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Jesus Website">
+    <meta name="theme-color" content="#5b7065">
+    <!-- Page-specific -->
     <title>Maps | The Jesus Website</title>
     <meta name="description"
         content="Explore the geographic locations of historical records about Jesus across five key regions of the ancient world.">
     <link rel="stylesheet" href="/style.css">
+    <!-- Agentic Friendliness & MCP Discovery -->
+    <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
+    <script type="application/ld+json" id="page-metadata">{}</script>
 </head>
 
 <body>
-    <div class="container">
+    <!-- Layer 1: Macro-Layout — 2-column asymmetric track (sidebar-rail + content) -->
+    <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr; gap: 20px; padding: 20px;">
 
-        <header style="grid-column: 1 / -1;">
-            <h1>Maps</h1>
-            <p>Browse records by geographic region. Select a region below to explore its records on a zoomable map.</p>
-        </header>
-
-        <!-- Overview Map -->
-        <section style="grid-column: 1 / -1;">
-            <div class="map-container"
-                style="height: 350px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">
-                <h2 style="color: var(--accent-color); opacity: 0.4;">[ Overview Map ]</h2>
+        <!-- Sidebar Rail (Col 1, spans all content rows) — from _sidebar.html -->
+        <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation">
+            <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-brand">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;">The Jesus Website</h3>
             </div>
-        </section>
+            <ul class="record-list" id="nav-main-links">
+                <li><a href="/records.html" class="nav-link" data-page="records">Home</a></li>
+                <li><a href="/evidence.html" class="nav-link" data-page="evidence">Evidence</a></li>
+                <li><a href="/maps/maps.html" class="nav-link" data-page="maps">Maps</a></li>
+                <li><a href="/timeline.html" class="nav-link" data-page="timeline">Timeline</a></li>
+                <li><a href="/context.html" class="nav-link" data-page="context">Context</a></li>
+                <li><a href="/challenge.html" class="nav-link" data-page="challenge">Challenges</a></li>
+                <li><a href="/resources.html" class="nav-link" data-page="resources">Resources</a></li>
+                <li><a href="/news_and_blog.html" class="nav-link" data-page="news">News</a></li>
+                <li><a href="/about.html" class="nav-link" data-page="about">About</a></li>
+            </ul>
+            <ul class="record-list">
+                <li><a href="/private/dashboard.html" class="nav-link" data-page="admin">Admin</a></li>
+            </ul>
+            <script src="/js/sidebar_toggle.js"></script>
+            <script src="/js/current_item_highlight.js"></script>
+        </nav>
 
-        <!-- Region Cards -->
-        <section style="grid-column: 1 / -1; margin-top: 2rem;">
-            <h2>Regions</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+        <!-- Main Content (Col 2, natural flow) -->
+        <main>
+            <!-- Page Header & Intro -->
+            <header class="nav-header">
+                <h1>Maps</h1>
+                <p>Browse records by geographic region. Select a region below to explore its records on a zoomable map.
+                </p>
+            </header>
 
-                <a href="galilee/galilee.html" class="feed-container"
-                    style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0; color: var(--accent-color);">Galilee</h3>
-                    <p style="font-size: 0.85rem;">Ministry heartland — Nazareth, Capernaum, Sea of Galilee</p>
-                </a>
+            <!-- Hero: Overview Map -->
+            <section>
+                <div class="map-container"
+                    style="height: 350px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">
+                    <h2 style="color: var(--accent-color); opacity: 0.4;">[ Overview Map ]</h2>
+                </div>
+            </section>
 
-                <a href="jerusalem/jerusalem.html" class="feed-container"
-                    style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0; color: var(--accent-color);">Jerusalem</h3>
-                    <p style="font-size: 0.85rem;">Temple, crucifixion and resurrection — the city at the centre</p>
-                </a>
+            <!-- Region Cards -->
+            <section style="margin-top: 2rem;">
+                <h2>Regions</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
 
-                <a href="judea/judea.html" class="feed-container"
-                    style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0; color: var(--accent-color);">Judea</h3>
-                    <p style="font-size: 0.85rem;">Bethlehem, Jericho, the Jordan River and the Judean wilderness</p>
-                </a>
+                    <a href="galilee/galilee.html" class="feed-container"
+                        style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
+                        <h3 style="margin-top: 0; color: var(--accent-color);">Galilee</h3>
+                        <p style="font-size: 0.85rem;">Ministry heartland — Nazareth, Capernaum, Sea of Galilee</p>
+                    </a>
 
-                <a href="levant/levant.html" class="feed-container"
-                    style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0; color: var(--accent-color);">The Levant</h3>
-                    <p style="font-size: 0.85rem;">Wider region — Tyre, Sidon, Caesarea Philippi, Damascus</p>
-                </a>
+                    <a href="jerusalem/jerusalem.html" class="feed-container"
+                        style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
+                        <h3 style="margin-top: 0; color: var(--accent-color);">Jerusalem</h3>
+                        <p style="font-size: 0.85rem;">Temple, crucifixion and resurrection — the city at the centre
+                        </p>
+                    </a>
 
-                <a href="rome/rome.html" class="feed-container"
-                    style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0; color: var(--accent-color);">Rome</h3>
-                    <p style="font-size: 0.85rem;">The imperial capital — political context and early church</p>
-                </a>
+                    <a href="judea/judea.html" class="feed-container"
+                        style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
+                        <h3 style="margin-top: 0; color: var(--accent-color);">Judea</h3>
+                        <p style="font-size: 0.85rem;">Bethlehem, Jericho, the Jordan River and the Judean wilderness
+                        </p>
+                    </a>
 
+                    <a href="levant/levant.html" class="feed-container"
+                        style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
+                        <h3 style="margin-top: 0; color: var(--accent-color);">The Levant</h3>
+                        <p style="font-size: 0.85rem;">Wider region — Tyre, Sidon, Caesarea Philippi, Damascus</p>
+                    </a>
+
+                    <a href="rome/rome.html" class="feed-container"
+                        style="text-decoration: none; color: inherit; text-align: center; border: 1px solid var(--border-color);">
+                        <h3 style="margin-top: 0; color: var(--accent-color);">Rome</h3>
+                        <p style="font-size: 0.85rem;">The imperial capital — political context and early church</p>
+                    </a>
+
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer (last row, full width) — from _footer.html -->
+        <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
+            <div class="footer-left">
+                <p>&copy; Luke Isham 2026 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
+                        rel="noopener">CC BY-SA 4.0</a></p>
             </div>
-        </section>
+            <div class="footer-right">
+                <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+            </div>
+            <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
+            <script type="module" src="/js/footer_actions.js"></script>
+        </nav>
 
     </div>
 
-    <script src="js/map_zoom.js"></script>
+    <!-- Scripts -->
+    <script src="/js/map_zoom.js"></script>
 </body>
 
 </html>

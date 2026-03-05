@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <!-- Shared _header.html content (SEO + MCP Discovery) -->
+    <!-- Shared _header.html content (SEO + MCP Discovery) — public pages only -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="index, follow">
@@ -19,17 +19,11 @@
 </head>
 
 <body>
-    <!-- Layer 1: Macro-Layout (grid-template-columns: 250px 1fr 1fr) -->
-    <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr 1fr; gap: 20px; padding: 20px;">
+    <!-- Layer 1: Macro-Layout — 2-column asymmetric track (sidebar-rail + content) -->
+    <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr; gap: 20px; padding: 20px;">
 
-        <!-- Header (Row 1, Full Width) -->
-        <header class="nav-header a-col-span-full">
-            <h1>Records</h1>
-            <p>The primary data elements — historical evidence viewable by location, date or thematic connection.</p>
-        </header>
-
-        <!-- Sidebar (Row 2, Col 1) — from _sidebar.html -->
-        <nav id="nav-sidebar" class="sidebar" aria-label="Main navigation">
+        <!-- Sidebar Rail (Col 1, spans all content rows) — from _sidebar.html -->
+        <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation">
             <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
                 <span></span><span></span><span></span>
             </button>
@@ -54,8 +48,14 @@
             <script src="/js/current_item_highlight.js"></script>
         </nav>
 
-        <!-- Main Content (Row 2, Col 2 to End) -->
-        <main class="a-col-span-2">
+        <!-- Main Content (Col 2, natural flow: header → search → record grid) -->
+        <main>
+            <!-- Page Header & Introductory Text -->
+            <header class="nav-header">
+                <h1>Records</h1>
+                <p>The primary data elements — historical evidence viewable by location, date or thematic connection.
+                </p>
+            </header>
 
             <!-- Search Bar -->
             <section id="record-search-section" class="record-search">
@@ -70,7 +70,7 @@
             </section>
         </main>
 
-        <!-- Footer (Row 3, Full Width) — from _footer.html -->
+        <!-- Footer (last row, full width) — from _footer.html -->
         <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
             <div class="footer-left">
                 <p>&copy; Luke Isham 2026 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"

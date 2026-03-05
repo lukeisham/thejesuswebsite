@@ -2,12 +2,20 @@
 <html lang="en">
 
 <head>
+    <!-- Shared _header.html content (SEO + MCP Discovery) — public pages only -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Jesus Website">
+    <meta name="theme-color" content="#5b7065">
+    <!-- Page-specific -->
     <title>Wikipedia Ranking | The Jesus Website</title>
     <meta name="description"
         content="A ranked table of Wikipedia articles related to Jesus, scored by reliability, sourcing quality and neutrality.">
     <link rel="stylesheet" href="/style.css">
+    <!-- Agentic Friendliness & MCP Discovery -->
+    <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
+    <script type="application/ld+json" id="page-metadata">{}</script>
     <style>
         .rank-table {
             width: 100%;
@@ -62,85 +70,129 @@
 </head>
 
 <body>
-    <div class="container">
+    <!-- Layer 1: Macro-Layout — 2-column asymmetric track (sidebar-rail + content) -->
+    <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr; gap: 20px; padding: 20px;">
 
-        <header style="grid-column: 1 / -1;">
-            <h1>Wikipedia Ranking</h1>
-            <p>Wikipedia articles related to Jesus, ranked by reliability, sourcing quality and neutrality. Scores are
-                calculated using AI analysis of each article's references, balance and factual accuracy.</p>
-        </header>
-
-        <main style="grid-column: 1 / -1;">
-
-            <!-- Controls -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <div>
-                    <span class="label" style="font-size: 0.7rem;">Showing ranked articles</span>
-                </div>
-                <button id="refresh-rankings">Refresh Rankings</button>
+        <!-- Sidebar Rail (Col 1, spans all content rows) — from _sidebar.html -->
+        <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation">
+            <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-brand">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;">The Jesus Website</h3>
             </div>
+            <ul class="record-list" id="nav-main-links">
+                <li><a href="/records.html" class="nav-link" data-page="records">Home</a></li>
+                <li><a href="/evidence.html" class="nav-link" data-page="evidence">Evidence</a></li>
+                <li><a href="/maps/maps.html" class="nav-link" data-page="maps">Maps</a></li>
+                <li><a href="/timeline.html" class="nav-link" data-page="timeline">Timeline</a></li>
+                <li><a href="/context.html" class="nav-link" data-page="context">Context</a></li>
+                <li><a href="/challenge.html" class="nav-link" data-page="challenge">Challenges</a></li>
+                <li><a href="/resources.html" class="nav-link" data-page="resources">Resources</a></li>
+                <li><a href="/news_and_blog.html" class="nav-link" data-page="news">News</a></li>
+                <li><a href="/about.html" class="nav-link" data-page="about">About</a></li>
+            </ul>
+            <ul class="record-list">
+                <li><a href="/private/dashboard.html" class="nav-link" data-page="admin">Admin</a></li>
+            </ul>
+            <script src="/js/sidebar_toggle.js"></script>
+            <script src="/js/current_item_highlight.js"></script>
+        </nav>
 
-            <!-- Ranking Table -->
-            <table class="rank-table" id="ranking-table">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Article</th>
-                        <th>Category</th>
-                        <th>Sources</th>
-                        <th>Neutrality</th>
-                        <th>Overall Score</th>
-                    </tr>
-                </thead>
-                <tbody id="ranking-body">
-                    <tr>
-                        <td>1</td>
-                        <td><a href="#" style="color: var(--accent-color);">Historicity of Jesus</a></td>
-                        <td>Historicity</td>
-                        <td>142</td>
-                        <td><span class="score-badge score-high">Good</span></td>
-                        <td><span class="score-badge score-high">8.7</span></td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td><a href="#" style="color: var(--accent-color);">Jesus</a></td>
-                        <td>Biography</td>
-                        <td>389</td>
-                        <td><span class="score-badge score-mid">Mixed</span></td>
-                        <td><span class="score-badge score-high">8.2</span></td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td><a href="#" style="color: var(--accent-color);">Crucifixion of Jesus</a></td>
-                        <td>Events</td>
-                        <td>98</td>
-                        <td><span class="score-badge score-high">Good</span></td>
-                        <td><span class="score-badge score-high">7.9</span></td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td><a href="#" style="color: var(--accent-color);">Josephus on Jesus</a></td>
-                        <td>Sources</td>
-                        <td>76</td>
-                        <td><span class="score-badge score-high">Good</span></td>
-                        <td><span class="score-badge score-mid">7.4</span></td>
-                    </tr>
-                    <tr>
-                        <td>5</td>
-                        <td><a href="#" style="color: var(--accent-color);">Christ myth theory</a></td>
-                        <td>Historicity</td>
-                        <td>203</td>
-                        <td><span class="score-badge score-low">Poor</span></td>
-                        <td><span class="score-badge score-low">5.1</span></td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Main Content (Col 2, natural flow) -->
+        <main>
+            <!-- Page Header & Intro -->
+            <header class="nav-header">
+                <h1>Wikipedia Ranking</h1>
+                <p>Wikipedia articles related to Jesus, ranked by reliability, sourcing quality and neutrality. Scores
+                    are calculated using AI analysis of each article's references, balance and factual accuracy.</p>
+            </header>
 
+            <!-- Hero: Ranking Table -->
+            <section>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <span class="label" style="font-size: 0.7rem;">Showing ranked articles</span>
+                    <button id="refresh-rankings">Refresh Rankings</button>
+                </div>
+
+                <table class="rank-table" id="ranking-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Article</th>
+                            <th>Category</th>
+                            <th>Sources</th>
+                            <th>Neutrality</th>
+                            <th>Overall Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-body">
+                        <tr>
+                            <td>1</td>
+                            <td><a href="#" style="color: var(--accent-color);">Historicity of Jesus</a></td>
+                            <td>Historicity</td>
+                            <td>142</td>
+                            <td><span class="score-badge score-high">Good</span></td>
+                            <td><span class="score-badge score-high">8.7</span></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td><a href="#" style="color: var(--accent-color);">Jesus</a></td>
+                            <td>Biography</td>
+                            <td>389</td>
+                            <td><span class="score-badge score-mid">Mixed</span></td>
+                            <td><span class="score-badge score-high">8.2</span></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td><a href="#" style="color: var(--accent-color);">Crucifixion of Jesus</a></td>
+                            <td>Events</td>
+                            <td>98</td>
+                            <td><span class="score-badge score-high">Good</span></td>
+                            <td><span class="score-badge score-high">7.9</span></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td><a href="#" style="color: var(--accent-color);">Josephus on Jesus</a></td>
+                            <td>Sources</td>
+                            <td>76</td>
+                            <td><span class="score-badge score-high">Good</span></td>
+                            <td><span class="score-badge score-mid">7.4</span></td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td><a href="#" style="color: var(--accent-color);">Christ myth theory</a></td>
+                            <td>Historicity</td>
+                            <td>203</td>
+                            <td><span class="score-badge score-low">Poor</span></td>
+                            <td><span class="score-badge score-low">5.1</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
         </main>
+
+        <!-- Footer (last row, full width) — from _footer.html -->
+        <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
+            <div class="footer-left">
+                <p>&copy; Luke Isham 2026 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
+                        rel="noopener">CC BY-SA 4.0</a></p>
+            </div>
+            <div class="footer-right">
+                <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+            </div>
+            <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
+            <script type="module" src="/js/footer_actions.js"></script>
+        </nav>
 
     </div>
 
-    <script src="js/refresh_list.js"></script>
+    <!-- Scripts -->
+    <script src="/js/refresh_list.js"></script>
 </body>
 
 </html>

@@ -1171,6 +1171,13 @@ button:hover {
     border-right: 1px solid var(--border-color);
 }
 
+/* Sidebar Rail — pins to Col 1, spans all content rows (stops before footer) */
+.sidebar--rail {
+    grid-column: 1;
+    grid-row: 1 / -2;
+    align-self: start;
+}
+
 /* --- Hamburger Button --- */
 .hamburger {
     display: flex;

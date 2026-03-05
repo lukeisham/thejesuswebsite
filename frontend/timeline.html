@@ -2,12 +2,20 @@
 <html lang="en">
 
 <head>
+    <!-- Shared _header.html content (SEO + MCP Discovery) — public pages only -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Jesus Website">
+    <meta name="theme-color" content="#5b7065">
+    <!-- Page-specific -->
     <title>Timeline | The Jesus Website</title>
     <meta name="description"
         content="A chronological timeline of the life and times of Jesus — from birth through ministry, crucifixion and the early church.">
     <link rel="stylesheet" href="/style.css">
+    <!-- Agentic Friendliness & MCP Discovery -->
+    <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
+    <script type="application/ld+json" id="page-metadata">{}</script>
     <style>
         .time-point {
             text-align: center;
@@ -32,6 +40,11 @@
             margin: 10px auto 0;
         }
 
+        /* Ascension dot override */
+        .time-point[data-period="ascension"]::after {
+            background: #aed6f1;
+        }
+
         .period-detail {
             background: var(--card-bg);
             padding: 20px;
@@ -49,77 +62,129 @@
 </head>
 
 <body>
-    <div class="container">
+    <!-- Layer 1: Macro-Layout — 2-column asymmetric track (sidebar-rail + content) -->
+    <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr; gap: 20px; padding: 20px;">
 
-        <header style="grid-column: 1 / -1;">
-            <h1>Timeline</h1>
-            <p>Navigate the key periods of Jesus' life and the events surrounding him — arranged chronologically from
-                birth to the early church.</p>
-        </header>
-
-        <!-- Timeline Controls -->
-        <section style="grid-column: 1 / -1;">
-            <div class="timeline-controls">
-                <button id="shuffle-left" title="Earlier period">← Earlier</button>
-                <div style="display: flex; gap: 10px;">
-                    <button id="zoom-in-timeline">Zoom In</button>
-                    <button id="zoom-out-timeline">Zoom Out</button>
-                </div>
-                <button id="shuffle-right" title="Later period">Later →</button>
+        <!-- Sidebar Rail (Col 1, spans all content rows) — from _sidebar.html -->
+        <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation">
+            <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-brand">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;">The Jesus Website</h3>
             </div>
-        </section>
+            <ul class="record-list" id="nav-main-links">
+                <li><a href="/records.html" class="nav-link" data-page="records">Home</a></li>
+                <li><a href="/evidence.html" class="nav-link" data-page="evidence">Evidence</a></li>
+                <li><a href="/maps/maps.html" class="nav-link" data-page="maps">Maps</a></li>
+                <li><a href="/timeline.html" class="nav-link" data-page="timeline">Timeline</a></li>
+                <li><a href="/context.html" class="nav-link" data-page="context">Context</a></li>
+                <li><a href="/challenge.html" class="nav-link" data-page="challenge">Challenges</a></li>
+                <li><a href="/resources.html" class="nav-link" data-page="resources">Resources</a></li>
+                <li><a href="/news_and_blog.html" class="nav-link" data-page="news">News</a></li>
+                <li><a href="/about.html" class="nav-link" data-page="about">About</a></li>
+            </ul>
+            <ul class="record-list">
+                <li><a href="/private/dashboard.html" class="nav-link" data-page="admin">Admin</a></li>
+            </ul>
+            <script src="/js/sidebar_toggle.js"></script>
+            <script src="/js/current_item_highlight.js"></script>
+        </nav>
 
-        <!-- Main Timeline Bar -->
-        <main style="grid-column: 1 / -1;">
-            <div class="timeline" id="timeline-bar" style="border-top: 3px solid var(--accent-color);">
-                <div class="time-point" data-period="birth">
-                    <span class="label">c. 6–4 BC</span><br>Birth &amp; Early Life
+        <!-- Main Content (Col 2, natural flow) -->
+        <main>
+            <!-- Page Header & Intro -->
+            <header class="nav-header">
+                <h1>Timeline</h1>
+                <p>Navigate the key periods of Jesus' life and the events surrounding him — arranged chronologically
+                    from birth to the early church.</p>
+            </header>
+
+            <!-- Timeline Controls -->
+            <section>
+                <div class="timeline-controls">
+                    <button id="shuffle-left" title="Earlier period">← Earlier</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="zoom-in-timeline">Zoom In</button>
+                        <button id="zoom-out-timeline">Zoom Out</button>
+                    </div>
+                    <button id="shuffle-right" title="Later period">Later →</button>
                 </div>
-                <div class="time-point" data-period="preparation">
-                    <span class="label">c. AD 26–27</span><br>Baptism &amp; Preparation
+            </section>
+
+            <!-- Hero: Timeline Bar -->
+            <section>
+                <div class="timeline" id="timeline-bar" style="border-top: 3px solid var(--accent-color);">
+                    <div class="time-point" data-period="birth">
+                        <span class="label">c. 6–4 BC</span><br>Birth &amp; Early Life
+                    </div>
+                    <div class="time-point" data-period="preparation">
+                        <span class="label">c. AD 26–27</span><br>Baptism &amp; Preparation
+                    </div>
+                    <div class="time-point" data-period="galilee-ministry">
+                        <span class="label">c. AD 27–29</span><br>Galilean Ministry
+                    </div>
+                    <div class="time-point" data-period="judean-ministry">
+                        <span class="label">c. AD 29–30</span><br>Judean Ministry
+                    </div>
+                    <div class="time-point" data-period="passion">
+                        <span class="label">c. AD 30</span><br>Passion &amp; Crucifixion
+                    </div>
+                    <div class="time-point" data-period="resurrection">
+                        <span class="label">c. AD 30</span><br>Resurrection
+                    </div>
+                    <div class="time-point" data-period="ascension" style="color: #2e86c1;">
+                        <span class="label">c. AD 30</span><br>Ascension
+                    </div>
+                    <div class="time-point" data-period="early-church">
+                        <span class="label">c. AD 30–70</span><br>Early Church
+                    </div>
                 </div>
-                <div class="time-point" data-period="galilee-ministry">
-                    <span class="label">c. AD 27–29</span><br>Galilean Ministry
+            </section>
+
+            <!-- Period Detail Panel -->
+            <section style="margin-top: 2rem;">
+                <div class="period-detail" id="period-detail">
+                    <h3>Select a period above</h3>
+                    <p>Click on any point in the timeline to see the associated records, events and historical context
+                        for that period.</p>
                 </div>
-                <div class="time-point" data-period="judean-ministry">
-                    <span class="label">c. AD 29–30</span><br>Judean Ministry
+            </section>
+
+            <!-- Related Records -->
+            <section style="margin-top: 1.5rem;">
+                <div class="feed-container">
+                    <h3 class="label">Records in this Period</h3>
+                    <ul class="record-list" id="period-records">
+                        <li><a href="#">Records will load for the selected period</a></li>
+                    </ul>
                 </div>
-                <div class="time-point" data-period="passion">
-                    <span class="label">c. AD 30</span><br>Passion &amp; Crucifixion
-                </div>
-                <div class="time-point" data-period="resurrection">
-                    <span class="label">c. AD 30</span><br>Resurrection
-                </div>
-                <div class="time-point" data-period="early-church">
-                    <span class="label">c. AD 30–70</span><br>Early Church
-                </div>
-            </div>
+            </section>
         </main>
 
-        <!-- Period Detail Panel -->
-        <section style="grid-column: 1 / 8; margin-top: 2rem;">
-            <div class="period-detail" id="period-detail">
-                <h3>Select a period above</h3>
-                <p>Click on any point in the timeline to see the associated records, events and historical context for
-                    that period.</p>
+        <!-- Footer (last row, full width) — from _footer.html -->
+        <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
+            <div class="footer-left">
+                <p>&copy; Luke Isham 2026 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
+                        rel="noopener">CC BY-SA 4.0</a></p>
             </div>
-        </section>
-
-        <!-- Related Records -->
-        <aside style="grid-column: 9 / 13; margin-top: 2rem;">
-            <div class="feed-container">
-                <h3 class="label">Records in this Period</h3>
-                <ul class="record-list" id="period-records">
-                    <li><a href="#">Records will load for the selected period</a></li>
-                </ul>
+            <div class="footer-right">
+                <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
             </div>
-        </aside>
+            <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
+            <script type="module" src="/js/footer_actions.js"></script>
+        </nav>
 
     </div>
 
-    <script src="js/shuffle_left.js"></script>
-    <script src="js/suffle_right.js"></script>
-    <script src="js/zoom.js"></script>
+    <!-- Scripts -->
+    <script src="/js/shuffle_left.js"></script>
+    <script src="/js/suffle_right.js"></script>
+    <script src="/js/zoom.js"></script>
 </body>
 
 </html>
