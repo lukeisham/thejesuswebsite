@@ -36,7 +36,7 @@
                     // The instruction implies: "fetches... from the ESV API, caches results".
 
                     // We'll simulate the proxy call:
-                    const res = await fetch("/api/expand_verse?q=" + encodeURIComponent(verseRef));
+                    const res = await fetch("/api/v1/expand_verse?q=" + encodeURIComponent(verseRef));
                     if (!res.ok) {
                         // If endpoint not built yet, we just gracefully degrade
                         throw new Error("Proxy error or unavailable HTTP " + res.status);

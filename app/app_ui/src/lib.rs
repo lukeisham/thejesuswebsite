@@ -1,3 +1,4 @@
+pub mod api_records;
 pub mod login;
 pub mod middleware;
 pub mod router;

@@ -7,6 +7,8 @@ use axum::{
 use std::sync::Arc;
 use tower_http::services::ServeDir;
 
+use crate::api_records::handle_expand_verse;
+
 /// Creates the primary router for the app_ui service.
 pub fn create_router(state: Arc<AppState>) -> Router {
     Router::new()
@@ -27,6 +29,7 @@ fn api_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/challenge", post(handle_challenge))
         .route("/search/essays", get(handle_essay_search))
+        .route("/expand_verse", get(handle_expand_verse))
 }
 
 // --- Handler Stubs ---
