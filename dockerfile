@@ -1,50 +1,30 @@
-# --- Stage 1: Planner ---
-FROM lukemathwalker/cargo-chef:latest-rust-1.85.0-bookworm AS planner
-WORKDIR /app
-COPY . .
-RUN cargo chef prepare --recipe-path recipe.json
-
-# --- Stage 2: Cacher ---
-FROM lukemathwalker/cargo-chef:latest-rust-1.85.0-bookworm AS cacher
-WORKDIR /app
-COPY --from=planner /app/recipe.json recipe.json
-# Build dependencies - this is the layer that saves you 10+ minutes per build
-RUN cargo chef cook --release --recipe-path recipe.json
-
-# --- Stage 3: Builder ---
-FROM rust:1.85.0-bookworm AS builder
-WORKDIR /app
-COPY . .
-# Copy over the pre-compiled dependencies from the cacher
-COPY --from=cacher /app/target target
-COPY --from=cacher /usr/local/cargo /usr/local/cargo
-# Build the specific binary for your UI/Server
-RUN cargo build --release -p app_ui
-
-# --- Stage 4: Runtime ---
-# Using Debian Bookworm Slim for a small footprint but with necessary GLIBC support for 'candle'
-FROM debian:bookworm-slim AS runtime
+# --- Build Stage ---
+FROM rustlang/rust:nightly-slim as builder
 WORKDIR /app
 
-# Install OpenSSL and CA-certificates (needed for OpenAI/API calls)
+# Install dependencies for Rust/OpenSSL/C++
 RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    libssl3 \
+    pkg-config \
+    libssl-dev \
+    build-essential \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the binary from the builder
-COPY --from=builder /app/target/release/app_ui /usr/local/bin/app_ui
+COPY . .
 
-# Copy frontend assets
-COPY --from=builder /app/frontend ./frontend
-COPY --from=builder /app/openai.yml ./openai.yml
+# Build only the main package to be safe
+RUN cargo build --release --bin app_ui
 
-# Set environment variables
-ENV RUST_LOG=info
-ENV APP_ENVIRONMENT=production
+# --- Runtime Stage ---
+FROM debian:bookworm-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Expose the port your server.rs likely listens on
-EXPOSE 8080
+# Copy ONLY the server binary and rename it for simplicity
+COPY --from=builder /app/target/release/app_ui ./agentic-hub
 
-# Run the app
-ENTRYPOINT ["/usr/local/bin/app_ui"]
+# Copy the frontend folder (HTML/JS/CSS)
+COPY frontend/ ./frontend/
+
+EXPOSE 3000
+CMD ["./agentic-hub"]
