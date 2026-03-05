@@ -9,9 +9,9 @@
     <meta name="author" content="The Jesus Website">
     <meta name="theme-color" content="#5b7065">
     <!-- Page-specific -->
-    <title>Challenges | The Jesus Website</title>
+    <title>News Feed | The Jesus Website</title>
     <meta name="description"
-        content="Common historical challenges to the evidence for Jesus, with both academic and popular responses.">
+        content="All site news from The Jesus Website — new record additions, site updates, and announcements about the historical Jesus project.">
     <link rel="stylesheet" href="/style.css">
     <!-- Agentic Friendliness & MCP Discovery -->
     <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
@@ -52,65 +52,44 @@
         <main>
             <!-- Page Header & Intro -->
             <header class="nav-header">
-                <h1>Challenges</h1>
-                <p>Frequently raised objections and challenges to the historical evidence for Jesus. Each challenge is
-                    paired with academic and popular-level responses.</p>
+                <h1>News Feed</h1>
+                <p>All news items and site updates from The Jesus Website — new record additions, feature launches, and
+                    announcements related to the historical Jesus project. Items are ordered most-recent first.</p>
             </header>
 
-            <!-- Tab Toggle -->
-            <section>
-                <div
-                    style="display: flex; gap: 15px; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
-                    <span class="tab active" id="tab-academic" data-list="academic">Academic Responses</span>
-                    <span class="tab" id="tab-popular" data-list="popular">Popular Responses</span>
-                </div>
-            </section>
-
-            <!-- Hero: Challenge Lists -->
-            <section id="academic-list"
+            <!-- Hero: News Item List -->
+            <section id="news-feed-list"
                 style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Did Jesus Exist?</h3>
-                    <p style="font-size: 0.9rem;">The mythicist challenge — examining the claim that Jesus was a purely
-                        mythological figure, and the overwhelming scholarly consensus to the contrary.</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Historicity | Difficulty:
-                        Introductory</span>
+
+                <!-- Placeholder cards — replaced dynamically by display_news_feed.js -->
+                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 0.25rem;">News items will be loaded dynamically</h4>
+                    <p style="font-size: 0.8rem; color: #666; margin: 0;">The full list of news updates will appear
+                        here,
+                        fetched from the server.</p>
+                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
                 </article>
 
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Are the Gospels Reliable?</h3>
-                    <p style="font-size: 0.9rem;">Exploring genre, dating, authorship and eyewitness testimony — what
-                        can we reasonably conclude about the historical reliability of the Gospel texts?</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Textual Criticism | Difficulty:
-                        Intermediate</span>
+                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 0.25rem;">Placeholder Item</h4>
+                    <p style="font-size: 0.8rem; color: #666; margin: 0;">A second news item will appear here once the
+                        server is running.</p>
+                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
                 </article>
 
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Wasn't the Resurrection a Legend?</h3>
-                    <p style="font-size: 0.9rem;">Examining the legendary development hypothesis — how quickly did the
-                        resurrection accounts appear, and do they show signs of embellishment over time?</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Resurrection | Difficulty: Advanced</span>
+                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 0.25rem;">Placeholder Item</h4>
+                    <p style="font-size: 0.8rem; color: #666; margin: 0;">A third news item will appear here once the
+                        server is running.</p>
+                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
                 </article>
-            </section>
 
-            <!-- Popular List (hidden by default) -->
-            <section id="popular-list" style="display: none;">
-                <p style="font-size: 0.9rem; color: #666;">Popular-level responses will be loaded dynamically.</p>
-            </section>
-
-            <!-- Categories (previously aside) -->
-            <section style="margin-top: 2rem;">
-                <div class="feed-container" style="border: 1px solid var(--border-color);">
-                    <h3 class="label">Categories</h3>
-                    <ul class="record-list">
-                        <li><a href="#">Historicity</a></li>
-                        <li><a href="#">Textual Criticism</a></li>
-                        <li><a href="#">Resurrection</a></li>
-                        <li><a href="#">Miracles</a></li>
-                        <li><a href="#">Contradictions</a></li>
-                        <li><a href="#">Pagan Parallels</a></li>
-                    </ul>
-                </div>
+                <article class="feed-container" style="margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 0.25rem;">Placeholder Item</h4>
+                    <p style="font-size: 0.8rem; color: #666; margin: 0;">A fourth news item will appear here once the
+                        server is running.</p>
+                    <span class="label" style="font-size: 0.65rem; display: block; margin-top: 0.5rem;">Date: —</span>
+                </article>
             </section>
         </main>
 
@@ -134,8 +113,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="/js/display_academic_list.js"></script>
-    <script src="/js/display_popular_list.js"></script>
+    <script src="/js/display_news_feed.js"></script>
 </body>
 
 </html>

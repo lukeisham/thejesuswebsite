@@ -90,6 +90,21 @@ HMTL = use comemnts only to highligth variations
 
 ---
 
+### Describing layouts
+
+Col 1       Col 2
+       (250px)      (1fr)
+        ┌───────┬──────────────────┐
+Row 1+  │ Side  │  Header          │
+  ...   │ bar   │  Intro text      │
+Row N   │ (all  │  Hero / Search   │
+        │ rows) │  Record Grid     │
+        ├───────┴──────────────────┤
+Row N+1 │ Footer (a-col-span-full) │
+        └──────────────────────────┘
+
+---
+
 ## Pushing to Github and related BASH
 
 # 1. Add all changed files to the 'staging area'
