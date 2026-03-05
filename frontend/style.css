@@ -146,6 +146,20 @@ input,
     display: subgrid;
 }
 
+/* --- Macro Layout (Responsive Page Root) --- */
+.l-page-root {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+@media (min-width: 768px) {
+    .l-page-root {
+        grid-template-columns: 250px 1fr;
+    }
+}
+
 /* --- REPEATABLE TRACKS --- */
 .a-cols-1 {
     grid-template-columns: repeat(1, 1fr);
@@ -1206,22 +1220,27 @@ button:hover {
 /* On mobile, sidebar is hidden by default */
 @media (max-width: 767px) {
     .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        z-index: 100;
-        width: 250px;
+        width: 100%;
+        height: auto;
+        padding: 10px 20px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        box-sizing: border-box;
     }
 
     .sidebar--collapsed {
-        width: 0;
-        padding: 0;
-        border-right: none;
+        width: 100%;
+        padding: 10px 20px;
     }
 
-    .sidebar--collapsed .hamburger {
+    .sidebar--collapsed .nav-brand,
+    .sidebar--collapsed .record-list {
         display: none;
+    }
+
+    /* Ensure hamburger is always visible on mobile regardless of collapse state */
+    .sidebar--collapsed .hamburger {
+        display: flex;
     }
 }
 

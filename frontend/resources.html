@@ -20,7 +20,7 @@
 
 <body>
     <!-- Layer 1: Macro-Layout — 2-column asymmetric track (sidebar-rail + content) -->
-    <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr; gap: 20px; padding: 20px;">
+    <div class="a-grid l-page-root">
 
         <!-- Sidebar Rail (Col 1, spans all content rows) — from _sidebar.html -->
         <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation">
@@ -133,7 +133,7 @@
             <!-- Hero: Book Card Grid (2×2) -->
             <section id="books" style="margin-bottom: 2rem;">
                 <h2>Books</h2>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="a-grid a-cols-1 md:a-cols-2 a-gap-md">
                     <div class="feed-container" style="border: 1px solid var(--border-color);">
                         <h3 style="margin-top: 0; font-size: 1rem;">The Historical Reliability of the Gospels</h3>
                         <p style="font-size: 0.85rem; color: #666;">Craig Blomberg — A comprehensive defence of Gospel
