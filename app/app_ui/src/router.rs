@@ -26,7 +26,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .nest(
             "/private",
             Router::new()
-                .fallback_service(ServeDir::new("frontend/private"))
+                .fallback_service(ServeDir::new("frontend"))
                 .layer(axum::middleware::from_fn_with_state(
                     state.clone(),
                     crate::auth::auth_middleware,

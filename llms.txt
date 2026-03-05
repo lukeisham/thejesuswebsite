@@ -12,10 +12,10 @@ Site purpose: Historical information about Jesus / [A searchable archive of reli
 ## Most Valuable Pages (read these first)
 - /records.html → Main records archive + search
 - /resources.html → landing page for easy to scan lists of information about the historical Jesus
-- /challenge/histography.html → survey of the history of the historical Jesus
-- /challenge/wikipedia.html → fun ranking of all the wikipedia site about Jesus from least reliable to most reliable
-- /challenge/challenge_popular.html → the ten most popular challenges to the historical Jesus
-- /challenge/challenge_academic.html → the ten most common academic challenges to the historical Jesus
+- /histography.html → survey of the history of the historical Jesus
+- /wikipedia.html → fun ranking of all the wikipedia site about Jesus from least reliable to most reliable
+- /challenge_popular.html → the ten most popular challenges to the historical Jesus
+- /challenge_academic.html → the ten most common academic challenges to the historical Jesus
 - /evidence.html → visual representation of the historical information, useful for humans
 - /about.html → About me, the tech stack & contact (includes machine friendly contact form)
 
@@ -31,7 +31,7 @@ Site purpose: Historical information about Jesus / [A searchable archive of reli
 │   ├── challenge_popular.html
 │   ├── context.html
 │   ├── evidence.html
-│   ├── historgraphy.html
+│   ├── histography.html
 │   ├── index.html
 │   ├── list_events.html
 │   ├── list_manuscripts.html
@@ -54,9 +54,8 @@ Site purpose: Historical information about Jesus / [A searchable archive of reli
 │   ├── robots.txt
 
 ## API / MCP Access
-- Clean Markdown endpoint: /api/markdown?page=records.html
-- MCP server (if you have one): /mcp
-- JSON feed: /api/feed.json
+JSON feed: /api/feed.json
+Clean Markdown endpoint: /api/markdown?page=records.html
 
 ## Rules for Agents
 - You are welcome to scrape all historical data 
