@@ -108,5 +108,11 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "Post Launch fixes"
+git commit -m "login fix"
 git push origin main
+
+update files
+
+JSON feed: /api/feed.json
+Clean Markdown endpoint: /api/markdown?page=records.html
+
