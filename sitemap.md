@@ -16,12 +16,15 @@
 │   │   │   ├── api.rs
 │   │   │   ├── candle.rs
 │   │   │   ├── challenge.rs
+│   │   │   ├── challenge_engine.rs
 │   │   │   ├── domain.rs
 │   │   │   ├── lib.rs
 │   │   │   ├── models.rs
 │   │   │   ├── record.rs
 │   │   │   ├── search.rs
+│   │   │   ├── spelling.rs
 │   │   │   ├── thinking.rs
+│   │   │   ├── wiki_engine.rs
 │   │   │   └── wikipedia.rs
 │   │   └── cargo.toml
 │   ├── app_core
@@ -64,6 +67,7 @@
 │   │   │   │   ├── system
 │   │   │   │   │   ├── bible_verse.rs
 │   │   │   │   │   ├── context_window.rs
+│   │   │   │   │   ├── draft_counts.rs
 │   │   │   │   │   ├── error.rs
 │   │   │   │   │   ├── id_academic_article.rs
 │   │   │   │   │   ├── id_geo.rs
@@ -74,14 +78,19 @@
 │   │   │   │   │   ├── id_orcid.rs
 │   │   │   │   │   ├── id_pleiades.rs
 │   │   │   │   │   ├── json.rs
+│   │   │   │   │   ├── mcp.rs
+│   │   │   │   │   ├── meta_research.rs
 │   │   │   │   │   ├── metadata.rs
 │   │   │   │   │   ├── page_id.rs
 │   │   │   │   │   ├── page_views.rs
+│   │   │   │   │   ├── pdf.rs
 │   │   │   │   │   ├── picture.rs
+│   │   │   │   │   ├── pttx.rs
 │   │   │   │   │   ├── publication_status.rs
 │   │   │   │   │   ├── referral.rs
 │   │   │   │   │   ├── request.rs
 │   │   │   │   │   ├── sequenceid.rs
+│   │   │   │   │   ├── server_metrics.rs
 │   │   │   │   │   ├── server_ram.rs
 │   │   │   │   │   ├── server_storage.rs
 │   │   │   │   │   ├── source.rs
@@ -89,8 +98,10 @@
 │   │   │   │   │   ├── trace_reasoning.rs
 │   │   │   │   │   ├── ulid.rs
 │   │   │   │   │   ├── url.rs
+│   │   │   │   │   ├── user.rs
 │   │   │   │   │   ├── user_metrics.rs
 │   │   │   │   │   ├── websocket.rs
+│   │   │   │   │   ├── widget_status.rs
 │   │   │   │   │   ├── work_queue.rs
 │   │   │   │   │   ├── workspace.rs
 │   │   │   │   │   └── mod.rs
@@ -137,11 +148,27 @@
 │   ├── _header.html
 │   ├── _sidebar.html
 │   ├── about.html
+│   ├── blog_feed.html
 │   ├── challenge.html
+│   ├── challenge_academic.html
+│   ├── challenge_popular.html
 │   ├── context.html
 │   ├── evidence.html
+│   ├── historgraphy.html
 │   ├── index.html
+│   ├── list_events.html
+│   ├── list_manuscripts.html
+│   ├── list_miracles.html
+│   ├── list_objects.html
+│   ├── list_ot_verses.html
+│   ├── list_parables.html
+│   ├── list_people.html
+│   ├── list_places.html
+│   ├── list_sayings_and_sermons.html
+│   ├── list_sites.html
+│   ├── list_sources.html
 │   ├── news_and_blog.html
+│   ├── news_feed.html
 │   ├── records.html
 │   ├── resources.html
 │   ├── timeline.html
@@ -152,29 +179,49 @@
 │   ├── js
 │   │   ├── widgets
 │   │   │   └── wgt_[name].js (17 widgets)
+│   │   ├── blog_feed_hero.js
+│   │   ├── challenge_academic_hero.js
+│   │   ├── challenge_popular_hero.js
+│   │   ├── context_hero.js
 │   │   ├── current_item_highlight.js
 │   │   ├── display_academic_list.js
+│   │   ├── display_academic_results.js
+│   │   ├── display_blog_feed.js
+│   │   ├── display_news_feed.js
 │   │   ├── display_popular_list.js
+│   │   ├── display_popular_results.js
 │   │   ├── display_top_blog_post.js
 │   │   ├── display_top_four_news_items.js
 │   │   ├── expand_verse.js
 │   │   ├── footer_actions.js
+│   │   ├── list_sources_hero.js
+│   │   ├── news_feed_hero.js
 │   │   ├── react_flow.js
 │   │   ├── record_card.js
 │   │   ├── refresh_list.js
 │   │   ├── refresh_records.js
 │   │   ├── search_records.js
+│   │   ├── sidebar_toggle.js
 │   │   ├── store_contact.js
 │   │   ├── store_donor.js
-│   │   └── wasm_interop_demo.js
-│   ├── maps
+│   │   ├── wasm_interop_demo.js
+│   │   └── wikipedia_hero.js
+│   ├── maps/
 │   ├── private
 │   │   ├── js
-│   │   │   ├── widget_[name].js (20 detail scripts)
 │   │   │   ├── blog_crud.js
+│   │   │   ├── chat_with_agent.js
+│   │   │   ├── check_passcode.js
 │   │   │   ├── dashboard_tabs.js
+│   │   │   ├── edit_challenge_results.js
 │   │   │   ├── edit_records.js
-│   │   │   └── record_card.js
+│   │   │   ├── edit_wikipedia_results.js
+│   │   │   ├── record_card.js
+│   │   │   ├── send_passcode.js
+│   │   │   ├── show_queue.js
+│   │   │   ├── show_server_info.js
+│   │   │   ├── show_trace_reasoning.js
+│   │   │   └── widget_[name].js (8 detail scripts)
 │   │   ├── blog_post.html
 │   │   ├── dashboard.html
 │   │   ├── essay.html
