@@ -57,67 +57,12 @@
                     the records. Each essay examines a specific area of scholarship.</p>
             </header>
 
-            <!-- Hero: Multi-card Essay Grid -->
-            <section id="essay-list"
-                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <div class="essay-kicker"
-                        style="font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-color);">
-                        Historical Background</div>
-                    <h3 style="margin-top: 0.5rem;">The World of First-Century Palestine</h3>
-                    <p style="font-size: 0.9rem;">An overview of the political, social and religious landscape — Roman
-                        occupation, Jewish sects, messianic expectations and the temple economy.</p>
-                    <a href="#" class="nav-link" style="font-size: 0.8rem;">Read Essay →</a>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <div class="essay-kicker"
-                        style="font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-color);">
-                        Manuscript Studies</div>
-                    <h3 style="margin-top: 0.5rem;">How We Got the New Testament Texts</h3>
-                    <p style="font-size: 0.9rem;">Exploring textual criticism, manuscript transmission, and the
-                        reliability of the copies that form the basis of the Gospel accounts.</p>
-                    <a href="#" class="nav-link" style="font-size: 0.8rem;">Read Essay →</a>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <div class="essay-kicker"
-                        style="font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-color);">
-                        Archaeology</div>
-                    <h3 style="margin-top: 0.5rem;">What Archaeology Tells Us About Jesus</h3>
-                    <p style="font-size: 0.9rem;">A survey of the key archaeological discoveries — from the Pilate Stone
-                        to the Nazareth Inscription — and their significance for the historical record.</p>
-                    <a href="#" class="nav-link" style="font-size: 0.8rem;">Read Essay →</a>
-                </article>
-
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <div class="essay-kicker"
-                        style="font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-color);">
-                        Non-Christian Sources</div>
-                    <h3 style="margin-top: 0.5rem;">Jesus Outside the Bible</h3>
-                    <p style="font-size: 0.9rem;">What Josephus, Tacitus, Pliny, Suetonius, the Talmud and Lucian tell
-                        us about Jesus — independent attestation from outside the Christian tradition.</p>
-                    <a href="#" class="nav-link" style="font-size: 0.8rem;">Read Essay →</a>
-                </article>
-
+            <!-- Hero: Dynamic Essay Placeholder -->
+            <section id="hero-placeholder" class="hero-container"
+                style="margin-top: 2rem; min-height: 200px; border: 1px solid var(--border-color); padding: 2rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5);">
+                <p style="font-family: var(--font-sans); color: #666; font-style: italic;">Loading essay content...</p>
             </section>
 
-            <!-- Topics (previously aside) -->
-            <section style="margin-top: 2rem;">
-                <div class="feed-container" style="border: 1px solid var(--border-color);">
-                    <h3 class="label">Topics</h3>
-                    <ul class="record-list">
-                        <li><a href="#">Historical Background</a></li>
-                        <li><a href="#">Manuscript Studies</a></li>
-                        <li><a href="#">Archaeology</a></li>
-                        <li><a href="#">Non-Christian Sources</a></li>
-                        <li><a href="#">Chronology</a></li>
-                        <li><a href="#">Geography</a></li>
-                        <li><a href="#">Theology</a></li>
-                    </ul>
-                </div>
-            </section>
         </main>
 
         <!-- Footer (last row, full width) — from _footer.html -->
@@ -135,6 +80,7 @@
             </div>
             <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
             <script type="module" src="/js/footer_actions.js"></script>
+            <script type="module" src="/js/context_hero.js"></script>
         </nav>
 
     </div>

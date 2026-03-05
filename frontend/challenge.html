@@ -52,66 +52,44 @@
         <main>
             <!-- Page Header & Intro -->
             <header class="nav-header">
-                <h1>Challenges</h1>
+                <h1>Debate and Discussion</h1>
                 <p>Frequently raised objections and challenges to the historical evidence for Jesus. Each challenge is
                     paired with academic and popular-level responses.</p>
             </header>
 
-            <!-- Tab Toggle -->
-            <section>
-                <div
-                    style="display: flex; gap: 15px; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
-                    <span class="tab active" id="tab-academic" data-list="academic">Academic Responses</span>
-                    <span class="tab" id="tab-popular" data-list="popular">Popular Responses</span>
-                </div>
-            </section>
+            <!-- Navigation Containers -->
+            <section style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
 
-            <!-- Hero: Challenge Lists -->
-            <section id="academic-list"
-                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Did Jesus Exist?</h3>
-                    <p style="font-size: 0.9rem;">The mythicist challenge — examining the claim that Jesus was a purely
-                        mythological figure, and the overwhelming scholarly consensus to the contrary.</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Historicity | Difficulty:
-                        Introductory</span>
+                <article class="feed-container" style="border: 1px solid var(--border-color); padding: 1.5rem;">
+                    <h3 style="margin-top: 0;">Historgraphy</h3>
+                    <p style="font-size: 0.9rem;">A scholarly overview of historiographic approaches to the life and
+                        historical study of Jesus.</p>
+                    <a href="/historgraphy.html" class="nav-link" style="font-size: 0.85rem;">View →</a>
                 </article>
 
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Are the Gospels Reliable?</h3>
-                    <p style="font-size: 0.9rem;">Exploring genre, dating, authorship and eyewitness testimony — what
-                        can we reasonably conclude about the historical reliability of the Gospel texts?</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Textual Criticism | Difficulty:
-                        Intermediate</span>
+                <article class="feed-container" style="border: 1px solid var(--border-color); padding: 1.5rem;">
+                    <h3 style="margin-top: 0;">Wikipedia</h3>
+                    <p style="font-size: 0.9rem;">Curated Wikipedia articles and assessments related to Jesus studies
+                        and historical scholarship.</p>
+                    <a href="/wikipedia.html" class="nav-link" style="font-size: 0.85rem;">View →</a>
                 </article>
 
-                <article class="feed-container" style="margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
-                    <h3 style="margin-top: 0;">Wasn't the Resurrection a Legend?</h3>
-                    <p style="font-size: 0.9rem;">Examining the legendary development hypothesis — how quickly did the
-                        resurrection accounts appear, and do they show signs of embellishment over time?</p>
-                    <span class="label" style="font-size: 0.7rem;">Category: Resurrection | Difficulty: Advanced</span>
+                <article class="feed-container" style="border: 1px solid var(--border-color); padding: 1.5rem;">
+                    <h3 style="margin-top: 0;">Academic Challenges</h3>
+                    <p style="font-size: 0.9rem;">Scholarly-level challenges to the evidence for Jesus, with
+                        peer-reviewed academic responses.</p>
+                    <a href="/challenge_academic.html" class="nav-link" style="font-size: 0.85rem;">View →</a>
                 </article>
+
+                <article class="feed-container" style="border: 1px solid var(--border-color); padding: 1.5rem;">
+                    <h3 style="margin-top: 0;">Popular Challenges</h3>
+                    <p style="font-size: 0.9rem;">Common popular-level objections to the historical evidence for Jesus,
+                        with accessible responses.</p>
+                    <a href="/challenge_popular.html" class="nav-link" style="font-size: 0.85rem;">View →</a>
+                </article>
+
             </section>
 
-            <!-- Popular List (hidden by default) -->
-            <section id="popular-list" style="display: none;">
-                <p style="font-size: 0.9rem; color: #666;">Popular-level responses will be loaded dynamically.</p>
-            </section>
-
-            <!-- Categories (previously aside) -->
-            <section style="margin-top: 2rem;">
-                <div class="feed-container" style="border: 1px solid var(--border-color);">
-                    <h3 class="label">Categories</h3>
-                    <ul class="record-list">
-                        <li><a href="#">Historicity</a></li>
-                        <li><a href="#">Textual Criticism</a></li>
-                        <li><a href="#">Resurrection</a></li>
-                        <li><a href="#">Miracles</a></li>
-                        <li><a href="#">Contradictions</a></li>
-                        <li><a href="#">Pagan Parallels</a></li>
-                    </ul>
-                </div>
-            </section>
         </main>
 
         <!-- Footer (last row, full width) — from _footer.html -->
@@ -133,9 +111,7 @@
 
     </div>
 
-    <!-- Scripts -->
-    <script src="/js/display_academic_list.js"></script>
-    <script src="/js/display_popular_list.js"></script>
+
 </body>
 
 </html>

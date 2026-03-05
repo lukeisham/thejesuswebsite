@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Shared _header.html content (SEO + MCP Discovery) -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Jesus Website">
+    <meta name="theme-color" content="#5b7065">
+    <title>Historgraphy | The Jesus Website</title>
+    <meta name="description"
+        content="A scholarly essay on the historgraphy of the historical Jesus, styled with the site’s premium essay design.">
+    <link rel="stylesheet" href="/style.css">
+    <!-- Agentic Friendliness & MCP Discovery -->
+    <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
+    <script type="application/ld+json" id="page-metadata">{}</script>
+</head>
+
+<body>
+    <!-- Macro‑layout container (sidebar + main content) -->
+    <div class="a-grid l-page-root" style="grid-template-columns: 250px 1fr; gap: 20px; padding: 20px;">
+        <!-- Sidebar (copied from _sidebar.html) -->
+        <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation">
+            <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-brand">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;">The Jesus Website</h3>
+            </div>
+            <ul class="record-list" id="nav-main-links">
+                <li><a href="/records.html" class="nav-link" data-page="records">Home</a></li>
+                <li><a href="/evidence.html" class="nav-link" data-page="evidence">Evidence</a></li>
+                <li><a href="/maps/maps.html" class="nav-link" data-page="maps">Maps</a></li>
+                <li><a href="/timeline.html" class="nav-link" data-page="timeline">Timeline</a></li>
+                <li><a href="/context.html" class="nav-link" data-page="context">Context</a></li>
+                <li><a href="/challenge.html" class="nav-link" data-page="challenge">Challenges</a></li>
+                <li><a href="/resources.html" class="nav-link" data-page="resources">Resources</a></li>
+                <li><a href="/news_and_blog.html" class="nav-link" data-page="news">News &amp; Blog</a></li>
+                <li><a href="/about.html" class="nav-link" data-page="about">About</a></li>
+            </ul>
+            <ul class="record-list">
+                <li><a href="/private/dashboard.html" class="nav-link" data-page="admin">Admin</a></li>
+            </ul>
+            <script src="/js/sidebar_toggle.js"></script>
+            <script src="/js/current_item_highlight.js"></script>
+        </nav>
+
+        <!-- Main Content -->
+        <main>
+            <header class="nav-header">
+                <h1>Historgraphy of the Historical Jesus</h1>
+                <p class="essay-subtitle">Exploring the scholarly landscape of Jesus research</p>
+            </header>
+
+            <div class="essay-page">
+                <section class="essay-header">
+                    <div class="essay-kicker">Essay</div>
+                    <h1>Historgraphy: Mapping the Scholarly Journey</h1>
+                    <p class="essay-subtitle">From ancient sources to modern critical methods</p>
+                    <div class="essay-meta">
+                        <span>Author: Jane Doe</span> |
+                        <span>Date: 2026‑03‑05</span>
+                    </div>
+                </section>
+
+                <section class="essay-body">
+                    <p>Historgraphy, the study of the history of historical research, examines how scholars have
+                        reconstructed the life of Jesus over the centuries. It reveals the shifting assumptions,
+                        methodologies, and cultural contexts that shape our understanding.</p>
+                    <h2>Early Foundations</h2>
+                    <p>In the 19th century, figures like Albert Schweitzer and William Wrede began to question the
+                        historicity of the Gospel narratives, laying the groundwork for modern critical scholarship.</p>
+                    <h3>Critical Methodologies</h3>
+                    <p>Methods such as form criticism, redaction criticism, and the quest for the historical Jesus have
+                        evolved, each offering distinct lenses on the sources.</p>
+                    <blockquote class="essay-pull-quote">
+                        “The quest for the historical Jesus is as much a reflection of the seeker’s own era as it is of
+                        the past.” – N. T. Wright
+                    </blockquote>
+                    <p>Contemporary scholars continue to debate the balance between theological commitments and
+                        historical inquiry.</p>
+                    <h2>Future Directions</h2>
+                    <p>Emerging interdisciplinary approaches—incorporating archaeology, sociology, and digital
+                        humanities—promise fresh insights into the historgraphy of Jesus studies.</p>
+                    <div class="essay-footnotes">
+                        <h4>Footnotes</h4>
+                        <ol>
+                            <li>Schweitzer, A. (1906). <em>The Quest of the Historical Jesus</em>.</li>
+                            <li>Wrede, W. (1905). <em>The Gospel of the New Testament</em>.</li>
+                        </ol>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Footer (copied from _footer.html) -->
+        <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
+            <div class="footer-left">
+                <p>&copy; Luke Isham 2026 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
+                        rel="noopener">CC BY-SA 4.0</a></p>
+            </div>
+            <div class="footer-right">
+                <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+            </div>
+            <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
+            <script type="module" src="/js/footer_actions.js"></script>
+        </nav>
+    </div>
+</body>
+
+</html>
