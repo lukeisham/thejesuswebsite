@@ -18,7 +18,8 @@ jobs:
           script: |
             cd ~/apps/thejesuswebsite
             git pull origin main
-            # Added --build to ensure code changes are actually applied
-            docker compose up -d --build --force-recreate
-            # Optional: cleans up old images to save VPS space
+            # Using --no-cache ensures Docker completely ignores old builds 
+            # and compiles your new Rust code from scratch.
+            docker compose build --no-cache
+            docker compose up -d --force-recreate
             docker image prune -f
