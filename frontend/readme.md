@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "clean update"
+git commit -m "dashboard update"
 git push origin main
 
 update files

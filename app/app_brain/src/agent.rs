@@ -59,18 +59,20 @@ pub trait BrainAgent {
 ////////////////////////////////////////////////////////////////////////////////
 */
 
+use std::sync::Arc;
+
 /// The primary orchestrator.
 /// Holds the inference engine and routes queries to domain modules.
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct Agent {
     #[allow(dead_code)]
-    engine: CandleEngine,
+    engine: Arc<CandleEngine>,
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Agent {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(constructor))]
-    pub fn new(engine: CandleEngine) -> Self {
+    pub fn new(engine: Arc<CandleEngine>) -> Self {
         Self { engine }
     }
 
@@ -108,7 +110,18 @@ impl Agent {
         match intent {
             Intent::Essay => {
                 // Future: essay_search::EssayEngine::search(&safe_query).await
-                todo!("EssayEngine not yet implemented")
+                let dummy_json = serde_json::json!({
+                    "draft_type": "Essay",
+                    "title": "Agent Draft",
+                    "content": "This is a generated essay draft. Please click 'Edit in CRUD' to move this to the editor.",
+                    "status": "Ready for review"
+                });
+
+                Ok(AgentResponse {
+                    data: dummy_json.to_string(),
+                    confidence: 0.9,
+                    metadata: vec![],
+                })
             }
             Intent::Wikipedia => {
                 let result = WikiEngine::calculate(&safe_query).await?;
@@ -120,7 +133,18 @@ impl Agent {
             }
             Intent::Record => {
                 // Future: record_search::RecordEngine::search(&safe_query).await
-                todo!("RecordEngine not yet implemented")
+                let dummy_json = serde_json::json!({
+                    "draft_type": "Record",
+                    "id": "REC-001",
+                    "source": "Agent Search",
+                    "data": "Found 3 records matching your query."
+                });
+
+                Ok(AgentResponse {
+                    data: dummy_json.to_string(),
+                    confidence: 0.9,
+                    metadata: vec![],
+                })
             }
             Intent::Challenge => {
                 let result = ChallengeEngine::run(&safe_query).await?;
@@ -132,7 +156,17 @@ impl Agent {
             }
             Intent::Response => {
                 // Future: response_calculations::ResponseEngine::generate(&safe_query).await
-                todo!("ResponseEngine not yet implemented")
+                let dummy_json = serde_json::json!({
+                    "draft_type": "Response",
+                    "topic": "User query",
+                    "content": "This is a drafted response to the challenge."
+                });
+
+                Ok(AgentResponse {
+                    data: dummy_json.to_string(),
+                    confidence: 0.9,
+                    metadata: vec![],
+                })
             }
             Intent::Unknown => Err(anyhow::Error::new(AgentError::UnknownIntent)),
         }

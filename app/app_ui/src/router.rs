@@ -44,6 +44,7 @@ fn api_routes() -> Router<Arc<AppState>> {
         .route("/search/essays", get(handle_essay_search))
         .route("/expand_verse", get(handle_expand_verse))
         .route("/markdown", get(crate::api_tools::handle_markdown))
+        .route("/agent/chat", post(crate::agent_api::handle_agent_chat))
 }
 
 /// Sub-router for Auth endpoints.

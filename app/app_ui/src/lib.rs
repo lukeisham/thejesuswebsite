@@ -1,3 +1,4 @@
+pub mod agent_api;
 pub mod api_records;
 pub mod api_tools;
 pub mod auth;
