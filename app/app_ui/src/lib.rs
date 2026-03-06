@@ -1,6 +1,8 @@
 pub mod agent_api;
+pub mod api_news;
 pub mod api_records;
 pub mod api_tools;
+pub mod api_weights;
 pub mod auth;
 pub mod login;
 pub mod middleware;

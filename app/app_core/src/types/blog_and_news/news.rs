@@ -117,6 +117,40 @@ impl NewsEngine {
     pub async fn get_feed(&self) -> Vec<NewsItem> {
         self.feed.read().await.items.clone()
     }
+
+    /// Returns a limited number of items from the feed
+    pub async fn get_feed_limited(&self, limit: usize) -> Vec<NewsItem> {
+        let feed = self.feed.read().await;
+        feed.items.iter().take(limit).cloned().collect()
+    }
+
+    /// SEED LOGIC: Generates mock news items for verification
+    pub async fn seed_mock_data(&self) -> usize {
+        let mut feed = self.feed.write().await;
+        feed.items.clear();
+
+        let sites = [
+            ("Biblical Archaeology Review", "https://www.biblicalarchaeology.org"),
+            ("Society of Biblical Literature", "https://www.sbl-site.org"),
+            ("The Bible and Interpretation", "https://bibleinterp.arizona.edu"),
+            ("Ancient Near East Today", "https://www.asor.org/anet"),
+        ];
+
+        for i in 1..=25 {
+            let (site_name, site_url) = sites[i % sites.len()];
+            feed.items.push(NewsItem {
+                id: NewsItemId(uuid::Uuid::new_v4()),
+                title: format!("Discovery #{} at {}", i, site_name),
+                source_url: Url::parse(site_url).unwrap(),
+                snippet: format!("This is an AI-generated snippet for news discovery #{} providing historical context about Jesus.", i),
+                contents: "Full article contents would reside here in a production crawl.".into(),
+                picture_url: None,
+                harvested_at: chrono::Utc::now() - chrono::Duration::hours(i as i64),
+            });
+        }
+
+        feed.items.len()
+    }
 }
 
 /*

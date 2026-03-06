@@ -6,6 +6,7 @@ use tracing;
 
 // Architectural imports
 use app_brain::candle::CandleEngine;
+use app_core::types::blog_and_news::news::NewsEngine;
 use app_storage::chroma::ChromaConfig;
 use axum::extract::ws::Message;
 use std::collections::HashMap;
@@ -24,6 +25,7 @@ pub struct AppState {
     pub sessions: Arc<SessionRegistry>,
     pub session_secret: String,
     pub slack_webhook_url: String,
+    pub news_engine: Arc<NewsEngine>,
     pub pending_passcodes:
         Arc<tokio::sync::RwLock<std::collections::HashMap<String, (String, std::time::Instant)>>>,
 }

@@ -42,9 +42,23 @@ fn api_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/challenge", post(handle_challenge))
         .route("/search/essays", get(handle_essay_search))
+        .route("/blog/news", get(crate::api_news::handle_get_news))
         .route("/expand_verse", get(handle_expand_verse))
         .route("/markdown", get(crate::api_tools::handle_markdown))
         .route("/agent/chat", post(crate::agent_api::handle_agent_chat))
+        // Wiki Weights
+        .route(
+            "/weights/wikipedia",
+            get(crate::api_weights::handle_get_weights)
+                .post(crate::api_weights::handle_create_weight),
+        )
+        .route(
+            "/weights/wikipedia/:id",
+            axum::routing::put(crate::api_weights::handle_update_weight)
+                .delete(crate::api_weights::handle_delete_weight),
+        )
+        .route("/news_run", post(crate::api_news::handle_news_run))
+        .route("/news_feed_content", get(crate::api_news::handle_news_feed_content))
 }
 
 /// Sub-router for Auth endpoints.

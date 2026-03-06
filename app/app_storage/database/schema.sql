@@ -119,6 +119,14 @@ CREATE TABLE IF NOT EXISTS wikipedia_articles (
     metadata_id TEXT REFERENCES metadata(id)
 );
 
+CREATE TABLE IF NOT EXISTS wikipedia_weights (
+    id TEXT PRIMARY KEY,           -- ULID
+    name TEXT NOT NULL,
+    match_target TEXT NOT NULL,    -- 'url', 'title', 'content'
+    match_value TEXT NOT NULL,     -- e.g., '.edu'
+    weight_score INTEGER NOT NULL
+);
+
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- SYSTEM TABLES (all system types except Picture)

@@ -40,14 +40,14 @@
                     p.style.fontSize = "0.8rem";
                     p.style.color = "#666";
                     p.style.margin = "0";
-                    p.textContent = item.summary || item.body || "";
+                    p.textContent = item.snippet || "";
 
                     var date = document.createElement("span");
                     date.className = "label";
                     date.style.fontSize = "0.65rem";
                     date.style.display = "block";
                     date.style.marginTop = "0.5rem";
-                    date.textContent = "Date: " + (item.date || "—");
+                    date.textContent = "Date: " + (item.harvested_at ? new Date(item.harvested_at).toLocaleDateString() : "—");
 
                     article.appendChild(h4);
                     article.appendChild(p);

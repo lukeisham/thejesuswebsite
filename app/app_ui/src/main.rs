@@ -1,3 +1,4 @@
+use app_core::types::blog_and_news::news::NewsEngine;
 use app_storage::chroma::ChromaConfig;
 use app_ui::{server, server::AppState};
 use dotenvy::dotenv;
@@ -40,6 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Session Registry for WebSockets
     let sessions = Arc::new(RwLock::new(HashMap::new()));
+    let news_engine = Arc::new(NewsEngine::new());
 
     let app_state = Arc::new(AppState {
         brain,
@@ -47,6 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         sessions,
         session_secret,
         slack_webhook_url,
+        news_engine,
         pending_passcodes,
     });
 

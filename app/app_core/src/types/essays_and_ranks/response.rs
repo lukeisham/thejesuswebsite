@@ -24,6 +24,7 @@ pub struct Response {
     pub picture: Option<Picture>,
     pub bibliography: Vec<Source>,
     pub linked_challenge: ChallengeLink,
+    pub parent_id: Option<String>, // To link response underneath specific challenges
     pub status: PublicationStatus, // The new toggle
 }
 
@@ -48,6 +49,7 @@ impl Response {
         picture: Option<Picture>,
         bibliography: Vec<Source>,
         challenge: ChallengeLink,
+        parent_id: Option<String>,
     ) -> Result<Self, ResponseError> {
         Self::validate_internal_route(&url)?;
 
@@ -59,6 +61,7 @@ impl Response {
             picture,
             bibliography,
             linked_challenge: challenge,
+            parent_id,
             status: PublicationStatus::default(), // Always starts safe
         })
     }

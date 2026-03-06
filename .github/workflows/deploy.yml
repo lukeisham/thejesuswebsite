@@ -18,4 +18,7 @@ jobs:
           script: |
             cd ~/apps/thejesuswebsite
             git pull origin main
-            docker compose up -d --force-recreate
+            # Added --build to ensure code changes are actually applied
+            docker compose up -d --build --force-recreate
+            # Optional: cleans up old images to save VPS space
+            docker image prune -f

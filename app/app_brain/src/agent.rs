@@ -156,10 +156,23 @@ impl Agent {
             }
             Intent::Response => {
                 // Future: response_calculations::ResponseEngine::generate(&safe_query).await
+
+                // Temporary heuristic to extract parent_id
+                // Assumes format like CHAL-1234 or chal-1234
+                let mut parent_id = None;
+                if let Some(idx) = safe_query.to_uppercase().find("CHAL-") {
+                    let id_part: String = safe_query[idx..]
+                        .chars()
+                        .take_while(|c| c.is_alphanumeric() || *c == '-')
+                        .collect();
+                    parent_id = Some(id_part.to_uppercase());
+                }
+
                 let dummy_json = serde_json::json!({
                     "draft_type": "Response",
                     "topic": "User query",
-                    "content": "This is a drafted response to the challenge."
+                    "content": format!("This is a drafted response. Extracted Challenge ID: {:?}", parent_id),
+                    "parent_id": parent_id
                 });
 
                 Ok(AgentResponse {
