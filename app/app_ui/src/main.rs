@@ -31,6 +31,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let session_secret =
         std::env::var("SESSION_SECRET").expect("SESSION_SECRET must be set in .env");
 
+    let admin_email = std::env::var("ADMIN_EMAIL").expect("ADMIN_EMAIL must be set in .env");
+
     let slack_webhook_url =
         std::env::var("SLACK_WEBHOOK_URL").expect("SLACK_WEBHOOK_URL must be set in .env");
 
@@ -48,6 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         storage_config,
         sessions,
         session_secret,
+        admin_email,
         slack_webhook_url,
         news_engine,
         pending_passcodes,

@@ -102,7 +102,8 @@ impl AdminPortal {
     }
 
     fn validate_email(&self, email: &str) -> Result<(), AuthError> {
-        if email != self.master_email {
+        let email_lower = email.to_lowercase();
+        if email_lower != self.master_email.to_lowercase() {
             return Err(AuthError::Unauthorized);
         }
         Ok(())

@@ -24,6 +24,7 @@ pub struct AppState {
     pub storage_config: Arc<ChromaConfig>,
     pub sessions: Arc<SessionRegistry>,
     pub session_secret: String,
+    pub admin_email: String,
     pub slack_webhook_url: String,
     pub news_engine: Arc<NewsEngine>,
     pub pending_passcodes:

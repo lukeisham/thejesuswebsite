@@ -135,7 +135,10 @@ pub async fn send_passcode_to_slack(
     let response = client.post(webhook_url).json(&msg).send().await?;
 
     if !response.status().is_success() {
-        tracing::error!("Failed to send Slack webhook: {}", response.status());
+        let status = response.status();
+        let err_body = response.text().await.unwrap_or_default();
+        tracing::error!("Failed to send Slack webhook: {} - {}", status, err_body);
+        return Err(format!("Slack API error: {}", status).into());
     } else {
         tracing::info!("Passcode successfully sent to Slack.");
     }
