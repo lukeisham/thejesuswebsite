@@ -1,7 +1,7 @@
 use crate::{auth, server::AppState};
 use async_trait::async_trait;
 use axum::{
-    extract::{Json, State},
+    extract::{ConnectInfo, Json, State},
     http::{header, header::HeaderValue, HeaderMap, StatusCode},
     response::IntoResponse,
 };
@@ -21,12 +21,7 @@ pub struct AuthSession {
 pub trait Authenticator {
     type Credentials;
 
-    async fn request_challenge(
-        &self,
-        state: &Arc<AppState>,
-        email: &str,
-        bot_field: &str,
-    ) -> Result<(), AuthError>;
+    async fn request_challenge(&self, state: &Arc<AppState>, email: &str) -> Result<(), AuthError>;
     async fn verify_challenge(
         &self,
         state: &Arc<AppState>,
@@ -36,20 +31,14 @@ pub trait Authenticator {
 }
 
 pub struct AdminPortal {
-    pub master_email: &'static str,
+    pub master_email: String,
 }
 
 #[async_trait]
 impl Authenticator for AdminPortal {
     type Credentials = (String, String);
 
-    async fn request_challenge(
-        &self,
-        state: &Arc<AppState>,
-        email: &str,
-        bot_field: &str,
-    ) -> Result<(), AuthError> {
-        self.check_honeypot(bot_field)?;
+    async fn request_challenge(&self, state: &Arc<AppState>, email: &str) -> Result<(), AuthError> {
         self.validate_email(email)?;
 
         let passcode: String = rand::thread_rng().gen_range(100_000..999_999).to_string();
@@ -94,13 +83,6 @@ impl Authenticator for AdminPortal {
 }
 
 impl AdminPortal {
-    fn check_honeypot(&self, bot_field: &str) -> Result<(), AuthError> {
-        if !bot_field.is_empty() {
-            return Err(AuthError::SecurityViolation("Bot activity detected".into()));
-        }
-        Ok(())
-    }
-
     fn validate_email(&self, email: &str) -> Result<(), AuthError> {
         let email_lower = email.to_lowercase();
         if email_lower != self.master_email.to_lowercase() {
@@ -148,7 +130,6 @@ pub enum AuthError {
 #[derive(Deserialize)]
 pub struct SendPasscodeReq {
     pub email: String,
-    pub user_name: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -164,19 +145,47 @@ pub struct AuthResponse {
 }
 
 pub async fn handle_send_passcode(
+    ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>,
     State(state): State<Arc<AppState>>,
     Json(payload): Json<SendPasscodeReq>,
 ) -> impl IntoResponse {
+    let ip = addr.ip();
+
+    // Rate limiting check
+    {
+        let mut attempts = state.login_attempts.write().await;
+        // Explicitly type hints to help rust-analyzer
+        let attempts_map: &mut std::collections::HashMap<std::net::IpAddr, (u32, Instant)> =
+            &mut *attempts;
+        let now = Instant::now();
+        let (count, last_attempt) = attempts_map.get(&ip).cloned().unwrap_or((0, now));
+
+        // Reset if window (15 mins) passed
+        let count = if now.duration_since(last_attempt) > Duration::from_secs(15 * 60) {
+            0
+        } else {
+            count
+        };
+
+        if count >= 5 {
+            return (
+                StatusCode::TOO_MANY_REQUESTS,
+                Json(AuthResponse {
+                    success: false,
+                    error: Some("Too many attempts. Please try again later.".to_string()),
+                }),
+            )
+                .into_response();
+        }
+
+        attempts_map.insert(ip, (count + 1, now));
+    }
+
     let portal = AdminPortal {
-        master_email: "luke.isham@gmail.com",
+        master_email: state.admin_email.clone(),
     };
 
-    let honey = payload.user_name.unwrap_or_default();
-
-    match portal
-        .request_challenge(&state, &payload.email, &honey)
-        .await
-    {
+    match portal.request_challenge(&state, &payload.email).await {
         Ok(_) => Json(AuthResponse {
             success: true,
             error: None,
@@ -192,11 +201,14 @@ pub async fn handle_send_passcode(
 }
 
 pub async fn handle_verify_passcode(
+    ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>,
     State(state): State<Arc<AppState>>,
     Json(payload): Json<VerifyPasscodeReq>,
 ) -> impl IntoResponse {
+    let _ip = addr.ip(); // Could also rate limit verification if needed
+
     let portal = AdminPortal {
-        master_email: "luke.isham@gmail.com",
+        master_email: state.admin_email.clone(),
     };
 
     match portal

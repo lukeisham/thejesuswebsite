@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "deploy fix"
+git commit -m "floot control to replace honeypot"
 git push origin main
 
 update files
@@ -120,3 +120,10 @@ on my VPS
 git pull
 docker compose build agentic_hub
 docker compose up -d agentic_hub
+
+
+to check if latest repo is on the server
+
+cd ~/apps/thejesuswebsite
+git log -1 --oneline
+

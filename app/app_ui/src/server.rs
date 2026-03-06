@@ -29,6 +29,9 @@ pub struct AppState {
     pub news_engine: Arc<NewsEngine>,
     pub pending_passcodes:
         Arc<tokio::sync::RwLock<std::collections::HashMap<String, (String, std::time::Instant)>>>,
+    pub login_attempts: Arc<
+        tokio::sync::RwLock<std::collections::HashMap<std::net::IpAddr, (u32, std::time::Instant)>>,
+    >,
 }
 
 /// The entry point for starting the web service.

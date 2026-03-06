@@ -37,6 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::env::var("SLACK_WEBHOOK_URL").expect("SLACK_WEBHOOK_URL must be set in .env");
 
     let pending_passcodes = Arc::new(RwLock::new(HashMap::new()));
+    let login_attempts = Arc::new(RwLock::new(HashMap::new()));
 
     // Brain (Candle) might not be fully loaded yet
     let brain = None; // Placeholder for future model loading
@@ -54,6 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         slack_webhook_url,
         news_engine,
         pending_passcodes,
+        login_attempts,
     });
 
     // 4. Run the Server
