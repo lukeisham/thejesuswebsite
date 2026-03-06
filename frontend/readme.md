@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "big dashboard update"
+git commit -m "login fix"
 git push origin main
 
 update files
