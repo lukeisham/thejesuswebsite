@@ -7,8 +7,6 @@ use axum::{
 };
 use hex;
 use hmac::{Hmac, Mac};
-use reqwest;
-use serde_json::json;
 use sha2::Sha256;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -120,28 +118,4 @@ pub async fn auth_middleware(
         // Redirect to login
         Ok(Redirect::temporary("/login.html").into_response())
     }
-}
-
-/// Posts a 6-digit passcode to a Slack webhook.
-pub async fn send_passcode_to_slack(
-    code: &str,
-    webhook_url: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
-    let msg = json!({
-        "text": format!("🚨 *Admin Login Request*\nYour authentication passcode is: `{}`\n_(Valid for 5 minutes)_", code)
-    });
-
-    let response = client.post(webhook_url).json(&msg).send().await?;
-
-    if !response.status().is_success() {
-        let status = response.status();
-        let err_body = response.text().await.unwrap_or_default();
-        tracing::error!("Failed to send Slack webhook: {} - {}", status, err_body);
-        return Err(format!("Slack API error: {}", status).into());
-    } else {
-        tracing::info!("Passcode successfully sent to Slack.");
-    }
-
-    Ok(())
 }

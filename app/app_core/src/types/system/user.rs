@@ -16,7 +16,6 @@ use wasm_bindgen::prelude::*;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum UserRole {
     Admin,
-    Contributor,
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(getter_with_clone))]

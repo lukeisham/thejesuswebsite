@@ -126,30 +126,12 @@
         <main class="login-box">
             <h1>Admin Login</h1>
 
-            <!-- Step 1: Send Passcode -->
-            <form id="send-passcode-form">
-                <!-- Primary Input -->
+            <form id="login-form">
                 <div class="mb-2" style="margin-bottom: 1.5rem;">
-                    <input type="email" id="admin-email" name="email" class="input-field" placeholder="Email Address"
-                        required>
+                    <input type="password" id="admin-password" name="password" class="input-field" placeholder="Password" required>
                 </div>
 
-
-                <button type="submit" id="send-passcode-btn" class="btn-primary">Send
-                    Passcode</button>
-            </form>
-
-            <!-- Step 2: Enter Passcode (shown after email sent) -->
-            <form id="check-passcode-form" style="display: none; margin-top: 1.5rem;">
-                <div style="margin-bottom: 1.5rem;">
-                    <label for="passcode" class="label"
-                        style="display: block; text-align: left; margin-bottom: 0.5rem; font-weight: 500;">One-Time
-                        Passcode</label>
-                    <input type="text" id="passcode" name="passcode" placeholder="------" required maxlength="6"
-                        class="input-field"
-                        style="text-align: center; font-size: 2rem; letter-spacing: 12px; font-weight: 600; font-family: monospace;">
-                </div>
-                <button type="submit" id="check-passcode-btn" class="btn-primary">Verify &amp; Sign In</button>
+                <button type="submit" id="login-btn" class="btn-primary">Sign In</button>
             </form>
 
             <p id="login-status"
@@ -158,8 +140,7 @@
         </main>
     </div>
 
-    <script src="/private/js/send_passcode.js"></script>
-    <script src="/private/js/check_passcode.js"></script>
+    <script src="/private/js/login.js"></script>
 </body>
 
 </html>

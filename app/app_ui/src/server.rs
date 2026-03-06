@@ -25,10 +25,8 @@ pub struct AppState {
     pub sessions: Arc<SessionRegistry>,
     pub session_secret: String,
     pub admin_email: String,
-    pub slack_webhook_url: String,
+    pub sfa_pass: String,
     pub news_engine: Arc<NewsEngine>,
-    pub pending_passcodes:
-        Arc<tokio::sync::RwLock<std::collections::HashMap<String, (String, std::time::Instant)>>>,
     pub login_attempts: Arc<
         tokio::sync::RwLock<std::collections::HashMap<std::net::IpAddr, (u32, std::time::Instant)>>,
     >,

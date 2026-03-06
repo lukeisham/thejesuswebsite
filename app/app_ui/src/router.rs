@@ -64,8 +64,7 @@ fn api_routes() -> Router<Arc<AppState>> {
 /// Sub-router for Auth endpoints.
 fn auth_routes() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/send-passcode", post(crate::login::handle_send_passcode))
-        .route("/verify-passcode", post(crate::login::handle_verify_passcode))
+        .route("/login", post(crate::login::handle_login))
         .route("/logout", post(crate::login::handle_logout))
 }
 

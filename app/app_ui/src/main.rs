@@ -32,11 +32,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::env::var("SESSION_SECRET").expect("SESSION_SECRET must be set in .env");
 
     let admin_email = std::env::var("ADMIN_EMAIL").expect("ADMIN_EMAIL must be set in .env");
+    let sfa_pass = std::env::var("SFA_PASS").expect("SFA_PASS must be set in .env");
 
-    let slack_webhook_url =
-        std::env::var("SLACK_WEBHOOK_URL").expect("SLACK_WEBHOOK_URL must be set in .env");
-
-    let pending_passcodes = Arc::new(RwLock::new(HashMap::new()));
     let login_attempts = Arc::new(RwLock::new(HashMap::new()));
 
     // Brain (Candle) might not be fully loaded yet
@@ -52,9 +49,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         sessions,
         session_secret,
         admin_email,
-        slack_webhook_url,
+        sfa_pass,
         news_engine,
-        pending_passcodes,
         login_attempts,
     });
 

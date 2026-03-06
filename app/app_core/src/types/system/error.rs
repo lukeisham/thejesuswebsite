@@ -30,4 +30,16 @@ pub enum AppError {
 
     #[error("System Collision: {0}")]
     SystemCollision(String),
+
+    #[error("Wrong password")]
+    WrongPassword,
+
+    #[error("Too many attempts. Please try again later.")]
+    FloodControl,
+
+    #[error("Unable to open dashboard.html")]
+    DashboardAccessError,
+
+    #[error("No response from the app")]
+    AppNoResponse,
 }
