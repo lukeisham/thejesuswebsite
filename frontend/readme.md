@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "floot control to replace honeypot"
+git commit -m "revised login"
 git push origin main
 
 update files
