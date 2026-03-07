@@ -7,7 +7,10 @@ use axum::{
 use std::sync::Arc;
 use tower_http::services::ServeDir;
 
-use crate::api_records::handle_expand_verse;
+use crate::api_records::{
+    handle_expand_verse, handle_get_draft_records, handle_publish_record, handle_record_list,
+    handle_save_record_draft,
+};
 
 /// Creates the primary router for the app_ui service.
 pub fn create_router(state: Arc<AppState>) -> Router {
@@ -60,6 +63,11 @@ fn api_routes() -> Router<Arc<AppState>> {
         )
         .route("/news_run", post(crate::api_news::handle_news_run))
         .route("/news_feed_content", get(crate::api_news::handle_news_feed_content))
+        // Records & Drafts
+        .route("/records", get(handle_record_list))
+        .route("/records/drafts", get(handle_get_draft_records))
+        .route("/records/draft", post(handle_save_record_draft))
+        .route("/records/publish", post(handle_publish_record))
 }
 
 /// Sub-router for Auth endpoints.

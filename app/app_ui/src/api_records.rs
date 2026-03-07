@@ -22,6 +22,32 @@ pub async fn handle_publish_record() -> impl IntoResponse {
     (StatusCode::OK, "Record published (Stub)").into_response()
 }
 
+pub async fn handle_record_list() -> impl IntoResponse {
+    (
+        StatusCode::OK,
+        Json(vec![serde_json::json!({
+            "id": "rec_01",
+            "title": "Healing of the Centurion's Servant",
+            "type": "Miracle",
+            "published": true
+        })]),
+    )
+        .into_response()
+}
+
+pub async fn handle_get_draft_records() -> impl IntoResponse {
+    (
+        StatusCode::OK,
+        Json(vec![serde_json::json!({
+            "id": "draft_01",
+            "title": "New Archeological Find in Capernaum",
+            "type": "Site",
+            "published": false
+        })]),
+    )
+        .into_response()
+}
+
 pub async fn handle_update_parent() -> impl IntoResponse {
     (StatusCode::OK, "Parent updated (Stub)").into_response()
 }

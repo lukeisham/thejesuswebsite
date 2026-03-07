@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "new fix"
+git commit -m "claude update"
 git push origin main
 
 update files
