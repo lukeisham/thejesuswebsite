@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="/style.css">
+
+    <!-- Assuming component loader injects Header/Footer/Sidebar -->
+    <script src="/js/component_loader.js" defer></script>
+
+    <style>
+        /* ==============================
+           MACRO-LAYOUT overrides for Dashboard
+           ============================== */
+        .l-page-root {
+            display: grid;
+            grid-template-columns: 250px 1fr 1fr;
+            /* Let rows be auto sized, max height fills screen */
+            grid-template-rows: auto 1fr auto;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Dashboard specific panel styling */
+        .dashboard-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem;
+            border-radius: 4px;
+        }
+
+        .dashboard-panel h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        /* Traffic Light System */
+        .traffic-light {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .status-idle {
+            background-color: #ccc;
+        }
+
+        .status-active {
+            background-color: #4caf50;
+        }
+
+        .status-error {
+            background-color: #f44336;
+        }
+
+        .status-warning {
+            background-color: #ff9800;
+        }
+
+        .widget-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fafaf9;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .widget-card strong {
+            display: block;
+            margin-bottom: 5px;
+            font-family: var(--font-sans);
+            color: var(--accent-color);
+        }
+
+        /* Chat Styles */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 300px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fafaf9;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Tab System */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            background: #e0e0e0;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            font-family: var(--font-sans);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .tab.active {
+            background: var(--card-bg);
+            margin-bottom: -2px;
+            z-index: 10;
+            font-weight: bold;
+            border-bottom: 2px solid var(--card-bg);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- LAYER 1: MACRO-LAYOUT Container -->
+    <div class="l-page-root">
+
+        <!-- Header: Row 1 | Col 1 to End (1 / -1) -->
+        <header
+            style="grid-column: 1 / -1; grid-row: 1; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="font-size: 2rem; margin-bottom: 0;">Admin Dashboard</h1>
+                    <p style="margin-top: 0.25rem; font-size: 0.9rem; color: #666;">The Jesus Website — Content
+                        Management & AI Tools</p>
+                </div>
+                <a href="#"
+                    onclick="fetch('/api/auth/logout', {method:'POST'}).then(() => window.location.href='/login.html'); return false;"
+                    class="nav-link" style="font-size: 0.8rem;">Logout</a>
+            </div>
+        </header>
+
+        <!-- Sidebar: Row 2 | Col 1 -->
+        <aside style="grid-column: 1; grid-row: 2;">
+            <div id="sidebar"></div>
+        </aside>
+
+        <!-- Main Content: Row 2 | Col 2 to End (2 / span 2) -->
+        <main style="grid-column: 2 / span 2; grid-row: 2;">
+            <div style="display: grid; grid-template-rows: auto auto auto; gap: 20px; height: 100%;">
+
+                <!-- ROW 1: Large CRUD editor -->
+                <div class="dashboard-panel" style="grid-row: 1;">
+                    <div class="tabs">
+                        <button class="tab active" data-target="crud-records">Records</button>
+                        <button class="tab" data-target="crud-essays">Essays</button>
+                        <button class="tab" data-target="crud-responses">Responses</button>
+                        <button class="tab" data-target="crud-blogs">Blogposts</button>
+                        <button class="tab" data-target="crud-weights">Wiki Weights</button>
+                    </div>
+
+                    <div id="crud-records" class="tab-panel active">
+                        <h3>Records Manager</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
+                            <input type="text" id="search-records-input" placeholder="Search records..."
+                                class="input-field" style="flex: 1; padding: 8px;">
+                            <button id="add-record" class="btn-primary">+ Add Record</button>
+                        </div>
+                        <ul class="record-list" id="records-edit-list" style="max-height: 200px; overflow-y: auto;">
+                            <li><a href="#">No records loaded <span class="label" style="float: right;">—</span></a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div id="crud-essays" class="tab-panel">
+                        <h3>Essay Manager</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
+                            <input type="text" id="essay-title-input" placeholder="Link to Record title..."
+                                class="input-field" style="flex: 1; padding: 8px;">
+                            <input type="hidden" id="essay-record-id" value="">
+                        </div>
+                        <textarea id="essay-body-input" class="input-field" rows="8"
+                            style="width: 100%; box-sizing: border-box; padding: 10px;"
+                            placeholder="Write your contextual essay here using markdown..."></textarea>
+                        <div style="text-align: right; margin-top: 10px;">
+                            <button id="save-essay-draft" class="btn-secondary" style="padding: 8px 16px;">Save
+                                Draft</button>
+                            <button id="publish-essay" class="btn-primary">Publish</button>
+                        </div>
+                    </div>
+
+                    <div id="crud-responses" class="tab-panel">
+                        <h3>Response Manager</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
+                            <input type="text" id="response-title-input" placeholder="Link to Challenge title..."
+                                class="input-field" style="flex: 1; padding: 8px;">
+                            <input type="hidden" id="response-challenge-id" value="">
+                        </div>
+                        <textarea id="response-body-input" class="input-field" rows="8"
+                            style="width: 100%; box-sizing: border-box; padding: 10px;"
+                            placeholder="Write your response here using markdown..."></textarea>
+                        <div style="text-align: right; margin-top: 10px;">
+                            <button id="save-response-draft" class="btn-secondary" style="padding: 8px 16px;">Save
+                                Draft</button>
+                            <button id="publish-response" class="btn-primary">Publish</button>
+                        </div>
+                    </div>
+
+                    <div id="crud-blogs" class="tab-panel">
+                        <h3>Blog Manager</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
+                            <input type="text" id="search-blogs-input" placeholder="Search blogs..." class="input-field"
+                                style="flex: 1; padding: 8px;">
+                            <button id="create-blog-post" class="btn-primary">+ New Post</button>
+                        </div>
+                        <ul class="record-list" id="blog-list" style="max-height: 200px; overflow-y: auto;">
+                            <li><a href="#">No posts loaded <span class="label" style="float: right;">—</span></a></li>
+                        </ul>
+                    </div>
+
+                    <div id="crud-weights" class="tab-panel">
+                        <h3>Wiki Ranking Weights</h3>
+                        <input type="hidden" id="weight-id" value="">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+                            <div>
+                                <label style="font-size: 0.8rem; display: block; margin-bottom: 5px;">Rule Name</label>
+                                <input type="text" id="weight-name" placeholder="e.g. Edu Boost" class="input-field"
+                                    style="width: 100%; padding: 8px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.8rem; display: block; margin-bottom: 5px;">Match
+                                    Target</label>
+                                <select id="weight-target" class="input-field" style="width: 100%; padding: 8px;">
+                                    <option value="url">URL</option>
+                                    <option value="title">Title</option>
+                                    <option value="content">Content</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+                            <div>
+                                <label style="font-size: 0.8rem; display: block; margin-bottom: 5px;">Match
+                                    Value</label>
+                                <input type="text" id="weight-value" placeholder="e.g. .edu" class="input-field"
+                                    style="width: 100%; padding: 8px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.8rem; display: block; margin-bottom: 5px;">Weight Score
+                                    (+/-)</label>
+                                <input type="number" id="weight-score" placeholder="e.g. 15" class="input-field"
+                                    style="width: 100%; padding: 8px;">
+                            </div>
+                        </div>
+                        <div style="text-align: right; margin-top: 10px;">
+                            <button id="clear-weight-form" class="btn-secondary" style="padding: 8px 16px;">New /
+                                Clear</button>
+                            <button id="save-weight" class="btn-primary">Save Weight</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 2: Divided in half -->
+                <div class="a-grid a-cols-2 a-gap-md" style="grid-row: 2;">
+                    <!-- Left: Agent/User Chat Box -->
+                    <div class="dashboard-panel">
+                        <h3>AI Agent Chat</h3>
+                        <div class="chat-container">
+                            <div class="chat-messages" id="chat-messages">
+                                <p style="color: #999; font-style: italic;">Send a message to query the AI agent about
+                                    records, challenges or wikipedia articles…</p>
+                            </div>
+                            <div class="chat-input-row">
+                                <input type="text" id="chat-input" placeholder="Ask the agent…"
+                                    style="flex: 1; padding: 8px; border: 1px solid var(--border-color); font-family: var(--font-sans);">
+                                <button id="chat-send" class="btn-primary">Send</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Results Box -->
+                    <div class="dashboard-panel" style="display: flex; flex-direction: column; overflow: hidden;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                            <h3 style="margin: 0; border-bottom: none; padding-bottom: 0;">System Data Viewer</h3>
+                            <span id="viewer-status-indicator"
+                                style="font-size: 0.8rem; color: #666; font-weight: bold;">[CONTENT MODE]</span>
+                        </div>
+
+                        <!-- Scrollable Tabs -->
+                        <div class="tabs viewer-tabs"
+                            style="overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: thin;">
+                            <!-- Content Tabs -->
+                            <button class="tab active" data-target="view-essays" data-mode="content">Essays</button>
+                            <button class="tab" data-target="view-responses" data-mode="content">Responses</button>
+                            <button class="tab" data-target="view-blogs" data-mode="content">Blogs</button>
+                            <button class="tab" data-target="view-wiki" data-mode="content">Wiki Data</button>
+                            <button class="tab" data-target="view-research" data-mode="content">Research</button>
+                            <span
+                                style="display: inline-block; width: 1px; background: var(--border-color); margin: 0 5px;"></span>
+                            <!-- System Tabs -->
+                            <button class="tab" data-target="view-metrics" data-mode="system">Metrics</button>
+                            <button class="tab" data-target="view-queue" data-mode="system">Queue/Workflow</button>
+                            <button class="tab" data-target="view-security" data-mode="system">Security</button>
+                            <button class="tab" data-target="view-triage" data-mode="system">Triage</button>
+                            <button class="tab" data-target="view-deadlinks" data-mode="system">Deadlinks</button>
+                            <button class="tab" data-target="view-spelling" data-mode="system">Spelling</button>
+                            <button class="tab" data-target="view-weights" data-mode="system">Weights</button>
+                        </div>
+
+                        <!-- Selectable List Area -->
+                        <div id="viewer-list-container"
+                            style="flex: 1; min-height: 200px; max-height: 280px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background: #fafaf9; margin-bottom: 10px;">
+                            <ul class="record-list" id="viewer-results-list" style="margin: 0;">
+                                <li
+                                    style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #eee;">
+                                    <input type="checkbox" class="viewer-checkbox" style="margin-top: 4px;">
+                                    <div style="flex: 1; font-size: 0.85rem; color: #666;">Load data by clicking
+                                        'Generate' or a system widget...</div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Dynamic Action Bar -->
+                        <div id="viewer-action-bar"
+                            style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                            <div>
+                                <label style="font-size: 0.8rem; cursor: pointer; color: #444;"><input type="checkbox"
+                                        id="viewer-select-all" style="margin-right: 5px;">Select All</label>
+                            </div>
+                            <div style="display: flex; gap: 8px;" id="viewer-action-buttons">
+                                <!-- Base Button Types (Values swapped dynamically by JS) -->
+                                <button id="btn-viewer-generate" class="btn-primary"
+                                    style="padding: 6px 12px; font-size: 0.8rem;">Generate</button>
+                                <button id="btn-viewer-delete" class="btn-secondary"
+                                    style="padding: 6px 12px; font-size: 0.8rem; color: red;">Delete</button>
+                                <button id="btn-viewer-edit" class="btn-secondary"
+                                    style="padding: 6px 12px; font-size: 0.8rem;">Edit in CRUD</button>
+                                <button id="btn-viewer-publish" class="btn-primary"
+                                    style="padding: 6px 12px; font-size: 0.8rem;">Publish</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 3: Small Grid of Widgets with Traffic Lights (16 total) -->
+                <div class="dashboard-panel" style="grid-row: 3;">
+                    <h3>System Widgets</h3>
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;">
+
+                        <!-- Core AI Agent -->
+                        <div class="widget-card" id="wgt-core-agent">
+                            <div><strong>Core AI Agent</strong>
+                                <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
+                                        style="color:#666;">Online</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Execute</button>
+                            </div>
+                        </div>
+
+                        <!-- DB Populator -->
+                        <div class="widget-card" id="wgt-db-populator">
+                            <div><strong>DB Populator</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Run</button>
+                            </div>
+                        </div>
+
+                        <!-- Spelling -->
+                        <div class="widget-card" id="wgt-spelling">
+                            <div><strong>Spelling</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Scan</button>
+                            </div>
+                        </div>
+
+                        <!-- Wiki Engine -->
+                        <div class="widget-card" id="wgt-wiki-engine">
+                            <div><strong>Wiki Engine</strong>
+                                <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
+                                        style="color:#666;">Processing</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Force</button>
+                            </div>
+                        </div>
+
+                        <!-- Challenge Engine -->
+                        <div class="widget-card" id="wgt-challenge-engine">
+                            <div><strong>Challenge Engine</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Force</button>
+                            </div>
+                        </div>
+
+                        <!-- Page Metrics -->
+                        <div class="widget-card" id="wgt-page-metrics">
+                            <div><strong>Page Metrics</strong>
+                                <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
+                                        style="color:#666;">Tracking</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Sync</button>
+                            </div>
+                        </div>
+
+                        <!-- Contact Triage -->
+                        <div class="widget-card" id="wgt-contact-triage">
+                            <div><strong>Contact Triage</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Check</button>
+                            </div>
+                        </div>
+
+                        <!-- Research Suggest -->
+                        <div class="widget-card" id="wgt-research-suggest">
+                            <div><strong>Research Suggest</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Gen</button>
+                            </div>
+                        </div>
+
+                        <!-- Server Metrics -->
+                        <div class="widget-card" id="wgt-server-metrics">
+                            <div><strong>Server Metrics</strong>
+                                <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
+                                        style="color:#666;">Online</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Ping</button>
+                            </div>
+                        </div>
+
+                        <!-- Wiki Weights Widget -->
+                        <div class="widget-card" id="wgt-wiki-weights">
+                            <div><strong>Wiki Weights</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto">
+                                    Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Fetch</button>
+                            </div>
+                        </div>
+
+                        <!-- News Crawler Widget -->
+                        <div class="widget-card" id="wgt-news-crawler">
+                            <div><strong>News Crawler</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto">
+                                    Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Crawl</button>
+                            </div>
+                        </div>
+                    </div>
+                    Auto</label>
+                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Ping</button>
+                </div>
+            </div>
+
+            <!-- Token Metrics -->
+            <div class="widget-card" id="wgt-token-metrics">
+                <div><strong>Token Metrics</strong>
+                    <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
+                            style="color:#666;">Monitoring</span></div>
+                </div>
+                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
+                        Auto</label>
+                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Sync</button>
+                </div>
+            </div>
+
+            <!-- Self Reflection (was Trace) -->
+            <div class="widget-card" id="wgt-self-reflection">
+                <div><strong>Self Reflection</strong>
+                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                            style="color:#666;">Idle</span></div>
+                </div>
+                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
+                        Auto</label>
+                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Reflect</button>
+                </div>
+            </div>
+
+            <!-- Agent Workflow (new, was Queue) -->
+            <div class="widget-card" id="wgt-agent-workflow">
+                <div><strong>Agent Workflow</strong>
+                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                            style="color:#666;">Idle</span></div>
+                </div>
+                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
+                        Auto</label>
+                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Run</button>
+                </div>
+            </div>
+
+            <!-- Sources (restored) -->
+            <div class="widget-card" id="wgt-sources">
+                <div><strong>Sources</strong>
+                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                            style="color:#666;">Idle</span></div>
+                </div>
+                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
+                        Auto</label>
+                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Sync</button>
+                </div>
+            </div>
+
+            <!-- Security (restored) -->
+            <div class="widget-card" id="wgt-security">
+                <div><strong>Security</strong>
+                    <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
+                            style="color:#666;">Active</span></div>
+                </div>
+                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
+                        Auto</label>
+                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Audit</button>
+                </div>
+            </div>
+
+            <!-- Users (restored) -->
+            <div class="widget-card" id="wgt-users">
+                <div><strong>Users</strong>
+                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                            style="color:#666;">Idle</span></div>
+                </div>
+                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
+                        Auto</label>
+                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Load</button>
+                </div>
+            </div>
+
+            <!-- Deadlinks (restored) -->
+            <div class="widget-card" id="wgt-deadlinks">
+                <div><strong>Deadlinks</strong>
+                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                            style="color:#666;">Idle</span></div>
+                </div>
+                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
+                        Auto</label>
+                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Scan</button>
+                </div>
+            </div>
+
+    </div><!-- end widget grid -->
+    </div><!-- end row 3 panel -->
+
+    </div><!-- end main content rows -->
+
+    <!-- ========================================================= -->
+    <!-- DETAIL PANEL AREA: Hidden expandable panels for restored   -->
+    <!-- widgets. Shown/hidden by the traffic-light card wrappers.  -->
+    <!-- ========================================================= -->
+    <div id="detail-panel-area" style="display:none;">
+
+        <!-- SOURCES PANEL -->
+        <div id="sources-panel" class="dashboard-panel detail-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3>Sources Manager</h3>
+                <button class="detail-close-btn btn-secondary" data-panel="sources-panel"
+                    style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
+            </div>
+            <div style="display:flex; gap:10px; margin-bottom:1rem;">
+                <input type="text" id="search-sources-input" placeholder="Search sources..." class="input-field"
+                    style="flex:1; padding:8px;">
+                <button id="add-source-btn" class="btn-primary">+ Add Source</button>
+            </div>
+            <ul id="sources-list" class="record-list" style="max-height:300px; overflow-y:auto;"></ul>
+
+            <!-- Sources Editor Modal -->
+            <div id="source-editor-modal"
+                style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+                <div
+                    style="background:var(--card-bg); border-radius:8px; padding:2rem; width:480px; max-width:95vw; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                        <h3 style="margin:0;">Add / Edit Source</h3>
+                        <button id="source-close-btn"
+                            style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#666;">✕</button>
+                    </div>
+                    <div id="source-error-msg"
+                        style="display:none; color:red; margin-bottom:1rem; padding:8px; background:#fef2f2; border-radius:4px;">
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <div style="display:flex; gap:10px;">
+                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.8rem; color:#666;">Author Name</label>
+                                <input type="text" id="source-edit-author-name" class="input-field"
+                                    placeholder="e.g. John Smith" style="padding:8px;">
+                            </div>
+                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.8rem; color:#666;">Author ORCID</label>
+                                <input type="text" id="source-edit-author-orcid" class="input-field"
+                                    placeholder="0000-0000-0000-0000" style="padding:8px;">
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <label style="font-size:0.8rem; color:#666;">Title <span style="color:red;">*</span></label>
+                            <input type="text" id="source-edit-title" class="input-field"
+                                placeholder="Publication title" style="padding:8px;">
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.8rem; color:#666;">Source Type</label>
+                                <select id="source-edit-type" class="input-field" style="padding:8px;">
+                                    <option value="Book">Book</option>
+                                    <option value="AcademicPaper">Academic Paper</option>
+                                    <option value="Website">Website</option>
+                                    <option value="Documentary">Documentary</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.8rem; color:#666;">Year</label>
+                                <input type="number" id="source-edit-year" class="input-field" placeholder="e.g. 2024"
+                                    style="padding:8px;">
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <label style="font-size:0.8rem; color:#666;">Publication Name</label>
+                            <input type="text" id="source-edit-pub-name" class="input-field"
+                                placeholder="e.g. Oxford University Press" style="padding:8px;">
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <label style="font-size:0.8rem; color:#666;">Publication Link</label>
+                            <input type="url" id="source-edit-pub-link" class="input-field" placeholder="https://..."
+                                style="padding:8px;">
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <label style="font-size:0.8rem; color:#666;">DOI Link</label>
+                            <input type="url" id="source-edit-doi" class="input-field" placeholder="https://doi.org/..."
+                                style="padding:8px;">
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1.5rem;">
+                        <button id="source-save-btn" class="btn-primary">Save Source</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECURITY PANEL -->
+        <div id="security-panel" class="dashboard-panel detail-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3>Security Logs</h3>
+                <button class="detail-close-btn btn-secondary" data-panel="security-panel"
+                    style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
+            </div>
+            <ul id="security-list" class="record-list" style="max-height:350px; overflow-y:auto;"></ul>
+        </div>
+
+        <!-- USERS PANEL -->
+        <div id="users-panel" class="dashboard-panel detail-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3>User Manager</h3>
+                <button class="detail-close-btn btn-secondary" data-panel="users-panel"
+                    style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
+            </div>
+            <div style="display:flex; gap:10px; margin-bottom:1rem;">
+                <input type="email" id="new-user-email" class="input-field" placeholder="user@example.com"
+                    style="flex:1; padding:8px;">
+                <button id="add-user-btn" class="btn-primary">+ Add User</button>
+            </div>
+            <ul id="user-list" class="record-list" style="max-height:300px; overflow-y:auto;"></ul>
+        </div>
+
+        <!-- DEADLINKS PANEL -->
+        <div id="deadlinks-panel" class="dashboard-panel detail-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3>Deadlink Scanner</h3>
+                <button class="detail-close-btn btn-secondary" data-panel="deadlinks-panel"
+                    style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
+            </div>
+            <p style="font-size:0.85rem; color:#666; margin-bottom:1rem;">Scans all records, essays and
+                responses for broken external URLs. Allows inline replacement or removal.</p>
+            <button id="run-deadlinks" class="btn-primary" style="margin-bottom:1rem;">Scan for Broken
+                Links</button>
+            <ul id="deadlinks-list" class="record-list" style="max-height:350px; overflow-y:auto;">
+                <li style="color:#999; font-size:0.85rem;">Click "Scan" to begin checking links…</li>
+            </ul>
+        </div>
+
+    </div><!-- end detail-panel-area -->
+
+    </main>
+
+
+
+    <!-- Footer: Row 3 | Col 1 to End (1 / -1) -->
+    <footer style="grid-column: 1 / -1; grid-row: 3;">
+        <div id="footer"></div>
+    </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Simple Idempotent UI Tab Script (Scoped)
+        (function initDashboardTabs() {
+            if (window.__dashboardTabsInit) return;
+            window.__dashboardTabsInit = true;
+
+            const tabContainers = document.querySelectorAll('.dashboard-panel .tabs');
+            tabContainers.forEach(container => {
+                container.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('tab')) return;
+
+                    // Scope active removal to this specific container
+                    container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    const targetId = e.target.getAttribute('data-target');
+
+                    // If this is a panel-switching tab (like CRUD editor)
+                    if (targetId && document.getElementById(targetId)) {
+                        // Find the parent panel that holds the tab-panels
+                        const parentPanel = container.closest('.dashboard-panel');
+                        parentPanel.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+                        const targetPanel = document.getElementById(targetId);
+                        targetPanel.classList.add('active');
+                    }
+                });
+            });
+
+            // Specific Logic for System Data Viewer Action Bar
+            const viewerTabsContainer = document.querySelector('.viewer-tabs');
+            const viewerStatusLabel = document.getElementById('viewer-status-indicator');
+            const btnGenerate = document.getElementById('btn-viewer-generate');
+            const btnDeleteDismiss = document.getElementById('btn-viewer-delete');
+            const btnEditCopy = document.getElementById('btn-viewer-edit');
+            const btnPublish = document.getElementById('btn-viewer-publish');
+
+            if (viewerTabsContainer) {
+                viewerTabsContainer.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('tab')) return;
+
+                    const mode = e.target.getAttribute('data-mode');
+                    if (mode === 'system') {
+                        viewerStatusLabel.textContent = '[SYSTEM MODE]';
+                        btnGenerate.textContent = 'Run / Sync';
+                        btnDeleteDismiss.textContent = 'Dismiss';
+                        btnDeleteDismiss.style.color = '#666';
+                        btnEditCopy.textContent = 'Copy Data';
+                        btnPublish.style.display = 'none';
+                    } else {
+                        viewerStatusLabel.textContent = '[CONTENT MODE]';
+                        btnGenerate.textContent = 'Generate';
+                        btnDeleteDismiss.textContent = 'Delete';
+                        btnDeleteDismiss.style.color = 'red';
+                        btnEditCopy.textContent = 'Edit in CRUD';
+                        btnPublish.style.display = 'inline-block';
+                    }
+
+                    // Clear the list when changing tabs to prevent state confusion
+                    const resultsList = document.getElementById('viewer-results-list');
+                    if (resultsList) {
+                        resultsList.innerHTML = `<li style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #eee;"><div style="flex: 1; font-size: 0.85rem; color: #666;">Data for ${e.target.textContent} would load here...</div></li>`;
+                    }
+
+                    // Uncheck 'Select All' on tab change
+                    const selectAllCb = document.getElementById('viewer-select-all');
+                    if (selectAllCb) selectAllCb.checked = false;
+                });
+            }
+
+            // Select All Logic for System Data Viewer
+            const selectAllCb = document.getElementById('viewer-select-all');
+            if (selectAllCb) {
+                selectAllCb.addEventListener('change', (e) => {
+                    const checkboxes = document.querySelectorAll('.viewer-checkbox');
+                    checkboxes.forEach(cb => {
+                        cb.checked = e.target.checked;
+                    });
+                });
+            }
+
+            // 'Edit in CRUD' logic for pushing draft content into Row 1 Editor
+            if (btnEditCopy) {
+                btnEditCopy.addEventListener('click', () => {
+                    const activeMode = viewerStatusLabel.textContent.includes('SYSTEM') ? 'system' : 'content';
+                    const checkedItems = document.querySelectorAll('.viewer-checkbox:checked');
+
+                    if (checkedItems.length === 0) {
+                        alert("Please select an item first.");
+                        return;
+                    }
+
+                    // System Mode (Copy to Clipboard)
+                    if (activeMode === 'system') {
+                        let combinedData = "";
+                        checkedItems.forEach(cb => {
+                            const dataDiv = cb.nextElementSibling;
+                            if (dataDiv && dataDiv.classList.contains('viewer-data-content')) {
+                                combinedData += decodeURIComponent(dataDiv.getAttribute('data-raw') || '') + "\n\n";
+                            }
+                        });
+                        navigator.clipboard.writeText(combinedData.trim());
+                        btnEditCopy.textContent = "Copied!";
+                        setTimeout(() => btnEditCopy.textContent = "Copy Data", 2000);
+                        return;
+                    }
+
+                    // Content Mode (Edit in CRUD)
+                    if (checkedItems.length > 1) {
+                        alert("You can only edit one draft at a time in the CRUD window.");
+                        return;
+                    }
+
+                    const dataDiv = checkedItems[0].nextElementSibling;
+                    if (dataDiv && dataDiv.classList.contains('viewer-data-content')) {
+                        const rawData = decodeURIComponent(dataDiv.getAttribute('data-raw') || '');
+                        let textToEdit = rawData;
+
+                        try {
+                            const parsed = JSON.parse(rawData);
+                            textToEdit = parsed.content || parsed.data || JSON.stringify(parsed, null, 2);
+                        } catch (e) {
+                            // Leave as string
+                        }
+
+                        // Push to Row 1 CRUD Editor
+                        const crudTextArea = document.getElementById('edit-content'); // Assuming main text area
+                        if (crudTextArea) {
+                            crudTextArea.value = textToEdit;
+                        }
+
+                        // Visually switch to the CRUD editing tab (e.g. edit-essays)
+                        const crudEssayTab = document.querySelector('.tab[data-target="edit-essays"]');
+                        if (crudEssayTab) crudEssayTab.click();
+
+                        // Scroll to top
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+            }
+        })();
+
+        // Global utility to render JSON/Data cleanly in the new viewer
+        window.formatSystemData = function (data) {
+            if (typeof data === 'string') {
+                try {
+                    // Check if it's stringified JSON
+                    const parsed = JSON.parse(data);
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        data = parsed;
+                    }
+                } catch (e) {
+                    // It's plain string/markdown text
+                    return `<div style="white-space: pre-wrap; font-family: monospace; font-size: 0.8rem; line-height: 1.4;">${data}</div>`;
+                }
+            }
+
+            if (typeof data === 'object' && data !== null) {
+                return `<pre style="margin: 0; background: #eee; padding: 8px; border-radius: 4px; font-size: 0.75rem; overflow-x: auto; color: #333;"><code>${JSON.stringify(data, null, 2)}</code></pre>`;
+            }
+
+            // Fallback
+            return `<span style="font-size: 0.85rem;">${String(data)}</span>`;
+        };
+    </script>
+
+    <!-- Deprecated scripts (now absorbed or redundant)
+    <script src="js/chat_with_agent.js"></script>
+    <script src="js/widget_spider.js" defer></script>
+    <script src="js/widget_spellcheck.js"></script>
+    <script src="js/dashboard_tabs.js"></script>
+    <script src="js/show_queue.js"></script>
+    <script src="js/show_trace_reasoning.js"></script>
+    <script src="js/show_server_info.js"></script>
+    <script src="js/widget_contact.js"></script>
+    -->
+
+    <!-- CRUD Editor Scripts -->
+    <script src="/js/record_card.js" defer></script>
+    <script src="/js/show_draft_record.js" defer></script>
+    <script src="/js/admin_edit_view.js" defer></script>
+    <script src="/private/js/edit_records.js" defer></script>
+    <script src="/private/js/blog_crud.js" defer></script>
+    <script src="/private/js/edit_challenge_results.js" defer></script>
+    <script src="/private/js/edit_wikipedia_results.js" defer></script>
+
+    <!-- Widget Scripts (ES Modules) -->
+    <script type="module" src="/js/widgets/wgt_agent-chat.js"></script>
+    <script type="module" src="/js/widgets/wgt_draft_results.js"></script>
+    <script type="module" src="/js/widgets/wgt_db_populator.js"></script>
+    <script type="module" src="/js/widgets/wgt_spelling.js"></script>
+    <script type="module" src="/js/widgets/wgt_wiki_interface.js"></script>
+    <script type="module" src="/js/widgets/wgt_challenge_ranker.js"></script>
+    <script type="module" src="/js/widgets/wgt_page_metrics.js"></script>
+    <script type="module" src="/js/widgets/wgt_contact_triage.js"></script>
+    <script type="module" src="/js/widgets/wgt_research_suggest.js"></script>
+    <script type="module" src="/js/widgets/wgt_server_metrics.js"></script>
+    <script type="module" src="/js/widgets/wgt_token_metrics.js"></script>
+    <script type="module" src="/js/widgets/wgt_agent-self_reflection.js"></script>
+    <script type="module" src="/js/widgets/wgt_agent_workflow.js"></script>
+
+    <!-- Restored Widget Detail Scripts (private, not modules) -->
+    <script src="/private/js/widget_sources.js" defer></script>
+    <script src="/private/js/widget_security.js" defer></script>
+    <script src="/private/js/widget_user_manager.js" defer></script>
+    <script src="/private/js/widget_deadlinks.js" defer></script>
+
+    <!-- Restored Widget Card Wrapper Modules -->
+    <script type="module" src="/js/widgets/wgt_sources.js"></script>
+    <script type="module" src="/js/widgets/wgt_security.js"></script>
+    <script type="module" src="/js/widgets/wgt_users.js"></script>
+    <script type="module" src="/js/widgets/wgt_deadlinks.js"></script>
+    <script type="module" src="/js/widgets/wgt_wiki_weights.js"></script>
+    <script type="module" src="/js/widgets/wgt_news_crawler.js"></script>
+</body>
+
+</html>
