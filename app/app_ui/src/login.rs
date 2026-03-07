@@ -1,14 +1,16 @@
 use crate::{auth, server::AppState};
 use axum::{
-    extract::{ConnectInfo, Json, State},
+    body::Bytes,
+    extract::{ConnectInfo, Request, State},
     http::{header, header::HeaderValue, HeaderMap, StatusCode},
     response::IntoResponse,
+    Json,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct LoginReq {
     pub password: String,
 }
@@ -22,8 +24,48 @@ pub struct AuthResponse {
 pub async fn handle_login(
     ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>,
     State(state): State<Arc<AppState>>,
-    Json(payload): Json<LoginReq>,
+    req: Request,
 ) -> impl IntoResponse {
+    let (parts, body) = req.into_parts();
+    let content_type = parts
+        .headers
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+
+    let bytes = match axum::body::to_bytes(body, usize::MAX).await {
+        Ok(b) => b,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(AuthResponse {
+                    success: false,
+                    error: Some("Failed to read request body".to_string()),
+                }),
+            )
+                .into_response();
+        }
+    };
+
+    let payload = if content_type.contains("application/json") {
+        serde_json::from_slice::<LoginReq>(&bytes).ok()
+    } else {
+        serde_urlencoded::from_bytes::<LoginReq>(&bytes).ok()
+    };
+
+    let payload = match payload {
+        Some(p) => p,
+        None => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(AuthResponse {
+                    success: false,
+                    error: Some("Invalid request format".to_string()),
+                }),
+            )
+                .into_response();
+        }
+    };
     let ip = addr.ip();
 
     // Rate limiting check (Flood Control)

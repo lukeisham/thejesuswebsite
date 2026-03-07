@@ -20,6 +20,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .nest("/api/v1", api_routes())
         // 4. Auth Endpoints
         .nest("/api/auth", auth_routes())
+        .route("/login", post(crate::login::handle_login))
         // 5. Shared State Injection
         .with_state(state.clone())
         // 6. Protected /private routes

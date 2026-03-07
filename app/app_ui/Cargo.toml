@@ -34,3 +34,4 @@ hex              = "0.4"
 htmd             = "0.1"
 scraper          = "0.20"
 ulid.workspace = true
+serde_urlencoded = "0.7.1"
