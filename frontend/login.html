@@ -119,16 +119,16 @@
         </a>
     </nav>
 
-    <!-- Single centered container matching the 12-col grid gap structure loosely for layout -->
     <div class="container"
         style="display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; padding: 20px;">
 
         <main class="login-box">
             <h1>Admin Login</h1>
 
-            <form id="login-form">
+            <form id="login-form" action="/login" method="POST">
                 <div class="mb-2" style="margin-bottom: 1.5rem;">
-                    <input type="password" id="admin-password" name="password" class="input-field" placeholder="Password" required>
+                    <input type="password" id="admin-password" name="password" class="input-field"
+                        placeholder="Password" required>
                 </div>
 
                 <button type="submit" id="login-btn" class="btn-primary">Sign In</button>
