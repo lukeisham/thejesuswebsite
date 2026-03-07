@@ -83,11 +83,7 @@ pub async fn auth_middleware(
     let path = req.uri().path();
 
     // Exemptions (handle both absolute and relative paths for nesting)
-    if path == "/private/login.html"
-        || path == "/login.html"
-        || path.starts_with("/private/js/")
-        || path.starts_with("/js/")
-    {
+    if path == "/private/login.html" || path == "/login.html" || path.contains("/js/login.js") {
         return Ok(next.run(req).await);
     }
 
