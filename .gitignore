@@ -17,11 +17,12 @@ release/
 *.swo
 
 # --- Frontend & Assets ---
-frontend/private/
 **/node_modules/
 **/.DS_Store
 npm-debug.log*
 
 # --- Documentation & Meta ---
 clippyerrors.log
-!frontend/private/dashboard.html
+
+# --- WASM ---
+frontend/js/pkg/

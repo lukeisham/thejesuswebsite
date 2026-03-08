@@ -16,15 +16,17 @@ pub fn generate_all() -> Result<(), std::io::Error> {
 }
 
 fn generate_typescript_bindings() -> Result<(), std::io::Error> {
-    // We use a "No-Panic" approach by handling IO errors properly.
-    // This uses the `ts-rs` crate to export our #[derive(TS)] models.
+    // 🛡️ Gatekeeper
     println!("Generating TypeScript bindings...");
 
-    // Logic to walk through your Types and export them to
-    // ./frontend/src/types/generated.ts
-    // In a real project, this often triggers specifically defined
-    // export functions or runs the ts-rs export command.
+    // In a full implementation, this would use `wasm-pack build`
+    // and potentially `ts-rs` to export models to frontend/js/pkg/
+    let target_path = std::path::Path::new("frontend/js/pkg");
+    if !target_path.exists() {
+        std::fs::create_dir_all(target_path)?;
+    }
 
+    println!("TypeScript bindings (stubs) initialized in {:?}", target_path);
     Ok(())
 }
 

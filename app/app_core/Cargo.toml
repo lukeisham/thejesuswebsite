@@ -3,6 +3,9 @@ name    = "app_core"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+crate-type = ["lib", "cdylib"]
+
 [dependencies]
 # Workspace-managed
 serde       = { workspace = true, features = ["derive", "rc"] }

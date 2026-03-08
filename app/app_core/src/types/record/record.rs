@@ -30,8 +30,10 @@ pub struct Record {
     pub category: Classification,
     pub content: ContentEntry,
     pub primary_verse: BibleVerse,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub secondary_verse: Option<BibleVerse>,
     pub created_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<DateTime<Utc>>,
 }
 

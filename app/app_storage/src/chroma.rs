@@ -40,8 +40,34 @@ impl ChromaCollections {
 /// The ChromaDB storage engine. Holds the client connection and the
 /// embedding model used to vectorise text before storage/query.
 pub struct ChromaStorage {
-    client: ChromaClient,
+    client: Option<ChromaClient>,
     engine: Arc<dyn InferenceEngine>,
+}
+
+impl ChromaStorage {
+    /// Connects to a ChromaDB instance and returns a new storage instance.
+    pub async fn connect(config: &ChromaConfig, engine: Arc<dyn InferenceEngine>) -> Self {
+        use chromadb::client::ChromaClientOptions;
+        let client_res = ChromaClient::new(ChromaClientOptions {
+            url: Some(config.url.clone()),
+            database: config.database.clone().unwrap_or_default(),
+            auth: Default::default(),
+        })
+        .await;
+
+        let client = match client_res {
+            Ok(c) => Some(c),
+            Err(e) => {
+                eprintln!(
+                    "⚠️ WARNING: Failed to connect to ChromaDB at {}: {}. Vector search features will be disabled.",
+                    config.url, e
+                );
+                None
+            }
+        };
+
+        Self { client, engine }
+    }
 }
 
 /*
@@ -69,8 +95,11 @@ impl ChromaStorage {
             documents: Some(vec![&essay.text]),
         };
 
-        let collection = self
-            .client
+        let client = self.client.as_ref().ok_or_else(|| {
+            AppError::StorageError("ChromaDB is not connected. This feature is disabled.".into())
+        })?;
+
+        let collection = client
             .get_collection(ChromaCollections::ESSAYS)
             .await
             .map_err(|e| AppError::StorageError(e.to_string()))?;
@@ -92,9 +121,11 @@ impl ChromaStorage {
     // ── RECORDS ──────────────────────────────────────────────────────────
 
     /// Stores a record in the "records" collection.
-    /// Uses the record description (joined) as the searchable text.
+    /// Stores the full JSON of the record as the document content.
     pub async fn store_record(&self, record: &Record) -> Result<(), AppError> {
-        let searchable_text = format!("{} {}", record.name, record.description.join(" "));
+        let searchable_text = record
+            .to_json()
+            .map_err(|e| AppError::StorageError(e.to_string()))?;
         let vector = self.engine.embed_text(&searchable_text).await?;
         let id_str = record.id.to_string();
 
@@ -105,8 +136,11 @@ impl ChromaStorage {
             documents: Some(vec![&searchable_text]),
         };
 
-        let collection = self
-            .client
+        let client = self.client.as_ref().ok_or_else(|| {
+            AppError::StorageError("ChromaDB is not connected. This feature is disabled.".into())
+        })?;
+
+        let collection = client
             .get_collection(ChromaCollections::RECORDS)
             .await
             .map_err(|e| AppError::StorageError(e.to_string()))?;
@@ -140,8 +174,11 @@ impl ChromaStorage {
             documents: Some(vec![&searchable_text]),
         };
 
-        let collection = self
-            .client
+        let client = self.client.as_ref().ok_or_else(|| {
+            AppError::StorageError("ChromaDB is not connected. This feature is disabled.".into())
+        })?;
+
+        let collection = client
             .get_collection(ChromaCollections::RESPONSES)
             .await
             .map_err(|e| AppError::StorageError(e.to_string()))?;
@@ -176,8 +213,11 @@ impl ChromaStorage {
             documents: Some(vec![&searchable_text]),
         };
 
-        let collection = self
-            .client
+        let client = self.client.as_ref().ok_or_else(|| {
+            AppError::StorageError("ChromaDB is not connected. This feature is disabled.".into())
+        })?;
+
+        let collection = client
             .get_collection(ChromaCollections::PICTURES)
             .await
             .map_err(|e| AppError::StorageError(e.to_string()))?;
@@ -211,8 +251,11 @@ impl ChromaStorage {
             documents: Some(vec![&searchable_text]),
         };
 
-        let collection = self
-            .client
+        let client = self.client.as_ref().ok_or_else(|| {
+            AppError::StorageError("ChromaDB is not connected. This feature is disabled.".into())
+        })?;
+
+        let collection = client
             .get_collection(ChromaCollections::BLOG_POSTS)
             .await
             .map_err(|e| AppError::StorageError(e.to_string()))?;
@@ -234,7 +277,7 @@ impl ChromaStorage {
     // ── SHARED QUERY LOGIC ──────────────────────────────────────────────
 
     /// Generalized semantic search against any collection.
-    /// Returns the IDs of the top-10 matching documents.
+    /// Returns the matched document strings.
     async fn query_collection(
         &self,
         collection_name: &str,
@@ -248,11 +291,14 @@ impl ChromaStorage {
             n_results: Some(10),
             where_metadata: None,
             where_document: None,
-            include: None,
+            include: Some(vec!["documents".into()]),
         };
 
-        let collection = self
-            .client
+        let client = self.client.as_ref().ok_or_else(|| {
+            AppError::StorageError("ChromaDB is not connected. This feature is disabled.".into())
+        })?;
+
+        let collection = client
             .get_collection(collection_name)
             .await
             .map_err(|e| AppError::StorageError(e.to_string()))?;
@@ -262,10 +308,16 @@ impl ChromaStorage {
             .await
             .map_err(|e| AppError::StorageError(e.to_string()))?;
 
-        if results.ids.is_empty() {
+        if results.documents.is_none() {
             return Ok(Vec::new());
         }
 
-        Ok(results.ids[0].clone())
+        // We take the first result set (for the first query embedding we sent)
+        let docs = results.documents.unwrap();
+        if docs.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        Ok(docs[0].clone())
     }
 }

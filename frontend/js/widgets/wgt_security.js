@@ -15,17 +15,32 @@ export function initSecurityWidget() {
     if (!card || card.dataset.wgtInit) return;
     card.dataset.wgtInit = 'true';
 
-    const trigger = card.querySelector('.wgt-trigger');
-    const light = card.querySelector('.traffic-light');
-    const label = card.querySelector('.wgt-status-label');
+    const autoCheck = card.querySelector('.wgt-auto');
+    let pollInterval = null;
 
     try {
         // Initial status poll
         fetchSecurityStatus(light, label);
-        setInterval(() => fetchSecurityStatus(light, label), POLL_INTERVAL);
 
         if (trigger) {
             trigger.addEventListener('click', () => togglePanel(PANEL_ID, light, label));
+        }
+
+        if (autoCheck) {
+            autoCheck.addEventListener('change', () => {
+                if (autoCheck.checked) {
+                    if (!pollInterval) {
+                        pollInterval = setInterval(() => fetchSecurityStatus(light, label), POLL_INTERVAL);
+                    }
+                } else {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+            });
+            // Initial state
+            if (autoCheck.checked) {
+                pollInterval = setInterval(() => fetchSecurityStatus(light, label), POLL_INTERVAL);
+            }
         }
     } catch (error) {
         setStatus(light, label, 'error', 'Init Error');
@@ -37,8 +52,8 @@ export function initSecurityWidget() {
 // START fetchSecurityStatus
 async function fetchSecurityStatus(light, label) {
     try {
-        // Lean Passthrough: GET /api/admin/security/logs
-        const res = await fetch('/api/admin/security/logs', {
+        // Lean Passthrough: GET /api/v1/admin/security/logs
+        const res = await fetch('/api/v1/admin/security/logs', {
             headers: { Authorization: 'Bearer ' + (sessionStorage.getItem('auth_token') || '') }
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -11,6 +11,9 @@ serde       = { workspace = true }
 tokio       = { workspace = true }
 async-trait = { workspace = true }
 thiserror   = { workspace = true }
+chrono      = { workspace = true }
 
 # Crate-specific: Storage backends
 chromadb = "2.3.0"
+sqlx     = { workspace = true }
+ulid     = { workspace = true }

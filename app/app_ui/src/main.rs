@@ -1,11 +1,23 @@
-use app_core::types::blog_and_news::news::NewsEngine;
+use app_core::types::traits::InferenceEngine;
+use app_core::types::{AppError, NewsEngine};
 use app_storage::chroma::ChromaConfig;
+use app_storage::manager::StorageManager;
+use app_storage::sqlite::SqliteStorage;
 use app_ui::{server, server::AppState};
 use dotenvy::dotenv;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{error, info};
+
+struct MockEngine;
+
+#[async_trait::async_trait]
+impl InferenceEngine for MockEngine {
+    async fn embed_text(&self, _text: &str) -> Result<Vec<f32>, AppError> {
+        Ok(vec![0.0; 384]) // BERT-base size
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -39,11 +51,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Brain (Candle) might not be fully loaded yet
     let brain = None; // Placeholder for future model loading
 
+    // 4. Initialize Storage Manager
+    let database_url = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "sqlite://app/app_storage/database/thejesuswebsite.db".to_string());
+
+    let sqlite = SqliteStorage::connect(&database_url)
+        .await
+        .expect("Failed to connect to SQLite");
+
+    // We need an InferenceEngine for Chroma. For now, we'll use a placeholder or
+    // wait until app_brain exposes one. Given the current structure, we'll need
+    // to handle the engine carefully.
+
+    // For Batch 33, we'll initialize with a mock/placeholder engine if needed,
+    // or just the storage structs.
+
+    let chroma = Arc::new(
+        app_storage::chroma::ChromaStorage::connect(&storage_config, Arc::new(MockEngine)).await,
+    );
+    let storage = Arc::new(StorageManager::new(sqlite, chroma));
+
     // Session Registry for WebSockets
     let sessions = Arc::new(RwLock::new(HashMap::new()));
     let news_engine = Arc::new(NewsEngine::new());
 
     let app_state = Arc::new(AppState {
+        storage,
         brain,
         storage_config,
         sessions,

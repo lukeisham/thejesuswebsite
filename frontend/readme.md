@@ -38,16 +38,16 @@ thejesuswebsite/
 ### Vibe Coding Rules
 
 Coding checklist
-- Is the new content indexed in agent_guide.yml?
 - Did I break the Record.rs type safety?
 - Are the new Rust functions exposed as Tools?
 - Did I update the OpenAPI schema?
+- Is the new content indexed in agent_guide.yml?
+
+RUST = No-Panic, Async First, Type Safety, Security Gatekeeping / Documentation Comments (///) on all Public Traits and Tools. / Don't drop code during rewrites!
 
 HTML/CSS = Atomic Design, Global consistency, Responsive Flow / CSS Grid for Layout, Flexbox for Components. / does the page still function? 
 
 JS = Strict Interface, Error Translation, Lean Passthrough, Idempotency / One script per task / No loss of functionality during rewrites! / Dashboard widgets follow a two-layer pattern: thin traffic-light card wrapper (wgt_*.js) + expandable detail panel (private/js/ script).
-
-RUST = No-Panic, Async First, Type Safety, Security Gatekeeping / Documentation Comments (///) on all Public Traits and Tools. / Don't drop code during rewrites!
 
 SQL =  Migration-First, Atomic Transactions, Explicit Relationships, Normalized Integrity / keep the code tidy / is all the data still being stored? 
 
@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "claude update"
+git commit -m "claude update 2"
 git push origin main
 
 update files

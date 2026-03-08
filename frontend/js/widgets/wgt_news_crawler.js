@@ -9,8 +9,27 @@ export default {
         if (!widget) return;
 
         const triggerBtn = widget.querySelector('.wgt-trigger');
+        const autoCheck = widget.querySelector('.wgt-auto');
+        let pollInterval = null;
+
         if (triggerBtn) {
             triggerBtn.addEventListener('click', () => this.runCrawler());
+        }
+
+        if (autoCheck) {
+            autoCheck.addEventListener('change', () => {
+                if (autoCheck.checked) {
+                    if (!pollInterval) {
+                        pollInterval = setInterval(() => this.runCrawler(), 300000);
+                    }
+                } else {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+            });
+            if (autoCheck.checked) {
+                pollInterval = setInterval(() => this.runCrawler(), 300000);
+            }
         }
     },
 

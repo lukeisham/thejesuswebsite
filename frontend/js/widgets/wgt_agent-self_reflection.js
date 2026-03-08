@@ -13,16 +13,32 @@ export function initSelfReflection() {
     if (!card || card.dataset.wgtInit) return;
     card.dataset.wgtInit = 'true';
 
-    const trigger = card.querySelector('.wgt-trigger');
-    const light = card.querySelector('.traffic-light');
-    const label = card.querySelector('.wgt-status-label');
+    const autoCheck = card.querySelector('.wgt-auto');
+    let pollInterval = null;
 
     try {
+        pollReflectionLogs(light, label);
+
         if (trigger) {
             trigger.addEventListener('click', () => pollReflectionLogs(light, label));
         }
-        // Auto-poll every 15s
-        setInterval(() => pollReflectionLogs(light, label), 15000);
+
+        if (autoCheck) {
+            autoCheck.addEventListener('change', () => {
+                if (autoCheck.checked) {
+                    if (!pollInterval) {
+                        pollInterval = setInterval(() => pollReflectionLogs(light, label), 30000);
+                    }
+                } else {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+            });
+            // Initial state
+            if (autoCheck.checked) {
+                pollInterval = setInterval(() => pollReflectionLogs(light, label), 30000);
+            }
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Init Error');
         console.error(`[Self Reflection] Init failed: ${error.message}`);
@@ -35,9 +51,21 @@ export function initSelfReflection() {
 async function pollReflectionLogs(light, label) {
     try {
         setStatus(light, label, 'active', 'Reflecting...');
+
         // Lean Passthrough: GET /api/v1/agent/trace + /api/v1/agent/reflection
-        // Combined response includes both trace log and self_assessment text
-        setTimeout(() => setStatus(light, label, 'idle', 'Done'), 1000);
+        const [traceRes, reflectRes] = await Promise.all([
+            fetch('/api/v1/agent/trace'),
+            fetch('/api/v1/agent/reflection')
+        ]);
+
+        if (traceRes.ok && reflectRes.ok) {
+            const traceData = await traceRes.json();
+            const reflectData = await reflectRes.json();
+            setStatus(light, label, 'idle', 'Done');
+            // Logic to display traceData.trace and reflectData.reflection could be added here
+        } else {
+            throw new Error('Fetch failed');
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Poll Error');
         console.error(`[Self Reflection] Poll failed: ${error.message}`);

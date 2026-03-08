@@ -6,7 +6,17 @@
 
 // START initDraftResults
 export function initDraftResults() {
-    const draftsBox = document.querySelector('h3:contains("Drafts & Results")')?.parentElement;
+    // Find the heading by iterating through h3 elements (replaces invalid :contains selector)
+    const headings = document.querySelectorAll('h3');
+    let draftsHeading = null;
+    for (const h3 of headings) {
+        if (h3.textContent.trim() === 'Drafts & Results') {
+            draftsHeading = h3;
+            break;
+        }
+    }
+
+    const draftsBox = draftsHeading?.parentElement;
     if (!draftsBox) return;
 
     if (draftsBox.dataset.draftsInit) return;
@@ -23,15 +33,11 @@ export function initDraftResults() {
 // START fetchDraftCounts
 async function fetchDraftCounts() {
     try {
-        // Placeholder for the real /api/v1/system/draft_counts endpoint 
-        // that targets the new app_core::types::system::draft_counts::DraftCounts type
-        const mockResponse = {
-            records: 12,
-            essays: 4,
-            responses: 2
-        };
+        const response = await fetch('/api/v1/system/draft_counts');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        updateDraftUI(mockResponse.records, mockResponse.essays, mockResponse.responses);
+        const data = await response.json();
+        updateDraftUI(data.records, data.essays, data.responses);
     } catch (error) {
         console.error(`[Draft Results] Fetch failed: ${error.message}`);
     }

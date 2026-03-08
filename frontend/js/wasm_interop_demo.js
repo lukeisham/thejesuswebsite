@@ -88,3 +88,4 @@ async function demoInterop() {
 }
 
 // demoInterop();
+demoInterop();

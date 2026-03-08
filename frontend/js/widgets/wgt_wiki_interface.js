@@ -15,6 +15,8 @@ export function initWikiInterface() {
     const trigger = card.querySelector('.wgt-trigger');
     const light = card.querySelector('.traffic-light');
     const label = card.querySelector('.wgt-status-label');
+    const autoCheck = card.querySelector('.wgt-auto');
+    let pollInterval = null;
 
     try {
         // Poll status on load
@@ -22,6 +24,23 @@ export function initWikiInterface() {
 
         if (trigger) {
             trigger.addEventListener('click', () => handleWikiSync(light, label));
+        }
+
+        if (autoCheck) {
+            autoCheck.addEventListener('change', () => {
+                if (autoCheck.checked) {
+                    if (!pollInterval) {
+                        pollInterval = setInterval(() => fetchWikiStatus(light, label), 60000);
+                    }
+                } else {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+            });
+            // Initial state
+            if (autoCheck.checked) {
+                pollInterval = setInterval(() => fetchWikiStatus(light, label), 60000);
+            }
         }
     } catch (error) {
         setStatus(light, label, 'error', 'Init Error');
@@ -34,9 +53,13 @@ export function initWikiInterface() {
 async function fetchWikiStatus(light, label) {
     try {
         // Lean Passthrough: GET /api/v1/tools/wiki/status
-        const mockStatus = { running: false, last_run: '2026-03-04' };
-        setStatus(light, label, mockStatus.running ? 'active' : 'idle',
-            mockStatus.running ? 'Processing' : `Last: ${mockStatus.last_run}`);
+        const response = await fetch('/api/v1/tools/wiki/status');
+        const result = await response.json();
+
+        if (response.ok) {
+            setStatus(light, label, result.running ? 'active' : 'idle',
+                result.running ? 'Processing' : `Last: ${result.last_run}`);
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Fetch Error');
         console.error(`[Wiki Engine] Status fetch failed: ${error.message}`);
@@ -49,7 +72,17 @@ async function handleWikiSync(light, label) {
     try {
         setStatus(light, label, 'active', 'Syncing...');
         // Lean Passthrough: POST /api/v1/tools/wiki/sync
-        setTimeout(() => setStatus(light, label, 'idle', 'Sync done'), 2000);
+        const response = await fetch('/api/v1/tools/wiki/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            setStatus(light, label, 'idle', 'Sync done');
+        } else {
+            throw new Error(result.message || 'Sync failed');
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Sync Error');
         console.error(`[Wiki Engine] Sync failed: ${error.message}`);

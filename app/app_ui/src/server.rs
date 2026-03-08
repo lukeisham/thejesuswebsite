@@ -17,9 +17,12 @@ use tokio::sync::RwLock;
 /// This allows the system to broadcast messages to specific clients.
 pub type SessionRegistry = RwLock<HashMap<String, mpsc::Sender<Message>>>;
 
+use app_storage::manager::StorageManager;
+
 /// The Shared State for the entire application.
 /// This holds your database pools, LLM agents (app_brain), and config.
 pub struct AppState {
+    pub storage: Arc<StorageManager>,
     pub brain: Option<Arc<CandleEngine>>,
     pub storage_config: Arc<ChromaConfig>,
     pub sessions: Arc<SessionRegistry>,

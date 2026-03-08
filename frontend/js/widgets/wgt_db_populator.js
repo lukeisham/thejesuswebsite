@@ -15,10 +15,29 @@ export function initDBPopulator() {
     const trigger = card.querySelector('.wgt-trigger');
     const light = card.querySelector('.traffic-light');
     const label = card.querySelector('.wgt-status-label');
+    const autoCheck = card.querySelector('.wgt-auto');
+    let pollInterval = null;
 
     try {
         if (trigger) {
             trigger.addEventListener('click', () => handleDBPopulate(light, label));
+        }
+
+        if (autoCheck) {
+            autoCheck.addEventListener('change', () => {
+                if (autoCheck.checked) {
+                    if (!pollInterval) {
+                        pollInterval = setInterval(() => handleDBPopulate(light, label), 300000);
+                    }
+                } else {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+            });
+            // Initial state
+            if (autoCheck.checked) {
+                pollInterval = setInterval(() => handleDBPopulate(light, label), 300000);
+            }
         }
     } catch (error) {
         setStatus(light, label, 'error', 'Init Error');
@@ -31,8 +50,20 @@ export function initDBPopulator() {
 async function handleDBPopulate(light, label) {
     try {
         setStatus(light, label, 'active', 'Running');
+
         // Lean Passthrough: POST /api/v1/admin/populate
-        setTimeout(() => setStatus(light, label, 'idle', 'Done'), 2000);
+        const response = await fetch('/api/v1/admin/populate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            setStatus(light, label, 'idle', 'Done');
+        } else {
+            throw new Error(result.message || 'Populate failed');
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Error');
         console.error(`[DB Populator] Failed: ${error.message}`);

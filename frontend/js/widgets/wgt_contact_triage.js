@@ -16,11 +16,29 @@ export function initContactTriage() {
     const trigger = card.querySelector('.wgt-trigger');
     const light = card.querySelector('.traffic-light');
     const label = card.querySelector('.wgt-status-label');
+    const autoCheck = card.querySelector('.wgt-auto');
+    let pollInterval = null;
 
     try {
         fetchTriageSummary(light, label);
         if (trigger) {
             trigger.addEventListener('click', () => fetchTriageSummary(light, label));
+        }
+
+        if (autoCheck) {
+            autoCheck.addEventListener('change', () => {
+                if (autoCheck.checked) {
+                    if (!pollInterval) {
+                        pollInterval = setInterval(() => fetchTriageSummary(light, label), 30000);
+                    }
+                } else {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+            });
+            if (autoCheck.checked) {
+                pollInterval = setInterval(() => fetchTriageSummary(light, label), 30000);
+            }
         }
     } catch (error) {
         setStatus(light, label, 'error', 'Init Error');
@@ -34,9 +52,16 @@ async function fetchTriageSummary(light, label) {
     try {
         setStatus(light, label, 'active', 'Checking...');
         // Lean Passthrough: GET /api/v1/contact/triage
-        const mockResponse = { new: 3, critical: 1 };
-        setStatus(light, label, mockResponse.critical > 0 ? 'warning' : 'active',
-            `${mockResponse.new} new, ${mockResponse.critical} critical`);
+        const response = await fetch('/api/v1/contact/triage');
+        const result = await response.json();
+
+        if (response.ok) {
+            const isWarning = (result.critical || 0) > 0;
+            setStatus(light, label, isWarning ? 'warning' : 'active',
+                `${result.new || 0} new, ${result.critical || 0} critical`);
+        } else {
+            throw new Error(result.message || 'Fetch failed');
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Fetch Error');
         console.error(`[Contact Triage] Fetch failed: ${error.message}`);

@@ -1,6 +1,7 @@
 pub mod blog_and_news;
 pub mod contact;
 pub mod donate;
+pub mod dtos;
 pub mod essays_and_ranks;
 pub mod jesus;
 pub mod record;
@@ -11,6 +12,7 @@ pub mod traits;
 pub use blog_and_news::*;
 pub use contact::*;
 pub use donate::*;
+pub use dtos::*;
 pub use essays_and_ranks::*;
 pub use jesus::*;
 pub use record::*;

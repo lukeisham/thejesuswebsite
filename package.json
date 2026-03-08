@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "reactflow": "^11.11.4"
+  },
+  "scripts": {
+    "build:wasm": "wasm-pack build app/app_core --target web --out-dir ../../frontend/js/pkg"
   }
 }

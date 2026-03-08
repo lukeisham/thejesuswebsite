@@ -16,6 +16,7 @@ export function initAgentWorkflow() {
     const light = card.querySelector('.traffic-light');
     const label = card.querySelector('.wgt-status-label');
     const autoCheck = card.querySelector('.wgt-auto');
+    let pollInterval = null;
 
     try {
         // Poll the task queue on load
@@ -30,8 +31,19 @@ export function initAgentWorkflow() {
         if (autoCheck) {
             autoCheck.addEventListener('change', () => {
                 // Auto mode: poll every 30s
-                if (autoCheck.checked) startPolling(light, label);
+                if (autoCheck.checked) {
+                    if (!pollInterval) {
+                        pollInterval = setInterval(() => fetchWorkflowQueue(light, label), 30000);
+                    }
+                } else {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
             });
+            // Initial state
+            if (autoCheck.checked) {
+                pollInterval = setInterval(() => fetchWorkflowQueue(light, label), 30000);
+            }
         }
     } catch (error) {
         if (label) label.textContent = 'Error';
@@ -45,11 +57,15 @@ export function initAgentWorkflow() {
 async function fetchWorkflowQueue(light, label) {
     try {
         // Lean Passthrough to /api/v1/agent/queue
-        // Response expected: { pending: number, running: number, failed: number }
-        const mockResponse = { pending: 3, running: 1, failed: 0 };
+        const response = await fetch('/api/v1/agent/queue');
+        const result = await response.json();
 
-        setStatus(light, label, mockResponse.running > 0 ? 'active' : 'idle',
-            mockResponse.running > 0 ? `Running (${mockResponse.pending} queued)` : `${mockResponse.pending} queued`);
+        if (response.ok) {
+            setStatus(light, label, result.running > 0 ? 'active' : 'idle',
+                result.running > 0 ? `Running (${result.pending} queued)` : `${result.pending} queued`);
+        } else {
+            throw new Error(result.message || 'Fetch failed');
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Fetch Error');
         console.error(`[Agent Workflow] Queue fetch failed: ${error.message}`);
@@ -61,8 +77,18 @@ async function fetchWorkflowQueue(light, label) {
 async function runNextTask(light, label) {
     try {
         setStatus(light, label, 'active', 'Triggered');
+
         // POST to /api/v1/agent/queue/run-next
-        setTimeout(() => fetchWorkflowQueue(light, label), 1000);
+        const response = await fetch('/api/v1/agent/queue/run-next', {
+            method: 'POST'
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+            setTimeout(() => fetchWorkflowQueue(light, label), 1000);
+        } else {
+            throw new Error(result.message || 'Run failed');
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Run Error');
         console.error(`[Agent Workflow] Run task failed: ${error.message}`);
@@ -70,11 +96,6 @@ async function runNextTask(light, label) {
 }
 // END
 
-// START startPolling
-function startPolling(light, label) {
-    setInterval(() => fetchWorkflowQueue(light, label), 30000);
-}
-// END
 
 // START setStatus
 function setStatus(light, label, status, text) {

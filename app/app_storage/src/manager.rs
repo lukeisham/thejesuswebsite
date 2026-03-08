@@ -1,4 +1,4 @@
-use crate::{chroma::ChromaStorage, SqliteStorage};
+use crate::{chroma::ChromaStorage, sqlite::SqliteStorage};
 use std::sync::Arc;
 
 /*

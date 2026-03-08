@@ -594,250 +594,255 @@
                                     style="padding:4px 8px;font-size:0.7rem;">Crawl</button>
                             </div>
                         </div>
-                    </div>
-                    Auto</label>
-                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Ping</button>
-                </div>
-            </div>
 
-            <!-- Token Metrics -->
-            <div class="widget-card" id="wgt-token-metrics">
-                <div><strong>Token Metrics</strong>
-                    <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
-                            style="color:#666;">Monitoring</span></div>
-                </div>
-                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
-                        Auto</label>
-                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Sync</button>
-                </div>
-            </div>
-
-            <!-- Self Reflection (was Trace) -->
-            <div class="widget-card" id="wgt-self-reflection">
-                <div><strong>Self Reflection</strong>
-                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
-                            style="color:#666;">Idle</span></div>
-                </div>
-                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
-                        Auto</label>
-                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Reflect</button>
-                </div>
-            </div>
-
-            <!-- Agent Workflow (new, was Queue) -->
-            <div class="widget-card" id="wgt-agent-workflow">
-                <div><strong>Agent Workflow</strong>
-                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
-                            style="color:#666;">Idle</span></div>
-                </div>
-                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
-                        Auto</label>
-                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Run</button>
-                </div>
-            </div>
-
-            <!-- Sources (restored) -->
-            <div class="widget-card" id="wgt-sources">
-                <div><strong>Sources</strong>
-                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
-                            style="color:#666;">Idle</span></div>
-                </div>
-                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
-                        Auto</label>
-                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Sync</button>
-                </div>
-            </div>
-
-            <!-- Security (restored) -->
-            <div class="widget-card" id="wgt-security">
-                <div><strong>Security</strong>
-                    <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
-                            style="color:#666;">Active</span></div>
-                </div>
-                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
-                        Auto</label>
-                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Audit</button>
-                </div>
-            </div>
-
-            <!-- Users (restored) -->
-            <div class="widget-card" id="wgt-users">
-                <div><strong>Users</strong>
-                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
-                            style="color:#666;">Idle</span></div>
-                </div>
-                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
-                        Auto</label>
-                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Load</button>
-                </div>
-            </div>
-
-            <!-- Deadlinks (restored) -->
-            <div class="widget-card" id="wgt-deadlinks">
-                <div><strong>Deadlinks</strong>
-                    <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
-                            style="color:#666;">Idle</span></div>
-                </div>
-                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                    <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto" checked>
-                        Auto</label>
-                    <button class="btn-primary wgt-trigger" style="padding:4px 8px;font-size:0.7rem;">Scan</button>
-                </div>
-            </div>
-
-    </div><!-- end widget grid -->
-    </div><!-- end row 3 panel -->
-
-    </div><!-- end main content rows -->
-
-    <!-- ========================================================= -->
-    <!-- DETAIL PANEL AREA: Hidden expandable panels for restored   -->
-    <!-- widgets. Shown/hidden by the traffic-light card wrappers.  -->
-    <!-- ========================================================= -->
-    <div id="detail-panel-area" style="display:none;">
-
-        <!-- SOURCES PANEL -->
-        <div id="sources-panel" class="dashboard-panel detail-panel" style="display:none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h3>Sources Manager</h3>
-                <button class="detail-close-btn btn-secondary" data-panel="sources-panel"
-                    style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
-            </div>
-            <div style="display:flex; gap:10px; margin-bottom:1rem;">
-                <input type="text" id="search-sources-input" placeholder="Search sources..." class="input-field"
-                    style="flex:1; padding:8px;">
-                <button id="add-source-btn" class="btn-primary">+ Add Source</button>
-            </div>
-            <ul id="sources-list" class="record-list" style="max-height:300px; overflow-y:auto;"></ul>
-
-            <!-- Sources Editor Modal -->
-            <div id="source-editor-modal"
-                style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-                <div
-                    style="background:var(--card-bg); border-radius:8px; padding:2rem; width:480px; max-width:95vw; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                        <h3 style="margin:0;">Add / Edit Source</h3>
-                        <button id="source-close-btn"
-                            style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#666;">✕</button>
-                    </div>
-                    <div id="source-error-msg"
-                        style="display:none; color:red; margin-bottom:1rem; padding:8px; background:#fef2f2; border-radius:4px;">
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:12px;">
-                        <div style="display:flex; gap:10px;">
-                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
-                                <label style="font-size:0.8rem; color:#666;">Author Name</label>
-                                <input type="text" id="source-edit-author-name" class="input-field"
-                                    placeholder="e.g. John Smith" style="padding:8px;">
+                        <!-- Token Metrics -->
+                        <div class="widget-card" id="wgt-token-metrics">
+                            <div><strong>Token Metrics</strong>
+                                <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
+                                        style="color:#666;">Monitoring</span></div>
                             </div>
-                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
-                                <label style="font-size:0.8rem; color:#666;">Author ORCID</label>
-                                <input type="text" id="source-edit-author-orcid" class="input-field"
-                                    placeholder="0000-0000-0000-0000" style="padding:8px;">
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Sync</button>
                             </div>
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:4px;">
-                            <label style="font-size:0.8rem; color:#666;">Title <span style="color:red;">*</span></label>
-                            <input type="text" id="source-edit-title" class="input-field"
-                                placeholder="Publication title" style="padding:8px;">
-                        </div>
-                        <div style="display:flex; gap:10px;">
-                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
-                                <label style="font-size:0.8rem; color:#666;">Source Type</label>
-                                <select id="source-edit-type" class="input-field" style="padding:8px;">
-                                    <option value="Book">Book</option>
-                                    <option value="AcademicPaper">Academic Paper</option>
-                                    <option value="Website">Website</option>
-                                    <option value="Documentary">Documentary</option>
-                                    <option value="Other">Other</option>
-                                </select>
+
+                        <!-- Self Reflection (was Trace) -->
+                        <div class="widget-card" id="wgt-self-reflection">
+                            <div><strong>Self Reflection</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
                             </div>
-                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
-                                <label style="font-size:0.8rem; color:#666;">Year</label>
-                                <input type="number" id="source-edit-year" class="input-field" placeholder="e.g. 2024"
-                                    style="padding:8px;">
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Reflect</button>
                             </div>
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:4px;">
-                            <label style="font-size:0.8rem; color:#666;">Publication Name</label>
-                            <input type="text" id="source-edit-pub-name" class="input-field"
-                                placeholder="e.g. Oxford University Press" style="padding:8px;">
+
+                        <!-- Agent Workflow (new, was Queue) -->
+                        <div class="widget-card" id="wgt-agent-workflow">
+                            <div><strong>Agent Workflow</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Run</button>
+                            </div>
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:4px;">
-                            <label style="font-size:0.8rem; color:#666;">Publication Link</label>
-                            <input type="url" id="source-edit-pub-link" class="input-field" placeholder="https://..."
-                                style="padding:8px;">
+
+                        <!-- Sources (restored) -->
+                        <div class="widget-card" id="wgt-sources">
+                            <div><strong>Sources</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Sync</button>
+                            </div>
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:4px;">
-                            <label style="font-size:0.8rem; color:#666;">DOI Link</label>
-                            <input type="url" id="source-edit-doi" class="input-field" placeholder="https://doi.org/..."
-                                style="padding:8px;">
+
+                        <!-- Security (restored) -->
+                        <div class="widget-card" id="wgt-security">
+                            <div><strong>Security</strong>
+                                <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
+                                        style="color:#666;">Active</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Audit</button>
+                            </div>
                         </div>
+
+                        <!-- Users (restored) -->
+                        <div class="widget-card" id="wgt-users">
+                            <div><strong>Users</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Load</button>
+                            </div>
+                        </div>
+
+                        <!-- Deadlinks (restored) -->
+                        <div class="widget-card" id="wgt-deadlinks">
+                            <div><strong>Deadlinks</strong>
+                                <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
+                                        style="color:#666;">Idle</span></div>
+                            </div>
+                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
+                                        checked> Auto</label>
+                                <button class="btn-primary wgt-trigger"
+                                    style="padding:4px 8px;font-size:0.7rem;">Scan</button>
+                            </div>
+                        </div>
+
                     </div>
-                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1.5rem;">
-                        <button id="source-save-btn" class="btn-primary">Save Source</button>
+                    <!-- end widget grid -->
+                </div><!-- end row 3 panel -->
+
+            </div><!-- end main content rows -->
+
+            <!-- ========================================================= -->
+            <!-- DETAIL PANEL AREA: Hidden expandable panels for restored   -->
+            <!-- widgets. Shown/hidden by the traffic-light card wrappers.  -->
+            <!-- ========================================================= -->
+            <div id="detail-panel-area" style="display:none;">
+
+                <!-- SOURCES PANEL -->
+                <div id="sources-panel" class="dashboard-panel detail-panel" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3>Sources Manager</h3>
+                        <button class="detail-close-btn btn-secondary" data-panel="sources-panel"
+                            style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-bottom:1rem;">
+                        <input type="text" id="search-sources-input" placeholder="Search sources..." class="input-field"
+                            style="flex:1; padding:8px;">
+                        <button id="add-source-btn" class="btn-primary">+ Add Source</button>
+                    </div>
+                    <ul id="sources-list" class="record-list" style="max-height:300px; overflow-y:auto;"></ul>
+
+                    <!-- Sources Editor Modal -->
+                    <div id="source-editor-modal"
+                        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+                        <div
+                            style="background:var(--card-bg); border-radius:8px; padding:2rem; width:480px; max-width:95vw; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                                <h3 style="margin:0;">Add / Edit Source</h3>
+                                <button id="source-close-btn"
+                                    style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#666;">✕</button>
+                            </div>
+                            <div id="source-error-msg"
+                                style="display:none; color:red; margin-bottom:1rem; padding:8px; background:#fef2f2; border-radius:4px;">
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:12px;">
+                                <div style="display:flex; gap:10px;">
+                                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                        <label style="font-size:0.8rem; color:#666;">Author Name</label>
+                                        <input type="text" id="source-edit-author-name" class="input-field"
+                                            placeholder="e.g. John Smith" style="padding:8px;">
+                                    </div>
+                                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                        <label style="font-size:0.8rem; color:#666;">Author ORCID</label>
+                                        <input type="text" id="source-edit-author-orcid" class="input-field"
+                                            placeholder="0000-0000-0000-0000" style="padding:8px;">
+                                    </div>
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <label style="font-size:0.8rem; color:#666;">Title <span
+                                            style="color:red;">*</span></label>
+                                    <input type="text" id="source-edit-title" class="input-field"
+                                        placeholder="Publication title" style="padding:8px;">
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                        <label style="font-size:0.8rem; color:#666;">Source Type</label>
+                                        <select id="source-edit-type" class="input-field" style="padding:8px;">
+                                            <option value="Book">Book</option>
+                                            <option value="AcademicPaper">Academic Paper</option>
+                                            <option value="Website">Website</option>
+                                            <option value="Documentary">Documentary</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                        <label style="font-size:0.8rem; color:#666;">Year</label>
+                                        <input type="number" id="source-edit-year" class="input-field"
+                                            placeholder="e.g. 2024" style="padding:8px;">
+                                    </div>
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <label style="font-size:0.8rem; color:#666;">Publication Name</label>
+                                    <input type="text" id="source-edit-pub-name" class="input-field"
+                                        placeholder="e.g. Oxford University Press" style="padding:8px;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <label style="font-size:0.8rem; color:#666;">Publication Link</label>
+                                    <input type="url" id="source-edit-pub-link" class="input-field"
+                                        placeholder="https://..." style="padding:8px;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <label style="font-size:0.8rem; color:#666;">DOI Link</label>
+                                    <input type="url" id="source-edit-doi" class="input-field"
+                                        placeholder="https://doi.org/..." style="padding:8px;">
+                                </div>
+                            </div>
+                            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1.5rem;">
+                                <button id="source-save-btn" class="btn-primary">Save Source</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- SECURITY PANEL -->
-        <div id="security-panel" class="dashboard-panel detail-panel" style="display:none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h3>Security Logs</h3>
-                <button class="detail-close-btn btn-secondary" data-panel="security-panel"
-                    style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
-            </div>
-            <ul id="security-list" class="record-list" style="max-height:350px; overflow-y:auto;"></ul>
-        </div>
+                <!-- SECURITY PANEL -->
+                <div id="security-panel" class="dashboard-panel detail-panel" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3>Security Logs</h3>
+                        <button class="detail-close-btn btn-secondary" data-panel="security-panel"
+                            style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
+                    </div>
+                    <ul id="security-list" class="record-list" style="max-height:350px; overflow-y:auto;"></ul>
+                </div>
 
-        <!-- USERS PANEL -->
-        <div id="users-panel" class="dashboard-panel detail-panel" style="display:none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h3>User Manager</h3>
-                <button class="detail-close-btn btn-secondary" data-panel="users-panel"
-                    style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
-            </div>
-            <div style="display:flex; gap:10px; margin-bottom:1rem;">
-                <input type="email" id="new-user-email" class="input-field" placeholder="user@example.com"
-                    style="flex:1; padding:8px;">
-                <button id="add-user-btn" class="btn-primary">+ Add User</button>
-            </div>
-            <ul id="user-list" class="record-list" style="max-height:300px; overflow-y:auto;"></ul>
-        </div>
+                <!-- USERS PANEL -->
+                <div id="users-panel" class="dashboard-panel detail-panel" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3>User Manager</h3>
+                        <button class="detail-close-btn btn-secondary" data-panel="users-panel"
+                            style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-bottom:1rem;">
+                        <input type="email" id="new-user-email" class="input-field" placeholder="user@example.com"
+                            style="flex:1; padding:8px;">
+                        <button id="add-user-btn" class="btn-primary">+ Add User</button>
+                    </div>
+                    <ul id="user-list" class="record-list" style="max-height:300px; overflow-y:auto;"></ul>
+                </div>
 
-        <!-- DEADLINKS PANEL -->
-        <div id="deadlinks-panel" class="dashboard-panel detail-panel" style="display:none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h3>Deadlink Scanner</h3>
-                <button class="detail-close-btn btn-secondary" data-panel="deadlinks-panel"
-                    style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
-            </div>
-            <p style="font-size:0.85rem; color:#666; margin-bottom:1rem;">Scans all records, essays and
-                responses for broken external URLs. Allows inline replacement or removal.</p>
-            <button id="run-deadlinks" class="btn-primary" style="margin-bottom:1rem;">Scan for Broken
-                Links</button>
-            <ul id="deadlinks-list" class="record-list" style="max-height:350px; overflow-y:auto;">
-                <li style="color:#999; font-size:0.85rem;">Click "Scan" to begin checking links…</li>
-            </ul>
-        </div>
+                <!-- DEADLINKS PANEL -->
+                <div id="deadlinks-panel" class="dashboard-panel detail-panel" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3>Deadlink Scanner</h3>
+                        <button class="detail-close-btn btn-secondary" data-panel="deadlinks-panel"
+                            style="padding:4px 12px; font-size:0.8rem;">✕ Close</button>
+                    </div>
+                    <p style="font-size:0.85rem; color:#666; margin-bottom:1rem;">Scans all records, essays and
+                        responses for broken external URLs. Allows inline replacement or removal.</p>
+                    <button id="run-deadlinks" class="btn-primary" style="margin-bottom:1rem;">Scan for Broken
+                        Links</button>
+                    <ul id="deadlinks-list" class="record-list" style="max-height:350px; overflow-y:auto;">
+                        <li style="color:#999; font-size:0.85rem;">Click "Scan" to begin checking links…</li>
+                    </ul>
+                </div>
 
-    </div><!-- end detail-panel-area -->
+            </div><!-- end detail-panel-area -->
 
-    </main>
+        </main>
 
 
 
-    <!-- Footer: Row 3 | Col 1 to End (1 / -1) -->
-    <footer style="grid-column: 1 / -1; grid-row: 3;">
-        <div id="footer"></div>
-    </footer>
+        <!-- Footer: Row 3 | Col 1 to End (1 / -1) -->
+        <footer style="grid-column: 1 / -1; grid-row: 3;">
+            <div id="footer"></div>
+        </footer>
     </div>
 
     <!-- Scripts -->
@@ -846,6 +851,15 @@
         (function initDashboardTabs() {
             if (window.__dashboardTabsInit) return;
             window.__dashboardTabsInit = true;
+
+            const cheatsheetEl = document.getElementById("cheatsheet-content");
+            const cheatsheets = {
+                "crud-records": "<p><b>Records Guidance:</b> No specific cheatsheet required. Fill in the fields to create or update entity definitions.</p>",
+                "crud-essays": "<p><b>Markdown Cheatsheet (Essays):</b> # Header | **Bold** | *Italic* | [Link](url) | - List | `Code`</p>",
+                "crud-responses": "<p><b>Markdown Cheatsheet (Responses):</b> # Header | **Bold** | *Italic* | [Link](url) | - List | `Code`</p>",
+                "crud-blogs": "<p><b>Markdown Cheatsheet (Blogs):</b> # Header | **Bold** | *Italic* | [Link](url) | - List | `Code`</p>",
+                "crud-weights": "<p><b>Wiki Weights Info:</b> Enter keywords and their corresponding relevance weights (0.1 to 5.0). These affect search ranking and agent retrieval priority. Higher weights prioritize the source.</p>"
+            };
 
             const tabContainers = document.querySelectorAll('.dashboard-panel .tabs');
             tabContainers.forEach(container => {
@@ -866,6 +880,15 @@
 
                         const targetPanel = document.getElementById(targetId);
                         targetPanel.classList.add('active');
+
+                        // Update Cheatsheet if applicable
+                        if (cheatsheetEl) {
+                            if (cheatsheets[targetId]) {
+                                cheatsheetEl.innerHTML = cheatsheets[targetId];
+                            } else {
+                                cheatsheetEl.innerHTML = "<p style='color: #666; font-style: italic;'>Generic help or no guidance available for this tab.</p>";
+                            }
+                        }
                     }
                 });
             });
@@ -1007,16 +1030,8 @@
         };
     </script>
 
-    <!-- Deprecated scripts (now absorbed or redundant)
-    <script src="js/chat_with_agent.js"></script>
-    <script src="js/widget_spider.js" defer></script>
-    <script src="js/widget_spellcheck.js"></script>
-    <script src="js/dashboard_tabs.js"></script>
-    <script src="js/show_queue.js"></script>
-    <script src="js/show_trace_reasoning.js"></script>
-    <script src="js/show_server_info.js"></script>
-    <script src="js/widget_contact.js"></script>
-    -->
+
+    <!-- CRUD Editor Scripts -->
 
     <!-- CRUD Editor Scripts -->
     <script src="/js/record_card.js" defer></script>

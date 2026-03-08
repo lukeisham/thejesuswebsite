@@ -27,6 +27,7 @@ pub struct NewsItem {
     pub source_url: Url,
     pub snippet: String,  // The AI-generated summary
     pub contents: String, // Full copy of source
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub picture_url: Option<Url>,
     pub harvested_at: chrono::DateTime<chrono::Utc>,
 }
@@ -37,6 +38,7 @@ pub struct RawNewsItem {
     pub title: String,
     pub url: String, // String because it's unvalidated raw data
     pub raw_content: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_image_url: Option<String>,
 }
 

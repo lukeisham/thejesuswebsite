@@ -16,12 +16,31 @@ export function initPageMetrics() {
     const trigger = card.querySelector('.wgt-trigger');
     const light = card.querySelector('.traffic-light');
     const label = card.querySelector('.wgt-status-label');
+    const autoCheck = card.querySelector('.wgt-auto');
+    let pollInterval = null;
 
     try {
         fetchMetrics(light, label);
 
         if (trigger) {
             trigger.addEventListener('click', () => triggerScrape(light, label));
+        }
+
+        if (autoCheck) {
+            autoCheck.addEventListener('change', () => {
+                if (autoCheck.checked) {
+                    if (!pollInterval) {
+                        pollInterval = setInterval(() => fetchMetrics(light, label), 30000);
+                    }
+                } else {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+            });
+            // Initial state
+            if (autoCheck.checked) {
+                pollInterval = setInterval(() => fetchMetrics(light, label), 30000);
+            }
         }
     } catch (error) {
         setStatus(light, label, 'error', 'Init Error');
@@ -34,8 +53,14 @@ export function initPageMetrics() {
 async function fetchMetrics(light, label) {
     try {
         setStatus(light, label, 'active', 'Syncing');
+
         // Lean Passthrough: GET /api/v1/metrics/page
-        setTimeout(() => setStatus(light, label, 'active', 'Tracking'), 1000);
+        const response = await fetch('/api/v1/metrics/page');
+        if (response.ok) {
+            setStatus(light, label, 'active', 'Tracking');
+        } else {
+            throw new Error('Metrics fetch failed');
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Fetch Error');
         console.error(`[Page Metrics] Fetch failed: ${error.message}`);
@@ -47,8 +72,18 @@ async function fetchMetrics(light, label) {
 async function triggerScrape(light, label) {
     try {
         setStatus(light, label, 'active', 'Scraping...');
+
         // Lean Passthrough: POST /api/v1/tools/scraper/run
-        setTimeout(() => setStatus(light, label, 'active', 'Tracking'), 2000);
+        const response = await fetch('/api/v1/tools/scraper/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+            setStatus(light, label, 'active', 'Tracking');
+        } else {
+            throw new Error('Scrape trigger failed');
+        }
     } catch (error) {
         setStatus(light, label, 'error', 'Scrape Error');
         console.error(`[Page Metrics] Scrape failed: ${error.message}`);
