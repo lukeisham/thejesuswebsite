@@ -196,6 +196,51 @@
                             <li><a href="#">No records loaded <span class="label" style="float: right;">—</span></a>
                             </li>
                         </ul>
+
+                        <!-- Record Details Editor (Hidden by default) -->
+                        <div id="record-detail-form"
+                            style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; display: none;">
+                            <h4 style="margin-bottom: 10px;">Record Details</h4>
+                            <input type="hidden" id="record-id-field">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <div>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Name</label>
+                                    <input type="text" id="record-name-field" placeholder="e.g. Feeding of 5000"
+                                        class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Type</label>
+                                    <input type="text" id="record-type-field" placeholder="e.g. Miracle"
+                                        class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Region</label>
+                                    <input type="text" id="record-region-field" placeholder="e.g. Galilee"
+                                        class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Category</label>
+                                    <input type="text" id="record-category-field" placeholder="e.g. Public"
+                                        class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
+                                </div>
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Description</label>
+                                <textarea id="record-desc-field" class="input-field" rows="3"
+                                    style="width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box;"
+                                    placeholder="Brief description..."></textarea>
+                            </div>
+                            <div style="text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
+                                <button id="clear-record-form" class="btn-secondary"
+                                    style="padding: 8px 16px;">Clear</button>
+                                <button id="save-record-draft" class="btn-secondary" style="padding: 8px 16px;">Save
+                                    Draft</button>
+                                <button id="publish-record" class="btn-primary" style="padding: 8px 16px;">Save &
+                                    Publish</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="crud-essays" class="tab-panel">
@@ -245,43 +290,63 @@
                     </div>
 
                     <div id="crud-weights" class="tab-panel">
-                        <h3>Wiki Ranking Weights</h3>
+                        <h3 style="margin-bottom: 1rem;">Wiki Ranking Weights</h3>
                         <input type="hidden" id="weight-id" value="">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
-                            <div>
-                                <label style="font-size: 0.8rem; display: block; margin-bottom: 5px;">Rule Name</label>
-                                <input type="text" id="weight-name" placeholder="e.g. Edu Boost" class="input-field"
-                                    style="width: 100%; padding: 8px;">
+                        <div
+                            style="background: #fdfdfd; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1rem;">
+                                <div>
+                                    <label
+                                        style="font-size: 0.75rem; display: block; margin-bottom: 4px; color: #666; font-weight: 600;">Rule
+                                        Name</label>
+                                    <input type="text" id="weight-name" placeholder="e.g. Edu Boost" class="input-field"
+                                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 0.75rem; display: block; margin-bottom: 4px; color: #666; font-weight: 600;">Match
+                                        Target</label>
+                                    <select id="weight-target" class="input-field"
+                                        style="width: 100%; padding: 10px; box-sizing: border-box; height: 38px;">
+                                        <option value="url">URL</option>
+                                        <option value="title">Title</option>
+                                        <option value="content">Content</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label style="font-size: 0.8rem; display: block; margin-bottom: 5px;">Match
-                                    Target</label>
-                                <select id="weight-target" class="input-field" style="width: 100%; padding: 8px;">
-                                    <option value="url">URL</option>
-                                    <option value="title">Title</option>
-                                    <option value="content">Content</option>
-                                </select>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1rem;">
+                                <div>
+                                    <label
+                                        style="font-size: 0.75rem; display: block; margin-bottom: 4px; color: #666; font-weight: 600;">Match
+                                        Value</label>
+                                    <input type="text" id="weight-value" placeholder="e.g. .edu" class="input-field"
+                                        style="width: 100%; padding: 10px; box-sizing: border-box;">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 0.75rem; display: block; margin-bottom: 4px; color: #666; font-weight: 600;">Weight
+                                        Score
+                                        (+0.1 to 5.0)</label>
+                                    <input type="number" id="weight-score" placeholder="e.g. 1.5" step="0.1"
+                                        class="input-field" style="width: 100%; padding: 10px; box-sizing: border-box;">
+                                </div>
+                            </div>
+                            <div
+                                style="text-align: right; margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
+                                <button id="clear-weight-form" class="btn-secondary" style="padding: 10px 20px;">New /
+                                    Clear</button>
+                                <button id="save-weight" class="btn-primary" style="padding: 10px 20px;">Save
+                                    Weight</button>
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
-                            <div>
-                                <label style="font-size: 0.8rem; display: block; margin-bottom: 5px;">Match
-                                    Value</label>
-                                <input type="text" id="weight-value" placeholder="e.g. .edu" class="input-field"
-                                    style="width: 100%; padding: 8px;">
-                            </div>
-                            <div>
-                                <label style="font-size: 0.8rem; display: block; margin-bottom: 5px;">Weight Score
-                                    (+/-)</label>
-                                <input type="number" id="weight-score" placeholder="e.g. 15" class="input-field"
-                                    style="width: 100%; padding: 8px;">
-                            </div>
-                        </div>
-                        <div style="text-align: right; margin-top: 10px;">
-                            <button id="clear-weight-form" class="btn-secondary" style="padding: 8px 16px;">New /
-                                Clear</button>
-                            <button id="save-weight" class="btn-primary">Save Weight</button>
-                        </div>
+                    </div>
+                </div>
+                <!-- Cheatsheet row -->
+                <div class="dashboard-panel" id="dashboard-cheatsheet"
+                    style="margin-top: 1rem; border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
+                    <h3 style="margin-bottom: 0.5rem; color: var(--accent-color);">Quick Reference</h3>
+                    <div id="cheatsheet-content" style="line-height: 1.5;">
+                        <p style="color: #666; font-style: italic;">Select a tab above to see specific guidance.</p>
                     </div>
                 </div>
 
@@ -289,11 +354,13 @@
                 <div class="a-grid a-cols-2 a-gap-md" style="grid-row: 2;">
                     <!-- Left: Agent/User Chat Box -->
                     <div class="dashboard-panel">
-                        <h3>AI Agent Chat</h3>
+                        <h3>AI Agent Conversation</h3>
                         <div class="chat-container">
-                            <div class="chat-messages" id="chat-messages">
-                                <p style="color: #999; font-style: italic;">Send a message to query the AI agent about
-                                    records, challenges or wikipedia articles…</p>
+                            <div class="chat-messages" id="chat-messages"
+                                style="height: 350px; overflow-y: auto; padding: 15px; background: #fafafafa; display: flex; flex-direction: column; gap: 10px;">
+                                <p style="color: #999; font-style: italic; text-align: center; width: 100%;">
+                                    Start a conversation with the agent below…
+                                </p>
                             </div>
                             <div class="chat-input-row">
                                 <input type="text" id="chat-input" placeholder="Ask the agent…"
@@ -988,6 +1055,47 @@
     <script type="module" src="/js/widgets/wgt_deadlinks.js"></script>
     <script type="module" src="/js/widgets/wgt_wiki_weights.js"></script>
     <script type="module" src="/js/widgets/wgt_news_crawler.js"></script>
+
+    <!-- Blog Editor Modal -->
+    <div id="blog-editor-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(2px);">
+        <div class="dashboard-panel"
+            style="max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; border: none;">Blog Post Editor</h3>
+                <button id="blog-close-btn" class="btn-secondary"
+                    style="padding: 5px 10px; font-size: 1.2rem; line-height: 1;">&times;</button>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; display: block;">Title</label>
+                <input type="text" id="blog-edit-title" placeholder="Post Title" class="input-field"
+                    style="width: 100%; padding: 12px; font-size: 1.1rem; box-sizing: border-box; border-radius: 6px;">
+            </div>
+            <div class="blog-toolbar" style="display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap;">
+                <button class="blog-format-btn btn-secondary" data-tag="h3"
+                    style="padding: 4px 10px; font-size: 0.8rem;">H3</button>
+                <button class="blog-format-btn btn-secondary" data-tag="b"
+                    style="padding: 4px 10px; font-size: 0.8rem; font-weight: bold;">Bold</button>
+                <button class="blog-format-btn btn-secondary" data-tag="i"
+                    style="padding: 4px 10px; font-size: 0.8rem; font-style: italic;">Italic</button>
+                <button class="blog-format-btn btn-secondary" data-tag="ul"
+                    style="padding: 4px 10px; font-size: 0.8rem;">List</button>
+                <button class="blog-format-btn btn-secondary" data-tag="a"
+                    style="padding: 4px 10px; font-size: 0.8rem;">Link</button>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; display: block;">Content
+                    (Markdown)</label>
+                <textarea id="blog-edit-body" class="input-field" rows="12"
+                    style="width: 100%; padding: 12px; box-sizing: border-box; font-family: var(--font-sans); border-radius: 6px; line-height: 1.6;"
+                    placeholder="Write your post content here..."></textarea>
+            </div>
+            <div style="text-align: right; display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="blog-save-draft" class="btn-secondary" style="padding: 10px 20px;">Save Draft</button>
+                <button id="blog-publish" class="btn-primary" style="padding: 10px 20px;">Publish Now</button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

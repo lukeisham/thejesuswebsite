@@ -47,7 +47,7 @@ pub async fn run(state: Arc<AppState>) -> Result<(), Box<dyn std::error::Error>>
     tracing::info!("Server listening on {}", addr);
 
     // 4. Start the server with Graceful Shutdown
-    axum::serve(listener, app)
+    axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 

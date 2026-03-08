@@ -31,7 +31,7 @@
                     statusEl.textContent = "Success — redirecting...";
                     statusEl.style.color = "green";
                     setTimeout(function () {
-                        window.location.href = "/records.html";
+                        window.location.href = "/private/dashboard.html";
                     }, 800);
                 } else {
                     // This handles "Wrong password" or "Too many attempts"
