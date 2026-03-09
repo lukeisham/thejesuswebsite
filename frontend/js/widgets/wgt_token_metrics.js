@@ -4,6 +4,8 @@
  * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
  */
 
+import { dispatchWidgetEvent } from './widget_event_bus.js';
+
 const CARD_ID = 'wgt-token-metrics';
 
 // START initTokenMetrics
@@ -62,6 +64,14 @@ async function pollTokenUsage(light, label) {
             const limit = result.limit || 1;
             const pct = Math.round((used / limit) * 100);
             setStatus(light, label, pct > 80 ? 'warning' : 'active', `${pct}% used`);
+
+            // Dispatch event for Agent integration (§6 Priority 1)
+            dispatchWidgetEvent(CARD_ID, 'TokenMetricsEvent', {
+                used: used,
+                limit: limit,
+                percent: pct,
+                priority: 1
+            });
         } else {
             throw new Error(result.message || 'Fetch failed');
         }

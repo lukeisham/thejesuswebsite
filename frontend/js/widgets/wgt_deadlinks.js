@@ -1,11 +1,8 @@
-/**
- * wgt_deadlinks.js
- * Wrapper: binds #wgt-deadlinks traffic-light card → toggles #deadlinks-panel.
- * The detail UI (scan + results list) is handled by widget_deadlinks.js.
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
 
 const CARD_ID = 'wgt-deadlinks';
+
+// CARD_ID moved to top
 const PANEL_ID = 'deadlinks-panel';
 
 // START initDeadlinksWidget
@@ -64,6 +61,14 @@ function watchScanButton(light, label) {
         const isScanning = runBtn.disabled;
         setStatus(light, label, isScanning ? 'active' : 'idle',
             isScanning ? 'Scanning...' : 'Idle');
+
+        // Dispatch event for Agent integration (§6 Priority 6)
+        // Note: Actual dead count discovery happens in the detail script;
+        // this wrapper notifies completion/status.
+        dispatchWidgetEvent(CARD_ID, 'DeadlinksEvent', {
+            scanning: isScanning,
+            priority: 6
+        });
     });
 
     // Observe the panel once it's injected

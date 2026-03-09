@@ -4,11 +4,14 @@
  * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
  */
 
-const CARD_ID = 'wgt-challenge-engine';
+import { dispatchWidgetEvent } from './widget_event_bus.js';
+
+const CARD_ID_WIDGET = 'wgt-challenge-engine'; // DOM element ID
+const CARD_ID_EVENT = 'wgt-challenge-ranker'; // ID for agent context
 
 // START initChallengeRanker
 export function initChallengeRanker() {
-    const card = document.getElementById(CARD_ID);
+    const card = document.getElementById(CARD_ID_WIDGET);
     if (!card || card.dataset.wgtInit) return;
     card.dataset.wgtInit = 'true';
 
@@ -61,6 +64,12 @@ async function handleChallengeSort(light, label) {
 
         if (response.ok) {
             setStatus(light, label, 'idle', 'Sort done');
+
+            // Dispatch event for Agent integration (§6 Priority 4)
+            dispatchWidgetEvent(CARD_ID_EVENT, 'ChallengeSortEvent', {
+                status: 'sorted',
+                priority: 4
+            });
         } else {
             throw new Error(result.message || 'Sort failed');
         }

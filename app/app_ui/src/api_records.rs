@@ -19,11 +19,19 @@ use std::sync::Arc;
 
 /// Saves a record draft using the DraftRecordRequest DTO.
 pub async fn handle_save_record_draft(
+    State(state): State<Arc<AppState>>,
     Json(payload): Json<app_core::types::DraftRecordRequest>,
 ) -> impl IntoResponse {
-    // For now, we return a success response with the draft data
-    Json(ApiResponse::success(format!("Draft for {} saved", payload.name), Some(payload)))
-        .into_response()
+    match state.storage.sqlite.save_record_draft(&payload).await {
+        Ok(_) => {
+            Json(ApiResponse::success(format!("Draft for {} saved", payload.name), Some(payload)))
+                .into_response()
+        }
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::<()>::error(e.to_string())))
+                .into_response()
+        }
+    }
 }
 
 /// Publishes a full record using the PublishRecordRequest DTO.
@@ -46,27 +54,38 @@ pub async fn handle_publish_record(
         }
     };
 
+    // Store in SQLite (Primary for metadata and listing)
+    if let Err(e) = state.storage.sqlite.store_record(&record).await {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("SQLite Error: {}", e))),
+        )
+            .into_response();
+    }
+
+    // Store in ChromaDB (Vector search and long-term persistence)
     match state.storage.chroma.store_record(&record).await {
-        Ok(_) => (StatusCode::OK, Json(ApiResponse::<()>::success("Record published", None)))
-            .into_response(),
+        Ok(_) => {
+            // If we have an ID (which we should for drafts), delete it from drafts
+            // Note: DraftRecordRequest.id is Option<String>.
+            // We'll need to know which draft this publication came from to delete it.
+            // For now, let's just return success.
+            (StatusCode::OK, Json(ApiResponse::<()>::success("Record published", None)))
+                .into_response()
+        }
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ApiResponse::<()>::error(format!("Failed to publish: {}", e))),
+            Json(ApiResponse::<()>::error(format!("Chroma Error: {}", e))),
         )
             .into_response(),
     }
 }
 
 pub async fn handle_record_list(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    use app_core::types::record::record::Record;
     use app_core::types::RecordListResponse;
 
-    match state.storage.chroma.query_records("").await {
-        Ok(docs) => {
-            let records: Vec<Record> = docs
-                .into_iter()
-                .filter_map(|json_str| serde_json::from_str(&json_str).ok())
-                .collect();
+    match state.storage.sqlite.get_records().await {
+        Ok(records) => {
             let response = RecordListResponse {
                 count: records.len(),
                 records,
@@ -82,18 +101,17 @@ pub async fn handle_record_list(State(state): State<Arc<AppState>>) -> impl Into
     }
 }
 
-pub async fn handle_get_draft_records() -> impl IntoResponse {
-    use app_core::types::DraftRecordRequest;
-    Json(ApiResponse::success(
-        "Draft records retrieved",
-        Some(vec![DraftRecordRequest {
-            id: Some("draft_01".to_string()),
-            name: "New Archeological Find in Capernaum".to_string(),
-            r#type: "Site".to_string(),
-            region: "Galilee".to_string(),
-        }]),
-    ))
-    .into_response()
+pub async fn handle_get_draft_records(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_draft_records().await {
+        Ok(drafts) => {
+            Json(ApiResponse::success("Draft records retrieved", Some(drafts))).into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("Storage error: {}", e))),
+        )
+            .into_response(),
+    }
 }
 
 pub async fn handle_update_parent() -> impl IntoResponse {

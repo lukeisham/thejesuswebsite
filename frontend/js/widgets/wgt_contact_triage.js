@@ -5,7 +5,10 @@
  * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
  */
 
+import { dispatchWidgetEvent } from './widget_event_bus.js';
+
 const CARD_ID = 'wgt-contact-triage';
+let lastContactDetail = null;
 
 // START initContactTriage
 export function initContactTriage() {
@@ -59,6 +62,15 @@ async function fetchTriageSummary(light, label) {
             const isWarning = (result.critical || 0) > 0;
             setStatus(light, label, isWarning ? 'warning' : 'active',
                 `${result.new || 0} new, ${result.critical || 0} critical`);
+
+            // Dispatch event for Agent integration (§6 Priority 2)
+            // Merges data from absorbed widget_contact.js if available
+            dispatchWidgetEvent(CARD_ID, 'ContactTriageEvent', {
+                new_count: result.new || 0,
+                critical_count: result.critical || 0,
+                detail: lastContactDetail,
+                priority: 2
+            });
         } else {
             throw new Error(result.message || 'Fetch failed');
         }
@@ -73,5 +85,12 @@ function setStatus(light, label, status, text) {
     if (light) light.className = `traffic-light status-${status}`;
     if (label) label.textContent = text;
 }
+
+// START Absorption
+window.addEventListener('ContactSummaryEvent', (e) => {
+    // Merge detail data into next triage event cycle — do NOT re-emit separately
+    if (e.detail) lastContactDetail = e.detail;
+});
+// END
 
 document.addEventListener('DOMContentLoaded', initContactTriage);

@@ -7,6 +7,8 @@ use std::sync::Arc;
 #[derive(Deserialize)]
 pub struct AgentChatRequest {
     pub message: String,
+    pub interaction_mode: Option<String>,
+    pub widget_context: Option<serde_json::Value>,
 }
 
 #[derive(Serialize)]
@@ -35,23 +37,44 @@ pub async fn handle_agent_chat(
 
     let agent = Agent::new(brain);
 
-    match agent.orchestrate(payload.message).await {
+    match agent
+        .orchestrate_with_context(payload.message, payload.interaction_mode, payload.widget_context)
+        .await
+    {
         Ok(result) => {
-            (
-                StatusCode::OK,
-                Json(AgentChatResponse {
-                    response: "Task executed successfully.".to_string(),
-                    data: Some(result.data), // This gets pushed to Drafts & Results viewer
-                }),
-            )
-                .into_response()
+            let mut res_json = serde_json::json!({
+                "response": result.data.clone(),
+                "success": true,
+            });
+
+            // Extract metadata fields for Phase 4 helpers
+            if let Some((_, action)) = result.metadata.iter().find(|(k, _)| k == "action") {
+                res_json["action"] = serde_json::Value::String(action.clone());
+            }
+            if result
+                .metadata
+                .iter()
+                .any(|(k, _)| k == "verification_required")
+            {
+                res_json["verification_required"] = serde_json::Value::Bool(true);
+            }
+
+            // If the data is JSON (from try_widget_command), parse it
+            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result.data) {
+                if let Some(resp_msg) = parsed.get("response") {
+                    res_json["response"] = resp_msg.clone();
+                }
+                res_json["data"] = parsed;
+            }
+
+            (StatusCode::OK, Json(res_json)).into_response()
         }
         Err(e) => (
             StatusCode::BAD_REQUEST,
-            Json(AgentChatResponse {
-                response: format!("Agent Error: {}", e),
-                data: None,
-            }),
+            Json(serde_json::json!({
+                "response": format!("Agent Error: {}", e),
+                "success": false
+            })),
         )
             .into_response(),
     }

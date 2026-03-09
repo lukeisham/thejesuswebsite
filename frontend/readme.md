@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "claude update 2"
+git commit -m "big agent and database update"
 git push origin main
 
 update files
@@ -127,3 +127,7 @@ to check if latest repo is on the server
 cd ~/apps/thejesuswebsite
 git log -1 --oneline
 
+to force alignment with Github
+
+git reset --hard origin/$(git branch --show-current)
+docker compose up -d --build

@@ -1,11 +1,8 @@
-/**
- * wgt_spelling.js
- * Function: Real-time grammar and spell-check in dashboard
- * Absorbs: widget_spellcheck.js
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
 
 const CARD_ID = 'wgt-spelling';
+
+// CARD_ID moved to top
 
 // START initSpellingChecker
 export function initSpellingChecker() {
@@ -90,9 +87,14 @@ async function runSpellCheck(light, label) {
 
         if (response.ok) {
             const count = result.errors_count || 0;
-            const status = count > 0 ? 'warning' : 'idle';
             const statusText = count > 0 ? `${count} Issues` : 'Clear';
             setStatus(light, label, status, statusText);
+
+            // Dispatch event for Agent integration (§6 Priority 5)
+            dispatchWidgetEvent(CARD_ID, 'SpellingCompleteEvent', {
+                errors_count: count,
+                priority: 5
+            });
         } else {
             throw new Error(result.message || 'API Error');
         }

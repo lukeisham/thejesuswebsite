@@ -1,9 +1,16 @@
-use axum::{extract::Query, http::StatusCode, response::IntoResponse, Json};
+use crate::server::AppState;
+use axum::{
+    extract::{Query, State},
+    http::StatusCode,
+    response::IntoResponse,
+    Json,
+};
 use once_cell::sync::Lazy;
 use scraper::Selector;
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;
+use std::sync::Arc;
 
 static MAIN_SELECTOR: Lazy<Selector> = Lazy::new(|| Selector::parse("main").unwrap());
 static ARTICLE_SELECTOR: Lazy<Selector> = Lazy::new(|| Selector::parse("article").unwrap());
@@ -212,21 +219,16 @@ pub async fn handle_content_json() -> impl IntoResponse {
     (StatusCode::OK, Json(items)).into_response()
 }
 
-use app_core::types::dtos::{
-    PageMetricsResponse, ServerMetricsResponse, SummaryResponse, TokenMetricsResponse,
-    WikiStatusResponse,
-};
+use app_core::types::dtos::{SummaryResponse, WikiStatusResponse};
 
 /// Retrieves real-time token usage metrics for the LLM APIs.
-pub async fn handle_token_metrics() -> impl IntoResponse {
-    (
-        StatusCode::OK,
-        Json(TokenMetricsResponse {
-            used: 42000,
-            limit: 1000000,
-        }),
-    )
-        .into_response()
+pub async fn handle_token_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_token_metrics().await {
+        Ok(metrics) => (StatusCode::OK, Json(metrics)).into_response(),
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
+        }
+    }
 }
 
 /// Retrieves the status of the Wikipedia research engine.
@@ -251,30 +253,23 @@ pub async fn handle_wiki_sync() -> impl IntoResponse {
 }
 
 /// Retrieves page-level performance metrics for the frontend.
-pub async fn handle_page_metrics() -> impl IntoResponse {
-    (
-        StatusCode::OK,
-        Json(PageMetricsResponse {
-            load_time: "120ms".to_string(),
-            ttfb: "45ms".to_string(),
-            dom_ready: "80ms".to_string(),
-        }),
-    )
+pub async fn handle_page_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_page_metrics().await {
+        Ok(metrics) => (StatusCode::OK, Json(metrics)).into_response(),
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
+        }
+    }
 }
 
 /// Retrieves comprehensive server system metrics (RAM, Disk, API performance).
-pub async fn handle_server_metrics() -> impl IntoResponse {
-    (
-        StatusCode::OK,
-        Json(ServerMetricsResponse {
-            ram_usage: "256 / 512 MB".to_string(),
-            disk_usage: "1.2 / 10 GB".to_string(),
-            llm_api: "Claude 3.5 Sonnet".to_string(),
-            tokens_today: "1,240".to_string(),
-            tokens_week: "8,400".to_string(),
-            tokens_month: "42,100".to_string(),
-        }),
-    )
+pub async fn handle_server_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_server_metrics().await {
+        Ok(metrics) => (StatusCode::OK, Json(metrics)).into_response(),
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
+        }
+    }
 }
 
 /// Executes a systemic web scrape of external library resources.

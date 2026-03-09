@@ -2,6 +2,9 @@
  * Wiki Ranking Weights Widget
  * Handles fetching, displaying, and editing Wikipedia ranking weights.
  */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
+
+const CARD_ID = 'wgt-wiki-weights';
 
 export default {
     init() {
@@ -54,6 +57,13 @@ export default {
 
             statusLabel.textContent = 'Updated';
             trafficLight.className = 'traffic-light status-active';
+
+            // Dispatch event for Agent integration (§6 Priority 3)
+            dispatchWidgetEvent(CARD_ID, 'WikiWeightsEvent', {
+                weight_count: Array.isArray(weights) ? weights.length : 0,
+                priority: 3
+            });
+
             setTimeout(() => {
                 statusLabel.textContent = 'Idle';
                 trafficLight.className = 'traffic-light status-idle';

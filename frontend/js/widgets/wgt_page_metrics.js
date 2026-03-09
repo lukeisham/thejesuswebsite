@@ -1,11 +1,14 @@
-/**
- * wgt_page_metrics.js
- * Function: Visualizes views, mentions, and rankings
- * Absorbs: widget_spider.js (auto-scrape sub-action)
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
 
 const CARD_ID = 'wgt-page-metrics';
+
+// Absorption model (agent_guide.yml §3):
+// widget_spider.js dispatches CrawlSummaryEvent → we merge it into PageMetricsEvent.
+// widget_spider.js itself does NOT call dispatchWidgetEvent.
+let lastCrawlSummary = null;
+window.addEventListener('CrawlSummaryEvent', (e) => {
+    if (e.detail) lastCrawlSummary = e.detail;
+});
 
 // START initPageMetrics
 export function initPageMetrics() {
@@ -57,7 +60,16 @@ async function fetchMetrics(light, label) {
         // Lean Passthrough: GET /api/v1/metrics/page
         const response = await fetch('/api/v1/metrics/page');
         if (response.ok) {
+            const data = await response.json();
             setStatus(light, label, 'active', 'Tracking');
+
+            // Dispatch event for Agent integration (§6 Priority 7).
+            // Merge lastCrawlSummary (from absorbed widget_spider.js) when available.
+            dispatchWidgetEvent(CARD_ID, 'PageMetricsEvent', {
+                metrics: data,
+                crawl_summary: lastCrawlSummary || null,
+                priority: 7
+            });
         } else {
             throw new Error('Metrics fetch failed');
         }

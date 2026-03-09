@@ -1,11 +1,8 @@
-/**
- * wgt_server_metrics.js
- * Function: Monitor server metrics (CPU, Memory, Disk)
- * Absorbs: show_server_info.js
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
 
 const CARD_ID = 'wgt-server-metrics';
+
+// CARD_ID moved to top
 
 // START initServerMetrics
 export function initServerMetrics() {
@@ -60,7 +57,14 @@ async function pollServerMetrics(light, label) {
 
         if (response.ok) {
             setStatus(light, label, 'active', 'Monitoring');
-            // result.cpu, result.memory, result.uptime available for UI labels if needed
+
+            // Dispatch event for Agent integration (§6 Priority 8)
+            dispatchWidgetEvent(CARD_ID, 'ServerMetricsEvent', {
+                cpu: result.cpu,
+                memory: result.memory,
+                uptime: result.uptime || 'unknown',
+                priority: 8
+            });
         } else {
             throw new Error(result.message || 'Ping failed');
         }

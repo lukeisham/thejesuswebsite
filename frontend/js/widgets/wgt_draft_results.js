@@ -1,8 +1,6 @@
-/**
- * wgt_draft_results.js
- * Function: Fetch and display unified draft/result counts
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
+
+const CARD_ID = 'wgt-draft-results';
 
 // START initDraftResults
 export function initDraftResults() {
@@ -38,6 +36,14 @@ async function fetchDraftCounts() {
 
         const data = await response.json();
         updateDraftUI(data.records, data.essays, data.responses);
+
+        // Dispatch event for Agent integration (§6 Priority 3)
+        dispatchWidgetEvent(CARD_ID, 'DraftCountsEvent', {
+            records: data.records,
+            essays: data.essays,
+            responses: data.responses,
+            priority: 3
+        });
     } catch (error) {
         console.error(`[Draft Results] Fetch failed: ${error.message}`);
     }

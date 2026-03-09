@@ -1,13 +1,10 @@
-/**
- * wgt_agent_workflow.js
- * Function: Manage tasks, either based on priority or user input
- * Absorbs: show_queue.js
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
+
+const CARD_ID = 'wgt-agent-workflow';
 
 // START initAgentWorkflow
 export function initAgentWorkflow() {
-    const card = document.getElementById('wgt-agent-workflow');
+    const card = document.getElementById(CARD_ID);
     if (!card) return;
     if (card.dataset.wgtInit) return;
     card.dataset.wgtInit = 'true';
@@ -63,6 +60,13 @@ async function fetchWorkflowQueue(light, label) {
         if (response.ok) {
             setStatus(light, label, result.running > 0 ? 'active' : 'idle',
                 result.running > 0 ? `Running (${result.pending} queued)` : `${result.pending} queued`);
+
+            // Dispatch event for Agent integration (§6 Priority 5)
+            dispatchWidgetEvent(CARD_ID, 'WorkflowQueueEvent', {
+                running: result.running,
+                pending: result.pending,
+                priority: 5
+            });
         } else {
             throw new Error(result.message || 'Fetch failed');
         }

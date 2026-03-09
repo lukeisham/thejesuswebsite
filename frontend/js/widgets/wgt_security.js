@@ -1,11 +1,8 @@
-/**
- * wgt_security.js
- * Wrapper: binds #wgt-security traffic-light card → toggles #security-panel.
- * The detail UI (log rendering) is handled by widget_security.js private script.
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
 
 const CARD_ID = 'wgt-security';
+
+// CARD_ID moved to top
 const PANEL_ID = 'security-panel';
 const POLL_INTERVAL = 30000;
 
@@ -63,6 +60,16 @@ async function fetchSecurityStatus(light, label) {
             : 0;
         setStatus(light, label, critical > 0 ? 'warning' : 'active',
             critical > 0 ? `${critical} alerts` : 'Active');
+
+        // Dispatch event for Agent integration (§6 Priority 7)
+        dispatchWidgetEvent(CARD_ID, 'SecurityAlertEvent', {
+            total_logs: Array.isArray(data) ? data.length : 0,
+            critical_count: critical,
+            event_types: Array.isArray(data)
+                ? [...new Set(data.map(l => l.event_type))]
+                : [],
+            priority: 7
+        });
     } catch (error) {
         // Stay green — offline doesn't mean insecure
         setStatus(light, label, 'active', 'Active');

@@ -16,6 +16,7 @@ use uuid::Uuid;
 pub struct ContactRequest {
     pub name: String,
     pub email: String,
+    pub subject: Option<String>,
     pub message: String,
 }
 
@@ -52,6 +53,7 @@ impl<T> ApiResponse<T> {
 pub struct DonorRequest {
     pub donor_name: String,
     pub amount: f64,
+    pub privacy: Option<String>, // "Published" or "Unpublished"
 }
 
 /// Request DTO for creating or updating a blog post.
@@ -296,6 +298,7 @@ impl TryFrom<CreateSourceRequest> for crate::types::system::source::Source {
         };
 
         Ok(Self {
+            id: None,
             author,
             title: SourceTitle {
                 text: req.title_text,

@@ -19,20 +19,40 @@ pub async fn handle_get_news(
     State(state): State<Arc<AppState>>,
     Query(query): Query<NewsQuery>,
 ) -> impl IntoResponse {
-    let items = if let Some(limit) = query.limit {
-        state.news_engine.get_feed_limited(limit).await
-    } else {
-        state.news_engine.get_feed().await
-    };
-
-    (StatusCode::OK, Json(items))
+    match state.storage.sqlite.get_news_feed().await {
+        Ok(items) => {
+            let limit = query.limit.unwrap_or(items.len());
+            let limited_items: Vec<_> = items.into_iter().take(limit).collect();
+            (StatusCode::OK, Json(limited_items)).into_response()
+        }
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
+        }
+    }
 }
 
 /// POST /api/v1/news_run
-/// Triggers the mock news crawler/seeder.
+/// Triggers the mock news crawler/seeder and persists to DB.
 pub async fn handle_news_run(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    // 1. Get mock data from engine
     let count = state.news_engine.seed_mock_data().await;
-    (StatusCode::OK, format!("News crawler run complete. Seeded {} items.", count))
+    let items = state.news_engine.get_feed().await;
+
+    // 2. Persist to SQLite
+    let mut success_count = 0;
+    for item in items {
+        if state.storage.sqlite.store_news_item(&item).await.is_ok() {
+            success_count += 1;
+        }
+    }
+
+    (
+        StatusCode::OK,
+        format!(
+            "News crawler run complete. Seeded {} items. Persisted {} to DB.",
+            count, success_count
+        ),
+    )
 }
 
 /// GET /api/v1/news_feed_content

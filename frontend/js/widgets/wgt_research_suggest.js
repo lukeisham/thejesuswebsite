@@ -1,8 +1,4 @@
-/**
- * wgt_research_suggest.js
- * Function: Dynamic search results for suggested resources
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
 
 const CARD_ID = 'wgt-research-suggest';
 
@@ -56,7 +52,13 @@ async function fetchSuggestions(light, label) {
 
         if (response.ok) {
             setStatus(light, label, 'idle', 'Done');
-            // Logic to display result.suggestions could be added here
+
+            // Dispatch event for Agent integration (§6 Priority 4)
+            dispatchWidgetEvent(CARD_ID, 'ResearchSuggestEvent', {
+                suggestion_count: Array.isArray(result.suggestions) ? result.suggestions.length : 0,
+                suggestions: result.suggestions,
+                priority: 4
+            });
         } else {
             throw new Error(result.message || 'Fetch failed');
         }

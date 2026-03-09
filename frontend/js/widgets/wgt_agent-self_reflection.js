@@ -1,17 +1,19 @@
-/**
- * wgt_agent-self_reflection.js
- * Function: Monitor agent reasoning, searching and data access
- * Absorbs: show_trace_reasoning.js
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
 
-const CARD_ID = 'wgt-self-reflection';
+const CARD_ID_WIDGET = 'wgt-self-reflection';
+const CARD_ID_EVENT = 'wgt-agent-reflection';
+
+// CARD_ID removed
 
 // START initSelfReflection
 export function initSelfReflection() {
-    const card = document.getElementById(CARD_ID);
+    const card = document.getElementById(CARD_ID_WIDGET);
     if (!card || card.dataset.wgtInit) return;
     card.dataset.wgtInit = 'true';
+
+    const trigger = card.querySelector('.wgt-trigger');
+    const light = card.querySelector('.traffic-light');
+    const label = card.querySelector('.wgt-status-label');
 
     const autoCheck = card.querySelector('.wgt-auto');
     let pollInterval = null;
@@ -62,7 +64,14 @@ async function pollReflectionLogs(light, label) {
             const traceData = await traceRes.json();
             const reflectData = await reflectRes.json();
             setStatus(light, label, 'idle', 'Done');
-            // Logic to display traceData.trace and reflectData.reflection could be added here
+
+            // Dispatch event for Agent integration (§6 Priority 5)
+            dispatchWidgetEvent(CARD_ID_EVENT, 'ReflectionUpdateEvent', {
+                has_trace: !!(traceData.steps || traceData.trace),
+                has_reflection: !!reflectData.reflection,
+                step_count: traceData.steps ? traceData.steps.length : 0,
+                priority: 5
+            });
         } else {
             throw new Error('Fetch failed');
         }

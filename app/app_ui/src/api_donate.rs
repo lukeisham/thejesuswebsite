@@ -12,10 +12,13 @@ pub async fn handle_store_donor(
 ) -> impl IntoResponse {
     use app_core::types::ApiResponse;
     // Use the storage manager to record the donation
+    let amount_cents = (payload.amount * 100.0) as i64;
+    let privacy = payload.privacy.as_deref().unwrap_or("Published");
+
     match state
         .storage
         .sqlite
-        .store_donor(&payload.donor_name, payload.amount)
+        .store_donor(&payload.donor_name, amount_cents, privacy)
         .await
     {
         Ok(_) => Json(ApiResponse::<()>::success(

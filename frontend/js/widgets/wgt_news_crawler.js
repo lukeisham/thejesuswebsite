@@ -1,7 +1,6 @@
-/**
- * News Crawler Widget
- * Handles triggering news harvests and displaying status.
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
+
+const CARD_ID = 'wgt-news-crawler';
 
 export default {
     init() {
@@ -50,6 +49,13 @@ export default {
 
             statusLabel.textContent = 'Completed';
             trafficLight.className = 'traffic-light status-active';
+
+            // Dispatch event for Agent integration (§6 Priority 6)
+            dispatchWidgetEvent(CARD_ID, 'NewsCompleteEvent', {
+                status: 'completed',
+                raw_message: message,
+                priority: 6
+            });
 
             // Pulse the other widgets if needed, but for now just success
             setTimeout(() => {

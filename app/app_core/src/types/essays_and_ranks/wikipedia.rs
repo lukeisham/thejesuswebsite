@@ -16,6 +16,15 @@ use url::Url;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct WikipediaRanking(u32);
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct WikiWeight {
+    pub id: String,
+    pub name: String,
+    pub match_target: String,
+    pub match_value: String,
+    pub weight_score: i32,
+}
+
 /// State 1: Lean Article. No ranking, no metadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WikipediaArticlesUnRanked {

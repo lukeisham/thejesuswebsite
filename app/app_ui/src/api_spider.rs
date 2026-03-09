@@ -12,15 +12,15 @@ use axum::Json;
 */
 
 /// Lists all web mentions found by the crawler.
-pub async fn handle_get_mentions() -> impl IntoResponse {
-    use app_core::types::MentionItem;
-    let mentions = vec![MentionItem {
-        source_type: "Human".into(),
-        created_at: "2026-03-08T12:00:00Z".into(),
-        url: "https://example.com/mention".into(),
-        snippet: "This site is a great resource for studying Jesus.".into(),
-    }];
-    (StatusCode::OK, Json(mentions)).into_response()
+pub async fn handle_get_mentions(
+    axum::extract::State(state): axum::extract::State<std::sync::Arc<crate::server::AppState>>,
+) -> impl IntoResponse {
+    match state.storage.sqlite.get_mentions().await {
+        Ok(mentions) => (StatusCode::OK, Json(mentions)).into_response(),
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
+        }
+    }
 }
 
 /// Triggers a web crawler run and returns a summary.

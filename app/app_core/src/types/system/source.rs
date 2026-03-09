@@ -31,6 +31,7 @@ pub struct SourceTitle {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Source {
+    pub id: Option<i64>, // Added for database persistence
     pub author: Author,
     pub title: SourceTitle,
 }
@@ -92,6 +93,7 @@ impl SourceGatekeeper {
         }
 
         Ok(Self(Source {
+            id: None,
             author,
             title: SourceTitle {
                 text: title_text.trim().to_string(),

@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     contact_id TEXT NOT NULL REFERENCES contacts(id),
     subject    TEXT NOT NULL,
     body       TEXT NOT NULL,
-    sent_at    TEXT NOT NULL              -- ISO 8601
+    sent_at    TEXT NOT NULL,             -- ISO 8601
+    read_at    TEXT                       -- ISO 8601, NULL = unread
 );
 
 
@@ -264,4 +265,38 @@ CREATE TABLE IF NOT EXISTS work_queue (
     status     TEXT NOT NULL CHECK (status IN ('Pending', 'InProgress', 'Done', 'Failed')),
     created_at TEXT NOT NULL,
     updated_at TEXT
+);
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- USERS
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS users (
+    id    TEXT PRIMARY KEY,              -- ULID
+    email TEXT NOT NULL UNIQUE,
+    role  TEXT NOT NULL CHECK (role IN ('Admin'))
+);
+
+CREATE TABLE IF NOT EXISTS mentions (
+    id          TEXT PRIMARY KEY,        -- ULID
+    source_type TEXT NOT NULL,           -- "Human" or "Agent"
+    url         TEXT NOT NULL,
+    snippet     TEXT NOT NULL,
+    created_at  TEXT NOT NULL
+);
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- SECURITY LOGS
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS security_logs (
+    id         TEXT PRIMARY KEY,          -- ULID
+    event_type TEXT NOT NULL CHECK (event_type IN (
+        'Honeypot', 'RateLimit', 'LoginRequest', 'LoginSuccess', 'LoginFail'
+    )),
+    ip_address TEXT,
+    details    TEXT,
+    created_at TEXT NOT NULL              -- ISO 8601
 );

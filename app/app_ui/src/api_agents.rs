@@ -1,6 +1,9 @@
+use crate::server::AppState;
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
+use std::sync::Arc;
 
 /*
 ////////////////////////////////////////////////////////////////////////////////
@@ -37,47 +40,55 @@ pub async fn handle_wiki_reanalyse() -> impl IntoResponse {
 }
 
 /// Retrieves the list of active historical or theological challenges found by the agents.
-pub async fn handle_get_challenges() -> impl IntoResponse {
-    let challenges = vec![ChallengeResponseItem {
-        id: "ch_1".to_string(),
-        title: "The Synoptic Problem".to_string(),
-        response_count: 5,
-    }];
-    (StatusCode::OK, Json(challenges)).into_response()
+pub async fn handle_get_challenges(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let mut all_challenges = Vec::new();
+
+    // Fetch popular challenges
+    if let Ok(popular) = state.storage.sqlite.get_popular_challenges().await {
+        for p in popular {
+            all_challenges.push(ChallengeResponseItem {
+                id: p.url.to_string(),
+                title: p.name,
+                response_count: 0, // Placeholder
+            });
+        }
+    }
+
+    // Fetch academic challenges (avoid duplicates by URL)
+    if let Ok(academic) = state.storage.sqlite.get_academic_challenges().await {
+        for a in academic {
+            if !all_challenges.iter().any(|c| c.id == a.url.to_string()) {
+                all_challenges.push(ChallengeResponseItem {
+                    id: a.url.to_string(),
+                    title: a.name,
+                    response_count: 0, // Placeholder
+                });
+            }
+        }
+    }
+
+    (StatusCode::OK, Json(all_challenges)).into_response()
 }
 
 /// Posts a new challenge or question to the agent community for investigation.
 pub async fn handle_post_challenge() -> impl IntoResponse {
+    // This would typically involve adding to the work queue or raw_challenges tables
     (
         StatusCode::CREATED,
         Json(SummaryResponse {
-            summary: "Challenge created".to_string(),
+            summary: "Challenge created (Stub)".to_string(),
         }),
     )
 }
 
 /// Retrieves the current work queue for the AI agents.
-///
-/// Powers the dashboard's "Work in Progress" widget.
-pub async fn handle_agent_queue() -> impl IntoResponse {
-    let items = vec![
-        WorkQueueItem {
-            task: "Scan for mentions".to_string(),
-            status: "running".to_string(),
-            description: Some("Crawling external library sites".to_string()),
-        },
-        WorkQueueItem {
-            task: "Check deadlinks".to_string(),
-            status: "pending".to_string(),
-            description: None,
-        },
-        WorkQueueItem {
-            task: "Spellcheck database".to_string(),
-            status: "pending".to_string(),
-            description: None,
-        },
-    ];
-    (StatusCode::OK, Json(items)).into_response()
+pub async fn handle_agent_queue(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_work_queue().await {
+        Ok(items) => (StatusCode::OK, Json(items)).into_response(),
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
+        }
+    }
 }
 
 /// Commands the next task in the agent's work queue to start immediately.
@@ -103,24 +114,13 @@ pub async fn handle_challenge_sort() -> impl IntoResponse {
 /// Returns the internal reasoning trace of the latest agent operation.
 ///
 /// Used for debugging and auditing the "Chain of Thought" in complex research tasks.
-pub async fn handle_agent_trace() -> impl IntoResponse {
-    let response = AgentTraceResponse {
-        steps: vec![
-            AgentTraceStep {
-                action: Some("Initialized reasoning engine".to_string()),
-                reasoning: None,
-            },
-            AgentTraceStep {
-                action: None,
-                reasoning: Some("Searching for historical context...".to_string()),
-            },
-            AgentTraceStep {
-                action: Some("Constructed final response".to_string()),
-                reasoning: None,
-            },
-        ],
-    };
-    (StatusCode::OK, Json(response)).into_response()
+pub async fn handle_agent_trace(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_trace_reasoning().await {
+        Ok(steps) => (StatusCode::OK, Json(AgentTraceResponse { steps })).into_response(),
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
+        }
+    }
 }
 
 /// Retrieves a self-reflection summary from the lead research agent.

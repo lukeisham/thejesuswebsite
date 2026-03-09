@@ -1,11 +1,8 @@
-/**
- * wgt_sources.js
- * Wrapper: binds #wgt-sources traffic-light card → toggles #sources-panel.
- * The detail UI is handled by the existing widget_sources.js private script.
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
 
 const CARD_ID = 'wgt-sources';
+
+// CARD_ID moved to top
 const PANEL_ID = 'sources-panel';
 
 // START initSourcesWidget
@@ -57,6 +54,12 @@ async function fetchSourceCount(light, label) {
         const data = await res.json();
         const count = Array.isArray(data) ? data.length : 0;
         setStatus(light, label, count > 0 ? 'active' : 'idle', `${count} sources`);
+
+        // Dispatch event for Agent integration (§6 Priority 6)
+        dispatchWidgetEvent(CARD_ID, 'SourcesUpdateEvent', {
+            source_count: count,
+            priority: 6
+        });
     } catch (error) {
         setStatus(light, label, 'idle', 'Offline');
         console.warn(`[Sources Widget] Count fetch failed: ${error.message}`);

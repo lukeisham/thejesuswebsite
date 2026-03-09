@@ -1,12 +1,198 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-  <meta http-equiv="refresh" content="0; url='/records.html'" />
+    <!-- Universal Head Fragment (_header.html) -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Jesus Website">
+    <meta name="theme-color" content="#5b7065">
+
+    <title>The Jesus Website</title>
+    <meta name="description"
+          content="An encyclopaedic survey of the historical evidence for Jesus of Nazareth. Browse records, maps, timelines, challenges, and primary sources.">
+
+    <link rel="stylesheet" href="/style.css">
+
+    <!-- Agentic Friendliness & MCP Discovery -->
+    <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
+    <script type="application/ld+json" id="page-metadata">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "The Jesus Website",
+        "url": "https://www.thejesuswebsite.org",
+        "description": "An encyclopaedic survey of the historical evidence for Jesus of Nazareth.",
+        "author": {
+            "@type": "Person",
+            "name": "Luke Isham"
+        }
+    }
+    </script>
+
+    <!-- Cover page: suppress sidebar, centre content -->
+    <style>
+        .cover-root {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .cover-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 42rem;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+            text-align: center;
+        }
+        .cover-heading {
+            margin-bottom: 0.5rem;
+        }
+        .cover-subtitle {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent-color);
+            margin-bottom: 2.5rem;
+        }
+        .cover-image-placeholder {
+            width: 100%;
+            max-width: 36rem;
+            height: 300px;
+            border-radius: 6px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2.5rem;
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--accent-color) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-family: Georgia, "Times New Roman", serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        .cover-text {
+            text-align: left;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+        .cover-text p {
+            margin-bottom: 1.2rem;
+        }
+        .cover-text a {
+            color: var(--accent-color);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .cover-text a:hover {
+            color: var(--text-color);
+        }
+        .cover-cta {
+            display: inline-block;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 0.75rem 2rem;
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+        .cover-cta:hover {
+            background-color: var(--text-color);
+        }
+
+        /* Footer sits at the bottom naturally via flex */
+        #nav-footer {
+            margin-top: auto;
+        }
+    </style>
 </head>
 
 <body>
-  <p>Redirecting to <a href="/records.html">Records</a>...</p>
-</body>
+    <div class="cover-root">
 
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- ROW 1 — HEADING                                -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <main class="cover-main">
+            <h1 class="cover-heading">The Jesus Website</h1>
+            <p class="cover-subtitle">An encyclopaedic survey of the historical evidence</p>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!-- ROW 2 — CENTRED PICTURE                    -->
+            <!-- ═══════════════════════════════════════════ -->
+            <div class="cover-image-placeholder"
+                 role="img"
+                 aria-label="Landscape of the Sea of Galilee at dawn, looking east from the ancient shoreline near Capernaum">
+                Sea of Galilee — cover image coming soon
+            </div>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!-- ROW 3 — PARAGRAPH WITH LINKS               -->
+            <!-- ═══════════════════════════════════════════ -->
+            <div class="cover-text">
+                <p>
+                    This website is an encyclopaedic survey of the historical evidence
+                    for Jesus of Nazareth. It brings together
+                    <a href="/records.html">primary and secondary records</a>
+                    from the first century, organises them by
+                    <a href="/evidence.html">sequence</a> and
+                    <a href="/timeline.html">timeline</a>, and plots key events on
+                    <a href="/maps/maps.html">interactive maps</a> of ancient Galilee,
+                    Judea, and the wider Roman world.
+                </p>
+                <p>
+                    Every claim is open to scrutiny. The
+                    <a href="/challenge.html">challenges</a> section catalogues the
+                    strongest objections from scholarship, while the
+                    <a href="/resources.html">resources</a> section provides
+                    recommended books, articles, and videos for further reading.
+                    The project is maintained by
+                    <a href="/about.html">Luke Isham</a> and released under a
+                    Creative Commons licence.
+                </p>
+            </div>
+
+            <a href="/records.html" class="cover-cta">Explore the Records &rarr;</a>
+        </main>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- FOOTER (Universal — from _footer.html)         -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <nav id="nav-footer" class="footer" aria-label="Footer navigation">
+            <div class="footer-left">
+                <p>&copy; Luke Isham 2026
+                    <a href="https://creativecommons.org/licenses/by-sa/4.0/"
+                       target="_blank" rel="noopener">CC BY-SA 4.0</a>
+                </p>
+            </div>
+            <div class="footer-right">
+                <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+            </div>
+
+            <!-- AI MCP Discovery (Source of Truth) -->
+            <script type="application/mcp">
+            {
+                "capabilities": ["Save-pdf", "Copy-text"]
+            }
+            </script>
+
+            <script type="module" src="/js/footer_actions.js"></script>
+        </nav>
+    </div>
+</body>
 </html>

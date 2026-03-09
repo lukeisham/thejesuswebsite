@@ -21,8 +21,10 @@ pub struct ContactMessage {
     pub id: Ulid,
     /// Composition: Leveraging the already defined Contact type
     pub sender: Contact,
-    /// The actual text payload
+    pub subject: String,
     pub body: String,
+    pub sent_at: String,
+    pub read_at: Option<String>,
 }
 
 /*
@@ -91,7 +93,10 @@ impl ContactMessageGatekeeper {
         Ok(Self(ContactMessage {
             id: Ulid::new(),
             sender,
+            subject: "General Inquiry".to_string(), // Default if not provided in ctor
             body: trimmed.to_string(),
+            sent_at: chrono::Utc::now().to_rfc3339(),
+            read_at: None,
         }))
     }
 

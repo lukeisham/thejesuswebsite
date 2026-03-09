@@ -4,11 +4,14 @@
  * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
  */
 
-const CARD_ID = 'wgt-wiki-engine';
+import { dispatchWidgetEvent } from './widget_event_bus.js';
+
+const CARD_ID_WIDGET = 'wgt-wiki-engine'; // DOM element ID
+const CARD_ID_EVENT = 'wgt-wiki-interface'; // ID for agent context
 
 // START initWikiInterface
 export function initWikiInterface() {
-    const card = document.getElementById(CARD_ID);
+    const card = document.getElementById(CARD_ID_WIDGET);
     if (!card || card.dataset.wgtInit) return;
     card.dataset.wgtInit = 'true';
 
@@ -59,6 +62,13 @@ async function fetchWikiStatus(light, label) {
         if (response.ok) {
             setStatus(light, label, result.running ? 'active' : 'idle',
                 result.running ? 'Processing' : `Last: ${result.last_run}`);
+
+            // Dispatch event for Agent integration (§6 Priority 3)
+            dispatchWidgetEvent(CARD_ID_EVENT, 'WikiSyncEvent', {
+                running: result.running,
+                last_run: result.last_run,
+                priority: 3
+            });
         }
     } catch (error) {
         setStatus(light, label, 'error', 'Fetch Error');

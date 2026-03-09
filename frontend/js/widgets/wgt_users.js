@@ -1,11 +1,8 @@
-/**
- * wgt_users.js
- * Wrapper: binds #wgt-users traffic-light card → toggles #users-panel.
- * The detail UI (user list + add form) is handled by widget_user_manager.js.
- * Rules: Strict Interface, Error Translation, Lean Passthrough, Idempotency
- */
+import { dispatchWidgetEvent } from './widget_event_bus.js';
 
 const CARD_ID = 'wgt-users';
+
+// CARD_ID moved to top
 const PANEL_ID = 'users-panel';
 
 // START initUsersWidget
@@ -56,6 +53,12 @@ async function fetchUserCount(light, label) {
         const data = await res.json();
         const count = Array.isArray(data) ? data.length : 0;
         setStatus(light, label, 'idle', `${count} users`);
+
+        // Dispatch event for Agent integration (§6 Priority 7)
+        dispatchWidgetEvent(CARD_ID, 'UsersUpdateEvent', {
+            user_count: count,
+            priority: 7
+        });
     } catch (error) {
         setStatus(light, label, 'idle', 'Offline');
         console.warn(`[Users Widget] Count fetch failed: ${error.message}`);

@@ -20,17 +20,17 @@ use app_core::types::dtos::{ContactResponse, ContactTriageResponse};
 /// Returns a vector of `ContactResponse` objects formatted for the dashboard widgets.
 pub async fn handle_get_unread_contacts(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     match state.storage.sqlite.get_unread_contacts().await {
-        Ok(contacts) => {
-            let responses: Vec<ContactResponse> = contacts
+        Ok(messages) => {
+            let responses: Vec<ContactResponse> = messages
                 .into_iter()
-                .map(|c| ContactResponse {
-                    msg_id: c.id.to_string(),
-                    name: c.name,
-                    email: c.email,
-                    subject: "General Inquiry".to_string(), // Missing in schema
-                    body: "Message content retrieval pending schema update.".to_string(), // Missing in schema
-                    source_type: "Human".to_string(),                                     // Mock
-                    sent_at: chrono::Utc::now().to_rfc3339(),                             // Mock
+                .map(|m| ContactResponse {
+                    msg_id: m.id.to_string(),
+                    name: m.sender.name,
+                    email: m.sender.email,
+                    subject: m.subject,
+                    body: m.body,
+                    source_type: "Human".to_string(),
+                    sent_at: m.sent_at,
                 })
                 .collect();
             (StatusCode::OK, Json(responses)).into_response()
@@ -94,10 +94,11 @@ pub async fn handle_store_contact(
     use app_core::types::ApiResponse;
     // For now, we reuse the existing SQLite store_contact, which takes Contact.
     // In a real scenario, we might want a separate request-to-contact mapper.
+    let subject = payload.subject.as_deref().unwrap_or("Website Contact Form");
     match state
         .storage
         .sqlite
-        .store_contact(&payload.name, &payload.email)
+        .store_contact(&payload.name, &payload.email, subject, &payload.message)
         .await
     {
         Ok(_) => Json(ApiResponse::<()>::success(

@@ -16,6 +16,7 @@
 
         var name = document.getElementById("contact-name").value.trim();
         var email = document.getElementById("contact-email").value.trim();
+        var subject = document.getElementById("contact-subject") ? document.getElementById("contact-subject").value.trim() : "";
         var message = document.getElementById("contact-message").value.trim();
 
         if (!name || !email || !message) {
@@ -35,6 +36,7 @@
             body: JSON.stringify({
                 name: name,
                 email: email,
+                subject: subject || null,
                 message: message,
             }),
         })
