@@ -14,11 +14,26 @@ services:
       - hub_network
 
   agentic_hub:
-    build: .
+    build:
+      context: .
+      dockerfile: dockerfile
     expose:
-      - "3000" # Changed from 8080 to 3000
+      - "3000"
     env_file: .env
     restart: always
+    depends_on:
+      - chroma
+    networks:
+      - hub_network
+    volumes:
+      - ./prod_data:/data
+
+  chroma:
+    image: chromadb/chroma:latest
+    volumes:
+      - ./chroma_data:/chroma/chroma
+    expose:
+      - "8000"
     networks:
       - hub_network
 
