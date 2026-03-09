@@ -1149,6 +1149,40 @@ button:hover {
     margin-bottom: 0.2rem;
 }
 
+/* --- Empty-Field Placeholders --- */
+.field-empty {
+    color: var(--border-color);
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+.record-field {
+    margin-bottom: 0.25rem;
+}
+
+.record-field-label {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+    margin-bottom: 2px;
+}
+
+.record-card__timeline,
+.record-card__map,
+.record-card__keywords {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.record-card__timestamps {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-top: 0.5rem;
+}
+
 /* --- Layout Modifiers --- */
 .record-card--featured {
     grid-column: 1 / -1;
@@ -1277,6 +1311,14 @@ button:hover {
     text-decoration: none;
 }
 
+.footer-favicon {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
 .footer-right {
     display: flex;
     flex-wrap: wrap;
@@ -1303,4 +1345,11 @@ button:hover {
     background: var(--accent-color);
     color: white;
     border-color: var(--accent-color);
+}
+
+.footer-favicon {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    margin-right: 8px;
 }

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikipedia System Architecture — The Jesus Website</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+    <style>
+        :root {
+            --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --font-serif: 'Georgia', 'Times New Roman', serif;
+            --accent: #2c5f2d;
+            --bg: #fafaf9;
+            --card-bg: #fff;
+            --border: #ddd;
+            --text: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-serif);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin: 2rem 0 1rem;
+        }
+
+        .diagram-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .diagram-card h2 {
+            margin-top: 0;
+        }
+
+        .diagram-caption {
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+
+        .file-table th {
+            background: var(--accent);
+            color: #fff;
+            text-align: left;
+            padding: 8px 12px;
+        }
+
+        .file-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .file-table tr:nth-child(even) {
+            background: #f5f5f4;
+        }
+
+        .file-table code {
+            font-size: 0.8rem;
+            background: #eee;
+            padding: 2px 5px;
+            border-radius: 2px;
+        }
+
+        .badge {
+            display: inline-block;
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .badge-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-todo {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-missing {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .mermaid {
+            text-align: center;
+        }
+
+        @media print {
+            body {
+                padding: 1rem;
+            }
+
+            .diagram-card {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Wikipedia System Architecture</h1>
+    <p>Three diagrams documenting how the Wikipedia list is generated, ranked, displayed, and managed through the
+        dashboard. Reference for the Antigravity coding agent and development team.</p>
+
+    <!-- DIAGRAM 1 -->
+    <div class="diagram-card">
+        <h2>Diagram 1 — Wikipedia List: Generation, Ranking &amp; Display</h2>
+        <p>Shows the three-phase pipeline from raw URL fetching through to the public-facing ranked table.</p>
+
+        <div class="mermaid">
+            flowchart LR
+                subgraph GENERATE["1. Generate"]
+                    A1["WikipediaProcessor<br/><i>wikipedia.rs</i>"] --> A2["fetch_urls()"]
+                    A2 --> A3["Compare fresh<br/>vs existing"]
+                    A3 -->|New articles| A4["Unranked state"]
+                    A3 -->|No new| A5["re_rank_existing()"]
+                    A4 --> A6["Enrich with<br/>metadata"]
+                end
+
+                subgraph RANK["2. Rank"]
+                    B1["WikipediaRanker<br/><i>wiki_engine.rs</i>"] --> B2["calculate_rank()"]
+                    B2 --> B3["base_score<br/>+ weight_score<br/>= final_score"]
+                    B3 --> B4["Sort by score<br/>tie-break:<br/>bible_verse_count"]
+                    B4 --> B5["Ranked state"]
+                end
+
+                subgraph DISPLAY["3. Display"]
+                    C1["wikipedia_hero.js"] --> C2["GET /api/v1/<br/>wikipedia_content"]
+                    C2 --> C3["Render .rank-table<br/>with .score-badge"]
+                    C3 --> C4["wikipedia.html<br/><i>Public page</i>"]
+                end
+
+                A6 --> B1
+                A5 --> B1
+                B5 --> C1
+
+                subgraph STORAGE["Storage Layer"]
+                    D1[("SQLite:<br/>wikipedia_articles")]
+                    D2[("SQLite:<br/>wikipedia_weights")]
+                    D3[("ChromaDB:<br/>vector embeddings")]
+                end
+
+                D2 -.->|applied during ranking| B2
+                B5 --> D1
+                A6 --> D3
+        </div>
+
+        <div class="diagram-caption">
+            <strong>Key files:</strong>
+            <code>app/app_brain/src/wikipedia.rs</code> (processor),
+            <code>app/app_brain/src/wiki_engine.rs</code> (ranker),
+            <code>frontend/js/wikipedia_hero.js</code> (display),
+            <code>frontend/wikipedia.html</code> (page).
+            The dashed line from weights to ranking indicates the intended integration point — weights are stored but
+            not yet wired into the live ranking calculation.
+        </div>
+    </div>
+
+    <!-- DIAGRAM 2 -->
+    <div class="diagram-card">
+        <h2>Diagram 2 — Widget / Agent Trigger &rarr; System Data Viewer</h2>
+        <p>Shows the two paths (widget button or agent chat command) that trigger Wikipedia synchronisation
+            and populate the System Data Viewer.</p>
+
+        <div class="mermaid">
+            flowchart TD
+                subgraph TRIGGER_A["Path A: Widget"]
+                    W1["wgt_wiki_interface.js<br/><i>Wiki Engine widget</i>"]
+                    W2["[Fetch] button<br/>or Auto-poll 60s"]
+                    W3["POST /api/v1/tools/wiki/sync"]
+                    W4["WikiSyncEvent<br/>→ widget_event_bus.js"]
+                    W1 --> W2 --> W3 --> W4
+                end
+
+                subgraph TRIGGER_B["Path B: Agent"]
+                    G1["AI Agent Chat Panel"]
+                    G2["User: 'Sync Wikipedia'<br/>or 'Re-rank articles'"]
+                    G3["POST /api/v1/agent/wiki/reanalyse"]
+                    G4["WikipediaProcessor<br/>runs full pipeline"]
+                    G1 --> G2 --> G3 --> G4
+                end
+
+                W4 --> SDV
+                G4 --> SDV
+
+                subgraph SDV["System Data Viewer"]
+                    direction TB
+                    S1["Tab: Wiki Data<br/><i>content mode</i>"]
+                    S2["□ 'Jesus in Josephus' — scholar.google.com [0.88]<br/>□ 'Historicity of Jesus' — en.wikipedia.org [0.76]<br/>□ 'Tacitus on Christ' — jstor.org [0.71]"]
+                    S3["Tab: Weights<br/><i>system mode</i>"]
+                    S4["□ 'Edu Boost' (url: .edu) +12<br/>□ 'JSTOR Pref' (url: jstor.org) +8<br/>□ 'Blog Penalise' (url: blogspot) -5"]
+                    S5["Actions: Select All | Generate | Delete | Edit | Publish"]
+                    S1 --> S2
+                    S3 --> S4
+                    S2 --> S5
+                    S4 --> S5
+                end
+        </div>
+
+        <div class="diagram-caption">
+            <strong>Key files:</strong>
+            <code>frontend/js/widgets/wgt_wiki_interface.js</code> (widget trigger),
+            <code>frontend/js/widgets/wgt_wiki_weights.js</code> (weights display in viewer),
+            <code>frontend/js/widgets/widget_event_bus.js</code> (event dispatch),
+            <code>frontend/private/dashboard.html</code> (System Data Viewer HTML, lines 546–608).
+        </div>
+    </div>
+
+    <!-- DIAGRAM 3 -->
+    <div class="diagram-card">
+        <h2>Diagram 3 — CRUD Editor: Weight Management Workflow</h2>
+        <p>Shows how existing weights are viewed, edited, created, and deleted through the dashboard's
+            CRUD editor and System Data Viewer working together.</p>
+
+        <div class="mermaid">
+            flowchart TD
+                subgraph VIEW["View Existing Weights"]
+                    V1["System Data Viewer<br/>→ 'Weights' tab"]
+                    V2["wgt_wiki_weights.js<br/>fetchWeights()"]
+                    V3["GET /api/v1/weights/wikipedia"]
+                    V4["Display list:<br/>name, match_target,<br/>match_value, score<br/>(colour-coded ±)"]
+                    V1 --> V2 --> V3 --> V4
+                end
+
+                subgraph EDIT["Edit / Create Weight"]
+                    E1["CRUD Tab: 'Wiki Weights'"]
+                    E2["Form fields:<br/>Rule Name<br/>Match Target (url|title|content)<br/>Match Value<br/>Weight Score"]
+                    E3{"weight-id<br/>set?"}
+                    E4["POST /api/v1/weights/wikipedia<br/><i>Create new</i>"]
+                    E5["PUT /api/v1/weights/wikipedia/:id<br/><i>Update existing</i>"]
+                    E1 --> E2 --> E3
+                    E3 -->|No| E4
+                    E3 -->|Yes| E5
+                end
+
+                subgraph DELETE["Delete Weight"]
+                    D1["Select in viewer"]
+                    D2["Click 'Delete'"]
+                    D3["DELETE /api/v1/weights/wikipedia/:id"]
+                    D1 --> D2 --> D3
+                end
+
+                V4 -->|"'Edit in CRUD'<br/>button"| E1
+                E4 --> V2
+                E5 --> V2
+                D3 --> V2
+
+                subgraph QR["Quick Reference Panel"]
+                    Q1["Explains: Rule Name,<br/>Match Target, Match Value,<br/>Weight Score semantics"]
+                    Q2["How to: Create, Edit, Delete"]
+                end
+
+                E1 -.-> QR
+        </div>
+
+        <div class="diagram-caption">
+            <strong>Key files:</strong>
+            <code>frontend/js/widgets/wgt_wiki_weights.js</code> (widget logic — fetchWeights, updateViewer,
+            setupCrudForm, handleViewerEdit),
+            <code>frontend/private/dashboard.html</code> (CRUD form at lines 465–515, Quick Reference at line 1034),
+            <code>app/app_ui/src/api_weights.rs</code> (API handlers),
+            <code>app/app_storage/src/sqlite.rs</code> (SQL queries, lines 255–308).
+        </div>
+    </div>
+
+    <!-- FILE INVENTORY -->
+    <div class="diagram-card">
+        <h2>Complete File Inventory</h2>
+
+        <h3 style="margin: 1rem 0 0.5rem; font-size: 1rem;">Backend (Rust)</h3>
+        <table class="file-table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>app/app_brain/src/wiki_engine.rs</code></td>
+                    <td>Ranking engine — currently returns example data</td>
+                    <td><span class="badge badge-todo">Needs weight integration</span></td>
+                </tr>
+                <tr>
+                    <td><code>app/app_brain/src/wikipedia.rs</code></td>
+                    <td>Wikipedia processor — fetches, ranks, sorts articles</td>
+                    <td><span class="badge badge-todo">Needs weight integration</span></td>
+                </tr>
+                <tr>
+                    <td><code>app/app_core/src/types/essays_and_ranks/wikipedia.rs</code></td>
+                    <td>WikiWeight struct + WikipediaRanking types</td>
+                    <td><span class="badge badge-ok">Complete</span></td>
+                </tr>
+                <tr>
+                    <td><code>app/app_ui/src/api_weights.rs</code></td>
+                    <td>CRUD API handlers (GET, POST, PUT, DELETE)</td>
+                    <td><span class="badge badge-ok">Complete</span></td>
+                </tr>
+                <tr>
+                    <td><code>app/app_storage/src/sqlite.rs</code></td>
+                    <td>SQL queries for weights (lines 255–308)</td>
+                    <td><span class="badge badge-ok">Complete</span></td>
+                </tr>
+                <tr>
+                    <td><code>app/app_storage/database/schema.sql</code></td>
+                    <td>wikipedia_weights + wikipedia_articles tables</td>
+                    <td><span class="badge badge-ok">Complete</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 style="margin: 1.5rem 0 0.5rem; font-size: 1rem;">Frontend (JavaScript)</h3>
+        <table class="file-table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>frontend/js/widgets/wgt_wiki_weights.js</code></td>
+                    <td>Weights CRUD widget — fetch, display, edit integration</td>
+                    <td><span class="badge badge-ok">Complete</span></td>
+                </tr>
+                <tr>
+                    <td><code>frontend/js/widgets/wgt_wiki_interface.js</code></td>
+                    <td>Wiki engine widget — status check, sync trigger</td>
+                    <td><span class="badge badge-ok">Complete</span></td>
+                </tr>
+                <tr>
+                    <td><code>frontend/js/widgets/widget_event_bus.js</code></td>
+                    <td>Event dispatcher between widgets</td>
+                    <td><span class="badge badge-ok">Complete</span></td>
+                </tr>
+                <tr>
+                    <td><code>frontend/js/wikipedia_hero.js</code></td>
+                    <td>Public page dynamic content loader</td>
+                    <td><span class="badge badge-missing">Missing endpoint</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 style="margin: 1.5rem 0 0.5rem; font-size: 1rem;">Frontend (HTML/CSS)</h3>
+        <table class="file-table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>frontend/wikipedia.html</code></td>
+                    <td>Public Wikipedia rankings page</td>
+                    <td><span class="badge badge-ok">Complete</span></td>
+                </tr>
+                <tr>
+                    <td><code>frontend/private/dashboard.html</code></td>
+                    <td>CRUD form (lines 465–515) + Quick Reference (line 1034)</td>
+                    <td><span class="badge badge-todo">Quick ref needs update</span></td>
+                </tr>
+                <tr>
+                    <td><code>frontend/style.css</code></td>
+                    <td>.rank-table, .score-badge styling</td>
+                    <td><span class="badge badge-ok">Complete</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 style="margin: 1.5rem 0 0.5rem; font-size: 1rem;">Configuration</h3>
+        <table class="file-table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>agent_guide.yml</code></td>
+                    <td>Agent manifest — Wiki_Engine tool docs</td>
+                    <td><span class="badge badge-todo">Update if weights wired in</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e8f5e9',
+                primaryBorderColor: '#2c5f2d',
+                primaryTextColor: '#333',
+                lineColor: '#2c5f2d',
+                secondaryColor: '#fff3cd',
+                tertiaryColor: '#f8f9fa',
+                fontSize: '13px'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+
+</html>

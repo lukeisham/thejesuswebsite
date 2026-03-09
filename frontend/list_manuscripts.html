@@ -58,170 +58,194 @@
             </header>
 
             <!-- Hero: Categorised Manuscript Lists -->
+            <style>
+                .ms-section {
+                    border: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    padding: 1.5rem;
+                    border-radius: 8px;
+                }
+
+                .ms-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .ms-item {
+                    margin-bottom: 1rem;
+                    line-height: 1.5;
+                }
+
+                .ga-label {
+                    background-color: var(--label-bg, #eee);
+                    color: var(--label-text, #333);
+                    font-size: 0.75rem;
+                    font-weight: bold;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    margin: 0 5px;
+                    text-transform: uppercase;
+                }
+
+                .ms-link {
+                    text-decoration: none;
+                    color: var(--accent-color, #007bff);
+                    font-size: 0.9rem;
+                }
+
+                .ms-link:hover {
+                    text-decoration: underline;
+                }
+            </style>
+
             <section>
-                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                <div class="ms-section">
                     <h2 style="margin-top: 0;">33 – 200 AD</h2>
-                    <ul class="record-list record-list--prose">
-                        <li><strong>P52</strong> <span class="label" style="font-size: 0.7rem;">c. AD 125</span> —
-                            <a href="https://www.library.manchester.ac.uk/rylands/special-collections/papyri/"
-                                target="_blank">Rylands Library Papyrus P52</a> — The oldest widely accepted fragment of
-                            the New Testament (John 18).
+                    <ul class="ms-list">
+                        <li class="ms-item">
+                            <strong>P52</strong> <span class="ga-label">GA: P52</span>
+                            (<a href="https://www.library.manchester.ac.uk/rylands/special-collections/papyri/"
+                                target="_blank" class="ms-link">Rylands Library</a>)
+                            — The oldest widely accepted fragment of the New Testament (John 18).
                         </li>
-                        <li><strong>P66</strong> <span class="label" style="font-size: 0.7rem;">c. AD 200</span> —
-                            <a href="https://fondationbodmer.ch/en/the-bodmer-papyri/" target="_blank">Papyrus Bodmer
-                                II</a> — A near-complete codex of the Gospel of John.
+                        <li class="ms-item">
+                            <strong>P66</strong> <span class="ga-label">GA: P66</span>
+                            (<a href="https://fondationbodmer.ch/en/the-bodmer-papyri/" target="_blank"
+                                class="ms-link">Fondation Bodmer</a>)
+                            — A near-complete codex of the Gospel of John.
                         </li>
-                        <li><strong>P46</strong> <span class="label" style="font-size: 0.7rem;">c. AD 175-225</span> —
-                            <a href="https://chesterbeatty.ie/explore/manuscripts/papyrus-p46/" target="_blank">Chester
-                                Beatty Papyrus II</a> — The earliest collection of Pauline epistles.
+                        <li class="ms-item">
+                            <strong>P46</strong> <span class="ga-label">GA: P46</span>
+                            (<a href="https://chesterbeatty.ie/explore/manuscripts/papyrus-p46/" target="_blank"
+                                class="ms-link">Chester Beatty Library</a>)
+                            — The earliest collection of Pauline epistles.
                         </li>
-                        <li><strong>P75</strong> <span class="label" style="font-size: 0.7rem;">c. AD 175-225</span> —
-                            <a href="https://fondationbodmer.ch/en/the-bodmer-papyri/" target="_blank">Papyrus Bodmer
-                                XIV–XV</a> — Extensive remains of Luke and John.
+                        <li class="ms-item">
+                            <strong>P75</strong> <span class="ga-label">GA: P75</span>
+                            (<a href="https://fondationbodmer.ch/en/the-bodmer-papyri/" target="_blank"
+                                class="ms-link">Fondation Bodmer</a>)
+                            — Extensive remains of Luke and John.
                         </li>
-                        <li><strong>P104</strong> <span class="label" style="font-size: 0.7rem;">c. AD 150</span> —
-                            <a href="https://www.papyrology.ox.ac.uk/POxy/" target="_blank">Oxyrhynchus Papyrus 4404
-                                (Sackler Library)</a> — An exceptionally early fragment of Matthew 21, contemporary with
-                            or slightly later than P52.
+                        <li class="ms-item">
+                            <strong>P104</strong> <span class="ga-label">GA: P104</span>
+                            (<a href="https://www.papyrology.ox.ac.uk/POxy/" target="_blank" class="ms-link">Sackler
+                                Library</a>)
+                            — An exceptionally early fragment of Matthew 21.
                         </li>
-                        <li><strong>P90</strong> <span class="label" style="font-size: 0.7rem;">c. AD 150</span> —
-                            <a href="https://www.papyrology.ox.ac.uk/POxy/" target="_blank">Oxyrhynchus Papyrus 3523
-                                (Sackler Library)</a> — A small fragment of John 18, providing a second very early
-                            witness to the Fourth Gospel.
+                        <li class="ms-item">
+                            <strong>P90</strong> <span class="ga-label">GA: P90</span>
+                            (<a href="https://www.papyrology.ox.ac.uk/POxy/" target="_blank" class="ms-link">Sackler
+                                Library</a>)
+                            — A small fragment of John 18; a second very early witness to the Fourth Gospel.
                         </li>
-                        <li><strong>P64/P67 (Magdalen Papyrus)</strong> <span class="label"
-                                style="font-size: 0.7rem;">c. AD 175–200</span> —
-                            <a href="https://www.magd.ox.ac.uk/libraries-and-archives/the-old-library/collections/manuscripts/the-magdalen-papyrus/"
-                                target="_blank">Magdalen College MS Gr. 18</a> — Three fragments of Matthew 26; notable
-                            for the early style of "Nomina Sacra."
+                        <li class="ms-item">
+                            <strong>P64/P67</strong> <span class="ga-label">GA: P64</span>
+                            (<a href="https://www.magd.ox.ac.uk/libraries-and-archives/the-old-library/collections/manuscripts/the-magdalen-papyrus/"
+                                target="_blank" class="ms-link">Magdalen College</a>)
+                            — Three fragments of Matthew 26; notable for early "Nomina Sacra."
                         </li>
-                        <li><strong>P32</strong> <span class="label" style="font-size: 0.7rem;">c. AD 200</span> —
-                            <a href="https://www.library.manchester.ac.uk/rylands/special-collections/papyri/"
-                                target="_blank">Rylands Library Papyrus P32</a>
+                        <li class="ms-item">
+                            <strong>P32</strong> <span class="ga-label">GA: P32</span>
+                            (<a href="https://www.library.manchester.ac.uk/rylands/special-collections/papyri/"
+                                target="_blank" class="ms-link">Rylands Library</a>)
+                            — An early fragment containing portions of the Epistle to Titus.
+                        </li>
                     </ul>
                 </div>
 
-                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                <div class="ms-section">
                     <h2 style="margin-top: 0;">200 – 300 AD</h2>
-                    <ul class="record-list record-list--prose">
-                        <li><strong>P45</strong> <span class="label" style="font-size: 0.7rem;">c. AD 250</span> —
-                            <a href="https://chesterbeatty.ie/explore/manuscripts/papyrus-p45/" target="_blank">Chester
-                                Beatty Papyrus I</a> — Fragments of all four Gospels and Acts.
+                    <ul class="ms-list">
+                        <li class="ms-item">
+                            <strong>P45</strong> <span class="ga-label">GA: P45</span>
+                            (<a href="https://chesterbeatty.ie/explore/manuscripts/papyrus-p45/" target="_blank"
+                                class="ms-link">Chester Beatty Library</a>)
+                            — Fragments of all four Gospels and Acts.
                         </li>
-                        <li><strong>P47</strong> <span class="label" style="font-size: 0.7rem;">c. AD 250-300</span> —
-                            <a href="https://chesterbeatty.ie/explore/manuscripts/papyrus-p47/" target="_blank">Chester
-                                Beatty Papyrus III</a> — Portions of the Book of Revelation.
+                        <li class="ms-item">
+                            <strong>P47</strong> <span class="ga-label">GA: P47</span>
+                            (<a href="https://chesterbeatty.ie/explore/manuscripts/papyrus-p47/" target="_blank"
+                                class="ms-link">Chester Beatty Library</a>)
+                            — Portions of the Book of Revelation.
                         </li>
-                        <li><strong>Oxyrhynchus Papyri</strong> <span class="label" style="font-size: 0.7rem;">3rd
-                                Century</span> —
-                            <a href="https://www.papyrology.ox.ac.uk/POxy/" target="_blank">Oxyrhynchus Online
-                                Collections</a> — Numerous fragments including portions of Matthew and various
-                            non-canonical works.
+                        <li class="ms-item">
+                            <strong>Oxyrhynchus Papyri</strong> <span class="ga-label">GA: Various</span>
+                            (<a href="https://www.papyrology.ox.ac.uk/POxy/" target="_blank" class="ms-link">Oxyrhynchus
+                                Online</a>)
+                            — Numerous fragments including Matthew and various non-canonical works.
                         </li>
-                        <li><strong>P1</strong> <span class="label" style="font-size: 0.7rem;">c. AD 250</span> —
-                            <a href="https://sceti.library.upenn.edu/pages/index.cfm?so_id=2334"
-                                target="_blank">University of Pennsylvania (E 2746)</a> — An early papyrus; contains the
-                            beginning of Matthew 1.
+                        <li class="ms-item">
+                            <strong>P1</strong> <span class="ga-label">GA: P1</span>
+                            (<a href="https://sceti.library.upenn.edu/pages/index.cfm?so_id=2334" target="_blank"
+                                class="ms-link">Univ. of Pennsylvania</a>)
+                            — An early papyrus containing the beginning of Matthew 1.
                         </li>
-                        <li><strong>P13</strong> <span class="label" style="font-size: 0.7rem;">c. AD 250–300</span> —
-                            <a href="https://www.bl.uk/manuscripts/FullDisplay.aspx?ref=Papyrus_1532"
-                                target="_blank">British Library Papyrus 1532</a> — A significant scroll fragment
-                            containing
-                            large portions of the Epistle to the Hebrews.
+                        <li class="ms-item">
+                            <strong>P13</strong> <span class="ga-label">GA: P13</span>
+                            (<a href="https://www.bl.uk/manuscripts/FullDisplay.aspx?ref=Papyrus_1532" target="_blank"
+                                class="ms-link">British Library</a>)
+                            — A significant scroll fragment containing large portions of Hebrews.
                         </li>
-                        <li><strong>Dura-Europos Gospel Harmony (P.Dura 24)</strong> <span class="label"
-                                style="font-size: 0.7rem;">c. AD 235</span> —
-                            <a href="https://beinecke.library.yale.edu/collections/highlights/dura-europos-papyri"
-                                target="_blank">Yale University Beinecke Library</a> — A unique Greek fragment found in
-                            Syria, potentially representing an early Diatessaron-style harmony.
+                        <li class="ms-item">
+                            <strong>Dura-Europos</strong> <span class="ga-label">GA: 0212</span>
+                            (<a href="https://beinecke.library.yale.edu/collections/highlights/dura-europos-papyri"
+                                target="_blank" class="ms-link">Yale Beinecke Library</a>)
+                            — A unique Greek fragment found in Syria, potentially an early Diatessaron harmony.
                         </li>
-                        <li><strong>P37</strong> <span class="label" style="font-size: 0.7rem;">c. AD 250–300</span> —
-                            <a href="https://search.library.umich.edu/catalog/record/002715761"
-                                target="_blank">University of Michigan Papyrus 1570</a> — A well-preserved fragment of
-                            Matthew 26 written in a clear, formal hand.
+                        <li class="ms-item">
+                            <strong>P37</strong> <span class="ga-label">GA: P37</span>
+                            (<a href="https://search.library.umich.edu/catalog/record/002715761" target="_blank"
+                                class="ms-link">Univ. of Michigan</a>)
+                            — A well-preserved fragment of Matthew 26 in a formal hand.
                         </li>
                     </ul>
                 </div>
 
-                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                <div class="ms-section">
                     <h2 style="margin-top: 0;">300 – 400 AD</h2>
-                    <ul class="record-list record-list--prose">
-                        <li><strong>Codex Sinaiticus</strong> <span class="label" style="font-size: 0.7rem;">c. AD
-                                330-360</span> —
-                            <a href="https://codexsinaiticus.org/" target="_blank">The Codex Sinaiticus Project (British
-                                Library)</a> — One of the most important complete manuscripts of the Bible.
+                    <ul class="ms-list">
+                        <li class="ms-item">
+                            <strong>Codex Sinaiticus</strong> <span class="ga-label">GA: א (01)</span>
+                            (<a href="https://codexsinaiticus.org/" target="_blank" class="ms-link">British Library</a>)
+                            — One of the most important complete manuscripts of the Bible.
                         </li>
-                        <li><strong>Codex Vaticanus</strong> <span class="label" style="font-size: 0.7rem;">c. AD
-                                325-350</span> —
-                            <a href="https://digi.vatlib.it/view/MSS_Vat.gr.1209" target="_blank">Vatican Library (Vat.
-                                gr. 1209)</a> — A world-class uncial manuscript containing most of the Old and New
-                            Testaments.
+                        <li class="ms-item">
+                            <strong>Codex Vaticanus</strong> <span class="ga-label">GA: B (03)</span>
+                            (<a href="https://digi.vatlib.it/view/MSS_Vat.gr.1209" target="_blank"
+                                class="ms-link">Vatican Library</a>)
+                            — Major uncial manuscript containing most of the Old and New Testaments.
                         </li>
-                        <li><strong>Codex Vercellensis</strong> <span class="label" style="font-size: 0.7rem;">c. AD
-                                350</span> —
-                            <a href="https://www.tesorodelduomovercelli.it/biblioteca-capitolare/"
-                                target="_blank">Biblioteca Capitolare di Vercelli</a> — The most important manuscript of
-                            the Old Latin (Vetus Latina) version of the Gospels.
+                        <li class="ms-item">
+                            <strong>Codex Vercellensis</strong> <span class="ga-label">GA: it-a</span>
+                            (<a href="https://www.tesorodelduomovercelli.it/biblioteca-capitolare/" target="_blank"
+                                class="ms-link">Biblioteca Capitolare</a>)
+                            — The most important manuscript of the Old Latin version of the Gospels.
                         </li>
-                        <li><strong>P87</strong> <span class="label" style="font-size: 0.7rem;">c. AD 300</span> —
-                            <a href="https://papyri.uni-koeln.de/inventory/inv_theol_12" target="_blank">University of
-                                Cologne (Inv. theol. 12)</a> — The oldest known fragment of the Epistle to Philemon.
-                        </li>
-                        <li><strong>Sinaitic Syriac (Codex Syriacus)</strong> <span class="label"
-                                style="font-size: 0.7rem;">4th Century</span> —
-                            <a href="https://www.sinaipalimpsests.org/" target="_blank">St. Catherine's Monastery,
-                                Sinai</a> — A palimpsest containing a 4th-century translation of the Gospels into
-                            Syriac,
-                            discovered underneath later text.
-                        </li>
-                    </ul>
-                </div>
+                        <li class="ms-item">
+                            <strong>P87</strong> <span class="ga-label">GA: P87</span>
+                            (<a href="https://papyri.uni-koeln.de/inventory/inv_theol_12" target="_blank"
+                                class="ms-link">Univ. of Cologne</a>)
+                            — The oldest known fragment of the Epistle to Phile
 
-                <div class="feed-container" style="border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
-                    <ul class="record-list record-list--prose">
-                        <ul class="record-list">
-                            <li><strong>Codex Alexandrinus</strong> <span class="label" style="font-size: 0.7rem;">5th
-                                    Century</span> —
-                                <a href="https://www.bl.uk/manuscripts/FullDisplay.aspx?ref=Royal_MS_1_D_VIII"
-                                    target="_blank">British Library (Royal MS 1 D VIII)</a> — A major uncial manuscript
-                                containing the Septuagint and the New Testament.
-                            </li>
-                            <li><strong>Codex Ephraemi Rescriptus</strong> <span class="label"
-                                    style="font-size: 0.7rem;">5th Century</span> —
-                                <a href="https://archivesetmanuscrits.bnf.fr/ark:/12148/cc182914"
-                                    target="_blank">Bibliothèque nationale de France (Grec 9)</a> — A palimpsest
-                                containing
-                                much of the New Testament.
-                            </li>
-                            <li><strong>Codex Bezae</strong> <span class="label" style="font-size: 0.7rem;">c. AD
-                                    400</span>
-                                —
-                                <a href="https://cudl.lib.cam.ac.uk/view/MS-NN-00002-00041/1" target="_blank">Cambridge
-                                    University Library (MS Nn.2.41)</a>
-                                — A bilingual (Greek/Latin) manuscript of the Gospels and Acts.
-                            </li>
-                        </ul>
-                </div>
-            </section>
+                            <!-- Footer (last row, full width) — from _footer.html -->
+                            <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
+                                <div class="footer-left">
+                                    <p>&copy; Luke Isham 2026 <a href="https://creativecommons.org/licenses/by-sa/4.0/"
+                                            target="_blank" rel="noopener">CC BY-SA 4.0</a></p>
+                                </div>
+                                <div class="footer-right">
+                                    <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                                    <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                                    <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                                    <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                                    <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+                                </div>
+                                <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
+                                <script type="module" src="/js/footer_actions.js"></script>
+                            </nav>
 
-            <!-- Footer (last row, full width) — from _footer.html -->
-            <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
-                <div class="footer-left">
-                    <p>&copy; Luke Isham 2026 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
-                            rel="noopener">CC BY-SA 4.0</a></p>
                 </div>
-                <div class="footer-right">
-                    <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
-                    <button id="btn-copy-url" class="btn-footer">Copy URL</button>
-                    <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
-                    <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
-                    <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
-                </div>
-                <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
-                <script type="module" src="/js/footer_actions.js"></script>
-            </nav>
-
-    </div>
 </body>
 
 </html>
