@@ -111,6 +111,7 @@ fn api_routes() -> Router<Arc<AppState>> {
         .route("/tools/challenge/sort", post(crate::api_agents::handle_challenge_sort))
         .route("/contact/triage", get(api_contacts::handle_contact_triage))
         .route("/admin/populate", post(api_widgets::handle_admin_populate))
+        .route("/admin/wipe-records", axum::routing::delete(api_widgets::handle_admin_wipe_records))
         // Batch 4 Routes
         .route("/spelling/check", post(api_widgets::handle_spelling_check))
         .route("/spelling/check-all", post(api_widgets::handle_spelling_check_all))

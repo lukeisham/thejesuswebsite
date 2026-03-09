@@ -531,6 +531,43 @@ pub struct ResearchSuggestion {
     pub category: String,
 }
 
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               DB POPULATOR DTOs                            //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
+/// A single record to be created during bulk population.
+/// Sent by the DB Populator widget with string-form Bible refs
+/// that get parsed into BibleVerse on the Rust side.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PopulateRecordItem {
+    pub name: String,
+    pub category: String,
+    pub primary_verse_str: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secondary_verse_str: Option<String>,
+    pub description: String,
+}
+
+/// Bulk population request from the DB Populator widget.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PopulateRequest {
+    pub wipe: bool,
+    pub records: Vec<PopulateRecordItem>,
+}
+
+/// Response after bulk population.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PopulateResponse {
+    pub total_requested: usize,
+    pub successful: usize,
+    pub failed: usize,
+    pub errors: Vec<String>,
+}
+
 /// Summary counts for contact triage dashboard.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ContactTriageResponse {

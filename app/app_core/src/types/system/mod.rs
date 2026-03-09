@@ -1,4 +1,5 @@
 pub mod bible_verse;
+pub mod bible_verse_parser;
 pub mod context_window;
 pub mod draft_counts;
 pub mod error;
@@ -40,6 +41,7 @@ pub mod work_queue;
 pub mod workspace;
 
 pub use bible_verse::*;
+pub use bible_verse_parser::*;
 pub use context_window::*;
 pub use error::*;
 pub use id_academic_article::*;

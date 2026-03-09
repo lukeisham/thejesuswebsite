@@ -15,8 +15,8 @@ use std::sync::Arc;
 */
 
 use app_core::types::dtos::{
-    AgentTraceResponse, AgentTraceStep, ChallengeResponseItem, RankingItem, ReflectionResponse,
-    ResearchSuggestion, SummaryResponse, WorkQueueItem,
+    AgentTraceResponse, ChallengeResponseItem, RankingItem, ReflectionResponse, ResearchSuggestion,
+    SummaryResponse,
 };
 
 /// Returns the current weighted rankings of Wikipedia articles analyzed by the agents.

@@ -11,7 +11,7 @@ use app_core::types::{
     Author, Contact, ContactMessage, NewsItem, NewsItemId, RawNewsItem, SecurityEventType,
     SecurityLog, Source, SourceIdentity, SourceTitle, User, UserRole, WikiWeight,
 };
-use sqlx::SqlitePool;
+use sqlx::{Row, SqlitePool};
 use ulid::Ulid;
 use url::Url;
 
@@ -189,7 +189,6 @@ impl SqliteStorage {
     }
 
     pub async fn get_security_logs(&self) -> Result<Vec<SecurityLog>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query("SELECT id, event_type, ip_address, details, created_at FROM security_logs ORDER BY created_at DESC LIMIT 50")
             .fetch_all(&self.pool)
             .await?;
@@ -219,7 +218,6 @@ impl SqliteStorage {
     // --- USERS ---
 
     pub async fn get_users(&self) -> Result<Vec<User>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query("SELECT id, email, role FROM users")
             .fetch_all(&self.pool)
             .await?;
@@ -255,7 +253,6 @@ impl SqliteStorage {
     // --- WIKIPEDIA WEIGHTS ---
 
     pub async fn get_wiki_weights(&self) -> Result<Vec<WikiWeight>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query(
             "SELECT id, name, match_target, match_value, weight_score FROM wikipedia_weights",
         )
@@ -313,7 +310,6 @@ impl SqliteStorage {
     // --- SOURCES ---
 
     pub async fn get_sources(&self) -> Result<Vec<Source>, sqlx::Error> {
-        use sqlx::Row;
         let rows =
             sqlx::query("SELECT id, author_type, author_val, title_text, identity FROM sources")
                 .fetch_all(&self.pool)
@@ -381,7 +377,6 @@ impl SqliteStorage {
     // --- CHALLENGES ---
 
     pub async fn get_popular_challenges(&self) -> Result<Vec<PopularChallenge>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query("SELECT url, name, metadata, ranking FROM challenges_popular")
             .fetch_all(&self.pool)
             .await?;
@@ -406,7 +401,6 @@ impl SqliteStorage {
     }
 
     pub async fn get_academic_challenges(&self) -> Result<Vec<AcademicChallenge>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query("SELECT url, name, metadata, ranking FROM challenges_academic")
             .fetch_all(&self.pool)
             .await?;
@@ -433,7 +427,6 @@ impl SqliteStorage {
     // --- WORK QUEUE ---
 
     pub async fn get_work_queue(&self) -> Result<Vec<WorkQueueItem>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query("SELECT payload, status FROM work_queue WHERE status != 'Done'")
             .fetch_all(&self.pool)
             .await?;
@@ -452,6 +445,15 @@ impl SqliteStorage {
     }
 
     // --- RECORDS & DRAFTS ---
+
+    /// Deletes all records from the records table.
+    /// Used by the DB Populator widget for idempotent wipe-before-populate.
+    pub async fn wipe_records(&self) -> Result<usize, sqlx::Error> {
+        let result = sqlx::query("DELETE FROM records")
+            .execute(&self.pool)
+            .await?;
+        Ok(result.rows_affected() as usize)
+    }
 
     pub async fn store_record(&self, record: &Record) -> Result<(), sqlx::Error> {
         let json_data = serde_json::to_string(record).unwrap_or_default();
@@ -473,7 +475,6 @@ impl SqliteStorage {
     }
 
     pub async fn get_records(&self) -> Result<Vec<Record>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query("SELECT json_data FROM records ORDER BY created_at DESC")
             .fetch_all(&self.pool)
             .await?;
@@ -507,7 +508,6 @@ impl SqliteStorage {
     }
 
     pub async fn get_draft_records(&self) -> Result<Vec<DraftRecordRequest>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query("SELECT payload FROM record_drafts ORDER BY created_at DESC")
             .fetch_all(&self.pool)
             .await?;
@@ -532,7 +532,6 @@ impl SqliteStorage {
     // --- MENTIONS ---
 
     pub async fn get_mentions(&self) -> Result<Vec<MentionItem>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query(
             "SELECT source_type, created_at, url, snippet FROM mentions ORDER BY created_at DESC",
         )
@@ -568,7 +567,6 @@ impl SqliteStorage {
     // --- METRICS & TRACES ---
 
     pub async fn get_trace_reasoning(&self) -> Result<Vec<AgentTraceStep>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query(
             "SELECT step, reasoning FROM trace_reasoning ORDER BY created_at DESC LIMIT 50",
         )
@@ -585,7 +583,6 @@ impl SqliteStorage {
     }
 
     pub async fn get_server_metrics(&self) -> Result<ServerMetricsResponse, sqlx::Error> {
-        use sqlx::Row;
         let row = sqlx::query("SELECT ram_used_mb, ram_total_mb, disk_used_mb, disk_total_mb FROM server_metrics WHERE id = 1")
             .fetch_one(&self.pool)
             .await?;
@@ -609,7 +606,6 @@ impl SqliteStorage {
     }
 
     pub async fn get_token_metrics(&self) -> Result<TokenMetricsResponse, sqlx::Error> {
-        use sqlx::Row;
         // Count total tokens used (this is a simplified count for now)
         let row = sqlx::query("SELECT COUNT(*) as count FROM tokens")
             .fetch_one(&self.pool)
@@ -622,7 +618,6 @@ impl SqliteStorage {
     }
 
     pub async fn get_page_metrics(&self) -> Result<PageMetricsResponse, sqlx::Error> {
-        use sqlx::Row;
         // This is a placeholder for timing metrics which are usually not stored in SQLite
         // but we can return total views as a hybrid if needed.
         Ok(PageMetricsResponse {
@@ -635,7 +630,6 @@ impl SqliteStorage {
     // --- NEWS ---
 
     pub async fn get_news_feed(&self) -> Result<Vec<NewsItem>, sqlx::Error> {
-        use sqlx::Row;
         let rows = sqlx::query("SELECT id, title, source_url, snippet, contents, picture_url, harvested_at FROM news_items ORDER BY harvested_at DESC")
             .fetch_all(&self.pool)
             .await?;
@@ -687,7 +681,6 @@ impl SqliteStorage {
     }
 
     pub async fn get_harvested_news(&self) -> Result<Vec<RawNewsItem>, sqlx::Error> {
-        use sqlx::Row;
         let rows =
             sqlx::query("SELECT title, url, raw_content, raw_image_url FROM news_holding_area")
                 .fetch_all(&self.pool)
@@ -769,7 +762,6 @@ impl SqliteStorage {
     }
 
     pub async fn get_page_view_count(&self, slug: &str) -> Result<u64, sqlx::Error> {
-        use sqlx::Row;
         let count: Option<i64> = sqlx::query_scalar(
             "SELECT v.view_count FROM page_views v JOIN page_ids p ON v.page_id = p.id WHERE p.slug = ?"
         )

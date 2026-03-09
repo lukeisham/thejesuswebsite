@@ -120,6 +120,27 @@ impl ChromaStorage {
 
     // ── RECORDS ──────────────────────────────────────────────────────────
 
+    /// Wipes all records from the ChromaDB "records" collection.
+    /// Deletes the collection and recreates it empty (ChromaDB doesn't have TRUNCATE).
+    pub async fn wipe_records(&self) -> Result<(), AppError> {
+        let client = self.client.as_ref().ok_or_else(|| {
+            AppError::StorageError("ChromaDB is not connected. This feature is disabled.".into())
+        })?;
+
+        // Delete the collection (ignore error if it doesn't exist)
+        let _ = client.delete_collection(ChromaCollections::RECORDS).await;
+
+        // Recreate it empty
+        client
+            .create_collection(ChromaCollections::RECORDS, None, false)
+            .await
+            .map_err(|e| {
+                AppError::StorageError(format!("Failed to recreate records collection: {}", e))
+            })?;
+
+        Ok(())
+    }
+
     /// Stores a record in the "records" collection.
     /// Stores the full JSON of the record as the document content.
     pub async fn store_record(&self, record: &Record) -> Result<(), AppError> {
