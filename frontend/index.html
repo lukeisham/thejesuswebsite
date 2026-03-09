@@ -64,22 +64,28 @@
             margin-bottom: 2.5rem;
         }
 
-        .cover-image-placeholder {
+        .cover-image-container {
             width: 100%;
-            max-width: 36rem;
-            height: 300px;
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .cover-image {
+            width: 100%;
+            height: auto;
             border-radius: 6px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2.5rem;
-            background: linear-gradient(135deg, var(--bg-color) 0%, var(--accent-color) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
+            display: block;
+        }
+
+        .cover-caption {
+            margin-top: 0.75rem;
             font-family: Georgia, "Times New Roman", serif;
             font-style: italic;
-            font-size: 1.1rem;
-            letter-spacing: 0.5px;
+            font-size: 1rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            line-height: 1.4;
         }
 
         .cover-text {
@@ -140,39 +146,42 @@
             <p class="cover-subtitle">An encyclopaedic survey of the historical evidence</p>
 
             <!-- ═══════════════════════════════════════════ -->
-            <!-- ROW 2 — CENTRED PICTURE                    -->
+            <!-- ROW 2 — PICTURE                            -->
             <!-- ═══════════════════════════════════════════ -->
-            <div class="cover-image-placeholder" role="img"
-                aria-label="'Alexamenos graffito' - Palatine Hill in Rome, Italy. " Alexamenos worships his god" (c. 200
-                AD)">
-                <img src="/images/books/AlexGraffito.png" alt="Alexamenos Graffito"
-                    style="width: 200px; height: 300px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); background-color: #f0f0f0;">
-                'Alexamenos graffito' - Palatine Hill in Rome, Italy. "Alexamenos worships his god" (c. 200 AD)
-            </div>
+            <figure class="cover-image-container">
+                <img src="/images/books/AlexGraffito.png" alt="Alexamenos Graffito" class="cover-image">
+                <figcaption class="cover-caption">
+                    'Alexamenos graffito' - Palatine Hill in Rome, Italy. "Alexamenos worships his god" (c. 200 AD)
+                </figcaption>
+            </figure>
 
             <!-- ═══════════════════════════════════════════ -->
             <!-- ROW 3 — PARAGRAPH WITH LINKS               -->
             <!-- ═══════════════════════════════════════════ -->
             <div class="cover-text">
                 <p>
-                    This website is an encyclopaedic survey of the historical evidence
-                    for Jesus of Nazareth. It brings together
-                    <a href="/records.html">primary and secondary records</a>
-                    from the first century, organises them by
-                    <a href="/evidence.html">sequence</a> and
-                    <a href="/timeline.html">timeline</a>, and plots key events on
-                    <a href="/maps/maps.html">interactive maps</a> of ancient Galilee,
-                    Judea, and the wider Roman world.
+                    This website is an exhaustive survey of the historical evidence
+                    for Jesus the Messiah. It brings together 300 historical data points
+                    <a href="/records.html">records</a>
+                    from the four gospels (<em>Matthew, Mark, Luke & John</em>), and organises them by a
+                    <a href="/evidence.html">visual sequence</a>, a
+                    <a href="/timeline.html">timeline</a>, and then plots them on
+                    <a href="/maps/maps.html">interactive maps</a> of first century Galilee,
+                    Judea, Jerusalem and the wider Roman world. The plan is to slowly build out the
+                    <a href="/context.html">context</a> section with essays about various historical aspects
+                    to provide background and context for the core record of historical information
                 </p>
                 <p>
-                    Every claim is open to scrutiny. The
-                    <a href="/challenge.html">challenges</a> section catalogues the
-                    strongest objections from scholarship, while the
-                    <a href="/resources.html">resources</a> section provides
-                    recommended books, articles, and videos for further reading.
-                    The project is maintained by
-                    <a href="/about.html">Luke Isham</a> and released under a
-                    Creative Commons licence.
+                    History is about reconstructing an accurate narrative about the past.
+                    Therefore the
+                    <a href="/challenge.html">debate and discussion</a> section catalogues the
+                    historiography of studying the historical Jesus and provides responses to popular and
+                    academic challenges to the historical Jesus. (There's a bonus section ranking all the <a
+                        href="/wikipedia.html">Wikipedia</a>
+                    articles related to Jesus from least reliable to most reliable.) Lists of all of Jesus' parables,
+                    key Old Testament prophecies, sermons, sayings etc are in the
+                    <a href="/resources.html">resources</a> section. And you can find out more about the project in the
+                    <a href="/about.html">about</a> section.
                 </p>
             </div>
 
