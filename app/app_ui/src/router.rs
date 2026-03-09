@@ -8,8 +8,8 @@ use std::sync::Arc;
 use tower_http::services::ServeDir;
 
 use crate::api_records::{
-    handle_expand_verse, handle_get_draft_records, handle_publish_record, handle_record_list,
-    handle_save_record_draft,
+    handle_delete_record, handle_expand_verse, handle_get_draft_records, handle_publish_record,
+    handle_record_list, handle_save_record_draft, handle_update_record,
 };
 use crate::{
     api_blog, api_contacts, api_donate, api_security, api_sources, api_spider, api_users,
@@ -87,6 +87,11 @@ fn api_routes() -> Router<Arc<AppState>> {
         .route("/records/drafts", get(handle_get_draft_records))
         .route("/records/draft", post(handle_save_record_draft))
         .route("/records/publish", post(handle_publish_record))
+        .route(
+            "/records/:id",
+            axum::routing::put(handle_update_record)
+                .delete(handle_delete_record),
+        )
         // Admin Widget Endpoints
         .route("/admin/security/logs", get(api_security::handle_get_security_logs))
         .route(

@@ -1,6 +1,6 @@
 use crate::server::AppState;
 use app_core::types::ApiResponse;
-use axum::extract::{Query, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
@@ -79,6 +79,93 @@ pub async fn handle_publish_record(
         )
             .into_response(),
     }
+}
+
+/// Deletes a single record by its ULID. Also removes it from ChromaDB.
+pub async fn handle_delete_record(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    // Delete from SQLite
+    match state.storage.sqlite.delete_record(&id).await {
+        Ok(true) => {}
+        Ok(false) => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::<()>::error(format!("Record {} not found", id))),
+            )
+                .into_response();
+        }
+        Err(e) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::<()>::error(format!("SQLite error: {}", e))),
+            )
+                .into_response();
+        }
+    }
+
+    // Best-effort delete from ChromaDB (non-fatal if it fails)
+    if let Err(e) = state.storage.chroma.delete_record(&id).await {
+        tracing::warn!("ChromaDB delete failed for record {}: {}", id, e);
+    }
+
+    (StatusCode::OK, Json(ApiResponse::<()>::success(format!("Record {} deleted", id), None)))
+        .into_response()
+}
+
+/// Updates an existing record (upsert by id). Accepts the same PublishRecordRequest shape,
+/// but preserves the original ULID so store_record's INSERT OR REPLACE acts as an update.
+pub async fn handle_update_record(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+    Json(record_req): Json<app_core::types::PublishRecordRequest>,
+) -> impl IntoResponse {
+    use std::convert::TryInto;
+
+    // Parse ULID from path
+    let ulid = match id.parse::<ulid::Ulid>() {
+        Ok(u) => u,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(ApiResponse::<()>::error(format!("Invalid record id: {}", id))),
+            )
+                .into_response();
+        }
+    };
+
+    // Convert DTO → Record
+    let mut record: app_core::types::record::record::Record = match record_req.try_into() {
+        Ok(r) => r,
+        Err(e) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(ApiResponse::<()>::error(format!("DTO Mapping Error: {}", e))),
+            )
+                .into_response();
+        }
+    };
+
+    // Override the auto-generated ULID with the original record's id
+    record.id = ulid;
+    record.updated_at = Some(chrono::Utc::now());
+
+    // Upsert into SQLite (INSERT OR REPLACE keyed on id)
+    if let Err(e) = state.storage.sqlite.store_record(&record).await {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("SQLite Error: {}", e))),
+        )
+            .into_response();
+    }
+
+    // Update ChromaDB (best-effort)
+    if let Err(e) = state.storage.chroma.store_record(&record).await {
+        tracing::warn!("ChromaDB update failed for record {}: {}", id, e);
+    }
+
+    (StatusCode::OK, Json(ApiResponse::<()>::success("Record updated", None))).into_response()
 }
 
 pub async fn handle_record_list(State(state): State<Arc<AppState>>) -> impl IntoResponse {

@@ -174,6 +174,25 @@ impl ChromaStorage {
         Ok(())
     }
 
+    /// Deletes a single record from ChromaDB by its ULID string.
+    pub async fn delete_record(&self, id: &str) -> Result<(), AppError> {
+        let client = self.client.as_ref().ok_or_else(|| {
+            AppError::StorageError("ChromaDB is not connected. This feature is disabled.".into())
+        })?;
+
+        let collection = client
+            .get_collection(ChromaCollections::RECORDS)
+            .await
+            .map_err(|e| AppError::StorageError(e.to_string()))?;
+
+        collection
+            .delete(Some(vec![id]), None, None)
+            .await
+            .map_err(|e| AppError::StorageError(e.to_string()))?;
+
+        Ok(())
+    }
+
     /// Semantic search across records.
     pub async fn query_records(&self, query_text: &str) -> Result<Vec<String>, AppError> {
         self.query_collection(ChromaCollections::RECORDS, query_text)

@@ -179,6 +179,7 @@
                 <div class="dashboard-panel" style="grid-row: 1;">
                     <div class="tabs">
                         <button class="tab active" data-target="crud-records">Records</button>
+                        <button class="tab" data-target="crud-records-feed" data-view="feed">Feed View</button>
                         <button class="tab" data-target="crud-essays">Essays</button>
                         <button class="tab" data-target="crud-responses">Responses</button>
                         <button class="tab" data-target="crud-blogs">Blogposts</button>
@@ -211,7 +212,8 @@
                                         class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
                                 </div>
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Category</label>
+                                    <label
+                                        style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Category</label>
                                     <select id="record-category-field" class="input-field"
                                         style="width: 100%; padding: 8px; box-sizing: border-box;">
                                         <option value="">— Select —</option>
@@ -222,7 +224,8 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Content Type</label>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Content
+                                        Type</label>
                                     <select id="record-content-field" class="input-field"
                                         style="width: 100%; padding: 8px; box-sizing: border-box;">
                                         <option value="">— Select —</option>
@@ -234,16 +237,18 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Keywords</label>
+                                    <label
+                                        style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Keywords</label>
                                     <input type="text" id="record-keywords-field"
-                                        placeholder="comma-separated, e.g. miracle, galilee, bread"
-                                        class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
+                                        placeholder="comma-separated, e.g. miracle, galilee, bread" class="input-field"
+                                        style="width: 100%; padding: 8px; box-sizing: border-box;">
                                 </div>
                             </div>
 
                             <!-- ── Description ── -->
                             <div style="margin-bottom: 10px;">
-                                <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Description (one bullet point per line)</label>
+                                <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Description (one
+                                    bullet point per line)</label>
                                 <textarea id="record-desc-field" class="input-field" rows="3"
                                     style="width: 100%; padding: 8px; box-sizing: border-box;"
                                     placeholder="Brief description..."></textarea>
@@ -252,24 +257,78 @@
                             <!-- ── Primary & Secondary Verse ── -->
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Primary Verse</label>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Primary
+                                        Verse</label>
                                     <div style="display: flex; gap: 4px;">
-                                        <select id="record-pv-book" class="input-field" style="flex: 2; padding: 8px; box-sizing: border-box;">
+                                        <select id="record-pv-book" class="input-field"
+                                            style="flex: 2; padding: 8px; box-sizing: border-box;">
                                             <option value="">Book</option>
-                                            <option>Genesis</option><option>Exodus</option><option>Leviticus</option><option>Numbers</option><option>Deuteronomy</option>
-                                            <option>Joshua</option><option>Judges</option><option>Ruth</option><option>FirstSamuel</option><option>SecondSamuel</option>
-                                            <option>FirstKings</option><option>SecondKings</option><option>FirstChronicles</option><option>SecondChronicles</option>
-                                            <option>Ezra</option><option>Nehemiah</option><option>Esther</option><option>Job</option><option>Psalms</option><option>Proverbs</option>
-                                            <option>Ecclesiastes</option><option>SongOfSolomon</option><option>Isaiah</option><option>Jeremiah</option><option>Lamentations</option>
-                                            <option>Ezekiel</option><option>Daniel</option><option>Hosea</option><option>Joel</option><option>Amos</option><option>Obadiah</option>
-                                            <option>Jonah</option><option>Micah</option><option>Nahum</option><option>Habakkuk</option><option>Zephaniah</option>
-                                            <option>Haggai</option><option>Zechariah</option><option>Malachi</option>
-                                            <option>Matthew</option><option>Mark</option><option>Luke</option><option>John</option><option>Acts</option><option>Romans</option>
-                                            <option>FirstCorinthians</option><option>SecondCorinthians</option><option>Galatians</option><option>Ephesians</option>
-                                            <option>Philippians</option><option>Colossians</option><option>FirstThessalonians</option><option>SecondThessalonians</option>
-                                            <option>FirstTimothy</option><option>SecondTimothy</option><option>Titus</option><option>Philemon</option><option>Hebrews</option>
-                                            <option>James</option><option>FirstPeter</option><option>SecondPeter</option><option>FirstJohn</option><option>SecondJohn</option>
-                                            <option>ThirdJohn</option><option>Jude</option><option>Revelation</option>
+                                            <option>Genesis</option>
+                                            <option>Exodus</option>
+                                            <option>Leviticus</option>
+                                            <option>Numbers</option>
+                                            <option>Deuteronomy</option>
+                                            <option>Joshua</option>
+                                            <option>Judges</option>
+                                            <option>Ruth</option>
+                                            <option>FirstSamuel</option>
+                                            <option>SecondSamuel</option>
+                                            <option>FirstKings</option>
+                                            <option>SecondKings</option>
+                                            <option>FirstChronicles</option>
+                                            <option>SecondChronicles</option>
+                                            <option>Ezra</option>
+                                            <option>Nehemiah</option>
+                                            <option>Esther</option>
+                                            <option>Job</option>
+                                            <option>Psalms</option>
+                                            <option>Proverbs</option>
+                                            <option>Ecclesiastes</option>
+                                            <option>SongOfSolomon</option>
+                                            <option>Isaiah</option>
+                                            <option>Jeremiah</option>
+                                            <option>Lamentations</option>
+                                            <option>Ezekiel</option>
+                                            <option>Daniel</option>
+                                            <option>Hosea</option>
+                                            <option>Joel</option>
+                                            <option>Amos</option>
+                                            <option>Obadiah</option>
+                                            <option>Jonah</option>
+                                            <option>Micah</option>
+                                            <option>Nahum</option>
+                                            <option>Habakkuk</option>
+                                            <option>Zephaniah</option>
+                                            <option>Haggai</option>
+                                            <option>Zechariah</option>
+                                            <option>Malachi</option>
+                                            <option>Matthew</option>
+                                            <option>Mark</option>
+                                            <option>Luke</option>
+                                            <option>John</option>
+                                            <option>Acts</option>
+                                            <option>Romans</option>
+                                            <option>FirstCorinthians</option>
+                                            <option>SecondCorinthians</option>
+                                            <option>Galatians</option>
+                                            <option>Ephesians</option>
+                                            <option>Philippians</option>
+                                            <option>Colossians</option>
+                                            <option>FirstThessalonians</option>
+                                            <option>SecondThessalonians</option>
+                                            <option>FirstTimothy</option>
+                                            <option>SecondTimothy</option>
+                                            <option>Titus</option>
+                                            <option>Philemon</option>
+                                            <option>Hebrews</option>
+                                            <option>James</option>
+                                            <option>FirstPeter</option>
+                                            <option>SecondPeter</option>
+                                            <option>FirstJohn</option>
+                                            <option>SecondJohn</option>
+                                            <option>ThirdJohn</option>
+                                            <option>Jude</option>
+                                            <option>Revelation</option>
                                         </select>
                                         <input type="number" id="record-pv-chapter" placeholder="Ch" min="1"
                                             class="input-field" style="flex: 1; padding: 8px; box-sizing: border-box;">
@@ -278,24 +337,78 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Secondary Verse (optional)</label>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Secondary
+                                        Verse (optional)</label>
                                     <div style="display: flex; gap: 4px;">
-                                        <select id="record-sv-book" class="input-field" style="flex: 2; padding: 8px; box-sizing: border-box;">
+                                        <select id="record-sv-book" class="input-field"
+                                            style="flex: 2; padding: 8px; box-sizing: border-box;">
                                             <option value="">Book</option>
-                                            <option>Genesis</option><option>Exodus</option><option>Leviticus</option><option>Numbers</option><option>Deuteronomy</option>
-                                            <option>Joshua</option><option>Judges</option><option>Ruth</option><option>FirstSamuel</option><option>SecondSamuel</option>
-                                            <option>FirstKings</option><option>SecondKings</option><option>FirstChronicles</option><option>SecondChronicles</option>
-                                            <option>Ezra</option><option>Nehemiah</option><option>Esther</option><option>Job</option><option>Psalms</option><option>Proverbs</option>
-                                            <option>Ecclesiastes</option><option>SongOfSolomon</option><option>Isaiah</option><option>Jeremiah</option><option>Lamentations</option>
-                                            <option>Ezekiel</option><option>Daniel</option><option>Hosea</option><option>Joel</option><option>Amos</option><option>Obadiah</option>
-                                            <option>Jonah</option><option>Micah</option><option>Nahum</option><option>Habakkuk</option><option>Zephaniah</option>
-                                            <option>Haggai</option><option>Zechariah</option><option>Malachi</option>
-                                            <option>Matthew</option><option>Mark</option><option>Luke</option><option>John</option><option>Acts</option><option>Romans</option>
-                                            <option>FirstCorinthians</option><option>SecondCorinthians</option><option>Galatians</option><option>Ephesians</option>
-                                            <option>Philippians</option><option>Colossians</option><option>FirstThessalonians</option><option>SecondThessalonians</option>
-                                            <option>FirstTimothy</option><option>SecondTimothy</option><option>Titus</option><option>Philemon</option><option>Hebrews</option>
-                                            <option>James</option><option>FirstPeter</option><option>SecondPeter</option><option>FirstJohn</option><option>SecondJohn</option>
-                                            <option>ThirdJohn</option><option>Jude</option><option>Revelation</option>
+                                            <option>Genesis</option>
+                                            <option>Exodus</option>
+                                            <option>Leviticus</option>
+                                            <option>Numbers</option>
+                                            <option>Deuteronomy</option>
+                                            <option>Joshua</option>
+                                            <option>Judges</option>
+                                            <option>Ruth</option>
+                                            <option>FirstSamuel</option>
+                                            <option>SecondSamuel</option>
+                                            <option>FirstKings</option>
+                                            <option>SecondKings</option>
+                                            <option>FirstChronicles</option>
+                                            <option>SecondChronicles</option>
+                                            <option>Ezra</option>
+                                            <option>Nehemiah</option>
+                                            <option>Esther</option>
+                                            <option>Job</option>
+                                            <option>Psalms</option>
+                                            <option>Proverbs</option>
+                                            <option>Ecclesiastes</option>
+                                            <option>SongOfSolomon</option>
+                                            <option>Isaiah</option>
+                                            <option>Jeremiah</option>
+                                            <option>Lamentations</option>
+                                            <option>Ezekiel</option>
+                                            <option>Daniel</option>
+                                            <option>Hosea</option>
+                                            <option>Joel</option>
+                                            <option>Amos</option>
+                                            <option>Obadiah</option>
+                                            <option>Jonah</option>
+                                            <option>Micah</option>
+                                            <option>Nahum</option>
+                                            <option>Habakkuk</option>
+                                            <option>Zephaniah</option>
+                                            <option>Haggai</option>
+                                            <option>Zechariah</option>
+                                            <option>Malachi</option>
+                                            <option>Matthew</option>
+                                            <option>Mark</option>
+                                            <option>Luke</option>
+                                            <option>John</option>
+                                            <option>Acts</option>
+                                            <option>Romans</option>
+                                            <option>FirstCorinthians</option>
+                                            <option>SecondCorinthians</option>
+                                            <option>Galatians</option>
+                                            <option>Ephesians</option>
+                                            <option>Philippians</option>
+                                            <option>Colossians</option>
+                                            <option>FirstThessalonians</option>
+                                            <option>SecondThessalonians</option>
+                                            <option>FirstTimothy</option>
+                                            <option>SecondTimothy</option>
+                                            <option>Titus</option>
+                                            <option>Philemon</option>
+                                            <option>Hebrews</option>
+                                            <option>James</option>
+                                            <option>FirstPeter</option>
+                                            <option>SecondPeter</option>
+                                            <option>FirstJohn</option>
+                                            <option>SecondJohn</option>
+                                            <option>ThirdJohn</option>
+                                            <option>Jude</option>
+                                            <option>Revelation</option>
                                         </select>
                                         <input type="number" id="record-sv-chapter" placeholder="Ch" min="1"
                                             class="input-field" style="flex: 1; padding: 8px; box-sizing: border-box;">
@@ -308,12 +421,14 @@
                             <!-- ── Timeline ── -->
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Timeline Event Name</label>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Timeline Event
+                                        Name</label>
                                     <input type="text" id="record-tl-event" placeholder="e.g. Sermon on the Mount"
                                         class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
                                 </div>
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Timeline Era</label>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Timeline
+                                        Era</label>
                                     <select id="record-tl-era" class="input-field"
                                         style="width: 100%; padding: 8px; box-sizing: border-box;">
                                         <option value="">— Select —</option>
@@ -329,16 +444,19 @@
                                 </div>
                             </div>
                             <div style="margin-bottom: 10px;">
-                                <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Timeline Description</label>
+                                <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Timeline
+                                    Description</label>
                                 <textarea id="record-tl-desc" class="input-field" rows="2"
                                     style="width: 100%; padding: 8px; box-sizing: border-box;"
                                     placeholder="Brief timeline context..."></textarea>
                             </div>
 
                             <!-- ── Map Data ── -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div
+                                style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Map Region</label>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Map
+                                        Region</label>
                                     <select id="record-map-type" class="input-field"
                                         style="width: 100%; padding: 8px; box-sizing: border-box;">
                                         <option value="">— Select —</option>
@@ -351,17 +469,20 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Latitude</label>
+                                    <label
+                                        style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Latitude</label>
                                     <input type="number" id="record-map-lat" step="0.0001" placeholder="e.g. 32.7157"
                                         class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
                                 </div>
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Longitude</label>
+                                    <label
+                                        style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Longitude</label>
                                     <input type="number" id="record-map-lng" step="0.0001" placeholder="e.g. 35.3400"
                                         class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
                                 </div>
                                 <div>
-                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Point Label</label>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Point
+                                        Label</label>
                                     <input type="text" id="record-map-label" placeholder="e.g. Capernaum"
                                         class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
                                 </div>
@@ -369,17 +490,20 @@
 
                             <!-- ── Picture Upload ── -->
                             <div style="margin-bottom: 10px;">
-                                <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Picture (PNG only)</label>
-                                <input type="file" id="record-picture-field" accept="image/png"
-                                    class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
+                                <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Picture (PNG
+                                    only)</label>
+                                <input type="file" id="record-picture-field" accept="image/png" class="input-field"
+                                    style="width: 100%; padding: 8px; box-sizing: border-box;">
                             </div>
 
                             <!-- ── Bibliography ── -->
                             <div style="margin-bottom: 10px;">
-                                <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Bibliography</label>
+                                <label
+                                    style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Bibliography</label>
                                 <div id="record-bib-entries">
                                     <div class="bib-entry" style="display: flex; gap: 4px; margin-bottom: 4px;">
-                                        <select class="bib-author-type input-field" style="width: 100px; padding: 8px; box-sizing: border-box;">
+                                        <select class="bib-author-type input-field"
+                                            style="width: 100px; padding: 8px; box-sizing: border-box;">
                                             <option value="Name">Name</option>
                                             <option value="Orcid">ORCID</option>
                                         </select>
@@ -392,16 +516,8 @@
                                     </div>
                                 </div>
                                 <button type="button" id="add-bib-entry" class="btn-secondary"
-                                    style="padding: 4px 12px; font-size: 0.75rem;"
-                                    onclick="document.getElementById('record-bib-entries').insertAdjacentHTML('beforeend',
-                                        `<div class='bib-entry' style='display:flex;gap:4px;margin-bottom:4px;'>
-                                            <select class='bib-author-type input-field' style='width:100px;padding:8px;box-sizing:border-box;'>
-                                                <option value='Name'>Name</option><option value='Orcid'>ORCID</option>
-                                            </select>
-                                            <input type='text' class='bib-author input-field' placeholder='Author' style='flex:1;padding:8px;box-sizing:border-box;'>
-                                            <input type='text' class='bib-title input-field' placeholder='Title' style='flex:2;padding:8px;box-sizing:border-box;'>
-                                            <button type='button' class='btn-secondary bib-remove' style='padding:4px 8px;' onclick='this.closest(\".bib-entry\").remove();'>&times;</button>
-                                        </div>`);">+ Add Source</button>
+                                    style="padding: 4px 12px; font-size: 0.75rem;" onclick="addBibEntry();">+ Add
+                                    Source</button>
                             </div>
 
                             <!-- ── Action Buttons ── -->
@@ -412,6 +528,15 @@
                                     Draft</button>
                                 <button id="publish-record" class="btn-primary" style="padding: 8px 16px;">Save &
                                     Publish</button>
+                            </div>
+                        </div>
+
+                        <div id="crud-records-feed" class="tab-panel">
+                            <h3>Records Feed (Read-Only)</h3>
+                            <div id="record-feed" class="record-feed-container"
+                                style="max-height: 500px; overflow-y: auto; padding: 10px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                                <!-- Populated by edit_records.js -->
+                                <p style="color: #999; padding: 20px; text-align: center;">Loading feed...</p>
                             </div>
                         </div>
                     </div>
@@ -515,16 +640,18 @@
                     </div>
                 </div>
                 <!-- Cheatsheet row -->
-                <div class="dashboard-panel" id="dashboard-cheatsheet"
-                    style="margin-top: 1rem; border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
-                    <h3 style="margin-bottom: 0.5rem; color: var(--accent-color);">Quick Reference</h3>
-                    <div id="cheatsheet-content" style="line-height: 1.5;">
-                        <p style="color: #666; font-style: italic;">Select a tab above to see specific guidance.</p>
+                <div class="a-grid a-cols-2 a-gap-md" style="grid-row: 2;">
+                    <div class="dashboard-panel" id="dashboard-cheatsheet"
+                        style="margin-top: 1rem; border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
+                        <h3 style="margin-bottom: 0.5rem; color: var(--accent-color);">Quick Reference</h3>
+                        <div id="cheatsheet-content" style="line-height: 1.5;">
+                            <p style="color: #666; font-style: italic;">Select a tab above to see specific guidance.</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- ROW 2: Divided in half -->
-                <div class="a-grid a-cols-2 a-gap-md" style="grid-row: 2;">
+                <div class="a-grid a-cols-2 a-gap-md" style="grid-row: 3;">
                     <!-- Left: Agent/User Chat Box -->
                     <div class="dashboard-panel">
                         <h3>AI Agent Conversation</h3>
@@ -557,6 +684,7 @@
                             style="overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: thin;">
                             <!-- Content Tabs -->
                             <button class="tab active" data-target="view-essays" data-mode="content">Essays</button>
+                            <button class="tab" data-target="view-records" data-mode="content">Records</button>
                             <button class="tab" data-target="view-responses" data-mode="content">Responses</button>
                             <button class="tab" data-target="view-blogs" data-mode="content">Blogs</button>
                             <button class="tab" data-target="view-wiki" data-mode="content">Wiki Data</button>
@@ -608,8 +736,19 @@
                     </div>
                 </div>
 
+                <!-- Glossary row -->
+                <div class="a-grid a-cols-2 a-gap-md" style="grid-row: 4;">
+                    <div class="dashboard-panel" id="dashboard-glossary"
+                        style="margin-top: 1rem; border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
+                        <h3 style="margin-bottom: 0.5rem; color: var(--accent-color);">Glossary</h3>
+                        <div id="glossary-content" style="line-height: 1.5;">
+                            <p style="color: #666; font-style: italic;">Select a tab above to see specific guidance.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ROW 3: Small Grid of Widgets with Traffic Lights (16 total) -->
-                <div class="dashboard-panel" style="grid-row: 3;">
+                <div class="dashboard-panel" style="grid-row: 5;">
                     <h3>System Widgets</h3>
                     <div
                         style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;">
@@ -868,7 +1007,7 @@
 
                     </div>
                     <!-- end widget grid -->
-                </div><!-- end row 3 panel -->
+                </div><!-- end row 5 panel -->
 
             </div><!-- end main content rows -->
 
@@ -1020,17 +1159,51 @@
 
     <!-- Scripts -->
     <script>
+        // Global utility for bibliography entries
+        function addBibEntry() {
+            const container = document.getElementById('record-bib-entries');
+            if (container) {
+                container.insertAdjacentHTML('beforeend', `
+                    <div class='bib-entry' style='display:flex;gap:4px;margin-bottom:4px;'>
+                        <select class='bib-author-type input-field' style='width:100px;padding:8px;box-sizing:border-box;'>
+                            <option value='Name'>Name</option><option value='Orcid'>ORCID</option>
+                        </select>
+                        <input type='text' class='bib-author input-field' placeholder='Author' style='flex:1;padding:8px;box-sizing:border-box;'>
+                        <input type='text' class='bib-title input-field' placeholder='Title' style='flex:2;padding:8px;box-sizing:border-box;'>
+                        <button type='button' class='btn-secondary bib-remove' style='padding:4px 8px;' onclick='this.parentElement.remove();'>&times;</button>
+                    </div>
+                `);
+            }
+        }
+
         // Simple Idempotent UI Tab Script (Scoped)
         (function initDashboardTabs() {
             if (window.__dashboardTabsInit) return;
             window.__dashboardTabsInit = true;
 
             const cheatsheetEl = document.getElementById("cheatsheet-content");
+            const glossaryEl = document.getElementById("glossary-content");
+
+            // Build glossary registry from any window.GLOSSARY_* objects registered by topic JS files
+            function buildGlossaries() {
+                const map = {};
+                Object.keys(window).forEach(function(key) {
+                    if (key.startsWith("GLOSSARY_")) {
+                        var entry = window[key];
+                        if (entry && entry.tabId && entry.html) {
+                            map[entry.tabId] = entry.html;
+                        }
+                    }
+                });
+                return map;
+            }
+
             const cheatsheets = {
                 "crud-records": "<p><b>Records Guidance:</b> No specific cheatsheet required. Fill in the fields to create or update entity definitions.</p>",
-                "crud-essays": "<p><b>Markdown Cheatsheet (Essays):</b> # Header | **Bold** | *Italic* | [Link](url) | - List | `Code`</p>",
-                "crud-responses": "<p><b>Markdown Cheatsheet (Responses):</b> # Header | **Bold** | *Italic* | [Link](url) | - List | `Code`</p>",
-                "crud-blogs": "<p><b>Markdown Cheatsheet (Blogs):</b> # Header | **Bold** | *Italic* | [Link](url) | - List | `Code`</p>",
+                "crud-records-feed": "<p><b>Feed View:</b> A chronological, scannable list of all records. Use the 'Records' tab to edit specific items.</p>",
+                "crud-essays": "<p><b>Markdown Cheatsheet (Essays):</b> # Header | **Bold** | *Italic* | [Link](url) | - List | Code</p>",
+                "crud-responses": "<p><b>Markdown Cheatsheet (Responses):</b> # Header | **Bold** | *Italic* | [Link](url) | - List | Code</p>",
+                "crud-blogs": "<p><b>Markdown Cheatsheet (Blogs):</b> # Header | **Bold** | *Italic* | [Link](url) | - List | Code</p>",
                 "crud-weights": "<div><p><b>Wiki Weights Guide</b></p><p>Weights adjust Wikipedia article ranking scores during the ranking phase. Each weight has four fields:</p><p><b>Rule Name</b> — A human-readable label (e.g. &ldquo;Edu Boost&rdquo;, &ldquo;Blog Penalise&rdquo;).</p><p><b>Match Target</b> — Which article field to check: <code>url</code> (the article URL), <code>title</code> (the article title), or <code>content</code> (the article body text).</p><p><b>Match Value</b> — The pattern to match against (e.g. <code>.edu</code>, <code>jstor.org</code>, <code>Jesus Christ</code>). If the article&rsquo;s target field contains this value, the weight is applied.</p><p><b>Weight Score</b> — An integer added to the article&rsquo;s base ranking score. Positive values boost the article (e.g. +12), negative values penalise it (e.g. -5).</p><p style='margin-top:8px;'><b>To create:</b> Fill in all four fields &rarr; click <em>Save Weight</em>.<br><b>To edit:</b> System Data Viewer &rarr; Weights tab &rarr; select a weight &rarr; click <em>Edit in CRUD</em> &rarr; modify &rarr; <em>Save Weight</em>.<br><b>To delete:</b> Select in the Weights tab &rarr; click <em>Delete</em>.</p><p style='margin-top:8px; font-size:0.8rem; color:#888;'><a href='/private/wikipedia_architecture.html' target='_blank'>View full architecture diagrams</a></p></div>"
             };
 
@@ -1060,6 +1233,16 @@
                                 cheatsheetEl.innerHTML = cheatsheets[targetId];
                             } else {
                                 cheatsheetEl.innerHTML = "<p style='color: #666; font-style: italic;'>Generic help or no guidance available for this tab.</p>";
+                            }
+                        }
+
+                        // Update Glossary if a topic JS file has registered content for this tab
+                        if (glossaryEl) {
+                            var glossaries = buildGlossaries();
+                            if (glossaries[targetId]) {
+                                glossaryEl.innerHTML = glossaries[targetId];
+                            } else {
+                                glossaryEl.innerHTML = "<p style='color: #666; font-style: italic;'>No glossary available for this tab yet.</p>";
                             }
                         }
                     }
@@ -1208,9 +1391,13 @@
 
     <!-- CRUD Editor Scripts -->
     <script src="/js/record_card.js" defer></script>
+    <script src="/js/record_feed.js" defer></script>
+    <script src="/js/feed_controls.js" defer></script>
     <script src="/js/show_draft_record.js" defer></script>
     <script src="/js/admin_edit_view.js" defer></script>
     <script src="/private/js/edit_records.js" defer></script>
+    <script src="/private/js/wgt_records_viewer.js" defer></script>
+    <script src="/private/js/glossary_records.js" defer></script>
     <script src="/private/js/blog_crud.js" defer></script>
     <script src="/private/js/edit_challenge_results.js" defer></script>
     <script src="/private/js/edit_wikipedia_results.js" defer></script>

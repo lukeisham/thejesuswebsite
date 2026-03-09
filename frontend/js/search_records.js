@@ -9,6 +9,7 @@
     var inputEl = document.getElementById("search-input");
     var searchBtn = document.getElementById("search-btn");
     var gridEl = document.getElementById("record-grid");
+    var feedEl = document.getElementById("record-feed");
 
     if (!inputEl || !gridEl) return;
 
@@ -16,16 +17,22 @@
         var query = inputEl.value.trim();
         if (!query) return;
 
-        fetch("/api/records?q=" + encodeURIComponent(query))
+        fetch("/api/v1/records?q=" + encodeURIComponent(query))
             .then(function (res) {
                 if (!res.ok) throw new Error("Search failed");
                 return res.json();
             })
-            .then(function (records) {
+            .then(function (json) {
+                // Unwrap ApiResponse<RecordListResponse>: { status, message, data: { count, records } }
+                var records = (json && json.data && json.data.records) ? json.data.records : [];
+
                 gridEl.innerHTML = "";
+                if (feedEl) feedEl.innerHTML = "";
 
                 if (!records || records.length === 0) {
-                    gridEl.innerHTML = '<p class="a-col-span-full" style="color: #999;">No records match your search.</p>';
+                    const emptyMsg = '<p class="a-col-span-full" style="color: #999;">No records match your search.</p>';
+                    gridEl.innerHTML = emptyMsg;
+                    if (feedEl) feedEl.innerHTML = emptyMsg;
                     return;
                 }
 
@@ -33,6 +40,9 @@
                     // Requires record_card.js to be loaded before this script
                     if (typeof window.createRecordCard === "function") {
                         gridEl.appendChild(window.createRecordCard(r));
+                    }
+                    if (feedEl && typeof window.createRecordFeedItem === "function") {
+                        feedEl.appendChild(window.createRecordFeedItem(r));
                     }
                 });
 
@@ -42,7 +52,9 @@
                 }
             })
             .catch(function (err) {
-                gridEl.innerHTML = '<p class="a-col-span-full" style="color: #999;">' + err.message + "</p>";
+                const errMsg = '<p class="a-col-span-full" style="color: #999;">' + err.message + "</p>";
+                gridEl.innerHTML = errMsg;
+                if (feedEl) feedEl.innerHTML = errMsg;
             });
     }
 
@@ -61,15 +73,16 @@
     inputEl.addEventListener("input", function (e) {
         const val = e.target.value.toLowerCase();
         const cards = gridEl.querySelectorAll('.record-card');
-        if (cards.length > 0) {
-            cards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                if (text.includes(val)) {
-                    card.style.display = "";
-                } else {
-                    card.style.display = "none";
-                }
-            });
+        const feedItems = feedEl ? feedEl.querySelectorAll('.record-feed-item') : [];
+
+        const filterFn = (el) => {
+            const text = el.textContent.toLowerCase();
+            el.style.display = text.includes(val) ? "" : "none";
+        };
+
+        cards.forEach(filterFn);
+        if (feedItems.length > 0) {
+            feedItems.forEach(filterFn);
         }
     });
 })();

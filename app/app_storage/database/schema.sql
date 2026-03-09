@@ -17,6 +17,75 @@ PRAGMA foreign_keys = ON;
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- RECORDS  (published)
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Storage strategy: flat columns for the fields the DB populator and query
+-- layer need to index/filter on; JSON blobs for the compound nested types
+-- (bibliography, metadata, map_data, content) that are only read back whole.
+-- picture_bytes is stored separately as a BLOB to keep text queries fast.
+-- Schema version tracks Record::SCHEMA_VERSION in app_core.
+
+CREATE TABLE IF NOT EXISTS records (
+    -- Identity
+    id              TEXT PRIMARY KEY,                -- ULID
+    parent_id       TEXT REFERENCES records(id),     -- optional parent link
+
+    -- Core fields (flat columns for filtering/display)
+    name            TEXT NOT NULL,                   -- max 80 chars
+    category        TEXT NOT NULL CHECK (category IN ('Event','Location','Person','Theme')),
+    era             TEXT NOT NULL CHECK (era IN (
+                        'pre-incarnation','birth','life','ministry',
+                        'passion','response','return','theme'
+                    )),
+
+    -- Geography (from InteractiveMap.points[0])
+    map_label       TEXT NOT NULL DEFAULT 'Overview' CHECK (map_label IN (
+                        'Galilee','Jerusalem','Judea','Levant','Rome','Overview'
+                    )),
+    latitude        REAL,                            -- primary map point lat
+    longitude       REAL,                            -- primary map point lng
+
+    -- Scripture
+    primary_verse   TEXT,                            -- "Book chapter:verse"
+    secondary_verse TEXT,                            -- optional
+
+    -- Passion timeline (specific sub-fields for events)
+    passion_day     INTEGER,
+    passion_hour    INTEGER,
+
+    -- Text content
+    description     TEXT,                            -- JSON array of strings Vec<String>
+    picture_bytes   BLOB,                            -- PNG bytes (may be empty)
+
+    -- Rich compound types stored as JSON blobs
+    bibliography    TEXT NOT NULL DEFAULT '[]',      -- JSON: Vec<Source>
+    metadata_json   TEXT NOT NULL DEFAULT '{}',      -- JSON: Metadata { id, keywords, toggle }
+    content_json    TEXT NOT NULL DEFAULT '{}',      -- JSON: ContentEntry { id, title, body, category }
+    map_json        TEXT NOT NULL DEFAULT '{}',      -- JSON: InteractiveMap (full, including all points)
+    timeline_json   TEXT NOT NULL DEFAULT '{}',      -- JSON: TimelineEntry (full)
+
+    -- Timestamps
+    created_at      TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TEXT                             -- ISO 8601, NULL until first edit
+);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- RECORD DRAFTS  (work-in-progress, not yet published)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS record_drafts (
+    id          TEXT PRIMARY KEY,                    -- ULID (auto-generated if missing)
+    name        TEXT NOT NULL,                       -- record name for quick display
+    type        TEXT NOT NULL DEFAULT 'Theme' CHECK (type IN ('Event','Location','Person','Theme')),
+    region      TEXT NOT NULL DEFAULT 'Overview' CHECK (region IN (
+                    'Galilee','Jerusalem','Judea','Levant','Rome','Overview'
+                )),
+    payload     TEXT NOT NULL,                       -- full DraftRecordRequest JSON blob
+    created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TEXT                                 -- ISO 8601, NULL until edited
+);
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- NEWS ITEMS
 -- ─────────────────────────────────────────────────────────────────────────────
 

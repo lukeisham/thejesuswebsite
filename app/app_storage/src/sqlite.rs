@@ -446,6 +446,15 @@ impl SqliteStorage {
 
     // --- RECORDS & DRAFTS ---
 
+    /// Deletes a single record by ULID string.
+    pub async fn delete_record(&self, id: &str) -> Result<bool, sqlx::Error> {
+        let result = sqlx::query("DELETE FROM records WHERE id = ?")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+        Ok(result.rows_affected() > 0)
+    }
+
     /// Deletes all records from the records table.
     /// Used by the DB Populator widget for idempotent wipe-before-populate.
     pub async fn wipe_records(&self) -> Result<usize, sqlx::Error> {
@@ -456,34 +465,180 @@ impl SqliteStorage {
     }
 
     pub async fn store_record(&self, record: &Record) -> Result<(), sqlx::Error> {
-        let json_data = serde_json::to_string(record).unwrap_or_default();
-        let now = record.created_at.to_rfc3339();
-        let updated = record.updated_at.map(|t| t.to_rfc3339());
+        // --- Flat scalar fields ---
+        let id = record.id.to_string();
+        let name = &record.name;
+        // category: PascalCase via serde (e.g. "Event", "Location", "Person", "Theme")
+        let category = serde_json::to_string(&record.category)
+            .unwrap_or_default()
+            .trim_matches('"')
+            .to_string();
+        // era: flat column stores the kebab-case string from TimelineEntry.era
+        let era = record
+            .timeline
+            .era
+            .as_ref()
+            .map(|e| {
+                serde_json::to_string(e)
+                    .unwrap_or_default()
+                    .trim_matches('"')
+                    .to_string()
+            })
+            .unwrap_or_else(|| "theme".to_string());
+        // map_label: PascalCase via serde (e.g. "Overview", "Galilee")
+        let map_label = serde_json::to_string(&record.map_data.label)
+            .unwrap_or_default()
+            .trim_matches('"')
+            .to_string();
+        // lat/lon: first point on map if present
+        let latitude: Option<f64> = record.map_data.points.first().map(|p| p.latitude);
+        let longitude: Option<f64> = record.map_data.points.first().map(|p| p.longitude);
+        // verses: serialised as compact JSON strings (e.g. {"book":"John","chapter":3,"verse":16})
+        let primary_verse = serde_json::to_string(&record.primary_verse).unwrap_or_default();
+        let secondary_verse = record
+            .secondary_verse
+            .as_ref()
+            .map(|v| serde_json::to_string(v).unwrap_or_default());
+        // passion fields come from timeline era + description (not separately tracked in Record yet)
+        let passion_day: Option<i64> = None;
+        let passion_hour: Option<i64> = None;
+        // description: JSON array of strings
+        let description = serde_json::to_string(&record.description).unwrap_or_default();
+        // picture_bytes: raw BLOB
+        let picture_bytes = &record.picture_bytes;
+
+        // --- JSON blob fields ---
+        let bibliography = serde_json::to_string(&record.bibliography).unwrap_or_default();
+        let metadata_json = serde_json::to_string(&record.metadata).unwrap_or_default();
+        let content_json = serde_json::to_string(&record.content).unwrap_or_default();
+        let map_json = serde_json::to_string(&record.map_data).unwrap_or_default();
+        let timeline_json = serde_json::to_string(&record.timeline).unwrap_or_default();
+
+        // --- Timestamps ---
+        let created_at = record.created_at.to_rfc3339();
+        let updated_at = record.updated_at.map(|t| t.to_rfc3339());
 
         sqlx::query(
-            "INSERT OR REPLACE INTO records (id, title, summary, json_data, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT OR REPLACE INTO records (
+                id, name, category, era, map_label,
+                latitude, longitude,
+                primary_verse, secondary_verse,
+                passion_day, passion_hour,
+                description, picture_bytes,
+                bibliography, metadata_json, content_json, map_json, timeline_json,
+                created_at, updated_at
+            ) VALUES (
+                ?, ?, ?, ?, ?,
+                ?, ?,
+                ?, ?,
+                ?, ?,
+                ?, ?,
+                ?, ?, ?, ?, ?,
+                ?, ?
+            )",
         )
-        .bind(record.id.to_string())
-        .bind(&record.name)
-        .bind(&record.description.first().cloned().unwrap_or_default())
-        .bind(json_data)
-        .bind(now)
-        .bind(updated)
+        .bind(&id)
+        .bind(name)
+        .bind(&category)
+        .bind(&era)
+        .bind(&map_label)
+        .bind(latitude)
+        .bind(longitude)
+        .bind(&primary_verse)
+        .bind(secondary_verse.as_deref())
+        .bind(passion_day)
+        .bind(passion_hour)
+        .bind(&description)
+        .bind(picture_bytes.as_slice())
+        .bind(&bibliography)
+        .bind(&metadata_json)
+        .bind(&content_json)
+        .bind(&map_json)
+        .bind(&timeline_json)
+        .bind(&created_at)
+        .bind(updated_at.as_deref())
         .execute(&self.pool)
         .await?;
+
         Ok(())
     }
 
     pub async fn get_records(&self) -> Result<Vec<Record>, sqlx::Error> {
-        let rows = sqlx::query("SELECT json_data FROM records ORDER BY created_at DESC")
-            .fetch_all(&self.pool)
-            .await?;
+        let rows = sqlx::query(
+            "SELECT id, name, category, era, map_label,
+                    latitude, longitude,
+                    primary_verse, secondary_verse,
+                    passion_day, passion_hour,
+                    description, picture_bytes,
+                    bibliography, metadata_json, content_json, map_json, timeline_json,
+                    created_at, updated_at
+             FROM records ORDER BY created_at DESC",
+        )
+        .fetch_all(&self.pool)
+        .await?;
 
         Ok(rows
             .into_iter()
             .filter_map(|r| {
-                let json: String = r.get("json_data");
-                serde_json::from_str::<Record>(&json).ok()
+                // Prefer fully-hydrated JSON blobs where available; fall back gracefully.
+                let metadata_json: String = r.get("metadata_json");
+                let content_json: String = r.get("content_json");
+                let map_json: String = r.get("map_json");
+                let timeline_json: String = r.get("timeline_json");
+                let bibliography_json: String = r.get("bibliography");
+                let description_json: String = r.get("description");
+
+                let metadata = serde_json::from_str(&metadata_json).ok()?;
+                let content = serde_json::from_str(&content_json).ok()?;
+                let map_data = serde_json::from_str(&map_json).ok()?;
+                let timeline = serde_json::from_str(&timeline_json).ok()?;
+                let bibliography =
+                    serde_json::from_str(&bibliography_json).unwrap_or_default();
+                let description: Vec<String> =
+                    serde_json::from_str(&description_json).unwrap_or_default();
+
+                let primary_verse_json: String = r.get("primary_verse");
+                let primary_verse = serde_json::from_str(&primary_verse_json).ok()?;
+                let secondary_verse: Option<_> = r
+                    .try_get::<String, _>("secondary_verse")
+                    .ok()
+                    .and_then(|s| serde_json::from_str(&s).ok());
+
+                let id_str: String = r.get("id");
+                let id = id_str.parse::<ulid::Ulid>().ok()?;
+
+                let created_at_str: String = r.get("created_at");
+                let created_at = created_at_str
+                    .parse::<chrono::DateTime<chrono::Utc>>()
+                    .ok()?;
+                let updated_at: Option<chrono::DateTime<chrono::Utc>> = r
+                    .try_get::<String, _>("updated_at")
+                    .ok()
+                    .and_then(|s| s.parse().ok());
+
+                let picture_bytes: Vec<u8> =
+                    r.try_get::<Vec<u8>, _>("picture_bytes").unwrap_or_default();
+
+                Some(Record {
+                    id,
+                    metadata,
+                    name: r.get("name"),
+                    picture_bytes,
+                    description,
+                    bibliography,
+                    timeline,
+                    map_data,
+                    category: serde_json::from_str(&format!(
+                        "\"{}\"",
+                        r.get::<String, _>("category")
+                    ))
+                    .unwrap_or(app_core::types::jesus::Classification::Theme),
+                    content,
+                    primary_verse,
+                    secondary_verse,
+                    created_at,
+                    updated_at,
+                })
             })
             .collect())
     }
@@ -493,15 +648,26 @@ impl SqliteStorage {
         let payload = serde_json::to_string(draft).unwrap_or_default();
         let now = chrono::Utc::now().to_rfc3339();
 
+        // Normalise type/region to Title-case to satisfy CHECK constraints
+        let title_case = |s: &str| -> String {
+            let mut c = s.chars();
+            match c.next() {
+                None => String::new(),
+                Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+            }
+        };
+        let draft_type = title_case(&draft.r#type);
+        let draft_region = title_case(&draft.region);
+
         sqlx::query(
             "INSERT OR REPLACE INTO record_drafts (id, name, type, region, payload, created_at) VALUES (?, ?, ?, ?, ?, ?)",
         )
-        .bind(id)
+        .bind(&id)
         .bind(&draft.name)
-        .bind(&draft.r#type)
-        .bind(&draft.region)
-        .bind(payload)
-        .bind(now)
+        .bind(&draft_type)
+        .bind(&draft_region)
+        .bind(&payload)
+        .bind(&now)
         .execute(&self.pool)
         .await?;
         Ok(())

@@ -1,7 +1,7 @@
 use crate::server::AppState;
 use app_core::types::dtos::{PopulateRequest, PopulateResponse};
 use app_core::types::jesus::{
-    Classification, ContentEntry, InteractiveMap, MapType, TimelineEntry,
+    Classification, ContentEntry, InteractiveMap, MapType, TimelineEntry, TimelineEra,
 };
 use app_core::types::record::record::Record;
 use app_core::types::system::bible_verse::{BibleBook, BibleVerse};
@@ -274,8 +274,15 @@ fn build_record_from_item(
         bibliography: Vec::new(),
         timeline: TimelineEntry {
             id: Uuid::new_v4(),
-            event_name: String::new(),
-            era: None,
+            event_name: name.clone(),
+            // Derive a sensible default era from category since PopulateRecordItem has no era field.
+            // The DB stores era as NOT NULL so we must always provide a value.
+            era: Some(match category {
+                Classification::Event => TimelineEra::Ministry,
+                Classification::Location => TimelineEra::Ministry,
+                Classification::Person => TimelineEra::Ministry,
+                Classification::Theme => TimelineEra::Theme,
+            }),
             description: String::new(),
         },
         map_data: InteractiveMap {

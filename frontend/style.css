@@ -1196,6 +1196,122 @@ button:hover {
     }
 }
 
+/* --- Record Feed Item --- */
+.record-feed-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+.record-feed-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: var(--accent-color);
+}
+
+.record-feed-item__thumb {
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    background: #eee;
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.record-feed-item__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.record-feed-item__thumb--error,
+.record-feed-item__thumb--empty {
+    background: #f0f0f0;
+    font-size: 0.5rem;
+    color: #999;
+    text-align: center;
+}
+
+.record-feed-item__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.record-feed-item__title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.record-feed-item__snippet {
+    margin: 2px 0;
+    font-size: 0.9rem;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.record-feed-item__verse {
+    font-size: 0.85rem;
+    color: var(--accent-color);
+    font-style: italic;
+}
+
+.record-feed-item__meta {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: #999;
+}
+
+.record-feed-item__badge {
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+}
+
+.record-feed-item__badge--era {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.record-feed-item__badge--category {
+    background: var(--accent-color);
+    color: white;
+}
+
+@media (max-width: 767px) {
+    .record-feed-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .record-feed-item__meta {
+        width: 100%;
+        justify-content: space-between;
+        border-top: 1px solid var(--border-color);
+        padding-top: 8px;
+        margin-top: 4px;
+        flex-wrap: wrap;
+    }
+}
+
 /*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -1352,4 +1468,130 @@ button:hover {
     height: 24px;
     vertical-align: middle;
     margin-right: 8px;
+}
+/* ─────────────────────────────────────────────────────────────────────────────
+   Glossary Panel Styles
+   Each topic JS file (glossary_<topic>.js) emits HTML that uses these classes.
+────────────────────────────────────────────────────────────────────────────── */
+
+.glossary-topic {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.glossary-heading {
+    margin: 1rem 0 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.2rem;
+}
+
+.glossary-heading:first-child {
+    margin-top: 0;
+}
+
+/* ASCII data-flow diagrams */
+pre.glossary-diagram {
+    background: #f7f7f7;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    overflow-x: auto;
+    white-space: pre;
+    color: #333;
+    margin: 0.5rem 0 1rem;
+}
+
+/* Collapsible section wrapper */
+details.glossary-section {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+}
+
+details.glossary-section > summary {
+    cursor: pointer;
+    background: #f3f3f3;
+    padding: 0.45rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: #444;
+    list-style: none;
+    user-select: none;
+}
+
+details.glossary-section > summary::-webkit-details-marker {
+    display: none;
+}
+
+details.glossary-section > summary::before {
+    content: "▶ ";
+    font-size: 0.65rem;
+    color: var(--accent-color);
+}
+
+details.glossary-section[open] > summary::before {
+    content: "▼ ";
+}
+
+details.glossary-section > summary:hover {
+    background: #e8e8e8;
+}
+
+details.glossary-section > div,
+details.glossary-section > table {
+    padding: 0.5rem 0.75rem;
+}
+
+/* File/function reference tables */
+table.glossary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    margin: 0.25rem 0;
+}
+
+table.glossary-table th {
+    text-align: left;
+    background: #f0f0f0;
+    padding: 5px 8px;
+    border-bottom: 2px solid var(--border-color);
+    font-weight: 700;
+    color: #333;
+}
+
+table.glossary-table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+    color: #444;
+}
+
+table.glossary-table tr:last-child td {
+    border-bottom: none;
+}
+
+table.glossary-table td:first-child {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #555;
+    white-space: nowrap;
+}
+
+/* Inline notes / callout boxes */
+.glossary-note {
+    background: #fff8e1;
+    border-left: 3px solid #f0c040;
+    padding: 0.4rem 0.75rem;
+    margin: 0.5rem 0;
+    font-size: 0.8rem;
+    color: #555;
+    border-radius: 0 4px 4px 0;
 }
