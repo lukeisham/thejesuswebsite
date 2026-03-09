@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "Index and About page update"
+git commit -m "minor updates"
 git push origin main
 
 update files
@@ -131,3 +131,7 @@ to force alignment with Github
 
 git reset --hard origin/$(git branch --show-current)
 docker compose up -d --build
+
+run on server after changes
+
+scp ~/Developer/thejesuswebsite/.env lukeisham@72.60.197.13:~/apps/thejesuswebsite/.env
