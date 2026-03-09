@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE contact_messages SET read_at = ? WHERE contact_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "c2c241d24ca9d5c61bbf8527e89d594b7862d7f0a8417e86c45ec08642cec22b"
+}

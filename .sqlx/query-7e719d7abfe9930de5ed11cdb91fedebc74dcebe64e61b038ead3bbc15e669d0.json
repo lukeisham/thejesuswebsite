@@ -1,0 +1,62 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT \n                c.id as contact_id, c.name, c.email,\n                m.id as message_id, m.subject, m.body, m.sent_at, m.read_at\n             FROM contacts c \n             JOIN contact_messages m ON c.id = m.contact_id \n             WHERE m.read_at IS NULL",
+  "describe": {
+    "columns": [
+      {
+        "name": "contact_id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "email",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "message_id",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "subject",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "body",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "sent_at",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "read_at",
+        "ordinal": 7,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "7e719d7abfe9930de5ed11cdb91fedebc74dcebe64e61b038ead3bbc15e669d0"
+}
