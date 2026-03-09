@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "DB populator"
+git commit -m "About page update"
 git push origin main
 
 update files
