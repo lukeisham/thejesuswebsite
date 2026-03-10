@@ -662,13 +662,29 @@
                         </div>
                     </div>
                 </div>
-                <!-- Cheatsheet row -->
+                <!-- Row 2: Cheatsheet & Architecture Glossary -->
                 <div class="a-grid a-cols-2 a-gap-md" style="grid-row: 2;">
+                    <!-- Quick Reference (Dynamic) -->
                     <div class="dashboard-panel" id="dashboard-cheatsheet"
-                        style="margin-top: 1rem; border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
+                        style="border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
                         <h3 style="margin-bottom: 0.5rem; color: var(--accent-color);">Quick Reference</h3>
                         <div id="cheatsheet-content" style="line-height: 1.5;">
                             <p style="color: #666; font-style: italic;">Select a tab above to see specific guidance.</p>
+                        </div>
+                    </div>
+
+                    <!-- Architecture Glossary (Static Nav) -->
+                    <div class="dashboard-panel" id="dashboard-architecture-nav"
+                        style="border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
+                        <h3 style="margin-bottom: 1rem; color: var(--accent-color);">Architecture Glossary</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <a href="/private/records_architecture.html" class="arch-nav-btn">Records</a>
+                            <a href="/private/wikipedia_architecture.html" class="arch-nav-btn">Wikipedia</a>
+                            <a href="/private/challenges_architecture.html" class="arch-nav-btn">Challenges</a>
+                            <a href="/private/news_feed_architecture.html" class="arch-nav-btn">Newsfeed</a>
+                            <a href="/private/sources_architecture.html" class="arch-nav-btn">Sources</a>
+                            <a href="/private/blog_architecture.html" class="arch-nav-btn">Blogs</a>
+                            <a href="/private/essay_architecture.html" class="arch-nav-btn">Essays</a>
                         </div>
                     </div>
                 </div>
@@ -713,16 +729,6 @@
                     </div>
                 </div>
 
-                <!-- Glossary row -->
-                <div class="a-grid a-cols-2 a-gap-md" style="grid-row: 4;">
-                    <div class="dashboard-panel" id="dashboard-glossary"
-                        style="grid-column: 1 / -1; margin-top: 1rem; border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
-                        <h3 style="margin-bottom: 0.5rem; color: var(--accent-color);">Glossary</h3>
-                        <div id="glossary-content" style="line-height: 1.5;">
-                            <p style="color: #666; font-style: italic;">Select a tab above to see specific guidance.</p>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- ROW 3: Small Grid of Widgets with Traffic Lights (16 total) -->
                 <div class="dashboard-panel" style="grid-row: 5;">
@@ -1051,21 +1057,6 @@
             window.__dashboardTabsInit = true;
 
             const cheatsheetEl = document.getElementById("cheatsheet-content");
-            const glossaryEl = document.getElementById("glossary-content");
-
-            // Build glossary registry from any window.GLOSSARY_* objects registered by topic JS files
-            function buildGlossaries() {
-                const map = {};
-                Object.keys(window).forEach(function (key) {
-                    if (key.startsWith("GLOSSARY_")) {
-                        var entry = window[key];
-                        if (entry && entry.tabId && entry.html) {
-                            map[entry.tabId] = entry.html;
-                        }
-                    }
-                });
-                return map;
-            }
 
             const cheatsheets = {
                 "crud-records": "<p><b>Records Guidance:</b> No specific cheatsheet required. Fill in the fields to create or update entity definitions.</p>",
@@ -1105,15 +1096,7 @@
                             }
                         }
 
-                        // Update Glossary if a topic JS file has registered content for this tab
-                        if (glossaryEl) {
-                            var glossaries = buildGlossaries();
-                            if (glossaries[targetId]) {
-                                glossaryEl.innerHTML = glossaries[targetId];
-                            } else {
-                                glossaryEl.innerHTML = "<p style='color: #666; font-style: italic;'>No glossary available for this tab yet.</p>";
-                            }
-                        }
+
                     }
                 });
             });
@@ -1132,7 +1115,6 @@
     <script src="/js/admin_edit_view.js" defer></script>
     <script src="/private/js/edit_records.js" defer></script>
     <script src="/private/js/wgt_records_viewer.js" defer></script>
-    <script src="/private/js/glossary_records.js" defer></script>
     <script src="/private/js/blog_crud.js" defer></script>
     <script src="/private/js/edit_challenge_results.js" defer></script>
     <script src="/private/js/edit_wikipedia_results.js" defer></script>

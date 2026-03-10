@@ -914,6 +914,19 @@ impl SqliteStorage {
         Ok(())
     }
 
+    /// Delete news_items beyond the most recent `limit` rows (ordered by harvested_at DESC).
+    pub async fn trim_news_feed_to_limit(&self, limit: i64) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            "DELETE FROM news_items WHERE id NOT IN (
+                SELECT id FROM news_items ORDER BY harvested_at DESC LIMIT ?
+            )",
+        )
+        .bind(limit)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
     pub async fn get_harvested_news(&self) -> Result<Vec<RawNewsItem>, sqlx::Error> {
         let rows =
             sqlx::query("SELECT title, url, raw_content, raw_image_url FROM news_holding_area")

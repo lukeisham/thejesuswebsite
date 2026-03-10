@@ -43,7 +43,25 @@
                 date.style.fontSize = "0.65rem";
                 date.style.display = "block";
                 date.style.marginTop = "0.5rem";
-                date.textContent = "Date: " + (item.harvested_at ? new Date(item.harvested_at).toLocaleDateString() : "—");
+                date.textContent =
+                    "Date: " +
+                    (item.harvested_at ? new Date(item.harvested_at).toLocaleDateString() : "—");
+
+                if (item.picture_url) {
+                    var img = document.createElement("img");
+                    img.src = item.picture_url;
+                    img.alt = item.title || "";
+                    img.style.width = "100%";
+                    img.style.height = "180px";
+                    img.style.objectFit = "cover";
+                    img.style.borderRadius = "4px";
+                    img.style.marginBottom = "0.75rem";
+                    img.loading = "lazy";
+                    img.onerror = function () {
+                        this.style.display = "none";
+                    };
+                    article.appendChild(img);
+                }
 
                 article.appendChild(h4);
                 article.appendChild(p);

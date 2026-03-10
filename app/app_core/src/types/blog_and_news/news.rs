@@ -6,14 +6,37 @@ use url::Url; // Type-safe URL handling
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-/*
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //                             1. THE SKELETON                                //
 //                          (Data Types & Schema)                             //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
-*/
+
+/// Represents one entry in news_sources.toml
+#[derive(Debug, Deserialize)]
+pub struct NewsSource {
+    pub name: String,
+    pub domain: String,
+    pub rss_url: String, // Empty string means no RSS — fall back to scraping
+    pub scrape_fallback: bool,
+}
+
+/// Top-level config loaded from news_sources.toml
+#[derive(Debug, Deserialize)]
+pub struct NewsConfig {
+    pub crawl_interval_days: u32,
+    pub sources: Vec<NewsSource>,
+}
+
+impl NewsConfig {
+    /// Load from news_sources.toml at the given path
+    pub fn load(path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let content = std::fs::read_to_string(path)?;
+        let config: Self = toml::from_str(&content)?;
+        Ok(config)
+    }
+}
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -153,6 +176,144 @@ impl NewsEngine {
 
         feed.items.len()
     }
+
+    /// Crawl all sources in the config. Tries RSS first; falls back to scraping.
+    /// Returns the list of raw items harvested.
+    pub async fn crawl_sources(&self, config: &NewsConfig) -> Vec<RawNewsItem> {
+        let mut harvested: Vec<RawNewsItem> = Vec::new();
+
+        for source in &config.sources {
+            // Step 1: Try RSS if url is non-empty
+            let rss_items = if !source.rss_url.is_empty() {
+                fetch_rss(&source.rss_url).await.unwrap_or_default()
+            } else {
+                vec![]
+            };
+
+            if !rss_items.is_empty() {
+                harvested.extend(rss_items);
+            } else if source.scrape_fallback {
+                // Step 2: Fall back to scraping the domain URL
+                let scraped = scrape_domain(&source.domain).await.unwrap_or_default();
+                harvested.extend(scraped);
+            }
+        }
+
+        harvested
+    }
+}
+
+/// Fetch and parse an RSS/Atom feed. Returns RawNewsItem list.
+async fn fetch_rss(feed_url: &str) -> Result<Vec<RawNewsItem>, Box<dyn std::error::Error>> {
+    let body = reqwest::get(feed_url).await?.text().await?;
+    let channel = rss::Channel::read_from(body.as_bytes())?;
+    let items = channel
+        .items()
+        .iter()
+        .take(10) // Max 10 items per source per crawl
+        .filter_map(|item| {
+            let title = item.title()?.to_string();
+            let url = item.link()?.to_string();
+            let raw_content = item.description().unwrap_or("").to_string();
+            // Try to extract image from enclosure or media content
+            let raw_image_url = item.enclosure().and_then(|e| {
+                if e.mime_type().starts_with("image") {
+                    Some(e.url().to_string())
+                } else {
+                    None
+                }
+            });
+            Some(RawNewsItem {
+                title,
+                url,
+                raw_content,
+                raw_image_url,
+            })
+        })
+        .collect();
+    Ok(items)
+}
+
+/// Scrape a domain's homepage for article links and og:image tags.
+async fn scrape_domain(domain_url: &str) -> Result<Vec<RawNewsItem>, Box<dyn std::error::Error>> {
+    let body = reqwest::get(domain_url).await?.text().await?;
+    let document = scraper::Html::parse_document(&body);
+
+    // Extract og:image (meta tag)
+    let og_image_selector = scraper::Selector::parse(r#"meta[property="og:image"]"#).unwrap();
+    let raw_image_url = document
+        .select(&og_image_selector)
+        .next()
+        .and_then(|el| el.value().attr("content"))
+        .map(|s| s.to_string());
+
+    // Extract title from <title> or og:title
+    let title_selector = scraper::Selector::parse("title").unwrap();
+    let title = document
+        .select(&title_selector)
+        .next()
+        .map(|el| el.text().collect::<String>())
+        .unwrap_or_else(|| domain_url.to_string());
+
+    // Extract description from meta description or og:description
+    let desc_selector = scraper::Selector::parse(r#"meta[name="description"]"#).unwrap();
+    let raw_content = document
+        .select(&desc_selector)
+        .next()
+        .and_then(|el| el.value().attr("content"))
+        .unwrap_or("")
+        .to_string();
+
+    Ok(vec![RawNewsItem {
+        title,
+        url: domain_url.to_string(),
+        raw_content,
+        raw_image_url,
+    }])
+}
+
+/// Attempt to extract an og:image from the article URL.
+/// If not found, query Unsplash API with article keywords.
+/// Returns an Option<String> image URL.
+pub async fn fetch_article_image(article_url: &str, keywords: &str) -> Option<String> {
+    // Step 1: Try og:image from the article page
+    if let Ok(resp) = reqwest::get(article_url).await {
+        if let Ok(text) = resp.text().await {
+            let document = scraper::Html::parse_document(&text);
+            let og_selector = scraper::Selector::parse(r#"meta[property="og:image"]"#).unwrap();
+            if let Some(og_img) = document
+                .select(&og_selector)
+                .next()
+                .and_then(|el| el.value().attr("content"))
+            {
+                return Some(og_img.to_string());
+            }
+        }
+    }
+
+    // Step 2: Fallback — query Unsplash
+    fetch_unsplash_image(keywords).await
+}
+
+/// Query the Unsplash API for a photo matching the given keywords.
+/// Requires UNSPLASH_ACCESS_KEY environment variable.
+async fn fetch_unsplash_image(keywords: &str) -> Option<String> {
+    let api_key = std::env::var("UNSPLASH_ACCESS_KEY").ok()?;
+    let url = format!(
+        "https://api.unsplash.com/search/photos?query={}&per_page=1&orientation=landscape",
+        urlencoding::encode(keywords)
+    );
+    let client = reqwest::Client::new();
+    let resp = client
+        .get(&url)
+        .header("Authorization", format!("Client-ID {}", api_key))
+        .send()
+        .await
+        .ok()?;
+    let json: serde_json::Value = resp.json().await.ok()?;
+    json["results"][0]["urls"]["small"]
+        .as_str()
+        .map(|s| s.to_string())
 }
 
 /*

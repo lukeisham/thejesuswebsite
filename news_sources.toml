@@ -1,0 +1,30 @@
+# News Feed Source Configuration
+# The crawler tries each source's RSS feed first.
+# If no RSS feed URL is provided, or if the RSS fetch fails, it falls back to scraping the domain URL.
+# crawl_interval_days controls how often the agent auto-crawls (30 = monthly).
+
+crawl_interval_days = 30
+
+[[sources]]
+name = "Biblical Archaeology Review"
+domain = "https://www.biblicalarchaeology.org"
+rss_url = "https://www.biblicalarchaeology.org/feed/"
+scrape_fallback = true
+
+[[sources]]
+name = "Society of Biblical Literature"
+domain = "https://www.sbl-site.org"
+rss_url = ""
+scrape_fallback = true
+
+[[sources]]
+name = "The Bible and Interpretation"
+domain = "https://bibleinterp.arizona.edu"
+rss_url = "https://bibleinterp.arizona.edu/feed"
+scrape_fallback = true
+
+[[sources]]
+name = "Ancient Near East Today (ASOR)"
+domain = "https://www.asor.org/anet"
+rss_url = "https://www.asor.org/feed/"
+scrape_fallback = true

@@ -32,27 +32,61 @@ pub async fn handle_get_news(
 }
 
 /// POST /api/v1/news_run
-/// Triggers the mock news crawler/seeder and persists to DB.
+/// Triggers the news crawler/pipeline and persists to DB.
 pub async fn handle_news_run(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    // 1. Get mock data from engine
-    let count = state.news_engine.seed_mock_data().await;
-    let items = state.news_engine.get_feed().await;
+    // 1. Load config
+    let config = match app_core::types::NewsConfig::load("news_sources.toml") {
+        Ok(c) => c,
+        Err(e) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to load news_sources.toml: {}", e),
+            )
+                .into_response();
+        }
+    };
 
-    // 2. Persist to SQLite
+    // 2. Crawl sources
+    let raw_items = state.news_engine.crawl_sources(&config).await;
+    let total_harvested = raw_items.len();
+
+    // 3. Process and Persist
     let mut success_count = 0;
-    for item in items {
+    for raw in raw_items {
+        // Step 3A: Build NewsItem (Real image fetching from Phase 3)
+        let picture_url = app_core::types::fetch_article_image(&raw.url, &raw.title)
+            .await
+            .and_then(|url_str| app_core::types::NewsGatekeeper::verify_url(&url_str).ok());
+
+        let item = app_core::types::NewsItem {
+            id: app_core::types::NewsItemId(uuid::Uuid::new_v4()),
+            title: raw.title,
+            source_url: match url::Url::parse(&raw.url) {
+                Ok(u) => u,
+                Err(_) => continue,
+            },
+            snippet: "AI-generated summary pending...".to_string(),
+            contents: raw.raw_content,
+            picture_url,
+            harvested_at: chrono::Utc::now(),
+        };
+
         if state.storage.sqlite.store_news_item(&item).await.is_ok() {
             success_count += 1;
         }
     }
 
+    // 4. Enforce the 25-article cap
+    let _ = state.storage.sqlite.trim_news_feed_to_limit(25).await;
+
     (
         StatusCode::OK,
         format!(
-            "News crawler run complete. Seeded {} items. Persisted {} to DB.",
-            count, success_count
+            "News crawler run complete. Harvested {} items. Persisted {} to DB. Feed trimmed to 25.",
+            total_harvested, success_count
         ),
     )
+    .into_response()
 }
 
 /// GET /api/v1/news_feed_content

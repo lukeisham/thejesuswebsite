@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "ask the agent update"
+git commit -m "ask the agent update part 2"
 git push origin main
 
 update files

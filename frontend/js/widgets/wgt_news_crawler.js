@@ -11,6 +11,9 @@ export default {
         const autoCheck = widget.querySelector('.wgt-auto');
         let pollInterval = null;
 
+        // Monthly interval: 30 days × 24h × 60m × 60s × 1000ms
+        const CRAWL_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
+
         if (triggerBtn) {
             triggerBtn.addEventListener('click', () => this.runCrawler());
         }
@@ -19,7 +22,7 @@ export default {
             autoCheck.addEventListener('change', () => {
                 if (autoCheck.checked) {
                     if (!pollInterval) {
-                        pollInterval = setInterval(() => this.runCrawler(), 300000);
+                        pollInterval = setInterval(() => this.runCrawler(), CRAWL_INTERVAL_MS);
                     }
                 } else {
                     clearInterval(pollInterval);
@@ -27,7 +30,7 @@ export default {
                 }
             });
             if (autoCheck.checked) {
-                pollInterval = setInterval(() => this.runCrawler(), 300000);
+                pollInterval = setInterval(() => this.runCrawler(), CRAWL_INTERVAL_MS);
             }
         }
     },

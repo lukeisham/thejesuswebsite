@@ -22,4 +22,9 @@ url         = { workspace = true }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 serde-wasm-bindgen = "0.6"
+toml = "0.8"
+rss = "2"
+scraper = "0.19"
+reqwest = { version = "0.11", features = ["json"] }
+urlencoding = "2"
 anyhow.workspace = true
