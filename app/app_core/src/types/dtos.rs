@@ -324,6 +324,7 @@ pub struct SpellingIssue {
     pub suggestion: Option<String>,
     pub text: String,
     pub context: String,
+    pub severity: String,
 }
 
 /// Request to add a word to the spellcheck dictionary.
@@ -339,6 +340,7 @@ pub struct DeadlinkIssue {
     pub url: String,
     pub status: String,
     pub context: String,
+    pub last_checked: String,
 }
 
 /// Request to replace a deadlink URL.
@@ -483,12 +485,15 @@ pub struct WikiStatusResponse {
 /// Response for page performance metrics.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PageMetricsResponse {
-    /// Total time for the page to load.
-    pub load_time: String,
-    /// Time to first byte.
-    pub ttfb: String,
-    /// Time until the DOM is fully interactive.
-    pub dom_ready: String,
+    pub metrics: Vec<PageMetric>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PageMetric {
+    pub page_id: String,
+    pub views: i32,
+    pub avg_time_on_page: i32,
+    pub bounce_rate: f64,
 }
 
 /// A single challenge record in the dashboard list.

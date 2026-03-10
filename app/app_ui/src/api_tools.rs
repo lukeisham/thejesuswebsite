@@ -219,7 +219,7 @@ pub async fn handle_content_json() -> impl IntoResponse {
     (StatusCode::OK, Json(items)).into_response()
 }
 
-use app_core::types::dtos::{SummaryResponse, WikiStatusResponse};
+use app_core::types::dtos::{PageMetricsResponse, SummaryResponse, WikiStatusResponse};
 
 /// Retrieves real-time token usage metrics for the LLM APIs.
 pub async fn handle_token_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
@@ -252,10 +252,10 @@ pub async fn handle_wiki_sync() -> impl IntoResponse {
     )
 }
 
-/// Retrieves page-level performance metrics for the frontend.
+/// Retrieves page-level performance and usage metrics for the frontend.
 pub async fn handle_page_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    match state.storage.sqlite.get_page_metrics().await {
-        Ok(metrics) => (StatusCode::OK, Json(metrics)).into_response(),
+    match state.storage.sqlite.get_all_page_metrics().await {
+        Ok(metrics) => (StatusCode::OK, Json(PageMetricsResponse { metrics })).into_response(),
         Err(e) => {
             (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
         }

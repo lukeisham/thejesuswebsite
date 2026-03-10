@@ -1,18 +1,19 @@
-use app_core::types::{DeadlinkIssue, DeadlinkReplacement};
+use app_core::types::DeadlinkReplacement;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
 
+use crate::server::AppState;
+use axum::extract::State;
+use std::sync::Arc;
+
 /// Runs a systemic scan for broken external links.
-pub async fn handle_deadlinks_run() -> impl IntoResponse {
+pub async fn handle_deadlinks_run(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     use app_core::types::ApiResponse;
-    let dead_links = vec![DeadlinkIssue {
-        id: "link_123".into(),
-        url: "https://broken-history.org/jesus-bio".into(),
-        status: "404 Not Found".into(),
-        context: "Record: Early Life, Sources section".into(),
-    }];
-    Json(ApiResponse::success("Deadlinks scan completed", Some(dead_links)))
+    match state.storage.sqlite.get_failed_deadlinks().await {
+        Ok(issues) => Json(ApiResponse::success("Deadlinks scan completed", Some(issues))),
+        Err(e) => Json(ApiResponse::error(format!("Database error: {}", e))),
+    }
 }
 
 /// Replaces or removes a deadlink.

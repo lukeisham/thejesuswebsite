@@ -173,7 +173,8 @@
                     <span></span><span></span><span></span>
                 </button>
                 <div class="nav-brand">
-                    <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;"><a href="/index.html" class="nav-link" data-page="records">The Jesus Website</a></h3>
+                    <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;"><a href="/index.html"
+                            class="nav-link" data-page="records">The Jesus Website</a></h3>
                 </div>
 
                 <ul class="record-list" id="nav-main-links">
@@ -696,68 +697,23 @@
                         </div>
                     </div>
 
-                    <!-- Right: Results Box -->
+                    <!-- Right: Unified System Feed -->
                     <div class="dashboard-panel" style="display: flex; flex-direction: column; overflow: hidden;">
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-                            <h3 style="margin: 0; border-bottom: none; padding-bottom: 0;">System Data Viewer</h3>
+                            <h3 style="margin: 0; border-bottom: none; padding-bottom: 0;">System Data Feed</h3>
                             <span id="viewer-status-indicator"
-                                style="font-size: 0.8rem; color: #666; font-weight: bold;">[CONTENT MODE]</span>
+                                style="font-size: 0.8rem; color: #666; font-weight: bold;">[MONITORING]</span>
                         </div>
 
-                        <!-- Scrollable Tabs -->
-                        <div class="tabs viewer-tabs"
-                            style="overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: thin;">
-                            <!-- Content Tabs -->
-                            <button class="tab active" data-target="view-essays" data-mode="content">Essays</button>
-                            <button class="tab" data-target="view-records" data-mode="content">Records</button>
-                            <button class="tab" data-target="view-responses" data-mode="content">Responses</button>
-                            <button class="tab" data-target="view-blogs" data-mode="content">Blogs</button>
-                            <button class="tab" data-target="view-wiki" data-mode="content">Wiki Data</button>
-                            <button class="tab" data-target="view-research" data-mode="content">Research</button>
-                            <span
-                                style="display: inline-block; width: 1px; background: var(--border-color); margin: 0 5px;"></span>
-                            <!-- System Tabs -->
-                            <button class="tab" data-target="view-metrics" data-mode="system">Metrics</button>
-                            <button class="tab" data-target="view-queue" data-mode="system">Queue/Workflow</button>
-                            <button class="tab" data-target="view-security" data-mode="system">Security</button>
-                            <button class="tab" data-target="view-triage" data-mode="system">Triage</button>
-                            <button class="tab" data-target="view-deadlinks" data-mode="system">Deadlinks</button>
-                            <button class="tab" data-target="view-spelling" data-mode="system">Spelling</button>
-                            <button class="tab" data-target="view-weights" data-mode="system">Weights</button>
-                        </div>
-
-                        <!-- Selectable List Area -->
-                        <div id="viewer-list-container"
-                            style="flex: 1; min-height: 200px; max-height: 280px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background: #fafaf9; margin-bottom: 10px;">
-                            <ul class="record-list" id="viewer-results-list" style="margin: 0;">
-                                <li
-                                    style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #eee;">
-                                    <input type="checkbox" class="viewer-checkbox" style="margin-top: 4px;">
-                                    <div style="flex: 1; font-size: 0.85rem; color: #666;">Load data by clicking
-                                        'Generate' or a system widget...</div>
-                                </li>
+                        <!-- Unified Feed Container -->
+                        <div id="system-feed-container"
+                            style="flex: 1; min-height: 200px; max-height: 480px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background: #fafaf9; margin-bottom: 10px; border-radius: 6px;">
+                            <ul class="system-feed" id="viewer-results-list"
+                                style="margin: 0; list-style: none; padding: 0;">
+                                <li style="padding: 20px; text-align: center; color: #999;">Initializing system
+                                    monitoring...</li>
                             </ul>
-                        </div>
-
-                        <!-- Dynamic Action Bar -->
-                        <div id="viewer-action-bar"
-                            style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
-                            <div>
-                                <label style="font-size: 0.8rem; cursor: pointer; color: #444;"><input type="checkbox"
-                                        id="viewer-select-all" style="margin-right: 5px;">Select All</label>
-                            </div>
-                            <div style="display: flex; gap: 8px;" id="viewer-action-buttons">
-                                <!-- Base Button Types (Values swapped dynamically by JS) -->
-                                <button id="btn-viewer-generate" class="btn-primary"
-                                    style="padding: 6px 12px; font-size: 0.8rem;">Generate</button>
-                                <button id="btn-viewer-delete" class="btn-secondary"
-                                    style="padding: 6px 12px; font-size: 0.8rem; color: red;">Delete</button>
-                                <button id="btn-viewer-edit" class="btn-secondary"
-                                    style="padding: 6px 12px; font-size: 0.8rem;">Edit in CRUD</button>
-                                <button id="btn-viewer-publish" class="btn-primary"
-                                    style="padding: 6px 12px; font-size: 0.8rem;">Publish</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -785,12 +741,6 @@
                                 <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
                                         style="color:#666;">Online</span></div>
                             </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Execute</button>
-                            </div>
                         </div>
 
                         <!-- DB Populator -->
@@ -798,12 +748,6 @@
                             <div><strong>DB Populator</strong>
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
-                            </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Run</button>
                             </div>
                         </div>
 
@@ -813,12 +757,6 @@
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
                             </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Scan</button>
-                            </div>
                         </div>
 
                         <!-- Wiki Engine -->
@@ -826,12 +764,6 @@
                             <div><strong>Wiki Engine</strong>
                                 <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
                                         style="color:#666;">Processing</span></div>
-                            </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Force</button>
                             </div>
                         </div>
 
@@ -841,12 +773,6 @@
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
                             </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Force</button>
-                            </div>
                         </div>
 
                         <!-- Page Metrics -->
@@ -854,12 +780,6 @@
                             <div><strong>Page Metrics</strong>
                                 <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
                                         style="color:#666;">Tracking</span></div>
-                            </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Sync</button>
                             </div>
                         </div>
 
@@ -869,12 +789,6 @@
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
                             </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Check</button>
-                            </div>
                         </div>
 
                         <!-- Research Suggest -->
@@ -882,12 +796,6 @@
                             <div><strong>Research Suggest</strong>
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
-                            </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Gen</button>
                             </div>
                         </div>
 
@@ -897,12 +805,6 @@
                                 <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
                                         style="color:#666;">Online</span></div>
                             </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Ping</button>
-                            </div>
                         </div>
 
                         <!-- Wiki Weights Widget -->
@@ -910,12 +812,6 @@
                             <div><strong>Wiki Weights</strong>
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
-                            </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto">
-                                    Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Fetch</button>
                             </div>
                         </div>
 
@@ -925,12 +821,6 @@
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
                             </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto">
-                                    Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Crawl</button>
-                            </div>
                         </div>
 
                         <!-- Token Metrics -->
@@ -938,12 +828,6 @@
                             <div><strong>Token Metrics</strong>
                                 <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
                                         style="color:#666;">Monitoring</span></div>
-                            </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Sync</button>
                             </div>
                         </div>
 
@@ -953,12 +837,6 @@
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
                             </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Reflect</button>
-                            </div>
                         </div>
 
                         <!-- Agent Workflow (new, was Queue) -->
@@ -966,12 +844,6 @@
                             <div><strong>Agent Workflow</strong>
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
-                            </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Run</button>
                             </div>
                         </div>
 
@@ -981,12 +853,6 @@
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
                             </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Sync</button>
-                            </div>
                         </div>
 
                         <!-- Security (restored) -->
@@ -994,12 +860,6 @@
                             <div><strong>Security</strong>
                                 <div><span class="traffic-light status-active"></span><span class="wgt-status-label"
                                         style="color:#666;">Active</span></div>
-                            </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Audit</button>
                             </div>
                         </div>
 
@@ -1009,12 +869,6 @@
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
                             </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Load</button>
-                            </div>
                         </div>
 
                         <!-- Deadlinks (restored) -->
@@ -1022,12 +876,6 @@
                             <div><strong>Deadlinks</strong>
                                 <div><span class="traffic-light status-idle"></span><span class="wgt-status-label"
                                         style="color:#666;">Idle</span></div>
-                            </div>
-                            <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
-                                <label style="font-size:0.75rem;color:#666;"><input type="checkbox" class="wgt-auto"
-                                        checked> Auto</label>
-                                <button class="btn-primary wgt-trigger"
-                                    style="padding:4px 8px;font-size:0.7rem;">Scan</button>
                             </div>
                         </div>
 
@@ -1213,7 +1061,7 @@
             // Build glossary registry from any window.GLOSSARY_* objects registered by topic JS files
             function buildGlossaries() {
                 const map = {};
-                Object.keys(window).forEach(function(key) {
+                Object.keys(window).forEach(function (key) {
                     if (key.startsWith("GLOSSARY_")) {
                         var entry = window[key];
                         if (entry && entry.tabId && entry.html) {
@@ -1275,141 +1123,7 @@
                 });
             });
 
-            // Specific Logic for System Data Viewer Action Bar
-            const viewerTabsContainer = document.querySelector('.viewer-tabs');
-            const viewerStatusLabel = document.getElementById('viewer-status-indicator');
-            const btnGenerate = document.getElementById('btn-viewer-generate');
-            const btnDeleteDismiss = document.getElementById('btn-viewer-delete');
-            const btnEditCopy = document.getElementById('btn-viewer-edit');
-            const btnPublish = document.getElementById('btn-viewer-publish');
-
-            if (viewerTabsContainer) {
-                viewerTabsContainer.addEventListener('click', (e) => {
-                    if (!e.target.classList.contains('tab')) return;
-
-                    const mode = e.target.getAttribute('data-mode');
-                    if (mode === 'system') {
-                        viewerStatusLabel.textContent = '[SYSTEM MODE]';
-                        btnGenerate.textContent = 'Run / Sync';
-                        btnDeleteDismiss.textContent = 'Dismiss';
-                        btnDeleteDismiss.style.color = '#666';
-                        btnEditCopy.textContent = 'Copy Data';
-                        btnPublish.style.display = 'none';
-                    } else {
-                        viewerStatusLabel.textContent = '[CONTENT MODE]';
-                        btnGenerate.textContent = 'Generate';
-                        btnDeleteDismiss.textContent = 'Delete';
-                        btnDeleteDismiss.style.color = 'red';
-                        btnEditCopy.textContent = 'Edit in CRUD';
-                        btnPublish.style.display = 'inline-block';
-                    }
-
-                    // Clear the list when changing tabs to prevent state confusion
-                    const resultsList = document.getElementById('viewer-results-list');
-                    if (resultsList) {
-                        resultsList.innerHTML = `<li style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #eee;"><div style="flex: 1; font-size: 0.85rem; color: #666;">Data for ${e.target.textContent} would load here...</div></li>`;
-                    }
-
-                    // Uncheck 'Select All' on tab change
-                    const selectAllCb = document.getElementById('viewer-select-all');
-                    if (selectAllCb) selectAllCb.checked = false;
-                });
-            }
-
-            // Select All Logic for System Data Viewer
-            const selectAllCb = document.getElementById('viewer-select-all');
-            if (selectAllCb) {
-                selectAllCb.addEventListener('change', (e) => {
-                    const checkboxes = document.querySelectorAll('.viewer-checkbox');
-                    checkboxes.forEach(cb => {
-                        cb.checked = e.target.checked;
-                    });
-                });
-            }
-
-            // 'Edit in CRUD' logic for pushing draft content into Row 1 Editor
-            if (btnEditCopy) {
-                btnEditCopy.addEventListener('click', () => {
-                    const activeMode = viewerStatusLabel.textContent.includes('SYSTEM') ? 'system' : 'content';
-                    const checkedItems = document.querySelectorAll('.viewer-checkbox:checked');
-
-                    if (checkedItems.length === 0) {
-                        alert("Please select an item first.");
-                        return;
-                    }
-
-                    // System Mode (Copy to Clipboard)
-                    if (activeMode === 'system') {
-                        let combinedData = "";
-                        checkedItems.forEach(cb => {
-                            const dataDiv = cb.nextElementSibling;
-                            if (dataDiv && dataDiv.classList.contains('viewer-data-content')) {
-                                combinedData += decodeURIComponent(dataDiv.getAttribute('data-raw') || '') + "\n\n";
-                            }
-                        });
-                        navigator.clipboard.writeText(combinedData.trim());
-                        btnEditCopy.textContent = "Copied!";
-                        setTimeout(() => btnEditCopy.textContent = "Copy Data", 2000);
-                        return;
-                    }
-
-                    // Content Mode (Edit in CRUD)
-                    if (checkedItems.length > 1) {
-                        alert("You can only edit one draft at a time in the CRUD window.");
-                        return;
-                    }
-
-                    const dataDiv = checkedItems[0].nextElementSibling;
-                    if (dataDiv && dataDiv.classList.contains('viewer-data-content')) {
-                        const rawData = decodeURIComponent(dataDiv.getAttribute('data-raw') || '');
-                        let textToEdit = rawData;
-
-                        try {
-                            const parsed = JSON.parse(rawData);
-                            textToEdit = parsed.content || parsed.data || JSON.stringify(parsed, null, 2);
-                        } catch (e) {
-                            // Leave as string
-                        }
-
-                        // Push to Row 1 CRUD Editor
-                        const crudTextArea = document.getElementById('edit-content'); // Assuming main text area
-                        if (crudTextArea) {
-                            crudTextArea.value = textToEdit;
-                        }
-
-                        // Visually switch to the CRUD editing tab (e.g. edit-essays)
-                        const crudEssayTab = document.querySelector('.tab[data-target="edit-essays"]');
-                        if (crudEssayTab) crudEssayTab.click();
-
-                        // Scroll to top
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                });
-            }
         })();
-
-        // Global utility to render JSON/Data cleanly in the new viewer
-        window.formatSystemData = function (data) {
-            if (typeof data === 'string') {
-                try {
-                    // Check if it's stringified JSON
-                    const parsed = JSON.parse(data);
-                    if (typeof parsed === 'object' && parsed !== null) {
-                        data = parsed;
-                    }
-                } catch (e) {
-                    // It's plain string/markdown text
-                    return `<div style="white-space: pre-wrap; font-family: monospace; font-size: 0.8rem; line-height: 1.4;">${data}</div>`;
-                }
-            }
-
-            if (typeof data === 'object' && data !== null) {
-                return `<pre style="margin: 0; background: #eee; padding: 8px; border-radius: 4px; font-size: 0.75rem; overflow-x: auto; color: #333;"><code>${JSON.stringify(data, null, 2)}</code></pre>`;
-            }
-
-            // Fallback
-            return `<span style="font-size: 0.85rem;">${String(data)}</span>`;
-        };
     </script>
 
 
@@ -1427,6 +1141,11 @@
     <script src="/private/js/blog_crud.js" defer></script>
     <script src="/private/js/edit_challenge_results.js" defer></script>
     <script src="/private/js/edit_wikipedia_results.js" defer></script>
+    <script src="/private/js/system_feed.js" type="module"></script>
+    <script type="module">
+        import { initSystemFeed } from '/private/js/system_feed.js';
+        document.addEventListener('DOMContentLoaded', initSystemFeed);
+    </script>
 
     <!-- Widget Scripts (ES Modules) -->
     <script type="module" src="/js/widgets/wgt_agent-chat.js"></script>

@@ -110,7 +110,10 @@ pub async fn handle_delete_record(
         tracing::warn!("ChromaDB delete failed for record {}: {}", id, e);
     }
 
-    (StatusCode::OK, Json(ApiResponse::<()>::success(format!("Record {} deleted", id), None)))
+    (
+        StatusCode::OK,
+        Json(ApiResponse::<()>::success(format!("Record {} deleted", id), None)),
+    )
         .into_response()
 }
 
@@ -341,7 +344,11 @@ pub async fn handle_expand_verse(Query(params): Query<ExpandVerseQuery>) -> impl
     }
 }
 
-pub async fn handle_draft_counts() -> impl IntoResponse {
-    let counts = app_core::types::system::draft_counts::DraftCounts::new(0, 0, 0);
-    (StatusCode::OK, Json(counts)).into_response()
+pub async fn handle_draft_counts(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_draft_counts().await {
+        Ok(counts) => (StatusCode::OK, Json(counts)).into_response(),
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
+        }
+    }
 }

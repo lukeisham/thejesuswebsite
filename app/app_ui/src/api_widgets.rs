@@ -26,66 +26,9 @@ use uuid::Uuid;
 ////////////////////////////////////////////////////////////////////////////////
 */
 
-pub async fn handle_spelling_check() -> impl IntoResponse {
-    Json(ApiResponse::<()>::success("Spelling check completed", None))
-}
+// --- Legacy spelling handlers removed (now in api_spelling.rs) ---
 
-pub async fn handle_spelling_check_all() -> impl IntoResponse {
-    Json(ApiResponse::<()>::success("Batch spelling check completed", None))
-}
-
-pub async fn handle_spellcheck_run() -> impl IntoResponse {
-    use app_core::types::SpellingIssue;
-    let issues = vec![
-        SpellingIssue {
-            bad_word: "prophecie".into(),
-            suggestion: Some("prophecy".into()),
-            text: "The prophecie was fulfilled".into(),
-            context: "Religious text".into(),
-        },
-        SpellingIssue {
-            bad_word: "Justification".into(),
-            suggestion: None,
-            text: "Justification by faith".into(),
-            context: "Theology".into(),
-        },
-    ];
-    Json(ApiResponse::success("Spellcheck run completed", Some(issues)))
-}
-
-pub async fn handle_spellcheck_correct() -> impl IntoResponse {
-    Json(ApiResponse::<()>::success("Correction applied", None))
-}
-
-pub async fn handle_spellcheck_add_dict() -> impl IntoResponse {
-    (
-        StatusCode::CREATED,
-        Json(ApiResponse::<()>::success("Word added to dictionary", None)),
-    )
-}
-
-pub async fn handle_deadlinks_run() -> impl IntoResponse {
-    use app_core::types::DeadlinkIssue;
-    let dead_links = vec![
-        DeadlinkIssue {
-            id: "201".into(),
-            url: "http://example-broken-site.com/jesus".into(),
-            status: "404".into(),
-            context: "External resource reference...".into(),
-        },
-        DeadlinkIssue {
-            id: "202".into(),
-            url: "https://wikipedia.org/wiki/some_missing_article".into(),
-            status: "404".into(),
-            context: "Wikipedia citation link".into(),
-        },
-    ];
-    Json(ApiResponse::success("Deadlinks scan completed", Some(dead_links)))
-}
-
-pub async fn handle_deadlinks_replace() -> impl IntoResponse {
-    Json(ApiResponse::<()>::success("Link replaced", None))
-}
+// --- Legacy deadlinks handlers removed (now in api_deadlinks.rs) ---
 
 /*
 ////////////////////////////////////////////////////////////////////////////////

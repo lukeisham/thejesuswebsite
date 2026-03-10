@@ -357,6 +357,45 @@ CREATE TABLE IF NOT EXISTS mentions (
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- SYSTEM DATA & MONITORING
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- Page metrics (performance tracking)
+CREATE TABLE IF NOT EXISTS page_metrics (
+    page_id          TEXT PRIMARY KEY,
+    views            INTEGER NOT NULL DEFAULT 0,
+    avg_time_on_page INTEGER NOT NULL DEFAULT 0, -- Seconds
+    bounce_rate      REAL NOT NULL DEFAULT 0.0
+);
+
+-- Spelling errors (audit tracking)
+CREATE TABLE IF NOT EXISTS spelling_errors (
+    error_id             TEXT PRIMARY KEY,
+    word                 TEXT NOT NULL,
+    location             TEXT NOT NULL,
+    suggested_correction TEXT,
+    severity             TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high')),
+    created_at           TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Deadlinks (link health tracking)
+CREATE TABLE IF NOT EXISTS deadlinks (
+    link_id      TEXT PRIMARY KEY,
+    url          TEXT NOT NULL,
+    source_page  TEXT NOT NULL,
+    http_status  INTEGER,
+    last_checked TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Self reflection (AI agent state logs)
+CREATE TABLE IF NOT EXISTS self_reflection (
+    reflection_id TEXT PRIMARY KEY,
+    topic         TEXT NOT NULL,
+    summary       TEXT NOT NULL,
+    timestamp     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- SECURITY LOGS
 -- ─────────────────────────────────────────────────────────────────────────────
 

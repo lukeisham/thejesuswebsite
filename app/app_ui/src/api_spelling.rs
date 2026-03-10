@@ -3,16 +3,17 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
 
+use crate::server::AppState;
+use axum::extract::State;
+use std::sync::Arc;
+
 /// Runs the AI spellcheck scan across the database.
-pub async fn handle_spellcheck_run() -> impl IntoResponse {
+pub async fn handle_spellcheck_run(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     use app_core::types::ApiResponse;
-    let issues = vec![SpellingIssue {
-        bad_word: "Jeseus".into(),
-        suggestion: Some("Jesus".into()),
-        text: "Jeseus wept.".into(),
-        context: "Record: Passion of the Christ".into(),
-    }];
-    Json(ApiResponse::success("Spellcheck scan completed", Some(issues)))
+    match state.storage.sqlite.get_recent_spelling_errors().await {
+        Ok(issues) => Json(ApiResponse::success("Spellcheck scan completed", Some(issues))),
+        Err(e) => Json(ApiResponse::error(format!("Database error: {}", e))),
+    }
 }
 
 /// Corrects a specific spelling issue.

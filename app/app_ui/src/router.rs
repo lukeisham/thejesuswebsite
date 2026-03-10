@@ -12,8 +12,8 @@ use crate::api_records::{
     handle_record_list, handle_save_record_draft, handle_update_record,
 };
 use crate::{
-    api_blog, api_contacts, api_donate, api_security, api_sources, api_spider, api_users,
-    api_widgets,
+    api_blog, api_contacts, api_donate, api_security, api_sources, api_spider, api_system,
+    api_users, api_widgets,
 };
 
 /// Creates the primary router for the app_ui service.
@@ -89,8 +89,7 @@ fn api_routes() -> Router<Arc<AppState>> {
         .route("/records/publish", post(handle_publish_record))
         .route(
             "/records/:id",
-            axum::routing::put(handle_update_record)
-                .delete(handle_delete_record),
+            axum::routing::put(handle_update_record).delete(handle_delete_record),
         )
         // Admin Widget Endpoints
         .route("/admin/security/logs", get(api_security::handle_get_security_logs))
@@ -116,10 +115,12 @@ fn api_routes() -> Router<Arc<AppState>> {
         .route("/tools/challenge/sort", post(crate::api_agents::handle_challenge_sort))
         .route("/contact/triage", get(api_contacts::handle_contact_triage))
         .route("/admin/populate", post(api_widgets::handle_admin_populate))
-        .route("/admin/wipe-records", axum::routing::delete(api_widgets::handle_admin_wipe_records))
+        .route(
+            "/admin/wipe-records",
+            axum::routing::delete(api_widgets::handle_admin_wipe_records),
+        )
         // Batch 4 Routes
-        .route("/spelling/check", post(api_widgets::handle_spelling_check))
-        .route("/spelling/check-all", post(api_widgets::handle_spelling_check_all))
+        // Legacy spelling triggers removed
         .route("/metrics/tokens", get(crate::api_tools::handle_token_metrics))
         .route("/tools/wiki/status", get(crate::api_tools::handle_wiki_status))
         .route("/tools/wiki/sync", post(crate::api_tools::handle_wiki_sync))
@@ -141,6 +142,7 @@ fn blog_routes() -> Router<Arc<AppState>> {
 /// Sub-router for core system metrics and counts.
 fn system_routes() -> Router<Arc<AppState>> {
     Router::new()
+        .route("/feed", get(api_system::handle_system_feed))
         .route("/draft_counts", get(crate::api_records::handle_draft_counts))
         .route("/server-info", get(crate::api_tools::handle_server_metrics))
         .route("/work-queue", get(crate::api_agents::handle_agent_queue))

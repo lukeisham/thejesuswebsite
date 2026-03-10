@@ -10,6 +10,7 @@ pub mod api_security;
 pub mod api_sources;
 pub mod api_spelling;
 pub mod api_spider;
+pub mod api_system;
 pub mod api_tools;
 pub mod api_users;
 pub mod api_weights;

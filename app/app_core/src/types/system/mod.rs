@@ -43,6 +43,7 @@ pub mod workspace;
 pub use bible_verse::*;
 pub use bible_verse_parser::*;
 pub use context_window::*;
+pub use draft_counts::*;
 pub use error::*;
 pub use id_academic_article::*;
 pub use id_geo::*;

@@ -124,11 +124,22 @@ pub async fn handle_agent_trace(State(state): State<Arc<AppState>>) -> impl Into
 }
 
 /// Retrieves a self-reflection summary from the lead research agent.
-pub async fn handle_agent_reflection() -> impl IntoResponse {
-    let response = ReflectionResponse {
-        reflection: "The agent is currently reflecting on its performance.".to_string(),
-    };
-    (StatusCode::OK, Json(response)).into_response()
+pub async fn handle_agent_reflection(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_recent_reflections().await {
+        Ok(reflections) => {
+            let combined = reflections
+                .iter()
+                .map(|r| r.reflection.clone())
+                .collect::<Vec<_>>()
+                .join("\n\n");
+            Json(ReflectionResponse {
+                reflection: combined,
+            })
+        }
+        Err(e) => Json(ReflectionResponse {
+            reflection: format!("Database error: {}", e),
+        }),
+    }
 }
 
 /// Provides AI-generated research suggestions based on the current state of the database.
