@@ -168,7 +168,33 @@
 
         <!-- Sidebar: Row 2 | Col 1 -->
         <aside style="grid-column: 1; grid-row: 2;">
-            <div id="sidebar"></div>
+            <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation" style="align-self: start;">
+                <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="nav-brand">
+                    <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;"><a href="/index.html" class="nav-link" data-page="records">The Jesus Website</a></h3>
+                </div>
+
+                <ul class="record-list" id="nav-main-links">
+                    <li><a href="/records.html" class="nav-link" data-page="records">Home</a></li>
+                    <li><a href="/evidence.html" class="nav-link" data-page="evidence">Sequence</a></li>
+                    <li><a href="/maps/maps.html" class="nav-link" data-page="maps">Maps</a></li>
+                    <li><a href="/timeline.html" class="nav-link" data-page="timeline">Timeline</a></li>
+                    <li><a href="/context.html" class="nav-link" data-page="context">Context</a></li>
+                    <li><a href="/challenge.html" class="nav-link" data-page="challenge">Challenges</a></li>
+                    <li><a href="/resources.html" class="nav-link" data-page="resources">Resources</a></li>
+                    <li><a href="/news_and_blog.html" class="nav-link" data-page="news">News</a></li>
+                    <li><a href="/about.html" class="nav-link" data-page="about">About</a></li>
+                </ul>
+
+                <ul class="record-list">
+                    <li><a href="/private/dashboard.html" class="nav-link" data-page="admin">Dashboard</a></li>
+                </ul>
+
+                <script src="/js/sidebar_toggle.js"></script>
+                <script src="/js/current_item_highlight.js"></script>
+            </nav>
         </aside>
 
         <!-- Main Content: Row 2 | Col 2 to End (2 / span 2) -->
@@ -739,7 +765,7 @@
                 <!-- Glossary row -->
                 <div class="a-grid a-cols-2 a-gap-md" style="grid-row: 4;">
                     <div class="dashboard-panel" id="dashboard-glossary"
-                        style="margin-top: 1rem; border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
+                        style="grid-column: 1 / -1; margin-top: 1rem; border-top: 2px solid var(--accent-color); font-family: var(--font-sans);">
                         <h3 style="margin-bottom: 0.5rem; color: var(--accent-color);">Glossary</h3>
                         <div id="glossary-content" style="line-height: 1.5;">
                             <p style="color: #666; font-style: italic;">Select a tab above to see specific guidance.</p>

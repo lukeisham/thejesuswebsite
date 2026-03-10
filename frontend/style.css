@@ -1330,6 +1330,10 @@ button:hover {
     min-width: 0;
 }
 
+.nav-brand a {
+    text-decoration: none;
+}
+
 .sidebar--collapsed .nav-brand,
 .sidebar--collapsed .record-list {
     display: none;

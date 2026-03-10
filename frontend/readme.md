@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "minor updates"
+git commit -m "minor post big records update fix"
 git push origin main
 
 update files
