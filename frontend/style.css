@@ -1332,6 +1332,10 @@ button:hover {
 
 .nav-brand a {
     text-decoration: none;
+    color: inherit;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: inherit;
 }
 
 .sidebar--collapsed .nav-brand,
