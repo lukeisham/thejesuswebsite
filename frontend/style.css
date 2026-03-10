@@ -743,6 +743,30 @@ input,
     border-radius: 4px;
 }
 
+/* --- Chat Inline Input --- */
+#chat-inline-input:empty::before {
+    content: attr(data-placeholder);
+    color: #999;
+    font-style: italic;
+    pointer-events: none;
+}
+
+#chat-inline-input {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-primary, #fff);
+    z-index: 1;
+}
+
+#chat-inline-input:focus {
+    background: #fff;
+    border-top-color: var(--accent-color);
+}
+
+#chat-inline-input br:only-child {
+    display: none;
+}
+
 /* --- System Health Feed --- */
 .system-feed {
     list-style: none;
@@ -1522,6 +1546,7 @@ button:hover {
     vertical-align: middle;
     margin-right: 8px;
 }
+
 /* ─────────────────────────────────────────────────────────────────────────────
    Glossary Panel Styles
    Each topic JS file (glossary_<topic>.js) emits HTML that uses these classes.
@@ -1569,7 +1594,7 @@ details.glossary-section {
     overflow: hidden;
 }
 
-details.glossary-section > summary {
+details.glossary-section>summary {
     cursor: pointer;
     background: #f3f3f3;
     padding: 0.45rem 0.75rem;
@@ -1580,26 +1605,26 @@ details.glossary-section > summary {
     user-select: none;
 }
 
-details.glossary-section > summary::-webkit-details-marker {
+details.glossary-section>summary::-webkit-details-marker {
     display: none;
 }
 
-details.glossary-section > summary::before {
+details.glossary-section>summary::before {
     content: "▶ ";
     font-size: 0.65rem;
     color: var(--accent-color);
 }
 
-details.glossary-section[open] > summary::before {
+details.glossary-section[open]>summary::before {
     content: "▼ ";
 }
 
-details.glossary-section > summary:hover {
+details.glossary-section>summary:hover {
     background: #e8e8e8;
 }
 
-details.glossary-section > div,
-details.glossary-section > table {
+details.glossary-section>div,
+details.glossary-section>table {
     padding: 0.5rem 0.75rem;
 }
 

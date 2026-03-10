@@ -19,19 +19,27 @@ const WIDGET_EVENTS = [
 // START initAgentChat
 export function initAgentChat() {
     const chatPanel = document.getElementById('chat-messages');
-    const inputField = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('chat-send');
 
-    if (!chatPanel || !inputField || !sendBtn) return;
+    if (!chatPanel) return;
 
     if (chatPanel.dataset.chatInit) return;
     chatPanel.dataset.chatInit = "true";
 
     try {
-        sendBtn.addEventListener('click', handleChatSubmit);
-        inputField.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleChatSubmit();
-        });
+
+        // Declared at try-block scope so both the keydown listener and the
+        // click-to-focus handler can safely reference it.
+        const inlineInput = document.getElementById('chat-inline-input');
+
+        // --- Inline contenteditable input ---
+        if (inlineInput) {
+            inlineInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevent newline insertion
+                    handleInlineChatSubmit();
+                }
+            });
+        }
 
         // Initialized Widget State Collector (§2.2)
         WIDGET_EVENTS.forEach(eventName => {
@@ -50,10 +58,28 @@ export function initAgentChat() {
             });
         });
 
-        // Clear placeholder on start
-        if (chatPanel.innerHTML.includes('Start a conversation')) {
-            chatPanel.innerHTML = '';
-        }
+        // Click anywhere in chat area focuses the inline input
+        chatPanel.addEventListener('click', (e) => {
+            if (!inlineInput) return; // guard if element missing
+
+            // Don't steal focus if user is selecting text in a message
+            const selection = window.getSelection();
+            if (selection && selection.toString().length > 0) return;
+
+            // Don't refocus if clicking on a link or button inside chat
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+
+            inlineInput.focus();
+
+            // Place cursor at end of any existing text
+            if (inlineInput.textContent.length > 0) {
+                const range = document.createRange();
+                range.selectNodeContents(inlineInput);
+                range.collapse(false); // collapse to end
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        });
 
         // Auto-monitoring
         const autoCheck = document.querySelector('#wgt-core-agent .wgt-auto');
@@ -88,6 +114,12 @@ export function initAgentChat() {
                 pollInterval = setInterval(heartbeat, 30000);
             }
         }
+
+        // Auto-focus the inline input when the dashboard loads
+        setTimeout(() => {
+            if (inlineInput) inlineInput.focus();
+        }, 300);
+
     } catch (error) {
         console.error("Chat initialization failed:", error);
     }
@@ -121,6 +153,23 @@ function appendMessage(role, text, isAgent = false) {
     const history = document.getElementById('chat-messages');
     if (!history) return;
 
+    const msgDiv = createMessageElement(role, text, isAgent);
+    const inlineInput = document.getElementById('chat-inline-input');
+
+    if (inlineInput && inlineInput.parentNode === history) {
+        history.insertBefore(msgDiv, inlineInput);
+    } else {
+        history.appendChild(msgDiv);
+    }
+
+    history.scrollTop = history.scrollHeight;
+    return msgDiv;
+}
+
+/**
+ * Helper to create a message element WITHOUT appending it
+ */
+function createMessageElement(role, text, isAgent = false) {
     const msgDiv = document.createElement('div');
     msgDiv.style.marginBottom = '8px';
     if (isAgent) {
@@ -137,40 +186,38 @@ function appendMessage(role, text, isAgent = false) {
 
     msgDiv.appendChild(roleStrong);
     msgDiv.appendChild(textSpan);
-    history.appendChild(msgDiv);
-    history.scrollTop = history.scrollHeight;
-
     return msgDiv;
 }
 
-// START handleChatSubmit
-async function handleChatSubmit() {
-    const inputField = document.getElementById('chat-input');
+// START handleInlineChatSubmit
+async function handleInlineChatSubmit() {
+    const inlineInput = document.getElementById('chat-inline-input');
     const history = document.getElementById('chat-messages');
-    const message = inputField.value.trim();
+    if (!inlineInput || !history) return;
 
+    const message = inlineInput.textContent.trim();
     if (!message) return;
 
-    // Remove placeholder if it still exists
-    if (history.innerHTML.includes('Start a conversation')) {
-        history.innerHTML = '';
-    }
+    // Clear the inline input
+    inlineInput.textContent = '';
 
-    // Append User Message
+    // Append user message to chat
     appendMessage('Admin', message, false);
-    inputField.value = '';
 
-    // Update status to Thinking
-    updateWidgetStatus('active', 'Thinking...');
-
-    // Add a temporary loading message
-    const loadingDiv = document.createElement('div');
-    loadingDiv.style.cssText = "margin-bottom:8px; border-left: 2px solid var(--accent-color); padding-left: 5px; color: #888;";
-    loadingDiv.innerHTML = `<strong>Agent:</strong> Working...`;
-    history.appendChild(loadingDiv);
+    // Scroll to bottom
     history.scrollTop = history.scrollHeight;
 
-    // Interaction Mode Detection (§2.1)
+    // Show thinking indicator
+    updateWidgetStatus('active', 'Thinking...');
+
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'agent-loading';
+    loadingDiv.style.cssText = "margin-bottom:8px; border-left: 2px solid var(--accent-color); padding-left: 5px; color: #888;";
+    loadingDiv.innerHTML = `<strong>Agent:</strong> Working...`;
+    // Insert loading indicator BEFORE the inline input (so input stays at bottom)
+    history.insertBefore(loadingDiv, inlineInput);
+
+    // Detect interaction mode
     const mode = detectInteractionMode(message);
 
     try {
@@ -189,37 +236,32 @@ async function handleChatSubmit() {
 
         if (response.ok) {
             updateWidgetStatus('active', 'Online');
-            appendMessage('Agent', result.response, true);
+            // Insert agent response BEFORE the inline input
+            const agentMsg = createMessageElement('Agent', result.response, true);
+            history.insertBefore(agentMsg, inlineInput);
 
-            // Handle Phase 4 Actions (Verification Protocol)
             if (result.action) {
                 handleAgentAction(result);
             }
 
-            // Handle structured data for the System Data Viewer
             if (result.data) {
                 pushToViewer(result.data);
-                const infoDiv = document.createElement('div');
-                infoDiv.style.cssText = "margin-bottom:8px; font-size: 0.85rem; color: #666; font-style: italic;";
-                infoDiv.textContent = "[Data pushed to System Data Viewer]";
-                history.appendChild(infoDiv);
             }
         } else {
             updateWidgetStatus('error', 'Error');
-            const errorDiv = document.createElement('div');
-            errorDiv.style.cssText = "color: red; margin-bottom: 8px; border-left: 2px solid red; padding-left: 5px;";
-            errorDiv.innerHTML = `<strong>Agent Error:</strong> ${result.response || 'Unknown error'}`;
-            history.appendChild(errorDiv);
+            const errMsg = createMessageElement('Agent', 'Sorry, something went wrong. Please try again.', true);
+            history.insertBefore(errMsg, inlineInput);
         }
     } catch (error) {
-        updateWidgetStatus('error', 'Error');
-        loadingDiv.remove();
-        const errorDiv = document.createElement('div');
-        errorDiv.style.color = 'red';
-        errorDiv.textContent = `Failed to send message: ${error.message}`;
-        history.appendChild(errorDiv);
+        if (loadingDiv.parentNode) loadingDiv.remove();
+        updateWidgetStatus('error', 'Offline');
+        const errMsg = createMessageElement('Agent', 'Unable to reach the agent. Check your connection.', true);
+        history.insertBefore(errMsg, inlineInput);
     }
+
+    // Keep input visible and scrolled into view
     history.scrollTop = history.scrollHeight;
+    inlineInput.focus();
 }
 
 /**
@@ -300,7 +342,13 @@ function showVerificationPrompt(action, context) {
         <button id="verify-cancel" style="padding:4px 12px; background:#dc3545; color:white; border:none; border-radius:3px; cursor:pointer;">Cancel</button>
     `;
 
-    history.appendChild(promptDiv);
+    // Insert before the inline input so the prompt stays visible above it
+    const inlineInput = document.getElementById('chat-inline-input');
+    if (inlineInput && inlineInput.parentNode === history) {
+        history.insertBefore(promptDiv, inlineInput);
+    } else {
+        history.appendChild(promptDiv);
+    }
     history.scrollTop = history.scrollHeight;
 
     document.getElementById('verify-proceed').addEventListener('click', () => {
