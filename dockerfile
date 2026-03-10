@@ -43,6 +43,9 @@ COPY --from=builder /app/target/release/app_ui ./agentic-hub
 # Copy the frontend folder
 COPY frontend/ ./frontend/
 
+# Copy runtime config files
+COPY news_sources.toml ./news_sources.toml
+
 # Ensure runtime data directory exists
 RUN mkdir -p /app/data
 
