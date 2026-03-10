@@ -8,6 +8,49 @@
 
 ---
 
+## Implementation Status (Post-Review)
+
+**Reviewed:** March 10, 2026 — Gemini Flash implementation reviewed and patched by Claude.
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| Phase 1 | Backend stub fixes + unified `/api/v1/system/feed` endpoint | ✅ Complete |
+| Phase 2 | Remove tabs/buttons, create feed container in dashboard.html | ✅ Complete |
+| Phase 3 | `system_feed.js` module (fetch, render, alerts, timer) | ✅ Complete (patched) |
+| Phase 4 | Remove orphaned event listeners and data structures | ✅ Complete |
+| Phase 5 | CSS — `.system-feed`, `.system-alert` rules | ✅ Complete (patched) |
+
+**Patches applied by Claude after review:**
+
+The following bugs were found in Gemini Flash's output and corrected:
+
+| File | Bug | Fix |
+|------|-----|-----|
+| `system_feed.js` | `feed.draft_counts.record_drafts` — wrong field name | Changed to `feed.drafts.records` (matches `DraftCounts` struct) |
+| `system_feed.js` | `feed.security_logs` — wrong field name | Changed to `feed.security` throughout |
+| `system_feed.js` | `feed.spelling_errors` — wrong field name | Changed to `feed.spelling` throughout |
+| `system_feed.js` | `feed.server_metrics.cpu_usage` — field does not exist | Replaced with `feed.server_metrics.ram_usage` (string, not float) |
+| `system_feed.js` | Category list included `token_metrics` — not in API response | Removed; replaced with `trace` which is in the response |
+| `system_feed.js` | `case 'spelling_errors'` in `formatItemSummary` | Changed to `case 'spelling'` |
+| `system_feed.js` | `case 'security_logs'` in `formatItemSummary` | Changed to `case 'security'` |
+| `system_feed.js` | `log.timestamp` in security alert dedup key — field is `created_at` | Changed to `log.created_at` |
+| `system_feed.js` | All inline style strings on DOM elements | Replaced with CSS classes from `style.css` |
+| `style.css` | No `.system-feed`, `.system-alert`, or `.feed-category-header` rules | Added full ruleset under `/* --- System Health Feed --- */` |
+
+**Second review — pipeline trace (DB → Rust DTOs → JSON → JS):**
+
+| File | Bug | Fix |
+|------|-----|-----|
+| `system_feed.js` | `item.task_name` in work_queue case — `WorkQueueItem` has `task` | Changed to `item.task` |
+| `system_feed.js` | `item.summary` in reflections case — `ReflectionResponse` has `reflection` | Changed to `item.reflection` |
+| `system_feed.js` | `item.step` in trace case — `AgentTraceStep` has `action` and `reasoning` | Changed to `item.action \|\| item.reasoning` |
+| `system_feed.js` | `item.path` in page_metrics case — `PageMetric` has `page_id` | Changed to `item.page_id` |
+| `system_feed.js` | `item.view_count` in page_metrics case — `PageMetric` has `views` | Changed to `item.views` |
+
+**Known non-issue:** `wgt-draft-results` is referenced in JS but has no matching widget element in `dashboard.html`. The `updateWidgetStatus()` function returns silently when the element is not found (line 83), so this causes no runtime error. A drafts widget card can be added to the dashboard later if desired.
+
+---
+
 ## Overview
 
 The System Data Viewer currently displays system health data through an interactive tabbed interface. This refactor transforms it into a passive, auto-refreshing feed that:

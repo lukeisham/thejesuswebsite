@@ -42,14 +42,14 @@ function updateWidgets(feed) {
     updateWidgetStatus('wgt-contact-triage', feed.contacts.length > 0 ? 'warning' : 'idle',
         `${feed.contacts.length} Unread`);
 
-    // 2. Drafts
-    const totalDrafts = feed.draft_counts.record_drafts + feed.draft_counts.essay_drafts;
+    // 2. Drafts — API returns feed.drafts { records, essays, responses }
+    const totalDrafts = (feed.drafts.records || 0) + (feed.drafts.essays || 0) + (feed.drafts.responses || 0);
     updateWidgetStatus('wgt-draft-results', totalDrafts > 0 ? 'active' : 'idle',
         `${totalDrafts} Pending`);
 
-    // 3. Security
-    updateWidgetStatus('wgt-security', feed.security_logs.length > 5 ? 'error' : 'active',
-        `${feed.security_logs.length} Recent Logs`);
+    // 3. Security — API field is feed.security (not feed.security_logs)
+    updateWidgetStatus('wgt-security', feed.security.length > 5 ? 'error' : 'active',
+        `${feed.security.length} Recent Logs`);
 
     // 4. Work Queue
     updateWidgetStatus('wgt-agent-workflow', feed.work_queue.length > 0 ? 'active' : 'idle',
@@ -58,9 +58,9 @@ function updateWidgets(feed) {
     // 5. Reflections
     updateWidgetStatus('wgt-self-reflection', 'active', 'Monitoring');
 
-    // 6. Spelling
-    updateWidgetStatus('wgt-spelling', feed.spelling_errors.length > 0 ? 'warning' : 'active',
-        `${feed.spelling_errors.length} Issues`);
+    // 6. Spelling — API field is feed.spelling (not feed.spelling_errors)
+    updateWidgetStatus('wgt-spelling', feed.spelling.length > 0 ? 'warning' : 'active',
+        `${feed.spelling.length} Issues`);
 
     // 7. Deadlinks
     updateWidgetStatus('wgt-deadlinks', feed.deadlinks.length > 0 ? 'error' : 'active',
@@ -69,9 +69,10 @@ function updateWidgets(feed) {
     // 8. Page Metrics
     updateWidgetStatus('wgt-page-metrics', 'active', 'Tracking');
 
-    // 9. Server Metrics
+    // 9. Server Metrics — API returns string fields: ram_usage, disk_usage, llm_api, tokens_today/week/month
+    //    There is no cpu_usage field; use ram_usage as primary indicator.
     updateWidgetStatus('wgt-server-metrics', 'active',
-        `CPU: ${feed.server_metrics.cpu_usage.toFixed(1)}%`);
+        `RAM: ${feed.server_metrics.ram_usage}`);
 
     // 10. Trace
     updateWidgetStatus('wgt-core-agent', 'active', 'Online');
@@ -100,14 +101,14 @@ function renderUnifiedFeed(feed) {
 
     const categories = [
         { key: 'server_metrics', label: 'SERVER' },
-        { key: 'token_metrics', label: 'TOKENS' },
-        { key: 'security_logs', label: 'SECURITY' },
+        { key: 'security', label: 'SECURITY' },
         { key: 'contacts', label: 'CONTACTS' },
         { key: 'work_queue', label: 'QUEUE' },
         { key: 'reflections', label: 'REFLECTION' },
+        { key: 'trace', label: 'AGENT TRACE' },
         { key: 'page_metrics', label: 'METRICS' },
         { key: 'deadlinks', label: 'DEADLINKS' },
-        { key: 'spelling_errors', label: 'SPELLING' }
+        { key: 'spelling', label: 'SPELLING' }
     ];
 
     categories.forEach(cat => {
@@ -116,19 +117,18 @@ function renderUnifiedFeed(feed) {
 
         const li = document.createElement('li');
         li.className = 'feed-category-header';
-        li.style.cssText = 'padding: 4px 8px; background: #eee; font-size: 0.7rem; font-weight: bold; margin-top: 10px; border-radius: 4px;';
         li.textContent = cat.label;
         list.appendChild(li);
 
         if (cat.key === 'server_metrics') {
             const itemLi = document.createElement('li');
-            itemLi.style.padding = '8px 0; border-bottom: 1px solid #eee; font-size: 0.8rem;';
-            itemLi.innerHTML = `CPU: ${feed.server_metrics.cpu_usage.toFixed(1)}% | RAM: ${feed.server_metrics.memory_usage.toFixed(1)}%`;
+            const sm = feed.server_metrics;
+            itemLi.innerHTML = `RAM: ${sm.ram_usage} | Disk: ${sm.disk_usage} | LLM: ${sm.llm_api}<br>`
+                + `Tokens: ${sm.tokens_today} today / ${sm.tokens_week} this week / ${sm.tokens_month} this month`;
             list.appendChild(itemLi);
         } else {
             items.slice(0, 5).forEach(item => {
                 const itemLi = document.createElement('li');
-                itemLi.style.padding = '8px 0; border-bottom: 1px solid #eee; font-size: 0.8rem;';
                 itemLi.innerHTML = formatItemSummary(item, cat.key);
                 list.appendChild(itemLi);
             });
@@ -142,20 +142,29 @@ function renderUnifiedFeed(feed) {
 
 function formatItemSummary(item, key) {
     switch (key) {
-        case 'spelling_errors':
+        case 'spelling':
+            // SpellingIssue fields: bad_word, suggestion (Option), text, context, severity
             return `<strong>${item.bad_word}</strong> &rarr; ${item.suggestion || 'None'} <br><small>${item.context}</small>`;
         case 'deadlinks':
+            // DeadlinkIssue fields: id, url, status, context, last_checked
             return `<strong>${item.url}</strong> <span class="label" style="background:#fee2e2; color:#991b1b; padding: 2px 4px; border-radius: 3px; font-size: 0.7rem;">${item.status}</span>`;
-        case 'security_logs':
+        case 'security':
+            // SecurityLogResponse fields: event_type, created_at, ip_address, details
             return `<strong>${item.event_type}</strong> - ${item.ip_address || 'Unknown IP'}`;
         case 'work_queue':
-            return `<strong>${item.task_name}</strong> [${item.status}]`;
+            // WorkQueueItem fields: task, status, description (Option)
+            return `<strong>${item.task}</strong> [${item.status}]`;
         case 'contacts':
             return `<strong>${item.name}</strong>: ${item.subject}`;
         case 'reflections':
-            return `<small>${item.summary}</small>`;
+            // ReflectionResponse fields: reflection (not summary)
+            return `<small>${item.reflection}</small>`;
+        case 'trace':
+            // AgentTraceStep fields: action (Option), reasoning (Option)
+            return `<small>${item.action || item.reasoning || JSON.stringify(item)}</small>`;
         case 'page_metrics':
-            return `<strong>${item.path}</strong>: ${item.view_count} views`;
+            // PageMetric fields: page_id (not path), views (not view_count), avg_time_on_page, bounce_rate
+            return `<strong>${item.page_id}</strong>: ${item.views} views`;
         default:
             return JSON.stringify(item);
     }
@@ -174,19 +183,19 @@ function checkForAlerts(feed) {
         }
     }
 
-    // 2. Spelling Alert
-    if (feed.spelling_errors.length > 0) {
-        const alertKey = `spelling-${feed.spelling_errors.length}`;
+    // 2. Spelling Alert — API field is feed.spelling
+    if (feed.spelling.length > 0) {
+        const alertKey = `spelling-${feed.spelling.length}`;
         if (!alertCache.has(alertKey)) {
-            injectAlert(chatContainer, `⚠️ Found ${feed.spelling_errors.length} new spelling errors in recent articles.`);
+            injectAlert(chatContainer, `⚠️ Found ${feed.spelling.length} new spelling errors in recent articles.`);
             alertCache.add(alertKey);
         }
     }
 
-    // 3. Security Alert
-    feed.security_logs.forEach(log => {
+    // 3. Security Alert — API field is feed.security; timestamp field is created_at
+    feed.security.forEach(log => {
         if (log.event_type.toLowerCase().includes('fail') || log.event_type.toLowerCase().includes('unauthorized')) {
-            const alertKey = `security-${log.timestamp}-${log.ip_address}`;
+            const alertKey = `security-${log.created_at}-${log.ip_address}`;
             if (!alertCache.has(alertKey)) {
                 injectAlert(chatContainer, `🚨 Security Alert: ${log.event_type} detected from ${log.ip_address || 'unknown'}`);
                 alertCache.add(alertKey);
@@ -198,7 +207,6 @@ function checkForAlerts(feed) {
 function injectAlert(container, message) {
     const alertDiv = document.createElement('div');
     alertDiv.className = 'system-alert';
-    alertDiv.style.cssText = 'padding: 10px; margin: 10px 0; background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 4px; font-size: 0.9rem; color: #92400e; box-shadow: 0 1px 2px rgba(0,0,0,0.05);';
     alertDiv.innerHTML = `<div style="display:flex; gap:10px; align-items:center;">
         <span style="font-size:1.2rem;">ℹ️</span>
         <div>${message}</div>
