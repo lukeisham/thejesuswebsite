@@ -101,25 +101,30 @@
 
     <h4 class="glossary-heading">System Feed Data Flow</h4>
     <pre class="glossary-diagram">
-Browser → GET /api/v1/system/feed 
-  → AppState.storage 
-  → SQLite (10 parallel queries) 
-  → SystemFeedResponse JSON
+[Browser] 
+   -- (HTTP GET /api/v1/system/feed) --> 
+[AppState] 
+   -- (Read Access / RwLock) --> 
+[SQLite Storage] 
+   -- (10x Parallel SQL Queries) --> 
+[Rust Structs] 
+   -- (Serde / JSON Sterilization) --> 
+[JSON Response]
     </pre>
 
     <h4 class="glossary-heading">The 10 Categories</h4>
     <pre class="glossary-diagram">
 +----------------------------------------------------------------------------+
-| contacts       → SQLite: contacts table                                    |
-| drafts         → SQLite: essays, records, challenges, responses tables     |
-| security       → SQLite: security_log table                                |
-| work_queue     → In-memory: WorkQueue (VecDeque)                           |
-| reflections    → SQLite: agent_reflections table                           |
-| trace          → SQLite: trace_reasoning table                             |
-| spelling       → SQLite: spelling_issues table                             |
-| deadlinks      → SQLite: deadlinks table                                   |
-| page_metrics   → SQLite: page_metrics table                                |
-| server_metrics → SQLite: server_metrics table (written by metrics collector) |
+| contacts       → SQLite: contacts (id: UUID)                               |
+| drafts         → SQLite: essays, records, challenges (id: rowid)           |
+| security       → SQLite: security_log (id: rowid)                          |
+| work_queue     → In-memory: VecDeque&lt;WorkItem&gt; (capacity-gated)            |
+| reflections    → SQLite: agent_reflections (id: rowid)                     |
+| trace          → SQLite: trace_reasoning (trace_id: rowid)                 |
+| spelling       → SQLite: spelling_issues (issue_id: rowid)                 |
+| deadlinks      → SQLite: deadlinks (link_id: rowid)                        |
+| page_metrics   → SQLite: page_metrics (page_path: TEXT)                    |
+| server_metrics → SQLite: server_metrics (row_id: 1)                        |
 +----------------------------------------------------------------------------+
     </pre>
 
