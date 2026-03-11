@@ -215,7 +215,20 @@ CREATE TABLE IF NOT EXISTS sources (
     author_type TEXT NOT NULL CHECK (author_type IN ('Name', 'Orcid')),
     author_val  TEXT NOT NULL,
     title_text  TEXT NOT NULL,
-    identity    TEXT                     -- JSON SourceIdentity or NULL
+    identity    TEXT,                    -- JSON SourceIdentity or NULL
+    year        INTEGER,                 -- Publication year (1000–2100) or NULL
+    source_type TEXT CHECK (source_type IN ('Book', 'Article', 'WebSource'))
+);
+
+-- Junction table: links a source to a content page
+-- Supports essays, records, responses, and historiography pages.
+CREATE TABLE IF NOT EXISTS page_sources (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id   INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    page_slug   TEXT    NOT NULL,        -- e.g. "crucifixion", "john-1"
+    page_type   TEXT    NOT NULL CHECK (page_type IN ('essay', 'record', 'response', 'historiography')),
+    created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (source_id, page_slug, page_type)  -- prevent duplicate citations
 );
 
 -- Bible verses

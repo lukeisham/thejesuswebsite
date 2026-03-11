@@ -1,11 +1,14 @@
 use app_core::types::dtos::{
-    AgentTraceStep, DeadlinkIssue, DraftRecordRequest, MentionItem, PageMetric, ReflectionResponse,
-    ServerMetricsResponse, SpellingIssue, TokenMetricsResponse, WorkQueueItem,
+    AgentTraceStep, AuditedPageSource, DeadlinkIssue, DraftRecordRequest, LinkSourceRequest,
+    MentionItem, PageMetric, ReflectionResponse, ServerMetricsResponse, SourceAuditReport,
+    SpellingIssue, TokenMetricsResponse, WorkQueueItem,
 };
 use app_core::types::essays_and_ranks::challenge::{
     Academic, AcademicChallenge, Popular, PopularChallenge,
 };
 use app_core::types::record::record::Record;
+use app_core::types::system::publication_year::PublicationYear;
+use app_core::types::system::source_type::SourceType;
 use app_core::types::system::Metadata;
 use app_core::types::{
     Author, Contact, ContactMessage, NewsItem, NewsItemId, RawNewsItem, SecurityEventType,
@@ -310,10 +313,11 @@ impl SqliteStorage {
     // --- SOURCES ---
 
     pub async fn get_sources(&self) -> Result<Vec<Source>, sqlx::Error> {
-        let rows =
-            sqlx::query("SELECT id, author_type, author_val, title_text, identity FROM sources")
-                .fetch_all(&self.pool)
-                .await?;
+        let rows = sqlx::query(
+            "SELECT id, author_type, author_val, title_text, identity, year, source_type FROM sources",
+        )
+        .fetch_all(&self.pool)
+        .await?;
 
         let mut sources = Vec::new();
         for r in rows {
@@ -329,6 +333,14 @@ impl SqliteStorage {
                 .get::<Option<String>, _>("identity")
                 .and_then(|s| serde_json::from_str(&s).ok());
 
+            let year: Option<PublicationYear> = r
+                .get::<Option<i64>, _>("year")
+                .and_then(|y| PublicationYear::try_new(y as u16).ok());
+
+            let source_type: Option<SourceType> = r
+                .get::<Option<String>, _>("source_type")
+                .and_then(|s| SourceType::parse(&s).ok());
+
             sources.push(Source {
                 id: Some(r.get("id")),
                 author,
@@ -336,6 +348,8 @@ impl SqliteStorage {
                     text: r.get("title_text"),
                     identity,
                 },
+                year,
+                source_type,
             });
         }
         Ok(sources)
@@ -353,13 +367,19 @@ impl SqliteStorage {
             .as_ref()
             .and_then(|i| serde_json::to_string(i).ok());
 
+        let year: Option<i64> = source.year.map(|y| y.value() as i64);
+        let source_type: Option<&str> = source.source_type.as_ref().map(|t| t.as_str());
+
         let result = sqlx::query(
-            "INSERT INTO sources (author_type, author_val, title_text, identity) VALUES (?, ?, ?, ?)",
+            "INSERT INTO sources (author_type, author_val, title_text, identity, year, source_type)
+             VALUES (?, ?, ?, ?, ?, ?)",
         )
         .bind(author_type)
         .bind(author_val)
         .bind(&source.title.text)
         .bind(identity_json)
+        .bind(year)
+        .bind(source_type)
         .execute(&self.pool)
         .await?;
 
@@ -372,6 +392,112 @@ impl SqliteStorage {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+
+    /// Links a source to a content page (idempotent — duplicate citations are silently ignored).
+    pub async fn link_source_to_page(&self, req: &LinkSourceRequest) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            "INSERT OR IGNORE INTO page_sources (source_id, page_slug, page_type)
+             VALUES (?, ?, ?)",
+        )
+        .bind(req.source_id)
+        .bind(&req.page_slug)
+        .bind(&req.page_type)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    /// Returns all page-source citations for a given page slug.
+    pub async fn get_sources_for_page(
+        &self,
+        page_slug: &str,
+    ) -> Result<Vec<Source>, sqlx::Error> {
+        let rows = sqlx::query(
+            "SELECT s.id, s.author_type, s.author_val, s.title_text, s.identity, s.year, s.source_type
+             FROM sources s
+             JOIN page_sources ps ON ps.source_id = s.id
+             WHERE ps.page_slug = ?
+             ORDER BY s.title_text ASC",
+        )
+        .bind(page_slug)
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut sources = Vec::new();
+        for r in rows {
+            let author_type: String = r.get("author_type");
+            let author_val: String = r.get("author_val");
+            let author = match author_type.as_str() {
+                "Name" => Author::Name(author_val),
+                "Orcid" => Author::Orcid(author_val),
+                _ => Author::Name(author_val),
+            };
+            let identity: Option<SourceIdentity> = r
+                .get::<Option<String>, _>("identity")
+                .and_then(|s| serde_json::from_str(&s).ok());
+            let year: Option<PublicationYear> = r
+                .get::<Option<i64>, _>("year")
+                .and_then(|y| PublicationYear::try_new(y as u16).ok());
+            let source_type: Option<SourceType> = r
+                .get::<Option<String>, _>("source_type")
+                .and_then(|s| SourceType::parse(&s).ok());
+
+            sources.push(Source {
+                id: Some(r.get("id")),
+                author,
+                title: SourceTitle { text: r.get("title_text"), identity },
+                year,
+                source_type,
+            });
+        }
+        Ok(sources)
+    }
+
+    /// Runs an audit: compares all sources against page citations and returns a report.
+    pub async fn audit_sources(&self) -> Result<SourceAuditReport, sqlx::Error> {
+        let now = chrono::Utc::now().to_rfc3339();
+
+        // Total source count
+        let total_row = sqlx::query("SELECT COUNT(*) as cnt FROM sources")
+            .fetch_one(&self.pool)
+            .await?;
+        let total_sources: i64 = total_row.get("cnt");
+
+        // Cited source count (distinct source_ids in page_sources)
+        let cited_row =
+            sqlx::query("SELECT COUNT(DISTINCT source_id) as cnt FROM page_sources")
+                .fetch_one(&self.pool)
+                .await?;
+        let cited_sources: i64 = cited_row.get("cnt");
+
+        // All individual citations with source title
+        let citation_rows = sqlx::query(
+            "SELECT ps.source_id, s.title_text, ps.page_slug, ps.page_type
+             FROM page_sources ps
+             JOIN sources s ON s.id = ps.source_id
+             ORDER BY ps.page_slug ASC, s.title_text ASC",
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let citations: Vec<AuditedPageSource> = citation_rows
+            .into_iter()
+            .map(|r| AuditedPageSource {
+                source_id: r.get::<i64, _>("source_id"),
+                title: r.get("title_text"),
+                page_slug: r.get("page_slug"),
+                page_type: r.get("page_type"),
+            })
+            .collect();
+
+        Ok(SourceAuditReport {
+            total_sources: total_sources as usize,
+            cited_sources: cited_sources as usize,
+            uncited_sources: (total_sources - cited_sources).max(0) as usize,
+            citations,
+            audited_at: now,
+        })
     }
 
     // --- CHALLENGES ---

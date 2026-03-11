@@ -279,7 +279,9 @@ impl TryFrom<CreateSourceRequest> for crate::types::system::source::Source {
     type Error = String;
 
     fn try_from(req: CreateSourceRequest) -> Result<Self, Self::Error> {
+        use crate::types::system::publication_year::PublicationYear;
         use crate::types::system::source::{Author, SourceIdentity, SourceTitle};
+        use crate::types::system::source_type::SourceType;
 
         let author = if let Some(orcid) = req.author_orcid {
             Author::Orcid(orcid)
@@ -297,6 +299,26 @@ impl TryFrom<CreateSourceRequest> for crate::types::system::source::Source {
             None
         };
 
+        // Parse optional publication year (u16 range validated by PublicationYear)
+        let year = if let Some(y) = req.year {
+            if y < 0 || y > 65535 {
+                return Err(format!("Publication year {} is out of valid range.", y));
+            }
+            Some(
+                PublicationYear::try_new(y as u16)
+                    .map_err(|e| e.to_string())?,
+            )
+        } else {
+            None
+        };
+
+        // Parse optional source type string
+        let source_type = if !req.source_type_str.trim().is_empty() {
+            Some(SourceType::parse(&req.source_type_str).map_err(|e| e.to_string())?)
+        } else {
+            None
+        };
+
         Ok(Self {
             id: None,
             author,
@@ -304,6 +326,8 @@ impl TryFrom<CreateSourceRequest> for crate::types::system::source::Source {
                 text: req.title_text,
                 identity,
             },
+            year,
+            source_type,
         })
     }
 }
@@ -589,4 +613,51 @@ pub struct ContactTriageResponse {
 pub struct SummaryResponse {
     /// Concise summary of the operation result.
     pub summary: String,
+}
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               SOURCE AUDIT DTOs                            //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
+/// A single source citation found on a content page by the auditor.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AuditedPageSource {
+    /// The source ID from the sources table.
+    pub source_id: i64,
+    /// Human-readable title of the source.
+    pub title: String,
+    /// The page slug this citation was found on.
+    pub page_slug: String,
+    /// The type of content page (essay, record, response, historiography).
+    pub page_type: String,
+}
+
+/// Result of an audit run — comparing published sources against page citations.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SourceAuditReport {
+    /// Total number of sources in the global sources table.
+    pub total_sources: usize,
+    /// Sources that are linked to at least one content page.
+    pub cited_sources: usize,
+    /// Sources in the table with no page citation (orphans).
+    pub uncited_sources: usize,
+    /// Full list of page-source citation records found.
+    pub citations: Vec<AuditedPageSource>,
+    /// ISO 8601 timestamp of when this audit was run.
+    pub audited_at: String,
+}
+
+/// Request to link a source to a content page (used by source_publisher.js).
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LinkSourceRequest {
+    /// The source ID from the sources table.
+    pub source_id: i64,
+    /// The slug of the page being cited (e.g., "crucifixion", "john-1").
+    pub page_slug: String,
+    /// The content type: "essay", "record", "response", or "historiography".
+    pub page_type: String,
 }

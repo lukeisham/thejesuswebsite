@@ -1,9 +1,11 @@
 use crate::server::AppState;
+use app_core::types::dtos::{LinkSourceRequest, SourceAuditReport};
 use app_core::types::ApiResponse;
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
+use serde::Deserialize;
 use std::sync::Arc;
 
 /*
@@ -57,6 +59,64 @@ pub async fn handle_get_sources(State(state): State<Arc<AppState>>) -> impl Into
     match state.storage.sqlite.get_sources().await {
         Ok(sources) => {
             Json(ApiResponse::success("Sources retrieved", Some(sources))).into_response()
+        }
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::<()>::error(e.to_string())))
+                .into_response()
+        }
+    }
+}
+
+/// Query params for fetching sources by page slug.
+#[derive(Deserialize)]
+pub struct PageSourcesQuery {
+    pub slug: String,
+}
+
+/// Returns all sources linked to a specific page slug.
+/// Called by source_publisher.js to render the inline bibliography.
+/// GET /api/v1/sources/page?slug=<page-slug>
+pub async fn handle_get_page_sources(
+    State(state): State<Arc<AppState>>,
+    Query(params): Query<PageSourcesQuery>,
+) -> impl IntoResponse {
+    match state.storage.sqlite.get_sources_for_page(&params.slug).await {
+        Ok(sources) => {
+            Json(ApiResponse::success("Page sources retrieved", Some(sources))).into_response()
+        }
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::<()>::error(e.to_string())))
+                .into_response()
+        }
+    }
+}
+
+/// Links a source to a content page.
+/// Called by source_publisher.js after the user confirms a citation.
+/// POST /api/v1/admin/sources/link
+pub async fn handle_link_source_to_page(
+    State(state): State<Arc<AppState>>,
+    Json(req): Json<LinkSourceRequest>,
+) -> impl IntoResponse {
+    match state.storage.sqlite.link_source_to_page(&req).await {
+        Ok(_) => Json(ApiResponse::<()>::success("Source linked to page", None)).into_response(),
+        Err(e) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::<()>::error(e.to_string())))
+                .into_response()
+        }
+    }
+}
+
+/// Runs an audit comparing all sources against page citations.
+/// Called by source_auditor.js on the sources architecture page.
+/// GET /api/v1/admin/sources/audit
+pub async fn handle_audit_sources(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    match state.storage.sqlite.audit_sources().await {
+        Ok(report) => {
+            Json(ApiResponse::<SourceAuditReport>::success("Audit complete", Some(report)))
+                .into_response()
         }
         Err(e) => {
             (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::<()>::error(e.to_string())))

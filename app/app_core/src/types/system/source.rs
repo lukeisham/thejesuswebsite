@@ -1,3 +1,5 @@
+use crate::types::system::publication_year::{PublicationYear, PublicationYearError};
+use crate::types::system::source_type::SourceType;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -34,6 +36,8 @@ pub struct Source {
     pub id: Option<i64>, // Added for database persistence
     pub author: Author,
     pub title: SourceTitle,
+    pub year: Option<PublicationYear>,
+    pub source_type: Option<SourceType>,
 }
 
 /*
@@ -51,8 +55,10 @@ impl Source {
         author: Author,
         title_text: String,
         identity: Option<SourceIdentity>,
+        year: Option<PublicationYear>,
+        source_type: Option<SourceType>,
     ) -> Result<Self, SourceError> {
-        Ok(SourceGatekeeper::new(author, title_text, identity)?.into_inner())
+        Ok(SourceGatekeeper::new(author, title_text, identity, year, source_type)?.into_inner())
     }
 }
 
@@ -75,6 +81,8 @@ impl SourceGatekeeper {
         author: Author,
         title_text: String,
         identity: Option<SourceIdentity>,
+        year: Option<PublicationYear>,
+        source_type: Option<SourceType>,
     ) -> Result<Self, SourceError> {
         let len = title_text.trim().len();
 
@@ -99,6 +107,8 @@ impl SourceGatekeeper {
                 text: title_text.trim().to_string(),
                 identity,
             },
+            year,
+            source_type,
         }))
     }
 
@@ -127,6 +137,7 @@ pub enum SourceError {
     EmptyTitle,
     TitleTooLong, // Exceeds "short string" vibe
     InvalidAuthor,
+    InvalidYear(PublicationYearError),
     ValidationFailure(String),
 }
 
@@ -138,7 +149,14 @@ impl fmt::Display for SourceError {
             Self::EmptyTitle => write!(f, "Source title cannot be empty."),
             Self::TitleTooLong => write!(f, "Source title must be 140 characters or less."),
             Self::InvalidAuthor => write!(f, "Author identification is malformed."),
+            Self::InvalidYear(e) => write!(f, "Invalid publication year: {}", e),
             Self::ValidationFailure(msg) => write!(f, "Validation error: {}", msg),
         }
+    }
+}
+
+impl From<PublicationYearError> for SourceError {
+    fn from(e: PublicationYearError) -> Self {
+        Self::InvalidYear(e)
     }
 }

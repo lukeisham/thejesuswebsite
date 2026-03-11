@@ -111,6 +111,9 @@ fn api_routes() -> Router<Arc<AppState>> {
         )
         .route("/admin/sources", post(api_sources::handle_create_source))
         .route("/admin/sources/:id", axum::routing::delete(api_sources::handle_delete_source))
+        .route("/admin/sources/link", post(api_sources::handle_link_source_to_page))
+        .route("/admin/sources/audit", get(api_sources::handle_audit_sources))
+        .route("/sources/page", get(api_sources::handle_get_page_sources))
         // Batch 3 Routes
         .route("/agent/queue", get(crate::api_agents::handle_agent_queue))
         .route("/agent/queue/run-next", post(crate::api_agents::handle_agent_queue_run_next))
