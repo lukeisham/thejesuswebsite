@@ -21,25 +21,25 @@
 
 ### Batch 0: pre-loading
 
-[ ] Read app/app_ui/src/api_system.rs and save all struct definitions to its temporary memory.
-[ ] Read system_data_architecture.html and extract all headers.
+[x] Read app/app_ui/src/api_system.rs and save all struct definitions to its temporary memory.
+[x] Read system_data_architecture.html and extract all headers.
 
 ### Batch 1: Technical Audit & Gap Analysis
 *Focus: Ensure the documentation matches the ground-truth code.*
-- [ ] **Task 1.1: Code-to-Doc Audit** - Generate a Markdown table with three columns: Struct Field Name (Rust), Documentation Name (HTML), and Status (Match/Mismatch).
-- [ ] **Task 1.2: Meta-data Injection** - Check if the feed response includes (or should include) row counts or "last updated" timestamps for each category.
-- [ ] **Task 1.3: Capability Analysis** - Identify if any data category (e.g., `work_queue`) lacks a "clear" or "retry" API endpoint that should be added/documented.
+- [x] **Task 1.1: Code-to-Doc Audit** - Generate a Markdown table with three columns: Struct Field Name (Rust), Documentation Name (HTML), and Status (Match/Mismatch).
+- [x] **Task 1.2: Meta-data Injection** - Check if the feed response includes (or should include) row counts or "last updated" timestamps for each category.
+- [x] **Task 1.3: Capability Analysis** - Identify if any data category (e.g., `work_queue`) lacks a "clear" or "retry" API endpoint that should be added/documented.
 
 ### Batch 2: Visual & Process Clarity (ASCII Art)
 *Focus: Make the diagrams high-resolution (architecturally speaking).*
-- [ ] **Task 2.1: Flow Detail** - Update "System Feed Data Flow" to show the `Arc` locking and `serde_json` serialization steps.
-- [ ] **Task 2.2: ID Mapping** - Update the "10 Categories" diagram to show the primary key / identifier for each table (e.g., `contact_id`, `trace_id`).
-- [ ] **Task 2.3: Integration** - Update `frontend/private/system_data_architecture.html` with refined diagrams and verify CSS alignment.
+- [x] **Task 2.1: Flow Detail** - Update "System Feed Data Flow" to show the `Arc` locking and `serde_json` serialization steps.
+- [x] **Task 2.2: ID Mapping** - Update the "10 Categories" diagram to show the primary key / identifier for each table (e.g., `contact_id`, `trace_id`).
+- [x] **Task 2.3: Integration** - Update `frontend/private/system_data_architecture.html` with refined diagrams and verify CSS alignment.
 Use this as a structural reference = [Database] --(SQL)--> [Arc<AppState>] --(Serde)--> [JSON Response]
 
 ### Batch 3: Live Verification (Deployment)
 *Focus: Confirm the pipeline is "hot" and working.*
-- [ ] **Task 3.1: Commit & Push** - Prompt user: `git add .`, `git commit -m "doc audit & diagram update"`, `git push` by generating a single-block shell script containing the git and curl commands so the user can copy-paste it once."
+- [x] **Task 3.1: Commit & Push** - Prompt user: `git add .`, `git commit -m "doc audit & diagram update"`, `git push` by generating a single-block shell script containing the git and curl commands so the user can copy-paste it once."
 - [ ] **Task 3.2: VPS "Direct" Check** - Provide instructions for SSH + `curl http://localhost:8080/api/v1/system/feed`.
 - [ ] **Task 3.3: Dashboard UI Check** - Ask user to click "System Data" and check for console errors (404/500).
 
