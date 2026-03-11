@@ -99,35 +99,542 @@
     <!-- § DATA FLOW DIAGRAMS -->
     <h2>Data Flow</h2>
 
-    <h4 class="glossary-heading">Challenges &amp; Responses Pipeline</h4>
+    <h4 class="glossary-heading">Challenge &amp; Response Lifecycle — 9-Step Overview</h4>
+    <p class="glossary-note">
+        Academic and Popular challenges follow the <strong>same pipeline</strong> — they differ only in
+        search context and ranking algorithm. See the
+        <a href="#ranking-comparison">side-by-side ranking comparison</a> below.
+    </p>
     <pre class="glossary-diagram">
-┌─────────────────────────────────────────────────────────────┐
-│                CHALLENGES & RESPONSES PIPELINE              │
-│                                                             │
-│  Dashboard CRUD                                             │
-│  ┌──────────────┐    ┌──────────────────┐    ┌───────────┐ │
-│  │ Responses    │───>│ edit_challenge_   │───>│ POST /api │ │
-│  │ Tab          │    │ results.js        │    │ /v1/...   │ │
-│  └──────────────┘    └──────────────────┘    └───────────┘ │
-│                                                     │       │
-│                                              ┌──────▼─────┐ │
-│                                              │  sqlite.rs │ │
-│                                              └────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+  CHALLENGE & RESPONSE LIFECYCLE (shared by Academic + Popular)
+  ═══════════════════════════════════════════════════════════════
+
+  1. GENERATE            2. CHECK & RANK         3. PUBLISH + CRUD
+  (admin-triggered)      (ranking pipeline)      (searchable list)
+  ──────────────────     ──────────────────      ──────────────────
+  Dashboard widget       ChallengeList::         edit_challenge_
+  triggers Tool          promote_all()           results.js
+  PopularChallenge       PopularRanker /         renderList() shows
+  Tool / Academic        AcademicRanker          challenges with
+  ChallengeTool          scores 1-100            response_count
+        │                      │                       │
+        ▼                      ▼                       ▼
+  Raw tables             Promoted tables         GET /api/v1/
+  challenges_raw_*       challenges_popular      agent/challenges
+                         challenges_academic
+
+  4. CLICK CHALLENGE     5. INTERNAL URL         6. PUBLISH RESPONSE
+  → blank response       (auto from title)       (status → Published)
+  ──────────────────     ──────────────────      ──────────────────
+  Click challenge in     Title slug auto-        Response::publish()
+  CRUD list →            generated at create     validates text ≥ 10
+  switch to Responses    time → vibe.internal    chars → status =
+  tab → prepopulate      /&lt;slug&gt;                 Published
+  #response-title-       Response::validate_
+  input + challenge-id   internal_route()
+
+  7. INDENTED DISPLAY    8. PUBLIC UPDATE        9. RESPONSE ACCESS
+  (below parent)         (challenge pages)       (via internal URL)
+  ──────────────────     ──────────────────      ──────────────────
+  Published responses    challenge_academic      Each response has a
+  appear indented        .html / challenge_      vibe.internal URL
+  below their parent     popular.html            derived from title
+  challenge on both      hero scripts load       slug — clickable
+  dashboard + public     content via GET         link on both
+  pages                  /api/v1/challenge_*     dashboard + public
+    </pre>
+
+    <!-- § STEP 1–2: GENERATION + RANKING PIPELINE -->
+    <h4 class="glossary-heading">Steps 1–2: Generation &amp; Ranking Pipeline</h4>
+    <pre class="glossary-diagram">
+  STEP 1 — GENERATE (admin-triggered)
+  ════════════════════════════════════
+
+  Dashboard widget                  app_brain/src/challenge.rs
+  wgt_challenge_ranker.js           ┌──────────────────────────────────────┐
+  ┌───────────────────────┐         │  ChallengeGenerator trait            │
+  │ #wgt-challenge-engine │         │  ├─ PopularChallengeTool&lt;S: Search&gt;  │
+  │ .wgt-trigger (button) │────────>│  │  query: "trending"               │
+  │ .wgt-auto (checkbox)  │         │  └─ AcademicChallengeTool&lt;S: Search&gt; │
+  │ polls every 60s       │         │     query: "academic"               │
+  └───────────────────────┘         │                                      │
+                                    │  SecurityPolicy::verify_range()      │
+                                    │  validates count 1-100               │
+                                    └──────────┬───────────────────────────┘
+                                               │
+                                               ▼
+                                    ┌──────────────────────────┐
+                                    │  Raw challenge structs    │
+                                    │  RawPopularChallenge      │
+                                    │  RawAcademicChallenge     │
+                                    │  (source URL + metadata)  │
+                                    └──────────┬───────────────┘
+                                               │
+                                               ▼
+                                    ┌──────────────────────────┐
+                                    │  SQLite raw tables        │
+                                    │  challenges_raw_popular   │
+                                    │  challenges_raw_academic  │
+                                    │  (id, source)             │
+                                    └──────────────────────────┘
+
+  STEP 2 — CHECK & RANK (ranking pipeline)
+  ═════════════════════════════════════════
+
+  ChallengeList::promote_all()
+  ┌──────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │  1. RawPopularChallenge        RawAcademicChallenge          │
+  │     ::fetch_and_validate()     ::fetch_and_validate()        │
+  │     validates HTTPS            validates HTTPS               │
+  │           │                          │                       │
+  │           ▼                          ▼                       │
+  │  2. ChallengeProcessor trait                                 │
+  │     ┌─────────────────────┐  ┌─────────────────────────┐    │
+  │     │ PopularRanker       │  │ AcademicRanker           │    │
+  │     │ ranks by current    │  │ ranks by sustained       │    │
+  │     │ popularity          │  │ presence in literature   │    │
+  │     │ Popular(u8) 1-100   │  │ Academic(u8) 1-100       │    │
+  │     └────────┬────────────┘  └────────┬────────────────┘    │
+  │              │                        │                      │
+  │              ▼                        ▼                      │
+  │  3. PopularChallenge::       AcademicChallenge::             │
+  │     verify_integrity()       verify_integrity()              │
+  │     (non-empty name,         (non-empty name,                │
+  │      no query params)         no query params)               │
+  │              │                        │                      │
+  │              ▼                        ▼                      │
+  │  4. ChallengeList::security_scan()                           │
+  │     ensures no duplicate URLs across both lists              │
+  │                                                              │
+  └──────────────────────┬───────────────────────────────────────┘
+                         │
+                         ▼
+              ┌──────────────────────────┐
+              │  SQLite promoted tables   │
+              │  challenges_popular       │
+              │  challenges_academic      │
+              │  (id, url, name,          │
+              │   ranking, metadata_id)   │
+              └──────────────────────────┘
+
+  Re-sort trigger:
+  wgt_challenge_ranker.js → POST /api/v1/tools/challenge/sort
+  → handle_challenge_sort() → re-orders by priority
+  → dispatches ChallengeSortEvent (priority: 4)
+    </pre>
+
+    <!-- § STEP 3–7: CRUD + RESPONSE CREATION -->
+    <h4 class="glossary-heading">Steps 3–7: CRUD List, Response Creation &amp; Publishing</h4>
+    <pre class="glossary-diagram">
+  STEP 3 — PUBLISH + CRUD (searchable list in dashboard)
+  ══════════════════════════════════════════════════════
+
+  edit_challenge_results.js
+  ┌────────────────────────────────────────────────────────────┐
+  │                                                            │
+  │  loadChallenges()                                          │
+  │  GET /api/v1/agent/challenges ──────────────────────┐      │
+  │  (Bearer auth)                                      │      │
+  │                                                     ▼      │
+  │                                          handle_get_        │
+  │                                          challenges()       │
+  │                                          sqlite:            │
+  │                                          get_popular_       │
+  │                                          challenges() +     │
+  │                                          get_academic_      │
+  │                                          challenges()       │
+  │                                          de-duplicates      │
+  │                                          by URL             │
+  │                                                     │      │
+  │                                                     ▼      │
+  │  renderList(challenges)   &lt;─────────────────────────┘      │
+  │  ┌──────────────────────────────────────────────────┐      │
+  │  │ #challenge-edit-list                             │      │
+  │  │ ┌──────────────────────────────────────────────┐ │      │
+  │  │ │ Challenge Title          response_count: 3   │ │      │
+  │  │ │ Challenge Title 2        response_count: 0   │ │      │
+  │  │ │ Challenge Title 3        response_count: 1   │ │      │
+  │  │ └──────────────────────────────────────────────┘ │      │
+  │  └──────────────────────────────────────────────────┘      │
+  │                                                            │
+  │  Buttons:                                                  │
+  │  #add-challenge        → POST /api/v1/agent/challenge      │
+  │  #list-pop-challenge   → filter popular (stub)             │
+  │  #list-acad-challenge  → filter academic (stub)            │
+  │                                                            │
+  └────────────────────────────────────────────────────────────┘
+
+  STEPS 4–6 — CLICK CHALLENGE → BLANK RESPONSE → PUBLISH
+  ═══════════════════════════════════════════════════════
+
+  Click challenge in list
+        │
+        ▼
+  Switch to Responses tab
+  [data-target="content-responses"] → #content-responses
+        │
+        ▼
+  Prepopulate response fields
+  ┌───────────────────────────────────────────────────────┐
+  │  #response-challenge-id   ← challenge URL (hidden)   │
+  │  #response-title-input    ← challenge name           │
+  │                                                       │
+  │  Response::new() creates blank response:              │
+  │  ┌─────────────────────────────────────────────────┐  │
+  │  │  linked_challenge: ChallengeLink {              │  │
+  │  │    url: challenge.url,                          │  │
+  │  │    name: challenge.name                         │  │
+  │  │  }                                              │  │
+  │  │  status: Unpublished                            │  │
+  │  │  parent_id: Some(challenge_id)                  │  │
+  │  │  internal_url: (auto-generated — see below)     │  │
+  │  └─────────────────────────────────────────────────┘  │
+  └───────────────────────────────────────────────────────┘
+
+  STEP 5 — INTERNAL URL (auto-generated from title)
+  ┌───────────────────────────────────────────────────────┐
+  │  Title: "Why Did Jesus Weep?"                         │
+  │       ↓ slugify                                       │
+  │  Slug: "why-did-jesus-weep"                           │
+  │       ↓ prepend domain                                │
+  │  URL:  vibe.internal/why-did-jesus-weep               │
+  │                                                       │
+  │  Response::validate_internal_route()                   │
+  │  enforces host = "vibe.internal"                       │
+  │  Error: ResponseError::MalformedInternalUrl            │
+  │         ResponseError::ExternalUrlForbidden            │
+  └───────────────────────────────────────────────────────┘
+
+  STEP 6 — PUBLISH RESPONSE
+  ┌───────────────────────────────────────────────────────┐
+  │  Response::publish()                                   │
+  │  ├─ validates text.len() ≥ 10 chars                    │
+  │  │  Error: ResponseError::ContentTooShort              │
+  │  ├─ guard_modifications() blocks if already Published  │
+  │  │  Error: ResponseError::LockedForEditing             │
+  │  └─ status → Published                                │
+  │                                                       │
+  │  Response::retract()                                   │
+  │  └─ reverts status → Unpublished                      │
+  └───────────────────────────────────────────────────────┘
+
+  STEP 7 — INDENTED DISPLAY (below parent challenge)
+  ┌───────────────────────────────────────────────────────┐
+  │  Both dashboard + public pages show:                   │
+  │                                                       │
+  │  ▪ Challenge Title                                     │
+  │     └─ Response Title (published, indented)            │
+  │     └─ Response Title 2 (published, indented)          │
+  │  ▪ Challenge Title 2                                   │
+  │     └─ (no responses yet)                              │
+  │                                                       │
+  │  Indentation driven by parent_id + linked_challenge    │
+  └───────────────────────────────────────────────────────┘
+    </pre>
+
+    <!-- § STEP 8–9: PUBLIC DISPLAY -->
+    <h4 class="glossary-heading">Steps 8–9: Public Challenge Pages</h4>
+    <pre class="glossary-diagram">
+  STEP 8 — PUBLIC PAGE UPDATE
+  ═══════════════════════════
+
+  ACADEMIC PAGE                         POPULAR PAGE
+  ─────────────                         ────────────
+  challenge_academic.html               challenge_popular.html
+        │                                     │
+        ▼                                     ▼
+  challenge_academic_hero.js            challenge_popular_hero.js
+  loadAcademicHeroContent()             loadPopularHeroContent()
+        │                                     │
+        ▼                                     ▼
+  GET /api/v1/                          GET /api/v1/
+  challenge_academic_content ⚠️          challenge_popular_content ⚠️
+  (intended — not yet built)            (intended — not yet built)
+        │                                     │
+        ▼                                     ▼
+  #hero-placeholder                     #hero-placeholder
+  (injects hero HTML)                   (injects hero HTML)
+
+  CHALLENGE LIST VIEWS (tab-based)
+  ─────────────────────────────────
+
+  display_academic_list.js              display_popular_list.js
+  loadAcademic()                        loadPopular()
+        │                                     │
+        ▼                                     ▼
+  GET /api/challenges                   GET /api/challenges
+  ?type=academic ⚠️                     ?type=popular ⚠️
+  (intended — not yet built)            (intended — not yet built)
+        │                                     │
+        ▼                                     ▼
+  #academic-list                        #popular-list
+  #tab-academic (active)                #tab-popular (active)
+
+  Tab switching:
+  showAcademic() → shows #academic-list, hides #popular-list
+  showPopular()  → shows #popular-list, hides #academic-list
+
+  STEP 9 — RENDERED OUTPUT (both pages)
+  ═════════════════════════════════════
+
+  Each challenge is rendered as a card with published
+  responses indented below it (title only):
+
+  ┌──────────────────────────────────────────────┐
+  │  ▪ Challenge: "Problem of Evil"              │
+  │     └─ Response: "A Theodicy of Love"        │
+  │        → vibe.internal/a-theodicy-of-love    │
+  │     └─ Response: "Free Will Defense"         │
+  │        → vibe.internal/free-will-defense     │
+  │                                              │
+  │  ▪ Challenge: "Historical Reliability"       │
+  │     └─ (no published responses yet)          │
+  └──────────────────────────────────────────────┘
+
+  ⚠️ = endpoint intended but not yet implemented
+    </pre>
+
+    <!-- § RANKING COMPARISON -->
+    <h4 class="glossary-heading" id="ranking-comparison">Academic vs Popular — Ranking Comparison</h4>
+    <p class="glossary-note">
+        Both pipelines share the same code path. The <strong>only</strong> two differences
+        are the search context (what sources are queried) and the ranking algorithm
+        (what the score measures).
+    </p>
+    <pre class="glossary-diagram">
+  ┌─────────────────────────────────┬──────────────────────────────────┐
+  │          ACADEMIC               │           POPULAR                │
+  ├─────────────────────────────────┼──────────────────────────────────┤
+  │                                 │                                  │
+  │  Search Context                 │  Search Context                  │
+  │  ───────────────                │  ──────────────                  │
+  │  AcademicChallengeTool          │  PopularChallengeTool            │
+  │  query: "academic"              │  query: "trending"               │
+  │  sources: academic literature,  │  sources: trending/popular       │
+  │  peer-reviewed journals,        │  media, social platforms,        │
+  │  scholarly publications         │  mainstream news                 │
+  │                                 │                                  │
+  │  Ranking Algorithm              │  Ranking Algorithm               │
+  │  ─────────────────              │  ─────────────────               │
+  │  AcademicRanker                 │  PopularRanker                   │
+  │  Academic(u8) score 1-100       │  Popular(u8) score 1-100         │
+  │  measures: sustained presence   │  measures: current popularity    │
+  │  over time in academic          │  on mainstream and social        │
+  │  literature                     │  media platforms                 │
+  │                                 │                                  │
+  │  Storage                        │  Storage                         │
+  │  ───────                        │  ───────                         │
+  │  Raw: challenges_raw_academic   │  Raw: challenges_raw_popular     │
+  │  Promoted: challenges_academic  │  Promoted: challenges_popular    │
+  │                                 │                                  │
+  │  Rust Types                     │  Rust Types                      │
+  │  ──────────                     │  ──────────                      │
+  │  RawAcademicChallenge           │  RawPopularChallenge             │
+  │  AcademicChallenge              │  PopularChallenge                │
+  │  Academic(u8)                   │  Popular(u8)                     │
+  │                                 │                                  │
+  │  Pipeline Traits                │  Pipeline Traits                 │
+  │  ───────────────                │  ───────────────                 │
+  │  ChallengeGenerator impl        │  ChallengeGenerator impl         │
+  │  ChallengeProcessor impl        │  ChallengeProcessor impl         │
+  │                                 │                                  │
+  │  Source File                    │  Source File                     │
+  │  ───────────                    │  ───────────                     │
+  │  app_brain/src/challenge.rs     │  app_brain/src/challenge.rs      │
+  │                                 │                                  │
+  │  Balanced Check                 │  Balanced Check                  │
+  │  ──────────────                 │  ──────────────                  │
+  │  ChallengeRank::is_balanced()   │  ChallengeRank::is_balanced()    │
+  │  popular - academic ≤ 10        │  popular - academic ≤ 10         │
+  │                                 │                                  │
+  └─────────────────────────────────┴──────────────────────────────────┘
     </pre>
 
     <!-- § FILE & FUNCTION REFERENCE -->
     <h2>File &amp; Function Reference</h2>
 
+    <!-- 1. Backend — Core Types -->
     <details class="glossary-section">
-        <summary>Files (placeholder — to be completed)</summary>
+        <summary>Backend — Core Types (challenge.rs, response.rs)</summary>
         <table class="glossary-table">
-            <thead><tr><th>File</th><th>Purpose</th><th>Status</th></tr></thead>
+            <thead><tr><th>Type / Enum</th><th>File</th><th>Purpose</th></tr></thead>
             <tbody>
-                <tr><td><code>frontend/private/js/edit_challenge_results.js</code></td><td>CRUD handlers for challenges</td><td>Needs documentation</td></tr>
+                <tr><td><code>Popular(u8)</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Popularity score validator (1-100)</td></tr>
+                <tr><td><code>Academic(u8)</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Academic rigor score validator (1-100)</td></tr>
+                <tr><td><code>ChallengeRank</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Aggregate containing both Popular + Academic scores; <code>is_balanced()</code> checks diff ≤ 10</td></tr>
+                <tr><td><code>RawPopularChallenge</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Raw input from popular sources; <code>fetch_and_validate()</code> validates HTTPS + range</td></tr>
+                <tr><td><code>RawAcademicChallenge</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Raw input from academic sources; <code>fetch_and_validate()</code> validates HTTPS + range</td></tr>
+                <tr><td><code>RawChallenge</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Entry-point combining both raw types</td></tr>
+                <tr><td><code>ChallengeLink</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Reference struct with <code>url</code> + <code>name</code> — used by Response to link back to parent</td></tr>
+                <tr><td><code>PopularChallenge</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Validated popular challenge with url, name, metadata, ranking; <code>verify_integrity()</code></td></tr>
+                <tr><td><code>AcademicChallenge</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Validated academic challenge with url, name, metadata, ranking; <code>verify_integrity()</code></td></tr>
+                <tr><td><code>Challenge</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Aggregate containing both PopularChallenge + AcademicChallenge; <code>derive_safe_name()</code></td></tr>
+                <tr><td><code>ChallengeList</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>Container for all challenge states; <code>promote_all()</code>, <code>security_scan()</code>, <code>derive_name()</code></td></tr>
+                <tr><td><code>RankError</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>InvalidRange, SystemFailure, InsecureSource</td></tr>
+                <tr><td><code>ChallengeError</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>InvalidUrlSource, InsecureUrl, IntegrityViolation, MetadataFailure</td></tr>
+                <tr><td><code>ListError</code></td><td><code>app_core/src/types/essays_and_ranks/challenge.rs</code></td><td>PromotionFailure, NamingFailure, DuplicateSource, EmptyList</td></tr>
+                <tr><td><code>Response</code></td><td><code>app_core/src/types/essays_and_ranks/response.rs</code></td><td>Main response entity: metadata, internal_url, title, text, picture, bibliography, linked_challenge, parent_id, status</td></tr>
+                <tr><td><code>ResponseError</code></td><td><code>app_core/src/types/essays_and_ranks/response.rs</code></td><td>ExternalUrlForbidden, LockedForEditing, ContentTooShort, MalformedInternalUrl</td></tr>
+            </tbody>
+        </table>
+        <table class="glossary-table" style="margin-top: 1rem;">
+            <thead><tr><th>Method</th><th>Type</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>Response::new()</code></td><td>Response</td><td>Async constructor — status defaults to Unpublished</td></tr>
+                <tr><td><code>Response::publish()</code></td><td>Response</td><td>Promotes to Published; requires text.len() ≥ 10</td></tr>
+                <tr><td><code>Response::retract()</code></td><td>Response</td><td>Reverts status to Unpublished</td></tr>
+                <tr><td><code>Response::guard_modifications()</code></td><td>Response</td><td>Blocks edits if already Published</td></tr>
+                <tr><td><code>Response::validate_internal_route()</code></td><td>Response</td><td>Enforces host = "vibe.internal"</td></tr>
+                <tr><td><code>ChallengeRank::create()</code></td><td>ChallengeRank</td><td>Async constructor with validation</td></tr>
+                <tr><td><code>ChallengeRank::is_balanced()</code></td><td>ChallengeRank</td><td>Checks if popular/academic scores differ by ≤ 10</td></tr>
+                <tr><td><code>ChallengeList::promote_all()</code></td><td>ChallengeList</td><td>Batch promotion of raw challenges to validated challenges</td></tr>
+                <tr><td><code>ChallengeList::security_scan()</code></td><td>ChallengeList</td><td>Ensures no duplicate URLs across both lists</td></tr>
             </tbody>
         </table>
     </details>
+
+    <!-- 2. Backend — Pipeline -->
+    <details class="glossary-section">
+        <summary>Backend — Pipeline (app_brain/challenge.rs)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Trait / Struct</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>ChallengeGenerator</code> (trait)</td><td><code>app_brain/src/challenge.rs</code></td><td>Async trait with <code>generate(count: usize)</code> — searches external sources for raw challenges</td></tr>
+                <tr><td><code>ChallengeProcessor</code> (trait)</td><td><code>app_brain/src/challenge.rs</code></td><td>Async trait with <code>process_pipeline(raw: Vec&lt;Input&gt;)</code> — ranks and enriches challenges</td></tr>
+                <tr><td><code>PopularChallengeTool&lt;S: Search&gt;</code></td><td><code>app_brain/src/challenge.rs</code></td><td>Implements ChallengeGenerator; query: "trending"; validates count 1-100</td></tr>
+                <tr><td><code>AcademicChallengeTool&lt;S: Search&gt;</code></td><td><code>app_brain/src/challenge.rs</code></td><td>Implements ChallengeGenerator; query: "academic"; validates count 1-100</td></tr>
+                <tr><td><code>PopularRanker&lt;R, M&gt;</code></td><td><code>app_brain/src/challenge.rs</code></td><td>Implements ChallengeProcessor; ranks then enriches with metadata</td></tr>
+                <tr><td><code>AcademicRanker&lt;R, M&gt;</code></td><td><code>app_brain/src/challenge.rs</code></td><td>Implements ChallengeProcessor; ranks then enriches with metadata</td></tr>
+                <tr><td><code>SecurityPolicy</code> (trait)</td><td><code>app_brain/src/challenge.rs</code></td><td><code>verify_range()</code> — enforces 1-100 item limit</td></tr>
+                <tr><td><code>IntegrityCheck</code> (trait)</td><td><code>app_brain/src/challenge.rs</code></td><td><code>verify_batch_integrity()</code> — rejects empty or &gt;100 batches</td></tr>
+                <tr><td><code>ToolError</code></td><td><code>app_brain/src/challenge.rs</code></td><td>SecurityViolation, SearchFailure, ProcessingFailure, DependencyError, MappingError</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <!-- 3. Backend — API Handlers -->
+    <details class="glossary-section">
+        <summary>Backend — API Handlers (api_agents.rs)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Endpoint</th><th>Method</th><th>Handler</th><th>Status</th></tr></thead>
+            <tbody>
+                <tr><td><code>/api/v1/agent/challenges</code></td><td>GET</td><td><code>handle_get_challenges()</code> — fetches from sqlite, de-duplicates by URL, returns id + title + response_count</td><td>✅ Implemented</td></tr>
+                <tr><td><code>/api/v1/agent/challenge</code></td><td>POST</td><td><code>handle_post_challenge()</code> — stub implementation</td><td>⚠️ Stub</td></tr>
+                <tr><td><code>/api/v1/tools/challenge/sort</code></td><td>POST</td><td><code>handle_challenge_sort()</code> — re-orders challenges by priority</td><td>✅ Implemented</td></tr>
+                <tr><td><code>/api/v1/challenge_academic_content</code></td><td>GET</td><td>(not defined) — intended to serve academic hero HTML</td><td>⚠️ Intended</td></tr>
+                <tr><td><code>/api/v1/challenge_popular_content</code></td><td>GET</td><td>(not defined) — intended to serve popular hero HTML</td><td>⚠️ Intended</td></tr>
+                <tr><td><code>/api/challenges?type=academic</code></td><td>GET</td><td>(not defined) — intended to list academic challenges</td><td>⚠️ Intended</td></tr>
+                <tr><td><code>/api/challenges?type=popular</code></td><td>GET</td><td>(not defined) — intended to list popular challenges</td><td>⚠️ Intended</td></tr>
+            </tbody>
+        </table>
+        <p class="glossary-note">✅ = implemented &nbsp; ⚠️ = stub or intended (not yet built)</p>
+    </details>
+
+    <!-- 4. Backend — Storage -->
+    <details class="glossary-section">
+        <summary>Backend — Storage (sqlite.rs + 4 SQLite tables)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Function / Table</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>get_popular_challenges()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>SELECT url, name, metadata, ranking FROM challenges_popular — returns Vec&lt;PopularChallenge&gt;</td></tr>
+                <tr><td><code>get_academic_challenges()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>SELECT url, name, metadata, ranking FROM challenges_academic — returns Vec&lt;AcademicChallenge&gt;</td></tr>
+            </tbody>
+        </table>
+        <table class="glossary-table" style="margin-top: 1rem;">
+            <thead><tr><th>Table</th><th>Columns</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>challenges_popular</code></td><td>id (PK), url, name, ranking (1-100), metadata_id (FK)</td><td>Promoted popular challenges</td></tr>
+                <tr><td><code>challenges_academic</code></td><td>id (PK), url, name, ranking (1-100), metadata_id (FK)</td><td>Promoted academic challenges</td></tr>
+                <tr><td><code>challenges_raw_popular</code></td><td>id (PK), source</td><td>Raw popular challenge URLs before validation</td></tr>
+                <tr><td><code>challenges_raw_academic</code></td><td>id (PK), source</td><td>Raw academic challenge URLs before validation</td></tr>
+                <tr><td><code>metadata</code></td><td>id (PK), keywords (JSON array), toggle ('On'/'Off')</td><td>Shared metadata lookup table</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <!-- 5. Frontend — Admin JS -->
+    <details class="glossary-section">
+        <summary>Frontend — Admin JS (edit_challenge_results.js, wgt_challenge_ranker.js)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Function</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>loadChallenges()</code></td><td><code>private/js/edit_challenge_results.js</code></td><td>Fetches GET /api/v1/agent/challenges (Bearer auth)</td></tr>
+                <tr><td><code>renderList(challenges)</code></td><td><code>private/js/edit_challenge_results.js</code></td><td>Creates &lt;li&gt; elements in #challenge-edit-list showing title + response_count</td></tr>
+                <tr><td>Click handler</td><td><code>private/js/edit_challenge_results.js</code></td><td>Switches to [data-target="content-responses"] tab; prepopulates #response-challenge-id + #response-title-input</td></tr>
+                <tr><td><code>initChallengeRanker()</code></td><td><code>js/widgets/wgt_challenge_ranker.js</code></td><td>Initializes #wgt-challenge-engine widget; sets up polling</td></tr>
+                <tr><td><code>handleChallengeSort(light, label)</code></td><td><code>js/widgets/wgt_challenge_ranker.js</code></td><td>POSTs to /api/v1/tools/challenge/sort; updates traffic-light UI; dispatches ChallengeSortEvent (priority: 4)</td></tr>
+                <tr><td><code>setStatus(light, label, status, text)</code></td><td><code>js/widgets/wgt_challenge_ranker.js</code></td><td>Updates .traffic-light status (idle/active/error) and .wgt-status-label text</td></tr>
+            </tbody>
+        </table>
+        <table class="glossary-table" style="margin-top: 1rem;">
+            <thead><tr><th>Element ID / Selector</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>#challenge-edit-list</code></td><td>edit_challenge_results.js</td><td>Container UL for challenge list items</td></tr>
+                <tr><td><code>#add-challenge</code></td><td>edit_challenge_results.js</td><td>Button to create new challenge</td></tr>
+                <tr><td><code>#list-pop-challenge</code></td><td>edit_challenge_results.js</td><td>Button stub — filter popular challenges</td></tr>
+                <tr><td><code>#list-acad-challenge</code></td><td>edit_challenge_results.js</td><td>Button stub — filter academic challenges</td></tr>
+                <tr><td><code>#response-challenge-id</code></td><td>edit_challenge_results.js</td><td>Hidden input — prepopulated with challenge URL on click</td></tr>
+                <tr><td><code>#response-title-input</code></td><td>edit_challenge_results.js</td><td>Title input — prepopulated with challenge name on click</td></tr>
+                <tr><td><code>#content-responses</code></td><td>edit_challenge_results.js</td><td>Responses tab panel</td></tr>
+                <tr><td><code>#wgt-challenge-engine</code></td><td>wgt_challenge_ranker.js</td><td>Main widget container</td></tr>
+                <tr><td><code>.wgt-trigger</code></td><td>wgt_challenge_ranker.js</td><td>Button to trigger challenge sort</td></tr>
+                <tr><td><code>.wgt-auto</code></td><td>wgt_challenge_ranker.js</td><td>Checkbox for auto-polling (60s intervals)</td></tr>
+                <tr><td><code>.traffic-light</code></td><td>wgt_challenge_ranker.js</td><td>Status indicator (status-idle / status-active / status-error)</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <!-- 6. Frontend — Public JS -->
+    <details class="glossary-section">
+        <summary>Frontend — Public JS (hero scripts + display list scripts)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Function</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>loadAcademicHeroContent()</code></td><td><code>js/challenge_academic_hero.js</code></td><td>Fetches GET /api/v1/challenge_academic_content ⚠️; injects HTML into #hero-placeholder</td></tr>
+                <tr><td><code>loadPopularHeroContent()</code></td><td><code>js/challenge_popular_hero.js</code></td><td>Fetches GET /api/v1/challenge_popular_content ⚠️; injects HTML into #hero-placeholder</td></tr>
+                <tr><td><code>loadAcademic()</code></td><td><code>js/display_academic_list.js</code></td><td>Fetches GET /api/challenges?type=academic ⚠️; populates #academic-list</td></tr>
+                <tr><td><code>showAcademic()</code></td><td><code>js/display_academic_list.js</code></td><td>Shows #academic-list, hides #popular-list; activates #tab-academic</td></tr>
+                <tr><td><code>loadPopular()</code></td><td><code>js/display_popular_list.js</code></td><td>Fetches GET /api/challenges?type=popular ⚠️; populates #popular-list</td></tr>
+                <tr><td><code>showPopular()</code></td><td><code>js/display_popular_list.js</code></td><td>Shows #popular-list, hides #academic-list; activates #tab-popular</td></tr>
+            </tbody>
+        </table>
+        <table class="glossary-table" style="margin-top: 1rem;">
+            <thead><tr><th>Element ID</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>#hero-placeholder</code></td><td>challenge_academic_hero.js / challenge_popular_hero.js</td><td>Container for hero content injection</td></tr>
+                <tr><td><code>#academic-list</code></td><td>display_academic_list.js</td><td>Container for academic challenge cards</td></tr>
+                <tr><td><code>#popular-list</code></td><td>display_popular_list.js</td><td>Container for popular challenge cards</td></tr>
+                <tr><td><code>#tab-academic</code></td><td>display_academic_list.js</td><td>Tab button — toggles active class</td></tr>
+                <tr><td><code>#tab-popular</code></td><td>display_popular_list.js</td><td>Tab button — toggles active class</td></tr>
+            </tbody>
+        </table>
+        <p class="glossary-note">⚠️ = endpoint intended but not yet implemented</p>
+    </details>
+
+    <!-- § GLOSSARY -->
+    <h2>Glossary of Terms</h2>
+
+    <table class="glossary-table">
+        <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+        <tbody>
+            <tr><td><code>RawChallenge</code></td><td>An unvalidated challenge entry-point combining both RawPopularChallenge and RawAcademicChallenge before promotion through the ranking pipeline.</td></tr>
+            <tr><td><code>PopularChallenge</code></td><td>A validated challenge sourced from trending/popular media. Has url, name, metadata, and a Popular(u8) ranking score 1-100.</td></tr>
+            <tr><td><code>AcademicChallenge</code></td><td>A validated challenge sourced from academic literature. Has url, name, metadata, and an Academic(u8) ranking score 1-100.</td></tr>
+            <tr><td><code>ChallengeRank</code></td><td>Aggregate struct containing both Popular and Academic scores. <code>is_balanced()</code> checks if the two scores differ by ≤ 10.</td></tr>
+            <tr><td><code>ChallengeLink</code></td><td>A reference struct with <code>url</code> and <code>name</code> fields. Used by Response to link back to its parent challenge.</td></tr>
+            <tr><td><code>ChallengeList</code></td><td>Container for all challenge states (raw_popular, popular, raw_academic, academic). Provides <code>promote_all()</code> and <code>security_scan()</code>.</td></tr>
+            <tr><td><code>Response</code></td><td>A written reply to a specific challenge. Has internal_url, title, text, linked_challenge (ChallengeLink), parent_id, and publication status.</td></tr>
+            <tr><td><code>internal_url</code></td><td>Auto-generated URL for a response derived from its title slug. Must use the <code>vibe.internal</code> domain (e.g., <code>vibe.internal/free-will-defense</code>).</td></tr>
+            <tr><td><code>PublicationStatus</code></td><td>Enum controlling visibility: Unpublished (default on creation) or Published (after <code>Response::publish()</code> validation).</td></tr>
+            <tr><td><code>ChallengeGenerator</code></td><td>Async trait in app_brain with <code>generate(count)</code> method. Implemented by PopularChallengeTool and AcademicChallengeTool.</td></tr>
+            <tr><td><code>ChallengeProcessor</code></td><td>Async trait in app_brain with <code>process_pipeline(raw)</code> method. Implemented by PopularRanker and AcademicRanker.</td></tr>
+            <tr><td><code>PopularRanker</code></td><td>Implements ChallengeProcessor for popular challenges. Ranks by current popularity on mainstream/social media, then enriches with metadata.</td></tr>
+            <tr><td><code>AcademicRanker</code></td><td>Implements ChallengeProcessor for academic challenges. Ranks by sustained presence in academic literature, then enriches with metadata.</td></tr>
+            <tr><td><code>wgt_challenge_ranker</code></td><td>Frontend widget (<code>wgt_challenge_ranker.js</code>) that provides a dashboard control for triggering challenge sort via POST /api/v1/tools/challenge/sort. Auto-polls every 60 seconds.</td></tr>
+            <tr><td><code>response_count</code></td><td>Number of published responses linked to a challenge. Displayed alongside each challenge title in the CRUD list.</td></tr>
+        </tbody>
+    </table>
 
 </body>
 </html>
