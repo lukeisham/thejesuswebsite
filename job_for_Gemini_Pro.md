@@ -40,16 +40,16 @@ Use this as a structural reference = [Database] --(SQL)--> [Arc<AppState>] --(Se
 ### Batch 3: Live Verification (Deployment)
 *Focus: Confirm the pipeline is "hot" and working.*
 - [x] **Task 3.1: Commit & Push** - Prompt user: `git add .`, `git commit -m "doc audit & diagram update"`, `git push` by generating a single-block shell script containing the git and curl commands so the user can copy-paste it once."
-- [ ] **Task 3.2: VPS "Direct" Check** - Provide instructions for SSH + `curl http://localhost:8080/api/v1/system/feed`.
-- [ ] **Task 3.3: Dashboard UI Check** - Ask user to click "System Data" and check for console errors (404/500).
+- [x] **Task 3.2: VPS "Direct" Check** - Provide instructions for SSH + `curl http://localhost:8080/api/v1/system/feed`.
+- [x] **Task 3.3: Dashboard UI Check** - Ask user to click "System Data" and check for console errors (404/500).
 
 ### Batch 4: Troubleshooting Playbook (The "Guesses")
 *Focus: Rapid response if "Batch 3" fails.*
-- [ ] **Hypothesis 1: SQLite Lock** - Check logs for "database is locked". **Action:** `tail -n 100 /var/log/thejesuswebsite.log | grep -i error`. = IF database is locked	THEN Run fuser to find the process holding the lock.
-- [ ] **Hypothesis 2: DB Path Error** - Check `.env` on VPS for `DATABASE_URL` accuracy. **Action:** `ls -l [path_from_env]` = IF 401 Unauthorized THEN Verify JWT_SECRET in .env matches the VPS environment.
-- [ ] **Hypothesis 3: Auth/CORS** - Check if the `/private/` route is stripping cookies. **Action:** Check browser network tab for `401 Unauthorized`= IF Connection Refused	THEN Check if rocket or actix is actually running on port 8080.
+- [x] **Hypothesis 1: SQLite Lock** - Check logs for "database is locked". **Action:** `tail -n 100 /var/log/thejesuswebsite.log | grep -i error`. = IF database is locked	THEN Run fuser to find the process holding the lock.
+- [x] **Hypothesis 2: DB Path Error** - Check `.env` on VPS for `DATABASE_URL` accuracy. **Action:** `ls -l [path_from_env]` = IF 401 Unauthorized THEN Verify JWT_SECRET in .env matches the VPS environment.
+- [x] **Hypothesis 3: Auth/CORS** - Check if the `/private/` route is stripping cookies. **Action:** Check browser network tab for `401 Unauthorized`= IF Connection Refused	THEN Check if rocket or actix is actually running on port 8080.
 
 ### Batch 5: Summary & Knowledge Update
 *Focus: Close the loop.*
-- [ ] **Task 5.1: Synthesis** - Report on any "hidden" dependencies found during the audit.
-- [ ] **Task 5.2: Walkthrough** - Update the project's primary `walkthrough.md` with the verified system data flow.
+- [x] **Task 5.1: Synthesis** - Report on any "hidden" dependencies found during the audit.
+- [x] **Task 5.2: Walkthrough** - Update the project's primary `walkthrough.md` with the verified system data flow.

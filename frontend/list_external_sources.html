@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Shared _header.html content (SEO + MCP Discovery) — public pages only -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="The Jesus Website">
+    <meta name="theme-color" content="#5b7065">
+    <!-- Page-specific -->
+    <title>List of Manuscripts | The Jesus Website</title>
+    <meta name="description"
+        content="A chronological list of early Christian manuscripts from 0 to 500 AD, organised in 100-year blocks.">
+    <link rel="stylesheet" href="/style.css">
+    <!-- Agentic Friendliness & MCP Discovery -->
+    <link rel="alternate" type="application/mcp" href="/api/v1/mcp">
+    <script type="application/ld+json" id="page-metadata">{}</script>
+</head>
+
+<body>
+    <!-- Layer 1: Macro-Layout — 2-column asymmetric track (sidebar-rail + content) -->
+    <div class="a-grid l-page-root">
+
+        <!-- Sidebar Rail (Col 1, spans all content rows) — from _sidebar.html -->
+        <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation">
+            <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-brand">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; letter-spacing: 1px;"><a href="/index.html"
+                        class="nav-link" data-page="records">The Jesus Website</a></h3>
+                <ul class="record-list" id="nav-main-links">
+                    <li><a href="/records.html" class="nav-link" data-page="records">Home</a></li>
+                    <li><a href="/evidence.html" class="nav-link" data-page="evidence">Evidence</a></li>
+                    <li><a href="/maps/maps.html" class="nav-link" data-page="maps">Maps</a></li>
+                    <li><a href="/timeline.html" class="nav-link" data-page="timeline">Timeline</a></li>
+                    <li><a href="/context.html" class="nav-link" data-page="context">Context</a></li>
+                    <li><a href="/challenge.html" class="nav-link" data-page="challenge">Challenges</a></li>
+                    <li><a href="/resources.html" class="nav-link" data-page="resources">Resources</a></li>
+                    <li><a href="/news_and_blog.html" class="nav-link" data-page="news">News</a></li>
+                    <li><a href="/about.html" class="nav-link" data-page="about">About</a></li>
+                </ul>
+                <ul class="record-list">
+                    <li><a href="/login.html" class="nav-link" data-page="admin">Admin</a></li>
+                </ul>
+                <script src="/js/sidebar_toggle.js"></script>
+                <script src="/js/current_item_highlight.js"></script>
+        </nav>
+
+        <!-- Main Content (Col 2, natural flow) -->
+        <main>
+            <!-- Page Header & Intro -->
+            <header class="nav-header">
+                <h2>List of external sources</h2>
+                <p>A detailed list of 'external' or 'hostile' sources from 33 AD to 313 AD.
+                    (Emperor Constantine issued the Edict of Milan in 313 AD, making Christianity the official religion
+                    of the Roman Empire.)
+                </p>
+            </header>
+
+            <!-- Hero: Categorised Manuscript Lists -->
+            <style>
+                .ms-section {
+                    border: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    padding: 1.5rem;
+                    border-radius: 8px;
+                }
+
+                .ms-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .ms-item {
+                    margin-bottom: 1rem;
+                    line-height: 1.5;
+                }
+
+                .ga-label {
+                    background-color: var(--label-bg, #eee);
+                    color: var(--label-text, #333);
+                    font-size: 0.75rem;
+                    font-weight: bold;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    margin: 0 5px;
+                    text-transform: uppercase;
+                }
+
+                .ms-link {
+                    text-decoration: none;
+                    color: var(--accent-color, #007bff);
+                    font-size: 0.9rem;
+                }
+
+                .ms-link:hover {
+                    text-decoration: underline;
+                }
+            </style>
+            <section>
+                <div class="ms-section">
+                    <h3 style="margin-top: 0;">0 – 313 AD (External References)</h3>
+                    <ul class="ms-list">
+                        <li class="ms-item">
+                            <strong>Flavius Josephus</strong> <span class="ga-label">Antiquities 18 & 20</span>
+                            — Jewish historian who records the execution of James, "the brother of Jesus, who was called
+                            Christ," and the "Testimonium Flavianum" regarding Jesus’ life and crucifixion. (c. 93 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Cornelius Tacitus</strong> <span class="ga-label">Annals 15.44</span>
+                            — Roman historian who confirms "Christus" was executed by the procurator Pontius Pilate
+                            during the reign of Tiberius. (c. 116 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Pliny the Younger</strong> <span class="ga-label">Epistulae 10.96</span>
+                            — Roman governor writing to Emperor Trajan, describing Christians meeting before dawn to
+                            sing hymns to Christ "as to a god." (c. 112 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Suetonius</strong> <span class="ga-label">Life of Claudius 25.4</span>
+                            — Roman biographer who mentions the expulsion of Jews from Rome due to disturbances
+                            instigated by "Chrestus" (Christ). (c. 121 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Mara Bar-Serapion</strong> <span class="ga-label">Syriac Letter</span>
+                            — A Stoic philosopher who reflects on the execution of the "Wise King" of the Jews and the
+                            subsequent ruin of the Jewish kingdom. (Late 1st – Early 2nd Century AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Lucian of Samosata</strong> <span class="ga-label">The Passing of Peregrinus</span>
+                            — Greek satirist who references the "distinguished personage" crucified in Palestine for
+                            introducing new religious rites. (c. 165 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Thallus & Phlegon</strong> <span class="ga-label">Fragmentary (via Africanus)</span>
+                            — Ancient chroniclers whose (now lost) works reportedly attempted to provide a naturalistic
+                            explanation for the darkness during the crucifixion. (c. 55–140 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>The Babylonian Talmud</strong> <span class="ga-label">Sanhedrin 43a</span>
+                            — Early Jewish tradition (Tannaitic period) recording that "Yeshu" was hanged on the eve of
+                            Passover for practicing sorcery and leading Israel astray. (Pre-200 AD traditions)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Celsus</strong> <span class="ga-label">The True Word (via Origen)</span>
+                            — A Platonist philosopher who wrote the first comprehensive intellectual attack on
+                            Christianity. He confirms Jesus' reputation for miracles (which he attributed to sorcery
+                            learned in Egypt) and his low-born status. (c. 175–180 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Emperor Hadrian</strong> <span class="ga-label">Letter to Minucius Fundanus</span>
+                            — A Roman imperial decree establishing legal procedures for trying Christians, emphasizing
+                            that they should only be punished for actual illegal acts rather than just the "name" of
+                            Christian. (c. 125 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Galen</strong> <span class="ga-label">De Pulsuum Differentiis</span>
+                            — The famous Roman physician and philosopher who mentions the "followers of Moses and
+                            Christ" and their unyielding faith/discipline, comparing their schools of thought to medical
+                            sects. (c. 150–200 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Marcus Aurelius</strong> <span class="ga-label">Meditations 11.3</span>
+                            — The Roman Emperor/Stoic philosopher who notes the "sheer obstinacy" of Christians in their
+                            readiness to die for their faith. (c. 167 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Alexamenos Graffito</strong> <span class="ga-label">Palatine Hill Inscription</span>
+                            — While not a text, this "external" archaeological reference is a carved mockery found in
+                            Rome showing a man worshipping a crucified figure with a donkey's head, captioned
+                            "Alexamenos worships [his] God." (c. 200 AD)
+                        </li>
+                        <li class="ms-item">
+                            <strong>Porphyry of Tyre</strong> <span class="ga-label">Against the Christians</span>
+                            — A Neoplatonist who provided a sophisticated critique of the Gospels, noting contradictions
+                            in the genealogies and the trial of Jesus, confirming the texts were well-established by his
+                            time. (c. 270 AD)
+                        </li>
+                    </ul>
+                </div>
+            </section>
+            <!-- Footer (last row, full width) — from _footer.html -->
+            <nav id="nav-footer" class="footer a-col-span-full" aria-label="Footer navigation">
+                <div class="footer-left">
+                    <p>&copy; Luke Isham 2026 <img src="/favicon.ico" alt="Favicon" class="footer-favicon"> <a
+                            href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC
+                            BY-SA 4.0</a></p>
+                </div>
+                <div class="footer-right">
+                    <button id="btn-toggle-links" class="btn-footer">Toggle Record Links</button>
+                    <button id="btn-copy-url" class="btn-footer">Copy URL</button>
+                    <button id="btn-copy-text" class="btn-footer">Copy Content Text</button>
+                    <button id="btn-save-pdf" class="btn-footer">Save as PDF</button>
+                    <button id="btn-save-slide" class="btn-footer">Export to Slide</button>
+                </div>
+                <script type="application/mcp">{"capabilities": ["Save-pdf", "Copy-text"]}</script>
+                <script type="module" src="/js/footer_actions.js"></script>
+            </nav>
+
+    </div>
+</body>
+
+</html>

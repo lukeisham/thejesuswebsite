@@ -21,6 +21,7 @@ pub mod pdf;
 pub mod picture;
 pub mod pttx;
 pub mod publication_status;
+pub mod publication_year;
 pub mod referral;
 pub mod request;
 pub mod security_log;

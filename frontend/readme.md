@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "glossary update"
+git commit -m "sys data check update"
 git push origin main
 
 update files

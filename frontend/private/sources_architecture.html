@@ -94,36 +94,405 @@
     <a href="/private/dashboard.html" class="back-link">&larr; Back to Dashboard</a>
 
     <h1>Sources Architecture</h1>
-    <p class="glossary-note">System architecture reference for Sources management. Read-only — no forms or API calls.</p>
+    <p class="glossary-note">Three-stage pipeline: validate a source, publish it to list_sources.html, then scan site content to confirm it is cited.</p>
 
     <!-- § DATA FLOW DIAGRAMS -->
     <h2>Data Flow</h2>
 
-    <h4 class="glossary-heading">Sources Management Pipeline</h4>
+    <h4 class="glossary-heading">Stage 1 — Validate Source</h4>
     <pre class="glossary-diagram">
-┌─────────────────────────────────────────────────────────────┐
-│                      SOURCES PIPELINE                       │
-│                                                             │
-│  ┌──────────────────┐    ┌──────────────┐    ┌───────────┐  │
-│  │ Sources Widget   │───>│ API Endpoint │───>│ sqlite.rs │  │
-│  └──────────────────┘    └──────────────┘    └───────────┘  │
-└─────────────────────────────────────────────────────────────┘
+User enters source in Sources Widget (wgt_sources.js)
+  │
+  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  validateSource(input)  ← JS script: source_validator.js           │
+│                                                                     │
+│  Parse the following structure:                                     │
+│                                                                     │
+│  title ─┬─ URL            e.g. https://jstor.org/article/123       │
+│         ├─ &lt;i&gt;Book Name&lt;/i&gt;   e.g. &lt;i&gt;The Historical Jesus&lt;/i&gt;    │
+│         └─ 'Article Name' e.g. 'Criteria of Authenticity'          │
+│                                                                     │
+│  IF title is an 'Article' AND a journal follows:                    │
+│     → journal in &lt;i&gt;italics&lt;/i&gt;                                    │
+│                                                                     │
+│  "by" ── author ─┬─ First Last   e.g. John Meier                  │
+│                   └─ ORCID link   e.g. 0000-0002-1825-0097         │
+│                      → author name becomes &lt;a href="orcid.org/…"&gt;  │
+│                                                                     │
+│  (year)  e.g. (2009)                                                │
+│                                                                     │
+│  THEN append identity &lt;span&gt; link:                                  │
+│     IF article → DOI   e.g. &lt;span&gt;doi:10.1093/…&lt;/span&gt;            │
+│     IF book    → ISBN  e.g. &lt;span&gt;ISBN 978-0-300-…&lt;/span&gt;         │
+│                                                                     │
+│  Output: validated Source struct → POST /api/v1/admin/sources       │
+└─────────────────────────────────────────────────────────────────────┘
+│
+▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  Rust Gatekeeper: SourceGatekeeper::new()                           │
+│  ├─ title.text: non-empty, ≤ 140 chars                             │
+│  ├─ author: Name(string) or Orcid(string), non-empty               │
+│  ├─ identity: NamedUrl | Isbn | AcademicArticleId (DOI)            │
+│  └─ → Ok(Source) persisted to SQLite via create_source()           │
+└─────────────────────────────────────────────────────────────────────┘
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JS SCRIPT: source_validator.js
+     PURPOSE:   Client-side validation of source format before POST.
+     REUSE:     Import this script anywhere a source input is needed.
+
+     Pseudocode:
+       1. Parse raw input string for title, author, year tokens
+       2. Detect title type: URL (starts http), italic (book), quoted (article)
+       3. If article + journal present → wrap journal in &lt;i&gt;
+       4. Parse "by" delimiter → extract first/last name or ORCID
+       5. If ORCID → wrap author in &lt;a href="https://orcid.org/{id}"&gt;
+       6. Parse (year) in parentheses → validate 4-digit number
+       7. Detect trailing identity:
+          - DOI pattern (10.xxxx/…) → SourceIdentity::AcademicArticleId
+          - ISBN pattern (978-…)    → SourceIdentity::Isbn
+          - URL                     → SourceIdentity::NamedUrl
+       8. Build CreateSourceRequest JSON → POST /api/v1/admin/sources
+       9. Return { valid: true, source } or { valid: false, errors[] }
+     ═══════════════════════════════════════════════════════════════ -->
+    </pre>
+
+    <h4 class="glossary-heading">Stage 2 — Publish to list_sources.html</h4>
+    <pre class="glossary-diagram">
+GET /api/v1/sources → returns all Source objects from SQLite
+  │
+  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  list_sources_hero.js  ← JS script: source_publisher.js            │
+│                                                                     │
+│  1. Fetch all sources from /api/v1/sources                         │
+│  2. Group by category (if grouped) or render flat list             │
+│  3. For each source, call formatSource(source):                    │
+│     ├─ Author::Name("John Meier")  → plain text                   │
+│     ├─ Author::Orcid("0000-…")     → &lt;a href="orcid.org/…"&gt;      │
+│     ├─ SourceTitle.text             → rendered with type styling   │
+│     ├─ SourceIdentity::AcademicArticleId → &lt;span&gt;DOI link&lt;/span&gt; │
+│     ├─ SourceIdentity::Isbn             → &lt;span&gt;ISBN&lt;/span&gt;      │
+│     └─ SourceIdentity::NamedUrl         → &lt;span&gt;URL link&lt;/span&gt;  │
+│  4. Inject rendered HTML into #hero-placeholder on list_sources    │
+└─────────────────────────────────────────────────────────────────────┘
+│
+▼
+┌──────────────────────────────────────────────┐
+│  list_sources.html (PUBLIC)                  │
+│  Displays: "List of Historical Sources"      │
+│  Hero section populated by JS at page load   │
+└──────────────────────────────────────────────┘
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JS SCRIPT: source_publisher.js
+     PURPOSE:   Renders validated sources into list_sources.html.
+     NOTE:      Currently implemented in list_sources_hero.js.
+
+     Pseudocode:
+       1. On DOMContentLoaded, GET /api/v1/sources
+       2. If array → renderSourceList(sources)
+       3. If grouped object → iterate categories, render each group
+       4. formatSource(source):
+          a. Check author.Name or author.Orcid → build author HTML
+          b. Render title.text with appropriate styling
+          c. Append identity span (DOI / ISBN / URL) if present
+          d. Return formatted &lt;li&gt; element
+       5. Inject into #hero-placeholder container
+     ═══════════════════════════════════════════════════════════════ -->
+    </pre>
+
+    <h4 class="glossary-heading">Stage 3 — Scan Site for Source Usage</h4>
+    <pre class="glossary-diagram">
+Triggered manually or by agent ("run scrape" light action)
+  │
+  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  source_auditor.js  ← JS script: source_auditor.js                 │
+│                                                                     │
+│  1. GET /api/v1/sources → master source list (all validated)       │
+│  2. GET all content pages that cite sources inline:                 │
+│     ├─ /records.html, /evidence.html, /context.html                │
+│     ├─ /challenge.html, /resources.html                            │
+│     ├─ Essay pages, Record pages, Response pages                   │
+│     └─ Blog posts                                                  │
+│  3. For each page, scan DOM for source references:                 │
+│     ├─ Match by DOI string   (e.g. "10.1093/…")                   │
+│     ├─ Match by ISBN string  (e.g. "978-0-300-…")                 │
+│     ├─ Match by URL          (e.g. "jstor.org/…")                 │
+│     └─ Match by title text   (fuzzy substring match)               │
+│  4. Compare:                                                        │
+│     ├─ ORPHANED: source in list_sources but cited on zero pages    │
+│     ├─ MISSING:  citation on a page but not in list_sources        │
+│     └─ HEALTHY:  source exists in both places                      │
+│  5. Return audit report:                                            │
+│     { orphaned: [], missing: [], healthy: [], total_pages_scanned } │
+└─────────────────────────────────────────────────────────────────────┘
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JS SCRIPT: source_auditor.js
+     PURPOSE:   Cross-references master source list against inline
+                citations on all public content pages.
+     REUSE:     Can be triggered from dashboard or agent chat.
+
+     Pseudocode:
+       1. Fetch master source list from /api/v1/sources
+       2. Build lookup maps: by DOI, by ISBN, by URL, by title
+       3. For each content page URL:
+          a. Fetch page HTML (or use API if available)
+          b. Parse DOM for citation patterns:
+             - data-doi attributes or DOI text patterns
+             - data-isbn attributes or ISBN text patterns
+             - anchor hrefs matching source URLs
+             - title text substring matches
+          c. Record which source IDs are referenced on this page
+       4. Diff: sources not referenced anywhere → orphaned[]
+       5. Diff: citations not matching any source → missing[]
+       6. Build audit report JSON
+       7. Display results in Sources widget or return via API
+     ═══════════════════════════════════════════════════════════════ -->
+    </pre>
+
+    <!-- § VALID SOURCE FORMAT -->
+    <h2>Valid Source Format</h2>
+
+    <pre class="glossary-diagram">
+VALID SOURCE STRUCTURE:
+═══════════════════════════════════════════════════════════════════════
+
+  title ("by" author) (year) [identity]
+
+WHERE:
+
+  title = ONE OF:
+    ├─ URL:      https://example.com/article         (clickable link)
+    ├─ Book:     &lt;i&gt;The Historical Jesus&lt;/i&gt;          (italic)
+    └─ Article:  'Criteria of Authenticity'            (quoted)
+                 + OPTIONAL: &lt;i&gt;Journal Name&lt;/i&gt;      (italic journal)
+
+  author =
+    ├─ First Last:  John Meier                         (plain text)
+    └─ ORCID:       0000-0002-1825-0097                (linked to orcid.org)
+
+  year =
+    └─ (2009)                                          (4-digit in parens)
+
+  identity = ONE OF:
+    ├─ DOI:   &lt;span&gt;doi:10.1093/oxfordhb/…&lt;/span&gt;    (if article)
+    ├─ ISBN:  &lt;span&gt;ISBN 978-0-300-…&lt;/span&gt;           (if book)
+    └─ URL:   &lt;span&gt;https://…&lt;/span&gt;                  (if web source)
+
+═══════════════════════════════════════════════════════════════════════
+
+EXAMPLES:
+
+  'Criteria of Authenticity' &lt;i&gt;Journal for the Study of the
+  Historical Jesus&lt;/i&gt; by John Meier (2009) &lt;span&gt;doi:10.1177/…&lt;/span&gt;
+
+  &lt;i&gt;Jesus: A New Vision&lt;/i&gt; by Marcus Borg (1987)
+  &lt;span&gt;ISBN 978-0-06-060911-2&lt;/span&gt;
+
+  https://www.deadseascrolls.org.il by &lt;a href="orcid.org/0000-…"&gt;
+  Emanuel Tov&lt;/a&gt; (2014) &lt;span&gt;https://www.deadseascrolls.org.il&lt;/span&gt;
     </pre>
 
     <!-- § FILE & FUNCTION REFERENCE -->
     <h2>File &amp; Function Reference</h2>
 
     <details class="glossary-section">
-        <summary>Files (placeholder — to be completed)</summary>
+        <summary>Rust Types (app_core/src/types/system/source.rs)</summary>
         <table class="glossary-table">
-            <thead><tr><th>File</th><th>Purpose</th><th>Status</th></tr></thead>
+            <thead>
+                <tr><th>Type</th><th>Fields / Variants</th><th>Description</th></tr>
+            </thead>
             <tbody>
-                <tr><td><code>wgt-sources</code></td><td>Sources management widget</td><td>Needs documentation</td></tr>
+                <tr>
+                    <td><code>Source</code></td>
+                    <td><code>id: Option&lt;i64&gt;</code>, <code>author: Author</code>, <code>title: SourceTitle</code></td>
+                    <td>Core source struct. WASM-safe via Serde derive. Stored in SQLite <code>sources</code> table.</td>
+                </tr>
+                <tr>
+                    <td><code>Author</code></td>
+                    <td><code>Name(String)</code>, <code>Orcid(String)</code></td>
+                    <td>Enum. If Orcid, the name becomes a link to orcid.org/{id}.</td>
+                </tr>
+                <tr>
+                    <td><code>SourceTitle</code></td>
+                    <td><code>text: String</code>, <code>identity: Option&lt;SourceIdentity&gt;</code></td>
+                    <td>Title text + optional identity link appended as &lt;span&gt;.</td>
+                </tr>
+                <tr>
+                    <td><code>SourceIdentity</code></td>
+                    <td><code>NamedUrl(String)</code>, <code>Isbn(String)</code>, <code>AcademicArticleId(String)</code></td>
+                    <td>Enum. Determines the &lt;span&gt; link type (DOI, ISBN, or URL).</td>
+                </tr>
+                <tr>
+                    <td><code>SourceGatekeeper</code></td>
+                    <td>wraps <code>Source</code></td>
+                    <td>Newtype enforcing validation: title ≤ 140 chars, non-empty author. Possession = validated.</td>
+                </tr>
+                <tr>
+                    <td><code>SourceError</code></td>
+                    <td><code>EmptyTitle</code>, <code>TitleTooLong</code>, <code>InvalidAuthor</code>, <code>ValidationFailure(String)</code></td>
+                    <td>Error enum for gatekeeper rejections.</td>
+                </tr>
             </tbody>
         </table>
     </details>
 
-    <p class="glossary-note">This page will be populated with sources pipeline details in the future.</p>
+    <details class="glossary-section">
+        <summary>Rust Types — Potential New Types Needed</summary>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>Proposed Type</th><th>Location</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>SourceAuditReport</code></td>
+                    <td><code>app_core/src/types/system/source.rs</code></td>
+                    <td>Struct: <code>orphaned: Vec&lt;Source&gt;</code>, <code>missing: Vec&lt;String&gt;</code>, <code>healthy: Vec&lt;Source&gt;</code>, <code>pages_scanned: u32</code>. Return type for the audit endpoint.</td>
+                </tr>
+                <tr>
+                    <td><code>PublicationYear</code></td>
+                    <td><code>app_core/src/types/system/source.rs</code></td>
+                    <td>Newtype wrapper: <code>u16</code> with validation (1000–2100 range). Currently not stored on Source. Requires adding <code>year: Option&lt;PublicationYear&gt;</code> to Source struct + SQLite migration.</td>
+                </tr>
+                <tr>
+                    <td><code>SourceType</code></td>
+                    <td><code>app_core/src/types/system/source.rs</code></td>
+                    <td>Enum: <code>Book</code>, <code>Article</code>, <code>WebSource</code>. Currently inferred from SourceIdentity variant but not stored explicitly. Adding this would simplify rendering logic.</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="glossary-note" style="padding: 0.5rem;">
+            All new types must: derive <code>Serialize, Deserialize, Debug, Clone</code>;
+            be <code>#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]</code> compatible;
+            follow the 4-layer pattern (Skeleton → Brain → Gatekeeper → Errors).
+        </p>
+    </details>
+
+    <details class="glossary-section">
+        <summary>API Endpoints</summary>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>Route</th><th>Method</th><th>Handler</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>/api/v1/sources</code></td>
+                    <td>GET</td>
+                    <td><code>handle_get_sources()</code></td>
+                    <td>Returns all sources from SQLite. Used by list_sources_hero.js and audit script.</td>
+                </tr>
+                <tr>
+                    <td><code>/api/v1/admin/sources</code></td>
+                    <td>POST</td>
+                    <td><code>handle_create_source()</code></td>
+                    <td>Creates a new source. Accepts CreateSourceRequest DTO, converts via TryFrom to core Source.</td>
+                </tr>
+                <tr>
+                    <td><code>/api/v1/admin/sources/:id</code></td>
+                    <td>DELETE</td>
+                    <td><code>handle_delete_source()</code></td>
+                    <td>Deletes a source by SQLite row ID.</td>
+                </tr>
+                <tr>
+                    <td><code>/api/v1/list_sources_content</code></td>
+                    <td>GET</td>
+                    <td>—</td>
+                    <td>Returns formatted sources for the public list_sources.html hero. Called by list_sources_hero.js.</td>
+                </tr>
+            </tbody>
+        </table>
+    </details>
+
+    <details class="glossary-section">
+        <summary>Frontend Files</summary>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>File</th><th>Purpose</th><th>Stage</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>frontend/js/widgets/wgt_sources.js</code></td>
+                    <td>Dashboard widget — polls source count, dispatches SourcesUpdateEvent (P6)</td>
+                    <td>Dashboard</td>
+                </tr>
+                <tr>
+                    <td><code>frontend/private/js/widget_sources.js</code></td>
+                    <td>Private dashboard panel — CRUD interface for managing sources</td>
+                    <td>Stage 1</td>
+                </tr>
+                <tr>
+                    <td><code>frontend/js/list_sources_hero.js</code></td>
+                    <td>Public page renderer — fetches sources from API, formats and injects into hero section</td>
+                    <td>Stage 2</td>
+                </tr>
+                <tr>
+                    <td><code>frontend/list_sources.html</code></td>
+                    <td>Public page — "List of Historical Sources" with nav sidebar, hero placeholder</td>
+                    <td>Stage 2</td>
+                </tr>
+            </tbody>
+        </table>
+    </details>
+
+    <details class="glossary-section">
+        <summary>Storage (SQLite)</summary>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>Method</th><th>SQL</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>get_sources()</code></td>
+                    <td><code>SELECT id, author_type, author_val, title_text, identity FROM sources</code></td>
+                    <td>Returns all sources. Reconstructs Author enum from author_type + author_val columns.</td>
+                </tr>
+                <tr>
+                    <td><code>create_source()</code></td>
+                    <td><code>INSERT INTO sources (author_type, author_val, title_text, identity) …</code></td>
+                    <td>Persists a validated Source. Identity stored as JSON string.</td>
+                </tr>
+                <tr>
+                    <td><code>delete_source()</code></td>
+                    <td><code>DELETE FROM sources WHERE id = ?</code></td>
+                    <td>Removes source by row ID.</td>
+                </tr>
+            </tbody>
+        </table>
+    </details>
+
+    <details class="glossary-section">
+        <summary>JS Scripts — Summary</summary>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>Script</th><th>Stage</th><th>Purpose</th><th>Reusable?</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>source_validator.js</code></td>
+                    <td>Stage 1</td>
+                    <td>Parses and validates source input format (title, author, year, identity) before POST</td>
+                    <td>Yes — import anywhere a source input is needed</td>
+                </tr>
+                <tr>
+                    <td><code>source_publisher.js</code></td>
+                    <td>Stage 2</td>
+                    <td>Fetches sources from API and renders formatted HTML into list_sources.html</td>
+                    <td>Currently: list_sources_hero.js</td>
+                </tr>
+                <tr>
+                    <td><code>source_auditor.js</code></td>
+                    <td>Stage 3</td>
+                    <td>Cross-references master source list against inline citations on all content pages</td>
+                    <td>Yes — trigger from dashboard or agent chat</td>
+                </tr>
+            </tbody>
+        </table>
+    </details>
 
 </body>
 </html>
