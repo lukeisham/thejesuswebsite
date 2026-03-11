@@ -99,35 +99,279 @@
     <!-- § DATA FLOW DIAGRAMS -->
     <h2>Data Flow</h2>
 
-    <h4 class="glossary-heading">Context Essays CRUD Pipeline</h4>
+    <h4 class="glossary-heading">Essays Lifecycle — Overview</h4>
     <pre class="glossary-diagram">
-┌─────────────────────────────────────────────────────────────┐
-│                      ESSAYS PIPELINE                        │
-│                                                             │
-│  ┌──────────────────┐    ┌──────────────┐    ┌───────────┐  │
-│  │ Essays CRUD Tab  │───>│ API Endpoint │───>│ sqlite.rs │  │
-│  │ (crud-essays)    │    │              │    │           │  │
-│  └──────────────────┘    └──────────────┘    └───────────┘  │
-│                                                    │        │
-│                                              ┌─────▼─────┐  │
-│                                              │ Public    │  │
-│                                              │ Display   │  │
-│                                              └───────────┘  │
-└─────────────────────────────────────────────────────────────┘
+ ┌──────────────────────────────────────────────────────────────────────────────────┐
+ │                         ESSAYS LIFECYCLE — 4 STEPS                              │
+ └──────────────────────────────────────────────────────────────────────────────────┘
+
+ 1. CREATE (CRUD)           2. SEARCH (CRUD)           3. PUBLISH (URL slug)
+ ─────────────────          ─────────────────          ─────────────────────
+ dashboard.html             dashboard.html             At publish time:
+ crud-essays panel          Essays "Search" tab        title → slugified →
+ ├─ title input             ├─ list of published       /context/&lt;slug&gt;
+ ├─ body textarea           │   essays + drafts        stored with essay
+ │   (Markdown)             └─ real-time title         in sqlite.rs
+ ├─ Save Draft              filter + click to edit
+ └─ Publish                 + delete button
+
+        │                          │                          │
+        └──────────────────────────┴──────────────────────────┘
+                                   │
+                                   ▼
+                      4. DISPLAY (public — context.html)
+                      ─────────────────────────────────
+                      context.html
+                      └─ context_hero.js
+                              │
+                              ▼
+                         GET /api/v1/essays
+                         (published essays only)
+                              │
+                              ▼
+                         essay cards in #hero-placeholder
+                         ├─ title + author
+                         ├─ excerpt (~150 chars)
+                         ├─ cover image (optional)
+                         └─ &lt;a href="/context/&lt;slug&gt;"&gt;
+    </pre>
+
+    <h4 class="glossary-heading">Step 1 — CRUD Creation (Markdown Editor)</h4>
+    <pre class="glossary-diagram">
+ dashboard.html — Essays CRUD panel (id: crud-essays)
+ ├─ #essay-title-input      "Link to Record title..." (text)
+ ├─ #essay-record-id        hidden field — ULID of a linked Record (optional)
+ ├─ #essay-body-input       8-row textarea — Markdown body
+ │   Supported syntax:
+ │   # H1  ## H2  ### H3   →  headers
+ │   **Bold**  *Italic*    →  emphasis
+ │   [Link text](url)      →  hyperlinks
+ │   - Item                →  unordered list
+ │   `inline code`         →  code
+ │
+ ├─ #save-essay-draft button
+ │       │
+ │       ▼
+ │   essay_crud.js → getDraftPayload()
+ │   POST /api/v1/essays/draft
+ │   └─ sqlite.rs: save_essay_draft(draft)
+ │       → stores in essay_drafts table (id, title, body, created_at)
+ │
+ └─ #publish-essay button
+         │
+         ▼
+     essay_crud.js → getPublishPayload()
+     POST /api/v1/essays/publish
+     └─ api_essays.rs: handle_publish_essay()
+         ├─ Essay::compose(title, author, text, …)
+         │   └─ status: Unpublished (default)
+         ├─ Essay::publish()
+         │   └─ EssayGatekeeper::check_publication_readiness()
+         │       ├─ title must not be empty or whitespace
+         │       ├─ body must be ≥ 100 characters
+         │       └─ if body contains [ → bibliography must not be empty
+         ├─ status → Published
+         │
+         ├─ sqlite.rs: store_essay()      (structured storage)
+         └─ chroma.rs: store_essay()      (vector embedding for search)
+    </pre>
+
+    <h4 class="glossary-heading">Step 2 — Search Tab (Browse Published Essays)</h4>
+    <pre class="glossary-diagram">
+ dashboard.html — Essays panel
+ ├─ Tab: "Write"    (crud-essays editor — step 1)
+ └─ Tab: "Search"   (new tab — browse + manage essays)
+         │
+         ▼  (on tab open)
+     essay_crud.js → loadEssays()
+     GET /api/v1/essays   (Bearer auth header)
+         │
+         ▼
+     renderEssayList(essays)
+     ├─ Each row: title  |  status badge (Published / Draft)  |  ✕
+     ├─ #essay-search-input
+     │   └─ keyup → real-time filter by title text
+     ├─ click row → populateForm(essay) → switch to Write tab
+     │               (pre-fills all fields for editing)
+     └─ ✕ button → deleteEssay(id)
+                    DELETE /api/v1/essays/:id
+                    └─ removes from sqlite.rs + chroma.rs
+    </pre>
+
+    <h4 class="glossary-heading">Step 3 — Internal URL (Slug Generation)</h4>
+    <pre class="glossary-diagram">
+ AT PUBLISH TIME — slug generated from title
+ ────────────────────────────────────────────
+ essay.title = "The Life of Paul"
+         │
+         ▼
+ slug = title
+         .to_lowercase()          → "the life of paul"
+         .replace(' ', '-')       → "the-life-of-paul"
+         .strip non-alphanumeric  → "the-life-of-paul"
+         │
+         ▼
+ internal_url = "/context/the-life-of-paul"
+ stored alongside essay in sqlite.rs
+
+ Examples:
+ ├─ "Roman Occupation of Judea"  → /context/roman-occupation-of-judea
+ ├─ "Who Were the Pharisees?"    → /context/who-were-the-pharisees
+ └─ "Isaiah 53 & the Servant"   → /context/isaiah-53-the-servant
+    </pre>
+
+    <h4 class="glossary-heading">Step 4 — Public Display (context.html)</h4>
+    <pre class="glossary-diagram">
+ context.html (page load)
+ └─ context_hero.js (DOMContentLoaded)
+         │
+         ▼
+    fetch('/api/v1/essays')   ← published essays only
+         │
+         ▼
+    response HTML injected into:
+    &lt;section id="hero-placeholder" class="hero-container"&gt;
+
+    Each essay card rendered as:
+    ┌───────────────────────────────────┐
+    │ [cover image if present]          │
+    │ Title                             │
+    │ by Author                         │
+    │ excerpt (first ~150 chars)…       │
+    │ [Read essay →] /context/&lt;slug&gt;   │
+    └───────────────────────────────────┘
+
+    Card grid: CSS grid, auto-fill, min 300px per column
+    Error state: "No featured essay is currently active."
     </pre>
 
     <!-- § FILE & FUNCTION REFERENCE -->
     <h2>File &amp; Function Reference</h2>
 
     <details class="glossary-section">
-        <summary>Files (placeholder — to be completed)</summary>
-        <table class="glossary-table">
-            <thead><tr><th>File</th><th>Purpose</th><th>Status</th></tr></thead>
-            <tbody>
-                <tr><td><code>frontend/private/js/essay_crud.js</code></td><td>CRUD handlers for essays</td><td>Needs documentation</td></tr>
-            </tbody>
-        </table>
+      <summary>Backend — Core Types</summary>
+      <table class="glossary-table">
+        <thead><tr><th>File</th><th>Export / Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="4"><code>app_core/src/types/essays_and_ranks/essay.rs</code></td>
+              <td><code>Essay</code> struct</td>
+              <td>7 fields: metadata, title, author, text, cover_image (Option), bibliography, status</td></tr>
+          <tr><td><code>Essay::compose(…)</code></td><td>Async constructor · creates essay with Unpublished status</td></tr>
+          <tr><td><code>Essay::publish()</code></td><td>State transition to Published · calls check_publication_readiness() first</td></tr>
+          <tr><td><code>EssayGatekeeper::check_publication_readiness()</code></td><td>title non-empty · body ≥ 100 chars · bibliography non-empty if citations ([) detected</td></tr>
+          <tr><td rowspan="3"><code>app_core/src/types/system/metadata.rs</code></td>
+              <td><code>Metadata</code> struct</td>
+              <td>id (ULID), keywords (Vec&lt;String&gt;, 1–10), toggle (EntryToggle)</td></tr>
+          <tr><td><code>EntryToggle</code></td><td>Record | Challenge | Response | Context — essays use Context</td></tr>
+          <tr><td><code>MetadataGatekeeper</code></td><td>Validates 1–10 keywords · non-empty id</td></tr>
+          <tr><td><code>app_core/src/types/…</code></td>
+              <td><code>PublicationStatus</code></td>
+              <td>Published | Unpublished · essays default to Unpublished at creation</td></tr>
+          <tr><td></td>
+              <td><code>EssayError</code></td>
+              <td>IncompleteContent | ValidationWarning | AccessDenied | InternalConcurrencyIssue</td></tr>
+        </tbody>
+      </table>
     </details>
+
+    <details class="glossary-section">
+      <summary>Backend — API Handlers (intended)</summary>
+      <table class="glossary-table">
+        <thead><tr><th>Handler</th><th>Route</th><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>handle_publish_essay</code></td><td>/api/v1/essays/publish</td><td>POST</td><td>Create + publish essay → sqlite + ChromaDB</td></tr>
+          <tr><td><code>handle_save_essay_draft</code></td><td>/api/v1/essays/draft</td><td>POST</td><td>Save lightweight draft to essay_drafts table</td></tr>
+          <tr><td><code>handle_update_essay</code></td><td>/api/v1/essays/:id</td><td>PUT</td><td>Update existing essay by ULID</td></tr>
+          <tr><td><code>handle_delete_essay</code></td><td>/api/v1/essays/:id</td><td>DELETE</td><td>Remove essay from sqlite + ChromaDB</td></tr>
+          <tr><td><code>handle_get_essays</code></td><td>/api/v1/essays</td><td>GET</td><td>List all published essays (used by context.html)</td></tr>
+          <tr><td><code>handle_get_essay_drafts</code></td><td>/api/v1/essays/drafts</td><td>GET</td><td>List all draft essays (admin only)</td></tr>
+          <tr><td><code>handle_essay_search</code></td><td>/api/v1/search/essays?q=</td><td>GET</td><td>Semantic search via ChromaDB · stub exists in router.rs</td></tr>
+        </tbody>
+      </table>
+      <p class="glossary-note">Modelled on <code>api_blog.rs</code>. Routes to be registered in <code>app_ui/src/router.rs</code>.</p>
+    </details>
+
+    <details class="glossary-section">
+      <summary>Backend — Storage</summary>
+      <table class="glossary-table">
+        <thead><tr><th>Layer</th><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="5"><code>app_storage/src/sqlite.rs</code></td>
+              <td><code>store_essay(essay)</code></td>
+              <td>INSERT OR REPLACE essay row including slug / internal_url</td></tr>
+          <tr><td><code>get_essays()</code></td><td>SELECT all published essays · deserialise → Essay structs</td></tr>
+          <tr><td><code>delete_essay(id)</code></td><td>DELETE by ULID · returns bool if row existed</td></tr>
+          <tr><td><code>save_essay_draft(draft)</code></td><td>INSERT OR REPLACE into essay_drafts table</td></tr>
+          <tr><td><code>get_draft_essays()</code></td><td>SELECT all draft essays</td></tr>
+          <tr><td rowspan="2"><code>app_storage/src/chroma.rs</code></td>
+              <td><code>store_essay(essay)</code></td>
+              <td>Embed essay text · upsert into "essays" collection (384-dim BERT vectors)</td></tr>
+          <tr><td><code>query_essays(query)</code></td><td>Semantic similarity search · returns Vec of matching JSON strings</td></tr>
+          <tr><td><code>schema.sql</code></td>
+              <td><code>essay_drafts</code> table</td>
+              <td>SQLite table: id, title, body, created_at · tracked by system_feed.js</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="glossary-section">
+      <summary>Frontend — Admin JS (dashboard)</summary>
+      <table class="glossary-table">
+        <thead><tr><th>File</th><th>Function / Export</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="8"><code>private/js/essay_crud.js</code> (to be built)</td>
+              <td><code>loadEssays()</code></td>
+              <td>GET /api/v1/essays with Bearer auth → renderEssayList()</td></tr>
+          <tr><td><code>renderEssayList(essays)</code></td><td>Renders rows: title, status badge, ✕ delete · wires search filter</td></tr>
+          <tr><td><code>populateForm(essay)</code></td><td>Fills title, record-id, body fields from Essay object · switches to Write tab</td></tr>
+          <tr><td><code>clearForm()</code></td><td>Resets all fields · sets heading to "New Essay"</td></tr>
+          <tr><td><code>getDraftPayload()</code></td><td>Collects form → draft shape {title, body}</td></tr>
+          <tr><td><code>getPublishPayload()</code></td><td>Collects form → publish shape {title, author, text, record_id?}</td></tr>
+          <tr><td><code>publishOrUpdate()</code></td><td>id in form → PUT /essays/:id · no id → POST /essays/publish</td></tr>
+          <tr><td><code>deleteEssay(id)</code></td><td>DELETE /essays/:id with confirmation · removes row from DOM</td></tr>
+          <tr><td><code>private/js/blog_crud.js</code></td>
+              <td>(reference pattern)</td>
+              <td>Existing blog CRUD implementation · essay_crud.js should follow this pattern</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="glossary-section">
+      <summary>Frontend — Public JS (context.html)</summary>
+      <table class="glossary-table">
+        <thead><tr><th>File</th><th>Function / Export</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="2"><code>js/context_hero.js</code></td>
+              <td>(self-executing)</td>
+              <td>DOMContentLoaded → fetch /api/v1/essays → inject HTML into #hero-placeholder</td></tr>
+          <tr><td>error fallback</td><td>Shows "No featured essay is currently active." on fetch failure</td></tr>
+          <tr><td><code>context.html</code></td>
+              <td>#hero-placeholder</td>
+              <td>Target container for dynamically injected essay cards</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <!-- § GLOSSARY OF TERMS -->
+    <h2>Glossary of Terms</h2>
+
+    <table class="glossary-table">
+      <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+      <tbody>
+        <tr><td><code>Essay</code></td><td>A long-form Markdown article providing historical, cultural, or theological context for the evidence</td></tr>
+        <tr><td><code>CRUD</code></td><td>Create, Read, Update, Delete — the four operations available in the dashboard essay editor</td></tr>
+        <tr><td><code>Markdown</code></td><td>Lightweight text formatting syntax used in the essay body textarea (headers, bold, italic, links, lists, code)</td></tr>
+        <tr><td><code>Draft</code></td><td>An unpublished essay saved to the essay_drafts SQLite table; not visible on context.html</td></tr>
+        <tr><td><code>PublicationStatus</code></td><td>Enum: Published (visible on context.html) | Unpublished (draft only); essays default to Unpublished at creation</td></tr>
+        <tr><td><code>Slug</code></td><td>URL-safe version of the essay title, auto-generated at publish time (e.g. "The Life of Paul" → "the-life-of-paul")</td></tr>
+        <tr><td><code>Internal URL</code></td><td>The public path to a published essay: /context/&lt;slug&gt;</td></tr>
+        <tr><td><code>EssayGatekeeper</code></td><td>Rust validator ensuring publish-readiness: title non-empty, body ≥ 100 chars, bibliography required if citations detected</td></tr>
+        <tr><td><code>ChromaDB</code></td><td>Vector database storing embedded essay text (384-dim BERT) in the "essays" collection for semantic search</td></tr>
+        <tr><td><code>EntryToggle</code></td><td>Metadata tag categorising content type — essays use the Context variant</td></tr>
+        <tr><td><code>context.html</code></td><td>The public essays page where all published essays appear as cards in the hero-placeholder grid</td></tr>
+        <tr><td><code>hero-placeholder</code></td><td>The &lt;section id="hero-placeholder"&gt; in context.html that receives dynamically injected essay card HTML from context_hero.js</td></tr>
+      </tbody>
+    </table>
 
 </body>
 </html>
