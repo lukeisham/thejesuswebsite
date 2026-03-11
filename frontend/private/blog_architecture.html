@@ -99,39 +99,248 @@
     <!-- § DATA FLOW DIAGRAMS -->
     <h2>Data Flow</h2>
 
-    <h4 class="glossary-heading">Blog Posts CRUD Pipeline</h4>
+    <h4 class="glossary-heading">Blog Posts Lifecycle — Overview</h4>
     <pre class="glossary-diagram">
-┌─────────────────────────────────────────────────────────────┐
-│                      BLOG POSTS PIPELINE                    │
-│                                                             │
-│  ┌──────────────────┐    ┌──────────────┐    ┌───────────┐  │
-│  │ Blog CRUD Tab    │───>│ blog_crud.js │───>│ API       │  │
-│  │ (crud-blogs)     │    │              │    │ Endpoint  │  │
-│  └──────────────────┘    └──────────────┘    └───────────┘  │
-│                                                    │        │
-│                                              ┌─────▼─────┐  │
-│                                              │ sqlite.rs │  │
-│                                              └─────┬─────┘  │
-│                                                    │        │
-│                                              ┌─────▼─────┐  │
-│                                              │ Public    │  │
-│                                              │ Display   │  │
-│                                              └───────────┘  │
-└─────────────────────────────────────────────────────────────┘
+ ┌──────────────────────────────────────────────────────────────────────────────────┐
+ │                       BLOG POSTS LIFECYCLE — 4 STEPS                            │
+ └──────────────────────────────────────────────────────────────────────────────────┘
+
+ 1. CREATE               2. SEARCH / LIST         3. BLOG FEED           4. NEWS &amp; BLOG
+ ──────────              ────────────────         ────────────           ──────────────
+ dashboard.html          crud-blogs panel         blog_feed.html         news_and_blog.html
+ crud-blogs panel        post list always         └─ blog_feed_hero.js   └─ display_top_
+ └─ markdown modal       visible + filter            GET /api/v1/            blog_post.js
+    #blog-edit-title     #search-blogs-input         blog_feed_content      GET /api/blog/
+    #blog-edit-body      click row → modal           (intended)             latest
+    Save Draft           to edit                  → cards in                (intended)
+    Publish                                         #hero-placeholder    → featured post
+         │                    │                          │                    │
+         └────────────────────┴──────────────────────────┴────────────────────┘
+                                        │
+                                        ▼
+                              POST /api/blog/posts
+                              api_blog.rs → chroma.rs
+                              "blog_posts" ChromaDB collection
+    </pre>
+
+    <h4 class="glossary-heading">Step 1 &amp; 2 — CRUD Editor + Modal Workflow</h4>
+    <pre class="glossary-diagram">
+ dashboard.html — Blog CRUD panel (id: crud-blogs)
+ ├─ #blog-list (UL)
+ │   Posts load automatically on panel init via loadPosts()
+ │   GET /api/blog/posts → renderList(posts)
+ │   Each row: title | "Published" badge OR "Draft" badge
+ │
+ ├─ #search-blogs-input
+ │   keyup → filters #blog-list rows by title in real-time
+ │
+ ├─ #create-blog-post button
+ │   └─ clearModal() → opens #blog-editor-modal  (new post)
+ │
+ └─ click any post row
+     └─ populateModal(post) → opens #blog-editor-modal  (edit existing)
+
+         ┌────────────────────────────────────────────────────┐
+         │  #blog-editor-modal  (popup overlay)               │
+         │                                                    │
+         │  #blog-edit-title    textarea — post title         │
+         │  #blog-edit-body     textarea — Markdown body      │
+         │                                                    │
+         │  #blog-save-draft  ──┐                             │
+         │  #blog-publish     ──┤──→ saveOrPublish(bool)      │
+         │  #blog-close-btn   ──┘     │                       │
+         └──────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+                         POST /api/blog/posts
+                         { title, body, published: bool }
+                                      │
+                                      ▼
+                         api_blog.rs: handle_create_post()
+                         ├─ BlogCreateRequest → DraftBlogPost
+                         ├─ Gatekeeper::validate_draft()
+                         │   ├─ title must not be empty
+                         │   └─ body must be ≥ 10 characters
+                         ├─ new BlogPostId (UUID) + Metadata (ULID)
+                         ├─ ⚠ security: is_published forced to false
+                         │   (regardless of published field sent)
+                         └─ chroma.rs: store_blog_post()
+                             → embeds title + body text
+                             → upserts into "blog_posts" collection
+    </pre>
+
+    <h4 class="glossary-heading">Step 3 — Blog Feed (blog_feed.html)</h4>
+    <pre class="glossary-diagram">
+ blog_feed.html (page load)
+ └─ js/blog_feed_hero.js (DOMContentLoaded)
+         │
+         ▼
+    GET /api/v1/blog_feed_content   ← INTENDED — backend not yet implemented
+         │                             (modelled on api_news.rs:
+         │                              handle_news_feed_content())
+         ▼
+    HTML fragment injected into:
+    &lt;section id="hero-placeholder"&gt;
+
+    Expected card layout per post:
+    ┌──────────────────────────────────┐
+    │ Title                            │
+    │ excerpt / snippet                │
+    │ labels / tags                    │
+    │ [Read →]  /blog/{slug or id}     │
+    └──────────────────────────────────┘
+
+    Card grid: CSS, auto-fill columns
+    Error fallback: "No blog posts currently available."
+    </pre>
+
+    <h4 class="glossary-heading">Step 4 — Most Recent Post (news_and_blog.html)</h4>
+    <pre class="glossary-diagram">
+ news_and_blog.html (page load)
+ ├─ js/display_top_blog_post.js → initTopBlogPost()
+ │       │
+ │       ▼
+ │  GET /api/blog/latest   ← INTENDED — backend not yet implemented
+ │       │                    (handler to be added in api_blog.rs;
+ │       │                     queries ChromaDB for most recent post)
+ │       ▼
+ │  Expected response:
+ │  { category, title, excerpt, body, author, date, url }
+ │       │
+ │       ▼
+ │  Populates #top-blog-post section:
+ │  ├─ .essay-kicker  ← category  (e.g. "Featured")
+ │  ├─ h3             ← title
+ │  ├─ p              ← excerpt (falls back to body if no excerpt)
+ │  ├─ .essay-meta    ← "By {author} · {date}"
+ │  └─ a.nav-link     ← href: url
+ │
+ └─ js/display_top_four_news_items.js  (co-loaded — handles news section)
     </pre>
 
     <!-- § FILE & FUNCTION REFERENCE -->
     <h2>File &amp; Function Reference</h2>
 
     <details class="glossary-section">
-        <summary>Files (placeholder — to be completed)</summary>
-        <table class="glossary-table">
-            <thead><tr><th>File</th><th>Purpose</th><th>Status</th></tr></thead>
-            <tbody>
-                <tr><td><code>frontend/private/js/blog_crud.js</code></td><td>CRUD handlers for blog posts</td><td>Needs documentation</td></tr>
-            </tbody>
-        </table>
+      <summary>Backend — Core Types</summary>
+      <table class="glossary-table">
+        <thead><tr><th>File</th><th>Export / Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="5"><code>app_core/src/types/blog_and_news/blog.rs</code></td>
+              <td><code>BlogPost</code> struct</td>
+              <td>7 fields: id, title, content (→ "body" in JSON), picture_url (Option), labels, metadata, is_published (→ "published")</td></tr>
+          <tr><td><code>BlogPostId(uuid::Uuid)</code></td><td>Newtype wrapper around UUID — used as unique post identifier</td></tr>
+          <tr><td><code>DraftBlogPost</code> struct</td><td>Intermediate: title, content, picture_url, labels — no id or status yet</td></tr>
+          <tr><td><code>Gatekeeper::validate_draft(draft)</code></td><td>title non-empty · body ≥ 10 chars · returns BlogPostId or BlogError</td></tr>
+          <tr><td><code>BlogError</code></td><td>NotFound | ValidationError(String) | SecurityViolation(String) | LockError</td></tr>
+          <tr><td rowspan="2"><code>app_core/src/types/dtos.rs</code></td>
+              <td><code>BlogCreateRequest</code></td>
+              <td>API input DTO: { title, body, published, picture_url?, labels }</td></tr>
+          <tr><td><code>From&lt;BlogCreateRequest&gt; for DraftBlogPost</code></td><td>Maps body → content · drops published flag (handled separately)</td></tr>
+        </tbody>
+      </table>
     </details>
+
+    <details class="glossary-section">
+      <summary>Backend — API Handlers</summary>
+      <table class="glossary-table">
+        <thead><tr><th>Handler</th><th>Route</th><th>Method</th><th>Status</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>handle_get_posts</code></td><td>/api/blog/posts</td><td>GET</td><td>✅</td><td>Queries ChromaDB with empty string → returns Vec&lt;BlogPost&gt; JSON</td></tr>
+          <tr><td><code>handle_create_post</code></td><td>/api/blog/posts</td><td>POST</td><td>✅</td><td>BlogCreateRequest → DraftBlogPost → BlogPost · stores in ChromaDB · is_published forced false</td></tr>
+          <tr><td><code>handle_get_latest</code></td><td>/api/blog/latest</td><td>GET</td><td>⚠️ intended</td><td>Returns most recent post for featured slot on news_and_blog.html · not yet built</td></tr>
+          <tr><td><code>handle_blog_feed_content</code></td><td>/api/v1/blog_feed_content</td><td>GET</td><td>⚠️ intended</td><td>Returns HTML fragment of post cards for blog_feed.html · not yet built</td></tr>
+        </tbody>
+      </table>
+      <p class="glossary-note">Implemented handlers in <code>app/app_ui/src/api_blog.rs</code>. Routes registered via <code>nest("/api/blog", blog_routes())</code> in <code>router.rs</code>.</p>
+    </details>
+
+    <details class="glossary-section">
+      <summary>Backend — Storage (ChromaDB only)</summary>
+      <table class="glossary-table">
+        <thead><tr><th>File</th><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="2"><code>app_storage/src/chroma.rs</code></td>
+              <td><code>store_blog_post(post)</code></td>
+              <td>Embeds title + body text → upserts into "blog_posts" ChromaDB collection by UUID</td></tr>
+          <tr><td><code>query_blog_posts(query_text)</code></td><td>Semantic similarity search on "blog_posts" collection → returns Vec&lt;String&gt; (JSON docs)</td></tr>
+        </tbody>
+      </table>
+      <p class="glossary-note">⚠️ Blog posts are stored in <strong>ChromaDB only</strong> — sqlite.rs has no blog methods. The previous architecture diagram incorrectly showed sqlite.rs as the storage layer.</p>
+    </details>
+
+    <details class="glossary-section">
+      <summary>Frontend — Admin JS (dashboard)</summary>
+      <table class="glossary-table">
+        <thead><tr><th>File</th><th>Function / Element</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="4"><code>private/js/blog_crud.js</code></td>
+              <td><code>initBlogCrud()</code></td>
+              <td>IIFE controller — wires all event listeners, calls loadPosts() on init</td></tr>
+          <tr><td><code>loadPosts()</code></td><td>GET /api/blog/posts with Bearer auth → renderList(posts)</td></tr>
+          <tr><td><code>renderList(posts)</code></td><td>Clears #blog-list · renders &lt;li&gt; rows with title + Published/Draft badge · wires click + search</td></tr>
+          <tr><td><code>saveOrPublish(isPublished)</code></td><td>Collects modal fields → POST /api/blog/posts { title, body, published: bool }</td></tr>
+          <tr><td rowspan="9"><code>dashboard.html</code> (element IDs)</td>
+              <td><code>#blog-list</code></td><td>UL — rendered post list with status badges</td></tr>
+          <tr><td><code>#create-blog-post</code></td><td>Button — clears modal + opens editor for new post</td></tr>
+          <tr><td><code>#search-blogs-input</code></td><td>Text input — real-time keyup filter of #blog-list rows</td></tr>
+          <tr><td><code>#blog-editor-modal</code></td><td>Modal overlay — contains title, body, and action buttons</td></tr>
+          <tr><td><code>#blog-edit-title</code></td><td>Textarea — post title input inside modal</td></tr>
+          <tr><td><code>#blog-edit-body</code></td><td>Textarea — Markdown body input inside modal</td></tr>
+          <tr><td><code>#blog-save-draft</code></td><td>Button — calls saveOrPublish(false)</td></tr>
+          <tr><td><code>#blog-publish</code></td><td>Button — calls saveOrPublish(true)</td></tr>
+          <tr><td><code>#blog-close-btn</code></td><td>Button — closes the modal</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="glossary-section">
+      <summary>Frontend — Public JS</summary>
+      <table class="glossary-table">
+        <thead><tr><th>File</th><th>Function / Element</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="2"><code>js/blog_feed_hero.js</code></td>
+              <td>(self-executing)</td>
+              <td>DOMContentLoaded → GET /api/v1/blog_feed_content → inject HTML into #hero-placeholder</td></tr>
+          <tr><td>error fallback</td><td>Shows "No blog posts currently available." if fetch fails</td></tr>
+          <tr><td><code>blog_feed.html</code></td>
+              <td><code>#hero-placeholder</code></td>
+              <td>Target container for dynamically injected blog post card HTML</td></tr>
+          <tr><td rowspan="2"><code>js/display_top_blog_post.js</code></td>
+              <td><code>initTopBlogPost()</code></td>
+              <td>GET /api/blog/latest → populates .essay-kicker, h3, p, .essay-meta, a.nav-link in #top-blog-post</td></tr>
+          <tr><td><code>escapeHtml(text)</code></td><td>Utility — sanitises post content before injecting into DOM</td></tr>
+          <tr><td><code>news_and_blog.html</code></td>
+              <td><code>#top-blog-post</code></td>
+              <td>Featured section for most recent blog post on the news + blog page</td></tr>
+          <tr><td><code>js/display_top_four_news_items.js</code></td>
+              <td>(self-executing)</td>
+              <td>Co-loaded on news_and_blog.html — handles the news items section (separate from blog)</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <!-- § GLOSSARY OF TERMS -->
+    <h2>Glossary of Terms</h2>
+
+    <table class="glossary-table">
+      <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+      <tbody>
+        <tr><td><code>BlogPost</code></td><td>Rust struct with 7 fields: id (UUID), title, content (serialised as "body"), picture_url (optional), labels, metadata, is_published (serialised as "published")</td></tr>
+        <tr><td><code>DraftBlogPost</code></td><td>Intermediate struct used before ID assignment: title, content, picture_url, labels — no id or publication status</td></tr>
+        <tr><td><code>BlogCreateRequest</code></td><td>API input DTO sent from the dashboard: { title, body, published, picture_url?, labels }</td></tr>
+        <tr><td><code>Markdown</code></td><td>Lightweight text formatting syntax written in #blog-edit-body (headers, bold, italic, links, lists)</td></tr>
+        <tr><td><code>is_published</code></td><td>Boolean flag on BlogPost; always forced to false at creation by the backend regardless of what the client sends</td></tr>
+        <tr><td><code>ChromaDB</code></td><td>Vector database storing all blog posts in the "blog_posts" collection via semantic embedding of title + body</td></tr>
+        <tr><td><code>blog_posts collection</code></td><td>ChromaDB collection holding embedded blog post documents; queried by handle_get_posts() and (intended) handle_blog_feed_content()</td></tr>
+        <tr><td><code>blog_crud.js</code></td><td>Fully implemented dashboard CRUD script: loads post list on init, real-time search filter, modal editor, save/publish API calls</td></tr>
+        <tr><td><code>blog-editor-modal</code></td><td>Popup overlay (#blog-editor-modal) in dashboard.html containing the title textarea, Markdown body textarea, and action buttons</td></tr>
+        <tr><td><code>blog_feed.html</code></td><td>Public blog grid page — injects all published post cards into #hero-placeholder via blog_feed_hero.js</td></tr>
+        <tr><td><code>news_and_blog.html</code></td><td>Public page showing top 4 news items alongside the most recent blog post in a featured #top-blog-post slot</td></tr>
+        <tr><td><code>hero-placeholder</code></td><td>Container &lt;section&gt; in blog_feed.html that receives dynamically injected blog post card HTML from blog_feed_hero.js</td></tr>
+        <tr><td><code>top-blog-post</code></td><td>Featured section in news_and_blog.html populated by display_top_blog_post.js with the most recent post's title, excerpt, author, date, and link</td></tr>
+      </tbody>
+    </table>
 
 </body>
 </html>
