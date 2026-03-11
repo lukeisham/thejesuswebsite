@@ -99,6 +99,60 @@
     <!-- § DATA FLOW DIAGRAMS -->
     <h2>Data Flow</h2>
 
+    <h4 class="glossary-heading">Records Lifecycle — Overview</h4>
+    <pre class="glossary-diagram">
+ ┌──────────────────────────────────────────────────────────────────────────────────┐
+ │                        RECORDS LIFECYCLE — 6 STEPS                              │
+ └──────────────────────────────────────────────────────────────────────────────────┘
+
+ 1. SEED                      2. SEARCH                    3. CRUD (Dashboard)
+ ───────                      ─────────                    ───────────────────
+ 6 list pages (HTML)          records.html                 dashboard.html
+ ├─ list_miracles.html        ├─ #search-input             ├─ search / browse list
+ ├─ list_events.html          │                            │   (title + primary verse)
+ ├─ list_people.html          ▼                            │
+ ├─ list_places.html          GET /api/v1/records?q=       ▼
+ ├─ list_ot_verses.html       │                            click record
+ └─ list_objects.html         ▼                            └─ populateForm(r)
+        │                     3 display views:                 → CRUD editor
+        ▼                     ┌─────────────────────┐          ├─ PUT  /records/:id
+ list_page_parser.js          │ Grid  │ Feed  │List │          └─ DELETE /records/:id
+ (3 parsing strategies)       │ 14    │ thumb │title│
+        │                     │ fields│+snip- │+    │      4. CREATE (New Record)
+        ▼                     │ per   │ pet + │pri- │      ────────────────────
+ wgt_db_populator.js          │ card  │ badges│mary │      CRUD editor
+ ├─ fetches pages             │       │       │verse│      ├─ clearForm()
+ ├─ parses items              └─────────────────────┘      ├─ fill all fields
+ └─ bulk POST                  record_  record_  title     └─ POST /records/publish
+        │                      card.js  feed.js  +verse         │
+        ▼                                                       ▼
+ POST /api/v1/admin/populate                              api_records.rs
+ └─ api_widgets.rs                                        handle_publish_record()
+    handle_admin_populate()                                     │
+    build_record_from_item()                               ┌────┴────┐
+        │                                                  ▼         ▼
+        ▼                                             sqlite.rs  chroma.rs
+ ~300 records created                                 (persist)  (search)
+ each with: title + ULID + primary verse + internal link
+
+ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─
+
+ 5. REFERENCE (cross-page)                    6. TOGGLE (Bible verse links)
+ ─────────────────────────                    ────────────────────────────
+ Records (title + primary verse)              Any page with Bible verses
+ referenced via JS on:                               │
+ ├─ evidence.html  (ardor tree nodes)         #btn-toggle-links (footer)
+ ├─ timeline.html  (era periods)                     │ click
+ ├─ maps/*.html    (location sidebar)                ▼
+ │                                            footer_actions.js
+ Linked via internal &lt;a&gt; tags in:              toggleRecordLinks()
+ ├─ context essays                                   │
+ └─ challenge response pages                         ▼
+                                              every Bible verse → clickable
+                                              &lt;a href="/records.html?verse=…"&gt;
+                                              takes user to that record
+    </pre>
+
     <h4 class="glossary-heading">Record Creation &amp; Storage Pipeline</h4>
     <pre class="glossary-diagram">
  Path A: Dashboard CRUD Form               Path B: DB Populator Widget
@@ -179,6 +233,99 @@
  feed_controls.js
  · sort: newest / oldest / A-Z / category
  · category filter chips via MutationObserver
+    </pre>
+
+    <h4 class="glossary-heading">Record References — Cross-Page Integration</h4>
+    <pre class="glossary-diagram">
+ Records are displayed (title + primary verse) on pages beyond records.html
+ via JS that calls GET /api/v1/records and filters by context.
+
+                         GET /api/v1/records
+                                │
+          ┌─────────────────────┼─────────────────────────────┐
+          │                     │                             │
+          ▼                     ▼                             ▼
+  evidence.html          timeline.html               maps/*.html
+  (Ardor Tree)           (Era Periods)               (Location Sidebar)
+  ──────────────         ──────────────              ─────────────────
+  data-node attrs        data-period attrs           data-loc attrs
+  click node →           click period →              click location →
+  fetch related          fetch records               fetch records
+  records by topic       by TimelineEra              by MapType region
+          │                     │                             │
+          ▼                     ▼                             ▼
+  ardor_tree.js          JS handler                  map_zoom.js
+  (render node detail    (render period              (render location
+   + record list)         record list)                record list)
+
+ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─
+
+ Records can also be linked to directly via internal &lt;a&gt; tags:
+
+  context essays (context/*.html)      challenge responses (responses/*.html)
+  ──────────────────────────           ──────────────────────────────────────
+  context_hero.js fetches              Response pages contain hand-written
+  essay HTML from API →                &lt;a href="/records.html?id=ULID"&gt;
+  essay body contains                  internal links pointing to
+  internal links to records            specific records
+
+ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─
+
+ Pages involved:
+ ├─ evidence.html        + js/ardor_tree.js
+ ├─ timeline.html        + js/shuffle_left.js, shuffle_right.js, zoom.js
+ ├─ maps/maps.html       (hub)
+ ├─ maps/galilee/galilee.html    + js/map_zoom.js
+ ├─ maps/jerusalem/jerusalem.html
+ ├─ maps/judea/judea.html
+ ├─ maps/levant/levant.html
+ ├─ maps/rome/rome.html
+ ├─ context.html         + js/context_hero.js
+ ├─ challenge_academic.html + js/challenge_academic_hero.js
+ └─ responses/*.html     (static internal links)
+    </pre>
+
+    <h4 class="glossary-heading">Record Toggle — Bible Verse Links</h4>
+    <pre class="glossary-diagram">
+ The Record Toggle turns every Bible verse on any page into a clickable
+ internal link that navigates the user to records.html for that record.
+
+ ┌──────────────────────────────────────────────────────────────────┐
+ │  ANY PAGE (evidence, timeline, maps, essays, list pages, etc.)  │
+ │                                                                 │
+ │  Bible verses rendered with class="record-link" (hidden)        │
+ │  e.g. &lt;a class="record-link hidden"                            │
+ │         href="/records.html?verse=Mk+4:35-41"&gt;                 │
+ │         Mk 4:35–41                                              │
+ │       &lt;/a&gt;                                                      │
+ └──────────────────────────┬───────────────────────────────────────┘
+                            │
+                 User clicks footer button
+                 #btn-toggle-links
+                            │
+                            ▼
+               footer_actions.js
+               toggleRecordLinks()
+                            │
+                            ▼
+               document.querySelectorAll('.record-link')
+               .forEach(link =&gt; link.classList.toggle('hidden'))
+                            │
+                            ▼
+ ┌──────────────────────────────────────────────────────────────────┐
+ │  TOGGLE ON:  Bible verses become visible clickable links        │
+ │              "Mk 4:35–41" → click → /records.html?verse=…       │
+ │              records.html reads ?verse param → filters to        │
+ │              the matching record and displays it                 │
+ │                                                                 │
+ │  TOGGLE OFF: Links hidden again, verses show as plain text      │
+ └──────────────────────────────────────────────────────────────────┘
+
+ Key files:
+ ├─ _footer.html          → contains #btn-toggle-links button
+ ├─ js/footer_actions.js  → toggleRecordLinks() function
+ ├─ style.css             → .record-link + .hidden classes
+ └─ records.html          → reads ?verse query param on load
     </pre>
 
     <!-- § FILE & FUNCTION REFERENCE -->
@@ -328,6 +475,80 @@
     </details>
 
     <details class="glossary-section">
+      <summary>Frontend — DB Populator &amp; Parsing</summary>
+      <table class="glossary-table">
+        <thead><tr><th>File</th><th>Function / Export</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3"><code>js/widgets/wgt_db_populator.js</code></td>
+              <td><code>initDBPopulator()</code></td>
+              <td>Sets up listeners and auto-polling for population status</td></tr>
+          <tr><td><code>handleDBPopulate()</code></td><td>Fetches 6 list pages in parallel · parses · POSTs bulk payload</td></tr>
+          <tr><td><code>setStatus()</code></td><td>Updates traffic-light UI + label text</td></tr>
+          <tr><td rowspan="2"><code>js/lib/list_page_parser.js</code></td>
+              <td><code>parseListPage(html, sourceFile)</code></td>
+              <td>Dispatches to correct strategy based on source file · returns array of record objects</td></tr>
+          <tr><td><code>parseItem(li, strategy, category)</code></td><td>Parses single &lt;li&gt; element using one of 3 strategies (standard / places / ot_verses)</td></tr>
+          <tr><td rowspan="4"><code>js/lib/bible_ref_parser.js</code></td>
+              <td><code>parseBibleRef(refStr)</code></td>
+              <td>Parses "Mk 4:35–41" → { book, chapter, verse } or null</td></tr>
+          <tr><td><code>normalizeBookName(raw)</code></td><td>Maps abbreviations to Rust BibleBook enum names (66 books + aliases)</td></tr>
+          <tr><td><code>splitMultipleRefs(str)</code></td><td>Splits semicolon/comma-separated refs into array</td></tr>
+          <tr><td><code>extractParentheticalRefs(text)</code></td><td>Finds Bible refs inside parentheses in description text</td></tr>
+        </tbody>
+      </table>
+      <p class="glossary-note">Data source list pages: <code>list_miracles.html</code>, <code>list_events.html</code>, <code>list_people.html</code>, <code>list_places.html</code>, <code>list_ot_verses.html</code>, <code>list_objects.html</code>. All use <code>&lt;ul class="record-list"&gt;</code> with standardised <code>&lt;li&gt;</code> structures.</p>
+    </details>
+
+    <details class="glossary-section">
+      <summary>Frontend — Record References (cross-page)</summary>
+      <table class="glossary-table">
+        <thead><tr><th>File</th><th>Function / Export</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>evidence.html</code></td>
+              <td>data-node attributes</td>
+              <td>Ardor tree nodes · click reveals record details for that topic</td></tr>
+          <tr><td><code>js/ardor_tree.js</code></td>
+              <td>(intended)</td>
+              <td>Fetches records related to selected tree node · renders title + primary verse</td></tr>
+          <tr><td><code>timeline.html</code></td>
+              <td>data-period attributes</td>
+              <td>8 era periods · click loads records belonging to that TimelineEra</td></tr>
+          <tr><td><code>maps/maps.html</code></td>
+              <td>(hub page)</td>
+              <td>Links to 5 regional map pages</td></tr>
+          <tr><td><code>maps/*/[region].html</code></td>
+              <td>data-loc attributes</td>
+              <td>galilee, jerusalem, judea, levant, rome · location sidebar with record links</td></tr>
+          <tr><td><code>maps/*/js/map_zoom.js</code></td>
+              <td>location click handler</td>
+              <td>Handles data-loc clicks · pans map · loads records for that location</td></tr>
+          <tr><td><code>context.html</code></td>
+              <td>#hero-placeholder</td>
+              <td>Dynamic essay content containing internal links to records</td></tr>
+          <tr><td><code>js/context_hero.js</code></td>
+              <td>(self-executing)</td>
+              <td>Fetches essay HTML from /api/v1/hero_content → injects into page</td></tr>
+          <tr><td><code>challenge_academic.html</code></td>
+              <td>#hero-placeholder</td>
+              <td>Academic challenges with internal links to supporting records</td></tr>
+          <tr><td><code>js/challenge_academic_hero.js</code></td>
+              <td>(self-executing)</td>
+              <td>Fetches challenge HTML from /api/challenges?type=academic</td></tr>
+          <tr><td><code>responses/*.html</code></td>
+              <td>static &lt;a&gt; tags</td>
+              <td>Challenge response pages with hand-written internal links to records</td></tr>
+          <tr><td rowspan="2"><code>js/footer_actions.js</code></td>
+              <td><code>toggleRecordLinks(event)</code></td>
+              <td>Toggles visibility of all .record-link elements on the page</td></tr>
+          <tr><td><code>#btn-toggle-links</code></td><td>Footer button present on all pages · triggers toggleRecordLinks()</td></tr>
+          <tr><td><code>js/expand_verse.js</code></td>
+              <td>(self-executing)</td>
+              <td>Auto-expands Bible verses via .primary-verse-display[data-verse] → GET /api/v1/expand_verse</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <details class="glossary-section">
       <summary>Frontend — CSS Classes (style.css)</summary>
       <table class="glossary-table">
         <thead><tr><th>Class</th><th>Description</th></tr></thead>
@@ -340,9 +561,36 @@
           <tr><td><code>.record-view-tabs</code></td><td>Grid / Feed toggle tab bar on records.html</td></tr>
           <tr><td><code>.record-search</code> <code>.record-search__input</code> <code>.record-search__btn</code></td><td>Search bar layout</td></tr>
           <tr><td><code>.feed-controls</code></td><td>Sort / filter UI wrapper</td></tr>
+          <tr><td><code>.record-link</code></td><td>Bible verse internal link · hidden by default · toggled visible by footer button</td></tr>
+          <tr><td><code>.record-list</code></td><td>List container (&lt;ul&gt;) used on list pages for record source data</td></tr>
+          <tr><td><code>.primary-verse-display</code></td><td>Verse element with data-verse attr · targeted by expand_verse.js for ESV API lookup</td></tr>
+          <tr><td><code>.hidden</code></td><td>Utility class to hide elements (used with .record-link toggle)</td></tr>
         </tbody>
       </table>
     </details>
+
+    <!-- § GLOSSARY OF TERMS -->
+    <h2>Glossary of Terms</h2>
+
+    <table class="glossary-table">
+      <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+      <tbody>
+        <tr><td><code>ULID</code></td><td>Universally Unique Lexicographically Sortable Identifier — the primary key for every record</td></tr>
+        <tr><td><code>Record</code></td><td>A 14-field structured entry representing a biblical event, person, place, or theme</td></tr>
+        <tr><td><code>Primary Verse</code></td><td>The main Bible reference associated with a record (e.g., "Mk 4:35–41")</td></tr>
+        <tr><td><code>Secondary Verse</code></td><td>An optional additional Bible reference for supplementary context</td></tr>
+        <tr><td><code>Internal Link</code></td><td>An &lt;a&gt; tag linking to records.html with a query parameter to identify the target record</td></tr>
+        <tr><td><code>Record Toggle</code></td><td>Footer button (#btn-toggle-links) that makes Bible verses across the site clickable links to their associated record</td></tr>
+        <tr><td><code>DB Populator</code></td><td>Dashboard widget (wgt_db_populator.js) that seeds ~300 records by parsing the 6 list pages</td></tr>
+        <tr><td><code>Classification</code></td><td>Record category enum: Event | Location | Person | Theme (PascalCase serde)</td></tr>
+        <tr><td><code>ContentEntry</code></td><td>Record content type: Miracle | Parable | Saying | Sermon | Other (lowercase serde)</td></tr>
+        <tr><td><code>TimelineEra</code></td><td>One of 8 chronological periods: pre-incarnation, birth-early-life, baptism-preparation, galilean-ministry, judean-ministry, passion-crucifixion, resurrection-ascension, theme</td></tr>
+        <tr><td><code>MapType</code></td><td>Geographic region enum: Galilee | Jerusalem | Judea | Levant | Rome | Overview</td></tr>
+        <tr><td><code>ChromaDB</code></td><td>Vector database used for semantic search of records (stores embedded JSON in "records" collection)</td></tr>
+        <tr><td><code>CRUD Editor</code></td><td>Dashboard form (edit_records.js) for Creating, Reading, Updating, and Deleting records</td></tr>
+        <tr><td><code>RecordGatekeeper</code></td><td>Rust validator ensuring record data integrity before storage (name ≤ 80 chars, PNG format, non-empty description)</td></tr>
+      </tbody>
+    </table>
 
 </body>
 </html>
