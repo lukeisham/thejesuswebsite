@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent & User Chat Architecture — The Jesus Website</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        body {
+            font-family: var(--font-sans, 'Inter', sans-serif);
+            background: var(--bg-primary, #fafaf9);
+            color: var(--text-primary, #333);
+            padding: 2rem;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        h1 { color: var(--accent-color, #5b7065); border-bottom: 2px solid var(--accent-color, #5b7065); padding-bottom: 0.5rem; }
+        h2 { color: var(--accent-color, #5b7065); margin-top: 2rem; }
+
+        .glossary-diagram {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1.5rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin: 1rem 0;
+        }
+
+        .glossary-section {
+            margin: 1rem 0;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+        }
+
+        .glossary-section summary {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            background: var(--bg-secondary, #f5f5f0);
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin: 0.5rem 0;
+        }
+
+        .glossary-table th {
+            text-align: left;
+            background: var(--bg-secondary, #f5f5f0);
+            padding: 0.5rem;
+            border-bottom: 2px solid var(--border-color, #ddd);
+        }
+
+        .glossary-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border-color, #eee);
+            vertical-align: top;
+        }
+
+        .glossary-table code {
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .glossary-note {
+            color: #666;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        .glossary-heading {
+            color: var(--accent-color, #5b7065);
+            margin-top: 1.5rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: var(--accent-color, #5b7065);
+            text-decoration: none;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <a href="/private/dashboard.html" class="back-link">&larr; Back to Dashboard</a>
+
+    <h1>Agent & User Chat Architecture</h1>
+    <p class="glossary-note">Reference for chat interaction modes, widget commands, and the heavy/light action system.</p>
+
+    <!-- § DATA FLOW DIAGRAMS -->
+    <h2>Data Flow</h2>
+
+    <h4 class="glossary-heading">Interaction Mode Flow</h4>
+    <pre class="glossary-diagram">
+User message → detectInteractionMode() [frontend JS]
+  → "Execution"    — brief commands, no preamble
+  → "Collaborative" — iterative, suggest 3 alternatives (default)
+  → "Review"       — methodical, flag anomalies
+  → "Monitor"      — short, alert-aware
+
+→ forwarded as interaction_mode field in POST /api/v1/agent/chat
+→ InteractionMode::from_str() [agent.rs]
+→ vibe suffix appended to AgentResponse.data
+    </pre>
+
+    <h4 class="glossary-heading">Heavy vs Light Actions</h4>
+    <pre class="glossary-diagram">
+HEAVY ACTIONS (require verification)     LIGHT ACTIONS (execute immediately)
+─────────────────────────────────────    ────────────────────────────────────
+"run wiki"   → run_wiki_sync             "run news"    → run_news_crawler
+"run challenge" → run_challenge_sort     "run spelling"→ run_spelling_check
+"run deadlink"  → run_deadlinks          "run scrape"  → run_page_scraper
+"run embed"  → run_vector_embed
+
+Returns: verification_required: true     Returns: action string, executes now
+    </pre>
+
+    <!-- § FILE & FUNCTION REFERENCE -->
+    <h2>File &amp; Function Reference</h2>
+
+    <details class="glossary-section">
+        <summary>Chat Request/Response</summary>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>File</th><th>Export / Method</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>app/app_ui/src/agent_api.rs</code></td><td><code>AgentChatRequest</code></td><td>message, interaction_mode (optional), widget_context (optional)</td></tr>
+                <tr><td><code>app/app_ui/src/agent_api.rs</code></td><td><code>AgentChatResponse</code></td><td>response (string), data (optional string)</td></tr>
+                <tr><td><code>app/app_brain/src/agent.rs</code></td><td><code>AgentResponse</code></td><td>data, confidence, metadata — internal response type</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <details class="glossary-section">
+        <summary>Widget Commands</summary>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>File</th><th>Export / Method</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>app/app_brain/src/agent.rs</code></td><td><code>try_widget_command()</code></td><td>Routes widget-specific queries using keyword matching</td></tr>
+                <tr><td><code>app/app_brain/src/agent.rs</code></td><td><code>build_status_summary()</code></td><td>Builds priority-ordered dashboard summary (P1–P8)</td></tr>
+                <tr><td><code>app/app_brain/src/agent.rs</code></td><td><code>build_widget_summary()</code></td><td>Builds single-widget summary anchored to data source</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <details class="glossary-section">
+        <summary>Widget Anchoring Reference</summary>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>Widget ID</th><th>Trigger Keywords</th><th>Anchored To</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>wgt-token-metrics</code></td><td>token, usage, cost, budget</td><td>system://token_ledger</td></tr>
+                <tr><td><code>wgt-contact-triage</code></td><td>contact, message, inbox</td><td>chromadb://contacts</td></tr>
+                <tr><td><code>wgt-news-crawler</code></td><td>news, crawl, crawler</td><td>chromadb://news</td></tr>
+                <tr><td><code>wgt-server-metrics</code></td><td>server, cpu, memory, disk</td><td>system://server_health</td></tr>
+                <tr><td><code>wgt-security</code></td><td>security, alert, honeypot</td><td>system://security_log</td></tr>
+                <tr><td><code>wgt-agent-reflection</code></td><td>reflection, trace, reasoning</td><td>system://agent_trace</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <details class="glossary-section">
+        <summary>Interaction Modes</summary>
+        <table class="glossary-table">
+            <thead>
+                <tr><th>Mode</th><th>Trigger Pattern</th><th>Vibe</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Execution</td><td>Brief commands ("Do X", "Run Y")</td><td>Concise, no preamble</td></tr>
+                <tr><td>Collaborative</td><td>Questions, brainstorming (default)</td><td>Iterative, suggest 3 alternatives</td></tr>
+                <tr><td>Review</td><td>Audit / verification requests</td><td>Methodical, flag anomalies</td></tr>
+                <tr><td>Monitor</td><td>Observation / threshold queries</td><td>Short, alert-aware</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+</body>
+</html>

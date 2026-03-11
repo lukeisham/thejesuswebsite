@@ -31,6 +31,7 @@ pub struct NewsConfig {
 
 impl NewsConfig {
     /// Load from news_sources.toml at the given path
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn load(path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let content = std::fs::read_to_string(path)?;
         let config: Self = toml::from_str(&content)?;
@@ -179,6 +180,7 @@ impl NewsEngine {
 
     /// Crawl all sources in the config. Tries RSS first; falls back to scraping.
     /// Returns the list of raw items harvested.
+    #[cfg(not(target_arch = "wasm32"))]
     pub async fn crawl_sources(&self, config: &NewsConfig) -> Vec<RawNewsItem> {
         let mut harvested: Vec<RawNewsItem> = Vec::new();
 
@@ -204,6 +206,7 @@ impl NewsEngine {
 }
 
 /// Fetch and parse an RSS/Atom feed. Returns RawNewsItem list.
+#[cfg(not(target_arch = "wasm32"))]
 async fn fetch_rss(feed_url: &str) -> Result<Vec<RawNewsItem>, Box<dyn std::error::Error>> {
     let body = reqwest::get(feed_url).await?.text().await?;
     let channel = rss::Channel::read_from(body.as_bytes())?;
@@ -235,6 +238,7 @@ async fn fetch_rss(feed_url: &str) -> Result<Vec<RawNewsItem>, Box<dyn std::erro
 }
 
 /// Scrape a domain's homepage for article links and og:image tags.
+#[cfg(not(target_arch = "wasm32"))]
 async fn scrape_domain(domain_url: &str) -> Result<Vec<RawNewsItem>, Box<dyn std::error::Error>> {
     let body = reqwest::get(domain_url).await?.text().await?;
     let document = scraper::Html::parse_document(&body);
@@ -275,6 +279,7 @@ async fn scrape_domain(domain_url: &str) -> Result<Vec<RawNewsItem>, Box<dyn std
 /// Attempt to extract an og:image from the article URL.
 /// If not found, query Unsplash API with article keywords.
 /// Returns an Option<String> image URL.
+#[cfg(not(target_arch = "wasm32"))]
 pub async fn fetch_article_image(article_url: &str, keywords: &str) -> Option<String> {
     // Step 1: Try og:image from the article page
     if let Ok(resp) = reqwest::get(article_url).await {
@@ -297,6 +302,7 @@ pub async fn fetch_article_image(article_url: &str, keywords: &str) -> Option<St
 
 /// Query the Unsplash API for a photo matching the given keywords.
 /// Requires UNSPLASH_ACCESS_KEY environment variable.
+#[cfg(not(target_arch = "wasm32"))]
 async fn fetch_unsplash_image(keywords: &str) -> Option<String> {
     let api_key = std::env::var("UNSPLASH_ACCESS_KEY").ok()?;
     let url = format!(
