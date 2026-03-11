@@ -33,6 +33,8 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .nest("/api/blog", blog_routes())
         // 7. System Metrics
         .nest("/api/v1/system", system_routes())
+        // 8. Export Endpoints
+        .nest("/api/export", export_routes())
         .route("/login", post(crate::login::handle_login))
         // 5. Shared State Injection
         .with_state(state.clone())
@@ -156,6 +158,13 @@ fn widget_routes() -> Router<Arc<AppState>> {
         .route("/spellcheck/run", get(crate::api_spelling::handle_spellcheck_run))
         .route("/spellcheck/correct", post(crate::api_spelling::handle_spellcheck_correct))
         .route("/spellcheck/dictionary/add", post(crate::api_spelling::handle_dict_add))
+}
+
+/// Sub-router for export endpoints (PDF, PPTX, etc.).
+/// No AppState needed — generation is local and CPU-bound.
+fn export_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/slide", post(crate::api_slide::handle_export_slide))
 }
 
 /// Sub-router for Auth endpoints.

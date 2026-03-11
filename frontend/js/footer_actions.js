@@ -89,12 +89,36 @@ function saveAsPdf(event) {
 async function saveAsSlide(event) {
     event.preventDefault();
     try {
-        alert("Slide export triggered! (Pending backend integration with pttx.rs)");
+        // Dynamically import the slide builder to keep this module lean
+        const { buildSlideDeckPayload } = await import('./save_to_slide.js');
+        const payload = buildSlideDeckPayload();
+
+        const response = await fetch('/api/export/slide', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Server error ${response.status}: ${errText}`);
+        }
+
+        // Trigger browser file download of the returned .pptx binary
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${payload.deck_title || 'slides'}.pptx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
     } catch (error) {
-        alert(`Failed to trigger Slide export: ${error.message}`);
+        alert(`Failed to export slides: ${error.message}`);
     }
 }
-// END
+// END saveAsSlide
 
 // Auto-initialize when file is loaded directly as a script module
 document.addEventListener('DOMContentLoaded', initFooterActions);

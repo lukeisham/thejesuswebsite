@@ -7,6 +7,7 @@ pub mod api_donate;
 pub mod api_news;
 pub mod api_records;
 pub mod api_security;
+pub mod api_slide;
 pub mod api_sources;
 pub mod api_spelling;
 pub mod api_spider;

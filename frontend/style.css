@@ -60,17 +60,27 @@ h3 {
     color: var(--text-color);
 }
 
-/* Sans-serif for UI elements */
+/* Sans-serif for UI elements (buttons, tabs, nav links, labels) */
 button,
 .tab,
 .nav-link,
-input,
 .label {
     font-family: var(--font-sans);
     font-size: 1.1rem;
     /* increased from 0.9rem */
     text-transform: uppercase;
     letter-spacing: 1.2px;
+}
+
+/* Input elements: same sans-serif font but normal case — never force uppercase on user-typed content */
+input,
+textarea,
+select,
+[contenteditable] {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    text-transform: none;
+    letter-spacing: normal;
 }
 
 /*
