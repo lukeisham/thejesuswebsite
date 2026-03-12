@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Architecture — The Jesus Website</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        body {
+            font-family: var(--font-sans, 'Inter', sans-serif);
+            background: var(--bg-primary, #fafaf9);
+            color: var(--text-primary, #333);
+            padding: 2rem;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        h1 { color: var(--accent-color, #5b7065); border-bottom: 2px solid var(--accent-color, #5b7065); padding-bottom: 0.5rem; }
+        h2 { color: var(--accent-color, #5b7065); margin-top: 2rem; }
+
+        .glossary-diagram {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1.5rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin: 1rem 0;
+        }
+
+        .glossary-section {
+            margin: 1rem 0;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+        }
+
+        .glossary-section summary {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            background: var(--bg-secondary, #f5f5f0);
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin: 0.5rem 0;
+        }
+
+        .glossary-table th {
+            text-align: left;
+            background: var(--bg-secondary, #f5f5f0);
+            padding: 0.5rem;
+            border-bottom: 2px solid var(--border-color, #ddd);
+        }
+
+        .glossary-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border-color, #eee);
+            vertical-align: top;
+        }
+
+        .glossary-table code {
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .glossary-note {
+            color: #666;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        .glossary-heading {
+            color: var(--accent-color, #5b7065);
+            margin-top: 1.5rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: var(--accent-color, #5b7065);
+            text-decoration: none;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <a href="/private/dashboard.html" class="back-link">&larr; Back to Dashboard</a>
+
+    <h1>Agent Architecture</h1>
+    <p class="glossary-note">
+        Unified architecture reference for the AI Agent — covers the LLM backbone,
+        configuration manifest, chat interaction, system monitoring, contact management,
+        website mention tracking, and future widget expansion.
+        Merges the former agent_backend_architecture and agent_chat_architecture docs.
+    </p>
+
+    <!-- § DATA FLOW DIAGRAMS -->
+    <h2>Data Flow</h2>
+
+    <h4 class="glossary-heading">Agent Lifecycle — 7-Step Overview</h4>
+    <p class="glossary-note">
+        ✅ = currently implemented &nbsp; ⚠️ = intended / not yet built
+    </p>
+    <pre class="glossary-diagram">
+  AGENT LIFECYCLE — 7-STEP OVERVIEW
+  ══════════════════════════════════════════════════════════════
+
+  1. DEEPSEEK API ⚠️      2. AGENT GUIDE           3. AGENT CHAT
+  (LLM backbone)          (manifest)               (user interaction)
+  ──────────────────      ──────────────────       ──────────────────
+  Intended: DeepSeek      agent_guide.yml          wgt_agent-chat.js
+  API for LLM calls       v1.2.0 manifest          POST /api/v1/
+  Current: CandleEngine   4 capabilities           agent/chat
+  (BERT) + "Claude 3.5    18 widgets               4 interaction modes
+  Sonnet" hardcoded       P1-P8 priority           Heavy / Light actions
+        │                       │                        │
+        ▼                       ▼                        ▼
+  Agent::new(brain)       Config governs           Dashboard chat
+  orchestrate_with_       build_status_            widget + event bus
+  context()               summary() order          (17 widget events)
+
+  4. SYSTEM HEALTH ✅      5. CONTACT FORMS ✅       6. MENTIONS ✅/⚠️
+  (monitoring)            (management)             (website monitoring)
+  ──────────────────      ──────────────────       ──────────────────
+  wgt_token_metrics P1    store_contact.js         wgt_page_metrics P7
+  wgt_server_metrics P8   POST /api/contact        GET /api/v1/
+  wgt_security P7         wgt_contact_triage       metrics/page
+  GET /api/v1/metrics/*   P2 — polls 10s           POST /api/v1/tools/
+  Polls every 30s         Alerts on next login     scraper/run
+  3 widgets, 3 events     2 sub-flows              Monthly: ⚠️ intended
+
+  7. FUTURE WIDGETS ⚠️
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  |  Widget event bus supports adding new widgets.         |
+  |  try_widget_command() handles 16 types.                |
+  |  17 events currently listened to.                      |
+  |  Add: wgt_[name].js + event + agent.rs + guide.yml    |
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    </pre>
+
+    <!-- § STEP 1-2: DEEPSEEK + AGENT GUIDE -->
+    <h4 class="glossary-heading">Step 1: DeepSeek API — LLM Backbone ⚠️</h4>
+    <pre class="glossary-diagram">
+  STEP 1 — DEEPSEEK API (intended — not yet implemented)
+  ═══════════════════════════════════════════════════════
+
+  CURRENT STATE                         INTENDED STATE
+  ─────────────                         ──────────────
+  app_brain/src/candle.rs               DeepSeek API
+  ┌────────────────────────────┐        ┌────────────────────────────┐
+  │ CandleEngine               │        │ DeepSeek LLM ⚠️            │
+  │ ├─ model: BertModel        │        │ ├─ LLM inference calls     │
+  │ ├─ tokenizer: Tokenizer    │ ─────&gt; │ ├─ Intent classification   │
+  │ ├─ device: Metal or CPU    │replace │ ├─ Embedding generation    │
+  │ ├─ try_new() → init        │        │ └─ Context-aware routing   │
+  │ └─ embed() → mean-pooled   │        └────────────────────────────┘
+  │    384-dim BERT embeddings │
+  └────────────────────────────┘
+
+  app_brain/src/agent.rs
+  ┌────────────────────────────────────────────────────────┐
+  │ Agent struct                                            │
+  │ ├─ brain: Arc&lt;CandleEngine&gt;                            │
+  │ ├─ Agent::new(brain) → constructs orchestrator         │
+  │ └─ orchestrate_with_context(query, mode, widget_ctx)   │
+  │    ├─ sanitize() → 16,384 char limit + control chars   │
+  │    ├─ determine_intent() → keyword classifier          │
+  │    └─ dispatch to engine or try_widget_command()        │
+  └────────────────────────────────────────────────────────┘
+
+  app_ui/src/agent_api.rs
+  ┌────────────────────────────────────────────────────────┐
+  │ AppState.brain: Option&lt;Arc&lt;CandleEngine&gt;&gt;              │
+  │ ├─ Currently: None (brain not loaded at runtime)       │
+  │ ├─ Returns: "AI Agent is currently offline"            │
+  │ └─ LLM ref: "Claude 3.5 Sonnet" (hardcoded in         │
+  │    sqlite.rs get_server_metrics())                     │
+  └────────────────────────────────────────────────────────┘
+
+  ⚠️ DeepSeek API integration is planned but not yet wired in.
+  Current code uses CandleEngine for embeddings only.
+    </pre>
+
+    <h4 class="glossary-heading">Step 2: agent_guide.yml — Agent Manifest</h4>
+    <pre class="glossary-diagram">
+  STEP 2 — AGENT GUIDE (v1.2.0, last updated 2026-03-05)
+  ═══════════════════════════════════════════════════════
+
+  agent_guide.yml — 7 sections govern agent behavior
+  ┌──────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │  § 1. source_of_truth                                        │
+  │  ├─ primary_record: app_core/src/types/record/record.rs      │
+  │  ├─ relational_db: SQL / Normalized (Persistence)            │
+  │  ├─ vector_db: ChromaDB (Contextual Retrieval)               │
+  │  └─ sync_frequency: Real-time via Dashboard                  │
+  │                                                              │
+  │  § 2. capabilities (4 Rust-backed tools)                     │
+  │  ├─ Wikipedia_Engine  → wiki_engine.rs  (weekly rank/merge)  │
+  │  ├─ Challenge_Engine  → challenge_engine.rs (monthly sort)   │
+  │  ├─ Link_Janitor      → link_check.rs  (deadlink scan)      │
+  │  └─ Vector_Embedder   → chroma_sync.rs (ChromaDB updates)   │
+  │                                                              │
+  │  § 3. widgets (18 JS widgets)                                │
+  │  ├─ Core: agent-chat, self_reflection, workflow              │
+  │  ├─ Data: db_populator, spelling, page_metrics, wiki,        │
+  │  │        challenge_ranker, research_suggest, contact_triage  │
+  │  ├─ System: server_metrics, token_metrics                    │
+  │  └─ Panel: sources, security, users, deadlinks               │
+  │                                                              │
+  │  § 4. content_index (records, essays, responses, blog, etc.) │
+  │                                                              │
+  │  § 5. logic_constraints (6 rules)                            │
+  │  ├─ Never overwrite UUIDs; merge Metadata only               │
+  │  ├─ Private HTML obfuscated; restrict Dashboard access       │
+  │  ├─ Public pages support robot scraping + text-copy          │
+  │  ├─ Use CSS Grids and Rust Type-Safety                       │
+  │  ├─ SCHEMA_VERSION must update with SQL/ChromaDB migrations  │
+  │  └─ Current records determine search scope                   │
+  │                                                              │
+  │  § 6. current_focus (P1-P8 priority hierarchy)               │
+  │  ├─ P1: Token Usage            → TokenMetricsEvent           │
+  │  ├─ P2: Contact Triage         → ContactTriageEvent          │
+  │  ├─ P3: Incomplete Records     → DraftCountsEvent            │
+  │  ├─ P4: Essays &amp; Research      → ResearchSuggestEvent        │
+  │  ├─ P5: Self-reflection        → ReflectionUpdateEvent       │
+  │  ├─ P6: ChromaDB Status        → NewsCompleteEvent           │
+  │  ├─ P7: User Metrics           → PageMetricsEvent            │
+  │  └─ P8: Server Status          → ServerMetricsEvent          │
+  │                                                              │
+  │  § 7. interaction_modes + chat_rules                         │
+  │  ├─ Execution:     brief commands → concise, no preamble     │
+  │  ├─ Collaborative: questions → iterative, 3 alternatives     │
+  │  ├─ Review:        audit → critical, security-first          │
+  │  ├─ Monitor:       observation → prompt, concise             │
+  │  └─ 5 chat rules (helpful, data-first, verification,        │
+  │     contextual anchoring, proactive)                         │
+  │                                                              │
+  └──────────────────────────────────────────────────────────────┘
+
+  Mapping to backend code:
+  ┌──────────────────────────┬──────────────────────────────────┐
+  │ Guide Section            │ Backend Implementation           │
+  ├──────────────────────────┼──────────────────────────────────┤
+  │ interaction_modes        │ InteractionMode enum (agent.rs)  │
+  │ current_focus (P1-P8)   │ build_status_summary() ordering  │
+  │ capabilities             │ Rust tool paths in app_brain/    │
+  │ widgets                  │ try_widget_command() routing     │
+  │ chat_rules               │ checkAlertThresholds() triggers  │
+  └──────────────────────────┴──────────────────────────────────┘
+    </pre>
+
+    <!-- § STEP 3: AGENT CHAT -->
+    <h4 class="glossary-heading">Step 3: Agent Chat — User Interaction</h4>
+    <pre class="glossary-diagram">
+  STEP 3 — AGENT CHAT (request flow)
+  ═══════════════════════════════════
+
+  wgt_agent-chat.js                     agent_api.rs
+  ┌───────────────────────────┐         ┌────────────────────────────────┐
+  │ #chat-inline-input        │         │ POST /api/v1/agent/chat        │
+  │ (contenteditable)         │         │                                │
+  │ Enter → handleInline      │────────&gt;│ handle_agent_chat()            │
+  │ ChatSubmit()              │         │ ├─ extract mode + widget_ctx   │
+  │                           │         │ ├─ AppState.brain check        │
+  │ Body:                     │         │ │  None → 503 "offline"        │
+  │ { message,                │         │ │  Some → Agent::new(brain)    │
+  │   interaction_mode,       │         │ └─ orchestrate_with_context()  │
+  │   widget_context }        │         └─────────────┬──────────────────┘
+  └───────────────────────────┘                       │
+                                                      ▼
+                                        ┌────────────────────────────────┐
+                                        │ agent.rs pipeline              │
+                                        │ 1. sanitize()                  │
+                                        │    16,384 char limit           │
+                                        │    reject control-char input   │
+                                        │ 2. determine_intent()          │
+                                        │    keyword classifier →        │
+                                        │    Intent enum (8 variants)    │
+                                        │ 3. dispatch:                   │
+                                        │    Essay → dummy response      │
+                                        │    Wikipedia → WikiEngine      │
+                                        │    Challenge → ChallengeEngine │
+                                        │    WidgetCommand →             │
+                                        │      try_widget_command()      │
+                                        │    StatusReport →              │
+                                        │      build_status_summary()    │
+                                        └─────────────┬──────────────────┘
+                                                      │
+                                                      ▼
+                                        ┌────────────────────────────────┐
+                                        │ AgentResponse                  │
+                                        │ { data, confidence, metadata } │
+                                        │ → mapped to AgentChatResponse  │
+                                        │ { response, data, action,      │
+                                        │   verification_required }      │
+                                        └────────────────────────────────┘
+
+  INTERACTION MODES (detected on frontend, applied on backend)
+  ════════════════════════════════════════════════════════════
+
+  detectInteractionMode(msg)          InteractionMode::from_str()
+  ┌─────────────────────────┐         ┌──────────────────────────┐
+  │ "run X", "do Y"         │ ──────&gt; │ Execution                │
+  │ → execution             │         │ Concise, no preamble     │
+  ├─────────────────────────┤         ├──────────────────────────┤
+  │ "what", "how", "why"    │ ──────&gt; │ Collaborative (default)  │
+  │ → collaborative         │         │ Iterative, 3 alternatives│
+  ├─────────────────────────┤         ├──────────────────────────┤
+  │ "check", "audit", "is"  │ ──────&gt; │ Review                   │
+  │ → review                │         │ Critical, security-first │
+  ├─────────────────────────┤         ├──────────────────────────┤
+  │ "high", "throttle"      │ ──────&gt; │ Monitor                  │
+  │ → monitor               │         │ Prompt, concise          │
+  └─────────────────────────┘         └──────────────────────────┘
+
+  HEAVY vs LIGHT ACTIONS
+  ══════════════════════
+
+  HEAVY (require verification)        LIGHT (execute immediately)
+  ────────────────────────────        ─────────────────────────────
+  "run wiki"   → run_wiki_sync       "run news"    → run_news_crawler
+  "run challenge"→ run_challenge_     "run spelling"→ run_spelling_check
+                   sort               "run scrape"  → run_page_scraper
+  "run deadlink" → run_deadlinks
+  "run embed"  → run_vector_embed
+
+  Heavy → showVerificationPrompt()    Light → executeAgentAction()
+  verification_required: true         executes immediately
+
+  WIDGET EVENT BUS (17 events → agent context)
+  ═════════════════════════════════════════════
+
+  All 18 dashboard widgets dispatch events via
+  dispatchWidgetEvent() from widget_event_bus.js
+
+  wgt_agent-chat.js listens to 17 events:
+  ┌─────────────────────────────────────────────────────────┐
+  │ TokenMetricsEvent    ContactTriageEvent  DraftCountsEvent│
+  │ WikiSyncEvent        WikiWeightsEvent    ResearchSuggest │
+  │ ChallengeSortEvent   ReflectionUpdate    WorkflowQueue   │
+  │ SpellingComplete     SourcesUpdateEvent  DeadlinksEvent  │
+  │ NewsCompleteEvent    PageMetricsEvent    UsersUpdateEvent│
+  │ SecurityAlertEvent   ServerMetricsEvent                  │
+  └─────────────────────────────────────────────────────────┘
+        │
+        ▼
+  widgetState {} accumulator → merged into widget_context
+  on next POST /api/v1/agent/chat call
+
+  PROACTIVE ALERTING
+  ══════════════════
+
+  checkAlertThresholds(eventName, detail)
+  fires on every widget event received
+
+  ┌──────────┬─────────────────────────────────────────────┐
+  │ Priority │ Alert Condition                              │
+  ├──────────┼─────────────────────────────────────────────┤
+  │ P1       │ Token usage &gt; 80% (INFO/WARNING/CRITICAL)   │
+  │ P2       │ Critical contacts &gt; 0                       │
+  │ P3       │ Draft backlog &gt; 10                          │
+  │ P5       │ No trace/reflection OR spelling errors &gt; 20 │
+  │ P6       │ Dead links &gt; 0                              │
+  │ P7       │ Security critical events &gt; 5                │
+  └──────────┴─────────────────────────────────────────────┘
+
+  60-second deduplication per priority level
+  30-second heartbeat (ping) when auto-monitoring enabled
+    </pre>
+
+    <!-- § STEP 4-5: SYSTEM HEALTH + CONTACTS -->
+    <h4 class="glossary-heading">Step 4: System Health Monitoring ✅</h4>
+    <pre class="glossary-diagram">
+  STEP 4 — SYSTEM HEALTH MONITORING (3 widgets, all implemented)
+  ══════════════════════════════════════════════════════════════
+
+  TOKEN METRICS (Priority 1 — highest)
+  ─────────────────────────────────────
+  wgt_token_metrics.js        GET /api/v1/metrics/tokens
+  polls every 30s             → get_token_metrics()
+        │                     → tokens table
+        ▼                           │
+  TokenMetricsEvent                 ▼
+  { used, limit, percent,     ┌──────────────────┐
+    priority: 1 }             │ Alert thresholds: │
+                              │ INFO:    ≤ 90%    │
+                              │ WARNING: &gt; 90%    │
+                              │ CRITICAL:&gt; 95%    │
+                              └──────────────────┘
+
+  SERVER METRICS (Priority 8 — lowest)
+  ─────────────────────────────────────
+  wgt_server_metrics.js       GET /api/v1/metrics/server
+  polls every 30s             → get_server_metrics()
+        │                           │
+        ▼                           ▼
+  ServerMetricsEvent          ServerMetricsResponse
+  { cpu, memory, uptime,      { ram_usage, disk_usage,
+    priority: 8 }               llm_api: "Claude 3.5
+                                Sonnet", tokens_today,
+                                tokens_week, tokens_month }
+
+  SECURITY LOGS (Priority 7)
+  ──────────────────────────
+  wgt_security.js             GET /api/v1/admin/security/logs
+  polls every 30s             (Bearer auth required)
+        │                     → get_security_logs()
+        ▼                     → security_logs table (50 DESC)
+  SecurityAlertEvent                │
+  { total_logs,                     ▼
+    critical_count,           Filters for critical events:
+    event_types,              'Honeypot' and 'LoginFail'
+    priority: 7 }             counted as critical
+    </pre>
+
+    <h4 class="glossary-heading">Step 5: Contact Form Management ✅</h4>
+    <pre class="glossary-diagram">
+  STEP 5 — CONTACT FORM MANAGEMENT (2 sub-flows, all implemented)
+  ═══════════════════════════════════════════════════════════════
+
+  PUBLIC SUBMISSION PATH
+  ──────────────────────
+
+  User on about page
+        │
+        ▼
+  store_contact.js
+  ┌──────────────────────────────────────────────────────┐
+  │ #contact-form                                        │
+  │ ├─ #contact-name     (text)                          │
+  │ ├─ #contact-email    (email)                         │
+  │ ├─ #contact-subject  (text, optional)                │
+  │ ├─ #contact-message  (textarea)                      │
+  │ └─ #contact-submit   (button, disabled during send)  │
+  └───────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+  POST /api/contact { name, email, subject, message }
+                          │
+                          ▼
+  sqlite.rs store_contact()
+  → INSERT contacts (id, name, email)
+  → INSERT contact_messages (id, contact_id, subject,
+                             body, sent_at, read_at=NULL)
+
+  ADMIN TRIAGE PATH (alerts on next dashboard login)
+  ──────────────────────────────────────────────────
+
+  wgt_contact_triage.js (Priority 2)
+  ┌────────────────────────────────────────────────┐
+  │ polls every 30s                                │
+  │ GET /api/v1/contact/triage                     │
+  │ → ContactTriageResponse { new, critical,       │
+  │   summary }                                    │
+  │ dispatches ContactTriageEvent                  │
+  │ { new_count, critical_count, priority: 2 }     │
+  └────────────────────────────────────────────────┘
+        │
+        ▼ (on dashboard)
+  widget_contact.js
+  ┌────────────────────────────────────────────────┐
+  │ pollContacts() every 10 seconds                │
+  │ GET /api/v1/admin/contacts/unread (Bearer)     │
+  │ → renderContacts(dataArray)                    │
+  │   ├─ shows sender type badge (Human/Bot)       │
+  │   ├─ copy-to-clipboard button                  │
+  │   └─ dispatches ContactSummaryEvent            │
+  │       to agent chat                            │
+  │                                                │
+  │ markContactRead(id)                            │
+  │ PATCH /api/v1/admin/contacts/{id}/read         │
+  │ → sqlite.rs mark_contact_read()                │
+  └────────────────────────────────────────────────┘
+
+  Agent chat receives ContactTriageEvent at P2
+  → proactive alert: "You have X unread contacts"
+  → alerts user when they next log onto dashboard
+    </pre>
+
+    <!-- § STEP 6-7: MENTIONS + FUTURE -->
+    <h4 class="glossary-heading">Step 6: Website Mention Monitoring ✅ (monthly schedule ⚠️)</h4>
+    <pre class="glossary-diagram">
+  STEP 6 — WEBSITE MENTION MONITORING
+  ════════════════════════════════════
+
+  wgt_page_metrics.js (Priority 7)
+  ┌──────────────────────────────────────────────────────────┐
+  │                                                          │
+  │  METRICS POLLING (✅ implemented)                         │
+  │  fetchMetrics() → polls every 30 seconds                 │
+  │  GET /api/v1/metrics/page                                │
+  │       │                                                  │
+  │       ▼                                                  │
+  │  page_metrics table                                      │
+  │  (page_id, views, avg_time_on_page, bounce_rate)         │
+  │       │                                                  │
+  │       ▼                                                  │
+  │  PageMetricsEvent                                        │
+  │  { metrics, crawl_summary, priority: 7 }                 │
+  │                                                          │
+  │  Absorbed: widget_spider.js                              │
+  │  → merges CrawlSummaryEvent into crawl_summary field     │
+  │                                                          │
+  │  SCRAPE TRIGGER (✅ implemented — manual)                 │
+  │  .wgt-trigger button → triggerScrape()                   │
+  │  POST /api/v1/tools/scraper/run (LIGHT action)           │
+  │                                                          │
+  │  MENTION STORAGE (✅ implemented)                         │
+  │  sqlite.rs                                               │
+  │  ├─ get_mentions()  → reads mentions table               │
+  │  └─ store_mention() → inserts with ULID                  │
+  │                                                          │
+  │  mentions table                                          │
+  │  (id, source_url, snippet, detected_at)                  │
+  │                                                          │
+  └──────────────────────────────────────────────────────────┘
+
+  MONTHLY PERIODIC SCHEDULE (⚠️ intended — not yet enforced)
+  ┌──────────────────────────────────────────────────────────┐
+  │  Intended behavior:                                      │
+  │  The scraper should run automatically on a monthly       │
+  │  cycle to detect mentions of www.thejesuswebsite.org     │
+  │  or copies of its content across the web.                │
+  │                                                          │
+  │  Currently: scrape is manual-trigger only via the        │
+  │  .wgt-trigger button or agent "run scrape" command.      │
+  │                                                          │
+  │  Compare: wgt_news_crawler.js uses a 30-day interval     │
+  │  (30 * 24 * 60 * 60 * 1000 ms) as a reference pattern   │
+  │  for implementing the monthly schedule.                  │
+  └──────────────────────────────────────────────────────────┘
+    </pre>
+
+    <h4 class="glossary-heading">Step 7: Future Widget Capacity ⚠️</h4>
+    <pre class="glossary-diagram">
+  STEP 7 — FUTURE WIDGET CAPACITY (placeholder)
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  |                                                           |
+  |  The widget event bus architecture supports expansion.    |
+  |                                                           |
+  |  Current capacity:                                        |
+  |  ├─ 17 events listened to by wgt_agent-chat.js           |
+  |  ├─ 16 widget types handled by try_widget_command()      |
+  |  ├─ dispatchWidgetEvent() from widget_event_bus.js       |
+  |  └─ widgetState accumulator tracks all widget data       |
+  |                                                           |
+  |  To add a new widget:                                     |
+  |  1. Create frontend/js/widgets/wgt_[name].js             |
+  |     with init[Name](), poll[Name]() functions            |
+  |  2. Add event name to WIDGET_EVENTS listener array       |
+  |     in wgt_agent-chat.js                                 |
+  |  3. Add widget_id + trigger keywords to the              |
+  |     widget_queries map in agent.rs try_widget_command()  |
+  |  4. Register in agent_guide.yml widgets section           |
+  |  5. Add traffic-light card to dashboard.html             |
+  |                                                           |
+  |  Potential future widgets:                                |
+  |  ┌─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐   |
+  |  │  wgt_content_analytics.js                         │   |
+  |  │  (essay/blog engagement, read time, shares)       │   |
+  |  ├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤   |
+  |  │  wgt_backup_status.js                             │   |
+  |  │  (automated backup health, last backup time)      │   |
+  |  ├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤   |
+  |  │  wgt_external_api_health.js                       │   |
+  |  │  (ESV Bible API, Wikipedia API availability)      │   |
+  |  └─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘   |
+  |                                                           |
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    </pre>
+
+    <!-- § FILE & FUNCTION REFERENCE -->
+    <h2>File &amp; Function Reference</h2>
+
+    <!-- 1. Backend — Agent Brain & Orchestration -->
+    <details class="glossary-section">
+        <summary>Backend — Agent Brain &amp; Orchestration (agent.rs, candle.rs, thinking.rs)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Type / Function</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>Agent</code> struct</td><td><code>app_brain/src/agent.rs</code></td><td>Main orchestrator holding <code>Arc&lt;CandleEngine&gt;</code>; entry point for all queries</td></tr>
+                <tr><td><code>Intent</code> enum</td><td><code>app_brain/src/agent.rs</code></td><td>Essay, Wikipedia, Record, Challenge, Response, WidgetCommand, StatusReport, Unknown</td></tr>
+                <tr><td><code>InteractionMode</code> enum</td><td><code>app_brain/src/agent.rs</code></td><td>Execution, Collaborative, Review, Monitor — detected by frontend, applied as vibe suffix</td></tr>
+                <tr><td><code>AgentResponse</code></td><td><code>app_brain/src/agent.rs</code></td><td>data (JSON string), confidence (f32 0.0-1.0), metadata (Vec key-value pairs)</td></tr>
+                <tr><td><code>BrainAgent</code> trait</td><td><code>app_brain/src/agent.rs</code></td><td><code>orchestrate()</code> and <code>orchestrate_with_context()</code> methods</td></tr>
+                <tr><td><code>orchestrate_with_context()</code></td><td><code>app_brain/src/agent.rs</code></td><td>Context-aware entry — sanitize → intent → dispatch</td></tr>
+                <tr><td><code>determine_intent()</code></td><td><code>app_brain/src/agent.rs</code></td><td>Keyword-based classifier returning Intent enum</td></tr>
+                <tr><td><code>try_widget_command()</code></td><td><code>app_brain/src/agent.rs</code></td><td>Routes widget queries using keyword matching against 16 widget types</td></tr>
+                <tr><td><code>build_status_summary()</code></td><td><code>app_brain/src/agent.rs</code></td><td>Builds priority-ordered dashboard summary (P1-P8)</td></tr>
+                <tr><td><code>build_widget_summary()</code></td><td><code>app_brain/src/agent.rs</code></td><td>Builds single-widget summary anchored to data source</td></tr>
+                <tr><td><code>sanitize()</code></td><td><code>app_brain/src/agent.rs</code></td><td>Gatekeeper — rejects inputs &gt;16,384 chars or control-char-only</td></tr>
+                <tr><td><code>AgentError</code> enum</td><td><code>app_brain/src/agent.rs</code></td><td>QueryTooLong, MaliciousInput, UnknownIntent</td></tr>
+                <tr><td><code>CandleEngine</code> struct</td><td><code>app_brain/src/candle.rs</code></td><td>BERT model via Candle ML — Metal/CPU auto-detection; <code>try_new()</code>, <code>embed()</code></td></tr>
+                <tr><td><code>InferenceEngine</code> trait</td><td><code>app_brain/src/candle.rs</code></td><td><code>embed_text()</code> async — implemented by CandleEngine</td></tr>
+                <tr><td><code>TraceReasoning</code></td><td><code>app_brain/src/thinking.rs</code></td><td>Structured log of agent reasoning steps (Vec&lt;String&gt;)</td></tr>
+                <tr><td><code>AgentOrchestrator</code></td><td><code>app_brain/src/thinking.rs</code></td><td>Autonomous loop with 5 logic gates: WorkQueue Analysis, HumanRequest Priority, Workspace Snapshot, TraceReasoning Check, Execution &amp; Roadblock Detection</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <!-- 2. Backend — API Handlers -->
+    <details class="glossary-section">
+        <summary>Backend — API Handlers (agent_api.rs, api_agents.rs, api.rs)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Endpoint</th><th>Method</th><th>Handler</th><th>Status</th></tr></thead>
+            <tbody>
+                <tr><td><code>/api/v1/agent/chat</code></td><td>POST</td><td><code>handle_agent_chat()</code> — checks brain, dispatches to Agent, returns response + action flags</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/agent/queue</code></td><td>GET</td><td><code>handle_agent_queue()</code> — fetches work_queue via sqlite</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/agent/queue/run-next</code></td><td>POST</td><td><code>handle_agent_queue_run_next()</code> — executes next queued task</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/agent/trace</code></td><td>GET</td><td><code>handle_agent_trace()</code> — fetches trace_reasoning (50 rows DESC)</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/agent/reflection</code></td><td>GET</td><td><code>handle_agent_reflection()</code> — fetches self_reflection (5 rows)</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/metrics/tokens</code></td><td>GET</td><td>Token metrics — used, limit</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/metrics/server</code></td><td>GET</td><td>Server metrics — RAM, disk, LLM API, token counts</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/metrics/page</code></td><td>GET</td><td>Page metrics — views, mentions, rankings</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/admin/security/logs</code></td><td>GET</td><td>Security logs — event_type, ip_address, details (Bearer auth)</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/contact/triage</code></td><td>GET</td><td>Contact triage — new count, critical count, summary</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/admin/contacts/unread</code></td><td>GET</td><td>Unread contacts — JOIN contacts + contact_messages</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/admin/contacts/{id}/read</code></td><td>PATCH</td><td>Mark contact as read</td><td>✅</td></tr>
+                <tr><td><code>/api/contact</code></td><td>POST</td><td>Public contact form submission</td><td>✅</td></tr>
+                <tr><td><code>/api/v1/tools/scraper/run</code></td><td>POST</td><td>Trigger page scraper (LIGHT action)</td><td>✅</td></tr>
+            </tbody>
+        </table>
+        <table class="glossary-table" style="margin-top: 1rem;">
+            <thead><tr><th>DTO</th><th>File</th><th>Fields</th></tr></thead>
+            <tbody>
+                <tr><td><code>AgentChatRequest</code></td><td><code>app_ui/src/agent_api.rs</code></td><td>message, interaction_mode (optional), widget_context (optional)</td></tr>
+                <tr><td><code>AgentChatResponse</code></td><td><code>app_ui/src/agent_api.rs</code></td><td>response (string), data (optional string)</td></tr>
+                <tr><td><code>ApiRequest</code></td><td><code>app_brain/src/api.rs</code></td><td>id, query, session_token</td></tr>
+                <tr><td><code>ApiResponse</code></td><td><code>app_brain/src/api.rs</code></td><td>id, data, vibe_score (alias for confidence), metadata</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <!-- 3. Backend — Storage -->
+    <details class="glossary-section">
+        <summary>Backend — Storage (sqlite.rs + 8 SQLite tables)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Function</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>get_work_queue()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>SELECT payload, status FROM work_queue WHERE status != 'Done'</td></tr>
+                <tr><td><code>get_trace_reasoning()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>SELECT step, reasoning FROM trace_reasoning ORDER BY created_at DESC LIMIT 50</td></tr>
+                <tr><td><code>get_recent_reflections()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>SELECT summary FROM self_reflection ORDER BY timestamp DESC LIMIT 5</td></tr>
+                <tr><td><code>get_unread_contacts()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>JOIN contacts + contact_messages WHERE read_at IS NULL</td></tr>
+                <tr><td><code>store_contact()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>INSERT into contacts + contact_messages</td></tr>
+                <tr><td><code>mark_contact_read()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>UPDATE contact_messages SET read_at = NOW</td></tr>
+                <tr><td><code>log_security_event()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>INSERT into security_logs (event_type, ip_address, details)</td></tr>
+                <tr><td><code>get_security_logs()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>SELECT * FROM security_logs ORDER BY created_at DESC LIMIT 50</td></tr>
+                <tr><td><code>get_server_metrics()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>Returns ServerMetricsResponse (ram, disk, llm_api, token counts)</td></tr>
+                <tr><td><code>get_token_metrics()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>Counts tokens table → TokenMetricsResponse (used, limit)</td></tr>
+                <tr><td><code>get_mentions()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>SELECT * FROM mentions — website mention records</td></tr>
+                <tr><td><code>store_mention()</code></td><td><code>app_storage/src/sqlite.rs</code></td><td>INSERT into mentions with ULID</td></tr>
+            </tbody>
+        </table>
+        <table class="glossary-table" style="margin-top: 1rem;">
+            <thead><tr><th>Table</th><th>Columns</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>work_queue</code></td><td>id (ULID), payload (JSON), status (Pending|InProgress|Done|Failed), timestamps</td><td>Agent task queue</td></tr>
+                <tr><td><code>trace_reasoning</code></td><td>id (ULID), step, reasoning, created_at</td><td>Agent reasoning audit log</td></tr>
+                <tr><td><code>self_reflection</code></td><td>id (ULID), topic, summary, timestamp</td><td>Agent self-reflection summaries</td></tr>
+                <tr><td><code>contacts</code></td><td>id (ULID), name, email</td><td>Contact form sender records</td></tr>
+                <tr><td><code>contact_messages</code></td><td>id (ULID), contact_id (FK), subject, body, sent_at, read_at</td><td>Individual contact messages</td></tr>
+                <tr><td><code>security_logs</code></td><td>id (ULID), event_type, ip_address, details, created_at</td><td>Security event log (Honeypot, LoginFail, etc.)</td></tr>
+                <tr><td><code>page_metrics</code></td><td>page_id (PK), views, avg_time_on_page, bounce_rate</td><td>Page view and engagement metrics</td></tr>
+                <tr><td><code>mentions</code></td><td>id (ULID), source_url, snippet, detected_at</td><td>External mentions of thejesuswebsite.org</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <!-- 4. Frontend — Agent Chat Widget -->
+    <details class="glossary-section">
+        <summary>Frontend — Agent Chat Widget (wgt_agent-chat.js)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Function</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>initAgentChat()</code></td><td>Main init — sets up contenteditable input, event listeners, auto-monitoring</td></tr>
+                <tr><td><code>handleInlineChatSubmit()</code></td><td>Submits user messages to POST /api/v1/agent/chat with mode + widget_context</td></tr>
+                <tr><td><code>detectInteractionMode(msg)</code></td><td>Regex-based classification: execution, collaborative, review, or monitor</td></tr>
+                <tr><td><code>appendMessage(role, text, isAgent)</code></td><td>Appends styled message elements to #chat-messages</td></tr>
+                <tr><td><code>pushToViewer(data)</code></td><td>Pushes agent response data to #viewer-results-list</td></tr>
+                <tr><td><code>handleAgentAction(result)</code></td><td>Processes agent actions — routes to verification or immediate execution</td></tr>
+                <tr><td><code>showVerificationPrompt(action, context)</code></td><td>Shows confirmation UI for Heavy actions before execution</td></tr>
+                <tr><td><code>executeAgentAction(action)</code></td><td>Maps action strings to widget .wgt-trigger button clicks</td></tr>
+                <tr><td><code>checkAlertThresholds(eventName, detail)</code></td><td>Fires on every widget event — checks priority-keyed thresholds</td></tr>
+                <tr><td><code>showAlert(priority, message)</code></td><td>Deduplicates and displays proactive alerts (60s cooldown per priority)</td></tr>
+            </tbody>
+        </table>
+        <table class="glossary-table" style="margin-top: 1rem;">
+            <thead><tr><th>Element ID / Constant</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>#chat-messages</code></td><td>Chat history container (scrollable)</td></tr>
+                <tr><td><code>#chat-inline-input</code></td><td>Contenteditable input field — Enter to send</td></tr>
+                <tr><td><code>#wgt-core-agent</code></td><td>Core agent widget card in dashboard grid</td></tr>
+                <tr><td><code>WIDGET_EVENTS</code> (17)</td><td>Array of all widget event names listened to</td></tr>
+                <tr><td><code>widgetState</code></td><td>Global JS object accumulating latest state from all widget events</td></tr>
+                <tr><td><code>activeAlerts</code></td><td>Map tracking last-fired timestamp per priority level</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <!-- 5. Frontend — Monitoring & Triage Widgets -->
+    <details class="glossary-section">
+        <summary>Frontend — Monitoring &amp; Triage Widgets (5 widget files)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Widget File</th><th>Event</th><th>Priority</th><th>Endpoint</th><th>Poll Interval</th></tr></thead>
+            <tbody>
+                <tr><td><code>wgt_token_metrics.js</code></td><td>TokenMetricsEvent</td><td>P1</td><td>GET /api/v1/metrics/tokens</td><td>30s</td></tr>
+                <tr><td><code>wgt_contact_triage.js</code></td><td>ContactTriageEvent</td><td>P2</td><td>GET /api/v1/contact/triage</td><td>30s</td></tr>
+                <tr><td><code>wgt_security.js</code></td><td>SecurityAlertEvent</td><td>P7</td><td>GET /api/v1/admin/security/logs</td><td>30s</td></tr>
+                <tr><td><code>wgt_page_metrics.js</code></td><td>PageMetricsEvent</td><td>P7</td><td>GET /api/v1/metrics/page</td><td>30s</td></tr>
+                <tr><td><code>wgt_server_metrics.js</code></td><td>ServerMetricsEvent</td><td>P8</td><td>GET /api/v1/metrics/server</td><td>30s</td></tr>
+            </tbody>
+        </table>
+        <table class="glossary-table" style="margin-top: 1rem;">
+            <thead><tr><th>Function</th><th>Widget</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>initTokenMetrics()</code></td><td>wgt_token_metrics.js</td><td>Init with 30s polling; warning &gt; 80%, three severity tiers</td></tr>
+                <tr><td><code>initContactTriage()</code></td><td>wgt_contact_triage.js</td><td>Init with 30s polling; merges ContactSummaryEvent data</td></tr>
+                <tr><td><code>initSecurityWidget()</code></td><td>wgt_security.js</td><td>Init with 30s polling; counts Honeypot + LoginFail as critical</td></tr>
+                <tr><td><code>initPageMetrics()</code></td><td>wgt_page_metrics.js</td><td>Init with 30s polling; absorbs widget_spider.js CrawlSummaryEvent</td></tr>
+                <tr><td><code>triggerScrape()</code></td><td>wgt_page_metrics.js</td><td>POST /api/v1/tools/scraper/run — LIGHT action, manual trigger</td></tr>
+                <tr><td><code>initServerMetrics()</code></td><td>wgt_server_metrics.js</td><td>Init with 30s polling; displays CPU, memory, uptime</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <!-- 6. Frontend — Contact & Config -->
+    <details class="glossary-section">
+        <summary>Frontend — Contact Scripts &amp; Agent Config (3 files)</summary>
+        <table class="glossary-table">
+            <thead><tr><th>Function</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>pollContacts()</code></td><td><code>private/js/widget_contact.js</code></td><td>Polls GET /api/v1/admin/contacts/unread every 10 seconds</td></tr>
+                <tr><td><code>renderContacts(dataArray)</code></td><td><code>private/js/widget_contact.js</code></td><td>Renders contact list with sender type badge (Human/Bot) + copy button</td></tr>
+                <tr><td><code>markContactRead(id)</code></td><td><code>private/js/widget_contact.js</code></td><td>PATCH /api/v1/admin/contacts/{id}/read — dispatches ContactSummaryEvent</td></tr>
+                <tr><td>(form submit handler)</td><td><code>js/store_contact.js</code></td><td>Public form: POST /api/contact { name, email, subject, message }. Disables button, shows "Sent ✓", resets after 3s</td></tr>
+            </tbody>
+        </table>
+        <table class="glossary-table" style="margin-top: 1rem;">
+            <thead><tr><th>Section</th><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td>§ 1. source_of_truth</td><td><code>agent_guide.yml</code></td><td>Primary record path, DB types, sync frequency</td></tr>
+                <tr><td>§ 2. capabilities</td><td><code>agent_guide.yml</code></td><td>4 Rust-backed tools: Wikipedia_Engine, Challenge_Engine, Link_Janitor, Vector_Embedder</td></tr>
+                <tr><td>§ 3. widgets</td><td><code>agent_guide.yml</code></td><td>18 JS widget registrations with function descriptions</td></tr>
+                <tr><td>§ 4. content_index</td><td><code>agent_guide.yml</code></td><td>Records, essays, responses, blog, metadata, resources paths</td></tr>
+                <tr><td>§ 5. logic_constraints</td><td><code>agent_guide.yml</code></td><td>6 rules: UUID merge, security, accessibility, CSS grids, schema versioning, search scope</td></tr>
+                <tr><td>§ 6. current_focus</td><td><code>agent_guide.yml</code></td><td>P1-P8 priority hierarchy governing alert urgency and status ordering</td></tr>
+                <tr><td>§ 7. interaction_modes + chat_rules</td><td><code>agent_guide.yml</code></td><td>4 modes (Execution, Collaborative, Review, Monitor) + 5 chat rules</td></tr>
+            </tbody>
+        </table>
+        <p class="glossary-note">agent_guide.yml v1.2.0 — last updated 2026-03-05</p>
+    </details>
+
+    <!-- § GLOSSARY -->
+    <h2>Terms Glossary</h2>
+    <table class="glossary-table" style="margin-top:0.75rem;">
+        <thead>
+            <tr>
+                <th style="width:22%">Term</th>
+                <th style="width:55%">Definition</th>
+                <th style="width:23%">Source</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>DeepSeek API</strong> <span class="marker-intended">⚠️</span></td>
+                <td>Intended LLM backbone for intent classification and natural-language responses. Not yet in codebase; current runtime uses CandleEngine (BERT).</td>
+                <td><code>agent_guide.yml</code> (planned)</td>
+            </tr>
+            <tr>
+                <td><strong>CandleEngine</strong></td>
+                <td>Current BERT-based embedding engine (Candle ML, Metal/CPU). Produces 384-dim mean-pooled vectors. Stored as <code>Option&lt;Arc&lt;CandleEngine&gt;&gt;</code> on AppState — currently <code>None</code> at runtime.</td>
+                <td><code>app_brain/src/candle.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>agent_guide.yml</strong></td>
+                <td>YAML manifest (v1.2.0) that defines agent capabilities, widget list, logic constraints, P1–P8 priority hierarchy, and 4 interaction modes. Acts as the single source of truth for agent behavior.</td>
+                <td><code>agent_guide.yml</code></td>
+            </tr>
+            <tr>
+                <td><strong>Intent</strong></td>
+                <td>Rust enum with 8 variants (Essay, Wikipedia, Record, Challenge, Response, WidgetCommand, StatusReport, Unknown) classifying what a user message is asking the agent to do.</td>
+                <td><code>app_brain/src/agent.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>InteractionMode</strong></td>
+                <td>Rust enum with 4 variants (Execution, Collaborative, Review, Monitor) detected by frontend regex and forwarded as a field in the chat request. Applied as a vibe suffix on backend responses.</td>
+                <td><code>app_brain/src/agent.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>Heavy Action</strong></td>
+                <td>Widget command that requires user confirmation before execution (returns <code>verification_required: true</code>). Includes: <code>run_wiki_sync</code>, <code>run_challenge_sort</code>, <code>run_deadlinks</code>, <code>run_vector_embed</code>.</td>
+                <td><code>wgt_agent-chat.js</code></td>
+            </tr>
+            <tr>
+                <td><strong>Light Action</strong></td>
+                <td>Widget command that executes immediately without confirmation. Includes: <code>run_news_crawler</code>, <code>run_spelling_check</code>, <code>run_page_scraper</code>.</td>
+                <td><code>wgt_agent-chat.js</code></td>
+            </tr>
+            <tr>
+                <td><strong>Widget Event Bus</strong></td>
+                <td>Custom DOM event system used by dashboard widgets to broadcast state changes. The agent chat widget listens to 17 named events (e.g. TokenMetricsEvent, ContactTriageEvent) to build a real-time picture of system health.</td>
+                <td><code>wgt_agent-chat.js</code></td>
+            </tr>
+            <tr>
+                <td><strong>widgetState</strong></td>
+                <td>In-memory JS object on the agent chat widget that accumulates the latest payload from each widget event. Included as context in every chat request sent to the backend.</td>
+                <td><code>wgt_agent-chat.js</code></td>
+            </tr>
+            <tr>
+                <td><strong>Priority Hierarchy</strong></td>
+                <td>P1–P8 ordering defined in <code>agent_guide.yml → current_focus</code>: P1 Token, P2 Contact, P3 Drafts, P4 Research, P5 Reflection, P6 ChromaDB, P7 Metrics, P8 Server. Governs alert severity and status summary ordering.</td>
+                <td><code>agent_guide.yml</code>, <code>agent.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>Proactive Alerting</strong></td>
+                <td>Logic in <code>checkAlertThresholds()</code> that fires on every widget event and surfaces a contextual banner when a threshold is crossed (e.g. token usage &gt;80%). Alerts deduplicate per priority key with a 60-second cooldown.</td>
+                <td><code>wgt_agent-chat.js</code></td>
+            </tr>
+            <tr>
+                <td><strong>Gatekeeper</strong></td>
+                <td>The <code>sanitize()</code> function in <code>agent.rs</code> that strips unsafe characters and truncates input to 16,384 characters before any LLM or classifier call.</td>
+                <td><code>app_brain/src/agent.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>try_widget_command()</strong></td>
+                <td>Function in <code>agent.rs</code> that maps a user message to one of 16 widget command types via keyword matching. Returns an <code>AgentResponse</code> with an optional <code>verification_required</code> flag for heavy actions.</td>
+                <td><code>app_brain/src/agent.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>build_status_summary()</strong></td>
+                <td>Function in <code>agent.rs</code> that queries token metrics, contacts, reflections, and work queue from SQLite and formats a P1–P8 status string returned in StatusReport intent responses.</td>
+                <td><code>app_brain/src/agent.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>Contact Triage</strong></td>
+                <td>Admin workflow where incoming contact form submissions (stored via <code>store_contact()</code>) are surfaced to the agent as P2 alerts. The admin marks them read via PATCH endpoint, removing them from the unread count.</td>
+                <td><code>wgt_contact_triage.js</code>, <code>sqlite.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>Mention Monitoring</strong></td>
+                <td>Workflow where <code>wgt_page_metrics.js</code> (P7) triggers a web scraper via <code>POST /api/v1/tools/scraper/run</code> to find external references to the site, persisting results via <code>store_mention()</code>. Monthly schedule is ⚠️ intended.</td>
+                <td><code>wgt_page_metrics.js</code>, <code>sqlite.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>Work Queue</strong></td>
+                <td>SQLite-backed queue of pending agent tasks retrieved by <code>get_work_queue()</code>. Surfaced in status summaries and visible in the Work Queue widget on the dashboard.</td>
+                <td><code>app_storage/src/sqlite.rs</code></td>
+            </tr>
+            <tr>
+                <td><strong>TraceReasoning</strong></td>
+                <td>Struct in <code>thinking.rs</code> that records the step-by-step logic path taken by the agent for a given request. Stored via <code>get_trace_reasoning()</code> and used for audit and reflection features.</td>
+                <td><code>app_brain/src/thinking.rs</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>
