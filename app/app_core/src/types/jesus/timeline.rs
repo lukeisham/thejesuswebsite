@@ -20,12 +20,12 @@ use wasm_bindgen::prelude::*;
 #[serde(rename_all = "kebab-case")]
 pub enum TimelineEra {
     PreIncarnation,
-    Birth,
-    Life,
-    Ministry,
-    Passion,
-    Response,
-    Return,
+    BirthEarlyLife,
+    BaptismPreparation,
+    GalileanMinistry,
+    JudeanMinistry,
+    PassionCrucifixion,
+    ResurrectionAscension,
     Theme,
 }
 
@@ -86,8 +86,9 @@ impl TimelineSecurity for TimelineEntry {
         match self.era {
             Some(era) => Ok(era),
             None => Err(TimelineError::MissingEraSelection(
-                "A timeline era must be selected: pre-incarnation, birth, life, \
-                ministry, passion, response, return, or theme."
+                "A timeline era must be selected: pre-incarnation, birth-early-life, \
+                baptism-preparation, galilean-ministry, judean-ministry, \
+                passion-crucifixion, resurrection-ascension, or theme."
                     .into(),
             )),
         }

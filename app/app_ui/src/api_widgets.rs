@@ -7,7 +7,7 @@ use app_core::types::record::record::Record;
 use app_core::types::system::bible_verse::{BibleBook, BibleVerse};
 use app_core::types::system::bible_verse_parser::parse_bible_ref_sync;
 use app_core::types::system::{EntryToggle, Metadata};
-use app_core::types::ApiResponse;
+use app_core::types::{ApiResponse, RecordListResponse};
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -29,6 +29,86 @@ use uuid::Uuid;
 // --- Legacy spelling handlers removed (now in api_spelling.rs) ---
 
 // --- Legacy deadlinks handlers removed (now in api_deadlinks.rs) ---
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                          3. DISPLAY WIDGET HANDLERS                        //
+//                    (Map, Timeline, Tree specialized views)                 //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
+
+/// Returns all records that have interactive map data.
+pub async fn handle_record_map(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_records().await {
+        Ok(records) => {
+            let filtered: Vec<Record> = records
+                .into_iter()
+                .filter(|r| !r.map_data.points.is_empty())
+                .collect();
+            let count = filtered.len();
+            Json(ApiResponse::success(
+                "Map records retrieved",
+                Some(RecordListResponse { count, records: filtered }),
+            ))
+            .into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(e.to_string())),
+        )
+            .into_response(),
+    }
+}
+
+/// Returns all records that have a timeline era assigned.
+pub async fn handle_record_timeline(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_records().await {
+        Ok(records) => {
+            let filtered: Vec<Record> = records.into_iter().filter(|r| r.timeline.era.is_some()).collect();
+            let count = filtered.len();
+            Json(ApiResponse::success(
+                "Timeline records retrieved",
+                Some(RecordListResponse { count, records: filtered }),
+            ))
+            .into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(e.to_string())),
+        )
+            .into_response(),
+    }
+}
+
+/// Returns all records for the hierarchical tree view (Evidence/Ardor).
+pub async fn handle_record_tree(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.storage.sqlite.get_records().await {
+        Ok(records) => {
+            let count = records.len();
+            Json(ApiResponse::success(
+                "Tree records retrieved",
+                Some(RecordListResponse { count, records }),
+            ))
+            .into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(e.to_string())),
+        )
+            .into_response(),
+    }
+}
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                          ESV BIBLE VERSE PROXY                             //
+//                     (Bulk Record Creation Pipeline)                        //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+*/
 
 /*
 ////////////////////////////////////////////////////////////////////////////////
@@ -221,9 +301,9 @@ fn build_record_from_item(
             // Derive a sensible default era from category since PopulateRecordItem has no era field.
             // The DB stores era as NOT NULL so we must always provide a value.
             era: Some(match category {
-                Classification::Event => TimelineEra::Ministry,
-                Classification::Location => TimelineEra::Ministry,
-                Classification::Person => TimelineEra::Ministry,
+                Classification::Event => TimelineEra::GalileanMinistry,
+                Classification::Location => TimelineEra::GalileanMinistry,
+                Classification::Person => TimelineEra::GalileanMinistry,
                 Classification::Theme => TimelineEra::Theme,
             }),
             description: String::new(),

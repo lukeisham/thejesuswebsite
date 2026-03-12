@@ -3,7 +3,7 @@ use crate::types::jesus::{
     Classification, ContentEntry, InteractiveMap, MapPoint, MapType, TimelineEntry, TimelineEra,
 };
 use crate::types::record::record::Record;
-use crate::types::system::{BibleVerse, EntryToggle, Metadata};
+use crate::types::system::{EntryToggle, Metadata};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
@@ -99,8 +99,8 @@ pub struct PublishTimelineRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PublishMapRequest {
     pub region: String, // Maps to MapType
-    pub latitude: f64,
-    pub longitude: f64,
+    pub lat: f64,
+    pub lng: f64,
     pub title: String,
 }
 
@@ -138,12 +138,12 @@ impl TryFrom<PublishRecordRequest> for Record {
 
         let era = match req.timeline.era.to_lowercase().as_str() {
             "pre-incarnation" | "preincarnation" => TimelineEra::PreIncarnation,
-            "birth" => TimelineEra::Birth,
-            "life" => TimelineEra::Life,
-            "ministry" => TimelineEra::Ministry,
-            "passion" => TimelineEra::Passion,
-            "response" => TimelineEra::Response,
-            "return" => TimelineEra::Return,
+            "birth-early-life" => TimelineEra::BirthEarlyLife,
+            "baptism-preparation" => TimelineEra::BaptismPreparation,
+            "galilean-ministry" => TimelineEra::GalileanMinistry,
+            "judean-ministry" => TimelineEra::JudeanMinistry,
+            "passion-crucifixion" => TimelineEra::PassionCrucifixion,
+            "resurrection-ascension" => TimelineEra::ResurrectionAscension,
             "theme" => TimelineEra::Theme,
             _ => return Err(format!("Invalid era: {}", req.timeline.era)),
         };
@@ -183,8 +183,8 @@ impl TryFrom<PublishRecordRequest> for Record {
                     id: Uuid::new_v4(),
                     title: req.map_data.title,
                     description: String::new(),
-                    latitude: req.map_data.latitude,
-                    longitude: req.map_data.longitude,
+                    latitude: req.map_data.lat,
+                    longitude: req.map_data.lng,
                     metadata: std::collections::HashMap::new(),
                 }],
             },
@@ -195,11 +195,8 @@ impl TryFrom<PublishRecordRequest> for Record {
                 body: String::new(),
                 category: None,
             },
-            primary_verse: BibleVerse {
-                book: crate::types::system::bible_verse::BibleBook::Matthew,
-                chapter: 1,
-                verse: 1,
-            }, // Mocked: parsing logic would be here
+            primary_verse: crate::types::system::parse_bible_ref_sync(&req.primary_verse)
+                .map_err(|e| format!("Invalid primary verse: {}", e))?,
             secondary_verse: None,
             created_at: Utc::now(),
             updated_at: None,

@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const countSpan = document.getElementById('scraper-count');
     const listUl = document.getElementById('scraper-list');
 
-    // Bible books from app_core logic
+    // Bible books
     const BIBLE_BOOKS = [
         "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
         "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings",
@@ -25,16 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const booksRegexStr = BIBLE_BOOKS.map(b => b.replace(/\s+/g, '\\s+')).join('|');
-    // Match Book Chap:Vs, capturing book (1), chap (2), vs (3)
     const refRegex = new RegExp(`\\b(${booksRegexStr})\\s+(\\d+):(\\d+)(?:[-–—]\\d+)?\\b`, 'gi');
 
     const filesToScrape = [
-        '/resource/list_of_events.html',
-        '/resource/list_of_objects.html',
-        '/resource/list_of_people.html',
-        '/resource/list_of_places.html',
-        '/resource/list_of_miracles.html',
-        '/resource/list_of_OT_verses.html'
+        '/list_events.html',
+        '/list_objects.html',
+        '/list_people.html',
+        '/list_places.html',
+        '/list_miracles.html',
+        '/list_ot_verses.html'
     ];
 
     runBtn.addEventListener('click', async () => {
@@ -42,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         progressDiv.style.display = 'block';
         listUl.innerHTML = '';
         let totalCount = 0;
+        let bulkPayload = [];
 
         for (const fileUrl of filesToScrape) {
             const fileName = fileUrl.split('/').pop();
@@ -51,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!res.ok) continue;
                 const htmlText = await res.text();
 
-                // Parse HTML to extract text content of list items
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlText, 'text/html');
                 const listItems = doc.querySelectorAll('li');
@@ -62,21 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     let match;
                     let primaryVerse = null;
-                    let secondaryVerses = [];
-                    let firstMatchBook = null;
-                    let firstMatchCh = null;
-                    let firstMatchVs = null;
 
-                    refRegex.lastIndex = 0; // Reset regex state
+                    refRegex.lastIndex = 0; 
 
                     while ((match = refRegex.exec(text)) !== null) {
                         if (!primaryVerse) {
-                            primaryVerse = match[0];
-                            firstMatchBook = match[1];
-                            firstMatchCh = parseInt(match[2], 10);
-                            firstMatchVs = parseInt(match[3], 10);
-                        } else {
-                            secondaryVerses.push(match[0]);
+                            primaryVerse = {
+                                book: match[1],
+                                chapter: parseInt(match[2], 10),
+                                verse: parseInt(match[3], 10)
+                            };
+                            break;
                         }
                     }
 
@@ -84,68 +79,36 @@ document.addEventListener('DOMContentLoaded', () => {
                         totalCount++;
                         countSpan.textContent = totalCount;
 
-                        // Extract name by removing verses in parens or trailing verses
                         let name = text.replace(new RegExp(`\\([^)]*\\b(?:${booksRegexStr})\\b[^)]*\\)`, 'gi'), '').trim();
                         name = name.replace(refRegex, '').trim();
-                        // Truncate cleanly
                         name = name.substring(0, 80).split('—')[0].split('-')[0].trim();
                         if (!name) name = `Scraped item from ${fileName}`;
 
-                        // Map secondary verse reference struct cleanly if it exists
-                        const mappedSecondary = secondaryVerses.length > 0
-                            ? { book: secondaryVerses[0], chapter: 1, verse: 1 } // hack for string based schema compatibility
-                            : null;
-
-                        const recordData = {
-                            id: "01HXXXX",
-                            parent_id: null,
-                            metadata: {
-                                id: "01HXXXX",
-                                name: name,
-                                system_tags: ["auto-scraped"],
-                                custom_tags: [],
-                                version: 1
-                            },
-                            name: name,
-                            picture_bytes: [],
-                            description: [`Auto-generated record from ${fileName}.\nOriginal Source: ${text}`],
-                            bibliography: [],
-                            timeline: {
-                                era: "Ancient",
-                                year: 33,
-                                month: 4,
-                                day: 3
-                            },
-                            map_data: { points: [] },
-                            category: "Literary",
-                            primary_verse: {
-                                book: firstMatchBook,
-                                chapter: firstMatchCh,
-                                verse: firstMatchVs
-                            },
-                            secondary_verse: mappedSecondary,
-                            passion_info: null,
-                            created_at: new Date().toISOString(),
-                            updated_at: null
+                        const categoryMap = {
+                            'list_events.html': 'Event',
+                            'list_people.html': 'Person',
+                            'list_places.html': 'Location'
                         };
 
-                        try {
-                            const postRes = await fetch('/api/v1/records/publish', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(recordData)
-                            });
-
-                            const liElem = document.createElement('li');
-                            if (postRes.ok) {
-                                liElem.innerHTML = `<a href="#">${name} <span class="label" style="float: right;">success</span></a>`;
-                            } else {
-                                liElem.innerHTML = `<a href="#" style="color:red">${name} <span class="label" style="float: right;">failed</span></a>`;
+                        bulkPayload.push({
+                            name: name,
+                            description: [`Auto-generated record from ${fileName}.\nOriginal Source: ${text}`],
+                            category: categoryMap[fileName] || 'Theme',
+                            primary_verse: `${primaryVerse.book} ${primaryVerse.chapter}:${primaryVerse.verse}`,
+                            timeline: {
+                                era: "theme",
+                                event_name: ""
+                            },
+                            map_data: {
+                                region: "Overview",
+                                lat: 0.0,
+                                lng: 0.0
                             }
-                            listUl.insertBefore(liElem, listUl.firstChild);
-                        } catch (err) {
-                            console.error("Error posting record", err);
-                        }
+                        });
+
+                        const liElem = document.createElement('li');
+                        liElem.innerHTML = `<a href="#">${name} <span class="label" style="float: right;">queued</span></a>`;
+                        listUl.insertBefore(liElem, listUl.firstChild);
                     }
                 }
             } catch (e) {
@@ -153,7 +116,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        currFileSpan.textContent = "Done";
-        runBtn.textContent = `Scraped ${totalCount} Records!`;
+        currFileSpan.textContent = "Posting Bulk Payload...";
+        
+        try {
+            const token = sessionStorage.getItem("auth_token") || "";
+            const postRes = await fetch('/api/v1/admin/populate', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(bulkPayload)
+            });
+
+            if (postRes.ok) {
+                currFileSpan.textContent = "Done";
+                runBtn.textContent = `Successfully bulk-populated ${bulkPayload.length} Records!`;
+            } else {
+                currFileSpan.textContent = "Error posting payload";
+                runBtn.textContent = "Failed";
+            }
+        } catch (err) {
+            console.error("Error bulk posting records", err);
+            currFileSpan.textContent = "Error posting payload";
+        }
     });
 });

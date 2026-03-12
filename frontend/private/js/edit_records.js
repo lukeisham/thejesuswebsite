@@ -196,22 +196,17 @@
 
         return {
             name: nameField.value.trim(),
-            description: descField.value
-                .split("\n")
-                .map(function (l) { return l.trim(); })
-                .filter(Boolean),
+            description: descField.value.trim(),
             category: categoryField ? (categoryField.value || "Theme") : "Theme",
             primary_verse: primaryVerseStr,
             timeline: {
-                year: 0,
                 event_name: tlEvent ? tlEvent.value.trim() : "",
                 era: tlEra ? (tlEra.value || "theme") : "theme",
             },
             map_data: {
                 region: mapType ? (mapType.value || "Overview") : "Overview",
-                latitude: mapLat ? (parseFloat(mapLat.value) || 0.0) : 0.0,
-                longitude: mapLng ? (parseFloat(mapLng.value) || 0.0) : 0.0,
-                title: mapLabel ? mapLabel.value.trim() : "",
+                lat: mapLat ? (parseFloat(mapLat.value) || 0.0) : 0.0,
+                lng: mapLng ? (parseFloat(mapLng.value) || 0.0) : 0.0,
             },
         };
     }

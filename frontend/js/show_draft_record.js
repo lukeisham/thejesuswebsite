@@ -20,7 +20,8 @@
                 if (!res.ok) throw new Error("Failed to load draft records");
                 return res.json();
             })
-            .then(function (drafts) {
+            .then(function (json) {
+                var drafts = (json && json.data && json.data.records) ? json.data.records : [];
                 console.log("[Draft Records] Received drafts:", drafts);
 
                 if (!drafts || drafts.length === 0) {

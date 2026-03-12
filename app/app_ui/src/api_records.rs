@@ -54,6 +54,20 @@ pub async fn handle_publish_record(
         }
     };
 
+    // Gatekeeper Validation
+    use app_core::types::record::record::RecordGatekeeper;
+    if let Err(e) = RecordGatekeeper::validate_name(&record.name) {
+        return (StatusCode::BAD_REQUEST, Json(ApiResponse::<()>::error(e.to_string()))).into_response();
+    }
+    if !record.picture_bytes.is_empty() {
+        if let Err(e) = RecordGatekeeper::validate_image_format(&record.picture_bytes) {
+            return (StatusCode::BAD_REQUEST, Json(ApiResponse::<()>::error(e.to_string()))).into_response();
+        }
+    }
+    if let Err(e) = RecordGatekeeper::validate_description(&record.description) {
+        return (StatusCode::BAD_REQUEST, Json(ApiResponse::<()>::error(e.to_string()))).into_response();
+    }
+
     // Store in SQLite (Primary for metadata and listing)
     if let Err(e) = state.storage.sqlite.store_record(&record).await {
         return (
@@ -63,16 +77,9 @@ pub async fn handle_publish_record(
             .into_response();
     }
 
-    // Store in ChromaDB (Vector search and long-term persistence)
+    // Store in ChromaDB (Vector search)
     match state.storage.chroma.store_record(&record).await {
-        Ok(_) => {
-            // If we have an ID (which we should for drafts), delete it from drafts
-            // Note: DraftRecordRequest.id is Option<String>.
-            // We'll need to know which draft this publication came from to delete it.
-            // For now, let's just return success.
-            (StatusCode::OK, Json(ApiResponse::<()>::success("Record published", None)))
-                .into_response()
-        }
+        Ok(_) => (StatusCode::OK, Json(ApiResponse::<()>::success("Record published", None))).into_response(),
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(ApiResponse::<()>::error(format!("Chroma Error: {}", e))),
@@ -154,6 +161,15 @@ pub async fn handle_update_record(
     record.id = ulid;
     record.updated_at = Some(chrono::Utc::now());
 
+    // Gatekeeper Validation
+    use app_core::types::record::record::RecordGatekeeper;
+    if let Err(e) = RecordGatekeeper::validate_name(&record.name) {
+        return (StatusCode::BAD_REQUEST, Json(ApiResponse::<()>::error(e.to_string()))).into_response();
+    }
+    if let Err(e) = RecordGatekeeper::validate_description(&record.description) {
+        return (StatusCode::BAD_REQUEST, Json(ApiResponse::<()>::error(e.to_string()))).into_response();
+    }
+
     // Upsert into SQLite (INSERT OR REPLACE keyed on id)
     if let Err(e) = state.storage.sqlite.store_record(&record).await {
         return (
@@ -171,9 +187,42 @@ pub async fn handle_update_record(
     (StatusCode::OK, Json(ApiResponse::<()>::success("Record updated", None))).into_response()
 }
 
-pub async fn handle_record_list(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+pub async fn handle_record_list(
+    State(state): State<Arc<AppState>>,
+    Query(params): Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    use app_core::types::record::record::Record;
     use app_core::types::RecordListResponse;
 
+    // Check for semantic search query
+    if let Some(q) = params.get("q") {
+        if !q.trim().is_empty() {
+            return match state.storage.chroma.query_records(q).await {
+                Ok(docs) => {
+                    let records: Vec<Record> = docs
+                        .into_iter()
+                        .filter_map(|json_str| serde_json::from_str(&json_str).ok())
+                        .collect();
+                    let response = RecordListResponse {
+                        count: records.len(),
+                        records,
+                    };
+                    (
+                        StatusCode::OK,
+                        Json(ApiResponse::success("Search results retrieved", Some(response))),
+                    )
+                        .into_response()
+                }
+                Err(e) => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::<()>::error(format!("Search error: {}", e))),
+                )
+                    .into_response(),
+            };
+        }
+    }
+
+    // Default: List all from SQLite
     match state.storage.sqlite.get_records().await {
         Ok(records) => {
             let response = RecordListResponse {
@@ -208,60 +257,25 @@ pub async fn handle_update_parent() -> impl IntoResponse {
     (StatusCode::OK, Json(ApiResponse::<()>::success("Parent updated", None))).into_response()
 }
 
+// DEPRECATED: Unified with handle_record_list via ?q= query param
 pub async fn handle_record_search(
     State(state): State<Arc<AppState>>,
     Query(params): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    use app_core::types::record::record::Record;
-    use app_core::types::RecordListResponse;
-
-    let q = params.get("q").cloned().unwrap_or_default();
-    match state.storage.chroma.query_records(&q).await {
-        Ok(docs) => {
-            let records: Vec<Record> = docs
-                .into_iter()
-                .filter_map(|json_str| serde_json::from_str(&json_str).ok())
-                .collect();
-            let response = RecordListResponse {
-                count: records.len(),
-                records,
-            };
-            (StatusCode::OK, Json(ApiResponse::success("Records found", Some(response))))
-                .into_response()
-        }
-        Err(e) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ApiResponse::<()>::error(format!("Search error: {}", e))),
-        )
-            .into_response(),
-    }
+    handle_record_list(State(state), Query(params)).await
 }
 
+// STUB: These will be handled by context-specific logic in future tasks
 pub async fn handle_record_map() -> impl IntoResponse {
-    (
-        StatusCode::OK,
-        Json(ApiResponse::success("Map data retrieved", Some(vec!["Stub map data"]))),
-    )
-        .into_response()
+    (StatusCode::OK, Json(ApiResponse::success("Map data stub", Some(vec!["Stub"])))).into_response()
 }
 
 pub async fn handle_record_timeline() -> impl IntoResponse {
-    (
-        StatusCode::OK,
-        Json(ApiResponse::success(
-            "Timeline data retrieved",
-            Some(vec!["Stub timeline data"]),
-        )),
-    )
-        .into_response()
+    (StatusCode::OK, Json(ApiResponse::success("Timeline data stub", Some(vec!["Stub"])))).into_response()
 }
 
 pub async fn handle_record_tree() -> impl IntoResponse {
-    (
-        StatusCode::OK,
-        Json(ApiResponse::success("Tree data retrieved", Some(vec!["Stub tree data"]))),
-    )
-        .into_response()
+    (StatusCode::OK, Json(ApiResponse::success("Tree data stub", Some(vec!["Stub"])))).into_response()
 }
 
 /*

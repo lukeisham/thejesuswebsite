@@ -40,8 +40,8 @@
             margin: 10px auto 0;
         }
 
-        /* Ascension dot override */
-        .time-point[data-period="ascension"]::after {
+        /* Resurrection/Ascension dot override */
+        .time-point[data-period="resurrection-ascension"]::after {
             background: #aed6f1;
         }
 
@@ -114,29 +114,29 @@
             <!-- Hero: Timeline Bar -->
             <section>
                 <div class="timeline" id="timeline-bar" style="border-top: 3px solid var(--accent-color);">
-                    <div class="time-point" data-period="birth">
+                    <div class="time-point" data-period="pre-incarnation">
+                        <span class="label">Pre-Time</span><br>Pre-Incarnation
+                    </div>
+                    <div class="time-point" data-period="birth-early-life">
                         <span class="label">c. 6–4 BC</span><br>Birth &amp; Early Life
                     </div>
-                    <div class="time-point" data-period="preparation">
+                    <div class="time-point" data-period="baptism-preparation">
                         <span class="label">c. AD 26–27</span><br>Baptism &amp; Preparation
                     </div>
-                    <div class="time-point" data-period="galilee-ministry">
+                    <div class="time-point" data-period="galilean-ministry">
                         <span class="label">c. AD 27–29</span><br>Galilean Ministry
                     </div>
                     <div class="time-point" data-period="judean-ministry">
                         <span class="label">c. AD 29–30</span><br>Judean Ministry
                     </div>
-                    <div class="time-point" data-period="passion">
+                    <div class="time-point" data-period="passion-crucifixion">
                         <span class="label">c. AD 30</span><br>Passion &amp; Crucifixion
                     </div>
-                    <div class="time-point" data-period="resurrection">
-                        <span class="label">c. AD 30</span><br>Resurrection
+                    <div class="time-point" data-period="resurrection-ascension" style="color: #2e86c1;">
+                        <span class="label">c. AD 30</span><br>Resurrection &amp; Ascension
                     </div>
-                    <div class="time-point" data-period="ascension" style="color: #2e86c1;">
-                        <span class="label">c. AD 30</span><br>Ascension
-                    </div>
-                    <div class="time-point" data-period="early-church">
-                        <span class="label">c. AD 30–70</span><br>Early Church
+                    <div class="time-point" data-period="theme">
+                        <span class="label">Timeless</span><br>Theme
                     </div>
                 </div>
             </section>
@@ -182,7 +182,7 @@
 
     <!-- Scripts -->
     <script src="/js/shuffle_left.js"></script>
-    <script src="/js/suffle_right.js"></script>
+    <script src="/js/shuffle_right.js"></script>
     <script src="/js/zoom.js"></script>
 </body>
 

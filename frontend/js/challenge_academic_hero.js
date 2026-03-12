@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!container) return;
 
     try {
-        const response = await fetch('/api/v1/challenge_academic_content');
+        const response = await fetch('/api/challenges?type=academic');
 
         if (!response.ok) {
             throw new Error(`Failed to fetch hero content: ${response.statusText}`);

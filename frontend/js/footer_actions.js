@@ -32,15 +32,8 @@ export function initFooterActions() {
 
 // START toggleRecordLinks
 function toggleRecordLinks(event) {
-    event.preventDefault();
-    try {
-        const links = document.querySelectorAll('.record-link');
-        links.forEach(link => {
-            link.classList.toggle('hidden');
-        });
-    } catch (error) {
-        console.error(`[Footer] Toggling links failed: ${error.message}`);
-    }
+    if (event) event.preventDefault();
+    document.querySelectorAll('.record-link').forEach(link => link.classList.toggle('hidden'));
 }
 // END
 

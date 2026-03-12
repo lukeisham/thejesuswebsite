@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "UPPERCASE and pptx fix"
+git commit -m "update"
 git push origin main
 
 update files
@@ -135,3 +135,10 @@ docker compose up -d --build
 run on server after changes
 
 scp ~/Developer/thejesuswebsite/.env lukeisham@72.60.197.13:~/apps/thejesuswebsite/.env
+
+
+Push back the other way  (in my terminal)
+
+cd Developer/thejesuswebsite
+git pull origin main
+

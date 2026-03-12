@@ -34,8 +34,9 @@ CREATE TABLE IF NOT EXISTS records (
     name            TEXT NOT NULL,                   -- max 80 chars
     category        TEXT NOT NULL CHECK (category IN ('Event','Location','Person','Theme')),
     era             TEXT NOT NULL CHECK (era IN (
-                        'pre-incarnation','birth','life','ministry',
-                        'passion','response','return','theme'
+                        'pre-incarnation','birth-early-life','baptism-preparation',
+                        'galilean-ministry','judean-ministry','passion-crucifixion',
+                        'resurrection-ascension','theme'
                     )),
 
     -- Geography (from InteractiveMap.points[0])
