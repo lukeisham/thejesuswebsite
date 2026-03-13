@@ -798,6 +798,89 @@ impl SqliteStorage {
         Ok(())
     }
 
+    /// Text search across records by name and description (SQLite LIKE fallback).
+    /// Used when ChromaDB is unavailable.
+    pub async fn search_records(&self, query: &str) -> Result<Vec<Record>, sqlx::Error> {
+        let pattern = format!("%{}%", query.to_lowercase());
+        let rows = sqlx::query(
+            "SELECT id, name, category, era, map_label,
+                    latitude, longitude,
+                    primary_verse, secondary_verse,
+                    passion_day, passion_hour,
+                    description, picture_bytes,
+                    bibliography, metadata_json, content_json, map_json, timeline_json,
+                    created_at, updated_at
+             FROM records
+             WHERE LOWER(name) LIKE ? OR LOWER(description) LIKE ?
+             ORDER BY created_at DESC",
+        )
+        .bind(&pattern)
+        .bind(&pattern)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(rows
+            .into_iter()
+            .filter_map(|r| {
+                let metadata_json: String = r.get("metadata_json");
+                let content_json: String = r.get("content_json");
+                let map_json: String = r.get("map_json");
+                let timeline_json: String = r.get("timeline_json");
+                let bibliography_json: String = r.get("bibliography");
+                let description_json: String = r.get("description");
+
+                let metadata = serde_json::from_str(&metadata_json).ok()?;
+                let content = serde_json::from_str(&content_json).ok()?;
+                let map_data = serde_json::from_str(&map_json).ok()?;
+                let timeline = serde_json::from_str(&timeline_json).ok()?;
+                let bibliography = serde_json::from_str(&bibliography_json).unwrap_or_default();
+                let description: Vec<String> =
+                    serde_json::from_str(&description_json).unwrap_or_default();
+
+                let primary_verse_json: String = r.get("primary_verse");
+                let primary_verse = serde_json::from_str(&primary_verse_json).ok()?;
+                let secondary_verse: Option<_> = r
+                    .try_get::<String, _>("secondary_verse")
+                    .ok()
+                    .and_then(|s| serde_json::from_str(&s).ok());
+
+                let id_str: String = r.get("id");
+                let id = id_str.parse::<ulid::Ulid>().ok()?;
+
+                let created_at_str: String = r.get("created_at");
+                let created_at = created_at_str.parse::<chrono::DateTime<chrono::Utc>>().ok()?;
+                let updated_at: Option<chrono::DateTime<chrono::Utc>> = r
+                    .try_get::<String, _>("updated_at")
+                    .ok()
+                    .and_then(|s| s.parse().ok());
+
+                let picture_bytes: Vec<u8> =
+                    r.try_get::<Vec<u8>, _>("picture_bytes").unwrap_or_default();
+
+                Some(Record {
+                    id,
+                    metadata,
+                    name: r.get("name"),
+                    picture_bytes,
+                    description,
+                    bibliography,
+                    timeline,
+                    map_data,
+                    category: serde_json::from_str(&format!(
+                        "\"{}\"",
+                        r.get::<String, _>("category")
+                    ))
+                    .unwrap_or(app_core::types::jesus::Classification::Theme),
+                    content,
+                    primary_verse,
+                    secondary_verse,
+                    created_at,
+                    updated_at,
+                })
+            })
+            .collect())
+    }
+
     pub async fn get_draft_records(&self) -> Result<Vec<DraftRecordRequest>, sqlx::Error> {
         let rows = sqlx::query("SELECT payload FROM record_drafts ORDER BY created_at DESC")
             .fetch_all(&self.pool)
