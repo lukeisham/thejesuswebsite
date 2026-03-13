@@ -77,15 +77,12 @@ pub async fn handle_publish_record(
             .into_response();
     }
 
-    // Store in ChromaDB (Vector search)
-    match state.storage.chroma.store_record(&record).await {
-        Ok(_) => (StatusCode::OK, Json(ApiResponse::<()>::success("Record published", None))).into_response(),
-        Err(e) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ApiResponse::<()>::error(format!("Chroma Error: {}", e))),
-        )
-            .into_response(),
+    // Store in ChromaDB (non-fatal — degrades gracefully if not running)
+    if let Err(e) = state.storage.chroma.store_record(&record).await {
+        tracing::warn!("ChromaDB store failed (record still saved in SQLite): {}", e);
     }
+
+    (StatusCode::OK, Json(ApiResponse::<()>::success("Record published", None))).into_response()
 }
 
 /// Deletes a single record by its ULID. Also removes it from ChromaDB.
@@ -179,9 +176,9 @@ pub async fn handle_update_record(
             .into_response();
     }
 
-    // Update ChromaDB (best-effort)
+    // Update ChromaDB (non-fatal — degrades gracefully if not running)
     if let Err(e) = state.storage.chroma.store_record(&record).await {
-        tracing::warn!("ChromaDB update failed for record {}: {}", id, e);
+        tracing::warn!("ChromaDB update failed for record {} (still saved in SQLite): {}", id, e);
     }
 
     (StatusCode::OK, Json(ApiResponse::<()>::success("Record updated", None))).into_response()
@@ -197,28 +194,32 @@ pub async fn handle_record_list(
     // Check for semantic search query
     if let Some(q) = params.get("q") {
         if !q.trim().is_empty() {
-            return match state.storage.chroma.query_records(q).await {
-                Ok(docs) => {
-                    let records: Vec<Record> = docs
-                        .into_iter()
-                        .filter_map(|json_str| serde_json::from_str(&json_str).ok())
-                        .collect();
-                    let response = RecordListResponse {
-                        count: records.len(),
-                        records,
-                    };
-                    (
-                        StatusCode::OK,
-                        Json(ApiResponse::success("Search results retrieved", Some(response))),
-                    )
-                        .into_response()
+            // Try ChromaDB semantic search first; fall back to SQLite LIKE search
+            let records: Vec<Record> = match state.storage.chroma.query_records(q).await {
+                Ok(docs) => docs
+                    .into_iter()
+                    .filter_map(|json_str| serde_json::from_str(&json_str).ok())
+                    .collect(),
+                Err(_) => {
+                    // ChromaDB unavailable — fall back to SQLite text search
+                    match state.storage.sqlite.search_records(q).await {
+                        Ok(r) => r,
+                        Err(e) => {
+                            return (
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                                Json(ApiResponse::<()>::error(format!("Search error: {}", e))),
+                            )
+                                .into_response();
+                        }
+                    }
                 }
-                Err(e) => (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(ApiResponse::<()>::error(format!("Search error: {}", e))),
-                )
-                    .into_response(),
             };
+            let response = RecordListResponse { count: records.len(), records };
+            return (
+                StatusCode::OK,
+                Json(ApiResponse::success("Search results retrieved", Some(response))),
+            )
+                .into_response();
         }
     }
 

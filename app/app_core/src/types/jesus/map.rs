@@ -37,7 +37,7 @@ pub struct MapPoint {
     pub latitude: f64,
     pub longitude: f64,
     /// Extensible data for specific "vibe" metadata (e.g., "ScriptureRef": "Mark 1:16")
-    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub metadata: HashMap<String, String>,
 }
 
