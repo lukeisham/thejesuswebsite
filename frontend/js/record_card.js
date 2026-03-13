@@ -24,7 +24,7 @@ function createRecordCard(record) {
     // ── 2. Primary Verse ──
     const primaryVerse = formatVerse(record.primary_verse);
     const pvDiv = document.createElement("div");
-    pvDiv.className = "record-card__verse";
+    pvDiv.className = "record-card__verse primary-verse-display";
     if (primaryVerse) {
         pvDiv.setAttribute("data-verse", primaryVerse);
         pvDiv.textContent = primaryVerse;
@@ -33,7 +33,22 @@ function createRecordCard(record) {
     }
     article.appendChild(pvDiv);
 
-    // ── 3. Picture ──
+    // ── 3. Secondary Verse ──
+    const secDiv = document.createElement("div");
+    secDiv.className = "record-card__verse";
+    if (record.secondary_verse) {
+        const secVerse = formatVerse(record.secondary_verse);
+        if (secVerse) {
+            secDiv.textContent = secVerse;
+        } else {
+            secDiv.innerHTML = '<span class="field-empty">No secondary verse</span>';
+        }
+    } else {
+        secDiv.innerHTML = '<span class="field-empty">No secondary verse</span>';
+    }
+    article.appendChild(secDiv);
+
+    // ── 4. Picture ──
     const picDiv = document.createElement("div");
     picDiv.className = "record-field";
     if (record.picture_bytes && record.picture_bytes.length > 0) {
@@ -57,7 +72,7 @@ function createRecordCard(record) {
     }
     article.appendChild(picDiv);
 
-    // ── 4. Description ──
+    // ── 5. Description ──
     const descDiv = document.createElement("div");
     descDiv.className = "record-card__desc";
     if (record.description && record.description.length > 0) {
@@ -72,21 +87,6 @@ function createRecordCard(record) {
         descDiv.innerHTML = '<span class="field-empty">No description yet</span>';
     }
     article.appendChild(descDiv);
-
-    // ── 5. Secondary Verse ──
-    const secDiv = document.createElement("div");
-    secDiv.className = "record-card__verse";
-    if (record.secondary_verse) {
-        const secVerse = formatVerse(record.secondary_verse);
-        if (secVerse) {
-            secDiv.textContent = "See also: " + secVerse;
-        } else {
-            secDiv.innerHTML = '<span class="field-empty">No secondary verse</span>';
-        }
-    } else {
-        secDiv.innerHTML = '<span class="field-empty">No secondary verse</span>';
-    }
-    article.appendChild(secDiv);
 
     // ── 6. Bibliography ──
     const bibDiv = document.createElement("div");
@@ -104,68 +104,19 @@ function createRecordCard(record) {
     }
     article.appendChild(bibDiv);
 
-    // ── 7. Timeline ──
-    const tlDiv = document.createElement("div");
-    tlDiv.className = "record-card__timeline record-field";
-    tlDiv.innerHTML = '<div class="record-field-label">Timeline</div>';
-    if (record.timeline && record.timeline.event_name) {
-        const era = record.timeline.era || "—";
-        tlDiv.innerHTML += `<span>${record.timeline.event_name}</span>`;
-        tlDiv.innerHTML += `<span style="margin-left: 6px;" class="label" style="font-size: 0.7rem;">${era}</span>`;
-        if (record.timeline.description) {
-            tlDiv.innerHTML += `<div style="font-size: 0.85rem; color: #666;">${record.timeline.description}</div>`;
-        }
-    } else {
-        tlDiv.innerHTML += '<span class="field-empty">No timeline data</span>';
-    }
-    article.appendChild(tlDiv);
-
-    // ── 8. Map Data ──
-    const mapDiv = document.createElement("div");
-    mapDiv.className = "record-card__map record-field";
-    mapDiv.innerHTML = '<div class="record-field-label">Map</div>';
-    if (record.map_data && record.map_data.label) {
-        const pointCount = (record.map_data.points && record.map_data.points.length) || 0;
-        mapDiv.innerHTML += `<span>${record.map_data.label} &mdash; ${pointCount} point${pointCount !== 1 ? 's' : ''}</span>`;
-    } else {
-        mapDiv.innerHTML += '<span class="field-empty">No map data</span>';
-    }
-    article.appendChild(mapDiv);
-
-    // ── 9. Metadata / Keywords ──
-    const kwDiv = document.createElement("div");
-    kwDiv.className = "record-card__keywords record-field";
-    kwDiv.innerHTML = '<div class="record-field-label">Keywords</div>';
-    if (record.metadata && record.metadata.keywords && record.metadata.keywords.length > 0) {
-        kwDiv.innerHTML += record.metadata.keywords.map(k =>
-            `<span class="label" style="font-size: 0.7rem; margin-right: 4px;">${k}</span>`
-        ).join('');
-    } else {
-        kwDiv.innerHTML += '<span class="field-empty">No keywords</span>';
-    }
-    article.appendChild(kwDiv);
-
-    // ── 10–11. Category & Content (meta footer) ──
-    const metaDiv = document.createElement("div");
-    metaDiv.className = "record-card__meta";
-
-    const category = typeof record.category === 'object' ? Object.keys(record.category)[0] : String(record.category || 'N/A');
-    const contentObj = typeof record.content === 'object' ? Object.keys(record.content)[0] : String(record.content || 'N/A');
-
-    metaDiv.innerHTML = `
-        <span><strong>ID:</strong> ${record.id}</span>
-        <span><strong>Category:</strong> ${category}</span>
-        <span><strong>Content:</strong> ${contentObj}</span>
-    `;
-    article.appendChild(metaDiv);
-
-    // ── 12–13. Timestamps ──
-    const tsDiv = document.createElement("div");
-    tsDiv.className = "record-card__timestamps";
+    // ── 7. Created At ──
+    const createdDiv = document.createElement("div");
+    createdDiv.className = "record-card__timestamps record-card__created";
     const created = record.created_at ? new Date(record.created_at).toLocaleDateString() : "Unknown";
+    createdDiv.innerHTML = `Created: ${created}`;
+    article.appendChild(createdDiv);
+
+    // ── 8. Updated At ──
+    const updatedDiv = document.createElement("div");
+    updatedDiv.className = "record-card__timestamps record-card__updated";
     const updated = record.updated_at ? new Date(record.updated_at).toLocaleDateString() : "Never updated";
-    tsDiv.innerHTML = `Created: ${created} &middot; Updated: ${updated}`;
-    article.appendChild(tsDiv);
+    updatedDiv.innerHTML = `Updated: ${updated}`;
+    article.appendChild(updatedDiv);
 
     return article;
 }

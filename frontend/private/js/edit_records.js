@@ -44,6 +44,10 @@
     var mapLabel      = document.getElementById("record-map-label");
     var picField      = document.getElementById("record-picture-field");
     var bibContainer  = document.getElementById("record-bib-entries");
+    var infoBar       = document.getElementById("record-info-bar");
+    var infoId        = document.getElementById("record-info-id");
+    var infoCreated   = document.getElementById("record-info-created");
+    var infoUpdated   = document.getElementById("record-info-updated");
 
     var clearBtn      = document.getElementById("clear-record-form");
     var saveDraftBtn  = document.getElementById("save-record-draft");
@@ -96,6 +100,10 @@
         if (picField) picField.value = "";
         if (bibContainer) bibContainer.innerHTML = "";
         if (formHeading) formHeading.textContent = "New Record";
+        if (infoBar)     { infoBar.style.display = "none"; }
+        if (infoId)      infoId.textContent = "";
+        if (infoCreated) infoCreated.textContent = "";
+        if (infoUpdated) infoUpdated.textContent = "";
         formEl.style.display = "block";
     }
 
@@ -176,6 +184,16 @@
                     : "";
                 addBibEntryWithValues(authorVal, titleVal);
             });
+        }
+
+        // ── Populate read-only info bar ──
+        if (infoBar) {
+            infoBar.style.display = "block";
+            if (infoId)      infoId.textContent  = r.id || "—";
+            if (infoCreated) infoCreated.textContent =
+                r.created_at ? new Date(r.created_at).toLocaleString() : "Unknown";
+            if (infoUpdated) infoUpdated.textContent =
+                r.updated_at ? new Date(r.updated_at).toLocaleString() : "Never updated";
         }
 
         if (formHeading) formHeading.textContent = "Editing: " + (r.name || "Record");
