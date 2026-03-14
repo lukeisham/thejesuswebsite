@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "parent child update"
+git commit -m "Fix-Dashboard-JSON-Bug"
 git push origin main
 
 ## Puling from Github to VPS 

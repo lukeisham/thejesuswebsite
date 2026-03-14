@@ -118,6 +118,16 @@ function createRecordCard(record) {
     updatedDiv.innerHTML = `Updated: ${updated}`;
     article.appendChild(updatedDiv);
 
+    // ── 9. Interactivity: Click to view single ──
+    article.addEventListener("click", function() {
+        // Avoid re-triggering if already in single view
+        if (article.closest("#record-single")) return;
+
+        if (typeof window.showRecordDetail === "function") {
+            window.showRecordDetail(record);
+        }
+    });
+
     return article;
 }
 

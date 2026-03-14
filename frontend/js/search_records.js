@@ -46,6 +46,11 @@
                     }
                 });
 
+                // Task 6: Switch to Record view with the first search result
+                if (typeof window.showRecordDetail === "function") {
+                    window.showRecordDetail(records[0]);
+                }
+
                 // Trigger verse expansion if expand_verse.js is present
                 if (typeof window.expandVerses === "function") {
                     window.expandVerses();

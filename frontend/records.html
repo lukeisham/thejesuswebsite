@@ -63,8 +63,9 @@
             <!-- Search Bar -->
             <section id="record-search-section" class="record-search">
                 <div class="record-view-tabs">
-                    <div class="tab active" data-view="grid">Grid</div>
-                    <div class="tab" data-view="feed">Feed</div>
+                    <div class="tab active" data-view="feed">Feed</div>
+                    <div class="tab" data-view="record">Record</div>
+                    <div class="tab" data-view="grid">Grid</div>
                 </div>
                 <input type="text" id="search-input" class="record-search__input"
                     placeholder="Search records by keyword, location or date…">
@@ -74,6 +75,11 @@
             <!-- Record Cards Grid (Featured Hero Box / Short Box pattern) -->
             <section id="record-grid" class="a-grid a-cols-3 a-gap-lg a-flow-dense">
                 <!-- Cards rendered by JS (record_card.js) -->
+            </section>
+
+            <!-- Record Single view (1-item grid) -->
+            <section id="record-single" style="display: none;" class="a-grid a-cols-1 a-gap-lg">
+                <!-- Single card rendered by JS -->
             </section>
 
             <!-- Record Feed (List view) -->
@@ -117,31 +123,6 @@
     <script src="/js/refresh_records.js"></script>
     <script src="/js/show_draft_record.js"></script>
     <script src="/js/admin_edit_view.js"></script>
-    <script>
-        // Read ?verse and ?id query params on load to highlight specific records
-        (function () {
-            const params = new URLSearchParams(window.location.search);
-            const targetId = params.get('id');
-            const targetVerse = params.get('verse');
-
-            function tryHighlight() {
-                if (targetId) {
-                    const el = document.querySelector(`[data-record-id="${targetId}"]`);
-                    if (el) { el.classList.add('is-highlighted'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-                }
-                if (targetVerse) {
-                    const el = document.querySelector(`[data-verse="${targetVerse}"]`);
-                    if (el) { el.closest('.record-card')?.classList.add('is-highlighted'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-                }
-            }
-
-            // Wait for records to render before trying to highlight
-            if (targetId || targetVerse) {
-                window.addEventListener('records-loaded', tryHighlight);
-                setTimeout(tryHighlight, 1500); // fallback
-            }
-        })();
-    </script>
 </body>
 
 </html>

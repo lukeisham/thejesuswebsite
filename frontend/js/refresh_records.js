@@ -2,13 +2,14 @@
  * refresh_records.js
  * ──────────────────
  * Fetches the full record list from the server and
- * populates the record grid on the Records page.
+ * populates the record grid, feed, and single-record view on the Records page.
  */
 (function initRefreshRecords() {
     "use strict";
 
     var gridEl = document.getElementById("record-grid");
     var feedEl = document.getElementById("record-feed");
+    var singleEl = document.getElementById("record-single");
     if (!gridEl) return;
 
     function refresh() {
@@ -23,12 +24,52 @@
 
                 gridEl.innerHTML = "";
                 if (feedEl) feedEl.innerHTML = "";
+                if (singleEl) singleEl.innerHTML = "";
 
                 if (!records || records.length === 0) {
                     const emptyMsg = '<p class="a-col-span-full" style="color: #999;">No records available yet.</p>';
                     gridEl.innerHTML = emptyMsg;
                     if (feedEl) feedEl.innerHTML = emptyMsg;
+                    if (singleEl) singleEl.innerHTML = emptyMsg;
                     return;
+                }
+
+                // Task 3.1 Pro: Find requested record from URL params
+                const params = new URLSearchParams(window.location.search);
+                const targetId = params.get('id');
+                const targetVerse = params.get('verse');
+
+                var targetRecord = null;
+                if (targetId) {
+                    targetRecord = records.find(function(r) { return r.id === targetId; });
+                } else if (targetVerse) {
+                    var formatFn = window.formatVerse || function(v) { return v && v.book ? v.book + " " + v.chapter + ":" + v.verse : ""; };
+                    targetRecord = records.find(function(r) { return formatFn(r.primary_verse) === targetVerse; });
+                }
+
+                // Default record for the "Record" tab
+                var defaultRecord = targetRecord || records.find(function(r) {
+                    return r.name === "Resurrection of Jesus";
+                }) || records[0]; // fallback to first record if not found
+
+                if (singleEl && typeof window.createRecordCard === "function") {
+                    var card = window.createRecordCard(defaultRecord);
+                    card.classList.add("is-single-view");
+                    if (targetRecord) {
+                        card.classList.add("is-highlighted");
+                        // Ensure we are explicitly in "record" view
+                        if (typeof window.switchRecordView === "function") {
+                            window.switchRecordView("record");
+                        }
+                        // Smooth scroll to top of content
+                        const mainHeader = document.querySelector(".nav-header");
+                        if (mainHeader) {
+                            setTimeout(function() {
+                                mainHeader.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }, 50);
+                        }
+                    }
+                    singleEl.appendChild(card);
                 }
 
                 records.forEach(function (r) {
@@ -46,6 +87,9 @@
                 if (typeof window.expandVerses === "function") {
                     window.expandVerses();
                 }
+
+                // Dispatch event for highlighting logic in records.html
+                window.dispatchEvent(new CustomEvent('records-loaded', { detail: { records: records } }));
             })
             .catch(function (err) {
                 console.error("Failed to refresh records:", err);
@@ -53,4 +97,5 @@
     }
 
     refresh();
+    window.refreshRecords = refresh;
 })();

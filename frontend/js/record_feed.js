@@ -109,10 +109,11 @@ function createRecordFeedItem(record) {
 
     article.appendChild(metaDiv);
 
-    // Make the entire row clickable to show details (requires further implementation)
+    // Make the entire row clickable to show details
     article.addEventListener("click", () => {
-        console.log("Feed item clicked:", record.id);
-        // Link to record or expand card logic will go here
+        if (typeof window.showRecordDetail === "function") {
+            window.showRecordDetail(record);
+        }
     });
 
     return article;
