@@ -14,19 +14,55 @@
     <style>
         /* ==============================
            MACRO-LAYOUT overrides for Dashboard
+           Mobile-first: 1-col → 2-col (768px) → 3-col (1024px)
            ============================== */
         .l-page-root {
             display: grid;
-            grid-template-columns: 250px 1fr 1fr;
-            /* Let rows be auto sized, max height fills screen */
+            grid-template-columns: 1fr;
             grid-template-rows: auto 1fr auto;
             min-height: 100vh;
             gap: 20px;
             padding: 20px;
+            box-sizing: border-box;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        @media (min-width: 768px) {
+            .l-page-root {
+                grid-template-columns: 250px 1fr;
+            }
+        }
+        @media (min-width: 1024px) {
+            .l-page-root {
+                grid-template-columns: 250px 1fr 1fr;
+            }
+        }
+
+        /* Responsive grid placement for sidebar & main */
+        .dash-sidebar {
+            /* flows naturally in 1-col mobile */
+        }
+        @media (min-width: 768px) {
+            .dash-sidebar {
+                grid-column: 1;
+                grid-row: 2;
+            }
+            .dash-main {
+                grid-column: 2 / -1;
+                grid-row: 2;
+            }
+        }
+
+        /* Overflow guards — prevent children pushing grid wider */
+        main, .dash-main {
+            min-width: 0;
+            overflow: hidden;
         }
 
         /* Dashboard specific panel styling */
         .dashboard-panel {
+            min-width: 0;
+            overflow: hidden;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             padding: 1.25rem;
@@ -87,13 +123,18 @@
             color: var(--accent-color);
         }
 
-        /* Chat Styles */
+        /* Chat Styles — responsive height */
         .chat-container {
             display: flex;
             flex-direction: column;
-            height: 410px; /* Fixed height for dashboard widget */
+            height: 300px;
             border: 1px solid var(--border-color);
             background: var(--card-bg);
+        }
+        @media (min-width: 768px) {
+            .chat-container {
+                height: 410px;
+            }
         }
 
         .chat-messages {
@@ -103,10 +144,10 @@
             background: #fafaf9;
         }
 
-
-        /* Tab System */
+        /* Tab System — wraps on small screens */
         .tabs {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             border-bottom: 2px solid var(--border-color);
             margin-bottom: 15px;
@@ -139,6 +180,72 @@
         .tab-panel.active {
             display: block;
         }
+
+        /* ── Responsive form grids ── */
+        .dash-form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        @media (min-width: 768px) {
+            .dash-form-grid-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .dash-form-grid-4 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        @media (min-width: 600px) {
+            .dash-form-grid-4 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (min-width: 1024px) {
+            .dash-form-grid-4 {
+                grid-template-columns: 1fr 1fr 1fr 1fr;
+            }
+        }
+
+        /* ── Responsive a-cols-2 override for dashboard rows ── */
+        @media (max-width: 767px) {
+            .a-grid.a-cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* ── Bibliography entry — responsive flex ── */
+        .bib-entry {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+        @media (max-width: 599px) {
+            .bib-entry {
+                flex-direction: column;
+            }
+            .bib-entry .bib-author-type {
+                width: 100% !important;
+            }
+        }
+
+        /* ── Weight form grid (reuses dash-form-grid-2 spacing) ── */
+        .dash-weight-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 1rem;
+        }
+        @media (min-width: 768px) {
+            .dash-weight-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -162,7 +269,7 @@
         </header>
 
         <!-- Sidebar: Row 2 | Col 1 -->
-        <aside style="grid-column: 1; grid-row: 2;">
+        <aside class="dash-sidebar">
             <nav id="nav-sidebar" class="sidebar sidebar--rail" aria-label="Main navigation" style="align-self: start;">
                 <button id="btn-hamburger" class="hamburger" aria-label="Toggle menu" aria-expanded="true">
                     <span></span><span></span><span></span>
@@ -193,8 +300,8 @@
             </nav>
         </aside>
 
-        <!-- Main Content: Row 2 | Col 2 to End (2 / span 2) -->
-        <main style="grid-column: 2 / span 2; grid-row: 2;">
+        <!-- Main Content: Row 2 | Col 2 to End -->
+        <main class="dash-main">
             <div style="display: grid; grid-template-rows: auto auto auto; gap: 20px; height: 100%;">
 
                 <!-- ROW 1: Large CRUD editor -->
@@ -237,7 +344,7 @@
                             <input type="hidden" id="record-id-field">
 
                             <!-- ── Row 1: Name & Category/Content ── -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="dash-form-grid-2">
                                 <div>
                                     <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Name</label>
                                     <input type="text" id="record-name-field" placeholder="e.g. Feeding of 5000"
@@ -278,7 +385,7 @@
                             </div>
 
                             <!-- ── Parent & Children ── -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="dash-form-grid-2">
                                 <div>
                                     <label for="record-parent-field" style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Parent Record</label>
                                     <select id="record-parent-field" class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
@@ -305,7 +412,7 @@
                             </div>
 
                             <!-- ── Primary & Secondary Verse ── -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="dash-form-grid-2">
                                 <div>
                                     <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Primary
                                         Verse</label>
@@ -469,7 +576,7 @@
                             </div>
 
                             <!-- ── Timeline ── -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="dash-form-grid-2">
                                 <div>
                                     <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Timeline Event
                                         Name</label>
@@ -502,8 +609,7 @@
                             </div>
 
                             <!-- ── Map Data ── -->
-                            <div
-                                style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="dash-form-grid-4">
                                 <div>
                                     <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Map
                                         Region</label>
@@ -642,7 +748,7 @@
                         <input type="hidden" id="weight-id" value="">
                         <div
                             style="background: #fdfdfd; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1rem;">
+                            <div class="dash-weight-grid">
                                 <div>
                                     <label
                                         style="font-size: 0.75rem; display: block; margin-bottom: 4px; color: #666; font-weight: 600;">Rule
@@ -662,7 +768,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1rem;">
+                            <div class="dash-weight-grid">
                                 <div>
                                     <label
                                         style="font-size: 0.75rem; display: block; margin-bottom: 4px; color: #666; font-weight: 600;">Match
@@ -940,7 +1046,7 @@
                     <div id="source-editor-modal"
                         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
                         <div
-                            style="background:var(--card-bg); border-radius:8px; padding:2rem; width:480px; max-width:95vw; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                            style="background:var(--card-bg); border-radius:8px; padding:2rem; width:480px; max-width:95vw; box-sizing:border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
                             <div
                                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
                                 <h3 style="margin:0;">Add / Edit Source</h3>
