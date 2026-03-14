@@ -16,13 +16,16 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          sync: true # Ensures GitHub waits for the script to finish
-          timeout: 60s # Time to establish the initial connection
-          command_timeout: 30m # CRITICAL: Gives Cargo 30 minutes to build
+          # Crucial: Prevent timeouts during long Rust/Docker builds
+          command_timeout: 60m
+          sync: true
+          debug: true
+          # Keep-alive helps prevent the "remote command exited without status" error
+          proxy_timeout: 60s
           script: |
             cd ~/apps/thejesuswebsite
             git pull origin main
-            # Using --no-cache ensures Docker completely ignores old builds 
+            # Using --no-cache ensures Docker ignores old builds 
             # and compiles your new Rust code from scratch.
             docker compose build --no-cache
             docker compose up -d --force-recreate
