@@ -277,6 +277,24 @@
                                 </div>
                             </div>
 
+                            <!-- ── Parent & Children ── -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <div>
+                                    <label for="record-parent-field" style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Parent Record</label>
+                                    <select id="record-parent-field" class="input-field" style="width: 100%; padding: 8px; box-sizing: border-box;">
+                                        <option value="">— No Parent (Root) —</option>
+                                        <!-- Options populated by JS -->
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Child Records</label>
+                                    <ul id="record-children-list" style="margin: 0; padding-left: 15px; font-size: 0.8rem; color: #666; max-height: 60px; overflow-y: auto;">
+                                        <!-- Populated by JS -->
+                                    </ul>
+                                    <small style="font-size: 0.65rem; color: #999;">Records that have this record as their parent</small>
+                                </div>
+                            </div>
+
                             <!-- ── Description ── -->
                             <div style="margin-bottom: 10px;">
                                 <label style="font-size: 0.7rem; display: block; margin-bottom: 2px;">Description (one

@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "update"
+git commit -m "records audit"
 git push origin main
 
 update files
@@ -142,3 +142,21 @@ Push back the other way  (in my terminal)
 cd Developer/thejesuswebsite
 git pull origin main
 
+To commit and merge Claude's work
+
+# 1. Confirm branch is on GitHub (Claude does this, but you can verify)
+git log --oneline origin/claude/my-feature | head -5
+
+# 2. Merge PR at github.com (do in browser)
+
+# 3. Sync local Mac
+git checkout main && git pull origin main && git log --oneline -3
+
+# 4a. Check Actions finished (open in browser)
+open https://github.com/lukeisham/thejesuswebsite/actions
+
+# 4b. Hit the live site
+curl -s -o /dev/null -w "HTTP %{http_code} — %{url_effective}\n" https://thejesuswebsite.com/
+
+# 5. Confirm server commit (optional)
+ssh -p 2222 <user>@<SERVER_IP> "cd ~/apps/thejesuswebsite && git log --oneline -3"

@@ -158,6 +158,15 @@ pub async fn handle_update_record(
     record.id = ulid;
     record.updated_at = Some(chrono::Utc::now());
 
+    // Reject self-referencing parent (a record cannot be its own parent)
+    if record.parent_id.as_deref() == Some(record.id.to_string().as_str()) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(ApiResponse::<()>::error("A record cannot be its own parent".to_string())),
+        )
+            .into_response();
+    }
+
     // Gatekeeper Validation
     use app_core::types::record::record::RecordGatekeeper;
     if let Err(e) = RecordGatekeeper::validate_name(&record.name) {

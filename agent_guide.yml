@@ -1,6 +1,7 @@
 # AI Agent Manifest & Context Guide
 version: 1.2.0
-last_updated: 2026-03-05T10:44:00Z
+last_updated: 2026-03-13T12:45:00Z
+# parent_id added in 1.2.0 to support record branching (Task 1)
 environment: Production
 
 # 1. Core Source of Truth & Memory

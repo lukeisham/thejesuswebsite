@@ -76,6 +76,8 @@ pub struct DraftRecordRequest {
     pub name: String,
     pub r#type: String, // Maps to Classification
     pub region: String, // Maps to MapType
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<String>,
 }
 
 /// Request DTO for publishing a full record from widget_record_generator.js.
@@ -87,6 +89,8 @@ pub struct PublishRecordRequest {
     pub map_data: PublishMapRequest,
     pub primary_verse: String,
     pub category: String, // Maps to Classification
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -198,6 +202,7 @@ impl TryFrom<PublishRecordRequest> for Record {
             primary_verse: crate::types::system::parse_bible_ref_sync(&req.primary_verse)
                 .map_err(|e| format!("Invalid primary verse: {}", e))?,
             secondary_verse: None,
+            parent_id: req.parent_id,
             created_at: Utc::now(),
             updated_at: None,
         })

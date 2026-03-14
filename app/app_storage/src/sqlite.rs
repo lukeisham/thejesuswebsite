@@ -652,6 +652,7 @@ impl SqliteStorage {
                 passion_day, passion_hour,
                 description, picture_bytes,
                 bibliography, metadata_json, content_json, map_json, timeline_json,
+                parent_id,
                 created_at, updated_at
             ) VALUES (
                 ?, ?, ?, ?, ?,
@@ -660,6 +661,7 @@ impl SqliteStorage {
                 ?, ?,
                 ?, ?,
                 ?, ?, ?, ?, ?,
+                ?,
                 ?, ?
             )",
         )
@@ -681,6 +683,7 @@ impl SqliteStorage {
         .bind(&content_json)
         .bind(&map_json)
         .bind(&timeline_json)
+        .bind(record.parent_id.as_ref())
         .bind(&created_at)
         .bind(updated_at.as_deref())
         .execute(&self.pool)
@@ -697,6 +700,7 @@ impl SqliteStorage {
                     passion_day, passion_hour,
                     description, picture_bytes,
                     bibliography, metadata_json, content_json, map_json, timeline_json,
+                    parent_id,
                     created_at, updated_at
              FROM records ORDER BY created_at DESC",
         )
@@ -761,6 +765,7 @@ impl SqliteStorage {
                     content,
                     primary_verse,
                     secondary_verse,
+                    parent_id: r.get::<Option<String>, _>("parent_id"),
                     created_at,
                     updated_at,
                 })
@@ -809,6 +814,7 @@ impl SqliteStorage {
                     passion_day, passion_hour,
                     description, picture_bytes,
                     bibliography, metadata_json, content_json, map_json, timeline_json,
+                    parent_id,
                     created_at, updated_at
              FROM records
              WHERE LOWER(name) LIKE ? OR LOWER(description) LIKE ?
@@ -874,6 +880,7 @@ impl SqliteStorage {
                     content,
                     primary_verse,
                     secondary_verse,
+                    parent_id: r.get::<Option<String>, _>("parent_id"),
                     created_at,
                     updated_at,
                 })

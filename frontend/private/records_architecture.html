@@ -134,6 +134,7 @@
         ▼                                             sqlite.rs  chroma.rs
  ~300 records created                                 (persist)  (search)
  each with: title + ULID + primary verse + internal link
+ supports Branching: parent_id → multiple children
 
  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─
 
@@ -163,7 +164,8 @@
        { name, description,                    ├─ Parses &lt;li&gt; items + Bible refs
          category, primary_verse,              └─ POSTs bulk payload to:
          timeline: {era, event_name},             POST /api/v1/admin/populate
-         map_data: {region, lat, lng} }            └─ api_widgets.rs
+         map_data: {region, lat, lng},            └─ api_widgets.rs
+         parent_id }
                                                       handle_admin_populate()
     NEW  → POST /api/v1/records/publish               build_record_from_item()
     EDIT → PUT  /api/v1/records/:id
@@ -183,8 +185,8 @@
   sqlite.rs         chroma.rs
   store_record()    store_record()
   INSERT OR REPLACE  Embed JSON → upsert
-  20 columns:        "records" collection
-  · 12 flat scalars  (vector semantic search)
+  21 columns:        "records" collection
+  · 13 flat scalars  (vector semantic search)
   · 5 JSON blobs
   · picture BLOB
   · 2 timestamps
@@ -204,7 +206,7 @@
          ▼
   api_records.rs: handle_record_list()
   sqlite.rs: get_records()
-  · SELECT all 20 columns
+  · SELECT all 21 columns
   · Deserialise JSON blobs → Rust structs
   · Return ApiResponse&lt;RecordListResponse&gt;
     { status, message,
@@ -338,8 +340,8 @@
         <tbody>
           <tr><td rowspan="5"><code>record/record.rs</code></td>
               <td><code>Record</code> struct</td>
-              <td>14 fields · SCHEMA_VERSION 1.1.0</td></tr>
-          <tr><td><code>Record::try_new(…)</code></td><td>Validated constructor → Result&lt;Record, RecordError&gt;</td></tr>
+              <td>15 fields · SCHEMA_VERSION 1.2.0</td></tr>
+          <tr><td><code>Record::try_new(…)</code></td><td>Validated constructor → Result&lt;Record, RecordError&gt; (accepts Option&lt;String&gt; parent_id)</td></tr>
           <tr><td><code>RecordGatekeeper::validate_name</code></td><td>Name ≤ 80 chars, non-empty</td></tr>
           <tr><td><code>RecordGatekeeper::validate_image_format</code></td><td>PNG magic bytes check</td></tr>
           <tr><td><code>RecordGatekeeper::validate_description</code></td><td>Non-empty · each line ≤ 1000 chars</td></tr>
@@ -357,8 +359,8 @@
               <td>Miracle | Parable | Saying | Sermon | Other (lowercase serde)</td></tr>
           <tr><td rowspan="3"><code>dtos.rs</code></td>
               <td><code>PublishRecordRequest</code></td>
-              <td>{ name, description, category, primary_verse, timeline, map_data }</td></tr>
-          <tr><td><code>DraftRecordRequest</code></td><td>{ id?, name, type, region }</td></tr>
+              <td>{ name, description, category, primary_verse, timeline, map_data, parent_id }</td></tr>
+          <tr><td><code>DraftRecordRequest</code></td><td>{ id?, name, type, region, parent_id }</td></tr>
           <tr><td><code>TryFrom&lt;PublishRecordRequest&gt; for Record</code></td><td>Parses enums · maps all DTO fields to core Record</td></tr>
         </tbody>
       </table>
@@ -391,7 +393,7 @@
         <tbody>
           <tr><td rowspan="7"><code>sqlite.rs</code></td>
               <td><code>store_record(record)</code></td>
-              <td>INSERT OR REPLACE · 20 cols: 12 flat scalars + 5 JSON blobs + picture BLOB + 2 timestamps</td></tr>
+              <td>INSERT OR REPLACE · 21 cols: 13 flat scalars + 5 JSON blobs + picture BLOB + 2 timestamps</td></tr>
           <tr><td><code>get_records()</code></td><td>SELECT all cols · deserialise blobs · reconstruct Record</td></tr>
           <tr><td><code>delete_record(id) → bool</code></td><td>DELETE by ULID · true if row existed</td></tr>
           <tr><td><code>wipe_records() → usize</code></td><td>DELETE all · returns row count</td></tr>
@@ -406,7 +408,7 @@
           <tr><td><code>wipe_records()</code></td><td>Delete + recreate empty "records" collection</td></tr>
           <tr><td><code>schema.sql</code></td>
               <td><code>records</code> table</td>
-              <td>20 cols · category CHECK (Event/Location/Person/Theme) · era CHECK (8 eras) · map_label CHECK (6 regions)</td></tr>
+              <td>21 cols · parent_id (nullable) · category CHECK · era CHECK · map_label CHECK</td></tr>
           <tr><td></td>
               <td><code>record_drafts</code> table</td>
               <td>7 cols · type + region CHECK constraints match records table</td></tr>
@@ -576,7 +578,9 @@
       <thead><tr><th>Term</th><th>Definition</th></tr></thead>
       <tbody>
         <tr><td><code>ULID</code></td><td>Universally Unique Lexicographically Sortable Identifier — the primary key for every record</td></tr>
-        <tr><td><code>Record</code></td><td>A 14-field structured entry representing a biblical event, person, place, or theme</td></tr>
+        <tr><td><code>Record</code></td><td>A 15-field structured entry representing a biblical event, person, place, or theme</td></tr>
+        <tr><td><code>Parent Record</code></td><td>The record linked via <code>parent_id</code> (creates a branch relationship)</td></tr>
+        <tr><td><code>Child Record</code></td><td>Any record that specifies another record as its parent</td></tr>
         <tr><td><code>Primary Verse</code></td><td>The main Bible reference associated with a record (e.g., "Mk 4:35–41")</td></tr>
         <tr><td><code>Secondary Verse</code></td><td>An optional additional Bible reference for supplementary context</td></tr>
         <tr><td><code>Internal Link</code></td><td>An &lt;a&gt; tag linking to records.html with a query parameter to identify the target record</td></tr>

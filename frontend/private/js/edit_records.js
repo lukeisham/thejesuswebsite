@@ -48,6 +48,8 @@
     var infoId        = document.getElementById("record-info-id");
     var infoCreated   = document.getElementById("record-info-created");
     var infoUpdated   = document.getElementById("record-info-updated");
+    var parentField   = document.getElementById("record-parent-field");
+    var childrenList  = document.getElementById("record-children-list");
 
     var clearBtn      = document.getElementById("clear-record-form");
     var saveDraftBtn  = document.getElementById("save-record-draft");
@@ -104,6 +106,11 @@
         if (infoId)      infoId.textContent = "";
         if (infoCreated) infoCreated.textContent = "";
         if (infoUpdated) infoUpdated.textContent = "";
+        if (parentField) {
+            parentField.value = "";
+            renderParentOptions("");
+        }
+        if (childrenList) { childrenList.innerHTML = ""; }
         formEl.style.display = "block";
     }
 
@@ -196,9 +203,50 @@
                 r.updated_at ? new Date(r.updated_at).toLocaleString() : "Never updated";
         }
 
+        // ── Parent & Children ──
+        if (parentField) {
+            renderParentOptions(r.id || "");
+            parentField.value = r.parent_id || "";
+        }
+        if (childrenList) {
+            renderChildrenList(r.id || "");
+        }
+
         if (formHeading) formHeading.textContent = "Editing: " + (r.name || "Record");
         formEl.style.display = "block";
         formEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function renderParentOptions(currentId) {
+        if (!parentField) return;
+        var val = parentField.value;
+        parentField.innerHTML = '<option value="">— No Parent (Root) —</option>';
+        allRecords.forEach(function (rec) {
+            if (rec.id === currentId) return;
+            var opt = document.createElement("option");
+            opt.value = rec.id;
+            opt.textContent = rec.name || rec.id;
+            parentField.appendChild(opt);
+        });
+        parentField.value = val;
+    }
+
+    function renderChildrenList(currentId) {
+        if (!childrenList) return;
+        childrenList.innerHTML = "";
+        if (!currentId) return;
+        var children = allRecords.filter(function (rec) {
+            return rec.parent_id === currentId;
+        });
+        if (children.length === 0) {
+            childrenList.innerHTML = '<li style="list-style:none;margin-left:-15px;color:#999;">None</li>';
+            return;
+        }
+        children.forEach(function (child) {
+            var li = document.createElement("li");
+            li.textContent = child.name || child.id;
+            childrenList.appendChild(li);
+        });
     }
 
     // ── Collect form → PublishRecordRequest payload ───────────────────────
@@ -226,6 +274,7 @@
                 lat: mapLat ? (parseFloat(mapLat.value) || 0.0) : 0.0,
                 lng: mapLng ? (parseFloat(mapLng.value) || 0.0) : 0.0,
             },
+            parent_id: parentField ? (parentField.value || null) : null,
         };
     }
 
@@ -235,6 +284,7 @@
             name: nameField.value.trim(),
             type: categoryField ? (categoryField.value || "Theme") : "Theme",
             region: mapType ? (mapType.value || "Overview") : "Overview",
+            parent_id: parentField ? (parentField.value || null) : null,
         };
     }
 

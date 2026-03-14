@@ -32,6 +32,8 @@ pub struct Record {
     pub primary_verse: BibleVerse,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secondary_verse: Option<BibleVerse>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<String>,
     pub created_at: DateTime<Utc>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<DateTime<Utc>>,
@@ -52,7 +54,7 @@ impl Record {
     /// Any change to this struct mandates a version bump to this `SCHEMA_VERSION` constant,
     /// a corresponding SQL/ChromaDB migration script, and an update to `agent_guide.yml`.
     /// NEVER change the struct fields without explicitly updating this version.
-    pub const SCHEMA_VERSION: &'static str = "1.1.0";
+    pub const SCHEMA_VERSION: &'static str = "1.2.0";
 
     /// Retrieves the current schema version of the Record struct.
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
@@ -73,6 +75,7 @@ impl Record {
         content: ContentEntry,
         primary_verse: BibleVerse,
         secondary_verse: Option<BibleVerse>,
+        parent_id: Option<String>,
     ) -> Result<Self, RecordError> {
         RecordGatekeeper::validate_name(&name)?;
         RecordGatekeeper::validate_image_format(&picture_bytes)?;
@@ -91,6 +94,7 @@ impl Record {
             content,
             primary_verse,
             secondary_verse,
+            parent_id,
             created_at: Utc::now(),
             updated_at: None,
         })
@@ -207,7 +211,7 @@ mod tests {
     fn test_schema_version_is_documented() {
         // This test acts as a tripwire. If you modify the Record struct fields,
         // you MUST update the SCHEMA_VERSION, the SQL database schema, and the agent_guide.yml!
-        assert_eq!(Record::SCHEMA_VERSION, "1.1.0");
-        assert_eq!(Record::schema_version(), "1.1.0");
+        assert_eq!(Record::SCHEMA_VERSION, "1.2.0");
+        assert_eq!(Record::schema_version(), "1.2.0");
     }
 }

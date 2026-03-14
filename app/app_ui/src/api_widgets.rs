@@ -323,6 +323,7 @@ fn build_record_from_item(
         },
         primary_verse,
         secondary_verse,
+        parent_id: None,
         created_at: Utc::now(),
         updated_at: None,
     })
