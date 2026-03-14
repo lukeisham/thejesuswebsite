@@ -108,55 +108,49 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "record field tidy"
+git commit -m "parent child update"
 git push origin main
 
-update files
+## Puling from Github to VPS 
 
 
+cd ~/apps/thejesuswebsite
 
-on my VPS
+## THEN
 
-git pull
-docker compose build agentic_hub
-docker compose up -d agentic_hub
+git pull origin main
 
+## THEN
 
-to check if latest repo is on the server
+# Build the new image (ignoring cache to ensure Rust/Frontend updates)
+docker compose build --no-cache
+
+# Restart the containers with the new build
+docker compose up -d --force-recreate
+
+# Clean up old, unused images to save disk space
+docker image prune -f
+
+## To check if latest repo is on the server
 
 cd ~/apps/thejesuswebsite
 git log -1 --oneline
 
-to force alignment with Github
+## POST CLAUDE WORK LOCAL MERGE
 
-git reset --hard origin/$(git branch --show-current)
-docker compose up -d --build
+# Option 1: Merge the worktree branch into your local main
+cd ~/Developer/thejesuswebsite
+git checkout main
+git merge claude/funny-mcnulty
 
-run on server after changes
+# Option 2: Cherry-pick specific commits
+git cherry-pick <commit-hash>
 
-scp ~/Developer/thejesuswebsite/.env lukeisham@72.60.197.13:~/apps/thejesuswebsite/.env
+## OR 
+
+## WHEN IN CLAUDE WORKTREE - in Claude code (to update it after vibe coding in Antigravity)
+
+"Merge main into your worktree"
+"git merge main"
 
 
-Push back the other way  (in my terminal)
-
-cd Developer/thejesuswebsite
-git pull origin main
-
-To commit and merge Claude's work
-
-# 1. Confirm branch is on GitHub (Claude does this, but you can verify)
-git log --oneline origin/claude/my-feature | head -5
-
-# 2. Merge PR at github.com (do in browser)
-
-# 3. Sync local Mac
-git checkout main && git pull origin main && git log --oneline -3
-
-# 4a. Check Actions finished (open in browser)
-open https://github.com/lukeisham/thejesuswebsite/actions
-
-# 4b. Hit the live site
-curl -s -o /dev/null -w "HTTP %{http_code} — %{url_effective}\n" https://thejesuswebsite.com/
-
-# 5. Confirm server commit (optional)
-ssh -p 2222 <user>@<SERVER_IP> "cd ~/apps/thejesuswebsite && git log --oneline -3"

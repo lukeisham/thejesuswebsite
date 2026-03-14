@@ -153,27 +153,27 @@ After all tasks are complete and the audit passes:
 
 1. **Push the working branch to GitHub:**
    ```bash
-   cd ~/Developer/thejesuswebsite/.claude/worktrees/eager-gould
-   git add -A
-   git commit -m "feat: wire parent_id through records pipeline for ardor tree"
-   git push origin claude/eager-gould
+cd ~/Developer/thejesuswebsite/.claude/worktrees/eager-gould
+git add -A
+git commit -m "feat: wire parent_id through records pipeline for ardor tree"
+git push origin claude/eager-gould
    ```
 
 2. **Create a Pull Request and merge on GitHub:**
-   - Go to the repo on GitHub
-   - Create PR from `claude/eager-gould` → `main`
-   - Review the changes, then merge
+Go to the repo on GitHub
+Create PR from `claude/eager-gould` → `main`
+Review the changes, then merge
 
 3. **Sync your Mac with the merged main branch:**
    ```bash
-   cd ~/Developer/thejesuswebsite
-   git checkout main
-   git pull origin main
+cd ~/Developer/thejesuswebsite
+git checkout main
+git pull origin main
    ```
 
 4. **Refresh the website:**
-   - Rebuild/redeploy as per your normal process
-   - Verify the dashboard shows the new parent dropdown and children list
+Rebuild/redeploy as per your normal process
+Verify the dashboard shows the new parent dropdown and children list
 
 5. **Delete the Claude working branch (local + remote):**
    ```bash
