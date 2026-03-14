@@ -1,48 +1,53 @@
-# Plan: Refactor Records Page Tabs
+# Plan: Refactor Records Tabs
 
 ## 1. Introduction
+The objective of this task is to refactor `records.html` so that the view tabs ("Record", "Feed", "Grid") sit directly above the search bar, left-aligned, rather than to the left. The tabs will be re-ordered to "Record", "Feed", "Grid", with "Record" functioning as the default active tab on first page load. 
 
-**Purpose & Goal**
-The goal of this task is to refactor the display modes on the public `records.html` page. Currently, records are displayed in either a "Grid" or "Feed" format, with Grid as the default. This refactor will reorganize the display tabs in the order "Feed", "Record", "Grid", and make **"Feed"** the default view on page load. 
+The "Record" tab will display a single record in a one-card grid. By default, this will show a blank record with placeholders, unless a specific record is dictated by a search query (top result) or an internal link. Additionally, the system architecture documentation (`records_architecture.html`) must be updated to align with these frontend structural changes.
 
-We will introduce a new "Record" tab that acts as a 1-item view (a single-record grid). By default, this tab will display the universal record "Resurrection of Jesus". Furthermore, interactivity will be enhanced so that clicking a record from the Feed or Grid, searching for a record, or navigating via a direct URL (`?id=` or `?verse=`) will automatically populate and switch the user to the new "Record" tab to view that specific item.
-
-**Vibe Coding Rules References**
-As outlined in `frontend/readme.md`, we must adhere to the following principles:
-- **HTML/CSS:** "Atomic Design, Global consistency, Responsive Flow / CSS Grid for Layout, Flexbox for Components. / does the page still function?"
-- **JavaScript:** "Strict Interface, Error Translation, Lean Passthrough, Idempotency / One script per task / No loss of functionality during rewrites!"
-- **Vibe Rule:** "Complete one task fully and carefully before proceeding to the next task."
+**Relevant Vibe-Coding Rules (`frontend/readme.md`):**
+- **HTML/CSS**: Atomic Design, Global consistency, Responsive Flow. Use **CSS Grid for Layout** and **Flexbox for Components**. Crucially: *does the page still function?* Moving tabs structurally over the search bar shouldn't compromise existing responsive styling.
+- **JS**: Strict Interface, Lean Passthrough. **One script per task**. Crucially: *No loss of functionality during rewrites!* A new dedicated JS script will handle the single-record logic to maintain modularity.
 
 ---
 
-## 2. Tasks for GeminiFlash
+## 2. Bite-Sized Tasks for GeminiFlash
 
-1. **Tab Restructuring:** Update the HTML structure in `records.html` to align the tabs in the order: "Feed", "Record", "Grid". Ensure "Feed" has the `.active` class on load.
-2. **Record Section Addition:** Create a new container in `records.html` (e.g., `<section id="record-single" style="display: none;">`) to house the single-record view. 
-3. **View Toggling Logic:** Update `toggle_record_view.js` to manage the visibility of `#record-feed`, `#record-single`, and `#record-grid`. Modify the default behavior so `sessionStorage` fallback defaults to "feed" instead of "grid".
-4. **Default Record Fetching:** Update `refresh_records.js` (or create a dedicated script per the "One script per task" rule) to identify the record titled "Resurrection of Jesus" from the loaded API response and populate it into the `#record-single` container by default.
-5. **Interactivity Update (Clicks):** Modify the click events in `record_card.js` and `record_feed.js`. When a user clicks a specific card or feed item, intercept the click, populate that specific record's data into the `#record-single` container, and trigger the view switch to the "Record" tab.
-6. **Interactivity Update (Search):** Hook into `search_records.js` so that when a user performs a search and results are returned, the script automatically populates `#record-single` with the *first* search result and swaps the UI view to the "Record" tab.
-
+1. **HTML Tab Reorder & Structure**: 
+   - Open `frontend/records.html`.
+   - Move the `<div class="record-view-tabs">` block directly above the `<input type="text" id="search-input" ...>` search bar.
+   - Reorder the tabs to: "Record", "Feed", "Grid".
+   - Set the "Record" tab to `<div class="tab active" data-view="record">Record</div>`.
+2. **CSS Layout Update**:
+   - Locate the `.record-search` and `.record-view-tabs` classes in `frontend/style.css` (or inline if applicable).
+   - Ensure the `.record-search` element operates as a flex column (e.g. `flex-direction: column; align-items: flex-start;`) so the tabs remain left-aligned directly stacked above the input field.
+3. **JS Tab Toggle Refactor**:
+   - Update `frontend/js/toggle_record_view.js` to recognize "Record" as the default tab.
+   - Adjust the DOM toggle logic so clicking "Record" hides `#record-grid` / `#record-feed` and displays `#record-single`.
+4. **Architecture Documentation Update**:
+   - In `frontend/private/records_architecture.html`, find the **Record Display Pipeline** section and modify the diagram to reflect 3 tabs and the `#record-single` flow. Update the note describing the toggle feature.
 
 ---
 
 ## 3. Most Difficult Task(s) for Gemini 3.1 Pro (High)
 
-**URL Parameter Interception & Lifecycle Timing:** 
-The most complex part of this refactor is correctly integrating the URL parameters (`?id=` or `?verse=`) found inside `records.html` with the asynchronous `refresh_records.js` loading flow, the new single-item tab system, and the DOM updating script. The current inline script in `records.html` waits for a custom `"records-loaded"` event (or a timeout), maps the parameter to an element, highlights it, and scrolls to it. 
-
-With the new setup, the system must instead look up the target record from the raw data payload, inject its `createRecordCard(r)` representation into `#record-single`, override `sessionStorage` or tab logic to force the "Record" tab active, and ensure all of this happens *before* the user sees flickering grid changes. Ensuring "No loss of functionality during rewrites!" while drastically altering how URL params alter the baseline page state is a delicate concurrency challenge best handled by Gemini Pro.
+1. **New Script for Single Record View Management**:
+   - Create a brand new script: `frontend/js/show_single_record.js` (or similar).
+   - Implement logic to handle the state of `#record-single`:
+     - If the page first loads without a search/URL query, render a pre-defined layout with a **blank record with placeholders**.
+     - Intercept search results (either from `refresh_records.js` or `search_records.js`) and if the user clicks the "Record" tab while results exist, render the **top result** of that search array.
+     - Process incoming internal links pointing to a specific record (via URL query parameters) and prioritize rendering that specific record over the blank placeholder.
 
 ---
 
 ## 4. Audit Table
 
 | Task | Verification Steps | Expected Outcome | Pass/Fail |
-| :--- | :--- | :--- | :--- |
-| **Tab Ordering & Default** | 1. Load `records.html` in an incognito window.<br>2. Check tab order. | Order is "Feed", "Record", "Grid". "Feed" tab is active by default; feed list is visible. | |
-| **Default "Record" Display** | 1. Click "Record" tab.<br>2. Check the contents. | The single-item grid displays the "Resurrection of Jesus" record. | |
-| **Click Interactivity** | 1. Open "Feed" or "Grid".<br>2. Click on a specific record (e.g., "Baptism of Jesus"). | The view automatically switches to the "Record" tab, displaying the clicked record. | |
-| **Search Interactivity** | 1. Use the search bar for a query (e.g., "Galilee").<br>2. Execute search. | The view automatically switches to the "Record" tab, displaying the first search result. | |
-| **URL Parameters** | 1. Navigate to `/records.html?id=...` or `?verse=...` using a known record. | The page heavily loads directly onto the "Record" tab displaying the targeted record. | |
-| **Responsive UI** | 1. Resize browser window (mobile & desktop).<br>2. Evaluate the "Record" view container. | Uses atomic CSS Grid/Flexbox principles without overflowing; maintains global consistency constraints. | |
+|------|--------------------|------------------|-----------|
+| **HTML Update** | Inspect DOM of `records.html` | `<div class="record-view-tabs">` is structurally placed above the search bar input and ordered: Record, Feed, Grid. | Pass |
+| **CSS Checks** | View the records page in a browser | Tabs are left-aligned and sit neatly above the search bar, avoiding breaking the wrapper. | Pass |
+| **JS Toggle** | Click "Feed", "Grid", then "Record" | Each click adds `active` state and toggles the appropriate `display` properties on the section containers. | Pass |
+| **Default Load** | Refresh `records.html` with no query | The "Record" tab is active by default. The `#record-single` section is visible and shows blank placeholders. | Pass |
+| **Top Result** | Search for a specific event keyword | When navigating to "Record" tab, the #1 retrieved result populates the single record display. | Pass |
+| **Internal Link** | Visit `/records.html?id=ULID_HERE` | The "Record" tab displays the exact matching record fetched by the backend. | Pass |
+| **Architecture** | Open `/private/records_architecture.html` | Data flow diagram clearly indicates "Record" view alongside Grid and Feed. | Pass |

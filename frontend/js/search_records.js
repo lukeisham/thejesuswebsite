@@ -33,6 +33,11 @@
                     const emptyMsg = '<p class="a-col-span-full" style="color: #999;">No records match your search.</p>';
                     gridEl.innerHTML = emptyMsg;
                     if (feedEl) feedEl.innerHTML = emptyMsg;
+                    
+                    // Reset single view to placeholder
+                    if (typeof window.showRecordDetail === "function") {
+                        window.showRecordDetail(null);
+                    }
                     return;
                 }
 
@@ -46,9 +51,12 @@
                     }
                 });
 
-                // Task 6: Switch to Record view with the first search result
+                // Plan: Switch to Record view with the first search result
                 if (typeof window.showRecordDetail === "function") {
                     window.showRecordDetail(records[0]);
+                    if (typeof window.switchRecordView === "function") {
+                        window.switchRecordView("record");
+                    }
                 }
 
                 // Trigger verse expansion if expand_verse.js is present

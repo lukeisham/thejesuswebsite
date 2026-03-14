@@ -41,9 +41,9 @@
         });
     });
 
-    // Load persisted preference or default to "feed", overriding with "record" if a URL parameter suggests a direct link
+    // Load persisted preference or default to "record", overriding with "record" if a URL parameter suggests a direct link
     const params = new URLSearchParams(window.location.search);
-    let initialView = sessionStorage.getItem("records_view_preference") || "feed";
+    let initialView = sessionStorage.getItem("records_view_preference") || "record";
     if (params.get("id") || params.get("verse")) {
         initialView = "record";
     }
@@ -52,27 +52,4 @@
     // Expose switchView to window for other scripts (Tasks 5, 6)
     window.switchRecordView = switchView;
 
-    /**
-     * Shows a single record in the 'Record' tab.
-     * @param {Object} record - The record data object.
-     */
-    window.showRecordDetail = function (record) {
-        if (!record) return;
-
-        if (singleSection && typeof window.createRecordCard === "function") {
-            singleSection.innerHTML = "";
-            // Create a copy of the card for the single view
-            const card = window.createRecordCard(record);
-            card.classList.add("is-single-view");
-            singleSection.appendChild(card);
-
-            switchView("record");
-
-            // Smooth scroll to top of content
-            const mainHeader = document.querySelector(".nav-header");
-            if (mainHeader) {
-                mainHeader.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-        }
-    };
 })();

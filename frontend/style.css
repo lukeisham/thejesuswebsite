@@ -1121,6 +1121,8 @@ button:hover {
 /* --- Search Bar --- */
 .record-search {
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 10px;
     margin-bottom: 2rem;
 }

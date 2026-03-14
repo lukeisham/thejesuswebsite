@@ -213,24 +213,32 @@
       data: { count, records: [...] } }
          │
          │  JS must unwrap: json.data.records
-         │
+         3 display views:
+         ┌──────────────────────────────┐
+         │ Record │ Feed   │ Grid       │
+         │ Single │ thumb  │ 14 fields  │
+         │ card   │ + snip │ per card   │
+         └──────────────────────────────┘
+         show_single_  record_  record_
+         record.js    feed.js  card.js
     ┌────┼───────────────────────────────────┐
     ▼    ▼                                   ▼
- Grid   Feed                           Dashboard list
- ─────  ──────                         ──────────────
- record_card.js    record_feed.js      edit_records.js
- createRecord      createRecord        renderList()
- Card(r)           FeedItem(r)         · name + category badge
- · 14 fields       · thumbnail         · ✕ delete button
-   fully             title             · click → populateForm(r)
-   rendered          snippet
-                     era + cat badges  Viewer panel
- #record-grid      #record-feed        wgt_records_viewer.js
- (3-col CSS)       (single col)        · checkbox rows
-                                       · Delete (batch)
- toggle_record_view.js                 · Edit in CRUD (single)
- · Grid ↔ Feed tab
- · persists to sessionStorage
+  Record         Feed                          Grid
+  ─────          ──────                        ──────
+  show_single_   record_feed.js                record_card.js
+  record.js      createRecord                  createRecordCard(r)
+  showRecord     FeedItem(r)                   · 14 fields
+  Detail(r)      · thumbnail                   · fully
+                 · title                         rendered
+                 · snippet
+                 · era + cat badges
+  #record-single #record-feed                  #record-grid
+  (1-col grid)   (single col)                  (3-col grid)
+ 
+  toggle_record_view.js
+  · Record ↔ Feed ↔ Grid tab toggle
+  · persists choice to sessionStorage
+  · "Record" is default tab on load
 
  feed_controls.js
  · sort: newest / oldest / A-Z / category
@@ -430,15 +438,18 @@
           <tr><td><code>record_feed.js</code></td>
               <td><code>window.createRecordFeedItem(r)</code></td>
               <td>Compact feed item: thumbnail, title, 120-char snippet, era/category badges</td></tr>
+          <tr><td><code>show_single_record.js</code></td>
+              <td><code>window.showRecordDetail(r)</code></td>
+              <td>Manges "Record" tab · Placeholder state · Populates single view</td></tr>
           <tr><td><code>refresh_records.js</code></td>
               <td>(self-executing)</td>
-              <td>Page load: GET /api/v1/records → populate #record-grid + #record-feed</td></tr>
+              <td>Page load: GET /api/v1/records → populate sections · Handles deep links</td></tr>
           <tr><td><code>search_records.js</code></td>
               <td>(self-executing)</td>
-              <td>Binds #search-input/#search-btn · GET /api/v1/records?q= · renders results</td></tr>
+              <td>Binds search UI · GET /api/v1/records?q= · Switches to Record tab on success</td></tr>
           <tr><td><code>toggle_record_view.js</code></td>
               <td>(self-executing)</td>
-              <td>Grid ↔ Feed tab toggle · persists choice to sessionStorage</td></tr>
+              <td>Record ↔ Feed ↔ Grid toggle · persists choice · default: Record</td></tr>
           <tr><td><code>feed_controls.js</code></td>
               <td>(self-executing)</td>
               <td>Injects #feed-controls · sort dropdown · category chips via MutationObserver</td></tr>

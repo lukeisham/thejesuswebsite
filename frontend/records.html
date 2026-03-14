@@ -63,22 +63,24 @@
             <!-- Search Bar -->
             <section id="record-search-section" class="record-search">
                 <div class="record-view-tabs">
-                    <div class="tab active" data-view="feed">Feed</div>
-                    <div class="tab" data-view="record">Record</div>
+                    <div class="tab active" data-view="record">Record</div>
+                    <div class="tab" data-view="feed">Feed</div>
                     <div class="tab" data-view="grid">Grid</div>
                 </div>
-                <input type="text" id="search-input" class="record-search__input"
-                    placeholder="Search records by keyword, location or date…">
-                <button id="search-btn" class="record-search__btn">Search</button>
+                <div class="record-search-bar" style="display: flex; gap: 10px; width: 100%;">
+                    <input type="text" id="search-input" class="record-search__input"
+                        placeholder="Search records by keyword, location or date…">
+                    <button id="search-btn" class="record-search__btn">Search</button>
+                </div>
             </section>
 
             <!-- Record Cards Grid (Featured Hero Box / Short Box pattern) -->
-            <section id="record-grid" class="a-grid a-cols-3 a-gap-lg a-flow-dense">
+            <section id="record-grid" style="display: none;" class="a-grid a-cols-3 a-gap-lg a-flow-dense">
                 <!-- Cards rendered by JS (record_card.js) -->
             </section>
 
             <!-- Record Single view (1-item grid) -->
-            <section id="record-single" style="display: none;" class="a-grid a-cols-1 a-gap-lg">
+            <section id="record-single" class="a-grid a-cols-1 a-gap-lg">
                 <!-- Single card rendered by JS -->
             </section>
 
@@ -116,6 +118,7 @@
     <!-- Scripts -->
     <script src="/js/record_card.js"></script>
     <script src="/js/record_feed.js"></script>
+    <script src="/js/show_single_record.js"></script>
     <script src="/js/toggle_record_view.js"></script>
     <script src="/js/feed_controls.js"></script>
     <script src="/js/search_records.js"></script>

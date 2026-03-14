@@ -47,29 +47,22 @@
                     targetRecord = records.find(function(r) { return formatFn(r.primary_verse) === targetVerse; });
                 }
 
-                // Default record for the "Record" tab
-                var defaultRecord = targetRecord || records.find(function(r) {
-                    return r.name === "Resurrection of Jesus";
-                }) || records[0]; // fallback to first record if not found
-
-                if (singleEl && typeof window.createRecordCard === "function") {
-                    var card = window.createRecordCard(defaultRecord);
-                    card.classList.add("is-single-view");
-                    if (targetRecord) {
-                        card.classList.add("is-highlighted");
-                        // Ensure we are explicitly in "record" view
-                        if (typeof window.switchRecordView === "function") {
-                            window.switchRecordView("record");
-                        }
-                        // Smooth scroll to top of content
-                        const mainHeader = document.querySelector(".nav-header");
-                        if (mainHeader) {
-                            setTimeout(function() {
-                                mainHeader.scrollIntoView({ behavior: "smooth", block: "start" });
-                            }, 50);
-                        }
+                // If a specific record was requested via URL, show it in the single view
+                if (targetRecord && typeof window.showRecordDetail === "function") {
+                    window.showRecordDetail(targetRecord);
+                    
+                    // Ensure we are explicitly in "record" view
+                    if (typeof window.switchRecordView === "function") {
+                        window.switchRecordView("record");
                     }
-                    singleEl.appendChild(card);
+                    
+                    // Smooth scroll to top of content
+                    const mainHeader = document.querySelector(".nav-header");
+                    if (mainHeader) {
+                        setTimeout(function() {
+                            mainHeader.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 50);
+                    }
                 }
 
                 records.forEach(function (r) {
