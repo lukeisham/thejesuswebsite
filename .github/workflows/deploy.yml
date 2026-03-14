@@ -16,6 +16,9 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
+          sync: true # Ensures GitHub waits for the script to finish
+          timeout: 60s # Time to establish the initial connection
+          command_timeout: 30m # CRITICAL: Gives Cargo 30 minutes to build
           script: |
             cd ~/apps/thejesuswebsite
             git pull origin main
