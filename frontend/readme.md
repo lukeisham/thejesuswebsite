@@ -108,7 +108,7 @@ Row N+1 │ Footer (a-col-span-full) │
 ## Pushing to Github
 
 git add .
-git commit -m "records audit"
+git commit -m "record field tidy"
 git push origin main
 
 update files
