@@ -1,3 +1,4 @@
+use app_core::types::ApiResponse;
 use crate::server::AppState;
 use axum::{
     extract::{Query, State},
@@ -80,7 +81,10 @@ pub async fn handle_markdown(Query(query): Query<MarkdownQuery>) -> impl IntoRes
         }
         Err(e) => {
             tracing::error!("Failed to convert HTML to Markdown for {}: {}", page, e);
-            (StatusCode::INTERNAL_SERVER_ERROR, "Failed to convert page to Markdown.")
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::<()>::error("Failed to convert page to Markdown.")),
+            )
                 .into_response()
         }
     }
@@ -225,10 +229,11 @@ use app_core::types::dtos::{PageMetricsResponse, SummaryResponse, WikiStatusResp
 pub async fn handle_token_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     match state.storage.sqlite.get_token_metrics().await {
         Ok(metrics) => (StatusCode::OK, Json(metrics)).into_response(),
-        Err(e) => {
-            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
-        }
-    }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("Database error: {}", e))),
+        )
+            .into_response(),    }
 }
 
 /// Retrieves the status of the Wikipedia research engine.
@@ -256,20 +261,22 @@ pub async fn handle_wiki_sync() -> impl IntoResponse {
 pub async fn handle_page_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     match state.storage.sqlite.get_all_page_metrics().await {
         Ok(metrics) => (StatusCode::OK, Json(PageMetricsResponse { metrics })).into_response(),
-        Err(e) => {
-            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
-        }
-    }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("Database error: {}", e))),
+        )
+            .into_response(),    }
 }
 
 /// Retrieves comprehensive server system metrics (RAM, Disk, API performance).
 pub async fn handle_server_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     match state.storage.sqlite.get_server_metrics().await {
         Ok(metrics) => (StatusCode::OK, Json(metrics)).into_response(),
-        Err(e) => {
-            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
-        }
-    }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("Database error: {}", e))),
+        )
+            .into_response(),    }
 }
 
 /// Executes a systemic web scrape of external library resources.

@@ -1,3 +1,4 @@
+use app_core::types::ApiResponse;
 use crate::server::AppState;
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -26,10 +27,11 @@ pub async fn handle_get_posts(State(state): State<Arc<AppState>>) -> impl IntoRe
                 .collect();
             (StatusCode::OK, Json(posts)).into_response()
         }
-        Err(e) => {
-            (StatusCode::INTERNAL_SERVER_ERROR, format!("Storage error: {}", e)).into_response()
-        }
-    }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("Storage error: {}", e))),
+        )
+            .into_response(),    }
 }
 
 /// Creates a new blog post using the BlogCreateRequest DTO.
@@ -58,8 +60,10 @@ pub async fn handle_create_post(
     };
 
     match state.storage.chroma.store_blog_post(&post).await {
-        Ok(_) => (StatusCode::CREATED, "Blog post created").into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to store post: {}", e))
-            .into_response(),
-    }
+        Ok(_) => (StatusCode::CREATED, Json(ApiResponse::<()>::success("Blog post created", None))).into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("Failed to store post: {}", e))),
+        )
+            .into_response(),    }
 }

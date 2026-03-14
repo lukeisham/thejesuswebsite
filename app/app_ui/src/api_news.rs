@@ -1,3 +1,4 @@
+use app_core::types::ApiResponse;
 use crate::server::AppState;
 use axum::{
     extract::{Query, State},
@@ -25,10 +26,11 @@ pub async fn handle_get_news(
             let limited_items: Vec<_> = items.into_iter().take(limit).collect();
             (StatusCode::OK, Json(limited_items)).into_response()
         }
-        Err(e) => {
-            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
-        }
-    }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("Database error: {}", e))),
+        )
+            .into_response(),    }
 }
 
 /// POST /api/v1/news_run
@@ -40,7 +42,10 @@ pub async fn handle_news_run(State(state): State<Arc<AppState>>) -> impl IntoRes
         Err(e) => {
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to load news_sources.toml: {}", e),
+                Json(ApiResponse::<()>::error(format!(
+                    "Failed to load news_sources.toml: {}",
+                    e
+                ))),
             )
                 .into_response();
         }
@@ -81,10 +86,13 @@ pub async fn handle_news_run(State(state): State<Arc<AppState>>) -> impl IntoRes
 
     (
         StatusCode::OK,
-        format!(
-            "News crawler run complete. Harvested {} items. Persisted {} to DB. Feed trimmed to 25.",
-            total_harvested, success_count
-        ),
+        Json(ApiResponse::<()>::success(
+            format!(
+                "News crawler run complete. Harvested {} items. Persisted {} to DB. Feed trimmed to 25.",
+                total_harvested, success_count
+            ),
+            None,
+        )),
     )
     .into_response()
 }

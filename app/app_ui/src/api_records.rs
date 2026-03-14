@@ -371,8 +371,9 @@ pub async fn handle_expand_verse(Query(params): Query<ExpandVerseQuery>) -> impl
 pub async fn handle_draft_counts(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     match state.storage.sqlite.get_draft_counts().await {
         Ok(counts) => (StatusCode::OK, Json(counts)).into_response(),
-        Err(e) => {
-            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)).into_response()
-        }
-    }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::<()>::error(format!("Database error: {}", e))),
+        )
+            .into_response(),    }
 }

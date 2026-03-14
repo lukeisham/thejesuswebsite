@@ -260,9 +260,12 @@
             ? (pvBookVal + " " + pvCh + ":" + pvVs)
             : "John 1:1";
 
+        var descVal = descField.value.trim();
+        var descArr = descVal ? descVal.split(/\r?\n/) : [];
+
         return {
             name: nameField.value.trim(),
-            description: descField.value.trim(),
+            description: descArr,
             category: categoryField ? (categoryField.value || "Theme") : "Theme",
             primary_verse: primaryVerseStr,
             timeline: {
@@ -312,11 +315,22 @@
 
     // ── Render list ───────────────────────────────────────────────────────
 
+    // START [loadRecords]
     function loadRecords() {
         fetch("/api/v1/records", { headers: authHeaders() })
             .then(function (res) {
-                if (!res.ok) throw new Error("Load failed (" + res.status + ")");
-                return res.json();
+                var contentType = res.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    return res.json().then(function (j) { 
+                        if (!res.ok) throw new Error((j && j.message) || "Load failed (" + res.status + ")");
+                        return j;
+                    });
+                } else {
+                    return res.text().then(function (t) {
+                        if (!res.ok) throw new Error(t || "Load failed (" + res.status + ")");
+                        return t; // Should probably be JSON though
+                    });
+                }
             })
             .then(function (json) {
                 var records = (json && json.data && json.data.records) ? json.data.records : [];
@@ -327,6 +341,7 @@
                 listEl.innerHTML = '<li style="color:#c0392b;">' + err.message + "</li>";
             });
     }
+    // END [loadRecords]
 
     function renderList(records) {
         listEl.innerHTML = "";
@@ -396,6 +411,7 @@
 
     // ── CRUD operations ───────────────────────────────────────────────────
 
+    // START [deleteRecord]
     function deleteRecord(id, name, rowEl) {
         if (!confirm('Delete "' + (name || id) + '"?\nThis cannot be undone.')) return;
 
@@ -404,7 +420,12 @@
             headers: authHeaders(),
         })
         .then(function (res) {
-            return res.json().then(function (j) { return { ok: res.ok, body: j }; });
+            var contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return res.json().then(function (j) { return { ok: res.ok, body: j }; });
+            } else {
+                return res.text().then(function (t) { return { ok: res.ok, body: { message: t } }; });
+            }
         })
         .then(function (r) {
             if (r.ok) {
@@ -418,7 +439,9 @@
         })
         .catch(function (err) { showStatus("Delete error: " + err.message, true); });
     }
+    // END [deleteRecord]
 
+    // START [saveAsDraft]
     function saveAsDraft() {
         var data = getDraftPayload();
         if (!data.name) { showStatus("Name is required", true); return; }
@@ -429,7 +452,12 @@
             body: JSON.stringify(data),
         })
         .then(function (res) {
-            return res.json().then(function (j) { return { ok: res.ok, body: j }; });
+            var contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return res.json().then(function (j) { return { ok: res.ok, body: j }; });
+            } else {
+                return res.text().then(function (t) { return { ok: res.ok, body: { message: t } }; });
+            }
         })
         .then(function (r) {
             if (r.ok) showStatus("Draft saved");
@@ -437,7 +465,9 @@
         })
         .catch(function (err) { showStatus("Error: " + err.message, true); });
     }
+    // END [saveAsDraft]
 
+    // START [publishOrUpdate]
     function publishOrUpdate() {
         var payload = getPublishPayload();
         if (!payload.name) { showStatus("Name is required", true); return; }
@@ -455,7 +485,12 @@
             body: JSON.stringify(payload),
         })
         .then(function (res) {
-            return res.json().then(function (j) { return { ok: res.ok, body: j }; });
+            var contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return res.json().then(function (j) { return { ok: res.ok, body: j }; });
+            } else {
+                return res.text().then(function (t) { return { ok: res.ok, body: { message: t } }; });
+            }
         })
         .then(function (r) {
             if (r.ok) {
@@ -466,8 +501,12 @@
                 showStatus((r.body && r.body.message) || (isUpdate ? "Update failed" : "Publish failed"), true);
             }
         })
-        .catch(function (err) { showStatus("Error: " + err.message, true); });
+        .catch(function (err) { 
+            console.error("Publish error:", err);
+            showStatus("Error: " + err.message, true); 
+        });
     }
+    // END [publishOrUpdate]
 
     // ── Expose populateForm for viewer panel "Edit in CRUD" button ────────
     window.editRecordInCRUD = function (record) {
