@@ -1,0 +1,26 @@
+# =============================================================================
+#   THE JESUS WEBSITE — SYSTEMD ADMIN API SERVICE
+#   File:    deployment/admin.service
+#   Version: 1.1.0
+#   Purpose: Keeps the secure python backend running persistently on port 8000.
+# =============================================================================
+
+[Unit]
+Description=The Jesus Website - Admin FastAPI Application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/thejesuswebsite/admin/backend
+Environment="PATH=/var/www/thejesuswebsite/venv/bin"
+
+# Launches Uvicorn hosting the admin_api.py FastAPI script
+ExecStart=/var/www/thejesuswebsite/venv/bin/uvicorn admin_api:app --host 127.0.0.1 --port 8000 --workers 2
+
+# Ensures the process restarts automatically if the API crashes
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

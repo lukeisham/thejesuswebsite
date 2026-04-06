@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- =============================================================================
+
+     THE JESUS WEBSITE — NEWS & BLOG FEED
+     File:    frontend/pages/news_and_blog.html
+     Version: 1.1.0
+     Purpose: Entry point for site updates and blog posts.
+     Source:  guide_appearance.md §1.3
+
+============================================================================= -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>News & Blog | The Jesus Website</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
+    <link rel="stylesheet" href="../../css/elements/grid.css">
+    <link rel="stylesheet" href="../../css/design_layouts/views/response_layout.css">
+
+    <!-- UI Logic Components -->
+    <script src="../display_other/header.js"></script>
+    <script src="../display_other/search_header.js"></script>
+    <script src="../display_other/sidebar.js"></script>
+    <script src="../display_other/footer.js"></script>
+    
+    <!-- Snippet Display JS -->
+    <script src="../display_other/news_snippet_display.js"></script>
+    <script src="../display_other/blog_snippet_display.js"></script>
+
+    <!-- Central Initializer -->
+    <script src="../display_other/initializer.js"></script>
+</head>
+<body 
+    data-page-title="News & Blog"
+    data-page-description="Latest updates and articles from the The Jesus Website archive."
+    data-sidebar-active-nav="news"
+    data-search-header-active-nav="news"
+    data-footer-target="page-shell"
+>
+
+    <!-- Main Page Shell Container -->
+    <div class="page-shell" id="page-shell">
+        
+        <!-- Invisible Metadata Anchor -->
+        <header id="invisible-header" aria-hidden="true"></header>
+        
+        <!-- Main Content Column -->
+        <main class="site-main" id="site-main" role="main">
+            <div class="content-wrap">
+
+                <header class="landing-page__header">
+                    <h1 class="landing-page__heading">News &amp; Blog</h1>
+                </header>
+
+                <div class="grid-two-col">
+                    
+                    <!-- Latest News Section -->
+                    <section class="news-list" id="news-list" aria-labelledby="news-heading">
+                        <h2 id="news-heading" class="text-lg font-bold border-bottom pb-2 mb-4">Latest News</h2>
+                        <div id="latest-news-content">
+                            <!-- Injected by news_snippet_display.js -->
+                            <p class="text-sm text-muted">Loading latest news...</p>
+                        </div>
+                    </section>
+
+                    <!-- Latest Blog Section -->
+                    <section class="blog-list" id="blog-list" aria-labelledby="blog-heading">
+                        <h2 id="blog-heading" class="text-lg font-bold border-bottom pb-2 mb-4">Latest Blogposts</h2>
+                        <div id="latest-blog-content">
+                            <!-- Injected by blog_snippet_display.js -->
+                            <p class="text-sm text-muted">Loading latest blogposts...</p>
+                        </div>
+                    </section>
+
+                </div>
+
+            </div>
+        </main>
+        
+    </div>
+</body>
+</html>
+

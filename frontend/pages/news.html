@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- =============================================================================
+
+     THE JESUS WEBSITE — NEWS FEED
+     File:    frontend/pages/news.html
+     Version: 1.1.0
+     Purpose: Dedicated feed page for news items.
+     Source:  guide_appearance.md §5.3
+
+============================================================================= -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>News Feed | The Jesus Website</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
+    <link rel="stylesheet" href="../../css/elements/grid.css">
+    <link rel="stylesheet" href="../../css/design_layouts/views/response_layout.css">
+
+    <!-- UI Logic Components -->
+    <script src="../display_other/header.js"></script>
+    <script src="../display_other/search_header.js"></script>
+    <script src="../display_other/sidebar.js"></script>
+    <script src="../display_other/footer.js"></script>
+    
+    <!-- Display Logic -->
+    <script src="../display_big/list_newsitem.js"></script>
+
+    <!-- Central Initializer -->
+    <script src="../display_other/initializer.js"></script>
+</head>
+<body 
+    data-page-title="News Feed"
+    data-page-description="Latest news and updates from The Jesus Website archive."
+    data-sidebar-active-nav="news"
+    data-search-header-active-nav="news"
+    data-footer-target="page-shell"
+>
+
+    <!-- Main Page Shell Container -->
+    <div class="page-shell" id="page-shell">
+        
+        <!-- Invisible Metadata Anchor -->
+        <header id="invisible-header" aria-hidden="true"></header>
+        
+        <!-- Main Content Column -->
+        <main class="site-main" id="site-main" role="main">
+            <div class="content-wrap">
+
+                <header class="landing-page__header">
+                    <h1 class="landing-page__heading">Latest News</h1>
+                </header>
+
+                <div id="news-feed-content">
+                    <!-- Injected by list_newsitem.js -->
+                    <p class="text-sm text-muted">Loading news feed...</p>
+                </div>
+
+            </div>
+        </main>
+        
+    </div>
+</body>
+</html>
+

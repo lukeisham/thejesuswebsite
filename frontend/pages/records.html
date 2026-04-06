@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- =============================================================================
+
+     THE JESUS WEBSITE — RECORDS LIST VIEW
+     File:    frontend/pages/records.html
+     Version: 1.1.0
+     Purpose: Main aggregate record list view. Replaces list_view.html.
+     Source:  guide_appearance.md §2.3, §2.4, §4.1, §4.2
+
+============================================================================= -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Historical Records | The Jesus Website</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
+    <link rel="stylesheet" href="../../css/elements/grid.css">
+    <link rel="stylesheet" href="../../css/elements/list_card_button.css" /> 
+    <link rel="stylesheet" href="../../css/design_layouts/views/list_layout.css">
+
+    <!-- UI Logic Components -->
+    <script src="../display_other/header.js"></script>
+    <script src="../display_other/search_header.js"></script>
+    <script src="../display_other/sidebar.js"></script>
+    <script src="../display_other/footer.js"></script>
+    
+    <!-- Core DB access -->
+    <script src="../core/sql-wasm.js"></script>
+    <script src="../core/setup_db.js"></script>
+
+    <!-- Renders the data -->
+    <script src="../display_big/list_view.js"></script>
+
+    <!-- Central Initializer -->
+    <script src="../display_other/initializer.js"></script>
+</head>
+<body 
+    data-page-title="Records List"
+    data-page-description="A detailed aggregate list of historical records and archival data."
+    data-sidebar-active-nav="records"
+    data-search-header-active-nav="records"
+    data-footer-target="page-shell"
+>
+
+    <!-- Main Page Shell Container -->
+    <div class="page-shell" id="page-shell">
+        
+        <!-- Invisible Metadata Anchor -->
+        <header id="invisible-header" aria-hidden="true"></header>
+        
+        <!-- Main Content Column -->
+        <main class="site-main" id="site-main" role="main">
+            <div class="content-wrap grid-single">
+
+                <article class="list-view-container" id="list-view-container" aria-live="polite">
+                    
+                    <header class="list-header">
+                        <h1 class="list-title" id="list-title">Loading...</h1>
+                    </header>
+
+                    <!-- Filter / Sort Header (if applicable) -->
+                    <div class="list-controls is-hidden" id="list-controls">
+                        <!-- JS injected controls -->
+                    </div>
+
+                    <!-- Main List Area -->
+                    <div id="list-content-area">
+                        <!-- Populated as row-based or card-based by list_view.js -->
+                        <ul class="record-list" id="record-list">
+                            <!-- Items injected here -->
+                        </ul>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav class="list-pagination is-hidden" id="list-pagination" aria-label="Pagination Navigation">
+                        <!-- Pagination buttons injected here -->
+                    </nav>
+
+                </article>
+
+            </div>
+        </main>
+        
+    </div>
+</body>
+</html>

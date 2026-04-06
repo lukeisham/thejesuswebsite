@@ -1,0 +1,143 @@
+/* =============================================================================
+
+   THE JESUS WEBSITE — ESSAY LAYOUT
+   File:    css/design_layouts/views/essay_layout.css
+   Version: 1.1.0
+   Purpose: High-readability typography for long-form essays and About page.
+   Source:  guide_style.md §12, guide_appearance.md §5.1, §5.2
+
+============================================================================= */
+
+@import url('../../elements/typography_colors.css');
+
+/* Main central column for essays */
+.essay-container {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: var(--space-6) 0;
+}
+
+/* Header section */
+.essay-header {
+    margin-bottom: var(--space-8);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    padding-bottom: var(--space-4);
+}
+
+.essay-title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-1);
+    color: var(--color-text-primary);
+}
+
+.essay-subtitle {
+    font-family: var(--font-body);
+    font-size: var(--text-lg);
+    font-style: italic;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-2);
+}
+
+.essay-meta {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+}
+
+/* Abstract box */
+.essay-abstract {
+    background-color: var(--color-bg-secondary);
+    padding: var(--space-4);
+    border-left: var(--border-width-base) solid var(--color-accent-primary);
+    margin-bottom: var(--space-8);
+    font-style: italic;
+}
+
+/* Transitions to the body text */
+.essay-body {
+    font-family: var(--font-essay);
+    font-size: var(--text-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-primary);
+}
+
+/* Drop cap for the first paragraph */
+.essay-body p:first-of-type::first-letter {
+    float: left;
+    font-size: 4rem;
+    line-height: 1;
+    margin-right: var(--space-2);
+    font-weight: var(--weight-bold);
+    color: var(--color-accent-primary);
+    font-family: var(--font-heading);
+}
+
+.essay-body p {
+    margin-bottom: var(--space-4);
+}
+
+/* Pictures within essays — removal of inline styles §1.7 */
+.essay-picture {
+    margin: var(--space-6) 0;
+}
+
+.essay-picture img {
+    width: 100%;
+    height: auto;
+    border: var(--border-width-thin) solid var(--color-border);
+}
+
+.essay-picture figcaption {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+/* Sub-headings within the essay */
+.essay-body h2 {
+    font-size: var(--text-xl);
+    margin: var(--space-8) 0 var(--space-3) 0;
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    padding-bottom: var(--space-1);
+}
+
+.essay-body h3 {
+    font-size: var(--text-lg);
+    margin: var(--space-6) 0 var(--space-2) 0;
+}
+
+/* Bibliography section at bottom */
+.essay-bibliography {
+    margin-top: var(--space-12);
+    padding-top: var(--space-6);
+    border-top: var(--border-width-base) solid var(--color-text-primary);
+}
+
+.bibliography-title {
+    font-size: var(--text-lg);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-widest);
+    margin-bottom: var(--space-4);
+}
+
+/* Supplemental sidebar for essays (TOC etc.) — §5.1 */
+.essay-toc-aside {
+    padding-right: var(--space-4);
+    border-right: var(--border-width-thin) solid var(--color-border);
+    margin-right: var(--space-4);
+    min-width: 180px;
+}
+
+.essay-toc-list {
+    list-style: none;
+    padding: 0;
+    line-height: var(--line-height-relaxed);
+}
+
+.essay-toc-list li {
+    margin-bottom: var(--space-2);
+}
+
+.essay-content-main {
+    padding-top: 0;
+}

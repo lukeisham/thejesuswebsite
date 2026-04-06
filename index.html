@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- =============================================================================
+
+     THE JESUS WEBSITE — ROOT LANDING PAGE
+     File:    index.html
+     Version: 1.1.0
+     Purpose: Website entry point. Implements guide_appearance.md §1.1 layout:
+              Invisible SEO header → Hero (title + subtitle + picture + links)
+              → Universal footer. No sidebar on root landing page.
+     Source:  guide_appearance.md §1.1, guide_style.md, vibe_coding_rules.md
+
+     CSS:     css/elements/typography_colors.css
+              css/elements/grid.css
+              css/design_layouts/views/index_landing.css
+
+     JS:      frontend/display_other/header.js       (Metadata logic)
+              frontend/display_other/footer.js       (Footer logic)
+              frontend/display_other/initializer.js  (Bootstrapper)
+
+============================================================================= -->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Title and description — managed by header.js -->
+    <title>The Jesus Website</title>
+    <meta name="description" content="A detailed, evidence-based presentation of the life, teaching, death, and resurrection of Jesus of Nazareth." />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/elements/typography_colors.css" />
+    <link rel="stylesheet" href="css/elements/grid.css" />
+    <link rel="stylesheet" href="css/design_layouts/views/index_landing.css" />
+
+    <!-- UI Logic Components -->
+    <script src="frontend/display_other/header.js"></script>
+    <script src="frontend/display_other/footer.js"></script>
+    
+    <!-- Central Initializer (replaces inline scripts) -->
+    <script src="frontend/display_other/initializer.js"></script>
+</head>
+
+<body 
+    data-page-title="Home"
+    data-page-description="A detailed, evidence-based presentation of the life, teaching, death, and resurrection of Jesus of Nazareth."
+    data-page-canonical="https://thejesuswebsite.com/"
+    data-og-type="website"
+    data-og-image="/assets/jesus_portrait.png"
+    data-footer-target="page-shell"
+>
+
+    <!-- PAGE SHELL — LANDING VARIANT -->
+    <div class="page-shell--landing" id="page-shell">
+
+        <!-- INVISIBLE HEADER — SEO / METADATA ANCHOR -->
+        <header id="invisible-header" aria-hidden="true"></header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="site-main" id="site-main" role="main">
+
+            <!-- HERO SECTION -->
+            <section class="hero" id="hero" aria-label="Website introduction">
+
+                <h1 class="hero__title" id="hero-title">
+                    The Jesus Website.
+                </h1>
+
+                <p class="hero__subtitle" id="hero-subtitle">
+                    A detailed presentation of the evidence for Jesus.
+                </p>
+
+                <figure class="hero__picture-block" id="hero-picture" aria-label="Historical portrait illustration">
+                    <img
+                        src="assets/jesus_portrait.png"
+                        alt="Historical illustration of Jesus of Nazareth — archival pencil sketch on parchment"
+                        id="hero-portrait"
+                        width="440"
+                        height="440"
+                        loading="eager"
+                    />
+                    <figcaption id="hero-portrait-caption">
+                        Fig. 1 — Jesus of Nazareth (c. 4 BC – c. AD 30). Historical illustration.
+                    </figcaption>
+                </figure>
+
+                <!-- NAVIGATION LINKS -->
+                <nav aria-label="Primary site navigation">
+                    <ul class="hero__links" id="hero-links">
+                        <li><a href="frontend/pages/records.html" id="nav-link-records">Records</a></li>
+                        <li><a href="frontend/pages/evidence.html" id="nav-link-evidence">Evidence</a></li>
+                        <li><a href="frontend/pages/timeline.html" id="nav-link-timeline">Timeline</a></li>
+                        <li><a href="frontend/pages/maps.html" id="nav-link-maps">Maps</a></li>
+                        <li><a href="frontend/pages/context.html" id="nav-link-context">Context Essays</a></li>
+                        <li><a href="frontend/pages/debate.html" id="nav-link-debate">Debate &amp; Discussion</a></li>
+                        <li><a href="frontend/pages/resources.html" id="nav-link-resources">Resource Lists</a></li>
+                        <li><a href="frontend/pages/news_and_blog.html" id="nav-link-news">News &amp; Blog</a></li>
+                        <li><a href="frontend/pages/about.html" id="nav-link-about">About</a></li>
+                    </ul>
+                </nav>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+</body>
+</html>

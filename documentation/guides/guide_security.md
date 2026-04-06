@@ -1,0 +1,48 @@
+---
+name: guide_security.md
+purpose: description of security measures taken to protect the backend section 
+version: 1.0.0
+dependencies: [guide_dashboard_appearance.md, module_sitemap.md]
+---
+
+# Guide to Security
+
+This is the source of truth for the codebase security.
+
+## 1. Preventing DDoS attacks via flood control
+The project implements a multi-layer defense against high-volume traffic and automated bot flood patterns.
+
+- **Nginx Rate Limiting:** The primary defense layer. Configure `nginx.conf` (`limit_req_zone`) to limit requests per IP.
+- **MCP Server Throttling:** Implement `backend/middleware/rate_limiter.py` on the Python MCP server to reject over-threshold requests.
+- **SSL Integrity:** Use `deployment/ssl_renew.sh` to automate SSL certificate renewal via Certbot, ensuring encrypted traffic.
+- **WAF Coverage:** Use a developer-friendly firewall (like Cloudflare) to auto-detect and block robotic flood patterns before they reach the VPS.
+
+## 2. Preventing SQL injection attacks
+Since the search function interacts with the SQLite database, sanitization is required at both the entry and query points.
+
+- **Parameterized Queries:** NEVER use string concatenation (f-strings). Always use the standard placeholder syntax (`?` in SQLite/sql.js) which escapes all user input automatically.
+- **Frontend Validation:** Use `frontend/core/sanitize_query.js` to strip out special SQL control characters (like `;`, `--`, or `/*`) before passing them to the WASM database engine.
+- **Read-Only WASM:** The frontend `sql.js` instance is naturally limited to the local browser memory, preventing direct injection attacks from affecting the primary server-side database file.
+
+## 3. Admin-only access to the Dashboard
+The Admin Dashboard requires a robust authentication flow to prevent unauthorized content modification.
+
+- **Environment Credentials:** The `ADMIN_PASSWORD` is stored in a hidden `.env` file (ignored by `.gitignore`) and managed by the Python `admin_api.py`.
+- **JWT & Auth Utilities:** Successful logins generate a secure JSON Web Token (JWT) managed by `admin/backend/auth_utils.py` and stored in a HttpOnly cookie.
+- **Session Middleware:** The `admin/frontend/load_middleware.js` and `admin/frontend/admin_login.js` verify this token on every module load.
+- **Brute Force Defense:** The backend implements login delays and temporary IP lockouts after 5 consecutive failed attempts, handled within `auth_utils.py`.
+
+## 4. Obfuscating the Dashboard Code and Documentation
+Administrative logic is protected by minification and structural obscurity.
+
+- **Minification Pipeline:** All code inside `/admin/frontend/` is processed by `tools/minify_admin.py` (using Terser) before deployment to mangle variable names and remove comments.
+- **Code Splitting:** Crucial admin logic is split into multiple modules as defined in the `module_sitemap.md`, preventing reverse-engineering from a single file.
+- **Directory Exclusion:** Nginx config explicitly forbids directory listing in the `/admin/` folder structure.
+- **Agent Restriction:** `mcp_server.py` exposes only a read-only API, ensuring external automated agents cannot access admin editing tools.
+
+## 5. Dependency Monitoring and Vulnerability Scanning
+To ensure long-term stability, dependencies are audited both manually and automatically.
+
+- **Automated Security Audits:** Use `tests/security_audit.py` to run weekly safety scans (`npm audit`, `pip-audit`).
+- **Dependabot Integration:** Enable GitHub's Dependabot to automatically alert and provide PRs for library security patches.
+- **Minimal Surface Area:** Follow the "Vibe Coding" rule of minimal external dependencies (Vanilla JS/CSS) to reduce potential attack vectors.

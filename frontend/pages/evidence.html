@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- =============================================================================
+
+     THE JESUS WEBSITE — EVIDENCE (ARDOR) DIAGRAM
+     File:    frontend/pages/evidence.html
+     Version: 1.1.0
+     Purpose: Interactive recursive relationship tree visualization of evidence.
+     Source:  guide_appearance.md §3.1
+
+============================================================================= -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Evidence Graph | The Jesus Website</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
+    <link rel="stylesheet" href="../../css/elements/grid.css">
+    <link rel="stylesheet" href="../../css/elements/ardor_diagram.css">
+
+    <!-- UI Logic Components -->
+    <script src="../display_other/header.js"></script>
+    <script src="../display_other/search_header.js"></script>
+    <script src="../display_other/sidebar.js"></script>
+    <script src="../display_other/footer.js"></script>
+    
+    <!-- Display Logic -->
+    <script src="../display_big/ardor_display.js"></script>
+
+    <!-- Central Initializer -->
+    <script src="../display_other/initializer.js"></script>
+</head>
+<body 
+    data-page-title="Evidence Graph"
+    data-page-description="Interactive visualization of the relationships between historical evidence and claims."
+    data-sidebar-active-nav="evidence"
+    data-search-header-active-nav="evidence"
+    data-footer-target="page-shell"
+>
+
+    <!-- Main Page Shell Container -->
+    <div class="page-shell" id="page-shell">
+        
+        <!-- Invisible Metadata Anchor -->
+        <header id="invisible-header" aria-hidden="true"></header>
+        
+        <!-- Main Content Column -->
+        <main class="site-main is-full-bleed" id="site-main" role="main">
+            <!-- Custom Diagram Grid layout taking over the main content area -->
+            <div class="diagram-layout">
+                
+                <!-- Left Control Sidebar -->
+                <aside class="diagram-controls">
+                    <h1 class="diagram-controls__title">Evidence Graph</h1>
+                    
+                    <div class="diagram-controls__section">
+                        <label class="text-xs text-muted font-mono uppercase" for="era-slider">Era Filters</label>
+                        <input type="range" id="era-slider" class="diagram-controls__slider" min="0" max="100" value="50">
+                    </div>
+
+                    <div class="diagram-controls__section u-margin-top-4">
+                        <p class="text-xs text-muted font-mono uppercase mb-2">Display Layers</p>
+                        <button class="diagram-controls__btn">Historical Claims</button>
+                        <button class="diagram-controls__btn">Archaeology</button>
+                        <button class="diagram-controls__btn">Manuscript Chains</button>
+                    </div>
+                </aside>
+
+                <!-- Right Massive Canvas Area -->
+                <div class="diagram-canvas-container" id="ardor-canvas-area">
+                    <!-- SVG gets injected here by ardor_display.js -->
+                </div>
+
+            </div>
+        </main>
+        
+    </div>
+</body>
+</html>
+

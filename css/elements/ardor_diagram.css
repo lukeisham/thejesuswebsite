@@ -1,0 +1,160 @@
+/* =============================================================================
+   THE JESUS WEBSITE — ARDOR DIAGRAM CSS
+   File:    css/elements/ardor_diagram.css
+   Version: 1.1.0
+   Purpose: Specific styles for the interactive Evidence (Ardor) Tree Graph.
+            Provides the layout and node styles for the massive canvas area.
+   Source:  guide_appearance.md §3.1
+============================================================================= */
+
+@import url('./typography_colors.css');
+
+/* Main Structure for Diagram pages (Map, Timeline, Ardor) */
+.diagram-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: var(--space-4);
+    min-height: calc(100vh - var(--header-height) - 100px);
+    width: 100%;
+}
+
+/* Interactive Controls Sidebar */
+.diagram-controls {
+    background-color: var(--color-bg-secondary);
+    border-right: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    height: 100%;
+}
+
+.diagram-controls__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.diagram-controls__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    padding-bottom: var(--space-1);
+    margin-bottom: var(--space-2);
+}
+
+.diagram-controls__btn {
+    padding: var(--space-2);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    text-align: left;
+    transition: all var(--transition-fast);
+}
+
+.diagram-controls__btn:hover {
+    border-color: var(--color-accent-primary);
+    color: var(--color-accent-primary);
+}
+
+/* Range input for Era Slider etc. */
+.diagram-controls__slider {
+    width: 100%;
+    margin-top: var(--space-1);
+}
+
+/* The Massive Canvas Area */
+.diagram-canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Allows panning */
+    background-color: var(--color-bg-primary);
+    /* subtle grid background for canvas feel */
+    background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+    background-size: 20px 20px;
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+}
+
+/* Canvas SVG Target */
+.ardor-svg {
+    min-width: 1200px;
+    min-height: 800px;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Node Styles within SVG */
+.ardor-node {
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+}
+
+.ardor-node:hover {
+    filter: brightness(1.1);
+}
+
+.ardor-node rect {
+    fill: var(--color-bg-secondary);
+    stroke: var(--color-border-strong);
+    stroke-width: 2px;
+    rx: var(--radius-sm);  /* rounded corners */
+}
+
+.ardor-node text.title {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: var(--weight-semibold);
+    fill: var(--color-text-primary);
+    pointer-events: none; /* Let the rect catch the click events */
+}
+
+.ardor-node text.meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    fill: var(--color-text-secondary);
+    pointer-events: none;
+}
+
+.ardor-node.active rect {
+    stroke: var(--color-accent-primary);
+    stroke-width: 3px;
+    fill: var(--color-bg-primary);
+}
+
+/* Edge / Link Styles */
+.ardor-edge {
+    fill: none;
+    stroke: var(--color-border-strong);
+    stroke-width: 2px;
+    opacity: 0.6;
+    transition: opacity var(--transition-fast), stroke-width var(--transition-fast);
+}
+
+.ardor-edge:hover, .ardor-edge.highlighted {
+    stroke: var(--color-accent-primary);
+    stroke-width: 3px;
+    opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .diagram-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 500px;
+    }
+    
+    .diagram-controls {
+        border-right: none;
+        border-bottom: var(--border-width-thin) solid var(--color-border);
+    }
+}

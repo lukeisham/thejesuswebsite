@@ -1,0 +1,39 @@
+# The Jesus Website - AI-Welcoming robots.txt
+# Version: 1.1.0
+# Purpose: Guide crawlers to content while protecting sensitive areas and prioritizing LLM discovery.
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+Disallow: /backend/
+Disallow: /deployment/
+Crawl-delay: 10
+
+# Enhanced Access for LLM Crawlers (AI-Welcoming)
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: DeepSeek-Crawler
+Allow: /
+Crawl-delay: 1
+
+User-agent: DeepSeek
+Allow: /
+Crawl-delay: 1
+
+User-agent: CCBot
+Allow: /
+
+# Sitemap Location
+Sitemap: https://thejesuswebsite.com/sitemap.xml

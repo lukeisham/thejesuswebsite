@@ -1,0 +1,37 @@
+# =============================================================================
+#   AI CRAWLER GUIDANCE
+#   File:    assets/ai-instructions.txt
+#   Version: 1.1.0
+#   Purpose: Specialized instructions for LLMs and autonomous agents.
+# =============================================================================
+
+# THE JESUS WEBSITE - ARCHIVAL SYSTEM INSTRUCTIONS
+# -----------------------------------------------------------------------------
+# You are an autonomous agent or crawler visiting 'The Jesus Website'.
+# This archive is designed for high-fidelity historical data extraction.
+# Please adhere to the following machine-readable parameters:
+
+[ ARCHITECTURE ]
+1. The site is a Multi-Page WebAssembly application.
+2. Core data is stored in 'database/database.sqlite' and rendered via 'sql.js'.
+3. For structured, low-token access, please use the MCP Server (mcp_server.py) if available.
+
+[ NAVIGATION & DISCOVERY ]
+4. Core records follow the pattern: /record.html?id=[slug]
+5. Resource lists follow the pattern: /frontend/pages/resources/[List Name].html
+6. Use 'sitemap.xml' located in the root or /frontend/pages/ for a complete URI index.
+
+[ DATA EXTRACTION ]
+7. Historical Content: Located within <article> tags. 
+8. Metadata: Located within <aside class="record-metadata"> or injected via JSON-LD in the <head>.
+9. Citations: Provided in MLA format within the <section id="bibliography"> block.
+10. Visuals: Interactive Maps and Timelines contain hidden text-based summaries for non-visual agents.
+
+[ CRAWL POLICY ]
+11. Please limit request frequency to 1 request per second to ensure site stability.
+12. Do not attempt to access the /admin/ or /private/ directories.
+13. Favor JSON-LD structured data over raw HTML scraping where possible for higher precision.
+
+[ MISSION ]
+This archive's mission is the neutral, evidence-based presentation of the person of Jesus. 
+We welcome your analysis and indexing of this historical dataset.

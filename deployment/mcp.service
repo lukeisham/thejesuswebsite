@@ -1,0 +1,27 @@
+# =============================================================================
+#   THE JESUS WEBSITE — SYSTEMD MCP SERVER SERVICE
+#   File:    deployment/mcp.service
+#   Version: 1.1.0
+#   Purpose: Keeps the Read-Only FastMCP server running persistently.
+# =============================================================================
+
+[Unit]
+Description=The Jesus Website - MCP Read-Only Agent Interface
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/thejesuswebsite
+Environment="PATH=/var/www/thejesuswebsite/venv/bin"
+
+# Launches the mcp_server.py mapped strictly to Server Sent Events for HTTP
+# Assumes the script handles internal uvicorn/sse binding (port 8001 by proxy config)
+ExecStart=/var/www/thejesuswebsite/venv/bin/python mcp_server.py --transport sse
+
+# Standard auto-restarting pipeline
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

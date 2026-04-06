@@ -1,0 +1,123 @@
+/* =============================================================================
+   THE JESUS WEBSITE — PDF EXPORT & PRINT STYLES
+   File:    css/design_layouts/pdf_export.css
+   Version: 1.1.0
+   Purpose: Print media queries for clean exports of essays and archival data.
+   ============================================================================= */
+
+@import url('../../elements/typography_colors.css');
+
+@media print {
+    /* =============================================================================
+       1. VISIBILITY RESET
+       Hide navigational elements during export.
+    ============================================================================= */
+    header, footer, nav, aside, .sidebar, .admin-controls, .search-header, .site-sidebar, .site-header {
+        display: none !important;
+    }
+
+    /* =============================================================================
+       2. GLOBAL BODY PRINT SETTINGS
+       High-contrast black-on-white for readability.
+    ============================================================================= */
+    body {
+        background:      var(--color-white) !important;
+        color:           var(--color-black) !important;
+        margin:          0 !important;
+        padding:         0 !important;
+        font-family:     var(--font-body);
+        word-spacing:    1px;
+        line-height:     var(--line-height-base);
+    }
+
+    main {
+        width:           100% !important;
+        margin:          0 !important;
+        padding:         2cm !important; /* Standard print margin */
+    }
+
+    /* =============================================================================
+       3. DOCUMENT BRANDING & HEADINGS
+    ============================================================================= */
+    .print-header {
+        display:         block !important;
+        text-align:      center;
+        border-bottom:   var(--border-width-base) solid var(--color-black);
+        margin-bottom:   var(--space-6);
+        padding-bottom:  var(--space-2);
+    }
+
+    .print-header h1 {
+        font-family:     var(--font-heading);
+        font-size:       24pt;
+        text-transform:  uppercase;
+        letter-spacing:  var(--tracking-widest);
+        margin:          0;
+    }
+
+    h1, h2, h3, h4 {
+        page-break-after: avoid;
+        color:           var(--color-black) !important;
+        font-family:     var(--font-heading);
+    }
+
+    p {
+        font-size:       11pt;
+        orphans:         3;
+        widows:          3;
+    }
+
+    /* =============================================================================
+       4. BLOCK ELEMENTS & LINKS
+    ============================================================================= */
+    blockquote {
+        border-left:     5px solid var(--color-border-strong);
+        margin:          var(--space-4) var(--space-2);
+        padding:         var(--space-1) var(--space-3);
+        font-style:      italic;
+    }
+
+    /* Links: No Blue/Underline, but show URL in brackets for printed continuity */
+    a {
+        text-decoration: none !important;
+        color:           var(--color-black) !important;
+    }
+    
+    a[href]::after {
+        content:         " (" attr(href) ")";
+        font-size:       9pt;
+        color:           var(--color-text-secondary);
+    }
+
+    /* =============================================================================
+       5. CONTENT TABLES
+    ============================================================================= */
+    table {
+        width:           100%;
+        border-collapse: collapse;
+        margin:          var(--space-4) 0;
+    }
+    
+    th, td {
+        border:          var(--border-width-thin) solid var(--color-border-strong);
+        padding:         var(--space-2);
+        text-align:      left;
+    }
+
+    /* =============================================================================
+       6. PAGINATION & MARGINS
+    ============================================================================= */
+    .page-break {
+        page-break-before: always;
+    }
+
+    @page {
+        margin:          2cm;
+        size:            auto;   /* let browser handle size */
+        @bottom-right {
+            content:     "Page " counter(page) " of " counter(pages);
+            font-family: var(--font-mono);
+            font-size:   8pt;
+        }
+    }
+}

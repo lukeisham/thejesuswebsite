@@ -1,0 +1,190 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD ADMIN CSS
+   File:    css/design_layouts/views/dashboard_admin.css
+   Version: 1.1.0
+   Purpose: Bespoke layout instructions for the secure admin portal.
+   Source:  guide_dashboard_appearance.md §6.1
+============================================================================= */
+
+.admin-dashboard-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) var(--space-6);
+    background-color: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.admin-header h1 {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    margin: 0;
+    color: var(--color-bg-primary);
+}
+
+.admin-logout-btn {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: var(--text-sm);
+    transition: background-color 0.2s;
+}
+
+.admin-logout-btn:hover {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-accent-primary);
+}
+
+.admin-body-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.admin-sidebar {
+    width: 260px;
+    background-color: var(--color-bg-secondary);
+    border-right: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-6) var(--space-4);
+    overflow-y: auto;
+}
+
+.admin-sidebar h3 {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-2);
+    letter-spacing: 0.05em;
+}
+
+.admin-sidebar h3:first-child {
+    margin-top: 0;
+}
+
+.admin-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-sidebar li {
+    margin-bottom: var(--space-1);
+}
+
+.admin-sidebar a {
+    text-decoration: none;
+    color: var(--color-accent-primary);
+    font-size: var(--text-sm);
+    display: block;
+    padding: var(--space-2) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.admin-sidebar a:hover {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+
+.admin-canvas {
+    flex: 1;
+    padding: var(--space-8);
+    overflow-y: auto;
+    background-color: var(--color-bg-primary);
+}
+
+.admin-card {
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    background-color: var(--color-bg-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-card h2 {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-4);
+    color: var(--color-text);
+}
+
+.admin-card ul {
+    margin: 0;
+    padding-left: var(--space-4);
+}
+
+.admin-card li {
+    margin-bottom: var(--space-2);
+    font-size: var(--text-base);
+}
+
+.quick-action-btn {
+    display: inline-block;
+    padding: var(--space-2) var(--space-4);
+    background-color: var(--color-accent-primary);
+    color: var(--color-bg-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600;
+    margin-right: var(--space-4);
+    font-size: var(--text-sm);
+    transition: background-color 0.2s;
+}
+
+.quick-action-btn:hover {
+    background-color: var(--color-accent-hover);
+}
+
+/* =============================================================================
+   UTILITY: JS-CONTROLLED VISIBILITY CLASSES
+   Used by admin JS modules to show/hide panels without inline .style assignments.
+============================================================================= */
+
+/* Hide an element (replaces element.style.display = 'none') */
+.is-hidden {
+    display: none !important;
+}
+
+/* Show a block element (replaces element.style.display = 'block') */
+.is-visible {
+    display: block !important;
+}
+
+/* Show a flex element (replaces element.style.display = 'flex') */
+.is-visible-flex {
+    display: flex !important;
+}
+
+/* Active sidebar nav link */
+.admin-sidebar a.is-active {
+    font-weight: var(--weight-bold);
+    color: var(--color-accent-primary);
+    background-color: var(--color-bg-tertiary);
+}
+
+/* Full-height dashboard container layout (replaces inline height/overflow .style assignments) */
+.admin-full-height {
+    height: 100vh;
+    overflow: hidden;
+}

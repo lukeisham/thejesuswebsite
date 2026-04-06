@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- =============================================================================
+
+     THE JESUS WEBSITE — ADMIN PORTAL
+     File:    admin/frontend/admin.html
+     Version: 1.1.0
+     Purpose: Secure entry portal for admin editing features and dashboard shell.
+     Source:  guide_dashboard_appearance.md §6.1
+
+============================================================================= -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | The Jesus Website</title>
+    
+    <!-- Core Stylesheets -->
+    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
+    <link rel="stylesheet" href="../../css/elements/grid.css">
+    
+    <!-- Admin Specific Stylesheets -->
+    <link rel="stylesheet" href="../../css/design_layouts/views/login_view.css">
+    <link rel="stylesheet" href="../../css/design_layouts/views/dashboard_admin.css" id="dashboard-admin-css-link">
+</head>
+<body class="admin-body">
+
+    <!-- Login View (Visible by default until authenticated) -->
+    <div id="login-view" class="login-container">
+        <div class="login-box">
+            <h1>Admin Portal</h1>
+            <p class="login-subtitle">Secure access to The Jesus Website database.</p>
+            
+            <div id="login-error" class="error-message">Invalid credentials.</div>
+            
+            <form id="admin-login-form">
+                <label for="admin-password">Master Password</label>
+                <input type="password" id="admin-password" name="password" required autocomplete="current-password" placeholder="Enter secure password...">
+                
+                <button type="submit" id="login-submit-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Shell (Hidden by default, used by dashboard_app.js) -->
+    <div id="dashboard-app" class="dashboard-shell is-hidden admin-full-height">
+        <!-- Dashboard structure will be mapped here by dashboard_app.js -->
+    </div>
+
+    <!-- Admin System Scripts -->
+    <script src="load_middleware.js"></script>
+    <script src="logout_middleware.js"></script>
+    <script src="admin_login.js"></script>
+    <script src="dashboard_app.js"></script>
+
+</body>
+</html>

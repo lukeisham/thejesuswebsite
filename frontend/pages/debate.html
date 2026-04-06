@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- =============================================================================
+
+     THE JESUS WEBSITE — DEBATE LANDING PAGE
+     File:    frontend/pages/debate.html
+     Version: 1.1.0
+     Purpose: Entry point for historical challenges and scholarly debate.
+     Source:  guide_appearance.md §1.2, index_landing.css §4
+
+============================================================================= -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Debate & Discussion | The Jesus Website</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
+    <link rel="stylesheet" href="../../css/elements/grid.css">
+    <link rel="stylesheet" href="../../css/design_layouts/views/index_landing.css">
+
+    <!-- UI Logic Components -->
+    <script src="../display_other/header.js"></script>
+    <script src="../display_other/search_header.js"></script>
+    <script src="../display_other/sidebar.js"></script>
+    <script src="../display_other/footer.js"></script>
+    
+    <!-- Central Initializer -->
+    <script src="../display_other/initializer.js"></script>
+</head>
+<body 
+    data-page-title="Debate & Discussion"
+    data-page-description="Explore historical challenges, scholarly debates, and critical responses regarding Jesus of Nazareth."
+    data-sidebar-active-nav="debate"
+    data-search-header-active-nav="debate"
+    data-footer-target="page-shell"
+>
+
+    <!-- Main Page Shell Container -->
+    <div class="page-shell" id="page-shell">
+        
+        <!-- Invisible Metadata Anchor -->
+        <header id="invisible-header" aria-hidden="true"></header>
+        
+        <!-- Main Content Column -->
+        <main class="site-main" id="site-main" role="main">
+            <div class="content-wrap">
+
+                <header class="landing-page__header">
+                    <h1 class="landing-page__heading">Debate &amp; Discussion</h1>
+                    <p class="text-sm text-secondary">Analyzing critical challenges and historical counter-claims.</p>
+                </header>
+
+                <div class="landing-page__grid">
+                    
+                    <!-- Popular Challenges -->
+                    <a href="debate/popular_challenge.html" class="landing-card" id="card-popular">
+                        <h2 class="landing-card__title">Popular Challenges</h2>
+                        <p class="landing-card__desc">Addressing common historical and theological questions raised in the public sphere.</p>
+                        <div class="landing-card__meta">DEBATE-CATEGORY-A</div>
+                    </a>
+
+                    <!-- Academic Debates -->
+                    <a href="debate/academic_challenge.html" class="landing-card" id="card-academic">
+                        <h2 class="landing-card__title">Academic Historical Debates</h2>
+                        <p class="landing-card__desc">Technical discussions on historiography, source-criticism, and peer-reviewed analysis.</p>
+                        <div class="landing-card__meta">DEBATE-CATEGORY-B</div>
+                    </a>
+
+                    <!-- Wikipedia View -->
+                    <a href="debate/wikipedia.html" class="landing-card" id="card-wikipedia">
+                        <h2 class="landing-card__title">Wikipedia Perspective</h2>
+                        <p class="landing-card__desc">A ranked list of global historical consensus and the various wiki-driven debates.</p>
+                        <div class="landing-card__meta">DEBATE-CATEGORY-C</div>
+                    </a>
+
+                    <!-- Historiography Analysis -->
+                    <a href="debate/historiography.html" class="landing-card" id="card-historiography">
+                        <h2 class="landing-card__title">Historiographical Lessons</h2>
+                        <p class="landing-card__desc">Essays on how we know what we know about the 1st-century historical record.</p>
+                        <div class="landing-card__meta">DEBATE-CATEGORY-D</div>
+                    </a>
+
+                </div>
+
+            </div>
+        </main>
+        
+    </div>
+
+</body>
+</html>
