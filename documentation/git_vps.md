@@ -2,7 +2,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "Finalizing codebase and documentation audit v1.0"
+git commit -m "requirements text file update"
 git push origin main
 
 # Pull from GitHub into Server
