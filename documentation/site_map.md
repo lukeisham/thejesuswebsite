@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.28
+version: 1.0.29
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [module_sitemap.md, data_schema.md, guides/]
 ---
@@ -139,6 +139,8 @@ dependencies: [module_sitemap.md, data_schema.md, guides/]
 │   ├── news_snippet_display.js <-- Renders inline news snippets
 │   ├── pictures_display.js    <-- Picture Rendering
 │   ├── search_header.js       <-- Injects search bar into certain pages
+│   │   └── (see guide_appearance.md §1.8 & §1.8.1 for
+│   │       └── full DOM structure + CSS anatomy)
 │   ├── sidebar.js             <-- Universal Sticky Sidebar
 │   ├── sources_biblio_display.js <-- Renders formatted MLA bibliography citations
 │   ├── thumbnails_display.js  <-- Renders thumbnails

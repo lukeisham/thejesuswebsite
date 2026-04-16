@@ -36,15 +36,15 @@ function injectSidebar(anchorId, activePage, tocItems) {
     //   Each entry: { label, href, id }
 
     const navLinks = [
-        { label: 'Records',           href: '/frontend/pages/records.html',              id: 'records'    },
-        { label: 'Evidence',          href: '/frontend/pages/evidence.html',               id: 'evidence'   },
-        { label: 'Timeline',          href: '/frontend/pages/timeline.html',               id: 'timeline'   },
-        { label: 'Maps',              href: '/frontend/pages/maps.html',                   id: 'maps'       },
-        { label: 'Context Essays',    href: '/frontend/pages/context.html',                id: 'context'    },
-        { label: 'Debate & Discussion', href: '/frontend/pages/debate.html',               id: 'debate'     },
-        { label: 'Resource Lists',    href: '/frontend/pages/resources.html',              id: 'resources'  },
-        { label: 'News',              href: '/frontend/pages/news_and_blog.html',          id: 'news'       },
-        { label: 'About',             href: '/frontend/pages/about.html',                  id: 'about'      },
+        { label: 'Records', href: '/frontend/pages/records.html', id: 'records' },
+        { label: 'Evidence', href: '/frontend/pages/evidence.html', id: 'evidence' },
+        { label: 'Timeline', href: '/frontend/pages/timeline.html', id: 'timeline' },
+        { label: 'Maps', href: '/frontend/pages/maps.html', id: 'maps' },
+        { label: 'Context', href: '/frontend/pages/context.html', id: 'context' },
+        { label: 'Debate & Discussion', href: '/frontend/pages/debate.html', id: 'debate' },
+        { label: 'Resource Lists', href: '/frontend/pages/resources.html', id: 'resources' },
+        { label: 'News', href: '/frontend/pages/news_and_blog.html', id: 'news' },
+        { label: 'About', href: '/frontend/pages/about.html', id: 'about' },
     ];
 
     // --- 2. Build main nav HTML ----------------------------------------------
@@ -112,8 +112,8 @@ function injectSidebar(anchorId, activePage, tocItems) {
     //   sidebar.js listens for a 'toggleSidebar' custom event as well as
     //   clicking the backdrop to close.
 
-    const sidebar    = document.getElementById('site-sidebar');
-    const backdrop   = document.getElementById('sidebar-backdrop');
+    const sidebar = document.getElementById('site-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
 
     function openSidebar() {
         sidebar.classList.add('is-open');

@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 1.0.0
+version: 1.0.1
 purpose: visual and list taxonomy of codebase
 dependencies: [site_map.md]
 ---
@@ -67,7 +67,10 @@ frontend/display_other/
 ├── sidebar.js                 <-- Universal Sticky Sidebar
 ├── footer.js                  <-- Universal Footer
 ├── header.js                  <-- Universal Header (+ SEO injected)
-└── search_header.js           <-- Injects search bar into certain pages 
+└── search_header.js           <-- Injects search bar (search input only) into
+                                   certain pages. No logo or nav links.
+                                   (see guide_appearance.md §1.8 & §1.8.1 for
+                                    full DOM structure + CSS anatomy)
 
 css/
 ├── elements/

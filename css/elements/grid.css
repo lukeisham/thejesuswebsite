@@ -198,6 +198,24 @@
     color:                 var(--color-accent-primary);
 }
 
+/* Nav <ul> — must be an explicit horizontal flex row.
+   The CSS reset in typography_colors.css applies padding-left to all <ul>
+   elements; these rules override that and ensure nav items never stack
+   vertically and overflow the 64px header bar. See bug report: floating
+   "Context / Debate / About" dotpoints in top-left corner. */
+.site-header__nav ul {
+    display:               flex;
+    align-items:           center;
+    gap:                   var(--space-3);
+    list-style:            none;
+    padding:               0;
+    margin:                0;
+}
+
+.site-header__nav li {
+    list-style:            none;
+}
+
 
 /* =============================================================================
    4. SIDEBAR COLUMN

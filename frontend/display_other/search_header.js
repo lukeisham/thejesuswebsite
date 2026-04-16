@@ -2,16 +2,18 @@
 //
 //   THE JESUS WEBSITE — UNIVERSAL SEARCH HEADER (Visible Top Bar)
 //   File:    frontend/display_other/search_header.js
-//   Version: 1.0.0
-//   Purpose: Injects the visible top navigation bar (Logo + Search Bar + Nav
-//            links) into interior pages that require broad navigation and
-//            global search. Not used on index.html (the root landing page).
-//   Source:  guide_appearance.md §1.8, guide_style.md §6.3
+//   Version: 1.2.0
+//   Purpose: Injects the visible top search bar into interior pages that
+//            require global search. Not used on index.html (root landing page).
+//            Displays only its search input — no logo, no nav links.
+//   Source:  guide_appearance.md §1.8, §1.8.2, guide_style.md §6.3
 //
-//   TRIGGER:  Call injectSearchHeader(anchorId, activePage) after DOM load.
+//   TRIGGER:  Call injectSearchHeader(anchorId) after DOM load.
 //             Pass the id of the element to inject before (typically 'site-sidebar').
-//   FUNCTION: Builds the <header> HTML with Logo, Search input, and Nav links
-//             then inserts it into the .page-shell as the "header" grid area.
+//   FUNCTION: Builds the <header> HTML with only the Search input, then inserts
+//             it into the .page-shell as the "header" grid area.
+//             On Enter → redirects to /frontend/pages/records.html?search=<term>
+//             On Escape → clears the input field (no navigation).
 //   OUTPUT:   A <header class="site-header"> rendered at the top of the page.
 //
 // =============================================================================
@@ -20,42 +22,18 @@
 /**
  * injectSearchHeader
  *
- * Builds and inserts the visible top navigation bar into the page.
+ * Builds and inserts the visible top search bar into the page.
+ * Renders only the search input — no site logo, no navigation links.
  *
- * @param {string} anchorId    - id of the element to insert the header BEFORE
- *                               (typically the sidebar or main element)
- * @param {string} activePage  - Slug of the current section for aria-current
- *                               e.g. 'records', 'context', 'debate', 'about'
+ * @param {string} anchorId - id of the element to insert the header BEFORE
+ *                            (typically the sidebar or main element)
  */
-function injectSearchHeader(anchorId, activePage) {
+function injectSearchHeader(anchorId) {
 
-    // --- 1. Navigation link definitions --------------------------------------
-    //   Each entry: { label, href, id }
-
-    const navLinks = [
-        { label: 'Records',  href: '/frontend/pages/records.html',    id: 'records'  },
-        { label: 'Context',  href: '/frontend/pages/context.html',      id: 'context'  },
-        { label: 'Debate',   href: '/frontend/pages/debate.html',       id: 'debate'   },
-        { label: 'About',    href: '/frontend/pages/about.html',        id: 'about'    },
-    ];
-
-    // --- 2. Build nav <li> items --------------------------------------------
-
-    const navItemsHTML = navLinks
-        .map(link => {
-            const isCurrent = (link.id === activePage) ? 'aria-current="page"' : '';
-            return `<li><a href="${link.href}" id="search-nav-${link.id}" ${isCurrent}>${link.label}</a></li>`;
-        })
-        .join('');
-
-    // --- 3. Compose full header HTML ----------------------------------------
+    // --- 1. Compose header HTML (search bar only) ----------------------------
 
     const headerHTML = `
 <header class="site-header" id="site-header" role="banner">
-
-    <a href="/index.html" class="site-header__logo" id="site-header-logo" aria-label="The Jesus Website — Home">
-        The Jesus Website
-    </a>
 
     <div class="site-header__search" role="search">
         <input
@@ -67,10 +45,6 @@ function injectSearchHeader(anchorId, activePage) {
             autocomplete="off"
         />
     </div>
-
-    <nav class="site-header__nav" id="site-header-nav" aria-label="Primary navigation">
-        <ul>${navItemsHTML}</ul>
-    </nav>
 
 </header>
 `;
@@ -86,9 +60,11 @@ function injectSearchHeader(anchorId, activePage) {
 
     anchorEl.insertAdjacentHTML('beforebegin', headerHTML);
 
-    // --- 5. Wire up search input event --------------------------------------
-    //   Dispatches a custom 'globalSearch' event on Enter.
-    //   Listening components (list_view.js etc.) handle the actual filtering.
+    // --- 2. Wire up search input events -------------------------------------
+    //   Enter  → URL redirect to records.html?search=<term>
+    //            list_view.js reads the 'search' URL param on load and runs
+    //            db.searchRecords() automatically — no event listener needed.
+    //   Escape → clear the input field only (no navigation).
 
     const searchInput = document.getElementById('global-search-input');
 
@@ -98,21 +74,17 @@ function injectSearchHeader(anchorId, activePage) {
             const query = event.target.value.trim();
             if (query.length === 0) return;
 
-            document.dispatchEvent(new CustomEvent('globalSearch', {
-                detail: { query: query },
-                bubbles: true,
-            }));
+            // Redirect to the records list page with the search term as a URL param.
+            // list_view.js picks this up via URLSearchParams on 'thejesusdb:ready'.
+            const encoded = encodeURIComponent(query);
+            window.location.href = '/frontend/pages/records.html?search=' + encoded;
         }
     });
 
-    // Clear search and reset on Escape
+    // Escape — clear the input only, no navigation
     searchInput.addEventListener('keydown', function handleSearchEscape(event) {
         if (event.key === 'Escape') {
             searchInput.value = '';
-            document.dispatchEvent(new CustomEvent('globalSearch', {
-                detail: { query: '' },
-                bubbles: true,
-            }));
         }
     });
 }

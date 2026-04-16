@@ -2,7 +2,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "requirements text file update"
+git commit -m "search pipeline and appearance fixed"
 git push origin main
 
 # Pull from GitHub into Server
@@ -21,3 +21,25 @@ bash deployment/deploy.sh
 # VPS IP
 
 72.60.197.13
+
+## Back to the server on Monday
+
+# 1. Go to your project folder
+cd /var/www/thejesuswebsite
+
+# 2. Re-enter your Python "bubble"
+source venv/bin/activate
+
+# 3. Check if the heart is still beating (Status check)
+sudo systemctl status thejesuswebsite
+
+# Logs
+sudo journalctl -u thejesuswebsite -f
+# Nginx status
+sudo systemctl status nginx
+# Restart
+sudo systemctl restart thejesuswebsite
+sudo systemctl restart nginx
+
+
+
