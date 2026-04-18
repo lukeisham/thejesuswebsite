@@ -30,7 +30,7 @@ body.admin-body {
 .login-box {
     background-color: var(--color-bg-primary);
     border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-none);
     padding: var(--space-8);
     width: 100%;
     max-width: 400px;
@@ -89,19 +89,20 @@ body.admin-body {
 .login-box button {
     width: 100%;
     padding: var(--space-3);
-    background-color: var(--color-accent-primary);
-    color: var(--color-white);
-    border: none;
-    border-radius: var(--radius-sm);
-    font-weight: var(--weight-bold);
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: var(--border-width-thin) solid var(--color-text-primary);
+    border-radius: var(--radius-none);
+    font-weight: var(--weight-medium);
     font-size: var(--text-base);
     cursor: pointer;
-    font-family: var(--font-heading);
-    transition: background-color var(--transition-fast) ease;
+    font-family: var(--font-mono);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .login-box button:hover {
-    background-color: var(--color-accent-hover);
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
 }
 
 .login-box button:disabled {

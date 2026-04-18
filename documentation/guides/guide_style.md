@@ -69,5 +69,12 @@ This is the source of truth for the .css styling and UI/UX experience.
 - **MLA Citations:** Styled in a smaller font size (`0.85rem`) in lead-grey.
 - **Verse Expansion:** Dotted underlines on verse references. Clicking reveals a clean fly-out or pop-over box with the full ESV text in serif italics.
 
+## 15. Interactive Elements: Buttons and Sliders
+- **Buttons:** Styled as "Technical Instruction" nodes. Always use **sharp corners** (`radius-none`) and **Roboto Mono** typography. The default state is a 1px solid border with charcoal text; the hover state triggers a solid **Oxblood** fill with white text for high-contrast feedback.
+- **Sliders:** Range inputs are styled as minimalist blueprint vectors. They utilize thin 1px lines and an **Oxblood** thumb indicator. Any associated value displays (e.g., years, percentages) must be rendered in **Roboto Mono** to maintain the technical metadata look.
+- **Checkboxes & Radio Buttons:** Must be sharp-edged (`radius-none`). Use the **Oxblood** accent for selected states. Labels must be in **Roboto Mono** for a technical ledger feel. Avoid standard OS styling in favor of minimal, high-contrast markers.
+- **Toggle Switches:** Designed as binary technical switches. Use a sharp rectangular housing with a sliding "indicator block." The "ON" state should be highlighted in **Oxblood**, while the "OFF" state remains in a neutral **Lead Grey**.
+- **Dropdown Menus (Select Boxes):** Use a 1px solid charcoal border with **sharp corners**. The dropdown list should use a **dashed border** to match structural site dividers. All options must be rendered in **Roboto Mono** with a subtle zebra-stripe background for density.
+
 
 

@@ -31,7 +31,7 @@
     background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
     background-size: 20px 20px;
     border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-none);
 }
 
 /* Canvas SVG Target */
@@ -57,7 +57,7 @@
     fill: var(--color-bg-secondary);
     stroke: var(--color-border-strong);
     stroke-width: 2px;
-    rx: var(--radius-sm);  /* rounded corners */
+    rx: 0;  /* Sharp blueprint corners */
 }
 
 .ardor-node text.title {

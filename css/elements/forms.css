@@ -1,0 +1,190 @@
+/* =============================================================================
+   THE JESUS WEBSITE — FORM ELEMENTS (SLIDERS, CHECKBOXES, RADIOS, DROPDOWNS)
+   File:    css/elements/forms.css
+   Version: 1.0.0
+   Purpose: Implements the Technical Blueprint aesthetic for interactive inputs.
+   Source:  guide_style.md §15
+============================================================================= */
+
+@import url('./typography_colors.css');
+
+/* =============================================================================
+   1. RANGE SLIDERS (Blueprint Vectors)
+   Source: §15 — "minimalist blueprint vectors", 1px lines, Oxblood thumb.
+============================================================================= */
+
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    background: transparent;
+    cursor: pointer;
+}
+
+input[type="range"]:focus {
+    outline: none;
+}
+
+/* Track */
+input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 1px;
+    background: var(--color-border);
+    border: none;
+}
+
+input[type="range"]::-moz-range-track {
+    width: 100%;
+    height: 1px;
+    background: var(--color-border);
+    border: none;
+}
+
+/* Thumb */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 8px;
+    background: var(--color-accent-primary); /* Oxblood */
+    border-radius: var(--radius-none); /* Sharp indicator block */
+    margin-top: -7.5px; /* Centers thumb on track */
+}
+
+input[type="range"]::-moz-range-thumb {
+    height: 16px;
+    width: 8px;
+    background: var(--color-accent-primary);
+    border: none;
+    border-radius: var(--radius-none);
+}
+
+/* =============================================================================
+   2. CHECKBOXES & RADIO BUTTONS
+   Source: §15 — "sharp-edged", Oxblood for selected, Roboto Mono labels.
+============================================================================= */
+
+input[type="checkbox"],
+input[type="radio"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--color-text-primary);
+    border-radius: var(--radius-none);
+    background-color: var(--color-bg-primary);
+    cursor: pointer;
+    display: inline-grid;
+    place-content: center;
+    margin-right: var(--space-1);
+    vertical-align: middle;
+}
+
+input[type="radio"] {
+    border-radius: var(--radius-none); /* Explicitly sharp radios */
+}
+
+input[type="checkbox"]::before,
+input[type="radio"]::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    background-color: var(--color-accent-primary);
+}
+
+input[type="checkbox"]:checked::before,
+input[type="radio"]:checked::before {
+    transform: scale(1);
+}
+
+/* Labels for these inputs */
+label {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    cursor: pointer;
+}
+
+/* =============================================================================
+   3. TOGGLE SWITCHES
+   Source: §15 — "binary technical switches", sharp rectangular housing.
+============================================================================= */
+
+.toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    gap: var(--space-2);
+}
+
+.toggle-switch__input {
+    display: none;
+}
+
+.toggle-switch__slider {
+    width: 40px;
+    height: 20px;
+    background-color: var(--color-text-secondary); /* Lead Grey - OFF */
+    position: relative;
+    border: 1px solid var(--color-text-primary);
+    transition: background-color var(--transition-fast);
+}
+
+.toggle-switch__slider::before {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    left: 2px;
+    top: 2px;
+    background-color: var(--color-bg-primary);
+    transition: transform var(--transition-fast);
+}
+
+.toggle-switch__input:checked + .toggle-switch__slider {
+    background-color: var(--color-accent-primary); /* Oxblood - ON */
+}
+
+.toggle-switch__input:checked + .toggle-switch__slider::before {
+    transform: translateX(20px);
+}
+
+/* =============================================================================
+   4. DROPDOWN MENUS (Select Boxes)
+   Source: §15 — 1px solid charcoal, sharp corners, dashed border list.
+============================================================================= */
+
+select {
+    -webkit-appearance: none;
+    appearance: none;
+    padding: var(--space-1) var(--space-4) var(--space-1) var(--space-2);
+    border: 1px solid var(--color-text-primary);
+    border-radius: var(--radius-none);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    background-image: linear-gradient(45deg, transparent 50%, var(--color-text-primary) 50%),
+                      linear-gradient(135deg, var(--color-text-primary) 50%, transparent 50%);
+    background-position: calc(100% - 15px) center, calc(100% - 10px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--color-accent-primary);
+}
+
+/* Options with zebra-striping */
+option {
+    background-color: var(--color-bg-primary);
+    font-family: var(--font-mono);
+}
+
+option:nth-child(even) {
+    background-color: var(--color-bg-secondary); /* Zebra stripe */
+}

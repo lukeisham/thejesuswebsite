@@ -2,7 +2,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "footer and button appearance"
+git commit -m "style update"
 git push origin main
 
 # Pull from GitHub into Server

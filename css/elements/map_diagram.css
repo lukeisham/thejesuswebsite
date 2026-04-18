@@ -37,24 +37,18 @@
 }
 
 /* Map Interaction Actions */
-.map-actions button {
-    background-color: var(--color-bg-primary);
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-none); /* Sharp architectural buttons */
-    padding: var(--space-1) var(--space-3);
-    font-family: var(--font-mono); /* Technical metadata font */
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-wide);
-    color: var(--color-text-primary);
-    cursor: pointer;
-    transition: background-color var(--transition-fast), border-color var(--transition-fast);
+.map-actions {
+    display: flex;
+    gap: var(--space-2);
 }
 
+/* Specific map button context if needed */
 .map-actions button:hover {
     background-color: var(--color-accent-primary);
     border-color: var(--color-accent-primary);
     color: var(--color-white);
 }
+
 
 .map-era-slider {
     display: flex;

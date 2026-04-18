@@ -190,7 +190,7 @@
     padding:           var(--space-3);
     background-color:  var(--color-bg-secondary);
     border:            var(--border-width-thin) solid var(--color-border);
-    border-radius:     var(--radius-sm);
+    border-radius:     var(--radius-none);
     text-decoration:   none;
     transition:        border-color     var(--transition-base),
                        box-shadow       var(--transition-base),

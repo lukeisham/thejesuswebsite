@@ -778,3 +778,21 @@ Thumbnails do not follow this rule and only display the picture. (see `thumbnail
 **Relevant Files:**
 - **Image:** `assets/favicon.png`
 - **Logic:** `frontend/display_other/header.js`, `frontend/display_other/footer.js`
+
+---
+
+## 1.10 Truth through typography
+**Purpose:** Establishes the authoritative "Technical Blueprint" aesthetic for all interactive controls (buttons, sliders, checkboxes, and toggles) across the codebase. This ensures consistency and prevents visual divergence.
+
+### Interactive Elements Directory
+
+| Element Type | Primary Selectors | Visual Context / Usage | Governing CSS File |
+| :--- | :--- | :--- | :--- |
+| **Generic Buttons** | `.btn-primary`, `.btn-outline`, `.btn--filled` | The standard "Technical Instruction" Node used globally for submitting forms, major navigation, and list-card actions. | `css/elements/list_card_button.css` |
+| **Footer Action Buttons** | `.footer-btn` | Minimal ghost-style buttons (Print, Copy URL, Copy Contents) located in the Universal Footer. | `css/design_layouts/universal/footer.css` |
+| **Timeline Controls** | `.timeline-actions button` | Navigational controls (#zoom-in, #zoom-out, #prev-era, #next-era) within the massive timeline canvas. | `css/elements/timeline_diagram.css` |
+| **Map Controls** | `.map-actions button` | Navigational controls (#zoom-in, #zoom-out, #toggle-layers) within the geospatial map canvas. | `css/elements/map_diagram.css` |
+| **Login Buttons** | `.login-box button` | Explicitly sharp-cornered, high-contrast action buttons used exclusively in the Admin Dashboard login sequence. | `css/design_layouts/views/login_view.css` |
+| **Range Sliders** | `input[type="range"]` | Blueprint Vector sliders with square tracker thumb and high-visibility active states (e.g. Map Era filter). | `css/elements/forms.css` |
+| **Checkboxes & Radios** | `input[type="checkbox"]`, `input[type="radio"]` | Form selection inputs rendered as sharp boxes with contrasting selected states and cross-hatching or distinct border logic. | `css/elements/forms.css` |
+| **Toggle Switches** | `.toggle-switch__input`, `.toggle-switch__slider` | Dual-state visual logic switches relying on precise before/after pseudo-element translation. | `css/elements/forms.css` |

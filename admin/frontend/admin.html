@@ -19,12 +19,14 @@
     <!-- Core Stylesheets -->
     <link rel="stylesheet" href="../../css/elements/typography_colors.css">
     <link rel="stylesheet" href="../../css/elements/grid.css">
+    <link rel="stylesheet" href="../../css/elements/list_card_button.css">
+    <link rel="stylesheet" href="../../css/elements/forms.css">
     
     <!-- Admin Specific Stylesheets -->
     <link rel="stylesheet" href="../../css/design_layouts/views/login_view.css">
     <link rel="stylesheet" href="../../css/design_layouts/views/dashboard_admin.css" id="dashboard-admin-css-link">
 </head>
-<body class="admin-body">
+<body class="dashboard admin-body">
 
     <!-- Login View (Visible by default until authenticated) -->
     <div id="login-view" class="login-container">
@@ -38,10 +40,11 @@
                 <label for="admin-password">Master Password</label>
                 <input type="password" id="admin-password" name="password" required autocomplete="current-password" placeholder="Enter secure password...">
                 
-                <button type="submit" id="login-submit-btn">Login</button>
+                <button type="submit" id="login-submit-btn" class="btn-primary">Login</button>
             </form>
         </div>
     </div>
+
 
     <!-- Dashboard Shell (Hidden by default, used by dashboard_app.js) -->
     <div id="dashboard-app" class="dashboard-shell is-hidden admin-full-height">

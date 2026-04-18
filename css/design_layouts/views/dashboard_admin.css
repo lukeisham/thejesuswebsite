@@ -33,21 +33,22 @@
 }
 
 .admin-logout-btn {
-    background-color: var(--color-bg-primary);
+    background-color: transparent;
     color: var(--color-text-primary);
-    border: var(--border-width-thin) solid var(--color-border);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-sm);
+    border: var(--border-width-thin) solid var(--color-text-primary);
+    padding: var(--space-1) var(--space-4);
+    border-radius: var(--radius-none);
     cursor: pointer;
-    font-weight: bold;
+    font-family: var(--font-mono);
     font-size: var(--text-sm);
-    transition: background-color 0.2s;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .admin-logout-btn:hover {
-    background-color: var(--color-bg-tertiary);
-    color: var(--color-accent-primary);
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
 }
+
 
 .admin-body-layout {
     display: flex;
@@ -89,11 +90,12 @@
 
 .admin-sidebar a {
     text-decoration: none;
-    color: var(--color-accent-primary);
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
     font-size: var(--text-sm);
     display: block;
     padding: var(--space-2) var(--space-2);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-none);
     transition: background-color 0.2s, color 0.2s;
 }
 
@@ -101,6 +103,7 @@
     background-color: var(--color-bg-tertiary);
     color: var(--color-text-primary);
 }
+
 
 .admin-canvas {
     flex: 1;
@@ -111,12 +114,13 @@
 
 .admin-card {
     border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-none);
     padding: var(--space-6);
     margin-bottom: var(--space-6);
     background-color: var(--color-bg-primary);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none; /* Flatter blueprint feel */
 }
+
 
 .admin-card h2 {
     font-family: var(--font-serif);
@@ -139,22 +143,24 @@
 
 .quick-action-btn {
     display: inline-block;
-    padding: var(--space-2) var(--space-4);
-    background-color: var(--color-accent-primary);
-    color: var(--color-bg-primary);
-    border: none;
-    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-4);
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: var(--border-width-thin) solid var(--color-text-primary);
+    border-radius: var(--radius-none);
     cursor: pointer;
-    font-family: var(--font-body);
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-weight: var(--weight-medium);
     margin-right: var(--space-4);
     font-size: var(--text-sm);
-    transition: background-color 0.2s;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .quick-action-btn:hover {
-    background-color: var(--color-accent-hover);
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
 }
+
 
 /* =============================================================================
    UTILITY: JS-CONTROLLED VISIBILITY CLASSES

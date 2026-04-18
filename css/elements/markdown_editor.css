@@ -32,7 +32,7 @@
     max-width:      900px;
     margin:         var(--space-4) auto;
     border:         var(--border-width-thin) solid var(--editor-border);
-    border-radius:  var(--radius-sm);
+    border-radius:  var(--radius-none);
     background:     var(--editor-bg);
     overflow:       hidden;
     box-shadow:     var(--shadow-md);
@@ -54,7 +54,7 @@
     background:     transparent;
     color:          var(--editor-fg);
     cursor:         pointer;
-    border-radius:  var(--radius-sm);
+    border-radius:  var(--radius-none);
     display:        flex;
     align-items:    center;
     justify-content: center;
@@ -103,7 +103,7 @@
     background:     var(--color-bg-primary);
     color:          var(--color-text-primary);
     padding:        var(--space-4);
-    border-radius:  0 0 var(--radius-sm) var(--radius-sm);
+    border-radius:  0 0 var(--radius-none) var(--radius-none);
     border-top:     var(--border-width-thin) solid var(--color-border);
     font-family:    var(--font-body);
     line-height:    var(--line-height-base);

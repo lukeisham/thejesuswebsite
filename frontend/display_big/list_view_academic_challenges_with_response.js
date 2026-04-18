@@ -54,7 +54,7 @@ function renderAcademicChallengesWithResponses(containerId) {
                     </h3>
                     ${typeof renderSnippet === 'function' ? renderSnippet(item.response.snippet, 150) : `<p class="inline-snippet">${item.response.snippet}</p>`}
                     <div class="mt-2 text-xs">
-                        <a href="../response.html?id=${item.response.slug}" class="btn-skewed"><span>Read Full Academic Response →</span></a>
+                        <a href="../response.html?id=${item.response.slug}" class="btn-primary">Read Full Academic Response →</a>
                     </div>
                 </div>
             </div>

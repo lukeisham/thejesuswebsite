@@ -63,27 +63,22 @@ function injectFooter(anchorId) {
 
     <!-- Row: Action buttons (Right) -->
     <div class="site-footer__actions" id="footer-actions">
-        <button class="footer-btn btn-skewed" id="footer-btn-print" type="button" aria-label="Print this page">
-            <span>
-                <span class="footer-btn__icon" aria-hidden="true">⎙</span>
-                Print contents
-            </span>
+        <button class="footer-btn" id="footer-btn-print" type="button" aria-label="Print this page">
+            <span class="footer-btn__icon" aria-hidden="true">⎙</span>
+            Print contents
         </button>
 
-        <button class="footer-btn btn-skewed" id="footer-btn-copy-url" type="button" aria-label="Copy page URL">
-            <span>
-                <span class="footer-btn__icon" aria-hidden="true">⧉</span>
-                Copy URL
-            </span>
+        <button class="footer-btn" id="footer-btn-copy-url" type="button" aria-label="Copy page URL">
+            <span class="footer-btn__icon" aria-hidden="true">⧉</span>
+            Copy URL
         </button>
 
-        <button class="footer-btn btn-skewed" id="footer-btn-copy-contents" type="button" aria-label="Copy page text contents">
-            <span>
-                <span class="footer-btn__icon" aria-hidden="true">⊕</span>
-                Copy contents
-            </span>
+        <button class="footer-btn" id="footer-btn-copy-contents" type="button" aria-label="Copy page text contents">
+            <span class="footer-btn__icon" aria-hidden="true">⊕</span>
+            Copy contents
         </button>
     </div>
+
 
 </footer>
 `;

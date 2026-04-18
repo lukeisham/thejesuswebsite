@@ -11,114 +11,85 @@
 @import url('./typography_colors.css');
 
 /* =============================================================================
-   1. GENERIC BUTTON STYLE
-   Used for Primary CTA buttons (Login, Submit, etc.).
+   1. GENERIC BUTTON STYLE ("Technical Instruction" Node)
+   Source: guide_style.md §15
+   Always use sharp corners and Roboto Mono typography.
 ============================================================================= */
 
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    padding: var(--space-1) var(--space-3);
-    background-color: var(--color-accent-primary);
-    color: var(--color-white);
-    border: none;
-    border-radius: var(--radius-sm);
-    font-family: var(--font-heading);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color var(--transition-fast);
-}
-
-.btn-primary:hover {
-    background-color: var(--color-accent-hover);
-    text-decoration: none;
-    color: var(--color-white);
-}
-
-/* =============================================================================
-   2. SECONDARY BUTTON / OUTLINE
-   Used for secondary actions or cancel buttons.
-============================================================================= */
-
-.btn-outline {
-    display: inline-flex;
-    align-items: center;
-    padding: var(--space-1) var(--space-3);
-    background-color: transparent;
-    color: var(--color-accent-primary);
-    border: var(--border-width-thin) solid var(--color-accent-primary);
-    border-radius: var(--radius-sm);
-    font-family: var(--font-heading);
-    font-size: var(--text-sm);
-    text-decoration: none;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.btn-outline:hover {
-    background-color: var(--color-bg-tertiary);
-    border-color: var(--color-accent-hover);
-    color: var(--color-accent-hover);
-    text-decoration: none;
-}
-
-/* =============================================================================
-   3. SKEWED INTERACTIVE BUTTON
-   Features a skewed shape and a sliding hover background.
-   REQUIRED: Content must be wrapped in a <span> to counter-skew text.
-============================================================================= */
-
-.btn-skewed {
-    background: var(--color-white);
-    border: none;
-    padding: var(--space-1) var(--space-3);
+.btn-primary,
+.btn-outline,
+.footer-btn,
+button:not(.admin-editor-toolbar-btn) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--font-heading);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-none);
+    font-family: var(--font-mono);
     font-size: var(--text-sm);
-    font-weight: var(--weight-bold);
-    text-transform: uppercase;
-    cursor: pointer;
-    transform: skew(-21deg);
-    position: relative;
-    overflow: hidden;
-    color: var(--color-text-primary);
-    transition: color 0.5s;
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
     text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
 }
 
-/* Reverse the skew to make text upright */
-.btn-skewed span {
-    display: inline-block;
-    transform: skew(21deg);
+/* Default state: 1px solid border with charcoal text */
+.btn-primary,
+.btn-outline,
+.footer-btn {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: var(--border-width-thin) solid var(--color-text-primary);
 }
 
-.btn-skewed::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 100%;
-    left: 0;
-    background: var(--color-accent-primary);
-    opacity: 0;
-    z-index: -1;
-    transition: all 0.5s;
-}
-
-.btn-skewed:hover {
+/* Hover state: solid Oxblood fill with white text */
+.btn-primary:hover,
+.btn-outline:hover,
+.footer-btn:hover {
+    background-color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
     color: var(--color-white);
     text-decoration: none;
 }
 
-.btn-skewed:hover::before {
-    left: 0;
-    right: 0;
-    opacity: 1;
+/* Specific variation: Primary might want to be "already active" in some contexts, 
+   but per §15, the default is 1px solid charcoal. Adding a 'filled' utility just in case. */
+.btn--filled {
+    background-color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+    color: var(--color-white);
 }
+
+.btn--filled:hover {
+    background-color: var(--color-accent-hover);
+}
+
+/* Legacy cleanup: remove .btn-skewed requirements */
+.btn-skewed {
+    /* Manual redirection to match generic button styles */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-none);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: var(--border-width-thin) solid var(--color-text-primary);
+    transform: none !important;
+}
+
+.btn-skewed span {
+    transform: none !important;
+}
+
 
 /* =============================================================================
    4. LIST ROW HOVER EFFECT
@@ -148,8 +119,9 @@
     font-weight: var(--weight-bold);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-none); /* Unified sharp corners */
 }
+
 
 .badge--accent {
     background-color: var(--color-accent-primary);
