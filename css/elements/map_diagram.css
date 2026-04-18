@@ -11,8 +11,8 @@
     flex-direction: column;
     gap: var(--space-4);
     background-color: var(--color-bg-secondary);
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-md);
+    border: var(--border-width-thin) dashed var(--color-border); /* Blueprint frame */
+    border-radius: var(--radius-none); /* Technical precision */
     padding: var(--space-4);
     position: relative;
 }
@@ -25,7 +25,7 @@
     justify-content: space-between;
     gap: var(--space-3);
     padding-top: var(--space-3);
-    border-top: var(--border-width-thin) solid var(--color-border);
+    border-top: var(--border-width-thin) dashed var(--color-border);
 }
 
 .map-views label {
@@ -38,19 +38,22 @@
 
 /* Map Interaction Actions */
 .map-actions button {
-    background-color: var(--color-bg-tertiary);
+    background-color: var(--color-bg-primary);
     border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-3);
-    font-family: var(--font-mono);
+    border-radius: var(--radius-none); /* Sharp architectural buttons */
+    padding: var(--space-1) var(--space-3);
+    font-family: var(--font-mono); /* Technical metadata font */
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
     color: var(--color-text-primary);
     cursor: pointer;
     transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .map-actions button:hover {
-    background-color: var(--color-bg-secondary);
-    border-color: var(--color-text-secondary);
+    background-color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+    color: var(--color-white);
 }
 
 .map-era-slider {
@@ -69,9 +72,9 @@
     aspect-ratio: 4/3;
     overflow: hidden;
     background-color: var(--color-bg-primary); /* Use theme parchment */
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
-    box-shadow: inset 0 0 20px rgba(36, 36, 35, 0.05); /* very subtle depth using charcoal ink */
+    border: var(--border-width-thin) dashed var(--color-border); /* Blueprint document style */
+    border-radius: var(--radius-none);
+    box-shadow: none; /* Flatter architectural feel */
 }
 
 .map-svg-canvas {
@@ -104,9 +107,9 @@
 /* Sidebar Information Display */
 .map-metadata-panel {
     background-color: var(--color-bg-secondary);
-    border: var(--border-width-thin) solid var(--color-border);
-    border-left: 4px solid var(--color-accent-primary);
-    border-radius: var(--radius-sm);
+    border: var(--border-width-thin) dashed var(--color-border);
+    border-left: 4px solid var(--color-accent-primary); /* Bold Oxblood interactive indicator */
+    border-radius: var(--radius-none);
     padding: var(--space-4);
     margin-top: var(--space-4);
     transition: opacity var(--transition-fast);
@@ -122,9 +125,9 @@
 }
 
 .map-metadata-panel p {
-    font-family: var(--font-body);
-    font-size: var(--text-md);
-    line-height: var(--line-height-base);
+    font-family: var(--font-mono); /* Technical coordinate/archive feel */
+    font-size: var(--text-sm);
+    line-height: var(--line-height-snug);
     color: var(--color-text-secondary);
     margin-bottom: var(--space-2);
 }
@@ -142,6 +145,8 @@
 }
 
 .map-era-display {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
     min-width: 60px; 
     text-align: right;
 }

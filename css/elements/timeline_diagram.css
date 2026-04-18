@@ -8,7 +8,7 @@
 
 .timeline-header {
     margin-bottom: var(--space-4);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px dashed var(--color-border); /* Blueprint divider */
     padding-bottom: var(--space-2);
 }
 
@@ -17,11 +17,11 @@
     flex-direction: column;
     gap: var(--space-4);
     background-color: var(--color-bg-primary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border: 1px dashed var(--color-border); /* Technical blueprint framing */
+    border-radius: var(--radius-none); /* Precise corners */
     overflow: hidden;
     position: relative;
-    box-shadow: var(--shadow-sm);
+    box-shadow: none; /* Removed for flatter blueprint feel */
 }
 
 .timeline-controls {
@@ -29,8 +29,8 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--space-3);
-    background-color: var(--color-bg-tertiary);
-    border-top: 1px solid var(--color-border);
+    background-color: var(--color-bg-secondary); /* Matches archival palette */
+    border-top: 1px dashed var(--color-border);
     flex-wrap: wrap;
     gap: var(--space-3);
 }
@@ -38,17 +38,18 @@
 .timeline-actions button {
     background-color: var(--color-bg-primary);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-none); /* Sharp blueprint buttons */
     padding: var(--space-1) var(--space-2);
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
+    font-family: var(--font-mono); /* Technical interface typography */
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .timeline-actions button:hover {
     background-color: var(--color-accent-primary);
-    color: var(--color-bg-primary);
+    color: var(--color-white);
 }
 
 
@@ -110,7 +111,7 @@
 }
 
 .timeline-node.selected {
-    stroke: var(--color-dash-accent); /* Antique Gold selection */
+    stroke: var(--color-accent-primary); /* Oxblood selection for sharp focus */
     stroke-width: 4px;
 }
 
@@ -127,15 +128,17 @@
 
 /* Metadata Panel */
 .timeline-metadata-panel {
-    background-color: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    background-color: var(--color-bg-secondary);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-none);
     padding: var(--space-4);
     margin-top: var(--space-4);
 }
 
 .timeline-metadata-snippet {
-    font-family: var(--font-body);
+    font-family: var(--font-mono); /* Technical metadata archival feel */
+    font-size: var(--text-sm);
+    line-height: var(--line-height-snug);
     margin-top: var(--space-2);
 }
 
@@ -154,7 +157,8 @@
 }
 
 .timeline-metadata-panel p {
-    font-family: var(--font-body);
+    font-family: var(--font-mono); /* Consistently archival */
+    font-size: var(--text-sm);
     margin-bottom: var(--space-2);
     color: var(--color-text-secondary);
 }

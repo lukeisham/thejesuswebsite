@@ -22,6 +22,14 @@ app = FastAPI(title="The Jesus Website API - Admin")
 # Instantiate and add rate limiter (allows 30 requests per minute for admin actions)
 app.add_middleware(RateLimiterMiddleware, requests_per_minute=30)
 
+@app.get("/api/health")
+async def health_check():
+    """
+    Public health check endpoint for monitoring infrastructure integrity.
+    """
+    return {"status": "ok", "service": "The Jesus Website Admin API"}
+
+
 # Path to the primary SQLite database
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'database', 'database.sqlite')
 

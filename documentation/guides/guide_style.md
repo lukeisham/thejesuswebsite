@@ -15,8 +15,8 @@ This is the source of truth for the .css styling and UI/UX experience.
 - **Oxford Museum of Natural History:** For premium typography and refined color palettes in historical context.
 
 ## 2. Style summary 
-- **"The Living Museum":** The aesthetic combines the weight of a physical archive with the speed of a modern Single Page Application. 
-- **Core Principles:** High contrast, minimal ornamentation, intentional whitespace, and a focus on "Truth through Typography."
+- **"The Living Museum":** A technical blueprint aesthetic that blends a precision grid layout with an archival palette of aged parchment and Oxblood accents, underpinned by a high-contrast typographical system that pairs authoritative Inter sans-serif headings with Roboto Mono metadata for a "Living Museum" feel.
+- **Core Principles:** High contrast, precision structural alignments, minimal ornamentation, and a focus on "Truth through Typography."
 
 ## 3. Typography   
 - **Body Text:** *EB Garamond* (or *Lora*) - A classic, highly readable serif that evokes the feel of a printed historical manuscript.
@@ -31,24 +31,25 @@ This is the source of truth for the .css styling and UI/UX experience.
 
 ## 5. Grid Layout
 - **The Golden Ratio:** Content columns target a max-width of `720px` for optimal reading speed (approx. 75 characters per line).
-- **Responsive Spacing:** Uses a global 8px grid system. Margins and padding must be multiples of 8 (16px, 32px, 64px) to ensure mathematical visual harmony.
+- **Precision Grid:** Uses a global 8px grid system for mathematical visual harmony. Major structural dividers (header, sidebar, footer) use **1px dashed borders** to simulate technical blueprint registration lines.
+- **No Rounding:** All structural elements use sharp corners (`radius-none`) to maintain an architectural, archival feel.
 
 ## 6. Navigation
 ### 6.1 Sidebar
-- **The "Vertical Index":** A sticky left-aligned sidebar (`280px` width) with a subtle 1px border. No icons; pure text-based navigation using a tiered hierarchical list. 
+- **The "Vertical Index":** A sticky left-aligned sidebar (`280px` width) with a **1px dashed border**. No icons; pure text-based navigation using a tiered hierarchical list with sharp architectural edges. 
 ### 6.2 Universal-footer
-- **The "Legal Ledger":** Deep charcoal background with light grey text. Contains copyright, standard print buttons, and "Cite this Record" functionality.
+- **The "Technical Metadata Block":** Aged paper background. Contains copyright, action buttons, and links styled strictly in **Roboto Mono** to resemble the technical footer of an archival drawing.
 ### 6.3 Search-bar
-- **The "Global Query":** Centered in the top header. Minimalist outline style with an "Antique Gold" focus effect when active.
+- **The "Global Query":** Centered in the top header. Minimalist outline style using **Roboto Mono** for search inputs to emphasize the archival query experience.
 
 ## 7. Timeline diagram
-- **The "Linear Pulse":** A horizontal axis using a solid 2px ink line. Events appear as solid dots that expand to labeled thumbnails on hover. No jarring colors; strictly monochrome with Oxblood highlights.
+- **The "Linear Pulse":** A horizontal axis using a solid 2px ink line. Events appear as solid dots that expand to labeled thumbnails on hover. Selected nodes use **Deep Oxblood** for sharp focus. Labels and metadata snippets strictly use **Roboto Mono**.
 
 ## 8. 'Arbor-tree-style' diagram
 - **The "Evidence Root":** A recursive vertical tree structure (`parent_id` driven). Uses thin, 1px grey connecting lines. Nodes are styled as clean parchment cards with a light drop-shadow to separate layers.
 
 ## 9. Map diagram
-- **The "Antique Layer":** Uses a custom grayscale-with-tint map style. Points of interest are marked with minimalist historical icons (crosses, pillars) that use the Oxblood accent color.
+- **The "Archival Frame":** Framed in a **dashed blueprint border**. Uses a custom grayscale-with-tint map style. Points of interest are marked with minimalist historical icons using the Oxblood accent. Location data and era displays are rendered in **Roboto Mono**.
 
 ## 10. Ordinary list styling
 - **The "Table of Records":** High-density row layout. Alternate row shading (Zebra striping) using `#F4F2ED`. Hovering a row applies a 2px left border of Oxblood ink.

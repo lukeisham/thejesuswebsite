@@ -288,7 +288,10 @@ small,
 
 /* Monospace metadata labels — IAA IDs, dates, technical references */
 code,
-.text-mono {
+.text-mono,
+.meta,
+.date,
+.reference {
     font-family:  var(--font-mono);
     font-size:    var(--text-sm);
     letter-spacing: var(--tracking-wide);
