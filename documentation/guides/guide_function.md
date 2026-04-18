@@ -1,7 +1,7 @@
 ---
 name: guide_function.md
 purpose: Visual ASCII representations of module functions 
-version: 1.0.0
+version: 1.1.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, data_schema.md, module_sitemap.md]
 ---
 
@@ -24,9 +24,10 @@ This document provides visual ASCII representations detailing how data physicall
 +--------------------------+
 | 1. Load grid.css         |
 | 2. Load layout logic     |
-| 3. Inject header.js      |----> [ NavBar, SEO & json_ld_builder.js ]
+| 3. Inject header.js      |----> [ Invisible SEO & og:tags Metadata ]
 | 4. Inject sidebar.js     |----> [ Constructs Left Nav Tree ]
-| 5. Inject footer.js      |----> [ Appends Footer & Print Logic ]
+| 5. Inject search_header.js|----> [ Injects Visible Search Bar ]
+| 6. Inject footer.js      |----> [ Appends Footer & Print Logic ]
 +--------------------------+
          |
          v
@@ -53,10 +54,97 @@ This document provides visual ASCII representations detailing how data physicall
                          |                    |                    |
                          v                    v                    v
              (2.3 Sanitize)    (2.1 Full Lists)     (2.2 Single Record)
-            [sanitize_query.js] Loops rows into cards     Deep data merge view
-                    |
-                    v
-             (Search Logic)
+            [sanitize_query.js] Loops rows          Deep data merge view
+                    |           into cards          [json_ld_builder.js]
+                    v                                       |
+             (Search Logic)                                 v
+                                                      [ SEO Metadata ]
+```
+
+---
+
+### 2.1 Search Pipeline — End-to-End Logic Flow
+**Purpose:** Documents the complete data path from a user-typed query in the search box through to rendered results on `records.html`.
+
+**Relevant Files (in execution order):**
+- `frontend/display_other/search_header.js`
+- `frontend/pages/records.html`
+- `frontend/core/sanitize_query.js`
+- `frontend/core/setup_db.js`
+- `frontend/display_big/list_view.js`
+
+```text
+ USER ACTION
+ +-----------+
+ | Types     |   e.g. "Peter"
+ | query     |
+ | presses   |
+ | [Enter]   |
+ +-----------+
+       |
+       v
+ +---------------------+
+ | search_header.js    |   encodeURIComponent("Peter") = "Peter"
+ | handleSearchKeydown |   window.location.href =
+ |                     |   "/frontend/pages/records.html?search=Peter"
+ +---------------------+
+       |
+       | (browser navigates — full page load)
+       v
+ +---------------------+
+ | records.html        |   Loads scripts in order:
+ |                     |   1. sql-wasm.js     (WASM engine)
+ |                     |   2. setup_db.js     (fetches DB, fires 'thejesusdb:ready')
+ |                     |   3. list_view.js    (listens for 'thejesusdb:ready')
+ |                     |   4. initializer.js  (injects sidebar, search bar)
+ +---------------------+
+       |
+       | ('thejesusdb:ready' fires once DB is loaded)
+       v
+ +---------------------+
+ | list_view.js        |   renderListView() runs
+ | renderListView()    |   searchParam = URLSearchParams.get('search') = "Peter"
+ |                     |   → sets page title: "Search Results: 'Peter'"
+ +---------------------+
+       |
+       v
+ +---------------------+
+ | sanitize_query.js   |   sanitizeSearchTerm("Peter")
+ | sanitizeSearchTerm  |   strips control chars, collapses whitespace,
+ |                     |   enforces 200-char max
+ |                     |   output: "Peter" (unchanged if clean)
+ +---------------------+
+       |
+       v
+ +---------------------+
+ | setup_db.js         |   db.searchRecords("Peter", 50)
+ | searchRecords()     |
+ |                     |   SQL executed (read-only, WASM in-memory):
+ |                     |   SELECT id, title, slug, snippet ...
+ |                     |   FROM records
+ |                     |   WHERE users = 'Public'
+ |                     |     AND (title LIKE '%Peter%'
+ |                     |          OR snippet LIKE '%Peter%')
+ |                     |   ORDER BY page_views DESC
+ |                     |   LIMIT 50;
+ +---------------------+
+       |
+       | returns Array<Object> of matching rows
+       v
+ +---------------------+
+ | list_view.js        |   Builds <li> HTML for each row
+ | (render loop)       |   Injects into #record-list
+ |                     |   Hides pagination (search bypasses it)
+ +---------------------+
+       |
+       v
+ +---------------------------------------------------+
+ | DOM: #record-list populated with search results   |
+ | Title bar reads: Search Results: "Peter"          |
+ +---------------------------------------------------+
+
+  ESCAPE KEY (on any page with the search bar):
+  searchInput.value = ''  ← input cleared, no navigation
 ```
 
 ---

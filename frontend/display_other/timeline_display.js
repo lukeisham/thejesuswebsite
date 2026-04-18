@@ -1,7 +1,7 @@
 /* =============================================================================
    THE JESUS WEBSITE
    File:    frontend/display_other/timeline_display.js
-   Version: 1.0.0
+   Version: 1.1.0
    Trigger: DOMContentLoaded on timeline.html
    Function: Renders timeline chronological dots and progression loops
    Output: Interactive SVG Timeline Nodes filtered by layer
@@ -32,10 +32,7 @@ function initTimelineSystem() {
     const zoomOutBtn = document.getElementById('zoom-out');
     const timelineSvg = document.getElementById('interactive-timeline');
     
-    // Layer Toggles
-    const toggleProphecy = document.getElementById('layer-prophecy');
-    const toggleBiblical = document.getElementById('layer-biblical');
-    const toggleSecular = document.getElementById('layer-secular');
+
 
     const prevEraBtn = document.getElementById('prev-era');
     const nextEraBtn = document.getElementById('next-era');
@@ -75,7 +72,7 @@ function initTimelineSystem() {
     // Load Database Records
     if(window.dbReadyPromise) {
         window.dbReadyPromise.then(db => {
-            const query = "SELECT id, title, timeline, era, gospel_category, description FROM records WHERE timeline IS NOT NULL LIMIT 200";
+            const query = "SELECT id, title, timeline, era, gospel_category, description, primary_verse FROM records WHERE timeline IS NOT NULL LIMIT 200";
             try {
                 const res = db.exec(query);
                 if(res.length > 0 && res[0].values) {
@@ -85,14 +82,14 @@ function initTimelineSystem() {
                             title: row[1] || 'Unknown',
                             timeline: row[2],
                             era: row[3] || 'Unknown',
-                            category: row[4] || 'event', // fallback to event
-                            description: row[5]
+                            category: row[4] || 'event', 
+                            description: row[5],
+                            primaryVerse: row[6]
                         };
                     });
                     
-                    // Simple categorization for layers (mock logic if proper tags aren't present)
+                    // Simple categorization for layers
                     records.forEach((r, i) => {
-                        // Assigning lanes for demo purposes if gospel_category is purely "event"
                         if (r.era === 'OldTestament' || r.timeline.includes('Prophecy')) {
                             r.lane = 'prophecy';
                         } else if (i % 5 === 0) {
@@ -110,10 +107,7 @@ function initTimelineSystem() {
         });
     }
 
-    // Layer Toggle Events
-    if(toggleProphecy) toggleProphecy.addEventListener('change', () => filterLayers());
-    if(toggleBiblical) toggleBiblical.addEventListener('change', () => filterLayers());
-    if(toggleSecular) toggleSecular.addEventListener('change', () => filterLayers());
+
 }
 
 function getXForTimelineStage(timelineStage) {
@@ -167,7 +161,7 @@ function renderTimelineNodes(records) {
         const x = getXForTimelineStage(record.timeline);
         const y = getYForLane(record.lane);
         
-        // Add axis marker for timeline stage if it's on the main axis
+        // Add axis marker for timeline stage
         if (record.lane === 'biblical') {
              const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
              text.setAttribute('x', x);
@@ -178,7 +172,7 @@ function renderTimelineNodes(records) {
              axisLayer.appendChild(text);
         }
 
-        // Draw vertical link to main axis if not on biblical lane
+        // Draw vertical link
         if (record.lane !== 'biblical') {
              const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
              line.setAttribute('x1', x);
@@ -192,17 +186,15 @@ function renderTimelineNodes(records) {
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute('cx', x);
         circle.setAttribute('cy', y);
-        circle.setAttribute('r', '6'); // 6px radius -> changes to 8px on hover via CSS
+        circle.setAttribute('r', '6'); 
         circle.setAttribute('class', `timeline-node timeline-node-item lane-${record.lane}`);
-        circle.setAttribute('data-category', record.lane); // maps to fill color
+        circle.setAttribute('data-category', record.lane); 
         
-        // Tooltip native SVG support
         const titleTooltip = document.createElementNS("http://www.w3.org/2000/svg", "title");
         titleTooltip.textContent = record.title;
         circle.appendChild(titleTooltip);
 
         circle.addEventListener('click', () => {
-            // Deselect others
             document.querySelectorAll('.timeline-node').forEach(n => n.classList.remove('selected'));
             circle.classList.add('selected');
             showMetadata(record);
@@ -211,7 +203,6 @@ function renderTimelineNodes(records) {
         nodeLayer.appendChild(circle);
     });
 
-    // Update canvas width to accommodate the last node
     const maxIndex = Math.max(...records.map(r => TIMELINE_STAGES.indexOf(r.timeline)));
     if (maxIndex > 0) {
         const targetWidth = getXForTimelineStage(TIMELINE_STAGES[maxIndex]) + 300;
@@ -221,32 +212,24 @@ function renderTimelineNodes(records) {
     }
 }
 
-function filterLayers() {
-    const showProphecy = document.getElementById('layer-prophecy')?.checked;
-    const showBiblical = document.getElementById('layer-biblical')?.checked;
-    const showSecular = document.getElementById('layer-secular')?.checked;
 
-    document.querySelectorAll('.timeline-node-item').forEach(node => {
-        const lane = node.getAttribute('data-category');
-        if (lane === 'prophecy' && !showProphecy) node.style.display = 'none';
-        else if (lane === 'biblical' && !showBiblical) node.style.display = 'none';
-        else if (lane === 'secular' && !showSecular) node.style.display = 'none';
-        else node.style.display = '';
-    });
-}
 
 function showMetadata(record) {
     const panel = document.getElementById('timeline-metadata-panel');
     const rTitle = document.getElementById('metadata-title');
     const rDate = document.getElementById('metadata-date');
-    const rType = document.getElementById('metadata-category');
+    const rCategory = document.getElementById('metadata-category');
+    const rVerse = document.getElementById('metadata-verse');
     const rDesc = document.getElementById('metadata-snippet');
     const rLink = document.getElementById('metadata-link');
     
-    if(panel && rTitle && rDate && rDesc && rLink) {
+    if(panel && rTitle && rDate && rCategory && rVerse && rDesc && rLink) {
         rTitle.textContent = record.title || "Unidentified Event";
         rDate.textContent = `Era/Timeline: ${record.era} > ${record.timeline}`;
-        rType.textContent = `Lane: ${record.lane.toUpperCase()} | Type: ${record.category}`;
+        rCategory.textContent = `Lane: ${record.lane.toUpperCase()} | Type: ${record.category}`;
+        
+        // Populate Verse
+        rVerse.textContent = formatVerseText(record.primaryVerse);
         
         let descText = "No description provided.";
         try {
@@ -264,4 +247,18 @@ function showMetadata(record) {
         panel.classList.remove('is-hidden');
         panel.classList.add('is-visible');
     }
+}
+
+function formatVerseText(verseJson) {
+    if (!verseJson) return "";
+    try {
+        const data = JSON.parse(verseJson);
+        if (Array.isArray(data) && data.length > 0) {
+            const v = data[0];
+            return `${v.book} ${v.chapter}:${v.verse}`;
+        }
+    } catch (e) {
+        return verseJson;
+    }
+    return "";
 }

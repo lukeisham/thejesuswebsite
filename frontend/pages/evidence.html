@@ -53,27 +53,12 @@
             <!-- Custom Diagram Grid layout taking over the main content area -->
             <div class="diagram-layout">
                 
-                <!-- Left Control Sidebar -->
-                <aside class="diagram-controls">
-                    <h1 class="diagram-controls__title">Evidence Graph</h1>
-                    
-                    <div class="diagram-controls__section">
-                        <label class="text-xs text-muted font-mono uppercase" for="era-slider">Era Filters</label>
-                        <input type="range" id="era-slider" class="diagram-controls__slider" min="0" max="100" value="50">
-                    </div>
-
-                    <div class="diagram-controls__section u-margin-top-4">
-                        <p class="text-xs text-muted font-mono uppercase mb-2">Display Layers</p>
-                        <button class="diagram-controls__btn">Historical Claims</button>
-                        <button class="diagram-controls__btn">Archaeology</button>
-                        <button class="diagram-controls__btn">Manuscript Chains</button>
-                    </div>
-                </aside>
-
                 <!-- Right Massive Canvas Area -->
                 <div class="diagram-canvas-container" id="ardor-canvas-area">
                     <!-- SVG gets injected here by ardor_display.js -->
                 </div>
+
+
 
             </div>
         </main>

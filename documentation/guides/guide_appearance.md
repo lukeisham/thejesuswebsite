@@ -1,13 +1,13 @@
 ---
 name: guide_appearance.md
 purpose: Visual ASCII representations of the public-facing pages for "The Jesus Website"
-version: 1.0.1
+version: 1.1.0
 dependencies: [guide_dashboard_appearance.md]
 ---
 
 # Guide to Page Appearance & Structural Layouts
 
-This document maintains visual ASCII blueprints for the various page templates defined in the CSS Architecture (`Module 4`). These diagrams dictate the HTML structural constraints (`div` / `grid` flow), ensuring consistent visual identity across the public-facing site.
+This document maintains visual ASCII blueprints for the various page templates defined in the CSS Architecture (`Module 4`). These diagrams dictate the HTML structural constraints (`div` / `grid` flow), ensuring consistent visual identity across the public-facing site. It is the source of truth for the appearance of the public facing pages.
 
 **Note:** The Admin Dashboard appearance will be documented separately in `guide_dashboard_appearance.md`.
 
@@ -52,7 +52,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/context.html`, `frontend/pages/debate.html`, `frontend/pages/resources.html`
-- **CSS:** `css/design_layouts/views/index_landing.css`
+- **CSS:** `css/design_layouts/views/index_landing.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_big/view_context_essays.js`
 
 ```text
@@ -106,7 +106,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/news.html`, `frontend/pages/blog.html`
-- **CSS:** `css/design_layouts/views/response_layout.css`
+- **CSS:** `css/design_layouts/views/response_layout.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_big/list_blogpost.js`, `frontend/display_big/list_newsitem.js`
 
 ```text
@@ -137,7 +137,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/about.html`
-- **CSS:** `css/design_layouts/views/essay_layout.css`
+- **CSS:** `css/design_layouts/views/essay_layout.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_other/footer.js`
 
 ```text
@@ -174,7 +174,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/debate/wikipedia.html`
-- **CSS:** `css/design_layouts/views/list_layout.css`, `css/elements/list_card_button.css`, `css/elements/thumbnails.css`
+- **CSS:** `css/design_layouts/views/list_layout.css`, `css/elements/grid.css`, `css/elements/list_card_button.css`, `css/elements/thumbnails.css`
 - **JS:** `frontend/display_big/list_view_wikipedia.js`, `frontend/display_other/thumbnails_display.js`
 
 ```text
@@ -209,8 +209,8 @@ This document maintains visual ASCII blueprints for the various page templates d
 **Purpose:** Special variant for challenge lists where a specific response record is inserted directly into the list flow for high context.
 
 **Relevant Files:**
-- **HTML:** `frontend/pages/challenges/Popular Challenges.html`, `frontend/pages/challenges/Academic Challenges.html`   
-- **CSS:** `css/design_layouts/views/list_layout.css`, `css/elements/list_card_button.css`, `css/elements/thumbnails.css`
+- **HTML:** `frontend/pages/debate/popular_challenge.html`, `frontend/pages/debate/academic_challenge.html`   
+- **CSS:** `css/design_layouts/views/list_layout.css`, `css/elements/grid.css`, `css/elements/list_card_button.css`, `css/elements/thumbnails.css`
 - **JS:** `frontend/display_big/list_view_popular_challenges_with_response.js`, `frontend/display_big/list_view_academic_challenges_with_response.js`, `frontend/display_big/list_view_responses.js`, `frontend/display_other/thumbnails_display.js`
 
 ```text
@@ -246,7 +246,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/resources/OT Verses.html`, `frontend/pages/resources/People.html`, `frontend/pages/resources/Miracles.html`, `frontend/pages/resources/Events.html`, `frontend/pages/resources/Sermons and Sayings.html`, `frontend/pages/resources/objects.html`
-- **CSS:** `css/design_layouts/views/list_layout.css`
+- **CSS:** `css/design_layouts/views/list_layout.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_big/list_view.js`
 
 ```text
@@ -280,7 +280,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/resources/Manuscripts.html`, `frontend/pages/resources/Sites.html`, `frontend/pages/resources/Internal witnesses.html`, `frontend/pages/resources/External witnesses.html`, `frontend/pages/resources/Objects.html`, `frontend/pages/resources/Places.html`, `frontend/pages/resources/Sources.html`, `frontend/pages/resources/World Events.html`
-- **CSS:** `css/design_layouts/views/list_layout.css`
+- **CSS:** `css/design_layouts/views/list_layout.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_big/list_view.js`
 
 ```text
@@ -313,7 +313,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/record.html`
-- **CSS:** `css/design_layouts/views/single_layout.css`, `css/elements/pictures.css`
+- **CSS:** `css/design_layouts/views/single_layout.css`, `css/elements/grid.css`, `css/elements/pictures.css`
 - **JS:** `frontend/display_big/single_view.js`, `frontend/display_other/sources_biblio_display.js`, `frontend/display_other/pictures_display.js`
 
 ```text
@@ -346,7 +346,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/debate/historiography.html`, `frontend/pages/response.html`, `frontend/pages/context_essay.html`  
-- **CSS:** `css/design_layouts/views/essay_layout.css`, `css/design_layouts/views/response_layout.css`
+- **CSS:** `css/design_layouts/views/essay_layout.css`, `css/design_layouts/views/response_layout.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_big/view_historiography.js`, `frontend/display_other/mla_snippet_display.js`, `frontend/display_other/sources_biblio_display.js`, `frontend/display_other/display_snippet.js`, `frontend/display_big/response_display.js`
 
 ```text
@@ -394,66 +394,152 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/maps.html`, `frontend/pages/maps/map_jerusalem.html`, `frontend/pages/maps/map_empire.html`, `frontend/pages/maps/map_levant.html`, `frontend/pages/maps/map_galilee.html`, `frontend/pages/maps/map_judea.html`
-- **CSS:** `css/elements/map_diagram.css`
+- **CSS:** `css/elements/map_diagram.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_other/maps_display.js`
 
 ```text
 +-------------------------------------------------------------------------+
 | [Invisible Header]                                                      |
 |-------------------------------------------------------------------------|
-| SITE LOGO | [ Search Bar ] | [ Nav Links... ]                           |
+| [ Search Bar ]                                                          |
 |-------------------------------------------------------------------------|
-|  [Sidebar]          |                                                   |
 |                     |                                                   |
-|  [Interactive       |                                                   |
-|   Controls]         |              [ MAP AREA ]                         |
-|                     |            (Renders Maps)                         |
-|  - Zoom In/Out      |                                                   |
-|  - Toggle Layers    |                                                   |
-|  - Era Slider       |                    * [Node A]                     |
-|                     |                   /                               |
-|                     |                  /                                |
-|                     |        * [Node B] -------- * [Node C]             |
-|                     |                            |                      |
-|                     |                 * [Node D] |                      |
-|                     |                            |                      |
+|  [Sidebar Nav]      |   Interactive Geospatial Maps                     |
+|                     |   Explore the geography of historical events...    |
+|  - Records          |                                                   |
+|  - Evidence         |   +-------------------------------------------+   |
+|  - Timeline         |   |                                           |   |
+|  - Maps             |   |              [ MAP AREA ]                 |   |
+|  - Context          |   |            (Renders Maps)                 |   |
+|  - Resources        |   |                                           |   |
+|  - Debate           |   |                    * [Node A]             |   |
+|  - About            |   |                 /                         |   |
+|                     |   |   * [Node B] -------- * [Node C]          |   |
+|                     |   |                                           |   |
+|                     |   |-------------------------------------------|   |
+|                     |   | [Views: Empire, Judea, Galilee...] [+] [-]|   |
+|                     |   | Temporal Slider: [========] [30 AD]       |   |
+|                     |   +-------------------------------------------+   |
+|                     |                                                   |
+|                     |   +-------------------------------------------+   |
+|                     |   | [METADATA PANEL]                          |   |
+|                     |   | Date / Category / Snippet / Link          |   |
+|                     |   +-------------------------------------------+   |
 |                     |                                                   |
 |-------------------------------------------------------------------------|
 |  [Universal Footer]                                                     |
 +-------------------------------------------------------------------------+
 ```
+
+### 3.3.1 Visual Interactive Map — Component Anatomy
+**Purpose:** Detailed breakdown of the interactive geospatial map interface, including controls, canvas, and metadata display.
+
+**Relevant Technical Files:**
+- **Structure:** `frontend/pages/maps.html`
+- **Logic:** `frontend/display_other/maps_display.js`
+- **Styles:** `css/elements/map_diagram.css`
+
+**HTML DOM Structure:**
+```text
+<div class="map-interface-container" id="map-interface">
+│
+├── <div class="map-canvas-wrapper">
+│   └── <svg id="interactive-map">      ← Map vector canvas
+│       ├── <g id="base-layer">         ← Geographic outlines
+│       ├── <g id="foundation-layer">   ← Region labels
+│       └── <g id="node-layer">         ← Interactive data circles (.map-node)
+│
+└── <div class="map-controls">
+    ├── <div class="map-views">         ← Radio buttons: Empire, Levant, Judea...
+    ├── <div class="map-actions">       ← Buttons: #zoom-in, #zoom-out, #toggle-layers
+    └── <div class="map-era-slider">    ← Input: #era-filter + #era-display
+```
+
+**Metadata Display (Post-Click):**
+```text
+<aside class="map-metadata-panel" id="map-metadata-panel">
+    <h2 id="metadata-title">            ← Connected record title
+    <p id="metadata-date">              ← Period or Era from database
+    <p id="metadata-category">          ← Record category (event, person, etc)
+    <p id="metadata-verse">             ← Primary biblical reference
+    <p id="metadata-snippet">           ← Summary from database
+    <a href="#" id="metadata-link">     ← Deep-link to record.html
+```
+
 ## 3.2 Visual Interactive timeline Display 
 **Purpose:** Full-screen or large-canvas layouts for interactive timeline layout. 
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/timeline.html`
-- **CSS:** `css/elements/timeline_diagram.css`
+- **CSS:** `css/elements/timeline_diagram.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_other/timeline_display.js`
 
 ```text
 +-------------------------------------------------------------------------+
 | [Invisible Header]                                                      |
 |-------------------------------------------------------------------------|
-| SITE LOGO | [ Search Bar ] | [ Nav Links... ]                           |
+| [ Search Bar ]                                                          |
 |-------------------------------------------------------------------------|
-|  [Sidebar]          |                                                   |
 |                     |                                                   |
-|  [Interactive       |                                                   |
-|   Controls]         |              [ MASSIVE CANVAS AREA ]              |
-|                     |            (Renders SVG Timelines)                |
-|  - Zoom In/Out      |                                                   |
-|  - Toggle Layers    |                           *                       |
-|  - Era Slider       |             *             *                       |
-|                     |             *             *             *         |
-|                     |       *     *       *     *       *     *         |
-|                     |  ====[*]====[*]====[*]====[*]====[*]====[*]====   |
-|                     |     [Yr]   [Yr]   [Yr]   [Yr]   [Yr]   [Yr]       |
+|  [Sidebar Nav]      |   Interactive Historical Timeline                 |
+|                     |   Explore the chronological intersection...       |
+|  - Records          |                                                   |
+|  - Evidence         |   +-------------------------------------------+   |
+|  - Timeline         |   |                                           |   |
+|  - Maps             |   |          [ MASSIVE CANVAS AREA ]          |   |
+|  - Context          |   |              (Renders SVG)                |   |
+|  - Resources        |   |                                           |   |
+|  - Debate           |   |          *             *             *    |   |
+|  - About            |   |   ====[*]==========[*]===========[*]====  |   |
+|                     |   |    [Year 30]   [Year 33]     [Year 70]    |   |
+|                     |   |                                           |   |
+|                     |   |-------------------------------------------|   |
+|                     |   | [Zoom +/-]                                |   |
+|                     |   | [<< Prev Era][ Galilee Ministry ][Next >>]|   |
+|                     |   +-------------------------------------------+   |
 |                     |                                                   |
-|                     |                                                   |
+|                     |   +-------------------------------------------+   |
+|                     |   | [METADATA PANEL]                          |   |
+|                     |   | Event / Year / Category / Link            |   |
+|                     |   +-------------------------------------------+   |
 |                     |                                                   |
 |-------------------------------------------------------------------------|
 |  [Universal Footer]                                                     |
 +-------------------------------------------------------------------------+
+```
+
+### 3.2.1 Visual Interactive Timeline — Component Anatomy
+**Purpose:** Breakdown of the chronological timeline visualization, documenting the controls and the horizontally-scrolling canvas.
+
+**Relevant Technical Files:**
+- **Structure:** `frontend/pages/timeline.html`
+- **Logic:** `frontend/display_other/timeline_display.js`
+- **Styles:** `css/elements/timeline_diagram.css`
+
+**HTML DOM Structure:**
+```text
+<div class="timeline-interface-container" id="timeline-interface">
+│
+├── <div class="timeline-canvas-wrapper" id="timeline-canvas-wrapper">
+│   └── <svg id="interactive-timeline">       ← Massive horizontally-scrolling canvas
+│       ├── <g id="grid-layer">               ← Time markers and background
+│       ├── <line class="timeline-axis-line"> ← The central horizontal spine
+│       └── <g id="node-layer">               ← Interactive event dots (.timeline-node)
+│
+└── <div class="timeline-controls">
+    ├── <div class="timeline-actions">       ← Buttons: #zoom-in, #zoom-out
+    └── <div class="timeline-era-navigation"> ← Buttons: #prev-era, #next-era
+```
+
+**Metadata Display (Post-Click):**
+```text
+<aside class="timeline-metadata-panel" id="timeline-metadata-panel">
+    <h2 id="metadata-title">           ← Event name
+    <p id="metadata-date">             ← Precise historical year/era
+    <p id="metadata-category">         ← Category (biblical, secular, etc)
+    <p id="metadata-verse">            ← Primary biblical reference
+    <div id="metadata-snippet">        ← Event description
+    <a id="metadata-link">             ← Deep-link to record.html
 ```
 
 ## 3.1 Visual Interactive Ardor diagram Display 
@@ -461,33 +547,54 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/evidence.html`
-- **CSS:** `css/elements/ardor_diagram.css`
+- **CSS:** `css/elements/ardor_diagram.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_big/ardor_display.js`
 
 ```text
 +-------------------------------------------------------------------------+
 | [Invisible Header]                                                      |
 |-------------------------------------------------------------------------|
-| SITE LOGO | [ Search Bar ] | [ Nav Links... ]                           |
+| [ Search Bar ]                                                          |
 |-------------------------------------------------------------------------|
-|  [Sidebar]          |                                                   |
 |                     |                                                   |
-|  [Interactive       |                                                   |
-|   Controls]         |              [ MASSIVE CANVAS AREA ]              |
-|                     |            (Renders Ardor Node Graphs)            |
-|  - Zoom In/Out      |                                                   |
-|  - Toggle Layers    |                                 +----------+      |
-|  - Era Slider       |                           +---->| [Node C] |      |
-|                     |      +----------+         |     +----------+      |
-|                     |      | [Node A] |---------+                       |
-|                     |      +----------+         |     +----------+      |
-|                     |                           +---->| [Node B] |      |
-|                     |                                 +----------+      |
-|                     |                                                   |
+|  [Sidebar Nav]      |   +-------------------------------------------+   |
+|                     |   |                                           |   |
+|  - Records          |   |          [ MASSIVE CANVAS AREA ]          |   |
+|  - Evidence         |   |              (Renders Ardor)              |   |
+|  - Timeline         |   |                                           |   |
+|  - Maps             |   |   [Node A] --+-> [Node]                   |   |
+|  - Context          |   |              |                            |   |
+|  - Resources        |   |              +-> [Node]                   |   |
+|  - Debate           |   |                                           |   |
+|  - About            |   |-------------------------------------------|   |
+|                     |   |                                           |   |
+|                     |   +-------------------------------------------+   |
 |                     |                                                   |
 |-------------------------------------------------------------------------|
 |  [Universal Footer]                                                     |
 +-------------------------------------------------------------------------+
+```
+
+### 3.1.1 Visual Interactive Arbor diagram — Component Anatomy
+**Purpose:** Documents the internal structure of the recursive evidence tree ('Arbor diagram'), which utilizes a vertically stacked layout within the main content area.
+
+**Relevant Technical Files:**
+- **Structure:** `frontend/pages/evidence.html`
+- **Logic:** `frontend/display_big/ardor_display.js`
+- **Styles:** `css/elements/ardor_diagram.css`
+
+**HTML DOM Structure:**
+```text
+<main class="site-main is-full-bleed" id="site-main">
+└── <div class="diagram-layout">
+    │
+    ├── <div class="diagram-canvas-container">
+    │   └── <svg class="ardor-svg">          ← Dynamic D3/SVG canvas area
+    │       ├── <path class="ardor-edge">     ← Relationship connectors
+    │       └── <g class="ardor-node">        ← Data containers
+    │           ├── <rect>                   ← Node boundary
+    │           ├── <text class="title">     ← Record title
+    │           └── <text class="meta">      ← Record type/era
 ```
 
 ---
@@ -499,7 +606,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** (generated by `sidebar.js`)
-- **CSS:** `css/design_layouts/universal/sidebar.css`
+- **CSS:** `css/design_layouts/universal/sidebar.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_other/sidebar.js`
 
 ```text
@@ -522,21 +629,48 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------+
 ```
 
+### 1.5.1 Sidebar — Technical Anatomy Mapping
+**Purpose:** Documents the mapping between visual interface elements and their technical implementation in `sidebar.js` and `sidebar.css`.
+
+**Relevant Technical Files:**
+- **Logic:** `frontend/display_other/sidebar.js`
+- **Styles:** `css/design_layouts/universal/sidebar.css`, `css/elements/grid.css`
+
+```text
++----------------------+-----------------------------+------------------------------------+
+| Interface Element    | CSS Component Class         | DOM ID / Hook                      |
+|----------------------|-----------------------------|------------------------------------|
+| Main Container       | .site-sidebar               | #site-sidebar                      |
+| Top Brand Label      | .site-sidebar__brand        | #sidebar-brand "The Jesus website" |
+| Navigation List      | .site-sidebar__nav          | #sidebar-main-nav                  |
+| Navigation Link      | .site-sidebar__nav li a     | #sidebar-nav-[id]                  |
+| Section Divider      | .site-sidebar__divider      | (No ID)                            |
+| Category Label       | .site-sidebar__nav-category | (No ID)                            |
+| Table of Contents    | .site-sidebar__nav          | #sidebar-toc                       |
+| Mobile Backdrop      | .sidebar-backdrop           | #sidebar-backdrop                  |
++----------------------+-----------------------------+------------------------------------+
+```
+
+
 ### 1.6 Universal Footer
-**Purpose:** The unviersal footer that anchors the bottom of every readable page, providing specialised print and copy buttons that print the contents of the page (Not including the sidebar.)
+**Purpose:** The universal footer that anchors the bottom of every readable page. Redesigned into a single horizontal strip for a more streamlined, modern aesthetic while maintaining accessibility and functional access to utility tools.
 
 **Relevant Files:**
 - **HTML:** (generated by `footer.js`)
-- **CSS:** `css/design_layouts/universal/footer.css`
+- **CSS:** `css/design_layouts/universal/footer.css`, `css/elements/grid.css`
 - **JS:** `frontend/display_other/footer.js`
 
 
 ```text
-+-------------------------------------------------------------------------+
-| [Print contents] | [Copy URL] | [Copy contents]                         |
-|-------------------------------------------------------------------------|
-| [Copyright 2026] | [favicon] | [Copyright Licence]                      |
-+-------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------------+
+| [Copyright 2026] | [ Aleph/Omega icon ] | [Copyright Licence]   [Print] | [Copy] | [Copy] |
++-----------------------------------------------------------------------------------------+
+```
+
+### 1.6.1 Footer — Component Breakdown
+- **Legal & Branding (Left):** Displays site copyright, the Aleph/Omega branding icon (`assets/favicon.png`), and the CC BY-NC 4.0 license link.
+- **Utility Actions (Right):** Horizontal group of ghost buttons providing specialized Print and Copy functionality.
+- **Structural Behavior:** Leverages `justify-content: space-between` on a single-row flex container. Collapses to a centered vertical stack on screens below 800px.
 ```
 
 ### 1.7 Picture
@@ -629,88 +763,18 @@ Thumbnails do not follow this rule and only display the picture. (see `thumbnail
 
 ---
 
-### 1.8.2 Search Pipeline — End-to-End Logic Flow
-**Purpose:** Documents the complete data path from a user-typed query in the search box through to rendered results on `records.html`.
 
-**Relevant Files (in execution order):**
-- `frontend/display_other/search_header.js`
-- `frontend/pages/records.html`
-- `frontend/core/sanitize_query.js`
-- `frontend/core/setup_db.js`
-- `frontend/display_big/list_view.js`
+## 1.9 Branding & Icons
+**Purpose:** Establishes the core visual identity of "The Jesus Website" through symbolic archetypes.
 
-```text
- USER ACTION
- +-----------+
- | Types     |   e.g. "Peter"
- | query     |
- | presses   |
- | [Enter]   |
- +-----------+
-       |
-       v
- +---------------------+
- | search_header.js    |   encodeURIComponent("Peter") = "Peter"
- | handleSearchKeydown |   window.location.href =
- |                     |   "/frontend/pages/records.html?search=Peter"
- +---------------------+
-       |
-       | (browser navigates — full page load)
-       v
- +---------------------+
- | records.html        |   Loads scripts in order:
- |                     |   1. sql-wasm.js     (WASM engine)
- |                     |   2. setup_db.js     (fetches DB, fires 'thejesusdb:ready')
- |                     |   3. list_view.js    (listens for 'thejesusdb:ready')
- |                     |   4. initializer.js  (injects sidebar, search bar)
- +---------------------+
-       |
-       | ('thejesusdb:ready' fires once DB is loaded)
-       v
- +---------------------+
- | list_view.js        |   renderListView() runs
- | renderListView()    |   searchParam = URLSearchParams.get('search') = "Peter"
- |                     |   → sets page title: "Search Results: 'Peter'"
- +---------------------+
-       |
-       v
- +---------------------+
- | sanitize_query.js   |   sanitizeSearchTerm("Peter")
- | sanitizeSearchTerm  |   strips control chars, collapses whitespace,
- |                     |   enforces 200-char max
- |                     |   output: "Peter" (unchanged if clean)
- +---------------------+
-       |
-       v
- +---------------------+
- | setup_db.js         |   db.searchRecords("Peter", 50)
- | searchRecords()     |
- |                     |   SQL executed (read-only, WASM in-memory):
- |                     |   SELECT id, title, slug, snippet ...
- |                     |   FROM records
- |                     |   WHERE users = 'Public'
- |                     |     AND (title LIKE '%Peter%'
- |                     |          OR snippet LIKE '%Peter%')
- |                     |   ORDER BY page_views DESC
- |                     |   LIMIT 50;
- +---------------------+
-       |
-       | returns Array<Object> of matching rows
-       v
- +---------------------+
- | list_view.js        |   Builds <li> HTML for each row
- | (render loop)       |   Injects into #record-list
- |                     |   Hides pagination (search bypasses it)
- +---------------------+
-       |
-       v
- +---------------------------------------------------+
- | DOM: #record-list populated with search results   |
- | Title bar reads: Search Results: "Peter"          |
- +---------------------------------------------------+
+**Primary Icon:** `assets/favicon.png`
+**Design Concept:** A thin black circle enclosing the letters **א (Aleph)** and **Ω (Omega)** side by side.
+**Symbolic Rationale:** Represents the "Alpha and Omega" (Beginning and End) concept, utilizing the first letter of the Hebrew alphabet and the last letter of the Greek alphabet to reflect the Judeo-Christian historical and theological scope of the project.
 
-  ESCAPE KEY (on any page with the search bar):
-  searchInput.value = ''  ← input cleared, no navigation
-```
+**Usage:**
+- **Browser Tab:** Injected via `header.js` as the standard site `favicon`.
+- **Universal Footer:** Centered as a minimalist signature.
 
-
+**Relevant Files:**
+- **Image:** `assets/favicon.png`
+- **Logic:** `frontend/display_other/header.js`, `frontend/display_other/footer.js`

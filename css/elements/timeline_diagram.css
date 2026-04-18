@@ -30,7 +30,7 @@
     align-items: center;
     padding: var(--space-3);
     background-color: var(--color-bg-tertiary);
-    border-bottom: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-border);
     flex-wrap: wrap;
     gap: var(--space-3);
 }
@@ -51,18 +51,7 @@
     color: var(--color-bg-primary);
 }
 
-.timeline-layer-toggle label {
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    margin-right: var(--space-2);
-    cursor: pointer;
-    vertical-align: middle;
-}
 
-.timeline-layer-toggle input {
-    margin-right: var(--space-1);
-    vertical-align: middle;
-}
 
 .timeline-era-navigation {
     display: flex;
@@ -168,4 +157,10 @@
     font-family: var(--font-body);
     margin-bottom: var(--space-2);
     color: var(--color-text-secondary);
+}
+
+.timeline-metadata-verse {
+    font-style: italic;
+    color: var(--color-dash-accent) !important; /* Antique Gold */
+    font-size: var(--text-sm);
 }

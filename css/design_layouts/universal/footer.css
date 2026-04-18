@@ -2,10 +2,10 @@
 
    THE JESUS WEBSITE — FOOTER STYLES
    File:    css/design_layouts/universal/footer.css
-   Version: 1.1.0
+   Version: 1.2.1
    Purpose: Visual styles for the Universal Footer injected by footer.js.
-            Two-row strip: action buttons (Print, Copy URL, Copy Contents)
-            above a legal/copyright row.
+            Single-row horizontal strip: Legal/Branding (Left) and
+            Action Buttons (Right).
    Source:  guide_appearance.md §1.6, guide_style.md §6.2
 
    DEPENDENCIES:
@@ -14,9 +14,9 @@
 
    TABLE OF CONTENTS:
      1.  Footer Container
-     2.  Action Buttons Row
+     2.  Action Buttons Row (Right Group)
      3.  Action Button Element
-     4.  Legal / Copyright Row
+     4.  Legal / Copyright Row (Left Group)
      5.  Responsive Adjustments
 
 ============================================================================= */
@@ -27,7 +27,7 @@
 /* =============================================================================
    1. FOOTER CONTAINER
    Source: guide_style.md §6.2 — "The Legal Ledger"
-   Deep charcoal background (#242423 = --color-text-primary) with muted text.
+   Aged paper background matching the sidebar.
    Base structure in grid.css (.site-footer); these rules add component detail.
 ============================================================================= */
 
@@ -39,20 +39,16 @@
 
 /* =============================================================================
    2. ACTION BUTTONS ROW
-   Row 1: [Print contents] | [Copy URL] | [Copy contents]
+   Right-aligned group: [Print contents] | [Copy URL] | [Copy contents]
    Source: guide_appearance.md §1.6 ASCII layout.
 ============================================================================= */
 
-.site-footer__actions {
-    /* Base flex layout is in grid.css; extend here */
-    flex-wrap:         wrap;
-}
+/* Base flex is in grid.css; ensure no internal wrapping unless necessary */
 
 
 /* =============================================================================
    3. ACTION BUTTON ELEMENT
-   Minimal ghost-style button on dark background.
-   No filled backgrounds — text + border only to keep it understated.
+   Minimal ghost-style button on light background.
 ============================================================================= */
 
 .footer-btn {
@@ -68,7 +64,7 @@
     color:             var(--color-text-secondary);
 
     background:        transparent;
-    border:            var(--border-width-thin) solid var(--color-border-inverse);
+    border:            var(--border-width-thin) solid var(--color-border);
     border-radius:     var(--radius-sm);
     padding:           4px var(--space-2);
     cursor:            pointer;
@@ -78,7 +74,7 @@
 }
 
 .footer-btn:hover {
-    color:             var(--color-text-inverse);
+    color:             var(--color-text-primary);
     border-color:      var(--color-text-secondary);
 }
 
@@ -97,30 +93,26 @@
 
 /* =============================================================================
    4. LEGAL / COPYRIGHT ROW
-   Row 2: [Copyright 2026] | [favicon / logo mark] | [Copyright Licence]
+   Left-aligned group: [Copyright 2026] | [favicon / logo mark] | [Copyright Licence]
    Source: guide_appearance.md §1.6
 ============================================================================= */
 
-.site-footer__legal {
-    /* Base flex layout is in grid.css */
-    flex-wrap:         wrap;
-    gap:               var(--space-2);
-}
+/* Base flex is in grid.css */
 
 .site-footer__legal-text {
-    /* Typography token from grid.css; additional specificity here */
-    color:             var(--color-text-secondary);    /* Lead Grey — muted on dark bg */
+    /* Lead Grey — muted on aged background */
+    color:             var(--color-text-secondary);
     user-select:       none;
 }
 
-/* Small favicon / logo mark centred between the two legal texts */
+/* Small favicon / logo mark */
 .site-footer__mark {
     display:           flex;
     align-items:       center;
     justify-content:   center;
     font-family:       var(--font-mono);
     font-size:         var(--text-xs);
-    color:             var(--color-text-muted);
+    color:             var(--color-text-secondary);
     letter-spacing:    var(--tracking-wide);
 }
 
@@ -128,31 +120,42 @@
 .site-footer__licence-link {
     font-family:       var(--font-mono);
     font-size:         var(--text-xs);
-    color:             var(--color-text-muted);
+    color:             var(--color-text-secondary);
     letter-spacing:    var(--tracking-wide);
     text-decoration:   none;
     transition:        color var(--transition-fast);
 }
 
 .site-footer__licence-link:hover {
-    color:             var(--color-accent-muted);
+    color:             var(--color-accent-primary);
     text-decoration:   underline;
 }
 
 
 /* =============================================================================
    5. RESPONSIVE ADJUSTMENTS
+   Collapse to vertical stack on mobile/tablet if needed.
 ============================================================================= */
 
-@media (max-width: 640px) {
+@media (max-width: 800px) {
+
+    .site-footer {
+        flex-direction: column;
+        padding-block: var(--space-2);
+        height: auto;
+    }
 
     .site-footer__actions {
-        gap:           var(--space-1);
+        order:         1;   /* Actions on top in mobile stack */
+        justify-content: center;
+        width:         100%;
+        border-bottom: var(--border-width-thin) solid var(--color-border);
     }
 
     .site-footer__legal {
-        flex-direction: column;
-        align-items:   flex-start;
-        gap:           var(--space-1);
+        order:         2;
+        justify-content: center;
+        width:         100%;
+        padding-top:   var(--space-1);
     }
 }

@@ -11,64 +11,14 @@
 
 /* Main Structure for Diagram pages (Map, Timeline, Ardor) */
 .diagram-layout {
-    display: grid;
-    grid-template-columns: 240px 1fr;
+    display: flex;
+    flex-direction: column;
     gap: var(--space-4);
     min-height: calc(100vh - var(--header-height) - 100px);
     width: 100%;
 }
 
-/* Interactive Controls Sidebar */
-.diagram-controls {
-    background-color: var(--color-bg-secondary);
-    border-right: var(--border-width-thin) solid var(--color-border);
-    padding: var(--space-4);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    height: 100%;
-}
 
-.diagram-controls__section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-
-.diagram-controls__title {
-    font-family: var(--font-heading);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking-wide);
-    border-bottom: var(--border-width-thin) solid var(--color-border);
-    padding-bottom: var(--space-1);
-    margin-bottom: var(--space-2);
-}
-
-.diagram-controls__btn {
-    padding: var(--space-2);
-    background-color: var(--color-bg-primary);
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    cursor: pointer;
-    text-align: left;
-    transition: all var(--transition-fast);
-}
-
-.diagram-controls__btn:hover {
-    border-color: var(--color-accent-primary);
-    color: var(--color-accent-primary);
-}
-
-/* Range input for Era Slider etc. */
-.diagram-controls__slider {
-    width: 100%;
-    margin-top: var(--space-1);
-}
 
 /* The Massive Canvas Area */
 .diagram-canvas-container {
@@ -147,14 +97,4 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-    .diagram-layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 500px;
-    }
-    
-    .diagram-controls {
-        border-right: none;
-        border-bottom: var(--border-width-thin) solid var(--color-border);
-    }
-}
+

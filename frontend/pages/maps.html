@@ -16,6 +16,7 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../../css/elements/typography_colors.css">
     <link rel="stylesheet" href="../../css/elements/grid.css">
+    <link rel="stylesheet" href="../../css/elements/list_card_button.css">
     <link rel="stylesheet" href="../../css/elements/map_diagram.css">
 
     <!-- UI Logic Components -->
@@ -57,27 +58,6 @@
                 </header>
 
                 <div class="map-interface-container" id="map-interface">
-                    <!-- Interactive Controls & Overlay -->
-                    <div class="map-controls">
-                        <div class="map-views">
-                            <label><input type="radio" name="map_view" value="empire"> Empire</label>
-                            <label><input type="radio" name="map_view" value="levant"> Levant</label>
-                            <label><input type="radio" name="map_view" value="judea" checked> Judea</label>
-                            <label><input type="radio" name="map_view" value="galilee"> Galilee</label>
-                            <label><input type="radio" name="map_view" value="jerusalem"> Jerusalem</label>
-                        </div>
-                        <div class="map-actions">
-                            <button id="zoom-in" aria-label="Zoom In">+</button>
-                            <button id="zoom-out" aria-label="Zoom Out">-</button>
-                            <button id="toggle-layers" aria-label="Toggle Layers">Layers</button>
-                        </div>
-                        <div class="map-era-slider">
-                            <label for="era-filter">Temporal Slider:</label>
-                            <input type="range" id="era-filter" min="-100" max="100" value="30">
-                            <span id="era-display" class="map-era-display">30 AD</span>
-                        </div>
-                    </div>
-
                     <!-- Main Canvas Area -->
                     <div class="map-canvas-wrapper" id="map-canvas-wrapper">
                         <!-- Target for map_*.html injections or dynamic rendering -->
@@ -96,13 +76,35 @@
                             <g id="node-layer"></g>
                         </svg>
                     </div>
+
+                    <!-- Interactive Controls & Overlay -->
+                    <div class="map-controls">
+                        <div class="map-views">
+                            <label><input type="radio" name="map_view" value="empire"> Empire</label>
+                            <label><input type="radio" name="map_view" value="levant"> Levant</label>
+                            <label><input type="radio" name="map_view" value="judea" checked> Judea</label>
+                            <label><input type="radio" name="map_view" value="galilee"> Galilee</label>
+                            <label><input type="radio" name="map_view" value="jerusalem"> Jerusalem</label>
+                        </div>
+                        <div class="map-actions">
+                            <button id="zoom-in" class="btn-skewed" aria-label="Zoom In"><span>+</span></button>
+                            <button id="zoom-out" class="btn-skewed" aria-label="Zoom Out"><span>-</span></button>
+                            <button id="toggle-layers" class="btn-skewed" aria-label="Toggle Layers"><span>Layers</span></button>
+                        </div>
+                        <div class="map-era-slider">
+                            <label for="era-filter">Temporal Slider:</label>
+                            <input type="range" id="era-filter" min="-100" max="100" value="30">
+                            <span id="era-display" class="map-era-display">30 AD</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Metadata panel (sidebar content from map clicks) -->
                 <aside class="map-metadata-panel is-hidden" id="map-metadata-panel">
                     <h2 id="metadata-title">Record Title</h2>
                     <p id="metadata-date">Date:</p>
-                    <p id="metadata-type">Type:</p>
+                    <p id="metadata-category">Category:</p>
+                    <p id="metadata-verse" class="map-metadata-verse"></p>
                     <p id="metadata-snippet">Snippets go here...</p>
                     <a href="#" id="metadata-link" class="map-metadata-link">View Full Record &rarr;</a>
                 </aside>

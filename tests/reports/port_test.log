@@ -1,0 +1,8 @@
+2026-04-18 16:22:22,329 - INFO - Starting Infrastructure Port Health Audit...
+2026-04-18 16:22:22,329 - INFO - SUCCESS: Admin FastAPI Backend responding on 127.0.0.1:8000
+2026-04-18 16:22:22,329 - ERROR - FAILURE: MCP Read-Only Server NOT responding on 127.0.0.1:8001
+2026-04-18 16:22:22,329 - WARNING - Incomplete infrastructure response detected.
+2026-04-18 16:32:38,406 - INFO - Starting Infrastructure Port Health Audit...
+2026-04-18 16:32:38,407 - INFO - SUCCESS: Admin FastAPI Backend responding on 127.0.0.1:8000
+2026-04-18 16:32:38,407 - ERROR - FAILURE: MCP Read-Only Server NOT responding on 127.0.0.1:8001
+2026-04-18 16:32:38,407 - WARNING - Incomplete infrastructure response detected.

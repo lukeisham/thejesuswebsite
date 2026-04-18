@@ -24,8 +24,8 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    padding-bottom: var(--space-3);
-    border-bottom: var(--border-width-thin) solid var(--color-border);
+    padding-top: var(--space-3);
+    border-top: var(--border-width-thin) solid var(--color-border);
 }
 
 .map-views label {
@@ -127,6 +127,12 @@
     line-height: var(--line-height-base);
     color: var(--color-text-secondary);
     margin-bottom: var(--space-2);
+}
+
+.map-metadata-verse {
+    font-style: italic;
+    color: var(--color-dash-accent) !important; /* Antique Gold for authority source */
+    margin-bottom: var(--space-3) !important;
 }
 
 .map-metadata-link {

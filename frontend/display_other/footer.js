@@ -2,7 +2,7 @@
 //
 //   THE JESUS WEBSITE — UNIVERSAL FOOTER
 //   File:    frontend/display_other/footer.js
-//   Version: 1.0.0
+//   Version: 1.1.0
 //   Purpose: Injects the Universal Footer into every readable page.
 //            Provides Print, Copy URL, and Copy Contents action buttons
 //            and a legal/copyright strip.
@@ -37,27 +37,7 @@ function injectFooter(anchorId) {
     const footerHTML = `
 <footer class="site-footer" id="site-footer" role="contentinfo">
 
-    <!-- Row 1: Action buttons -->
-    <div class="site-footer__actions" id="footer-actions">
-
-        <button class="footer-btn" id="footer-btn-print" type="button" aria-label="Print this page">
-            <span class="footer-btn__icon" aria-hidden="true">⎙</span>
-            Print contents
-        </button>
-
-        <button class="footer-btn" id="footer-btn-copy-url" type="button" aria-label="Copy page URL">
-            <span class="footer-btn__icon" aria-hidden="true">⧉</span>
-            Copy URL
-        </button>
-
-        <button class="footer-btn" id="footer-btn-copy-contents" type="button" aria-label="Copy page text contents">
-            <span class="footer-btn__icon" aria-hidden="true">⊕</span>
-            Copy contents
-        </button>
-
-    </div>
-
-    <!-- Row 2: Legal / copyright -->
+    <!-- Row: Legal / copyright (Left) -->
     <div class="site-footer__legal" id="footer-legal">
 
         <span class="site-footer__legal-text" id="footer-copyright">
@@ -65,7 +45,7 @@ function injectFooter(anchorId) {
         </span>
 
         <span class="site-footer__mark" id="footer-mark" aria-hidden="true">
-            ✝
+            <img src="/assets/favicon.png" alt="Branding" width="24" height="24" style="vertical-align: middle; filter: grayscale(1) contrast(1.2);">
         </span>
 
         <a
@@ -79,6 +59,30 @@ function injectFooter(anchorId) {
             CC BY-NC 4.0
         </a>
 
+    </div>
+
+    <!-- Row: Action buttons (Right) -->
+    <div class="site-footer__actions" id="footer-actions">
+        <button class="footer-btn btn-skewed" id="footer-btn-print" type="button" aria-label="Print this page">
+            <span>
+                <span class="footer-btn__icon" aria-hidden="true">⎙</span>
+                Print contents
+            </span>
+        </button>
+
+        <button class="footer-btn btn-skewed" id="footer-btn-copy-url" type="button" aria-label="Copy page URL">
+            <span>
+                <span class="footer-btn__icon" aria-hidden="true">⧉</span>
+                Copy URL
+            </span>
+        </button>
+
+        <button class="footer-btn btn-skewed" id="footer-btn-copy-contents" type="button" aria-label="Copy page text contents">
+            <span>
+                <span class="footer-btn__icon" aria-hidden="true">⊕</span>
+                Copy contents
+            </span>
+        </button>
     </div>
 
 </footer>

@@ -2,7 +2,7 @@
 
    THE JESUS WEBSITE — LIST CARD & INTERACTIVE BUTTONS
    File:    css/elements/list_card_button.css
-   Version: 1.1.0
+   Version: 1.2.0
    Purpose: Specific styles for interactive UI components used in lists and cards.
    Source:  guide_style.md §10, §11
 
@@ -65,7 +65,63 @@
 }
 
 /* =============================================================================
-   3. LIST ROW HOVER EFFECT
+   3. SKEWED INTERACTIVE BUTTON
+   Features a skewed shape and a sliding hover background.
+   REQUIRED: Content must be wrapped in a <span> to counter-skew text.
+============================================================================= */
+
+.btn-skewed {
+    background: var(--color-white);
+    border: none;
+    padding: var(--space-1) var(--space-3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    text-transform: uppercase;
+    cursor: pointer;
+    transform: skew(-21deg);
+    position: relative;
+    overflow: hidden;
+    color: var(--color-text-primary);
+    transition: color 0.5s;
+    text-decoration: none;
+}
+
+/* Reverse the skew to make text upright */
+.btn-skewed span {
+    display: inline-block;
+    transform: skew(21deg);
+}
+
+.btn-skewed::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 100%;
+    left: 0;
+    background: var(--color-accent-primary);
+    opacity: 0;
+    z-index: -1;
+    transition: all 0.5s;
+}
+
+.btn-skewed:hover {
+    color: var(--color-white);
+    text-decoration: none;
+}
+
+.btn-skewed:hover::before {
+    left: 0;
+    right: 0;
+    opacity: 1;
+}
+
+/* =============================================================================
+   4. LIST ROW HOVER EFFECT
    Subtle visual cues for row-based interactions.
 ============================================================================= */
 
@@ -80,7 +136,7 @@
 }
 
 /* =============================================================================
-   4. CARD BADGE LABELS
+   5. CARD BADGE LABELS
    Identifiers: "Response", "Fragment", "Prophecy".
 ============================================================================= */
 
@@ -104,3 +160,5 @@
     background-color: var(--color-border);
     color: var(--color-text-secondary);
 }
+
+

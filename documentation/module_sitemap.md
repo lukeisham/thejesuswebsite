@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 1.0.1
+version: 1.1.4
 purpose: visual and list taxonomy of codebase
 dependencies: [site_map.md]
 ---
@@ -54,7 +54,7 @@ The purpose of this codebase is to build an archival style website organising an
 index.html                     <-- Website Landing Page (Root Entry)
 robots.txt                     <-- Manual for well-behaved bots
 sitemap.xml                    <-- Index of content for crawlers
-favicon.ico                    <-- Website Favicon Browser branding
+assets/favicon.png              <-- Website Favicon Branding (Aleph + Omega)
 
 frontend/pages/
 ├── about.html                 <-- About page
@@ -64,13 +64,14 @@ frontend/pages/
 └── news_and_blog.html         <-- Internal Landing Page: News Feed
 
 frontend/display_other/
-├── sidebar.js                 <-- Universal Sticky Sidebar
+├── sidebar.js                 <-- Universal Sticky Sidebar (see guide_appearance.md
+                                    §1.5.1 for technical anatomy mapping)
 ├── footer.js                  <-- Universal Footer
 ├── header.js                  <-- Universal Header (+ SEO injected)
 └── search_header.js           <-- Injects search bar (search input only) into
                                    certain pages. No logo or nav links.
-                                   (see guide_appearance.md §1.8 & §1.8.1 for
-                                    full DOM structure + CSS anatomy)
+                                   (see guide_appearance.md §1.8, §1.8.1 & §1.8.2 for
+                                    full DOM structure, CSS anatomy and end-to-end logic flow)
 
 css/
 ├── elements/
@@ -157,7 +158,7 @@ admin/frontend/edit_modules/
 - **Recursive Ardor tree-like diagrams** for hierarchical relationship mapping.
 - **Linear chronological dot-event timelines** for temporal progression.
 - **Multi-layered vector-based geographic maps** for spatial context.
-These systems leverage dynamic rendering to transform relational database records into engaging, spatially and temporally aware narratives.
+These systems leverage dynamic rendering to transform relational database records into engaging narratives—populating interactive metadata panels with the title, date, category, and primary verse for every historical node.
 
 **Files to create Structure:**
 ```text
@@ -291,7 +292,8 @@ admin/frontend/edit_modules/
 
 assets/            <-- Raw source images, fonts, and icons
 ├── ai-instructions.txt    <-- Specialized guidance for LLM crawlers
-└── *.png                  <-- Raw source images, portraits, and environment shots
+├── favicon.png            <-- Website favicon (Aleph & Omega design)
+├── *.png                  <-- Raw source images, portraits, and environment shots
 
 deployment/        <-- VPS Configuration Files
 ├── deploy.sh      <-- Pull from GitHub and restart services

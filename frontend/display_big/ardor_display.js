@@ -2,7 +2,7 @@
 //
 //   THE JESUS WEBSITE — ARDOR (EVIDENCE) DIAGRAM DISPLAY
 //   File:    frontend/display_big/ardor_display.js
-//   Version: 1.0.0
+//   Version: 1.1.0
 //   Purpose: Injects and manages the interactive SVG evidence graph.
 //   Source:  guide_function.md §3.0, guide_appearance.md §3.1
 //

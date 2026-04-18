@@ -2,7 +2,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "search pipeline and appearance fixed"
+git commit -m "footer and button appearance"
 git push origin main
 
 # Pull from GitHub into Server

@@ -49,19 +49,19 @@ function initMapSystem() {
     // Load Database Records once SQLite is ready
     if(window.dbReadyPromise) {
         window.dbReadyPromise.then(db => {
-            // Retrieve sample points - mock 'map_label' grouping if geo_id unavailable
-            const res = db.exec("SELECT id, title, timeline_era, category, description FROM records LIMIT 100");
+            // Retrieve sample points
+            const res = db.exec("SELECT id, title, era, gospel_category, description, primary_verse FROM records LIMIT 100");
             if(res.length > 0 && res[0].values) {
                 records = res[0].values.map(row => ({
                     id: row[0],
                     title: row[1],
-                    era: parseEraYear(row[2]),
+                    era: row[2],
                     category: row[3],
                     description: row[4],
-                    map_label: (row[0] % 2 === 0) ? 'judea' : 'galilee' // simple placeholder mapping logic
+                    primaryVerse: row[5],
+                    map_label: (row[0] % 2 === 0) ? 'judea' : 'galilee' 
                 }));
                 
-                // Mount default view based on selected radio button on load
                 const checkedRadio = document.querySelector('input[name="map_view"]:checked');
                 const defaultView = checkedRadio ? checkedRadio.value : 'judea';
                 renderNodesForView(defaultView, records);
@@ -78,7 +78,6 @@ function initMapSystem() {
 }
 
 function parseEraYear(eraString) {
-    // Basic era text parser for map slider compatibility
     if (!eraString) return 30;
     if (eraString.includes('Life')) return 30;
     if (eraString.includes('Early')) return 50;
@@ -89,34 +88,26 @@ function renderNodesForView(viewName, allRecords) {
     const nodeLayer = document.getElementById('node-layer');
     if(!nodeLayer) return;
     
-    // Clear out prior view's nodes
     nodeLayer.innerHTML = ''; 
-    
-    // Filter records designated for the active macro-region map view
     const viewRecords = allRecords.filter(r => (r.map_label || '').toLowerCase() === viewName.toLowerCase() || viewName === 'empire');
 
-    // Layout each matching coordinate mathematically over the SVG node layer
     viewRecords.forEach((record, index) => {
-        // Generating pseudo-random bounding box coordinates for demonstration
-        // Normally this applies a true projection translation from geo_id to x/y Canvas domain
         const x = 150 + ((record.id * 83) % 700);
         const y = 150 + ((record.id * 111) % 500);
         
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute('cx', x);
         circle.setAttribute('cy', y);
-        circle.setAttribute('r', '5'); // Radius scalar matching Antique Map icon sizing specs
+        circle.setAttribute('r', '5'); 
         circle.setAttribute('class', 'map-node map-node-item');
         circle.dataset.recordId = record.id;
-        circle.dataset.era = record.era;
+        circle.dataset.era = parseEraYear(record.era); // Ensure filtering logic has data
         
         circle.addEventListener('click', () => {
             showMetadata(record);
-            
-            // Visual toggle context
             const allNodes = document.querySelectorAll('.map-node-item');
             allNodes.forEach(n => n.setAttribute('fill', '#8E3B46'));
-            circle.setAttribute('fill', '#D4AF37'); // Highlight Active
+            circle.setAttribute('fill', '#D4AF37'); 
         });
         
         nodeLayer.appendChild(circle);
@@ -146,18 +137,38 @@ function showMetadata(record) {
     const panel = document.getElementById('map-metadata-panel');
     const rTitle = document.getElementById('metadata-title');
     const rDate = document.getElementById('metadata-date');
-    const rType = document.getElementById('metadata-type');
+    const rCategory = document.getElementById('metadata-category');
+    const rVerse = document.getElementById('metadata-verse');
     const rDesc = document.getElementById('metadata-snippet');
     const rLink = document.getElementById('metadata-link');
     
-    if(panel && rTitle && rDate && rDesc && rLink) {
+    if(panel && rTitle && rDate && rCategory && rVerse && rDesc && rLink) {
         rTitle.textContent = record.title || "Unidentified Geo-Site";
-        rDate.textContent = `Chronological Era: ${record.era || 'Unknown'}`;
-        rType.textContent = `Category: ${record.category || 'Historic Event'}`;
-        rDesc.textContent = record.description ? record.description.substring(0, 160) + '...' : "No substantive description documented for this vector location.";
+        rDate.textContent = `Era: ${record.era || 'Unknown'}`;
+        rCategory.textContent = `Category: ${record.category || 'Historic Event'}`;
+        
+        // Populate Verse
+        rVerse.textContent = formatVerseText(record.primaryVerse);
+        
+        rDesc.textContent = record.description ? record.description.substring(0, 160) + '...' : "No substantive description documented.";
         rLink.href = `record.html?id=${record.id}`;
         
         panel.classList.remove('is-hidden');
         panel.classList.add('is-visible');
     }
+}
+
+function formatVerseText(verseJson) {
+    // Helper to transform primary_verse JSON array into human-readable reference
+    if (!verseJson) return "";
+    try {
+        const data = JSON.parse(verseJson);
+        if (Array.isArray(data) && data.length > 0) {
+            const v = data[0];
+            return `${v.book} ${v.chapter}:${v.verse}`;
+        }
+    } catch (e) {
+        return verseJson;
+    }
+    return "";
 }

@@ -106,5 +106,5 @@ function injectPageMetadata(config) {
 
     // --- 10. Favicon (ensure it is linked) ------------------------------------
 
-    setLink('icon', '/favicon.ico');
+    setLink('icon', '/assets/favicon.png');
 }

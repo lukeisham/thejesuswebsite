@@ -2,7 +2,7 @@
 //
 //   THE JESUS WEBSITE — LIST VIEW POPULAR CHALLENGES (WITH RESPONSE)
 //   File:    frontend/display_big/list_view_popular_challenges_with_response.js
-//   Version: 1.0.0
+//   Version: 1.1.0
 //   Purpose: Renders a ranked list of Popular Challenges with verified responses
 //            inserted hierarchically below the challenge.
 //   Source:  guide_appearance.md §4.2
@@ -55,7 +55,7 @@ function renderPopularChallengesWithResponses(containerId) {
                     </h3>
                     ${typeof renderSnippet === 'function' ? renderSnippet(item.response.snippet, 150) : `<p class="inline-snippet">${item.response.snippet}</p>`}
                     <div class="mt-2 text-xs">
-                        <a href="../response.html?id=${item.response.slug}" class="btn-outline">Read Full Response →</a>
+                        <a href="../response.html?id=${item.response.slug}" class="btn-skewed"><span>Read Full Response →</span></a>
                     </div>
                 </div>
             </div>
