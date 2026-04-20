@@ -170,7 +170,7 @@ frontend/pages/
 │   ├── map_galilee.html       <-- Galilee map
 │   └── map_judea.html         <-- Judea map
 ├── timeline.html              <-- Visual Interactive timeline Display
-└── evidence.html              <-- Visual Interactive Arbor diagram Display
+└── evidence.html              <-- Visual Interactive Ardor diagram Display
 
 frontend/display_big/
 └── ardor_display.js           <-- Renders Ardor diagram

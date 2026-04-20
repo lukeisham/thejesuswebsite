@@ -42,4 +42,12 @@ sudo systemctl restart thejesuswebsite
 sudo systemctl restart nginx
 
 
+# Next actions
 
+Refractor /Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/guides/guide_function.md so its function diagrams match the module numbering of /Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/guides/guide_appearance.md and /Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/module_sitemap.md
+
+Then add the 'Truth through typography' section to the function guide and module_sitemap.md
+
+Then review the functionality in the function guide of 'Truth through typography'.
+
+Make the buttons borders grey instead of black and the font less bold, slightly smaller and greyer

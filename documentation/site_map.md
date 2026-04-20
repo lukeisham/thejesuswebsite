@@ -1,13 +1,13 @@
 ---
 name: site_map.md
-version: 1.0.30
+version: 1.0.31
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [module_sitemap.md, data_schema.md, guides/]
 ---
 
 # Master Site Map
 
-```text
+```
 /                               <-- Root Directory
 │   ├── .agent/                <-- Agent instructions & workflows
 │   ├── .env                   <-- Global Admin, ESV and Deepseek credentials
@@ -49,7 +49,9 @@ dependencies: [module_sitemap.md, data_schema.md, guides/]
 │   └── edit_wiki_weights.js   <-- Admin tool for editing wikipedia ranking multipliers
 ├── assets/                    <-- Raw source images, fonts, and icons
 │   ├── *.png                  <-- Raw source images, portraits, and environment shots
-│   └── ai-instructions.txt    <-- Specialized guidance for LLM crawlers
+│   ├── ai-instructions.txt    <-- Specialized guidance for LLM crawlers
+│   └── favicon.png            <-- Website favicon (Aleph & Omega design)
+├── assets/favicon.png         <-- Website Favicon Branding (Aleph + Omega)
 ├── backend/pipelines/
 │   ├── pipeline_academic_challenges.py <-- Finds, analyzes and ranks academic historical debates
 │   ├── pipeline_news.py       <-- Crawls, ranks, inserts timeline news events
@@ -107,7 +109,6 @@ dependencies: [module_sitemap.md, data_schema.md, guides/]
 │   ├── module_sitemap.md      <-- Architectural blueprints and logic flows (This File)
 │   ├── style_guide.md         <-- UI / UX visual design guide
 │   └── vibe_coding_rules.md   <-- foundational coding philosophies and aesthetic mandates
-├── favicon.ico                <-- Website Favicon Browser branding
 ├── frontend/core/
 │   ├── json_ld_builder.js     <-- Generates Schema.org JSON metadata
 │   ├── sanitize_query.js      <-- Security utility to clean search input
@@ -153,7 +154,7 @@ dependencies: [module_sitemap.md, data_schema.md, guides/]
 │   ├── context.html           <-- Internal Landing Page (Context)
 │   ├── context_essay.html     <-- Context essay single essay view
 │   ├── debate.html            <-- Internal Landing Page (Debate)
-│   ├── evidence.html          <-- Visual Interactive Arbor diagram Display
+│   ├── evidence.html          <-- Visual Interactive Ardor diagram Display
 │   ├── maps.html              <-- Visual Interactive Map Display
 │   │   ├── map_empire.html    <-- Empire map
 │   │   ├── map_galilee.html   <-- Galilee map
