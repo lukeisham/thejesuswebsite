@@ -1,8 +1,8 @@
 ---
 name: site_map.md
-version: 1.0.31
+version: 1.0.32
 purpose: A consolidated master site map of all folders and files for the codebase
-dependencies: [module_sitemap.md, data_schema.md, guides/]
+dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
 
 # Master Site Map
@@ -106,7 +106,8 @@ dependencies: [module_sitemap.md, data_schema.md, guides/]
 │   │   ├── guide_style.md     <-- UI / UX visual design guide (style_guide.md)
 │   │   └── guide_welcoming_robots.md <-- SEO and AI accessibility standards
 │   ├── implementation_plan.md <-- Implementation Plan
-│   ├── module_sitemap.md      <-- Architectural blueprints and logic flows (This File)
+│   ├── detailed_module_sitemap.md <-- Architectural blueprints and detailed logic flows
+│   ├── simple_module_sitemap.md <-- High-level architectural reference map
 │   ├── style_guide.md         <-- UI / UX visual design guide
 │   └── vibe_coding_rules.md   <-- foundational coding philosophies and aesthetic mandates
 ├── frontend/core/
@@ -143,8 +144,8 @@ dependencies: [module_sitemap.md, data_schema.md, guides/]
 │   │   ├── (see guide_appearance.md §1.8, §1.8.1 & §1.8.2 for
 │   │   │   └── full DOM structure, CSS anatomy and end-to-end logic flow)
 │   │   └── certain pages. No logo or nav links.
-│   ├── sidebar.js             <-- Universal Sticky Sidebar (see guide_appearance.md
-│   │   └── §1.5.1 for technical anatomy mapping)
+│   ├── sidebar.js             <-- Universal Sticky Sidebar (Module 1.5). Provides functional
+│   │   └── entry point to the Admin Portal (Module 6.1). See guide_appearance.md §1.5.1.
 │   ├── sources_biblio_display.js <-- Renders formatted MLA bibliography citations
 │   ├── thumbnails_display.js  <-- Renders thumbnails
 │   └── timeline_display.js    <-- Renders timeline dots and linear progression loops

@@ -2,7 +2,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "style update"
+git commit -m "Admin link to sidebar added"
 git push origin main
 
 # Pull from GitHub into Server
@@ -44,7 +44,7 @@ sudo systemctl restart nginx
 
 # Next actions
 
-Refractor /Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/guides/guide_function.md so its function diagrams match the module numbering of /Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/guides/guide_appearance.md and /Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/module_sitemap.md
+Create a plan to add an Admin button to the bottom of the Sidebar that takes a user to the Dashboard. Reference Module 1.5 and Module 6.1 The plan should contain bite-sized tasks, that have checkboxes for completion and a final audit stage. 
 
 Then add the 'Truth through typography' section to the function guide and module_sitemap.md
 

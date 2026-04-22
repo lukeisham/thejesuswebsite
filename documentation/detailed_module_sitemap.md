@@ -64,8 +64,9 @@ frontend/pages/
 └── news_and_blog.html         <-- Internal Landing Page: News Feed
 
 frontend/display_other/
-├── sidebar.js                 <-- Universal Sticky Sidebar (see guide_appearance.md
-                                    §1.5.1 for technical anatomy mapping)
+├── sidebar.js                 <-- Universal Sticky Sidebar (Module 1.5). Provides functional
+│                                   entry point to the Admin Portal (Module 6.1). See 
+│                                   guide_appearance.md §1.5.1.
 ├── footer.js                  <-- Universal Footer
 ├── header.js                  <-- Universal Header (+ SEO injected)
 └── search_header.js           <-- Injects search bar (search input only) into
@@ -276,7 +277,34 @@ admin/frontend/edit_modules/
 **Scope:** Intial setup, Agent instructions (`.agent`), backend API management, and VPS deployment.
 **Functionality:** Defines the operational backbone of the site, including AI-agent workflows, secure backend API management, and production deployment automation. It serves as the **primary active security layer**, implementing robust session handling, authentication, and rate limiting to protect the application's data and admin interfaces.
 
-**Files to create Structure:**
+### 6.1 Admin Portal (Sub-Module)
+**Functionality:** Secure administrative interface for managing the website's content. Features a JWT-over-Cookie authentication system and a modular dashboard for CRUD operations.
+
+**Files:**
+```text
+admin/
+├── frontend/
+│   ├── admin.html                 <-- Secure entry portal for admin editing features
+│   ├── dashboard_app.js           <-- Main Dashboard controller, UI router & Sidebar navigation
+│   ├── admin_login.js             <-- Authentication & Session handling
+│   ├── load_middleware.js         <-- JWT/Token validation middleware
+│   └── logout_middleware.js       <-- Session termination
+└── backend/
+    ├── admin_api.py               <-- Secure backend writing to SQL
+    └── auth_utils.py              <-- JWT generation and Brute Force defense
+
+css/design_layouts/views/
+├── login_view.css         <-- Bespoke layout for the secure admin login UI
+└── dashboard_admin.css    <-- Bespoke layout instructions for the secure admin portal
+
+css/elements/
+└── markdown_editor.css        <-- Specific styles for the admin WYSIWYG text editors
+```
+
+### 6.2 System Core & DevOps
+**Functionality:** Core configuration, deployment scripts, and external API interfaces.
+
+**Files:**
 ```text
 /                      <-- Root Directory
 ├── .agent/            <-- Agent instructions & workflows
@@ -301,25 +329,8 @@ deployment/        <-- VPS Configuration Files
 ├── admin.service  <-- Systemd config for Admin API (Auto-restart)
 └── mcp.service    <-- Systemd config for MCP Server (Auto-restart)
 
-admin/
-├── frontend/
-│   ├── admin.html                 <-- Secure entry portal for admin editing features
-│   ├── dashboard_app.js           <-- Main Dashboard controller, UI router & Sidebar navigation
-│   ├── admin_login.js             <-- Authentication & Session handling
-│   ├── load_middleware.js         <-- JWT/Token validation middleware
-│   └── logout_middleware.js       <-- Session termination
-└── backend/
-    ├── admin_api.py               <-- Secure backend writing to SQL
-    └── auth_utils.py              <-- JWT generation and Brute Force defense
-
-css/
-├── elements/
-│   └── markdown_editor.css        <-- Specific styles for the admin WYSIWYG text editors
-└── design_layouts/
-    ├── views/
-    │   ├── login_view.css         <-- Bespoke layout for the secure admin login UI
-    │   └── dashboard_admin.css    <-- Bespoke layout instructions for the secure admin portal
-    └── pdf_export.css             <-- Print media queries for exporting essays and data cleanly
+css/design_layouts/
+└── pdf_export.css             <-- Print media queries for exporting essays and data cleanly
 ```
 
 ---

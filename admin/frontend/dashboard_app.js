@@ -113,14 +113,21 @@ function renderDashboardShell() {
     });
 }
 
-function loadModule(moduleName) {
+async function loadModule(moduleName) {
     const canvas = document.getElementById('admin-canvas');
     if (!canvas) return;
 
     // Middleware check
-    if (typeof window.verifyAdminSession === 'function' && !window.verifyAdminSession()) {
-        window.adminLogout();
-        return;
+    if (typeof window.verifyAdminSession === 'function') {
+        const isValid = await window.verifyAdminSession();
+        if (!isValid) {
+            if (typeof window.adminLogout === 'function') {
+                window.adminLogout();
+            } else {
+                console.error("Session invalid and window.adminLogout not found.");
+            }
+            return;
+        }
     }
 
     // Module router placeholder (waiting for tasks 25-27)

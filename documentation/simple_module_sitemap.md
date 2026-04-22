@@ -40,7 +40,7 @@ dependencies: [detailed_module_sitemap.md]
 └── 5.3 Long-form Blog & News Feed Pages
 
 6.0 System Module
-├── 6.1 Secure Admin Login & Dashboard SPA
+├── 6.1 Admin Portal
 ├── 6.2 Agent Logic & Instructional Prompts
 ├── 6.3 Backend API, MCP Server & VPS Config
 └── 6.4 Security Protocols & JWT Management

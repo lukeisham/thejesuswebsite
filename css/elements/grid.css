@@ -239,6 +239,10 @@
     height: calc(100dvh - var(--header-height));
     overflow-y: auto;
 
+    /* Enable vertical distribution for anchoring links to the base */
+    display: flex;
+    flex-direction: column;
+
     /* Right border separator — dashed blueprint style */
     border-right: var(--border-width-thin) dashed var(--color-border);
     background-color: var(--color-bg-secondary);

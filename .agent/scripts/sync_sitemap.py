@@ -22,7 +22,7 @@ import re
 import os
 import sys
 
-MODULE_FILE = 'documentation/module_sitemap.md'
+MODULE_FILE = 'documentation/detailed_module_sitemap.md'
 SITE_FILE = 'documentation/site_map.md'
 
 def parse_ascii_tree(block):

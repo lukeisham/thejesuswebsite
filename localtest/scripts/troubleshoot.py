@@ -16,7 +16,7 @@ BASE_URL = f"http://localhost:{TEST_PORT}"
 ENDPOINTS = [
     ("/", "Public Landing Page"),
     ("/frontend/pages/timeline.html", "Timeline Page"),
-    ("/admin/frontend/admin.html", "Admin Dashboard"),
+    ("/admin/frontend/admin.html", "Admin Portal"),
     ("/api/health", "API Health Endpoint") # Assuming /api/health exists or will be added
 ]
 

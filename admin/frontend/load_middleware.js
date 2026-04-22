@@ -11,12 +11,23 @@
 // Function: Verifies that a valid admin session is active (HttpOnly cookie / JWT check)
 // Output: Returns true if session is valid, false if expired or invalid (triggers logout)
 
-window.verifyAdminSession = function() {
-    // In Phase 3, this checks for a valid HttpOnly cookie or JWT.
-    // The actual auth logic is initially enforced by admin_login.js, 
-    // but this runs before any sub-module loads to ensure session hasn't expired.
-    
-    // Stub implementation: Returns true to allow mock admin view.
-    // Will be replaced with real backend JWT check later.
-    return true; 
+window.verifyAdminSession = async function() {
+    /**
+     * Verifies that a valid admin session is active by calling the backend.
+     * Returns true if session is valid, false if expired/invalid.
+     */
+    try {
+        const response = await fetch('/api/admin/verify');
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data.authenticated === true;
+        }
+        
+        // Any non-2xx response (like 401) means session is invalid
+        return false;
+    } catch (error) {
+        console.error("Session verification failed:", error);
+        return false;
+    }
 };

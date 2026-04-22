@@ -177,3 +177,35 @@
         opacity:       1;
     }
 }
+
+
+/* =============================================================================
+   7. SIDEBAR FOOTER & ADMIN LINK
+   Anchored to the absolute base of the sidebar using Flexbox.
+   Uses the "Technical Blueprint" aesthetic (Roboto Mono).
+============================================================================= */
+
+.site-sidebar__footer {
+    margin-top:        auto;
+    padding-top:       var(--space-4);
+}
+
+.site-sidebar__admin-link {
+    display:           block;
+    font-family:       var(--font-mono);
+    font-size:         10px;
+    font-weight:       var(--weight-medium);
+    letter-spacing:    var(--tracking-widest);
+    text-transform:    uppercase;
+    color:             var(--color-text-muted);
+    text-decoration:   none;
+    padding:           var(--space-1) var(--space-2);
+    border:            1px dashed transparent;
+    transition:        all var(--transition-fast);
+}
+
+.site-sidebar__admin-link:hover {
+    color:             var(--color-accent-primary);
+    border-color:      var(--color-border-accent);
+    background-color:  var(--color-bg-tertiary);
+}

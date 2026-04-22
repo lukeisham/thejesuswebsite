@@ -25,7 +25,7 @@ Since the search function interacts with the SQLite database, sanitization is re
 - **Read-Only WASM:** The frontend `sql.js` instance is naturally limited to the local browser memory, preventing direct injection attacks from affecting the primary server-side database file.
 
 ## 3. Admin-only access to the Dashboard
-The Admin Dashboard requires a robust authentication flow to prevent unauthorized content modification.
+The Admin Portal requires a robust authentication flow to prevent unauthorized content modification.
 
 - **Environment Credentials:** The `ADMIN_PASSWORD` is stored in a hidden `.env` file (ignored by `.gitignore`) and managed by the Python `admin_api.py`.
 - **JWT & Auth Utilities:** Successful logins generate a secure JSON Web Token (JWT) managed by `admin/backend/auth_utils.py` and stored in a HttpOnly cookie.

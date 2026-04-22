@@ -95,6 +95,14 @@ async def logout(response: Response):
     response.delete_cookie("admin_token")
     return {"message": "Logged out successfully"}
 
+@app.get("/api/admin/verify")
+async def verify_session(admin_data: dict = Depends(verify_token)):
+    """
+    Endpoint for frontend middleware to verify active session status.
+    Returns 200 with admin data if token is valid (handled by verify_token dependency).
+    """
+    return {"authenticated": True, "user": admin_data}
+
 # -----------------------------------------------------------------------------
 # CRUD Operations (Protected SQLite Access)
 # -----------------------------------------------------------------------------

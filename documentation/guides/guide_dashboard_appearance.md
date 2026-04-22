@@ -1,13 +1,13 @@
 ---
 name: guide_dashboard_appearance.md
-purpose: Visual ASCII representations of the Admin Dashboard and editing screens, mapped to front-end components (source of truth)
+purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components (source of truth)
 version: 1.0.1
 dependencies: [guide_appearance.md, detailed_module_sitemap.md]
 ---
 
 # Guide to Dashboard Appearance & Editor Layouts
 
-This document maintains visual ASCII blueprints for the secure Admin Dashboard (`admin.html`). Unlike the public pages, the dashboard operates primarily as a Single Page Application (SPA) driven by `dashboard_app.js`.
+This document maintains visual ASCII blueprints for the secure Admin Portal (`admin.html`). Unlike the public pages, the portal operates primarily as a Single Page Application (SPA) driven by `dashboard_app.js`.
 
 The tools below represent the **backend editing interfaces** for the front-end layouts defined in `guide_appearance.md`.
 

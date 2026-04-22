@@ -25,13 +25,15 @@ This document provides visual ASCII representations detailing how data physicall
 | 1. Load grid.css         |
 | 2. Load layout logic     |
 | 3. Inject header.js      |----> [ Invisible SEO & og:tags Metadata ]
-| 4. Inject sidebar.js     |----> [ Constructs Left Nav Tree ]
+| 4. Inject sidebar.js     |----> [ Constructs Left Nav Tree + Admin Portal Entry ]
 | 5. Inject search_header.js|----> [ Injects Visible Search Bar ]
 | 6. Inject footer.js      |----> [ Appends Footer & Print Logic ]
 +--------------------------+
          |
          v
 [ Main Content Container Loaded ]
+         |
+         +-----> [ Optional: Redirect to Admin Portal (Module 6.1) ]
 ```
 
 ---
@@ -41,7 +43,7 @@ This document provides visual ASCII representations detailing how data physicall
 **Process:** The heart of the site. Data is ingested actively by scripts or admins to the SQLite. The frontend `sql.js` WASM engine then reads this data locally into the browser memory, converting raw SQL rows into either dense single-item views or aggregated list cards.
 
 ```text
-[ Python ETL Pipelines ] -----------> [ SQLite Database ] <-------- [ Admin Dashboard ]
+[ Python ETL Pipelines ] -----------> [ SQLite Database ] <-------- [ Admin Portal ]
 (Fetch raw external data)             (database.sqlite)             (Manual insertions)
                                               |
                                               v
@@ -200,10 +202,10 @@ This document provides visual ASCII representations detailing how data physicall
 
 ## 5.0 Essays Module
 **Scope:** Context-Essays, Historiography, Challenge Responses, News/Blog.  
-**Process:** The human-authored content flow. Admins write exclusively in Markdown via a dashboard interface. The backend API safely writes this to SQLite. On the frontend, Javascript fetches the markdown payload, parses it into HTML, and applies the specialized premium typography layouts.
+**Process:** The human-authored content flow. Admins write exclusively in Markdown via an Admin Portal interface. The backend API safely writes this to SQLite. On the frontend, Javascript fetches the markdown payload, parses it into HTML, and applies the specialized premium typography layouts.
 
 ```text
-[ Admin Dashboard: Writer Core ]
+[ Admin Portal: Writer Core ]
  (5.1 Context / 5.2 Historiography)
                  |
 [ Write Content via Markdown Editor ]
@@ -237,6 +239,62 @@ This document provides visual ASCII representations detailing how data physicall
                             |                      |
                             v                      v
                   [ SQLite Read/Write ]    [ SQLite Read-Only ]
+```
+
+### 6.1 Admin Authentication Flow & Middleware
+**Process:** The secure handshake between the client and the server using JWT-over-Cookie transport. A frontend middleware intercepts all dashboard actions to verify session validity via the backend.
+
+```text
+[ Browser Action (e.g. Load 'Records') ]
+         |
+         v
+[ JS: load_middleware.js ] --( GET /api/admin/verify )--> [ API: admin_api.py ]
+                                                                |
+         +-----------------------------------------------------+
+         |
+         v
+[ API: verify_token dependency ]
+         |
+         +--> [ Read 'admin_token' from HttpOnly Cookie ]
+         |
+         +--> [ Decode JWT via auth_utils.py ]
+         |
+         +--> [ Validate Exp & Role ('admin') ]
+         |
+         v
+[ Response ] --( 200 OK )--> [ JS: Proceed with Module Load ]
+      |
+      +----( 401 Unauthorized )--> [ JS: Trigger logout_middleware.js ]
+                                            |
+                                            v
+                                [ Wipe DOM / Redirect to Login ]
+```
+
+#### Authentication Handshake (Login)
+```text
+[ Browser: admin.html ]
+         |
+         v
+[ JS: admin_login.js ] --( POST /api/admin/login )--> [ API: admin_api.py ]
+                                                                |
+         +-----------------------------------------------------+
+         |
+         v
+[ Utils: auth_utils.py ]
+         |
+         +--> [ Check Brute Force (IP Lockout) ]
+         |
+         +--> [ Verify Admin Password ]
+         |
+         v
+[ Success? ] --( Yes )--> [ Generate JWT ] --> [ Set HttpOnly Cookie ]
+      |                                                |
+      +--------( No )----[ Return 401 Unauthorized ]<--+
+                                 |
+          +----------------------+
+          |
+          v
+[ JS: Transition to Dashboard ]
 ```
 
 ---
