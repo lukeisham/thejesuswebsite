@@ -51,7 +51,7 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | :--- | :--- | :--- | :--- |
 | **Sidebar** | `280px` (Sticky Left) | `--sidebar-width` | 1px dashed border, sharp corners. |
 | **Universal Footer**| Fixed Bottom | `--footer-height` | Aged paper BG, Mono "Metadata Block." |
-| **Search Bar** | Centered Header | `--header-height` | Minimalist outline, Mono input field. |
+| **Search Bar** | Centered Header | `--header-height` | 1px border (`--color-border`), 12px padding, Mono input, magnifying glass icon. |
 
 ## 7. Data Visualization Modules
 | Module | Core Aesthetic | Implementation Details |
@@ -65,12 +65,12 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | :--- | :--- | :--- |
 | **Ordinary List** | Zebra-striped rows | 2px left-border Oxblood highlight. |
 | **Ranked List** | Serif rank numbers | High-density vertical alignment. |
-| **Response Inserts** | Dashed boundaries | Labeled interjections between evidence nodes. |
+| **Response Inserts** | Dashed boundaries | Labeled interjections (Top-left, Mono, 10px, Lead Grey). |
 
 ## 9. Content Elements
 | Element | Visual Treatment | Implementation |
 | :--- | :--- | :--- |
-| **Essays** | Manuscript column | Single column; Drop-caps; `--font-essay`. |
+| **Essays** | Manuscript column | Single column; Drop-caps (3 lines, bold, 4px margin); `--font-essay`. |
 | **Citations** | MLA style | `0.85rem` size; `--color-text-secondary`. |
 | **Footnotes** | Marginal/Inline | Lead-grey brackets `[...]`; `--text-xs`. |
 | **Images** | Solid black frame | 1px solid black; Centered "Fig X" caption. |
@@ -79,7 +79,7 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 ## 10. Interactive Controls
 | Control | Specification | Aesthetic | CSS Mapping |
 | :--- | :--- | :--- | :--- |
-| **Buttons** | Sharp corners, 1px | Mono text; Oxblood fill on hover. | `--border-width-thin` |
+| **Buttons** | Sharp corners, 1px | Mono text; Paper fill (default); Oxblood hover. | `--border-width-thin` |
 | **Sliders** | 1px vectors | Oxblood thumb; Mono value displays. | `--color-accent-primary` |
 | **Checkboxes** | Sharp rectangular | Oxblood selection; Mono labels. | `--radius-none` |
 | **Switches** | Binary block | Oxblood (ON) / Lead Grey (OFF). | `--transition-base` |
@@ -89,7 +89,7 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | Component | Visual Description | CSS Variable |
 | :--- | :--- | :--- |
 | **Main Column** | 720px max-width; Left-aligned. | `--content-max-width` |
-| **Zebra Striping** | Alternating Paper backgrounds. | `--color-bg-secondary` |
+| **Zebra Striping** | Alternating Paper backgrounds (`--color-bg-primary` vs `--color-bg-secondary`). | `--color-bg-secondary` |
 | **Dashed Borders** | 1px dashed Clay Stone borders. | `--color-border` |
 | **Content Cards** | 1px solid Clay Stone; No radius. | `--radius-none` |
 | **Modals** | Aged paper; Base shadow. | `--shadow-base` |
@@ -129,8 +129,8 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | :--- | :--- | :--- |
 | **Base** | `0` | Background, content grid. |
 | **Mid** | `10 - 50` | Floating nodes, interactive canvas. |
-| **Top** | `100` | Sticky Header, Sticky Footer. |
-| **Overlay** | `200+` | Sidebar, Modals, Fly-outs. |
+| **Top** | `100` | Sidebar, Sticky Header, Sticky Footer. |
+| **Overlay** | `200+` | Modals, Fly-outs. |
 
 ## 17. Responsive Strategy
 | Category | Strategy | Implementation |

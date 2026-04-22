@@ -2,7 +2,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "Admin link to sidebar added"
+git commit -m "UI consistency update"
 git push origin main
 
 # Pull from GitHub into Server

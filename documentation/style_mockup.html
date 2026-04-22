@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Style Guide Mockup — The Jesus Website</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===== DESIGN TOKENS (from typography_colors.css) ===== */
+    :root {
+      --color-bg-primary:      #FCFBF7;
+      --color-bg-secondary:    #F4F2ED;
+      --color-bg-tertiary:     #ECEAE3;
+      --color-text-primary:    #242423;
+      --color-text-secondary:  #5B5B5B;
+      --color-text-muted:      #8A8A88;
+      --color-text-inverse:    #F4F2ED;
+      --color-accent-primary:  #8E3B46;
+      --color-accent-hover:    #6E2A34;
+      --color-accent-muted:    #C19098;
+      --color-border:          #E0DCD1;
+      --color-border-strong:   #C8C4BA;
+      --color-border-accent:   #8E3B46;
+      --color-dash-bg:         #121212;
+      --color-dash-accent:     #D4AF37;
+      --color-dash-surface:    #1E1E1E;
+      --color-dash-text:       #E8E6DF;
+      --color-dash-text-muted: #909090;
+      --color-status-success:  #2E7D32;
+      --font-body:    'EB Garamond', Georgia, serif;
+      --font-essay:   'Crimson Pro', 'EB Garamond', Georgia, serif;
+      --font-heading: 'Inter', Helvetica, Arial, sans-serif;
+      --font-mono:    'Roboto Mono', 'Courier New', monospace;
+      --text-xs:   0.694rem;
+      --text-sm:   0.833rem;
+      --text-base: 1rem;
+      --text-md:   1.125rem;
+      --text-lg:   1.25rem;
+      --text-xl:   1.5rem;
+      --text-2xl:  1.875rem;
+      --text-3xl:  2.25rem;
+      --text-4xl:  3rem;
+      --weight-light:    300;
+      --weight-regular:  400;
+      --weight-medium:   500;
+      --weight-semibold: 600;
+      --weight-bold:     700;
+      --line-height-tight:   1.2;
+      --line-height-snug:    1.4;
+      --line-height-base:    1.7;
+      --line-height-relaxed: 1.9;
+      --tracking-tight:   -0.02em;
+      --tracking-wide:     0.04em;
+      --tracking-widest:   0.1em;
+      --space-1:  0.5rem;
+      --space-2:  1rem;
+      --space-3:  1.5rem;
+      --space-4:  2rem;
+      --space-5:  2.5rem;
+      --space-6:  3rem;
+      --space-8:  4rem;
+      --space-10: 5rem;
+      --space-12: 6rem;
+      --space-16: 8rem;
+      --border-width-thin: 1px;
+      --border-width-base: 2px;
+      --radius-none: 0px;
+      --radius-sm:   2px;
+      --radius-base: 4px;
+      --shadow-none: none;
+      --shadow-sm:   0 1px 3px rgba(36,36,35,0.08);
+      --shadow-base: 0 2px 8px rgba(36,36,35,0.10);
+      --shadow-md:   0 4px 16px rgba(36,36,35,0.12);
+      --transition-fast: 150ms ease;
+      --transition-base: 200ms ease;
+      --transition-slow: 350ms ease;
+      --sidebar-width:      280px;
+      --content-max-width:  720px;
+      --header-height:      64px;
+      --footer-height:      80px;
+    }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      font-size: 112.5%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: var(--line-height-base);
+      color: var(--color-text-primary);
+      background-color: var(--color-bg-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1,h2,h3,h4,h5,h6 {
+      font-family: var(--font-heading);
+      font-weight: var(--weight-semibold);
+      line-height: var(--line-height-tight);
+      letter-spacing: var(--tracking-tight);
+    }
+
+    h1 { font-size: var(--text-3xl); }
+    h2 { font-size: var(--text-2xl); }
+    h3 { font-size: var(--text-xl); }
+    h4 { font-size: var(--text-lg); font-weight: var(--weight-medium); }
+
+    a {
+      color: var(--color-accent-primary);
+      text-decoration: none;
+      transition: color var(--transition-fast);
+    }
+    a:hover { color: var(--color-accent-hover); text-decoration: underline; text-underline-offset: 3px; }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--color-bg-secondary); }
+    ::-webkit-scrollbar-thumb { background: var(--color-text-muted); border-radius: 0; }
+
+    /* ===== SECTION LABELS ===== */
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-widest);
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      border-bottom: var(--border-width-thin) dashed var(--color-border);
+      padding-bottom: var(--space-1);
+      margin-bottom: var(--space-3);
+    }
+
+    /* ===== SITE HEADER ===== */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--header-height);
+      background: var(--color-bg-primary);
+      border-bottom: var(--border-width-thin) dashed var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-4);
+    }
+
+    .site-header .wordmark {
+      font-family: var(--font-heading);
+      font-weight: var(--weight-semibold);
+      font-size: var(--text-lg);
+      letter-spacing: var(--tracking-tight);
+    }
+
+    .site-header .search-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      border: var(--border-width-thin) solid var(--color-border);
+      padding: var(--space-1) var(--space-2);
+      background: var(--color-bg-secondary);
+    }
+
+    .site-header .search-bar input {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      border: none;
+      background: transparent;
+      outline: none;
+      color: var(--color-text-primary);
+      width: 240px;
+    }
+
+    .site-header .search-bar input::placeholder { color: var(--color-text-muted); }
+
+    .site-header .search-bar svg { stroke: var(--color-text-muted); flex-shrink: 0; }
+
+    .site-header .header-meta {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      letter-spacing: var(--tracking-wide);
+    }
+
+    /* ===== LAYOUT ===== */
+    .page-shell {
+      display: flex;
+      min-height: calc(100vh - var(--header-height) - var(--footer-height));
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      position: sticky;
+      top: var(--header-height);
+      height: calc(100vh - var(--header-height));
+      overflow-y: auto;
+      background: var(--color-bg-secondary);
+      border-right: var(--border-width-thin) dashed var(--color-border);
+      padding: var(--space-4) var(--space-3);
+    }
+
+    .sidebar-section { margin-bottom: var(--space-4); }
+
+    .sidebar-heading {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-widest);
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      padding-bottom: var(--space-1);
+      border-bottom: var(--border-width-thin) dashed var(--color-border);
+      margin-bottom: var(--space-2);
+    }
+
+    .sidebar-nav { list-style: none; padding: 0; }
+
+    .sidebar-nav li a {
+      display: block;
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--color-text-primary);
+      padding: 6px 0;
+      border-left: 2px solid transparent;
+      padding-left: var(--space-2);
+      transition: border-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .sidebar-nav li a:hover,
+    .sidebar-nav li a.active {
+      color: var(--color-accent-primary);
+      border-left-color: var(--color-accent-primary);
+      text-decoration: none;
+    }
+
+    .sidebar-meta {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      letter-spacing: var(--tracking-wide);
+      margin-top: var(--space-4);
+      border-top: var(--border-width-thin) dashed var(--color-border);
+      padding-top: var(--space-2);
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      flex: 1;
+      padding: var(--space-6) var(--space-8);
+      max-width: calc(var(--content-max-width) + var(--space-16));
+    }
+
+    .demo-section {
+      margin-bottom: var(--space-8);
+      padding-bottom: var(--space-6);
+      border-bottom: var(--border-width-thin) dashed var(--color-border);
+    }
+
+    .demo-section:last-child { border-bottom: none; }
+
+    /* ===== TYPOGRAPHY DEMO ===== */
+    .type-stack { display: flex; flex-direction: column; gap: var(--space-2); }
+
+    .type-row {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+      border-bottom: var(--border-width-thin) solid var(--color-bg-tertiary);
+    }
+
+    .type-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      letter-spacing: var(--tracking-wide);
+      min-width: 120px;
+    }
+
+    /* ===== COLOR PALETTE ===== */
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: var(--space-2);
+    }
+
+    .swatch {
+      border: var(--border-width-thin) solid var(--color-border);
+    }
+
+    .swatch-color {
+      height: 64px;
+    }
+
+    .swatch-info {
+      padding: var(--space-1) var(--space-2);
+      background: var(--color-bg-secondary);
+    }
+
+    .swatch-name {
+      font-family: var(--font-heading);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      display: block;
+    }
+
+    .swatch-hex {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      letter-spacing: var(--tracking-wide);
+    }
+
+    /* ===== ESSAY CONTENT ===== */
+    .essay-body {
+      font-family: var(--font-essay);
+      font-size: var(--text-base);
+      line-height: var(--line-height-relaxed);
+      max-width: var(--content-max-width);
+    }
+
+    .essay-body p { margin-bottom: var(--space-3); }
+
+    .essay-body p:first-of-type::first-letter {
+      font-family: var(--font-essay);
+      font-size: 3.8rem;
+      font-weight: var(--weight-bold);
+      line-height: 0.8;
+      float: left;
+      margin-right: var(--space-1);
+      margin-top: 6px;
+      color: var(--color-text-primary);
+    }
+
+    .citation {
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+    }
+
+    .footnote {
+      font-family: var(--font-body);
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+    }
+
+    .footnote::before { content: '['; }
+    .footnote::after  { content: ']'; }
+
+    .bible-verse {
+      font-family: var(--font-body);
+      font-style: italic;
+      border-bottom: 1px dotted var(--color-text-primary);
+      cursor: pointer;
+      transition: color var(--transition-fast);
+    }
+    .bible-verse:hover { color: var(--color-accent-primary); }
+
+    .verse-flyout {
+      display: inline-block;
+      background: var(--color-bg-secondary);
+      border: var(--border-width-thin) dashed var(--color-border);
+      padding: var(--space-2) var(--space-3);
+      margin-top: var(--space-2);
+      font-family: var(--font-body);
+      font-style: italic;
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      max-width: 480px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ===== LISTS ===== */
+    .zebra-list { list-style: none; padding: 0; border: var(--border-width-thin) solid var(--color-border); }
+
+    .zebra-list li {
+      display: flex;
+      align-items: center;
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--text-sm);
+      border-left: 2px solid transparent;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+    }
+
+    .zebra-list li:nth-child(even) { background: var(--color-bg-secondary); }
+    .zebra-list li:hover { border-left-color: var(--color-accent-primary); background: var(--color-bg-tertiary); }
+
+    .zebra-list .row-meta {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      margin-left: auto;
+      letter-spacing: var(--tracking-wide);
+    }
+
+    .ranked-list { list-style: none; padding: 0; }
+
+    .ranked-list li {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+      border-bottom: var(--border-width-thin) solid var(--color-bg-tertiary);
+    }
+
+    .rank-num {
+      font-family: var(--font-body);
+      font-style: italic;
+      font-size: var(--text-2xl);
+      color: var(--color-text-muted);
+      line-height: 1;
+      min-width: 2rem;
+      text-align: right;
+    }
+
+    .rank-content { font-size: var(--text-base); }
+
+    .rank-sub {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      letter-spacing: var(--tracking-wide);
+      margin-top: 2px;
+    }
+
+    /* ===== TIMELINE ===== */
+    .timeline {
+      position: relative;
+      padding-left: var(--space-6);
+    }
+
+    .timeline-axis {
+      position: absolute;
+      left: 12px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--color-text-primary);
+    }
+
+    .timeline-event {
+      position: relative;
+      margin-bottom: var(--space-4);
+    }
+
+    .timeline-node {
+      position: absolute;
+      left: calc(-1 * var(--space-6) + 5px);
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      background: var(--color-accent-primary);
+      border: 2px solid var(--color-text-primary);
+      border-radius: 0;
+    }
+
+    .timeline-date {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      letter-spacing: var(--tracking-wide);
+      margin-bottom: 4px;
+    }
+
+    .timeline-title {
+      font-family: var(--font-heading);
+      font-size: var(--text-base);
+      font-weight: var(--weight-semibold);
+    }
+
+    .timeline-desc {
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      margin-top: 4px;
+    }
+
+    /* ===== ARBOR TREE ===== */
+    .arbor-tree {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      padding: var(--space-4) 0;
+    }
+
+    .arbor-node {
+      background: var(--color-bg-secondary);
+      border: var(--border-width-thin) solid var(--color-border-strong);
+      padding: var(--space-2) var(--space-3);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+      min-width: 160px;
+    }
+
+    .arbor-connector {
+      width: var(--border-width-thin);
+      height: 32px;
+      background: var(--color-text-primary);
+      margin: 0 auto;
+    }
+
+    .arbor-children {
+      display: flex;
+      gap: var(--space-4);
+      position: relative;
+    }
+
+    .arbor-children::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 80px;
+      right: 80px;
+      height: var(--border-width-thin);
+      background: var(--color-text-primary);
+    }
+
+    .arbor-child-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ===== MAP PLACEHOLDER ===== */
+    .map-frame {
+      border: var(--border-width-thin) dashed var(--color-border-strong);
+      background: var(--color-bg-secondary);
+      padding: var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      height: 200px;
+      overflow: hidden;
+    }
+
+    .map-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--color-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.5;
+    }
+
+    .map-poi {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: var(--color-accent-primary);
+      border-radius: 0;
+      border: 2px solid var(--color-text-primary);
+    }
+
+    .map-poi::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid var(--color-accent-primary);
+    }
+
+    .map-label {
+      position: absolute;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      letter-spacing: var(--tracking-wide);
+    }
+
+    /* ===== IMAGE FIGURE ===== */
+    .figure-wrap { display: inline-block; max-width: 100%; }
+
+    .figure-wrap img {
+      display: block;
+      border: var(--border-width-base) solid var(--color-black, #000000);
+      width: 100%;
+    }
+
+    .figure-caption {
+      display: block;
+      text-align: center;
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      margin-top: var(--space-1);
+      font-style: italic;
+    }
+
+    /* ===== INTERACTIVE CONTROLS ===== */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .control-group { display: flex; flex-direction: column; gap: var(--space-2); }
+
+    .control-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-wide);
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-1);
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      letter-spacing: var(--tracking-wide);
+      padding: var(--space-1) var(--space-3);
+      border: var(--border-width-thin) solid var(--color-text-primary);
+      background: transparent;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      border-radius: var(--radius-none);
+      transition: background var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+    }
+
+    .btn:hover {
+      background: var(--color-accent-primary);
+      border-color: var(--color-accent-primary);
+      color: var(--color-text-inverse);
+    }
+
+    .btn:focus-visible { outline: 2px solid var(--color-accent-primary); outline-offset: 2px; }
+
+    .btn-group { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+    .btn-primary {
+      background: var(--color-text-primary);
+      color: var(--color-text-inverse);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent-primary);
+      border-color: var(--color-accent-primary);
+    }
+
+    /* Sliders */
+    .slider-wrap { display: flex; align-items: center; gap: var(--space-2); }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: var(--border-width-thin);
+      background: var(--color-border-strong);
+      outline: none;
+      flex: 1;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--color-accent-primary);
+      cursor: pointer;
+      border-radius: 0;
+      border: 2px solid var(--color-text-primary);
+    }
+
+    .slider-val {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      letter-spacing: var(--tracking-wide);
+      min-width: 32px;
+      text-align: right;
+    }
+
+    /* Checkboxes */
+    .checkbox-item { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; }
+
+    .checkbox-item input[type="checkbox"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border: var(--border-width-thin) solid var(--color-text-secondary);
+      border-radius: 0;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+    }
+
+    .checkbox-item input[type="checkbox"]:checked {
+      background: var(--color-accent-primary);
+      border-color: var(--color-accent-primary);
+    }
+
+    .checkbox-item input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      top: -2px;
+      left: 1px;
+      font-size: 12px;
+      color: #fff;
+      font-family: var(--font-mono);
+    }
+
+    .checkbox-item .cb-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+    }
+
+    /* Switches */
+    .switch-item { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; }
+
+    .switch-track {
+      width: 40px;
+      height: 20px;
+      background: var(--color-text-muted);
+      position: relative;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background var(--transition-base);
+    }
+
+    .switch-track.on { background: var(--color-accent-primary); }
+
+    .switch-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      transition: transform var(--transition-base);
+    }
+
+    .switch-track.on .switch-thumb { transform: translateX(20px); }
+
+    .switch-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+
+    /* Dropdowns */
+    select.styled-select {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      padding: var(--space-1) var(--space-2);
+      border: var(--border-width-thin) solid var(--color-border-strong);
+      border-radius: var(--radius-none);
+      background: var(--color-bg-secondary);
+      color: var(--color-text-primary);
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%235B5B5B' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: var(--space-4);
+      outline: none;
+    }
+
+    select.styled-select:focus { border-color: var(--color-accent-primary); outline: 2px solid var(--color-accent-primary); outline-offset: -2px; }
+
+    select.styled-select option:nth-child(even) { background: var(--color-bg-tertiary); }
+
+    /* ===== CONTENT CARDS ===== */
+    .card {
+      border: var(--border-width-thin) solid var(--color-border);
+      border-radius: var(--radius-none);
+      padding: var(--space-3);
+      background: var(--color-bg-secondary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      font-family: var(--font-heading);
+      font-weight: var(--weight-semibold);
+      font-size: var(--text-base);
+      padding-bottom: var(--space-2);
+      border-bottom: var(--border-width-thin) dashed var(--color-border);
+      margin-bottom: var(--space-2);
+    }
+
+    .card-meta {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      letter-spacing: var(--tracking-wide);
+      margin-bottom: var(--space-1);
+    }
+
+    .cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+
+    /* ===== RESPONSE INSERT ===== */
+    .response-insert {
+      border: var(--border-width-thin) dashed var(--color-accent-muted);
+      padding: var(--space-3);
+      margin: var(--space-4) 0;
+      position: relative;
+    }
+
+    .response-insert::before {
+      content: attr(data-label);
+      position: absolute;
+      top: -10px;
+      left: var(--space-2);
+      background: var(--color-bg-primary);
+      padding: 0 var(--space-1);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-wide);
+      color: var(--color-accent-primary);
+      text-transform: uppercase;
+    }
+
+    /* ===== SYSTEM STATES ===== */
+    .states-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+
+    .state-box {
+      border: var(--border-width-thin) solid var(--color-border);
+      padding: var(--space-3);
+    }
+
+    .state-box .state-title {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-wide);
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-2);
+    }
+
+    /* Loading pulse */
+    .pulse-bar {
+      height: 4px;
+      background: var(--color-accent-primary);
+      animation: pulse 1.4s ease-in-out infinite;
+      transform-origin: left;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: scaleX(0.3); }
+      50%       { opacity: 1;   transform: scaleX(1); }
+    }
+
+    /* Success */
+    .state-success {
+      border-color: var(--color-status-success);
+      color: var(--color-status-success);
+    }
+
+    .state-success .indicator {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--color-status-success);
+      letter-spacing: var(--tracking-wide);
+    }
+
+    /* Error */
+    .state-error {
+      border-color: var(--color-accent-primary);
+      background: rgba(142, 59, 70, 0.06);
+    }
+
+    .state-error .indicator {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--color-accent-primary);
+      letter-spacing: var(--tracking-wide);
+    }
+
+    /* Disabled */
+    .state-disabled { opacity: 0.5; }
+
+    .state-disabled * { color: var(--color-text-muted) !important; pointer-events: none; }
+
+    /* Focus ring demo */
+    .focus-demo {
+      outline: 2px solid var(--color-accent-primary);
+      outline-offset: 3px;
+      padding: var(--space-2);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+    }
+
+    /* ===== DASHBOARD (DARK MODE) ===== */
+    .dashboard-shell {
+      background: var(--color-dash-bg);
+      color: var(--color-dash-text);
+      border: var(--border-width-thin) solid #333;
+      margin-top: var(--space-6);
+    }
+
+    .dashboard-header {
+      background: #1a1a1a;
+      padding: var(--space-2) var(--space-4);
+      border-bottom: var(--border-width-thin) solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dashboard-header .dash-title {
+      font-family: var(--font-heading);
+      font-size: var(--text-base);
+      font-weight: var(--weight-semibold);
+      color: var(--color-dash-accent);
+      letter-spacing: var(--tracking-tight);
+    }
+
+    .dashboard-header .dash-meta {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-dash-text-muted);
+      letter-spacing: var(--tracking-wide);
+    }
+
+    .dashboard-body {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      min-height: 320px;
+    }
+
+    .dash-sidebar {
+      background: #181818;
+      border-right: var(--border-width-thin) solid #333;
+      padding: var(--space-3);
+    }
+
+    .dash-sidebar-heading {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-widest);
+      text-transform: uppercase;
+      color: var(--color-dash-text-muted);
+      border-bottom: var(--border-width-thin) dashed #444;
+      padding-bottom: var(--space-1);
+      margin-bottom: var(--space-2);
+    }
+
+    .dash-nav { list-style: none; padding: 0; }
+
+    .dash-nav li {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-wide);
+      padding: 6px var(--space-2);
+      border-left: 2px solid transparent;
+      color: var(--color-dash-text-muted);
+      cursor: pointer;
+      transition: color var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .dash-nav li:hover,
+    .dash-nav li.active {
+      color: var(--color-dash-accent);
+      border-left-color: var(--color-dash-accent);
+    }
+
+    .dash-main { padding: var(--space-4); }
+
+    .dash-section-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-widest);
+      text-transform: uppercase;
+      color: var(--color-dash-accent);
+      border-bottom: var(--border-width-thin) dashed #444;
+      padding-bottom: var(--space-1);
+      margin-bottom: var(--space-3);
+    }
+
+    .dash-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+
+    .dash-stat {
+      background: var(--color-dash-surface);
+      border: var(--border-width-thin) solid #333;
+      padding: var(--space-2) var(--space-3);
+    }
+
+    .dash-stat-value {
+      font-family: var(--font-heading);
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-bold);
+      color: var(--color-dash-accent);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .dash-stat-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-dash-text-muted);
+      letter-spacing: var(--tracking-wide);
+      text-transform: uppercase;
+    }
+
+    .dash-editor {
+      background: #0f0f0f;
+      border: var(--border-width-thin) solid #333;
+      padding: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-dash-text-muted);
+      letter-spacing: var(--tracking-wide);
+      line-height: 1.8;
+    }
+
+    .dash-editor .token-key   { color: var(--color-dash-accent); }
+    .dash-editor .token-val   { color: #88bb88; }
+    .dash-editor .token-str   { color: #bb8888; }
+    .dash-editor .token-muted { color: #555; }
+
+    .dash-action-bar {
+      background: #1a1a1a;
+      padding: var(--space-2) var(--space-4);
+      border-top: var(--border-width-thin) solid var(--color-dash-accent);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      justify-content: flex-end;
+    }
+
+    .dash-btn {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-wide);
+      padding: var(--space-1) var(--space-3);
+      border: var(--border-width-thin) solid #555;
+      background: transparent;
+      color: var(--color-dash-text-muted);
+      cursor: pointer;
+      border-radius: 0;
+      transition: all var(--transition-base);
+    }
+
+    .dash-btn:hover { border-color: var(--color-dash-accent); color: var(--color-dash-accent); }
+
+    .dash-btn-primary {
+      background: var(--color-dash-accent);
+      border-color: var(--color-dash-accent);
+      color: #121212;
+      font-weight: var(--weight-semibold);
+    }
+
+    .dash-btn-primary:hover { background: #b8942e; border-color: #b8942e; color: #121212; }
+
+    /* ===== FOOTER ===== */
+    .site-footer {
+      height: var(--footer-height);
+      background: var(--color-bg-secondary);
+      border-top: var(--border-width-thin) dashed var(--color-border);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--space-4);
+      gap: var(--space-6);
+      z-index: 100;
+    }
+
+    .footer-block {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      letter-spacing: var(--tracking-wide);
+    }
+
+    .footer-block strong {
+      display: block;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      font-weight: var(--weight-medium);
+      font-size: 0.6rem;
+    }
+
+    .footer-divider {
+      height: 32px;
+      width: var(--border-width-thin);
+      background: var(--color-border);
+    }
+
+    /* ===== CUT-MARK ACCENT ===== */
+    .cut-mark {
+      display: inline-block;
+      border: var(--border-width-thin) dashed var(--color-accent-primary);
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-accent-primary);
+      letter-spacing: var(--tracking-wide);
+    }
+
+    /* ===== MODAL PREVIEW ===== */
+    .modal-preview {
+      position: relative;
+      display: inline-block;
+    }
+
+    .modal-backdrop-preview {
+      background: rgba(36, 36, 35, 0.25);
+      padding: var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-box {
+      background: var(--color-bg-secondary);
+      border: var(--border-width-thin) solid var(--color-border-strong);
+      box-shadow: var(--shadow-base);
+      padding: var(--space-4);
+      width: 400px;
+      max-width: 100%;
+    }
+
+    .modal-header {
+      font-family: var(--font-heading);
+      font-weight: var(--weight-semibold);
+      font-size: var(--text-base);
+      border-bottom: var(--border-width-thin) dashed var(--color-border);
+      padding-bottom: var(--space-2);
+      margin-bottom: var(--space-3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-close {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      letter-spacing: var(--tracking-wide);
+    }
+
+    .modal-body {
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-3);
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: var(--space-2);
+      justify-content: flex-end;
+      border-top: var(--border-width-thin) dashed var(--color-border);
+      padding-top: var(--space-2);
+    }
+
+    /* ===== UTILITY ===== */
+    hr.section-rule {
+      border: none;
+      border-top: var(--border-width-thin) dashed var(--color-border);
+      margin: var(--space-6) 0;
+    }
+
+    .mt-2 { margin-top: var(--space-2); }
+    .mt-3 { margin-top: var(--space-3); }
+    .mt-4 { margin-top: var(--space-4); }
+    .flex { display: flex; }
+    .gap-2 { gap: var(--space-2); }
+    .gap-3 { gap: var(--space-3); }
+    .items-center { align-items: center; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== SITE HEADER ===== -->
+  <header class="site-header">
+    <span class="wordmark">The Jesus Website</span>
+    <div class="search-bar">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke-width="1.5">
+        <circle cx="6" cy="6" r="4.5"/>
+        <line x1="9.5" y1="9.5" x2="13" y2="13"/>
+      </svg>
+      <input type="text" placeholder="Search persons, places, events…">
+    </div>
+    <span class="header-meta">STYLE GUIDE MOCKUP &nbsp;·&nbsp; v1.1.0</span>
+  </header>
+
+  <!-- ===== PAGE SHELL ===== -->
+  <div class="page-shell">
+
+    <!-- ===== SIDEBAR ===== -->
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Contents</div>
+        <ul class="sidebar-nav">
+          <li><a href="#typography" class="active">Typography</a></li>
+          <li><a href="#colors">Color Palette</a></li>
+          <li><a href="#essay">Essay Content</a></li>
+          <li><a href="#lists">Lists &amp; Records</a></li>
+          <li><a href="#timeline">Timeline</a></li>
+          <li><a href="#arbor">Arbor Tree</a></li>
+          <li><a href="#map">Map</a></li>
+          <li><a href="#controls">Controls</a></li>
+          <li><a href="#cards">Cards &amp; Containers</a></li>
+          <li><a href="#states">System States</a></li>
+          <li><a href="#dashboard">Dashboard (Dark)</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Modules</div>
+        <ul class="sidebar-nav">
+          <li><a href="#">Persons</a></li>
+          <li><a href="#">Places</a></li>
+          <li><a href="#">Events</a></li>
+          <li><a href="#">Texts</a></li>
+          <li><a href="#">Essays</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-meta">
+        <div>VERSION · 1.1.0</div>
+        <div class="mt-2">LAST UPDATED</div>
+        <div>2026-04-22</div>
+      </div>
+    </nav>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main-content">
+
+      <!-- Hero / Page Title -->
+      <div class="demo-section">
+        <div class="section-label">§ Overview</div>
+        <h1 style="margin-bottom: var(--space-2);">Style Guide Mockup</h1>
+        <p class="lead" style="font-family: var(--font-essay); font-size: var(--text-md); color: var(--color-text-secondary); max-width: var(--content-max-width);">
+          A living reference page demonstrating every visual element, token, and pattern defined in <code>guide_style.md</code>. The "Living Museum" aesthetic — precision grids, archival typography, and high-contrast metadata.
+        </p>
+        <div class="mt-3">
+          <span class="cut-mark">TECHNICAL LEDGER</span>
+        </div>
+      </div>
+
+      <!-- ===== TYPOGRAPHY ===== -->
+      <section class="demo-section" id="typography">
+        <div class="section-label">§ 3 — Typography System</div>
+        <h2 style="margin-bottom: var(--space-4);">Type Families</h2>
+
+        <div class="type-stack">
+          <div class="type-row">
+            <span class="type-label">--font-heading<br>Inter · H1</span>
+            <h1 style="font-size: var(--text-4xl); letter-spacing: var(--tracking-tight);">The Historical Record</h1>
+          </div>
+          <div class="type-row">
+            <span class="type-label">--font-heading<br>Inter · H2</span>
+            <h2>The Evidence Canon</h2>
+          </div>
+          <div class="type-row">
+            <span class="type-label">--font-heading<br>Inter · H3</span>
+            <h3>Primary Source Cluster</h3>
+          </div>
+          <div class="type-row">
+            <span class="type-label">--font-body<br>EB Garamond · Base</span>
+            <p style="max-width: none;">The body typeface evokes printed historical manuscripts — warm, authoritative, and deeply readable at length. Used for all primary content paragraphs, captions, and in-line notation.</p>
+          </div>
+          <div class="type-row">
+            <span class="type-label">--font-essay<br>Crimson Pro · Essay</span>
+            <p style="font-family: var(--font-essay); font-size: var(--text-md); line-height: var(--line-height-relaxed); max-width: none;">The essay typeface carries premium reading weight — slightly more open than Garamond, ideal for long-form theological argument. Reserved for article bodies and editorial passages.</p>
+          </div>
+          <div class="type-row">
+            <span class="type-label">--font-mono<br>Roboto Mono · Meta</span>
+            <span style="font-family: var(--font-mono); font-size: var(--text-sm); letter-spacing: var(--tracking-wide); color: var(--color-text-secondary);">PERSON_ID: 0042 · DATE: 0030 CE · SOURCE: MATT.5:1–12</span>
+          </div>
+        </div>
+
+        <!-- Type scale -->
+        <h3 style="margin-top: var(--space-6); margin-bottom: var(--space-3);">Type Scale</h3>
+        <div style="display: flex; flex-direction: column; gap: var(--space-1);">
+          <div style="display: flex; align-items: baseline; gap: var(--space-2);">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);min-width:80px;">text-4xl</span>
+            <span style="font-size: var(--text-4xl); font-family: var(--font-heading); line-height:1;">Aa</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">3rem · 54px · Hero titles</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: var(--space-2);">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);min-width:80px;">text-3xl</span>
+            <span style="font-size: var(--text-3xl); font-family: var(--font-heading); line-height:1;">Aa</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">2.25rem · 40.5px · H1</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: var(--space-2);">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);min-width:80px;">text-2xl</span>
+            <span style="font-size: var(--text-2xl); font-family: var(--font-heading); line-height:1;">Aa</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">1.875rem · 33.75px · H2</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: var(--space-2);">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);min-width:80px;">text-xl</span>
+            <span style="font-size: var(--text-xl); font-family: var(--font-heading); line-height:1;">Aa</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">1.5rem · 27px · H3</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: var(--space-2);">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);min-width:80px;">text-base</span>
+            <span style="font-size: var(--text-base); font-family: var(--font-body); line-height:1;">Aa</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">1rem · 18px · Body</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: var(--space-2);">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);min-width:80px;">text-sm</span>
+            <span style="font-size: var(--text-sm); font-family: var(--font-body); line-height:1;">Aa</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">0.833rem · 15px · Captions</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: var(--space-2);">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);min-width:80px;">text-xs</span>
+            <span style="font-size: var(--text-xs); font-family: var(--font-mono); line-height:1;">Aa</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">0.694rem · 12.5px · Footnotes</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== COLOR PALETTE ===== -->
+      <section class="demo-section" id="colors">
+        <div class="section-label">§ 4 — Color Palette</div>
+        <h2 style="margin-bottom: var(--space-4);">The Living Museum Palette</h2>
+
+        <div class="palette-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background:#FCFBF7;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Paper (Primary)</span>
+              <span class="swatch-hex">#FCFBF7 · --color-bg-primary</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#F4F2ED;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Paper (Aged)</span>
+              <span class="swatch-hex">#F4F2ED · --color-bg-secondary</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#ECEAE3;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Warm Stone</span>
+              <span class="swatch-hex">#ECEAE3 · --color-bg-tertiary</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#242423; border-bottom: 1px solid #333;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Ink (Primary)</span>
+              <span class="swatch-hex">#242423 · --color-text-primary</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#5B5B5B;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Lead (Secondary)</span>
+              <span class="swatch-hex">#5B5B5B · --color-text-secondary</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#8E3B46;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Oxblood Accent</span>
+              <span class="swatch-hex">#8E3B46 · --color-accent-primary</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#D4AF37;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Antique Gold</span>
+              <span class="swatch-hex">#D4AF37 · --color-dash-accent</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#E0DCD1;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Clay Stone Border</span>
+              <span class="swatch-hex">#E0DCD1 · --color-border</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#121212;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Inkpot Dark</span>
+              <span class="swatch-hex">#121212 · --color-dash-bg</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#2E7D32;"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Blueprint Green</span>
+              <span class="swatch-hex">#2E7D32 · --color-status-success</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ESSAY CONTENT ===== -->
+      <section class="demo-section" id="essay">
+        <div class="section-label">§ 9 — Essay Content Elements</div>
+        <h2 style="margin-bottom: var(--space-4);">Essay: The Sermon on the Mount</h2>
+
+        <div class="essay-body">
+          <p>
+            The Sermon on the Mount represents the most concentrated body of ethical teaching attributed to Jesus of Nazareth. Delivered on a hillside in Galilee, it constitutes the opening of the Matthean discourse complex, spanning chapters five through seven of the first gospel.<span class="footnote">This is the largest single body of dominical discourse preserved in the Synoptic tradition, though Lukan parallels exist in a "Sermon on the Plain" (Lk 6:17–49).</span>
+          </p>
+          <p>
+            The Beatitudes, which open the sermon, employ a formulaic blessing structure — <span class="bible-verse" title="Matthew 5:3">Μακάριοι οἱ πτωχοὶ τῷ πνεύματι</span> — that reverses conventional social expectation. The term <em>makarios</em> is consistently rendered "blessed" in the English tradition, though "flourishing" or "deeply fortunate" may better capture the Hebrew cognate <em>ashrei</em>.
+          </p>
+
+          <div class="verse-flyout">
+            Matt. 5:3 — "Blessed are the poor in spirit, for theirs is the kingdom of heaven." (ESV)
+          </div>
+
+          <p style="margin-top: var(--space-3);">
+            Subsequent scholarship has debated whether the sermon represents a unified address or a Matthean redactional collection of dispersed logia. The "antitheses" of 5:21–48 ("You have heard it said… but I say to you") suggest a deliberate compositional structure.<span class="footnote">Cf. Stanton, G. (1992). <em>A Gospel for a New People</em>, p. 288.</span>
+          </p>
+
+          <p class="citation" style="margin-top: var(--space-3);">
+            France, R.T. <em>The Gospel of Matthew</em>. NICNT. Grand Rapids: Eerdmans, 2007. pp. 156–163.
+          </p>
+        </div>
+
+        <!-- Image figure -->
+        <div class="figure-wrap mt-4" style="max-width: 480px;">
+          <div style="background: var(--color-bg-tertiary); height: 200px; border: 2px solid #000; display:flex; align-items:center; justify-content:center;">
+            <span style="font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-text-muted); letter-spacing:var(--tracking-wide);">[IMAGE PLACEHOLDER]</span>
+          </div>
+          <span class="figure-caption">Fig 1. Mount of Beatitudes, Galilee. Photograph, 1925. Source: Library of Congress.</span>
+        </div>
+      </section>
+
+      <!-- ===== LISTS ===== -->
+      <section class="demo-section" id="lists">
+        <div class="section-label">§ 8 — Listing &amp; Records</div>
+        <h2 style="margin-bottom: var(--space-4);">List Patterns</h2>
+
+        <h3 style="margin-bottom: var(--space-2);">Ordinary List — Zebra-Striped</h3>
+        <ul class="zebra-list" style="max-width: var(--content-max-width);">
+          <li>
+            <span>Peter (Simon bar-Jonah)</span>
+            <span class="row-meta">APOSTLE · 0030 CE</span>
+          </li>
+          <li>
+            <span>Andrew, brother of Peter</span>
+            <span class="row-meta">APOSTLE · 0030 CE</span>
+          </li>
+          <li>
+            <span>James son of Zebedee</span>
+            <span class="row-meta">APOSTLE · 0030 CE</span>
+          </li>
+          <li>
+            <span>John son of Zebedee</span>
+            <span class="row-meta">APOSTLE · 0030 CE</span>
+          </li>
+          <li>
+            <span>Philip</span>
+            <span class="row-meta">APOSTLE · 0030 CE</span>
+          </li>
+          <li>
+            <span>Bartholomew (Nathanael)</span>
+            <span class="row-meta">APOSTLE · 0030 CE</span>
+          </li>
+        </ul>
+
+        <h3 style="margin-top: var(--space-5); margin-bottom: var(--space-2);">Ranked List — Serif Numerals</h3>
+        <ol class="ranked-list" style="max-width: 560px;">
+          <li>
+            <span class="rank-num">I.</span>
+            <div class="rank-content">
+              The Gospel of Matthew
+              <span class="rank-sub">CANONICAL · COMPOSITION ~80–90 CE · ALEXANDRIAN TEXT TYPE</span>
+            </div>
+          </li>
+          <li>
+            <span class="rank-num">II.</span>
+            <div class="rank-content">
+              The Gospel of Mark
+              <span class="rank-sub">CANONICAL · COMPOSITION ~65–70 CE · EARLIEST GOSPEL</span>
+            </div>
+          </li>
+          <li>
+            <span class="rank-num">III.</span>
+            <div class="rank-content">
+              The Gospel of Luke
+              <span class="rank-sub">CANONICAL · COMPOSITION ~80–85 CE · Q-SOURCE DEPENDENT</span>
+            </div>
+          </li>
+        </ol>
+
+        <!-- Response Insert -->
+        <div class="response-insert mt-4" data-label="Editorial Insert · Note">
+          <p style="font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-text-secondary);">
+            The Synoptic Problem — the literary relationship between Matthew, Mark, and Luke — remains among the most contested questions in New Testament scholarship. The Two-Source Hypothesis (Markan priority + Q) currently holds majority scholarly consensus.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===== TIMELINE ===== -->
+      <section class="demo-section" id="timeline">
+        <div class="section-label">§ 7 — Timeline: "Linear Pulse"</div>
+        <h2 style="margin-bottom: var(--space-4);">Life of Jesus — Key Events</h2>
+
+        <div class="timeline">
+          <div class="timeline-axis"></div>
+
+          <div class="timeline-event">
+            <div class="timeline-node"></div>
+            <div class="timeline-date">c. 4 BCE</div>
+            <div class="timeline-title">Nativity — Bethlehem</div>
+            <div class="timeline-desc">Birth of Jesus, traditionally under Herod the Great's reign. Magi visitation; flight to Egypt.</div>
+          </div>
+
+          <div class="timeline-event">
+            <div class="timeline-node"></div>
+            <div class="timeline-date">c. 27 CE</div>
+            <div class="timeline-title">Baptism by John</div>
+            <div class="timeline-desc">Jordan River. Dove descent, voice from heaven. Beginning of public ministry.</div>
+          </div>
+
+          <div class="timeline-event">
+            <div class="timeline-node"></div>
+            <div class="timeline-date">c. 28–30 CE</div>
+            <div class="timeline-title">Galilean Ministry</div>
+            <div class="timeline-desc">Calling of the Twelve. Sermon on the Mount. Healings, parables, feeding of the 5,000.</div>
+          </div>
+
+          <div class="timeline-event">
+            <div class="timeline-node"></div>
+            <div class="timeline-date">c. 30 CE</div>
+            <div class="timeline-title">Passion Week — Jerusalem</div>
+            <div class="timeline-desc">Triumphal entry. Temple cleansing. Last Supper. Crucifixion under Pontius Pilate.</div>
+          </div>
+
+          <div class="timeline-event">
+            <div class="timeline-node" style="background: var(--color-status-success);"></div>
+            <div class="timeline-date">c. 30 CE · 3rd Day</div>
+            <div class="timeline-title">Resurrection</div>
+            <div class="timeline-desc">Empty tomb. Post-resurrection appearances. Great Commission. Ascension.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ARBOR TREE ===== -->
+      <section class="demo-section" id="arbor">
+        <div class="section-label">§ 7 — Arbor Tree: "Evidence Root"</div>
+        <h2 style="margin-bottom: var(--space-4);">Source Lineage Tree</h2>
+
+        <div class="arbor-tree">
+          <div class="arbor-node">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);letter-spacing:var(--tracking-wide);">ROOT · ORAL TRADITION</span><br>
+            <strong>Proto-Gospel Layer</strong>
+          </div>
+          <div class="arbor-connector"></div>
+          <div class="arbor-node" style="border-color: var(--color-accent-primary);">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);letter-spacing:var(--tracking-wide);">PRIMARY SOURCE</span><br>
+            <strong>Gospel of Mark</strong>
+          </div>
+          <div style="display:flex; position:relative; width:100%; justify-content:center;">
+            <div style="width:2px; height:32px; background:var(--color-text-primary); position:absolute; left:calc(50% - 120px);"></div>
+            <div style="width:2px; height:32px; background:var(--color-text-primary); position:absolute; left:50%;"></div>
+            <div style="width:2px; height:32px; background:var(--color-text-primary); position:absolute; left:calc(50% + 120px);"></div>
+            <div style="width:240px; height:1px; background:var(--color-text-primary); position:absolute; top:0; left:calc(50% - 120px);"></div>
+          </div>
+          <div style="height:32px;"></div>
+          <div class="arbor-children">
+            <div class="arbor-child-wrap">
+              <div class="arbor-node">
+                <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">SECONDARY</span><br>
+                Matthew
+              </div>
+            </div>
+            <div class="arbor-child-wrap">
+              <div class="arbor-node">
+                <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">SECONDARY</span><br>
+                Q-Source
+              </div>
+            </div>
+            <div class="arbor-child-wrap">
+              <div class="arbor-node">
+                <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);">SECONDARY</span><br>
+                Luke
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== MAP ===== -->
+      <section class="demo-section" id="map">
+        <div class="section-label">§ 7 — Map: "Archival Frame"</div>
+        <h2 style="margin-bottom: var(--space-4);">Geographic Context</h2>
+
+        <div class="map-frame">
+          <div class="map-grid"></div>
+          <!-- POI markers -->
+          <div class="map-poi" style="top: 30%; left: 25%;"></div>
+          <span class="map-label" style="top: 18%; left: 22%;">JERUSALEM</span>
+          <div class="map-poi" style="top: 20%; left: 60%;"></div>
+          <span class="map-label" style="top: 8%; left: 57%;">GALILEE</span>
+          <div class="map-poi" style="top: 55%; left: 38%;"></div>
+          <span class="map-label" style="top: 63%; left: 35%;">BETHLEHEM</span>
+          <div class="map-poi" style="top: 40%; left: 45%;"></div>
+          <span class="map-label" style="top: 28%; left: 42%;">JORDAN R.</span>
+          <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);letter-spacing:var(--tracking-widest);position:absolute;bottom:var(--space-2);right:var(--space-2);">ARCHIVAL FRAME · GRAYSCALE</span>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);letter-spacing:var(--tracking-wide);margin-top:var(--space-1);">
+          [POI MARKERS: OXBLOOD] · [BORDER: DASHED] · [BACKGROUND: PARCHMENT GRID]
+        </div>
+      </section>
+
+      <!-- ===== INTERACTIVE CONTROLS ===== -->
+      <section class="demo-section" id="controls">
+        <div class="section-label">§ 10 — Interactive Controls</div>
+        <h2 style="margin-bottom: var(--space-4);">UI Controls</h2>
+
+        <div class="controls-grid">
+
+          <!-- Buttons -->
+          <div class="control-group">
+            <div class="control-label">Buttons</div>
+            <div class="btn-group">
+              <button class="btn">Default</button>
+              <button class="btn btn-primary">Primary</button>
+              <button class="btn" disabled style="opacity:0.5;cursor:not-allowed;">Disabled</button>
+            </div>
+            <div class="btn-group mt-2">
+              <button class="btn" style="border-color:var(--color-accent-primary);color:var(--color-accent-primary);">Accent Outline</button>
+              <button class="btn" style="background:var(--color-accent-primary);border-color:var(--color-accent-primary);color:var(--color-text-inverse);">Accent Fill</button>
+            </div>
+          </div>
+
+          <!-- Sliders -->
+          <div class="control-group">
+            <div class="control-label">Sliders</div>
+            <div class="slider-wrap">
+              <input type="range" min="0" max="100" value="65" id="slider1" oninput="document.getElementById('sv1').textContent=this.value">
+              <span class="slider-val" id="sv1">65</span>
+            </div>
+            <div class="slider-wrap">
+              <input type="range" min="0" max="100" value="30" id="slider2" oninput="document.getElementById('sv2').textContent=this.value">
+              <span class="slider-val" id="sv2">30</span>
+            </div>
+          </div>
+
+          <!-- Checkboxes -->
+          <div class="control-group">
+            <div class="control-label">Checkboxes</div>
+            <label class="checkbox-item">
+              <input type="checkbox" checked>
+              <span class="cb-label">Include canonical sources</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox">
+              <span class="cb-label">Include apocryphal texts</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" checked>
+              <span class="cb-label">Scholarly commentary</span>
+            </label>
+          </div>
+
+          <!-- Switches & Dropdown -->
+          <div class="control-group">
+            <div class="control-label">Switches</div>
+            <div class="switch-item" onclick="this.querySelector('.switch-track').classList.toggle('on')">
+              <div class="switch-track on"><div class="switch-thumb"></div></div>
+              <span class="switch-label">Timeline enabled</span>
+            </div>
+            <div class="switch-item" onclick="this.querySelector('.switch-track').classList.toggle('on')">
+              <div class="switch-track"><div class="switch-thumb"></div></div>
+              <span class="switch-label">Arbor tree enabled</span>
+            </div>
+
+            <div class="control-label mt-3">Dropdown</div>
+            <select class="styled-select">
+              <option>All Periods</option>
+              <option>Second Temple (530 BCE–70 CE)</option>
+              <option>Herodian (37 BCE–4 CE)</option>
+              <option>Early Ministry (27–29 CE)</option>
+              <option>Passion Week (30 CE)</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Focus ring demo -->
+        <div class="mt-4">
+          <div class="control-label">Focus Ring (2px Oxblood outline)</div>
+          <div class="focus-demo mt-2" style="display:inline-block;">
+            FOCUSED ELEMENT · SEARCH RESULT
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== CARDS & CONTAINERS ===== -->
+      <section class="demo-section" id="cards">
+        <div class="section-label">§ 11 — Container Architecture</div>
+        <h2 style="margin-bottom: var(--space-4);">Cards &amp; Containers</h2>
+
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-meta">PERSON · 0042</div>
+            <div class="card-header">Simon Peter</div>
+            <p style="font-size:var(--text-sm);color:var(--color-text-secondary);">Fisherman from Bethsaida. First-called apostle; leader of the Twelve. Martyred c. 64–68 CE.</p>
+          </div>
+          <div class="card">
+            <div class="card-meta">PLACE · 0018</div>
+            <div class="card-header">Capernaum</div>
+            <p style="font-size:var(--text-sm);color:var(--color-text-secondary);">City on the Sea of Galilee. Jesus' base during Galilean ministry. Home of Peter and Andrew.</p>
+          </div>
+          <div class="card">
+            <div class="card-meta">EVENT · 0091</div>
+            <div class="card-header">Last Supper</div>
+            <p style="font-size:var(--text-sm);color:var(--color-text-secondary);">Final Passover meal, Upper Room. Institution of the Eucharist. Night before the crucifixion.</p>
+          </div>
+        </div>
+
+        <!-- Modal Preview -->
+        <h3 style="margin-top: var(--space-5); margin-bottom: var(--space-3);">Modal (Aged Paper + Base Shadow)</h3>
+        <div class="modal-backdrop-preview">
+          <div class="modal-box">
+            <div class="modal-header">
+              <span>Person Detail — Simon Peter</span>
+              <span class="modal-close">[ESC]</span>
+            </div>
+            <div class="modal-body">
+              Peter (Aramaic: כֵּיפָא, Kepha), son of Jonah. Fisherman by trade, re-named by Jesus in Matthew 16:18. Author of the Petrine epistles; traditionally the source behind Mark's gospel.
+            </div>
+            <p class="citation">
+              Brown, R.E. (1984). <em>The Churches the Apostles Left Behind</em>. New York: Paulist Press.
+            </p>
+            <div class="modal-footer">
+              <button class="btn">Cancel</button>
+              <button class="btn btn-primary">View Full Record</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SYSTEM STATES ===== -->
+      <section class="demo-section" id="states">
+        <div class="section-label">§ 14 — System Feedback &amp; States</div>
+        <h2 style="margin-bottom: var(--space-4);">States &amp; Feedback</h2>
+
+        <div class="states-grid">
+          <div class="state-box">
+            <div class="state-title">Loading</div>
+            <div class="pulse-bar"></div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);margin-top:var(--space-2);letter-spacing:var(--tracking-wide);">FETCHING RECORDS…</div>
+          </div>
+
+          <div class="state-box state-success">
+            <div class="state-title">Success</div>
+            <div class="indicator">✓ RECORD SAVED — MATT.5:1–12</div>
+          </div>
+
+          <div class="state-box state-error">
+            <div class="state-title">Error / Alert</div>
+            <div class="indicator">⚠ SOURCE CONFLICT DETECTED</div>
+            <p style="font-family:var(--font-body);font-size:var(--text-xs);color:var(--color-accent-primary);margin-top:var(--space-1);">Cross-reference mismatch between Mark 3:16 and John 1:42.</p>
+          </div>
+
+          <div class="state-box state-disabled">
+            <div class="state-title">Disabled</div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-sm);">FEATURE UNAVAILABLE</div>
+            <button class="btn mt-2" style="pointer-events:none;">Disabled Button</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== DASHBOARD (DARK MODE) ===== -->
+      <section class="demo-section" id="dashboard">
+        <div class="section-label">§ 18 — Dashboard &amp; Editor Aesthetics</div>
+        <h2 style="margin-bottom: var(--space-4);">Admin Shell — Dark Mode</h2>
+
+        <div class="dashboard-shell">
+          <!-- Dashboard Header -->
+          <div class="dashboard-header">
+            <span class="dash-title">The Jesus Website · Admin</span>
+            <span class="dash-meta">USER: EDITOR · SESSION: 2026-04-22T09:41Z</span>
+          </div>
+
+          <!-- Dashboard Body -->
+          <div class="dashboard-body">
+            <!-- Dash Sidebar -->
+            <aside class="dash-sidebar">
+              <div class="dash-sidebar-heading">Navigation</div>
+              <ul class="dash-nav">
+                <li class="active">Dashboard</li>
+                <li>Persons</li>
+                <li>Events</li>
+                <li>Texts</li>
+                <li>Media</li>
+                <li>Essays</li>
+                <li>Settings</li>
+              </ul>
+            </aside>
+
+            <!-- Dash Main -->
+            <div class="dash-main">
+              <div class="dash-section-label">Overview</div>
+
+              <!-- Stats -->
+              <div class="dash-stats">
+                <div class="dash-stat">
+                  <div class="dash-stat-value">342</div>
+                  <div class="dash-stat-label">Persons</div>
+                </div>
+                <div class="dash-stat">
+                  <div class="dash-stat-value">91</div>
+                  <div class="dash-stat-label">Events</div>
+                </div>
+                <div class="dash-stat">
+                  <div class="dash-stat-value">14</div>
+                  <div class="dash-stat-label">Essays</div>
+                </div>
+              </div>
+
+              <!-- Editor split pane preview -->
+              <div class="dash-section-label">Editor — Mono Field</div>
+              <div class="dash-editor">
+                <span class="token-key">person</span><span class="token-muted"> {</span><br>
+                &nbsp;&nbsp;<span class="token-key">id</span><span class="token-muted">:</span> <span class="token-val">0042</span><span class="token-muted">,</span><br>
+                &nbsp;&nbsp;<span class="token-key">name</span><span class="token-muted">:</span> <span class="token-str">"Simon Peter"</span><span class="token-muted">,</span><br>
+                &nbsp;&nbsp;<span class="token-key">born</span><span class="token-muted">:</span> <span class="token-str">"c. 1 CE, Bethsaida"</span><span class="token-muted">,</span><br>
+                &nbsp;&nbsp;<span class="token-key">role</span><span class="token-muted">:</span> <span class="token-str">"Apostle · Rock of the Church"</span><span class="token-muted">,</span><br>
+                &nbsp;&nbsp;<span class="token-key">references</span><span class="token-muted">: [</span><span class="token-str">"Matt.16:18"</span><span class="token-muted">, </span><span class="token-str">"John.21:15"</span><span class="token-muted">, </span><span class="token-str">"Acts.2"</span><span class="token-muted">]</span><br>
+                <span class="token-muted">}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dash Action Bar (floating footer, gold focus) -->
+          <div class="dash-action-bar">
+            <button class="dash-btn">Discard</button>
+            <button class="dash-btn">Preview</button>
+            <button class="dash-btn dash-btn-primary">Save Record</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div><!-- /.page-shell -->
+
+  <!-- ===== SITE FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-block">
+      <strong>Project</strong>
+      The Jesus Website
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-block">
+      <strong>Version</strong>
+      1.1.0
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-block">
+      <strong>Style Guide</strong>
+      guide_style.md
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-block">
+      <strong>Last Updated</strong>
+      2026-04-22
+    </div>
+    <div style="margin-left:auto;">
+      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);letter-spacing:var(--tracking-wide);">METADATA BLOCK · UNIVERSAL FOOTER</span>
+    </div>
+  </footer>
+
+</body>
+</html>
