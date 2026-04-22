@@ -18,7 +18,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   │   └── rate_limiter.py    <-- DDoS protection for API endpoints
 │   ├── mcp_server.py          <-- Exposes read-only API to external agents
 │   ├── nginx.conf             <-- Global Web server and SSL/Proxy config
-│   └── requirements.txt       <-- Python dependencies (FastAPI, JWT, etc)
+│   ├── requirements.txt       <-- Python dependencies (FastAPI, JWT, etc)
+│   └── ui_consistency_plan.md <-- Detailed roadmap for interactive element standardization
 ├── admin/
 │   ├── backend/
 │   │   ├── admin_api.py       <-- Secure backend writing to SQL

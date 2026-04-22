@@ -13,6 +13,8 @@ purpose: Visual ASCII representations of the interactive map layouts, mapped to 
 - **CSS:** `css/elements/map_diagram.css`
 - **JS:** `frontend/display_other/maps_display.js`
 
+**Standards Reference:** All map controls (Zoom, Layer Toggles, Era Slider) must adhere to the [UI Standards in guide_style.md §10](file:///Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/guides/guide_style.md).
+
 ```text
 +-------------------------------------------------------------------------+
 | [Invisible Header]                                                      |

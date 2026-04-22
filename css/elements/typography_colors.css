@@ -72,7 +72,8 @@
     --color-dash-text:          #E8E6DF;   /* Off-White Ink   — primary admin text        */
     --color-dash-text-muted:    #909090;   /* Medium Grey     — secondary admin text      */
 
-    /* --- Utility --- */
+    /* --- Utility / Status --- */
+    --color-status-success:     #2E7D32;   /* Blueprint Green — success highlights     */
     --color-white:              #FFFFFF;
     --color-black:              #000000;
     --color-transparent:        transparent;
