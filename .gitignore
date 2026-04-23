@@ -31,6 +31,13 @@ Thumbs.db
 .spotlight-V100
 .Trashes
 
-# --- Editor / IDE ---
+# --- Tooling & Environments ---
 .vscode/
 .idea/
+.antigravity/
+.antigravityignore
+.claudecode/
+.claude/
+settings.local.json
+artifacts/
+*.jsonl
