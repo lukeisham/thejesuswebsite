@@ -16,24 +16,31 @@ This document provides visual ASCII representations detailing how data physicall
 **Process:** The structural shell. When a user requests a page, the core styling is applied immediately, followed by JavaScript routines that dynamically inject the universal navigation elements so they do not need to be duplicated across HTML files.
 
 ```text
-[ User Browser Request ]
-         |
-         v
-+--------------------------+
-|  Foundation Bootstrapper |
-+--------------------------+
-| 1. Load grid.css         |
-| 2. Load layout logic     |
-| 3. Inject header.js      |----> [ Invisible SEO & og:tags Metadata ]
-| 4. Inject sidebar.js     |----> [ Constructs Left Nav Tree + Admin Portal Entry ]
-| 5. Inject search_header.js|----> [ Injects Visible Search Bar ]
-| 6. Inject footer.js      |----> [ Appends Footer & Print Logic ]
-+--------------------------+
-         |
-         v
-[ Main Content Container Loaded ]
-         |
-         +-----> [ Optional: Redirect to Admin Portal (Module 6.1) ]
+  [ User Browser Request ]
+             |
+             v
++-------------------------------------------------------------+
+|                   Foundation Bootstrapper                   |
++-------------------------------------------------------------+
+|                                                             |
+|  1. Load grid.css                                           |
+|       |                                                     |
+|  2. Load layout logic                                       |
+|       |                                                     |
+|  3. Inject header.js         -------> [ Invisible SEO & og:tags Metadata ]
+|       |                                                     |
+|  4. Inject sidebar.js        -------> [ Constructs Left Nav Tree + Admin Entry ]
+|       |                                                     |
+|  5. Inject search_header.js  -------> [ Injects Visible Search Bar ]
+|       |                                                     |
+|  6. Inject footer.js         -------> [ Appends Footer & Print Logic ]
+|                                                             |
++-------------------------------------------------------------+
+             |
+             v
+  [ Main Content Container Loaded ]
+             |
+             +----------> [ Optional: Redirect to Admin Portal (Module 6.1) ]
 ```
 
 ---
@@ -43,24 +50,32 @@ This document provides visual ASCII representations detailing how data physicall
 **Process:** The heart of the site. Data is ingested actively by scripts or admins to the SQLite. The frontend `sql.js` WASM engine then reads this data locally into the browser memory, converting raw SQL rows into either dense single-item views or aggregated list cards.
 
 ```text
-[ Python ETL Pipelines ] -----------> [ SQLite Database ] <-------- [ Admin Portal ]
-(Fetch raw external data)             (database.sqlite)             (Manual insertions)
-                                              |
-                                              v
-                              +-------------------------------+
-                              |    WASM `sql.js` Engine       |
-                              |  (In-Memory Browser SQLite)   |
-                              +-------------------------------+
-                                              |
-                         +--------------------+--------------------+
-                         |                    |                    |
-                         v                    v                    v
-             (2.3 Sanitize)    (2.1 Full Lists)     (2.2 Single Record)
-            [sanitize_query.js] Loops rows          Deep data merge view
-                    |           into cards          [json_ld_builder.js]
-                    v                                       |
-             (Search Logic)                                 v
-                                                      [ SEO Metadata ]
+  [ Python ETL Pipelines ]                                   [ Admin Portal ]
+  (Fetch raw external data)                                 (Manual insertions)
+             |                                                      |
+             +-----------------------+      +-----------------------+
+                                     |      |
+                                     v      v
+                           +--------------------------+
+                           |     SQLite Database      |
+                           |    (database.sqlite)     |
+                           +--------------------------+
+                                        |
+                                        v
+                           +--------------------------+
+                           |  WASM `sql.js` Engine    |
+                           | (In-Memory Browser DB)   |
+                           +--------------------------+
+                                        |
+             +--------------------------+--------------------------+
+             |                          |                          |
+             v                          v                          v
+      (2.3 Sanitize)             (2.1 Full Lists)          (2.2 Single Record)
+   [sanitize_query.js]          Loops rows into          Deep data merge view
+             |                  list-item cards          [json_ld_builder.js]
+             v                          |                          |
+      (Search Logic)                    v                          v
+                                [ Render to DOM ]           [ SEO Metadata ]
 ```
 
 ---
@@ -76,77 +91,71 @@ This document provides visual ASCII representations detailing how data physicall
 - `frontend/display_big/list_view.js`
 
 ```text
- USER ACTION
- +-----------+
- | Types     |   e.g. "Peter"
- | query     |
- | presses   |
- | [Enter]   |
- +-----------+
-       |
-       v
+       USER ACTION
  +---------------------+
- | search_header.js    |   encodeURIComponent("Peter") = "Peter"
- | handleSearchKeydown |   window.location.href =
- |                     |   "/frontend/pages/records.html?search=Peter"
+ | Types query "Peter" |
+ | presses [Enter]     |
  +---------------------+
-       |
-       | (browser navigates — full page load)
-       v
- +---------------------+
- | records.html        |   Loads scripts in order:
- |                     |   1. sql-wasm.js     (WASM engine)
- |                     |   2. setup_db.js     (fetches DB, fires 'thejesusdb:ready')
- |                     |   3. list_view.js    (listens for 'thejesusdb:ready')
- |                     |   4. initializer.js  (injects sidebar, search bar)
- +---------------------+
-       |
-       | ('thejesusdb:ready' fires once DB is loaded)
-       v
- +---------------------+
- | list_view.js        |   renderListView() runs
- | renderListView()    |   searchParam = URLSearchParams.get('search') = "Peter"
- |                     |   → sets page title: "Search Results: 'Peter'"
- +---------------------+
-       |
-       v
- +---------------------+
- | sanitize_query.js   |   sanitizeSearchTerm("Peter")
- | sanitizeSearchTerm  |   strips control chars, collapses whitespace,
- |                     |   enforces 200-char max
- |                     |   output: "Peter" (unchanged if clean)
- +---------------------+
-       |
-       v
- +---------------------+
- | setup_db.js         |   db.searchRecords("Peter", 50)
- | searchRecords()     |
- |                     |   SQL executed (read-only, WASM in-memory):
- |                     |   SELECT id, title, slug, snippet ...
- |                     |   FROM records
- |                     |   WHERE users = 'Public'
- |                     |     AND (title LIKE '%Peter%'
- |                     |          OR snippet LIKE '%Peter%')
- |                     |   ORDER BY page_views DESC
- |                     |   LIMIT 50;
- +---------------------+
-       |
-       | returns Array<Object> of matching rows
-       v
- +---------------------+
- | list_view.js        |   Builds <li> HTML for each row
- | (render loop)       |   Injects into #record-list
- |                     |   Hides pagination (search bypasses it)
- +---------------------+
-       |
-       v
- +---------------------------------------------------+
- | DOM: #record-list populated with search results   |
- | Title bar reads: Search Results: "Peter"          |
- +---------------------------------------------------+
-
-  ESCAPE KEY (on any page with the search bar):
-  searchInput.value = ''  ← input cleared, no navigation
+             |
+             v
+ +-------------------------------------------------------------------------+
+ | search_header.js                                                        |
+ |   > encodeURIComponent("Peter")                                         |
+ |   > window.location.href = "/frontend/pages/records.html?search=Peter"  |
+ +-------------------------------------------------------------------------+
+             |
+     (browser navigates — full page load)
+             |
+             v
+ +-------------------------------------------------------------------------+
+ | records.html                                                            |
+ |   Loads scripts in exact order:                                         |
+ |     1. sql-wasm.js      (Initializes WASM engine)                       |
+ |     2. setup_db.js      (Fetches DB arraybuffer, fires 'ready' event)   |
+ |     3. list_view.js     (Listens for 'thejesusdb:ready' event)          |
+ |     4. initializer.js   (Injects sidebar, search bar UI)                |
+ +-------------------------------------------------------------------------+
+             |
+     ('thejesusdb:ready' fires once DB is loaded)
+             |
+             v
+ +-------------------------------------------------------------------------+
+ | list_view.js                                                            |
+ |   > renderListView() is triggered                                       |
+ |   > URLSearchParams.get('search') = "Peter"                             |
+ |   > Sets page title string: "Search Results: 'Peter'"                   |
+ +-------------------------------------------------------------------------+
+             |
+             v
+ +-------------------------------------------------------------------------+
+ | sanitize_query.js                                                       |
+ |   > sanitizeSearchTerm("Peter")                                         |
+ |   > Output: "Peter" (strips bad chars, restricts to 200 chars limit)    |
+ +-------------------------------------------------------------------------+
+             |
+             v
+ +-------------------------------------------------------------------------+
+ | setup_db.js                                                             |
+ |   > db.searchRecords("Peter", 50)                                       |
+ |                                                                         |
+ |   Executes Read-Only SQL inside browser:                                |
+ |     SELECT id, title, slug, snippet ...                                 |
+ |     FROM records                                                        |
+ |     WHERE users = 'Public'                                              |
+ |       AND (title LIKE '%Peter%' OR snippet LIKE '%Peter%')              |
+ |     ORDER BY page_views DESC                                            |
+ |     LIMIT 50;                                                           |
+ +-------------------------------------------------------------------------+
+             |
+      (returns Array of matching row Objects)
+             |
+             v
+ +-------------------------------------------------------------------------+
+ | list_view.js                                                            |
+ |   > Builds HTML <li> elements for each returned row                     |
+ |   > Injects into #record-list DOM container                             |
+ |   > Hides standard pagination controls (search bypasses pagination)     |
+ +-------------------------------------------------------------------------+
 ```
 
 ---
@@ -155,28 +164,48 @@ This document provides visual ASCII representations detailing how data physicall
 **Purpose:** Documents the flow for uploading, resizing, and compressing PNG images in the Admin Portal.
 
 ```text
- [ Admin Editor: edit_picture.js ]
-          | (Select PNG file)
-          v
- [ POST /api/admin/records/{id}/picture ]
-          |
-          v
- [ admin_api.py ] ---> (Validates PNG, sends to pipeline)
-          |
-          v
- [ image_processor.py ]
-  |-- Resize to max 800px width
-  |-- Compress size to <= 250KB (Pillow Quantize)
-  |-- Generate 200px thumbnail
-          |
-          v
- [ SQLite Database (UPDATE record) ]
-  |-- picture_name
-  |-- picture_bytes
-  |-- picture_thumbnail
-          |
-          v
- [ Returns 200 OK + filename ] -> [ edit_picture.js renders preview ]
+ +---------------------------------------------------+
+ |         Admin Editor: edit_picture.js             |
+ |           (User selects .png file)                |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |      POST /api/admin/records/{id}/picture         |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |   admin_api.py (Validates PNG, sends bytes)       |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |             image_processor.py                    |
+ |                                                   |
+ |  -> Resize image to max 800px width               |
+ |  -> Compress size to <= 250KB (Pillow Quantize)   |
+ |  -> Generate additional 200px thumbnail version   |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |         SQLite Database (UPDATE record)           |
+ |                                                   |
+ |  -> picture_name      (e.g., "peter_walk.png")    |
+ |  -> picture_bytes     (Binary payload)            |
+ |  -> picture_thumbnail (Binary payload)            |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |    Returns 200 OK + "filename.png" string         |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |        edit_picture.js renders UI preview         |
+ +---------------------------------------------------+
 ```
 
 ---
@@ -192,26 +221,46 @@ This document provides visual ASCII representations detailing how data physicall
 - Other matching text fields (e.g., `description`, `snippet`).
 
 ```text
- [ Admin Editor: edit_bulk_upload.js ]
-          | (Drag & Drop .csv file)
-          | (Client validates < 5MB and .csv extension)
-          v
- [ POST /api/admin/bulk-upload ]
-          | (Requires verify_token JWT Admin Auth)
-          v
- [ admin_api.py ]
-          |-- Parses CSV via csv.DictReader
-          |-- Validates ENUMS against schema
-          |-- Checks for slug uniqueness
-          |
-          +--> [ IF ERRORS: Return 200 with {"success": false, "errors": ["Row 2: Invalid era"]} ]
-          |
-          +--> [ IF SUCCESS: Dynamically maps to SQLite cols & generates ULID ]
-          v
- [ SQLite Database (Bulk INSERT) ]
-          |
-          v
- [ Returns 200 OK + {"success": true, "created": X} ] -> [ Editor renders results ]
+ +---------------------------------------------------+
+ |       Admin Editor: edit_bulk_upload.js           |
+ |            (Drag & Drop .csv file)                |
+ |  (Client validates < 5MB and .csv extension)      |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |           POST /api/admin/bulk-upload             |
+ |       (Requires verify_token JWT Admin Auth)      |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |                 admin_api.py                      |
+ |                                                   |
+ |  -> Parses CSV via csv.DictReader                 |
+ |  -> Validates ENUMS against system schema         |
+ |  -> Checks database for slug uniqueness           |
+ +---------------------------------------------------+
+               |                       |
+      [ERRORS FOUND]             [SUCCESS / VALID]
+               |                       |
+               v                       v
+ +------------------------+  +--------------------------------------------+
+ | Return 200 Response:   |  | -> Map to SQLite cols dynamically          |
+ | {                      |  | -> Generate ULID strings for each id       |
+ |  "success": false,     |  | -> Execute Bulk INSERT into SQLite DB      |
+ |  "errors": ["Row 2.."] |  +--------------------------------------------+
+ | }                      |                    |
+ +------------------------+                    v
+                             +--------------------------------------------+
+                             | Return 200 Response:                       |
+                             | { "success": true, "created": X }          |
+                             +--------------------------------------------+
+                                               |
+                                               v
+                             +--------------------------------------------+
+                             |         Editor renders results             |
+                             +--------------------------------------------+
 ```
 
 ---
@@ -221,20 +270,30 @@ This document provides visual ASCII representations detailing how data physicall
 **Process:** A highly specialized display layer. It intercepts specific metadata fields returned by the WASM database (like `era`, `parent_id`, or `geo_label`) and converts them into coordinates on interactive visual canvases.
 
 ```text
-[ WASM SQLite Data Output ] ----> (Extracts Era, Geo, Parent_ID bounds)
-          |
-          v
-+-----------------------------------------+
-|      3.0 Visualizations Render Engine   |
-+-----------------------------------------+
-|                                         |
-| -> 3.3 Map:      Plots Map lat/longs    |
-| -> 3.2 Timeline: Translates dates to X  |
-| -> 3.1 Evidence (Ardor): Builds Y/Z tree|
-+-----------------------------------------+
-          |
-          v
-[ Renders SVG/Canvas Interactive Visuals ]
+ +---------------------------------------------------+
+ |            WASM SQLite Data Output                |
+ |    (Extracts Era, Geo, and Parent_ID bounds)      |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |        3.0 Visualizations Render Engine           |
+ +---------------------------------------------------+
+       |                  |                  |
+       v                  v                  v
++--------------+   +--------------+   +--------------+
+|   3.3 Map    |   | 3.2 Timeline |   | 3.1 Evidence |
+|              |   |              |   |   (Ardor)    |
+| Plots array  |   | Translates   |   | Builds       |
+| of lat/longs |   | dates to X   |   | Y/Z tree     |
++--------------+   +--------------+   +--------------+
+       |                  |                  |
+       +------------------+------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |      Renders SVG/Canvas Interactive Visuals       |
+ +---------------------------------------------------+
 ```
 
 ---
@@ -244,23 +303,33 @@ This document provides visual ASCII representations detailing how data physicall
 **Process:** An algorithmic processing flow. External scripts scrape "popularity" or "importance" metrics. These metrics are combined with Admin Manual Multipliers to produce a final rank, dictating exactly where items appear in standard lists.
 
 ```text
-[ Pipeline Scripts ]
-        |
-+--------------------------+
-| 4.1 Wikipedia (Metrics)  | ----> Base Importance Score
-+--------------------------+
-| 4.2 Challenges (Metrics) | ----> Base Popularity Context
-+--------------------------+
-        |
-+--------------------------+
-| Calculate Final Rank     | <---- [ Admin Weights Editor (Multiplier Overrides) ]
-+--------------------------+
-        |
-[ Update SQLite DB Records ]
-        |
-[ WASM Query -> ORDER BY final_rank DESC ]
-        |
-[ Frontend Render: Displays Ranked List UI ] 
+ +--------------------------+       +--------------------------+
+ |  4.1 Wikipedia (Metrics) |       | 4.2 Challenges (Metrics) |
+ | (Base Importance Score)  |       | (Base Popularity Context)|
+ +--------------------------+       +--------------------------+
+               |                                  |
+               +----------------+-----------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |                    Calculate Final Rank                     |
+ |        <-- [ Admin Weights Editor (Overrides) ]             |
+ +-------------------------------------------------------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |                 Update SQLite DB Records                    |
+ +-------------------------------------------------------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |            WASM Query -> ORDER BY final_rank DESC           |
+ +-------------------------------------------------------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |          Frontend Render: Displays Ranked List UI           |
+ +-------------------------------------------------------------+
 ```
 
 ---
@@ -270,18 +339,71 @@ This document provides visual ASCII representations detailing how data physicall
 **Process:** The human-authored content flow. Admins write exclusively in Markdown via an Admin Portal interface. The backend API safely writes this to SQLite. On the frontend, Javascript fetches the markdown payload, parses it into HTML, and applies the specialized premium typography layouts.
 
 ```text
-[ Admin Portal: Writer Core ]
- (5.1 Context / 5.2 Historiography)
-                 |
-[ Write Content via Markdown Editor ]
-                 |
-[ Admin Backend API -> Insert DB ]
-                 |
-[ WASM Query (User Browser) ]
-                 |
-[ Parse Markdown payload into HTML ]
-                 |
-[ Render specialized 'Essay Typography Layout' ]
+ +-------------------------------------------------------------+
+ |                Admin Portal: Writer Core                    |
+ |            (5.1 Context / 5.2 Historiography)               |
+ +-------------------------------------------------------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |             Write Content via Markdown Editor               |
+ +-------------------------------------------------------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |               Admin Backend API -> Insert DB                |
+ +-------------------------------------------------------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |                 WASM Query (User Browser)                   |
+ +-------------------------------------------------------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |              Parse Markdown payload into HTML               |
+ +-------------------------------------------------------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |        Render specialized 'Essay Typography Layout'         |
+ +-------------------------------------------------------------+
+```
+
+---
+
+### 5.1 News Ingestion Pipeline
+**Purpose:** Documents the automated flow for crawling, ranking, and inserting news events into the database.
+
+```text
+             [ Scheduled Job / Manual Trigger ]
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |             backend/pipelines/pipeline_news.py              |
+ |                                                             |
+ |  -> Scrape external RSS feeds / target News APIs            |
+ |  -> Extract and filter for relevant historical events       |
+ |  -> Rank entries by recency and contextual relevance        |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |             SQLite Database (INSERT / UPDATE)               |
+ |                                                             |
+ |  -> news_items   (JSON Blob payload)                        |
+ |  -> news_sources (Attribution metadata)                     |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |                   WASM Query (Frontend)                     |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |           list_newsitem.js renders the News Feed            |
+ +-------------------------------------------------------------+
 ```
 
 ---
@@ -291,75 +413,130 @@ This document provides visual ASCII representations detailing how data physicall
 **Process:** The DevOps backbone governing how the different services talk to each other on the server. Nginx routes traffic either to static HTML assets, to the secure Admin API, or to the read-only Agent API.
 
 ```text
-[ External Web Traffic ]            [ Automated AI Agents ]
-           |                                  |
-+----------v----------------------------------v---------+
-|                   Nginx Reverse Proxy                 |
-|       (Rate Limit, robots.txt, sitemap.xml)           |
-+----+-----------------------+---------------------+----+
-     |                       |                     |
-     v                       v                     v
-[ Static Assets Files ] [ Admin Auth API ]  [ MCP Server Service ]
-(HTML, JS, CSS, WASM)   (Auth & JWT Utils)  (rate_limiter.py)
-                            |                      |
-                            v                      v
-                  [ SQLite Read/Write ]    [ SQLite Read-Only ]
+    [ External Web Traffic ]               [ Automated AI Agents ]
+               |                                      |
+               +-------------------+------------------+
+                                   |
+                                   v
+ +-------------------------------------------------------------+
+ |                   Nginx Reverse Proxy                       |
+ |          (Rate Limit, robots.txt, sitemap.xml)              |
+ +-------------------------------------------------------------+
+          |                        |                       |
+          v                        v                       v
+ +----------------+      +----------------+      +------------------+
+ | Static Assets  |      | Admin Auth API |      | MCP Server Agent |
+ |     Files      |      |   (Backend)    |      |    (API Tool)    |
+ |                |      |                |      |                  |
+ | HTML, JS, CSS, |      |   Auth & JWT   |      | rate_limiter.py  |
+ | SQLite WASM    |      |   Utilities    |      |                  |
+ +----------------+      +----------------+      +------------------+
+                                   |                       |
+                                   v                       v
+                         +----------------+      +------------------+
+                         | SQLite DB File |      |  SQLite DB File  |
+                         |  (Read/Write)  |      |   (Read-Only)    |
+                         +----------------+      +------------------+
 ```
 
 ### 6.1 Admin Authentication Flow & Middleware
 **Process:** The secure handshake between the client and the server using JWT-over-Cookie transport. A frontend middleware intercepts all dashboard actions to verify session validity via the backend.
 
 ```text
-[ Browser Action (e.g. Load 'Records') ]
-         |
-         v
-[ JS: load_middleware.js ] --( GET /api/admin/verify )--> [ API: admin_api.py ]
-                                                                |
-         +-----------------------------------------------------+
-         |
-         v
-[ API: verify_token dependency ]
-         |
-         +--> [ Read 'admin_token' from HttpOnly Cookie ]
-         |
-         +--> [ Decode JWT via auth_utils.py ]
-         |
-         +--> [ Validate Exp & Role ('admin') ]
-         |
-         v
-[ Response ] --( 200 OK )--> [ JS: Proceed with Module Load ]
-      |
-      +----( 401 Unauthorized )--> [ JS: Trigger logout_middleware.js ]
-                                            |
-                                            v
-                                [ Wipe DOM / Redirect to Login ]
+ +-------------------------------------------------------------+
+ |             Browser Action (e.g. Load 'Records')            |
+ +-------------------------------------------------------------+
+                                |
+                                v
+ +-------------------------------------------------------------+
+ |  JS: load_middleware.js   -- (GET /api/admin/verify) --+    |
+ +--------------------------------------------------------|----+
+                                                          v
+ +-------------------------------------------------------------+
+ |                API: verify_token dependency                 |
+ |                                                             |
+ |  -> Read 'admin_token' string from HttpOnly Cookie          |
+ |  -> Decode JWT payload via auth_utils.py                    |
+ |  -> Validate expiration time & Role ('admin' required)      |
+ +-------------------------------------------------------------+
+                                |
+             +------------------+------------------+
+             |                                     |
+       [ VALID TOKEN ]                      [ INVALID / NULL ]
+       (Returns 200 OK)                   (Returns 401 Unauth)
+             |                                     |
+             v                                     v
+ +------------------------+              +---------------------+
+ | JS: Proceed with       |              | Trigger:            |
+ | Module Load sequence   |              | logout_middleware.js|
+ +------------------------+              +---------------------+
+                                                   |
+                                                   v
+                                         +---------------------+
+                                         | Wipe DOM, Redirect  |
+                                         | back to Login Panel |
+                                         +---------------------+
 ```
 
 #### Authentication Handshake (Login)
 ```text
-[ Browser: admin.html ]
-         |
-         v
-[ JS: admin_login.js ] --( POST /api/admin/login )--> [ API: admin_api.py ]
-                                                                |
-         +-----------------------------------------------------+
-         |
-         v
-[ Utils: auth_utils.py ]
-         |
-         +--> [ Check Brute Force (IP Lockout) ]
-         |
-         +--> [ Verify Admin Password ]
-         |
-         v
-[ Success? ] --( Yes )--> [ Generate JWT ] --> [ Set HttpOnly Cookie ]
-      |                                                |
-      +--------( No )----[ Return 401 Unauthorized ]<--+
-                                 |
-          +----------------------+
-          |
-          v
-[ JS: Transition to Dashboard ]
+ +-------------------------------------------------------------+
+ |   Browser: admin.html   -- (POST /api/admin/login) --+      |
+ |   (User submits password)                            |      |
+ +------------------------------------------------------|------+
+                                                        v
+ +-------------------------------------------------------------+
+ |                Utils: auth_utils.py                         |
+ |                                                             |
+ |  -> Check Brute Force table (Verify IP is not locked out)   |
+ |  -> Verify Admin Password strictly matches .env variable    |
+ +-------------------------------------------------------------+
+                                |
+             +------------------+------------------+
+             |                                     |
+       [ SUCCESS (Match) ]                  [ FAIL (No Match) ]
+             |                                     |
+             v                                     v
+ +------------------------+              +---------------------+
+ | -> Generate new JWT    |              | Return 401 Response |
+ | -> Set HttpOnly Cookie |              | (Unauthorized)      |
+ | -> Return 200 OK       |              +---------------------+
+ +------------------------+
+             |
+             v
+ +------------------------+
+ |   JS: Transition to    |
+ |   Admin Dashboard UI   |
+ +------------------------+
+```
+
+---
+
+### 6.2 MCP Server API Flow
+**Purpose:** Documents the read-only data access layer for external AI agents querying the system.
+
+```text
+                 [ External AI Agent ]
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |                 Nginx Proxy (Rate Limited)                  |
+ |                   (Route: /mcp/...)                         |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |             MCP Server Service (mcp_server.py)              |
+ |                                                             |
+ |  -> Establishes read-only connection to SQLite database     |
+ |  -> Executes strictly sanitized SELECT queries              |
+ +-------------------------------------------------------------+
+                           |
+                           v
+             [ JSON Formatted Payload Response ]
+                           |
+                           v
+                [ Agent Context Window ]
 ```
 
 ---
@@ -369,19 +546,75 @@ This document provides visual ASCII representations detailing how data physicall
 **Process:** The quality assurance loop. Used to verify the system's structural integrity when new features are added, ensuring ports are open and the UI layout hasn't broken.
 
 ```text
-[ Developer Local Environment ]
-              |
-[ port_test.py (Wait for services) ]
-              |
-[ security_audit.py (Safety Audit) ] ----> pip-audit & security scans
-              |
-[ Trigger `browser_test_skill` agent ]
-              |
-[ Agent boots Headless Browser framework ]
-              |
-[ Validates Functional UX + DB Return Paths ]
-              |
-[ agent_readability_test.py ] ----> Asserts AI-welcoming JSON & SEO
-              |
-[ Write Audit Report to `/logs` directory ]
+               [ Developer Local Environment ]
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |        port_test.py (Waits for all local services)          |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |      security_audit.py (pip-audit & security scans)         |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |            Trigger `browser_test_skill` agent               |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |         Agent boots Headless Browser UI framework           |
+ |         Validates Functional UX + DB Return Paths           |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |   agent_readability_test.py (Asserts JSON/SEO formats)      |
+ +-------------------------------------------------------------+
+                             |
+                             v
+             [ Write Audit Report to `/logs` ]
+```
+
+---
+
+### 7.1 Database Seeding & Build Flow
+**Purpose:** Documents the process of compiling the initial database from raw SQL seeds and running pipeline updates.
+
+```text
+              [ Developer Run: python build.py ]
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |                     tools/db_seeder.py                      |
+ |                                                             |
+ |  -> Reads structural schema from database.sql               |
+ |  -> Injects payload records from seed_data.sql              |
+ |  -> Compiles and finalizes database.sqlite                  |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |                     Pipeline Triggers                       |
+ |                                                             |
+ |  -> pipeline_wikipedia.py                                   |
+ |  -> pipeline_popular_challenges.py                          |
+ |  -> pipeline_academic_challenges.py                         |
+ |  -> pipeline_news.py                                        |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |   tools/generate_sitemap.py (Rebuilds live sitemap.xml)     |
+ +-------------------------------------------------------------+
+                             |
+                             v
+ +-------------------------------------------------------------+
+ |      tools/minify_admin.py (Obfuscates admin JS payload)    |
+ +-------------------------------------------------------------+
+                             |
+                             v
+               [ System Ready for Deployment ]
 ```
