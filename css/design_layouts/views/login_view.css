@@ -72,7 +72,7 @@ body.admin-body {
     padding: var(--space-3);
     margin-bottom: var(--space-4);
     border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-none);
     font-family: var(--font-body);
     font-size: var(--text-base);
     box-sizing: border-box;
@@ -82,8 +82,12 @@ body.admin-body {
 
 .login-box input[type="password"]:focus {
     outline: none;
+}
+
+.login-box input[type="password"]:focus-visible {
     border-color: var(--color-accent-primary);
-    box-shadow: 0 0 0 2px rgba(142, 59, 70, 0.1);
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
 }
 
 .login-box button {
@@ -121,7 +125,7 @@ body.admin-body {
     padding: var(--space-2);
     background-color: var(--color-bg-secondary);
     border: var(--border-width-thin) solid var(--color-accent-primary);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-none);
     display: none;
     text-align: left;
     font-family: var(--font-body);

@@ -106,8 +106,8 @@ function renderNodesForView(viewName, allRecords) {
         circle.addEventListener('click', () => {
             showMetadata(record);
             const allNodes = document.querySelectorAll('.map-node-item');
-            allNodes.forEach(n => n.setAttribute('fill', '#8E3B46'));
-            circle.setAttribute('fill', '#D4AF37'); 
+            allNodes.forEach(n => n.classList.remove('is-active'));
+            circle.classList.add('is-active'); 
         });
         
         nodeLayer.appendChild(circle);

@@ -13,3 +13,4 @@ pytest
 jinja2
 markupsafe
 PyJWT
+Pillow

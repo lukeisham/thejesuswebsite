@@ -25,6 +25,16 @@ input[type="range"]:focus {
     outline: none;
 }
 
+input[type="range"]:focus-visible::-webkit-slider-runnable-track {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 4px;
+}
+
+input[type="range"]:focus-visible::-moz-range-track {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 4px;
+}
+
 /* Track */
 input[type="range"]::-webkit-slider-runnable-track {
     width: 100%;
@@ -59,6 +69,15 @@ input[type="range"]::-moz-range-thumb {
     border-radius: var(--radius-none);
 }
 
+/* Slider value display §15 */
+.slider-value {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    min-width: 2rem;
+    text-align: right;
+}
+
 /* =============================================================================
    2. CHECKBOXES & RADIO BUTTONS
    Source: §15 — "sharp-edged", Oxblood for selected, Roboto Mono labels.
@@ -78,6 +97,13 @@ input[type="radio"] {
     place-content: center;
     margin-right: var(--space-1);
     vertical-align: middle;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
 }
 
 input[type="radio"] {
@@ -160,7 +186,7 @@ select {
     -webkit-appearance: none;
     appearance: none;
     padding: var(--space-1) var(--space-4) var(--space-1) var(--space-2);
-    border: 1px solid var(--color-text-primary);
+    border: 1px solid var(--color-text-primary); /* Charcoal border */
     border-radius: var(--radius-none);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
@@ -177,6 +203,11 @@ select {
 select:focus {
     outline: none;
     border-color: var(--color-accent-primary);
+}
+
+select:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
 }
 
 /* Options with zebra-striping */

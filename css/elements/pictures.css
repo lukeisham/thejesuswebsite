@@ -36,7 +36,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border: var(--border-width-thin) solid var(--color-border);
+    border: var(--border-width-thin) solid var(--color-black);
     padding: var(--space-1);
     background-color: var(--color-bg-secondary);
 }
@@ -57,6 +57,6 @@
     font-family: var(--font-body);
     font-size: var(--text-sm);
     color: var(--color-text-secondary);
-    text-align: left;
+    text-align: center;
     background-color: var(--color-transparent);
 }

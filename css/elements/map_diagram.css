@@ -82,20 +82,27 @@
 .map-svg-canvas path {
     stroke-linecap: round;
     stroke-linejoin: round;
+    filter: grayscale(100%) contrast(1.1); /* Standardize to grayscale blueprint feel */
+    stroke: var(--color-border-strong);
 }
 
 /* Map Nodes */
 .map-node {
     fill: var(--color-accent-primary); /* Deep Oxblood */
     stroke: var(--color-bg-primary);   /* Match canvas background */
-    stroke-width: 2px;
+    stroke-width: 1px;
     cursor: pointer;
-    transition: r 0.2s ease, fill 0.2s ease;
+    transition: r var(--transition-fast), fill var(--transition-fast);
 }
 
 .map-node:hover {
     fill: var(--color-dash-accent); /* Antique Gold hover */
-    r: 8;
+    r: 7;
+}
+
+.map-node.is-active {
+    fill: var(--color-dash-accent); /* Antique Gold for selected state */
+    stroke-width: 2px;
 }
 
 /* Sidebar Information Display */

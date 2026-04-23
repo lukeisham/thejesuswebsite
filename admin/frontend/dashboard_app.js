@@ -40,6 +40,7 @@ function renderDashboardShell() {
                     <ul>
                         <li><a href="#" data-module="records-new">Create New</a></li>
                         <li><a href="#" data-module="records-edit">Edit Existing</a></li>
+                        <li><a href="#" data-module="records-bulk">Bulk Upload CSV</a></li>
                     </ul>
 
                     <h3>Lists & Ranks</h3>
@@ -66,7 +67,7 @@ function renderDashboardShell() {
                     <!-- Default Dashboard Home / Status -->
                     <div class="admin-card">
                         <h2>System Status</h2>
-                        <p class="text-base" style="color: #2e7d32; font-weight: bold;">● Online (WASM SQLite Sync Active)</p>
+                        <p class="status-indicator status-online">● Online (WASM SQLite Sync Active)</p>
                     </div>
 
                     <div class="admin-card">
@@ -78,9 +79,9 @@ function renderDashboardShell() {
                         </ul>
                     </div>
 
-                    <div class="admin-card" style="border: none; box-shadow: none; padding: 0;">
-                        <h2 style="border: none; padding-bottom: 0;">Quick Actions</h2>
-                        <div style="margin-top: var(--space-4);">
+                    <div class="admin-card">
+                        <h2>Quick Actions</h2>
+                        <div class="mt-4">
                             <button class="quick-action-btn">Add New Record</button>
                             <button class="quick-action-btn">Run Sync Pipeline</button>
                         </div>
@@ -130,15 +131,45 @@ async function loadModule(moduleName) {
         }
     }
 
+    if (moduleName === 'records-bulk' && typeof window.renderBulkUpload === 'function') {
+        window.renderBulkUpload('admin-canvas');
+        return;
+    }
+
     // Module router placeholder (waiting for tasks 25-27)
+    // Module mockup with Split-Pane and Action Bar (Technical Blueprint Verification)
     canvas.innerHTML = `
-        <div class="admin-card">
-            <h2>Module Details</h2>
-            <p style="font-family: var(--font-mono); font-size: var(--text-sm); background: #eee; padding: var(--space-2); border-radius: var(--radius-sm); display: inline-block;">
-                Action: Load ${moduleName}.js
-            </p>
-            <p class="mt-4">This backend editing interface is pending implementation in Tasks 25-27.</p>
+        <div class="admin-module-header">
+            <h2>Editing Module: ${moduleName}</h2>
+            <p class="text-sm text-muted">Technical Ledger Interface — Split Pane Active</p>
         </div>
+
+        <div class="admin-editor-split">
+            <div class="admin-editor-pane">
+                <h3>Data Entry (Mono)</h3>
+                <label>Title</label>
+                <input type="text" value="Sample Record Title" placeholder="Enter title...">
+                
+                <label class="mt-4">Slug</label>
+                <input type="text" value="sample-record-slug" placeholder="Enter slug...">
+                
+                <label class="mt-4">Content (Markdown)</label>
+                <textarea class="editor-textarea">## Introduction\n\nThe historical evidence for this record suggests...</textarea>
+            </div>
+
+            <div class="admin-preview-pane">
+                <h3>Live Preview</h3>
+                <div class="preview-content">
+                    <h2 class="font-serif">Sample Record Title</h2>
+                    <p class="font-body">The historical evidence for this record suggests...</p>
+                </div>
+            </div>
+        </div>
+
+        <footer class="admin-action-bar">
+            <button class="btn-outline">Discard Changes</button>
+            <button class="btn-primary">Save to Database</button>
+        </footer>
     `;
 }
 

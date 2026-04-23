@@ -318,10 +318,15 @@ a:focus {
     text-underline-offset: 3px;
 }
 
-a:focus-visible {
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
     outline:         2px solid var(--color-accent-primary);
     outline-offset:  3px;
-    border-radius:   var(--radius-sm);
+    border-radius:   var(--radius-none);
 }
 
 
@@ -389,6 +394,7 @@ li {
 
 /* --- Font helpers --- */
 .font-body    { font-family: var(--font-body);    }
+.font-serif   { font-family: var(--font-body);    }
 .font-essay   { font-family: var(--font-essay);   }
 .font-heading { font-family: var(--font-heading); }
 .font-mono    { font-family: var(--font-mono);    }
@@ -409,4 +415,231 @@ li {
     clip:       rect(0, 0, 0, 0);
     white-space: nowrap;
     border:     0;
+}
+
+
+/* =============================================================================
+   12. ICONOGRAPHY
+   Source: guide_style.md §15 — "1px thin-line strokes, zero fills"
+   All inline SVGs used as UI icons must use the .icon class.
+   Diagram SVGs (timeline, ardor, map) have their own component stylesheets
+   and are exempt from these rules.
+============================================================================= */
+
+/* Base icon wrapper — forces consistent sizing and token alignment */
+.icon {
+    display:        inline-block;
+    flex-shrink:    0;
+    vertical-align: middle;
+    width:          1em;
+    height:         1em;
+    /* Inherit current text colour so icons follow their parent's colour token */
+    color:          currentColor;
+}
+
+/* All <svg> elements that carry the .icon class: enforce thin-line aesthetic */
+.icon svg,
+svg.icon {
+    display:  block;
+    width:    100%;
+    height:   100%;
+    /* No background fill — icons are purely linear */
+    fill:         none;
+    /* 1px charcoal stroke — matches border tokens */
+    stroke:       currentColor;
+    stroke-width: 1px;
+    /* Square line-caps for the blueprint/technical feel */
+    stroke-linecap:  square;
+    stroke-linejoin: miter;
+    /* Inherit colour from .icon wrapper */
+    overflow: visible;
+}
+
+/* Accent variant — Oxblood stroke for interactive icon states */
+.icon--accent svg,
+svg.icon--accent {
+    stroke: var(--color-accent-primary);
+}
+
+/* Muted variant — Lead Grey for decorative / disabled icons */
+.icon--muted svg,
+svg.icon--muted {
+    stroke: var(--color-text-muted);
+}
+
+/* Size helpers — multiples of the 8px grid */
+.icon--sm  { width: 0.875rem; height: 0.875rem; } /* ~14px */
+.icon--md  { width: 1.25rem;  height: 1.25rem;  } /* ~20px */
+.icon--lg  { width: 1.5rem;   height: 1.5rem;   } /* ~24px */
+
+
+/* =============================================================================
+   13. SCROLLBARS
+   Source: guide_style.md §15 — "1px charcoal tracks, no rounded caps"
+   Applied globally. Overrides the partial rule in grid.css §4 (.site-sidebar).
+============================================================================= */
+
+/* Firefox — standards-track property */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+}
+
+/* WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width:  6px;  /* Narrow track — 6px ≈ 1px visual weight at normal DPI */
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background:    transparent;
+    border-radius: 0; /* Square caps — no rounded ends */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-strong); /* Dark Clay — charcoal feel */
+    border-radius:    0;                          /* Square caps */
+    border:           1px solid transparent;      /* 1px technical precision */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-secondary); /* Lead Grey on hover */
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+
+/* =============================================================================
+   14. REGISTRATION MARKS
+   Source: guide_style.md §15 — "1px dashed Oxblood cut marks on
+   high-emphasis containers"
+   Apply .has-registration-mark to any container that needs corner cut marks.
+   Uses ::before / ::after pseudo-elements so no extra DOM nodes are required.
+   The marks appear as two crossing dashes at each corner, reminiscent of
+   print registration / crop marks in a technical blueprint.
+============================================================================= */
+
+/* Token for mark size — 8px = 1 grid unit */
+:root {
+    --reg-mark-size:  8px;
+    --reg-mark-gap:   4px; /* Gap between corner of element and start of mark */
+}
+
+.has-registration-mark {
+    position: relative; /* Establish stacking context for pseudo-elements */
+}
+
+/* Top-left and bottom-right corners */
+.has-registration-mark::before,
+.has-registration-mark::after {
+    content:  '';
+    position: absolute;
+    /* 1px dashed Oxblood — the accent border token */
+    border:   var(--border-width-thin) dashed var(--color-accent-primary);
+    /* Width/height of the L-shaped cross arm */
+    width:    var(--reg-mark-size);
+    height:   var(--reg-mark-size);
+    /* Pointer-events off — purely decorative */
+    pointer-events: none;
+    /* Keep marks above content */
+    z-index: 1;
+}
+
+/* Top-left corner mark */
+.has-registration-mark::before {
+    top:    calc(-1 * var(--reg-mark-gap));
+    left:   calc(-1 * var(--reg-mark-gap));
+    /* Show only the top and left borders */
+    border-right:  none;
+    border-bottom: none;
+}
+
+/* Bottom-right corner mark */
+.has-registration-mark::after {
+    bottom: calc(-1 * var(--reg-mark-gap));
+    right:  calc(-1 * var(--reg-mark-gap));
+    /* Show only the bottom and right borders */
+    border-top:  none;
+    border-left: none;
+}
+
+
+/* =============================================================================
+   15. SYSTEM FEEDBACK STATES
+   Source: guide_style.md §15
+   Composable state classes — add to any element to communicate system status.
+   States:
+     .state-loading  — Oxblood pulsing animation (indeterminate progress)
+     .state-success  — Blueprint Green text/border
+     .state-error    — Oxblood alert text/border
+     .state-disabled — Lead Grey, 0.5 opacity, cursor blocked
+   These are intentionally low-specificity so component rules can override.
+============================================================================= */
+
+/* --- Loading keyframe — Oxblood opacity pulse ----------------------------- */
+@keyframes oxblood-pulse {
+    0%,
+    100% { opacity: 1;   }
+    50%  { opacity: 0.4; }
+}
+
+/* Loading state — applied to spinners, skeletons, or the element itself */
+.state-loading {
+    color:            var(--color-accent-primary);  /* Oxblood text */
+    border-color:     var(--color-accent-primary);
+    animation:        oxblood-pulse 1.4s ease-in-out infinite;
+    pointer-events:   none;
+    user-select:      none;
+}
+
+/* Inline loading label companion — monospace, uppercase */
+.state-loading__label {
+    font-family:    var(--font-mono);
+    font-size:      var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color:          var(--color-accent-primary);
+    animation:      oxblood-pulse 1.4s ease-in-out infinite;
+}
+
+/* --- Success state -------------------------------------------------------- */
+.state-success {
+    color:        var(--color-status-success);  /* Blueprint Green */
+    border-color: var(--color-status-success);
+}
+
+.state-success__label {
+    font-family:    var(--font-mono);
+    font-size:      var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color:          var(--color-status-success);
+}
+
+/* --- Error state ---------------------------------------------------------- */
+.state-error {
+    color:        var(--color-accent-primary);  /* Deep Oxblood alert */
+    border-color: var(--color-accent-primary);
+}
+
+.state-error__label {
+    font-family:    var(--font-mono);
+    font-size:      var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color:          var(--color-accent-primary);
+}
+
+/* --- Disabled state ------------------------------------------------------- */
+.state-disabled,
+[disabled],
+[aria-disabled="true"] {
+    color:          var(--color-text-muted);   /* Lead Grey */
+    border-color:   var(--color-border);
+    opacity:        0.5;
+    cursor:         not-allowed;
+    pointer-events: none;
+    user-select:    none;
 }

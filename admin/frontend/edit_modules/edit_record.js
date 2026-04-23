@@ -38,6 +38,8 @@ window.renderEditRecord = function(containerId, recordId = null) {
                 </div>
             </div>
 
+            <div id="picture-upload-container"></div>
+
             <div style="margin-bottom: var(--space-6); padding: var(--space-4); background-color: #fafafa; border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
                 <h3 style="margin-top: 0; font-family: var(--font-serif); margin-bottom: var(--space-4);">Taxonomy & Diagrams (Maps/Timeline data):</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
@@ -92,5 +94,10 @@ window.renderEditRecord = function(containerId, recordId = null) {
     // Load edit_links module if the script has been parsed
     if (typeof window.renderEditLinks === 'function') {
         window.renderEditLinks('relations-links-container');
+    }
+
+    // Load edit_picture module if the script has been parsed
+    if (typeof window.renderEditPicture === 'function' && recordId) {
+        window.renderEditPicture('picture-upload-container', recordId);
     }
 };

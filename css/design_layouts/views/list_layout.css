@@ -49,19 +49,32 @@
 .list-row-item {
     display: flex;
     align-items: flex-start;
-    padding: var(--space-3) 0;
+    padding: var(--space-3) var(--space-3);
     border-bottom: var(--border-width-thin) solid var(--color-border);
     gap: var(--space-3);
+    transition: background-color var(--transition-fast), border-left-color var(--transition-fast);
+    border-left: 2px solid transparent;
+}
+
+.record-list .list-row-item:nth-child(even) {
+    background-color: var(--color-bg-secondary);
+}
+
+.list-row-item:hover {
+    background-color: var(--color-bg-tertiary);
+    border-left-color: var(--color-accent-primary);
 }
 
 /* Ranked List specifics (e.g. Wikipedia rank, Challenge rank) */
 .list-row-rank {
-    font-family: var(--font-mono);
+    font-family: var(--font-body); /* Serif rank numbers */
     font-size: var(--text-base);
-    font-weight: var(--weight-bold);
+    font-weight: var(--weight-medium);
     color: var(--color-text-secondary);
-    min-width: 2.5rem;
+    min-width: 2rem;
     flex-shrink: 0;
+    text-align: right;
+    padding-top: 2px; /* Precision alignment with heading */
 }
 
 /* Content block in a row */
@@ -195,12 +208,14 @@
     background-color: var(--color-bg-secondary);
     border: var(--border-width-thin) solid var(--color-border);
     transition: all var(--transition-fast);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-none); /* Sharp blueprint edges */
 }
 
 .pagination-btn:hover,
 .pagination-btn:focus {
-    background-color: var(--color-bg-tertiary);
+    background-color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+    color: var(--color-white);
     text-decoration: none;
 }
 

@@ -7,9 +7,15 @@
 
 import os
 import sqlite3
-from fastapi import FastAPI, HTTPException, Request, Response, Depends
+from fastapi import FastAPI, HTTPException, Request, Response, Depends, UploadFile, File
 from pydantic import BaseModel
 from typing import Dict, Any
+import pathlib
+import csv
+import io
+import uuid
+import json
+from datetime import datetime
 
 import sys
 # Add the project root to sys.path to allow absolute imports
@@ -17,6 +23,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from auth_utils import AuthUtils
 from backend.middleware.rate_limiter import RateLimiterMiddleware
+from backend.pipelines.image_processor import process_uploaded_png
 
 app = FastAPI(title="The Jesus Website API - Admin")
 # Instantiate and add rate limiter (allows 30 requests per minute for admin actions)
@@ -233,3 +240,171 @@ async def delete_record(record_id: str, admin_data: dict = Depends(verify_token)
         return {"message": "Record deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to delete record: " + str(e))
+
+@app.post("/api/admin/records/{record_id}/picture")
+async def upload_record_picture(record_id: str, file: UploadFile = File(...), admin_data: dict = Depends(verify_token)):
+    """
+    Handles PNG upload, resizes/compresses via image_processor, and saves to DB.
+    """
+    if file.content_type != "image/png":
+        raise HTTPException(status_code=400, detail="Only PNG images are allowed")
+    
+    try:
+        raw_bytes = await file.read()
+        processed = process_uploaded_png(raw_bytes)
+        
+        # Sanitise filename
+        picture_name = pathlib.Path(file.filename).name
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE records 
+            SET picture_name = ?, 
+                picture_bytes = ?, 
+                picture_thumbnail = ? 
+            WHERE id = ?
+        """, (picture_name, processed["picture_bytes"], processed["picture_thumbnail"], record_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return {"message": "Picture uploaded successfully", "picture_name": picture_name}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to upload picture: " + str(e))
+
+@app.post("/api/admin/bulk-upload")
+async def bulk_upload_records(file: UploadFile = File(...), admin_data: dict = Depends(verify_token)):
+    """
+    Handles CSV upload, parses, validates, and bulk inserts into the database.
+    """
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+
+    # Read and parse CSV
+    content = await file.read()
+    
+    # 5MB size limit
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size exceeds 5MB limit")
+
+    try:
+        # Decode content
+        text_content = content.decode('utf-8-sig')
+        reader = csv.DictReader(io.StringIO(text_content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Failed to parse CSV file: Invalid encoding or format")
+
+    rows = list(reader)
+    if not rows:
+        raise HTTPException(status_code=400, detail="CSV file is empty")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Get valid enums and fields
+    valid_eras = {"PreIncarnation", "OldTestament", "EarlyLife", "Life", "GalileeMinistry", "JudeanMinistry", "PassionWeek", "Post-Passion"}
+    valid_timelines = {"PreIncarnation", "OldTestament", "EarlyLifeUnborn", "EarlyLifeBirth", "EarlyLifeInfancy", "EarlyLifeChildhood", "LifeTradie", "LifeBaptism", "LifeTemptation", "GalileeCallingTwelve", "GalileeSermonMount", "GalileeMiraclesSea", "GalileeTransfiguration", "JudeanOutsideJudea", "JudeanMissionSeventy", "JudeanTeachingTemple", "JudeanRaisingLazarus", "JudeanFinalJourney", "PassionPalmSunday", "PassionMondayCleansing", "PassionTuesdayTeaching", "PassionWednesdaySilent", "PassionMaundyThursday", "PassionMaundyLastSupper", "PassionMaundyGethsemane", "PassionMaundyBetrayal", "PassionFridaySanhedrin", "PassionFridayCivilTrials", "PassionFridayCrucifixionBegins", "PassionFridayDarkness", "PassionFridayDeath", "PassionFridayBurial", "PassionSaturdayWatch", "PassionSundayResurrection", "PostResurrectionAppearances", "Ascension", "OurResponse", "ReturnOfJesus"}
+    valid_map_labels = {"Overview", "Empire", "Levant", "Judea", "Galilee", "Jerusalem"}
+    valid_gospel_categories = {"event", "location", "person", "theme", "object"}
+
+    errors = []
+    valid_records = []
+    
+    # Validation
+    for index, row in enumerate(rows):
+        row_num = index + 2 # 1-based index + header row
+        
+        # Check required fields
+        title = row.get('title', '').strip()
+        slug = row.get('slug', '').strip()
+        
+        if not title or not slug:
+            errors.append(f"Row {row_num}: Missing 'title' or 'slug'")
+            continue
+            
+        # Uniqueness check for slug
+        cursor.execute("SELECT id FROM records WHERE slug = ?", (slug,))
+        if cursor.fetchone():
+            errors.append(f"Row {row_num}: Slug '{slug}' already exists")
+            continue
+            
+        # Enum validation
+        era = row.get('era', '')
+        if era and era.strip() and era.strip() not in valid_eras:
+            errors.append(f"Row {row_num}: Invalid era '{era}'")
+            continue
+            
+        timeline = row.get('timeline', '')
+        if timeline and timeline.strip() and timeline.strip() not in valid_timelines:
+            errors.append(f"Row {row_num}: Invalid timeline '{timeline}'")
+            continue
+            
+        map_label = row.get('map_label', '')
+        if map_label and map_label.strip() and map_label.strip() not in valid_map_labels:
+            errors.append(f"Row {row_num}: Invalid map_label '{map_label}'")
+            continue
+            
+        gospel_category = row.get('gospel_category', '')
+        if gospel_category and gospel_category.strip() and gospel_category.strip() not in valid_gospel_categories:
+            errors.append(f"Row {row_num}: Invalid gospel_category '{gospel_category}'")
+            continue
+            
+        # Primary verse JSON validation
+        primary_verse = row.get('primary_verse', '')
+        if primary_verse and primary_verse.strip():
+            try:
+                json.loads(primary_verse.strip())
+            except json.JSONDecodeError:
+                errors.append(f"Row {row_num}: Invalid JSON in primary_verse")
+                continue
+
+        # Prepare for insertion
+        valid_cols = get_valid_columns()
+        insert_data = {}
+        for col in valid_cols:
+            if col in row and row[col].strip():
+                insert_data[col] = row[col].strip()
+                
+        # Generate ID and timestamps
+        if 'id' not in insert_data:
+            insert_data['id'] = str(uuid.uuid4())
+            
+        now_iso = datetime.utcnow().isoformat() + "Z"
+        if 'created_at' not in insert_data:
+            insert_data['created_at'] = now_iso
+        if 'updated_at' not in insert_data:
+            insert_data['updated_at'] = now_iso
+
+        valid_records.append(insert_data)
+
+    if errors:
+        conn.close()
+        return {"success": False, "errors": errors, "created": 0}
+        
+    if not valid_records:
+        conn.close()
+        return {"success": False, "errors": ["No valid records found in CSV"], "created": 0}
+
+    # Bulk insertion
+    try:
+        for record in valid_records:
+            columns = ', '.join(record.keys())
+            placeholders = ', '.join(['?' for _ in record])
+            values = tuple(record.values())
+            cursor.execute(f"INSERT INTO records ({columns}) VALUES ({placeholders})", values)
+        
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        raise HTTPException(status_code=500, detail=f"Database insertion error: {str(e)}")
+        
+    conn.close()
+    
+    return {
+        "success": True, 
+        "message": f"Successfully created {len(valid_records)} records.", 
+        "created": len(valid_records),
+        "errors": []
+    }

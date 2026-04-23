@@ -60,12 +60,13 @@
     color: var(--color-text-primary);
 }
 
-/* Drop cap for the first paragraph */
+/* Drop cap for the first paragraph — precisely 3 lines high §12 */
 .essay-body p:first-of-type::first-letter {
     float: left;
-    font-size: 4rem;
-    line-height: 1;
-    margin-right: var(--space-2);
+    font-size: 3.8rem; /* Adjusted for EB Garamond 3-line height */
+    line-height: 0.8;
+    margin-top: 0.1em;
+    margin-right: 0.1em;
     font-weight: var(--weight-bold);
     color: var(--color-accent-primary);
     font-family: var(--font-heading);
@@ -83,7 +84,7 @@
 .essay-picture img {
     width: 100%;
     height: auto;
-    border: var(--border-width-thin) solid var(--color-border);
+    border: var(--border-width-thin) solid var(--color-black); /* Technical blueprint frame */
 }
 
 .essay-picture figcaption {
@@ -104,6 +105,41 @@
 .essay-body h3 {
     font-size: var(--text-lg);
     margin: var(--space-6) 0 var(--space-2) 0;
+}
+
+/* Citations & Footnotes §12 */
+.citation {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary); /* Lead Grey */
+    font-style: normal;
+}
+
+.footnote-ref {
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    vertical-align: super;
+    text-decoration: none;
+    margin: 0 2px;
+}
+
+.footnote-ref::before { content: "["; }
+.footnote-ref::after { content: "]"; }
+
+/* Bible Verses §12 */
+.bible-verse {
+    border-bottom: 1px dotted var(--color-accent-primary);
+    cursor: help;
+    font-style: italic;
+}
+
+.bible-verse-flyout {
+    font-family: var(--font-essay);
+    font-style: italic;
+    background-color: var(--color-bg-secondary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-2);
+    box-shadow: var(--shadow-sm);
+    z-index: 100;
 }
 
 /* Bibliography section at bottom */

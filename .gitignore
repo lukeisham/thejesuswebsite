@@ -1,9 +1,12 @@
-# System-wide Secrets
+# --- Security & Secrets ---
 .env
 .env.local
 .env.*.local
+admin/
+*.pem
+*.key
 
-# Python
+# --- Python Core ---
 __pycache__/
 *.py[cod]
 *$py.class
@@ -12,38 +15,23 @@ __pycache__/
 venv/
 .venv/
 env/
-.env/
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
 
-# Database
-database/database.sqlite
-database/*.sqlite-journal
-database/*.sqlite-wal
+# --- Logs & Reports ---
+logs/
+*.log
+reports/
+.coverage
+htmlcov/
 
-# OS specific
+# --- OS Specific ---
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
+.spotlight-V100
+.Trashes
 
-# Logs
-logs/*.log
-reports/*.log
-reports/*.json
+# --- Editor / IDE ---
+.vscode/
+.idea/
