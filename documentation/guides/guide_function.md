@@ -151,6 +151,36 @@ This document provides visual ASCII representations detailing how data physicall
 
 ---
 
+### 2.2 Picture Upload Pipeline
+**Purpose:** Documents the flow for uploading, resizing, and compressing PNG images in the Admin Portal.
+
+```text
+ [ Admin Editor: edit_picture.js ]
+          | (Select PNG file)
+          v
+ [ POST /api/admin/records/{id}/picture ]
+          |
+          v
+ [ admin_api.py ] ---> (Validates PNG, sends to pipeline)
+          |
+          v
+ [ image_processor.py ]
+  |-- Resize to max 800px width
+  |-- Compress size to <= 250KB (Pillow Quantize)
+  |-- Generate 200px thumbnail
+          |
+          v
+ [ SQLite Database (UPDATE record) ]
+  |-- picture_name
+  |-- picture_bytes
+  |-- picture_thumbnail
+          |
+          v
+ [ Returns 200 OK + filename ] -> [ edit_picture.js renders preview ]
+```
+
+---
+
 ## 3.0 Visualizations Module
 **Scope:** Evidence (Ardor graph), Timeline (Chronological progression), Map (Geo-spatial).  
 **Process:** A highly specialized display layer. It intercepts specific metadata fields returned by the WASM database (like `era`, `parent_id`, or `geo_label`) and converts them into coordinates on interactive visual canvases.

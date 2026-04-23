@@ -147,6 +147,7 @@ css/
 
 admin/frontend/edit_modules/
 ├── edit_record.js         <-- Core form for editing single records
+├── edit_picture.js        <-- Sub-module for PNG upload and resizing
 ├── edit_lists.js          <-- Editor for resources lists
 └── edit_links.js          <-- Unified form for Internal/External/Context links
 ```

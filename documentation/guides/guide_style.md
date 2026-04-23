@@ -73,7 +73,7 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Essays** | Manuscript column | Single column; Drop-caps (3 lines, bold, 4px margin); `--font-essay`. |
 | **Citations** | MLA style | `0.85rem` size; `--color-text-secondary`. |
 | **Footnotes** | Marginal/Inline | Lead-grey brackets `[...]`; `--text-xs`. |
-| **Images** | Solid black frame | 1px solid black; Centered "Fig X" caption. |
+| **Images** | Solid black frame | 1px solid black; Centered "Fig X" caption. (Also applies to Admin UI previews) |
 | **Bible Verses** | Dotted underline | Click-to-open fly-out boxes; Serif italics. |
 
 ## 10. Interactive Controls

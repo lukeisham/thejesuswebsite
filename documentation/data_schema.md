@@ -12,8 +12,8 @@ dependencies: [site_map.md, module_sitemap.md]
 `title` | TEXT | Flat Indexable 
 `slug` | TEXT | Flat Indexable 
 `picture_name` | TEXT | Flat Indexable 
-`picture_bytes` | BLOB | Raw PNG Data 
-`picture_thumbnail` | BLOB | Raw PNG Data 
+`picture_bytes` | BLOB | Raw PNG Data (max 800px width, ≤ 250 KB)
+`picture_thumbnail` | BLOB | Raw PNG Data (max 200px width derivative)
 `description` | TEXT | JSON Array (Paragraphs) 
 `snippet` | TEXT | JSON Array (Paragraphs) 
 `bibliography` | TEXT | JSON Blob 

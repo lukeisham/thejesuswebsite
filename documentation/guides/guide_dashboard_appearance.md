@@ -54,6 +54,11 @@ The tools below represent the **backend editing interfaces** for the front-end l
 |                       |  Title: [__________________________________]    |
 |  ...                  |  Slug:  [__________________________________]    |
 |                       |                                                 |
+|                       |  Picture:                                       |
+|                       |  [ Current: baptism-of-jesus.png          ]     |
+|                       |  [ Choose PNG File... ]  [ Upload Picture ]     |
+|                       |  [ Status: Ready / Uploading... / Saved ✓ ]    |
+|                       |                                                 |
 |                       |  Taxonomy & Diagrams (Maps/Timeline data):      |
 |                       |  Era: [Dropdown]       Timeline: [Dropdown]     |
 |                       |  Map Label: [Dropdown] Gospel Category: [DD]    |
