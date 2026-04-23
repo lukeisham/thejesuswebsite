@@ -181,6 +181,41 @@ This document provides visual ASCII representations detailing how data physicall
 
 ---
 
+### 2.3 Bulk Upload Pipeline
+**Purpose:** Documents the flow for bulk uploading and parsing CSV files to create new records rapidly.
+
+**Expected CSV Schema:**
+- `title` (Required): String (max 200 chars).
+- `slug` (Required): String, unique.
+- Taxonomy Enums (Optional): `era`, `timeline`, `map_label`, `gospel_category`. (Must strictly match `data_schema.md`)
+- `primary_verse` (Optional): JSON array string (e.g. `[{"book":"Genesis","chapter":1,"verse":1}]`).
+- Other matching text fields (e.g., `description`, `snippet`).
+
+```text
+ [ Admin Editor: edit_bulk_upload.js ]
+          | (Drag & Drop .csv file)
+          | (Client validates < 5MB and .csv extension)
+          v
+ [ POST /api/admin/bulk-upload ]
+          | (Requires verify_token JWT Admin Auth)
+          v
+ [ admin_api.py ]
+          |-- Parses CSV via csv.DictReader
+          |-- Validates ENUMS against schema
+          |-- Checks for slug uniqueness
+          |
+          +--> [ IF ERRORS: Return 200 with {"success": false, "errors": ["Row 2: Invalid era"]} ]
+          |
+          +--> [ IF SUCCESS: Dynamically maps to SQLite cols & generates ULID ]
+          v
+ [ SQLite Database (Bulk INSERT) ]
+          |
+          v
+ [ Returns 200 OK + {"success": true, "created": X} ] -> [ Editor renders results ]
+```
+
+---
+
 ## 3.0 Visualizations Module
 **Scope:** Evidence (Ardor graph), Timeline (Chronological progression), Map (Geo-spatial).  
 **Process:** A highly specialized display layer. It intercepts specific metadata fields returned by the WASM database (like `era`, `parent_id`, or `geo_label`) and converts them into coordinates on interactive visual canvases.

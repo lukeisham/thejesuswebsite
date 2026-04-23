@@ -2,7 +2,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "Picture upload implementation"
+git commit -m "bulk upload feature"
 git push origin main
 
 # Pull from GitHub into Server

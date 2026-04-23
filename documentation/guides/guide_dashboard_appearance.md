@@ -101,6 +101,32 @@ The tools below represent the **backend editing interfaces** for the front-end l
 +-------------------------------------------------------------------------+
 ```
 
+### 2.5 Backend for Bulk Upload CSV (`edit_bulk_upload.js`)
+**Corresponds to Public Section:** Non-specific (Global Data Ingestion)  
+**Purpose:** An interface for administrators to drag and drop CSV files to bulk create multiple records simultaneously. Features local client-side validation and direct API ingestion feedback.
+
+```text
++-------------------------------------------------------------------------+
+| [ Dashboard Sidebar ] |  EDITING MODULE: Bulk Upload CSV                |
+|                       |  Technical Ledger Interface — Data Ingestion    |
+|-----------------------|-------------------------------------------------|
+|  > Records            |                                                 |
+|  - Create New         |  Upload Database Records                        |
+|  - Edit Existing      |  Select or drag and drop a valid CSV...         |
+|  - Bulk Upload [Act]  |                                                 |
+|                       |  +-------------------------------------------+  |
+|  > Lists & Ranks      |  |                                           |  |
+|  ...                  |  |         DRAG & DROP CSV FILE HERE         |  |
+|                       |  |            OR CLICK TO BROWSE             |  |
+|                       |  |                                           |  |
+|                       |  +-------------------------------------------+  |
+|                       |                                                 |
+|                       |  [ Upload Results Area / Status Feedback ]      |
+|                       |                                                 |
+|                       |                                 [Start Upload]  |
++-------------------------------------------------------------------------+
+```
+
 ---
 
 ## 3.0 Visualizations Module
