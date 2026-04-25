@@ -68,7 +68,8 @@ async def verify_token(request: Request):
 # -----------------------------------------------------------------------------
 @app.post("/api/admin/login")
 async def login(req: LoginRequest, request: Request, response: Response):
-    client_ip = request.client.host
+    # FIXED: Added check for Cloudflare headers and guarded against NoneType client
+    client_ip = request.headers.get("x-forwarded-for") or (request.client.host if request.client else "unknown")
     
     # Check Brute Force
     is_safe, msg = AuthUtils.check_brute_force(client_ip)
