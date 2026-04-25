@@ -38,4 +38,4 @@ Create project and save as an .md file in the root direct to fix the display of 
 
 Remove place-holder records. 
 
-Verify the logic and hypothetical functionality of 1) adding a single record, and 2) bulk upload and 30 picture upload, making sure to check logic and compare to guide_function.md then verify that guide_function.md describes the logic exactly and exhaustively 
+Verify the logic and hypothetical functionality of 1) adding a single record, and 2) bulk upload and 3) picture upload, making sure to check logic and compare to guide_function.md then verify that guide_function.md describes the logic exactly and exhaustively 

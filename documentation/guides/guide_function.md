@@ -1,7 +1,7 @@
 ---
 name: guide_function.md
 purpose: Visual ASCII representations of module functions 
-version: 1.1.0
+version: 1.2.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, data_schema.md, detailed_module_sitemap.md]
 ---
 
@@ -160,13 +160,88 @@ This document provides visual ASCII representations detailing how data physicall
 
 ---
 
-### 2.2 Picture Upload Pipeline
+### 2.2 Single Record Create / Edit Pipeline
+**Purpose:** Documents the flow for creating a new record or editing an existing one via the Admin Portal form.
+
+**Relevant Files:**
+- `admin/frontend/edit_modules/edit_record.js` — form renderer; delegates picture to `edit_picture.js`, relations to `edit_links.js`
+- `admin/backend/admin_api.py` — `POST /api/admin/records` (create) and `PUT /api/admin/records/{id}` (update)
+
+```text
+ +---------------------------------------------------+
+ |         Admin Portal: dashboard_app.js            |
+ |   Routing -> window.renderEditRecord(id?)         |
+ +---------------------------------------------------+
+                          |
+            +-------------+--------------+
+            |                            |
+     [recordId = null]            [recordId present]
+      (Create mode)                (Edit mode)
+            |                            |
+            v                            v
+ +---------------------+   +----------------------------------+
+ | Render blank form   |   | GET /api/admin/records/{id}      |
+ | (title, slug,       |   | -> Populate form fields with     |
+ |  taxonomy dropdowns,|   |    existing row data             |
+ |  text areas)        |   +----------------------------------+
+ +---------------------+                |
+            |                           v
+            +-------------+-------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |    edit_record.js injects child modules           |
+ |                                                   |
+ |  -> edit_links.js    (Relations / Links section)  |
+ |  -> edit_picture.js  (Picture upload, edit only)  |
+ +---------------------------------------------------+
+                          |
+              (Admin fills fields, clicks Save)
+                          |
+             +------------+------------+
+             |                         |
+      [Create mode]             [Edit mode]
+             |                         |
+             v                         v
+ +---------------------+   +---------------------------+
+ | POST /api/admin/    |   | PUT /api/admin/           |
+ |   records           |   |   records/{id}            |
+ | Body: JSON field    |   | Body: JSON field map       |
+ | map of row data     |   | of changed fields only     |
+ +---------------------+   +---------------------------+
+             |                         |
+             +------------+------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |   admin_api.py                                    |
+ |                                                   |
+ |  -> Reads valid column names via PRAGMA           |
+ |  -> Filters payload to only valid columns         |
+ |  -> Executes parameterized INSERT or UPDATE       |
+ |  -> On CREATE: returns { "id": <rowid> }          |
+ |  -> On UPDATE: returns { "message": "..." }       |
+ +---------------------------------------------------+
+```
+
+---
+
+### 2.3 Picture Upload Pipeline
 **Purpose:** Documents the flow for uploading, resizing, and compressing PNG images in the Admin Portal.
 
 ```text
  +---------------------------------------------------+
  |         Admin Editor: edit_picture.js             |
- |           (User selects .png file)                |
+ |   On mount: GET /api/admin/records/{id}           |
+ |   -> Renders existing picture_name or empty state |
+ +---------------------------------------------------+
+                          |
+           (User selects .png file, clicks Upload)
+                          |
+                          v
+ +---------------------------------------------------+
+ |         edit_picture.js (Client Validation)       |
+ |   -> Checks file.type === "image/png"             |
  +---------------------------------------------------+
                           |
                           v
@@ -176,7 +251,10 @@ This document provides visual ASCII representations detailing how data physicall
                           |
                           v
  +---------------------------------------------------+
- |   admin_api.py (Validates PNG, sends bytes)       |
+ |   admin_api.py                                    |
+ |   -> Validates file.content_type === "image/png"  |
+ |   -> Sanitises filename (pathlib.Path(...).name)  |
+ |   -> Passes raw bytes to image_processor.py       |
  +---------------------------------------------------+
                           |
                           v
@@ -184,8 +262,10 @@ This document provides visual ASCII representations detailing how data physicall
  |             image_processor.py                    |
  |                                                   |
  |  -> Resize image to max 800px width               |
- |  -> Compress size to <= 250KB (Pillow Quantize)   |
- |  -> Generate additional 200px thumbnail version   |
+ |  -> Compress to <= 250KB:                         |
+ |       1st: lossless PNG (optimize=True)           |
+ |       Fallback: PNG quantize loop (256->8 colors) |
+ |  -> Generate additional 200px thumbnail (PNG)     |
  +---------------------------------------------------+
                           |
                           v
@@ -199,12 +279,14 @@ This document provides visual ASCII representations detailing how data physicall
                           |
                           v
  +---------------------------------------------------+
- |    Returns 200 OK + "filename.png" string         |
+ |    Returns 200 OK JSON:                           |
+ |    { "message": "...", "picture_name": "..." }    |
  +---------------------------------------------------+
                           |
                           v
  +---------------------------------------------------+
- |        edit_picture.js renders UI preview         |
+ |   edit_picture.js re-renders UI with picture_name |
+ |   (1500ms delay after showing "Saved ✓" status)  |
  +---------------------------------------------------+
 ```
 
@@ -237,24 +319,32 @@ This document provides visual ASCII representations detailing how data physicall
  +---------------------------------------------------+
  |                 admin_api.py                      |
  |                                                   |
+ |  -> Decodes CSV as utf-8-sig (strips Excel BOM)   |
  |  -> Parses CSV via csv.DictReader                 |
- |  -> Validates ENUMS against system schema         |
+ |  -> Checks required fields (title, slug)          |
  |  -> Checks database for slug uniqueness           |
+ |  -> Validates ENUMS against system schema         |
+ |  -> Validates primary_verse JSON format           |
+ |  (ALL rows validated before any insert)           |
  +---------------------------------------------------+
                |                       |
-      [ERRORS FOUND]             [SUCCESS / VALID]
+      [ERRORS FOUND]             [ALL ROWS VALID]
                |                       |
                v                       v
  +------------------------+  +--------------------------------------------+
  | Return 200 Response:   |  | -> Map to SQLite cols dynamically          |
- | {                      |  | -> Generate ULID strings for each id       |
- |  "success": false,     |  | -> Execute Bulk INSERT into SQLite DB      |
- |  "errors": ["Row 2.."] |  +--------------------------------------------+
+ | {                      |  | -> Generate UUID string for each id        |
+ |  "success": false,     |  | -> Auto-set created_at / updated_at (UTC)  |
+ |  "errors": ["Row 2.."],|  | -> Execute Bulk INSERT into SQLite DB      |
+ |  "created": 0          |  +--------------------------------------------+
  | }                      |                    |
  +------------------------+                    v
                              +--------------------------------------------+
                              | Return 200 Response:                       |
-                             | { "success": true, "created": X }          |
+                             | { "success": true,                         |
+                             |   "message": "Successfully created X ...", |
+                             |   "created": X,                           |
+                             |   "errors": [] }                          |
                              +--------------------------------------------+
                                                |
                                                v
