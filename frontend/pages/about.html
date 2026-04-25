@@ -5,7 +5,7 @@
 
      THE JESUS WEBSITE — ABOUT PAGE
      File:    frontend/pages/about.html
-     Version: 1.1.0
+     Version: 1.2.0
      Purpose: Information about the mission, methodology, and tech stack.
      Source:  guide_appearance.md §1.4, guide_style.md §12
 
@@ -16,7 +16,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>About | The Jesus Website</title>
-    
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../../css/elements/typography_colors.css">
     <link rel="stylesheet" href="../../css/elements/grid.css">
@@ -27,78 +27,105 @@
     <script src="../display_other/search_header.js"></script>
     <script src="../display_other/sidebar.js"></script>
     <script src="../display_other/footer.js"></script>
-    
+
     <!-- Central Initializer -->
     <script src="../display_other/initializer.js"></script>
 </head>
-<body 
-    data-page-title="About"
+
+<body data-page-title="About"
     data-page-description="The mission, methodology, and technical architecture behind The Jesus Website archive."
-    data-sidebar-active-nav="about"
-    data-search-header-active-nav="about"
-    data-footer-target="page-shell"
->
+    data-sidebar-active-nav="about" data-search-header-active-nav="about" data-footer-target="page-shell">
 
     <!-- Main Page Shell Container -->
     <div class="page-shell" id="page-shell">
-        
+
         <!-- Invisible Metadata Anchor -->
         <header id="invisible-header" aria-hidden="true"></header>
-        
+
         <!-- Main Content Column -->
         <main class="site-main" id="site-main" role="main">
             <div class="content-wrap grid-single">
 
                 <article class="essay-container">
-                    
+
                     <header class="essay-header">
                         <h1 class="essay-title">About the Jesus Website</h1>
-                        <p class="essay-subtitle">An archive dedicated to the historical evidence of Jesus of Nazareth.</p>
+                        <p class="essay-subtitle">Who I am, my methodology, a brief summary of the tech stack and the
+                            opportunity for you to contribute.
+                        </p>
                         <div class="essay-meta">Updated: April 2026</div>
                     </header>
 
                     <section class="essay-body">
-                        
+
                         <p>
-                            Welcome to The Jesus Website. Our mission is to provide a comprehensive, evidence-based archive of historical data, archaeological findings, and scholarly analysis regarding the life, teachings, and death of Jesus of Nazareth. We aim to present this information with the weight of a physical museum and the precision of a modern digital repository.
+                            I'm the pastor of Balaclava Presbyterian Church, and created this website as a ministry side
+                            project.
+                            I wanted to see how vibe-coding worked and provide a useful resource for thinking about the
+                            historical evidence for Jesus.
+                            That is helpful for humans and accessible for AI agents.
                         </p>
 
                         <figure class="essay-picture">
-                            <img src="../../assets/archive_study_room.png" alt="Archival study room illustrating the research methodology.">
-                            <figcaption>Fig. 1 — The researcher's desk: Archive-based methodology at The Jesus Website.</figcaption>
+                            <img src="../../assets/archive_study_room.png"
+                                alt="Archival study room illustrating the research methodology.">
+                            <figcaption>Fig. 1 — The researcher's desk: Archive-based methodology at The Jesus Website.
+                            </figcaption>
                         </figure>
 
-                        <h2>Our Methodology</h2>
+                        <h2>Methodology</h2>
                         <p>
-                            We follow a strict historiographical methodology, prioritizing primary sources, archaeological evidence, and critical academic research. Every record in our database is cross-referenced with multiple independent witnesses, following the standards of historical inquiry used by museums and international archives.
+                            When thinking about the history of Jesus, I think a 'logic of history' approach is best.
+                            For me that means that individuals interact with an independent objective reality and can
+                            determine what occured in the past
+                            by making logical inferences based on what can be observed in available information, or
+                            verified already.
                         </p>
                         <p>
-                            Our data is organized into a relational structure that highlights the connections between different pieces of evidence, from biblical manuscripts to non-Christian historical mentions and physical artifacts.
+                            AI agents have been used to build code, find evidence, verify sources and organise the
+                            records.
+                            Wherever possible I have included references to both the primary and secondary sources,
+                            allowing
+                            you the reader to verify the evidence for yourself or make it easy for an AI agent to verify
+                            the veracity
+                            of the information. You will also notice that I've used AI-generated reconstructions and
+                            illustrations.
+                            These are purely rehotical aides to help you understand and imagine what the evidence is
+                            describing.
+                            The distinction between illustrations and photographs is strictly adhered to throughout the
+                            website.
                         </p>
 
-                        <h2>Technical Architecture</h2>
+                        <h2>Tech Stack</h2>
                         <p>
-                            The Jesus Website is built as a high-performance Multi-Page Application (MPA) using a minimalist, archival-first design system. We utilize:
+                            The Jesus Website is built as a Multi-Page Application (MPA) using a
+                            minimalist, archival-style design system. I used vanilla HTML, CSS, JavaScript, SQLite
+                            (WASM)
+                            and Python to build the website. My vibe-coding was built around markdown guides that
+                            controlled
+                            the code design, creation, debugging and revision. You can view Github respository
+                            <a href="https://github.com/lukeihamm/thejesuswebsite">
+                                here
+                            </a>.
                         </p>
-                        <ul>
-                            <li><strong>SQLite (WASM):</strong> A client-side database engine that allows for rapid, secure querying of historical records without the need for a heavy server-side backend.</li>
-                            <li><strong>Vanilla HTML/CSS/JS:</strong> A commitment to speed and long-term maintainability, avoiding the bloat of modern frameworks.</li>
-                            <li><strong>Multi-Agent Ready:</strong> An architecture designed to be easily read and understood by both humans and AI agents, ensuring the archive remains accessible in the age of generative search.</li>
-                        </ul>
 
-                        <h2>Contact & Contribution</h2>
+                        <h2>Contact, Contribution and Donations</h2>
                         <p>
-                            We welcome scholarly input and correction. If you identify a discrepancy or have evidence to contribute, please reach out via our primary archival portal or visit our GitHub repository to review our documentation and source data.
+                            I welcome all feedback, input and correction. If you identify a discrepancy or have data,
+                            essays, illustrations or other content to contribute please email me at [EMAIL_ADDRESS]
                         </p>
-
-                    </section>
-
+                        <p>Domain name registration is $16.76 AUD per year, and VPS hosting is $91.60 AUD per year,
+                            plus about $12.00 AUD per year for backups, making a total of approximately $120.00 AUD per
+                            year.
+                            If you would like to contribute to the costs of running the website please consider making a
+                            <a href="/donate.html">/donate.html</a>
+                        </p>,
+                        but I'll turn the donation portal off once I've reached $120 AUD, and then turn it back on
+                        in the new year. </p>
                 </article>
-
             </div>
         </main>
-        
     </div>
 </body>
-</html>
 
+</html>
