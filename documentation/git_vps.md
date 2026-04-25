@@ -2,7 +2,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "index page update"
+git commit -m "minor page edits"
 git push origin main 
 
 

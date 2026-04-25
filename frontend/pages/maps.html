@@ -7,12 +7,13 @@
      Purpose: Interactive geospatial visualization.
      Source:  guide_maps.md, guide_appearance.md, vibe_coding_rules.md §2
 ============================================================================= -->
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Interactive Maps | The Jesus Website</title>
-    
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../../css/elements/typography_colors.css">
     <link rel="stylesheet" href="../../css/elements/grid.css">
@@ -25,7 +26,7 @@
     <script src="../display_other/search_header.js"></script>
     <script src="../display_other/sidebar.js"></script>
     <script src="../display_other/footer.js"></script>
-    
+
     <!-- Core DB access -->
     <script src="../core/sql-wasm.js"></script>
     <script src="../core/setup_db.js"></script>
@@ -36,26 +37,23 @@
     <!-- Central Initializer -->
     <script src="../display_other/initializer.js"></script>
 </head>
-<body 
-    data-page-title="Interactive Maps"
+
+<body data-page-title="Interactive Maps"
     data-page-description="Explore the geography of historical events and records across the narrative landscape."
-    data-sidebar-active-nav="maps"
-    data-search-header-active-nav="maps"
-    data-footer-target="page-shell"
->
+    data-sidebar-active-nav="maps" data-search-header-active-nav="maps" data-footer-target="page-shell">
     <!-- Main Page Shell Container -->
     <div class="page-shell" id="page-shell">
-        
+
         <!-- Invisible Metadata Anchor -->
         <header id="invisible-header" aria-hidden="true"></header>
-        
+
         <!-- Main Content Column -->
         <main class="site-main" id="site-main" role="main">
             <div class="content-wrap grid-single">
-                
+
                 <header class="map-header">
-                    <h1 class="record-title">Interactive Geospatial Maps</h1>
-                    <p class="record-primary-verse">Explore the geography of historical events and records across the narrative landscape.</p>
+                    <h1 class="record-title">Maps</h1>
+                    <p class="record-primary-verse">Explore the geography of the evidence for Jesus.</p>
                 </header>
 
                 <div class="map-interface-container" id="map-interface">
@@ -66,12 +64,15 @@
                             <!-- Layer 1: Base -->
                             <g id="base-layer">
                                 <rect width="1000" height="800" fill="var(--color-bg-primary)" />
-                                <path d="M50,100 Q 150,200 100,500 T 200,800" stroke="var(--color-border)" stroke-width="40" fill="none" opacity="0.3" />
-                                <path d="M20,20 L980,20 L980,780 L20,780 Z" stroke="var(--color-text-secondary)" stroke-width="1" stroke-dasharray="4, 3" fill="none" />
+                                <path d="M50,100 Q 150,200 100,500 T 200,800" stroke="var(--color-border)"
+                                    stroke-width="40" fill="none" opacity="0.3" />
+                                <path d="M20,20 L980,20 L980,780 L20,780 Z" stroke="var(--color-text-secondary)"
+                                    stroke-width="1" stroke-dasharray="4, 3" fill="none" />
                             </g>
                             <!-- Layer 2: Foundation (Labels) -->
                             <g id="foundation-layer">
-                                <text x="500" y="400" font-family="var(--font-heading)" font-size="24" fill="var(--color-bg-tertiary)" text-anchor="middle" letter-spacing="4">JUDEA</text>
+                                <text x="500" y="400" font-family="var(--font-heading)" font-size="24"
+                                    fill="var(--color-bg-tertiary)" text-anchor="middle" letter-spacing="4">JUDEA</text>
                             </g>
                             <!-- Layer 3: Nodes -->
                             <g id="node-layer"></g>
@@ -109,11 +110,11 @@
                     <p id="metadata-snippet">Snippets go here...</p>
                     <a href="#" id="metadata-link" class="map-metadata-link">View Full Record &rarr;</a>
                 </aside>
-                
+
             </div>
         </main>
-        
+
     </div>
 </body>
-</html>
 
+</html>
