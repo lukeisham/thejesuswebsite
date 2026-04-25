@@ -2,13 +2,13 @@
 # Push to GitHub
 
 git add .
-git commit -m "go live tweeks"
-git push origin main
+git commit -m "index page update"
+git push origin main 
 
 
 # Next actions
 
-1. check status and login works
+1. check status and login works (is there auto push to server script? if not create one)
 2. dashboard return to front-end after login and refresh between pages 
 3. url tidyup 
 4. add and modify record test and remove placeholders 
@@ -29,3 +29,13 @@ git push origin main
 19. Robot harvesting check
 20. Documentation and Readme tidy up
 21. Theology features
+
+# Next project
+
+Create project and save as an .md file in the root direct to create a return a return to front-end and remain logged in, and a log-out and return to frontend button. Review vibe_coding_rules.md and detailed_module_sitemap.md and guide_function.md and guide_dashboard_appearance.md and include a work-completed audit and a module impact audit. 
+
+Create project and save as an .md file in the root direct to fix the display of urls so that they display as thejesuswebsite.org/slug instead of thejesuswebsite.org/frontend/records.html?search=slug etc. Review vibe_coding_rules.md and detailed_module_sitemap.md and guide_functions.md and include a work-completed audit and a module impact audit. 
+
+Remove place-holder records. 
+
+Verify the logic and hypothetical functionality of 1) adding a single record, and 2) bulk upload and 30 picture upload, making sure to check logic and compare to guide_function.md then verify that guide_function.md describes the logic exactly and exhaustively 
