@@ -1,9 +1,17 @@
+## Git Rules
+- Never create branches. Always commit directly to `main`.
+- Do not use `git checkout -b` or create worktrees.
 
 # Push to GitHub
 
 git add .
-git commit -m "minor page edits"
+git commit -m "github push to VPS"
 git push origin main 
+
+# Pulling from Github to server 
+
+cd /var/www/thejesuswebsite
+
 
 
 # Next actions
@@ -39,3 +47,6 @@ Create project and save as an .md file in the root direct to fix the display of 
 Remove place-holder records. 
 
 Verify the logic and hypothetical functionality of 1) adding a single record, and 2) bulk upload and 3) picture upload, making sure to check logic and compare to guide_function.md then verify that guide_function.md describes the logic exactly and exhaustively 
+
+create a plan to modify the database to include AI generated Snippets 
+(then check places its used: list view, news and blog summaries to ensure compatibility)
