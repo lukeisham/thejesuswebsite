@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "module 2 plan"
+git commit -m "More work on module 2"
 git push origin main 
 
 # Pulling from Github to server 

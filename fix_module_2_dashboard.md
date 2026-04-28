@@ -75,7 +75,7 @@ created: 2026-04-28
 - **Action:** Replace the two bare `<textarea>` placeholders with properly labelled paragraph-array editors for `description` and `snippet` — each renders one `<textarea>` per paragraph entry from the stored JSON array, an `[+ Add Paragraph]` button that appends a new textarea, and a `[×]` remove button per paragraph; on save, serialize each editor's textareas back to a JSON array.
 - **Vibe Rule(s):** Vanilla ES6+ · Descriptive `id` hooks · Explicit readable logic
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -85,7 +85,7 @@ created: 2026-04-28
 - **Action:** Add a Bibliography section containing six labelled `<textarea>` fields matching the sub-keys of the `bibliography` JSON blob: `mla_book`, `mla_book_inline`, `mla_article`, `mla_article_inline`, `mla_website`, `mla_website_inline`; on load parse the `bibliography` blob and pre-fill each; on save re-serialize to the blob.
 - **Vibe Rule(s):** Vanilla ES6+ · CSS Grid 2-column layout via class — no inline grid styles · CSS variables for spacing
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 

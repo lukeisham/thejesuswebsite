@@ -2,9 +2,11 @@
 //
 //   THE JESUS WEBSITE — EDIT RECORD MODULE
 //   File:    admin/frontend/edit_modules/edit_record.js
-//   Version: 1.2.0
+//   Version: 1.4.0
 //   Purpose: Form layout for editing a single row in the records table.
-//            Includes JSON-array verse builders for primary_verse / secondary_verse.
+//            Includes JSON-array verse builders for primary_verse / secondary_verse,
+//            paragraph-array editors for description / snippet,
+//            and MLA bibliography textareas.
 //   Source:  guide_dashboard_appearance.md §2.2
 //
 // =============================================================================
@@ -140,6 +142,28 @@ window.renderEditRecord = function (containerId, recordId = null) {
     );
   }
 
+  // ---- Helper to generate a paragraph-editor sub-panel HTML ----
+  function paragraphEditorHtml(fieldName, label, hiddenId) {
+    return (
+      '                <div class="paragraph-editor" id="' +
+      fieldName +
+      '-editor">\n' +
+      '                    <h4 class="paragraph-editor-heading">' +
+      label +
+      "</h4>\n" +
+      '                    <div class="paragraph-list" id="' +
+      fieldName +
+      '-paragraph-list"></div>\n' +
+      '                    <button class="quick-action-btn btn-add-paragraph" id="' +
+      fieldName +
+      '-add-btn" type="button">+ Add Paragraph</button>\n' +
+      '                    <input type="hidden" id="' +
+      hiddenId +
+      '" value="[]">\n' +
+      "                </div>\n"
+    );
+  }
+
   var primaryVerseHtml = verseBuilderHtml(
     "pv",
     "Primary Verse",
@@ -150,6 +174,13 @@ window.renderEditRecord = function (containerId, recordId = null) {
     "Secondary Verse",
     "record-secondary-verse",
   );
+
+  var descriptionHtml = paragraphEditorHtml(
+    "description",
+    "Description",
+    "record-description",
+  );
+  var snippetHtml = paragraphEditorHtml("snippet", "Snippet", "record-snippet");
 
   var html =
     '        <div class="admin-card" id="edit-record-card">\n' +
@@ -313,6 +344,54 @@ window.renderEditRecord = function (containerId, recordId = null) {
     secondaryVerseHtml +
     "            </section>\n" +
     "\n" +
+    "            <!-- Text Content Section -->\n" +
+    '            <section class="text-content-section" id="text-content">\n' +
+    '                <h3 class="section-heading-serif">Text Content</h3>\n' +
+    "\n" +
+    descriptionHtml +
+    "\n" +
+    snippetHtml +
+    "            </section>\n" +
+    "\n" +
+    "            <!-- Bibliography Section -->\n" +
+    '            <section class="bibliography-section" id="bibliography">\n' +
+    '                <h3 class="section-heading-serif">Bibliography (MLA)</h3>\n' +
+    "\n" +
+    '                <div class="bibliography-grid">\n' +
+    "\n" +
+    '                    <div class="bibliography-cell">\n' +
+    '                        <label class="field-label" for="record-mla-book">mla_book:</label>\n' +
+    '                        <textarea id="record-mla-book" class="bibliography-textarea" placeholder="Full MLA book citation" data-mla-key="mla_book"></textarea>\n' +
+    "                    </div>\n" +
+    "\n" +
+    '                    <div class="bibliography-cell">\n' +
+    '                        <label class="field-label" for="record-mla-book-inline">mla_book_inline:</label>\n' +
+    '                        <textarea id="record-mla-book-inline" class="bibliography-textarea" placeholder="Short inline MLA book citation" data-mla-key="mla_book_inline"></textarea>\n' +
+    "                    </div>\n" +
+    "\n" +
+    '                    <div class="bibliography-cell">\n' +
+    '                        <label class="field-label" for="record-mla-article">mla_article:</label>\n' +
+    '                        <textarea id="record-mla-article" class="bibliography-textarea" placeholder="Full MLA article citation" data-mla-key="mla_article"></textarea>\n' +
+    "                    </div>\n" +
+    "\n" +
+    '                    <div class="bibliography-cell">\n' +
+    '                        <label class="field-label" for="record-mla-article-inline">mla_article_inline:</label>\n' +
+    '                        <textarea id="record-mla-article-inline" class="bibliography-textarea" placeholder="Short inline MLA article citation" data-mla-key="mla_article_inline"></textarea>\n' +
+    "                    </div>\n" +
+    "\n" +
+    '                    <div class="bibliography-cell">\n' +
+    '                        <label class="field-label" for="record-mla-website">mla_website:</label>\n' +
+    '                        <textarea id="record-mla-website" class="bibliography-textarea" placeholder="Full MLA website citation" data-mla-key="mla_website"></textarea>\n' +
+    "                    </div>\n" +
+    "\n" +
+    '                    <div class="bibliography-cell">\n' +
+    '                        <label class="field-label" for="record-mla-website-inline">mla_website_inline:</label>\n' +
+    '                        <textarea id="record-mla-website-inline" class="bibliography-textarea" placeholder="Short inline MLA website citation" data-mla-key="mla_website_inline"></textarea>\n' +
+    "                    </div>\n" +
+    "\n" +
+    "                </div>\n" +
+    "            </section>\n" +
+    "\n" +
     "            <!-- Child module injection points -->\n" +
     '            <div id="picture-upload-container" class="child-module-slot"></div>\n' +
     "\n" +
@@ -417,9 +496,116 @@ window.renderEditRecord = function (containerId, recordId = null) {
     });
   }
 
+  // ---- Paragraph Editor Logic ----
+  function setupParagraphEditor(fieldName, hiddenId) {
+    var addBtn = document.getElementById(fieldName + "-add-btn");
+    var hiddenInput = document.getElementById(hiddenId);
+    var paragraphList = document.getElementById(fieldName + "-paragraph-list");
+
+    if (!addBtn || !hiddenInput || !paragraphList) return;
+
+    function getParagraphData() {
+      try {
+        return JSON.parse(hiddenInput.value);
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function setParagraphData(data) {
+      hiddenInput.value = JSON.stringify(data);
+      renderParagraphs(data);
+    }
+
+    function renderParagraphs(data) {
+      if (!Array.isArray(data)) data = [];
+      if (data.length === 0) {
+        paragraphList.innerHTML =
+          '<span class="paragraph-placeholder">No paragraphs yet</span>';
+        return;
+      }
+      var rowsHtml = "";
+      for (var i = 0; i < data.length; i++) {
+        var textValue = typeof data[i] === "string" ? data[i] : "";
+        rowsHtml +=
+          '<div class="paragraph-row" data-index="' +
+          i +
+          '">\n' +
+          '                        <textarea class="paragraph-textarea" data-index="' +
+          i +
+          '" placeholder="Paragraph ' +
+          (i + 1) +
+          '">' +
+          escapeHtml(textValue) +
+          "</textarea>\n" +
+          '                        <button type="button" class="btn-remove-paragraph" data-index="' +
+          i +
+          '" title="Remove paragraph">&times;</button>\n' +
+          "                      </div>";
+      }
+      paragraphList.innerHTML = rowsHtml;
+
+      // Bind input events to auto-save on edit
+      var textareas = paragraphList.querySelectorAll(".paragraph-textarea");
+      for (var j = 0; j < textareas.length; j++) {
+        (function (ta) {
+          ta.addEventListener("input", function () {
+            var idx = parseInt(ta.getAttribute("data-index"), 10);
+            var currentData = getParagraphData();
+            if (idx >= 0 && idx < currentData.length) {
+              currentData[idx] = ta.value;
+              hiddenInput.value = JSON.stringify(currentData);
+            }
+          });
+        })(textareas[j]);
+      }
+
+      // Bind remove handlers
+      var removeBtns = paragraphList.querySelectorAll(".btn-remove-paragraph");
+      for (var k = 0; k < removeBtns.length; k++) {
+        (function (btn) {
+          btn.addEventListener("click", function () {
+            var idx = parseInt(btn.getAttribute("data-index"), 10);
+            var currentData = getParagraphData();
+            currentData.splice(idx, 1);
+            setParagraphData(currentData);
+          });
+        })(removeBtns[k]);
+      }
+    }
+
+    // Simple HTML-escape helper for textarea content
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    // Initial render
+    renderParagraphs(getParagraphData());
+
+    addBtn.addEventListener("click", function () {
+      var currentData = getParagraphData();
+      currentData.push("");
+      setParagraphData(currentData);
+      // Focus the newly added textarea
+      var textareas = paragraphList.querySelectorAll(".paragraph-textarea");
+      if (textareas.length > 0) {
+        textareas[textareas.length - 1].focus();
+      }
+    });
+  }
+
   // Mount both verse builders
   setupVerseBuilder("pv", "record-primary-verse");
   setupVerseBuilder("sv", "record-secondary-verse");
+
+  // Mount both paragraph editors
+  setupParagraphEditor("description", "record-description");
+  setupParagraphEditor("snippet", "record-snippet");
 
   // Load edit_links module if the script has been parsed
   if (typeof window.renderEditLinks === "function") {
