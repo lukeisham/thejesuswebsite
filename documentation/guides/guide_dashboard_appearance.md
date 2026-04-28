@@ -1,7 +1,7 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components (source of truth)
-version: 1.0.1
+version: 1.0.2
 dependencies: [guide_appearance.md, detailed_module_sitemap.md]
 ---
 
@@ -290,5 +290,7 @@ The tools below represent the **backend editing interfaces** for the front-end l
 |  > Configuration    |                                                   |
 |  - Edit Diagrams    |                                                   |
 |  - News Sources     |                                                   |
+|                     |                                                   |
+|  [ Return to Site ] |                                                   |
 +-------------------------------------------------------------------------+
 ```

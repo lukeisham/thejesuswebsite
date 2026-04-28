@@ -62,6 +62,8 @@ function renderDashboardShell() {
                         <li><a href="#" data-module="config-diagrams">Edit Diagrams</a></li>
                         <li><a href="#" data-module="config-news">News Sources</a></li>
                     </ul>
+
+                    <a id="sidebar-return-link" href="/">Return to Front-End</a>
                 </nav>
                 <main class="admin-canvas" id="admin-canvas">
                     <!-- Default Dashboard Home / Status -->

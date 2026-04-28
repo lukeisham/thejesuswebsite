@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.1.0
+version: 1.1.1
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography_colors.css]
 ---
 
@@ -145,6 +145,7 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Admin Shell** | Dark mode; Gold accents. | `--color-dash-accent` |
 | **Editor** | Split-pane; Mono field. | `--font-mono` |
 | **Action Bar** | Floating footer; Gold focus. | `--color-dash-accent` |
+| **Sidebar Return Link** | Pinned to sidebar base via `margin-top: auto` on a flex column (`display: flex; flex-direction: column` on `.admin-sidebar`). Mono font, Lead Grey colour, `border-top` separator, `--transition-fast` hover to primary text + tertiary BG. Use this pattern for any future pinned-bottom sidebar element. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
 
 ## 19. Consistency Checklist
 To maintain the Technical Blueprint aesthetic, all new elements must pass:

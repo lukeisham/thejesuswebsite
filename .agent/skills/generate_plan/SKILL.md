@@ -75,22 +75,26 @@ For each task, assign only the rules that apply to the file type being created o
 
 ### Step 5: Populate the Documentation Update Section
 
-Scan the full `documentation/` directory and its `guides/` subfolder. For each document, decide whether the plan's scope affects it:
+Every row in the Documentation Update table must include **all 16 files** currently in `documentation/` (root + `guides/` subfolder). For each document, decide whether the plan's scope affects it:
 
 | Document | Affects it if… |
 |----------|----------------|
-| `detailed_module_sitemap.md` | Any new file is added or an existing file is moved/renamed |
-| `simple_module_sitemap.md` | Module scope or high-level structure changes |
-| `site_map.md` | Any new file is added (trigger `/sync_sitemap`) |
-| `data_schema.md` | A new database table, column, or relationship is introduced |
-| `vibe_coding_rules.md` | A rule was ambiguous or needs clarifying based on this plan |
-| `style_mockup.html` | A new page layout or significant visual change is introduced |
-| `guides/guide_appearance.md` | A new page or UI component is added |
-| `guides/guide_function.md` | A new logic flow, data pipeline, or JS interaction is introduced |
-| `guides/guide_security.md` | Auth, session handling, rate limiting, or input validation is touched |
-| `guides/guide_style.md` | New CSS patterns, design tokens, or visual conventions are introduced |
-| `guides/guide_maps.md` | Map-related display or data logic is changed |
-| `guides/guide_timeline.md` | Timeline display or data logic is changed |
+| `documentation/detailed_module_sitemap.md` | Any new file is added or an existing file is moved/renamed |
+| `documentation/simple_module_sitemap.md` | Module scope or high-level structure changes |
+| `documentation/site_map.md` | Any new file is added (trigger `/sync_sitemap`) |
+| `documentation/data_schema.md` | A new database table, column, or relationship is introduced |
+| `documentation/vibe_coding_rules.md` | A rule was ambiguous or needs clarifying based on this plan |
+| `documentation/style_mockup.html` | A new page layout or significant visual change is introduced |
+| `documentation/git_vps.md` | Deployment workflow, Git branching strategy, or VPS config is changed |
+| `documentation/guides/guide_appearance.md` | A new public-facing page or UI component is added |
+| `documentation/guides/guide_dashboard_appearance.md` | A dashboard/admin UI component or layout is added or changed |
+| `documentation/guides/guide_function.md` | A new logic flow, data pipeline, or JS interaction is introduced |
+| `documentation/guides/guide_security.md` | Auth, session handling, rate limiting, or input validation is touched |
+| `documentation/guides/guide_style.md` | New CSS patterns, design tokens, or visual conventions are introduced |
+| `documentation/guides/guide_maps.md` | Map-related display or data logic is changed |
+| `documentation/guides/guide_timeline.md` | Timeline display or data logic is changed |
+| `documentation/guides/guide_donations.md` | External support integrations or donation flows are changed |
+| `documentation/guides/guide_welcoming_robots.md` | SEO, sitemap, robots.txt, or AI-accessibility standards are changed |
 
 Set `Yes / No` for each row and write a one-sentence `Change Description` for every `Yes` row. Mark all `No` rows clearly so the executor knows they were considered and ruled out.
 

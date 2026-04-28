@@ -122,10 +122,16 @@ created: {{date}}
 | `documentation/data_schema.md` | Yes / No | {{e.g. Document new table or field added}} |
 | `documentation/vibe_coding_rules.md` | Yes / No | {{e.g. Clarify rule that was ambiguous during this plan}} |
 | `documentation/style_mockup.html` | Yes / No | {{e.g. Reflect new page layout}} |
-| `documentation/guides/guide_appearance.md` | Yes / No | {{e.g. Add ASCII diagram for new page}} |
+| `documentation/git_vps.md` | Yes / No | {{e.g. Note any deployment or VPS config changes}} |
+| `documentation/guides/guide_appearance.md` | Yes / No | {{e.g. Add ASCII diagram for new public page or component}} |
+| `documentation/guides/guide_dashboard_appearance.md` | Yes / No | {{e.g. Update ASCII diagram for dashboard sidebar or admin UI change}} |
 | `documentation/guides/guide_function.md` | Yes / No | {{e.g. Document new logic flow}} |
 | `documentation/guides/guide_security.md` | Yes / No | {{e.g. Note any new auth or rate-limiting changes}} |
 | `documentation/guides/guide_style.md` | Yes / No | {{e.g. Update if new CSS patterns introduced}} |
+| `documentation/guides/guide_maps.md` | Yes / No | {{e.g. Update if map display or data logic changed}} |
+| `documentation/guides/guide_timeline.md` | Yes / No | {{e.g. Update if timeline display or data logic changed}} |
+| `documentation/guides/guide_donations.md` | Yes / No | {{e.g. Update if external support integrations changed}} |
+| `documentation/guides/guide_welcoming_robots.md` | Yes / No | {{e.g. Update if SEO, robots.txt, or AI-accessibility changed}} |
 
 ### Documentation Checklist
 - [ ] All affected documents identified in the table above
