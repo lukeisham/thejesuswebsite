@@ -332,5 +332,40 @@ CREATE INDEX IF NOT EXISTS idx_records_public_category        ON records (users,
 CREATE INDEX IF NOT EXISTS idx_records_public_map             ON records (users, map_label);
 
 -- =============================================================================
+-- TABLE: resource_lists
+-- Stores ordered lists of record slugs for curated resource collections.
+-- Used by edit_lists.js for drag-to-reorder list management.
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS resource_lists (
+
+    id              INTEGER     PRIMARY KEY AUTOINCREMENT,
+    -- Auto-incrementing primary key
+
+    list_name       TEXT        NOT NULL,
+    -- Name of the curated list (e.g. "resources", "bibliography")
+
+    record_slug     TEXT        NOT NULL,
+    -- Slug of the associated record in the list
+
+    position        INTEGER     NOT NULL DEFAULT 0,
+    -- Zero-based ordering position (0 = first)
+
+    UNIQUE(list_name, record_slug)
+    -- A record can appear in a given list only once
+);
+
+
+-- =============================================================================
+-- INDEXES
+-- Optimized for list fetch (get all entries for a list_name ordered by position)
+-- and for uniqueness enforcement via the composite unique constraint.
+-- =============================================================================
+
+CREATE INDEX IF NOT EXISTS idx_resource_lists_list_position
+    ON resource_lists (list_name, position);
+
+
+-- =============================================================================
 -- END OF SCHEMA
 -- =============================================================================

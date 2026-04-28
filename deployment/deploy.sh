@@ -42,7 +42,7 @@ pip install -r requirements.txt
 echo ">>> Restarting Systemd Services..."
 sudo systemctl daemon-reload
 
-sudo systemctl restart thejesuswebsite-admin.service
+sudo systemctl restart thejesuswebsite.service
 sudo systemctl restart thejesuswebsite-mcp.service
 
 echo ">>> Reloading Nginx Configuration..."

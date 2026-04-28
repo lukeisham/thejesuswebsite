@@ -95,7 +95,7 @@ created: 2026-04-28
 - **Action:** Add a Miscellaneous section with five labelled inputs: `metadata_json` (textarea, JSON blob), `iaa` (text input), `pledius` (text input), `manuscript` (text input), and `url` (textarea, JSON blob); assign `id` attributes that match DB column names exactly and pre-fill from loaded record data.
 - **Vibe Rule(s):** Vanilla ES6+ · snake_case `id` attributes matching DB column names · Explicit readable logic
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -105,7 +105,7 @@ created: 2026-04-28
 - **Action:** After injecting all form HTML, if `recordId` is provided fetch `GET /api/admin/records/{recordId}` and populate every field (all text inputs, selects, paragraph arrays, verse chips, bibliography blob, miscellaneous fields, and the `context_links` hidden field); if `recordId` is null leave all inputs empty for record creation.
 - **Vibe Rule(s):** Vanilla ES6+ · Explicit readable logic · All fetch logic inside `window.renderEditRecord`
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -115,7 +115,7 @@ created: 2026-04-28
 - **Action:** Attach click handlers to all four action-bar buttons: **Save Changes** — collect all field values (including the `context_links` hidden field from T11), serialize JSON fields, validate JSON blobs with `JSON.parse` and show an inline error on failure, auto-generate `id` (ULID) and `created_at`/`updated_at` for new records, then fire `POST /api/admin/records` (create) or `PUT /api/admin/records/{recordId}` (update) with the JWT cookie and display an inline success or error message; **Discard** — re-call `window.renderEditRecord(containerId, recordId)` to hard-reset; **Delete** — confirm then fire `DELETE /api/admin/records/{recordId}` and return to the §2.1 record list; **View Live** — derive the public URL from `slug` and open in a new tab.
 - **Vibe Rule(s):** Vanilla ES6+ · Explicit readable logic · Stateless and safe to call repeatedly · No framework fetch wrappers
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -125,7 +125,7 @@ created: 2026-04-28
 - **Action:** Update `window.renderEditLinks(containerId, contextLinksData)` to accept a `contextLinksData` JSON blob from the parent record; render each `{slug, type}` entry as a removable chip; provide an `[+ Add Link]` button that appends a new blank `{slug, type}` entry; serialise the current chip list into a hidden `<input id="context-links-hidden">` field that is collected by the T10 Save handler.
 - **Vibe Rule(s):** Vanilla ES6+ · One exported function (`window.renderEditLinks`) · File opens with three-line header comment · Component injection pattern for chips
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -135,7 +135,7 @@ created: 2026-04-28
 - **Action:** Add a `CREATE TABLE IF NOT EXISTS resource_lists` definition with columns `id INTEGER PRIMARY KEY AUTOINCREMENT`, `list_name TEXT NOT NULL`, `record_slug TEXT NOT NULL`, `position INTEGER NOT NULL DEFAULT 0`; add a `UNIQUE(list_name, record_slug)` constraint and an index on `(list_name, position)`.
 - **Vibe Rule(s):** `snake_case` field names · Explicit schema definition · No deeply nested logic
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -145,7 +145,7 @@ created: 2026-04-28
 - **Action:** Add two authenticated endpoints: `GET /api/admin/lists/{list_name}` — query `resource_lists` for all rows matching `list_name`, join to `records` to return `title` and `slug` per row ordered by `position`, return as JSON array; `PUT /api/admin/lists/{list_name}` — accept a JSON array of `{record_slug, position}` objects and upsert the full list order using `INSERT OR REPLACE`, deleting removed slugs first.
 - **Vibe Rule(s):** Explicit readable Python · Stateless and safe to call repeatedly · Document any SQLite quirks inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -155,7 +155,7 @@ created: 2026-04-28
 - **Action:** Replace all hardcoded stub data with live API integration: on render fetch `GET /api/admin/lists/{listName}` and inject real rows; wire each `[Remove]` button to splice its entry from the in-memory list array and re-render; wire `[Save List]` to fire `PUT /api/admin/lists/{listName}` with the current ordered array and show an inline success or error message; wire the Bulk Add `[Add]` button to parse the textarea as CSV or newline-separated slugs, validate each slug against the fetched record pool, append valid entries to the list array, and re-render.
 - **Vibe Rule(s):** Vanilla ES6+ · All logic inside `window.renderEditLists` · Explicit readable logic · No inline styles
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -165,7 +165,7 @@ created: 2026-04-28
 - **Action:** Add HTML5 drag-and-drop reorder to the list items: set `draggable="true"` on each `<li>`, attach `dragstart`, `dragover`, and `drop` event listeners that update the in-memory list array order on drop; reorder is only persisted when `[Save List]` is clicked (T14).
 - **Vibe Rule(s):** Vanilla ES6+ · No external drag-and-drop libraries · Explicit readable logic
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -175,7 +175,7 @@ created: 2026-04-28
 - **Action:** After a CSV file is selected, parse the file content using `FileReader` and manual row splitting, validate each row for required columns (`title`, `slug`) and enum values (`era`, `timeline`, `map_label`, `gospel_category`), and display a validation results block showing per-row error messages (e.g. `Row 2: missing slug — skipped`) and a summary count (`N of M rows valid — ready to insert`) before the `[Start Upload]` button is enabled; invalid rows are excluded from the upload payload.
 - **Vibe Rule(s):** Vanilla ES6+ · FileReader API only — no external CSV libraries · Explicit readable logic · Stateless and safe to run repeatedly
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 

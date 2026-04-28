@@ -2,66 +2,363 @@
 //
 //   THE JESUS WEBSITE — EDIT LISTS MODULE
 //   File:    admin/frontend/edit_modules/edit_lists.js
-//   Version: 1.1.0
-//   Purpose: UI for streamlining bulk organization of records into lists.
+//   Version: 1.2.0
+//   Purpose: UI for managing resource_lists — load, reorder, remove, bulk add,
+//            and save ordered record-slug lists via the admin API.
 //   Source:  guide_dashboard_appearance.md §2.0
 //
 // =============================================================================
 
 // Trigger: dashboard_app.js routing -> window.renderEditLists(containerId, listName)
-// Function: Renders an admin UI for bulk-organizing and reordering records within a named list
-// Output: Injects a drag-sortable list editor with record search into the specified container
+//   listName: name of the resource list to edit (e.g. "OT Verses", "Miracles")
+// Function: Renders a drag-sortable list editor with Remove, Save, and Bulk Add
+// Output: Injects the list editor HTML into the specified container
 
-window.renderEditLists = function(containerId, listName = 'Old Testament Verses') {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+window.renderEditLists = function (containerId, listName) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
 
-    const html = `
-        <div class="admin-card" id="edit-lists-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--color-border); margin-bottom: var(--space-4); padding-bottom: var(--space-2);">
-                <h2 style="border: none; margin: 0; padding: 0; font-family: var(--font-serif);">EDIT ORDINARY LIST: [ ${listName} ]</h2>
-                <button class="quick-action-btn" style="margin: 0;">Save List</button>
-            </div>
+  // ---- State ----
+  var currentItems = []; // Array of { record_slug, title, position } from API
+  var allRecordSlugs = {}; // Map slug -> title (used for bulk-add validation)
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6); align-items: start;">
-                <!-- Current List Ordering Area -->
-                <div>
-                    <h3 style="margin-top: 0; margin-bottom: var(--space-4); font-size: var(--text-base); font-family: var(--font-serif);">List Items</h3>
-                    <ul style="list-style: none; padding: 0; margin: 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); border-bottom: none;">
-                        
-                        <li style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); border-bottom: 1px solid var(--color-border); background: #fafafa;">
-                            <span style="cursor: grab; font-family: var(--font-mono); font-size: var(--text-sm);">☰ [Isaiah 53]</span>
-                            <button style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: var(--text-sm); font-weight: bold;">Remove</button>
-                        </li>
-                        
-                        <li style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); border-bottom: 1px solid var(--color-border); background: #fff;">
-                            <span style="cursor: grab; font-family: var(--font-mono); font-size: var(--text-sm);">☰ [Psalm 22]</span>
-                            <button style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: var(--text-sm); font-weight: bold;">Remove</button>
-                        </li>
+  // ---- Render shell ----
+  var html =
+    '<div class="admin-card" id="edit-lists-card">\n' +
+    '  <div class="lists-editor-header">\n' +
+    '    <h2 class="lists-editor-title">EDIT ORDINARY LIST: [ ' +
+    escapeHtml(listName) +
+    " ]</h2>\n" +
+    '    <div class="lists-editor-actions">\n' +
+    '      <div id="lists-save-status" class="status-feedback is-hidden lists-save-status"></div>\n' +
+    '      <button class="quick-action-btn btn-save-list" id="btn-save-list" type="button">Save List</button>\n' +
+    "    </div>\n" +
+    "  </div>\n" +
+    "\n" +
+    '  <div class="lists-editor-grid">\n' +
+    "    <!-- Left: Current List Items -->\n" +
+    '    <div class="lists-items-column">\n' +
+    '      <h3 class="lists-column-heading">List Items</h3>\n' +
+    '      <div id="lists-items-container" class="lists-items-list"></div>\n' +
+    '      <p class="lists-drag-hint">(Drag \u2630 handle to reorder items)</p>\n' +
+    "    </div>\n" +
+    "\n" +
+    "    <!-- Right: Add Tools -->\n" +
+    '    <div class="lists-tools-column">\n' +
+    '      <h3 class="lists-column-heading">Search Records Explorer</h3>\n' +
+    '      <input type="text" id="lists-search-input" class="lists-search-input" placeholder="Search records to add\u2026">\n' +
+    "\n" +
+    '      <h3 class="lists-column-heading">Bulk Add by Slugs (CSV/Line)</h3>\n' +
+    '      <textarea id="lists-bulk-textarea" class="lists-bulk-textarea" placeholder="slug-1, slug-2, \u2026"></textarea>\n' +
+    '      <button class="quick-action-btn btn-bulk-add" id="btn-bulk-add" type="button">Bulk Add Config</button>\n' +
+    '      <div id="lists-bulk-summary" class="lists-bulk-summary"></div>\n' +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>";
 
-                        <li style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); border-bottom: 1px solid var(--color-border); background: #fafafa;">
-                            <span style="cursor: grab; font-family: var(--font-mono); font-size: var(--text-sm);">☰ [Zechariah 12]</span>
-                            <button style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: var(--text-sm); font-weight: bold;">Remove</button>
-                        </li>
+  container.innerHTML = html;
 
-                    </ul>
-                    <p class="text-sm text-muted" style="margin-top: 8px;">(Drag '☰' handle to reorder items securely)</p>
-                </div>
+  // ---- Helpers ----
+  function showSaveStatus(msg, type) {
+    var el = document.getElementById("lists-save-status");
+    if (!el) return;
+    el.textContent = msg;
+    el.className = "status-feedback lists-save-status";
+    if (type === "success") el.classList.add("status-success");
+    else if (type === "error") el.classList.add("status-error");
+    else if (type === "loading") el.classList.add("status-loading");
+    el.classList.remove("is-hidden");
+  }
 
-                <!-- Add By Tools Area -->
-                <div style="padding: var(--space-4); background-color: #fafafa; border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
-                    
-                    <h3 style="margin-top: 0; font-size: var(--text-sm); margin-bottom: var(--space-2);">Search Records Explorer</h3>
-                    <input type="text" placeholder="Search records to add..." style="width: 100%; padding: var(--space-2); margin-bottom: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
 
-                    <h3 style="margin-top: 0; font-size: var(--text-sm); margin-bottom: var(--space-2);">Bulk Add by Slugs (CSV/Line)</h3>
-                    <textarea style="width: 100%; height: 100px; padding: var(--space-2); font-family: var(--font-mono); border: 1px solid var(--color-border); border-radius: var(--radius-sm); margin-bottom: var(--space-4);" placeholder="slug-1,\nslug-2,\n..."></textarea>
-                    
-                    <button class="quick-action-btn" style="width: 100%; margin: 0; background-color: var(--color-text);">Bulk Add Config</button>
-                </div>
-            </div>
-        </div>
-    `;
+  // ---- Render list items ----
+  function renderItems() {
+    var listEl = document.getElementById("lists-items-container");
+    if (!listEl) return;
 
-    container.innerHTML = html;
+    if (!currentItems || currentItems.length === 0) {
+      listEl.innerHTML =
+        '<div class="lists-empty-msg">No items in this list yet. Add some from the right panel.</div>';
+      return;
+    }
+
+    var rowsHtml = "";
+    for (var i = 0; i < currentItems.length; i++) {
+      var item = currentItems[i];
+      var label = item.title
+        ? "[" + escapeHtml(item.record_slug) + "] " + escapeHtml(item.title)
+        : escapeHtml(item.record_slug);
+      rowsHtml +=
+        '<div class="lists-item-row" draggable="true" data-slug="' +
+        escapeHtml(item.record_slug) +
+        '" data-index="' +
+        i +
+        '">\n' +
+        '    <span class="lists-item-handle">\u2630</span>\n' +
+        '    <span class="lists-item-label">' +
+        label +
+        "</span>\n" +
+        '    <button type="button" class="btn-remove-list-item" data-slug="' +
+        escapeHtml(item.record_slug) +
+        '" data-index="' +
+        i +
+        '">Remove</button>\n' +
+        "  </div>";
+    }
+    listEl.innerHTML = rowsHtml;
+
+    // Bind remove handlers
+    var removeBtns = listEl.querySelectorAll(".btn-remove-list-item");
+    for (var j = 0; j < removeBtns.length; j++) {
+      (function (btn) {
+        btn.addEventListener("click", function () {
+          var slug = btn.getAttribute("data-slug");
+          for (var k = 0; k < currentItems.length; k++) {
+            if (currentItems[k].record_slug === slug) {
+              currentItems.splice(k, 1);
+              break;
+            }
+          }
+          renderItems();
+        });
+      })(removeBtns[j]);
+    }
+
+    // ---- HTML5 Drag-and-Drop Reorder ----
+    var rows = listEl.querySelectorAll(".lists-item-row");
+    for (var dr = 0; dr < rows.length; dr++) {
+      (function (row) {
+        var slug = row.getAttribute("data-slug");
+
+        row.addEventListener("dragstart", function (e) {
+          e.dataTransfer.setData("text/plain", slug);
+          e.dataTransfer.effectAllowed = "move";
+          row.classList.add("lists-item-dragging");
+        });
+
+        row.addEventListener("dragend", function () {
+          row.classList.remove("lists-item-dragging");
+          var allRows = listEl.querySelectorAll(".lists-item-row");
+          for (var cl = 0; cl < allRows.length; cl++) {
+            allRows[cl].classList.remove("lists-item-drag-over");
+          }
+        });
+
+        row.addEventListener("dragover", function (e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          row.classList.add("lists-item-drag-over");
+        });
+
+        row.addEventListener("dragleave", function () {
+          row.classList.remove("lists-item-drag-over");
+        });
+
+        row.addEventListener("drop", function (e) {
+          e.preventDefault();
+          row.classList.remove("lists-item-drag-over");
+
+          var draggedSlug = e.dataTransfer.getData("text/plain");
+          if (!draggedSlug || draggedSlug === slug) return;
+
+          var fromIdx = -1;
+          var toIdx = -1;
+          for (var di = 0; di < currentItems.length; di++) {
+            if (currentItems[di].record_slug === draggedSlug) fromIdx = di;
+            if (currentItems[di].record_slug === slug) toIdx = di;
+          }
+
+          if (fromIdx === -1 || toIdx === -1) return;
+
+          var moved = currentItems.splice(fromIdx, 1)[0];
+          currentItems.splice(toIdx, 0, moved);
+
+          renderItems();
+        });
+      })(rows[dr]);
+    }
+  }
+
+  // ---- Load data from API ----
+  function loadListData() {
+    var listEl = document.getElementById("lists-items-container");
+    if (listEl) {
+      listEl.innerHTML = '<div class="lists-empty-msg">Loading\u2026</div>';
+    }
+
+    // Fetch list items + all record slugs in parallel
+    var listUrl = "/api/admin/lists/" + encodeURIComponent(listName);
+    var recordsUrl = "/api/admin/records";
+
+    Promise.all([
+      fetch(listUrl).then(function (r) {
+        if (!r.ok) throw new Error("Failed to load list");
+        return r.json();
+      }),
+      fetch(recordsUrl).then(function (r) {
+        if (!r.ok) throw new Error("Failed to load records");
+        return r.json();
+      }),
+    ])
+      .then(function (results) {
+        var listData = results[0]; // JSON array from GET list endpoint
+        var recordsData = results[1]; // { records: [...] }
+
+        // Build slug → title map for validation
+        allRecordSlugs = {};
+        var records = recordsData.records || [];
+        for (var ri = 0; ri < records.length; ri++) {
+          var rec = records[ri];
+          if (rec.slug) {
+            allRecordSlugs[rec.slug] = rec.title || rec.slug;
+          }
+        }
+
+        // Normalise list data: ensure array, add titles from records
+        if (!Array.isArray(listData)) {
+          listData = [];
+        }
+        currentItems = [];
+        for (var li = 0; li < listData.length; li++) {
+          var entry = listData[li];
+          var slug = entry.record_slug || entry.slug || "";
+          if (slug) {
+            currentItems.push({
+              record_slug: slug,
+              title: entry.title || allRecordSlugs[slug] || slug,
+              position: entry.position != null ? entry.position : li,
+            });
+          }
+        }
+
+        renderItems();
+      })
+      .catch(function (err) {
+        console.error("Error loading list data:", err);
+        if (listEl) {
+          listEl.innerHTML =
+            '<div class="lists-empty-msg">Failed to load list data. Please try again.</div>';
+        }
+      });
+  }
+
+  // ---- Save List ----
+  document
+    .getElementById("btn-save-list")
+    .addEventListener("click", function () {
+      var payload = [];
+      for (var si = 0; si < currentItems.length; si++) {
+        payload.push({
+          record_slug: currentItems[si].record_slug,
+          position: si,
+        });
+      }
+
+      showSaveStatus("Saving\u2026", "loading");
+
+      fetch("/api/admin/lists/" + encodeURIComponent(listName), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("Save failed with status " + res.status);
+          return res.json();
+        })
+        .then(function () {
+          showSaveStatus("List saved successfully.", "success");
+        })
+        .catch(function (err) {
+          console.error("Save list error:", err);
+          showSaveStatus("Failed to save list. " + err.message, "error");
+        });
+    });
+
+  // ---- Bulk Add ----
+  document
+    .getElementById("btn-bulk-add")
+    .addEventListener("click", function () {
+      var textarea = document.getElementById("lists-bulk-textarea");
+      var summaryEl = document.getElementById("lists-bulk-summary");
+      if (!textarea || !summaryEl) return;
+
+      var raw = textarea.value.trim();
+      if (!raw) {
+        summaryEl.textContent = "Please enter at least one slug.";
+        return;
+      }
+
+      // Parse: split by comma or newline, trim whitespace, filter empty
+      var parts = raw.split(/[,\n\r]+/);
+      var slugsToAdd = [];
+      for (var pi = 0; pi < parts.length; pi++) {
+        var s = parts[pi].trim();
+        if (s) slugsToAdd.push(s);
+      }
+
+      if (slugsToAdd.length === 0) {
+        summaryEl.textContent = "No valid slugs found in input.";
+        return;
+      }
+
+      // Deduplicate against current items
+      var existingSlugs = {};
+      for (var ei = 0; ei < currentItems.length; ei++) {
+        existingSlugs[currentItems[ei].record_slug] = true;
+      }
+
+      var added = 0;
+      var skippedNotFound = 0;
+      var skippedDuplicate = 0;
+      var newItems = [];
+
+      for (var ai = 0; ai < slugsToAdd.length; ai++) {
+        var slug = slugsToAdd[ai];
+
+        if (!allRecordSlugs.hasOwnProperty(slug)) {
+          skippedNotFound++;
+          continue;
+        }
+
+        if (existingSlugs.hasOwnProperty(slug)) {
+          skippedDuplicate++;
+          continue;
+        }
+
+        // Valid: add to new items
+        newItems.push({
+          record_slug: slug,
+          title: allRecordSlugs[slug] || slug,
+          position: currentItems.length + added,
+        });
+        existingSlugs[slug] = true;
+        added++;
+      }
+
+      // Append new items to currentItems
+      for (var ni = 0; ni < newItems.length; ni++) {
+        currentItems.push(newItems[ni]);
+      }
+
+      renderItems();
+
+      var summaryParts = [];
+      if (added > 0) summaryParts.push("Added " + added);
+      if (skippedDuplicate > 0)
+        summaryParts.push(skippedDuplicate + " duplicate(s) skipped");
+      if (skippedNotFound > 0)
+        summaryParts.push(skippedNotFound + " slug(s) not found");
+      summaryEl.textContent = summaryParts.join("; ") + ".";
+    });
+
+  // ---- Init ----
+  loadListData();
 };

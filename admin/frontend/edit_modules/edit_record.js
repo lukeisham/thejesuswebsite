@@ -2,11 +2,11 @@
 //
 //   THE JESUS WEBSITE — EDIT RECORD MODULE
 //   File:    admin/frontend/edit_modules/edit_record.js
-//   Version: 1.4.0
+//   Version: 1.8.0
 //   Purpose: Form layout for editing a single row in the records table.
 //            Includes JSON-array verse builders for primary_verse / secondary_verse,
 //            paragraph-array editors for description / snippet,
-//            and MLA bibliography textareas.
+//            MLA bibliography textareas, and miscellaneous fields.
 //   Source:  guide_dashboard_appearance.md §2.2
 //
 // =============================================================================
@@ -200,6 +200,7 @@ window.renderEditRecord = function (containerId, recordId = null) {
       ? '                    <button class="quick-action-btn btn-view-live-record" id="btn-view-live-record">View Live</button>\n'
       : "") +
     "                </div>\n" +
+    '                    <div id="save-status" class="status-feedback is-hidden"></div>\n' +
     "            </div>\n" +
     "\n" +
     "            <!-- Core Identifiers Section -->\n" +
@@ -392,6 +393,36 @@ window.renderEditRecord = function (containerId, recordId = null) {
     "                </div>\n" +
     "            </section>\n" +
     "\n" +
+    "            <!-- Miscellaneous Section -->\n" +
+    '            <section class="misc-section" id="misc">\n' +
+    '                <h3 class="section-heading-serif">Miscellaneous</h3>\n' +
+    "\n" +
+    '                <div class="field-row">\n' +
+    '                    <label class="field-label" for="record-metadata-json">metadata_json:</label>\n' +
+    '                    <textarea id="record-metadata-json" class="field-input misc-textarea" placeholder="{ ... JSON blob ... }"></textarea>\n' +
+    "                </div>\n" +
+    "\n" +
+    '                <div class="field-row">\n' +
+    '                    <label class="field-label" for="record-iaa">iaa:</label>\n' +
+    '                    <input type="text" id="record-iaa" class="field-input" placeholder="Institute for Archaeology & Antiquity">\n' +
+    "                </div>\n" +
+    "\n" +
+    '                <div class="field-row">\n' +
+    '                    <label class="field-label" for="record-pledius">pledius:</label>\n' +
+    '                    <input type="text" id="record-pledius" class="field-input" placeholder="Pleiades ID">\n' +
+    "                </div>\n" +
+    "\n" +
+    '                <div class="field-row">\n' +
+    '                    <label class="field-label" for="record-manuscript">manuscript:</label>\n' +
+    '                    <input type="text" id="record-manuscript" class="field-input" placeholder="Manuscript reference">\n' +
+    "                </div>\n" +
+    "\n" +
+    '                <div class="field-row">\n' +
+    '                    <label class="field-label" for="record-url">url:</label>\n' +
+    '                    <textarea id="record-url" class="field-input misc-textarea" placeholder="[ ... JSON blob of URLs ... ]"></textarea>\n' +
+    "                </div>\n" +
+    "            </section>\n" +
+    "\n" +
     "            <!-- Child module injection points -->\n" +
     '            <div id="picture-upload-container" class="child-module-slot"></div>\n' +
     "\n" +
@@ -494,6 +525,9 @@ window.renderEditRecord = function (containerId, recordId = null) {
       if (verseInput) verseInput.value = "";
       if (chapterInput) chapterInput.focus();
     });
+
+    // Return public API for external data loading
+    return { setData: setChipData, getData: getChipData };
   }
 
   // ---- Paragraph Editor Logic ----
@@ -597,15 +631,350 @@ window.renderEditRecord = function (containerId, recordId = null) {
         textareas[textareas.length - 1].focus();
       }
     });
+
+    // Return public API for external data loading
+    return { setData: setParagraphData, getData: getParagraphData };
   }
 
-  // Mount both verse builders
-  setupVerseBuilder("pv", "record-primary-verse");
-  setupVerseBuilder("sv", "record-secondary-verse");
+  // Mount both verse builders (capturing public APIs for data loading)
+  var pvBuilder = setupVerseBuilder("pv", "record-primary-verse");
+  var svBuilder = setupVerseBuilder("sv", "record-secondary-verse");
 
-  // Mount both paragraph editors
-  setupParagraphEditor("description", "record-description");
-  setupParagraphEditor("snippet", "record-snippet");
+  // Mount both paragraph editors (capturing public APIs for data loading)
+  var descEditor = setupParagraphEditor("description", "record-description");
+  var snipEditor = setupParagraphEditor("snippet", "record-snippet");
+
+  // ---- Data Loading ----
+  if (recordId) {
+    fetch("/api/admin/records/" + encodeURIComponent(recordId))
+      .then(function (res) {
+        if (!res.ok) throw new Error("Failed to load record");
+        return res.json();
+      })
+      .then(function (data) {
+        // Helper to set a select element's value
+        function setSelect(id, val) {
+          var el = document.getElementById(id);
+          if (el) el.value = val != null && val !== "" ? val : "";
+        }
+
+        // Helper to set a text input / textarea value
+        function setInput(id, val) {
+          var el = document.getElementById(id);
+          if (el) el.value = val != null ? String(val) : "";
+        }
+
+        // ---- Core Identifiers ----
+        setInput("record-id", data.id || "[auto-generated ULID]");
+        setInput("record-title", data.title);
+        setInput("record-slug", data.slug);
+        setInput("record-created-at", data.created_at || "[auto]");
+        setInput("record-updated-at", data.updated_at || "[auto]");
+
+        // ---- Taxonomy & Diagrams ----
+        setSelect("record-era", data.era);
+        setSelect("record-timeline", data.timeline);
+        setSelect("record-map-label", data.map_label);
+        setSelect("record-gospel-category", data.gospel_category);
+        setInput("record-geo-id", data.geo_id);
+        setInput("record-parent-id", data.parent_id);
+
+        // ---- Verses (JSON arrays) ----
+        var pv = [];
+        try {
+          pv = JSON.parse(data.primary_verse || "[]");
+        } catch (e) {
+          pv = [];
+        }
+        pvBuilder.setData(pv);
+
+        var sv = [];
+        try {
+          sv = JSON.parse(data.secondary_verse || "[]");
+        } catch (e) {
+          sv = [];
+        }
+        svBuilder.setData(sv);
+
+        // ---- Text Content (JSON paragraph arrays) ----
+        var desc = [];
+        try {
+          desc = JSON.parse(data.description || "[]");
+        } catch (e) {
+          desc = [];
+        }
+        descEditor.setData(desc);
+
+        var snip = [];
+        try {
+          snip = JSON.parse(data.snippet || "[]");
+        } catch (e) {
+          snip = [];
+        }
+        snipEditor.setData(snip);
+
+        // ---- Bibliography (MLA JSON blob) ----
+        var bib = {};
+        try {
+          bib = JSON.parse(data.bibliography || "{}");
+        } catch (e) {
+          bib = {};
+        }
+        setInput("record-mla-book", bib.mla_book);
+        setInput("record-mla-book-inline", bib.mla_book_inline);
+        setInput("record-mla-article", bib.mla_article);
+        setInput("record-mla-article-inline", bib.mla_article_inline);
+        setInput("record-mla-website", bib.mla_website);
+        setInput("record-mla-website-inline", bib.mla_website_inline);
+
+        // ---- Miscellaneous ----
+        setInput("record-metadata-json", data.metadata_json);
+        setInput("record-iaa", data.iaa);
+        setInput("record-pledius", data.pledius);
+        setInput("record-manuscript", data.manuscript);
+        setInput("record-url", data.url);
+
+        // ---- Re-render Relations & Links with loaded context_links ----
+        if (typeof window.renderEditLinks === "function") {
+          window.renderEditLinks(
+            "relations-links-container",
+            data.context_links || null,
+          );
+        }
+      })
+      .catch(function (err) {
+        console.error("Error loading record data:", err);
+        alert("Failed to load record data. Please try again.");
+      });
+  }
+
+  // ---- Action Bar Button Wiring ----
+  // Helper: show inline status message
+  var statusEl = document.getElementById("save-status");
+
+  function showStatus(msg, type) {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.className = "status-feedback";
+    if (type === "success") {
+      statusEl.classList.add("status-success");
+    } else if (type === "error") {
+      statusEl.classList.add("status-error");
+    } else if (type === "loading") {
+      statusEl.classList.add("status-loading");
+    }
+    statusEl.classList.remove("is-hidden");
+    statusEl.classList.add("is-visible");
+  }
+
+  // ULID generator (Crockford Base32, 26-char)
+  function generateUlid() {
+    var encoding = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+    var time = Date.now();
+    var ulid = "";
+    // Time component: first 10 chars (48-bit epoch ms)
+    for (var ti = 9; ti >= 0; ti--) {
+      var mod = time % 32;
+      ulid = encoding.charAt(mod) + ulid;
+      time = Math.floor(time / 32);
+    }
+    // Random component: last 16 chars (80 bits)
+    for (var ri = 0; ri < 16; ri++) {
+      ulid += encoding.charAt(Math.floor(Math.random() * 32));
+    }
+    return ulid;
+  }
+
+  // Discard — hard-reset the form
+  document
+    .getElementById("btn-discard-record")
+    .addEventListener("click", function () {
+      window.renderEditRecord(containerId, recordId);
+    });
+
+  // Save Changes — collect, validate, POST/PUT
+  document
+    .getElementById("btn-save-record")
+    .addEventListener("click", function () {
+      var saveData = {};
+
+      // Core Identifiers
+      var titleEl = document.getElementById("record-title");
+      saveData.title = titleEl ? titleEl.value : "";
+
+      var slugEl = document.getElementById("record-slug");
+      saveData.slug = slugEl ? slugEl.value : "";
+
+      // Taxonomy
+      var eraEl = document.getElementById("record-era");
+      saveData.era = eraEl ? eraEl.value : "";
+
+      var timelineEl = document.getElementById("record-timeline");
+      saveData.timeline = timelineEl ? timelineEl.value : "";
+
+      var mapLabelEl = document.getElementById("record-map-label");
+      saveData.map_label = mapLabelEl ? mapLabelEl.value : "";
+
+      var gospelCatEl = document.getElementById("record-gospel-category");
+      saveData.gospel_category = gospelCatEl ? gospelCatEl.value : "";
+
+      var geoEl = document.getElementById("record-geo-id");
+      saveData.geo_id =
+        geoEl && geoEl.value !== "" ? parseInt(geoEl.value, 10) : null;
+
+      var parentEl = document.getElementById("record-parent-id");
+      saveData.parent_id = parentEl ? parentEl.value : "";
+
+      // Verses (already JSON in hidden inputs)
+      var pvEl = document.getElementById("record-primary-verse");
+      saveData.primary_verse = pvEl ? pvEl.value : "[]";
+
+      var svEl = document.getElementById("record-secondary-verse");
+      saveData.secondary_verse = svEl ? svEl.value : "[]";
+
+      // Text Content (already JSON in hidden inputs)
+      var descEl = document.getElementById("record-description");
+      saveData.description = descEl ? descEl.value : "[]";
+
+      var snipEl = document.getElementById("record-snippet");
+      saveData.snippet = snipEl ? snipEl.value : "[]";
+
+      // Bibliography — build JSON blob from data-mla-key textareas
+      var bib = {};
+      var bibTextareas = document.querySelectorAll(
+        "#edit-record-card [data-mla-key]",
+      );
+      for (var bi = 0; bi < bibTextareas.length; bi++) {
+        var ta = bibTextareas[bi];
+        bib[ta.getAttribute("data-mla-key")] = ta.value;
+      }
+      saveData.bibliography = JSON.stringify(bib);
+
+      // Miscellaneous
+      var metaEl = document.getElementById("record-metadata-json");
+      saveData.metadata_json = metaEl ? metaEl.value : "";
+
+      var iaaEl = document.getElementById("record-iaa");
+      saveData.iaa = iaaEl ? iaaEl.value : "";
+
+      var plediusEl = document.getElementById("record-pledius");
+      saveData.pledius = plediusEl ? plediusEl.value : "";
+
+      var manuscriptEl = document.getElementById("record-manuscript");
+      saveData.manuscript = manuscriptEl ? manuscriptEl.value : "";
+
+      var urlEl = document.getElementById("record-url");
+      saveData.url = urlEl ? urlEl.value : "";
+
+      // Relations & Links (context_links hidden field from edit_links.js)
+      var contextLinksEl = document.getElementById("context-links-hidden");
+      saveData.context_links = contextLinksEl ? contextLinksEl.value : "[]";
+
+      // Validate JSON blobs (metadata_json, url, context_links)
+      var jsonFields = ["metadata_json", "url"];
+      for (var ji = 0; ji < jsonFields.length; ji++) {
+        var val = saveData[jsonFields[ji]];
+        if (val && val.trim() !== "") {
+          try {
+            JSON.parse(val);
+          } catch (e) {
+            showStatus(
+              "Invalid JSON in " +
+                jsonFields[ji] +
+                ". Please fix and try again.",
+              "error",
+            );
+            return;
+          }
+        }
+      }
+
+      // Set timestamps and ID
+      if (!recordId) {
+        saveData.id = generateUlid();
+        saveData.created_at = new Date().toISOString();
+        saveData.updated_at = saveData.created_at;
+      } else {
+        saveData.updated_at = new Date().toISOString();
+      }
+
+      var method = recordId ? "PUT" : "POST";
+      var url = recordId
+        ? "/api/admin/records/" + encodeURIComponent(recordId)
+        : "/api/admin/records";
+
+      showStatus("Saving...", "loading");
+
+      fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(saveData),
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("Save failed with status " + res.status);
+          return res.json();
+        })
+        .then(function () {
+          showStatus("Record saved successfully.", "success");
+        })
+        .catch(function (err) {
+          console.error("Save error:", err);
+          showStatus("Failed to save record. " + err.message, "error");
+        });
+    });
+
+  // Delete (only if recordId)
+  if (recordId) {
+    document
+      .getElementById("btn-delete-record")
+      .addEventListener("click", function () {
+        if (
+          !confirm(
+            "Are you sure you want to delete this record? This action cannot be undone.",
+          )
+        )
+          return;
+
+        showStatus("Deleting...", "loading");
+
+        fetch("/api/admin/records/" + encodeURIComponent(recordId), {
+          method: "DELETE",
+        })
+          .then(function (res) {
+            if (!res.ok)
+              throw new Error("Delete failed with status " + res.status);
+            // Return to §2.1 records list
+            var editLink = document.querySelector(
+              '[data-module="records-edit"]',
+            );
+            if (editLink) {
+              editLink.click();
+            } else {
+              window.location.reload();
+            }
+          })
+          .catch(function (err) {
+            console.error("Delete error:", err);
+            showStatus("Failed to delete record. " + err.message, "error");
+          });
+      });
+  }
+
+  // View Live (only if recordId)
+  if (recordId) {
+    document
+      .getElementById("btn-view-live-record")
+      .addEventListener("click", function () {
+        var slugEl = document.getElementById("record-slug");
+        var slug = slugEl ? slugEl.value.trim() : "";
+        if (!slug) {
+          showStatus("Cannot open live view: slug is empty.", "error");
+          return;
+        }
+        var publicUrl = window.location.origin + "/" + slug;
+        window.open(publicUrl, "_blank");
+      });
+  }
 
   // Load edit_links module if the script has been parsed
   if (typeof window.renderEditLinks === "function") {
