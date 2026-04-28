@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "return to front end button"
+git commit -m "dashboard guide update"
 git push origin main 
 
 # Pulling from Github to server 
