@@ -6,6 +6,10 @@
 //            Includes client-side CSV row validation preview before upload.
 // =============================================================================
 
+// Trigger: dashboard_app.js routing -> window.renderBulkUpload(containerId)
+// Function: Renders the bulk CSV upload form with client-side row validation preview
+// Output: Injects the bulk upload HTML into the specified container element
+
 window.renderBulkUpload = function (containerId) {
   var container = document.getElementById(containerId);
   if (!container) return;
@@ -93,45 +97,45 @@ window.renderBulkUpload = function (containerId) {
     '            <p class="text-sm text-muted">Technical Ledger Interface \u2014 Data Ingestion</p>\n' +
     "        </div>\n" +
     "\n" +
-    '        <div class="admin-card" id="bulk-upload-card" style="max-width: var(--content-max-width); margin: 0 auto;">\n' +
-    '            <h3 class="font-serif" style="margin-bottom: var(--space-2);">Upload Database Records</h3>\n' +
-    "            <p class=\"font-body text-sm\" style=\"margin-bottom: var(--space-4);\">Select or drag and drop a valid CSV file (max 5MB) to bulk create records. Must include 'title' and 'slug' columns.</p>\n" +
+    '        <div class="admin-card bulk-upload-card" id="bulk-upload-card">\n' +
+    '            <h3 class="font-serif">Upload Database Records</h3>\n' +
+    "            <p class=\"font-body text-sm bulk-upload-subtitle\">Select or drag and drop a valid CSV file (max 5MB) to bulk create records. Must include 'title' and 'slug' columns.</p>\n" +
     "\n" +
-    '            <div id="drop-zone" style="border: var(--border-width-base) dashed var(--color-border); padding: var(--space-8); text-align: center; cursor: pointer; transition: var(--transition-base); background-color: var(--color-bg-secondary);">\n' +
-    '                <p class="font-mono text-sm" style="color: var(--color-text-secondary); pointer-events: none;">DRAG &amp; DROP CSV FILE HERE</p>\n' +
-    '                <p class="font-mono text-xs" style="color: var(--color-text-muted); pointer-events: none;">OR CLICK TO BROWSE</p>\n' +
-    '                <input type="file" id="csv-file-input" accept=".csv" style="display: none;">\n' +
+    '            <div id="drop-zone" class="drop-zone">\n' +
+    '                <p class="font-mono text-sm drop-zone-text">DRAG &amp; DROP CSV FILE HERE</p>\n' +
+    '                <p class="font-mono text-xs drop-zone-subtext">OR CLICK TO BROWSE</p>\n' +
+    '                <input type="file" id="csv-file-input" class="csv-file-input" accept=".csv">\n' +
     "            </div>\n" +
     "\n" +
-    '            <div id="selected-file-display" class="is-hidden font-mono text-sm" style="margin-top: var(--space-4); padding: var(--space-2); border: var(--border-width-thin) solid var(--color-border); background-color: var(--color-bg-primary);">\n' +
+    '            <div id="selected-file-display" class="is-hidden font-mono text-sm selected-file-display">\n' +
     '                <span id="file-name"></span>\n' +
-    '                <button id="clear-file-btn" class="quick-action-btn" style="float: right; margin-top: -4px;">Clear</button>\n' +
+    '                <button id="clear-file-btn" class="quick-action-btn">Clear</button>\n' +
     "            </div>\n" +
     "\n" +
     "            <!-- Validation Preview -->\n" +
-    '            <div id="validation-preview" class="is-hidden" style="margin-top: var(--space-4);">\n' +
+    '            <div id="validation-preview" class="is-hidden validation-preview">\n' +
     '                <div id="validation-summary" class="validation-summary"></div>\n' +
-    '                <div id="validation-errors-container" class="is-hidden" style="margin-top: var(--space-3);">\n' +
-    '                    <h4 class="font-serif" style="margin-bottom: var(--space-2);">Row Errors</h4>\n' +
+    '                <div id="validation-errors-container" class="is-hidden validation-errors-container">\n' +
+    '                    <h4 class="font-serif validation-errors-heading">Row Errors</h4>\n' +
     '                    <ul id="validation-error-list" class="validation-error-list"></ul>\n' +
     "                </div>\n" +
     "            </div>\n" +
     "\n" +
-    '            <div id="upload-status-area" class="status-feedback is-hidden" style="margin-top: var(--space-4);">\n' +
+    '            <div id="upload-status-area" class="status-feedback is-hidden upload-status-area">\n' +
     '                <div class="status-indicator-block">\n' +
     '                    <span id="status-icon" class="status-dot"></span>\n' +
     '                    <span id="status-text" class="status-text-mono"></span>\n' +
     "                </div>\n" +
     "            </div>\n" +
     "\n" +
-    '            <div id="upload-results" class="is-hidden" style="margin-top: var(--space-6);">\n' +
+    '            <div id="upload-results" class="is-hidden upload-results">\n' +
     '                <h4 class="font-serif">Upload Results</h4>\n' +
-    '                <div id="success-summary" class="text-sm" style="color: var(--color-status-success); margin-bottom: var(--space-2);"></div>\n' +
-    '                <ul id="error-list" class="text-sm font-mono" style="color: var(--color-accent-primary); list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; border: 1px solid var(--color-border); margin-top: var(--space-2); display: none;">\n' +
+    '                <div id="success-summary" class="text-sm upload-success-summary"></div>\n' +
+    '                <ul id="error-list" class="text-sm font-mono upload-error-list">\n' +
     "                </ul>\n" +
     "            </div>\n" +
     "\n" +
-    '            <footer class="admin-action-bar" style="margin-top: var(--space-8); position: relative; display: flex; justify-content: flex-end;">\n' +
+    '            <footer class="admin-action-bar upload-action-bar">\n' +
     '                <button id="upload-submit-btn" class="btn-primary" disabled>Start Upload</button>\n' +
     "            </footer>\n" +
     "        </div>";
@@ -400,19 +404,16 @@ window.renderBulkUpload = function (containerId) {
 
   dropZone.addEventListener("dragover", function (e) {
     e.preventDefault();
-    dropZone.style.borderColor = "var(--color-accent-primary)";
-    dropZone.style.backgroundColor = "var(--color-bg-primary)";
+    dropZone.classList.add("drag-over");
   });
 
   dropZone.addEventListener("dragleave", function () {
-    dropZone.style.borderColor = "var(--color-border)";
-    dropZone.style.backgroundColor = "var(--color-bg-secondary)";
+    dropZone.classList.remove("drag-over");
   });
 
   dropZone.addEventListener("drop", function (e) {
     e.preventDefault();
-    dropZone.style.borderColor = "var(--color-border)";
-    dropZone.style.backgroundColor = "var(--color-bg-secondary)";
+    dropZone.classList.remove("drag-over");
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFileSelect(e.dataTransfer.files[0]);
