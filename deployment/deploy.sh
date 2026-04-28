@@ -32,12 +32,11 @@ if [ ! -d "venv" ]; then
 fi
 
 source venv/bin/activate
-pip install --upgrade pip
 pip install -r requirements.txt
 
-# 3. Clean and optimize frontend (Trigger build.py pipelines if any)
-# python3 build.py 
-# (Tasks 31 will implement this)
+# 3. Clean and optimize frontend
+# TODO: uncomment once Task 31 (build pipelines) is implemented
+# python3 build.py
 
 # 4. Restart Systemd Backend Services
 echo ">>> Restarting Systemd Services..."

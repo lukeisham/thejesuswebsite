@@ -95,15 +95,14 @@ Scan the full `documentation/` directory and its `guides/` subfolder. For each d
 Set `Yes / No` for each row and write a one-sentence `Change Description` for every `Yes` row. Mark all `No` rows clearly so the executor knows they were considered and ruled out.
 
 ### Step 6: Write the Output File
-- **Output path**: `documentation/plans/{{plan_name}}.md`
-- Create the `documentation/plans/` directory if it does not exist.
+- **Output path**: `{{plan_name}}.md` (project root directory)
 - Write the fully populated plan file.
 
 ## 4. Terminal States & Outputs
 
 `IF` file written successfully:
   - **State**: `PLAN_GENERATED`
-  - **Action**: Confirm to the user with the output path and a brief summary of: how many tasks were generated, how many documents in the Documentation Update section are marked `Yes`. Remind the user to run `/sync_sitemap` after any plan that adds new files to the codebase.
+  - **Action**: Confirm to the user with the output path (`{{plan_name}}.md` in the project root) and a brief summary of: how many tasks were generated, how many documents in the Documentation Update section are marked `Yes`. Remind the user to run `/sync_sitemap` after any plan that adds new files to the codebase.
 
 `IF` required inputs are missing or ambiguous:
   - **State**: `AWAITING_INPUT`

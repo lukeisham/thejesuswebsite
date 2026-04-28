@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "plan template steup"
+git commit -m "deployment script fixes"
 git push origin main 
 
 # Pulling from Github to server 
