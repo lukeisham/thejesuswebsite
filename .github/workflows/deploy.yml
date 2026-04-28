@@ -1,7 +1,7 @@
-# =============================================================================
+# # =============================================================================
 #   THE JESUS WEBSITE — GITHUB ACTIONS DEPLOYMENT
 #   File:    .github/workflows/deploy.yml
-#   Version: 1.0.0
+#   Version: 1.1.0
 #   Purpose: Automatically deploys to VPS when new code is pushed to main.
 # =============================================================================
 
@@ -27,7 +27,10 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT || '22' }}  # fallback to string '22' — bare integer silently fails in Actions expressions
+          port: 22  # Standard SSH port. Change to ${{ secrets.VPS_PORT }} if you use a custom port.
           script: |
             cd /var/www/thejesuswebsite
+            # Ensure the deployment script is executable
+            chmod +x deployment/deploy.sh
             bash deployment/deploy.sh
+            

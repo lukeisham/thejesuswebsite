@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "dashboard guide update"
+git commit -m "module 2 plan"
 git push origin main 
 
 # Pulling from Github to server 

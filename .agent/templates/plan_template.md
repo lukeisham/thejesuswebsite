@@ -109,6 +109,33 @@ created: {{date}}
 
 ---
 
+## Module Impact Audit
+
+> Using `documentation/detailed_module_sitemap.md` as the reference, check whether this plan's changes affect other files or functionality **within the same module**, and whether any **connected or dependent modules** are impacted. A null result is valid — but the check must always be completed and shown.
+
+### Intra-Module Check — Module {{module_number}}: {{module_name}}
+
+> Every other file in this module that is NOT being touched by this plan. Assess whether the plan's changes (schema shifts, shared CSS variables, JS event listeners, API contract changes, etc.) could affect each.
+
+| File | Potentially Affected? | Reason / Null |
+|------|-----------------------|---------------|
+| `{{other_file_in_module}}` | Yes / No | {{reason, or "No impact identified"}} |
+
+### Cross-Module Check
+
+> Modules that are architecturally connected to Module {{module_number}} per the System Architecture diagram in `detailed_module_sitemap.md`. Assess whether this plan's changes ripple into each.
+
+| Module | Potentially Affected? | Reason / Null |
+|--------|-----------------------|---------------|
+| {{connected_module_number}} — {{connected_module_name}} | Yes / No | {{reason, or "No impact identified"}} |
+
+### Module Impact Summary
+- [ ] Intra-module check completed — all other files in Module {{module_number}} reviewed
+- [ ] Cross-module check completed — all architecturally connected modules reviewed
+- [ ] Impact result: **Null — no downstream impact identified** / **See flagged rows above**
+
+---
+
 ## Documentation Update
 
 > Update every document in `documentation/` whose scope overlaps with the work done in this plan.

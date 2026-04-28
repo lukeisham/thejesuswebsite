@@ -1,7 +1,7 @@
 ---
 name: guide_function.md
 purpose: Visual ASCII representations of module functions 
-version: 1.2.0
+version: 1.3.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, data_schema.md, detailed_module_sitemap.md]
 ---
 
