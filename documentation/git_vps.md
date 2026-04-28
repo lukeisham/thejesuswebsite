@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "github push to VPS"
+git commit -m "plan template steup"
 git push origin main 
 
 # Pulling from Github to server 
