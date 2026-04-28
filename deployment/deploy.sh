@@ -42,7 +42,7 @@ pip install -r requirements.txt
 echo ">>> Restarting Systemd Services..."
 sudo systemctl daemon-reload
 
-# Only restart the service verified to exist on the VPS
+# This is the only service verified to exist on your VPS
 sudo systemctl restart thejesuswebsite.service
 
 echo ">>> Reloading Nginx Configuration..."
