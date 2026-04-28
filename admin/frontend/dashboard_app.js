@@ -390,6 +390,65 @@ async function loadModule(moduleName) {
     return;
   }
 
+
+  if (moduleName === "text-essays") {
+    canvas.innerHTML = `
+      <div class="admin-card" style="overflow: hidden;">
+        <div style="display: flex; border-bottom: 2px solid var(--color-border); background-color: var(--color-bg-secondary);" id="essays-tab-bar">
+          <button class="admin-tab-btn is-active" data-tab="essay" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-bold); border: none; background: transparent; cursor: pointer; color: var(--color-text); border-bottom: 2px solid var(--color-accent-primary); transition: all var(--transition-fast);">Context Essay</button>
+          <button class="admin-tab-btn" data-tab="historiography" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">Historiography</button>
+        </div>
+        <div id="tab-content-essay" style="padding: var(--space-6);"></div>
+        <div id="tab-content-historiography" class="is-hidden" style="padding: var(--space-6);"></div>
+      </div>
+    `;
+
+    // Load default tab
+    if (typeof window.renderEditEssay === "function") {
+      window.renderEditEssay("tab-content-essay");
+    }
+
+    // Event delegation for tab switching
+    document.getElementById("essays-tab-bar").addEventListener("click", function (e) {
+      var tabBtn = e.target.closest("[data-tab]");
+      if (!tabBtn) return;
+      var tab = tabBtn.getAttribute("data-tab");
+
+      // Toggle active state on tab buttons
+      this.querySelectorAll("[data-tab]").forEach(function (btn) {
+        btn.classList.remove("is-active");
+        btn.style.color = "var(--color-text-muted)";
+        btn.style.fontWeight = "var(--weight-medium)";
+        btn.style.borderBottomColor = "transparent";
+      });
+      tabBtn.classList.add("is-active");
+      tabBtn.style.color = "var(--color-text)";
+      tabBtn.style.fontWeight = "var(--weight-bold)";
+      tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
+
+      // Show / hide panes and lazy-load historiography if needed
+      var essayPane = document.getElementById("tab-content-essay");
+      var histPane = document.getElementById("tab-content-historiography");
+
+      if (tab === "essay") {
+        essayPane.classList.remove("is-hidden");
+        histPane.classList.add("is-hidden");
+      } else {
+        histPane.classList.remove("is-hidden");
+        essayPane.classList.add("is-hidden");
+        if (histPane.innerHTML.trim() === "" && typeof window.renderEditHistoriography === "function") {
+          window.renderEditHistoriography("tab-content-historiography");
+        }
+      }
+    });
+
+    return;
+  }
+
+  if (moduleName === "text-responses" && typeof window.renderEditResponse === "function") {
+    window.renderEditResponse("admin-canvas");
+    return;
+  }
   // Module router placeholder (waiting for tasks 25-27)
   // Module mockup with Split-Pane and Action Bar (Technical Blueprint Verification)
   canvas.innerHTML = `

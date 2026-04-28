@@ -600,7 +600,60 @@ This document provides visual ASCII representations detailing how data physicall
  +------------------------+
 ```
 
+### 6.1.1 Dashboard Module Router (loadModule)
+**Purpose:** Routes sidebar navigation clicks to the correct admin editor functions. Defined in `dashboard_app.js` as the `loadModule(moduleName)` async function.
+
+```text
+ +-------------------------------------------------------------+
+ |   Sidebar Link Clicked (e.g., "Essays", "Responses")       |
+ |   data-module="text-essays" | data-module="text-responses"  |
+ +-------------------------------------------------------------+
+                          |
+                          v
+ +-------------------------------------------------------------+
+ |   dashboard_app.js :: loadModule(moduleName)                |
+ |                                                            |
+ |   Middleware Check: verifyAdminSession()                    |
+ |   (intercepts all routes — returns to login if invalid)    |
+ +-------------------------------------------------------------+
+                          |
+                          v
+ +-------------------------------------------------------------+
+ |   Router Branches (if/else chain)                           |
+ |                                                            |
+ |   records-new    -> window.renderEditRecord("admin-canvas"  |
+ |                       , null)                               |
+ |   records-edit   -> inline record list + pagination +       |
+ |                      search (no editor dispatch)            |
+ |   lists-resources-> window.renderEditLists("admin-canvas",  |
+ |                       selectedListName)                     |
+ |   records-bulk   -> window.renderBulkUpload("admin-canvas") |
+ |   text-essays    -> 2-tab container injected into canvas    |
+ |                      (Context Essay tab default /           |
+ |                       Historiography tab lazy-loaded)       |
+ |   text-responses -> window.renderEditResponse("admin-canvas")|
+ |   *fallback*     -> generic split-pane placeholder          |
+ +-------------------------------------------------------------+
+                          |
+                          v
+ +-------------------------------------------------------------+
+ |   Editor renders into #admin-canvas (or specific pane ID)   |
+ +-------------------------------------------------------------+
+```
+
+**text-essays router case details:**
+- Injects a tabbed `admin-card` container with **Context Essay** (default active) and **Historiography** tabs
+- Calls `window.renderEditEssay("tab-content-essay")` immediately on load
+- Lazy-loads `window.renderEditHistoriography("tab-content-historiography")` on first Historiography tab click
+- Tab switching uses event delegation (`document.getElementById("essays-tab-bar").addEventListener("click", ...)`) — no inline `onclick` handlers
+- Pane visibility toggled via the `.is-hidden` CSS class
+
+**text-responses router case details:**
+- Direct single-pane call to `window.renderEditResponse("admin-canvas")`
+- Protected by a `typeof` guard to verify the function exists before calling
+
 ---
+
 
 ### 6.2 MCP Server API Flow
 **Purpose:** Documents the read-only data access layer for external AI agents querying the system.

@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 1.1.4
+version: 1.1.5
 purpose: visual and list taxonomy of codebase
 dependencies: [site_map.md]
 ---
