@@ -1,104 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<!-- =============================================================================
+    <!-- =============================================================================
 
      THE JESUS WEBSITE — CONTEXT LANDING PAGE
      File:    frontend/pages/context.html
-     Version: 1.1.0
+     Version: 1.2.0
      Purpose: Entry point for thematic context essays.
      Source:  guide_appearance.md §1.2, index_landing.css §4
 
 ============================================================================= -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Context Essays | The Jesus Website</title>
+        <title>Context Essays | The Jesus Website</title>
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
-    <link rel="stylesheet" href="../../css/elements/grid.css">
-    <link rel="stylesheet" href="../../css/design_layouts/views/index_landing.css">
+        <!-- Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../css/elements/typography_colors.css"
+        />
+        <link rel="stylesheet" href="../../css/elements/grid.css" />
+        <link
+            rel="stylesheet"
+            href="../../css/design_layouts/views/index_landing.css"
+        />
 
-    <!-- UI Logic Components -->
-    <script src="../display_other/header.js"></script>
-    <script src="../display_other/search_header.js"></script>
-    <script src="../display_other/sidebar.js"></script>
-    <script src="../display_other/footer.js"></script>
+        <!-- UI Logic Components -->
+        <script src="../display_other/header.js"></script>
+        <script src="../display_other/search_header.js"></script>
+        <script src="../display_other/sidebar.js"></script>
+        <script src="../display_other/footer.js"></script>
 
-    <!-- Central Initializer -->
-    <script src="../display_other/initializer.js"></script>
-</head>
+        <!-- Central Initializer -->
+        <script src="../display_other/initializer.js"></script>
+    </head>
 
-<body data-page-title="Context Essays"
-    data-page-description="Thematic essays exploring the historical and cultural world of Jesus of Nazareth."
-    data-sidebar-active-nav="context" data-search-header-active-nav="context" data-footer-target="page-shell">
+    <body
+        data-page-title="Context Essays"
+        data-page-description="Thematic essays exploring the historical and cultural world of Jesus of Nazareth."
+        data-sidebar-active-nav="context"
+        data-search-header-active-nav="context"
+        data-footer-target="page-shell"
+    >
+        <!-- Main Page Shell Container -->
+        <div class="page-shell" id="page-shell">
+            <!-- Invisible Metadata Anchor -->
+            <header id="invisible-header" aria-hidden="true"></header>
 
-    <!-- Main Page Shell Container -->
-    <div class="page-shell" id="page-shell">
+            <!-- Main Content Column -->
+            <main class="site-main" id="site-main" role="main">
+                <div class="content-wrap">
+                    <header class="landing-page__header">
+                        <h1 class="landing-page__heading">Context Essays</h1>
+                        <p class="text-sm text-secondary">
+                            Thematic essays to put the evidence about Jesus into
+                            context.
+                        </p>
+                    </header>
 
-        <!-- Invisible Metadata Anchor -->
-        <header id="invisible-header" aria-hidden="true"></header>
-
-        <!-- Main Content Column -->
-        <main class="site-main" id="site-main" role="main">
-            <div class="content-wrap">
-
-                <header class="landing-page__header">
-                    <h1 class="landing-page__heading">Context Essays</h1>
-                    <p class="text-sm text-secondary">Thematic essays to put the evidence about Jesus into context.</p>
-                </header>
-
-                <div class="landing-page__grid">
-
-                    <!-- Example Card 1 -->
-                    <a href="context_essay.html?id=historical-world" class="landing-card" id="card-historical">
-                        <h2 class="landing-card__title">The Historical World of Jesus</h2>
-                        <p class="landing-card__desc">A broad overview of the socio-political climate of 1st-century
-                            Judea and Galilee.</p>
-                        <div class="landing-card__meta">ARCHIVE-CONTEXT-001</div>
-                    </a>
-
-                    <!-- Example Card 2 -->
-                    <a href="context_essay.html?id=jewish-context" class="landing-card" id="card-jewish">
-                        <h2 class="landing-card__title">Jewish Context</h2>
-                        <p class="landing-card__desc">Exploring the religious landscape, from the Temple in Jerusalem to
-                            the Essene communities.</p>
-                        <div class="landing-card__meta">ARCHIVE-CONTEXT-002</div>
-                    </a>
-
-                    <!-- Example Card 3 -->
-                    <a href="context_essay.html?id=roman-governance" class="landing-card" id="card-roman">
-                        <h2 class="landing-card__title">Roman Governance</h2>
-                        <p class="landing-card__desc">The impact of Roman rule, tax systems, and the military presence
-                            in the Levant.</p>
-                        <div class="landing-card__meta">ARCHIVE-CONTEXT-003</div>
-                    </a>
-
-                    <!-- Example Card 4 -->
-                    <a href="context_essay.html?id=herodian-dynasty" class="landing-card" id="card-herodian">
-                        <h2 class="landing-card__title">The Herodian Dynasty</h2>
-                        <p class="landing-card__desc">A study of Herod the Great and his successors' influence on the
-                            region's architecture and stability.</p>
-                        <div class="landing-card__meta">ARCHIVE-CONTEXT-004</div>
-                    </a>
-
-                    <!-- Example Card 5 -->
-                    <a href="context_essay.html?id=galilean-social" class="landing-card" id="card-galilean">
-                        <h2 class="landing-card__title">Galilean Social Structures</h2>
-                        <p class="landing-card__desc">Fishing, farming, and the village life that formed the backdrop of
-                            Jesus' early ministry.</p>
-                        <div class="landing-card__meta">ARCHIVE-CONTEXT-005</div>
-                    </a>
-
+                    <div class="landing-page__grid" id="context-essay-grid">
+                        <!-- Injected by a display module when API integration is wired -->
+                        <p class="text-sm text-muted">
+                            Context essays coming soon.
+                        </p>
+                    </div>
                 </div>
-
-            </div>
-        </main>
-
-    </div>
-</body>
-
+            </main>
+        </div>
+    </body>
 </html>

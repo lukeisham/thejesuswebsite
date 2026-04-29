@@ -1,8 +1,8 @@
 ---
 name: guide_welcoming_robots.md
 purpose: description of how to make the data (excluding backend functions) welcoming to AI
-version: 1.0.1
-dependencies: [data_schema.md, module_sitemap.md]
+version: 1.1.0
+dependencies: [data_schema.md, module_sitemap.md, url_slug_restructure.md]
 ---
 
 # Guide to Making Data Welcoming to AI
@@ -26,7 +26,7 @@ For agents that crawl the public-facing website, the structure is optimized to e
 ## 3. Standardized Agent Navigation
 Predictability is key for automated agents to explore the archive without manual guidance.
 
-- **Context Link Standards:** Maintain a strict `snake_case` slug system for all records to ensure that agents can predict URL patterns for "Deep Dive" lookups.
+- **Context Link Standards:** Maintain a strict `snake_case` slug system for all records to ensure that agents can predict URL patterns for "Deep Dive" lookups. All public-facing URLs now use clean, human-readable path-based slugs (e.g. `/record/jesus-baptism` instead of `/frontend/pages/record.html?slug=jesus-baptism`). A URL rewriting layer (nginx + FastAPI) maps these clean slugs to the underlying filesystem paths transparently — robots see only the clean URLs in the address bar and are never exposed to the internal `/frontend/pages/` directory structure or the JavaScript that handles query parameters.
 - **LLM-Friendly Overviews:** The `frontend/display_other/display_snippet.js` renders short, factual abstracts at the top of every page, giving agents an immediate summary of purpose.
 - **Crawl Guidance:** The `assets/ai-instructions.txt` file provides specialized guidance for LLM crawlers regarding scraping limits and formatting preferences.
 
@@ -34,7 +34,7 @@ Predictability is key for automated agents to explore the archive without manual
 A clear indexing roadmap ensures that all archived data is discovered efficiently.
 
 - **Robots.txt:** The `frontend/robots.txt` explicitly allows indexing of content pages while **Disallowing** the `/admin/` and `/private/` directories.
-- **Dynamic Sitemaps:** The `tools/generate_sitemap.py` script builds `frontend/sitemap.xml`, prioritizing the `record.html?slug=...` pattern for bulk discovery.
+- **Dynamic Sitemaps:** The `tools/generate_sitemap.py` script builds `frontend/sitemap.xml` using the new clean slug URLs (e.g. `/records`, `/record/{slug}`, `/context`, `/context/essay?id=...`). The sitemap only lists the public-facing slugs — the underlying filesystem paths are hidden behind the rewriting layer so crawlers index the clean URLs directly.
 - **Crawl Delay:** Implement gentle `Crawl-delay` directives to safeguard VPS performance during high-intensity indexing sessions.
 
 ## 5. Continuous Agent Readability Audits

@@ -349,6 +349,44 @@ async def upload_record_picture(
         )
 
 
+@app.delete("/api/admin/records/{record_id}/picture")
+async def delete_record_picture(
+    record_id: str,
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Clears picture data (name, bytes, thumbnail) from a record without deleting the record itself.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            UPDATE records
+            SET picture_name = NULL,
+                picture_bytes = NULL,
+                picture_thumbnail = NULL
+            WHERE id = ?
+        """,
+            (record_id,),
+        )
+
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Record not found")
+
+        conn.commit()
+        conn.close()
+
+        return {"message": "Picture removed successfully"}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to remove picture: " + str(e)
+        )
+
+
 # -----------------------------------------------------------------------------
 # List Management Endpoints (resource_lists table)
 # -----------------------------------------------------------------------------

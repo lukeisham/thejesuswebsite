@@ -1,7 +1,7 @@
 ---
 name: guide_function.md
 purpose: Visual ASCII representations of module functions 
-version: 1.6.0
+version: 1.7.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, data_schema.md, detailed_module_sitemap.md]
 ---
 
@@ -1191,6 +1191,61 @@ This document provides visual ASCII representations detailing how data physicall
                            v
                 [ Agent Context Window ]
 ```
+
+---
+
+### 7.3.1 URL Slug Rewriting Architecture
+**Purpose:** Documents the clean-slug URL rewriting layer that maps human-readable URLs (like `/records`, `/record/jesus-baptism`) to their real filesystem paths (`/frontend/pages/records.html`) via nginx rewrites and FastAPI route fallbacks, while keeping all assets loading correctly through `<base>` tags.
+
+**Relevant Files:**
+- `nginx.conf` — Nginx rewrite rules mapping clean slugs to filesystem paths
+- `serve_all.py` — FastAPI route handlers that serve clean slugs as fallback
+- `frontend/pages/*.html` — All HTML pages, each with a `<base>` tag for asset resolution
+
+```text
+               [ Browser Address Bar ]
+               /records or /record/jesus-baptism
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |                    nginx.conf (First)                       |
+ |                                                             |
+ |  GET /records  -->  rewrite to /frontend/pages/records.html |
+ |  GET /record/jesus-baptism                                 |
+ |    --> named-capture: rewrite to record.html?slug=jesus-bap |
+ |  GET /frontend/pages/... (old paths) --> 301 to new slug   |
+ |  GET /record.html?slug=... (legacy) --> 301 to /record/... |
+ |  GET /record.html?id=...  (legacy) --> 301 to /record/...  |
+ +-------------------------------------------------------------+
+                      |                    |
+                      v                    v
+          (rewrite hit)            (rewrite miss)
+                |                        |
+                v                        v
+ +---------------------------+  +----------------------------+
+ |  Static file served from  |  | FastAPI route handler     |
+ |  /frontend/pages/...      |  | serve_all.py (fallback)   |
+ |                           |  |                            |
+ |  <base href="/frontend/   |  | @app.get("/records")      |
+ |           pages/">         |  | @app.get("/record/{slug}")|
+ |                           |  | @app.get("/context") ...  |
+ |  All relative CSS/JS/font |  |                            |
+ |  references resolve from  |  | Each returns FileResponse( |
+ |  /frontend/pages/ dir     |  |   "frontend/pages/...")   |
+ +---------------------------+  +----------------------------+
+                                           |
+                                           v
+                              [ Backward Compat 301s ]
+                              Old /frontend/pages/*.html
+                              --> 301 redirect to /clean-slug
+                              (retained for 6 months)
+```
+
+**Key design decisions:**
+- **Path-based records:** URLs like `/record/jesus-baptism` use the slug as a path segment, not a query parameter. The nginx named-capture rule (`^/record/(.+)$`) extracts the slug and passes it as `?slug=` internally so `single_view.js` reads it unchanged from the query string.
+- **`<base>` tag strategy:** Every HTML page has a `<base href="/frontend/pages/">` (or `/frontend/pages/debate/`, `/frontend/pages/maps/`, `/frontend/pages/resources/` for subdirectories) so all relative CSS/JS/font/image references resolve from the original directory regardless of what the browser's address bar shows.
+- **Two-layer fallback:** Nginx rewrites handle the fast path (static file serving). FastAPI route handlers in `serve_all.py` act as a fallback for environments where nginx rewrites aren't available.
+- **Six-month 301 policy:** Old `/frontend/pages/*.html` URLs and legacy query-parameter patterns (`?slug=`, `?id=`) return HTTP 301 redirects to the new clean slugs for six months, then get removed.
 
 ---
 

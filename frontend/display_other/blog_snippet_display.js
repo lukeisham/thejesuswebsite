@@ -2,31 +2,39 @@
 //
 //   THE JESUS WEBSITE — BLOG SNIPPET DISPLAY
 //   File:    frontend/display_other/blog_snippet_display.js
-//   Version: 1.0.0
-//   Purpose: Fetches and renders a small list of latest blog posts.
+//   Version: 1.1.0
+//   Purpose: Renders a small list of latest blog post snippets.
 //   Source:  guide_appearance.md §1.3
 //
 // =============================================================================
 
+// Trigger: DOMContentLoaded -> injectBlogSnippets('latest-blog-content')
+// Function: Injects latest blog post headlines and summaries into the
+//           specified container element.
+// Output: Renders blog snippet list or empty state inside container.
+
 function injectBlogSnippets(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
-    // Placeholder data for now (Static Stage)
-    const blogData = [
-        { title: "The Significance of the Dead Sea Scrolls", date: "2026-03-20", summary: "Reflecting on how the Qumran findings transformed biblical studies." },
-        { title: "Building the Jesus Website: Archival UX", date: "2026-04-05", summary: "Designing for high-density historical data presentation." }
-    ];
+  // Clear any loading placeholder
+  container.innerHTML = "";
 
-    container.innerHTML = blogData.map(item => `
-        <div class="blog-snippet mb-4" style="border-bottom: 1px dotted var(--color-border); padding-bottom: var(--space-2);">
-            <p class="text-xs text-muted font-mono mb-1">${item.date}</p>
-            <h3 class="text-base font-semibold mb-1">${item.title}</h3>
-            <p class="text-sm">${item.summary}</p>
-        </div>
-    `).join('');
+  // Placeholder: Replace with API fetch when public blog endpoint is available.
+  // Expected data shape per item:
+  //   { slug, title, publish_date, summary }
+  //
+  // Once the API is wired, replace this empty state with:
+  //
+  //   fetch('/api/public/blogposts')
+  //     .then(r => r.json())
+  //     .then(posts => { ... render items ... });
+  //
+  // For now, show a clean empty state.
+  container.innerHTML =
+    '<p class="text-sm text-muted">Blog posts coming soon.</p>';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    injectBlogSnippets('latest-blog-content');
+document.addEventListener("DOMContentLoaded", () => {
+  injectBlogSnippets("latest-blog-content");
 });
