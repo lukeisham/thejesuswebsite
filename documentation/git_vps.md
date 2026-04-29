@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "nginx"
+git commit -m "minor fixes 2" 
 git push origin main 
 
 # Pulling from Github to server 

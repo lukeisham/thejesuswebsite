@@ -203,6 +203,11 @@ async def resources_people_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/resources/People.html"))
 
 
+@app.get("/resources/places")
+async def resources_places_page():
+    return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/resources/Places.html"))
+
+
 @app.get("/resources/sermons-and-sayings")
 async def resources_sermons_page():
     return FileResponse(

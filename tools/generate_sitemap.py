@@ -104,6 +104,7 @@ def generate_sitemap():
         ("/resources/ot-verses", "0.6", "monthly"),
         ("/resources/objects", "0.6", "monthly"),
         ("/resources/people", "0.6", "monthly"),
+        ("/resources/places", "0.6", "monthly"),
         ("/resources/sermons-and-sayings", "0.6", "monthly"),
         ("/resources/sites", "0.6", "monthly"),
         ("/resources/sources", "0.6", "monthly"),
