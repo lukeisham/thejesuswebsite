@@ -3,7 +3,6 @@ import sys
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse
@@ -19,7 +18,9 @@ sys.path.append(os.path.join(ROOT_DIR, "admin", "backend"))
 
 # 2. Import the existing Admin API
 # This ensures all your existing API routes are preserved
-from admin.backend.admin_api import app as api_app
+from admin.backend.admin_api import (
+    app as api_app,  # noqa: E402 — sys.path must be set first
+)
 
 # Create a container app (using the existing app as the base)
 app = api_app

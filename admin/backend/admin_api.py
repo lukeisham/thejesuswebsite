@@ -25,12 +25,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from auth_utils import AuthUtils
 
 from backend.middleware.logger_setup import setup_logger
+from backend.middleware.rate_limiter import RateLimiterMiddleware
+from backend.pipelines.image_processor import process_uploaded_png
 
 # Initialize central logging to /logs
 logger = setup_logger(__file__)
-
-from backend.middleware.rate_limiter import RateLimiterMiddleware
-from backend.pipelines.image_processor import process_uploaded_png
 
 app = FastAPI(title="The Jesus Website API - Admin")
 # Instantiate and add rate limiter (allows 30 requests per minute for admin actions)
@@ -360,7 +359,8 @@ async def delete_record_picture(
     admin_data: dict = Depends(verify_token),
 ):
     """
-    Clears picture data (name, bytes, thumbnail) from a record without deleting the record itself.
+    Clears picture data (name, bytes, thumbnail) from a record
+    without deleting the record itself.
     """
     try:
         conn = get_db_connection()

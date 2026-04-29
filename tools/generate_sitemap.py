@@ -8,7 +8,6 @@
 # =============================================================================
 
 import datetime
-import logging
 import os
 import sqlite3
 import sys
@@ -57,7 +56,8 @@ def generate_sitemap():
             # Gracefully handles the case where the column does not yet exist.
             try:
                 cursor.execute(
-                    "SELECT slug, updated_at FROM records WHERE blogposts IS NOT NULL AND blogposts != ''"
+                    "SELECT slug, updated_at FROM records "
+                    "WHERE blogposts IS NOT NULL AND blogposts != ''"
                 )
                 blog_posts = [dict(row) for row in cursor.fetchall()]
             except sqlite3.OperationalError:
@@ -117,12 +117,12 @@ def generate_sitemap():
 
     today = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
     for route, priority, freq in static_routes:
-        xml_content += f"  <url>\n"
+        xml_content += "  <url>\n"
         xml_content += f"    <loc>{BASE_URL}{route}</loc>\n"
         xml_content += f"    <lastmod>{today}</lastmod>\n"
         xml_content += f"    <changefreq>{freq}</changefreq>\n"
         xml_content += f"    <priority>{priority}</priority>\n"
-        xml_content += f"  </url>\n"
+        xml_content += "  </url>\n"
 
     # 2. Record deep-dive pages — path-based slugs (e.g. /record/jesus-baptism)
     #    Nginx rewrites /record/{slug} internally to record.html?slug={slug}
@@ -131,12 +131,12 @@ def generate_sitemap():
         raw_updated = record.get("updated_at")
         last_mod = raw_updated.split("T")[0] if raw_updated else today
 
-        xml_content += f"  <url>\n"
+        xml_content += "  <url>\n"
         xml_content += f"    <loc>{BASE_URL}/record/{slug}</loc>\n"
         xml_content += f"    <lastmod>{last_mod}</lastmod>\n"
-        xml_content += f"    <changefreq>monthly</changefreq>\n"
+        xml_content += "    <changefreq>monthly</changefreq>\n"
         xml_content += f"    <priority>0.7</priority>\n"
-        xml_content += f"  </url>\n"
+        xml_content += "  </url>\n"
 
     # 3. Blog post pages — uses ?id= query param (same convention as /context/essay)
     #    These entries appear in the sitemap as soon as the blogposts column
@@ -146,12 +146,12 @@ def generate_sitemap():
         raw_updated = post.get("updated_at")
         last_mod = raw_updated.split("T")[0] if raw_updated else today
 
-        xml_content += f"  <url>\n"
+        xml_content += "  <url>\n"
         xml_content += f"    <loc>{BASE_URL}/blog/post?id={slug}</loc>\n"
         xml_content += f"    <lastmod>{last_mod}</lastmod>\n"
-        xml_content += f"    <changefreq>monthly</changefreq>\n"
-        xml_content += f"    <priority>0.6</priority>\n"
-        xml_content += f"  </url>\n"
+        xml_content += "    <changefreq>monthly</changefreq>\n"
+        xml_content += "    <priority>0.6</priority>\n"
+        xml_content += "  </url>\n"
 
     xml_content += "</urlset>\n"
 

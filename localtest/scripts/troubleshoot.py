@@ -5,7 +5,6 @@
 #   Purpose: Automated health check for the local unified server.
 # =============================================================================
 
-import os
 import socket
 import sys
 
