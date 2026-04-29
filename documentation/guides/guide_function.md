@@ -1109,8 +1109,6 @@ This document provides visual ASCII representations detailing how data physicall
 - Tab switching uses event delegation (`document.getElementById("ranks-responses-tab-bar").addEventListener("click", ...)`) — no inline `onclick` handlers
 - Pane visibility toggled via the `.is-hidden` CSS class (all panes hidden first, then selected pane shown)
 
----
-
 
 ### 7.2 Agent Logic & Instructional Prompts
 **Purpose:** Documents how AI agents are guided via configuration files and instructional prompts to interact correctly with the codebase.

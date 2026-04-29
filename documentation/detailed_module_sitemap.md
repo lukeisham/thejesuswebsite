@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 1.3.0
+version: 1.4.0
 purpose: visual and list taxonomy of codebase
 dependencies: [site_map.md]
 ---
@@ -324,6 +324,16 @@ css/design_layouts/views/
 
 css/elements/
 └── markdown_editor.css        <-- Specific styles for the admin WYSIWYG text editors
+
+
+**§7.1.2 Dashboard Shell Layout**
+- **Purpose:** The shared editor layout shell inherited by every dashboard editor module — the Providence 3-column grid with section tab bar. Defined in `guide_dashboard_appearance.md` under **[Layout Convention — Providence 3-Column Pattern (Dashboard Shell)]**.
+- **Files:**
+  - `admin/frontend/render_tab_bar.js` — Shared tab bar renderer (`window.renderTabBar()`)
+  - `css/design_layouts/views/dashboard_admin.css` — `.providence-editor-grid` grid classes and column rules
+  - `css/design_layouts/views/dashboard_admin.css` — `.blog-editor-grid` backward-compatible alias
+- **Every editor module** in `admin/frontend/edit_modules/` applies `.providence-editor-grid` or `.blog-editor-grid` to inherit this shell.
+- **Related docs:** `guide_dashboard_appearance.md` (Layout Convention section — Dashboard Shell), `guide_style.md §18.1`
 ```
 
 ### 7.2 Agent Logic & Instructional Prompts

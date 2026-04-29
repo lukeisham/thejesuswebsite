@@ -15,11 +15,13 @@ Each section includes a **DB Fields** block listing the exact column names from 
 
 ---
 
-## Layout Convention — Providence 3-Column Pattern
+## Layout Convention — Providence 3-Column Pattern (Dashboard Shell)
+
+**Purpose:** Defines the editor layout shell inherited by every dashboard editor module. This is the shared architectural frame — a 3-column Providence-style grid with a section tab bar — that all editor modules render inside. Each editor module applies `.providence-editor-grid` to inherit this shell. The shell provides structure; each module fills it with fields, controls, and data.
 
 All dashboard wireframes in this document follow the **CollectiveAccess Providence** layout convention: a form-heavy, cataloguer-first aesthetic inspired by the open-source museum backend used by the Getty, SFMOMA, and university archives. The design is light, restrained, and built for editors working across many fields per object.
 
-Every screen is structured as follows:
+The shell layout is as follows:
 
 ```
 +------------------------------------------------------------------+
@@ -44,20 +46,8 @@ Every screen is structured as follows:
 > **CSS implementation:** The grid pattern above is implemented as the `.providence-editor-grid` CSS class in `dashboard_admin.css`. Editor modules that want the 3-column layout apply this class to their container, with child columns using `.providence-editor-col-actions`, `.providence-editor-col-list`, and `.providence-editor-col-editor`. The Blog Editor (see §6.2) uses `.blog-editor-grid` as a backward-compatible alias.
 >
 > **Tab bar rendering:** The top-level section tab bar shown in every wireframe is rendered by `render_tab_bar.js` (`admin/frontend/render_tab_bar.js`), which exposes `window.renderTabBar(containerId, tabs, activeName)` as a shared utility. Each editor module calls this function after loading its data, passing the section tabs relevant to its module. The Blog Editor was the first adopter and still calls `renderTabBar` directly; all other editors adopted this pattern during the T1–T18 refactor.
-
----
-
-## Verification Note (T19 Audit)
-
-All wireframes in this document have been verified against the actual code implementation following Tasks T1–T18 of the `dashboard_editor_UI_overhaul.md` plan. Key alignment points:
-
-- **Providence 3-column grid** (`.providence-editor-grid`) is applied to every editor module across §2.1–§6.2, with `window.renderTabBar()` providing consistent top-level section tab bars.
-- **Column assignments** match the documented purpose: COL 1 for action buttons and section-specific controls; COL 2 for secondary metadata, field docs, or reserved space; COL 3 for the primary data entry surface.
-- **Sub-tab systems** (Context Essay / Historiography, Academic / Popular Challenges, News Snippet / News Sources) remain managed by `dashboard_app.js` and are not duplicated in editor modules.
-- **No inline styles** remain in any editor module modified during the overhaul.
-- **Child modules** (`edit_picture.js`, `edit_links.js`) continue to inject into their designated containers unchanged.
-
-One minor divergence was corrected during this audit: the §2.1 Records List wireframe omitted COL 2, which the implementation provides. See the footnote below for details.
+>
+> **Child modules bypass the grid:** `edit_picture.js` and `edit_links.js` do not apply `.providence-editor-grid`. Instead, they inject their content directly into designated containers within `edit_record.js`'s existing grid columns. These are not standalone editors — they are sub-components of the single-record layout (§2.2).
 
 ---
 
@@ -795,3 +785,4 @@ System-managed fields (never manually edited in any dashboard section):
 | [ Return to Site ]     |                                    |                                |
 +----------------------------------------------------------------------------------------------+
 ```
+
