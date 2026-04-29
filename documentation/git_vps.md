@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "More work on module 2"
+git commit -m "rate limiter fix"
 git push origin main 
 
 # Pulling from Github to server 
