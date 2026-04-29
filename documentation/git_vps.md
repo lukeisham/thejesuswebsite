@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "rate limiter fix"
+git commit -m "big documentation update"
 git push origin main 
 
 # Pulling from Github to server 

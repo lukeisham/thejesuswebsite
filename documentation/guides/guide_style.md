@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.1.1
+version: 1.2.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography_colors.css]
 ---
 
@@ -140,6 +140,41 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Constraints** | Overflow | No horizontal scrolling except Timeline. |
 
 ## 18. Dashboard & Editor Aesthetics
+
+### 18.1 Layout Convention — Providence 3-Column Pattern
+
+All dashboard screens follow the **CollectiveAccess Providence** layout convention: a form-heavy, cataloguer-first aesthetic built for editors working across many fields per object. The design is light, restrained, and data-dense.
+
+```
++------------------------------------------------------------------+
+| [ Tab: Section A ] [ Tab: Section B (active) ] [ Tab: Section C ]|  ← TOP BAR
+|------------------------------------------------------------------|
+| COL 1 (narrow)    | COL 2 (medium, optional) | COL 3 (widest)   |
+|                   |                          |                   |
+| Section-specific  | Sub-fields, secondary    | Data being edited |
+| buttons & fields  | controls, metadata       | or viewed         |
+| unique to this    | inputs tied to the       | (editor canvas,   |
+| active tab        | active record/item       |  list, or form)   |
+|                   |                          |                   |
++------------------------------------------------------------------+
+```
+
+**Column rules:**
+- **Top bar** — tabs navigate between major sections of the module; the active tab is marked `[Active]`
+- **Column 1** — action buttons (Save, Discard, Delete) and the primary field or control unique to this section
+- **Column 2** — optional; used when a section has sub-fields, secondary metadata, or a filter/search control that warrants separation from the canvas
+- **Column 3** — always the widest; contains the main data entry surface (form fields, tables, tree views, editors, or live previews)
+
+### 18.2 Field Ownership Map Convention
+
+Each dashboard section documents which editor file owns each database column via a **Field Ownership Map** table. The map uses `§N.M` notation to cross-reference the editor file (e.g., `§2.2 edit_record.js`, `§4.1 edit_wiki_weights.js`). Fields referencing `§2.5` are handled by the Bulk Upload CSV editor, and `§4.3` references belong to the Insert Responses editors — these omit heading numbers in the document because they are sub-features of existing sub-modules rather than distinct sitemap entries.
+
+### 18.3 Sub-Section Numbering Convention
+
+Dashboard sub-sections follow a strict convention: numbered headings (`### 2.1`, `### 4.2`, etc.) are reserved for editors that correspond to a named sub-module in the sitemap. Un-numbered headings (`### Backend for ...`) denote sub-features of those sub-modules. This distinguishes sitemap-aligned components from auxiliary tooling.
+
+### 18.4 Component Token Reference
+
 | Component | Visual Description | CSS Variable |
 | :--- | :--- | :--- |
 | **Admin Shell** | Dark mode; Gold accents. | `--color-dash-accent` |
@@ -157,3 +192,4 @@ To maintain the Technical Blueprint aesthetic, all new elements must pass:
 6.  **Depth Integrity:** Is `var(--shadow-sm)` used for floating nodes?
 7.  **Dashboard Contrast:** Does the admin portal use `var(--color-dash-accent)`?
 8.  **Status Feedback:** Are success states using `var(--color-status-success)`?
+9.  **Sub-Section Integrity:** Are dashboard sub-section headings numbered only when they correspond to a named sitemap sub-module? (Un-numbered for sub-features.)

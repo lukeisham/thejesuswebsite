@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 1.1.7
+version: 1.2.0
 purpose: visual and list taxonomy of codebase
 dependencies: [site_map.md]
 ---
@@ -49,7 +49,7 @@ The purpose of this codebase is to build an archival style website organising an
 **Scope:** Global Grid, Typography, Colors, Shared UI (Sidebar, Header, Footer).
 **Functionality:** Establishes the visual identity and structural grid for the entire site, ensuring consistent UI components and responsive design across all pages. This architectural base provides the universal navigation framework that allows users to move seamlessly between sections while maintaining a cohesive aesthetic experience.
 
-**Files to create Structure:**
+**Files:**
 ```text
 index.html                     <-- Website Landing Page (Root Entry)
 robots.txt                     <-- Manual for well-behaved bots
@@ -60,12 +60,11 @@ frontend/pages/
 ├── about.html                 <-- About page
 ├── context.html               <-- Internal Landing Page (Context)
 ├── debate.html                <-- Internal Landing Page (Debate)
-├── resources.html             <-- Internal Landing Page (Resources)
-└── news_and_blog.html         <-- Internal Landing Page: News Feed
+└── resources.html             <-- Internal Landing Page (Resources)
 
 frontend/display_other/
-├── sidebar.js                 <-- Universal Sticky Sidebar (Module 1.5). Provides functional
-│                                   entry point to the Admin Portal (Module 6.1). See 
+├── sidebar.js                 <-- Universal Sticky Sidebar (Module 1.4). Provides functional
+│                                   entry point to the Admin Portal (Module 7.1). See 
 │                                   guide_appearance.md §1.5.1.
 ├── footer.js                  <-- Universal Footer
 ├── header.js                  <-- Universal Header (+ SEO injected)
@@ -93,7 +92,7 @@ css/
 **Scope:** SQLite Schema & Python Pipelines, Single record deep-dive views, Full list view, Searching & Filtering.
 **Functionality:** Manages the core data life-cycle, including database schema definition, Python-based ingestion pipelines, and dynamic frontend rendering of individual records and aggregate lists. The module leverages a client-side SQLite engine to deliver fast, interactive data exploration and robust filtering capabilities directly within the browser.
 
-**Files to create Structure:**
+**Files:**
 ```text
 database/
 ├── database.sql                           <-- The blueprint schema
@@ -150,7 +149,7 @@ admin/frontend/edit_modules/
 ├── edit_picture.js        <-- Sub-module for PNG upload and resizing
 ├── edit_lists.js          <-- Editor for resources lists
 ├── edit_links.js          <-- Unified form for Internal/External/Context links
-└── edit_bulk_upload.js    <-- UI for bulk uploading CSV files to create records
+└── edit_bulk_upload.js    <-- UI for bulk uploading CSV files to create records                [§2.5]
 ```
 
 ---
@@ -163,7 +162,7 @@ admin/frontend/edit_modules/
 - **Multi-layered vector-based geographic maps** for spatial context.
 These systems leverage dynamic rendering to transform relational database records into engaging narratives—populating interactive metadata panels with the title, date, category, and primary verse for every historical node.
 
-**Files to create Structure:**
+**Files:**
 ```text
 frontend/pages/
 ├── maps.html                  <-- Visual Interactive Map Display
@@ -194,96 +193,114 @@ admin/frontend/edit_modules/
 ---
 
 ## 4.0 Ranked Lists Module
-**Scope:** Ranked Wikipedia article lists, Ranked historical challenges.
-**Functionality:** Processes and ranks external data (Wikipedia) and long-form internal responses (managed via the **Essays Module**) to provide curated, high-value entry points into historical debates. It utilizes **discrete sets of weighting multipliers for Wikipedia, academic debates, and popular queries**, allowing administrators to fine-tune rankings via specialized backend pipelines and management tools to ensure the most relevant evidence is prioritized.
+**Scope:** Ranked Wikipedia article lists (§4.1), Ranked historical challenge lists (§4.2).
+**Functionality:** Processes and ranks external data (Wikipedia) and historical challenge queries via separate sub-modules, providing curated, high-value entry points into historical debates. It utilizes **discrete sets of weighting multipliers for Wikipedia, academic debates, and popular queries**, allowing administrators to fine-tune rankings via specialized backend pipelines and management tools to ensure the most relevant evidence is prioritized. Challenge views embed a linked response record directly into the ranked list.
 
-**Files to create Structure:**
+**Files:**
 ```text
 backend/pipelines/
-├── pipeline_wikipedia.py              <-- Fetches, ranks, inserts Wikipedia reference data
-├── pipeline_popular_challenges.py     <-- Finds, analyzes and ranks popular public queries
-└── pipeline_academic_challenges.py    <-- Finds, analyzes and ranks academic historical debates
+├── pipeline_wikipedia.py              <-- Fetches, ranks, inserts Wikipedia reference data  [§4.1]
+├── pipeline_popular_challenges.py     <-- Finds, analyzes and ranks popular public queries   [§4.2]
+└── pipeline_academic_challenges.py    <-- Finds, analyzes and ranks academic historical debates [§4.2]
 
 frontend/pages/debate/
-├── wikipedia.html         <-- Ranked Wikipedia view
-├── popular_challenge.html <-- Ranked View with Response Inserted
-└── academic_challenge.html<-- Ranked View with Response Inserted
+├── wikipedia.html         <-- Ranked Wikipedia view                                          [§4.1]
+├── popular_challenge.html <-- Ranked Challenge View with Response Inserted                   [§4.2]
+└── academic_challenge.html<-- Ranked Challenge View with Response Inserted                   [§4.2]
 
 frontend/display_big/
-├── list_view_wikipedia.js     <-- Renders row-based ranked wikipedia links
-├── list_view_popular_challenges.js <-- Renders ranked popular challenges
-├── list_view_academic_challenges.js <-- Renders ranked academic challenges
-├── list_view_popular_challenges_with_response.js <-- Popular challenges with response 
-└── list_view_academic_challenges_with_response.js <-- Academic challenges with response 
+├── list_view_wikipedia.js                       <-- Renders row-based ranked wikipedia links [§4.1]
+├── list_view_popular_challenges.js              <-- Renders ranked popular challenges        [§4.2]
+├── list_view_academic_challenges.js             <-- Renders ranked academic challenges       [§4.2]
+├── list_view_popular_challenges_with_response.js  <-- Popular challenges with response      [§4.2]
+└── list_view_academic_challenges_with_response.js <-- Academic challenges with response     [§4.2]
 
 admin/frontend/edit_modules/
-├── edit_rank.js           <-- Form to manually override automated rankings
-├── edit_wiki_weights.js   <-- Admin tool for editing wikipedia ranking multipliers
-├── edit_academic_weights.js <-- Admin tool for editing academic ranking multipliers
-├── edit_popular_weights.js <-- Admin tool for editing popular ranking multipliers
-├── edit_insert_response_academic.js <-- (cross-ref from Module 5.0) Loaded & wired by dashboard router for `ranks-responses`
-└── edit_insert_response_popular.js  <-- (cross-ref from Module 5.0) Loaded & wired by dashboard router for `ranks-responses`
+├── edit_rank.js             <-- Form to manually override automated rankings
+├── edit_wiki_weights.js     <-- Admin tool for editing wikipedia ranking multipliers          [§4.1]
+├── edit_academic_weights.js <-- Admin tool for editing academic ranking multipliers           [§4.2]
+├── edit_popular_weights.js  <-- Admin tool for editing popular ranking multipliers            [§4.2]
+├── edit_insert_response_academic.js <-- (cross-ref from Module 5.0 Essays & Responses) Loaded & wired by dashboard router for `ranks-responses` [§4.2]
+└── edit_insert_response_popular.js  <-- (cross-ref from Module 5.0 Essays & Responses) Loaded & wired by dashboard router for `ranks-responses` [§4.2]
 ```
 
 > **Note:** `edit_lists.js` (from Module 2.0 Records) is also loaded by `admin.html` and wired under the `lists-resources` router branch for the "Edit Resources" sidebar link under Lists & Ranks.
 
 ---
 
-## 5.0 Essays Module
-**Scope:** Context-Essay (Thematic context), Historiography, Blog/News, Responses.
-**Functionality:** Handles long-form editorial content and academic responses, featuring specialized typography, citation rendering (MLA), and blog/news snippet generation. The module includes **dedicated admin tools to dynamically insert scholarly responses directly into ranked challenge list views**, while also managing a sophisticated bibliography system that automatically formats sources to ensure all historical analysis remains academically grounded.
+## 5.0 Essays & Responses Module
+**Scope:** Context-Essays & Historiography (§5.1), Challenge Responses (§5.2).
+**Functionality:** Handles long-form editorial content as two distinct sub-modules. §5.1 covers thematic context essays and the historiography essay, with specialized typography and MLA citation rendering. §5.2 covers scholarly challenge responses, which are linked to ranked challenge lists via §4.3 Insert Responses. Both sub-modules use a split-pane markdown editor and share a bibliography system that automatically formats sources.
 
-**Files to create Structure:**
+**Files:**
+```text
+frontend/pages/
+└── context_essay.html         <-- Context essay single essay view                [§5.1]
+
+frontend/pages/debate/
+├── historiography.html    <-- Historiography essay                                [§5.1]
+└── response.html          <-- Challenge response single view                      [§5.2]
+
+frontend/display_big/
+├── view_context_essays.js     <-- Renders context essays                          [§5.1]
+├── view_historiography.js     <-- Renders historiography essay                    [§5.1]
+├── response_display.js        <-- Renders challenge responses                     [§5.2]
+└── list_view_responses.js     <-- Renders inserted list items (used for responses)[§5.2]
+
+frontend/display_other/
+├── sources_biblio_display.js  <-- Renders formatted MLA bibliography citations    [§5.1/§5.2]
+└── mla_snippet_display.js     <-- Renders inline MLA citations                   [§5.1/§5.2]
+
+css/design_layouts/views/
+├── essay_layout.css       <-- Specific typography for long-form essays            [§5.1]
+└── response_layout.css    <-- Specific layouts for debate & responses             [§5.2]
+
+admin/frontend/edit_modules/
+├── edit_historiography.js           <-- Editor for historiography essay           [§5.1]
+├── edit_essay.js                    <-- Editor for contextual essays              [§5.1]
+├── edit_mla_sources.js              <-- Admin tool for editing MLA sources        [§5.1]
+├── edit_response.js                 <-- Editor for challenge responses            [§5.2]
+├── edit_insert_response_academic.js <-- (cross-ref §4.3) Inserts responses into academic lists [§5.2]
+└── edit_insert_response_popular.js  <-- (cross-ref §4.3) Inserts responses into popular lists  [§5.2]
+```
+
+---
+
+## 6.0 News & Blog Module
+**Scope:** News Feed, Blog Feed, Combined Landing Page.
+**Functionality:** Manages all news and blog content, from automated ingestion pipelines through to public-facing feed pages. A combined landing page surfaces the latest snippets from both feeds and directs users to the dedicated full-feed pages. Admin tools cover the full CRUD lifecycle for blog posts, news snippets, and named news sources.
+
+**Files:**
 ```text
 backend/pipelines/
 └── pipeline_news.py                   <-- Crawls, ranks, inserts timeline news events
 
 frontend/pages/
-├── context_essay.html         <-- Context essay single essay view
-├── news.html                  <-- Blog or News Feed Pages (News)
-└── blog.html                  <-- Blog or News Feed Pages (Blog)
-
-frontend/pages/debate/
-├── historiography.html    <-- Historiography essay
-└── response.html          <-- Challenge response single view
+├── news_and_blog.html         <-- Combined News & Blog landing page (§6.1)
+├── news.html                  <-- Full News feed page (§6.2)
+└── blog.html                  <-- Full Blog feed page (§6.3)
 
 frontend/display_big/
-├── list_blogpost.js           <-- Renders blogposts aka 'blog feed'
 ├── list_newsitem.js           <-- Renders news items aka 'news feed'
-├── view_context_essays.js     <-- Renders context essays
-├── view_historiography.js     <-- Renders historiography essay
-├── response_display.js        <-- Renders challenge responses
-└── list_view_responses.js     <-- Renders inserted list items (used for responses)
+└── list_blogpost.js           <-- Renders blogposts aka 'blog feed'
 
 frontend/display_other/
-├── sources_biblio_display.js  <-- Renders formatted MLA bibliography citations
-├── mla_snippet_display.js     <-- Renders inline MLA citations
-├── news_snippet_display.js    <-- Renders inline news snippets
-└── blog_snippet_display.js    <-- Renders inline blog snippets
-
-css/design_layouts/views/
-├── essay_layout.css       <-- Specific typography for long-form essays
-└── response_layout.css    <-- Specific layouts for debate & responses
+├── news_snippet_display.js    <-- Renders inline news snippets (landing page)
+└── blog_snippet_display.js    <-- Renders inline blog snippets (landing page)
 
 admin/frontend/edit_modules/
-├── edit_historiography.js <-- Editor for historiography essay
-├── edit_essay.js          <-- Editor for contextual essays
-├── edit_response.js       <-- Editor for challenge responses
-├── edit_insert_response_academic.js <-- Editor for inserting responses into academic lists
-├── edit_insert_response_popular.js <-- Editor for inserting responses into popular lists
-├── edit_blogpost.js       <-- Editor for blog posts
 ├── edit_news_snippet.js   <-- Editor for news snippets
-├── edit_mla_sources.js    <-- Admin tool for editing MLA sources 
-└── edit_news_sources.js   <-- Admin tool for editing news sources
+├── edit_news_sources.js   <-- Admin tool for editing news sources
+└── edit_blogpost.js       <-- Editor for blog posts
 ```
 
 ---
 
-## 6.0 System Module
-**Scope:** Intial setup, Agent instructions (`.agent`), backend API management, and VPS deployment.
+## 7.0 System Module
+**Scope:** Initial setup, Agent instructions (`.agent`), backend API management, and VPS deployment.
 **Functionality:** Defines the operational backbone of the site, including AI-agent workflows, secure backend API management, and production deployment automation. It serves as the **primary active security layer**, implementing robust session handling, authentication, and rate limiting to protect the application's data and admin interfaces.
 
-### 6.1 Admin Portal (Sub-Module)
+### 7.1 Admin Portal (Sub-Module)
 **Functionality:** Secure administrative interface for managing the website's content. Features a JWT-over-Cookie authentication system and a modular dashboard for CRUD operations.
 
 **Files:**
@@ -307,74 +324,109 @@ css/elements/
 └── markdown_editor.css        <-- Specific styles for the admin WYSIWYG text editors
 ```
 
-### 6.2 System Core & DevOps
-**Functionality:** Core configuration, deployment scripts, and external API interfaces.
+### 7.2 Agent Logic & Instructional Prompts
+**Functionality:** Stores AI-agent configuration, workflows, and targeted guidance for LLM crawlers to ensure correct interpretation and response behavior.
 
 **Files:**
 ```text
-/                      <-- Root Directory
-├── .agent/            <-- Agent instructions & workflows
-├── .gitignore         <-- Ensures secrets (like .env) aren't committed to GitHub
-├── LICENCE            <-- Open Use Licencing with attribution requirement
-├── requirements.txt   <-- Python dependencies (FastAPI, JWT, etc)
-├── mcp_server.py      <-- Exposes read-only API to external agents
-├── nginx.conf         <-- Global Web server and SSL/Proxy config
-├── .env               <-- Global Admin, ESV and Deepseek credentials
-├── backend/middleware/
-│   └── rate_limiter.py    <-- DDoS protection for API endpoints
-└── README.md          <-- Project overview
+.agent/                  <-- Agent instructions & workflows
 
-assets/            <-- Raw source images, fonts, and icons
-├── ai-instructions.txt    <-- Specialized guidance for LLM crawlers
-├── favicon.png            <-- Website favicon (Aleph & Omega design)
-├── *.png                  <-- Raw source images, portraits, and environment shots
+assets/
+└── ai-instructions.txt  <-- Specialized guidance for LLM crawlers
 
-deployment/        <-- VPS Configuration Files
-├── deploy.sh      <-- Pull from GitHub and restart services
-├── ssl_renew.sh   <-- Automates SSL certificate renewal
-├── admin.service  <-- Systemd config for Admin API (Auto-restart)
-└── mcp.service    <-- Systemd config for MCP Server (Auto-restart)
+README.md                <-- Project overview
+```
+
+### 7.3 Backend API, MCP Server & VPS Config
+**Functionality:** Core configuration, read-only external API, Python dependencies, web server setup, and production deployment automation.
+
+**Files:**
+```text
+mcp_server.py            <-- Exposes read-only API to external agents
+requirements.txt         <-- Python dependencies (FastAPI, JWT, etc)
+nginx.conf               <-- Global Web server and SSL/Proxy config
+.gitignore               <-- Ensures secrets (like .env) aren't committed to GitHub
+LICENCE                  <-- Open Use Licencing with attribution requirement
+
+assets/
+├── favicon.png          <-- Website favicon (Aleph & Omega design)
+└── *.png                <-- Raw source images, portraits, and environment shots
+
+deployment/
+├── deploy.sh            <-- Pull from GitHub and restart services
+├── ssl_renew.sh         <-- Automates SSL certificate renewal
+├── admin.service        <-- Systemd config for Admin API (Auto-restart)
+└── mcp.service          <-- Systemd config for MCP Server (Auto-restart)
 
 css/design_layouts/
-└── pdf_export.css             <-- Print media queries for exporting essays and data cleanly
+└── pdf_export.css       <-- Print media queries for exporting essays and data cleanly
+```
+
+### 7.4 Security Protocols & JWT Management
+**Functionality:** Manages credentials, secrets, and security mechanisms including environment variables, rate limiting, and authentication protocols to protect application data and admin interfaces.
+
+**Files:**
+```text
+.env                     <-- Global Admin, ESV and Deepseek credentials
+
+backend/middleware/
+└── rate_limiter.py      <-- DDoS protection for API endpoints
+
+documentation/guides/
+└── guide_security.md    <-- Security protocols and auth mechanism overview
 ```
 
 ---
 
-## 7.0 Setup & Testing Module 
+## 8.0 Setup & Testing Module
 **Scope:** Browser tests, data seeders, local performance audits, Documentation.
 **Functionality:** Supports the development lifecycle through automated testing, database seeding, and the maintenance of comprehensive architectural documentation. It **complements system security through passive auditing**, performing regular vulnerability scans and performance benchmarks to ensure the long-term health and stability of the platform.
 
-**Files to create Structure:**
+### 8.1 Local Environment Initialization
+**Functionality:** Provides scripts and seed data for setting up the local development environment, including database initialization and pipeline orchestration.
+
+**Files:**
 ```text
-build.py               <-- Root script to trigger backend pipelines
+build.py                   <-- Root script to trigger backend pipelines
 tools/
-├── db_seeder.py       <-- Logic to populate the SQLite database
-├── seed_data.sql      <-- Initial data payload for first build
-├── minify_admin.py    <-- Automates admin code obfuscation
-├── generate_sitemap.py <-- Dynamic XML sitemap builder
-└── test_records.sql   <-- Small sample dataset for test runs
-logs/                  <-- Storage for pipeline and API error logs
+├── db_seeder.py           <-- Logic to populate the SQLite database
+├── seed_data.sql          <-- Initial data payload for first build
+├── minify_admin.py        <-- Automates admin code obfuscation
+├── generate_sitemap.py    <-- Dynamic XML sitemap builder
+└── test_records.sql       <-- Small sample dataset for test runs
+logs/                      <-- Storage for pipeline and API error logs
+```
 
+### 8.2 Core Unit & Integration Testing
+**Functionality:** Automated test suites, security audits, and AI-readability verification to ensure system reliability and correctness.
+
+**Files:**
+```text
 tests/
-├── port_test.py           <-- Verifies all local ports are responding
-├── security_audit.py      <-- Runs automated vulnerability scans
-├── agent_readability_test.py <-- Simulates AI "headless" crawl
-├── browser_test_skill.md  <-- Instructions for Agents to run browser tests
-└── reports/               <-- Output directory for UI/UX audit logs
+├── port_test.py               <-- Verifies all local ports are responding
+├── security_audit.py          <-- Runs automated vulnerability scans
+├── agent_readability_test.py  <-- Simulates AI "headless" crawl
+├── browser_test_skill.md      <-- Instructions for Agents to run browser tests
+└── reports/                   <-- Output directory for UI/UX audit logs
+```
 
+### 8.3 Architectural Documentation & Guides
+**Functionality:** Comprehensive documentation covering architecture, style guides, data schemas, and operational procedures for developers and AI agents.
+
+**Files:**
+```text
 documentation/
-├── implementation_plan.md         <-- Implementation Plan 
-├── module_sitemap.md              <-- Architectural blueprints and logic flows (This File)
-├── vibe_coding_rules.md           <-- foundational coding philosophies and aesthetic mandates
-├── style_guide.md                 <-- UI / UX visual design guide
-├── data_schema.md                 <-- Core SQLite database blueprint 'source of truth'
+├── implementation_plan.md             <-- Implementation Plan
+├── module_sitemap.md                  <-- Architectural blueprints and logic flows (This File)
+├── vibe_coding_rules.md               <-- Foundational coding philosophies and aesthetic mandates
+├── style_guide.md                     <-- UI / UX visual design guide
+├── data_schema.md                     <-- Core SQLite database blueprint 'source of truth'
 └── guides/
-    ├── guide_appearance.md         <-- ASCI diagram of page appearance
+    ├── guide_appearance.md            <-- ASCI diagram of page appearance
     ├── guide_dashboard_appearance.md  <-- ASCI diagram of dashboard page appearance
-    ├── guide_donations.md          <-- Reference for external support integrations
-    ├── guide_function.md           <-- Detailed explanation of system logic flows
-    ├── guide_security.md           <-- Security protocols and auth mechanism overview
-    ├── guide_style.md              <-- UI / UX visual design guide (style_guide.md)
-    └── guide_welcoming_robots.md   <-- SEO and AI accessibility standards
+    ├── guide_donations.md             <-- Reference for external support integrations
+    ├── guide_function.md              <-- Detailed explanation of system logic flows
+    ├── guide_security.md              <-- Security protocols and auth mechanism overview
+    ├── guide_style.md                 <-- UI / UX visual design guide (style_guide.md)
+    └── guide_welcoming_robots.md      <-- SEO and AI accessibility standards
 ```

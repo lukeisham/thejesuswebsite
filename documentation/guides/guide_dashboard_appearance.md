@@ -1,7 +1,7 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components and database fields (source of truth)
-version: 1.3.0
+version: 1.4.0
 dependencies: [guide_appearance.md, detailed_module_sitemap.md, data_schema.md]
 ---
 
@@ -12,6 +12,34 @@ This document maintains visual ASCII blueprints for the secure Admin Portal (`ad
 The tools below represent the **backend editing interfaces** for the front-end layouts defined in `guide_appearance.md`.
 
 Each section includes a **DB Fields** block listing the exact column names from `data_schema.md` that are read or written by that dashboard view. This is the authoritative reference for which part of the `records` table each editor owns.
+
+---
+
+## Layout Convention — Providence 3-Column Pattern
+
+All dashboard wireframes in this document follow the **CollectiveAccess Providence** layout convention: a form-heavy, cataloguer-first aesthetic inspired by the open-source museum backend used by the Getty, SFMOMA, and university archives. The design is light, restrained, and built for editors working across many fields per object.
+
+Every screen is structured as follows:
+
+```
++------------------------------------------------------------------+
+| [ Tab: Section A ] [ Tab: Section B (active) ] [ Tab: Section C ]|  ← TOP BAR
+|------------------------------------------------------------------|
+| COL 1 (narrow)    | COL 2 (medium, optional) | COL 3 (widest)   |
+|                   |                          |                   |
+| Section-specific  | Sub-fields, secondary    | Data being edited |
+| buttons & fields  | controls, metadata       | or viewed         |
+| unique to this    | inputs tied to the       | (editor canvas,   |
+| active tab        | active record/item       |  list, or form)   |
+|                   |                          |                   |
++------------------------------------------------------------------+
+```
+
+**Column rules:**
+- **Top bar** — tabs navigate between major sections of the module; the active tab is marked `[Active]`
+- **Column 1** — action buttons (Save, Discard, Delete) and the primary field or control unique to this section
+- **Column 2** — optional; used when a section has sub-fields, secondary metadata, or a filter/search control that warrants separation from the canvas
+- **Column 3** — always the widest; contains the main data entry surface (form fields, tables, tree views, editors, or live previews)
 
 ---
 
@@ -54,18 +82,18 @@ Quick-reference index showing which dashboard section owns each `records` column
 | `wikipedia_rank` | INTEGER | §4.1 edit_wiki_weights.js |
 | `wikipedia_title` | TEXT | §4.1 edit_wiki_weights.js |
 | `wikipedia_weight` | TEXT (Label-Value) | §4.1 edit_wiki_weights.js |
-| `popular_challenge_link` | TEXT (JSON Blob) | §4.1 edit_popular_weights.js |
-| `popular_challenge_title` | TEXT | §4.1 edit_popular_weights.js |
-| `popular_challenge_rank` | INTEGER | §4.1 edit_popular_weights.js |
-| `popular_challenge_weight` | TEXT (Label-Value) | §4.1 edit_popular_weights.js |
-| `academic_challenge_link` | TEXT (JSON Blob) | §4.1 edit_academic_weights.js |
-| `academic_challenge_title` | TEXT | §4.1 edit_academic_weights.js |
-| `academic_challenge_rank` | INTEGER | §4.1 edit_academic_weights.js |
-| `academic_challenge_weight` | TEXT (Label-Value) | §4.1 edit_academic_weights.js |
-| `responses` | TEXT (JSON Blob) | §4.2 edit_insert_response_*.js + §5.1 edit_response.js |
-| `blogposts` | TEXT (JSON Blob) | §5.3 edit_blogpost.js |
-| `news_sources` | TEXT (Label-Value) | §5.3 edit_news_sources.js |
-| `news_items` | TEXT (JSON Blob) | §5.3 edit_news_snippet.js |
+| `popular_challenge_link` | TEXT (JSON Blob) | §4.2 edit_popular_weights.js |
+| `popular_challenge_title` | TEXT | §4.2 edit_popular_weights.js |
+| `popular_challenge_rank` | INTEGER | §4.2 edit_popular_weights.js |
+| `popular_challenge_weight` | TEXT (Label-Value) | §4.2 edit_popular_weights.js |
+| `academic_challenge_link` | TEXT (JSON Blob) | §4.2 edit_academic_weights.js |
+| `academic_challenge_title` | TEXT | §4.2 edit_academic_weights.js |
+| `academic_challenge_rank` | INTEGER | §4.2 edit_academic_weights.js |
+| `academic_challenge_weight` | TEXT (Label-Value) | §4.2 edit_academic_weights.js |
+| `responses` | TEXT (JSON Blob) | §4.3 edit_insert_response_*.js + §5.2 edit_response.js |
+| `blogposts` | TEXT (JSON Blob) | §6.2 edit_blogpost.js |
+| `news_sources` | TEXT (Label-Value) | §6.1 edit_news_sources.js |
+| `news_items` | TEXT (JSON Blob) | §6.1 edit_news_snippet.js |
 | `users` | TEXT (JSON Blob) | System-managed (SPA routing — not manually edited) |
 | `page_views` | INTEGER | System-managed (auto-incremented — not manually edited) |
 
@@ -86,28 +114,30 @@ primary_verse     JSON Array  — verse reference column
 *All other columns are fetched only when a record is opened in the editor (§2.2).*
 
 ```text
-+-------------------------------------------------------------------------+
-| [ Dashboard Sidebar ] |  ALL DATABASE RECORDS              [+ New Record]|
-|                       |  [ Search by title or primary_verse...      ]   |
-|-----------------------|-------------------------------------------------|
-|  > Records [Active]   |  READ: title · primary_verse                    |
-|  - View All           |-------------------------------------------------|
-|                       |  title                        primary_verse      |
-|                       |-------------------------------------------------|
-|                       |  Jesus is Baptized            Mark 1:9-11        |
-|                       |                               [Edit]  [Delete]   |
-|                       |-------------------------------------------------|
-|                       |  Crucifixion of Jesus         Matt 27:32-56      |
-|                       |                               [Edit]  [Delete]   |
-|                       |-------------------------------------------------|
-|                       |  Sermon on the Mount          Matt 5:1-7:29      |
-|                       |                               [Edit]  [Delete]   |
-|                       |-------------------------------------------------|
-|                       |  Destruction of the Temple    Mark 13:1-2        |
-|                       |                               [Edit]  [Delete]   |
-|                       |-------------------------------------------------|
-|                       |  [ Load More Records... ]                        |
-+-------------------------------------------------------------------------+
++----------------------------------------------------------------------------------------------+
+| [ Records (Active) ]  [ Lists & Ranks ]  [ Text Content ]  [ Configuration ]                |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 3 — ALL DATABASE RECORDS                                        |
+|                        |                                                                      |
+| [+ New Record]         |  READ: title · primary_verse                                        |
+| [Bulk Upload CSV]      |  [ Search by title or primary_verse...                         ]    |
+|                        |----------------------------------------------------------------------|
+| > View All (Active)    |  title                                       primary_verse           |
+|                        |----------------------------------------------------------------------|
+|                        |  Jesus is Baptized                           Mark 1:9-11             |
+|                        |                                              [Edit]      [Delete]     |
+|                        |----------------------------------------------------------------------|
+|                        |  Crucifixion of Jesus                        Matt 27:32-56           |
+|                        |                                              [Edit]      [Delete]     |
+|                        |----------------------------------------------------------------------|
+|                        |  Sermon on the Mount                         Matt 5:1-7:29           |
+|                        |                                              [Edit]      [Delete]     |
+|                        |----------------------------------------------------------------------|
+|                        |  Destruction of the Temple                   Mark 13:1-2             |
+|                        |                                              [Edit]      [Delete]     |
+|                        |----------------------------------------------------------------------|
+|                        |  [ Load More Records... ]                                            |
++----------------------------------------------------------------------------------------------+
 ```
 
 ---
@@ -172,81 +202,77 @@ context_essays      → §5.1 edit_essay.js
 theological_essays  → §5.1 edit_essay.js
 spiritual_articles  → §5.1 edit_essay.js
 wikipedia_*         → §4.1 edit_wiki_weights.js
-popular_*           → §4.1 edit_popular_weights.js
-academic_*          → §4.1 edit_academic_weights.js
-responses           → §4.2 / §5.1
-blogposts           → §5.3 edit_blogpost.js
-news_sources        → §5.3 edit_news_sources.js
-news_items          → §5.3 edit_news_snippet.js
+popular_*           → §4.2 edit_popular_weights.js
+academic_*          → §4.2 edit_academic_weights.js
+responses           → §4.3 / §5.2
+blogposts           → §6.2 edit_blogpost.js
+news_sources        → §6.1 edit_news_sources.js
+news_items          → §6.1 edit_news_snippet.js
 users               → system-managed
 page_views          → system-managed
 ```
 
 ```text
-+-------------------------------------------------------------------------+
-| [ Dashboard Sidebar ] |  CREATE NEW  /  EDIT RECORD: [slug / id]        |
-|                       |  [Save Changes]  [Discard]  [Delete]  [View Live]|
-|-----------------------|-------------------------------------------------|
-|  > Records            |  ── CORE IDENTIFIERS ──────────────────────────  |
-|  - Create New         |  id:           [auto-generated ULID — read only] |
-|  - Edit [Active]      |  title:        [_______________________________] |
-|                       |  slug:         [_______________________________] |
-|                       |  created_at:   [auto]    updated_at:   [auto]   |
-|                       |-------------------------------------------------|
-|                       |  ── PICTURE  (edit_picture.js) ────────────────  |
-|                       |  picture_name:      [current-filename.png     ]  |
-|                       |  picture_bytes:     [Choose PNG...]  [Upload]    |
-|                       |  picture_thumbnail: [auto-derived on upload   ]  |
-|                       |  Status: [ Ready  /  Uploading...  /  Saved ✓ ] |
-|                       |-------------------------------------------------|
-|                       |  ── TAXONOMY & DIAGRAMS ───────────────────────  |
-|                       |  era:             [Dropdown — 8 values      ▼]  |
-|                       |  timeline:        [Dropdown — 38 values     ▼]  |
-|                       |  map_label:       [Dropdown — 6 values      ▼]  |
-|                       |  gospel_category: [Dropdown — 5 values      ▼]  |
-|                       |  geo_id:          [___________]                  |
-|                       |  parent_id:       [____________________________] |
-|                       |-------------------------------------------------|
-|                       |  ── VERSES ────────────────────────────────────  |
-|                       |  primary_verse: (JSON array)                     |
-|                       |    Book [▼]  Ch [___]  Vs [___]   [+ Add Verse] |
-|                       |    [Matthew · 5 · 1 ×]  [Genesis · 1 · 1 ×]    |
-|                       |  secondary_verse: (JSON array)                   |
-|                       |    Book [▼]  Ch [___]  Vs [___]   [+ Add Verse] |
-|                       |-------------------------------------------------|
-|                       |  ── TEXT CONTENT ──────────────────────────────  |
-|                       |  description: (JSON paragraph array)             |
-|                       |    [¶ Paragraph 1 text...               ] [×]   |
-|                       |    [¶ Paragraph 2 text...               ] [×]   |
-|                       |    [+ Add Paragraph]                             |
-|                       |  snippet: (JSON paragraph array)                 |
-|                       |    [¶ Paragraph 1 text...               ] [×]   |
-|                       |    [+ Add Paragraph]                             |
-|                       |-------------------------------------------------|
-|                       |  ── BIBLIOGRAPHY ──────────────────────────────  |
-|                       |  bibliography → (JSON blob — 6 MLA sub-keys)     |
-|                       |  mla_book:           [textarea               ]   |
-|                       |  mla_book_inline:    [textarea               ]   |
-|                       |  mla_article:        [textarea               ]   |
-|                       |  mla_article_inline: [textarea               ]   |
-|                       |  mla_website:        [textarea               ]   |
-|                       |  mla_website_inline: [textarea               ]   |
-|                       |-------------------------------------------------|
-|                       |  ── RELATIONS & LINKS  (edit_links.js) ────────  |
-|                       |  context_links: (JSON blob)                      |
-|                       |    [Context_Essay_Crucifixion · Context  ×]      |
-|                       |    [External_URL_Josephus    · External  ×]      |
-|                       |    [+ Add Link]                                  |
-|                       |-------------------------------------------------|
-|                       |  ── MISCELLANEOUS ─────────────────────────────  |
-|                       |  metadata_json: [textarea — JSON blob        ]   |
-|                       |  iaa:           [____________________________]   |
-|                       |  pledius:       [____________________________]   |
-|                       |  manuscript:    [____________________________]   |
-|                       |  url:           [textarea — JSON blob        ]   |
-|                       |-------------------------------------------------|
-|                       |  [Save Changes]  [Discard]  [Delete]  [View Live]|
-+-------------------------------------------------------------------------+
++------------------------------------------------------------------------------------------------------------+
+| [ Records (Active) ]  [ Lists & Ranks ]  [ Text Content ]  [ Configuration ]                              |
+|------------------------------------------------------------------------------------------------------------|
+| [ Core ]  [ Picture ]  [ Taxonomy ]  [ Verses ]  [ Text ]  [ Bibliography ]  [ Links ]  [ Misc ] (active) |
+|------------------------------------------------------------------------------------------------------------|
+| COL 1                      | COL 2                          | COL 3 — EDIT RECORD: [slug / id]             |
+|                            |                                |                                              |
+| [Save Changes]             | ── CORE IDENTIFIERS ─────────  | id:      [auto-generated ULID — read only]   |
+| [Discard]                  | id · title · slug             | title:   [__________________________________] |
+| [Delete]                   | created_at · updated_at       | slug:    [__________________________________] |
+| [View Live]                |                                | created_at: [auto]   updated_at: [auto]      |
+|                            |--------------------------------|----------------------------------------------|
+| > Create New               | ── PICTURE ─────────────────  | picture_name:      [current-filename.png   ] |
+| > Edit (Active)            | edit_picture.js               | picture_bytes:     [Choose PNG...]  [Upload] |
+|                            | picture_name                  | picture_thumbnail: [auto-derived on upload ] |
+|                            | picture_bytes                 | Status: [ Ready / Uploading... / Saved ✓ ]  |
+|                            | picture_thumbnail             |                                              |
+|                            |--------------------------------|----------------------------------------------|
+|                            | ── TAXONOMY & DIAGRAMS ──────  | era:             [Dropdown — 8 values     ▼] |
+|                            | era · timeline · map_label    | timeline:        [Dropdown — 38 values    ▼] |
+|                            | gospel_category · geo_id      | map_label:       [Dropdown — 6 values     ▼] |
+|                            | parent_id                     | gospel_category: [Dropdown — 5 values     ▼] |
+|                            |                                | geo_id:          [___________]               |
+|                            |                                | parent_id:       [__________________________] |
+|                            |--------------------------------|----------------------------------------------|
+|                            | ── VERSES ──────────────────  | primary_verse: (JSON array)                  |
+|                            | primary_verse                 |   Book [▼]  Ch [___]  Vs [___] [+ Add Verse] |
+|                            | secondary_verse               |   [Matthew · 5 · 1 ×]  [Genesis · 1 · 1 ×]  |
+|                            |                                | secondary_verse: (JSON array)                |
+|                            |                                |   Book [▼]  Ch [___]  Vs [___] [+ Add Verse] |
+|                            |--------------------------------|----------------------------------------------|
+|                            | ── TEXT CONTENT ────────────  | description: (JSON paragraph array)          |
+|                            | description                   |   [¶ Paragraph 1 text...            ] [×]    |
+|                            | snippet                       |   [¶ Paragraph 2 text...            ] [×]    |
+|                            |                                |   [+ Add Paragraph]                          |
+|                            |                                | snippet: (JSON paragraph array)              |
+|                            |                                |   [¶ Paragraph 1 text...            ] [×]    |
+|                            |                                |   [+ Add Paragraph]                          |
+|                            |--------------------------------|----------------------------------------------|
+|                            | ── BIBLIOGRAPHY ────────────  | mla_book:           [textarea            ]   |
+|                            | bibliography (JSON blob)      | mla_book_inline:    [textarea            ]   |
+|                            | 6 MLA sub-keys:               | mla_article:        [textarea            ]   |
+|                            | mla_book                      | mla_article_inline: [textarea            ]   |
+|                            | mla_book_inline               | mla_website:        [textarea            ]   |
+|                            | mla_article                   | mla_website_inline: [textarea            ]   |
+|                            | mla_article_inline            |                                              |
+|                            | mla_website                   |                                              |
+|                            | mla_website_inline            |                                              |
+|                            |--------------------------------|----------------------------------------------|
+|                            | ── LINKS ───────────────────  | context_links: (JSON blob)                   |
+|                            | edit_links.js                 |   [Context_Essay_Crucifixion · Context  ×]   |
+|                            | context_links                 |   [External_URL_Josephus    · External  ×]   |
+|                            |                                |   [+ Add Link]                               |
+|                            |--------------------------------|----------------------------------------------|
+|                            | ── MISCELLANEOUS ───────────  | metadata_json: [textarea — JSON blob     ]   |
+|                            | metadata_json · iaa           | iaa:           [__________________________]  |
+|                            | pledius · manuscript · url    | pledius:       [__________________________]  |
+|                            |                                | manuscript:    [__________________________]  |
+|                            |                                | url:           [textarea — JSON blob     ]   |
++------------------------------------------------------------------------------------------------------------+
 ```
 
 ---
@@ -267,32 +293,30 @@ structure keyed by list name. No record columns are mutated.
 ```
 
 ```text
-+-------------------------------------------------------------------------+
-| [ Dashboard Sidebar ] |  EDIT ORDINARY LIST: [Old Testament Verses]     |
-|                       |  [Save List]                                     |
-|-----------------------|-------------------------------------------------|
-|  > Lists & Ranks      |  READ: title · slug (display only)               |
-|  - Edit Lists [Active]|  NO writes to records table                      |
-|                       |-------------------------------------------------|
-|  ...                  |  [ Search records to add by title or slug... ]   |
-|                       |                                                  |
-|                       |  Bulk Add by Slugs (CSV or newline):             |
-|                       |  [ slug-1, slug-2, slug-3...              ] [Add]|
-|                       |-------------------------------------------------|
-|                       |  =  Isaiah 53              slug: isaiah-53       |
-|                       |                                        [Remove]  |
-|                       |  =  Psalm 22               slug: psalm-22        |
-|                       |                                        [Remove]  |
-|                       |  =  Zechariah 12           slug: zechariah-12    |
-|                       |                                        [Remove]  |
-|                       |-------------------------------------------------|
-|                       |  (Drag '=' handle to reorder items)              |
-+-------------------------------------------------------------------------+
++----------------------------------------------------------------------------------------------+
+| [ Records ]  [ Lists & Ranks (Active) ]  [ Text Content ]  [ Configuration ]                |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 2                       | COL 3 — EDIT LIST: [Old Testament Verses] |
+|                        |                             |                                           |
+| [Save List]            | READ: title · slug          | [ Search records to add by title or slug ] |
+|                        | (display only)              |                                           |
+| > Edit Lists (Active)  | NO writes to records table  | Bulk Add by Slugs (CSV or newline):       |
+| > Edit Weights         |                             | [ slug-1, slug-2, slug-3...     ]  [Add]  |
+| > Insert Responses     |                             |-------------------------------------------|
+|                        |                             | =  Isaiah 53        slug: isaiah-53       |
+|                        |                             |                              [Remove]     |
+|                        |                             | =  Psalm 22         slug: psalm-22        |
+|                        |                             |                              [Remove]     |
+|                        |                             | =  Zechariah 12     slug: zechariah-12    |
+|                        |                             |                              [Remove]     |
+|                        |                             |-------------------------------------------|
+|                        |                             | (Drag '=' handle to reorder items)        |
++----------------------------------------------------------------------------------------------+
 ```
 
 ---
 
-### 2.5 Backend for Bulk Upload CSV (`edit_bulk_upload.js`)
+### Backend for Bulk Upload CSV (`edit_bulk_upload.js`)
 **Corresponds to Public Section:** Non-specific (Global Data Ingestion)  
 **Purpose:** Drag-and-drop CSV interface to bulk-create multiple records simultaneously. Runs client-side validation on required fields and enum values before submitting. On success, inserts one new row per CSV line.
 
@@ -317,28 +341,24 @@ updated_at        TEXT (ISO8601)
 ```
 
 ```text
-+-------------------------------------------------------------------------+
-| [ Dashboard Sidebar ] |  BULK UPLOAD CSV — Data Ingestion               |
-|                       |  Required cols: title · slug                     |
-|-----------------------|-------------------------------------------------|
-|  > Records            |  Optional cols: era · timeline · map_label ·     |
-|  - Create New         |    gospel_category · primary_verse · [any col]   |
-|  - Edit Existing      |  Auto-generated:  id · created_at · updated_at   |
-|  - Bulk Upload [Act]  |-------------------------------------------------|
-|                       |                                                  |
-|  > Lists & Ranks      |  +--------------------------------------------+ |
-|  ...                  |  |                                            | |
-|                       |  |        DRAG & DROP CSV FILE HERE          | |
-|                       |  |            OR  [Browse File...]           | |
-|                       |  |                                            | |
-|                       |  +--------------------------------------------+ |
-|                       |                                                  |
-|                       |  Validation Results:                             |
-|                       |  [ Row 2: missing slug — skipped             ]   |
-|                       |  [ Row 5: invalid era value — skipped        ]   |
-|                       |  [ 8 of 10 rows valid — ready to insert      ]   |
-|                       |                                    [Start Upload]|
-+-------------------------------------------------------------------------+
++----------------------------------------------------------------------------------------------+
+| [ Records (Active) ]  [ Lists & Ranks ]  [ Text Content ]  [ Configuration ]                |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 2                          | COL 3 — BULK UPLOAD CSV            |
+|                        |                                |                                    |
+| > Create New           | Required cols:                 | +--------------------------------+ |
+| > Edit Existing        |   title · slug                 | |                                | |
+| > Bulk Upload (Active) |                                | |  DRAG & DROP CSV FILE HERE     | |
+|                        | Optional cols:                 | |    OR  [Browse File...]        | |
+|                        |   era · timeline · map_label   | |                                | |
+|                        |   gospel_category              | +--------------------------------+ |
+|                        |   primary_verse · [any col]    |                                    |
+|                        |                                | Validation Results:                |
+|                        | Auto-generated on insert:      | [ Row 2: missing slug — skipped  ] |
+|                        |   id · created_at · updated_at | [ Row 5: invalid era — skipped   ] |
+|                        |                                | [ 8 of 10 rows valid — ready     ] |
+|                        |                                |                    [Start Upload] |
++----------------------------------------------------------------------------------------------+
 ```
 
 ---
@@ -365,107 +385,140 @@ title             TEXT               — node label
 ```
 
 ```text
-+-------------------------------------------------------------------------+
-| [Dashboard Sidebar]   EDIT DIAGRAM HIERARCHY          [Save Graph]      |
-|  - Edit Diagrams      ────────────────────────────────────────────      |
-|                       |  [Search nodes…]                       |       |
-|                       |                                          |       |
-|                       |  [Root: Jesus of Nazareth]              |       |
-|                       |   ├─ [Ministry]     [+Child][Remove]   |       |
-|                       |   ├─ [Crucifixion]  [+Child][Remove]   |       |
-|                       |   └─ [Resurrection] [+Child][Remove]   |       |
-|                       |                                          |       |
-|                       |  (Drag nodes to re-parent)              |       |
-|                       └──────────────────────────────────────────       |
-|                                                                          |
-|  ─── API ROUND-TRIP: edit_diagram.js → admin_api.py → SQLite ──────    |
-|                                                                          |
-|  LOAD:  GET /api/admin/diagram/tree                                     |
-|         → SELECT id, title, parent_id FROM records ORDER BY title       |
-|         → Returns {"nodes": [{"id":"…","title":"…","parent_id":…}]}     |
-|                                                                          |
-|  EDIT:  DnD updates window.__diagramNodes in memory                     |
-|         Changes tracked in window.__changedNodes Map                    |
-|         Search filters .diagram-node-label text (case-insensitive)      |
-|         "+Child" dropdown of orphan nodes sets parent_id                |
-|         "Remove" promotes node to root (parent_id = null)               |
-|                                                                          |
-|  SAVE:  PUT /api/admin/diagram/tree                                     |
-|         Body: {"updates": [{"id":"…","parent_id":"…"},…]}               |
-|         → Validates IDs exist (422 if missing)                          |
-|         → Detects direct circular refs (422 if found)                   |
-|         → BEGIN TRANSACTION / UPDATE batch / COMMIT or ROLLBACK         |
-|         → Green toast: "Graph saved successfully"                       |
-|         → Red toast:   "Save failed: <detail>"                         |
-+-------------------------------------------------------------------------+
++----------------------------------------------------------------------------------------------+
+| [ Records ]  [ Lists & Ranks ]  [ Text Content ]  [ Configuration (Active) ]                |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 2                       | COL 3 — EDIT DIAGRAM HIERARCHY        |
+|                        |                             |                                        |
+| [Save Graph]           | WRITE: parent_id            | [ Search nodes…                      ] |
+|                        | READ:  id · title           |                                        |
+| > Edit Diagrams        |                             | [Root: Jesus of Nazareth]              |
+|   (Active)             | Orphan nodes                |  ├─ [Ministry]     [+Child]  [Remove]  |
+|                        | (no parent_id):             |  ├─ [Crucifixion]  [+Child]  [Remove]  |
+|                        |                             |  └─ [Resurrection] [+Child]  [Remove]  |
+|                        | [Ascension         ▼]       |                                        |
+|                        | [Last Supper       ▼]       | (Drag nodes to re-parent)              |
+|                        | [Transfiguration   ▼]       |                                        |
++----------------------------------------------------------------------------------------------+
+
+── API ROUND-TRIP: edit_diagram.js → admin_api.py → SQLite ───────────────────────────────────
+
+  LOAD:  GET /api/admin/diagram/tree
+         → SELECT id, title, parent_id FROM records ORDER BY title
+         → Returns {"nodes": [{"id":"…","title":"…","parent_id":…}]}
+
+  EDIT:  DnD updates window.__diagramNodes in memory
+         Changes tracked in window.__changedNodes Map
+         Search filters .diagram-node-label text (case-insensitive)
+         "+Child" dropdown of orphan nodes sets parent_id
+         "Remove" promotes node to root (parent_id = null)
+
+  SAVE:  PUT /api/admin/diagram/tree
+         Body: {"updates": [{"id":"…","parent_id":"…"},…]}
+         → Validates IDs exist (422 if missing)
+         → Detects direct circular refs (422 if found)
+         → BEGIN TRANSACTION / UPDATE batch / COMMIT or ROLLBACK
+         → Green toast: "Graph saved successfully"
+         → Red toast:   "Save failed: <detail>"
 ```
 
 ---
 
 ## 4.0 Ranked Lists Module
-**Scope:** Ranked Wikipedia article lists, Ranked historical challenges.
+**Scope:** Ranked Wikipedia article lists (§4.1), Ranked historical challenge lists (§4.2).
 
-### 4.1 Backend for Ranked Lists Weights (`edit_wiki_weights.js`, `edit_academic_weights.js`, `edit_popular_weights.js`, `edit_rank.js`)
-**Corresponds to Public Sections:** 4.1 (Ranked Views)  
-**Purpose:** Tabular interface for adjusting ranking multipliers across three ranked-list types (Wikipedia, Popular Challenges, Academic Challenges). Each tab manages its own set of four columns on the `records` row. The `dashboard_app.js` router (`ranks-weights` branch) injects a 3-tab container (Wikipedia / Academic / Popular) into the canvas, loading the active editor into its content pane and lazy-loading the others on first click.
+### 4.1 Backend for Wikipedia Weights (`edit_wiki_weights.js`, `edit_rank.js`)
+**Corresponds to Public Sections:** 4.1 (Ranked Wikipedia Views)  
+**Purpose:** Tabular interface for adjusting ranking multipliers for Wikipedia articles. Manages the four Wikipedia columns on the `records` row. The `dashboard_app.js` router (`ranks-wikipedia` branch) renders a single-pane editor directly into the canvas.
 
 **DB Fields:**
 ```
-── Wikipedia tab  (edit_wiki_weights.js) ─────────────────────────────────
+── edit_wiki_weights.js ──────────────────────────────────────────────────
 wikipedia_link    TEXT (JSON Blob)    — source link data
 wikipedia_title   TEXT               — article title
 wikipedia_rank    INTEGER            — rank position
 wikipedia_weight  TEXT (Label-Value) — multiplier for rank algorithm
+```
+
+```text
++----------------------------------------------------------------------------------------------+
+| [ Records ]  [ Lists & Ranks (Active) ]  [ Text Content ]  [ Configuration ]                |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 2                          | COL 3 — WIKIPEDIA WEIGHTS          |
+|                        |                                |                                    |
+| [Save All Changes]     | WRITE:                         | slug / title       rank  weight    |
+| [+ Add Override]       |   wikipedia_link               |------------------------------------|
+| [Delete Row]           |   wikipedia_title              | tacitus-annals      98   [× 1.20 ] |
+|                        |   wikipedia_rank               |   title: [Tacitus Annals        ]  |
+| > Wikipedia Weights    |   wikipedia_weight             |   link:  [{"url":"https://…"  } ]  |
+|   (Active)             |                                |                          [Save]    |
+| > Challenge Weights    |                                |------------------------------------|
+| > Insert Responses     |                                | josephus-antiquities 95  [× 1.15 ] |
+|                        |                                |   title: [Josephus Antiquities  ]  |
+|                        |                                |   link:  [{"url":"https://…"  } ]  |
+|                        |                                |                          [Save]    |
+|                        |                                |------------------------------------|
+|                        |                                | (rows continue…)                   |
++----------------------------------------------------------------------------------------------+
+```
+
+---
+
+### 4.2 Backend for Challenge Weights (`edit_academic_weights.js`, `edit_popular_weights.js`)
+**Corresponds to Public Sections:** 4.2 (Ranked Challenge Views)  
+**Purpose:** Tabular interface for adjusting ranking multipliers across the two challenge types (Academic Challenges, Popular Challenges). Each tab manages its own set of four columns on the `records` row. The `dashboard_app.js` router (`ranks-challenges` branch) injects a 2-tab container (Academic / Popular) into the canvas, loading the Academic editor immediately and lazy-loading Popular on first click.
+
+**DB Fields:**
+```
+── Academic Challenges tab  (edit_academic_weights.js) ───────────────────
+academic_challenge_link   TEXT (JSON Blob)
+academic_challenge_title  TEXT
+academic_challenge_rank   INTEGER
+academic_challenge_weight TEXT (Label-Value)
 
 ── Popular Challenges tab  (edit_popular_weights.js) ─────────────────────
 popular_challenge_link    TEXT (JSON Blob)
 popular_challenge_title   TEXT
 popular_challenge_rank    INTEGER
 popular_challenge_weight  TEXT (Label-Value)
-
-── Academic Challenges tab  (edit_academic_weights.js) ───────────────────
-academic_challenge_link   TEXT (JSON Blob)
-academic_challenge_title  TEXT
-academic_challenge_rank   INTEGER
-academic_challenge_weight TEXT (Label-Value)
 ```
 
 ```text
-+-------------------------------------------------------------------------+
-| [ Dashboard Sidebar ] |  EDIT RANKED LISTS                               |
-|                       |  [Wikipedia] [Popular Challenges] [Academic]     |
-|-----------------------|-------------------------------------------------|
-|  > Lists & Ranks      |  ── WIKIPEDIA TAB ─────────────────────────────  |
-|  - Edit Weights [Act] |  WRITE: wikipedia_link · wikipedia_title ·       |
-|  - Insert Resp.       |         wikipedia_rank · wikipedia_weight         |
-|                       |  [Save All Changes]                              |
-|  ...                  |-------------------------------------------------|
-|                       |  slug / title          rank    weight (mult.)    |
-|                       |-------------------------------------------------|
-|                       |  tacitus-annals         98     [× 1.20 ]  [Save]|
-|                       |  wikipedia_title: [Tacitus Annals           ]    |
-|                       |  wikipedia_link:  [{"url": "https://..."   }]    |
-|                       |-------------------------------------------------|
-|                       |  josephus-antiquities   95     [× 1.15 ]  [Save]|
-|                       |  wikipedia_title: [Josephus Antiquities     ]    |
-|                       |  wikipedia_link:  [{"url": "https://..."   }]    |
-|                       |-------------------------------------------------|
-|                       |  [+ Add Custom Override]            [Delete Row] |
-+-------------------------------------------------------------------------+
++----------------------------------------------------------------------------------------------+
+| [ Records ]  [ Lists & Ranks (Active) ]  [ Text Content ]  [ Configuration ]                |
+|----------------------------------------------------------------------------------------------|
+| [ Academic Challenges (Active) ]  [ Popular Challenges ]                                     |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 2                          | COL 3 — CHALLENGE WEIGHTS          |
+|                        |                                |                                    |
+| [Save All Changes]     | Academic tab WRITE:            | slug / title       rank  weight    |
+| [+ Add Override]       |   academic_challenge_link      |------------------------------------|
+| [Delete Row]           |   academic_challenge_title     | jesus-myth-theory   91   [× 1.30 ] |
+|                        |   academic_challenge_rank      |   title: [Jesus Myth Theory     ]  |
+| > Wikipedia Weights    |   academic_challenge_weight    |   link:  [{"url":"https://…"  } ]  |
+| > Challenge Weights    |                                |                          [Save]    |
+|   (Active)             | Popular tab WRITE:             |------------------------------------|
+| > Insert Responses     |   popular_challenge_link       | council-of-nicaea   87   [× 1.10 ] |
+|                        |   popular_challenge_title      |   title: [Council of Nicaea     ]  |
+|                        |   popular_challenge_rank       |   link:  [{"url":"https://…"  } ]  |
+|                        |   popular_challenge_weight     |                          [Save]    |
+|                        |                                |------------------------------------|
+|                        |                                | (rows continue…)                   |
++----------------------------------------------------------------------------------------------+
 ```
 
 ---
 
-### 4.2 Backend for Inserting Responses (`edit_insert_response_academic.js`, `edit_insert_response_popular.js`)
-**Corresponds to Public Sections:** 4.2 (Standard Lists with Response Inserted)  
-**Purpose:** Browse challenge lists and link a written response to a specific challenge record. The `responses` JSON blob on the record is updated here to point to a response; the response content itself is authored in §5.1. The `dashboard_app.js` router (`ranks-responses` branch) injects a 2-tab container (Academic Challenges / Popular Challenges) into the canvas, loading the active editor and lazy-loading the other on first click.
+### Backend for Inserting Responses (`edit_insert_response_academic.js`, `edit_insert_response_popular.js`)
+**Corresponds to Public Sections:** 4.2 (Challenge Views with Response Inserted)  
+**Purpose:** Browse challenge lists and link a written response to a specific challenge record. The `responses` JSON blob on the record is updated here to point to a response; the response content itself is authored in §5.2. The `dashboard_app.js` router (`ranks-responses` branch) injects a 2-tab container (Academic Challenges / Popular Challenges) into the canvas, loading the active editor and lazy-loading the other on first click.
 
 **DB Fields:**
 ```
 ── WRITE ─────────────────────────────────────────────────────────────────
 responses         TEXT (JSON Blob)   — links this record to one or more
                                         response records; content is
-                                        authored in §5.1 edit_response.js
+                                        authored in §5.2 edit_response.js
 
 ── READ ONLY (list display) ──────────────────────────────────────────────
 academic_challenge_title  TEXT       — challenge label (Academic tab)
@@ -475,37 +528,39 @@ popular_challenge_rank    INTEGER    — sort order
 ```
 
 ```text
-+-------------------------------------------------------------------------+
-| [ Dashboard Sidebar ] |  INSERT RESPONSES                                |
-|                       |  [Academic Challenges]  [Popular Challenges]     |
-|-----------------------|-------------------------------------------------|
-|  > Lists & Ranks      |  WRITE: responses                                |
-|  - Edit Weights       |  READ:  *_challenge_title · *_challenge_rank     |
-|  - Insert Resp. [Act] |-------------------------------------------------|
-|                       |  [ Search challenge list... ]                    |
-|                       |-------------------------------------------------|
-|                       |  1. historicity-of-miracles                      |
-|                       |     responses: [none]           [+ Add Response] |
-|                       |-------------------------------------------------|
-|                       |  2. council-of-nicaea-claims                     |
-|                       |     responses: [none]           [+ Add Response] |
-|                       |-------------------------------------------------|
-|                       |  3. jesus-myth-theory                            |
-|                       |     responses: [response-001]   [Remove] [Edit]  |
-|                       |-------------------------------------------------|
-|                       |  (+ Add Response opens the Full Response         |
-|                       |   Editor in §5.1)                                |
-+-------------------------------------------------------------------------+
++----------------------------------------------------------------------------------------------+
+| [ Records ]  [ Lists & Ranks (Active) ]  [ Text Content ]  [ Configuration ]                |
+|----------------------------------------------------------------------------------------------|
+| [ Academic Challenges (Active) ]  [ Popular Challenges ]                                     |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 3 — INSERT RESPONSES: Academic Challenges                       |
+|                        |                                                                      |
+| > Wikipedia Weights    | WRITE: responses                                                     |
+| > Challenge Weights    | READ:  academic_challenge_title · academic_challenge_rank            |
+| > Insert Responses     |                                                                      |
+|   (Active)             | [ Search challenge list...                                      ]    |
+|                        |----------------------------------------------------------------------|
+|                        | 1. historicity-of-miracles                                           |
+|                        |    responses: [none]                           [+ Add Response]      |
+|                        |----------------------------------------------------------------------|
+|                        | 2. council-of-nicaea-claims                                          |
+|                        |    responses: [none]                           [+ Add Response]      |
+|                        |----------------------------------------------------------------------|
+|                        | 3. jesus-myth-theory                                                 |
+|                        |    responses: [response-001]          [Remove]            [Edit]     |
+|                        |----------------------------------------------------------------------|
+|                        | (+ Add Response opens the Full Response Editor in §5.2)              |
++----------------------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 5.0 Essays Module
-**Scope:** Context-Essay (Thematic context), Historiography, Blog/News, Responses.
+## 5.0 Essays & Responses Module
+**Scope:** Context-Essays & Historiography (§5.1), Challenge Responses (§5.2).
 
-### 5.1 & 5.2 Backend for Response & Essay Layouts (`edit_response.js`, `edit_essay.js`, `edit_historiography.js`)
-**Corresponds to Public Sections:** 5.1 & 5.2 (Long-form Essays, Responses), 5.0 (Context Essays, Historiography)  
-**Purpose:** Split-pane markdown editor for authoring responses and essays. Also owns the four theological association fields on the `records` row: `ordo_salutis`, `context_essays`, `theological_essays`, and `spiritual_articles`.
+### 5.1 Backend for Essay & Historiography Layouts (`edit_essay.js`, `edit_historiography.js`, `edit_mla_sources.js`)
+**Corresponds to Public Sections:** 5.1 (Context Essay & Historiography Layouts)  
+**Purpose:** Split-pane markdown editor for authoring context essays and the historiography essay. Also owns the four theological association fields on the `records` row: `ordo_salutis`, `context_essays`, `theological_essays`, and `spiritual_articles`. The `dashboard_app.js` router (`text-essays` branch) injects a 2-tab container (Context Essay / Historiography) into the canvas.
 
 **DB Fields:**
 ```
@@ -519,59 +574,90 @@ ordo_salutis        TEXT (Enum)        — order-of-salvation classification
                                          Regeneration, Faith, Repentance,
                                          Justification, Sanctification,
                                          Perseverance, Glorification
-
-── Written by edit_response.js ───────────────────────────────────────────
-responses           TEXT (JSON Blob)   — full response content + metadata
-                                         (also linked from §4.2)
 ```
 
 ```text
-+-------------------------------------------------------------------------+
-| [ Dashboard Sidebar ] |  EDIT RESPONSE / ESSAY: [title]                  |
-|                       |  [Save Changes]  [Discard]  [Delete]             |
-|-----------------------|-------------------------------------------------|
-|  > Text Content       |  WRITE: ordo_salutis · context_essays ·          |
-|  - Responses [Active] |         theological_essays · spiritual_articles · |
-|  - Essays             |         responses                                 |
-|                       |-------------------------------------------------|
-|                       |  Metadata:                  |  Live Preview       |
-|                       |  Author:  [______________]  |  (updates as you    |
-|                       |  Date:    [______________]  |   type)             |
-|                       |                             |                     |
-|                       |  ordo_salutis:              |  [Essay Title]      |
-|                       |  [Dropdown — 8 values ▼]   |  By [Author]        |
-|                       |                             |                     |
-|                       |  context_essays:            |  ## Introduction    |
-|                       |  [slug-essay-1 ×]           |  The historical...  |
-|                       |  [+ Link Essay]             |                     |
-|                       |                             |                     |
-|                       |  theological_essays:        |                     |
-|                       |  [slug-theology-1 ×]        |                     |
-|                       |  [+ Link Theological Essay] |                     |
-|                       |                             |                     |
-|                       |  spiritual_articles:        |                     |
-|                       |  [slug-article-1 ×]         |                     |
-|                       |  [+ Link Spiritual Article] |                     |
-|                       |-----------------------------|                     |
-|                       |  responses (Markdown body): |                     |
-|                       |  [## Introduction           |                     |
-|                       |   The historical context of |                     |
-|                       |   **Judea**...              ]                     |
-|                       |  [+ Insert Citation]                              |
-+-------------------------------------------------------------------------+
++------------------------------------------------------------------------------------------------------------+
+| [ Records ]  [ Lists & Ranks ]  [ Text Content (Active) ]  [ Configuration ]                              |
+|------------------------------------------------------------------------------------------------------------|
+| [ Context Essays (Active) ]  [ Historiography ]                                                            |
+|------------------------------------------------------------------------------------------------------------|
+| COL 1                      | COL 2 — MARKDOWN EDITOR         | COL 3 — LIVE PREVIEW                       |
+|                            |                                  |                                            |
+| [Save Changes]             | context_essays (Markdown body):  | [Essay Title]                              |
+| [Discard]                  | [## Introduction                 | By [Author]                                |
+| [Delete]                   |  The historical context of       |                                            |
+|                            |  **Judea**...               ]    | ## Introduction                            |
+| > Essays (Active)          | [+ Insert Citation]              | The historical context of                  |
+| > Responses                |                                  | Judea…                                     |
+|                            |                                  |                                            |
+|                            |                                  | (updates as you type)                      |
+| ── Metadata ─────────────  |                                  |                                            |
+| Author: [______________]   |                                  |                                            |
+| Date:   [______________]   |                                  |                                            |
+|                            |                                  |                                            |
+| ordo_salutis:              |                                  |                                            |
+| [Dropdown — 8 values    ▼] |                                  |                                            |
+|                            |                                  |                                            |
+| context_essays:            |                                  |                                            |
+| [slug-essay-1 ×]           |                                  |                                            |
+| [+ Link Essay]             |                                  |                                            |
+|                            |                                  |                                            |
+| theological_essays:        |                                  |                                            |
+| [slug-theology-1 ×]        |                                  |                                            |
+| [+ Link Theological Essay] |                                  |                                            |
+|                            |                                  |                                            |
+| spiritual_articles:        |                                  |                                            |
+| [slug-article-1 ×]         |                                  |                                            |
+| [+ Link Spiritual Article] |                                  |                                            |
++------------------------------------------------------------------------------------------------------------+
 ```
 
 ---
 
-### 5.3 Backend for News Snippets & Blog Posts (`edit_news_snippet.js`, `edit_blogpost.js`, `edit_news_sources.js`)
-**Corresponds to Public Sections:** 1.3, 5.3 (News Feed Snippets, News Feed/Blog)  
-**Purpose:** Short-form entry interface for creating news alerts, blog snippets, and managing named news sources. Each tab writes to its own JSON blob or label-value column on the record.
+### 5.2 Backend for Challenge Response Layout (`edit_response.js`)
+**Corresponds to Public Sections:** 5.2 (Challenge Response Layouts)  
+**Purpose:** Split-pane markdown editor for authoring challenge responses. The `dashboard_app.js` router (`text-responses` branch) renders a single-pane editor directly into the canvas. Response records are linked to challenge records via §4.3 Insert Responses.
 
 **DB Fields:**
 ```
-── edit_blogpost.js ──────────────────────────────────────────────────────
-blogposts         TEXT (JSON Blob)     — blog post content and metadata
+── Written by edit_response.js ───────────────────────────────────────────
+responses           TEXT (JSON Blob)   — full response content + metadata
+                                         (also linked from §4.3)
+```
 
+```text
++------------------------------------------------------------------------------------------------------------+
+| [ Records ]  [ Lists & Ranks ]  [ Text Content (Active) ]  [ Configuration ]                              |
+|------------------------------------------------------------------------------------------------------------|
+| COL 1                      | COL 2 — MARKDOWN EDITOR         | COL 3 — LIVE PREVIEW                       |
+|                            |                                  |                                            |
+| [Save Changes]             | responses (Markdown body):       | [Response Title]                           |
+| [Discard]                  | [## Introduction                 | By [Author]                                |
+| [Delete]                   |  The historical claim that       |                                            |
+|                            |  **Jesus** never existed...  ]   | ## Introduction                            |
+| > Essays                   | [+ Insert Citation]              | The historical claim that                  |
+| > Responses (Active)       |                                  | Jesus never existed…                       |
+|                            |                                  |                                            |
+|                            |                                  | (updates as you type)                      |
+| ── Metadata ─────────────  |                                  |                                            |
+| Author: [______________]   |                                  |                                            |
+| Date:   [______________]   |                                  |                                            |
+| Challenge: [___________]   |                                  |                                            |
++------------------------------------------------------------------------------------------------------------+
+```
+
+---
+
+## 6.0 News & Blog Module
+**Scope:** News Articles & Sources, Blog Posts.
+
+### 6.1 Backend for News Articles & Sources (`edit_news_snippet.js`, `edit_news_sources.js`)
+**Corresponds to Public Sections:** 6.1 (Combined News & Blog Landing Page), 6.2 (News Feed Page)  
+**Purpose:** Short-form entry interface for creating news alert snippets and managing named external news sources. The two tabs each write to their own column on the record.
+
+**DB Fields:**
+```
 ── edit_news_snippet.js ──────────────────────────────────────────────────
 news_items        TEXT (JSON Blob)     — news snippet content and metadata
 
@@ -580,47 +666,71 @@ news_sources      TEXT (Label-Value)   — named external source references
 ```
 
 ```text
-+-------------------------------------------------------------------------+
-| [ Dashboard Sidebar ] |  EDIT NEWS / BLOG                                |
-|                       |  [News Snippet]  [Blog Post]  [News Sources]     |
-|-----------------------|-------------------------------------------------|
-|  > Text Content       |  ── NEWS SNIPPET TAB ──────────────────────────  |
-|  - Essays             |  WRITE: news_items                               |
-|  - Blog Posts [Active]|  [Save Item]  [Discard]  [Delete Item]           |
-|                       |-------------------------------------------------|
-|                       |  news_items → (JSON blob)                        |
-|                       |  Publish Date:  [____________________]           |
-|                       |  Headline:      [____________________________]   |
-|                       |  Snippet body:  [WYSIWYG / Markdown editor  ]   |
-|                       |                 [                            ]   |
-|                       |  External link: [____________________________]   |
-|                       |-------------------------------------------------|
-|                       |  ── BLOG POST TAB ─────────────────────────────  |
-|                       |  WRITE: blogposts                                |
-|                       |  [Save Post]  [Discard]  [Delete Post]           |
-|                       |  blogposts → (JSON blob)                         |
-|                       |  Publish Date:  [____________________]           |
-|                       |  Title:         [____________________________]   |
-|                       |  Body:          [WYSIWYG / Markdown editor  ]   |
-|                       |-------------------------------------------------|
-|                       |  ── NEWS SOURCES TAB ──────────────────────────  |
-|                       |  WRITE: news_sources                             |
-|                       |  [Save Sources]                                  |
-|                       |  news_sources → (Label-Value pairs)              |
-|                       |  Label: [___________]  URL: [_______________]    |
-|                       |  [Reuters · https://reuters.com  ×]              |
-|                       |  [AP News  · https://apnews.com  ×]              |
-|                       |  [+ Add Source]                                  |
-+-------------------------------------------------------------------------+
-*Sidebar: The "Blog Posts" link (`text-blog`) opens this 3-tab container. The "News Sources" link (`config-news`, under Configuration) routes directly to the News Sources tab pane.*
++----------------------------------------------------------------------------------------------+
+| [ Records ]  [ Lists & Ranks ]  [ Text Content (Active) ]  [ Configuration ]                |
+|----------------------------------------------------------------------------------------------|
+| [ News Snippet (Active) ]  [ News Sources ]                                                 |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 2                          | COL 3 — NEWS SNIPPET               |
+|                        |                                |                                    |
+| [Save Item]            | WRITE: news_items              | Publish Date: [__________________] |
+| [Discard]              | news_items → (JSON blob)       | Headline:     [__________________] |
+| [Delete Item]          |                                | Snippet body:                      |
+|                        | News Sources tab WRITE:        | [WYSIWYG / Markdown editor       ] |
+| > Essays               | news_sources                   | [                                ] |
+| > Responses            | → (Label-Value pairs)          | External link:[__________________] |
+| > News (Active)        |                                |                                    |
++----------------------------------------------------------------------------------------------+
+| [ News Snippet ]  [ News Sources (Active) ]                                                 |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 2                          | COL 3 — NEWS SOURCES               |
+|                        |                                |                                    |
+| [Save Sources]         | WRITE: news_sources            | Label: [__________] URL: [_______] |
+|                        | → (Label-Value pairs)          | [Reuters · https://reuters.com  ×] |
+|                        |                                | [AP News  · https://apnews.com  ×] |
+|                        |                                | [+ Add Source]                     |
++----------------------------------------------------------------------------------------------+
 ```
+*Sidebar: The "News Sources" link (`config-news`, under Configuration) routes directly to the News Sources tab pane.*
 
 ---
 
-## 6.0 System Module
+### 6.2 Backend for Blog Posts (`edit_blogpost.js`)
+**Corresponds to Public Section:** 6.3 (Blog Feed Page)  
+**Purpose:** Full CRUD interface for authoring, editing, and deleting blog posts. Writes to the `blogposts` JSON blob on the record.
+
+**DB Fields:**
+```
+── edit_blogpost.js ──────────────────────────────────────────────────────
+blogposts         TEXT (JSON Blob)     — blog post content and metadata
+```
+
+```text
++----------------------------------------------------------------------------------------------+
+| [ Records ]  [ Lists & Ranks ]  [ Text Content (Active) ]  [ Configuration ]                |
+|----------------------------------------------------------------------------------------------|
+| [ Blog Posts (Active) ]                                                                     |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 2                          | COL 3 — BLOG POST                  |
+|                        |                                |                                    |
+| [Save Post]            | WRITE: blogposts               | Publish Date: [__________________] |
+| [Discard]              | blogposts → (JSON blob)        | Title:        [__________________] |
+| [Delete Post]          | [ Existing posts:            ] | Author:       [__________________] |
+| [+ New Post]           | "Jesus and History"            | Body:                              |
+|                        |   2025-01-10  [Edit] [Delete]  | [WYSIWYG / Markdown editor       ] |
+| > Essays               | "The Empty Tomb"               | [                                ] |
+| > Responses            |   2024-12-03  [Edit] [Delete]  |                                    |
+| > Blog Posts (Active)  |                                |                                    |
++----------------------------------------------------------------------------------------------+
+```
+*Sidebar: The "Blog Posts" link (`text-blog`) opens this editor directly.*
+
+---
+
+## 7.0 System Module
 **Scope:** Initial setup, Agent instructions, backend API management, and VPS deployment.
 
-### 6.1 Global: Secure Login & Main Interface
+### 7.1 Global: Secure Login & Main Interface
 **Purpose:** Entry point providing the secure login screen and the persistent structural shell (Sidebar + Dynamic Canvas). No record columns are written here.
 
 **DB Fields:**
@@ -634,31 +744,32 @@ System-managed fields (never manually edited in any dashboard section):
 ```
 
 ```text
-+-------------------------------------------------------------------------+
-| [ Dashboard App: Authenticated as Admin ]                  [Logout]     |
-|-------------------------------------------------------------------------|
-|                      |                                                   |
-|  [ Admin Modules ]   |   [ DASHBOARD HOME / STATUS ]                    |
-|                      |                                                   |
-|  > Records           |   +------------------------------------------+   |
-|  - Create New        |   | System Status: ● Online                  |   |
-|  - Edit Existing     |   | WASM SQLite Sync: Active                 |   |
-|  - Bulk Upload CSV   |   | users: system-managed  (not editable)    |   |
-|                      |   | page_views: auto-incremented (read-only) |   |
-|  > Lists & Ranks     |   +------------------------------------------+   |
-|  - Edit Weights      |                                                   |
-|  - Edit Resources    |   +------------------------------------------+   |
-|  - Insert Responses  |   | Recent Edits / Activity Log              |   |
-|                      |   | - Updated Record: "Crucifixion"          |   |
-|  > Text Content      |   | - Modified Wiki Weight: ×1.20            |   |
-|  - Essays            |   | - Added Essay: "Historiography Overview" |   |
-|  - Responses         |   +------------------------------------------+   |
-|  - Blog Posts        |                                                   |
-|                      |   [ Quick Actions ]                               |
-|  > Configuration     |   [Add New Record]     [Run Sync Pipeline]        |
-|  - Edit Diagrams     |                                                   |
-|  - News Sources      |                                                   |
-|                      |                                                   |
-|  [ Return to Site ]  |                                                   |
-+-------------------------------------------------------------------------+
++----------------------------------------------------------------------------------------------+
+| [ Dashboard App: Authenticated as Admin ]                               [Logout]            |
+|----------------------------------------------------------------------------------------------|
+| [ Records ]  [ Lists & Ranks ]  [ Text Content ]  [ Configuration ]  [ Home (Active) ]      |
+|----------------------------------------------------------------------------------------------|
+| COL 1                  | COL 2 — SYSTEM STATUS              | COL 3 — DASHBOARD HOME         |
+|                        |                                    |                                |
+| > Records              | ● System Status: Online            | [ Quick Actions ]              |
+|   - Create New         | ● WASM SQLite Sync: Active         | [Add New Record]               |
+|   - Edit Existing      | users:      system-managed         | [Run Sync Pipeline]            |
+|   - Bulk Upload CSV    | page_views: auto-incremented       |                                |
+|                        |   (read-only across all views)     |                                |
+| > Lists & Ranks        |                                    |                                |
+|   - Edit Weights       |------------------------------------|                                |
+|   - Edit Resources     | Recent Edits / Activity Log        |                                |
+|   - Insert Responses   | - Updated: "Crucifixion"           |                                |
+|                        | - Wiki Weight: ×1.20               |                                |
+| > Text Content         | - Essay: "Historiography Overview" |                                |
+|   - Essays             |                                    |                                |
+|   - Responses          |                                    |                                |
+|   - Blog Posts         |                                    |                                |
+|                        |                                    |                                |
+| > Configuration        |                                    |                                |
+|   - Edit Diagrams      |                                    |                                |
+|   - News Sources       |                                    |                                |
+|                        |                                    |                                |
+| [ Return to Site ]     |                                    |                                |
++----------------------------------------------------------------------------------------------+
 ```

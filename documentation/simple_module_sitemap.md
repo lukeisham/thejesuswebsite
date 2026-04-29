@@ -1,7 +1,7 @@
 ---
 name: simple_module_map.md
-purpose: High-level ASCII map of the project's modular architecture (1.0 - 7.0)
-version: 1.0.0
+purpose: High-level ASCII map of the project's modular architecture (1.0 - 8.0)
+version: 1.1.0
 dependencies: [detailed_module_sitemap.md]
 ---
 
@@ -11,20 +11,20 @@ dependencies: [detailed_module_sitemap.md]
 1.0 Foundation Module
 ├── 1.1 Website Landing Page (Public)
 ├── 1.2 Internal Landing Page (Public)
-├── 1.3 News Feed Snippets
-├── 1.4 About Page
-├── 1.5 Universal Sticky Sidebar & Search
-├── 1.6 Universal Footer & Creative Commons
-├── 1.7 Universal Image/Picture Layouts
-├── 1.8 Universal Navigation Header
-├── 1.9 Branding, Icons & Identity
-└── 1.10 Interactive Typography Standards
+├── 1.3 About Page
+├── 1.4 Universal Sticky Sidebar & Search
+├── 1.5 Universal Footer & Creative Commons
+├── 1.6 Universal Image/Picture Layouts
+├── 1.7 Universal Navigation Header
+├── 1.8 Branding, Icons & Identity
+└── 1.9 Interactive Typography Standards
 
 2.0 Records Module
 ├── 2.1 Search Pipeline & Master Data Index
 ├── 2.2 Single Record Deep-Dive Layout
 ├── 2.3 Resource List (Verses) View
-└── 2.4 Resource List (Non-Verses) View
+├── 2.4 Resource List (Non-Verses) View
+└── 2.5 Bulk Upload CSV
 
 3.0 Visualizations Module
 ├── 3.1 Visual Interactive Ardor Diagram
@@ -32,21 +32,26 @@ dependencies: [detailed_module_sitemap.md]
 └── 3.3 Visual Interactive Geographic Maps
 
 4.0 Ranked Lists Module
-├── 4.1 Ranked Wikipedia & Academic Views
-└── 4.2 Ranked Lists with Response Inserted
+├── 4.1 Ranked Wikipedia Views
+└── 4.2 Ranked Challenge Views
 
-5.0 Essays Module
-├── 5.1 & 5.2 Context Essay & Response Layouts
-└── 5.3 Long-form Blog & News Feed Pages
+5.0 Essays & Responses Module
+├── 5.1 Context Essay & Historiography Layouts
+└── 5.2 Challenge Response Layouts
 
-6.0 System Module
-├── 6.1 Admin Portal
-├── 6.2 Agent Logic & Instructional Prompts
-├── 6.3 Backend API, MCP Server & VPS Config
-└── 6.4 Security Protocols & JWT Management
+6.0 News & Blog Module
+├── 6.1 Combined News & Blog Landing Page
+├── 6.2 News Feed Page
+└── 6.3 Blog Feed Page
 
-7.0 Setup & Testing Module
-├── 7.1 Local Environment Initialization
-├── 7.2 Core Unit & Integration Testing
-└── 7.3 Architectural Documentation & Guides
+7.0 System Module
+├── 7.1 Admin Portal
+├── 7.2 Agent Logic & Instructional Prompts
+├── 7.3 Backend API, MCP Server & VPS Config
+└── 7.4 Security Protocols & JWT Management
+
+8.0 Setup & Testing Module
+├── 8.1 Local Environment Initialization
+├── 8.2 Core Unit & Integration Testing
+└── 8.3 Architectural Documentation & Guides
 ```

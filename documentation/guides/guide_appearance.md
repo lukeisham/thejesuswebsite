@@ -1,7 +1,7 @@
 ---
 name: guide_appearance.md
 purpose: Visual ASCII representations of the public-facing pages for "The Jesus Website"
-version: 1.1.0
+version: 1.2.0
 dependencies: [guide_dashboard_appearance.md, detailed_module_sitemap.md]
 ---
 
@@ -78,35 +78,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------------------------------------------------------+
 ```
 
-### 1.3 Internal Landing Page: News Feed
-**Purpose:** The entry point for the news and updates feed, showing side-by-side latest news and blog posts snippets.
-
-**Relevant Files:**
-- **HTML:** `frontend/pages/news_and_blog.html`
-- **CSS:** `css/elements/grid.css`
-- **JS:** `frontend/display_other/news_snippet_display.js`, `frontend/display_other/blog_snippet_display.js`
-
-```text
-+-------------------------------------------------------------------------+
-| [Invisible Header: Injects SEO, robots, and agent-specific metadata]    |
-|-------------------------------------------------------------------------|
-| SITE LOGO | [ Search Bar ] | [ Nav Links... ]                           |
-|-------------------------------------------------------------------------|
-|                     |                                                   |
-|  [Sidebar Nav]      |   The Jesus Website: [Records or Context etc]     |
-|                     |                                                   |
-|  - Records          |   +-------------------+  +--------------------+   |
-|  - Context          |   | [LATEST NEWS]     |  | [LATEST BLOGPOSTS] |   |
-|  - Resources        |   | - Snippet 1       |  | - Snippet 1        |   |
-|  - Debate           |   | - Snippet 2       |  | - Snippet 2        |   |
-|  - About            |   +-------------------+  +--------------------+   |
-|                     |                                                   |
-|-------------------------------------------------------------------------|
-|  [Universal Footer]                                                     |
-+-------------------------------------------------------------------------+
-```
-
-### 1.4 About Page
+### 1.3 About Page
 **Purpose:** The about page providing the tech stack, methodology, and contact information. Includes a sidebar for navigation and a single column for content.
 
 **Relevant Files:**
@@ -141,7 +113,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------------------------------------------------------+
 ```
 
-### 1.5 Universal Sticky Sidebar 
+### 1.4 Universal Sticky Sidebar & Search
 **Purpose:** Provides contextual navigation, filtering, or localized data (e.g., Table of Contents) without losing scroll position on long data views. (Appears on all pages except 'index.html' or 'Admin Portal' pages)
 
 **Relevant Files:**
@@ -169,7 +141,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------+
 ```
 
-#### 1.5.1 Sidebar — Technical Anatomy Mapping
+#### 1.4.1 Sidebar — Technical Anatomy Mapping
 **Purpose:** Documents the mapping between visual interface elements and their technical implementation in `sidebar.js` and `sidebar.css`.
 
 **Relevant Technical Files:**
@@ -192,7 +164,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 +----------------------+-----------------------------+------------------------------------+
 ```
 
-### 1.6 Universal Footer
+### 1.5 Universal Footer & Creative Commons
 **Purpose:** The universal footer that anchors the bottom of every readable page. Redesigned into a single horizontal strip for a more streamlined, modern aesthetic while maintaining accessibility and functional access to utility tools.
 
 **Relevant Files:**
@@ -206,14 +178,14 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-----------------------------------------------------------------------------------------+
 ```
 
-#### 1.6.1 Footer — Component Breakdown
+#### 1.5.1 Footer — Component Breakdown
 - **Legal & Branding (Left):** Displays site copyright, the Aleph/Omega branding icon (`assets/favicon.png`), and the CC BY-NC 4.0 license link.
 - **Utility Actions (Right):** Horizontal group of ghost buttons providing specialized Print and Copy functionality.
 - **Structural Behavior:** Leverages `justify-content: space-between` on a single-row flex container. Collapses to a centered vertical stack on screens below 800px.
 
 ---
 
-### 1.7 Picture
+### 1.6 Universal Image/Picture Layouts
 **Purpose:** Every picture is displaed with a lightweight thin line around that is longer at the base to include the caption aka 'picture label'. ***Note*** that Thumbnails do not follow this rule and only display the picture. (see `thumbnails_display.js`)
 
 **Relevant Files:**
@@ -230,7 +202,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------------------------------------------------------+
 ```
 
-### 1.8 Universal Header
+### 1.7 Universal Navigation Header
 **Purpose:** Managed by `header.js`, this component injects invisible SEO metadata and optionally a visible top header (Search Bar only) on pages that require global search access.
 
 **Relevant Files:**
@@ -244,7 +216,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------------------------------------------------------+
 ```
 
-#### 1.8.1 Search Header — Detailed Component Anatomy
+#### 1.7.1 Search Header — Detailed Component Anatomy
 **Purpose:** Documents the precise internal structure and layout behaviour of the visible search header bar injected by `search_header.js`. Renders only the search input — no site logo, no navigation links.
 
 **Relevant Files:**
@@ -301,7 +273,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 ---
 
-### 1.9 Branding & Icons
+### 1.8 Branding, Icons & Identity
 **Purpose:** Establishes the core visual identity of "The Jesus Website" through symbolic archetypes.
 
 **Primary Icon:** `assets/favicon.png`
@@ -318,7 +290,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 ---
 
-### 1.10 Truth through Typography
+### 1.9 Interactive Typography Standards
 **Purpose:** Establishes the authoritative "Technical Blueprint" aesthetic for all interactive controls (buttons, sliders, checkboxes, and toggles) across the codebase. This ensures consistency and prevents visual divergence.
 
 #### Interactive Elements Directory
@@ -338,6 +310,42 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 ## 2.0 Records Module
 **Scope:** SQLite Schema & Python Pipelines, Single record deep-dive views, Full list view, Searching & Filtering.
+
+### 2.1 Search Pipeline & Master Data Index
+**Purpose:** The primary entry point for browsing and searching all records. Displays a dynamically populated row-based list filtered by a search query or showing all records as a master index. The page reads the `search` URL parameter on load and queries the WASM SQLite engine for matching results.
+
+**Relevant Files:**
+- **HTML:** `frontend/pages/records.html`
+- **CSS:** `css/design_layouts/views/list_layout.css`, `css/elements/grid.css`
+- **JS:** `frontend/display_big/list_view.js`, `frontend/core/setup_db.js`, `frontend/core/sanitize_query.js`, `frontend/display_other/search_header.js`
+
+```text
++-------------------------------------------------------------------------+
+| [Invisible Header]                                                      |
+|-------------------------------------------------------------------------|
+| SITE LOGO | [ Search Bar ]                                              |
+|-------------------------------------------------------------------------|
+|                     |                                                   |
+|  [Sidebar]          |   MASTER DATA INDEX / SEARCH RESULTS              |
+|                     |                                                   |
+|                     |   Query: "peter" — 47 results                     |
+|                     |                                                   |
+|                     |   [Title]  | [Category] [Snippet] [Primary Verse]  |
+|                     |   [Title]  | [Category] [Snippet] [Primary Verse]  |
+|                     |   [Title]  | [Category] [Snippet] [Primary Verse]  |
+|                     |   [Title]  | [Category] [Snippet] [Primary Verse]  |
+|                     |   [Title]  | [Category] [Snippet] [Primary Verse]  |
+|                     |   [Title]  | [Category] [Snippet] [Primary Verse]  |
+|                     |   [Title]  | [Category] [Snippet] [Primary Verse]  |
+|                     |   [Title]  | [Category] [Snippet] [Primary Verse]  |
+|                     |                                                   |
+|  [Pagination]       |   [1] [2] [3] [4] [5] [6] [7] [8] [9] [10]        |
+|                     |                                                   |
+|                     |                                                   |
+|-------------------------------------------------------------------------|
+|  [Universal Footer]                                                     |
++-------------------------------------------------------------------------+
+```
 
 ### 2.2 Single Record Deep-Dive 
 **Purpose:** The detailed presentation for individual items from the database. Prioritizes dense data presentation including pictures, bibliography, and context links.
@@ -496,7 +504,7 @@ This document maintains visual ASCII blueprints for the various page templates d
     │           └── <text class="meta">      ← Record type/era
 ```
 
-### 3.2 Visual Interactive timeline Display 
+### 3.2 Visual Interactive Timeline Display 
 **Purpose:** Full-screen or large-canvas layouts for interactive timeline layout. 
 
 **Relevant Files:**
@@ -572,7 +580,7 @@ This document maintains visual ASCII blueprints for the various page templates d
     <a id="metadata-link">             ← Deep-link to record.html
 ```
 
-### 3.3 Visual Interactive Map Display
+### 3.3 Visual Interactive Geographic Maps
 **Purpose:** Interactive map layouts. 
 
 **Relevant Files:**
@@ -652,9 +660,9 @@ This document maintains visual ASCII blueprints for the various page templates d
 ---
 
 ## 4.0 Ranked Lists Module
-**Scope:** Ranked Wikipedia article lists, Ranked historical challenges.
+**Scope:** Ranked Wikipedia article lists (§4.1), Ranked historical challenge lists (§4.2).
 
-### 4.1 Standard List / Ranked Wikipedia view
+### 4.1 Ranked Wikipedia Views
 **Purpose:** Ranked listing of Wikipedia articles with sidebar for filters and a main list area.
 
 **Relevant Files:**
@@ -690,8 +698,8 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------------------------------------------------------+
 ```
 
-### 4.2 Standard List / Ranked View with Response Inserted
-**Purpose:** Special variant for challenge lists where a specific response record is inserted directly into the list flow for high context.
+### 4.2 Ranked Challenge Views
+**Purpose:** Ranked listing of historical challenges (academic and popular) where a specific response record is inserted directly into the list flow for high context.
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/debate/popular_challenge.html`, `frontend/pages/debate/academic_challenge.html`   
@@ -728,16 +736,16 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 ---
 
-## 5.0 Essays Module
-**Scope:** Context-Essay (Thematic context), Historiography, Blog/News, Responses.
+## 5.0 Essays & Responses Module
+**Scope:** Context-Essays & Historiography (§5.1), Challenge Responses (§5.2).
 
-### 5.1 & 5.2 Essay & Response Layout
-**Purpose:** High-readability typography layouts for long-form contextual essays, the historiographical essay, and challenge responses. Includes an abstract and author details.
+### 5.1 Context Essay & Historiography Layouts
+**Purpose:** High-readability typography layout for long-form contextual essays and the historiographical essay. Includes an abstract, author details, inline MLA citations, and a full bibliography.
 
 **Relevant Files:**
-- **HTML:** `frontend/pages/debate/historiography.html`, `frontend/pages/response.html`, `frontend/pages/context_essay.html`  
-- **CSS:** `css/design_layouts/views/essay_layout.css`, `css/design_layouts/views/response_layout.css`, `css/elements/grid.css`
-- **JS:** `frontend/display_big/view_historiography.js`, `frontend/display_other/mla_snippet_display.js`, `frontend/display_other/sources_biblio_display.js`, `frontend/display_other/display_snippet.js`, `frontend/display_big/response_display.js`
+- **HTML:** `frontend/pages/context_essay.html`, `frontend/pages/debate/historiography.html`
+- **CSS:** `css/design_layouts/views/essay_layout.css`, `css/elements/grid.css`
+- **JS:** `frontend/display_big/view_context_essays.js`, `frontend/display_big/view_historiography.js`, `frontend/display_other/mla_snippet_display.js`, `frontend/display_other/sources_biblio_display.js`, `frontend/display_other/display_snippet.js`
 
 ```text
 +-------------------------------------------------------------------------+
@@ -746,13 +754,12 @@ This document maintains visual ASCII blueprints for the various page templates d
 | SITE LOGO | [ Search Bar ] | [ LIST VIEW]                               |
 |-------------------------------------------------------------------------|
 |                     |                                                   |
-|  [Sidebar]          |   [ESSAY OR CHALLENGE TITLE]                      |
+|  [Sidebar]          |   [ESSAY TITLE]                                   |
 |                     |   [Optional subtitle]                             |
-|                     |   [PRIMARY VERSE /OR/ CHALLENGE]                  |
+|                     |   [PRIMARY VERSE]                                 |
 |                     |   By [Author], The Jesus Website [YEAR]           |
 |                     |   +--------------------------------------+        |
 |                     |   | Abstract:[SNIPPET]                   |        |
-|                     |   |                                      |        |
 |                     |   |                                      |        |
 |                     |   +--------------------------------------+        |
 |                     |                                                   |
@@ -760,15 +767,13 @@ This document maintains visual ASCII blueprints for the various page templates d
 |                     |   "Lorem ipsum dolor sit amet, consectetur        |
 |                     |   adipiscing elit. Mauris blandit aliquet elit,   |
 |                     |   eget tincidunt nibh pulvinar a..."              |
-|                     |   [Inline MLA Snippet]                   |
+|                     |   [Inline MLA Snippet]                            |
 |                     |                                                   |
 |  [Table of          |   +-------------------------------------------+   |
 |  Contents]          |   | [ Picture ]                               |   |
 |   - Section 1       |   |                                           |   |
 |   - Section 2       |   |                                           |   |
-|   - Section 3       |   |                                           |   |
-|   - Section 4       |   |                                           |   |
-|                     |   +-------------------------------------------+   |
+|   - Section 3       |   +-------------------------------------------+   |
 |                     |                                                   |
 |                     |    [BIBLIOGRAPHY]                                 |
 |                     |                                                   |
@@ -777,13 +782,60 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------------------------------------------------------+
 ```
 
-### 5.3 Blog or News Feed Pages
-**Purpose:** The dedicated feed page for either blogs or news items, displaying a vertical list of posts.
+### 5.2 Challenge Response Layouts
+**Purpose:** High-readability typography layout for individual challenge response pages. Shares the essay typography treatment but links back to the originating challenge and displays the challenge context alongside the response.
 
 **Relevant Files:**
-- **HTML:** `frontend/pages/news.html`, `frontend/pages/blog.html`
+- **HTML:** `frontend/pages/debate/response.html`
 - **CSS:** `css/design_layouts/views/response_layout.css`, `css/elements/grid.css`
-- **JS:** `frontend/display_big/list_blogpost.js`, `frontend/display_big/list_newsitem.js`
+- **JS:** `frontend/display_big/response_display.js`, `frontend/display_big/list_view_responses.js`, `frontend/display_other/mla_snippet_display.js`, `frontend/display_other/sources_biblio_display.js`
+
+```text
++-------------------------------------------------------------------------+
+| [Invisible Header]                                                      |
+|-------------------------------------------------------------------------|
+| SITE LOGO | [ Search Bar ] | [ LIST VIEW]                               |
+|-------------------------------------------------------------------------|
+|                     |                                                   |
+|  [Sidebar]          |   [CHALLENGE TITLE]                               |
+|                     |   [CHALLENGE CONTEXT]                             |
+|                     |   By [Author], The Jesus Website [YEAR]           |
+|                     |   +--------------------------------------+        |
+|                     |   | Abstract:[SNIPPET]                   |        |
+|                     |   |                                      |        |
+|                     |   +--------------------------------------+        |
+|                     |                                                   |
+|                     |   [Body Text - Premium Typography / Max-Width]    |
+|                     |   "Lorem ipsum dolor sit amet, consectetur        |
+|                     |   adipiscing elit. Mauris blandit aliquet elit,   |
+|                     |   eget tincidunt nibh pulvinar a..."              |
+|                     |   [Inline MLA Snippet]                            |
+|                     |                                                   |
+|  [Table of          |   +-------------------------------------------+   |
+|  Contents]          |   | [ Picture ]                               |   |
+|   - Section 1       |   |                                           |   |
+|   - Section 2       |   |                                           |   |
+|   - Section 3       |   +-------------------------------------------+   |
+|                     |                                                   |
+|                     |    [BIBLIOGRAPHY]                                 |
+|                     |                                                   |
+|-------------------------------------------------------------------------|
+|  [Universal Footer]                                                     |
++-------------------------------------------------------------------------+
+```
+
+---
+
+## 6.0 News & Blog Module
+**Scope:** Combined News & Blog Landing Page (§6.1), News Feed (§6.2), Blog Feed (§6.3).
+
+### 6.1 Combined News & Blog Landing Page
+**Purpose:** The combined entry point for news and blog content. Shows the latest snippets from both feeds side-by-side, with a link at the bottom of each column directing users to the dedicated full feed.
+
+**Relevant Files:**
+- **HTML:** `frontend/pages/news_and_blog.html`
+- **CSS:** `css/elements/grid.css`
+- **JS:** `frontend/display_other/news_snippet_display.js`, `frontend/display_other/blog_snippet_display.js`
 
 ```text
 +-------------------------------------------------------------------------+
@@ -792,20 +844,130 @@ This document maintains visual ASCII blueprints for the various page templates d
 | SITE LOGO | [ Search Bar ] | [ Nav Links... ]                           |
 |-------------------------------------------------------------------------|
 |                     |                                                   |
-|  [Sidebar Nav]      |   The Jesus Website: [Records or Context etc]     |
+|  [Sidebar Nav]      |   The Jesus Website: News & Blog                  |
+|                     |                                                   |
+|  - Records          |   +-------------------+  +--------------------+   |
+|  - Context          |   | [LATEST NEWS]     |  | [LATEST BLOGPOSTS] |   |
+|  - Resources        |   | - Snippet 1       |  | - Snippet 1        |   |
+|  - Debate           |   | - Snippet 2       |  | - Snippet 2        |   |
+|  - About            |   | - Snippet 3       |  | - Snippet 3        |   |
+|                     |   | View all news →   |  | View all posts →   |   |
+|                     |   +-------------------+  +--------------------+   |
+|                     |                                                   |
+|-------------------------------------------------------------------------|
+|  [Universal Footer]                                                     |
++-------------------------------------------------------------------------+
+```
+
+#### 6.1.1 Combined News & Blog Landing Page — Component Anatomy
+**Purpose:** Documents the internal DOM structure of `news_and_blog.html`, including the two-column snippet grid and the per-column "view all" navigation links.
+
+**Relevant Technical Files:**
+- **Structure:** `frontend/pages/news_and_blog.html`
+- **Logic:** `frontend/display_other/news_snippet_display.js`, `frontend/display_other/blog_snippet_display.js`
+- **Styles:** `css/elements/grid.css`
+
+**HTML DOM Structure:**
+```text
+<main class="site-main" id="site-main">
+└── <div class="news-blog-landing">
+    │
+    ├── <section class="news-blog-landing__col news-blog-landing__col--news">
+    │   ├── <h2>Latest News</h2>
+    │   ├── <ul class="news-snippet-list">        ← rendered by news_snippet_display.js
+    │   │   ├── <li class="news-snippet-item">    ← one per news_items entry
+    │   │   │   ├── <span class="snippet-date">   ← Publish Date
+    │   │   │   ├── <h3 class="snippet-headline"> ← Headline
+    │   │   │   └── <p class="snippet-body">      ← Snippet body
+    │   │   └── (repeats…)
+    │   └── <a class="news-blog-landing__view-all" href="/frontend/pages/news.html">
+    │           View all news →
+    │
+    └── <section class="news-blog-landing__col news-blog-landing__col--blog">
+        ├── <h2>Latest Blog Posts</h2>
+        ├── <ul class="blog-snippet-list">        ← rendered by blog_snippet_display.js
+        │   ├── <li class="blog-snippet-item">    ← one per blogposts entry
+        │   │   ├── <span class="snippet-date">   ← Publish Date
+        │   │   ├── <h3 class="snippet-title">    ← Title
+        │   │   └── <p class="snippet-body">      ← Body excerpt
+        │   └── (repeats…)
+        └── <a class="news-blog-landing__view-all" href="/frontend/pages/blog.html">
+                View all posts →
+```
+
+**Layout Behaviour:**
+- Two columns sit side-by-side on desktop (above 800px) using a two-column CSS grid
+- Below 800px the columns stack vertically, News above Blog
+- Both "view all" links are the same `.news-blog-landing__view-all` class — a minimal inline text link styled consistently with the site's ghost-link pattern
+
+---
+
+### 6.2 News Feed Page
+**Purpose:** The dedicated full feed for news items, displaying a vertical chronological list of news posts.
+
+**Relevant Files:**
+- **HTML:** `frontend/pages/news.html`
+- **CSS:** `css/design_layouts/views/response_layout.css`, `css/elements/grid.css`
+- **JS:** `frontend/display_big/list_newsitem.js`
+
+```text
++-------------------------------------------------------------------------+
+| [Invisible Header: Injects SEO, robots, and agent-specific metadata]    |
+|-------------------------------------------------------------------------|
+| SITE LOGO | [ Search Bar ] | [ Nav Links... ]                           |
+|-------------------------------------------------------------------------|
+|                     |                                                   |
+|  [Sidebar Nav]      |   The Jesus Website: News                         |
 |                     |                                                   |
 |  - Records          |   +-------------------------------------------+   |
-|  - Context          |   |       [POST: either News or Blog]         |   |
-|  - Resources        |   |                                           |   |
-|  - Debate           |   +-------------------------------------------+   |
-|  - About            |                                                   |
+|  - Context          |   | [Headline]        [Publish Date]          |   |
+|  - Resources        |   | [Snippet body]                            |   |
+|  - Debate           |   | [External link →]                         |   |
+|  - About            |   +-------------------------------------------+   |
+|                     |                                                   |
 |                     |   +-------------------------------------------+   |
-|                     |   |       [POST: either News or Blog]         |   |
+|                     |   | [Headline]        [Publish Date]          |   |
+|                     |   | [Snippet body]                            |   |
+|                     |   | [External link →]                         |   |
 |                     |   +-------------------------------------------+   |
 |                     |                                                   |
 |-------------------------------------------------------------------------|
 |  [Universal Footer]                                                     |
 +-------------------------------------------------------------------------+
 ```
-xes with contrasting selected states and cross-hatching or distinct border logic. | `css/elements/forms.css` |
-| **Toggle Switches** | `.toggle-switch__input`, `.toggle-switch__slider` | Dual-state visual logic switches relying on precise before/after pseudo-element translation. | `css/elements/forms.css` |
+
+---
+
+### 6.3 Blog Feed Page
+**Purpose:** The dedicated full feed for blog posts, displaying a vertical list of authored posts.
+
+**Relevant Files:**
+- **HTML:** `frontend/pages/blog.html`
+- **CSS:** `css/design_layouts/views/response_layout.css`, `css/elements/grid.css`
+- **JS:** `frontend/display_big/list_blogpost.js`
+
+```text
++-------------------------------------------------------------------------+
+| [Invisible Header: Injects SEO, robots, and agent-specific metadata]    |
+|-------------------------------------------------------------------------|
+| SITE LOGO | [ Search Bar ] | [ Nav Links... ]                           |
+|-------------------------------------------------------------------------|
+|                     |                                                   |
+|  [Sidebar Nav]      |   The Jesus Website: Blog                         |
+|                     |                                                   |
+|  - Records          |   +-------------------------------------------+   |
+|  - Context          |   | [Title]           [Publish Date]          |   |
+|  - Resources        |   | By [Author]                               |   |
+|  - Debate           |   | [Body excerpt]                            |   |
+|  - About            |   +-------------------------------------------+   |
+|                     |                                                   |
+|                     |   +-------------------------------------------+   |
+|                     |   | [Title]           [Publish Date]          |   |
+|                     |   | By [Author]                               |   |
+|                     |   | [Body excerpt]                            |   |
+|                     |   +-------------------------------------------+   |
+|                     |                                                   |
+|-------------------------------------------------------------------------|
+|  [Universal Footer]                                                     |
++-------------------------------------------------------------------------+
+```
