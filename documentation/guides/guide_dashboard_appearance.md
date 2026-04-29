@@ -15,7 +15,7 @@ Each section includes a **DB Fields** block listing the exact column names from 
 
 ---
 
-## Layout Convention — Providence 3-Column Pattern (Dashboard Shell)
+## 0.1 Layout Convention — Providence 3-Column Pattern (Dashboard Shell)
 
 **Purpose:** Defines the editor layout shell inherited by every dashboard editor module. This is the shared architectural frame — a 3-column Providence-style grid with a section tab bar — that all editor modules render inside. Each editor module applies `.providence-editor-grid` to inherit this shell. The shell provides structure; each module fills it with fields, controls, and data.
 
@@ -27,7 +27,7 @@ The shell layout is as follows:
 +------------------------------------------------------------------+
 | [ Tab: Section A ] [ Tab: Section B (active) ] [ Tab: Section C ]|  ← TOP BAR
 |------------------------------------------------------------------|
-| COL 1 (narrow)    | COL 2 (medium, optional) | COL 3 (widest)   |
+| COL 1 (narrow)    | COL 2 (medium, optional) | COL 3 (widest)    |
 |                   |                          |                   |
 | Section-specific  | Sub-fields, secondary    | Data being edited |
 | buttons & fields  | controls, metadata       | or viewed         |
@@ -39,9 +39,9 @@ The shell layout is as follows:
 
 **Column rules:**
 - **Top bar** — tabs navigate between major sections of the module; the active tab is marked `[Active]`
-- **Column 1** — action buttons (Save, Discard, Delete) and the primary field or control unique to this section
-- **Column 2** — optional; used when a section has sub-fields, secondary metadata, or a filter/search control that warrants separation from the canvas
-- **Column 3** — always the widest; contains the main data entry surface (form fields, tables, tree views, editors, or live previews)
+- **Column 1** — action buttons (Save, Discard, Delete) and the primary field or control unique to this section = `.providence-editor-col-actions`
+- **Column 2** — optional; used when a section has sub-fields, secondary metadata, or a filter/search control that warrants separation from the canvas = `.providence-editor-col-list`
+- **Column 3** — always the widest; contains the main data entry surface (form fields, tables, tree views, editors, or live previews) = `.providence-editor-col-editor`
 
 > **CSS implementation:** The grid pattern above is implemented as the `.providence-editor-grid` CSS class in `dashboard_admin.css`. Editor modules that want the 3-column layout apply this class to their container, with child columns using `.providence-editor-col-actions`, `.providence-editor-col-list`, and `.providence-editor-col-editor`. The Blog Editor (see §6.2) uses `.blog-editor-grid` as a backward-compatible alias.
 >
@@ -51,7 +51,7 @@ The shell layout is as follows:
 
 ---
 
-## Field Ownership Map
+## 0.2 Field Ownership Map
 
 Quick-reference index showing which dashboard section owns each `records` column.
 
@@ -785,4 +785,3 @@ System-managed fields (never manually edited in any dashboard section):
 | [ Return to Site ]     |                                    |                                |
 +----------------------------------------------------------------------------------------------+
 ```
-

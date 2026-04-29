@@ -106,10 +106,10 @@ window.renderEditBlogpost = async function (containerId) {
     var root = document.getElementById("blog-editor-root");
     if (!root) return;
 
-    var html = '<div class="blog-editor-grid">';
+    var html = '<div class="providence-editor-grid">';
 
-    // ---- COL 1: Action Buttons ----
-    html += '<div class="blog-editor-col-actions">';
+    // ---- column_one: Action Buttons ----
+    html += '<div class="providence-editor-col-actions">';
     html +=
       '<button class="blog-editor-action-btn" id="blog-btn-save">Save Post</button>';
     html +=
@@ -120,8 +120,8 @@ window.renderEditBlogpost = async function (containerId) {
       '<button class="blog-editor-action-btn" id="blog-btn-new">+ New Post</button>';
     html += "</div>";
 
-    // ---- COL 2: Existing Posts List ----
-    html += '<div class="blog-editor-col-list">';
+    // ---- column_two: Existing Posts List ----
+    html += '<div class="providence-editor-col-list">';
     html += '<p class="blog-editor-list-heading">Existing Posts</p>';
 
     if (blogPosts.length === 0) {
@@ -156,7 +156,7 @@ window.renderEditBlogpost = async function (containerId) {
     }
     html += "</div>";
 
-    // ---- COL 3: Editor Form ----
+    // ---- column_three: Editor Form ----
     var currentPost = null;
     if (selectedPostId) {
       for (var i = 0; i < blogPosts.length; i++) {
@@ -167,7 +167,7 @@ window.renderEditBlogpost = async function (containerId) {
       }
     }
 
-    html += '<div class="blog-editor-col-editor">';
+    html += '<div class="providence-editor-col-editor">';
 
     // Publish Date
     html += '<div class="blog-editor-field">';
@@ -216,12 +216,12 @@ window.renderEditBlogpost = async function (containerId) {
     html += "</div>";
 
     html += "</div>"; // end .blog-editor-split
-    html += "</div>"; // end .blog-editor-col-editor
-    html += "</div>"; // end .blog-editor-grid
+    html += "</div>"; // end .providence-editor-col-editor
+    html += "</div>"; // end .providence-editor-grid
 
     root.innerHTML = html;
 
-    // ----- Wire COL 2: Post list selection -----
+    // ----- Wire column_two: Post list selection -----
     root.querySelectorAll("[data-action='edit']").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var postId = this.getAttribute("data-post-id");
@@ -233,7 +233,7 @@ window.renderEditBlogpost = async function (containerId) {
       });
     });
 
-    // ----- Wire COL 2: Delete from list -----
+    // ----- Wire column_two: Delete from list -----
     root.querySelectorAll("[data-action='delete']").forEach(function (btn) {
       btn.addEventListener("click", async function () {
         var postId = this.getAttribute("data-post-id");
@@ -265,7 +265,7 @@ window.renderEditBlogpost = async function (containerId) {
       });
     });
 
-    // ----- Wire COL 3: Live preview on body input -----
+    // ----- Wire column_three: Live preview on body input -----
     var bodyField = document.getElementById("blog-field-body");
     var previewPane = document.getElementById("blog-preview-pane");
     if (bodyField && previewPane) {
@@ -277,11 +277,11 @@ window.renderEditBlogpost = async function (containerId) {
     }
 
     // Wire save, discard, delete, new buttons
-    wireCol1Buttons();
+    wireColumnOneButtons();
   }
 
-  // ----- Wire COL 1 action buttons -----
-  function wireCol1Buttons() {
+  // ----- Wire column_one action buttons -----
+  function wireColumnOneButtons() {
     // Save button
     var saveBtn = document.getElementById("blog-btn-save");
     if (saveBtn) {

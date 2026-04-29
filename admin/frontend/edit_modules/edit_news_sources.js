@@ -24,7 +24,7 @@ window.renderEditNewsSources = async function (containerId) {
   container.innerHTML =
     '<div class="admin-card" id="edit-news-sources-card">' +
     '<div class="providence-editor-grid">' +
-    "<!-- COL 1: Action buttons + Add form -->" +
+    "<!-- column_one: Action buttons + Add form -->" +
     '<div class="providence-editor-col-actions">' +
     '<button class="blog-editor-action-btn" id="news-sources-save-btn">Save All Sources</button>' +
     '<div class="is-hidden news-sources-add-form" id="news-sources-add-form-section">' +
@@ -44,7 +44,7 @@ window.renderEditNewsSources = async function (containerId) {
     '<button class="blog-editor-action-btn news-sources-add-btn" id="news-sources-add-btn">+ Add Source</button>' +
     "</div>" +
     "</div>" +
-    "<!-- COL 2: Field documentation -->" +
+    "<!-- column_two: Field documentation -->" +
     '<div class="providence-editor-col-list">' +
     '<p class="blog-editor-list-heading">Source Fields</p>' +
     '<div class="blog-editor-field">' +
@@ -60,7 +60,7 @@ window.renderEditNewsSources = async function (containerId) {
     '<label class="blog-editor-field-label">record_slug</label>' +
     "</div>" +
     "</div>" +
-    "<!-- COL 3: Search + Table -->" +
+    "<!-- column_three: Search + Table -->" +
     '<div class="providence-editor-col-editor">' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="news-sources-search-input" placeholder="Search sources by label, URL, or record slug…">' +

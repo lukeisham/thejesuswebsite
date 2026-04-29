@@ -26,13 +26,13 @@ window.renderEditLists = function (containerId, listName) {
   var html =
     '<div class="admin-card" id="edit-lists-card">\n' +
     '  <div class="providence-editor-grid">\n' +
-    "    <!-- COL 1: Action buttons -->\n" +
+    "    <!-- column_one: Action buttons -->\n" +
     '    <div class="providence-editor-col-actions">\n' +
     '      <button class="blog-editor-action-btn btn-save-list" id="btn-save-list" type="button">Save List</button>\n' +
     '      <div id="lists-save-status" class="status-feedback is-hidden lists-save-status"></div>\n' +
     "    </div>\n" +
     "\n" +
-    "    <!-- COL 2: List metadata (read-only) -->\n" +
+    "    <!-- column_two: List metadata (read-only) -->\n" +
     '    <div class="providence-editor-col-list">\n' +
     '      <p class="blog-editor-list-heading">List Info</p>\n' +
     '      <div class="blog-editor-field">\n' +
@@ -43,7 +43,7 @@ window.renderEditLists = function (containerId, listName) {
     "      </div>\n" +
     "    </div>\n" +
     "\n" +
-    "    <!-- COL 3: Current items + bulk add tools -->\n" +
+    "    <!-- column_three: Current items + bulk add tools -->\n" +
     '    <div class="providence-editor-col-editor">\n' +
     "      <!-- Search Records Explorer -->\n" +
     '      <div class="blog-editor-field">\n' +

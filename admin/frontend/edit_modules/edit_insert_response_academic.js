@@ -19,15 +19,15 @@ window.renderEditInsertResponseAcademic = function (containerId) {
   container.innerHTML = `
         <div class="admin-card" id="edit-insert-response-academic-card">
             <div class="providence-editor-grid">
-                <!-- COL 1: Action buttons -->
+                <!-- column_one: Action buttons -->
                 <div class="providence-editor-col-actions">
                     <button class="blog-editor-action-btn" id="insert-academic-save-btn">Save Insertion</button>
                 </div>
 
-                <!-- COL 2: (empty — reserved for future use) -->
+                <!-- column_two: (empty — reserved for future use) -->
                 <div class="providence-editor-col-list"></div>
 
-                <!-- COL 3: Insert form -->
+                <!-- column_three: Insert form -->
                 <div class="providence-editor-col-editor">
                     <div class="insert-response-desc">Select an academic debate challenge and link a response essay to insert into the ranked list.</div>
 

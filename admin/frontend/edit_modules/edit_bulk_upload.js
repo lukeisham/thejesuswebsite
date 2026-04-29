@@ -95,7 +95,7 @@ window.renderBulkUpload = function (containerId) {
   var html =
     '        <div class="admin-card" id="bulk-upload-card">\n' +
     '            <div class="providence-editor-grid">\n' +
-    "                <!-- COL 1: Nav links + Required-field list -->\n" +
+    "                <!-- column_one: Nav links + Required-field list -->\n" +
     '                <div class="providence-editor-col-actions">\n' +
     '                    <button class="blog-editor-action-btn" data-module="records-edit">&#8592; Back to Records</button>\n' +
     '                    <button class="blog-editor-action-btn" data-module="records-new">+ New Record (manual)</button>\n' +
@@ -109,7 +109,7 @@ window.renderBulkUpload = function (containerId) {
     "                    </div>\n" +
     "                </div>\n" +
     "\n" +
-    "                <!-- COL 2: Optional-field documentation -->\n" +
+    "                <!-- column_two: Optional-field documentation -->\n" +
     '                <div class="providence-editor-col-list">\n' +
     '                    <p class="blog-editor-list-heading">Optional CSV Fields</p>\n' +
     '                    <div class="blog-editor-field">\n' +
@@ -138,7 +138,7 @@ window.renderBulkUpload = function (containerId) {
     "                    </div>\n" +
     "                </div>\n" +
     "\n" +
-    "                <!-- COL 3: Drop zone + Validation + Upload controls -->\n" +
+    "                <!-- column_three: Drop zone + Validation + Upload controls -->\n" +
     '                <div class="providence-editor-col-editor">\n' +
     '                    <h3 class="font-serif bulk-upload-title">Upload Database Records</h3>\n' +
     "                    <p class=\"font-body text-sm bulk-upload-subtitle\">Select or drag and drop a valid CSV file (max 5MB). Must include 'title' and 'slug' columns.</p>\n" +
@@ -177,9 +177,9 @@ window.renderBulkUpload = function (containerId) {
     "                        </ul>\n" +
     "                    </div>\n" +
     "\n" +
-    '                    <footer class="admin-action-bar upload-action-bar bulk-upload-footer">\n' +
-    '                        <button id="upload-submit-btn" class="btn-primary" disabled>Start Upload</button>\n' +
-    "                    </footer>\n" +
+    "                    <div>\n" +
+    '                        <button id="upload-submit-btn" class="blog-editor-action-btn" disabled>Start Upload</button>\n' +
+    "                    </div>\n" +
     "                </div>\n" +
     "            </div>\n" +
     "        </div>";

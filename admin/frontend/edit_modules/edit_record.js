@@ -186,7 +186,7 @@ window.renderEditRecord = function (containerId, recordId = null) {
   var html =
     '        <div class="admin-card" id="edit-record-card">\n' +
     '            <div class="providence-editor-grid">\n' +
-    "                <!-- COL 1: Action buttons + Picture upload -->\n" +
+    "                <!-- column_one: Action buttons + Picture upload -->\n" +
     '                <div class="providence-editor-col-actions">\n' +
     '                    <h3 class="section-heading-serif record-actions-heading">Actions</h3>\n' +
     '                    <button class="blog-editor-action-btn" id="btn-save-record">Save Changes</button>\n' +
@@ -201,7 +201,7 @@ window.renderEditRecord = function (containerId, recordId = null) {
     '                    <div id="picture-upload-container" class="child-module-slot record-child-slot"></div>\n' +
     "                </div>\n" +
     "\n" +
-    "                <!-- COL 2: Core Identifiers + Taxonomy + Verses -->\n" +
+    "                <!-- column_two: Core Identifiers + Taxonomy + Verses -->\n" +
     '                <div class="providence-editor-col-list">\n' +
     '                    <section id="core-identifiers">\n' +
     '                        <p class="blog-editor-list-heading">Core Identifiers</p>\n' +
@@ -340,7 +340,7 @@ window.renderEditRecord = function (containerId, recordId = null) {
     "                    </section>\n" +
     "                </div>\n" +
     "\n" +
-    "                <!-- COL 3: Text Content + Bibliography + Misc + Links + Sources -->\n" +
+    "<!-- column_three: Text Content + Bibliography + Misc + Links + Sources -->\n" +
     '                <div class="providence-editor-col-editor">\n' +
     '                    <section id="text-content">\n' +
     '                        <p class="blog-editor-list-heading">Text Content</p>\n' +

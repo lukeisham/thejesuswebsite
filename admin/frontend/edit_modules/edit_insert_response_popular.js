@@ -45,15 +45,15 @@ window.renderEditInsertResponsePopular = function (containerId) {
   container.innerHTML = `
         <div class="admin-card" id="edit-insert-response-popular-card">
             <div class="providence-editor-grid">
-                <!-- COL 1: Action buttons -->
+                <!-- column_one: Action buttons -->
                 <div class="providence-editor-col-actions">
                     <button class="blog-editor-action-btn" id="irp-save-all">Save All</button>
                 </div>
 
-                <!-- COL 2: (empty — reserved for future use) -->
+                <!-- column_two: (empty — reserved for future use) -->
                 <div class="providence-editor-col-list"></div>
 
-                <!-- COL 3: Challenge list + Add form -->
+                <!-- column_three: Challenge list + Add form -->
                 <div class="providence-editor-col-editor">
                     <div class="insert-response-desc">Browse popular challenges and insert, remove, or edit response links.</div>
 

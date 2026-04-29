@@ -35,18 +35,18 @@ window.renderEditMlaSources = async function (containerId) {
   container.innerHTML =
     '<div class="admin-card" id="edit-mla-sources-card">' +
     '<div class="providence-editor-grid">' +
-    "<!-- COL 1: Action buttons -->" +
+    "<!-- column_one: Action buttons -->" +
     '<div class="providence-editor-col-actions">' +
     '<button class="blog-editor-action-btn" id="mla-save-all-btn">Save All</button>' +
     "</div>" +
-    "<!-- COL 2: Search / filter -->" +
+    "<!-- column_two: Search / filter -->" +
     '<div class="providence-editor-col-list">' +
     '<p class="blog-editor-list-heading">Filter Records</p>' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="mla-search-input" placeholder="Filter by Record Title or Slug…">' +
     "</div>" +
     "</div>" +
-    "<!-- COL 3: MLA record cards -->" +
+    "<!-- column_three: MLA record cards -->" +
     '<div class="providence-editor-col-editor">' +
     '<div class="loading-placeholder" id="mla-loading-indicator">Loading MLA bibliography records…</div>' +
     '<div id="mla-records-container"></div>' +

@@ -19,12 +19,12 @@ window.renderEditNewsSnippet = function (containerId) {
   container.innerHTML = `
         <div class="admin-card" id="edit-news-snippet-card">
             <div class="providence-editor-grid">
-                <!-- COL 1: Action buttons -->
+                <!-- column_one: Action buttons -->
                 <div class="providence-editor-col-actions">
                     <button class="blog-editor-action-btn" id="news-snippet-save-btn">Save Snippet</button>
                 </div>
 
-                <!-- COL 2: Field documentation -->
+                <!-- column_two: Field documentation -->
                 <div class="providence-editor-col-list">
                     <p class="blog-editor-list-heading">Snippet Fields</p>
                     <div class="blog-editor-field">
@@ -41,7 +41,7 @@ window.renderEditNewsSnippet = function (containerId) {
                     </div>
                 </div>
 
-                <!-- COL 3: Snippet form -->
+                <!-- column_three: Snippet form -->
                 <div class="providence-editor-col-editor">
                     <div class="blog-editor-field">
                         <label class="blog-editor-field-label">Publish Date</label>

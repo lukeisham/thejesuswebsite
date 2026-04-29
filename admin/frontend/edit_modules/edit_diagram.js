@@ -23,13 +23,13 @@ window.renderEditDiagram = async function (containerId) {
   container.innerHTML =
     '<div class="admin-card" id="edit-diagram-card">' +
     '<div class="providence-editor-grid">' +
-    "<!-- COL 1: Action buttons -->" +
+    "<!-- column_one: Action buttons -->" +
     '<div class="providence-editor-col-actions">' +
     '<button class="quick-action-btn btn-save-diagram" id="save-diagram-btn">Save Graph</button>' +
     "</div>" +
-    "<!-- COL 2: Reserved for orphan inventory (built in T5) -->" +
+    "<!-- column_two: Reserved for orphan inventory (built in T5) -->" +
     '<div class="providence-editor-col-list" id="diagram-orphan-col"></div>' +
-    "<!-- COL 3: Search + tree -->" +
+    "<!-- column_three: Search + tree -->" +
     '<div class="providence-editor-col-editor">' +
     '<div class="diagram-search-section">' +
     '<input type="text" id="diagram-search-input" class="admin-search-input diagram-search-input" placeholder="Search nodes…">' +

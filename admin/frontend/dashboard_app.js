@@ -230,19 +230,19 @@ async function loadModule(moduleName) {
         canvas.innerHTML = `
                     <div class="admin-card" id="records-list-card">
                         <div class="providence-editor-grid">
-                            <!-- COL 1: Action buttons -->
+                            <!-- column_one: Action buttons -->
                             <div class="providence-editor-col-actions">
                                 <button class="blog-editor-action-btn" data-module="records-new">+ New Record</button>
                                 <button class="blog-editor-action-btn" data-module="records-bulk">Bulk Upload CSV</button>
                             </div>
 
-                            <!-- COL 2: Reserved for future metadata use -->
+                            <!-- column_two: Reserved for future metadata use -->
                             <div class="providence-editor-col-list">
                                 <p class="blog-editor-list-heading">Records Overview</p>
                                 <p class="text-sm text-muted">${totalText}</p>
                             </div>
 
-                            <!-- COL 3: Search + paginated table -->
+                            <!-- column_three: Search + paginated table -->
                             <div class="providence-editor-col-editor">
                                 <div class="search-container">
                                     <input type="text" id="records-search-input" class="admin-search-input"
@@ -306,7 +306,7 @@ async function loadModule(moduleName) {
           );
         }
 
-        // Wire COL 1 action buttons (New Record, Bulk Upload)
+        // Wire column_one action buttons (New Record, Bulk Upload)
         canvas
           .querySelectorAll(".providence-editor-col-actions [data-module]")
           .forEach(function (btn) {

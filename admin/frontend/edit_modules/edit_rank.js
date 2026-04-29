@@ -18,13 +18,13 @@ window.renderEditRank = function (containerId) {
   const html = `
         <div class="admin-card" id="edit-rank-card">
             <div class="providence-editor-grid">
-                <!-- COL 1: Action buttons -->
+                <!-- column_one: Action buttons -->
                 <div class="providence-editor-col-actions">
                     <button class="blog-editor-action-btn" id="rank-save-btn">Save</button>
                     <button class="blog-editor-action-btn is-danger" id="rank-delete-btn">Delete Row</button>
                 </div>
 
-                <!-- COL 2: Field documentation -->
+                <!-- column_two: Field documentation -->
                 <div class="providence-editor-col-list">
                     <p class="blog-editor-list-heading">Override Fields</p>
                     <div class="blog-editor-field">
@@ -41,7 +41,7 @@ window.renderEditRank = function (containerId) {
                     </div>
                 </div>
 
-                <!-- COL 3: Rank override form -->
+                <!-- column_three: Rank override form -->
                 <div class="providence-editor-col-editor">
                     <p class="text-muted rank-description">Select a specific record to forcefully lock its rank across algorithmic pipelines.</p>
 

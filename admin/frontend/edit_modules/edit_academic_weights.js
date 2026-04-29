@@ -22,11 +22,11 @@ window.renderEditAcademicWeights = async function (containerId) {
   container.innerHTML =
     '<div class="admin-card" id="edit-academic-weights-card">' +
     '<div class="providence-editor-grid">' +
-    "<!-- COL 1: Action buttons -->" +
+    "<!-- column_one: Action buttons -->" +
     '<div class="providence-editor-col-actions">' +
     '<button class="blog-editor-action-btn" id="academic-save-btn">Save All Changes</button>' +
     "</div>" +
-    "<!-- COL 2: Field documentation -->" +
+    "<!-- column_two: Field documentation -->" +
     '<div class="providence-editor-col-list">' +
     '<p class="blog-editor-list-heading">WRITE Fields</p>' +
     '<div class="blog-editor-field">' +
@@ -42,7 +42,7 @@ window.renderEditAcademicWeights = async function (containerId) {
     '<label class="blog-editor-field-label">academic_challenge_weight</label>' +
     "</div>" +
     "</div>" +
-    "<!-- COL 3: Weights table -->" +
+    "<!-- column_three: Weights table -->" +
     '<div class="providence-editor-col-editor">' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="academic-search-input" placeholder="Search by Record Slug…">' +

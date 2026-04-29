@@ -19,7 +19,7 @@ window.renderEditHistoriography = function (containerId) {
   const html = `
         <div class="admin-card" id="edit-historiography-card">
             <div class="providence-editor-grid">
-                <!-- COL 1: Action buttons + Metadata fields -->
+                <!-- column_one: Action buttons + Metadata fields -->
                 <div class="providence-editor-col-actions">
                     <button class="blog-editor-action-btn" id="hist-save-btn">Save Changes</button>
 
@@ -39,7 +39,7 @@ window.renderEditHistoriography = function (containerId) {
                     </div>
                 </div>
 
-                <!-- COL 2: Markdown textarea (write pane) -->
+                <!-- column_two: Markdown textarea (write pane) -->
                 <div class="providence-editor-col-list">
                     <div class="blog-editor-textarea-pane">
                         <label class="blog-editor-pane-label">Markdown (Edit)</label>
@@ -47,7 +47,7 @@ window.renderEditHistoriography = function (containerId) {
                     </div>
                 </div>
 
-                <!-- COL 3: Live preview pane -->
+                <!-- column_three: Live preview pane -->
                 <div class="providence-editor-col-editor">
                     <div class="blog-editor-textarea-pane">
                         <label class="blog-editor-pane-label is-preview">Live Preview (Auto-updates)</label>
