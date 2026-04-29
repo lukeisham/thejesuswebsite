@@ -24,6 +24,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from auth_utils import AuthUtils
 
+from backend.middleware.logger_setup import setup_logger
+
+# Initialize central logging to /logs
+logger = setup_logger(__file__)
+
 from backend.middleware.rate_limiter import RateLimiterMiddleware
 from backend.pipelines.image_processor import process_uploaded_png
 
@@ -316,7 +321,7 @@ async def upload_record_picture(
         processed = process_uploaded_png(raw_bytes)
 
         # Sanitise filename
-        picture_name = pathlib.Path(file.filename).name
+        picture_name = pathlib.Path(file.filename or "upload.png").name
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -579,7 +584,7 @@ async def bulk_upload_records(
     """
     Handles CSV upload, parses, validates, and bulk inserts into the database.
     """
-    if not file.filename.endswith(".csv"):
+    if not file.filename or not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
 
     # Read and parse CSV
@@ -594,6 +599,7 @@ async def bulk_upload_records(
         text_content = content.decode("utf-8-sig")
         reader = csv.DictReader(io.StringIO(text_content))
     except Exception as e:
+        logger.error(f"CSV bulk upload failed: {e}")
         raise HTTPException(
             status_code=400,
             detail="Failed to parse CSV file: Invalid encoding or format",

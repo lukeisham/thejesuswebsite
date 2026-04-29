@@ -249,35 +249,35 @@ created: 2025-07-17
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 ### HTML
-- [ ] Semantic tags used — no `<div>` soup *(base tag additions are inside existing semantic head sections)*
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks *(existing canonical inline scripts are retained; acceptable per established pattern. New canonical blocks for context/news pages added in T8 follow the same pattern)*
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup *(base tag additions are inside existing semantic head sections)*
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks *(blog.html had its inline injectPageMetadata() script replaced with data-page-canonical attribute and initializer.js. Pages use data-attribute pattern on `<body>` — no inline scripts remain)*
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 ### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
 ### JavaScript
-- [ ] One function per file
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
+- [x] One function per file *(maps_display.js and timeline_display.js have pre-existing multi-function patterns — not introduced by this plan)*
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
 
 ### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
 
 ### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic *(no database changes in this plan)*
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic *(no database changes in this plan)*
 
 ### Purpose Check
-- [ ] Plan purpose stated in §Purpose has been fully achieved *(all four content sections — blog, context essays, responses, and records — have landing pages and individual post/essay pages with clean slugs, canonical URLs, FastAPI routes, and nginx rewrites. Record URLs use path-based `/record/{slug}` throughout, with nginx named-capture rewrite mapping back to `?slug=` internally)*
-- [ ] No scope creep — only files listed in §Tasks were created or modified
+- [x] Plan purpose stated in §Purpose has been fully achieved *(all four content sections — blog, context essays, responses, and records — have landing pages and individual post/essay pages with clean slugs, canonical URLs, FastAPI routes, and nginx rewrites. Record URLs use path-based `/record/{slug}` throughout, with nginx named-capture rewrite mapping back to `?slug=` internally. blog_post.html created — closing the blocking gap)*
+- [x] No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
@@ -322,10 +322,10 @@ created: 2025-07-17
 | `localtest/scripts/troubleshoot.py` | 8.0 — Setup & Testing Module | Yes | Update endpoint path |
 
 ### Sitemap Integrity Checks
-- [ ] All new files are listed under the correct module in `detailed_module_sitemap.md`
-- [ ] No existing sitemap entries were broken or made stale by this plan *(no files moved or renamed; only base tags and internal references changed)*
-- [ ] **New files added:** `frontend/pages/blog_post.html` — must be added to `detailed_module_sitemap.md` under Module 6.0 and propagated via `/sync_sitemap`
-- [ ] `detailed_module_sitemap.md` version number incremented if structure changed *(new file added — increment to 1.3.0)*
+- [x] All new files are listed under the correct module in `detailed_module_sitemap.md`
+- [x] No existing sitemap entries were broken or made stale by this plan *(no files moved or renamed; only base tags and internal references changed)*
+- [x] **New files added:** `frontend/pages/blog_post.html` — added to `detailed_module_sitemap.md` under Module 6.0 and version bumped to 1.3.0
+- [x] `detailed_module_sitemap.md` version number incremented if structure changed *(new file added — incremented from 1.2.0 to 1.3.0)*
 
 ---
 
@@ -408,10 +408,10 @@ created: 2025-07-17
 ### Module Impact Summary
 - [x] Intra-module check completed — all other files in affected modules reviewed
 - [x] Cross-module check completed — all 8 modules have at least some files affected
-- [ ] Impact result: **See flagged rows above** — every module has at least one affected file
+- [x] Impact result: **See flagged rows above** — every module has at least one affected file
 
 ---
-- [ ] **Documentation Update**
+- [x] **Documentation Update**
 
 ### Documentation Update
 
@@ -439,6 +439,6 @@ created: 2025-07-17
 
 ### Documentation Checklist
 - [x] All affected documents identified in the table above
-- [ ] Each "Yes" row has been updated with accurate, current information
-- [ ] No document contains stale references to files or logic changed by this plan
-- [ ] Version numbers incremented where frontmatter versioning is present
+- [x] Each "Yes" row has been updated with accurate, current information *(detailed_module_sitemap.md updated, guide_function.md updated in T16, guide_welcoming_robots.md updated in T17, git_vps.md and guide_appearance.md updated with slug architecture docs)*
+- [x] No document contains stale references to files or logic changed by this plan
+- [x] Version numbers incremented where frontmatter versioning is present *(detailed_module_sitemap.md → 1.3.0, guide_function.md → 1.7.0, guide_welcoming_robots.md → 1.1.0)*
