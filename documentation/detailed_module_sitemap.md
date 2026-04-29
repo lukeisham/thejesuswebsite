@@ -312,7 +312,8 @@ admin/
 │   ├── dashboard_app.js           <-- Main Dashboard controller, UI router & Sidebar navigation
 │   ├── admin_login.js             <-- Authentication & Session handling
 │   ├── load_middleware.js         <-- JWT/Token validation middleware
-│   └── logout_middleware.js       <-- Session termination
+│   ├── logout_middleware.js       <-- Session termination
+│   └── render_tab_bar.js          <-- Shared top-level section tab bar renderer; called by any editor module that wants Providence 3-column tabs
 └── backend/
     ├── admin_api.py               <-- Secure backend writing to SQL
     └── auth_utils.py              <-- JWT generation and Brute Force defense

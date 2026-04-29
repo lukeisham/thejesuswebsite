@@ -22,10 +22,15 @@ window.renderEditDiagram = async function (containerId) {
   // ----- Render shell (loading state) -----
   container.innerHTML =
     '<div class="admin-card" id="edit-diagram-card">' +
-    '<div class="action-bar-header">' +
-    "<h2>EDIT DIAGRAM HIERARCHY</h2>" +
+    '<div class="providence-editor-grid">' +
+    "<!-- COL 1: Action buttons -->" +
+    '<div class="providence-editor-col-actions">' +
     '<button class="quick-action-btn btn-save-diagram" id="save-diagram-btn">Save Graph</button>' +
     "</div>" +
+    "<!-- COL 2: Reserved for orphan inventory (built in T5) -->" +
+    '<div class="providence-editor-col-list" id="diagram-orphan-col"></div>' +
+    "<!-- COL 3: Search + tree -->" +
+    '<div class="providence-editor-col-editor">' +
     '<div class="diagram-search-section">' +
     '<input type="text" id="diagram-search-input" class="admin-search-input diagram-search-input" placeholder="Search nodes…">' +
     "</div>" +
@@ -33,6 +38,8 @@ window.renderEditDiagram = async function (containerId) {
     '<p class="loading-placeholder">Loading diagram data…</p>' +
     "</div>" +
     '<div id="diagram-save-indicator" class="diagram-save-indicator"></div>' +
+    "</div>" +
+    "</div>" +
     "</div>";
 
   // ----- Fetch flat node list from API -----
@@ -44,9 +51,7 @@ window.renderEditDiagram = async function (containerId) {
     nodes = data.nodes || [];
   } catch (err) {
     document.getElementById("diagram-tree-container").innerHTML =
-      '<p class="error-message">Error loading diagram: ' +
-      err.message +
-      "</p>";
+      '<p class="error-message">Error loading diagram: ' + err.message + "</p>";
     return;
   }
 
@@ -60,6 +65,131 @@ window.renderEditDiagram = async function (containerId) {
     };
   });
   window.__changedNodes = new Map();
+
+  // ----- Track which node is the active parent for orphan attachment -----
+  var activeParentId = null;
+
+  // ----- Build and populate COL 2 orphan inventory -----
+  function renderOrphanInventory() {
+    var orphanCol = document.getElementById("diagram-orphan-col");
+    if (!orphanCol) return;
+
+    // Rebuild childrenMap from current __diagramNodes state
+    var cm = {};
+    var allIds = Object.keys(window.__diagramNodes);
+    allIds.forEach(function (id) {
+      var n = window.__diagramNodes[id];
+      var pid = n.parent_id || "__root__";
+      if (!cm[pid]) cm[pid] = [];
+      cm[pid].push(n);
+    });
+
+    // Collect all node IDs that have no parent (orphans)
+    var rootOrphans = allIds
+      .map(function (id) {
+        return window.__diagramNodes[id];
+      })
+      .filter(function (n) {
+        return (
+          n.parent_id === null ||
+          n.parent_id === undefined ||
+          n.parent_id === ""
+        );
+      });
+
+    // If a parent is active, exclude its descendants from available orphans
+    var availableOrphans = rootOrphans;
+    if (activeParentId) {
+      var descendants = {};
+      function walkKids(id) {
+        var kids = cm[id];
+        if (kids) {
+          kids.forEach(function (k) {
+            descendants[k.id] = true;
+            walkKids(k.id);
+          });
+        }
+      }
+      walkKids(activeParentId);
+      descendants[activeParentId] = true;
+
+      availableOrphans = rootOrphans.filter(function (n) {
+        return !descendants[n.id];
+      });
+    }
+
+    var activeNode = activeParentId
+      ? window.__diagramNodes[activeParentId]
+      : null;
+
+    var html = '<p class="blog-editor-list-heading">Orphan Nodes</p>';
+
+    // Active parent readout
+    if (activeNode) {
+      html +=
+        '<div class="orphan-active-parent">' +
+        '<span class="text-sm text-muted">Attaching to:</span>' +
+        '<span class="orphan-parent-name">' +
+        (activeNode.title || activeNode.id) +
+        "</span>" +
+        '<span class="text-xs text-muted">(id: ' +
+        activeNode.id +
+        ")</span>" +
+        '<button class="orphan-clear-btn" id="orphan-clear-active">Clear</button>' +
+        "</div>";
+    } else {
+      html +=
+        '<p class="text-sm text-muted">Click "+ Child" on a node to attach orphans here.</p>';
+    }
+
+    // Orphan list
+    if (availableOrphans.length > 0) {
+      html += '<ul class="orphan-list">';
+      availableOrphans.forEach(function (orphan) {
+        html +=
+          '<li class="orphan-list-item" data-orphan-id="' +
+          orphan.id +
+          '">' +
+          (orphan.title || orphan.id) +
+          '<span class="text-xs text-muted">  id: ' +
+          orphan.id +
+          "</span>" +
+          "</li>";
+      });
+      html += "</ul>";
+    } else {
+      html += '<p class="text-sm text-muted">No orphan nodes available.</p>';
+    }
+
+    orphanCol.innerHTML = html;
+
+    // Wire orphan list item clicks
+    orphanCol.querySelectorAll(".orphan-list-item").forEach(function (item) {
+      item.addEventListener("click", function () {
+        var orphanId = this.getAttribute("data-orphan-id");
+        if (!orphanId || !activeParentId) return;
+        if (window.__diagramNodes[orphanId]) {
+          window.__diagramNodes[orphanId].parent_id = activeParentId;
+          window.__changedNodes.set(orphanId, {
+            id: orphanId,
+            parent_id: activeParentId,
+          });
+        }
+        activeParentId = null;
+        renderTree();
+        renderOrphanInventory();
+      });
+    });
+
+    // Wire clear active parent button
+    var clearBtn = document.getElementById("orphan-clear-active");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", function () {
+        activeParentId = null;
+        renderOrphanInventory();
+      });
+    }
+  }
 
   // ----- Define renderTree function (reusable after DnD re-parenting) -----
   function renderTree() {
@@ -196,7 +326,8 @@ window.renderEditDiagram = async function (containerId) {
         el.classList.remove("drop-target");
       });
 
-      // Re-render the tree
+      // Clear active parent and re-render
+      activeParentId = null;
       renderTree();
     };
 
@@ -216,108 +347,18 @@ window.renderEditDiagram = async function (containerId) {
     treeContainer.addEventListener("dragend", treeContainer._onDragEnd);
 
     // ----- Wire add-child event delegation -----
+    // Clicking "+ Child" sets the active parent and highlights COL 2 for orphan selection
     treeContainer.removeEventListener("click", treeContainer._onAddChildClick);
     treeContainer._onAddChildClick = function (e) {
       var btn = e.target.closest(".diagram-add-child-btn");
       if (!btn) return;
 
-      // Close any existing dropdown
-      document.querySelectorAll(".diagram-add-dropdown").forEach(function (el) {
-        el.remove();
-      });
-
       var parentId = btn.getAttribute("data-node-id");
       if (!parentId) return;
 
-      // Collect all descendants of this node (to exclude from orphans)
-      var descendants = {};
-      function walkKids(id) {
-        var kids = childrenMap[id];
-        if (kids) {
-          kids.forEach(function (k) {
-            descendants[k.id] = true;
-            walkKids(k.id);
-          });
-        }
-      }
-      walkKids(parentId);
-      descendants[parentId] = true; // exclude self
-
-      // Find available orphans: nodes with no parent_id, excluding self + descendants
-      var orphans = allIds
-        .map(function (id) {
-          return window.__diagramNodes[id];
-        })
-        .filter(function (n) {
-          return (
-            (n.parent_id === null ||
-              n.parent_id === undefined ||
-              n.parent_id === "") &&
-            !descendants[n.id]
-          );
-        });
-
-      if (orphans.length === 0) {
-        var indicator = document.getElementById("diagram-save-indicator");
-        indicator.textContent = "No orphan nodes available to attach.";
-        indicator.className = "diagram-save-indicator is-muted";
-        return;
-      }
-
-      // Build and position dropdown
-      var dropdown = document.createElement("div");
-      dropdown.className = "diagram-add-dropdown";
-
-      var listHtml =
-        '<div class="diagram-dropdown-header">Attach as child:</div>' +
-        '<ul class="diagram-dropdown-list">';
-      orphans.forEach(function (orphan) {
-        listHtml +=
-          '<li class="diagram-dropdown-item" data-parent-id="' +
-          parentId +
-          '" data-orphan-id="' +
-          orphan.id +
-          '">' +
-          (orphan.title || orphan.id) +
-          "</li>";
-      });
-      listHtml += "</ul>";
-      dropdown.innerHTML = listHtml;
-
-      // Position below the button
-      var rect = btn.getBoundingClientRect();
-      dropdown.style.left = rect.left + "px";
-      dropdown.style.top = rect.bottom + "px";
-      document.body.appendChild(dropdown);
-
-      // Handle item selection
-      dropdown.addEventListener("click", function (ev) {
-        var item = ev.target.closest(".diagram-dropdown-item");
-        if (!item) return;
-        var orphanId = item.getAttribute("data-orphan-id");
-        var pId = item.getAttribute("data-parent-id");
-        if (orphanId && pId && window.__diagramNodes[orphanId]) {
-          window.__diagramNodes[orphanId].parent_id = pId;
-          window.__changedNodes.set(orphanId, {
-            id: orphanId,
-            parent_id: pId,
-          });
-        }
-        dropdown.remove();
-        renderTree();
-      });
-
-      // Close dropdown on outside click
-      function closeDropdown(ev2) {
-        if (!dropdown.contains(ev2.target)) {
-          dropdown.remove();
-          document.removeEventListener("click", closeDropdown);
-        }
-      }
-      // Small delay to avoid immediate closure from the add-child click itself
-      setTimeout(function () {
-        document.addEventListener("click", closeDropdown);
-      }, 0);
+      // Set active parent so COL 2 shows orphan nodes available to attach
+      activeParentId = parentId;
+      renderOrphanInventory();
     };
     treeContainer.addEventListener("click", treeContainer._onAddChildClick);
 
@@ -395,10 +436,37 @@ window.renderEditDiagram = async function (containerId) {
         }
       });
     }
+    // Update the orphan inventory after every tree re-render
+    renderOrphanInventory();
   }
 
   // ----- Initial render -----
   renderTree();
+
+  // ----- Render top-level section tab bar (Configuration active) -----
+  if (typeof window.renderTabBar === "function") {
+    window.renderTabBar(
+      "edit-diagram-card",
+      [
+        { name: "records", label: "Records", module: "records-edit" },
+        {
+          name: "lists-ranks",
+          label: "Lists & Ranks",
+          module: "lists-resources",
+        },
+        { name: "text-content", label: "Text Content", module: "text-blog" },
+        {
+          name: "configuration",
+          label: "Configuration",
+          module: "config-diagrams",
+        },
+      ],
+      "configuration",
+    );
+  }
+
+  // ----- Populate COL 2 orphan inventory -----
+  renderOrphanInventory();
 
   // ----- Wire search (one-time, outside renderTree) -----
   (function wireSearch() {

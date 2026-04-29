@@ -2,9 +2,10 @@
 //
 //   THE JESUS WEBSITE — EDIT NEWS SOURCES
 //   File:    admin/frontend/edit_modules/edit_news_sources.js
-//   Version: 2.0.0
+//   Version: 2.1.0
 //   Purpose: Table UI to manage Label-URL news source pairs across records.
 //            Loads real data from API — no mock rows.
+//            Refactored to Providence 3-column grid per §18.1.
 //            Follows the same fetch pattern as edit_wiki_weights.js.
 //   Source:  guide_dashboard_appearance.md §6.1
 //
@@ -22,12 +23,45 @@ window.renderEditNewsSources = async function (containerId) {
   // ----- Render shell (loading state) -----
   container.innerHTML =
     '<div class="admin-card" id="edit-news-sources-card">' +
-    '<div class="action-bar-header">' +
-    "<h2>MANAGE: News Sources</h2>" +
-    '<div class="action-bar-buttons">' +
-    '<button class="quick-action-btn" id="news-sources-save-btn">Save All Sources</button>' +
+    '<div class="providence-editor-grid">' +
+    "<!-- COL 1: Action buttons + Add form -->" +
+    '<div class="providence-editor-col-actions">' +
+    '<button class="blog-editor-action-btn" id="news-sources-save-btn">Save All Sources</button>' +
+    '<div class="is-hidden news-sources-add-form" id="news-sources-add-form-section">' +
+    '<div class="section-heading-serif news-sources-add-heading">Add New Source</div>' +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">Record</label>' +
+    '<select class="blog-editor-field-input" id="news-sources-record-select"></select>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">Label</label>' +
+    '<input type="text" class="blog-editor-field-input" id="news-sources-label-input" placeholder="e.g. Reuters">' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">URL</label>' +
+    '<input type="text" class="blog-editor-field-input" id="news-sources-url-input" placeholder="e.g. https://reuters.com">' +
+    "</div>" +
+    '<button class="blog-editor-action-btn news-sources-add-btn" id="news-sources-add-btn">+ Add Source</button>' +
     "</div>" +
     "</div>" +
+    "<!-- COL 2: Field documentation -->" +
+    '<div class="providence-editor-col-list">' +
+    '<p class="blog-editor-list-heading">Source Fields</p>' +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">news_sources</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">label</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">url</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">record_slug</label>' +
+    "</div>" +
+    "</div>" +
+    "<!-- COL 3: Search + Table -->" +
+    '<div class="providence-editor-col-editor">' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="news-sources-search-input" placeholder="Search sources by label, URL, or record slug…">' +
     "</div>" +
@@ -45,23 +79,6 @@ window.renderEditNewsSources = async function (containerId) {
     '<tbody id="news-sources-table-body"></tbody>' +
     "</table>" +
     "</div>" +
-    '<div class="is-hidden" id="news-sources-add-form-section">' +
-    '<h3 class="section-heading-serif">Add New Source</h3>' +
-    '<div class="field-row">' +
-    '<label class="field-label">Record</label>' +
-    '<select class="field-input" id="news-sources-record-select"></select>' +
-    "</div>" +
-    '<div class="field-row">' +
-    '<label class="field-label">Label</label>' +
-    '<input type="text" class="field-input" id="news-sources-label-input" placeholder="e.g. Reuters">' +
-    "</div>" +
-    '<div class="field-row">' +
-    '<label class="field-label">URL</label>' +
-    '<input type="text" class="field-input" id="news-sources-url-input" placeholder="e.g. https://reuters.com">' +
-    "</div>" +
-    '<div class="field-row">' +
-    "<div></div>" +
-    '<button class="quick-action-btn" id="news-sources-add-btn">+ Add Source</button>' +
     "</div>" +
     "</div>" +
     "</div>";
@@ -278,6 +295,28 @@ window.renderEditNewsSources = async function (containerId) {
     document
       .getElementById("news-sources-add-form-section")
       .classList.remove("is-hidden");
+    // Render top-level section tab bar (Text Content active)
+    if (typeof window.renderTabBar === "function") {
+      window.renderTabBar(
+        "edit-news-sources-card",
+        [
+          { name: "records", label: "Records", module: "records-edit" },
+          {
+            name: "lists-ranks",
+            label: "Lists & Ranks",
+            module: "lists-resources",
+          },
+          { name: "text-content", label: "Text Content", module: "text-blog" },
+          {
+            name: "configuration",
+            label: "Configuration",
+            module: "config-diagrams",
+          },
+        ],
+        "text-content",
+      );
+    }
+
     renderTable(records);
   } catch (err) {
     document.getElementById("news-sources-loading-indicator").textContent =

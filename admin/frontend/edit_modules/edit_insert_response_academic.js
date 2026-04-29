@@ -2,8 +2,9 @@
 //
 //   THE JESUS WEBSITE — EDIT INSERT RESPONSE ACADEMIC
 //   File:    admin/frontend/edit_modules/edit_insert_response_academic.js
-//   Version: 1.2.0
+//   Version: 1.3.0
 //   Purpose: UI mapping for inserting scholarly responses into academic ranked lists.
+//            Refactored to Providence 3-column grid per §18.1.
 //
 // =============================================================================
 
@@ -16,25 +17,72 @@ window.renderEditInsertResponseAcademic = function (containerId) {
   if (!container) return;
 
   container.innerHTML = `
-        <div class="admin-card">
-            <div class="action-bar-header">
-                <h2>INSERT RESPONSE: Academic Debates</h2>
-                <div class="action-bar-buttons">
-                    <button class="quick-action-btn">Save Insertion</button>
+        <div class="admin-card" id="edit-insert-response-academic-card">
+            <div class="providence-editor-grid">
+                <!-- COL 1: Action buttons -->
+                <div class="providence-editor-col-actions">
+                    <button class="blog-editor-action-btn" id="insert-academic-save-btn">Save Insertion</button>
                 </div>
-            </div>
-            <div class="field-row">
-                <label class="field-label">Select Academic Challenge</label>
-                <select class="field-input">
-                    <option>Select a challenge...</option>
-                    <option value="1">The Synoptic Problem</option>
-                    <option value="2">Q Source Debate</option>
-                </select>
-            </div>
-            <div class="field-row">
-                <label class="field-label">Response Essay Title / Link</label>
-                <input type="text" class="field-input" placeholder="Search available responses...">
+
+                <!-- COL 2: (empty — reserved for future use) -->
+                <div class="providence-editor-col-list"></div>
+
+                <!-- COL 3: Insert form -->
+                <div class="providence-editor-col-editor">
+                    <div class="insert-response-desc">Select an academic debate challenge and link a response essay to insert into the ranked list.</div>
+
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">Select Academic Challenge</label>
+                        <select class="blog-editor-field-input" id="insert-academic-challenge-select">
+                            <option>Select a challenge...</option>
+                            <option value="1">The Synoptic Problem</option>
+                            <option value="2">Q Source Debate</option>
+                        </select>
+                    </div>
+
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">Response Essay Title / Link</label>
+                        <input type="text" class="blog-editor-field-input" id="insert-academic-response-input" placeholder="Search available responses...">
+                    </div>
+                </div>
             </div>
         </div>
     `;
+
+  // Render top-level section tab bar (Lists & Ranks active)
+  if (typeof window.renderTabBar === "function") {
+    window.renderTabBar(
+      "edit-insert-response-academic-card",
+      [
+        { name: "records", label: "Records", module: "records-edit" },
+        {
+          name: "lists-ranks",
+          label: "Lists & Ranks",
+          module: "lists-resources",
+        },
+        { name: "text-content", label: "Text Content", module: "text-blog" },
+        {
+          name: "configuration",
+          label: "Configuration",
+          module: "config-diagrams",
+        },
+      ],
+      "lists-ranks",
+    );
+  }
+
+  // Wire Save button (stub)
+  var saveBtn = document.getElementById("insert-academic-save-btn");
+  if (saveBtn) {
+    saveBtn.addEventListener("click", function () {
+      var challenge = document.getElementById(
+        "insert-academic-challenge-select",
+      );
+      var response = document.getElementById("insert-academic-response-input");
+      console.log("Insert Response (Academic) save triggered:", {
+        challenge: challenge ? challenge.value : "",
+        response: response ? response.value : "",
+      });
+    });
+  }
 };

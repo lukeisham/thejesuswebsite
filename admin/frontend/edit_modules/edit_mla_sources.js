@@ -2,9 +2,10 @@
 //
 //   THE JESUS WEBSITE — EDIT MLA SOURCES
 //   File:    admin/frontend/edit_modules/edit_mla_sources.js
-//   Version: 2.0.0
+//   Version: 2.1.0
 //   Purpose: UI mapping for editing MLA bibliography source data.
 //            Fetches real records from API — no mock rows.
+//            Refactored to Providence 3-column grid per §18.1.
 //            Wireframe: §5.1 bibliography grid (6 MLA sub-keys per record).
 //
 // =============================================================================
@@ -33,15 +34,24 @@ window.renderEditMlaSources = async function (containerId) {
   // ----- Render shell (loading state) -----
   container.innerHTML =
     '<div class="admin-card" id="edit-mla-sources-card">' +
-    '<div class="action-bar-header">' +
-    "<h2>BIBLIOGRAPHY: MLA Sources</h2>" +
-    '<button class="quick-action-btn" id="mla-save-all-btn">Save All</button>' +
+    '<div class="providence-editor-grid">' +
+    "<!-- COL 1: Action buttons -->" +
+    '<div class="providence-editor-col-actions">' +
+    '<button class="blog-editor-action-btn" id="mla-save-all-btn">Save All</button>' +
     "</div>" +
+    "<!-- COL 2: Search / filter -->" +
+    '<div class="providence-editor-col-list">' +
+    '<p class="blog-editor-list-heading">Filter Records</p>' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="mla-search-input" placeholder="Filter by Record Title or Slug…">' +
     "</div>" +
+    "</div>" +
+    "<!-- COL 3: MLA record cards -->" +
+    '<div class="providence-editor-col-editor">' +
     '<div class="loading-placeholder" id="mla-loading-indicator">Loading MLA bibliography records…</div>' +
     '<div id="mla-records-container"></div>' +
+    "</div>" +
+    "</div>" +
     "</div>";
 
   // ----- Internal state -----
@@ -251,6 +261,29 @@ window.renderEditMlaSources = async function (containerId) {
   try {
     mlaRecords = await fetchMlaRecords();
     document.getElementById("mla-loading-indicator").classList.add("is-hidden");
+
+    // Render top-level section tab bar (Text Content active)
+    if (typeof window.renderTabBar === "function") {
+      window.renderTabBar(
+        "edit-mla-sources-card",
+        [
+          { name: "records", label: "Records", module: "records-edit" },
+          {
+            name: "lists-ranks",
+            label: "Lists & Ranks",
+            module: "lists-resources",
+          },
+          { name: "text-content", label: "Text Content", module: "text-blog" },
+          {
+            name: "configuration",
+            label: "Configuration",
+            module: "config-diagrams",
+          },
+        ],
+        "text-content",
+      );
+    }
+
     renderAll(mlaRecords);
   } catch (err) {
     document.getElementById("mla-loading-indicator").textContent =

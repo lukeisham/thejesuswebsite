@@ -1,15 +1,19 @@
 /* =============================================================================
    THE JESUS WEBSITE — ARDOR DIAGRAM CSS
    File:    css/elements/ardor_diagram.css
-   Version: 1.1.0
+   Version: 1.2.0
    Purpose: Specific styles for the interactive Evidence (Ardor) Tree Graph.
             Provides the layout and node styles for the massive canvas area.
    Source:  guide_appearance.md §3.1
+            §18-compliance audit: all colours, fonts, spacing use CSS variables.
 ============================================================================= */
 
 @import url("./typography_colors.css");
 
-/* Main Structure for Diagram pages (Map, Timeline, Ardor) */
+/* =============================================================================
+   1. MAIN STRUCTURE — diagram pages (Map, Timeline, Ardor)
+============================================================================= */
+
 .diagram-layout {
     display: flex;
     flex-direction: column;
@@ -18,7 +22,10 @@
     width: 100%;
 }
 
-/* The Massive Canvas Area */
+/* =============================================================================
+   2. CANVAS — massive draggable/scrollable area
+============================================================================= */
+
 .diagram-canvas-container {
     position: relative;
     width: 100%;
@@ -26,7 +33,10 @@
     overflow: auto; /* Allows panning */
     background-color: var(--color-bg-primary);
     /* subtle grid background for canvas feel */
-    background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+    background-image: radial-gradient(
+        var(--color-border) var(--border-width-thin),
+        transparent var(--border-width-thin)
+    );
     background-size: 20px 20px;
     border: var(--border-width-thin) solid var(--color-border);
     border-radius: var(--radius-none);
@@ -41,7 +51,10 @@
     display: block;
 }
 
-/* Node Styles within SVG */
+/* =============================================================================
+   3. NODE STYLES — SVG interactive nodes
+============================================================================= */
+
 .ardor-node {
     cursor: pointer;
     transition: transform var(--transition-fast);
@@ -54,16 +67,14 @@
 .ardor-node rect {
     fill: var(--color-bg-secondary);
     stroke: var(--color-border-strong);
-    stroke-width: 1px;
-    rx: 0; /* Sharp blueprint corners */
-    filter: drop-shadow(
-        0 1px 2px rgba(36, 36, 35, 0.1)
-    ); /* shadow-sm equivalent */
+    stroke-width: var(--border-width-thin);
+    rx: 0; /* Sharp blueprint corners — matches var(--radius-none) */
+    filter: var(--shadow-sm);
 }
 
 .ardor-node text.title {
     font-family: var(--font-heading);
-    font-size: 14px;
+    font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
     fill: var(--color-text-primary);
     pointer-events: none; /* Let the rect catch the click events */
@@ -71,22 +82,25 @@
 
 .ardor-node text.meta {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-xs);
     fill: var(--color-text-secondary);
     pointer-events: none;
 }
 
 .ardor-node.active rect {
     stroke: var(--color-accent-primary);
-    stroke-width: 3px;
+    stroke-width: 3px; /* deliberate emphasis — no variable for 3px */
     fill: var(--color-bg-primary);
 }
 
-/* Edge / Link Styles */
+/* =============================================================================
+   4. EDGE / LINK STYLES — SVG connector lines
+============================================================================= */
+
 .ardor-edge {
     fill: none;
     stroke: var(--color-border-strong);
-    stroke-width: 1px;
+    stroke-width: var(--border-width-thin);
     opacity: 0.6;
     transition:
         opacity var(--transition-fast),
@@ -96,15 +110,13 @@
 .ardor-edge:hover,
 .ardor-edge.highlighted {
     stroke: var(--color-accent-primary);
-    stroke-width: 3px;
+    stroke-width: 3px; /* deliberate visual emphasis — no variable for 3px */
     opacity: 1;
 }
 
 /* =============================================================================
-   ADMIN DIAGRAM EDITOR — TREE HIERARCHY STYLES
+   5. ADMIN DIAGRAM EDITOR — draggable tree hierarchy
    Source: fix_edit_diagram_module_3_1.md §T8
-   Purpose: Styles for the draggable node tree inside the admin dashboard card.
-            All values reference CSS variables from typography_colors.css.
 ============================================================================= */
 
 /* --- Tree Container --- */
@@ -119,7 +131,7 @@
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-2);
-    border: 1px solid var(--color-border);
+    border: var(--border-width-thin) solid var(--color-border);
     cursor: grab;
     user-select: none;
     transition:
@@ -147,7 +159,7 @@
 .diagram-remove-btn {
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    border: 1px solid var(--color-border);
+    border: var(--border-width-thin) solid var(--color-border);
     background: var(--color-bg-secondary);
     color: var(--color-text-secondary);
     cursor: pointer;
@@ -186,7 +198,7 @@
 /* --- Children Indentation --- */
 .diagram-node-children {
     margin-left: var(--space-8);
-    border-left: 2px solid var(--color-border);
+    border-left: var(--border-width-base) solid var(--color-border);
 }
 
 /* --- Save Indicator Bar --- */

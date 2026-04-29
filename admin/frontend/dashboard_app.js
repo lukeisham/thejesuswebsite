@@ -228,45 +228,95 @@ async function loadModule(moduleName) {
           : `${records.length} records total`;
 
         canvas.innerHTML = `
-                    <div class="admin-card">
-                        <div class="records-list-header">
-                            <h2>Edit Existing Records</h2>
-                            <span class="text-sm text-muted">${totalText}</span>
-                        </div>
+                    <div class="admin-card" id="records-list-card">
+                        <div class="providence-editor-grid">
+                            <!-- COL 1: Action buttons -->
+                            <div class="providence-editor-col-actions">
+                                <button class="blog-editor-action-btn" data-module="records-new">+ New Record</button>
+                                <button class="blog-editor-action-btn" data-module="records-bulk">Bulk Upload CSV</button>
+                            </div>
 
-                        <div class="search-container">
-                            <input type="text" id="records-search-input" class="admin-search-input"
-                                placeholder="Search by title or primary verse..." value="${searchQuery}">
-                        </div>
+                            <!-- COL 2: Reserved for future metadata use -->
+                            <div class="providence-editor-col-list">
+                                <p class="blog-editor-list-heading">Records Overview</p>
+                                <p class="text-sm text-muted">${totalText}</p>
+                            </div>
 
-                        <div class="table-wrapper">
-                            <table class="admin-records-table">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Primary Verse</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${rowsHtml}
-                                </tbody>
-                            </table>
-                        </div>
+                            <!-- COL 3: Search + paginated table -->
+                            <div class="providence-editor-col-editor">
+                                <div class="search-container">
+                                    <input type="text" id="records-search-input" class="admin-search-input"
+                                        placeholder="Search by title or primary verse..." value="${searchQuery}">
+                                </div>
 
-                        ${
-                          totalPages > 1
-                            ? `
-                        <div class="pagination-controls">
-                            <button class="quick-action-btn pagination-btn js-prev-page" ${currentPage <= 1 ? "disabled" : ""}>Previous</button>
-                            <span class="pagination-info">Page ${currentPage} of ${totalPages}</span>
-                            <button class="quick-action-btn pagination-btn js-next-page" ${currentPage >= totalPages ? "disabled" : ""}>Next</button>
+                                <div class="table-wrapper">
+                                    <table class="admin-records-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Primary Verse</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${rowsHtml}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                ${
+                                  totalPages > 1
+                                    ? `
+                                <div class="pagination-controls">
+                                    <button class="quick-action-btn pagination-btn js-prev-page" ${currentPage <= 1 ? "disabled" : ""}>Previous</button>
+                                    <span class="pagination-info">Page ${currentPage} of ${totalPages}</span>
+                                    <button class="quick-action-btn pagination-btn js-next-page" ${currentPage >= totalPages ? "disabled" : ""}>Next</button>
+                                </div>
+                                `
+                                    : ""
+                                }
+                            </div>
                         </div>
-                        `
-                            : ""
-                        }
                     </div>
                 `;
+
+        // Render top-level section tab bar (Records active)
+        if (typeof window.renderTabBar === "function") {
+          window.renderTabBar(
+            "records-list-card",
+            [
+              { name: "records", label: "Records", module: "records-edit" },
+              {
+                name: "lists-ranks",
+                label: "Lists & Ranks",
+                module: "lists-resources",
+              },
+              {
+                name: "text-content",
+                label: "Text Content",
+                module: "text-blog",
+              },
+              {
+                name: "configuration",
+                label: "Configuration",
+                module: "config-diagrams",
+              },
+            ],
+            "records",
+          );
+        }
+
+        // Wire COL 1 action buttons (New Record, Bulk Upload)
+        canvas
+          .querySelectorAll(".providence-editor-col-actions [data-module]")
+          .forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var moduleName = this.getAttribute("data-module");
+              if (moduleName && typeof window.loadModule === "function") {
+                window.loadModule(moduleName);
+              }
+            });
+          });
 
         // Wire search input
         const searchInput = document.getElementById("records-search-input");
@@ -748,6 +798,9 @@ async function loadModule(moduleName) {
         </footer>
     `;
 }
+
+// Expose loadModule globally so renderTabBar and other modules can navigate
+window.loadModule = loadModule;
 
 // Listen for the auth success event dispatched by admin_login.js
 window.addEventListener("adminAuthSuccess", renderDashboardShell);

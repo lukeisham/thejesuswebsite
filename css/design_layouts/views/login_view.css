@@ -3,10 +3,11 @@
    File:    css/design_layouts/views/login_view.css
    Version: 1.1.0
    Purpose: Bespoke layout for the secure admin login UI.
+            §18-compliance audit: all colours, fonts, spacing use CSS variables.
    Source:  guide_dashboard_appearance.md §6.1
 ============================================================================= */
 
-@import url('../../elements/typography_colors.css');
+@import url("../../elements/typography_colors.css");
 
 body.admin-body {
     background-color: var(--color-bg-primary);
@@ -101,7 +102,9 @@ body.admin-body {
     font-size: var(--text-base);
     cursor: pointer;
     font-family: var(--font-mono);
-    transition: background-color var(--transition-fast), color var(--transition-fast);
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
 }
 
 .login-box button:hover {

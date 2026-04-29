@@ -21,10 +21,29 @@ window.renderEditPopularWeights = async function (containerId) {
   // ----- Render shell (loading state) -----
   container.innerHTML =
     '<div class="admin-card" id="edit-popular-weights-card">' +
-    '<div class="action-bar-header">' +
-    "<h2>RANKED LIST: Popular Challenges</h2>" +
-    '<button class="quick-action-btn" id="popular-save-btn">Save All Multipliers</button>' +
+    '<div class="providence-editor-grid">' +
+    "<!-- COL 1: Action buttons -->" +
+    '<div class="providence-editor-col-actions">' +
+    '<button class="blog-editor-action-btn" id="popular-save-btn">Save All Changes</button>' +
     "</div>" +
+    "<!-- COL 2: Field documentation -->" +
+    '<div class="providence-editor-col-list">' +
+    '<p class="blog-editor-list-heading">WRITE Fields</p>' +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">popular_challenge_link</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">popular_challenge_title</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">popular_challenge_rank</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">popular_challenge_weight</label>' +
+    "</div>" +
+    "</div>" +
+    "<!-- COL 3: Weights table -->" +
+    '<div class="providence-editor-col-editor">' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="popular-search-input" placeholder="Search by Record Slug…">' +
     "</div>" +
@@ -41,7 +60,8 @@ window.renderEditPopularWeights = async function (containerId) {
     '<tbody id="popular-table-body"></tbody>' +
     "</table>" +
     "</div>" +
-    '<div class="action-bar-footer is-hidden" id="popular-footer-bar"></div>' +
+    "</div>" +
+    "</div>" +
     "</div>";
 
   // ----- Internal state -----
@@ -157,7 +177,27 @@ window.renderEditPopularWeights = async function (containerId) {
     document
       .getElementById("popular-table-wrapper")
       .classList.remove("is-hidden");
-    document.getElementById("popular-footer-bar").classList.remove("is-hidden");
+    // Render top-level section tab bar (Lists & Ranks active)
+    if (typeof window.renderTabBar === "function") {
+      window.renderTabBar(
+        "edit-popular-weights-card",
+        [
+          { name: "records", label: "Records", module: "records-edit" },
+          {
+            name: "lists-ranks",
+            label: "Lists & Ranks",
+            module: "lists-resources",
+          },
+          { name: "text-content", label: "Text Content", module: "text-blog" },
+          {
+            name: "configuration",
+            label: "Configuration",
+            module: "config-diagrams",
+          },
+        ],
+        "lists-ranks",
+      );
+    }
     renderTable(records);
   } catch (err) {
     document.getElementById("popular-loading-indicator").textContent =

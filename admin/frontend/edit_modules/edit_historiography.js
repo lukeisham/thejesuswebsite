@@ -2,8 +2,9 @@
 //
 //   THE JESUS WEBSITE — EDIT HISTORIOGRAPHY MODULE
 //   File:    admin/frontend/edit_modules/edit_historiography.js
-//   Version: 1.1.0
+//   Version: 2.0.0
 //   Purpose: Text editor geared towards creating Historiography articles.
+//            Refactored to Providence 3-column grid per §18.1.
 //
 // =============================================================================
 
@@ -11,46 +12,93 @@
 // Function: Renders a markdown editor tailored for scholarly methodology and historiography articles
 // Output: Injects a specialized dual-pane editor interface into the specified container
 
-window.renderEditHistoriography = function(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+window.renderEditHistoriography = function (containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
-    // Mirrors the clean essay interface design
-    const html = `
+  const html = `
         <div class="admin-card" id="edit-historiography-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--color-border); margin-bottom: var(--space-4); padding-bottom: var(--space-2);">
-                <h2 style="border: none; margin: 0; padding: 0; font-family: var(--font-serif);">EDIT HISTORIOGRAPHY: <span style="font-family: inherit; font-weight: normal; color: var(--color-muted);">[ Title ]</span></h2>
-                <button class="quick-action-btn" style="margin: 0; background-color: var(--color-text);">Save Changes</button>
-            </div>
+            <div class="providence-editor-grid">
+                <!-- COL 1: Action buttons + Metadata fields -->
+                <div class="providence-editor-col-actions">
+                    <button class="blog-editor-action-btn" id="hist-save-btn">Save Changes</button>
 
-            <div style="display: flex; gap: var(--space-6); margin-bottom: var(--space-4);">
-                <div style="flex: 1; background-color: #fafafa; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
-                    <div style="margin-bottom: var(--space-4);">
-                        <label style="display: inline-block; width: 60px;">Author:</label>
-                        <input type="text" style="width: calc(100% - 70px); padding: 4px; border: 1px solid #ccc;">
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">Author</label>
+                        <input type="text" class="blog-editor-field-input" id="hist-author-input" placeholder="Author Name">
                     </div>
-                    <div style="margin-bottom: var(--space-4);">
-                        <label style="display: inline-block; width: 60px;">Date:</label>
-                        <input type="text" style="width: calc(100% - 70px); padding: 4px; border: 1px solid #ccc;">
+
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">Date</label>
+                        <input type="text" class="blog-editor-field-input" id="hist-date-input" placeholder="YYYY-MM-DD">
                     </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 4px;">Methodology Abstract:</label>
-                        <input type="text" style="width: 100%; padding: 4px; border: 1px solid #ccc;">
+
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">Methodology Abstract</label>
+                        <input type="text" class="blog-editor-field-input" id="hist-abstract-input" placeholder="Brief methodology abstract...">
                     </div>
                 </div>
-            </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); min-height: 500px;">
-                <div style="display: flex; flex-direction: column;">
-                    <label style="font-weight: bold; background: var(--color-text); color: var(--color-bg); padding: var(--space-2); text-align: center; border-radius: var(--radius-sm) var(--radius-sm) 0 0;">Markdown (Edit)</label>
-                    <textarea style="flex: 1; width: 100%; padding: var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); line-height: 1.6; border: 1px solid var(--color-border); border-top: none; resize: none; background-color: #fafafa;"></textarea>
+                <!-- COL 2: Markdown textarea (write pane) -->
+                <div class="providence-editor-col-list">
+                    <div class="blog-editor-textarea-pane">
+                        <label class="blog-editor-pane-label">Markdown (Edit)</label>
+                        <textarea class="blog-editor-textarea" id="hist-markdown-textarea" placeholder="## Methodology\nThe historiographical approach to **early Christian sources**..."></textarea>
+                    </div>
                 </div>
-                <div style="display: flex; flex-direction: column;">
-                    <label style="font-weight: bold; background: #eee; padding: var(--space-2); text-align: center; border-radius: var(--radius-sm) var(--radius-sm) 0 0; border: 1px solid var(--color-border); border-bottom: none;">Live Preview</label>
-                    <div style="flex: 1; padding: var(--space-4); border: 1px solid var(--color-border); background-color: #fff; overflow-y: auto;"></div>
+
+                <!-- COL 3: Live preview pane -->
+                <div class="providence-editor-col-editor">
+                    <div class="blog-editor-textarea-pane">
+                        <label class="blog-editor-pane-label is-preview">Live Preview (Auto-updates)</label>
+                        <div class="blog-editor-preview-pane" id="hist-preview-pane">
+                            <h2 class="essay-preview-heading">Methodology</h2>
+                            <p class="essay-preview-paragraph">The historiographical approach to <strong>early Christian sources</strong>...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     `;
-    container.innerHTML = html;
+
+  container.innerHTML = html;
+
+  // Render top-level section tab bar (Text Content active)
+  if (typeof window.renderTabBar === "function") {
+    window.renderTabBar(
+      "edit-historiography-card",
+      [
+        { name: "records", label: "Records", module: "records-edit" },
+        {
+          name: "lists-ranks",
+          label: "Lists & Ranks",
+          module: "lists-resources",
+        },
+        { name: "text-content", label: "Text Content", module: "text-blog" },
+        {
+          name: "configuration",
+          label: "Configuration",
+          module: "config-diagrams",
+        },
+      ],
+      "text-content",
+    );
+  }
+
+  // Wire Save button (stub)
+  var saveBtn = document.getElementById("hist-save-btn");
+  if (saveBtn) {
+    saveBtn.addEventListener("click", function () {
+      var author = document.getElementById("hist-author-input");
+      var date = document.getElementById("hist-date-input");
+      var abst = document.getElementById("hist-abstract-input");
+      var body = document.getElementById("hist-markdown-textarea");
+      console.log("Historiography save triggered:", {
+        author: author ? author.value : "",
+        date: date ? date.value : "",
+        abstract: abst ? abst.value : "",
+        markdown: body ? body.value : "",
+      });
+    });
+  }
 };

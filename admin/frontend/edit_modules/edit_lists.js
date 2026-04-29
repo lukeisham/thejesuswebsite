@@ -25,38 +25,73 @@ window.renderEditLists = function (containerId, listName) {
   // ---- Render shell ----
   var html =
     '<div class="admin-card" id="edit-lists-card">\n' +
-    '  <div class="lists-editor-header">\n' +
-    '    <h2 class="lists-editor-title">EDIT ORDINARY LIST: [ ' +
-    escapeHtml(listName) +
-    " ]</h2>\n" +
-    '    <div class="lists-editor-actions">\n' +
+    '  <div class="providence-editor-grid">\n' +
+    "    <!-- COL 1: Action buttons -->\n" +
+    '    <div class="providence-editor-col-actions">\n' +
+    '      <button class="blog-editor-action-btn btn-save-list" id="btn-save-list" type="button">Save List</button>\n' +
     '      <div id="lists-save-status" class="status-feedback is-hidden lists-save-status"></div>\n' +
-    '      <button class="quick-action-btn btn-save-list" id="btn-save-list" type="button">Save List</button>\n' +
-    "    </div>\n" +
-    "  </div>\n" +
-    "\n" +
-    '  <div class="lists-editor-grid">\n' +
-    "    <!-- Left: Current List Items -->\n" +
-    '    <div class="lists-items-column">\n' +
-    '      <h3 class="lists-column-heading">List Items</h3>\n' +
-    '      <div id="lists-items-container" class="lists-items-list"></div>\n' +
-    '      <p class="lists-drag-hint">(Drag \u2630 handle to reorder items)</p>\n' +
     "    </div>\n" +
     "\n" +
-    "    <!-- Right: Add Tools -->\n" +
-    '    <div class="lists-tools-column">\n' +
-    '      <h3 class="lists-column-heading">Search Records Explorer</h3>\n' +
-    '      <input type="text" id="lists-search-input" class="lists-search-input" placeholder="Search records to add\u2026">\n' +
+    "    <!-- COL 2: List metadata (read-only) -->\n" +
+    '    <div class="providence-editor-col-list">\n' +
+    '      <p class="blog-editor-list-heading">List Info</p>\n' +
+    '      <div class="blog-editor-field">\n' +
+    '        <label class="blog-editor-field-label">Name</label>\n' +
+    '        <p class="text-sm lists-meta-value">' +
+    escapeHtml(listName) +
+    "</p>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
     "\n" +
-    '      <h3 class="lists-column-heading">Bulk Add by Slugs (CSV/Line)</h3>\n' +
-    '      <textarea id="lists-bulk-textarea" class="lists-bulk-textarea" placeholder="slug-1, slug-2, \u2026"></textarea>\n' +
-    '      <button class="quick-action-btn btn-bulk-add" id="btn-bulk-add" type="button">Bulk Add Config</button>\n' +
-    '      <div id="lists-bulk-summary" class="lists-bulk-summary"></div>\n' +
+    "    <!-- COL 3: Current items + bulk add tools -->\n" +
+    '    <div class="providence-editor-col-editor">\n' +
+    "      <!-- Search Records Explorer -->\n" +
+    '      <div class="blog-editor-field">\n' +
+    '        <label class="blog-editor-field-label">Search Records Explorer</label>\n' +
+    '        <input type="text" id="lists-search-input" class="lists-search-input" placeholder="Search records to add\u2026">\n' +
+    "      </div>\n" +
+    "\n" +
+    "      <!-- Bulk Add by Slugs -->\n" +
+    '      <div class="blog-editor-field">\n' +
+    '        <label class="blog-editor-field-label">Bulk Add by Slugs (CSV/Line)</label>\n' +
+    '        <textarea id="lists-bulk-textarea" class="lists-bulk-textarea" placeholder="slug-1, slug-2, \u2026"></textarea>\n' +
+    '        <button class="quick-action-btn btn-bulk-add" id="btn-bulk-add" type="button">Bulk Add Config</button>\n' +
+    '        <div id="lists-bulk-summary" class="lists-bulk-summary"></div>\n' +
+    "      </div>\n" +
+    "\n" +
+    "      <!-- Current List Items -->\n" +
+    '      <div class="blog-editor-field">\n' +
+    '        <label class="blog-editor-field-label">List Items</label>\n' +
+    '        <div id="lists-items-container" class="lists-items-list"></div>\n' +
+    '        <p class="lists-drag-hint">(Drag \u2630 handle to reorder items)</p>\n' +
+    "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</div>";
 
   container.innerHTML = html;
+
+  // ----- Render top-level section tab bar (Lists & Ranks active) -----
+  if (typeof window.renderTabBar === "function") {
+    window.renderTabBar(
+      "edit-lists-card",
+      [
+        { name: "records", label: "Records", module: "records-edit" },
+        {
+          name: "lists-ranks",
+          label: "Lists & Ranks",
+          module: "lists-resources",
+        },
+        { name: "text-content", label: "Text Content", module: "text-blog" },
+        {
+          name: "configuration",
+          label: "Configuration",
+          module: "config-diagrams",
+        },
+      ],
+      "lists-ranks",
+    );
+  }
 
   // ---- Helpers ----
   function showSaveStatus(msg, type) {

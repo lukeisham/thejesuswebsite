@@ -1,9 +1,10 @@
 // =============================================================================
 //   THE JESUS WEBSITE — BULK UPLOAD MODULE
 //   File:    admin/frontend/edit_modules/edit_bulk_upload.js
-//   Version: 1.1.0
+//   Version: 1.2.0
 //   Purpose: UI for bulk uploading CSV files to create records.
 //            Includes client-side CSV row validation preview before upload.
+//            Refactored to Providence 3-column grid per §18.1.
 // =============================================================================
 
 // Trigger: dashboard_app.js routing -> window.renderBulkUpload(containerId)
@@ -92,55 +93,120 @@ window.renderBulkUpload = function (containerId) {
 
   // ---- Shell HTML ----
   var html =
-    '        <div class="admin-module-header">\n' +
-    "            <h2>Editing Module: Bulk Upload CSV</h2>\n" +
-    '            <p class="text-sm text-muted">Technical Ledger Interface \u2014 Data Ingestion</p>\n' +
-    "        </div>\n" +
+    '        <div class="admin-card" id="bulk-upload-card">\n' +
+    '            <div class="providence-editor-grid">\n' +
+    "                <!-- COL 1: Nav links + Required-field list -->\n" +
+    '                <div class="providence-editor-col-actions">\n' +
+    '                    <button class="blog-editor-action-btn" data-module="records-edit">&#8592; Back to Records</button>\n' +
+    '                    <button class="blog-editor-action-btn" data-module="records-new">+ New Record (manual)</button>\n' +
     "\n" +
-    '        <div class="admin-card bulk-upload-card" id="bulk-upload-card">\n' +
-    '            <h3 class="font-serif">Upload Database Records</h3>\n' +
-    "            <p class=\"font-body text-sm bulk-upload-subtitle\">Select or drag and drop a valid CSV file (max 5MB) to bulk create records. Must include 'title' and 'slug' columns.</p>\n" +
+    '                    <p class="blog-editor-list-heading bulk-upload-field-heading">Required CSV Fields</p>\n' +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label is-danger">title (required)</label>\n' +
+    "                    </div>\n" +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label is-danger">slug (required)</label>\n' +
+    "                    </div>\n" +
+    "                </div>\n" +
     "\n" +
-    '            <div id="drop-zone" class="drop-zone">\n' +
-    '                <p class="font-mono text-sm drop-zone-text">DRAG &amp; DROP CSV FILE HERE</p>\n' +
-    '                <p class="font-mono text-xs drop-zone-subtext">OR CLICK TO BROWSE</p>\n' +
-    '                <input type="file" id="csv-file-input" class="csv-file-input" accept=".csv">\n' +
-    "            </div>\n" +
+    "                <!-- COL 2: Optional-field documentation -->\n" +
+    '                <div class="providence-editor-col-list">\n' +
+    '                    <p class="blog-editor-list-heading">Optional CSV Fields</p>\n' +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label">era</label>\n' +
+    "                    </div>\n" +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label">timeline</label>\n' +
+    "                    </div>\n" +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label">map_label</label>\n' +
+    "                    </div>\n" +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label">gospel_category</label>\n' +
+    "                    </div>\n" +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label">description</label>\n' +
+    "                    </div>\n" +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label">summary</label>\n' +
+    "                    </div>\n" +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label">location</label>\n' +
+    "                    </div>\n" +
+    '                    <div class="blog-editor-field">\n' +
+    '                        <label class="blog-editor-field-label">people_involved</label>\n' +
+    "                    </div>\n" +
+    "                </div>\n" +
     "\n" +
-    '            <div id="selected-file-display" class="is-hidden font-mono text-sm selected-file-display">\n' +
-    '                <span id="file-name"></span>\n' +
-    '                <button id="clear-file-btn" class="quick-action-btn">Clear</button>\n' +
-    "            </div>\n" +
+    "                <!-- COL 3: Drop zone + Validation + Upload controls -->\n" +
+    '                <div class="providence-editor-col-editor">\n' +
+    '                    <h3 class="font-serif bulk-upload-title">Upload Database Records</h3>\n' +
+    "                    <p class=\"font-body text-sm bulk-upload-subtitle\">Select or drag and drop a valid CSV file (max 5MB). Must include 'title' and 'slug' columns.</p>\n" +
     "\n" +
-    "            <!-- Validation Preview -->\n" +
-    '            <div id="validation-preview" class="is-hidden validation-preview">\n' +
-    '                <div id="validation-summary" class="validation-summary"></div>\n' +
-    '                <div id="validation-errors-container" class="is-hidden validation-errors-container">\n' +
-    '                    <h4 class="font-serif validation-errors-heading">Row Errors</h4>\n' +
-    '                    <ul id="validation-error-list" class="validation-error-list"></ul>\n' +
+    '                    <div id="drop-zone" class="drop-zone">\n' +
+    '                        <p class="font-mono text-sm drop-zone-text">DRAG &amp; DROP CSV FILE HERE</p>\n' +
+    '                        <p class="font-mono text-xs drop-zone-subtext">OR CLICK TO BROWSE</p>\n' +
+    '                        <input type="file" id="csv-file-input" class="csv-file-input" accept=".csv">\n' +
+    "                    </div>\n" +
+    "\n" +
+    '                    <div id="selected-file-display" class="is-hidden font-mono text-sm selected-file-display">\n' +
+    '                        <span id="file-name"></span>\n' +
+    '                        <button id="clear-file-btn" class="quick-action-btn">Clear</button>\n' +
+    "                    </div>\n" +
+    "\n" +
+    "                    <!-- Validation Preview -->\n" +
+    '                    <div id="validation-preview" class="is-hidden validation-preview">\n' +
+    '                        <div id="validation-summary" class="validation-summary"></div>\n' +
+    '                        <div id="validation-errors-container" class="is-hidden validation-errors-container">\n' +
+    '                            <h4 class="font-serif validation-errors-heading">Row Errors</h4>\n' +
+    '                            <ul id="validation-error-list" class="validation-error-list"></ul>\n' +
+    "                        </div>\n" +
+    "                    </div>\n" +
+    "\n" +
+    '                    <div id="upload-status-area" class="status-feedback is-hidden upload-status-area">\n' +
+    '                        <div class="status-indicator-block">\n' +
+    '                            <span id="status-icon" class="status-dot"></span>\n' +
+    '                            <span id="status-text" class="status-text-mono"></span>\n' +
+    "                        </div>\n" +
+    "                    </div>\n" +
+    "\n" +
+    '                    <div id="upload-results" class="is-hidden upload-results">\n' +
+    '                        <h4 class="font-serif">Upload Results</h4>\n' +
+    '                        <div id="success-summary" class="text-sm upload-success-summary"></div>\n' +
+    '                        <ul id="error-list" class="text-sm font-mono upload-error-list">\n' +
+    "                        </ul>\n" +
+    "                    </div>\n" +
+    "\n" +
+    '                    <footer class="admin-action-bar upload-action-bar bulk-upload-footer">\n' +
+    '                        <button id="upload-submit-btn" class="btn-primary" disabled>Start Upload</button>\n' +
+    "                    </footer>\n" +
     "                </div>\n" +
     "            </div>\n" +
-    "\n" +
-    '            <div id="upload-status-area" class="status-feedback is-hidden upload-status-area">\n' +
-    '                <div class="status-indicator-block">\n' +
-    '                    <span id="status-icon" class="status-dot"></span>\n' +
-    '                    <span id="status-text" class="status-text-mono"></span>\n' +
-    "                </div>\n" +
-    "            </div>\n" +
-    "\n" +
-    '            <div id="upload-results" class="is-hidden upload-results">\n' +
-    '                <h4 class="font-serif">Upload Results</h4>\n' +
-    '                <div id="success-summary" class="text-sm upload-success-summary"></div>\n' +
-    '                <ul id="error-list" class="text-sm font-mono upload-error-list">\n' +
-    "                </ul>\n" +
-    "            </div>\n" +
-    "\n" +
-    '            <footer class="admin-action-bar upload-action-bar">\n' +
-    '                <button id="upload-submit-btn" class="btn-primary" disabled>Start Upload</button>\n' +
-    "            </footer>\n" +
     "        </div>";
 
   container.innerHTML = html;
+
+  // Render top-level section tab bar (Records active)
+  if (typeof window.renderTabBar === "function") {
+    window.renderTabBar(
+      "bulk-upload-card",
+      [
+        { name: "records", label: "Records", module: "records-edit" },
+        {
+          name: "lists-ranks",
+          label: "Lists & Ranks",
+          module: "lists-resources",
+        },
+        { name: "text-content", label: "Text Content", module: "text-blog" },
+        {
+          name: "configuration",
+          label: "Configuration",
+          module: "config-diagrams",
+        },
+      ],
+      "records",
+    );
+  }
 
   // ---- DOM refs ----
   var dropZone = document.getElementById("drop-zone");

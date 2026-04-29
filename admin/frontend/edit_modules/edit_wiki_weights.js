@@ -21,10 +21,31 @@ window.renderEditWikiWeights = async function (containerId) {
   // ----- Render shell (loading state) -----
   container.innerHTML =
     '<div class="admin-card" id="edit-wiki-weights-card">' +
-    '<div class="action-bar-header">' +
-    "<h2>RANKED LIST: Wikipedia Weights</h2>" +
-    '<button class="quick-action-btn" id="wiki-save-btn">Save All Multipliers</button>' +
+    '<div class="providence-editor-grid">' +
+    "<!-- COL 1: Action buttons -->" +
+    '<div class="providence-editor-col-actions">' +
+    '<button class="blog-editor-action-btn" id="wiki-save-btn">Save All Changes</button>' +
+    '<button class="blog-editor-action-btn" id="wiki-add-override-btn">+ Add Override</button>' +
+    '<button class="blog-editor-action-btn is-danger" id="wiki-delete-row-btn">Delete Row</button>' +
     "</div>" +
+    "<!-- COL 2: WRITE field documentation -->" +
+    '<div class="providence-editor-col-list">' +
+    '<p class="blog-editor-list-heading">WRITE Fields</p>' +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">wikipedia_link</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">wikipedia_title</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">wikipedia_rank</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">wikipedia_weight</label>' +
+    "</div>" +
+    "</div>" +
+    "<!-- COL 3: Weights table -->" +
+    '<div class="providence-editor-col-editor">' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="wiki-search-input" placeholder="Search by Record Slug…">' +
     "</div>" +
@@ -41,8 +62,7 @@ window.renderEditWikiWeights = async function (containerId) {
     '<tbody id="wiki-table-body"></tbody>' +
     "</table>" +
     "</div>" +
-    '<div class="action-bar-footer is-hidden" id="wiki-footer-bar">' +
-    '<button class="btn-outline-primary" id="wiki-add-override-btn">+ Add Custom Override Reference</button>' +
+    "</div>" +
     "</div>" +
     "</div>";
 
@@ -156,7 +176,29 @@ window.renderEditWikiWeights = async function (containerId) {
       .getElementById("wiki-loading-indicator")
       .classList.add("is-hidden");
     document.getElementById("wiki-table-wrapper").classList.remove("is-hidden");
-    document.getElementById("wiki-footer-bar").classList.remove("is-hidden");
+
+    // Render top-level section tab bar (Lists & Ranks active)
+    if (typeof window.renderTabBar === "function") {
+      window.renderTabBar(
+        "edit-wiki-weights-card",
+        [
+          { name: "records", label: "Records", module: "records-edit" },
+          {
+            name: "lists-ranks",
+            label: "Lists & Ranks",
+            module: "lists-resources",
+          },
+          { name: "text-content", label: "Text Content", module: "text-blog" },
+          {
+            name: "configuration",
+            label: "Configuration",
+            module: "config-diagrams",
+          },
+        ],
+        "lists-ranks",
+      );
+    }
+
     renderTable(records);
   } catch (err) {
     document.getElementById("wiki-loading-indicator").textContent =
@@ -180,6 +222,100 @@ window.renderEditWikiWeights = async function (containerId) {
         return !q || text.indexOf(q) !== -1;
       });
       renderTable(filtered);
+    });
+  }
+
+  // ----- Wire COL 1 action buttons -----
+  // Add Override button (stub — opens a prompt for a record slug to add)
+  var addOverrideBtn = document.getElementById("wiki-add-override-btn");
+  if (addOverrideBtn) {
+    addOverrideBtn.addEventListener("click", function () {
+      var slug = prompt("Enter record slug to add as override:");
+      if (slug && slug.trim()) {
+        // Check if already in the list
+        var exists = wikiRecords.some(function (r) {
+          return r.slug === slug.trim();
+        });
+        if (exists) {
+          alert('Record "' + slug.trim() + '" is already in the list.');
+          return;
+        }
+        // Fetch record details to add
+        fetch("/api/admin/records")
+          .then(function (resp) {
+            return resp.json();
+          })
+          .then(function (data) {
+            var records = data.records || [];
+            var found = null;
+            for (var i = 0; i < records.length; i++) {
+              if (records[i].slug === slug.trim()) {
+                found = records[i];
+                break;
+              }
+            }
+            if (found) {
+              // Fetch full detail for wikipedia fields
+              fetch("/api/admin/records/" + found.id)
+                .then(function (dr) {
+                  return dr.json();
+                })
+                .then(function (detail) {
+                  if (
+                    detail &&
+                    detail.wikipedia_title &&
+                    detail.wikipedia_title.trim() !== ""
+                  ) {
+                    wikiRecords.push({
+                      id: detail.id,
+                      title: detail.title || detail.wikipedia_title,
+                      slug: detail.slug || "",
+                      score: parseInt(detail.wikipedia_rank) || 0,
+                      weight: parseFloat(detail.wikipedia_weight) || 1.0,
+                    });
+                    renderTable(wikiRecords);
+                  } else {
+                    alert(
+                      'Record "' +
+                        slug.trim() +
+                        '" has no wikipedia_title field.',
+                    );
+                  }
+                })
+                .catch(function () {
+                  alert('Failed to fetch details for "' + slug.trim() + '".');
+                });
+            } else {
+              alert('No record found with slug "' + slug.trim() + '".');
+            }
+          })
+          .catch(function () {
+            alert("Failed to fetch records list.");
+          });
+      }
+    });
+  }
+
+  // Delete Row button (stub — prompts for slug to remove)
+  var deleteRowBtn = document.getElementById("wiki-delete-row-btn");
+  if (deleteRowBtn) {
+    deleteRowBtn.addEventListener("click", function () {
+      var slug = prompt("Enter record slug to remove from the list:");
+      if (slug && slug.trim()) {
+        var idx = -1;
+        for (var i = 0; i < wikiRecords.length; i++) {
+          if (wikiRecords[i].slug === slug.trim()) {
+            idx = i;
+            break;
+          }
+        }
+        if (idx !== -1) {
+          wikiRecords.splice(idx, 1);
+          renderTable(wikiRecords);
+        } else {
+          alert('No record with slug "' + slug.trim() + '" found in the list.');
+        }
+      }
     });
   }
 

@@ -373,7 +373,8 @@
     margin-bottom: var(--space-6);
 }
 
-.blog-editor-col-actions {
+.blog-editor-col-actions,
+.providence-editor-col-actions {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
@@ -412,7 +413,8 @@
     color: var(--color-bg);
 }
 
-.blog-editor-col-list {
+.blog-editor-col-list,
+.providence-editor-col-list {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
@@ -494,7 +496,8 @@
     color: var(--color-status-error);
 }
 
-.blog-editor-col-editor {
+.blog-editor-col-editor,
+.providence-editor-col-editor {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
@@ -603,6 +606,24 @@
     margin: 0;
     background-color: var(--color-status-success);
     color: var(--color-bg);
+}
+
+/* Essay editor preview typography */
+.essay-preview-heading {
+    font-family: var(--font-serif);
+    margin-top: 0;
+}
+
+.essay-preview-paragraph {
+    line-height: 1.6;
+}
+
+/* Response editor citation/insert tools */
+.response-insert-tools {
+    margin-top: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
 }
 
 .btn-save-diagram:hover {
@@ -1763,6 +1784,11 @@
     padding: var(--space-1) var(--space-2);
 }
 
+.lists-meta-value {
+    margin: 0;
+    padding: var(--space-1) 0;
+}
+
 /* ============================================================
    §16 — CSV Validation Preview (edit_bulk_upload.js)
    ============================================================ */
@@ -1996,6 +2022,10 @@
     margin-top: var(--space-6);
 }
 
+.rank-action-btn {
+    margin-top: var(--space-4);
+}
+
 /* --- Insert Response Popular Editor (E2) --- */
 .challenge-list-row {
     display: flex;
@@ -2077,6 +2107,45 @@
 .news-snippet-textarea:focus {
     outline: 2px solid var(--color-accent-primary);
     outline-offset: 2px;
+}
+
+/* --- Bulk Upload editor --- */
+.bulk-upload-field-heading {
+    margin-top: var(--space-6);
+}
+
+/* --- Single Record editor --- */
+.record-section-spacing {
+    margin-top: var(--space-6);
+}
+
+.record-actions-heading {
+    font-size: var(--text-xs);
+}
+
+.record-child-slot {
+    margin-top: var(--space-6);
+}
+
+.bulk-upload-title {
+    margin: 0 0 var(--space-2) 0;
+}
+
+.bulk-upload-footer {
+    margin-top: var(--space-4);
+}
+
+/* --- News Sources editor --- */
+.news-sources-add-form {
+    margin-top: var(--space-6);
+}
+
+.news-sources-add-heading {
+    font-size: var(--text-xs);
+}
+
+.news-sources-add-btn {
+    margin-top: var(--space-2);
 }
 
 /* --- Insert Response Editors (GROUP E) --- */

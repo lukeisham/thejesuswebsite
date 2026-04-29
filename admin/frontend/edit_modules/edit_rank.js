@@ -17,42 +17,112 @@ window.renderEditRank = function (containerId) {
 
   const html = `
         <div class="admin-card" id="edit-rank-card">
-            <h2 class="section-heading-serif">MANUAL RANK OVERRIDE</h2>
+            <div class="providence-editor-grid">
+                <!-- COL 1: Action buttons -->
+                <div class="providence-editor-col-actions">
+                    <button class="blog-editor-action-btn" id="rank-save-btn">Save</button>
+                    <button class="blog-editor-action-btn is-danger" id="rank-delete-btn">Delete Row</button>
+                </div>
 
-            <div class="rank-inner-card">
-                <p class="text-muted rank-description">Select a specific record to forcefully lock its rank across algorithmic pipelines.</p>
-
-                <div class="field-row-double rank-field-grid">
-                    <div class="field-row-inner rank-field-wrapper">
-                        <label class="field-label">Target Record Slug:</label>
-                        <input type="text" class="field-input" placeholder="e.g. tacitus-annals-15-44">
+                <!-- COL 2: Field documentation -->
+                <div class="providence-editor-col-list">
+                    <p class="blog-editor-list-heading">Override Fields</p>
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">target_slug</label>
                     </div>
-                    <div class="field-row-inner rank-field-wrapper">
-                        <label class="field-label">List Pipeline:</label>
-                        <select class="field-input">
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">pipeline</label>
+                    </div>
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">lock_rank</label>
+                    </div>
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">rank_position</label>
+                    </div>
+                </div>
+
+                <!-- COL 3: Rank override form -->
+                <div class="providence-editor-col-editor">
+                    <p class="text-muted rank-description">Select a specific record to forcefully lock its rank across algorithmic pipelines.</p>
+
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">Target Record Slug:</label>
+                        <input type="text" class="blog-editor-field-input" id="rank-slug-input" placeholder="e.g. tacitus-annals-15-44">
+                    </div>
+
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">List Pipeline:</label>
+                        <select class="blog-editor-field-input" id="rank-pipeline-select">
                             <option>Wikipedia Mentions</option>
                             <option>Academic Debates</option>
                             <option>Popular Debates</option>
                         </select>
                     </div>
-                </div>
 
-                <div class="rank-checkbox-row">
-                    <input type="checkbox" id="lock-rank">
-                    <label for="lock-rank" class="rank-lock-label">Lock Absolute Rank Position (Overrides Base multipliers)</label>
-                </div>
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">
+                            <input type="checkbox" id="lock-rank">
+                            Lock Absolute Rank Position (Overrides Base multipliers)
+                        </label>
+                    </div>
 
-                <div class="rank-position-row">
-                    <label class="field-label">Hardcoded Rank Position:</label>
-                    <input type="number" min="1" value="1" class="rank-input-narrow">
-                </div>
+                    <div class="blog-editor-field">
+                        <label class="blog-editor-field-label">Hardcoded Rank Position:</label>
+                        <input type="number" min="1" value="1" class="rank-input-narrow" id="rank-position-input">
+                    </div>
 
-                <div class="rank-action-row">
-                    <button class="quick-action-btn">Apply Override</button>
+                    <button class="blog-editor-action-btn rank-action-btn" id="rank-apply-btn">Apply Override</button>
                 </div>
             </div>
         </div>
     `;
 
   container.innerHTML = html;
+
+  // Render top-level section tab bar (Lists & Ranks active)
+  if (typeof window.renderTabBar === "function") {
+    window.renderTabBar(
+      "edit-rank-card",
+      [
+        { name: "records", label: "Records", module: "records-edit" },
+        {
+          name: "lists-ranks",
+          label: "Lists & Ranks",
+          module: "lists-resources",
+        },
+        { name: "text-content", label: "Text Content", module: "text-blog" },
+        {
+          name: "configuration",
+          label: "Configuration",
+          module: "config-diagrams",
+        },
+      ],
+      "lists-ranks",
+    );
+  }
+
+  // Wire Apply Override button
+  var applyBtn = document.getElementById("rank-apply-btn");
+  if (applyBtn) {
+    applyBtn.addEventListener("click", function () {
+      var slug = document.getElementById("rank-slug-input");
+      var pipeline = document.getElementById("rank-pipeline-select");
+      var lockCheck = document.getElementById("lock-rank");
+      var position = document.getElementById("rank-position-input");
+      if (slug && pipeline) {
+        alert(
+          'Override queued for slug "' +
+            slug.value +
+            '" on pipeline "' +
+            pipeline.value +
+            '"' +
+            (lockCheck && lockCheck.checked
+              ? " (locked at position " +
+                (position ? position.value : "?") +
+                ")"
+              : ""),
+        );
+      }
+    });
+  }
 };

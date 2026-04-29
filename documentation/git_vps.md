@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "dashboard fixes"
+git commit -m "dashboard re-wire stage 2"
 git push origin main 
 
 # Pulling from Github to server 

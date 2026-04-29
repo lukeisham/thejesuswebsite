@@ -464,6 +464,27 @@ window.renderEditBlogpost = async function (containerId) {
     }
   }
 
+  // ----- Render top-level section tab bar -----
+  // Shows [ Records ] [ Lists & Ranks ] [ Text Content (Active) ] [ Configuration ]
+  window.renderTabBar(
+    "edit-blogpost-card",
+    [
+      { name: "records", label: "Records", module: "records-edit" },
+      {
+        name: "lists-ranks",
+        label: "Lists & Ranks",
+        module: "lists-resources",
+      },
+      { name: "text-content", label: "Text Content", module: "text-blog" },
+      {
+        name: "configuration",
+        label: "Configuration",
+        module: "config-diagrams",
+      },
+    ],
+    "text-content",
+  );
+
   // ----- Initialize: Load data and render -----
   try {
     await loadBlogPosts();

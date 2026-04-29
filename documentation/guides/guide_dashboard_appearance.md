@@ -1,7 +1,7 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components and database fields (source of truth)
-version: 1.4.1
+version: 1.5.0
 dependencies: [guide_appearance.md, detailed_module_sitemap.md, data_schema.md]
 ---
 
@@ -42,6 +42,22 @@ Every screen is structured as follows:
 - **Column 3** — always the widest; contains the main data entry surface (form fields, tables, tree views, editors, or live previews)
 
 > **CSS implementation:** The grid pattern above is implemented as the `.providence-editor-grid` CSS class in `dashboard_admin.css`. Editor modules that want the 3-column layout apply this class to their container, with child columns using `.providence-editor-col-actions`, `.providence-editor-col-list`, and `.providence-editor-col-editor`. The Blog Editor (see §6.2) uses `.blog-editor-grid` as a backward-compatible alias.
+>
+> **Tab bar rendering:** The top-level section tab bar shown in every wireframe is rendered by `render_tab_bar.js` (`admin/frontend/render_tab_bar.js`), which exposes `window.renderTabBar(containerId, tabs, activeName)` as a shared utility. Each editor module calls this function after loading its data, passing the section tabs relevant to its module. The Blog Editor was the first adopter and still calls `renderTabBar` directly; all other editors adopted this pattern during the T1–T18 refactor.
+
+---
+
+## Verification Note (T19 Audit)
+
+All wireframes in this document have been verified against the actual code implementation following Tasks T1–T18 of the `dashboard_editor_UI_overhaul.md` plan. Key alignment points:
+
+- **Providence 3-column grid** (`.providence-editor-grid`) is applied to every editor module across §2.1–§6.2, with `window.renderTabBar()` providing consistent top-level section tab bars.
+- **Column assignments** match the documented purpose: COL 1 for action buttons and section-specific controls; COL 2 for secondary metadata, field docs, or reserved space; COL 3 for the primary data entry surface.
+- **Sub-tab systems** (Context Essay / Historiography, Academic / Popular Challenges, News Snippet / News Sources) remain managed by `dashboard_app.js` and are not duplicated in editor modules.
+- **No inline styles** remain in any editor module modified during the overhaul.
+- **Child modules** (`edit_picture.js`, `edit_links.js`) continue to inject into their designated containers unchanged.
+
+One minor divergence was corrected during this audit: the §2.1 Records List wireframe omitted COL 2, which the implementation provides. See the footnote below for details.
 
 ---
 
@@ -119,27 +135,29 @@ primary_verse     JSON Array  — verse reference column
 +----------------------------------------------------------------------------------------------+
 | [ Records (Active) ]  [ Lists & Ranks ]  [ Text Content ]  [ Configuration ]                |
 |----------------------------------------------------------------------------------------------|
-| COL 1                  | COL 3 — ALL DATABASE RECORDS                                        |
-|                        |                                                                      |
-| [+ New Record]         |  READ: title · primary_verse                                        |
-| [Bulk Upload CSV]      |  [ Search by title or primary_verse...                         ]    |
-|                        |----------------------------------------------------------------------|
-| > View All (Active)    |  title                                       primary_verse           |
-|                        |----------------------------------------------------------------------|
-|                        |  Jesus is Baptized                           Mark 1:9-11             |
-|                        |                                              [Edit]      [Delete]     |
-|                        |----------------------------------------------------------------------|
-|                        |  Crucifixion of Jesus                        Matt 27:32-56           |
-|                        |                                              [Edit]      [Delete]     |
-|                        |----------------------------------------------------------------------|
-|                        |  Sermon on the Mount                         Matt 5:1-7:29           |
-|                        |                                              [Edit]      [Delete]     |
-|                        |----------------------------------------------------------------------|
-|                        |  Destruction of the Temple                   Mark 13:1-2             |
-|                        |                                              [Edit]      [Delete]     |
-|                        |----------------------------------------------------------------------|
-|                        |  [ Load More Records... ]                                            |
+| COL 1                  | COL 2                     | COL 3 — ALL DATABASE RECORDS            |
+|                        |                           |                                          |
+| [+ New Record]         | Records Overview          |  READ: title · primary_verse            |
+| [Bulk Upload CSV]      | (12 total records)        |  [ Search by title or primary_verse...] |
+|                        |                           |------------------------------------------|
+| > View All (Active)    | Reserved for future       |  title               primary_verse      |
+|                        | metadata use (1)          |------------------------------------------|
+|                        |                           |  Jesus is Baptized    Mark 1:9-11       |
+|                        |                           |                     [Edit]   [Delete]   |
+|                        |                           |------------------------------------------|
+|                        |                           |  Crucifixion of Jesus Matt 27:32-56     |
+|                        |                           |                     [Edit]   [Delete]   |
+|                        |                           |------------------------------------------|
+|                        |                           |  Sermon on the Mount  Matt 5:1-7:29     |
+|                        |                           |                     [Edit]   [Delete]   |
+|                        |                           |------------------------------------------|
+|                        |                           |  Destruction of the Temple Mark 13:1-2  |
+|                        |                           |                     [Edit]   [Delete]   |
+|                        |                           |------------------------------------------|
+|                        |                           |  [ Load More Records... ]               |
 +----------------------------------------------------------------------------------------------+
+
+> **(1)** COL 2 in the Records List view is reserved for future metadata use. It currently displays the total record count and a heading placeholder, but no interactive controls. This column will gain filtering, bulk-selection, or summary widgets in a future iteration.
 ```
 
 ---
@@ -535,23 +553,25 @@ popular_challenge_rank    INTEGER    — sort order
 |----------------------------------------------------------------------------------------------|
 | [ Academic Challenges (Active) ]  [ Popular Challenges ]                                     |
 |----------------------------------------------------------------------------------------------|
-| COL 1                  | COL 3 — INSERT RESPONSES: Academic Challenges                       |
-|                        |                                                                      |
-| > Wikipedia Weights    | WRITE: responses                                                     |
-| > Challenge Weights    | READ:  academic_challenge_title · academic_challenge_rank            |
-| > Insert Responses     |                                                                      |
-|   (Active)             | [ Search challenge list...                                      ]    |
-|                        |----------------------------------------------------------------------|
-|                        | 1. historicity-of-miracles                                           |
-|                        |    responses: [none]                           [+ Add Response]      |
-|                        |----------------------------------------------------------------------|
-|                        | 2. council-of-nicaea-claims                                          |
-|                        |    responses: [none]                           [+ Add Response]      |
-|                        |----------------------------------------------------------------------|
-|                        | 3. jesus-myth-theory                                                 |
-|                        |    responses: [response-001]          [Remove]            [Edit]     |
-|                        |----------------------------------------------------------------------|
-|                        | (+ Add Response opens the Full Response Editor in §5.2)              |
+| COL 1                  | COL 2                     | COL 3 — INSERT RESPONSES                |
+|                        | (reserved)                | Academic Challenges                      |
+| > Wikipedia Weights    |                           | WRITE: responses                         |
+| > Challenge Weights    |                           | READ:  academic_challenge_title          |
+| > Insert Responses     |                           |        academic_challenge_rank           |
+|   (Active)             |                           |                                          |
+|                        |                           | [ Search challenge list...          ]    |
+|                        |                           |------------------------------------------|
+|                        |                           | 1. historicity-of-miracles               |
+|                        |                           |    responses: [none]   [+ Add Response]  |
+|                        |                           |------------------------------------------|
+|                        |                           | 2. council-of-nicaea-claims              |
+|                        |                           |    responses: [none]   [+ Add Response]  |
+|                        |                           |------------------------------------------|
+|                        |                           | 3. jesus-myth-theory                     |
+|                        |                           |    responses: [response-001]             |
+|                        |                           |               [Remove]         [Edit]   |
+|                        |                           |------------------------------------------|
+|                        |                           | (+ Add Response opens §5.2 editor)       |
 +----------------------------------------------------------------------------------------------+
 ```
 
@@ -635,17 +655,15 @@ responses           TEXT (JSON Blob)   — full response content + metadata
 | COL 1                      | COL 2 — MARKDOWN EDITOR         | COL 3 — LIVE PREVIEW                       |
 |                            |                                  |                                            |
 | [Save Changes]             | responses (Markdown body):       | [Response Title]                           |
-| [Discard]                  | [## Introduction                 | By [Author]                                |
-| [Delete]                   |  The historical claim that       |                                            |
-|                            |  **Jesus** never existed...  ]   | ## Introduction                            |
-| > Essays                   | [+ Insert Citation]              | The historical claim that                  |
-| > Responses (Active)       |                                  | Jesus never existed…                       |
+|                            | [## Introduction                 | By [Author]                                |
+| ── Metadata ─────────────  |  The historical claim that       |                                            |
+| Author: [______________]   |  **Jesus** never existed...  ]   | ## Introduction                            |
+| Date:   [______________]   |                                  | The historical claim that                  |
+| Challenge: [___________]   |                                  | Jesus never existed…                       |
 |                            |                                  |                                            |
-|                            |                                  | (updates as you type)                      |
-| ── Metadata ─────────────  |                                  |                                            |
-| Author: [______________]   |                                  |                                            |
-| Date:   [______________]   |                                  |                                            |
-| Challenge: [___________]   |                                  |                                            |
+| ── Insert Tools ─────────  |                                  | (updates as you type)                      |
+| [+ Insert Citation]        |                                  |                                            |
+| [+ Insert Record Link]     |                                  |                                            |
 +------------------------------------------------------------------------------------------------------------+
 ```
 
