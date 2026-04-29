@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<!-- =============================================================================
+    <!-- =============================================================================
 
      THE JESUS WEBSITE — Events LIST VIEW
      File:    frontend/pages/resources/Events.html
@@ -11,82 +10,98 @@
 
 ============================================================================= -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="/frontend/pages/resources/" />
 
-    <title>Events | The Jesus Website</title>
-    
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="../../../css/elements/typography_colors.css">
-    <link rel="stylesheet" href="../../../css/elements/grid.css">
-    <link rel="stylesheet" href="../../../css/elements/list_card_button.css" /> 
-    <link rel="stylesheet" href="../../../css/design_layouts/views/list_layout.css">
+        <title>Events | The Jesus Website</title>
 
-    <!-- SEO / Metadata API Header -->
-    <script src="../../display_other/header.js"></script>
-</head>
-<body>
+        <!-- Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../../css/elements/typography_colors.css"
+        />
+        <link rel="stylesheet" href="../../../css/elements/grid.css" />
+        <link
+            rel="stylesheet"
+            href="../../../css/elements/list_card_button.css"
+        />
+        <link
+            rel="stylesheet"
+            href="../../../css/design_layouts/views/list_layout.css"
+        />
 
-    <!-- Main Page Shell Container -->
-    <div class="page-shell" id="page-shell">
-        
-        <!-- Invisible Metadata Anchor -->
-        <header id="invisible-header" aria-hidden="true"></header>
-        
-        <!-- Main Content Column -->
-        <main class="site-main" id="site-main" role="main">
-            <div class="content-wrap grid-single">
+        <!-- SEO / Metadata API Header -->
+        <script src="../../display_other/header.js"></script>
+    </head>
+    <body>
+        <!-- Main Page Shell Container -->
+        <div class="page-shell" id="page-shell">
+            <!-- Invisible Metadata Anchor -->
+            <header id="invisible-header" aria-hidden="true"></header>
 
-                <article class="list-view-container" id="list-view-container" aria-live="polite">
-                    
-                    <header class="list-header">
-                        <h1 class="list-title" id="list-title">Events</h1>
-                    </header>
+            <!-- Main Content Column -->
+            <main class="site-main" id="site-main" role="main">
+                <div class="content-wrap grid-single">
+                    <article
+                        class="list-view-container"
+                        id="list-view-container"
+                        aria-live="polite"
+                    >
+                        <header class="list-header">
+                            <h1 class="list-title" id="list-title">Events</h1>
+                        </header>
 
-                    <!-- Filter / Sort Header (if applicable) -->
-                    <div class="list-controls" id="list-controls" style="display: none;">
-                        <!-- JS injected controls -->
-                    </div>
+                        <!-- Filter / Sort Header (if applicable) -->
+                        <div
+                            class="list-controls"
+                            id="list-controls"
+                            style="display: none"
+                        >
+                            <!-- JS injected controls -->
+                        </div>
 
-                    <!-- Main List Area -->
-                    <div id="list-content-area">
-                        <ul class="record-list" id="record-list">
-                            <!-- Items injected here -->
-                        </ul>
-                    </div>
+                        <!-- Main List Area -->
+                        <div id="list-content-area">
+                            <ul class="record-list" id="record-list">
+                                <!-- Items injected here -->
+                            </ul>
+                        </div>
 
-                    <!-- Pagination -->
-                    <nav class="list-pagination" id="list-pagination" aria-label="Pagination Navigation" style="display: none;">
-                        <!-- Pagination buttons injected here -->
-                    </nav>
+                        <!-- Pagination -->
+                        <nav
+                            class="list-pagination"
+                            id="list-pagination"
+                            aria-label="Pagination Navigation"
+                            style="display: none"
+                        >
+                            <!-- Pagination buttons injected here -->
+                        </nav>
+                    </article>
+                </div>
+            </main>
+        </div>
 
-                </article>
+        <!-- Sidebar / Top Nav / Footer Injection -->
+        <script src="../../display_other/search_header.js"></script>
+        <script src="../../display_other/sidebar.js"></script>
+        <script src="../../display_other/footer.js"></script>
 
-            </div>
-        </main>
-        
-    </div>
-    
-    <!-- Sidebar / Top Nav / Footer Injection -->
-    <script src="../../display_other/search_header.js"></script>
-    <script src="../../display_other/sidebar.js"></script>
-    <script src="../../display_other/footer.js"></script>
-    
-    <!-- Core DB access -->
-    <script src="../../core/sql-wasm.js"></script>
-    <script src="../../core/setup_db.js"></script>
+        <!-- Core DB access -->
+        <script src="../../core/sql-wasm.js"></script>
+        <script src="../../core/setup_db.js"></script>
 
-    <!-- Renders the data -->
-    <script src="../../display_big/list_view.js"></script>
+        <!-- Renders the data -->
+        <script src="../../display_big/list_view.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Build Universal Layout Elements
-            injectSidebar('site-main', 'resources');
-            injectSearchHeader('site-sidebar', 'resources');
-            injectFooter('page-shell');
-        });
-    </script>
-</body>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Build Universal Layout Elements
+                injectSidebar("site-main", "resources");
+                injectSearchHeader("site-sidebar", "resources");
+                injectFooter("page-shell");
+            });
+        </script>
+    </body>
 </html>

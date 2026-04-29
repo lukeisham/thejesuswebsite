@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-
 /**
  * injectSidebar
  *
@@ -30,53 +29,55 @@
  *                                   the current page: [{ label, href }]
  */
 function injectSidebar(anchorId, activePage, tocItems) {
+  // --- 1. Navigation link definitions --------------------------------------
+  //   Source: guide_appearance.md §1.5 sidebar diagram.
+  //   Each entry: { label, href, id }
 
-    // --- 1. Navigation link definitions --------------------------------------
-    //   Source: guide_appearance.md §1.5 sidebar diagram.
-    //   Each entry: { label, href, id }
+  const navLinks = [
+    { label: "Records", href: "/records", id: "records" },
+    { label: "Evidence", href: "/evidence", id: "evidence" },
+    { label: "Timeline", href: "/timeline", id: "timeline" },
+    { label: "Maps", href: "/maps", id: "maps" },
+    { label: "Context", href: "/context", id: "context" },
+    { label: "Debate & Discussion", href: "/debate", id: "debate" },
+    { label: "Resource Lists", href: "/resources", id: "resources" },
+    { label: "News", href: "/news", id: "news" },
+    { label: "About", href: "/about", id: "about" },
+  ];
 
-    const navLinks = [
-        { label: 'Records', href: '/frontend/pages/records.html', id: 'records' },
-        { label: 'Evidence', href: '/frontend/pages/evidence.html', id: 'evidence' },
-        { label: 'Timeline', href: '/frontend/pages/timeline.html', id: 'timeline' },
-        { label: 'Maps', href: '/frontend/pages/maps.html', id: 'maps' },
-        { label: 'Context', href: '/frontend/pages/context.html', id: 'context' },
-        { label: 'Debate & Discussion', href: '/frontend/pages/debate.html', id: 'debate' },
-        { label: 'Resource Lists', href: '/frontend/pages/resources.html', id: 'resources' },
-        { label: 'News', href: '/frontend/pages/news_and_blog.html', id: 'news' },
-        { label: 'About', href: '/frontend/pages/about.html', id: 'about' },
-    ];
+  // --- 2. Build main nav HTML ----------------------------------------------
 
-    // --- 2. Build main nav HTML ----------------------------------------------
+  const navItemsHTML = navLinks
+    .map((link) => {
+      const isActive = link.id === activePage ? "is-active" : "";
+      const ariaCurrent = link.id === activePage ? 'aria-current="page"' : "";
+      return `<li><a href="${link.href}" id="sidebar-nav-${link.id}" class="${isActive}" ${ariaCurrent}>${link.label}</a></li>`;
+    })
+    .join("");
 
-    const navItemsHTML = navLinks
-        .map(link => {
-            const isActive = (link.id === activePage) ? 'is-active' : '';
-            const ariaCurrent = (link.id === activePage) ? 'aria-current="page"' : '';
-            return `<li><a href="${link.href}" id="sidebar-nav-${link.id}" class="${isActive}" ${ariaCurrent}>${link.label}</a></li>`;
-        })
-        .join('');
+  // --- 3. Optionally build Table of Contents section ----------------------
 
-    // --- 3. Optionally build Table of Contents section ----------------------
+  let tocHTML = "";
 
-    let tocHTML = '';
+  if (tocItems && tocItems.length > 0) {
+    const tocLinksHTML = tocItems
+      .map(
+        (item) =>
+          `<li><a href="${item.href}" class="sidebar-toc-link">${item.label}</a></li>`,
+      )
+      .join("");
 
-    if (tocItems && tocItems.length > 0) {
-        const tocLinksHTML = tocItems
-            .map(item => `<li><a href="${item.href}" class="sidebar-toc-link">${item.label}</a></li>`)
-            .join('');
-
-        tocHTML = `
+    tocHTML = `
         <hr class="site-sidebar__divider" aria-hidden="true" />
         <p class="site-sidebar__nav-category">On this page</p>
         <ul class="site-sidebar__nav" id="sidebar-toc" aria-label="Table of Contents">
             ${tocLinksHTML}
         </ul>`;
-    }
+  }
 
-    // --- 4. Compose full sidebar HTML ----------------------------------------
+  // --- 4. Compose full sidebar HTML ----------------------------------------
 
-    const sidebarHTML = `
+  const sidebarHTML = `
 <aside class="site-sidebar" id="site-sidebar" aria-label="Site navigation">
 
     <a href="/index.html" class="site-sidebar__brand" id="sidebar-brand" aria-label="The Jesus Website — Home">
@@ -90,7 +91,7 @@ function injectSidebar(anchorId, activePage, tocItems) {
     </nav>
 
     ${tocHTML}
-    
+
     <div class="site-sidebar__footer">
         <hr class="site-sidebar__divider" aria-hidden="true" />
         <a href="/admin/frontend/admin.html" id="sidebar-admin-link" class="site-sidebar__admin-link">
@@ -103,49 +104,49 @@ function injectSidebar(anchorId, activePage, tocItems) {
 <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
 `;
 
-    // --- 5. Insert before the anchor element ---------------------------------
+  // --- 5. Insert before the anchor element ---------------------------------
 
-    const anchorEl = document.getElementById(anchorId);
+  const anchorEl = document.getElementById(anchorId);
 
-    if (!anchorEl) {
-        console.warn('[sidebar.js] Anchor element not found: #' + anchorId);
-        return;
-    }
+  if (!anchorEl) {
+    console.warn("[sidebar.js] Anchor element not found: #" + anchorId);
+    return;
+  }
 
-    anchorEl.insertAdjacentHTML('beforebegin', sidebarHTML);
+  anchorEl.insertAdjacentHTML("beforebegin", sidebarHTML);
 
-    // --- 6. Wire up mobile off-canvas toggle ---------------------------------
-    //   The toggle button lives in the search header (injected by search_header.js).
-    //   sidebar.js listens for a 'toggleSidebar' custom event as well as
-    //   clicking the backdrop to close.
+  // --- 6. Wire up mobile off-canvas toggle ---------------------------------
+  //   The toggle button lives in the search header (injected by search_header.js).
+  //   sidebar.js listens for a 'toggleSidebar' custom event as well as
+  //   clicking the backdrop to close.
 
-    const sidebar = document.getElementById('site-sidebar');
-    const backdrop = document.getElementById('sidebar-backdrop');
+  const sidebar = document.getElementById("site-sidebar");
+  const backdrop = document.getElementById("sidebar-backdrop");
 
-    function openSidebar() {
-        sidebar.classList.add('is-open');
-        backdrop.classList.add('is-visible');
-        sidebar.setAttribute('aria-expanded', 'true');
-    }
+  function openSidebar() {
+    sidebar.classList.add("is-open");
+    backdrop.classList.add("is-visible");
+    sidebar.setAttribute("aria-expanded", "true");
+  }
 
-    function closeSidebar() {
-        sidebar.classList.remove('is-open');
-        backdrop.classList.remove('is-visible');
-        sidebar.setAttribute('aria-expanded', 'false');
-    }
+  function closeSidebar() {
+    sidebar.classList.remove("is-open");
+    backdrop.classList.remove("is-visible");
+    sidebar.setAttribute("aria-expanded", "false");
+  }
 
-    function toggleSidebar() {
-        sidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
-    }
+  function toggleSidebar() {
+    sidebar.classList.contains("is-open") ? closeSidebar() : openSidebar();
+  }
 
-    // Listen for toggle events dispatched by the mobile menu button
-    document.addEventListener('toggleSidebar', toggleSidebar);
+  // Listen for toggle events dispatched by the mobile menu button
+  document.addEventListener("toggleSidebar", toggleSidebar);
 
-    // Click the backdrop to dismiss
-    backdrop.addEventListener('click', closeSidebar);
+  // Click the backdrop to dismiss
+  backdrop.addEventListener("click", closeSidebar);
 
-    // Escape key to dismiss
-    document.addEventListener('keydown', function handleSidebarEscape(event) {
-        if (event.key === 'Escape') closeSidebar();
-    });
+  // Escape key to dismiss
+  document.addEventListener("keydown", function handleSidebarEscape(event) {
+    if (event.key === "Escape") closeSidebar();
+  });
 }

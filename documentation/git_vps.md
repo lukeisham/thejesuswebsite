@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "URL Slugs plan"
+git commit -m "URL Slugs refactor"
 git push origin main 
 
 # Pulling from Github to server 

@@ -1,1 +1,64 @@
-<!-- Placeholder for Judea map -->
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- =============================================================================
+     THE JESUS WEBSITE — JUDEA MAP
+     File:    frontend/pages/maps/map_judea.html
+     Version: 1.0.0
+     Purpose: Interactive 1st-century Judea.
+     Source:  guide_maps.md
+============================================================================= -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/frontend/pages/maps/">
+
+    <title>Map of Judea | The Jesus Website</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
+    <link rel="stylesheet" href="../../css/elements/grid.css">
+    <link rel="stylesheet" href="../../css/elements/map_diagram.css">
+
+    <!-- UI Logic Components -->
+    <script src="../display_other/header.js"></script>
+    <script src="../display_other/search_header.js"></script>
+    <script src="../display_other/sidebar.js"></script>
+    <script src="../display_other/footer.js"></script>
+
+    <!-- Core DB access -->
+    <script src="../core/sql-wasm.js"></script>
+    <script src="../core/setup_db.js"></script>
+
+    <!-- Component Logic -->
+    <script src="../display_other/maps_display.js"></script>
+
+    <!-- Central Initializer -->
+    <script src="../display_other/initializer.js"></script>
+</head>
+
+<body data-page-title="Map of Judea"
+      data-page-description="Interactive 1st-century Judea."
+      data-sidebar-active-nav="maps"
+      data-search-header-active-nav="maps"
+      data-footer-target="page-shell">
+
+    <div class="page-shell" id="page-shell">
+        <header id="invisible-header" aria-hidden="true"></header>
+        <main class="site-main" id="site-main" role="main">
+            <div class="content-wrap grid-single">
+                <header class="map-header">
+                    <h1 class="record-title">Map of Judea</h1>
+                    <p class="record-primary-verse">Interactive 1st-century Judea.</p>
+                </header>
+                <div class="map-interface-container" id="map-interface">
+                    <div class="map-canvas-wrapper" id="map-canvas-wrapper">
+                        <p class="text-sm text-muted">Map of Judea content coming soon.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

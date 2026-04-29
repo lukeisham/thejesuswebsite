@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<!-- =============================================================================
+    <!-- =============================================================================
 
      THE JESUS WEBSITE — HISTORIOGRAPHY ESSAY
      File:    frontend/pages/debate/historiography.html
@@ -11,80 +10,100 @@
 
 ============================================================================= -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="/frontend/pages/debate/" />
 
-    <title>Historiography | The Jesus Website</title>
-    
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="../../../css/elements/typography_colors.css">
-    <link rel="stylesheet" href="../../../css/elements/grid.css">
-    <link rel="stylesheet" href="../../../css/design_layouts/views/essay_layout.css">
-    <link rel="stylesheet" href="../../../css/elements/pictures.css">
+        <title>Historiography | The Jesus Website</title>
 
-    <!-- SEO / Metadata API Header -->
-    <script src="../../display_other/header.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            injectPageMetadata({
-                title:       'Historiography',
-                description: 'Tracing the historical development of academic research concerning Jesus.',
-                canonical:   window.location.origin + '/frontend/pages/debate/historiography.html'
+        <!-- Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../../css/elements/typography_colors.css"
+        />
+        <link rel="stylesheet" href="../../../css/elements/grid.css" />
+        <link
+            rel="stylesheet"
+            href="../../../css/design_layouts/views/essay_layout.css"
+        />
+        <link rel="stylesheet" href="../../../css/elements/pictures.css" />
+
+        <!-- SEO / Metadata API Header -->
+        <script src="../../display_other/header.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                injectPageMetadata({
+                    title: "Historiography",
+                    description:
+                        "Tracing the historical development of academic research concerning Jesus.",
+                    canonical:
+                        window.location.origin + "/debate/historiography",
+                });
             });
-        });
-    </script>
-</head>
-<body>
+        </script>
+    </head>
+    <body>
+        <!-- Main Page Shell Container -->
+        <div class="page-shell" id="page-shell">
+            <!-- Invisible Metadata Anchor -->
+            <header id="invisible-header" aria-hidden="true"></header>
 
-    <!-- Main Page Shell Container -->
-    <div class="page-shell" id="page-shell">
-        
-        <!-- Invisible Metadata Anchor -->
-        <header id="invisible-header" aria-hidden="true"></header>
-        
-        <!-- Main Content Column -->
-        <main class="site-main" id="site-main" role="main">
-            <div class="layout-two-col">
-                
-                <!-- Left internal sidebar (Table of Contents) -->
-                <aside class="list-filters" style="padding-right: var(--space-4); border-right: var(--border-width-thin) solid var(--color-border); margin-right: var(--space-4);">
-                    <h3 class="text-sm font-semibold mb-2">Table of Contents</h3>
-                    <ul id="essay-toc" style="list-style: none; padding: 0; line-height: 2;">
-                        <!-- Injected by JS -->
-                    </ul>
-                </aside>
+            <!-- Main Content Column -->
+            <main class="site-main" id="site-main" role="main">
+                <div class="layout-two-col">
+                    <!-- Left internal sidebar (Table of Contents) -->
+                    <aside
+                        class="list-filters"
+                        style="
+                            padding-right: var(--space-4);
+                            border-right: var(--border-width-thin) solid
+                                var(--color-border);
+                            margin-right: var(--space-4);
+                        "
+                    >
+                        <h3 class="text-sm font-semibold mb-2">
+                            Table of Contents
+                        </h3>
+                        <ul
+                            id="essay-toc"
+                            style="list-style: none; padding: 0; line-height: 2"
+                        >
+                            <!-- Injected by JS -->
+                        </ul>
+                    </aside>
 
-                <!-- Right Essay Content Area -->
-                <div class="layout-two-col__content" style="padding-top: 0;">
-                    <article class="essay-container" id="historiography-container">
-                        <!-- Injected by view_historiography.js -->
-                    </article>
+                    <!-- Right Essay Content Area -->
+                    <div class="layout-two-col__content" style="padding-top: 0">
+                        <article
+                            class="essay-container"
+                            id="historiography-container"
+                        >
+                            <!-- Injected by view_historiography.js -->
+                        </article>
+                    </div>
                 </div>
+            </main>
+        </div>
 
-            </div>
-        </main>
-        
-    </div>
-    
-    <!-- UI Components -->
-    <script src="../../display_other/search_header.js"></script>
-    <script src="../../display_other/sidebar.js"></script>
-    <script src="../../display_other/footer.js"></script>
-    <script src="../../display_other/pictures_display.js"></script>
-    <script src="../../display_other/mla_snippet_display.js"></script>
-    <script src="../../display_other/sources_biblio_display.js"></script>
-    
-    <!-- Display Logic -->
-    <script src="../../display_big/view_historiography.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Build Universal Layout Elements
-            injectSidebar('site-main', 'debate');
-            injectSearchHeader('site-sidebar', 'debate');
-            injectFooter('page-shell');
-        });
-    </script>
-</body>
+        <!-- UI Components -->
+        <script src="../../display_other/search_header.js"></script>
+        <script src="../../display_other/sidebar.js"></script>
+        <script src="../../display_other/footer.js"></script>
+        <script src="../../display_other/pictures_display.js"></script>
+        <script src="../../display_other/mla_snippet_display.js"></script>
+        <script src="../../display_other/sources_biblio_display.js"></script>
+
+        <!-- Display Logic -->
+        <script src="../../display_big/view_historiography.js"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Build Universal Layout Elements
+                injectSidebar("site-main", "debate");
+                injectSearchHeader("site-sidebar", "debate");
+                injectFooter("page-shell");
+            });
+        </script>
+    </body>
 </html>

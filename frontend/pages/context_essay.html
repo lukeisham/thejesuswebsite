@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<!-- =============================================================================
+    <!-- =============================================================================
 
      THE JESUS WEBSITE — CONTEXT ESSAY
      File:    frontend/pages/context_essay.html
@@ -11,66 +10,78 @@
 
 ============================================================================= -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="/frontend/pages/" />
 
-    <title>Context Essays | The Jesus Website</title>
+        <title>Context Essays | The Jesus Website</title>
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
-    <link rel="stylesheet" href="../../css/elements/grid.css">
-    <link rel="stylesheet" href="../../css/design_layouts/views/essay_layout.css">
-    <link rel="stylesheet" href="../../css/elements/pictures.css">
+        <!-- Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../css/elements/typography_colors.css"
+        />
+        <link rel="stylesheet" href="../../css/elements/grid.css" />
+        <link
+            rel="stylesheet"
+            href="../../css/design_layouts/views/essay_layout.css"
+        />
+        <link rel="stylesheet" href="../../css/elements/pictures.css" />
 
-    <!-- UI Logic Components -->
-    <script src="../display_other/header.js"></script>
-    <script src="../display_other/search_header.js"></script>
-    <script src="../display_other/sidebar.js"></script>
-    <script src="../display_other/footer.js"></script>
-    <script src="../display_other/pictures_display.js"></script>
-    <script src="../display_other/mla_snippet_display.js"></script>
-    <script src="../display_other/sources_biblio_display.js"></script>
+        <!-- UI Logic Components -->
+        <script src="../display_other/header.js"></script>
+        <script src="../display_other/search_header.js"></script>
+        <script src="../display_other/sidebar.js"></script>
+        <script src="../display_other/footer.js"></script>
+        <script src="../display_other/pictures_display.js"></script>
+        <script src="../display_other/mla_snippet_display.js"></script>
+        <script src="../display_other/sources_biblio_display.js"></script>
 
-    <!-- Display Logic -->
-    <script src="../display_big/view_context_essays.js"></script>
+        <!-- Display Logic -->
+        <script src="../display_big/view_context_essays.js"></script>
 
-    <!-- Central Initializer -->
-    <script src="../display_other/initializer.js"></script>
-</head>
+        <!-- Central Initializer -->
+        <script src="../display_other/initializer.js"></script>
+    </head>
 
-<body data-page-title="Context Essay" data-page-description="Thematic context regarding the historical world of Jesus."
-    data-sidebar-active-nav="context" data-search-header-active-nav="context" data-footer-target="page-shell">
+    <body
+        data-page-title="Context Essay"
+        data-page-description="Thematic context regarding the historical world of Jesus."
+        data-page-canonical="/context/essay"
+        data-sidebar-active-nav="context"
+        data-search-header-active-nav="context"
+        data-footer-target="page-shell"
+    >
+        <!-- Main Page Shell Container -->
+        <div class="page-shell" id="page-shell">
+            <!-- Invisible Metadata Anchor -->
+            <header id="invisible-header" aria-hidden="true"></header>
 
-    <!-- Main Page Shell Container -->
-    <div class="page-shell" id="page-shell">
+            <!-- Main Content Column -->
+            <main class="site-main" id="site-main" role="main">
+                <div class="layout-two-col">
+                    <!-- Left internal sidebar (Table of Contents) -->
+                    <aside class="essay-toc-aside">
+                        <h3 class="text-sm font-semibold mb-2">
+                            Table of Contents
+                        </h3>
+                        <ul id="essay-toc" class="essay-toc-list">
+                            <!-- Injected by JS -->
+                        </ul>
+                    </aside>
 
-        <!-- Invisible Metadata Anchor -->
-        <header id="invisible-header" aria-hidden="true"></header>
-
-        <!-- Main Content Column -->
-        <main class="site-main" id="site-main" role="main">
-            <div class="layout-two-col">
-
-                <!-- Left internal sidebar (Table of Contents) -->
-                <aside class="essay-toc-aside">
-                    <h3 class="text-sm font-semibold mb-2">Table of Contents</h3>
-                    <ul id="essay-toc" class="essay-toc-list">
-                        <!-- Injected by JS -->
-                    </ul>
-                </aside>
-
-                <!-- Right Essay Content Area -->
-                <div class="essay-content-main">
-                    <article class="essay-container" id="context-essay-container">
-                        <!-- Injected by view_context_essays.js -->
-                    </article>
+                    <!-- Right Essay Content Area -->
+                    <div class="essay-content-main">
+                        <article
+                            class="essay-container"
+                            id="context-essay-container"
+                        >
+                            <!-- Injected by view_context_essays.js -->
+                        </article>
+                    </div>
                 </div>
-
-            </div>
-        </main>
-
-    </div>
-</body>
-
+            </main>
+        </div>
+    </body>
 </html>

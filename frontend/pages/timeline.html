@@ -1,6 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<!-- =============================================================================
+    <!-- =============================================================================
      THE JESUS WEBSITE — INTERACTIVE TIMELINE
      File:    frontend/pages/timeline.html
      Version: 1.1.0
@@ -8,111 +8,175 @@
      Source:  guide_timeline.md, guide_appearance.md, vibe_coding_rules.md §2
 ============================================================================= -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="/frontend/pages/" />
 
-    <title>Interactive Timeline | The Jesus Website</title>
+        <title>Interactive Timeline | The Jesus Website</title>
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
-    <link rel="stylesheet" href="../../css/elements/grid.css">
-    <link rel="stylesheet" href="../../css/elements/list_card_button.css">
-    <link rel="stylesheet" href="../../css/elements/forms.css">
-    <link rel="stylesheet" href="../../css/elements/timeline_diagram.css">
+        <!-- Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../css/elements/typography_colors.css"
+        />
+        <link rel="stylesheet" href="../../css/elements/grid.css" />
+        <link rel="stylesheet" href="../../css/elements/list_card_button.css" />
+        <link rel="stylesheet" href="../../css/elements/forms.css" />
+        <link rel="stylesheet" href="../../css/elements/timeline_diagram.css" />
 
-    <!-- UI Logic Components -->
-    <script src="../display_other/header.js"></script>
-    <script src="../display_other/search_header.js"></script>
-    <script src="../display_other/sidebar.js"></script>
-    <script src="../display_other/footer.js"></script>
+        <!-- UI Logic Components -->
+        <script src="../display_other/header.js"></script>
+        <script src="../display_other/search_header.js"></script>
+        <script src="../display_other/sidebar.js"></script>
+        <script src="../display_other/footer.js"></script>
 
-    <!-- Core DB access -->
-    <script src="../core/sql-wasm.js"></script>
-    <script src="../core/setup_db.js"></script>
+        <!-- Core DB access -->
+        <script src="../core/sql-wasm.js"></script>
+        <script src="../core/setup_db.js"></script>
 
-    <!-- Component Logic -->
-    <script src="../display_other/timeline_display.js"></script>
+        <!-- Component Logic -->
+        <script src="../display_other/timeline_display.js"></script>
 
-    <!-- Central Initializer -->
-    <script src="../display_other/initializer.js"></script>
-</head>
+        <!-- Central Initializer -->
+        <script src="../display_other/initializer.js"></script>
+    </head>
 
-<body data-page-title="Interactive Timeline"
-    data-page-description="Explore the chronological intersection of biblical events, secular history, and manuscript transmission."
-    data-sidebar-active-nav="timeline" data-search-header-active-nav="timeline" data-footer-target="page-shell">
-    <!-- Main Page Shell Container -->
-    <div class="page-shell" id="page-shell">
+    <body
+        data-page-title="Interactive Timeline"
+        data-page-description="Explore the chronological intersection of biblical events, secular history, and manuscript transmission."
+        data-sidebar-active-nav="timeline"
+        data-search-header-active-nav="timeline"
+        data-footer-target="page-shell"
+    >
+        <!-- Main Page Shell Container -->
+        <div class="page-shell" id="page-shell">
+            <!-- Invisible Metadata Anchor -->
+            <header id="invisible-header" aria-hidden="true"></header>
 
-        <!-- Invisible Metadata Anchor -->
-        <header id="invisible-header" aria-hidden="true"></header>
+            <!-- Main Content Column -->
+            <main class="site-main" id="site-main" role="main">
+                <div class="content-wrap grid-single">
+                    <header class="timeline-header">
+                        <h1 class="record-title">Timeline</h1>
+                        <p class="record-primary-verse">
+                            Explore historical evidence of Jesus in a
+                            chronological arrangement.
+                        </p>
+                    </header>
 
-        <!-- Main Content Column -->
-        <main class="site-main" id="site-main" role="main">
-            <div class="content-wrap grid-single">
+                    <div
+                        class="timeline-interface-container"
+                        id="timeline-interface"
+                    >
+                        <!-- Main Canvas Area -->
+                        <div
+                            class="timeline-canvas-wrapper"
+                            id="timeline-canvas-wrapper"
+                        >
+                            <!-- Huge SVG rendering area, timeline horizontally scrollable/draggable -->
+                            <svg
+                                id="interactive-timeline"
+                                class="timeline-svg-canvas"
+                                viewBox="0 0 2000 600"
+                            >
+                                <!-- Background & Grid -->
+                                <g id="grid-layer">
+                                    <rect
+                                        width="2000"
+                                        height="600"
+                                        fill="var(--color-bg-primary)"
+                                    />
+                                    <!-- Center Axis (Main Timeline pulse) -->
+                                    <line
+                                        x1="0"
+                                        y1="300"
+                                        x2="2000"
+                                        y2="300"
+                                        class="timeline-axis-line"
+                                        stroke-dasharray="10, 4"
+                                    />
+                                </g>
 
-                <header class="timeline-header">
-                    <h1 class="record-title">Timeline</h1>
-                    <p class="record-primary-verse">Explore historical evidence of Jesus in a chronological arrangement.
-                    </p>
-                </header>
+                                <!-- Static axis markers or milestones -->
+                                <g id="axis-markers-layer"></g>
 
-                <div class="timeline-interface-container" id="timeline-interface">
-                    <!-- Main Canvas Area -->
-                    <div class="timeline-canvas-wrapper" id="timeline-canvas-wrapper">
-                        <!-- Huge SVG rendering area, timeline horizontally scrollable/draggable -->
-                        <svg id="interactive-timeline" class="timeline-svg-canvas" viewBox="0 0 2000 600">
-                            <!-- Background & Grid -->
-                            <g id="grid-layer">
-                                <rect width="2000" height="600" fill="var(--color-bg-primary)" />
-                                <!-- Center Axis (Main Timeline pulse) -->
-                                <line x1="0" y1="300" x2="2000" y2="300" class="timeline-axis-line"
-                                    stroke-dasharray="10, 4" />
-                            </g>
+                                <!-- Vertical Links (Synoptic links etc) -->
+                                <g id="link-layer"></g>
 
-                            <!-- Static axis markers or milestones -->
-                            <g id="axis-markers-layer"></g>
-
-                            <!-- Vertical Links (Synoptic links etc) -->
-                            <g id="link-layer"></g>
-
-                            <!-- Node Points (Events, Secular, Prophecy) -->
-                            <g id="node-layer"></g>
-                        </svg>
-                    </div>
-
-                    <!-- Interactive Controls -->
-                    <div class="timeline-controls">
-                        <div class="timeline-actions">
-                            <button id="zoom-in" class="btn-primary" aria-label="Zoom In">Zoom In</button>
-                            <button id="zoom-out" class="btn-primary" aria-label="Zoom Out">Zoom Out</button>
+                                <!-- Node Points (Events, Secular, Prophecy) -->
+                                <g id="node-layer"></g>
+                            </svg>
                         </div>
 
+                        <!-- Interactive Controls -->
+                        <div class="timeline-controls">
+                            <div class="timeline-actions">
+                                <button
+                                    id="zoom-in"
+                                    class="btn-primary"
+                                    aria-label="Zoom In"
+                                >
+                                    Zoom In
+                                </button>
+                                <button
+                                    id="zoom-out"
+                                    class="btn-primary"
+                                    aria-label="Zoom Out"
+                                >
+                                    Zoom Out
+                                </button>
+                            </div>
 
-
-                        <div class="timeline-era-navigation">
-                            <button id="prev-era" class="btn-primary" aria-label="Previous Era">&laquo; Prev
-                                Era</button>
-                            <span id="current-era-display">Galilee Ministry</span>
-                            <button id="next-era" class="btn-primary" aria-label="Next Era">Next Era &raquo;</button>
+                            <div class="timeline-era-navigation">
+                                <button
+                                    id="prev-era"
+                                    class="btn-primary"
+                                    aria-label="Previous Era"
+                                >
+                                    &laquo; Prev Era
+                                </button>
+                                <span id="current-era-display"
+                                    >Galilee Ministry</span
+                                >
+                                <button
+                                    id="next-era"
+                                    class="btn-primary"
+                                    aria-label="Next Era"
+                                >
+                                    Next Era &raquo;
+                                </button>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Metadata panel (sidebar content from timeline clicks) -->
+                    <aside
+                        class="timeline-metadata-panel is-hidden"
+                        id="timeline-metadata-panel"
+                    >
+                        <h2 id="metadata-title">Event Title</h2>
+                        <p id="metadata-date">Year / Era / Date:</p>
+                        <p id="metadata-category">Category:</p>
+                        <p
+                            id="metadata-verse"
+                            class="timeline-metadata-verse"
+                        ></p>
+                        <div
+                            id="metadata-snippet"
+                            class="timeline-metadata-snippet"
+                        >
+                            Event details go here...
+                        </div>
+                        <a
+                            href="#"
+                            id="metadata-link"
+                            class="timeline-metadata-link"
+                            >View Full Record &rarr;</a
+                        >
+                    </aside>
                 </div>
-
-                <!-- Metadata panel (sidebar content from timeline clicks) -->
-                <aside class="timeline-metadata-panel is-hidden" id="timeline-metadata-panel">
-                    <h2 id="metadata-title">Event Title</h2>
-                    <p id="metadata-date">Year / Era / Date:</p>
-                    <p id="metadata-category">Category:</p>
-                    <p id="metadata-verse" class="timeline-metadata-verse"></p>
-                    <div id="metadata-snippet" class="timeline-metadata-snippet">Event details go here...</div>
-                    <a href="#" id="metadata-link" class="timeline-metadata-link">View Full Record &rarr;</a>
-                </aside>
-
-            </div>
-        </main>
-
-    </div>
-</body>
-
+            </main>
+        </div>
+    </body>
 </html>

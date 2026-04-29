@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<!-- =============================================================================
+    <!-- =============================================================================
 
      THE JESUS WEBSITE — RECORD DEEP-DIVE
      File:    frontend/pages/record.html
@@ -11,103 +10,136 @@
 
 ============================================================================= -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="/frontend/pages/" />
 
-    <title>Loading Record... | The Jesus Website</title>
-    
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
-    <link rel="stylesheet" href="../../css/elements/grid.css">
-    <link rel="stylesheet" href="../../css/elements/pictures.css">
-    <link rel="stylesheet" href="../../css/design_layouts/views/single_layout.css">
+        <title>Loading Record... | The Jesus Website</title>
 
-    <!-- UI Logic Components -->
-    <script src="../display_other/header.js"></script>
-    <script src="../display_other/search_header.js"></script>
-    <script src="../display_other/sidebar.js"></script>
-    <script src="../display_other/footer.js"></script>
-    
-    <!-- Components specific to Record View -->
-    <script src="../display_other/sources_biblio_display.js"></script>
-    <script src="../display_other/pictures_display.js"></script>
+        <!-- Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../css/elements/typography_colors.css"
+        />
+        <link rel="stylesheet" href="../../css/elements/grid.css" />
+        <link rel="stylesheet" href="../../css/elements/pictures.css" />
+        <link
+            rel="stylesheet"
+            href="../../css/design_layouts/views/single_layout.css"
+        />
 
-    <!-- Core DB access -->
-    <script src="../core/sql-wasm.js"></script>
-    <script src="../core/setup_db.js"></script>
+        <!-- UI Logic Components -->
+        <script src="../display_other/header.js"></script>
+        <script src="../display_other/search_header.js"></script>
+        <script src="../display_other/sidebar.js"></script>
+        <script src="../display_other/footer.js"></script>
 
-    <!-- Renders the data -->
-    <script src="../display_big/single_view.js"></script>
+        <!-- Components specific to Record View -->
+        <script src="../display_other/sources_biblio_display.js"></script>
+        <script src="../display_other/pictures_display.js"></script>
 
-    <!-- Central Initializer -->
-    <script src="../display_other/initializer.js"></script>
-</head>
-<body 
-    data-page-title="Loading Record..."
-    data-sidebar-active-nav="records"
-    data-search-header-active-nav="records"
-    data-footer-target="page-shell"
->
+        <!-- Core DB access -->
+        <script src="../core/sql-wasm.js"></script>
+        <script src="../core/setup_db.js"></script>
 
-    <!-- Main Page Shell Container -->
-    <div class="page-shell" id="page-shell">
-        
-        <!-- Invisible Metadata Anchor -->
-        <header id="invisible-header" aria-hidden="true"></header>
-        
-        <!-- Main Content Column -->
-        <main class="site-main" id="site-main" role="main">
-            <div class="content-wrap grid-single">
-                
-                <!-- Back Link -->
-                <a href="javascript:history.back()" class="record-back-link" id="record-back-link" aria-label="Go back to previous page">
-                     ← Back
-                </a>
+        <!-- Query sanitizer (must load before single_view.js) -->
+        <script src="../core/sanitize_query.js"></script>
 
-                <!-- Container to be populated by single_view.js -->
-                <article id="record-container" aria-live="polite">
-                    <!-- Target element placeholders -->
-                    
-                    <header class="record-header">
-                        <h1 class="record-title" id="record-title">Loading...</h1>
-                        <p class="record-primary-verse" id="record-primary-verse"></p>
-                    </header>
+        <!-- Renders the data -->
+        <script src="../display_big/single_view.js"></script>
 
-                    <figure class="record-picture-container is-hidden" id="record-picture-container">
-                        <!-- Managed by pictures_display.js -->
-                    </figure>
+        <!-- Central Initializer -->
+        <script src="../display_other/initializer.js"></script>
+    </head>
+    <body
+        data-page-title="Loading Record..."
+        data-sidebar-active-nav="records"
+        data-search-header-active-nav="records"
+        data-footer-target="page-shell"
+    >
+        <!-- Main Page Shell Container -->
+        <div class="page-shell" id="page-shell">
+            <!-- Invisible Metadata Anchor -->
+            <header id="invisible-header" aria-hidden="true"></header>
 
-                    <div class="record-description" id="record-description">
-                    </div>
+            <!-- Main Content Column -->
+            <main class="site-main" id="site-main" role="main">
+                <div class="content-wrap grid-single">
+                    <!-- Back Link -->
+                    <a
+                        href="javascript:history.back()"
+                        class="record-back-link"
+                        id="record-back-link"
+                        aria-label="Go back to previous page"
+                    >
+                        ← Back
+                    </a>
 
-                    <section class="record-section is-hidden" id="record-section-bibliography">
-                        <h2 class="record-section-title">Bibliography</h2>
-                        <div id="record-bibliography-content">
-                            <!-- Managed by sources_biblio_display.js -->
-                        </div>
-                    </section>
+                    <!-- Container to be populated by single_view.js -->
+                    <article id="record-container" aria-live="polite">
+                        <!-- Target element placeholders -->
 
-                    <section class="record-section is-hidden" id="record-section-context">
-                        <h2 class="record-section-title">Context Links</h2>
-                        <ul class="record-context-list" id="record-context-list">
-                            <!-- Context internal links injected here -->
-                        </ul>
-                    </section>
-                    
-                    <section class="record-section is-hidden" id="record-section-metadata">
-                        <h2 class="record-section-title">Other Data</h2>
-                        <div class="record-metadata-grid" id="record-metadata-grid">
-                            <!-- Metadata fields injected here (era, map, category, etc) -->
-                        </div>
-                    </section>
+                        <header class="record-header">
+                            <h1 class="record-title" id="record-title">
+                                Loading...
+                            </h1>
+                            <p
+                                class="record-primary-verse"
+                                id="record-primary-verse"
+                            ></p>
+                        </header>
 
-                </article>
+                        <figure
+                            class="record-picture-container is-hidden"
+                            id="record-picture-container"
+                        >
+                            <!-- Managed by pictures_display.js -->
+                        </figure>
 
-            </div>
-        </main>
-        
-    </div>
-</body>
+                        <div
+                            class="record-description"
+                            id="record-description"
+                        ></div>
+
+                        <section
+                            class="record-section is-hidden"
+                            id="record-section-bibliography"
+                        >
+                            <h2 class="record-section-title">Bibliography</h2>
+                            <div id="record-bibliography-content">
+                                <!-- Managed by sources_biblio_display.js -->
+                            </div>
+                        </section>
+
+                        <section
+                            class="record-section is-hidden"
+                            id="record-section-context"
+                        >
+                            <h2 class="record-section-title">Context Links</h2>
+                            <ul
+                                class="record-context-list"
+                                id="record-context-list"
+                            >
+                                <!-- Context internal links injected here -->
+                            </ul>
+                        </section>
+
+                        <section
+                            class="record-section is-hidden"
+                            id="record-section-metadata"
+                        >
+                            <h2 class="record-section-title">Other Data</h2>
+                            <div
+                                class="record-metadata-grid"
+                                id="record-metadata-grid"
+                            >
+                                <!-- Metadata fields injected here (era, map, category, etc) -->
+                            </div>
+                        </section>
+                    </article>
+                </div>
+            </main>
+        </div>
+    </body>
 </html>
-

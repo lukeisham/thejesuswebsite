@@ -86,7 +86,7 @@ created: 2025-07-17
 - **Action:** Insert `<base href="/frontend/pages/">` inside `<head>` in every top-level HTML page file so that all relative CSS/JS asset references resolve correctly from their original directory when served via rewrite.
 - **Vibe Rule(s):** Semantic HTML5 tags · Descriptive `id`/`class` hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T2 — Add `<base>` tag to subdirectory HTML files (debate/, maps/, resources/)
 
@@ -94,7 +94,7 @@ created: 2025-07-17
 - **Action:** Insert `<base href="/frontend/pages/debate/">` for debate files, `<base href="/frontend/pages/maps/">` for map files, and `<base href="/frontend/pages/resources/">` for resource files, each inside the corresponding `<head>`.
 - **Vibe Rule(s):** Semantic HTML5 tags · Descriptive `id`/`class` hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T3 — Update sidebar navigation links in `sidebar.js`
 
@@ -102,7 +102,7 @@ created: 2025-07-17
 - **Action:** Change all 9 `href` values in the `navLinks` array from `/frontend/pages/records.html` to `/records`, `/frontend/pages/evidence.html` to `/evidence`, etc., matching the Proposed Slug Map.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T4 — Update search header redirect in `search_header.js`
 
@@ -110,7 +110,7 @@ created: 2025-07-17
 - **Action:** Change `window.location.href` from `/frontend/pages/records.html?search=` to `/records?search=` on line 78.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T5 — Fix record link href in `maps_display.js` and `timeline_display.js` (use path-based `/record/{slug}`, not query param)
 
@@ -118,7 +118,7 @@ created: 2025-07-17
 - **Action:** Change `rLink.href = \`record.html?id=${record.id}\`` to `rLink.href = \`/record/${record.slug}\`` in both files. This fixes two bugs: (1) uses the URL-safe `slug` column instead of the internal SQLite primary key `id`, and (2) uses the path-based slug pattern `/record/{slug}` as defined in the scope note. The nginx rewrite rule (T11) will map `/record/{slug}` to `?slug=` internally so `single_view.js` continues reading from the query string unchanged.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T5b — Fix JSON-LD record URL in `json_ld_builder.js`
 
@@ -126,7 +126,7 @@ created: 2025-07-17
 - **Action:** Change `const currentUrl = \`${baseUrl}/record.html?id=${recordData.slug || ''}\`` to `const currentUrl = \`${baseUrl}/record/${recordData.slug || ''}\`` so the Schema.org structured data uses the path-based slug pattern matching the clean URL (`/record/{slug}`). The nginx rewrite will handle resolution.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T5c — Fix `list_view.js` subfolder detection for record links
 
@@ -134,7 +134,7 @@ created: 2025-07-17
 - **Action:** Remove the `isSubfolder` / `baseRecordUrl` logic (lines 76–78) that tries to detect `/resources/` in the path and use `../record.html`. Since all record links will be absolute path-based slugs under the new scheme, replace with a single absolute path: `var recordUrl = '/record/' + encodeURIComponent(record.slug);` and update both `href` template strings to use `recordUrl`.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 
 ### T5d — Integrate `sanitizeSlug()` into `single_view.js`
@@ -143,7 +143,7 @@ created: 2025-07-17
 - **Action:** In `single_view.js`, wrap the raw `slug` value from `urlParams.get('slug')` with `sanitizeSlug()` (already defined in `sanitize_query.js` but currently unused). Add `const slug = sanitizeSlug(urlParams.get('slug'));` and ensure `sanitize_query.js` is loaded on `record.html` before `single_view.js`. This prevents injection of malformed slug values into the SQL query. Note: `single_view.js` still reads `?slug=` from the query string — the nginx rewrite maps `/record/{slug}` to `?slug={slug}` internally, so no change to the param-reading code is needed.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 
 ### T6 — Update canonical URLs in HTML pages
@@ -152,7 +152,7 @@ created: 2025-07-17
 - **Action:** Change each inline `canonical:` URL from `/frontend/pages/...` to the matching clean slug (e.g. `/frontend/pages/blog.html` → `/blog`, `/frontend/pages/blog_post.html` → `/blog/post`, `/frontend/pages/debate/academic_challenge.html` → `/debate/academic-challenges`).
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline scripts (note: these are inline script blocks — acceptable for metadata injection per existing pattern)
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T7 — Update context essay card links on the context landing page
 
@@ -160,7 +160,7 @@ created: 2025-07-17
 - **Action:** Change all 5 hardcoded `<a href="context_essay.html?id=...">` links to use the absolute clean slug `<a href="/context/essay?id=...">`. The 5 affected anchor IDs: `card-historical`, `card-jewish`, `card-roman`, `card-herodian`, `card-galilean`.
 - **Vibe Rule(s):** Semantic HTML5 tags · Descriptive `id`/`class` hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T8 — Add canonical URL to context essay, news, and blog post pages
 
@@ -168,7 +168,7 @@ created: 2025-07-17
 - **Action:** Add an inline `<script>` block with `injectPageMetadata({...})` call including a `canonical:` property pointing to the new slug (e.g. `window.location.origin + '/context/essay'`, `window.location.origin + '/context'`, `window.location.origin + '/news/feed'`, `window.location.origin + '/news'`, `window.location.origin + '/blog/post'`). These pages currently rely on `initializer.js` for metadata but don't explicitly set canonical URLs.
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline scripts (acceptable for metadata injection per existing pattern)
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T9 — Update homepage link references in `index.html`
 
@@ -176,7 +176,7 @@ created: 2025-07-17
 - **Action:** Replace all 8 `href="frontend/pages/..."` (relative, no leading slash) with the new clean slugs (e.g. `href="frontend/pages/records.html"` → `href="/records"`, `href="frontend/pages/evidence.html"` → `href="/evidence"`, etc.).
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline styles · No inline scripts · Descriptive `id`/`class` hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T10 — Add FastAPI route handlers for all clean slugs in `serve_all.py`
 
@@ -184,7 +184,7 @@ created: 2025-07-17
 - **Action:** Add `from fastapi.responses import FileResponse` import and create route handler functions — one per static slug — that return `FileResponse("frontend/pages/records.html")` etc. Keep old path serving via static mount as fallback. Group related routes logically. For the record deep-dive view, add a **path-parameter route**: `@app.get("/record/{slug}")` that reads the slug from the path, validates it, and returns `FileResponse("frontend/pages/record.html")` — the slug is passed via query rewrite in nginx or handled directly by FastAPI. Ensure `context_essay.html` and `blog_post.html` pass their `?id=` query params through unchanged.
 - **Vibe Rule(s):** Explicit readable logic · Document API quirks inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T11 — Add nginx rewrite rules for clean slugs
 
@@ -192,7 +192,7 @@ created: 2025-07-17
 - **Action:** Add `rewrite` directives before the `try_files` line mapping each clean slug to the corresponding static file path (e.g. `rewrite ^/records$ /frontend/pages/records.html last;`). For the record deep-dive view, add a **named-capture rewrite**: `rewrite ^/record/(.+)$ /frontend/pages/record.html?slug=$1 last;` — this maps the path-based `/record/{slug}` to the legacy `?slug=` query parameter so `single_view.js` reads it unchanged. Add 301 redirects for old paths to new slugs for backward compatibility (e.g. `rewrite ^/frontend/pages/records\.html$ /records permanent;`). Include a rewrite for `/frontend/pages/blog_post.html` → `/blog/post` and its 301 redirect for the old path. Add a 301 redirect for legacy record URL patterns: `rewrite ^/record\.html\?slug=(.+)$ /record/$1 permanent;` and `rewrite ^/record\.html\?id=(.+)$ /record/$1 permanent;`.
 - **Vibe Rule(s):** Explicit readable logic · Document API quirks inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T12 — Update XML sitemap generator
 
@@ -200,7 +200,7 @@ created: 2025-07-17
 - **Action:** Change all static route paths from old paths (e.g. `/about.html`, `/context.html`) to the new clean slugs (e.g. `/about`, `/context`). Change record URLs from `${BASE_URL}/record.html?id=${slug}` to `${BASE_URL}/record/${slug}` — using the path-based slug pattern that matches the new URL scheme. Add blog post URLs using `${BASE_URL}/blog/post?id=${id}` (following the same `?id=` param convention as context essays).
 - **Vibe Rule(s):** Explicit readable logic · Stateless/repeatable
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T13 — Update admin CSS link loader in `dashboard_app.js`
 
@@ -208,7 +208,7 @@ created: 2025-07-17
 - **Action:** Verify the dynamic CSS `link.href` uses an absolute path from root or a relative path from the admin HTML file location so it continues to work when the admin is served at `/admin`. Change if needed from `../../css/...` to `/css/...` (absolute).
 - **Vibe Rule(s):** 1 function/file · Vanilla ES6+ · Component injection
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T14 — Update local test endpoint list in `troubleshoot.py`
 
@@ -216,7 +216,7 @@ created: 2025-07-17
 - **Action:** Replace `/frontend/pages/timeline.html` with `/timeline` in the `ENDPOINTS` list.
 - **Vibe Rule(s):** Explicit readable logic
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T15 — Deploy and verify on staging
 
@@ -232,7 +232,7 @@ created: 2025-07-17
 - **Action:** Add a new subsection `7.3.1 URL Slug Rewriting Architecture` under the Backend API section. Include an ASCII flow diagram showing: (1) nginx rewrite rules mapping clean slugs to filesystem paths, (2) the named-capture rewrite converting `/record/{slug}` to `?slug=` internally, (3) the `<base>` tag strategy for asset resolution, (4) 301 redirects for legacy paths, and (5) FastAPI route handlers as fallback. Document the four key design decisions: path-based record slugs, `<base>` tag strategy, two-layer fallback (nginx → FastAPI), and the six-month 301 redirect policy. Bump the file's frontmatter `version` from 1.6.0 to 1.7.0.
 - **Vibe Rule(s):** Explicit readable logic · Document API quirks inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T17 — Update `guide_welcoming_robots.md` for clean slugs and hidden scripts
 
@@ -240,7 +240,7 @@ created: 2025-07-17
 - **Action:** Update section 3 (Context Link Standards) to document the new path-based clean slugs (e.g. `/record/jesus-baptism` instead of `/frontend/pages/record.html?slug=...`) and explain that the URL rewriting layer hides the underlying filesystem structure and JavaScript from robots — they see only clean URLs in the address bar. Update section 4 (Dynamic Sitemaps) to reference the new clean slugs (e.g. `/records`, `/record/{slug}`, `/context`, `/context/essay?id=...`) instead of the old `record.html?slug=...` pattern. Add `url_slug_restructure.md` to the frontmatter dependencies. Bump version from 1.0.1 to 1.1.0.
 - **Vibe Rule(s):** Explicit readable logic · Document API quirks inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 

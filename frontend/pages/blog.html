@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<!-- =============================================================================
+    <!-- =============================================================================
 
      THE JESUS WEBSITE — BLOG FEED
      File:    frontend/pages/blog.html
@@ -11,70 +10,73 @@
 
 ============================================================================= -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="/frontend/pages/" />
 
-    <title>Blog | The Jesus Website</title>
-    
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
-    <link rel="stylesheet" href="../../css/elements/grid.css">
-    <link rel="stylesheet" href="../../css/design_layouts/views/response_layout.css">
+        <title>Blog | The Jesus Website</title>
 
-    <!-- SEO / Metadata API Header -->
-    <script src="../display_other/header.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            injectPageMetadata({
-                title:       'Blog',
-                description: 'Latest blog posts and articles from The Jesus Website.',
-                canonical:   window.location.origin + '/frontend/pages/blog.html'
+        <!-- Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../css/elements/typography_colors.css"
+        />
+        <link rel="stylesheet" href="../../css/elements/grid.css" />
+        <link
+            rel="stylesheet"
+            href="../../css/design_layouts/views/response_layout.css"
+        />
+
+        <!-- SEO / Metadata API Header -->
+        <script src="../display_other/header.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                injectPageMetadata({
+                    title: "Blog",
+                    description:
+                        "Latest blog posts and articles from The Jesus Website.",
+                    canonical: window.location.origin + "/blog",
+                });
             });
-        });
-    </script>
-</head>
-<body>
+        </script>
+    </head>
+    <body>
+        <!-- Main Page Shell Container -->
+        <div class="page-shell" id="page-shell">
+            <!-- Invisible Metadata Anchor -->
+            <header id="invisible-header" aria-hidden="true"></header>
 
-    <!-- Main Page Shell Container -->
-    <div class="page-shell" id="page-shell">
-        
-        <!-- Invisible Metadata Anchor -->
-        <header id="invisible-header" aria-hidden="true"></header>
-        
-        <!-- Main Content Column -->
-        <main class="site-main" id="site-main" role="main">
-            <div class="content-wrap">
+            <!-- Main Content Column -->
+            <main class="site-main" id="site-main" role="main">
+                <div class="content-wrap">
+                    <header class="landing-page__header">
+                        <h1 class="landing-page__heading">Latest Blogposts</h1>
+                    </header>
 
-                <header class="landing-page__header">
-                    <h1 class="landing-page__heading">Latest Blogposts</h1>
-                </header>
-
-                <div id="blog-feed-content">
-                    <!-- Injected by list_blogpost.js -->
-                    <p class="text-sm text-muted">Loading blog posts...</p>
+                    <div id="blog-feed-content">
+                        <!-- Injected by list_blogpost.js -->
+                        <p class="text-sm text-muted">Loading blog posts...</p>
+                    </div>
                 </div>
+            </main>
+        </div>
 
-            </div>
-        </main>
-        
-    </div>
-    
-    <!-- UI Components -->
-    <script src="../display_other/search_header.js"></script>
-    <script src="../display_other/sidebar.js"></script>
-    <script src="../display_other/footer.js"></script>
-    
-    <!-- Display Logic -->
-    <script src="../display_big/list_blogpost.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Build Universal Layout Elements
-            injectSidebar('site-main', 'news');
-            injectSearchHeader('site-sidebar', 'news');
-            injectFooter('page-shell');
-        });
-    </script>
-</body>
+        <!-- UI Components -->
+        <script src="../display_other/search_header.js"></script>
+        <script src="../display_other/sidebar.js"></script>
+        <script src="../display_other/footer.js"></script>
+
+        <!-- Display Logic -->
+        <script src="../display_big/list_blogpost.js"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Build Universal Layout Elements
+                injectSidebar("site-main", "news");
+                injectSearchHeader("site-sidebar", "news");
+                injectFooter("page-shell");
+            });
+        </script>
+    </body>
 </html>
