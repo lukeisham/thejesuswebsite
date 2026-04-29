@@ -179,7 +179,7 @@ Dashboard sub-sections follow a strict convention: numbered headings (`### 2.1`,
 
 | Component | Visual Description | CSS Variable |
 | :--- | :--- | :--- |
-| **Admin Shell** | Dark mode; Gold accents. | `--color-dash-accent` |
+| **Admin Shell** | Dashboard color scheme; Gold accents. | `--color-dash-accent` |
 | **Editor** | 3-column Providence grid (`.providence-editor-grid`); Mono fields. | `--font-mono`, `.providence-editor-grid` |
 | **Action Bar** | Floating footer; Gold focus. | `--color-dash-accent` |
 | **Sidebar Return Link** | Pinned to sidebar base via `margin-top: auto` on a flex column (`display: flex; flex-direction: column` on `.admin-sidebar`). Mono font, Lead Grey colour, `border-top` separator, `--transition-fast` hover to primary text + tertiary BG. Use this pattern for any future pinned-bottom sidebar element. | `--font-mono`, `--color-text-muted`, `--transition-fast` |

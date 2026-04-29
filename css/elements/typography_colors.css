@@ -20,7 +20,7 @@
      8.  Borders & Radii
      9.  Shadows
      10. Animation & Transition Tokens
-     11. Dashboard (Dark Mode) Overrides
+     11. Dashboard Color Scheme Overrides
 
 ============================================================================= */
 
@@ -62,7 +62,7 @@
     --color-border-accent: #8e3b46; /* Oxblood         — accent border on hover    */
     --color-border-inverse: #3a3a38; /* Night Clay      — subtle divider on dark bh */
 
-    /* --- Dashboard (Dark Mode) — see §11 for .dashboard scope override --- */
+    /* --- Dashboard Color Scheme — see §11 for .dashboard scope override --- */
     --color-dash-bg: #121212; /* Inkpot Dark     — admin background          */
     --color-dash-accent: #d4af37; /* Antique Gold    — admin active elements     */
     --color-dash-surface: #1e1e1e; /* Dark Surface    — cards, panels             */
@@ -363,10 +363,10 @@ li {
 }
 
 /* =============================================================================
-   11. DASHBOARD (DARK MODE) SCOPE
-   Source: guide_style.md §13
+   11. DASHBOARD COLOR SCHEME SCOPE
+   Source: guide_style.md §18
    Applied by adding class="dashboard" to the <body> on admin pages.
-   Overrides color tokens for the dark admin experience.
+   Overrides color tokens for the dashboard color scheme.
 ============================================================================= */
 
 .dashboard {
