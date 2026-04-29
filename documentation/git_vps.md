@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "dashboard re-wire stage 2"
+git commit -m "nginx"
 git push origin main 
 
 # Pulling from Github to server 
@@ -13,6 +13,8 @@ git push origin main
 cd /var/www/thejesuswebsite
 
 sudo journalctl -xeu thejesuswebsite --no-pager | tail -n 20
+sudo journalctl -u thejesuswebsite.service -n 20 --no-pager
+
 
 # Next actions
 
