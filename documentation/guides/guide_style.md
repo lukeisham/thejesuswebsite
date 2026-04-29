@@ -165,6 +165,8 @@ All dashboard screens follow the **CollectiveAccess Providence** layout conventi
 - **Column 2** — optional; used when a section has sub-fields, secondary metadata, or a filter/search control that warrants separation from the canvas
 - **Column 3** — always the widest; contains the main data entry surface (form fields, tables, tree views, editors, or live previews)
 
+> **Architecture note — Shell vs. Editor layout:** The `.admin-body-layout` (sidebar + `.admin-canvas`) is the **dashboard navigation frame** — it provides the persistent sidebar nav and a single canvas area. The Providence 3-column pattern described above applies to **editor content rendered inside `.admin-canvas`**, not to the shell itself. Any editor module that wants this layout should apply the `.providence-editor-grid` CSS class (defined in `dashboard_admin.css`) as the grid container, with child columns using `.providence-editor-col-actions`, `.providence-editor-col-list`, and `.providence-editor-col-editor`. The Blog Editor's `.blog-editor-grid` is a backward-compatible alias of this same class.
+
 ### 18.2 Field Ownership Map Convention
 
 Each dashboard section documents which editor file owns each database column via a **Field Ownership Map** table. The map uses `§N.M` notation to cross-reference the editor file (e.g., `§2.2 edit_record.js`, `§4.1 edit_wiki_weights.js`). Fields referencing `§2.5` are handled by the Bulk Upload CSV editor, and `§4.3` references belong to the Insert Responses editors — these omit heading numbers in the document because they are sub-features of existing sub-modules rather than distinct sitemap entries.
@@ -178,7 +180,7 @@ Dashboard sub-sections follow a strict convention: numbered headings (`### 2.1`,
 | Component | Visual Description | CSS Variable |
 | :--- | :--- | :--- |
 | **Admin Shell** | Dark mode; Gold accents. | `--color-dash-accent` |
-| **Editor** | Split-pane; Mono field. | `--font-mono` |
+| **Editor** | 3-column Providence grid (`.providence-editor-grid`); Mono fields. | `--font-mono`, `.providence-editor-grid` |
 | **Action Bar** | Floating footer; Gold focus. | `--color-dash-accent` |
 | **Sidebar Return Link** | Pinned to sidebar base via `margin-top: auto` on a flex column (`display: flex; flex-direction: column` on `.admin-sidebar`). Mono font, Lead Grey colour, `border-top` separator, `--transition-fast` hover to primary text + tertiary BG. Use this pattern for any future pinned-bottom sidebar element. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
 

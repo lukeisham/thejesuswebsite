@@ -355,10 +355,17 @@
 }
 
 /* =============================================================================
-   BLOG EDITOR — 3-column Providence layout for edit_blogpost.js
-   COL 1: Action buttons | COL 2: Existing posts list | COL 3: Editor form
+   PROVIDENCE 3-COLUMN EDITOR GRID
+   Source: guide_style.md §18.1
+   COL 1 (160px):  Action buttons, primary fields     →  .providence-editor-col-actions
+   COL 2 (1fr):    Sub-fields, list, metadata          →  .providence-editor-col-list
+   COL 3 (2fr):    Main data entry surface             →  .providence-editor-col-editor
+   Usage:  <div class="providence-editor-grid">
+           Apply to any editor that needs the 3-column layout.
+           Blog Editor uses .blog-editor-grid as a backward-compatible alias.
 ============================================================================= */
 
+.providence-editor-grid,
 .blog-editor-grid {
     display: grid;
     grid-template-columns: 160px 1fr 2fr;

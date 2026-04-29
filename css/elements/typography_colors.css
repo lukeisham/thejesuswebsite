@@ -68,6 +68,9 @@
     --color-dash-surface: #1e1e1e; /* Dark Surface    — cards, panels             */
     --color-dash-text: #e8e6df; /* Off-White Ink   — primary admin text        */
     --color-dash-text-muted: #909090; /* Medium Grey     — secondary admin text      */
+    --color-dash-surface-hover: #2a2a28; /* Dark Hover      — hover state for dark-surface */
+    --color-dash-text-muted-soft: #707070; /* Softer Grey     — muted/placeholder on dark bg */
+    --color-dash-border-strong: #444444; /* Night Border    — emphasis borders on dark bg   */
 
     /* --- Utility / Status --- */
     --color-status-success: #2e7d32; /* Blueprint Green — success highlights     */
@@ -373,6 +376,9 @@ li {
     --color-text-secondary: var(--color-dash-text-muted);
     --color-accent-primary: var(--color-dash-accent);
     --color-border: #333333;
+    --color-bg-tertiary: var(--color-dash-surface-hover);
+    --color-text-muted: var(--color-dash-text-muted-soft);
+    --color-border-strong: var(--color-dash-border-strong);
 
     background-color: var(--color-dash-bg);
     color: var(--color-dash-text);

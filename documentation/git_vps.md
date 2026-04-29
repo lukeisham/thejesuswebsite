@@ -5,12 +5,14 @@
 # Push to GitHub
 
 git add .
-git commit -m "URL Slugs refactor"
+git commit -m "dashboard fixes"
 git push origin main 
 
 # Pulling from Github to server 
 
 cd /var/www/thejesuswebsite
+
+sudo journalctl -xeu thejesuswebsite --no-pager | tail -n 20
 
 # Next actions
 

@@ -1,7 +1,7 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components and database fields (source of truth)
-version: 1.4.0
+version: 1.4.1
 dependencies: [guide_appearance.md, detailed_module_sitemap.md, data_schema.md]
 ---
 
@@ -40,6 +40,8 @@ Every screen is structured as follows:
 - **Column 1** — action buttons (Save, Discard, Delete) and the primary field or control unique to this section
 - **Column 2** — optional; used when a section has sub-fields, secondary metadata, or a filter/search control that warrants separation from the canvas
 - **Column 3** — always the widest; contains the main data entry surface (form fields, tables, tree views, editors, or live previews)
+
+> **CSS implementation:** The grid pattern above is implemented as the `.providence-editor-grid` CSS class in `dashboard_admin.css`. Editor modules that want the 3-column layout apply this class to their container, with child columns using `.providence-editor-col-actions`, `.providence-editor-col-list`, and `.providence-editor-col-editor`. The Blog Editor (see §6.2) uses `.blog-editor-grid` as a backward-compatible alias.
 
 ---
 
@@ -724,6 +726,8 @@ blogposts         TEXT (JSON Blob)     — blog post content and metadata
 +----------------------------------------------------------------------------------------------+
 ```
 *Sidebar: The "Blog Posts" link (`text-blog`) opens this editor directly.*
+
+*Grid: The 3-column layout uses `.blog-editor-grid`, a backward-compatible alias of `.providence-editor-grid` (defined in `dashboard_admin.css`).*
 
 ---
 
