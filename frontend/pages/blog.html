@@ -30,18 +30,16 @@
 
         <!-- SEO / Metadata API Header -->
         <script src="../display_other/header.js"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                injectPageMetadata({
-                    title: "Blog",
-                    description:
-                        "Latest blog posts and articles from The Jesus Website.",
-                    canonical: window.location.origin + "/blog",
-                });
-            });
-        </script>
+        <script src="../display_other/initializer.js"></script>
     </head>
-    <body>
+    <body
+        data-page-title="Blog"
+        data-page-description="Latest blog posts and articles from The Jesus Website."
+        data-page-canonical="/blog"
+        data-sidebar-active-nav="news"
+        data-search-header-active-nav="news"
+        data-footer-target="page-shell"
+    >
         <!-- Main Page Shell Container -->
         <div class="page-shell" id="page-shell">
             <!-- Invisible Metadata Anchor -->
@@ -69,14 +67,5 @@
 
         <!-- Display Logic -->
         <script src="../display_big/list_blogpost.js"></script>
-
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                // Build Universal Layout Elements
-                injectSidebar("site-main", "news");
-                injectSearchHeader("site-sidebar", "news");
-                injectFooter("page-shell");
-            });
-        </script>
     </body>
 </html>

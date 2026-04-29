@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 1.2.0
+version: 1.3.0
 purpose: visual and list taxonomy of codebase
 dependencies: [site_map.md]
 ---
@@ -278,7 +278,8 @@ backend/pipelines/
 frontend/pages/
 ├── news_and_blog.html         <-- Combined News & Blog landing page (§6.1)
 ├── news.html                  <-- Full News feed page (§6.2)
-└── blog.html                  <-- Full Blog feed page (§6.3)
+├── blog.html                  <-- Full Blog feed page (§6.3)
+└── blog_post.html             <-- Individual blog post page (served at /blog/post)
 
 frontend/display_big/
 ├── list_newsitem.js           <-- Renders news items aka 'news feed'

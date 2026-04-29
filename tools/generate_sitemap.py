@@ -89,9 +89,33 @@ def generate_sitemap():
         ("/news", "0.7", "weekly"),
         ("/news/feed", "0.7", "weekly"),
         ("/blog", "0.7", "weekly"),
+        ("/blog/post", "0.6", "monthly"),
+        ("/context/essay", "0.7", "monthly"),
+        ("/debate/academic-challenges", "0.7", "monthly"),
+        ("/debate/popular-challenges", "0.7", "monthly"),
+        ("/debate/wikipedia-articles", "0.7", "monthly"),
+        ("/debate/historiography", "0.7", "monthly"),
+        ("/debate/response", "0.6", "monthly"),
+        ("/resources/events", "0.6", "monthly"),
+        ("/resources/external-witnesses", "0.6", "monthly"),
+        ("/resources/internal-witnesses", "0.6", "monthly"),
+        ("/resources/manuscripts", "0.6", "monthly"),
+        ("/resources/miracles", "0.6", "monthly"),
+        ("/resources/ot-verses", "0.6", "monthly"),
+        ("/resources/objects", "0.6", "monthly"),
+        ("/resources/people", "0.6", "monthly"),
+        ("/resources/sermons-and-sayings", "0.6", "monthly"),
+        ("/resources/sites", "0.6", "monthly"),
+        ("/resources/sources", "0.6", "monthly"),
+        ("/resources/world-events", "0.6", "monthly"),
+        ("/maps/roman-empire", "0.6", "monthly"),
+        ("/maps/galilee", "0.6", "monthly"),
+        ("/maps/jerusalem", "0.6", "monthly"),
+        ("/maps/judea", "0.6", "monthly"),
+        ("/maps/levant", "0.6", "monthly"),
     ]
 
-    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
     for route, priority, freq in static_routes:
         xml_content += f"  <url>\n"
         xml_content += f"    <loc>{BASE_URL}{route}</loc>\n"

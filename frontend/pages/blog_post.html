@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+    <!-- =============================================================================
+
+     THE JESUS WEBSITE — BLOG POST
+     File:    frontend/pages/blog_post.html
+     Version: 1.0.0
+     Purpose: Individual blog post page with long-form reading layout.
+              Receives ?id= query param to identify the post.
+     Source:  guide_appearance.md §5.3, url_slug_restructure.md
+
+============================================================================= -->
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="/frontend/pages/" />
+
+        <title>Blog Post | The Jesus Website</title>
+
+        <!-- Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../css/elements/typography_colors.css"
+        />
+        <link rel="stylesheet" href="../../css/elements/grid.css" />
+        <link
+            rel="stylesheet"
+            href="../../css/design_layouts/views/essay_layout.css"
+        />
+        <link rel="stylesheet" href="../../css/elements/pictures.css" />
+
+        <!-- UI Logic Components -->
+        <script src="../display_other/header.js"></script>
+        <script src="../display_other/search_header.js"></script>
+        <script src="../display_other/sidebar.js"></script>
+        <script src="../display_other/footer.js"></script>
+
+        <!-- Display Logic -->
+        <script src="../display_big/list_blogpost.js"></script>
+
+        <!-- Central Initializer -->
+        <script src="../display_other/initializer.js"></script>
+    </head>
+
+    <body
+        data-page-title="Blog Post"
+        data-page-description="An article from The Jesus Website blog."
+        data-page-canonical="/blog/post"
+        data-sidebar-active-nav="news"
+        data-search-header-active-nav="news"
+        data-footer-target="page-shell"
+    >
+        <!-- Main Page Shell Container -->
+        <div class="page-shell" id="page-shell">
+            <!-- Invisible Metadata Anchor -->
+            <header id="invisible-header" aria-hidden="true"></header>
+
+            <!-- Main Content Column -->
+            <main class="site-main" id="site-main" role="main">
+                <div class="layout-two-col">
+                    <!-- Right Blog Post Content Area -->
+                    <div class="essay-content-main">
+                        <article
+                            class="essay-container"
+                            id="blog-post-container"
+                        >
+                            <!-- Injected by display logic when ?id= is present -->
+                            <p class="text-sm text-muted">
+                                Loading blog post...
+                            </p>
+                        </article>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
