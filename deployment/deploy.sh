@@ -38,13 +38,15 @@ pip install -r requirements.txt
 # TODO: uncomment once Task 31 (build pipelines) is implemented
 # python3 build.py
 
-# 4. Restart Systemd Backend Services
-echo ">>> Restarting Systemd Services..."
+# 4. Sync and restart Systemd service
+echo ">>> Syncing Systemd Service..."
+sudo cp $DEPLOY_DIR/deployment/thejesuswebsite.service /etc/systemd/system/thejesuswebsite.service
 sudo systemctl daemon-reload
 
-# This is the only service verified to exist on your VPS
+echo ">>> Restarting Systemd Services..."
 sudo systemctl restart thejesuswebsite.service
 
+# 5. Sync and reload Nginx
 echo ">>> Syncing Nginx Configuration..."
 sudo cp $DEPLOY_DIR/nginx.conf /etc/nginx/sites-available/thejesuswebsite
 sudo ln -sf /etc/nginx/sites-available/thejesuswebsite /etc/nginx/sites-enabled/thejesuswebsite

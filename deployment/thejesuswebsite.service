@@ -1,30 +1,25 @@
-[project]
-name = "thejesuswebsite"
-version = "0.1.0"
-description = "A FastAPI backend serving thejesuswebsite.org"
-readme = "README.md"
-requires-python = ">=3.12"
-authors = [
-    { name = "Luke Isham" }
-]
-dependencies = [
-    "fastapi>=0.110.0",
-    "uvicorn[standard]>=0.27.0",
-    "gunicorn>=21.2.0",
-    "python-jose[cryptography]>=3.3.0",
-    "python-multipart>=0.0.9",
-    "anyio>=4.3.0",
-]
+# =============================================================================
+#   THE JESUS WEBSITE — SYSTEMD MAIN SERVICE
+#   File:    deployment/thejesuswebsite.service
+#   Version: 1.1.0
+#   Purpose: Keeps the FastAPI application running persistently via Unix socket.
+# =============================================================================
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[Unit]
+Description=The Jesus Website - Main FastAPI Application
+After=network.target
 
-[tool.hatch.metadata]
-allow-direct-references = true
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/thejesuswebsite
+Environment="PATH=/var/www/thejesuswebsite/venv/bin"
 
-[tool.ruff]
-# Useful for keeping your code clean locally
-line-length = 88
-select = ["E", "F", "I"]
+# Serves the full site via a Unix socket (proxied by nginx)
+ExecStart=/var/www/thejesuswebsite/venv/bin/uvicorn serve_all:app --uds /var/www/thejesuswebsite/thejesuswebsite.sock --workers 2
 
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
