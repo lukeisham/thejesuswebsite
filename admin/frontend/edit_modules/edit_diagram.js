@@ -2,8 +2,9 @@
 //
 //   THE JESUS WEBSITE — EDIT DIAGRAM MODULE
 //   File:    admin/frontend/edit_modules/edit_diagram.js
-//   Version: 1.2.0
+//   Version: 2.0.0
 //   Purpose: UI for managing recursive tree structures (like Ardor Graph).
+//            Zero inline styles — all CSS classes.
 //   Source:  guide_dashboard_appearance.md §3.1
 //
 // =============================================================================
@@ -21,15 +22,15 @@ window.renderEditDiagram = async function (containerId) {
   // ----- Render shell (loading state) -----
   container.innerHTML =
     '<div class="admin-card" id="edit-diagram-card">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--color-border);margin-bottom:var(--space-4);padding-bottom:var(--space-2);">' +
-    '<h2 style="border:none;margin:0;padding:0;font-family:var(--font-serif);">EDIT DIAGRAM HIERARCHY</h2>' +
-    '<button class="quick-action-btn" id="save-diagram-btn" style="margin:0;background-color:#2e7d32;">Save Graph</button>' +
+    '<div class="action-bar-header">' +
+    "<h2>EDIT DIAGRAM HIERARCHY</h2>" +
+    '<button class="quick-action-btn btn-save-diagram" id="save-diagram-btn">Save Graph</button>' +
     "</div>" +
-    '<div style="margin-bottom:var(--space-6);">' +
-    '<input type="text" id="diagram-search-input" class="diagram-search-input" placeholder="Search nodes…" style="width:100%;padding:var(--space-2);border:1px solid var(--color-border);border-radius:var(--radius-sm);">' +
+    '<div class="diagram-search-section">' +
+    '<input type="text" id="diagram-search-input" class="admin-search-input diagram-search-input" placeholder="Search nodes…">' +
     "</div>" +
     '<div class="admin-diagram-tree" id="diagram-tree-container">' +
-    '<p class="text-sm text-muted" style="padding:var(--space-8);text-align:center;">Loading diagram data…</p>' +
+    '<p class="loading-placeholder">Loading diagram data…</p>' +
     "</div>" +
     '<div id="diagram-save-indicator" class="diagram-save-indicator"></div>' +
     "</div>";
@@ -43,7 +44,7 @@ window.renderEditDiagram = async function (containerId) {
     nodes = data.nodes || [];
   } catch (err) {
     document.getElementById("diagram-tree-container").innerHTML =
-      '<p class="text-sm text-muted" style="padding:var(--space-8);text-align:center;color:var(--color-error);">Error loading diagram: ' +
+      '<p class="error-message">Error loading diagram: ' +
       err.message +
       "</p>";
     return;
@@ -123,7 +124,7 @@ window.renderEditDiagram = async function (containerId) {
 
     if (rootNodes.length === 0) {
       treeContainer.innerHTML =
-        '<p class="text-sm text-muted" style="padding:var(--space-8);text-align:center;">No root nodes found. Add records to the database first.</p>';
+        '<p class="loading-placeholder">No root nodes found. Add records to the database first.</p>';
       return;
     }
 
@@ -259,29 +260,24 @@ window.renderEditDiagram = async function (containerId) {
       if (orphans.length === 0) {
         var indicator = document.getElementById("diagram-save-indicator");
         indicator.textContent = "No orphan nodes available to attach.";
-        indicator.style.color = "var(--color-text-muted)";
+        indicator.className = "diagram-save-indicator is-muted";
         return;
       }
 
       // Build and position dropdown
       var dropdown = document.createElement("div");
       dropdown.className = "diagram-add-dropdown";
-      dropdown.style.cssText =
-        "position:absolute;z-index:100;background:var(--color-bg);" +
-        "border:1px solid var(--color-border);border-radius:var(--radius-sm);" +
-        "box-shadow:0 4px 12px rgba(0,0,0,0.15);max-height:200px;overflow-y:auto;" +
-        "min-width:180px;";
 
       var listHtml =
-        "<style>.diagram-dropdown-item:hover{background:var(--color-bg-secondary)}</style>" +
-        '<div style="padding:var(--space-1) var(--space-2);font-size:var(--text-xs);font-weight:var(--weight-bold);color:var(--color-text-muted);border-bottom:1px solid var(--color-border);">Attach as child:</div><ul style="list-style:none;margin:0;padding:0;">';
+        '<div class="diagram-dropdown-header">Attach as child:</div>' +
+        '<ul class="diagram-dropdown-list">';
       orphans.forEach(function (orphan) {
         listHtml +=
           '<li class="diagram-dropdown-item" data-parent-id="' +
           parentId +
           '" data-orphan-id="' +
           orphan.id +
-          '" style="padding:var(--space-1) var(--space-2);cursor:pointer;border-bottom:1px solid var(--color-border);">' +
+          '">' +
           (orphan.title || orphan.id) +
           "</li>";
       });
@@ -359,7 +355,7 @@ window.renderEditDiagram = async function (containerId) {
         var indicator = document.getElementById("diagram-save-indicator");
         if (window.__changedNodes.size === 0) {
           indicator.textContent = "No changes to save.";
-          indicator.style.color = "var(--color-text-muted)";
+          indicator.className = "diagram-save-indicator is-muted";
           return;
         }
 
@@ -381,7 +377,7 @@ window.renderEditDiagram = async function (containerId) {
             });
             window.__changedNodes.clear();
             indicator.textContent = "Graph saved successfully.";
-            indicator.style.color = "var(--color-success, #2e7d32)";
+            indicator.className = "diagram-save-indicator is-success";
           } else {
             var errData;
             try {
@@ -391,11 +387,11 @@ window.renderEditDiagram = async function (containerId) {
             }
             indicator.textContent =
               "Save failed: " + (errData.detail || response.statusText);
-            indicator.style.color = "var(--color-error, #c62828)";
+            indicator.className = "diagram-save-indicator is-error";
           }
         } catch (err) {
           indicator.textContent = "Save failed: " + err.message;
-          indicator.style.color = "var(--color-error, #c62828)";
+          indicator.className = "diagram-save-indicator is-error";
         }
       });
     }
@@ -422,9 +418,9 @@ window.renderEditDiagram = async function (containerId) {
         var label = el.querySelector(".diagram-node-label");
         var text = label ? label.textContent.toLowerCase() : "";
         if (!q || text.indexOf(q) !== -1) {
-          el.style.display = "";
+          el.classList.remove("is-hidden");
         } else {
-          el.style.display = "none";
+          el.classList.add("is-hidden");
         }
       });
     });

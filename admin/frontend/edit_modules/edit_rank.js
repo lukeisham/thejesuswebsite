@@ -2,7 +2,7 @@
 //
 //   THE JESUS WEBSITE — EDIT RANK MODULE
 //   File:    admin/frontend/edit_modules/edit_rank.js
-//   Version: 1.1.0
+//   Version: 1.2.0
 //   Purpose: Form to manually override automated rankings for specific records.
 //
 // =============================================================================
@@ -11,25 +11,25 @@
 // Function: Renders a form to manually override automated pipeline rankings for a specific record
 // Output: Injects a rank-lock form with target slug, pipeline selector, and position input
 
-window.renderEditRank = function(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+window.renderEditRank = function (containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
-    const html = `
+  const html = `
         <div class="admin-card" id="edit-rank-card">
-            <h2 style="font-family: var(--font-serif); margin-bottom: var(--space-4);">MANUAL RANK OVERRIDE</h2>
-            
-            <div style="padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background-color: #fafafa;">
-                <p class="text-sm text-muted mb-4">Select a specific record to forcefully lock its rank across algorithmic pipelines.</p>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4);">
-                    <div>
-                        <label>Target Record Slug:</label>
-                        <input type="text" placeholder="e.g. tacitus-annals-15-44" style="width: 100%; padding: var(--space-2); margin-top: 4px; border: 1px solid var(--color-border);">
+            <h2 class="section-heading-serif">MANUAL RANK OVERRIDE</h2>
+
+            <div class="rank-inner-card">
+                <p class="text-muted rank-description">Select a specific record to forcefully lock its rank across algorithmic pipelines.</p>
+
+                <div class="field-row-double rank-field-grid">
+                    <div class="field-row-inner rank-field-wrapper">
+                        <label class="field-label">Target Record Slug:</label>
+                        <input type="text" class="field-input" placeholder="e.g. tacitus-annals-15-44">
                     </div>
-                    <div>
-                        <label>List Pipeline:</label>
-                        <select style="width: 100%; padding: var(--space-2); margin-top: 4px; border: 1px solid var(--color-border);">
+                    <div class="field-row-inner rank-field-wrapper">
+                        <label class="field-label">List Pipeline:</label>
+                        <select class="field-input">
                             <option>Wikipedia Mentions</option>
                             <option>Academic Debates</option>
                             <option>Popular Debates</option>
@@ -37,22 +37,22 @@ window.renderEditRank = function(containerId) {
                     </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: var(--space-4);">
+                <div class="rank-checkbox-row">
                     <input type="checkbox" id="lock-rank">
-                    <label for="lock-rank" style="font-weight: bold; color: #d32f2f;">Lock Absolute Rank Position (Overrides Base multipliers)</label>
-                </div>
-                
-                <div style="margin-top: var(--space-4);">
-                    <label>Hardcoded Rank Position:</label>
-                    <input type="number" min="1" value="1" style="width: 80px; padding: var(--space-2); margin-left: var(--space-2); border: 1px solid var(--color-border);">
+                    <label for="lock-rank" class="rank-lock-label">Lock Absolute Rank Position (Overrides Base multipliers)</label>
                 </div>
 
-                <div style="margin-top: var(--space-6);">
+                <div class="rank-position-row">
+                    <label class="field-label">Hardcoded Rank Position:</label>
+                    <input type="number" min="1" value="1" class="rank-input-narrow">
+                </div>
+
+                <div class="rank-action-row">
                     <button class="quick-action-btn">Apply Override</button>
                 </div>
             </div>
         </div>
     `;
 
-    container.innerHTML = html;
+  container.innerHTML = html;
 };

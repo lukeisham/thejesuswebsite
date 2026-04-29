@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "big documentation update"
+git commit -m "Dashboard Refactor"
 git push origin main 
 
 # Pulling from Github to server 
@@ -40,13 +40,8 @@ cd /var/www/thejesuswebsite
 
 # Next project
 
-Create project and save as an .md file in the root direct to create a return a return to front-end and remain logged in, and a log-out and return to frontend button. Review vibe_coding_rules.md and detailed_module_sitemap.md and guide_function.md and guide_dashboard_appearance.md and include a work-completed audit and a module impact audit. 
+use the generate a new plan skill. Fixing website slugs. Currently they display like this: https://www.thejesuswebsite.org/frontend/pages/records.html I want them to display like this: https://www.thejesuswebsite.org/records or https://www.thejesuswebsite.org/context/[Context_Essay_Title] etc. etc.  Create a plan to implement this change across the website. Include a big table with the proposed slug changes for me to review. 
 
-Create project and save as an .md file in the root direct to fix the display of urls so that they display as thejesuswebsite.org/slug instead of thejesuswebsite.org/frontend/records.html?search=slug etc. Review vibe_coding_rules.md and detailed_module_sitemap.md and guide_functions.md and include a work-completed audit and a module impact audit. 
+use the generate a new plan skill. Remove placeholder fake data. Currently there are about half a dozen or more fake records, please remove them. Also this project should verify that the database is operational and ready to receive new records. 
 
-Remove place-holder records. 
-
-Verify the logic and hypothetical functionality of 1) adding a single record, and 2) bulk upload and 3) picture upload, making sure to check logic and compare to guide_function.md then verify that guide_function.md describes the logic exactly and exhaustively 
-
-create a plan to modify the database to include AI generated Snippets 
-(then check places its used: list view, news and blog summaries to ensure compatibility)
+Does the `### 2.2 Backend for Single Record Layout` sub-module allow for picture uploads and deletions? (comfirm the code and logic exist for this function )

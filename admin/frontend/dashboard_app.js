@@ -45,7 +45,8 @@ function renderDashboardShell() {
 
                     <h3>Lists & Ranks</h3>
                     <ul>
-                        <li><a href="#" data-module="ranks-weights">Edit Weights</a></li>
+                        <li><a href="#" data-module="ranks-wikipedia">Wikipedia Weights</a></li>
+                        <li><a href="#" data-module="ranks-challenges">Challenge Weights</a></li>
                         <li><a href="#" data-module="lists-resources">Edit Resources</a></li>
                         <li><a href="#" data-module="ranks-responses">Insert Responses</a></li>
                     </ul>
@@ -54,6 +55,8 @@ function renderDashboardShell() {
                     <ul>
                         <li><a href="#" data-module="text-essays">Essays</a></li>
                         <li><a href="#" data-module="text-responses">Responses</a></li>
+                        <li><a href="#" data-module="text-mla">MLA Sources</a></li>
+                        <li><a href="#" data-module="text-news">News</a></li>
                         <li><a href="#" data-module="text-blog">Blog Posts</a></li>
                     </ul>
 
@@ -132,6 +135,25 @@ async function loadModule(moduleName) {
       return;
     }
   }
+
+  // ===== Route Checklist (Module 7.1 Dashboard Router) =====
+  // records-new       → direct renderEditRecord(canvas, null)
+  // records-edit      → inline list + pagination + search
+  // ranks-wikipedia   → direct renderEditWikiWeights(canvas)        [NEW]
+  // ranks-challenges  → 2-tab (Academic default / Popular lazy)     [NEW]
+  // lists-resources   → dropdown + load → renderEditLists(canvas, name)
+  // ranks-responses   → 2-tab (Academic default / Popular lazy)
+  // records-bulk      → direct renderBulkUpload(canvas)
+  // text-essays       → 2-tab (Context Essay default / Historiography lazy)
+  // text-responses    → direct renderEditResponse(canvas)
+  // text-news         → 2-tab (News Snippet default / News Sources lazy) [NEW]
+  // text-blog         → direct renderEditBlogpost(canvas)           [FIXED]
+  // text-mla          → direct renderEditMlaSources(canvas)         [NEW]
+  // config-diagrams   → direct renderEditDiagram(canvas)
+  // config-news       → direct renderEditNewsSources(canvas)        [typeof guard]
+  // Fallback placeholder for unknown module names
+  // NOTE: ranks-weights removed — split into ranks-wikipedia + ranks-challenges
+  // ============================================================
 
   if (
     moduleName === "records-new" &&
@@ -322,28 +344,34 @@ async function loadModule(moduleName) {
     return;
   }
 
-  if (moduleName === "ranks-weights") {
+  if (
+    moduleName === "ranks-wikipedia" &&
+    typeof window.renderEditWikiWeights === "function"
+  ) {
+    window.renderEditWikiWeights("admin-canvas");
+    return;
+  }
+
+  if (moduleName === "ranks-challenges") {
     canvas.innerHTML = `
-      <div class="admin-card" style="overflow: hidden;">
-        <div style="display: flex; border-bottom: 2px solid var(--color-border); background-color: var(--color-bg-secondary);" id="ranks-weights-tab-bar">
-          <button class="admin-tab-btn is-active" data-tab="wiki" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-bold); border: none; background: transparent; cursor: pointer; color: var(--color-text); border-bottom: 2px solid var(--color-accent-primary); transition: all var(--transition-fast);">Wikipedia</button>
-          <button class="admin-tab-btn" data-tab="academic" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">Academic</button>
-          <button class="admin-tab-btn" data-tab="popular" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">Popular</button>
+      <div class="admin-card">
+        <div class="admin-tab-bar" id="ranks-challenges-tab-bar">
+          <button class="admin-tab-btn is-active" data-tab="academic">Academic Challenges</button>
+          <button class="admin-tab-btn" data-tab="popular">Popular Challenges</button>
         </div>
-        <div id="tab-content-ranks-weights-wiki" style="padding: var(--space-6);"></div>
-        <div id="tab-content-ranks-weights-academic" class="is-hidden" style="padding: var(--space-6);"></div>
-        <div id="tab-content-ranks-weights-popular" class="is-hidden" style="padding: var(--space-6);"></div>
+        <div id="tab-content-ranks-challenges-academic"></div>
+        <div id="tab-content-ranks-challenges-popular" class="is-hidden"></div>
       </div>
     `;
 
-    // Load default tab (Wikipedia)
-    if (typeof window.renderEditWikiWeights === "function") {
-      window.renderEditWikiWeights("tab-content-ranks-weights-wiki");
+    // Load default tab (Academic Challenges)
+    if (typeof window.renderEditAcademicWeights === "function") {
+      window.renderEditAcademicWeights("tab-content-ranks-challenges-academic");
     }
 
     // Event delegation for tab switching
     document
-      .getElementById("ranks-weights-tab-bar")
+      .getElementById("ranks-challenges-tab-bar")
       .addEventListener("click", function (e) {
         var tabBtn = e.target.closest("[data-tab]");
         if (!tabBtn) return;
@@ -352,48 +380,28 @@ async function loadModule(moduleName) {
         // Toggle active state on tab buttons
         this.querySelectorAll("[data-tab]").forEach(function (btn) {
           btn.classList.remove("is-active");
-          btn.style.color = "var(--color-text-muted)";
-          btn.style.fontWeight = "var(--weight-medium)";
-          btn.style.borderBottomColor = "transparent";
         });
         tabBtn.classList.add("is-active");
-        tabBtn.style.color = "var(--color-text)";
-        tabBtn.style.fontWeight = "var(--weight-bold)";
-        tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
 
         // Show / hide panes and lazy-load if needed
-        var wikiPane = document.getElementById(
-          "tab-content-ranks-weights-wiki",
-        );
         var academicPane = document.getElementById(
-          "tab-content-ranks-weights-academic",
+          "tab-content-ranks-challenges-academic",
         );
         var popularPane = document.getElementById(
-          "tab-content-ranks-weights-popular",
+          "tab-content-ranks-challenges-popular",
         );
 
-        // Hide all panes
-        wikiPane.classList.add("is-hidden");
         academicPane.classList.add("is-hidden");
         popularPane.classList.add("is-hidden");
 
-        // Show selected pane and lazy-load if pane is empty
-        if (tab === "wiki") {
-          wikiPane.classList.remove("is-hidden");
-          if (
-            wikiPane.innerHTML.trim() === "" &&
-            typeof window.renderEditWikiWeights === "function"
-          ) {
-            window.renderEditWikiWeights("tab-content-ranks-weights-wiki");
-          }
-        } else if (tab === "academic") {
+        if (tab === "academic") {
           academicPane.classList.remove("is-hidden");
           if (
             academicPane.innerHTML.trim() === "" &&
             typeof window.renderEditAcademicWeights === "function"
           ) {
             window.renderEditAcademicWeights(
-              "tab-content-ranks-weights-academic",
+              "tab-content-ranks-challenges-academic",
             );
           }
         } else if (tab === "popular") {
@@ -403,7 +411,7 @@ async function loadModule(moduleName) {
             typeof window.renderEditPopularWeights === "function"
           ) {
             window.renderEditPopularWeights(
-              "tab-content-ranks-weights-popular",
+              "tab-content-ranks-challenges-popular",
             );
           }
         }
@@ -474,13 +482,13 @@ async function loadModule(moduleName) {
 
   if (moduleName === "ranks-responses") {
     canvas.innerHTML = `
-      <div class="admin-card" style="overflow: hidden;">
-        <div style="display: flex; border-bottom: 2px solid var(--color-border); background-color: var(--color-bg-secondary);" id="ranks-responses-tab-bar">
-          <button class="admin-tab-btn is-active" data-tab="academic" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-bold); border: none; background: transparent; cursor: pointer; color: var(--color-text); border-bottom: 2px solid var(--color-accent-primary); transition: all var(--transition-fast);">Academic Challenges</button>
-          <button class="admin-tab-btn" data-tab="popular" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">Popular Challenges</button>
+      <div class="admin-card">
+        <div class="admin-tab-bar" id="ranks-responses-tab-bar">
+          <button class="admin-tab-btn is-active" data-tab="academic">Academic Challenges</button>
+          <button class="admin-tab-btn" data-tab="popular">Popular Challenges</button>
         </div>
-        <div id="tab-content-ranks-responses-academic" style="padding: var(--space-6);"></div>
-        <div id="tab-content-ranks-responses-popular" class="is-hidden" style="padding: var(--space-6);"></div>
+        <div id="tab-content-ranks-responses-academic" class="admin-tab-content"></div>
+        <div id="tab-content-ranks-responses-popular" class="admin-tab-content is-hidden"></div>
       </div>
     `;
 
@@ -502,14 +510,8 @@ async function loadModule(moduleName) {
         // Toggle active state on tab buttons
         this.querySelectorAll("[data-tab]").forEach(function (btn) {
           btn.classList.remove("is-active");
-          btn.style.color = "var(--color-text-muted)";
-          btn.style.fontWeight = "var(--weight-medium)";
-          btn.style.borderBottomColor = "transparent";
         });
         tabBtn.classList.add("is-active");
-        tabBtn.style.color = "var(--color-text)";
-        tabBtn.style.fontWeight = "var(--weight-bold)";
-        tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
 
         // Show / hide panes and lazy-load if needed
         var academicPane = document.getElementById(
@@ -560,13 +562,13 @@ async function loadModule(moduleName) {
 
   if (moduleName === "text-essays") {
     canvas.innerHTML = `
-      <div class="admin-card" style="overflow: hidden;">
-        <div style="display: flex; border-bottom: 2px solid var(--color-border); background-color: var(--color-bg-secondary);" id="essays-tab-bar">
-          <button class="admin-tab-btn is-active" data-tab="essay" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-bold); border: none; background: transparent; cursor: pointer; color: var(--color-text); border-bottom: 2px solid var(--color-accent-primary); transition: all var(--transition-fast);">Context Essay</button>
-          <button class="admin-tab-btn" data-tab="historiography" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">Historiography</button>
+      <div class="admin-card">
+        <div class="admin-tab-bar" id="essays-tab-bar">
+          <button class="admin-tab-btn is-active" data-tab="essay">Context Essay</button>
+          <button class="admin-tab-btn" data-tab="historiography">Historiography</button>
         </div>
-        <div id="tab-content-essay" style="padding: var(--space-6);"></div>
-        <div id="tab-content-historiography" class="is-hidden" style="padding: var(--space-6);"></div>
+        <div id="tab-content-essay" class="admin-tab-content"></div>
+        <div id="tab-content-historiography" class="admin-tab-content is-hidden"></div>
       </div>
     `;
 
@@ -586,14 +588,8 @@ async function loadModule(moduleName) {
         // Toggle active state on tab buttons
         this.querySelectorAll("[data-tab]").forEach(function (btn) {
           btn.classList.remove("is-active");
-          btn.style.color = "var(--color-text-muted)";
-          btn.style.fontWeight = "var(--weight-medium)";
-          btn.style.borderBottomColor = "transparent";
         });
         tabBtn.classList.add("is-active");
-        tabBtn.style.color = "var(--color-text)";
-        tabBtn.style.fontWeight = "var(--weight-bold)";
-        tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
 
         // Show / hide panes and lazy-load historiography if needed
         var essayPane = document.getElementById("tab-content-essay");
@@ -633,28 +629,34 @@ async function loadModule(moduleName) {
     return;
   }
 
-  if (moduleName === "text-blog") {
+  if (
+    moduleName === "text-mla" &&
+    typeof window.renderEditMlaSources === "function"
+  ) {
+    window.renderEditMlaSources("admin-canvas");
+    return;
+  }
+
+  if (moduleName === "text-news") {
     canvas.innerHTML = `
-      <div class="admin-card" style="overflow: hidden;">
-        <div style="display: flex; border-bottom: 2px solid var(--color-border); background-color: var(--color-bg-secondary);" id="blog-tab-bar">
-          <button class="admin-tab-btn" data-tab="news-snippet" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">News Snippet</button>
-          <button class="admin-tab-btn is-active" data-tab="blog-post" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-bold); border: none; background: transparent; cursor: pointer; color: var(--color-text); border-bottom: 2px solid var(--color-accent-primary); transition: all var(--transition-fast);">Blog Post</button>
-          <button class="admin-tab-btn" data-tab="news-sources" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">News Sources</button>
+      <div class="admin-card">
+        <div class="admin-tab-bar" id="news-tab-bar">
+          <button class="admin-tab-btn is-active" data-tab="snippet">News Snippet</button>
+          <button class="admin-tab-btn" data-tab="sources">News Sources</button>
         </div>
-        <div id="tab-content-news-snippet" class="is-hidden" style="padding: var(--space-6);"></div>
-        <div id="tab-content-blog-post" style="padding: var(--space-6);"></div>
-        <div id="tab-content-news-sources" class="is-hidden" style="padding: var(--space-6);"></div>
+        <div id="tab-content-news-snippet"></div>
+        <div id="tab-content-news-sources" class="is-hidden"></div>
       </div>
     `;
 
-    // Load default tab (Blog Post)
-    if (typeof window.renderEditBlogpost === "function") {
-      window.renderEditBlogpost("tab-content-blog-post");
+    // Load default tab (News Snippet)
+    if (typeof window.renderEditNewsSnippet === "function") {
+      window.renderEditNewsSnippet("tab-content-news-snippet");
     }
 
     // Event delegation for tab switching
     document
-      .getElementById("blog-tab-bar")
+      .getElementById("news-tab-bar")
       .addEventListener("click", function (e) {
         var tabBtn = e.target.closest("[data-tab]");
         if (!tabBtn) return;
@@ -663,27 +665,17 @@ async function loadModule(moduleName) {
         // Toggle active state on tab buttons
         this.querySelectorAll("[data-tab]").forEach(function (btn) {
           btn.classList.remove("is-active");
-          btn.style.color = "var(--color-text-muted)";
-          btn.style.fontWeight = "var(--weight-medium)";
-          btn.style.borderBottomColor = "transparent";
         });
         tabBtn.classList.add("is-active");
-        tabBtn.style.color = "var(--color-text)";
-        tabBtn.style.fontWeight = "var(--weight-bold)";
-        tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
 
         // Show / hide panes and lazy-load if needed
         var snippetPane = document.getElementById("tab-content-news-snippet");
-        var blogPane = document.getElementById("tab-content-blog-post");
         var sourcesPane = document.getElementById("tab-content-news-sources");
 
-        // Hide all panes
         snippetPane.classList.add("is-hidden");
-        blogPane.classList.add("is-hidden");
         sourcesPane.classList.add("is-hidden");
 
-        // Show selected pane and lazy-load if pane is empty
-        if (tab === "news-snippet") {
+        if (tab === "snippet") {
           snippetPane.classList.remove("is-hidden");
           if (
             snippetPane.innerHTML.trim() === "" &&
@@ -691,15 +683,7 @@ async function loadModule(moduleName) {
           ) {
             window.renderEditNewsSnippet("tab-content-news-snippet");
           }
-        } else if (tab === "blog-post") {
-          blogPane.classList.remove("is-hidden");
-          if (
-            blogPane.innerHTML.trim() === "" &&
-            typeof window.renderEditBlogpost === "function"
-          ) {
-            window.renderEditBlogpost("tab-content-blog-post");
-          }
-        } else if (tab === "news-sources") {
+        } else if (tab === "sources") {
           sourcesPane.classList.remove("is-hidden");
           if (
             sourcesPane.innerHTML.trim() === "" &&
@@ -710,6 +694,14 @@ async function loadModule(moduleName) {
         }
       });
 
+    return;
+  }
+
+  if (
+    moduleName === "text-blog" &&
+    typeof window.renderEditBlogpost === "function"
+  ) {
+    window.renderEditBlogpost("admin-canvas");
     return;
   }
 
