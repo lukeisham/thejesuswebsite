@@ -322,6 +322,96 @@ async function loadModule(moduleName) {
     return;
   }
 
+  if (moduleName === "ranks-weights") {
+    canvas.innerHTML = `
+      <div class="admin-card" style="overflow: hidden;">
+        <div style="display: flex; border-bottom: 2px solid var(--color-border); background-color: var(--color-bg-secondary);" id="ranks-weights-tab-bar">
+          <button class="admin-tab-btn is-active" data-tab="wiki" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-bold); border: none; background: transparent; cursor: pointer; color: var(--color-text); border-bottom: 2px solid var(--color-accent-primary); transition: all var(--transition-fast);">Wikipedia</button>
+          <button class="admin-tab-btn" data-tab="academic" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">Academic</button>
+          <button class="admin-tab-btn" data-tab="popular" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">Popular</button>
+        </div>
+        <div id="tab-content-ranks-weights-wiki" style="padding: var(--space-6);"></div>
+        <div id="tab-content-ranks-weights-academic" class="is-hidden" style="padding: var(--space-6);"></div>
+        <div id="tab-content-ranks-weights-popular" class="is-hidden" style="padding: var(--space-6);"></div>
+      </div>
+    `;
+
+    // Load default tab (Wikipedia)
+    if (typeof window.renderEditWikiWeights === "function") {
+      window.renderEditWikiWeights("tab-content-ranks-weights-wiki");
+    }
+
+    // Event delegation for tab switching
+    document
+      .getElementById("ranks-weights-tab-bar")
+      .addEventListener("click", function (e) {
+        var tabBtn = e.target.closest("[data-tab]");
+        if (!tabBtn) return;
+        var tab = tabBtn.getAttribute("data-tab");
+
+        // Toggle active state on tab buttons
+        this.querySelectorAll("[data-tab]").forEach(function (btn) {
+          btn.classList.remove("is-active");
+          btn.style.color = "var(--color-text-muted)";
+          btn.style.fontWeight = "var(--weight-medium)";
+          btn.style.borderBottomColor = "transparent";
+        });
+        tabBtn.classList.add("is-active");
+        tabBtn.style.color = "var(--color-text)";
+        tabBtn.style.fontWeight = "var(--weight-bold)";
+        tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
+
+        // Show / hide panes and lazy-load if needed
+        var wikiPane = document.getElementById(
+          "tab-content-ranks-weights-wiki",
+        );
+        var academicPane = document.getElementById(
+          "tab-content-ranks-weights-academic",
+        );
+        var popularPane = document.getElementById(
+          "tab-content-ranks-weights-popular",
+        );
+
+        // Hide all panes
+        wikiPane.classList.add("is-hidden");
+        academicPane.classList.add("is-hidden");
+        popularPane.classList.add("is-hidden");
+
+        // Show selected pane and lazy-load if pane is empty
+        if (tab === "wiki") {
+          wikiPane.classList.remove("is-hidden");
+          if (
+            wikiPane.innerHTML.trim() === "" &&
+            typeof window.renderEditWikiWeights === "function"
+          ) {
+            window.renderEditWikiWeights("tab-content-ranks-weights-wiki");
+          }
+        } else if (tab === "academic") {
+          academicPane.classList.remove("is-hidden");
+          if (
+            academicPane.innerHTML.trim() === "" &&
+            typeof window.renderEditAcademicWeights === "function"
+          ) {
+            window.renderEditAcademicWeights(
+              "tab-content-ranks-weights-academic",
+            );
+          }
+        } else if (tab === "popular") {
+          popularPane.classList.remove("is-hidden");
+          if (
+            popularPane.innerHTML.trim() === "" &&
+            typeof window.renderEditPopularWeights === "function"
+          ) {
+            window.renderEditPopularWeights(
+              "tab-content-ranks-weights-popular",
+            );
+          }
+        }
+      });
+
+    return;
+  }
+
   if (
     moduleName === "lists-resources" &&
     typeof window.renderEditLists === "function"
@@ -382,6 +472,84 @@ async function loadModule(moduleName) {
     return;
   }
 
+  if (moduleName === "ranks-responses") {
+    canvas.innerHTML = `
+      <div class="admin-card" style="overflow: hidden;">
+        <div style="display: flex; border-bottom: 2px solid var(--color-border); background-color: var(--color-bg-secondary);" id="ranks-responses-tab-bar">
+          <button class="admin-tab-btn is-active" data-tab="academic" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-bold); border: none; background: transparent; cursor: pointer; color: var(--color-text); border-bottom: 2px solid var(--color-accent-primary); transition: all var(--transition-fast);">Academic Challenges</button>
+          <button class="admin-tab-btn" data-tab="popular" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">Popular Challenges</button>
+        </div>
+        <div id="tab-content-ranks-responses-academic" style="padding: var(--space-6);"></div>
+        <div id="tab-content-ranks-responses-popular" class="is-hidden" style="padding: var(--space-6);"></div>
+      </div>
+    `;
+
+    // Load default tab (Academic Challenges)
+    if (typeof window.renderEditInsertResponseAcademic === "function") {
+      window.renderEditInsertResponseAcademic(
+        "tab-content-ranks-responses-academic",
+      );
+    }
+
+    // Event delegation for tab switching
+    document
+      .getElementById("ranks-responses-tab-bar")
+      .addEventListener("click", function (e) {
+        var tabBtn = e.target.closest("[data-tab]");
+        if (!tabBtn) return;
+        var tab = tabBtn.getAttribute("data-tab");
+
+        // Toggle active state on tab buttons
+        this.querySelectorAll("[data-tab]").forEach(function (btn) {
+          btn.classList.remove("is-active");
+          btn.style.color = "var(--color-text-muted)";
+          btn.style.fontWeight = "var(--weight-medium)";
+          btn.style.borderBottomColor = "transparent";
+        });
+        tabBtn.classList.add("is-active");
+        tabBtn.style.color = "var(--color-text)";
+        tabBtn.style.fontWeight = "var(--weight-bold)";
+        tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
+
+        // Show / hide panes and lazy-load if needed
+        var academicPane = document.getElementById(
+          "tab-content-ranks-responses-academic",
+        );
+        var popularPane = document.getElementById(
+          "tab-content-ranks-responses-popular",
+        );
+
+        // Hide all panes
+        academicPane.classList.add("is-hidden");
+        popularPane.classList.add("is-hidden");
+
+        // Show selected pane and lazy-load if pane is empty
+        if (tab === "academic") {
+          academicPane.classList.remove("is-hidden");
+          if (
+            academicPane.innerHTML.trim() === "" &&
+            typeof window.renderEditInsertResponseAcademic === "function"
+          ) {
+            window.renderEditInsertResponseAcademic(
+              "tab-content-ranks-responses-academic",
+            );
+          }
+        } else if (tab === "popular") {
+          popularPane.classList.remove("is-hidden");
+          if (
+            popularPane.innerHTML.trim() === "" &&
+            typeof window.renderEditInsertResponsePopular === "function"
+          ) {
+            window.renderEditInsertResponsePopular(
+              "tab-content-ranks-responses-popular",
+            );
+          }
+        }
+      });
+
+    return;
+  }
+
   if (
     moduleName === "records-bulk" &&
     typeof window.renderBulkUpload === "function"
@@ -389,7 +557,6 @@ async function loadModule(moduleName) {
     window.renderBulkUpload("admin-canvas");
     return;
   }
-
 
   if (moduleName === "text-essays") {
     canvas.innerHTML = `
@@ -409,46 +576,150 @@ async function loadModule(moduleName) {
     }
 
     // Event delegation for tab switching
-    document.getElementById("essays-tab-bar").addEventListener("click", function (e) {
-      var tabBtn = e.target.closest("[data-tab]");
-      if (!tabBtn) return;
-      var tab = tabBtn.getAttribute("data-tab");
+    document
+      .getElementById("essays-tab-bar")
+      .addEventListener("click", function (e) {
+        var tabBtn = e.target.closest("[data-tab]");
+        if (!tabBtn) return;
+        var tab = tabBtn.getAttribute("data-tab");
 
-      // Toggle active state on tab buttons
-      this.querySelectorAll("[data-tab]").forEach(function (btn) {
-        btn.classList.remove("is-active");
-        btn.style.color = "var(--color-text-muted)";
-        btn.style.fontWeight = "var(--weight-medium)";
-        btn.style.borderBottomColor = "transparent";
-      });
-      tabBtn.classList.add("is-active");
-      tabBtn.style.color = "var(--color-text)";
-      tabBtn.style.fontWeight = "var(--weight-bold)";
-      tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
+        // Toggle active state on tab buttons
+        this.querySelectorAll("[data-tab]").forEach(function (btn) {
+          btn.classList.remove("is-active");
+          btn.style.color = "var(--color-text-muted)";
+          btn.style.fontWeight = "var(--weight-medium)";
+          btn.style.borderBottomColor = "transparent";
+        });
+        tabBtn.classList.add("is-active");
+        tabBtn.style.color = "var(--color-text)";
+        tabBtn.style.fontWeight = "var(--weight-bold)";
+        tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
 
-      // Show / hide panes and lazy-load historiography if needed
-      var essayPane = document.getElementById("tab-content-essay");
-      var histPane = document.getElementById("tab-content-historiography");
+        // Show / hide panes and lazy-load historiography if needed
+        var essayPane = document.getElementById("tab-content-essay");
+        var histPane = document.getElementById("tab-content-historiography");
 
-      if (tab === "essay") {
-        essayPane.classList.remove("is-hidden");
-        histPane.classList.add("is-hidden");
-      } else {
-        histPane.classList.remove("is-hidden");
-        essayPane.classList.add("is-hidden");
-        if (histPane.innerHTML.trim() === "" && typeof window.renderEditHistoriography === "function") {
-          window.renderEditHistoriography("tab-content-historiography");
+        if (tab === "essay") {
+          essayPane.classList.remove("is-hidden");
+          histPane.classList.add("is-hidden");
+        } else {
+          histPane.classList.remove("is-hidden");
+          essayPane.classList.add("is-hidden");
+          if (
+            histPane.innerHTML.trim() === "" &&
+            typeof window.renderEditHistoriography === "function"
+          ) {
+            window.renderEditHistoriography("tab-content-historiography");
+          }
         }
-      }
-    });
+      });
 
     return;
   }
 
-  if (moduleName === "text-responses" && typeof window.renderEditResponse === "function") {
+  if (
+    moduleName === "text-responses" &&
+    typeof window.renderEditResponse === "function"
+  ) {
     window.renderEditResponse("admin-canvas");
     return;
   }
+
+  if (
+    moduleName === "config-diagrams" &&
+    typeof window.renderEditDiagram === "function"
+  ) {
+    window.renderEditDiagram("admin-canvas");
+    return;
+  }
+
+  if (moduleName === "text-blog") {
+    canvas.innerHTML = `
+      <div class="admin-card" style="overflow: hidden;">
+        <div style="display: flex; border-bottom: 2px solid var(--color-border); background-color: var(--color-bg-secondary);" id="blog-tab-bar">
+          <button class="admin-tab-btn" data-tab="news-snippet" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">News Snippet</button>
+          <button class="admin-tab-btn is-active" data-tab="blog-post" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-bold); border: none; background: transparent; cursor: pointer; color: var(--color-text); border-bottom: 2px solid var(--color-accent-primary); transition: all var(--transition-fast);">Blog Post</button>
+          <button class="admin-tab-btn" data-tab="news-sources" style="flex: 1; padding: var(--space-3) var(--space-4); font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-medium); border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); border-bottom: 2px solid transparent; transition: all var(--transition-fast);">News Sources</button>
+        </div>
+        <div id="tab-content-news-snippet" class="is-hidden" style="padding: var(--space-6);"></div>
+        <div id="tab-content-blog-post" style="padding: var(--space-6);"></div>
+        <div id="tab-content-news-sources" class="is-hidden" style="padding: var(--space-6);"></div>
+      </div>
+    `;
+
+    // Load default tab (Blog Post)
+    if (typeof window.renderEditBlogpost === "function") {
+      window.renderEditBlogpost("tab-content-blog-post");
+    }
+
+    // Event delegation for tab switching
+    document
+      .getElementById("blog-tab-bar")
+      .addEventListener("click", function (e) {
+        var tabBtn = e.target.closest("[data-tab]");
+        if (!tabBtn) return;
+        var tab = tabBtn.getAttribute("data-tab");
+
+        // Toggle active state on tab buttons
+        this.querySelectorAll("[data-tab]").forEach(function (btn) {
+          btn.classList.remove("is-active");
+          btn.style.color = "var(--color-text-muted)";
+          btn.style.fontWeight = "var(--weight-medium)";
+          btn.style.borderBottomColor = "transparent";
+        });
+        tabBtn.classList.add("is-active");
+        tabBtn.style.color = "var(--color-text)";
+        tabBtn.style.fontWeight = "var(--weight-bold)";
+        tabBtn.style.borderBottomColor = "var(--color-accent-primary)";
+
+        // Show / hide panes and lazy-load if needed
+        var snippetPane = document.getElementById("tab-content-news-snippet");
+        var blogPane = document.getElementById("tab-content-blog-post");
+        var sourcesPane = document.getElementById("tab-content-news-sources");
+
+        // Hide all panes
+        snippetPane.classList.add("is-hidden");
+        blogPane.classList.add("is-hidden");
+        sourcesPane.classList.add("is-hidden");
+
+        // Show selected pane and lazy-load if pane is empty
+        if (tab === "news-snippet") {
+          snippetPane.classList.remove("is-hidden");
+          if (
+            snippetPane.innerHTML.trim() === "" &&
+            typeof window.renderEditNewsSnippet === "function"
+          ) {
+            window.renderEditNewsSnippet("tab-content-news-snippet");
+          }
+        } else if (tab === "blog-post") {
+          blogPane.classList.remove("is-hidden");
+          if (
+            blogPane.innerHTML.trim() === "" &&
+            typeof window.renderEditBlogpost === "function"
+          ) {
+            window.renderEditBlogpost("tab-content-blog-post");
+          }
+        } else if (tab === "news-sources") {
+          sourcesPane.classList.remove("is-hidden");
+          if (
+            sourcesPane.innerHTML.trim() === "" &&
+            typeof window.renderEditNewsSources === "function"
+          ) {
+            window.renderEditNewsSources("tab-content-news-sources");
+          }
+        }
+      });
+
+    return;
+  }
+
+  if (moduleName === "config-news") {
+    if (typeof window.renderEditNewsSources === "function") {
+      window.renderEditNewsSources("admin-canvas");
+    }
+    return;
+  }
+
   // Module router placeholder (waiting for tasks 25-27)
   // Module mockup with Split-Pane and Action Bar (Technical Blueprint Verification)
   canvas.innerHTML = `

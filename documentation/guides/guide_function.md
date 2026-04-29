@@ -357,34 +357,68 @@ This document provides visual ASCII representations detailing how data physicall
 
 ## 3.0 Visualizations Module
 **Scope:** Evidence (Ardor graph), Timeline (Chronological progression), Map (Geo-spatial).  
-**Process:** A highly specialized display layer. It intercepts specific metadata fields returned by the WASM database (like `era`, `parent_id`, or `geo_label`) and converts them into coordinates on interactive visual canvases.
+**Process:** A highly specialized display layer. It intercepts specific metadata fields returned by the WASM database (like `era`, `parent_id`, or `geo_label`) and converts them into coordinates on interactive visual canvases. An admin editor API path also writes `parent_id` relationships directly.
+
+### 3.1 Evidence (Ardor) — Data Flow
 
 ```text
- +---------------------------------------------------+
- |            WASM SQLite Data Output                |
- |    (Extracts Era, Geo, and Parent_ID bounds)      |
- +---------------------------------------------------+
-                          |
-                          v
- +---------------------------------------------------+
- |        3.0 Visualizations Render Engine           |
- +---------------------------------------------------+
-       |                  |                  |
-       v                  v                  v
-+--------------+   +--------------+   +--------------+
-|   3.3 Map    |   | 3.2 Timeline |   | 3.1 Evidence |
-|              |   |              |   |   (Ardor)    |
-| Plots array  |   | Translates   |   | Builds       |
-| of lat/longs |   | dates to X   |   | Y/Z tree     |
-+--------------+   +--------------+   +--------------+
-       |                  |                  |
-       +------------------+------------------+
-                          |
-                          v
- +---------------------------------------------------+
- |      Renders SVG/Canvas Interactive Visuals       |
- +---------------------------------------------------+
+                        ┌─────────────────────────────────────┐
+                        │         SQLite Database              │
+                        │         (records table)              │
+                        │   ┌──────────────┬────────────────┐  │
+                        │   │  WASM Path   │  API Path      │  │
+                        │   │  (read-only) │  (read/write)  │  │
+                        │   └──────────────┴────────────────┘  │
+                        └──────────┬────────────────┬──────────┘
+                                   │                │
+                      PUBLIC SIDE  │                │  ADMIN SIDE
+                                   v                v
+        ┌──────────────────────────┐    ┌──────────────────────────┐
+        │  WASM sql.js             │    │  admin_api.py            │
+        │  (in-browser SQLite)     │    │  GET /api/admin/diagram/ │
+        │  Queries:                │    │    tree                  │
+        │  SELECT era, parent_id, │    │    → SELECT id, title,  │
+        │  geo_label FROM records  │    │      parent_id FROM     │
+        └────────────┬─────────────┘    │      records            │
+                     │                  │  PUT /api/admin/diagram/│
+                     │                  │    tree                 │
+                     │                  │    → Validates IDs      │
+                     │                  │    → Checks circular    │
+                     │                  │      refs (2-node only) │
+                     │                  │    → BEGIN TRANSACTION  │
+                     │                  │    → UPDATE records     │
+                     │                  │      SET parent_id = ?  │
+                     │                  │    → COMMIT / ROLLBACK  │
+                     v                  └───────────┬──────────────┘
+        ┌──────────────────────────┐                │
+        │  3.0 Visualizations     │                │
+        │     Render Engine       │                │
+        │  (public-facing)        │                │
+        │  Interprets era, geo,   │                │
+        │  parent_id for layout   │                │
+        └────────────┬─────────────┘                │
+                     │                              │
+                     v                              v
+        ┌──────────────────────────┐  ┌──────────────────────────┐
+        │  SVG / Canvas Output     │  │  edit_diagram.js         │
+        │  (public evidence.html)  │  │  (admin editor)          │
+        │                          │  │  Renders recursive tree  │
+        │  Node circles + edges    │  │  from GET data           │
+        │  with hover effects      │  │                          │
+        │                          │  │  Features:               │
+        │                          │  │  • Drag-and-drop         │
+        │                          │  │  • Search filter         │
+        │                          │  │  • Add Child (orphans)   │
+        │                          │  │  • Remove Node (nullify) │
+        │                          │  │  • Save via PUT          │
+        └──────────────────────────┘  └──────────────────────────┘
 ```
+
+**File responsibilities:**
+- `frontend/display_big/ardor_display.js` — Public SVG render (WASM read path)
+- `admin/frontend/edit_modules/edit_diagram.js` — Admin tree editor (API read/write path)
+- `admin/backend/admin_api.py` — GET/PUT endpoints for `parent_id` CRUD
+- `css/elements/ardor_diagram.css` — Shared styles (public SVG + admin tree)
 
 ---
 
@@ -625,13 +659,26 @@ This document provides visual ASCII representations detailing how data physicall
  |                       , null)                               |
  |   records-edit   -> inline record list + pagination +       |
  |                      search (no editor dispatch)            |
+ |   ranks-weights  -> 3-tab container injected into canvas    |
+ |                      (Wikipedia tab default /                |
+ |                       Academic & Popular tabs                |
+ |                       lazy-loaded)                           |
  |   lists-resources-> window.renderEditLists("admin-canvas",  |
  |                       selectedListName)                     |
+ |   ranks-responses-> 2-tab container injected into canvas    |
+ |                      (Academic Challenges tab default /      |
+ |                       Popular Challenges tab lazy-loaded)    |
  |   records-bulk   -> window.renderBulkUpload("admin-canvas") |
  |   text-essays    -> 2-tab container injected into canvas    |
  |                      (Context Essay tab default /           |
  |                       Historiography tab lazy-loaded)       |
  |   text-responses -> window.renderEditResponse("admin-canvas")|
+ |   text-blog      -> 3-tab container injected into canvas    |
+ |                      (Blog Post tab default /                |
+ |                       News Snippet & News Sources            |
+ |                       lazy-loaded)                           |
+ |   config-news    -> window.renderEditNewsSources(            |
+ |                       "admin-canvas")                        |
  |   *fallback*     -> generic split-pane placeholder          |
  +-------------------------------------------------------------+
                           |
@@ -651,6 +698,33 @@ This document provides visual ASCII representations detailing how data physicall
 **text-responses router case details:**
 - Direct single-pane call to `window.renderEditResponse("admin-canvas")`
 - Protected by a `typeof` guard to verify the function exists before calling
+
+**text-blog router case details:**
+- Injects a tabbed `admin-card` container with **News Snippet**, **Blog Post** (default active), and **News Sources** tabs
+- Calls `window.renderEditBlogpost("tab-content-blog-post")` immediately on load
+- Lazy-loads `window.renderEditNewsSnippet("tab-content-news-snippet")` on first News Snippet tab click
+- Lazy-loads `window.renderEditNewsSources("tab-content-news-sources")` on first News Sources tab click
+- Tab switching uses event delegation (`document.getElementById("blog-tab-bar").addEventListener("click", ...)`) — no inline `onclick` handlers
+- Pane visibility toggled via the `.is-hidden` CSS class (all panes hidden first, then selected pane shown)
+
+**config-news router case details:**
+- Direct single-pane call to `window.renderEditNewsSources("admin-canvas")`
+- Protected by a `typeof` guard to verify the function exists before calling
+
+**ranks-weights router case details:**
+- Injects a tabbed `admin-card` container with **Wikipedia** (default active), **Academic**, and **Popular** tabs
+- Calls `window.renderEditWikiWeights("tab-content-ranks-weights-wiki")` immediately on load
+- Lazy-loads `window.renderEditAcademicWeights("tab-content-ranks-weights-academic")` on first Academic tab click
+- Lazy-loads `window.renderEditPopularWeights("tab-content-ranks-weights-popular")` on first Popular tab click
+- Tab switching uses event delegation (`document.getElementById("ranks-weights-tab-bar").addEventListener("click", ...)`) — no inline `onclick` handlers
+- Pane visibility toggled via the `.is-hidden` CSS class (all panes hidden first, then selected pane shown)
+
+**ranks-responses router case details:**
+- Injects a tabbed `admin-card` container with **Academic Challenges** (default active) and **Popular Challenges** tabs
+- Calls `window.renderEditInsertResponseAcademic("tab-content-ranks-responses-academic")` immediately on load
+- Lazy-loads `window.renderEditInsertResponsePopular("tab-content-ranks-responses-popular")` on first Popular Challenges tab click
+- Tab switching uses event delegation (`document.getElementById("ranks-responses-tab-bar").addEventListener("click", ...)`) — no inline `onclick` handlers
+- Pane visibility toggled via the `.is-hidden` CSS class (all panes hidden first, then selected pane shown)
 
 ---
 

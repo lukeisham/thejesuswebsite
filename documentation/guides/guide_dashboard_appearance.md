@@ -1,7 +1,7 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components and database fields (source of truth)
-version: 1.2.0
+version: 1.3.0
 dependencies: [guide_appearance.md, detailed_module_sitemap.md, data_schema.md]
 ---
 
@@ -349,7 +349,7 @@ updated_at        TEXT (ISO8601)
 ### 3.1 Backend for Visual Interactive Displays (`edit_diagram.js`)
 **Corresponds to Public Section:** 3.1 (Evidence Graph / Ardor Diagrams)  
 *(Note: Maps (3.3) and Timelines (3.2) are driven by `era`, `timeline`, and `map_label` set in §2.2 — they have no separate editor.)*  
-**Purpose:** Visual drag-and-drop tool for building the recursive parent-child 'Ardor' tree. The only column written is `parent_id`; `id` and `title` are read for node rendering.
+**Purpose:** API-driven drag-and-drop tool for building the recursive parent-child 'Ardor' tree. Fetches node data from `GET /api/admin/diagram/tree`, persists changes via `PUT /api/admin/diagram/tree`. The only column written is `parent_id`; `id` and `title` are read for node display.
 
 **DB Fields:**
 ```
@@ -366,25 +366,37 @@ title             TEXT               — node label
 
 ```text
 +-------------------------------------------------------------------------+
-| [ Dashboard Sidebar ] |  EDIT DIAGRAM HIERARCHY                          |
-|                       |  [Save Graph]                                    |
-|-----------------------|-------------------------------------------------|
-|  > Configuration      |  WRITE: parent_id                                |
-|  - Edit Diagrams [Act]|  READ:  id · title (node display only)           |
-|                       |-------------------------------------------------|
-|                       |  [ Search records to add as nodes... ]           |
-|                       |                                                  |
-|                       |       [ ROOT: Jesus of Nazareth ]                |
-|                       |          parent_id: null                         |
-|                       |           |               |                      |
-|                       |  [ Ministry           ]  [ Crucifixion       ]   |
-|                       |  parent_id: jesus-root   parent_id: jesus-root   |
-|                       |       |                        |                 |
-|                       |  [+ Add Child]           [+ Add Child]           |
-|                       |  [Select Parent]         [Select Parent]         |
-|                       |  [Remove Node]           [Remove Node]           |
-|                       |                                                  |
-|                       |  (Drag nodes to reassign parent_id)              |
+| [Dashboard Sidebar]   EDIT DIAGRAM HIERARCHY          [Save Graph]      |
+|  - Edit Diagrams      ────────────────────────────────────────────      |
+|                       |  [Search nodes…]                       |       |
+|                       |                                          |       |
+|                       |  [Root: Jesus of Nazareth]              |       |
+|                       |   ├─ [Ministry]     [+Child][Remove]   |       |
+|                       |   ├─ [Crucifixion]  [+Child][Remove]   |       |
+|                       |   └─ [Resurrection] [+Child][Remove]   |       |
+|                       |                                          |       |
+|                       |  (Drag nodes to re-parent)              |       |
+|                       └──────────────────────────────────────────       |
+|                                                                          |
+|  ─── API ROUND-TRIP: edit_diagram.js → admin_api.py → SQLite ──────    |
+|                                                                          |
+|  LOAD:  GET /api/admin/diagram/tree                                     |
+|         → SELECT id, title, parent_id FROM records ORDER BY title       |
+|         → Returns {"nodes": [{"id":"…","title":"…","parent_id":…}]}     |
+|                                                                          |
+|  EDIT:  DnD updates window.__diagramNodes in memory                     |
+|         Changes tracked in window.__changedNodes Map                    |
+|         Search filters .diagram-node-label text (case-insensitive)      |
+|         "+Child" dropdown of orphan nodes sets parent_id                |
+|         "Remove" promotes node to root (parent_id = null)               |
+|                                                                          |
+|  SAVE:  PUT /api/admin/diagram/tree                                     |
+|         Body: {"updates": [{"id":"…","parent_id":"…"},…]}               |
+|         → Validates IDs exist (422 if missing)                          |
+|         → Detects direct circular refs (422 if found)                   |
+|         → BEGIN TRANSACTION / UPDATE batch / COMMIT or ROLLBACK         |
+|         → Green toast: "Graph saved successfully"                       |
+|         → Red toast:   "Save failed: <detail>"                         |
 +-------------------------------------------------------------------------+
 ```
 
@@ -395,7 +407,7 @@ title             TEXT               — node label
 
 ### 4.1 Backend for Ranked Lists Weights (`edit_wiki_weights.js`, `edit_academic_weights.js`, `edit_popular_weights.js`, `edit_rank.js`)
 **Corresponds to Public Sections:** 4.1 (Ranked Views)  
-**Purpose:** Tabular interface for adjusting ranking multipliers across three ranked-list types (Wikipedia, Popular Challenges, Academic Challenges). Each tab manages its own set of four columns on the `records` row.
+**Purpose:** Tabular interface for adjusting ranking multipliers across three ranked-list types (Wikipedia, Popular Challenges, Academic Challenges). Each tab manages its own set of four columns on the `records` row. The `dashboard_app.js` router (`ranks-weights` branch) injects a 3-tab container (Wikipedia / Academic / Popular) into the canvas, loading the active editor into its content pane and lazy-loading the others on first click.
 
 **DB Fields:**
 ```
@@ -446,7 +458,7 @@ academic_challenge_weight TEXT (Label-Value)
 
 ### 4.2 Backend for Inserting Responses (`edit_insert_response_academic.js`, `edit_insert_response_popular.js`)
 **Corresponds to Public Sections:** 4.2 (Standard Lists with Response Inserted)  
-**Purpose:** Browse challenge lists and link a written response to a specific challenge record. The `responses` JSON blob on the record is updated here to point to a response; the response content itself is authored in §5.1.
+**Purpose:** Browse challenge lists and link a written response to a specific challenge record. The `responses` JSON blob on the record is updated here to point to a response; the response content itself is authored in §5.1. The `dashboard_app.js` router (`ranks-responses` branch) injects a 2-tab container (Academic Challenges / Popular Challenges) into the canvas, loading the active editor and lazy-loading the other on first click.
 
 **DB Fields:**
 ```
@@ -574,8 +586,8 @@ news_sources      TEXT (Label-Value)   — named external source references
 |-----------------------|-------------------------------------------------|
 |  > Text Content       |  ── NEWS SNIPPET TAB ──────────────────────────  |
 |  - Essays             |  WRITE: news_items                               |
-|  - News [Active]      |  [Save Item]  [Discard]  [Delete Item]           |
-|  - Blog               |-------------------------------------------------|
+|  - Blog Posts [Active]|  [Save Item]  [Discard]  [Delete Item]           |
+|                       |-------------------------------------------------|
 |                       |  news_items → (JSON blob)                        |
 |                       |  Publish Date:  [____________________]           |
 |                       |  Headline:      [____________________________]   |
@@ -600,6 +612,7 @@ news_sources      TEXT (Label-Value)   — named external source references
 |                       |  [AP News  · https://apnews.com  ×]              |
 |                       |  [+ Add Source]                                  |
 +-------------------------------------------------------------------------+
+*Sidebar: The "Blog Posts" link (`text-blog`) opens this 3-tab container. The "News Sources" link (`config-news`, under Configuration) routes directly to the News Sources tab pane.*
 ```
 
 ---

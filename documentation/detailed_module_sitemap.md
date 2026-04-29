@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 1.1.5
+version: 1.1.7
 purpose: visual and list taxonomy of codebase
 dependencies: [site_map.md]
 ---
@@ -220,8 +220,12 @@ admin/frontend/edit_modules/
 ├── edit_rank.js           <-- Form to manually override automated rankings
 ├── edit_wiki_weights.js   <-- Admin tool for editing wikipedia ranking multipliers
 ├── edit_academic_weights.js <-- Admin tool for editing academic ranking multipliers
-└── edit_popular_weights.js <-- Admin tool for editing popular ranking multipliers
+├── edit_popular_weights.js <-- Admin tool for editing popular ranking multipliers
+├── edit_insert_response_academic.js <-- (cross-ref from Module 5.0) Loaded & wired by dashboard router for `ranks-responses`
+└── edit_insert_response_popular.js  <-- (cross-ref from Module 5.0) Loaded & wired by dashboard router for `ranks-responses`
 ```
+
+> **Note:** `edit_lists.js` (from Module 2.0 Records) is also loaded by `admin.html` and wired under the `lists-resources` router branch for the "Edit Resources" sidebar link under Lists & Ranks.
 
 ---
 

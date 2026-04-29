@@ -16,8 +16,8 @@ cd /var/www/thejesuswebsite
 
 # Next actions
 
-1. check status and login works (is there auto push to server script? if not create one)
-2. dashboard return to front-end after login and refresh between pages 
+1. cooler / tighter dashboard setup
+2. image upload
 3. url tidyup 
 4. add and modify record test and remove placeholders 
 5. ESV expand feature 

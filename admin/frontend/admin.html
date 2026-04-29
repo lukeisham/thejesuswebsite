@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<!-- =============================================================================
+    <!-- =============================================================================
 
      THE JESUS WEBSITE — ADMIN PORTAL
      File:    admin/frontend/admin.html
@@ -11,61 +10,98 @@
 
 ============================================================================= -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Portal | The Jesus Website</title>
-    
-    <!-- Core Stylesheets -->
-    <link rel="stylesheet" href="../../css/elements/typography_colors.css">
-    <link rel="stylesheet" href="../../css/elements/grid.css">
-    <link rel="stylesheet" href="../../css/elements/list_card_button.css">
-    <link rel="stylesheet" href="../../css/elements/forms.css">
-    
-    <!-- Admin Specific Stylesheets -->
-    <link rel="stylesheet" href="../../css/design_layouts/views/login_view.css">
-    <link rel="stylesheet" href="../../css/design_layouts/views/dashboard_admin.css" id="dashboard-admin-css-link">
-</head>
-<body class="dashboard admin-body">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin Portal | The Jesus Website</title>
 
-    <!-- Login View (Visible by default until authenticated) -->
-    <div id="login-view" class="login-container">
-        <div class="login-box">
-            <h1>Admin Portal</h1>
-            <p class="login-subtitle">Secure access to The Jesus Website database.</p>
-            
-            <div id="login-error" class="error-message">Invalid credentials.</div>
-            
-            <form id="admin-login-form">
-                <label for="admin-password">Master Password</label>
-                <input type="password" id="admin-password" name="password" required autocomplete="current-password" placeholder="Enter secure password...">
-                
-                <button type="submit" id="login-submit-btn" class="btn-primary">Login</button>
-            </form>
+        <!-- Core Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../css/elements/typography_colors.css"
+        />
+        <link rel="stylesheet" href="../../css/elements/grid.css" />
+        <link rel="stylesheet" href="../../css/elements/list_card_button.css" />
+        <link rel="stylesheet" href="../../css/elements/forms.css" />
+
+        <!-- Admin Specific Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="../../css/design_layouts/views/login_view.css"
+        />
+        <link
+            rel="stylesheet"
+            href="../../css/design_layouts/views/dashboard_admin.css"
+            id="dashboard-admin-css-link"
+        />
+    </head>
+    <body class="dashboard admin-body">
+        <!-- Login View (Visible by default until authenticated) -->
+        <div id="login-view" class="login-container">
+            <div class="login-box">
+                <h1>Admin Portal</h1>
+                <p class="login-subtitle">
+                    Secure access to The Jesus Website database.
+                </p>
+
+                <div id="login-error" class="error-message">
+                    Invalid credentials.
+                </div>
+
+                <form id="admin-login-form">
+                    <label for="admin-password">Master Password</label>
+                    <input
+                        type="password"
+                        id="admin-password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Enter secure password..."
+                    />
+
+                    <button
+                        type="submit"
+                        id="login-submit-btn"
+                        class="btn-primary"
+                    >
+                        Login
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
 
+        <!-- Dashboard Shell (Hidden by default, used by dashboard_app.js) -->
+        <div
+            id="dashboard-app"
+            class="dashboard-shell is-hidden admin-full-height"
+        >
+            <!-- Dashboard structure will be mapped here by dashboard_app.js -->
+        </div>
 
-    <!-- Dashboard Shell (Hidden by default, used by dashboard_app.js) -->
-    <div id="dashboard-app" class="dashboard-shell is-hidden admin-full-height">
-        <!-- Dashboard structure will be mapped here by dashboard_app.js -->
-    </div>
+        <!-- Admin System Scripts -->
+        <script src="load_middleware.js"></script>
+        <script src="logout_middleware.js"></script>
+        <script src="admin_login.js"></script>
 
-    <!-- Admin System Scripts -->
-    <script src="load_middleware.js"></script>
-    <script src="logout_middleware.js"></script>
-    <script src="admin_login.js"></script>
-    
-    <!-- Admin Edit Modules -->
-    <script src="edit_modules/edit_picture.js"></script>
-    <script src="edit_modules/edit_links.js"></script>
-    <script src="edit_modules/edit_record.js"></script>
-    <script src="edit_modules/edit_bulk_upload.js"></script>
-    <script src="edit_modules/edit_essay.js"></script>
-    <script src="edit_modules/edit_historiography.js"></script>
-    <script src="edit_modules/edit_response.js"></script>
-    
-    <script src="dashboard_app.js"></script>
+        <!-- Admin Edit Modules -->
+        <script src="edit_modules/edit_picture.js"></script>
+        <script src="edit_modules/edit_links.js"></script>
+        <script src="edit_modules/edit_record.js"></script>
+        <script src="edit_modules/edit_bulk_upload.js"></script>
+        <script src="edit_modules/edit_blogpost.js"></script>
+        <script src="edit_modules/edit_news_snippet.js"></script>
+        <script src="edit_modules/edit_news_sources.js"></script>
+        <script src="edit_modules/edit_essay.js"></script>
+        <script src="edit_modules/edit_historiography.js"></script>
+        <script src="edit_modules/edit_response.js"></script>
+        <script src="edit_modules/edit_wiki_weights.js"></script>
+        <script src="edit_modules/edit_academic_weights.js"></script>
+        <script src="edit_modules/edit_popular_weights.js"></script>
+        <script src="edit_modules/edit_rank.js"></script>
+        <script src="edit_modules/edit_lists.js"></script>
+        <script src="edit_modules/edit_insert_response_academic.js"></script>
+        <script src="edit_modules/edit_insert_response_popular.js"></script>
 
-</body>
+        <script src="dashboard_app.js"></script>
+    </body>
 </html>
