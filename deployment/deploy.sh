@@ -2,7 +2,7 @@
 # =============================================================================
 #   THE JESUS WEBSITE — DEPLOYMENT SCRIPT
 #   File:    deployment/deploy.sh
-#   Version: 1.1.0
+#   Version: 1.1.1
 #   Purpose: Automated pull, environment sync, and systemd restart.
 # =============================================================================
 
@@ -44,6 +44,10 @@ sudo systemctl daemon-reload
 
 # This is the only service verified to exist on your VPS
 sudo systemctl restart thejesuswebsite.service
+
+echo ">>> Syncing Nginx Configuration..."
+sudo cp $DEPLOY_DIR/nginx.conf /etc/nginx/sites-available/thejesuswebsite
+sudo ln -sf /etc/nginx/sites-available/thejesuswebsite /etc/nginx/sites-enabled/thejesuswebsite
 
 echo ">>> Reloading Nginx Configuration..."
 sudo nginx -t && sudo systemctl reload nginx
