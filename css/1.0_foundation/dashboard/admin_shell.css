@@ -29,6 +29,14 @@
     border-bottom: var(--border-width-thin) solid var(--color-border-strong);
 }
 
+/* Left group: favicon + heading */
+.admin-header__left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+}
+
 .admin-header__favicon {
     flex-shrink: 0;
 }
@@ -38,6 +46,14 @@
     font-size: var(--text-xl);
     margin: 0;
     color: var(--color-text-primary);
+}
+
+/* Right group: action buttons */
+.admin-header__right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-shrink: 0;
 }
 
 .admin-header-actions {
