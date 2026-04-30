@@ -21,26 +21,14 @@ window.renderEditDiagram = async function (containerId) {
 
   // ----- Render shell (loading state) -----
   container.innerHTML =
-    '<div class="admin-card" id="edit-diagram-card">' +
-    '<div class="providence-editor-grid">' +
-    "<!-- column_one: Action buttons -->" +
-    '<div class="providence-editor-col-actions">' +
     '<button class="quick-action-btn btn-save-diagram" id="save-diagram-btn">Save Graph</button>' +
-    "</div>" +
-    "<!-- column_two: Reserved for orphan inventory (built in T5) -->" +
-    '<div class="providence-editor-col-list" id="diagram-orphan-col"></div>' +
-    "<!-- column_three: Search + tree -->" +
-    '<div class="providence-editor-col-editor">' +
     '<div class="diagram-search-section">' +
     '<input type="text" id="diagram-search-input" class="admin-search-input diagram-search-input" placeholder="Search nodes…">' +
     "</div>" +
     '<div class="admin-diagram-tree" id="diagram-tree-container">' +
     '<p class="loading-placeholder">Loading diagram data…</p>' +
     "</div>" +
-    '<div id="diagram-save-indicator" class="diagram-save-indicator"></div>' +
-    "</div>" +
-    "</div>" +
-    "</div>";
+    '<div id="diagram-save-indicator" class="diagram-save-indicator"></div>';
 
   // ----- Fetch flat node list from API -----
   let nodes;
@@ -71,7 +59,7 @@ window.renderEditDiagram = async function (containerId) {
 
   // ----- Build and populate COL 2 orphan inventory -----
   function renderOrphanInventory() {
-    var orphanCol = document.getElementById("diagram-orphan-col");
+    var orphanCol = document.getElementById("canvas-col-list");
     if (!orphanCol) return;
 
     // Rebuild childrenMap from current __diagramNodes state
@@ -446,7 +434,7 @@ window.renderEditDiagram = async function (containerId) {
   // ----- Render top-level section tab bar (Configuration active) -----
   if (typeof window.renderTabBar === "function") {
     window.renderTabBar(
-      "edit-diagram-card",
+      containerId,
       [
         { name: "records", label: "Records", module: "records-edit" },
         {

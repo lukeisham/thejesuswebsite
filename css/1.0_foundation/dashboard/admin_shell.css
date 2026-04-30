@@ -91,14 +91,28 @@
 }
 
 /* =============================================================================
-   3. MAIN CANVAS
+   3. MAIN CANVAS (Providence 3-Column Grid)
 ============================================================================= */
 
 .admin-canvas {
     flex: 1;
-    padding: var(--space-8);
     overflow-y: auto;
     background-color: var(--color-bg-primary);
+}
+
+.admin-canvas > .providence-editor-col-actions,
+.admin-canvas > .providence-editor-col-list,
+.admin-canvas > .providence-editor-col-editor {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-8);
+}
+
+.admin-canvas > .providence-editor-col-actions {
+    padding-left: var(--space-4);
+}
+
+.admin-canvas > .providence-editor-col-editor {
+    padding-right: var(--space-4);
 }
 
 /* =============================================================================

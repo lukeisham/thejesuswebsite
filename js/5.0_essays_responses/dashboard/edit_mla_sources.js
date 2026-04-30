@@ -33,26 +33,13 @@ window.renderEditMlaSources = async function (containerId) {
 
   // ----- Render shell (loading state) -----
   container.innerHTML =
-    '<div class="admin-card" id="edit-mla-sources-card">' +
-    '<div class="providence-editor-grid">' +
-    "<!-- column_one: Action buttons -->" +
-    '<div class="providence-editor-col-actions">' +
     '<button class="blog-editor-action-btn" id="mla-save-all-btn">Save All</button>' +
-    "</div>" +
-    "<!-- column_two: Search / filter -->" +
-    '<div class="providence-editor-col-list">' +
     '<p class="blog-editor-list-heading">Filter Records</p>' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="mla-search-input" placeholder="Filter by Record Title or Slug…">' +
     "</div>" +
-    "</div>" +
-    "<!-- column_three: MLA record cards -->" +
-    '<div class="providence-editor-col-editor">' +
     '<div class="loading-placeholder" id="mla-loading-indicator">Loading MLA bibliography records…</div>' +
-    '<div id="mla-records-container"></div>' +
-    "</div>" +
-    "</div>" +
-    "</div>";
+    '<div id="mla-records-container"></div>';
 
   // ----- Internal state -----
   var mlaRecords = []; // Array of { id, title, slug, bibliography: { mla_book, ... }, changed: bool }
@@ -265,7 +252,7 @@ window.renderEditMlaSources = async function (containerId) {
     // Render top-level section tab bar (Text Content active)
     if (typeof window.renderTabBar === "function") {
       window.renderTabBar(
-        "edit-mla-sources-card",
+        containerId,
         [
           { name: "records", label: "Records", module: "records-edit" },
           {
@@ -424,16 +411,16 @@ window.renderEditMlaSources = async function (containerId) {
   // ---------------------------------------------------------------------------
 
   function showSaveResult(message, className) {
-    var card = document.getElementById("edit-mla-sources-card");
-    if (!card) return;
+    var containerEl = document.getElementById(containerId);
+    if (!containerEl) return;
 
     var indicator = document.createElement("div");
     indicator.className = "save-result-indicator " + className;
     indicator.textContent = message;
 
-    var existing = card.querySelector(".save-result-indicator");
+    var existing = containerEl.querySelector(".save-result-indicator");
     if (existing) existing.remove();
 
-    card.appendChild(indicator);
+    containerEl.appendChild(indicator);
   }
 };

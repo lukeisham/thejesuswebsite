@@ -23,58 +23,39 @@ window.renderEditLists = function (containerId, listName) {
   var allRecordSlugs = {}; // Map slug -> title (used for bulk-add validation)
 
   // ---- Render shell ----
-  var html =
-    '<div class="admin-card" id="edit-lists-card">\n' +
-    '  <div class="providence-editor-grid">\n' +
-    "    <!-- column_one: Action buttons -->\n" +
-    '    <div class="providence-editor-col-actions">\n' +
-    '      <button class="blog-editor-action-btn btn-save-list" id="btn-save-list" type="button">Save List</button>\n' +
-    '      <div id="lists-save-status" class="status-feedback is-hidden lists-save-status"></div>\n' +
-    "    </div>\n" +
-    "\n" +
-    "    <!-- column_two: List metadata (read-only) -->\n" +
-    '    <div class="providence-editor-col-list">\n' +
-    '      <p class="blog-editor-list-heading">List Info</p>\n' +
-    '      <div class="blog-editor-field">\n' +
-    '        <label class="blog-editor-field-label">Name</label>\n' +
-    '        <p class="text-sm lists-meta-value">' +
+  container.innerHTML =
+    '<button class="blog-editor-action-btn btn-save-list" id="btn-save-list" type="button">Save List</button>' +
+    '<div id="lists-save-status" class="status-feedback is-hidden lists-save-status"></div>' +
+    '<p class="blog-editor-list-heading">List Info</p>' +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">Name</label>' +
+    '<p class="text-sm lists-meta-value">' +
     escapeHtml(listName) +
-    "</p>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "\n" +
-    "    <!-- column_three: Current items + bulk add tools -->\n" +
-    '    <div class="providence-editor-col-editor">\n' +
-    "      <!-- Search Records Explorer -->\n" +
-    '      <div class="blog-editor-field">\n' +
-    '        <label class="blog-editor-field-label">Search Records Explorer</label>\n' +
-    '        <input type="text" id="lists-search-input" class="lists-search-input" placeholder="Search records to add\u2026">\n' +
-    "      </div>\n" +
-    "\n" +
-    "      <!-- Bulk Add by Slugs -->\n" +
-    '      <div class="blog-editor-field">\n' +
-    '        <label class="blog-editor-field-label">Bulk Add by Slugs (CSV/Line)</label>\n' +
-    '        <textarea id="lists-bulk-textarea" class="lists-bulk-textarea" placeholder="slug-1, slug-2, \u2026"></textarea>\n' +
-    '        <button class="quick-action-btn btn-bulk-add" id="btn-bulk-add" type="button">Bulk Add Config</button>\n' +
-    '        <div id="lists-bulk-summary" class="lists-bulk-summary"></div>\n' +
-    "      </div>\n" +
-    "\n" +
-    "      <!-- Current List Items -->\n" +
-    '      <div class="blog-editor-field">\n' +
-    '        <label class="blog-editor-field-label">List Items</label>\n' +
-    '        <div id="lists-items-container" class="lists-items-list"></div>\n' +
-    '        <p class="lists-drag-hint">(Drag \u2630 handle to reorder items)</p>\n' +
-    "      </div>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
+    "</p>" +
+    "</div>" +
+    "<!-- Search Records Explorer -->" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">Search Records Explorer</label>' +
+    '<input type="text" id="lists-search-input" class="lists-search-input" placeholder="Search records to add\u2026">' +
+    "</div>" +
+    "<!-- Bulk Add by Slugs -->" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">Bulk Add by Slugs (CSV/Line)</label>' +
+    '<textarea id="lists-bulk-textarea" class="lists-bulk-textarea" placeholder="slug-1, slug-2, \u2026"></textarea>' +
+    '<button class="quick-action-btn btn-bulk-add" id="btn-bulk-add" type="button">Bulk Add Config</button>' +
+    '<div id="lists-bulk-summary" class="lists-bulk-summary"></div>' +
+    "</div>" +
+    "<!-- Current List Items -->" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">List Items</label>' +
+    '<div id="lists-items-container" class="lists-items-list"></div>' +
+    '<p class="lists-drag-hint">(Drag \u2630 handle to reorder items)</p>' +
     "</div>";
-
-  container.innerHTML = html;
 
   // ----- Render top-level section tab bar (Lists & Ranks active) -----
   if (typeof window.renderTabBar === "function") {
     window.renderTabBar(
-      "edit-lists-card",
+      containerId,
       [
         { name: "records", label: "Records", module: "records-edit" },
         {

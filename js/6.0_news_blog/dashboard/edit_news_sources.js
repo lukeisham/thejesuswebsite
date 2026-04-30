@@ -22,10 +22,6 @@ window.renderEditNewsSources = async function (containerId) {
 
   // ----- Render shell (loading state) -----
   container.innerHTML =
-    '<div class="admin-card" id="edit-news-sources-card">' +
-    '<div class="providence-editor-grid">' +
-    "<!-- column_one: Action buttons + Add form -->" +
-    '<div class="providence-editor-col-actions">' +
     '<button class="blog-editor-action-btn" id="news-sources-save-btn">Save All Sources</button>' +
     '<div class="is-hidden news-sources-add-form" id="news-sources-add-form-section">' +
     '<div class="section-heading-serif news-sources-add-heading">Add New Source</div>' +
@@ -43,9 +39,6 @@ window.renderEditNewsSources = async function (containerId) {
     "</div>" +
     '<button class="blog-editor-action-btn news-sources-add-btn" id="news-sources-add-btn">+ Add Source</button>' +
     "</div>" +
-    "</div>" +
-    "<!-- column_two: Field documentation -->" +
-    '<div class="providence-editor-col-list">' +
     '<p class="blog-editor-list-heading">Source Fields</p>' +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">news_sources</label>' +
@@ -59,9 +52,6 @@ window.renderEditNewsSources = async function (containerId) {
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">record_slug</label>' +
     "</div>" +
-    "</div>" +
-    "<!-- column_three: Search + Table -->" +
-    '<div class="providence-editor-col-editor">' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="news-sources-search-input" placeholder="Search sources by label, URL, or record slug…">' +
     "</div>" +
@@ -78,9 +68,6 @@ window.renderEditNewsSources = async function (containerId) {
     "</thead>" +
     '<tbody id="news-sources-table-body"></tbody>' +
     "</table>" +
-    "</div>" +
-    "</div>" +
-    "</div>" +
     "</div>";
 
   // ----- Internal state -----
@@ -298,7 +285,7 @@ window.renderEditNewsSources = async function (containerId) {
     // Render top-level section tab bar (Text Content active)
     if (typeof window.renderTabBar === "function") {
       window.renderTabBar(
-        "edit-news-sources-card",
+        containerId,
         [
           { name: "records", label: "Records", module: "records-edit" },
           {
@@ -422,10 +409,9 @@ window.renderEditNewsSources = async function (containerId) {
         indicator.classList.add("is-error");
       }
 
-      var card = document.getElementById("edit-news-sources-card");
-      var existing = card.querySelector(".save-result-indicator");
+      var existing = container.querySelector(".save-result-indicator");
       if (existing) existing.remove();
-      card.appendChild(indicator);
+      container.appendChild(indicator);
     });
   }
 };

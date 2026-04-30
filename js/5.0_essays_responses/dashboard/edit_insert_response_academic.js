@@ -17,42 +17,29 @@ window.renderEditInsertResponseAcademic = function (containerId) {
   if (!container) return;
 
   container.innerHTML = `
-        <div class="admin-card" id="edit-insert-response-academic-card">
-            <div class="providence-editor-grid">
-                <!-- column_one: Action buttons -->
-                <div class="providence-editor-col-actions">
-                    <button class="blog-editor-action-btn" id="insert-academic-save-btn">Save Insertion</button>
+                <button class="blog-editor-action-btn" id="insert-academic-save-btn">Save Insertion</button>
+
+                <div class="insert-response-desc">Select an academic debate challenge and link a response essay to insert into the ranked list.</div>
+
+                <div class="blog-editor-field">
+                    <label class="blog-editor-field-label">Select Academic Challenge</label>
+                    <select class="blog-editor-field-input" id="insert-academic-challenge-select">
+                        <option>Select a challenge...</option>
+                        <option value="1">The Synoptic Problem</option>
+                        <option value="2">Q Source Debate</option>
+                    </select>
                 </div>
 
-                <!-- column_two: (empty — reserved for future use) -->
-                <div class="providence-editor-col-list"></div>
-
-                <!-- column_three: Insert form -->
-                <div class="providence-editor-col-editor">
-                    <div class="insert-response-desc">Select an academic debate challenge and link a response essay to insert into the ranked list.</div>
-
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">Select Academic Challenge</label>
-                        <select class="blog-editor-field-input" id="insert-academic-challenge-select">
-                            <option>Select a challenge...</option>
-                            <option value="1">The Synoptic Problem</option>
-                            <option value="2">Q Source Debate</option>
-                        </select>
-                    </div>
-
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">Response Essay Title / Link</label>
-                        <input type="text" class="blog-editor-field-input" id="insert-academic-response-input" placeholder="Search available responses...">
-                    </div>
+                <div class="blog-editor-field">
+                    <label class="blog-editor-field-label">Response Essay Title / Link</label>
+                    <input type="text" class="blog-editor-field-input" id="insert-academic-response-input" placeholder="Search available responses...">
                 </div>
-            </div>
-        </div>
     `;
 
   // Render top-level section tab bar (Lists & Ranks active)
   if (typeof window.renderTabBar === "function") {
     window.renderTabBar(
-      "edit-insert-response-academic-card",
+      containerId,
       [
         { name: "records", label: "Records", module: "records-edit" },
         {

@@ -19,17 +19,14 @@ window.renderEditWikiWeights = async function (containerId) {
   if (!container) return;
 
   // ----- Render shell (loading state) -----
+  // Output col1 + col2 + col3 inner contents directly into the container
+  // (no admin-card or providence-editor-grid wrappers; renderTabBar prepends the sub-tab bar)
   container.innerHTML =
-    '<div class="admin-card" id="edit-wiki-weights-card">' +
-    '<div class="providence-editor-grid">' +
     "<!-- column_one: Action buttons -->" +
-    '<div class="providence-editor-col-actions">' +
     '<button class="blog-editor-action-btn" id="wiki-save-btn">Save All Changes</button>' +
     '<button class="blog-editor-action-btn" id="wiki-add-override-btn">+ Add Override</button>' +
     '<button class="blog-editor-action-btn is-danger" id="wiki-delete-row-btn">Delete Row</button>' +
-    "</div>" +
     "<!-- column_two: WRITE field documentation -->" +
-    '<div class="providence-editor-col-list">' +
     '<p class="blog-editor-list-heading">WRITE Fields</p>' +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">wikipedia_link</label>' +
@@ -43,9 +40,7 @@ window.renderEditWikiWeights = async function (containerId) {
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">wikipedia_weight</label>' +
     "</div>" +
-    "</div>" +
     "<!-- column_three: Weights table -->" +
-    '<div class="providence-editor-col-editor">' +
     '<div class="search-container">' +
     '<input type="text" class="admin-search-input" id="wiki-search-input" placeholder="Search by Record Slug…">' +
     "</div>" +
@@ -61,9 +56,6 @@ window.renderEditWikiWeights = async function (containerId) {
     "</thead>" +
     '<tbody id="wiki-table-body"></tbody>' +
     "</table>" +
-    "</div>" +
-    "</div>" +
-    "</div>" +
     "</div>";
 
   // ----- Internal state -----
@@ -177,10 +169,10 @@ window.renderEditWikiWeights = async function (containerId) {
       .classList.add("is-hidden");
     document.getElementById("wiki-table-wrapper").classList.remove("is-hidden");
 
-    // Render top-level section tab bar (Lists & Ranks active)
+    // Render sub-tab bar as first element of the editor column
     if (typeof window.renderTabBar === "function") {
       window.renderTabBar(
-        "edit-wiki-weights-card",
+        containerId,
         [
           { name: "records", label: "Records", module: "records-edit" },
           {
@@ -378,11 +370,10 @@ window.renderEditWikiWeights = async function (containerId) {
         indicator.classList.add("is-error");
       }
 
-      var card = document.getElementById("edit-wiki-weights-card");
-      var existing = card.querySelector(".save-result-indicator");
+      var existing = container.querySelector(".save-result-indicator");
       if (existing) existing.remove();
       indicator.classList.add("save-result-indicator");
-      card.appendChild(indicator);
+      container.appendChild(indicator);
     });
   }
 };

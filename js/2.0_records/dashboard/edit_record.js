@@ -12,13 +12,20 @@
 //
 // =============================================================================
 
-// Trigger: dashboard_app.js routing -> window.renderEditRecord(containerId, recordId)
-// Function: Renders a full-field admin form for creating or editing a single archive record row
-// Output: Injects the edit-record form HTML into the specified container element
+// Trigger: dashboard_app.js routing -> window.renderEditRecord(containerId, recordId, useProvidenceColumns)
+// Function: Renders a full-field admin form for creating or editing a single archive record row.
+//           When useProvidenceColumns is true, uses _setColumn to populate the three
+//           Providence grid columns (canvas-col-actions, canvas-col-list, canvas-col-editor).
+//           When false (legacy), injects the full form HTML directly into the container.
+// Output: Providence columns populated, or raw inner HTML injected into container
 
-window.renderEditRecord = function (containerId, recordId = null) {
+window.renderEditRecord = function (
+  containerId,
+  recordId = null,
+  useProvidenceColumns = false,
+) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container && !useProvidenceColumns) return;
 
   const headingText = recordId
     ? "EDIT RECORD: " + recordId
@@ -183,271 +190,262 @@ window.renderEditRecord = function (containerId, recordId = null) {
   );
   var snippetHtml = paragraphEditorHtml("snippet", "Snippet", "record-snippet");
 
-  var html =
-    '        <div class="admin-card" id="edit-record-card">\n' +
-    '            <div class="providence-editor-grid">\n' +
-    "                <!-- column_one: Action buttons + Picture upload -->\n" +
-    '                <div class="providence-editor-col-actions">\n' +
-    '                    <h3 class="section-heading-serif record-actions-heading">Actions</h3>\n' +
-    '                    <button class="blog-editor-action-btn" id="btn-save-record">Save Changes</button>\n' +
-    '                    <button class="blog-editor-action-btn btn-discard-record" id="btn-discard-record">Discard</button>\n' +
+  // ---- Build column_actions HTML ----
+  var actionsHtml =
+    '<h3 class="section-heading-serif record-actions-heading">Actions</h3>' +
+    '<button class="blog-editor-action-btn" id="btn-save-record">Save Changes</button>' +
+    '<button class="blog-editor-action-btn btn-discard-record" id="btn-discard-record">Discard</button>' +
     (recordId
-      ? '                    <button class="blog-editor-action-btn is-danger" id="btn-delete-record">Delete</button>\n'
+      ? '<button class="blog-editor-action-btn is-danger" id="btn-delete-record">Delete</button>'
       : "") +
     (recordId
-      ? '                    <button class="blog-editor-action-btn" id="btn-view-live-record">View Live</button>\n'
+      ? '<button class="blog-editor-action-btn" id="btn-view-live-record">View Live</button>'
       : "") +
-    '                    <div id="save-status" class="status-feedback is-hidden"></div>\n' +
-    '                    <div id="picture-upload-container" class="child-module-slot record-child-slot"></div>\n' +
-    "                </div>\n" +
-    "\n" +
-    "                <!-- column_two: Core Identifiers + Taxonomy + Verses -->\n" +
-    '                <div class="providence-editor-col-list">\n' +
-    '                    <section id="core-identifiers">\n' +
-    '                        <p class="blog-editor-list-heading">Core Identifiers</p>\n' +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">id</label>\n' +
-    '                            <input type="text" id="record-id" class="blog-editor-field-input" value="[auto-generated ULID]" readonly>\n' +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">title</label>\n' +
-    '                            <input type="text" id="record-title" class="blog-editor-field-input" placeholder="Record Title">\n' +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">slug</label>\n' +
-    '                            <input type="text" id="record-slug" class="blog-editor-field-input" placeholder="url-friendly-slug">\n' +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">created_at</label>\n' +
-    '                            <input type="text" id="record-created-at" class="blog-editor-field-input" value="[auto]" readonly>\n' +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">updated_at</label>\n' +
-    '                            <input type="text" id="record-updated-at" class="blog-editor-field-input" value="[auto]" readonly>\n' +
-    "                        </div>\n" +
-    "                    </section>\n" +
-    "\n" +
-    '                    <section id="taxonomy-diagrams" class="record-section-spacing">\n' +
-    '                        <p class="blog-editor-list-heading">Taxonomy & Diagrams</p>\n' +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">era</label>\n' +
-    '                            <select id="record-era" class="blog-editor-field-input">\n' +
-    '                                <option value="">\u2014 Select Era \u2014</option>\n' +
-    "                                <option>PreIncarnation</option>\n" +
-    "                                <option>OldTestament</option>\n" +
-    "                                <option>EarlyLife</option>\n" +
-    "                                <option>Life</option>\n" +
-    "                                <option>GalileeMinistry</option>\n" +
-    "                                <option>JudeanMinistry</option>\n" +
-    "                                <option>PassionWeek</option>\n" +
-    "                                <option>Post-Passion</option>\n" +
-    "                            </select>\n" +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">timeline</label>\n' +
-    '                            <select id="record-timeline" class="blog-editor-field-input">\n' +
-    '                                <option value="">\u2014 Select Timeline \u2014</option>\n' +
-    "                                <option>PreIncarnation</option>\n" +
-    "                                <option>OldTestament</option>\n" +
-    "                                <option>EarlyLifeUnborn</option>\n" +
-    "                                <option>EarlyLifeBirth</option>\n" +
-    "                                <option>EarlyLifeInfancy</option>\n" +
-    "                                <option>EarlyLifeChildhood</option>\n" +
-    "                                <option>LifeTradie</option>\n" +
-    "                                <option>LifeBaptism</option>\n" +
-    "                                <option>LifeTemptation</option>\n" +
-    "                                <option>GalileeCallingTwelve</option>\n" +
-    "                                <option>GalileeSermonMount</option>\n" +
-    "                                <option>GalileeMiraclesSea</option>\n" +
-    "                                <option>GalileeTransfiguration</option>\n" +
-    "                                <option>JudeanOutsideJudea</option>\n" +
-    "                                <option>JudeanMissionSeventy</option>\n" +
-    "                                <option>JudeanTeachingTemple</option>\n" +
-    "                                <option>JudeanRaisingLazarus</option>\n" +
-    "                                <option>JudeanFinalJourney</option>\n" +
-    "                                <option>PassionPalmSunday</option>\n" +
-    "                                <option>PassionMondayCleansing</option>\n" +
-    "                                <option>PassionTuesdayTeaching</option>\n" +
-    "                                <option>PassionWednesdaySilent</option>\n" +
-    "                                <option>PassionMaundyThursday</option>\n" +
-    "                                <option>PassionMaundyLastSupper</option>\n" +
-    "                                <option>PassionMaundyGethsemane</option>\n" +
-    "                                <option>PassionMaundyBetrayal</option>\n" +
-    "                                <option>PassionFridaySanhedrin</option>\n" +
-    "                                <option>PassionFridayCivilTrials</option>\n" +
-    "                                <option>PassionFridayCrucifixionBegins</option>\n" +
-    "                                <option>PassionFridayDarkness</option>\n" +
-    "                                <option>PassionFridayDeath</option>\n" +
-    "                                <option>PassionFridayBurial</option>\n" +
-    "                                <option>PassionSaturdayWatch</option>\n" +
-    "                                <option>PassionSundayResurrection</option>\n" +
-    "                                <option>PostResurrectionAppearances</option>\n" +
-    "                                <option>Ascension</option>\n" +
-    "                                <option>OurResponse</option>\n" +
-    "                                <option>ReturnOfJesus</option>\n" +
-    "                            </select>\n" +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">map_label</label>\n' +
-    '                            <select id="record-map-label" class="blog-editor-field-input">\n' +
-    '                                <option value="">\u2014 Select Map Label \u2014</option>\n' +
-    "                                <option>Overview</option>\n" +
-    "                                <option>Empire</option>\n" +
-    "                                <option>Levant</option>\n" +
-    "                                <option>Judea</option>\n" +
-    "                                <option>Galilee</option>\n" +
-    "                                <option>Jerusalem</option>\n" +
-    "                            </select>\n" +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">gospel_category</label>\n' +
-    '                            <select id="record-gospel-category" class="blog-editor-field-input">\n' +
-    '                                <option value="">\u2014 Select Category \u2014</option>\n' +
-    "                                <option>event</option>\n" +
-    "                                <option>location</option>\n" +
-    "                                <option>person</option>\n" +
-    "                                <option>theme</option>\n" +
-    "                                <option>object</option>\n" +
-    "                            </select>\n" +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">geo_id</label>\n' +
-    '                            <input type="number" id="record-geo-id" class="blog-editor-field-input" placeholder="Geographic node ID">\n' +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">parent_id</label>\n' +
-    '                            <input type="text" id="record-parent-id" class="blog-editor-field-input" placeholder="Parent record ID (FK)">\n' +
-    "                        </div>\n" +
-    "                    </section>\n" +
-    "\n" +
-    '                    <section id="verses-section" class="record-section-spacing">\n' +
-    '                        <p class="blog-editor-list-heading">Verses</p>\n' +
-    "\n" +
+    '<div id="save-status" class="status-feedback is-hidden"></div>' +
+    '<div id="picture-upload-container" class="child-module-slot record-child-slot"></div>';
+
+  // ---- Build column_list HTML (Core Identifiers + Taxonomy + Verses) ----
+  var listHtml =
+    '<section id="core-identifiers">' +
+    '<p class="blog-editor-list-heading">Core Identifiers</p>' +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">id</label>' +
+    '<input type="text" id="record-id" class="blog-editor-field-input" value="[auto-generated ULID]" readonly>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">title</label>' +
+    '<input type="text" id="record-title" class="blog-editor-field-input" placeholder="Record Title">' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">slug</label>' +
+    '<input type="text" id="record-slug" class="blog-editor-field-input" placeholder="url-friendly-slug">' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">created_at</label>' +
+    '<input type="text" id="record-created-at" class="blog-editor-field-input" value="[auto]" readonly>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">updated_at</label>' +
+    '<input type="text" id="record-updated-at" class="blog-editor-field-input" value="[auto]" readonly>' +
+    "</div>" +
+    "</section>" +
+    '<section id="taxonomy-diagrams" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">Taxonomy & Diagrams</p>' +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">era</label>' +
+    '<select id="record-era" class="blog-editor-field-input">' +
+    '<option value="">\u2014 Select Era \u2014</option>' +
+    "<option>PreIncarnation</option>" +
+    "<option>OldTestament</option>" +
+    "<option>EarlyLife</option>" +
+    "<option>Life</option>" +
+    "<option>GalileeMinistry</option>" +
+    "<option>JudeanMinistry</option>" +
+    "<option>PassionWeek</option>" +
+    "<option>Post-Passion</option>" +
+    "</select>" +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">timeline</label>' +
+    '<select id="record-timeline" class="blog-editor-field-input">' +
+    '<option value="">\u2014 Select Timeline \u2014</option>' +
+    "<option>PreIncarnation</option>" +
+    "<option>OldTestament</option>" +
+    "<option>EarlyLifeUnborn</option>" +
+    "<option>EarlyLifeBirth</option>" +
+    "<option>EarlyLifeInfancy</option>" +
+    "<option>EarlyLifeChildhood</option>" +
+    "<option>LifeTradie</option>" +
+    "<option>LifeBaptism</option>" +
+    "<option>LifeTemptation</option>" +
+    "<option>GalileeCallingTwelve</option>" +
+    "<option>GalileeSermonMount</option>" +
+    "<option>GalileeMiraclesSea</option>" +
+    "<option>GalileeTransfiguration</option>" +
+    "<option>JudeanOutsideJudea</option>" +
+    "<option>JudeanMissionSeventy</option>" +
+    "<option>JudeanTeachingTemple</option>" +
+    "<option>JudeanRaisingLazarus</option>" +
+    "<option>JudeanFinalJourney</option>" +
+    "<option>PassionPalmSunday</option>" +
+    "<option>PassionMondayCleansing</option>" +
+    "<option>PassionTuesdayTeaching</option>" +
+    "<option>PassionWednesdaySilent</option>" +
+    "<option>PassionMaundyThursday</option>" +
+    "<option>PassionMaundyLastSupper</option>" +
+    "<option>PassionMaundyGethsemane</option>" +
+    "<option>PassionMaundyBetrayal</option>" +
+    "<option>PassionFridaySanhedrin</option>" +
+    "<option>PassionFridayCivilTrials</option>" +
+    "<option>PassionFridayCrucifixionBegins</option>" +
+    "<option>PassionFridayDarkness</option>" +
+    "<option>PassionFridayDeath</option>" +
+    "<option>PassionFridayBurial</option>" +
+    "<option>PassionSaturdayWatch</option>" +
+    "<option>PassionSundayResurrection</option>" +
+    "<option>PostResurrectionAppearances</option>" +
+    "<option>Ascension</option>" +
+    "<option>OurResponse</option>" +
+    "<option>ReturnOfJesus</option>" +
+    "</select>" +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">map_label</label>' +
+    '<select id="record-map-label" class="blog-editor-field-input">' +
+    '<option value="">\u2014 Select Map Label \u2014</option>' +
+    "<option>Overview</option>" +
+    "<option>Empire</option>" +
+    "<option>Levant</option>" +
+    "<option>Judea</option>" +
+    "<option>Galilee</option>" +
+    "<option>Jerusalem</option>" +
+    "</select>" +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">gospel_category</label>' +
+    '<select id="record-gospel-category" class="blog-editor-field-input">' +
+    '<option value="">\u2014 Select Category \u2014</option>' +
+    "<option>event</option>" +
+    "<option>location</option>" +
+    "<option>person</option>" +
+    "<option>theme</option>" +
+    "<option>object</option>" +
+    "</select>" +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">geo_id</label>' +
+    '<input type="number" id="record-geo-id" class="blog-editor-field-input" placeholder="Geographic node ID">' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">parent_id</label>' +
+    '<input type="text" id="record-parent-id" class="blog-editor-field-input" placeholder="Parent record ID (FK)">' +
+    "</div>" +
+    "</section>" +
+    '<section id="verses-section" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">Verses</p>' +
     primaryVerseHtml +
-    "\n" +
     secondaryVerseHtml +
-    "                    </section>\n" +
-    "                </div>\n" +
-    "\n" +
-    "<!-- column_three: Text Content + Bibliography + Misc + Links + Sources -->\n" +
-    '                <div class="providence-editor-col-editor">\n' +
-    '                    <section id="text-content">\n' +
-    '                        <p class="blog-editor-list-heading">Text Content</p>\n' +
-    "\n" +
+    "</section>";
+
+  // ---- Build column_editor HTML (Text Content + Bibliography + Misc + Links + Sources) ----
+  var editorHtml =
+    '<section id="text-content">' +
+    '<p class="blog-editor-list-heading">Text Content</p>' +
     descriptionHtml +
-    "\n" +
     snippetHtml +
-    "                    </section>\n" +
-    "\n" +
-    '                    <section id="bibliography" class="record-section-spacing">\n' +
-    '                        <p class="blog-editor-list-heading">Bibliography (MLA)</p>\n' +
-    "\n" +
-    '                        <div class="bibliography-grid">\n' +
-    "\n" +
-    '                            <div class="bibliography-cell">\n' +
-    '                                <label class="field-label" for="record-mla-book">mla_book:</label>\n' +
-    '                                <textarea id="record-mla-book" class="bibliography-textarea" placeholder="Full MLA book citation" data-mla-key="mla_book"></textarea>\n' +
-    "                            </div>\n" +
-    "\n" +
-    '                            <div class="bibliography-cell">\n' +
-    '                                <label class="field-label" for="record-mla-book-inline">mla_book_inline:</label>\n' +
-    '                                <textarea id="record-mla-book-inline" class="bibliography-textarea" placeholder="Short inline MLA book citation" data-mla-key="mla_book_inline"></textarea>\n' +
-    "                            </div>\n" +
-    "\n" +
-    '                            <div class="bibliography-cell">\n' +
-    '                                <label class="field-label" for="record-mla-article">mla_article:</label>\n' +
-    '                                <textarea id="record-mla-article" class="bibliography-textarea" placeholder="Full MLA article citation" data-mla-key="mla_article"></textarea>\n' +
-    "                            </div>\n" +
-    "\n" +
-    '                            <div class="bibliography-cell">\n' +
-    '                                <label class="field-label" for="record-mla-article-inline">mla_article_inline:</label>\n' +
-    '                                <textarea id="record-mla-article-inline" class="bibliography-textarea" placeholder="Short inline MLA article citation" data-mla-key="mla_article_inline"></textarea>\n' +
-    "                            </div>\n" +
-    "\n" +
-    '                            <div class="bibliography-cell">\n' +
-    '                                <label class="field-label" for="record-mla-website">mla_website:</label>\n' +
-    '                                <textarea id="record-mla-website" class="bibliography-textarea" placeholder="Full MLA website citation" data-mla-key="mla_website"></textarea>\n' +
-    "                            </div>\n" +
-    "\n" +
-    '                            <div class="bibliography-cell">\n' +
-    '                                <label class="field-label" for="record-mla-website-inline">mla_website_inline:</label>\n' +
-    '                                <textarea id="record-mla-website-inline" class="bibliography-textarea" placeholder="Short inline MLA website citation" data-mla-key="mla_website_inline"></textarea>\n' +
-    "                            </div>\n" +
-    "\n" +
-    "                        </div>\n" +
-    "                    </section>\n" +
-    "\n" +
-    '                    <section id="misc" class="record-section-spacing">\n' +
-    '                        <p class="blog-editor-list-heading">Miscellaneous</p>\n' +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">metadata_json</label>\n' +
-    '                            <textarea id="record-metadata-json" class="blog-editor-field-input misc-textarea" placeholder="{ ... JSON blob ... }"></textarea>\n' +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">iaa</label>\n' +
-    '                            <input type="text" id="record-iaa" class="blog-editor-field-input" placeholder="Institute for Archaeology & Antiquity">\n' +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">pledius</label>\n' +
-    '                            <input type="text" id="record-pledius" class="blog-editor-field-input" placeholder="Pleiades ID">\n' +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">manuscript</label>\n' +
-    '                            <input type="text" id="record-manuscript" class="blog-editor-field-input" placeholder="Manuscript reference">\n' +
-    "                        </div>\n" +
-    "\n" +
-    '                        <div class="blog-editor-field">\n' +
-    '                            <label class="blog-editor-field-label">url</label>\n' +
-    '                            <textarea id="record-url" class="blog-editor-field-input misc-textarea" placeholder="[ ... JSON blob of URLs ... ]"></textarea>\n' +
-    "                        </div>\n" +
-    "                    </section>\n" +
-    "\n" +
-    "            <!-- Child module injection points -->\n" +
-    '                    <div id="relations-links-container" class="child-module-slot record-child-slot"></div>\n' +
-    "\n" +
-    '                    <div id="sources-container" class="child-module-slot record-child-slot"></div>\n' +
-    "                </div>\n" +
-    "            </div>\n" +
-    "        </div>\n" +
-    "    ";
+    "</section>" +
+    '<section id="bibliography" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">Bibliography (MLA)</p>' +
+    '<div class="bibliography-grid">' +
+    '<div class="bibliography-cell">' +
+    '<label class="field-label" for="record-mla-book">mla_book:</label>' +
+    '<textarea id="record-mla-book" class="bibliography-textarea" placeholder="Full MLA book citation" data-mla-key="mla_book"></textarea>' +
+    "</div>" +
+    '<div class="bibliography-cell">' +
+    '<label class="field-label" for="record-mla-book-inline">mla_book_inline:</label>' +
+    '<textarea id="record-mla-book-inline" class="bibliography-textarea" placeholder="Short inline MLA book citation" data-mla-key="mla_book_inline"></textarea>' +
+    "</div>" +
+    '<div class="bibliography-cell">' +
+    '<label class="field-label" for="record-mla-article">mla_article:</label>' +
+    '<textarea id="record-mla-article" class="bibliography-textarea" placeholder="Full MLA article citation" data-mla-key="mla_article"></textarea>' +
+    "</div>" +
+    '<div class="bibliography-cell">' +
+    '<label class="field-label" for="record-mla-article-inline">mla_article_inline:</label>' +
+    '<textarea id="record-mla-article-inline" class="bibliography-textarea" placeholder="Short inline MLA article citation" data-mla-key="mla_article_inline"></textarea>' +
+    "</div>" +
+    '<div class="bibliography-cell">' +
+    '<label class="field-label" for="record-mla-website">mla_website:</label>' +
+    '<textarea id="record-mla-website" class="bibliography-textarea" placeholder="Full MLA website citation" data-mla-key="mla_website"></textarea>' +
+    "</div>" +
+    '<div class="bibliography-cell">' +
+    '<label class="field-label" for="record-mla-website-inline">mla_website_inline:</label>' +
+    '<textarea id="record-mla-website-inline" class="bibliography-textarea" placeholder="Short inline MLA website citation" data-mla-key="mla_website_inline"></textarea>' +
+    "</div>" +
+    "</div>" +
+    "</section>" +
+    '<section id="misc" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">Miscellaneous</p>' +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">metadata_json</label>' +
+    '<textarea id="record-metadata-json" class="blog-editor-field-input misc-textarea" placeholder="{ ... JSON blob ... }"></textarea>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">iaa</label>' +
+    '<input type="text" id="record-iaa" class="blog-editor-field-input" placeholder="Institute for Archaeology & Antiquity">' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">pledius</label>' +
+    '<input type="text" id="record-pledius" class="blog-editor-field-input" placeholder="Pleiades ID">' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">manuscript</label>' +
+    '<input type="text" id="record-manuscript" class="blog-editor-field-input" placeholder="Manuscript reference">' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">url</label>' +
+    '<textarea id="record-url" class="blog-editor-field-input misc-textarea" placeholder="[ ... JSON blob of URLs ... ]"></textarea>' +
+    "</div>" +
+    "</section>" +
+    "<!-- Child module injection points -->" +
+    '<div id="relations-links-container" class="child-module-slot record-child-slot"></div>' +
+    '<div id="sources-container" class="child-module-slot record-child-slot"></div>';
 
-  container.innerHTML = html;
+  // ---- Inject content ----
+  if (useProvidenceColumns && typeof _setColumn === "function") {
+    _setColumn("actions", actionsHtml);
+    _setColumn("list", listHtml);
+    _setColumn("editor", editorHtml);
 
-  // Render top-level section tab bar (Records active)
-  if (typeof window.renderTabBar === "function") {
-    window.renderTabBar(
-      "edit-record-card",
-      [
-        { name: "records", label: "Records", module: "records-edit" },
-        {
-          name: "lists-ranks",
-          label: "Lists & Ranks",
-          module: "lists-resources",
-        },
-        { name: "text-content", label: "Text Content", module: "text-blog" },
-        {
-          name: "configuration",
-          label: "Configuration",
-          module: "config-diagrams",
-        },
-      ],
-      "records",
-    );
+    // Render top-level section tab bar (Records active)
+    if (typeof window.renderTabBar === "function") {
+      window.renderTabBar(
+        containerId,
+        [
+          { name: "records", label: "Records", module: "records-edit" },
+          {
+            name: "lists-ranks",
+            label: "Lists & Ranks",
+            module: "lists-resources",
+          },
+          { name: "text-content", label: "Text Content", module: "text-blog" },
+          {
+            name: "configuration",
+            label: "Configuration",
+            module: "config-diagrams",
+          },
+        ],
+        "records",
+      );
+    }
+  } else {
+    container.innerHTML =
+      '<div class="admin-card" id="edit-record-card">' +
+      actionsHtml +
+      listHtml +
+      editorHtml +
+      "</div>";
+
+    // Render top-level section tab bar (Records active)
+    if (typeof window.renderTabBar === "function") {
+      window.renderTabBar(
+        "edit-record-card",
+        [
+          { name: "records", label: "Records", module: "records-edit" },
+          {
+            name: "lists-ranks",
+            label: "Lists & Ranks",
+            module: "lists-resources",
+          },
+          { name: "text-content", label: "Text Content", module: "text-blog" },
+          {
+            name: "configuration",
+            label: "Configuration",
+            module: "config-diagrams",
+          },
+        ],
+        "records",
+      );
+    }
   }
 
   // ---- Verse Builder Logic ----
@@ -804,7 +802,7 @@ window.renderEditRecord = function (containerId, recordId = null) {
   document
     .getElementById("btn-discard-record")
     .addEventListener("click", function () {
-      window.renderEditRecord(containerId, recordId);
+      window.renderEditRecord(containerId, recordId, useProvidenceColumns);
     });
 
   // Save Changes — collect, validate, POST/PUT

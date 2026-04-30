@@ -20,13 +20,8 @@ window.renderEditBlogpost = async function (containerId) {
 
   // ----- Render shell (loading state) -----
   container.innerHTML =
-    '<div class="admin-card" id="edit-blogpost-card">' +
-    '<div class="action-bar-header">' +
-    "<h2>EDIT BLOG POST</h2>" +
-    "</div>" +
     '<div class="loading-placeholder" id="blog-loading-indicator">Loading blog posts…</div>' +
-    '<div id="blog-editor-root"></div>' +
-    "</div>";
+    '<div id="blog-editor-root"></div>';
 
   // ----- Internal state -----
   var blogPosts = []; // Array of { id, slug, blogposts (parsed), title, publish_date, author, body }
@@ -106,10 +101,9 @@ window.renderEditBlogpost = async function (containerId) {
     var root = document.getElementById("blog-editor-root");
     if (!root) return;
 
-    var html = '<div class="providence-editor-grid">';
+    var html = "";
 
     // ---- column_one: Action Buttons ----
-    html += '<div class="providence-editor-col-actions">';
     html +=
       '<button class="blog-editor-action-btn" id="blog-btn-save">Save Post</button>';
     html +=
@@ -118,10 +112,8 @@ window.renderEditBlogpost = async function (containerId) {
       '<button class="blog-editor-action-btn is-danger" id="blog-btn-delete">Delete Post</button>';
     html +=
       '<button class="blog-editor-action-btn" id="blog-btn-new">+ New Post</button>';
-    html += "</div>";
 
     // ---- column_two: Existing Posts List ----
-    html += '<div class="providence-editor-col-list">';
     html += '<p class="blog-editor-list-heading">Existing Posts</p>';
 
     if (blogPosts.length === 0) {
@@ -154,7 +146,6 @@ window.renderEditBlogpost = async function (containerId) {
           "</div>";
       });
     }
-    html += "</div>";
 
     // ---- column_three: Editor Form ----
     var currentPost = null;
@@ -166,8 +157,6 @@ window.renderEditBlogpost = async function (containerId) {
         }
       }
     }
-
-    html += '<div class="providence-editor-col-editor">';
 
     // Publish Date
     html += '<div class="blog-editor-field">';
@@ -216,8 +205,6 @@ window.renderEditBlogpost = async function (containerId) {
     html += "</div>";
 
     html += "</div>"; // end .blog-editor-split
-    html += "</div>"; // end .providence-editor-col-editor
-    html += "</div>"; // end .providence-editor-grid
 
     root.innerHTML = html;
 
@@ -467,7 +454,7 @@ window.renderEditBlogpost = async function (containerId) {
   // ----- Render top-level section tab bar -----
   // Shows [ Records ] [ Lists & Ranks ] [ Text Content (Active) ] [ Configuration ]
   window.renderTabBar(
-    "edit-blogpost-card",
+    containerId,
     [
       { name: "records", label: "Records", module: "records-edit" },
       {

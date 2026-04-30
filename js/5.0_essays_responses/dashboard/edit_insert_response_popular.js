@@ -43,51 +43,38 @@ window.renderEditInsertResponsePopular = function (containerId) {
     .join("");
 
   container.innerHTML = `
-        <div class="admin-card" id="edit-insert-response-popular-card">
-            <div class="providence-editor-grid">
-                <!-- column_one: Action buttons -->
-                <div class="providence-editor-col-actions">
-                    <button class="blog-editor-action-btn" id="irp-save-all">Save All</button>
+                <button class="blog-editor-action-btn" id="irp-save-all">Save All</button>
+
+                <div class="insert-response-desc">Browse popular challenges and insert, remove, or edit response links.</div>
+
+                <div class="challenge-list">
+                    ${challengeRows}
                 </div>
 
-                <!-- column_two: (empty — reserved for future use) -->
-                <div class="providence-editor-col-list"></div>
-
-                <!-- column_three: Challenge list + Add form -->
-                <div class="providence-editor-col-editor">
-                    <div class="insert-response-desc">Browse popular challenges and insert, remove, or edit response links.</div>
-
-                    <div class="challenge-list">
-                        ${challengeRows}
+                <div class="core-identifiers-section irp-form-section">
+                    <div class="section-heading-serif">Add Response Link</div>
+                    <div class="field-row">
+                        <span class="field-label">Challenge</span>
+                        <select class="field-input" id="irp-challenge-select">
+                            <option value="">Select a challenge...</option>
+                            ${challenges
+                              .map(function (ch) {
+                                return `<option value="${ch.id}">${ch.name}</option>`;
+                              })
+                              .join("")}
+                        </select>
                     </div>
-
-                    <div class="core-identifiers-section irp-form-section">
-                        <div class="section-heading-serif">Add Response Link</div>
-                        <div class="field-row">
-                            <span class="field-label">Challenge</span>
-                            <select class="field-input" id="irp-challenge-select">
-                                <option value="">Select a challenge...</option>
-                                ${challenges
-                                  .map(function (ch) {
-                                    return `<option value="${ch.id}">${ch.name}</option>`;
-                                  })
-                                  .join("")}
-                            </select>
-                        </div>
-                        <div class="field-row">
-                            <span class="field-label">Response</span>
-                            <input type="text" class="field-input" id="irp-response-input" placeholder="Response object reference or URL...">
-                        </div>
+                    <div class="field-row">
+                        <span class="field-label">Response</span>
+                        <input type="text" class="field-input" id="irp-response-input" placeholder="Response object reference or URL...">
                     </div>
                 </div>
-            </div>
-        </div>
     `;
 
   // Render top-level section tab bar (Lists & Ranks active)
   if (typeof window.renderTabBar === "function") {
     window.renderTabBar(
-      "edit-insert-response-popular-card",
+      containerId,
       [
         { name: "records", label: "Records", module: "records-edit" },
         {

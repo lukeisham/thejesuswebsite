@@ -18,46 +18,33 @@ window.renderEditResponse = function (containerId) {
   if (!container) return;
 
   const html = `
-        <div class="admin-card" id="edit-response-card">
-            <div class="providence-editor-grid">
-                <!-- column_one: Action buttons + Challenge selector + Citation tools -->
-                <div class="providence-editor-col-actions">
-                    <button class="blog-editor-action-btn" id="response-save-btn">Save Response</button>
+                <button class="blog-editor-action-btn" id="response-save-btn">Save Response</button>
 
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">Addressing Challenge (Parent)</label>
-                        <select class="blog-editor-field-input" id="response-challenge-select">
-                            <option>jesus-myth-theory</option>
-                            <option>historicity-of-miracles</option>
-                        </select>
-                    </div>
-
-                    <div class="response-insert-tools">
-                        <button class="btn-outline-primary" id="response-insert-citation-btn">+ Insert Citation</button>
-                        <button class="btn-outline-primary" id="response-insert-link-btn">+ Insert Record Link</button>
-                    </div>
+                <div class="blog-editor-field">
+                    <label class="blog-editor-field-label">Addressing Challenge (Parent)</label>
+                    <select class="blog-editor-field-input" id="response-challenge-select">
+                        <option>jesus-myth-theory</option>
+                        <option>historicity-of-miracles</option>
+                    </select>
                 </div>
 
-                <!-- column_two: Markdown textarea (write pane) -->
-                <div class="providence-editor-col-list">
-                    <div class="blog-editor-textarea-pane">
-                        <label class="blog-editor-pane-label">Markdown (Edit)</label>
-                        <textarea class="blog-editor-textarea" id="response-markdown-textarea" placeholder="## The Evidence\nBased on the findings of..."></textarea>
-                    </div>
+                <div class="response-insert-tools">
+                    <button class="btn-outline-primary" id="response-insert-citation-btn">+ Insert Citation</button>
+                    <button class="btn-outline-primary" id="response-insert-link-btn">+ Insert Record Link</button>
                 </div>
 
-                <!-- column_three: Live preview pane -->
-                <div class="providence-editor-col-editor">
-                    <div class="blog-editor-textarea-pane">
-                        <label class="blog-editor-pane-label is-preview">Live Preview</label>
-                        <div class="blog-editor-preview-pane" id="response-preview-pane">
-                            <h2 class="essay-preview-heading">The Evidence</h2>
-                            <p class="essay-preview-paragraph">Based on the findings of...</p>
-                        </div>
+                <div class="blog-editor-textarea-pane">
+                    <label class="blog-editor-pane-label">Markdown (Edit)</label>
+                    <textarea class="blog-editor-textarea" id="response-markdown-textarea" placeholder="## The Evidence\nBased on the findings of..."></textarea>
+                </div>
+
+                <div class="blog-editor-textarea-pane">
+                    <label class="blog-editor-pane-label is-preview">Live Preview</label>
+                    <div class="blog-editor-preview-pane" id="response-preview-pane">
+                        <h2 class="essay-preview-heading">The Evidence</h2>
+                        <p class="essay-preview-paragraph">Based on the findings of...</p>
                     </div>
                 </div>
-            </div>
-        </div>
     `;
 
   container.innerHTML = html;
@@ -65,7 +52,7 @@ window.renderEditResponse = function (containerId) {
   // Render top-level section tab bar (Text Content active)
   if (typeof window.renderTabBar === "function") {
     window.renderTabBar(
-      "edit-response-card",
+      containerId,
       [
         { name: "records", label: "Records", module: "records-edit" },
         {

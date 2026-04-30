@@ -16,58 +16,42 @@ window.renderEditNewsSnippet = function (containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  container.innerHTML = `
-        <div class="admin-card" id="edit-news-snippet-card">
-            <div class="providence-editor-grid">
-                <!-- column_one: Action buttons -->
-                <div class="providence-editor-col-actions">
-                    <button class="blog-editor-action-btn" id="news-snippet-save-btn">Save Snippet</button>
-                </div>
-
-                <!-- column_two: Field documentation -->
-                <div class="providence-editor-col-list">
-                    <p class="blog-editor-list-heading">Snippet Fields</p>
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">publish_date</label>
-                    </div>
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">headline</label>
-                    </div>
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">snippet_body</label>
-                    </div>
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">external_link</label>
-                    </div>
-                </div>
-
-                <!-- column_three: Snippet form -->
-                <div class="providence-editor-col-editor">
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">Publish Date</label>
-                        <input type="date" class="blog-editor-field-input" id="news-snippet-date-input">
-                    </div>
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">Headline</label>
-                        <input type="text" class="blog-editor-field-input" id="news-snippet-headline-input" placeholder="Enter snippet headline...">
-                    </div>
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">Snippet body</label>
-                        <textarea class="news-snippet-textarea" id="news-snippet-body-input" placeholder="Enter markdown summary..."></textarea>
-                    </div>
-                    <div class="blog-editor-field">
-                        <label class="blog-editor-field-label">External link</label>
-                        <input type="url" class="blog-editor-field-input" id="news-snippet-link-input" placeholder="https://...">
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+  container.innerHTML =
+    '<button class="blog-editor-action-btn" id="news-snippet-save-btn">Save Snippet</button>' +
+    '<p class="blog-editor-list-heading">Snippet Fields</p>' +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">publish_date</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">headline</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">snippet_body</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">external_link</label>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">Publish Date</label>' +
+    '<input type="date" class="blog-editor-field-input" id="news-snippet-date-input">' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">Headline</label>' +
+    '<input type="text" class="blog-editor-field-input" id="news-snippet-headline-input" placeholder="Enter snippet headline...">' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">Snippet body</label>' +
+    '<textarea class="news-snippet-textarea" id="news-snippet-body-input" placeholder="Enter markdown summary..."></textarea>' +
+    "</div>" +
+    '<div class="blog-editor-field">' +
+    '<label class="blog-editor-field-label">External link</label>' +
+    '<input type="url" class="blog-editor-field-input" id="news-snippet-link-input" placeholder="https://...">' +
+    "</div>";
 
   // Render top-level section tab bar (Text Content active)
   if (typeof window.renderTabBar === "function") {
     window.renderTabBar(
-      "edit-news-snippet-card",
+      containerId,
       [
         { name: "records", label: "Records", module: "records-edit" },
         {

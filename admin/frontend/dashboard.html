@@ -122,8 +122,17 @@
             <!-- Populated on DOMContentLoaded by dashboard_init.js → renderTabBar() -->
         </nav>
 
-        <main class="admin-canvas" id="admin-canvas">
-            <!-- Populated by dashboard_app.js → loadModule() -->
+        <main class="admin-canvas providence-editor-grid" id="admin-canvas">
+            <!-- Providence 3-Column Grid (guide_dashboard_appearance.md §0.1) -->
+            <div class="providence-editor-col-actions" id="canvas-col-actions">
+                <!-- COL 1: Action Buttons & Primary Controls — populated by loadModule() -->
+            </div>
+            <div class="providence-editor-col-list" id="canvas-col-list">
+                <!-- COL 2: Sub-fields, Metadata & Secondary Controls — populated by loadModule() -->
+            </div>
+            <div class="providence-editor-col-editor" id="canvas-col-editor">
+                <!-- COL 3: Main Editor Form & Live Previews — populated by loadModule() -->
+            </div>
         </main>
 
         <!-- Admin System Scripts (load order per dashboard_page_split plan §T2) -->
