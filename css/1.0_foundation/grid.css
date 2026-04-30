@@ -8,9 +8,9 @@
    Source:  guide_appearance.md, guide_style.md §5–6, vibe_coding_rules.md §2
 ============================================================================= */
 
-@import url('./typography.css');
-@import url('../design_layouts/universal/sidebar.css');
-@import url('../design_layouts/universal/footer.css');
+@import url("./typography.css");
+@import url("../design_layouts/universal/sidebar.css");
+@import url("../design_layouts/universal/footer.css");
 
 /* =============================================================================
    GLOBAL UTILITIES: JS-CONTROLLED VISIBILITY
@@ -97,7 +97,6 @@
     background-color: var(--color-bg-primary);
 }
 
-
 /* =============================================================================
    2. INVISIBLE HEADER — SEO / METADATA INJECTION
    Source: guide_appearance.md §1.8
@@ -109,7 +108,6 @@
     display: none;
     /* purely a JS insertion target; no visual footprint */
 }
-
 
 /* =============================================================================
    3. VISIBLE SEARCH HEADER
@@ -169,14 +167,15 @@
     /* Technical blueprint = no rounded corners */
     padding: var(--space-1) var(--space-2);
     outline: none;
-    transition: border-color var(--transition-fast),
+    transition:
+        border-color var(--transition-fast),
         box-shadow var(--transition-fast);
 }
 
-/* Antique Gold focus ring — guide_style.md §6.3 */
+/* Oxblood focus ring — guide_style.md §6.3 */
 .site-header__search-input:focus {
     border-color: var(--color-dash-accent);
-    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+    box-shadow: 0 0 0 2px rgba(142, 59, 70, 0.25);
 }
 
 /* Nav links — right-aligned horizontal list */
@@ -222,7 +221,6 @@
 .site-header__nav li {
     list-style: none;
 }
-
 
 /* =============================================================================
    4. SIDEBAR COLUMN
@@ -289,7 +287,8 @@
     border-radius: var(--radius-none);
     /* Sharp borders for blueprint */
     text-decoration: none;
-    transition: color var(--transition-fast),
+    transition:
+        color var(--transition-fast),
         background-color var(--transition-fast);
 }
 
@@ -304,10 +303,9 @@
     font-weight: var(--weight-medium);
 }
 
-
 /* =============================================================================
    5. MAIN CONTENT AREA
-   The primary reading/data zone. Sits in the "main" grid area. 
+   The primary reading/data zone. Sits in the "main" grid area.
    Applies horizontal padding and uses auto margins for content centering.
 ============================================================================= */
 
@@ -338,7 +336,6 @@
     margin-inline: auto;
     text-align: center;
 }
-
 
 /* =============================================================================
    6. FOOTER ROW
@@ -385,7 +382,6 @@
     color: var(--color-text-secondary);
 }
 
-
 /* =============================================================================
    7. TWO-COLUMN: SIDEBAR + CONTENT (standard interior layout)
    Applied via .page-shell — this documents the grid areas explicitly.
@@ -405,7 +401,6 @@
     padding: var(--space-6);
     min-width: 0;
 }
-
 
 /* =============================================================================
    8. LANDING PAGE LAYOUT (index.html)
@@ -456,7 +451,6 @@
     gap: var(--space-2);
 }
 
-
 /* =============================================================================
    9. CONTENT GRID VARIANTS
    Reusable grid patterns for main content areas.
@@ -491,7 +485,6 @@
     gap: 0;
 }
 
-
 /* =============================================================================
    10. RESPONSIVE BREAKPOINTS
    Source: guide_style.md §5 — "responsive spacing"
@@ -501,7 +494,6 @@
 
 /* --- Tablet (≤ 1024px) --------------------------------------------------- */
 @media (max-width: 1024px) {
-
     .page-shell {
         grid-template-columns: 1fr;
         grid-template-areas:
@@ -542,7 +534,6 @@
 
 /* --- Mobile (≤ 640px) ---------------------------------------------------- */
 @media (max-width: 640px) {
-
     html {
         font-size: 100%;
         /* reset to 16px base for mobile */

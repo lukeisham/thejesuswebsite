@@ -15,34 +15,56 @@
 //         logout button wired, default records-all editor rendered in canvas
 
 document.addEventListener("DOMContentLoaded", function () {
-    // 13-module tab config — matches dashboard_page_split.md §Module Tab Structure
-    var allModules = [
-        { name: "records-all",       label: "All Records",           module: "records-all" },
-        { name: "records-edit",      label: "Single Record",         module: "records-edit" },
-        { name: "lists-ordinary",    label: "Ordinary Lists",        module: "lists-ordinary" },
-        { name: "records-bulk",      label: "Bulk CSV",              module: "records-bulk" },
-        { name: "config-arbor",      label: "Arbor",                 module: "config-arbor" },
-        { name: "ranks-wikipedia",   label: "Wikipedia",             module: "ranks-wikipedia" },
-        { name: "ranks-challenges",  label: "Challenge",             module: "ranks-challenges" },
-        { name: "ranks-responses",   label: "Responses",             module: "ranks-responses" },
-        { name: "text-essays",       label: "Essay & Historiography", module: "text-essays" },
-        { name: "text-responses",    label: "Challenge Response",    module: "text-responses" },
-        { name: "text-news",         label: "News & Sources",        module: "text-news" },
-        { name: "text-blog",         label: "Blog Posts",            module: "text-blog" },
-        { name: "system-admin",      label: "System",                module: "system-admin" }
-    ];
+  // 13-module tab config — matches dashboard_page_split.md §Module Tab Structure
+  var allModules = [
+    { name: "records-all", label: "All Records", module: "records-all" },
+    { name: "records-edit", label: "Single Record", module: "records-edit" },
+    {
+      name: "lists-ordinary",
+      label: "Ordinary Lists",
+      module: "lists-ordinary",
+    },
+    { name: "records-bulk", label: "Bulk CSV", module: "records-bulk" },
+    { name: "config-arbor", label: "Arbor", module: "config-arbor" },
+    { name: "ranks-wikipedia", label: "Wikipedia", module: "ranks-wikipedia" },
+    {
+      name: "ranks-challenges",
+      label: "Challenge",
+      module: "ranks-challenges",
+    },
+    { name: "ranks-responses", label: "Responses", module: "ranks-responses" },
+    {
+      name: "text-essays",
+      label: "Essay & Historiography",
+      module: "text-essays",
+    },
+    {
+      name: "text-responses",
+      label: "Challenge Response",
+      module: "text-responses",
+    },
+    { name: "text-news", label: "News & Sources", module: "text-news" },
+    { name: "text-blog", label: "Blog Posts", module: "text-blog" },
+    { name: "system-admin", label: "System", module: "system-admin" },
+  ];
 
-    // Render the flat module tab bar into the shell nav container
-    window.renderTabBar("module-tab-bar", allModules, "records-all");
+  // Render the flat module tab bar into the shell nav container
+  window.renderTabBar("module-tab-bar", allModules, "records-all");
 
-    // Wire the logout button
-    var logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn && typeof window.adminLogout === "function") {
-        logoutBtn.addEventListener("click", window.adminLogout);
-    }
+  // Wire the return-to-frontend button (verifies session, then redirects to "/")
+  var returnBtn = document.getElementById("return-to-frontend-btn");
+  if (returnBtn && typeof window.returnToFrontend === "function") {
+    returnBtn.addEventListener("click", window.returnToFrontend);
+  }
 
-    // Load the default module view
-    if (typeof window.loadModule === "function") {
-        window.loadModule("records-all");
-    }
+  // Wire the logout button
+  var logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn && typeof window.adminLogout === "function") {
+    logoutBtn.addEventListener("click", window.adminLogout);
+  }
+
+  // Load the default module view
+  if (typeof window.loadModule === "function") {
+    window.loadModule("records-all");
+  }
 });

@@ -25,7 +25,10 @@ button:not(.admin-editor-toolbar-btn) {
     letter-spacing: var(--tracking-wide);
     text-decoration: none;
     cursor: pointer;
-    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast),
+        border-color var(--transition-fast);
 }
 
 /* Default state: 1px solid border with text color */
@@ -43,18 +46,20 @@ button:not(.admin-editor-toolbar-btn) {
 .footer-btn:hover {
     background-color: var(--color-accent-primary);
     border-color: var(--color-accent-primary);
-    color: var(--color-dash-bg); /* Use dash bg for high contrast */
+    color: var(--color-white);
     text-decoration: none;
 }
 
 .btn--filled {
     background-color: var(--color-accent-primary);
     border-color: var(--color-accent-primary);
-    color: var(--color-dash-bg);
+    color: var(--color-white);
 }
 
 .btn--filled:hover {
-    background-color: var(--color-text-primary); /* Fallback to primary text on hover */
+    background-color: var(
+        --color-text-primary
+    ); /* Fallback to primary text on hover */
     border-color: var(--color-text-primary);
 }
 
@@ -64,7 +69,9 @@ button:not(.admin-editor-toolbar-btn) {
 ============================================================================= */
 
 .list-row {
-    transition: background-color var(--transition-fast), border-left-color var(--transition-fast);
+    transition:
+        background-color var(--transition-fast),
+        border-left-color var(--transition-fast);
     border-left: 0 solid var(--color-accent-primary);
 }
 
@@ -91,7 +98,7 @@ button:not(.admin-editor-toolbar-btn) {
 
 .badge--accent {
     background-color: var(--color-accent-primary);
-    color: var(--color-dash-bg);
+    color: var(--color-white);
 }
 
 .badge--muted {

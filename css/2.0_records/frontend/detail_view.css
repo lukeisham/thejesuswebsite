@@ -8,7 +8,7 @@
 
 ============================================================================= */
 
-@import url('../../elements/typography_colors.css');
+@import url("../../elements/typography_colors.css");
 
 /* Back link to previous list */
 .record-back-link {
@@ -47,7 +47,7 @@
     font-family: var(--font-body);
     font-size: var(--text-xl);
     font-style: italic;
-    color: var(--color-dash-accent);
+    color: var(--color-dash-accent); /* Oxblood accent */
     margin: 0;
 }
 
@@ -140,4 +140,3 @@
     padding-left: var(--space-5);
     text-indent: calc(-1 * var(--space-5));
 }
-

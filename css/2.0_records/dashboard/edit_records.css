@@ -22,7 +22,7 @@
 .section-heading-mono {
     font-family: var(--font-mono);
     font-size: var(--text-sm);
-    color: var(--color-dash-accent); /* Antique Gold */
+    color: var(--color-dash-accent); /* Oxblood */
     margin-top: 0;
     margin-bottom: var(--space-4);
     letter-spacing: 0.1em;
@@ -161,9 +161,15 @@
 }
 
 @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.4; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 .pulse-animation {

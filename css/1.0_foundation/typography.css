@@ -83,14 +83,18 @@
     --color-border-inverse: #3a3a38;
     /* Night Clay      — subtle divider on dark bh */
 
-
-
     /* --- Utility / Status --- */
     --color-status-success: #2e7d32;
     /* Blueprint Green — success highlights     */
     --color-white: #ffffff;
     --color-black: #000000;
     --color-transparent: transparent;
+
+    /* --- Dashboard Tokens (used site-wide) --- */
+    --color-dash-accent: #8e3b46;
+    /* Deep Oxblood  — admin active elements     */
+    --color-dash-border-strong: #c8c4ba;
+    /* Dark Clay     — emphasis borders           */
 
     /* ===========================================================================
        3. TYPOGRAPHY: FONT FAMILIES
@@ -224,11 +228,7 @@
     --transition-fast: 150ms ease;
     --transition-base: 200ms ease;
     --transition-slow: 350ms ease;
-
-
 }
-
-
 
 html {
     /* Set base font size so 1rem = 18px for EB Garamond readability */
@@ -364,8 +364,6 @@ textarea:focus-visible,
     border-radius: var(--radius-none);
 }
 
-
-
 /* =============================================================================
    14. ELEMENT DEFAULTS: LISTS
    Restore sensible indentation stripped by the reset.
@@ -382,14 +380,10 @@ li {
     line-height: var(--line-height-snug);
 }
 
-
-
 /* =============================================================================
    15. UTILITY CLASSES
    Minimal set — only the ones demanded by vibe_coding_rules or guide_style.
 ============================================================================= */
-
-
 
 /* --- Colour helpers --- */
 .text-muted {
@@ -516,8 +510,6 @@ svg.icon--muted {
 
 /* ~24px */
 
-
-
 /* =============================================================================
    17. SYSTEM FEEDBACK STATES
    Source: guide_style.md §15
@@ -532,7 +524,6 @@ svg.icon--muted {
 
 /* --- Loading keyframe — Oxblood opacity pulse ----------------------------- */
 @keyframes oxblood-pulse {
-
     0%,
     100% {
         opacity: 1;

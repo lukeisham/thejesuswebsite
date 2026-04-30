@@ -24,21 +24,20 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--space-4) var(--space-6);
-    background-color: var(--color-text-primary);
-    color: var(--color-bg-primary);
-    border-bottom: var(--border-width-thin) solid var(--color-border);
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border-bottom: var(--border-width-thin) solid var(--color-border-strong);
 }
 
 .admin-header__favicon {
     flex-shrink: 0;
-    filter: grayscale(1) contrast(1.2);
 }
 
 .admin-header h1 {
     font-family: var(--font-heading);
     font-size: var(--text-xl);
     margin: 0;
-    color: var(--color-bg-primary);
+    color: var(--color-text-primary);
 }
 
 .admin-header-actions {
@@ -47,18 +46,25 @@
     gap: var(--space-4);
 }
 
-.admin-return-link {
+.admin-return-btn {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: var(--border-width-thin) solid var(--color-border-strong);
+    padding: var(--space-1) var(--space-4);
+    border-radius: var(--radius-none);
+    cursor: pointer;
     font-family: var(--font-mono);
     font-size: var(--text-sm);
-    color: var(--color-bg-primary);
-    text-decoration: none;
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
-    transition: opacity var(--transition-fast);
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
 }
 
-.admin-return-link:hover {
-    opacity: 0.8;
+.admin-return-btn:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
 }
 
 /* =============================================================================

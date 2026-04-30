@@ -49,7 +49,6 @@
     color: var(--color-white);
 }
 
-
 .map-era-slider {
     display: flex;
     align-items: center;
@@ -89,10 +88,12 @@
 /* Map Nodes */
 .map-node {
     fill: var(--color-accent-primary); /* Deep Oxblood */
-    stroke: var(--color-bg-primary);   /* Match canvas background */
+    stroke: var(--color-bg-primary); /* Match canvas background */
     stroke-width: 1px;
     cursor: pointer;
-    transition: r var(--transition-fast), fill var(--transition-fast);
+    transition:
+        r var(--transition-fast),
+        fill var(--transition-fast);
 }
 
 .map-node:hover {
@@ -135,19 +136,21 @@
 
 .map-metadata-verse {
     font-style: italic;
-    color: var(--color-dash-accent) !important; /* Antique Gold for authority source */
+    color: var(
+        --color-dash-accent
+    ) !important; /* Antique Gold for authority source */
     margin-bottom: var(--space-3) !important;
 }
 
 .map-metadata-link {
-    color: var(--color-accent-primary); 
-    text-decoration: underline; 
+    color: var(--color-accent-primary);
+    text-decoration: underline;
     font-family: var(--font-heading);
 }
 
 .map-era-display {
     font-family: var(--font-mono);
     font-size: var(--text-sm);
-    min-width: 60px; 
+    min-width: 60px;
     text-align: right;
 }

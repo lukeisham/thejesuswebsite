@@ -39,7 +39,7 @@ The dashboard has two rows above the editor canvas: a static header and a single
 
 ```
 +-----------------------------------------------------------------------------------+
-| [ The Jesuswebsite Dashboard ]              [Return to Site]            [Logout]  |  ← static header
+| [✦ The Jesuswebsite Dashboard ]  [Return to Frontend]            [Logout]  |  ← static header
 |-----------------------------------------------------------------------------------|
 | [ ★ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]     |
 | [ Wikipedia ] [ Challenge ] [ Responses ] [ Essay & Historiography ]              |  ← module tab bar
@@ -133,7 +133,7 @@ primary_verse     JSON Array  — verse reference column
 
 ```text
 +-----------------------------------------------------------------------------------+
-| [ The Jesuswebsite Dashboard ]              [Return to Site]            [Logout]  |
+| [✦ The Jesuswebsite Dashboard ]  [Return to Frontend]            [Logout]  |
 |-----------------------------------------------------------------------------------|
 | [ ★ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]     |
 | [ Wikipedia ] [ Challenge ] [ Responses ] [ Essay & Historiography ]              |
@@ -814,7 +814,7 @@ System-managed fields (never manually edited in any dashboard section):
 **`dashboard.html` — Default view on load (`records-all`):**
 ```text
 +-----------------------------------------------------------------------------------+
-| [ The Jesuswebsite Dashboard ]              [Return to Site]            [Logout]  |
+| [✦ The Jesuswebsite Dashboard ]  [Return to Frontend]            [Logout]  |
 |-----------------------------------------------------------------------------------|
 | [ ★ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]     |
 | [ Wikipedia ] [ Challenge ] [ Responses ] [ Essay & Historiography ]              |

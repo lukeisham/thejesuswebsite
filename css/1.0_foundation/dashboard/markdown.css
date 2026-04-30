@@ -14,18 +14,13 @@
 ============================================================================= */
 
 :root {
-    --editor-bg: var(--color-dash-bg);
-    --editor-fg: var(--color-dash-text);
-    --editor-accent: var(--color-dash-accent);
+    --editor-bg: var(--color-bg-primary);
+    --editor-fg: var(--color-text-primary);
+    --editor-accent: var(--color-accent-primary);
     --editor-border: var(--color-border-strong);
-    --editor-header: var(--color-dash-surface);
-    --editor-cursor: var(--color-dash-text);
-    --editor-selection: rgba(
-        212,
-        175,
-        55,
-        0.25
-    ); /* Semi-transparent antique gold */
+    --editor-header: var(--color-bg-secondary);
+    --editor-cursor: var(--color-text-primary);
+    --editor-selection: rgba(142, 59, 70, 0.25); /* Semi-transparent oxblood */
     --editor-font: var(--font-mono);
 }
 
