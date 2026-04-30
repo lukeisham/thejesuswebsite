@@ -29,6 +29,11 @@
     border-bottom: var(--border-width-thin) solid var(--color-border);
 }
 
+.admin-header__favicon {
+    flex-shrink: 0;
+    filter: grayscale(1) contrast(1.2);
+}
+
 .admin-header h1 {
     font-family: var(--font-heading);
     font-size: var(--text-xl);

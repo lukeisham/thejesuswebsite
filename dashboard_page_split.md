@@ -320,6 +320,6 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 
 ```
 git add .
-git commit -m "new dashboard architecture"
+git commit -m "new dashboard debugging"
 git push origin main
 ```
