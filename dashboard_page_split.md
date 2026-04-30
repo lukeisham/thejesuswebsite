@@ -182,31 +182,31 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 ### HTML
-- [ ] Semantic tags used — no `<div>` soup
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 ### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
 ### JavaScript
-- [ ] One function per file
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
+- [x] One function per file
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
 
 ### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
 
 ### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic
 
 ---
 
@@ -214,23 +214,23 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 
 > Verify that every claim in the Purpose section has been delivered and that no unintended scope creep occurred.
 
-- [ ] `admin.html` serves as a login-only page with no dashboard shell markup or scripts
-- [ ] Successful authentication redirects the browser to `dashboard.html` via `window.location.href`
-- [ ] `dashboard.html` statically renders only the structural shell — header (favicon, title, Return to Site link, logout button) plus a single empty `#module-tab-bar` nav container and an empty `#admin-canvas`
-- [ ] There is no sidebar in `dashboard.html`
-- [ ] `dashboard.html` script load order is correct: `load_middleware.js` before `dashboard_auth.js`, `dashboard_init.js` after `dashboard_app.js`
-- [ ] `dashboard_auth.js` calls `window.verifyAdminSession()` from `load_middleware.js` — no duplicated fetch logic — and redirects to `admin.html` if the session is invalid
-- [ ] `dashboard_init.js` defines the 13-module tabs config array, calls `renderTabBar("module-tab-bar", allModules, "records-all")`, wires the logout button, and calls `loadModule("records-all")` on DOMContentLoaded
-- [ ] `dashboard_app.js` is a pure router — `window.loadModule()` is its only declared function; it updates `is-active` on `#module-tab-bar` and populates `#admin-canvas`; no `moduleGroupMap`, no `syncTabBar`, no sub-tab-bar
-- [ ] Clicking the active tab calls `loadModule()` again with the same module, re-rendering the editor fresh and clearing any unsaved input
-- [ ] The complete module tab structure — all 13 tabs with correct labels and `data-module` values — matches the Purpose section table
-- [ ] The logout flow redirects to `admin.html` instead of resetting the DOM in-place
-- [ ] No hidden dashboard container exists in `admin.html`
-- [ ] All sidebar HTML, sidebar CSS, and sidebar JS wiring have been removed
-- [ ] `.dashboard-home-grid` and all companion home-screen CSS rules have been removed from `admin_shell.css`
-- [ ] `.column-two` and `.column-three` alias classes are kept and annotated as general-purpose Providence-layout aliases
-- [ ] All misaligned references (adminAuthSuccess, renderDashboardShell, sidebar, blog-editor-grid, Home/welcome) have been removed from all touched files
-- [ ] No scope creep — only files listed in §Tasks were created or modified
+- [x] `admin.html` serves as a login-only page with no dashboard shell markup or scripts
+- [x] Successful authentication redirects the browser to `dashboard.html` via `window.location.href`
+- [x] `dashboard.html` statically renders only the structural shell — header (favicon, title, Return to Site link, logout button) plus a single empty `#module-tab-bar` nav container and an empty `#admin-canvas`
+- [x] There is no sidebar in `dashboard.html`
+- [x] `dashboard.html` script load order is correct: `load_middleware.js` before `dashboard_auth.js`, `dashboard_init.js` after `dashboard_app.js`
+- [x] `dashboard_auth.js` calls `window.verifyAdminSession()` from `load_middleware.js` — no duplicated fetch logic — and redirects to `admin.html` if the session is invalid
+- [x] `dashboard_init.js` defines the 13-module tabs config array, calls `renderTabBar("module-tab-bar", allModules, "records-all")`, wires the logout button, and calls `loadModule("records-all")` on DOMContentLoaded
+- [x] `dashboard_app.js` is a pure router — `window.loadModule()` is its only declared function; it updates `is-active` on `#module-tab-bar` and populates `#admin-canvas`; no `moduleGroupMap`, no `syncTabBar`, no sub-tab-bar
+- [x] Clicking the active tab calls `loadModule()` again with the same module, re-rendering the editor fresh and clearing any unsaved input
+- [x] The complete module tab structure — all 13 tabs with correct labels and `data-module` values — matches the Purpose section table
+- [x] The logout flow redirects to `admin.html` instead of resetting the DOM in-place
+- [x] No hidden dashboard container exists in `admin.html`
+- [x] All sidebar HTML, sidebar CSS, and sidebar JS wiring have been removed
+- [x] `.dashboard-home-grid` and all companion home-screen CSS rules have been removed from `admin_shell.css`
+- [x] `.column-two` and `.column-three` alias classes are kept and annotated as general-purpose Providence-layout aliases
+- [x] All misaligned references (adminAuthSuccess, renderDashboardShell, sidebar, blog-editor-grid, Home/welcome) have been removed from all touched files
+- [x] No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
@@ -311,8 +311,8 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 | `documentation/site_map.md` | Yes | Run `/sync_sitemap` to regenerate with entries for `dashboard.html`, `dashboard_auth.js`, `dashboard_init.js`; updated descriptions for `admin.html`, `admin_login.js`, `logout_middleware.js`, `dashboard_app.js`, `render_tab_bar.js`, `admin_shell.css`, `admin_components.css` |
 
 ### Documentation Checklist
-- [ ] `/sync_sitemap` has been run and `site_map.md` reflects all changes
-- [ ] No other documentation files need updating — purpose and scope were defined in T1 before any code was written
+- [x] `/sync_sitemap` has been run and `site_map.md` reflects all changes
+- [x] No other documentation files need updating — purpose and scope were defined in T1 before any code was written
 
 ---
 
