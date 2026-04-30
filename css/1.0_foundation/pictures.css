@@ -1,0 +1,62 @@
+/* =============================================================================
+   THE JESUS WEBSITE — PICTURES CSS
+   File:    css/1.0_foundation/pictures.css
+   Version: 1.1.0
+   Purpose: Styles for the framed pictures displayed on record views.
+   Source:  guide_appearance.md §1.7, vibe_coding_rules.md
+============================================================================= */
+
+@import url('./typography_colors.css');
+
+/* =============================================================================
+   1. MAIN CONTAINER (PICTURE AREA)
+   Hidden by default; revealed by JS handler if picture data exists.
+============================================================================= */
+
+.record-picture-container {
+    display: none; /* Changed to flex via JS if picture exists */
+    flex-direction: column;
+    margin: var(--space-4) 0;
+    width: 100%;
+    
+    /* "Every picture is displaed with a lightweight thin line around
+       that is longer at the base to include the caption aka 'picture label'." */
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-2) var(--space-2) 0 var(--space-2);
+    box-sizing: border-box;
+    background-color: var(--color-bg-primary);
+}
+
+/* =============================================================================
+   2. THE PICTURE FRAME
+   Inner container that holds the actual image.
+============================================================================= */
+
+.record-picture-container .picture-frame {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: var(--border-width-thin) solid var(--color-black);
+    padding: var(--space-1);
+    background-color: var(--color-bg-secondary);
+}
+
+.record-picture-container .picture-frame img.record-picture {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* =============================================================================
+   3. CAPTION LABEL
+   Archival-style label ("Fig 1: [Caption]") sitting below the framed image.
+============================================================================= */
+
+.record-picture-container .picture-label {
+    padding: var(--space-3) 0;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    text-align: center;
+    background-color: var(--color-transparent);
+}

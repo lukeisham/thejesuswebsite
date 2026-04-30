@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.35
+version: 1.0.41
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -62,32 +62,34 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   └── helper_api.py          <-- Shared logic for secure external API connection calls
 ├── build.py                   <-- Root script to trigger backend pipelines
 ├── css/
-│   ├── design_layouts/
-│   │   ├── pdf_export.css     <-- Print media queries for exporting essays and data cleanly
-│   │   ├── universal/
-│   │   │   ├── footer.css     <-- Styles dictating the universally appended footer
-│   │   │   └── sidebar.css    <-- Styles dictating the universal sticky side navigation
-│   │   └── views/
-│   │       ├── dashboard_admin.css <-- Bespoke layout instructions for the secure admin portal
-│   │       ├── index_landing.css <-- Bespoke layout instructions for the root entry page
-│   │       └── login_view.css <-- Bespoke layout for the secure admin login UI
-│   ├── design_layouts/views/
-│   │   ├── list_layout.css    <-- Layout for aggregate list views
-│   │   └── single_layout.css  <-- Layout for deep-dive record views
-│   └── elements/
-│       ├── grid.css           <-- Master logic determining structural layout alignment
-│       ├── list_card_button.css <-- Specific styles for interactive UI components
-│       ├── markdown_editor.css <-- Specific styles for the admin WYSIWYG text editors
-│       ├── pictures.css       <-- Specific styles for pictures and labels
-│       ├── thumbnails.css     <-- Specific styles for thumbnails
-│       └── typography_colors.css <-- Universal font scales and color palette variables
-├── css/design_layouts/views/
-│   ├── essay_layout.css       <-- Specific typography for long-form essays
-│   └── response_layout.css    <-- Specific layouts for debate & responses
-├── css/elements/
-│   ├── ardor_diagram.css      <-- Specific styles for Ardor diagram
-│   ├── map_diagram.css        <-- Specific styles for map diagram
-│   └── timeline_diagram.css   <-- Specific styles for timeline diagram
+│   ├── 1.0_foundation/
+│   │   ├── footer.css         <-- Styles dictating the universally appended footer
+│   │   ├── grid.css           <-- Master logic determining structural layout alignment
+│   │   ├── landing.css        <-- Bespoke layout instructions for the root entry page
+│   │   ├── pictures.css       <-- Specific styles for pictures and labels
+│   │   ├── sidebar.css        <-- Styles dictating the universal sticky side navigation
+│   │   ├── thumbnails.css     <-- Specific styles for thumbnails
+│   │   ├── typography.css     <-- Universal font scales and color palette variables
+│   │   └── elements/
+│   │       ├── buttons.css    <-- Specific styles for interactive UI components
+│   │       └── forms.css      <-- Shared form elements
+│   ├── 2.0_records/
+│   │   ├── detail_view.css    <-- Layout for deep-dive record views
+│   │   └── list_view.css      <-- Layout for aggregate list views
+│   ├── 3.0_visualizations/
+│   │   ├── ardor.css          <-- Specific styles for Ardor diagram
+│   │   ├── maps.css           <-- Specific styles for map diagram
+│   │   └── timeline.css       <-- Specific styles for timeline diagram
+│   ├── 4.0_ranked_lists/      <-- (no dedicated CSS; inherits from 2.0_records)
+│   ├── 5.0_essays_responses/
+│   │   ├── essays.css         <-- Specific typography for long-form essays
+│   │   ├── markdown.css       <-- Specific styles for the admin WYSIWYG text editors
+│   │   └── responses.css      <-- Specific layouts for debate & responses
+│   ├── 6.0_news_blog/         <-- (no dedicated CSS; inherits from 1.0_foundation)
+│   └── 7.0_system/
+│       ├── admin_portal.css   <-- Bespoke layout instructions for the secure admin portal
+│       ├── auth_login.css     <-- Bespoke layout for the secure admin login UI
+│       └── pdf_export.css     <-- Print media queries for exporting essays and data cleanly
 ├── database/
 │   ├── database.sql           <-- The blueprint schema
 │   └── database.sqlite        <-- The COMPILED actual database file

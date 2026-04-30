@@ -1,0 +1,226 @@
+/* =============================================================================
+   THE JESUS WEBSITE — ARDOR DIAGRAM CSS
+   File:    css/3.0_visualizations/ardor.css
+   Version: 1.2.0
+   Purpose: Specific styles for the interactive Evidence (Ardor) Tree Graph.
+            Provides the layout and node styles for the massive canvas area.
+   Source:  guide_appearance.md §3.1
+            §18-compliance audit: all colours, fonts, spacing use CSS variables.
+============================================================================= */
+
+@import url("./typography_colors.css");
+
+/* =============================================================================
+   1. MAIN STRUCTURE — diagram pages (Map, Timeline, Ardor)
+============================================================================= */
+
+.diagram-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-height: calc(100vh - var(--header-height) - 100px);
+    width: 100%;
+}
+
+/* =============================================================================
+   2. CANVAS — massive draggable/scrollable area
+============================================================================= */
+
+.diagram-canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Allows panning */
+    background-color: var(--color-bg-primary);
+    /* subtle grid background for canvas feel */
+    background-image: radial-gradient(
+        var(--color-border) var(--border-width-thin),
+        transparent var(--border-width-thin)
+    );
+    background-size: 20px 20px;
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-none);
+}
+
+/* Canvas SVG Target */
+.ardor-svg {
+    min-width: 1200px;
+    min-height: 800px;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* =============================================================================
+   3. NODE STYLES — SVG interactive nodes
+============================================================================= */
+
+.ardor-node {
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+}
+
+.ardor-node:hover {
+    filter: brightness(1.1);
+}
+
+.ardor-node rect {
+    fill: var(--color-bg-secondary);
+    stroke: var(--color-border-strong);
+    stroke-width: var(--border-width-thin);
+    rx: 0; /* Sharp blueprint corners — matches var(--radius-none) */
+    filter: var(--shadow-sm);
+}
+
+.ardor-node text.title {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    fill: var(--color-text-primary);
+    pointer-events: none; /* Let the rect catch the click events */
+}
+
+.ardor-node text.meta {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    fill: var(--color-text-secondary);
+    pointer-events: none;
+}
+
+.ardor-node.active rect {
+    stroke: var(--color-accent-primary);
+    stroke-width: 3px; /* deliberate emphasis — no variable for 3px */
+    fill: var(--color-bg-primary);
+}
+
+/* =============================================================================
+   4. EDGE / LINK STYLES — SVG connector lines
+============================================================================= */
+
+.ardor-edge {
+    fill: none;
+    stroke: var(--color-border-strong);
+    stroke-width: var(--border-width-thin);
+    opacity: 0.6;
+    transition:
+        opacity var(--transition-fast),
+        stroke-width var(--transition-fast);
+}
+
+.ardor-edge:hover,
+.ardor-edge.highlighted {
+    stroke: var(--color-accent-primary);
+    stroke-width: 3px; /* deliberate visual emphasis — no variable for 3px */
+    opacity: 1;
+}
+
+/* =============================================================================
+   5. ADMIN DIAGRAM EDITOR — draggable tree hierarchy
+   Source: fix_edit_diagram_module_3_1.md §T8
+============================================================================= */
+
+/* --- Tree Container --- */
+.admin-diagram-tree {
+    width: 100%;
+    padding: var(--space-2) 0;
+}
+
+/* --- Base Node Row --- */
+.diagram-node {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    border: var(--border-width-thin) solid var(--color-border);
+    cursor: grab;
+    user-select: none;
+    transition:
+        opacity var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast);
+}
+
+.diagram-node:active {
+    cursor: grabbing;
+}
+
+/* --- Node Label --- */
+.diagram-node-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-primary);
+    flex: 1;
+    min-width: 0;
+}
+
+/* --- Action Buttons Inside Node --- */
+.diagram-add-child-btn,
+.diagram-remove-btn {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    border: var(--border-width-thin) solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 2px var(--space-1);
+    border-radius: var(--radius-sm);
+    transition:
+        background var(--transition-fast),
+        color var(--transition-fast);
+    white-space: nowrap;
+}
+
+.diagram-add-child-btn:hover {
+    background: var(--color-accent-primary);
+    color: var(--color-white);
+    border-color: var(--color-accent-primary);
+}
+
+.diagram-remove-btn:hover {
+    background: var(--color-accent-primary);
+    color: var(--color-white);
+    border-color: var(--color-accent-primary);
+}
+
+/* --- Dragging State --- */
+.diagram-node.dragging {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+/* --- Drop Target State --- */
+.diagram-node.drop-target {
+    border-color: var(--color-accent-primary);
+    background: var(--color-bg-secondary);
+}
+
+/* --- Children Indentation --- */
+.diagram-node-children {
+    margin-left: var(--space-8);
+    border-left: var(--border-width-base) solid var(--color-border);
+}
+
+/* --- Save Indicator Bar --- */
+.diagram-save-indicator {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    padding: var(--space-1) var(--space-2);
+    min-height: calc(var(--space-2) + var(--text-sm) * 1.4);
+    text-align: center;
+    transition: color var(--transition-fast);
+}
+
+/* --- Search Input --- */
+.diagram-search-input {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background: var(--color-bg-primary);
+}
+
+.diagram-search-input::placeholder {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+}

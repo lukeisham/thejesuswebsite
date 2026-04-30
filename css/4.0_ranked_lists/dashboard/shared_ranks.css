@@ -1,0 +1,60 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD SHARED RANK STYLES
+   File:    css/4.0_ranked_lists/dashboard/shared_ranks.css
+   Version: 1.0.0
+   Purpose: Shared table and input styles for weight and rank override editors.
+============================================================================= */
+
+/* Table header row with secondary background */
+.weight-table-header-row {
+    background-color: var(--color-bg-secondary);
+    border-bottom: 2px solid var(--color-border);
+}
+
+/* Score value display (primary color, bold) */
+.score-value-cell {
+    color: var(--color-primary);
+    font-weight: var(--weight-bold);
+}
+
+/* Compact number input for weight multipliers */
+.weight-number-input {
+    width: 80px;
+    padding: var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-none);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    text-align: center;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+
+.weight-number-input:focus {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+}
+
+/* Resource list selector dropdown */
+.list-select-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.list-select-row {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+}
+
+.list-select-input {
+    flex: 1;
+    max-width: 400px;
+    cursor: pointer;
+}

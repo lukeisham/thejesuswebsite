@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "minor fixes 2" 
+git commit -m "big css refactor " 
 git push origin main 
 
 # Pulling from Github to server 

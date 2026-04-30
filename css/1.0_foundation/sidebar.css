@@ -1,0 +1,211 @@
+/* =============================================================================
+
+   THE JESUS WEBSITE — SIDEBAR STYLES
+   File:    css/1.0_foundation/sidebar.css
+   Version: 1.1.0
+   Purpose: Appearance and behaviour of the Universal Sticky Sidebar present
+            on all interior pages. Extends the structural rules in grid.css
+            with sidebar-specific component and state styles.
+   Source:  guide_appearance.md §1.5, guide_style.md §6.1
+
+   DEPENDENCIES:
+     Requires typography_colors.css and grid.css (variables + .site-sidebar base).
+     Injected into the DOM by sidebar.js.
+
+   TABLE OF CONTENTS:
+     1.  Sidebar Container Refinements
+     2.  Brand / Page Identity Label
+     3.  Navigation List
+     4.  Navigation Items
+     5.  Section Dividers (tiered hierarchy)
+     6.  Mobile Overlay Backdrop
+
+============================================================================= */
+
+@import url('../../elements/typography_colors.css');
+
+
+/* =============================================================================
+   1. SIDEBAR CONTAINER REFINEMENTS
+   Base shell is in grid.css (.site-sidebar).
+   These rules add fine-grained presentation details.
+============================================================================= */
+
+.site-sidebar {
+    /* Ensure the sidebar never produces horizontal scroll */
+    overflow-x:        hidden;
+}
+
+/* Decorative top accent line — thin Oxblood stripe */
+.site-sidebar::before {
+    content:           '';
+    display:           block;
+    height:            3px;
+    background-color:  var(--color-accent-primary);
+    margin:            calc(-1 * var(--space-4)) calc(-1 * var(--space-3)) var(--space-3);
+}
+
+
+/* =============================================================================
+   2. BRAND / PAGE IDENTITY LABEL
+   "The Jesus Website" shown at the top of the sidebar.
+   Source: guide_appearance.md §1.5 — top-level brand label in the sidebar.
+============================================================================= */
+
+.site-sidebar__brand {
+    display:           block;
+    font-family:       var(--font-heading);
+    font-size:         var(--text-xs);
+    font-weight:       var(--weight-semibold);
+    letter-spacing:    var(--tracking-widest);
+    text-transform:    uppercase;
+    color:             var(--color-text-muted);
+    padding-bottom:    var(--space-2);
+    margin-bottom:     29px;
+    text-decoration:   none;
+    transition:        color var(--transition-fast);
+}
+
+.site-sidebar__brand:hover {
+    color:             var(--color-accent-primary);
+    text-decoration:   none;
+}
+
+
+/* =============================================================================
+   3. NAVIGATION LIST
+   Pure text-based vertical nav — no icons (guide_style.md §6.1).
+   Hierarchical: top-level items + optional indented sub-items.
+============================================================================= */
+
+.site-sidebar__nav {
+    list-style:        none;
+    padding:           0;
+    margin:            0;
+    display:           flex;
+    flex-direction:    column;
+    gap:               2px;     /* tighter than --space-1 for high-density nav */
+}
+
+/* Section heading within nav (non-clickable category separator) */
+.site-sidebar__nav-category {
+    font-family:       var(--font-mono);
+    font-size:         var(--text-xs);
+    font-weight:       var(--weight-medium);
+    letter-spacing:    var(--tracking-widest);
+    text-transform:    uppercase;
+    color:             var(--color-text-muted);
+    padding:           var(--space-2) var(--space-2) var(--space-1);
+    margin-top:        var(--space-2);
+}
+
+
+/* =============================================================================
+   4. NAVIGATION ITEMS
+   Each link: full-width block, smooth hover state.
+   Active item: Oxblood color, medium weight — no background fill.
+============================================================================= */
+
+.site-sidebar__nav li a {
+    display:           block;
+    font-family:       var(--font-heading);
+    font-size:         var(--text-sm);
+    font-weight:       var(--weight-regular);
+    line-height:       var(--line-height-snug);
+    color:             var(--color-text-secondary);
+    padding:           6px var(--space-2);
+    border-radius:     var(--radius-none);
+    text-decoration:   none;
+    transition:        color           var(--transition-fast),
+                       background-color var(--transition-fast),
+                       border-left     var(--transition-fast);
+    border-left:       2px solid transparent;
+}
+
+.site-sidebar__nav li a:hover {
+    color:             var(--color-text-primary);
+    background-color:  var(--color-bg-tertiary);
+    border-left-color: var(--color-border-accent);
+}
+
+/* Active / current page — Oxblood accent, no background */
+.site-sidebar__nav li a[aria-current="page"],
+.site-sidebar__nav li a.is-active {
+    color:             var(--color-accent-primary);
+    font-weight:       var(--weight-medium);
+    border-left-color: var(--color-accent-primary);
+    background-color:  transparent;
+}
+
+
+/* =============================================================================
+   5. SECTION DIVIDERS (tiered hierarchy)
+   A thin 1px Clay Stone rule between nav sections.
+============================================================================= */
+
+.site-sidebar__divider {
+    height:            var(--border-width-thin);
+    background-color:  var(--color-border);
+    margin:            var(--space-2) 0;
+    border:            none;
+}
+
+
+/* =============================================================================
+   6. MOBILE OVERLAY BACKDROP
+   Semi-transparent dark overlay behind off-canvas sidebar on tablet/mobile.
+   Shown when .site-sidebar.is-open is active (toggled by sidebar.js).
+============================================================================= */
+
+.sidebar-backdrop {
+    display:           none;
+    position:          fixed;
+    inset:             0;
+    background-color:  rgba(36, 36, 35, 0.45);
+    z-index:           190;    /* just below sidebar z-index: 200 */
+    backdrop-filter:   blur(1px);
+    opacity:           0;
+    transition:        opacity var(--transition-base);
+}
+
+@media (max-width: 1024px) {
+    .sidebar-backdrop {
+        display:       block;
+    }
+
+    .sidebar-backdrop.is-visible {
+        opacity:       1;
+    }
+}
+
+
+/* =============================================================================
+   7. SIDEBAR FOOTER & ADMIN LINK
+   Anchored to the absolute base of the sidebar using Flexbox.
+   Uses the "Technical Blueprint" aesthetic (Roboto Mono).
+============================================================================= */
+
+.site-sidebar__footer {
+    margin-top:        auto;
+    padding-top:       var(--space-4);
+}
+
+.site-sidebar__admin-link {
+    display:           block;
+    font-family:       var(--font-mono);
+    font-size:         10px;
+    font-weight:       var(--weight-medium);
+    letter-spacing:    var(--tracking-widest);
+    text-transform:    uppercase;
+    color:             var(--color-text-muted);
+    text-decoration:   none;
+    padding:           var(--space-1) var(--space-2);
+    border:            1px dashed transparent;
+    transition:        all var(--transition-fast);
+}
+
+.site-sidebar__admin-link:hover {
+    color:             var(--color-accent-primary);
+    border-color:      var(--color-border-accent);
+    background-color:  var(--color-bg-tertiary);
+}

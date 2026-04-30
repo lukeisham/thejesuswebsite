@@ -1,0 +1,87 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD EDIT BLOG
+   File:    css/6.0_news_blog/dashboard/edit_blog.css
+   Version: 1.0.0
+   Purpose: Admin styles for the Providence-driven blog post editor.
+============================================================================= */
+
+.blog-editor-action-btn {
+    display: block;
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-none);
+    cursor: pointer;
+    text-align: center;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    transition: all var(--transition-fast);
+}
+
+.blog-editor-action-btn:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-bg);
+}
+
+.blog-editor-action-btn.is-danger {
+    border-color: var(--color-status-error);
+    color: var(--color-status-error);
+}
+
+.blog-post-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-none);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.blog-post-list-item.is-selected {
+    background-color: var(--color-bg-tertiary);
+    border-color: var(--color-accent-primary);
+}
+
+.blog-post-list-title {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.blog-editor-field-input {
+    width: 100%;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-none);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+
+.blog-editor-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    min-height: 400px;
+}
+
+.blog-editor-textarea {
+    flex: 1;
+    width: 100%;
+    padding: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    border: 1px solid var(--color-border);
+    resize: none;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}

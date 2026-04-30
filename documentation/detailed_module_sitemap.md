@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 1.4.0
+version: 1.6.0
 purpose: visual and list taxonomy of codebase
 dependencies: [site_map.md]
 ---
@@ -49,7 +49,7 @@ The purpose of this codebase is to build an archival style website organising an
 **Scope:** Global Grid, Typography, Colors, Shared UI (Sidebar, Header, Footer).
 **Functionality:** Establishes the visual identity and structural grid for the entire site, ensuring consistent UI components and responsive design across all pages. This architectural base provides the universal navigation framework that allows users to move seamlessly between sections while maintaining a cohesive aesthetic experience.
 
-**Files:**
+**Files to create Structure:**
 ```text
 index.html                     <-- Website Landing Page (Root Entry)
 robots.txt                     <-- Manual for well-behaved bots
@@ -73,17 +73,15 @@ frontend/display_other/
                                    (see guide_appearance.md §1.8, §1.8.1 & §1.8.2 for
                                     full DOM structure, CSS anatomy and end-to-end logic flow)
 
-css/
-├── elements/
-│   ├── grid.css                   <-- Master logic determining structural layout alignment
-│   ├── typography_colors.css      <-- Universal font scales and color palette variables
-│   └── list_card_button.css       <-- Specific styles for interactive UI components
-└── design_layouts/
-    ├── universal/      
-    │   ├── sidebar.css            <-- Styles dictating the universal sticky side navigation
-    │   └── footer.css             <-- Styles dictating the universally appended footer
-    └── views/
-        └── index_landing.css      <-- Bespoke layout instructions for the root entry page
+css/1.0_foundation/
+├── grid.css                   <-- Master logic determining structural layout alignment
+├── typography.css             <-- Universal font scales and color palette variables
+├── sidebar.css                <-- Styles dictating the universal sticky side navigation
+├── footer.css                 <-- Styles dictating the universally appended footer
+├── landing.css                <-- Bespoke layout instructions for the root entry page
+└── elements/
+    ├── forms.css              <-- Shared form elements
+    └── buttons.css            <-- Specific styles for interactive UI components
 ```
 
 ---
@@ -92,7 +90,7 @@ css/
 **Scope:** SQLite Schema & Python Pipelines, Single record deep-dive views, Full list view, Searching & Filtering.
 **Functionality:** Manages the core data life-cycle, including database schema definition, Python-based ingestion pipelines, and dynamic frontend rendering of individual records and aggregate lists. The module leverages a client-side SQLite engine to deliver fast, interactive data exploration and robust filtering capabilities directly within the browser.
 
-**Files:**
+**Files to create Structure:**
 ```text
 database/
 ├── database.sql                           <-- The blueprint schema
@@ -137,12 +135,15 @@ frontend/display_other/
 └── display_snippet.js         <-- Renders inline snippets
 
 css/
-├── elements/
+├── 1.0_foundation/
 │   ├── pictures.css               <-- Specific styles for pictures and labels
 │   └── thumbnails.css             <-- Specific styles for thumbnails
-└── design_layouts/views/
-    ├── list_layout.css        <-- Layout for aggregate list views
-    └── single_layout.css      <-- Layout for deep-dive record views
+└── 2.0_records/
+    ├── frontend/
+    │   ├── list_view.css          <-- Layout for aggregate list views
+    │   └── detail_view.css        <-- Layout for deep-dive record views
+    └── dashboard/
+        └── edit_records.css       <-- Admin styles for record editors and bulk upload
 
 admin/frontend/edit_modules/
 ├── edit_record.js         <-- Core form for editing single records
@@ -162,7 +163,7 @@ admin/frontend/edit_modules/
 - **Multi-layered vector-based geographic maps** for spatial context.
 These systems leverage dynamic rendering to transform relational database records into engaging narratives—populating interactive metadata panels with the title, date, category, and primary verse for every historical node.
 
-**Files:**
+**Files to create Structure:**
 ```text
 frontend/pages/
 ├── maps.html                  <-- Visual Interactive Map Display
@@ -181,10 +182,13 @@ frontend/display_other/
 ├── timeline_display.js        <-- Renders timeline dots and linear progression loops
 └── maps_display.js            <-- Renders overlapping geographic data layers
 
-css/elements/
-├── ardor_diagram.css          <-- Specific styles for Ardor diagram
-├── timeline_diagram.css       <-- Specific styles for timeline diagram
-└── map_diagram.css            <-- Specific styles for map diagram
+css/3.0_visualizations/
+├── frontend/
+│   ├── ardor.css                  <-- Specific styles for Ardor diagram
+│   ├── timeline.css               <-- Specific styles for timeline diagram
+│   └── maps.css                   <-- Specific styles for map diagram
+└── dashboard/
+    └── edit_diagram.css           <-- Admin styles for visualization editors
 
 admin/frontend/edit_modules/
 └── edit_diagram.js        <-- Visual tool to adjust recursive 'Ador' parent_id relations
@@ -196,7 +200,7 @@ admin/frontend/edit_modules/
 **Scope:** Ranked Wikipedia article lists (§4.1), Ranked historical challenge lists (§4.2).
 **Functionality:** Processes and ranks external data (Wikipedia) and historical challenge queries via separate sub-modules, providing curated, high-value entry points into historical debates. It utilizes **discrete sets of weighting multipliers for Wikipedia, academic debates, and popular queries**, allowing administrators to fine-tune rankings via specialized backend pipelines and management tools to ensure the most relevant evidence is prioritized. Challenge views embed a linked response record directly into the ranked list.
 
-**Files:**
+**Files to create Structure:**
 ```text
 backend/pipelines/
 ├── pipeline_wikipedia.py              <-- Fetches, ranks, inserts Wikipedia reference data  [§4.1]
@@ -222,6 +226,11 @@ admin/frontend/edit_modules/
 ├── edit_popular_weights.js  <-- Admin tool for editing popular ranking multipliers            [§4.2]
 ├── edit_insert_response_academic.js <-- (cross-ref from Module 5.0 Essays & Responses) Loaded & wired by dashboard router for `ranks-responses` [§4.2]
 └── edit_insert_response_popular.js  <-- (cross-ref from Module 5.0 Essays & Responses) Loaded & wired by dashboard router for `ranks-responses` [§4.2]
+
+css/4.0_ranked_lists/dashboard/
+├── shared_ranks.css         <-- Shared table and input styles for rank editors
+├── edit_wikipedia.css       <-- Wikipedia-specific admin styles
+└── edit_challenges.css      <-- Challenge-specific admin styles
 ```
 
 > **Note:** `edit_lists.js` (from Module 2.0 Records) is also loaded by `admin.html` and wired under the `lists-resources` router branch for the "Edit Resources" sidebar link under Lists & Ranks.
@@ -232,7 +241,7 @@ admin/frontend/edit_modules/
 **Scope:** Context-Essays & Historiography (§5.1), Challenge Responses (§5.2).
 **Functionality:** Handles long-form editorial content as two distinct sub-modules. §5.1 covers thematic context essays and the historiography essay, with specialized typography and MLA citation rendering. §5.2 covers scholarly challenge responses, which are linked to ranked challenge lists via §4.3 Insert Responses. Both sub-modules use a split-pane markdown editor and share a bibliography system that automatically formats sources.
 
-**Files:**
+**Files to create Structure:**
 ```text
 frontend/pages/
 └── context_essay.html         <-- Context essay single essay view                [§5.1]
@@ -251,9 +260,14 @@ frontend/display_other/
 ├── sources_biblio_display.js  <-- Renders formatted MLA bibliography citations    [§5.1/§5.2]
 └── mla_snippet_display.js     <-- Renders inline MLA citations                   [§5.1/§5.2]
 
-css/design_layouts/views/
-├── essay_layout.css       <-- Specific typography for long-form essays            [§5.1]
-└── response_layout.css    <-- Specific layouts for debate & responses             [§5.2]
+css/5.0_essays_responses/
+├── frontend/
+│   ├── essays.css                 <-- Specific typography for long-form essays            [§5.1]
+│   └── responses.css              <-- Specific layouts for debate & responses             [§5.2]
+└── dashboard/
+    ├── edit_essays.css            <-- Admin styles for essay editors
+    ├── edit_responses.css         <-- Admin styles for response editors
+    └── markdown.css               <-- Specific styles for the admin WYSIWYG text editors
 
 admin/frontend/edit_modules/
 ├── edit_historiography.js           <-- Editor for historiography essay           [§5.1]
@@ -270,7 +284,7 @@ admin/frontend/edit_modules/
 **Scope:** News Feed, Blog Feed, Combined Landing Page.
 **Functionality:** Manages all news and blog content, from automated ingestion pipelines through to public-facing feed pages. A combined landing page surfaces the latest snippets from both feeds and directs users to the dedicated full-feed pages. Admin tools cover the full CRUD lifecycle for blog posts, news snippets, and named news sources.
 
-**Files:**
+**Files to create Structure:**
 ```text
 backend/pipelines/
 └── pipeline_news.py                   <-- Crawls, ranks, inserts timeline news events
@@ -293,6 +307,10 @@ admin/frontend/edit_modules/
 ├── edit_news_snippet.js   <-- Editor for news snippets
 ├── edit_news_sources.js   <-- Admin tool for editing news sources
 └── edit_blogpost.js       <-- Editor for blog posts
+
+css/6.0_news_blog/dashboard/
+├── edit_news.css          <-- Admin styles for news editors
+└── edit_blog.css          <-- Admin styles for blog editors
 ```
 
 ---
@@ -304,7 +322,7 @@ admin/frontend/edit_modules/
 ### 7.1 Admin Portal (Sub-Module)
 **Functionality:** Secure administrative interface for managing the website's content. Features a JWT-over-Cookie authentication system and a modular dashboard for CRUD operations.
 
-**Files:**
+**Files to create Structure:**
 ```text
 admin/
 ├── frontend/
@@ -318,20 +336,18 @@ admin/
     ├── admin_api.py               <-- Secure backend writing to SQL
     └── auth_utils.py              <-- JWT generation and Brute Force defense
 
-css/design_layouts/views/
-├── login_view.css         <-- Bespoke layout for the secure admin login UI
-└── dashboard_admin.css    <-- Bespoke layout instructions for the secure admin portal
-
-css/elements/
-└── markdown_editor.css        <-- Specific styles for the admin WYSIWYG text editors
+css/7.0_system/dashboard/
+├── auth_login.css         <-- Bespoke layout for the secure admin login UI
+├── admin_shell.css        <-- Global layout and shell navigation for admin portal
+└── admin_components.css   <-- Shared UI components (Providence grid, tabs)
 
 
 **§7.1.2 Dashboard Shell Layout**
 - **Purpose:** The shared editor layout shell inherited by every dashboard editor module — the Providence 3-column grid with section tab bar. Defined in `guide_dashboard_appearance.md` under **[Layout Convention — Providence 3-Column Pattern (Dashboard Shell)]**.
-- **Files:**
+- **Files to create Structure:**
   - `admin/frontend/render_tab_bar.js` — Shared tab bar renderer (`window.renderTabBar()`)
-  - `css/design_layouts/views/dashboard_admin.css` — `.providence-editor-grid` grid classes and column rules
-  - `css/design_layouts/views/dashboard_admin.css` — `.blog-editor-grid` backward-compatible alias
+  - `css/7.0_system/dashboard/admin_components.css` — `.providence-editor-grid` grid classes
+  - `css/7.0_system/dashboard/admin_components.css` — `.blog-editor-grid` backward-compatible alias
 - **Every editor module** in `admin/frontend/edit_modules/` applies `.providence-editor-grid` or `.blog-editor-grid` to inherit this shell.
 - **Related docs:** `guide_dashboard_appearance.md` (Layout Convention section — Dashboard Shell), `guide_style.md §18.1`
 ```
@@ -339,7 +355,7 @@ css/elements/
 ### 7.2 Agent Logic & Instructional Prompts
 **Functionality:** Stores AI-agent configuration, workflows, and targeted guidance for LLM crawlers to ensure correct interpretation and response behavior.
 
-**Files:**
+**Files to create Structure:**
 ```text
 .agent/                  <-- Agent instructions & workflows
 
@@ -352,7 +368,7 @@ README.md                <-- Project overview
 ### 7.3 Backend API, MCP Server & VPS Config
 **Functionality:** Core configuration, read-only external API, Python dependencies, web server setup, and production deployment automation.
 
-**Files:**
+**Files to create Structure:**
 ```text
 mcp_server.py            <-- Exposes read-only API to external agents
 requirements.txt         <-- Python dependencies (FastAPI, JWT, etc)
@@ -370,14 +386,14 @@ deployment/
 ├── admin.service        <-- Systemd config for Admin API (Auto-restart)
 └── mcp.service          <-- Systemd config for MCP Server (Auto-restart)
 
-css/design_layouts/
+css/7.0_system/frontend/
 └── pdf_export.css       <-- Print media queries for exporting essays and data cleanly
 ```
 
 ### 7.4 Security Protocols & JWT Management
 **Functionality:** Manages credentials, secrets, and security mechanisms including environment variables, rate limiting, and authentication protocols to protect application data and admin interfaces.
 
-**Files:**
+**Files to create Structure:**
 ```text
 .env                     <-- Global Admin, ESV and Deepseek credentials
 
@@ -397,7 +413,7 @@ documentation/guides/
 ### 8.1 Local Environment Initialization
 **Functionality:** Provides scripts and seed data for setting up the local development environment, including database initialization and pipeline orchestration.
 
-**Files:**
+**Files to create Structure:**
 ```text
 build.py                   <-- Root script to trigger backend pipelines
 tools/
@@ -412,7 +428,7 @@ logs/                      <-- Storage for pipeline and API error logs
 ### 8.2 Core Unit & Integration Testing
 **Functionality:** Automated test suites, security audits, and AI-readability verification to ensure system reliability and correctness.
 
-**Files:**
+**Files to create Structure:**
 ```text
 tests/
 ├── port_test.py               <-- Verifies all local ports are responding
@@ -425,7 +441,7 @@ tests/
 ### 8.3 Architectural Documentation & Guides
 **Functionality:** Comprehensive documentation covering architecture, style guides, data schemas, and operational procedures for developers and AI agents.
 
-**Files:**
+**Files to create Structure:**
 ```text
 documentation/
 ├── implementation_plan.md             <-- Implementation Plan

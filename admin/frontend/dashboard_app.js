@@ -24,7 +24,7 @@ function renderDashboardShell() {
     const link = document.createElement("link");
     link.id = "dashboard-admin-css-link";
     link.rel = "stylesheet";
-    link.href = "/css/design_layouts/views/dashboard_admin.css";
+    link.href = "/css/7.0_system/dashboard/admin_shell.css";
     document.head.appendChild(link);
   }
 

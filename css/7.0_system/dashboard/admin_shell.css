@@ -1,0 +1,222 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD ADMIN SHELL
+   File:    css/7.0_system/dashboard/admin_shell.css
+   Version: 1.0.0
+   Purpose: Global layout, sidebar, and shell navigation for the admin portal.
+============================================================================= */
+
+.admin-dashboard-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) var(--space-6);
+    background-color: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.admin-header h1 {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    margin: 0;
+    color: var(--color-bg-primary);
+}
+
+.admin-logout-btn {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: var(--border-width-thin) solid var(--color-text-primary);
+    padding: var(--space-1) var(--space-4);
+    border-radius: var(--radius-none);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.admin-logout-btn:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+}
+
+.admin-body-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.admin-sidebar {
+    width: 260px;
+    background-color: var(--color-bg-secondary);
+    border-right: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-6) var(--space-4);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-sidebar h3 {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-2);
+    letter-spacing: 0.05em;
+}
+
+.admin-sidebar h3:first-child {
+    margin-top: 0;
+}
+
+.admin-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-sidebar li {
+    margin-bottom: var(--space-1);
+}
+
+.admin-sidebar a {
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    display: block;
+    padding: var(--space-2) var(--space-2);
+    border-radius: var(--radius-none);
+    transition:
+        background-color 0.2s,
+        color 0.2s;
+}
+
+.admin-sidebar a:hover {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+
+#sidebar-return-link {
+    display: block;
+    margin-top: auto;
+    padding: var(--space-3) var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-top: var(--border-width-thin) solid var(--color-border);
+    transition:
+        color var(--transition-fast),
+        background-color var(--transition-fast);
+}
+
+#sidebar-return-link:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-tertiary);
+}
+
+.admin-canvas {
+    flex: 1;
+    padding: var(--space-8);
+    overflow-y: auto;
+    background-color: var(--color-bg-primary);
+}
+
+.admin-card {
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-none);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    background-color: var(--color-bg-primary);
+    box-shadow: none;
+}
+
+.admin-card h2 {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-4);
+    color: var(--color-text);
+}
+
+.admin-card ul {
+    margin: 0;
+    padding-left: var(--space-4);
+}
+
+.admin-card li {
+    margin-bottom: var(--space-2);
+    font-size: var(--text-base);
+}
+
+.quick-action-btn {
+    display: inline-block;
+    padding: var(--space-1) var(--space-4);
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: var(--border-width-thin) solid var(--color-text-primary);
+    border-radius: var(--radius-none);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-weight: var(--weight-medium);
+    margin-right: var(--space-4);
+    font-size: var(--text-sm);
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.quick-action-btn:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+}
+
+.status-indicator {
+    font-family: var(--font-mono);
+    font-weight: var(--weight-bold);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.status-online {
+    color: var(--color-status-success);
+}
+
+.is-hidden {
+    display: none !important;
+}
+
+.is-visible {
+    display: block !important;
+}
+
+.is-visible-flex {
+    display: flex !important;
+}
+
+.admin-sidebar a.is-active {
+    font-weight: var(--weight-bold);
+    color: var(--color-accent-primary);
+    background-color: var(--color-bg-tertiary);
+}
+
+.admin-full-height {
+    height: 100vh;
+    overflow: hidden;
+}

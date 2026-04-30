@@ -418,7 +418,7 @@ This document provides visual ASCII representations detailing how data physicall
 - `frontend/display_big/ardor_display.js` — Public SVG render (WASM read path)
 - `admin/frontend/edit_modules/edit_diagram.js` — Admin tree editor (API read/write path)
 - `admin/backend/admin_api.py` — GET/PUT endpoints for `parent_id` CRUD
-- `css/elements/ardor_diagram.css` — Shared styles (public SVG + admin tree)
+- `css/3.0_visualizations/ardor.css` — Shared styles (public SVG + admin tree)
 
 ---
 
@@ -1164,7 +1164,7 @@ This document provides visual ASCII representations detailing how data physicall
 - `deployment/mcp.service` — Systemd config for MCP Server
 - `assets/favicon.png` — Website favicon branding
 - `assets/*.png` — Raw source images, portraits, environment shots
-- `css/design_layouts/pdf_export.css` — Print media queries for exporting essays
+- `css/7.0_system/pdf_export.css` — Print media queries for exporting essays
 
 ```text
                  [ External AI Agent ]

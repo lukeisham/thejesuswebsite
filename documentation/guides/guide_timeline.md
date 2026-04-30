@@ -10,7 +10,7 @@ purpose: Visual ASCII representations of the interactive timeline layout, mapped
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/timeline.html`
-- **CSS:** `css/elements/timeline_diagram.css`
+- **CSS:** `css/3.0_visualizations/timeline.css`
 - **JS:** `frontend/display_other/timeline_display.js`
 
 **Standards Reference:** All interactive controls (Zoom, Era Navigation) must adhere to the [UI Standards in guide_style.md §10](file:///Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/guides/guide_style.md).

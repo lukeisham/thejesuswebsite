@@ -1,0 +1,97 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD ADMIN COMPONENTS
+   File:    css/7.0_system/dashboard/admin_components.css
+   Version: 1.0.0
+   Purpose: Shared UI components used across multiple dashboard editor modules.
+============================================================================= */
+
+/* =============================================================================
+   1. TAB-BAR SYSTEM
+============================================================================= */
+
+.admin-tab-bar {
+    display: flex;
+    border-bottom: 2px solid var(--color-border);
+    background-color: var(--color-bg-secondary);
+}
+
+.admin-tab-btn {
+    flex: 1;
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+}
+
+.admin-tab-btn.is-active {
+    color: var(--color-text);
+    font-weight: var(--weight-bold);
+    border-bottom-color: var(--color-accent-primary);
+}
+
+.admin-tab-btn:hover {
+    color: var(--color-text);
+    background-color: var(--color-bg-tertiary);
+}
+
+.admin-tab-content {
+    padding: var(--space-6);
+}
+
+/* =============================================================================
+   2. PROVIDENCE 3-COLUMN EDITOR GRID
+   Source: guide_style.md §18.1, guide_dashboard_appearance.md §0.1
+   column_one (160px):   Action buttons, primary fields
+   column_two (1fr):     Sub-fields, list, metadata
+   column_three (2fr):   Main data entry surface
+============================================================================= */
+
+.providence-editor-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr 2fr;
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
+}
+
+.providence-editor-col-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.providence-editor-col-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.providence-editor-col-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+/* Wireframe-language alias classes (guide_dashboard_appearance.md §0.1) */
+.column-one {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.column-two {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.column-three {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}

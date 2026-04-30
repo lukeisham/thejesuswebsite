@@ -1,0 +1,28 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD EDIT WIKIPEDIA
+   File:    css/4.0_ranked_lists/dashboard/edit_wikipedia.css
+   Version: 1.0.0
+   Purpose: Admin styles for Wikipedia weight and rank override editors.
+============================================================================= */
+
+.rank-input-narrow {
+    width: 80px;
+    padding: var(--space-2);
+    margin-left: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-none);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    text-align: center;
+}
+
+.rank-input-narrow:focus {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+}
+
+.rank-action-btn {
+    margin-top: var(--space-4);
+}

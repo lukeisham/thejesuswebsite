@@ -1,0 +1,47 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD EDIT CHALLENGES
+   File:    css/4.0_ranked_lists/dashboard/edit_challenges.css
+   Version: 1.0.0
+   Purpose: Admin styles for Challenges and Insert Response Popular editors.
+============================================================================= */
+
+.challenge-list-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.challenge-list-row:last-child {
+    border-bottom: none;
+}
+
+.challenge-list-name {
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+}
+
+.challenge-list-actions {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.btn-response-action {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-none);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-response-action:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+    border-color: var(--color-accent-primary);
+}

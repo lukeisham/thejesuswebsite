@@ -10,7 +10,7 @@ purpose: Visual ASCII representations of the interactive map layouts, mapped to 
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/maps.html`, `frontend/pages/maps/map_*.html`
-- **CSS:** `css/elements/map_diagram.css`
+- **CSS:** `css/3.0_visualizations/maps.css`
 - **JS:** `frontend/display_other/maps_display.js`
 
 **Standards Reference:** All map controls (Zoom, Layer Toggles, Era Slider) must adhere to the [UI Standards in guide_style.md §10](file:///Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/guides/guide_style.md).
@@ -198,5 +198,5 @@ Each map is composed of three primary functional layers rendered sequentially.
 
 ### C. Implementation Standards
 - **Coordinate Stability:** Every map view MUST use the same `viewBox` scale. If Judea is a sub-section of Levant, it should use a translated/scaled transform of the parent coordinate space to keep `geo_id` math simple.
-- **Styling:** Do not use inline `fill` or `stroke` in the SVG. Rely on `css/elements/map_diagram.css` classes for the "Antique/Oxblood" aesthetic.
+- **Styling:** Do not use inline `fill` or `stroke` in the SVG. Rely on `css/3.0_visualizations/maps.css` classes for the "Antique/Oxblood" aesthetic.
 - **Node Injection:** `maps_display.js` must search for the `#node-layer` container and append SVG `<circle>` or `<use>` elements dynamically.

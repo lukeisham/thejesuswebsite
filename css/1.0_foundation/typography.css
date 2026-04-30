@@ -1,0 +1,688 @@
+/* =============================================================================
+
+   THE JESUS WEBSITE — TYPOGRAPHY & COLOR TOKENS
+   File:    css/1.0_foundation/typography.css
+   Version: 1.1.0
+   Purpose: Universal CSS custom properties (design tokens) for every font
+            scale, color, and spacing value used across the site.
+            All other stylesheets MUST reference these variables — never
+            hard-code a color, font, or spacing value elsewhere.
+   Source:  guide_style.md, vibe_coding_rules.md
+
+   TABLE OF CONTENTS:
+     1.  Google Fonts Import
+     2.  Color Palette
+     3.  Typography: Font Families
+     4.  Typography: Type Scale (Modular)
+     5.  Typography: Font Weight
+     6.  Typography: Line Height & Tracking
+     7.  Spacing Scale (8px Grid)
+     8.  Borders & Radii
+     9.  Shadows
+     10. Animation & Transition Tokens
+     11. Dashboard Color Scheme Overrides
+
+============================================================================= */
+
+/* =============================================================================
+   1. GOOGLE FONTS IMPORT
+   Families: Crimson Pro (essays), EB Garamond (body), Inter (headers), Roboto Mono (metadata)
+   https://fonts.google.com
+============================================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap");
+
+/* =============================================================================
+   2. COLOR PALETTE
+   Source: guide_style.md §4 — "The Living Museum" palette.
+   Backgrounds are warm parchment tones; text is deep charcoal ink.
+   Accent color: Deep Oxblood (#8E3B46) — used for active links and hovers.
+============================================================================= */
+
+:root {
+    /* --- Backgrounds --- */
+    --color-bg-primary: #fcfbf7; /* Soft Parchment  — main page background     */
+    --color-bg-secondary: #f4f2ed; /* Aged Paper      — sidebar, zebra rows       */
+    --color-bg-tertiary: #eceae3; /* Warm Stone      — subtle hover states       */
+
+    /* --- Text --- */
+    --color-text-primary: #242423; /* Charcoal Ink    — body copy, headings       */
+    --color-text-secondary: #5b5b5b; /* Lead Grey       — captions, meta labels     */
+    --color-text-muted: #8a8a88; /* Warm Ash        — placeholder, disabled     */
+    --color-text-inverse: #f4f2ed; /* Parchment       — text on dark surfaces     */
+
+    /* --- Accents --- */
+    --color-accent-primary: #8e3b46; /* Deep Oxblood    — active links, key hover   */
+    --color-accent-hover: #6e2a34; /* Dark Oxblood    — pressed/active-deeper     */
+    --color-accent-muted: #c19098; /* Rose Stone      — secondary highlights      */
+
+    /* --- Borders --- */
+    --color-border: #e0dcd1; /* Clay Stone      — standard dividers         */
+    --color-border-strong: #c8c4ba; /* Dark Clay       — strong emphasis borders   */
+    --color-border-accent: #8e3b46; /* Oxblood         — accent border on hover    */
+    --color-border-inverse: #3a3a38; /* Night Clay      — subtle divider on dark bh */
+
+    /* --- Dashboard Color Scheme — see §11 for .dashboard scope override --- */
+    --color-dash-bg: #121212; /* Inkpot Dark     — admin background          */
+    --color-dash-accent: #d4af37; /* Antique Gold    — admin active elements     */
+    --color-dash-surface: #1e1e1e; /* Dark Surface    — cards, panels             */
+    --color-dash-text: #e8e6df; /* Off-White Ink   — primary admin text        */
+    --color-dash-text-muted: #909090; /* Medium Grey     — secondary admin text      */
+    --color-dash-surface-hover: #2a2a28; /* Dark Hover      — hover state for dark-surface */
+    --color-dash-text-muted-soft: #707070; /* Softer Grey     — muted/placeholder on dark bg */
+    --color-dash-border-strong: #444444; /* Night Border    — emphasis borders on dark bg   */
+
+    /* --- Utility / Status --- */
+    --color-status-success: #2e7d32; /* Blueprint Green — success highlights     */
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --color-transparent: transparent;
+
+    /* ===========================================================================
+       3. TYPOGRAPHY: FONT FAMILIES
+       Source: guide_style.md §3
+       - Body:      EB Garamond — serif, manuscript feel
+       - Essay:     Crimson Pro — premium reading serif for long-form
+       - Headers:   Inter       — clean, authoritative sans-serif
+       - Monospace: Roboto Mono — precision metadata, dates, IDs
+    =========================================================================== */
+
+    --font-body: "EB Garamond", Georgia, "Times New Roman", serif;
+    --font-essay: "Crimson Pro", "EB Garamond", Georgia, serif;
+    --font-heading: "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: "Roboto Mono", "Courier New", Courier, monospace;
+
+    /* ===========================================================================
+       4. TYPOGRAPHY: TYPE SCALE (Modular — base 18px, ratio ~1.25)
+       All sizes expressed in rem so users can scale with browser settings.
+       Base (1rem) = 18px for optimal reading of a serif body font.
+    =========================================================================== */
+
+    --text-xs: 0.694rem; /* ~12.5px — fine print, footnotes            */
+    --text-sm: 0.833rem; /* ~15px   — captions, MLA citations          */
+    --text-base: 1rem; /* ~18px   — body copy (EB Garamond)          */
+    --text-md: 1.125rem; /* ~20px   — lead paragraph, emphasis         */
+    --text-lg: 1.25rem; /* ~22.5px — list titles, sub-headings        */
+    --text-xl: 1.5rem; /* ~27px   — H3                               */
+    --text-2xl: 1.875rem; /* ~33.75px— H2                               */
+    --text-3xl: 2.25rem; /* ~40.5px — H1 supplementary                */
+    --text-4xl: 3rem; /* ~54px   — Hero/landing display titles      */
+
+    /* ===========================================================================
+       5. TYPOGRAPHY: FONT WEIGHT
+    =========================================================================== */
+
+    --weight-light: 300;
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+
+    /* ===========================================================================
+       6. TYPOGRAPHY: LINE HEIGHT & LETTER SPACING
+       Source: guide_style.md §3 — "tight tracking" for headers
+    =========================================================================== */
+
+    --line-height-tight: 1.2; /* Headers, display titles                    */
+    --line-height-snug: 1.4; /* Sub-headings, list labels                  */
+    --line-height-base: 1.7; /* Body copy — optimal for serif readability  */
+    --line-height-relaxed: 1.9; /* Essay/long-form body text                  */
+
+    --tracking-tight: -0.02em; /* Inter headers — tight modern feel          */
+    --tracking-normal: 0em; /* Default                                    */
+    --tracking-wide: 0.04em; /* Monospace metadata labels                  */
+    --tracking-widest: 0.1em; /* Small-caps category labels                 */
+
+    /* ===========================================================================
+       7. SPACING SCALE (8px Grid)
+       Source: guide_style.md §5 — "all margins and padding must be multiples of 8"
+       Named t-shirt sizes for consistent token usage.
+    =========================================================================== */
+
+    --space-1: 0.5rem; /* 8px  */
+    --space-2: 1rem; /* 16px */
+    --space-3: 1.5rem; /* 24px */
+    --space-4: 2rem; /* 32px */
+    --space-5: 2.5rem; /* 40px */
+    --space-6: 3rem; /* 48px */
+    --space-8: 4rem; /* 64px */
+    --space-10: 5rem; /* 80px */
+    --space-12: 6rem; /* 96px */
+    --space-16: 8rem; /* 128px */
+
+    /* ===========================================================================
+       8. BORDERS & RADII
+       Source: guide_style.md — "minimal ornamentation"; 1px borders, no rounding
+    =========================================================================== */
+
+    --border-width-thin: 1px;
+    --border-width-base: 2px;
+
+    /* Radii intentionally minimal — this is an archival site, not an app */
+    --radius-none: 0px;
+    --radius-sm: 2px; /* Only for very subtle rounding on tags       */
+    --radius-base: 4px; /* Soft cards if needed                        */
+
+    /* ===========================================================================
+       9. SHADOWS
+       Minimal, used only for floating elements (Ardor nodes, picture frames).
+    =========================================================================== */
+
+    --shadow-none: none;
+    --shadow-sm: 0 1px 3px rgba(36, 36, 35, 0.08);
+    --shadow-base: 0 2px 8px rgba(36, 36, 35, 0.1);
+    --shadow-md: 0 4px 16px rgba(36, 36, 35, 0.12);
+
+    /* ===========================================================================
+       10. ANIMATION & TRANSITION TOKENS
+       Subtle: 150ms–250ms for micro-interactions.
+    =========================================================================== */
+
+    --transition-fast: 150ms ease;
+    --transition-base: 200ms ease;
+    --transition-slow: 350ms ease;
+
+    /* ===========================================================================
+       11. LAYOUT DIMENSIONS
+       Source: guide_style.md §5 & §6
+       - Content column max: 720px (~75 chars per line, golden ratio principle)
+       - Sidebar width: 280px (guide §6.1)
+    =========================================================================== */
+
+    --sidebar-width: 280px;
+    --content-max-width: 720px;
+    --header-height: 64px; /* 8 × 8px units */
+    --footer-height: 80px;
+}
+
+/* =============================================================================
+   BASE RESET & GLOBAL DEFAULTS
+   Apply the font and color token stack to the document root.
+   Keeps specificity low — component styles build on top.
+============================================================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    /* Set base font size so 1rem = 18px for EB Garamond readability */
+    font-size: 112.5%; /* 18px = 112.5% of browser default 16px */
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    font-weight: var(--weight-regular);
+    line-height: var(--line-height-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================================================
+   HEADING DEFAULTS
+   Inter — clean sans-serif, tight tracking, charcoal ink.
+============================================================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    font-weight: var(--weight-semibold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-text-primary);
+}
+
+h1 {
+    font-size: var(--text-3xl);
+}
+h2 {
+    font-size: var(--text-2xl);
+}
+h3 {
+    font-size: var(--text-xl);
+}
+h4 {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-medium);
+}
+h5 {
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
+}
+h6 {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+}
+
+/* =============================================================================
+   BODY TEXT DEFAULTS
+============================================================================= */
+
+p {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: var(--line-height-base);
+    color: var(--color-text-primary);
+    max-width: var(--content-max-width); /* enforce golden-ratio column */
+}
+
+/* Lead paragraph — slightly larger for opening sentences */
+p.lead {
+    font-size: var(--text-md);
+    line-height: var(--line-height-relaxed);
+}
+
+/* Captions, MLA citations, metadata */
+small,
+.text-sm {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-snug);
+}
+
+/* Monospace metadata labels — IAA IDs, dates, technical references */
+code,
+.text-mono,
+.meta,
+.date,
+.reference {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-text-secondary);
+}
+
+/* =============================================================================
+   LINK DEFAULTS
+   Oxblood accent; no underline by default; underline on hover for readability.
+============================================================================= */
+
+a {
+    color: var(--color-accent-primary);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover,
+a:focus {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 3px;
+    border-radius: var(--radius-none);
+}
+
+/* =============================================================================
+   HORIZONTAL RULE
+   1px clay stone border — minimal, structural.
+============================================================================= */
+
+hr {
+    border: none;
+    border-top: var(--border-width-thin) solid var(--color-border);
+    margin-block: var(--space-4);
+}
+
+/* =============================================================================
+   LISTS
+   Restore sensible indentation stripped by the reset.
+============================================================================= */
+
+ul,
+ol {
+    list-style: none; /* suppress disc/decimal bullets globally */
+    padding-left: var(--space-3);
+}
+
+li {
+    line-height: var(--line-height-snug);
+}
+
+/* =============================================================================
+   11. DASHBOARD COLOR SCHEME SCOPE
+   Source: guide_style.md §18
+   Applied by adding class="dashboard" to the <body> on admin pages.
+   Overrides color tokens for the dashboard color scheme.
+============================================================================= */
+
+.dashboard {
+    --color-bg-primary: var(--color-dash-bg);
+    --color-bg-secondary: var(--color-dash-surface);
+    --color-text-primary: var(--color-dash-text);
+    --color-text-secondary: var(--color-dash-text-muted);
+    --color-accent-primary: var(--color-dash-accent);
+    --color-border: #333333;
+    --color-bg-tertiary: var(--color-dash-surface-hover);
+    --color-text-muted: var(--color-dash-text-muted-soft);
+    --color-border-strong: var(--color-dash-border-strong);
+
+    background-color: var(--color-dash-bg);
+    color: var(--color-dash-text);
+}
+
+/* =============================================================================
+   UTILITY CLASSES
+   Minimal set — only the ones demanded by vibe_coding_rules or guide_style.
+============================================================================= */
+
+/* --- Text align --- */
+.text-left {
+    text-align: left;
+}
+.text-center {
+    text-align: center;
+}
+.text-right {
+    text-align: right;
+}
+
+/* --- Colour helpers --- */
+.text-muted {
+    color: var(--color-text-secondary);
+}
+.text-accent {
+    color: var(--color-accent-primary);
+}
+
+/* --- Font helpers --- */
+.font-body {
+    font-family: var(--font-body);
+}
+.font-serif {
+    font-family: var(--font-body);
+}
+.font-essay {
+    font-family: var(--font-essay);
+}
+.font-heading {
+    font-family: var(--font-heading);
+}
+.font-mono {
+    font-family: var(--font-mono);
+}
+
+/* --- Weight helpers --- */
+.font-medium {
+    font-weight: var(--weight-medium);
+}
+.font-semibold {
+    font-weight: var(--weight-semibold);
+}
+.font-bold {
+    font-weight: var(--weight-bold);
+}
+
+/* --- Visibility --- */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* =============================================================================
+   12. ICONOGRAPHY
+   Source: guide_style.md §15 — "1px thin-line strokes, zero fills"
+   All inline SVGs used as UI icons must use the .icon class.
+   Diagram SVGs (timeline, ardor, map) have their own component stylesheets
+   and are exempt from these rules.
+============================================================================= */
+
+/* Base icon wrapper — forces consistent sizing and token alignment */
+.icon {
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
+    width: 1em;
+    height: 1em;
+    /* Inherit current text colour so icons follow their parent's colour token */
+    color: currentColor;
+}
+
+/* All <svg> elements that carry the .icon class: enforce thin-line aesthetic */
+.icon svg,
+svg.icon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* No background fill — icons are purely linear */
+    fill: none;
+    /* 1px charcoal stroke — matches border tokens */
+    stroke: currentColor;
+    stroke-width: 1px;
+    /* Square line-caps for the blueprint/technical feel */
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    /* Inherit colour from .icon wrapper */
+    overflow: visible;
+}
+
+/* Accent variant — Oxblood stroke for interactive icon states */
+.icon--accent svg,
+svg.icon--accent {
+    stroke: var(--color-accent-primary);
+}
+
+/* Muted variant — Lead Grey for decorative / disabled icons */
+.icon--muted svg,
+svg.icon--muted {
+    stroke: var(--color-text-muted);
+}
+
+/* Size helpers — multiples of the 8px grid */
+.icon--sm {
+    width: 0.875rem;
+    height: 0.875rem;
+} /* ~14px */
+.icon--md {
+    width: 1.25rem;
+    height: 1.25rem;
+} /* ~20px */
+.icon--lg {
+    width: 1.5rem;
+    height: 1.5rem;
+} /* ~24px */
+
+/* =============================================================================
+   13. SCROLLBARS
+   Source: guide_style.md §15 — "1px charcoal tracks, no rounded caps"
+   Applied globally. Overrides the partial rule in grid.css §4 (.site-sidebar).
+============================================================================= */
+
+/* Firefox — standards-track property */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+}
+
+/* WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 6px; /* Narrow track — 6px ≈ 1px visual weight at normal DPI */
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0; /* Square caps — no rounded ends */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(
+        --color-border-strong
+    ); /* Dark Clay — charcoal feel */
+    border-radius: 0; /* Square caps */
+    border: 1px solid transparent; /* 1px technical precision */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-secondary); /* Lead Grey on hover */
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* =============================================================================
+   14. REGISTRATION MARKS
+   Source: guide_style.md §15 — "1px dashed Oxblood cut marks on
+   high-emphasis containers"
+   Apply .has-registration-mark to any container that needs corner cut marks.
+   Uses ::before / ::after pseudo-elements so no extra DOM nodes are required.
+   The marks appear as two crossing dashes at each corner, reminiscent of
+   print registration / crop marks in a technical blueprint.
+============================================================================= */
+
+/* Token for mark size — 8px = 1 grid unit */
+:root {
+    --reg-mark-size: 8px;
+    --reg-mark-gap: 4px; /* Gap between corner of element and start of mark */
+}
+
+.has-registration-mark {
+    position: relative; /* Establish stacking context for pseudo-elements */
+}
+
+/* Top-left and bottom-right corners */
+.has-registration-mark::before,
+.has-registration-mark::after {
+    content: "";
+    position: absolute;
+    /* 1px dashed Oxblood — the accent border token */
+    border: var(--border-width-thin) dashed var(--color-accent-primary);
+    /* Width/height of the L-shaped cross arm */
+    width: var(--reg-mark-size);
+    height: var(--reg-mark-size);
+    /* Pointer-events off — purely decorative */
+    pointer-events: none;
+    /* Keep marks above content */
+    z-index: 1;
+}
+
+/* Top-left corner mark */
+.has-registration-mark::before {
+    top: calc(-1 * var(--reg-mark-gap));
+    left: calc(-1 * var(--reg-mark-gap));
+    /* Show only the top and left borders */
+    border-right: none;
+    border-bottom: none;
+}
+
+/* Bottom-right corner mark */
+.has-registration-mark::after {
+    bottom: calc(-1 * var(--reg-mark-gap));
+    right: calc(-1 * var(--reg-mark-gap));
+    /* Show only the bottom and right borders */
+    border-top: none;
+    border-left: none;
+}
+
+/* =============================================================================
+   15. SYSTEM FEEDBACK STATES
+   Source: guide_style.md §15
+   Composable state classes — add to any element to communicate system status.
+   States:
+     .state-loading  — Oxblood pulsing animation (indeterminate progress)
+     .state-success  — Blueprint Green text/border
+     .state-error    — Oxblood alert text/border
+     .state-disabled — Lead Grey, 0.5 opacity, cursor blocked
+   These are intentionally low-specificity so component rules can override.
+============================================================================= */
+
+/* --- Loading keyframe — Oxblood opacity pulse ----------------------------- */
+@keyframes oxblood-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* Loading state — applied to spinners, skeletons, or the element itself */
+.state-loading {
+    color: var(--color-accent-primary); /* Oxblood text */
+    border-color: var(--color-accent-primary);
+    animation: oxblood-pulse 1.4s ease-in-out infinite;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Inline loading label companion — monospace, uppercase */
+.state-loading__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-accent-primary);
+    animation: oxblood-pulse 1.4s ease-in-out infinite;
+}
+
+/* --- Success state -------------------------------------------------------- */
+.state-success {
+    color: var(--color-status-success); /* Blueprint Green */
+    border-color: var(--color-status-success);
+}
+
+.state-success__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-status-success);
+}
+
+/* --- Error state ---------------------------------------------------------- */
+.state-error {
+    color: var(--color-accent-primary); /* Deep Oxblood alert */
+    border-color: var(--color-accent-primary);
+}
+
+.state-error__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-accent-primary);
+}
+
+/* --- Disabled state ------------------------------------------------------- */
+.state-disabled,
+[disabled],
+[aria-disabled="true"] {
+    color: var(--color-text-muted); /* Lead Grey */
+    border-color: var(--color-border);
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    user-select: none;
+}
