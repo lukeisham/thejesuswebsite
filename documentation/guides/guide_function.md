@@ -396,7 +396,7 @@ This document provides visual ASCII representations detailing how data physicall
              v
  +---------------------------------------------------+
  |  Admin Editor: edit_wiki_weights.js               |
- |  (ranks-wikipedia router branch)                  |
+ |  (ranks-wikipedia tab -> loadModule)              |
  |                                                   |
  |  -> Fetches current wikipedia_rank,               |
  |     wikipedia_weight, wikipedia_title,            |
@@ -451,7 +451,7 @@ This document provides visual ASCII representations detailing how data physicall
  +-------------------------------------------------------+
  |  Admin Editor: edit_academic_weights.js               |
  |                edit_popular_weights.js                |
- |  (ranks-challenges router — 2-tab container)          |
+ |  (ranks-challenges tab -> loadModule — 2-tab container)|
  |                                                       |
  |  [ Academic Challenges (Active) ] [ Popular Challenges ] |
  |                                                       |
@@ -669,33 +669,30 @@ This document provides visual ASCII representations detailing how data physicall
 ```text
  +-------------------------------------------------------+
  |        Admin Portal: dashboard_app.js                 |
- |   Routing -> text-news (News Snippet + Sources)       |
- |   Routing -> config-news (direct to Sources tab)      |
+ |   Routing -> text-news (News & Sources tab)           |
  +-------------------------------------------------------+
                          |
-          +--------------+--------------+
-          |                             |
-          v                             v
- +--------------------------+  +--------------------------+
- | text-news branch         |  | config-news branch       |
- | (2-tab container)        |  | (direct single-pane)    |
- |                          |  |                          |
- | [ News Snippet (Active) ]|  | renderEditNewsSources(   |
- | [ News Sources        ]  |  |   "admin-canvas")        |
- +-----------+--------------+  +-------------+------------+
-             |                                |
-    +--------+--------+              +---------+
-    |                  |              |
-    v                  v              v
- +----------+  +-------------+  +----------+
- | News     |  | News        |  | News     |
- | Snippet  |  | Sources     |  | Sources  |
- | tab      |  | tab         |  | (direct) |
- | (loaded  |  | (lazy-      |  |          |
- | first)   |  | loaded)     |  |          |
- +-----+----+  +------+------+  +-----+----+
-       |              |               |
-       v              v               v
+                         v
+ +--------------------------+
+ | text-news branch         |
+ | (2-tab container)        |
+ |                          |
+ | [ News Snippet (Active) ]|
+ | [ News Sources        ]  |
+ +-----------+--------------+
+             |
+    +--------+--------+
+    |                  |
+    v                  v
+ +----------+  +-------------+
+ | News     |  | News        |
+ | Snippet  |  | Sources     |
+ | tab      |  | tab         |
+ | (loaded  |  | (lazy-      |
+ | first)   |  | loaded)     |
+ +-----+----+  +------+------+
+       |              |
+       v              v
  +-------------------------------------------------------+
  |  edit_news_snippet.js              edit_news_sources.js |
  |                                                       |
@@ -737,13 +734,7 @@ This document provides visual ASCII representations detailing how data physicall
 ```text
  +-------------------------------------------------------+
  |        Admin Portal: dashboard_app.js                 |
- |   Routing -> text-blog (Blog Posts)                   |
- +-------------------------------------------------------+
-                         |
-                         v
- +-------------------------------------------------------+
- |   Middleware: verifyAdminSession()                    |
- |   (redirects to login if invalid)                     |
+ |   Routing -> text-blog (Blog Posts tab)               |
  +-------------------------------------------------------+
                          |
                          v
@@ -851,14 +842,17 @@ This document provides visual ASCII representations detailing how data physicall
 
 ```text
  +-------------------------------------------------------------+
- |             Browser Action (e.g. Load 'Records')            |
+ |   Browser loads dashboard.html                              |
  +-------------------------------------------------------------+
                                 |
                                 v
  +-------------------------------------------------------------+
- |  JS: load_middleware.js   -- (GET /api/admin/verify) --+    |
- +--------------------------------------------------------|----+
-                                                          v
+ |  JS: dashboard_auth.js                                      |
+ |  -> Calls window.verifyAdminSession() from load_middleware  |
+ |     (GET /api/admin/verify)                                 |
+ +-------------------------------------------------------------+
+                                |
+                                v
  +-------------------------------------------------------------+
  |                API: verify_token dependency                 |
  |                                                             |
@@ -873,16 +867,12 @@ This document provides visual ASCII representations detailing how data physicall
        (Returns 200 OK)                   (Returns 401 Unauth)
              |                                     |
              v                                     v
- +------------------------+              +---------------------+
- | JS: Proceed with       |              | Trigger:            |
- | Module Load sequence   |              | logout_middleware.js|
- +------------------------+              +---------------------+
-                                                   |
-                                                   v
-                                         +---------------------+
-                                         | Wipe DOM, Redirect  |
-                                         | back to Login Panel |
-                                         +---------------------+
+ +------------------------+              +------------------------------+
+ | dashboard_init.js runs |              | window.location.href =       |
+ | -> renders module tab  |              | '/admin/frontend/admin.html' |
+ |    bar & loads default |              | (redirect — no DOM wipe)     |
+ |    module (records-all)|              +------------------------------+
+ +------------------------+
 ```
 
 #### Authentication Handshake (Login)
@@ -911,64 +901,69 @@ This document provides visual ASCII representations detailing how data physicall
  +------------------------+
              |
              v
- +------------------------+
- |   JS: Transition to    |
- |   Admin Dashboard UI   |
- +------------------------+
+ +-------------------------------------------------------------+
+ |   JS: admin_login.js                                        |
+ |   window.location.href = '/admin/frontend/dashboard.html'   |
+ +-------------------------------------------------------------+
 ```
 
 ### 7.1.1 Dashboard Module Router (loadModule)
 
 ```text
  +-------------------------------------------------------------+
- |   Sidebar Link Clicked (e.g., "Essays", "Responses")       |
- |   data-module="text-essays" | data-module="text-responses"  |
+ |   Tab clicked in #module-tab-bar                            |
+ |   (render_tab_bar.js fires -> window.loadModule(module))    |
+ |   OR: dashboard_init.js calls loadModule("records-all")     |
+ |       on DOMContentLoaded (default view)                    |
+ |   OR: active tab clicked again (refresh — re-renders fresh) |
  +-------------------------------------------------------------+
                           |
                           v
  +-------------------------------------------------------------+
- |   dashboard_app.js :: loadModule(moduleName)                |
- |                                                            |
- |   Middleware Check: verifyAdminSession()                    |
- |   (intercepts all routes — returns to login if invalid)    |
+ |   dashboard_app.js :: loadModule(module)                    |
+ |                                                             |
+ |   -> Updates is-active on #module-tab-bar buttons           |
+ |   -> Routes module name to the correct editor function      |
+ |   (No session check here — done once at page load           |
+ |    by dashboard_auth.js)                                    |
  +-------------------------------------------------------------+
                           |
                           v
  +-------------------------------------------------------------+
  |   Router Branches (if/else chain)                           |
- |                                                            |
- |   records-new    -> window.renderEditRecord("admin-canvas"  |
- |                       , null)                               |
- |   records-edit   -> inline record list + pagination +       |
- |                      search (no editor dispatch)            |
- |   ranks-wikipedia-> window.renderEditWikiWeights(             |
- |                       "admin-canvas")                        |
- |   ranks-challenges-> 2-tab container injected into canvas   |
- |                      (Academic Challenges tab default /      |
- |                       Popular Challenges tab lazy-loaded)    |
- |   lists-resources-> window.renderEditLists("admin-canvas",  |
+ |                                                             |
+ |   records-all    -> inline record list + pagination +       |
+ |                      search                                 |
+ |   records-edit   -> window.renderEditRecord("admin-canvas"  |
+ |                       , recordId)                           |
+ |   lists-ordinary -> window.renderEditLists("admin-canvas",  |
  |                       selectedListName)                     |
- |   ranks-responses-> 2-tab container injected into canvas    |
- |                      (Academic Challenges tab default /      |
- |                       Popular Challenges tab lazy-loaded)    |
  |   records-bulk   -> window.renderBulkUpload("admin-canvas") |
+ |   config-arbor   -> window.renderEditDiagram("admin-canvas")|
+ |   ranks-wikipedia-> window.renderEditWikiWeights(           |
+ |                       "admin-canvas")                       |
+ |   ranks-challenges-> 2-tab container injected into canvas   |
+ |                      (Academic tab default /                |
+ |                       Popular tab lazy-loaded)              |
+ |   ranks-responses-> 2-tab container injected into canvas    |
+ |                      (Academic tab default /                |
+ |                       Popular tab lazy-loaded)              |
  |   text-essays    -> 2-tab container injected into canvas    |
  |                      (Context Essay tab default /           |
  |                       Historiography tab lazy-loaded)       |
  |   text-responses -> window.renderEditResponse("admin-canvas")|
  |   text-news      -> 2-tab container injected into canvas    |
- |                      (News Snippet tab default /             |
- |                       News Sources tab lazy-loaded)          |
- |   text-blog      -> window.renderEditBlogpost(               |
- |                       "admin-canvas")                        |
- |   config-news    -> window.renderEditNewsSources(            |
- |                       "admin-canvas")                        |
- |   *fallback*     -> generic split-pane placeholder          |
+ |                      (News Snippet tab default /            |
+ |                       News Sources tab lazy-loaded)         |
+ |   text-blog      -> window.renderEditBlogpost(              |
+ |                       "admin-canvas")                       |
+ |   system-admin   -> system status view                      |
+ |   *fallback*     -> generic placeholder                     |
  +-------------------------------------------------------------+
                           |
                           v
  +-------------------------------------------------------------+
- |   Editor renders into #admin-canvas (or specific pane ID)   |
+ |   Editor renders into #admin-canvas                         |
  +-------------------------------------------------------------+
 ```
 

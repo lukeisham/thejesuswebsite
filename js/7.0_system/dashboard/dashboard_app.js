@@ -2,14 +2,15 @@
 //
 //   THE JESUS WEBSITE — DASHBOARD APP CONTROLLER
 //   File:    js/7.0_system/dashboard/dashboard_app.js
-//   Version: 1.1.0
+//   Version: 1.3.0
 //   Purpose: Main Dashboard controller, UI router & Sidebar navigation.
 //
 // =============================================================================
 
 // Trigger: 'adminAuthSuccess' custom event dispatched by admin_login.js after successful authentication
-// Function: Renders the full dashboard shell (header, sidebar, canvas) and attaches navigation routing
-// Output: Injects admin interface HTML into the #dashboard-app element and wires all nav links
+// Function: Renders the full dashboard shell (header, nav tab bar, sidebar, canvas) and attaches navigation routing
+// Output: Injects admin interface HTML into the #dashboard-app element and wires all nav links.
+//         Nav tab bar follows the Providence 3-column pattern (guide_dashboard_appearance.md §0.1, §7.1).
 
 function renderDashboardShell() {
   const dashboardApp = document.getElementById("dashboard-app");
@@ -34,12 +35,11 @@ function renderDashboardShell() {
                 <h1>The JesusWebsite Dashboard</h1>
                 <button id="logout-btn" class="admin-logout-btn">Logout</button>
             </header>
-            <nav class="admin-tab-bar">
-                <button class="admin-tab-btn is-active">Records</button>
-                <button class="admin-tab-btn">Lists &amp; Ranks</button>
-                <button class="admin-tab-btn">Text Content</button>
-                <button class="admin-tab-btn">Configuration</button>
-                <button class="admin-tab-btn">Home</button>
+            <nav class="admin-tab-bar" id="main-tab-bar">
+                <button class="admin-tab-btn" data-module="records-edit">Records</button>
+                <button class="admin-tab-btn" data-module="ranks-wikipedia">Lists &amp; Ranks</button>
+                <button class="admin-tab-btn" data-module="text-essays">Text Content</button>
+                <button class="admin-tab-btn" data-module="config-diagrams">Configuration</button>
             </nav>
             <div class="admin-body-layout">
                 <nav class="admin-sidebar" id="admin-sidebar">
@@ -76,8 +76,10 @@ function renderDashboardShell() {
                     <a id="sidebar-return-link" href="/">Return to Site</a>
                 </nav>
                 <main class="admin-canvas" id="admin-canvas">
-                    <!-- Default Dashboard Home — 3-Column Providence Layout -->
-                    <!-- COL 1 (sidebar) is outside the canvas; COL 2 + COL 3 are here -->
+                    <!-- Default Dashboard Home — Providence 3-Column Layout (§7.1) -->
+                    <!-- COL 1 (sidebar) lives outside the canvas in the flex shell;
+                         this grid splits the remaining area into COL 2 + COL 3.
+                         See guide_dashboard_appearance.md §0.1, §7.1 -->
                     <div class="dashboard-home-grid">
                         <!-- COL 2 — System Status -->
                         <div class="column-two">
@@ -107,7 +109,7 @@ function renderDashboardShell() {
                         <div class="column-three">
                             <div class="admin-card">
                                 <h2>Quick Actions</h2>
-                                <div class="mt-4">
+                                <div style="margin-top: var(--space-4);">
                                     <button class="quick-action-btn">Add New Record</button>
                                     <button class="quick-action-btn">Run Sync Pipeline</button>
                                 </div>
@@ -127,7 +129,37 @@ function renderDashboardShell() {
     logoutBtn.addEventListener("click", window.adminLogout);
   }
 
-  // Attach Navigation Events
+  // Attach Navigation Events — Sidebar links
+  // Helper: synchronise main tab bar active state with the loaded module
+  function syncTabBar(moduleName) {
+    var tabBar = document.getElementById("main-tab-bar");
+    if (!tabBar) return;
+    var tabBtns = tabBar.querySelectorAll("[data-module]");
+    // Map module name → the group it belongs to
+    var moduleGroupMap = {
+      "records-new": "records-edit",
+      "records-edit": "records-edit",
+      "records-bulk": "records-edit",
+      "lists-resources": "ranks-wikipedia",
+      "ranks-wikipedia": "ranks-wikipedia",
+      "ranks-challenges": "ranks-wikipedia",
+      "ranks-responses": "ranks-wikipedia",
+      "text-essays": "text-essays",
+      "text-historiography": "text-essays",
+      "text-responses": "text-essays",
+      "text-mla": "text-essays",
+      "text-news": "text-essays",
+      "text-blog": "text-essays",
+      "config-diagrams": "config-diagrams",
+      "config-news": "config-diagrams",
+    };
+    var group = moduleGroupMap[moduleName] || moduleName;
+    tabBtns.forEach(function (b) {
+      b.classList.toggle("is-active", b.getAttribute("data-module") === group);
+    });
+  }
+
+  // Attach Navigation Events — Sidebar links
   const sidebarLinks = dashboardApp.querySelectorAll(".admin-sidebar a");
   sidebarLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
@@ -138,11 +170,33 @@ function renderDashboardShell() {
       // Toggle active class instead of inline fontWeight
       sidebarLinks.forEach((l) => l.classList.remove("is-active"));
       e.target.classList.add("is-active");
+      syncTabBar(moduleName);
     });
   });
 
-  // Default to Single Record Layout (§2.2) on login
-  loadModule("records-edit");
+  // Attach Navigation Events — Main tab bar
+  const tabBar = document.getElementById("main-tab-bar");
+  if (tabBar) {
+    tabBar.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-module]");
+      if (!btn) return;
+
+      var moduleName = btn.getAttribute("data-module");
+      if (!moduleName) return;
+
+      // Update active state on all tab buttons
+      this.querySelectorAll("[data-module]").forEach(function (b) {
+        b.classList.remove("is-active");
+      });
+      btn.classList.add("is-active");
+
+      loadModule(moduleName);
+    });
+  }
+
+  // Default to Dashboard Home (§7.1) on login — no loadModule call needed
+  // as the home template is already rendered in the canvas above.
+  // Users navigate to other sections via the nav tab bar or sidebar.
 }
 
 async function loadModule(moduleName) {
@@ -188,6 +242,9 @@ async function loadModule(moduleName) {
     window.renderEditRecord("admin-canvas", null);
     return;
   }
+
+  // Sync main tab bar to reflect current module
+  syncTabBar(moduleName);
 
   if (moduleName === "records-edit") {
     canvas.innerHTML =
@@ -789,40 +846,31 @@ async function loadModule(moduleName) {
   }
 
   // Module router placeholder (waiting for tasks 25-27)
-  // Module mockup with Split-Pane and Action Bar (Technical Blueprint Verification)
+  // Uses Providence 3-column grid (guide_dashboard_appearance.md §0.1)
   canvas.innerHTML = `
-        <div class="admin-module-header">
-            <h2>Editing Module: ${moduleName}</h2>
-            <p class="text-sm text-muted">Technical Ledger Interface — Split Pane Active</p>
+    <div class="admin-card">
+      <div class="providence-editor-grid">
+        <div class="providence-editor-col-actions">
+          <h3 class="text-muted" style="font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em;">Actions</h3>
+          <button class="quick-action-btn" disabled>Save Changes</button>
+          <button class="quick-action-btn" disabled>Discard</button>
         </div>
-
-        <div class="admin-editor-split">
-            <div class="admin-editor-pane">
-                <h3>Data Entry (Mono)</h3>
-                <label>Title</label>
-                <input type="text" value="Sample Record Title" placeholder="Enter title...">
-
-                <label class="mt-4">Slug</label>
-                <input type="text" value="sample-record-slug" placeholder="Enter slug...">
-
-                <label class="mt-4">Content (Markdown)</label>
-                <textarea class="editor-textarea">## Introduction\n\nThe historical evidence for this record suggests...</textarea>
-            </div>
-
-            <div class="admin-preview-pane">
-                <h3>Live Preview</h3>
-                <div class="preview-content">
-                    <h2 class="font-serif">Sample Record Title</h2>
-                    <p class="font-body">The historical evidence for this record suggests...</p>
-                </div>
-            </div>
+        <div class="providence-editor-col-list">
+          <h3 class="text-muted" style="font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em;">Module: ${moduleName}</h3>
+          <p class="text-sm text-muted">Fields pending implementation</p>
+          <dl class="system-meta">
+            <dt>Status:</dt>
+            <dd>Placeholder</dd>
+            <dt>Layout:</dt>
+            <dd>Providence Grid</dd>
+          </dl>
         </div>
-
-        <footer class="admin-action-bar">
-            <button class="btn-outline">Discard Changes</button>
-            <button class="btn-primary">Save to Database</button>
-        </footer>
-    `;
+        <div class="providence-editor-col-editor">
+          <p class="text-sm text-muted">Select a module from the sidebar to begin editing.</p>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 // Expose loadModule globally so renderTabBar and other modules can navigate

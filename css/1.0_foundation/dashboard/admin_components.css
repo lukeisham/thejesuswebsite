@@ -1,7 +1,7 @@
 /* =============================================================================
    THE JESUS WEBSITE — DASHBOARD ADMIN COMPONENTS
-   File:    css/7.0_system/dashboard/admin_components.css
-   Version: 1.0.0
+   File:    css/1.0_foundation/dashboard/admin_components.css
+   Version: 1.1.0
    Purpose: Shared UI components used across multiple dashboard editor modules.
 ============================================================================= */
 
@@ -11,7 +11,7 @@
 
 .admin-tab-bar {
     display: flex;
-    border-bottom: 2px solid var(--color-border);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
     background-color: var(--color-bg-secondary);
 }
 
@@ -30,13 +30,13 @@
 }
 
 .admin-tab-btn.is-active {
-    color: var(--color-text);
+    color: var(--color-text-primary);
     font-weight: var(--weight-bold);
     border-bottom-color: var(--color-accent-primary);
 }
 
 .admin-tab-btn:hover {
-    color: var(--color-text);
+    color: var(--color-text-primary);
     background-color: var(--color-bg-tertiary);
 }
 
