@@ -134,8 +134,8 @@ def main():
     with open(MODULE_FILE, 'r') as f:
         content = f.read()
 
-    # Extract blocks
-    blocks = re.findall(r'\*\*Files to create Structure:\*\*\s*```\w*\n(.*?)\n```', content, re.DOTALL)
+    # Extract blocks - handle both old and new headers
+    blocks = re.findall(r'\*\*(?:Files to create Structure|Supporting Files [^:]+):\*\*\s*```\w*\n(.*?)\n```', content, re.DOTALL)
     
     all_paths = []
     for block in blocks:
@@ -164,8 +164,11 @@ def main():
     site_content = re.sub(r'version:\s*([0-9\.]+)', parse_version, site_content)
     
     # Replace the Master Site Map tree
-    # Assumes the tree is between ```text and ```
-    new_site_content = re.sub(r'```text\n.*?\n```', tree_text, site_content, flags=re.DOTALL)
+    # Assumes the tree is between ``` (with optional label) and ```
+    if '```text' in site_content:
+        new_site_content = re.sub(r'```text\n.*?\n```', tree_text, site_content, flags=re.DOTALL)
+    else:
+        new_site_content = re.sub(r'```\n.*?\n```', tree_text, site_content, flags=re.DOTALL)
     
     with open(SITE_FILE, 'w') as f:
         f.write(new_site_content)

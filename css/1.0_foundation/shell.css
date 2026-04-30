@@ -1,0 +1,148 @@
+/* =============================================================================
+   THE JESUS WEBSITE — SHELL & STRUCTURAL COMPONENTS
+   File:    css/1.0_foundation/shell.css
+   Version: 1.0.0
+   Purpose: Global layout foundations, scrollbars, registration marks, 
+            and structural utility classes.
+   Source:  typography.css (extracted)
+============================================================================= */
+
+:root {
+    /* ===========================================================================
+       1. LAYOUT DIMENSIONS
+       Source: guide_style.md §5 & §6
+       - Content column max: 720px (~75 chars per line, golden ratio principle)
+       - Sidebar width: 280px (guide §6.1)
+    =========================================================================== */
+    --sidebar-width: 280px;
+    --content-max-width: 720px;
+    --header-height: 64px; /* 8 × 8px units */
+    --footer-height: 80px;
+
+    /* Registration mark tokens */
+    --reg-mark-size: 8px;
+    --reg-mark-gap: 4px; /* Gap between corner of element and start of mark */
+}
+
+/* =============================================================================
+   2. BASE RESET & GLOBAL DEFAULTS
+   Universal box-sizing and margin/padding reset.
+============================================================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* =============================================================================
+   3. HORIZONTAL RULE
+   1px clay stone border — minimal, structural.
+============================================================================= */
+
+hr {
+    border: none;
+    border-top: var(--border-width-thin) solid var(--color-border);
+    margin-block: var(--space-4);
+}
+
+/* =============================================================================
+   4. UTILITY CLASSES: TEXT ALIGN
+   Layout-related alignment helpers.
+============================================================================= */
+
+.text-left {
+    text-align: left;
+}
+.text-center {
+    text-align: center;
+}
+.text-right {
+    text-align: right;
+}
+
+/* =============================================================================
+   5. SCROLLBARS
+   Source: guide_style.md §15 — "1px charcoal tracks, no rounded caps"
+   Applied globally.
+============================================================================= */
+
+/* Firefox — standards-track property */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+}
+
+/* WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 6px; /* Narrow track — 6px ≈ 1px visual weight at normal DPI */
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0; /* Square caps — no rounded ends */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(
+        --color-border-strong
+    ); /* Dark Clay — charcoal feel */
+    border-radius: 0; /* Square caps */
+    border: 1px solid transparent; /* 1px technical precision */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-secondary); /* Lead Grey on hover */
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* =============================================================================
+   6. REGISTRATION MARKS
+   Source: guide_style.md §15 — "1px dashed Oxblood cut marks on
+   high-emphasis containers"
+   Apply .has-registration-mark to any container that needs corner cut marks.
+============================================================================= */
+
+.has-registration-mark {
+    position: relative; /* Establish stacking context for pseudo-elements */
+}
+
+/* Top-left and bottom-right corners */
+.has-registration-mark::before,
+.has-registration-mark::after {
+    content: "";
+    position: absolute;
+    /* 1px dashed Oxblood — the accent border token */
+    border: var(--border-width-thin) dashed var(--color-accent-primary);
+    /* Width/height of the L-shaped cross arm */
+    width: var(--reg-mark-size);
+    height: var(--reg-mark-size);
+    /* Pointer-events off — purely decorative */
+    pointer-events: none;
+    /* Keep marks above content */
+    z-index: 1;
+}
+
+/* Top-left corner mark */
+.has-registration-mark::before {
+    top: calc(-1 * var(--reg-mark-gap));
+    left: calc(-1 * var(--reg-mark-gap));
+    /* Show only the top and left borders */
+    border-right: none;
+    border-bottom: none;
+}
+
+/* Bottom-right corner mark */
+.has-registration-mark::after {
+    bottom: calc(-1 * var(--reg-mark-gap));
+    right: calc(-1 * var(--reg-mark-gap));
+    /* Show only the bottom and right borders */
+    border-top: none;
+    border-left: none;
+}

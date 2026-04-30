@@ -1,0 +1,34 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD TYPOGRAPHY & COLOR TOKENS
+   File:    css/7.0_system/dashboard/admin_typography.css
+   Version: 1.0.0
+   Purpose: Universal CSS custom properties (design tokens) specifically for 
+            the admin dashboard environment.
+============================================================================= */
+
+:root {
+    /* --- Dashboard Color Scheme --- */
+    --color-dash-bg: #121212; /* Inkpot Dark     — admin background          */
+    --color-dash-accent: #d4af37; /* Antique Gold    — admin active elements     */
+    --color-dash-surface: #1e1e1e; /* Dark Surface    — cards, panels             */
+    --color-dash-text: #e8e6df; /* Off-White Ink   — primary admin text        */
+    --color-dash-text-muted: #909090; /* Medium Grey     — secondary admin text      */
+    --color-dash-surface-hover: #2a2a28; /* Dark Hover      — hover state for dark-surface */
+    --color-dash-text-muted-soft: #707070; /* Softer Grey     — muted/placeholder on dark bg */
+    --color-dash-border-strong: #444444; /* Night Border    — emphasis borders on dark bg   */
+}
+
+.dashboard {
+    --color-bg-primary: var(--color-dash-bg);
+    --color-bg-secondary: var(--color-dash-surface);
+    --color-text-primary: var(--color-dash-text);
+    --color-text-secondary: var(--color-dash-text-muted);
+    --color-accent-primary: var(--color-dash-accent);
+    --color-border: #333333;
+    --color-bg-tertiary: var(--color-dash-surface-hover);
+    --color-text-muted: var(--color-dash-text-muted-soft);
+    --color-border-strong: var(--color-dash-border-strong);
+
+    background-color: var(--color-dash-bg);
+    color: var(--color-dash-text);
+}

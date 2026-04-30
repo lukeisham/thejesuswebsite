@@ -31,6 +31,7 @@
 ============================================================================= */
 
 @import url("https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap");
+@import url("./shell.css");
 
 /* =============================================================================
    2. COLOR PALETTE
@@ -62,15 +63,7 @@
     --color-border-accent: #8e3b46; /* Oxblood         — accent border on hover    */
     --color-border-inverse: #3a3a38; /* Night Clay      — subtle divider on dark bh */
 
-    /* --- Dashboard Color Scheme — see §11 for .dashboard scope override --- */
-    --color-dash-bg: #121212; /* Inkpot Dark     — admin background          */
-    --color-dash-accent: #d4af37; /* Antique Gold    — admin active elements     */
-    --color-dash-surface: #1e1e1e; /* Dark Surface    — cards, panels             */
-    --color-dash-text: #e8e6df; /* Off-White Ink   — primary admin text        */
-    --color-dash-text-muted: #909090; /* Medium Grey     — secondary admin text      */
-    --color-dash-surface-hover: #2a2a28; /* Dark Hover      — hover state for dark-surface */
-    --color-dash-text-muted-soft: #707070; /* Softer Grey     — muted/placeholder on dark bg */
-    --color-dash-border-strong: #444444; /* Night Border    — emphasis borders on dark bg   */
+
 
     /* --- Utility / Status --- */
     --color-status-success: #2e7d32; /* Blueprint Green — success highlights     */
@@ -182,32 +175,10 @@
     --transition-base: 200ms ease;
     --transition-slow: 350ms ease;
 
-    /* ===========================================================================
-       11. LAYOUT DIMENSIONS
-       Source: guide_style.md §5 & §6
-       - Content column max: 720px (~75 chars per line, golden ratio principle)
-       - Sidebar width: 280px (guide §6.1)
-    =========================================================================== */
 
-    --sidebar-width: 280px;
-    --content-max-width: 720px;
-    --header-height: 64px; /* 8 × 8px units */
-    --footer-height: 80px;
 }
 
-/* =============================================================================
-   BASE RESET & GLOBAL DEFAULTS
-   Apply the font and color token stack to the document root.
-   Keeps specificity low — component styles build on top.
-============================================================================= */
 
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
 
 html {
     /* Set base font size so 1rem = 18px for EB Garamond readability */
@@ -336,16 +307,7 @@ textarea:focus-visible,
     border-radius: var(--radius-none);
 }
 
-/* =============================================================================
-   HORIZONTAL RULE
-   1px clay stone border — minimal, structural.
-============================================================================= */
 
-hr {
-    border: none;
-    border-top: var(--border-width-thin) solid var(--color-border);
-    margin-block: var(--space-4);
-}
 
 /* =============================================================================
    LISTS
@@ -362,43 +324,14 @@ li {
     line-height: var(--line-height-snug);
 }
 
-/* =============================================================================
-   11. DASHBOARD COLOR SCHEME SCOPE
-   Source: guide_style.md §18
-   Applied by adding class="dashboard" to the <body> on admin pages.
-   Overrides color tokens for the dashboard color scheme.
-============================================================================= */
 
-.dashboard {
-    --color-bg-primary: var(--color-dash-bg);
-    --color-bg-secondary: var(--color-dash-surface);
-    --color-text-primary: var(--color-dash-text);
-    --color-text-secondary: var(--color-dash-text-muted);
-    --color-accent-primary: var(--color-dash-accent);
-    --color-border: #333333;
-    --color-bg-tertiary: var(--color-dash-surface-hover);
-    --color-text-muted: var(--color-dash-text-muted-soft);
-    --color-border-strong: var(--color-dash-border-strong);
-
-    background-color: var(--color-dash-bg);
-    color: var(--color-dash-text);
-}
 
 /* =============================================================================
    UTILITY CLASSES
    Minimal set — only the ones demanded by vibe_coding_rules or guide_style.
 ============================================================================= */
 
-/* --- Text align --- */
-.text-left {
-    text-align: left;
-}
-.text-center {
-    text-align: center;
-}
-.text-right {
-    text-align: right;
-}
+
 
 /* --- Colour helpers --- */
 .text-muted {
@@ -512,98 +445,7 @@ svg.icon--muted {
     height: 1.5rem;
 } /* ~24px */
 
-/* =============================================================================
-   13. SCROLLBARS
-   Source: guide_style.md §15 — "1px charcoal tracks, no rounded caps"
-   Applied globally. Overrides the partial rule in grid.css §4 (.site-sidebar).
-============================================================================= */
 
-/* Firefox — standards-track property */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-border-strong) transparent;
-}
-
-/* WebKit (Chrome, Safari, Edge) */
-::-webkit-scrollbar {
-    width: 6px; /* Narrow track — 6px ≈ 1px visual weight at normal DPI */
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 0; /* Square caps — no rounded ends */
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: var(
-        --color-border-strong
-    ); /* Dark Clay — charcoal feel */
-    border-radius: 0; /* Square caps */
-    border: 1px solid transparent; /* 1px technical precision */
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-text-secondary); /* Lead Grey on hover */
-}
-
-::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
-/* =============================================================================
-   14. REGISTRATION MARKS
-   Source: guide_style.md §15 — "1px dashed Oxblood cut marks on
-   high-emphasis containers"
-   Apply .has-registration-mark to any container that needs corner cut marks.
-   Uses ::before / ::after pseudo-elements so no extra DOM nodes are required.
-   The marks appear as two crossing dashes at each corner, reminiscent of
-   print registration / crop marks in a technical blueprint.
-============================================================================= */
-
-/* Token for mark size — 8px = 1 grid unit */
-:root {
-    --reg-mark-size: 8px;
-    --reg-mark-gap: 4px; /* Gap between corner of element and start of mark */
-}
-
-.has-registration-mark {
-    position: relative; /* Establish stacking context for pseudo-elements */
-}
-
-/* Top-left and bottom-right corners */
-.has-registration-mark::before,
-.has-registration-mark::after {
-    content: "";
-    position: absolute;
-    /* 1px dashed Oxblood — the accent border token */
-    border: var(--border-width-thin) dashed var(--color-accent-primary);
-    /* Width/height of the L-shaped cross arm */
-    width: var(--reg-mark-size);
-    height: var(--reg-mark-size);
-    /* Pointer-events off — purely decorative */
-    pointer-events: none;
-    /* Keep marks above content */
-    z-index: 1;
-}
-
-/* Top-left corner mark */
-.has-registration-mark::before {
-    top: calc(-1 * var(--reg-mark-gap));
-    left: calc(-1 * var(--reg-mark-gap));
-    /* Show only the top and left borders */
-    border-right: none;
-    border-bottom: none;
-}
-
-/* Bottom-right corner mark */
-.has-registration-mark::after {
-    bottom: calc(-1 * var(--reg-mark-gap));
-    right: calc(-1 * var(--reg-mark-gap));
-    /* Show only the bottom and right borders */
-    border-top: none;
-    border-left: none;
-}
 
 /* =============================================================================
    15. SYSTEM FEEDBACK STATES

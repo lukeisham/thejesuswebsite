@@ -2,7 +2,7 @@
 name: guide_style.md
 purpose: description of visual appearance of the website 
 version: 1.2.0
-dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography_colors.css]
+dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
 # Guide to Visual Appearance

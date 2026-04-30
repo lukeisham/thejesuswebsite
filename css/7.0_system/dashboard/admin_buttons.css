@@ -1,0 +1,100 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD BUTTONS
+   File:    css/7.0_system/dashboard/admin_buttons.css
+   Version: 1.0.0
+   Purpose: Specific styles for interactive UI components used in the admin dashboard.
+============================================================================= */
+
+/* =============================================================================
+   1. GENERIC BUTTON STYLE ("Technical Instruction" Node)
+   Always use sharp corners and Roboto Mono typography.
+============================================================================= */
+
+.btn-primary,
+.btn-outline,
+.footer-btn,
+button:not(.admin-editor-toolbar-btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-none);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+/* Default state: 1px solid border with text color */
+.btn-primary,
+.btn-outline,
+.footer-btn {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: var(--border-width-thin) solid var(--color-text-primary);
+}
+
+/* Hover state: solid accent fill with inverse text */
+.btn-primary:hover,
+.btn-outline:hover,
+.footer-btn:hover {
+    background-color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+    color: var(--color-dash-bg); /* Use dash bg for high contrast */
+    text-decoration: none;
+}
+
+.btn--filled {
+    background-color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+    color: var(--color-dash-bg);
+}
+
+.btn--filled:hover {
+    background-color: var(--color-text-primary); /* Fallback to primary text on hover */
+    border-color: var(--color-text-primary);
+}
+
+/* =============================================================================
+   2. LIST ROW HOVER EFFECT
+   Subtle visual cues for row-based interactions in dashboard lists.
+============================================================================= */
+
+.list-row {
+    transition: background-color var(--transition-fast), border-left-color var(--transition-fast);
+    border-left: 0 solid var(--color-accent-primary);
+}
+
+.list-row:hover {
+    background-color: var(--color-bg-secondary);
+    border-left-width: 4px;
+}
+
+/* =============================================================================
+   3. CARD BADGE LABELS
+   Identifiers: "Response", "Fragment", "Prophecy".
+============================================================================= */
+
+.badge {
+    display: inline-block;
+    padding: 0.125rem 0.375rem;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: var(--weight-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    border-radius: var(--radius-none); /* Unified sharp corners */
+}
+
+.badge--accent {
+    background-color: var(--color-accent-primary);
+    color: var(--color-dash-bg);
+}
+
+.badge--muted {
+    background-color: var(--color-border);
+    color: var(--color-text-secondary);
+}

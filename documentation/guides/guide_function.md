@@ -1,19 +1,17 @@
 ---
 name: guide_function.md
 purpose: Visual ASCII representations of module functions 
-version: 1.7.0
+version: 1.8.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, data_schema.md, detailed_module_sitemap.md]
 ---
 
-# Guide to Module Functions & Data Flow
+# Purpose of this document. 
 
 This document provides visual ASCII representations detailing how data physically flows through the 8 interconnected modules of the application.
 
 ---
 
 ## 1.0 Foundation Module
-**Scope:** Global Grid, Typography, Colors, Shared UI (Sidebar, Header, Footer).  
-**Process:** The structural shell. When a user requests a page, the core styling is applied immediately, followed by JavaScript routines that dynamically inject the universal navigation elements so they do not need to be duplicated across HTML files.
 
 ```text
   [ User Browser Request ]
@@ -46,8 +44,6 @@ This document provides visual ASCII representations detailing how data physicall
 ---
 
 ## 2.0 Records Module
-**Scope:** SQLite Schema, Python Pipelines, Single record views, List views, Search.  
-**Process:** The heart of the site. Data is ingested actively by scripts or admins to the SQLite. The frontend `sql.js` WASM engine then reads this data locally into the browser memory, converting raw SQL rows into either dense single-item views or aggregated list cards.
 
 ```text
   [ Python ETL Pipelines ]                                   [ Admin Portal ]
@@ -70,102 +66,85 @@ This document provides visual ASCII representations detailing how data physicall
              +--------------------------+--------------------------+
              |                          |                          |
              v                          v                          v
-      (2.3 Sanitize)             (2.1 Full Lists)          (2.2 Single Record)
-   [sanitize_query.js]          Loops rows into          Deep data merge view
+       (2.3 Sanitize)             (2.1 Full Lists)          (2.2 Single Record)
+    [sanitize_query.js]          Loops rows into          Deep data merge view
              |                  list-item cards          [json_ld_builder.js]
              v                          |                          |
       (Search Logic)                    v                          v
                                 [ Render to DOM ]           [ SEO Metadata ]
 ```
 
----
-
 ### 2.1 Search Pipeline — End-to-End Logic Flow
-**Purpose:** Documents the complete data path from a user-typed query in the search box through to rendered results on `records.html`.
-
-**Relevant Files (in execution order):**
-- `frontend/display_other/search_header.js`
-- `frontend/pages/records.html`
-- `frontend/core/sanitize_query.js`
-- `frontend/core/setup_db.js`
-- `frontend/display_big/list_view.js`
 
 ```text
-       USER ACTION
- +---------------------+
- | Types query "Peter" |
- | presses [Enter]     |
- +---------------------+
-             |
-             v
- +-------------------------------------------------------------------------+
- | search_header.js                                                        |
- |   > encodeURIComponent("Peter")                                         |
- |   > window.location.href = "/frontend/pages/records.html?search=Peter"  |
- +-------------------------------------------------------------------------+
-             |
-     (browser navigates — full page load)
-             |
-             v
- +-------------------------------------------------------------------------+
- | records.html                                                            |
- |   Loads scripts in exact order:                                         |
- |     1. sql-wasm.js      (Initializes WASM engine)                       |
- |     2. setup_db.js      (Fetches DB arraybuffer, fires 'ready' event)   |
- |     3. list_view.js     (Listens for 'thejesusdb:ready' event)          |
- |     4. initializer.js   (Injects sidebar, search bar UI)                |
- +-------------------------------------------------------------------------+
-             |
-     ('thejesusdb:ready' fires once DB is loaded)
-             |
-             v
- +-------------------------------------------------------------------------+
- | list_view.js                                                            |
- |   > renderListView() is triggered                                       |
- |   > URLSearchParams.get('search') = "Peter"                             |
- |   > Sets page title string: "Search Results: 'Peter'"                   |
- +-------------------------------------------------------------------------+
-             |
-             v
- +-------------------------------------------------------------------------+
- | sanitize_query.js                                                       |
- |   > sanitizeSearchTerm("Peter")                                         |
- |   > Output: "Peter" (strips bad chars, restricts to 200 chars limit)    |
- +-------------------------------------------------------------------------+
-             |
-             v
- +-------------------------------------------------------------------------+
- | setup_db.js                                                             |
- |   > db.searchRecords("Peter", 50)                                       |
- |                                                                         |
- |   Executes Read-Only SQL inside browser:                                |
- |     SELECT id, title, slug, snippet ...                                 |
- |     FROM records                                                        |
- |     WHERE users = 'Public'                                              |
- |       AND (title LIKE '%Peter%' OR snippet LIKE '%Peter%')              |
- |     ORDER BY page_views DESC                                            |
- |     LIMIT 50;                                                           |
- +-------------------------------------------------------------------------+
-             |
-      (returns Array of matching row Objects)
-             |
-             v
- +-------------------------------------------------------------------------+
- | list_view.js                                                            |
- |   > Builds HTML <li> elements for each returned row                     |
- |   > Injects into #record-list DOM container                             |
- |   > Hides standard pagination controls (search bypasses pagination)     |
- +-------------------------------------------------------------------------+
+        USER ACTION
+  +---------------------+
+  | Types query "Peter" |
+  | presses [Enter]     |
+  +---------------------+
+              |
+              v
+  +-------------------------------------------------------------------------+
+  | search_header.js                                                        |
+  |   > encodeURIComponent("Peter")                                         |
+  |   > window.location.href = "/frontend/pages/records.html?search=Peter"  |
+  +-------------------------------------------------------------------------+
+              |
+      (browser navigates — full page load)
+              |
+              v
+  +-------------------------------------------------------------------------+
+  | records.html                                                            |
+  |   Loads scripts in exact order:                                         |
+  |     1. sql-wasm.js      (Initializes WASM engine)                       |
+  |     2. setup_db.js      (Fetches DB arraybuffer, fires 'ready' event)   |
+  |     3. list_view.js     (Listens for 'thejesusdb:ready' event)          |
+  |     4. initializer.js   (Injects sidebar, search bar UI)                |
+  +-------------------------------------------------------------------------+
+              |
+      ('thejesusdb:ready' fires once DB is loaded)
+              |
+              v
+  +-------------------------------------------------------------------------+
+  | list_view.js                                                            |
+  |   > renderListView() is triggered                                       |
+  |   > URLSearchParams.get('search') = "Peter"                             |
+  |   > Sets page title string: "Search Results: 'Peter'"                   |
+  +-------------------------------------------------------------------------+
+              |
+              v
+  +-------------------------------------------------------------------------+
+  | sanitize_query.js                                                       |
+  |   > sanitizeSearchTerm("Peter")                                         |
+  |   > Output: "Peter" (strips bad chars, restricts to 200 chars limit)    |
+  +-------------------------------------------------------------------------+
+              |
+              v
+  +-------------------------------------------------------------------------+
+  | setup_db.js                                                             |
+  |   > db.searchRecords("Peter", 50)                                       |
+  |                                                                         |
+  |   Executes Read-Only SQL inside browser:                                |
+  |     SELECT id, title, slug, snippet ...                                 |
+  |     FROM records                                                        |
+  |     WHERE users = 'Public'                                              |
+  |       AND (title LIKE '%Peter%' OR snippet LIKE '%Peter%')              |
+  |     ORDER BY page_views DESC                                            |
+  |     LIMIT 50;                                                           |
+  +-------------------------------------------------------------------------+
+              |
+       (returns Array of matching row Objects)
+              |
+              v
+  +-------------------------------------------------------------------------+
+  | list_view.js                                                            |
+  |   > Builds HTML <li> elements for each returned row                     |
+  |   > Injects into #record-list DOM container                             |
+  |   > Hides standard pagination controls (search bypasses pagination)     |
+  +-------------------------------------------------------------------------+
 ```
 
----
-
 ### 2.2 Single Record Create / Edit Pipeline
-**Purpose:** Documents the flow for creating a new record or editing an existing one via the Admin Portal form.
-
-**Relevant Files:**
-- `admin/frontend/edit_modules/edit_record.js` — form renderer; delegates picture to `edit_picture.js`, relations to `edit_links.js`
-- `admin/backend/admin_api.py` — `POST /api/admin/records` (create) and `PUT /api/admin/records/{id}` (update)
 
 ```text
  +---------------------------------------------------+
@@ -224,10 +203,7 @@ This document provides visual ASCII representations detailing how data physicall
  +---------------------------------------------------+
 ```
 
----
-
 ### 2.3 Picture Upload Pipeline
-**Purpose:** Documents the flow for uploading, resizing, and compressing PNG images in the Admin Portal.
 
 ```text
  +---------------------------------------------------+
@@ -290,17 +266,7 @@ This document provides visual ASCII representations detailing how data physicall
  +---------------------------------------------------+
 ```
 
----
-
 ### 2.5 Bulk Upload Pipeline
-**Purpose:** Documents the flow for bulk uploading and parsing CSV files to create new records rapidly.
-
-**Expected CSV Schema:**
-- `title` (Required): String (max 200 chars).
-- `slug` (Required): String, unique.
-- Taxonomy Enums (Optional): `era`, `timeline`, `map_label`, `gospel_category`. (Must strictly match `data_schema.md`)
-- `primary_verse` (Optional): JSON array string (e.g. `[{"book":"Genesis","chapter":1,"verse":1}]`).
-- Other matching text fields (e.g., `description`, `snippet`).
 
 ```text
  +---------------------------------------------------+
@@ -356,8 +322,6 @@ This document provides visual ASCII representations detailing how data physicall
 ---
 
 ## 3.0 Visualizations Module
-**Scope:** Evidence (Ardor graph), Timeline (Chronological progression), Map (Geo-spatial).  
-**Process:** A highly specialized display layer. It intercepts specific metadata fields returned by the WASM database (like `era`, `parent_id`, or `geo_label`) and converts them into coordinates on interactive visual canvases. An admin editor API path also writes `parent_id` relationships directly.
 
 ### 3.1 Evidence (Ardor) — Data Flow
 
@@ -371,7 +335,7 @@ This document provides visual ASCII representations detailing how data physicall
                         │   └──────────────┴────────────────┘  │
                         └──────────┬────────────────┬──────────┘
                                    │                │
-                      PUBLIC SIDE  │                │  ADMIN SIDE
+                       PUBLIC SIDE  │                │  ADMIN SIDE
                                    v                v
         ┌──────────────────────────┐    ┌──────────────────────────┐
         │  WASM sql.js             │    │  admin_api.py            │
@@ -414,27 +378,11 @@ This document provides visual ASCII representations detailing how data physicall
         └──────────────────────────┘  └──────────────────────────┘
 ```
 
-**File responsibilities:**
-- `frontend/display_big/ardor_display.js` — Public SVG render (WASM read path)
-- `admin/frontend/edit_modules/edit_diagram.js` — Admin tree editor (API read/write path)
-- `admin/backend/admin_api.py` — GET/PUT endpoints for `parent_id` CRUD
-- `css/3.0_visualizations/ardor.css` — Shared styles (public SVG + admin tree)
-
 ---
 
 ## 4.0 Ranked Lists Module
-**Scope:** Ranked Wikipedia article lists (§4.1), Ranked historical challenge lists (§4.2), Inserting Responses (§4.3).
-**Process:** An algorithmic processing flow. External scripts scrape "popularity" or "importance" metrics. These metrics are combined with Admin Manual Multipliers to produce a final rank, dictating exactly where items appear in standard lists. Wikipedia and Challenges run as separate sub-modules with independent pipelines and admin weight editors. A separate Insert Responses module links authored response content to challenge records.
-
----
 
 ### 4.1 Wikipedia Weights — Data Flow
-**Purpose:** Documents the flow for scraping Wikipedia metrics and applying admin-set multipliers to produce the final Wikipedia rank.
-
-**Relevant Files:**
-- `backend/pipelines/pipeline_wikipedia.py` — scrapes base importance scores
-- `admin/frontend/edit_modules/edit_wiki_weights.js` — admin weight editor (ranks-wikipedia)
-- `admin/backend/admin_api.py` — PUT /api/admin/records/{id} for weight persistence
 
 ```text
  +--------------------------+
@@ -487,17 +435,7 @@ This document provides visual ASCII representations detailing how data physicall
  +---------------------------------------------------+
 ```
 
----
-
 ### 4.2 Challenge Weights — Data Flow
-**Purpose:** Documents the flow for scraping challenge metrics and applying admin-set multipliers across Academic and Popular challenge types, each with its own editor tab.
-
-**Relevant Files:**
-- `backend/pipelines/pipeline_popular_challenges.py` — scrapes popular challenge scores
-- `backend/pipelines/pipeline_academic_challenges.py` — scrapes academic challenge scores
-- `admin/frontend/edit_modules/edit_academic_weights.js` — Academic tab editor
-- `admin/frontend/edit_modules/edit_popular_weights.js` — Popular tab editor (lazy-loaded)
-- `admin/backend/admin_api.py` — PUT /api/admin/records/{id} for weight persistence
 
 ```text
  +----------------------------------+
@@ -561,15 +499,7 @@ This document provides visual ASCII representations detailing how data physicall
  +-------------------------------------------------------+
 ```
 
----
-
 ### 4.3 Inserting Responses — Data Flow
-**Purpose:** Documents the flow for browsing challenge lists from the Admin Portal and linking an authored response to a specific challenge record. Response content is authored in §5.2 and linked here via the `responses` JSON blob.
-
-**Relevant Files:**
-- `admin/frontend/edit_modules/edit_insert_response_academic.js` — Academic Challenges tab
-- `admin/frontend/edit_modules/edit_insert_response_popular.js` — Popular Challenges tab (lazy-loaded)
-- `admin/backend/admin_api.py` — PUT /api/admin/records/{id} for responses linkage
 
 ```text
  +-------------------------------------------------------+
@@ -629,7 +559,8 @@ This document provides visual ASCII representations detailing how data physicall
  | to author        |  |   "response-001" }            |
  | content, then    |  |                               |
  | links back here  |  | -> Removes response link      |
- +------------------+  |    when empty                 |
+ |                  |  |    when empty                 |
+ +------------------+  +-------------------------------+
     |                  +-------------------------------+
     +--------+---------+
              |
@@ -649,8 +580,6 @@ This document provides visual ASCII representations detailing how data physicall
 ---
 
 ## 5.0 Essays & Responses Module
-**Scope:** Context-Essays & Historiography (§5.1), Challenge Responses (§5.2).  
-**Process:** The human-authored content flow. Admins write exclusively in Markdown via an Admin Portal interface. Essays and Responses are separate sub-modules with independent editors and public layouts, but share the same write pipeline and MLA citation system.
 
 ```text
  +---------------------------+       +---------------------------+
@@ -700,11 +629,8 @@ This document provides visual ASCII representations detailing how data physicall
 ---
 
 ## 6.0 News & Blog Module
-**Scope:** News Feed, Blog Feed, Combined Landing Page.  
-**Process:** News content is ingested automatically via a scheduled pipeline, then surfaced on the public feeds. Blog posts are authored directly via the Admin Portal. Both feeds contribute snippets to the combined landing page, which links out to the dedicated full-feed pages.
 
 ### 6.1 News Ingestion Pipeline
-**Purpose:** Documents the automated flow for crawling, ranking, and inserting news events into the database.
 
 ```text
              [ Scheduled Job / Manual Trigger ]
@@ -738,15 +664,7 @@ This document provides visual ASCII representations detailing how data physicall
  +-------------------------------------------------------------+
 ```
 
----
-
 ### 6.2 News Articles & Sources — Admin Editor Flow
-**Purpose:** Documents the Admin Portal flow for creating news snippets and managing external news sources. Two tabbed sub-editors write to separate columns on the record.
-
-**Relevant Files:**
-- `admin/frontend/edit_modules/edit_news_snippet.js` — News Snippet tab editor
-- `admin/frontend/edit_modules/edit_news_sources.js` — News Sources tab editor
-- `admin/backend/admin_api.py` — POST/PUT endpoints for news_items and news_sources
 
 ```text
  +-------------------------------------------------------+
@@ -814,14 +732,7 @@ This document provides visual ASCII representations detailing how data physicall
  +-------------------------------------------------------+
 ```
 
----
-
 ### 6.3 Blog Posts — Admin Editor Flow
-**Purpose:** Documents the Admin Portal CRUD flow for authoring, editing, and deleting blog posts. Writes to the `blogposts` JSON blob on the record.
-
-**Relevant Files:**
-- `admin/frontend/edit_modules/edit_blogpost.js` — blog post editor
-- `admin/backend/admin_api.py` — GET /api/admin/blogposts, PUT /api/admin/records/{id}, DELETE /api/admin/records/{id}/blogpost
 
 ```text
  +-------------------------------------------------------+
@@ -908,8 +819,6 @@ This document provides visual ASCII representations detailing how data physicall
 ---
 
 ## 7.0 System Module
-**Scope:** Initial setup, Agent instructions (`.agent`), backend API management, and VPS deployment.    
-**Process:** The DevOps backbone governing how the different services talk to each other on the server. Nginx routes traffic either to static HTML assets, to the secure Admin API, or to the read-only Agent API. It serves as the **primary active security layer**, implementing robust session handling, authentication, and rate limiting to protect the application's data and admin interfaces.
 
 ```text
     [ External Web Traffic ]               [ Automated AI Agents ]
@@ -939,7 +848,6 @@ This document provides visual ASCII representations detailing how data physicall
 ```
 
 ### 7.1 Admin Portal
-**Process:** The secure handshake between the client and the server using JWT-over-Cookie transport. A frontend middleware intercepts all dashboard actions to verify session validity via the backend.
 
 ```text
  +-------------------------------------------------------------+
@@ -1010,7 +918,6 @@ This document provides visual ASCII representations detailing how data physicall
 ```
 
 ### 7.1.1 Dashboard Module Router (loadModule)
-**Purpose:** Routes sidebar navigation clicks to the correct admin editor functions. Defined in `dashboard_app.js` as the `loadModule(moduleName)` async function.
 
 ```text
  +-------------------------------------------------------------+
@@ -1065,58 +972,7 @@ This document provides visual ASCII representations detailing how data physicall
  +-------------------------------------------------------------+
 ```
 
-**text-essays router case details:**
-- Injects a tabbed `admin-card` container with **Context Essay** (default active) and **Historiography** tabs
-- Calls `window.renderEditEssay("tab-content-essay")` immediately on load
-- Lazy-loads `window.renderEditHistoriography("tab-content-historiography")` on first Historiography tab click
-- Tab switching uses event delegation (`document.getElementById("essays-tab-bar").addEventListener("click", ...)`) — no inline `onclick` handlers
-- Pane visibility toggled via the `.is-hidden` CSS class
-
-**text-responses router case details:**
-- Direct single-pane call to `window.renderEditResponse("admin-canvas")`
-- Protected by a `typeof` guard to verify the function exists before calling
-
-**text-news router case details:**
-- Injects a tabbed `admin-card` container with **News Snippet** (default active) and **News Sources** tabs
-- Calls `window.renderEditNewsSnippet("tab-content-news-snippet")` immediately on load
-- Lazy-loads `window.renderEditNewsSources("tab-content-news-sources")` on first News Sources tab click
-- Tab switching uses event delegation (`document.getElementById("news-tab-bar").addEventListener("click", ...)`) — no inline `onclick` handlers
-- Pane visibility toggled via the `.is-hidden` CSS class (all panes hidden first, then selected pane shown)
-
-**text-blog router case details:**
-- Direct single-pane call to `window.renderEditBlogpost("admin-canvas")`
-- Protected by a `typeof` guard to verify the function exists before calling
-
-**config-news router case details:**
-- Direct single-pane call to `window.renderEditNewsSources("admin-canvas")`
-- Protected by a `typeof` guard to verify the function exists before calling
-
-**ranks-wikipedia router case details:**
-- Direct single-pane call to `window.renderEditWikiWeights("admin-canvas")`
-- Protected by a `typeof` guard to verify the function exists before calling
-
-**ranks-challenges router case details:**
-- Injects a tabbed `admin-card` container with **Academic Challenges** (default active) and **Popular Challenges** tabs
-- Calls `window.renderEditAcademicWeights("tab-content-ranks-challenges-academic")` immediately on load
-- Lazy-loads `window.renderEditPopularWeights("tab-content-ranks-challenges-popular")` on first Popular Challenges tab click
-- Tab switching uses event delegation (`document.getElementById("ranks-challenges-tab-bar").addEventListener("click", ...)`) — no inline `onclick` handlers
-- Pane visibility toggled via the `.is-hidden` CSS class (all panes hidden first, then selected pane shown)
-
-**ranks-responses router case details:**
-- Injects a tabbed `admin-card` container with **Academic Challenges** (default active) and **Popular Challenges** tabs
-- Calls `window.renderEditInsertResponseAcademic("tab-content-ranks-responses-academic")` immediately on load
-- Lazy-loads `window.renderEditInsertResponsePopular("tab-content-ranks-responses-popular")` on first Popular Challenges tab click
-- Tab switching uses event delegation (`document.getElementById("ranks-responses-tab-bar").addEventListener("click", ...)`) — no inline `onclick` handlers
-- Pane visibility toggled via the `.is-hidden` CSS class (all panes hidden first, then selected pane shown)
-
-
 ### 7.2 Agent Logic & Instructional Prompts
-**Purpose:** Documents how AI agents are guided via configuration files and instructional prompts to interact correctly with the codebase.
-
-**Relevant Files:**
-- `.agent/` — Agent workflow definitions and skill templates
-- `assets/ai-instructions.txt` — Specialized guidance for LLM crawlers
-- `README.md` — Project overview and setup instructions for agents
 
 ```text
                [ AI Agent / LLM Crawler ]
@@ -1147,24 +1003,7 @@ This document provides visual ASCII representations detailing how data physicall
  +-------------------------------------------------------------+
 ```
 
----
-
 ### 7.3 Backend API, MCP Server & VPS Config
-**Purpose:** Documents the core configuration, read-only external API, Python dependencies, web server setup, and production deployment automation.
-
-**Relevant Files:**
-- `mcp_server.py` — Exposes read-only API to external agents
-- `requirements.txt` — Python dependencies (FastAPI, JWT, etc)
-- `nginx.conf` — Global Web server and SSL/Proxy config
-- `.gitignore` — Ensures secrets aren't committed to GitHub
-- `LICENCE` — Open Use Licencing with attribution requirement
-- `deployment/deploy.sh` — Pull from GitHub and restart services
-- `deployment/ssl_renew.sh` — Automates SSL certificate renewal
-- `deployment/admin.service` — Systemd config for Admin API
-- `deployment/mcp.service` — Systemd config for MCP Server
-- `assets/favicon.png` — Website favicon branding
-- `assets/*.png` — Raw source images, portraits, environment shots
-- `css/7.0_system/pdf_export.css` — Print media queries for exporting essays
 
 ```text
                  [ External AI Agent ]
@@ -1190,15 +1029,7 @@ This document provides visual ASCII representations detailing how data physicall
                 [ Agent Context Window ]
 ```
 
----
-
 ### 7.3.1 URL Slug Rewriting Architecture
-**Purpose:** Documents the clean-slug URL rewriting layer that maps human-readable URLs (like `/records`, `/record/jesus-baptism`) to their real filesystem paths (`/frontend/pages/records.html`) via nginx rewrites and FastAPI route fallbacks, while keeping all assets loading correctly through `<base>` tags.
-
-**Relevant Files:**
-- `nginx.conf` — Nginx rewrite rules mapping clean slugs to filesystem paths
-- `serve_all.py` — FastAPI route handlers that serve clean slugs as fallback
-- `frontend/pages/*.html` — All HTML pages, each with a `<base>` tag for asset resolution
 
 ```text
                [ Browser Address Bar ]
@@ -1239,22 +1070,7 @@ This document provides visual ASCII representations detailing how data physicall
                               (retained for 6 months)
 ```
 
-**Key design decisions:**
-- **Path-based records:** URLs like `/record/jesus-baptism` use the slug as a path segment, not a query parameter. The nginx named-capture rule (`^/record/(.+)$`) extracts the slug and passes it as `?slug=` internally so `single_view.js` reads it unchanged from the query string.
-- **`<base>` tag strategy:** Every HTML page has a `<base href="/frontend/pages/">` (or `/frontend/pages/debate/`, `/frontend/pages/maps/`, `/frontend/pages/resources/` for subdirectories) so all relative CSS/JS/font/image references resolve from the original directory regardless of what the browser's address bar shows.
-- **Two-layer fallback:** Nginx rewrites handle the fast path (static file serving). FastAPI route handlers in `serve_all.py` act as a fallback for environments where nginx rewrites aren't available.
-- **Six-month 301 policy:** Old `/frontend/pages/*.html` URLs and legacy query-parameter patterns (`?slug=`, `?id=`) return HTTP 301 redirects to the new clean slugs for six months, then get removed.
-
----
-
 ### 7.4 Security Protocols & JWT Management
-**Purpose:** Manages credentials, secrets, and security mechanisms including environment variables, rate limiting, and authentication protocols to protect application data and admin interfaces.
-
-**Relevant Files:**
-- `.env` — Global Admin, ESV and Deepseek credentials
-- `backend/middleware/rate_limiter.py` — DDoS protection for API endpoints
-- `admin/backend/auth_utils.py` — JWT generation and Brute Force defense
-- `documentation/guides/guide_security.md` — Security protocols and auth mechanism overview
 
 ```text
                  [ Incoming Requests ]
@@ -1289,11 +1105,8 @@ This document provides visual ASCII representations detailing how data physicall
 ---
 
 ## 8.0 Setup & Testing Module
-**Scope:** Browser tests, data seeders, local performance audits, Documentation.  
-**Process:** The quality assurance loop. Used to verify the system's structural integrity when new features are added, ensuring ports are open and the UI layout hasn't broken.
 
 ### 8.1 Local Environment Initialization
-**Purpose:** Documents the process of compiling the initial database from raw SQL seeds and running pipeline updates to set up the local development environment.
 
 ```text
               [ Developer Run: python build.py ]
@@ -1332,14 +1145,6 @@ This document provides visual ASCII representations detailing how data physicall
 ```
 
 ### 8.2 Core Unit & Integration Testing
-**Purpose:** Automated test suites, security audits, and AI-readability verification to ensure system reliability and correctness.
-
-**Relevant Files:**
-- `tests/port_test.py` — Verifies all local ports are responding
-- `tests/security_audit.py` — Runs automated vulnerability scans
-- `tests/agent_readability_test.py` — Simulates AI "headless" crawl
-- `tests/browser_test_skill.md` — Instructions for Agents to run browser tests
-- `tests/reports/` — Output directory for UI/UX audit logs
 
 ```text
                [ Developer Local Environment ]
@@ -1375,20 +1180,6 @@ This document provides visual ASCII representations detailing how data physicall
 ```
 
 ### 8.3 Architectural Documentation & Guides
-**Purpose:** Comprehensive documentation covering architecture, style guides, data schemas, and operational procedures for developers and AI agents.
-
-**Relevant Files:**
-- `documentation/module_sitemap.md` — Source of truth module map
-- `documentation/vibe_coding_rules.md` — Foundational coding philosophies and aesthetic mandates
-- `documentation/style_guide.md` — UI / UX visual design guide
-- `documentation/data_schema.md` — Core SQLite database blueprint
-- `documentation/guides/guide_appearance.md` — Page appearance diagrams
-- `documentation/guides/guide_dashboard_appearance.md` — Dashboard appearance
-- `documentation/guides/guide_donations.md` — External support integrations
-- `documentation/guides/guide_function.md` — System logic flows (This File)
-- `documentation/guides/guide_security.md` — Security protocols
-- `documentation/guides/guide_style.md` — Visual design reference
-- `documentation/guides/guide_welcoming_robots.md` — SEO & AI accessibility
 
 ```text
                [ Developer / AI Agent ]

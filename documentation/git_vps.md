@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "big css refactor " 
+git commit -m "dashboard css seperation" 
 git push origin main 
 
 # Pulling from Github to server 

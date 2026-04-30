@@ -8,7 +8,7 @@
    Source:  guide_appearance.md, guide_style.md §5–6, vibe_coding_rules.md §2
 ============================================================================= */
 
-@import url('./typography_colors.css');
+@import url('./typography.css');
 @import url('../design_layouts/universal/sidebar.css');
 @import url('../design_layouts/universal/footer.css');
 

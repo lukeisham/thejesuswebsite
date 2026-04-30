@@ -1,13 +1,13 @@
 ---
 name: module_sitemap.md
-version: 1.6.0
+version: 1.7.0
 purpose: visual and list taxonomy of codebase
 dependencies: [site_map.md]
 ---
 
 # Module Sitemap
 
-The purpose of this codebase is to build an archival style website organising and presenting historical information about Jesus. The website will be built using HTML, CSS, and JavaScript, with some PY helper scripts. The website will be built using a modular architecture that is easy to build, maintain and extend. This document is the source of truth, it must be updated after any code creation or code refactoring. 
+The purpose of this codebase is to build an archival style website organising and presenting historical information about Jesus. The website is built using HTML, CSS, and JavaScript, with some PY helper scripts. The website is built using a modular architecture that is easy to build, maintain and extend. This document is the source of truth, it must be checked before and after any code creation or code refactoring. 
 
 ## System Architecture: Big Picture
 
@@ -46,10 +46,9 @@ The purpose of this codebase is to build an archival style website organising an
 ```
 
 ## 1.0 Foundation Module
-**Scope:** Global Grid, Typography, Colors, Shared UI (Sidebar, Header, Footer).
-**Functionality:** Establishes the visual identity and structural grid for the entire site, ensuring consistent UI components and responsive design across all pages. This architectural base provides the universal navigation framework that allows users to move seamlessly between sections while maintaining a cohesive aesthetic experience.
+The Foundation module defines the global visual identity and structural grid of the site while establishing the core navigational framework through shared UI components like the sidebar, header, and footer. Its scope encompasses the website's landing page, essential crawler configuration files, and the primary informational pages that provide context and resources to the user, ensuring a consistent and responsive user experience across the entire multi-page application.
 
-**Files to create Structure:**
+**Supporting Files (Non-CSS/JS):**
 ```text
 index.html                     <-- Website Landing Page (Root Entry)
 robots.txt                     <-- Manual for well-behaved bots
@@ -61,48 +60,18 @@ frontend/pages/
 ├── context.html               <-- Internal Landing Page (Context)
 ├── debate.html                <-- Internal Landing Page (Debate)
 └── resources.html             <-- Internal Landing Page (Resources)
-
-js/1.0_foundation/frontend/
-├── sidebar.js                 <-- Universal Sticky Sidebar (Module 1.4). Provides functional
-│                                   entry point to the Admin Portal (Module 7.1). See 
-│                                   guide_appearance.md §1.5.1.
-├── footer.js                  <-- Universal Footer
-├── header.js                  <-- Universal Header (+ SEO injected)
-├── search_header.js           <-- Injects search bar (search input only) into
-│                                   certain pages. No logo or nav links.
-└── initializer.js             <-- Central script initialization logic
-                                   (see guide_appearance.md §1.8, §1.8.1 & §1.8.2 for
-                                    full DOM structure, CSS anatomy and end-to-end logic flow)
-
-css/1.0_foundation/
-├── grid.css                   <-- Master logic determining structural layout alignment
-├── typography.css             <-- Universal font scales and color palette variables
-├── sidebar.css                <-- Styles dictating the universal sticky side navigation
-├── footer.css                 <-- Styles dictating the universally appended footer
-├── landing.css                <-- Bespoke layout instructions for the root entry page
-└── elements/
-    ├── forms.css              <-- Shared form elements
-    └── buttons.css            <-- Specific styles for interactive UI components
 ```
 
 ---
 
 ## 2.0 Records Module
-**Scope:** SQLite Schema & Python Pipelines, Single record deep-dive views, Full list view, Searching & Filtering.
-**Functionality:** Manages the core data life-cycle, including database schema definition, Python-based ingestion pipelines, and dynamic frontend rendering of individual records and aggregate lists. The module leverages a client-side SQLite engine to deliver fast, interactive data exploration and robust filtering capabilities directly within the browser.
+The Records module manages the core data lifecycle, from SQLite schema definition and Python-based ingestion pipelines to the dynamic rendering of individual records and aggregate lists. Its scope includes the primary database files, secure external API connection utilities, and a comprehensive suite of front-end pages designed for deep-dive exploration and aggregate resource viewing.
 
-**Files to create Structure:**
+**Supporting Files (Non-CSS/JS):**
 ```text
 database/
 ├── database.sql                           <-- The blueprint schema
 └── database.sqlite                        <-- The COMPILED actual database file
-
-js/2.0_records/frontend/
-├── sql-wasm.wasm              <-- Downloaded library
-├── sql-wasm.js                <-- Downloaded library
-├── setup_db.js                <-- Fetches & inits SQLite for pages
-├── sanitize_query.js          <-- Security utility to clean search input
-└── json_ld_builder.js         <-- Generates Schema.org JSON metadata
 
 backend/scripts/
 └── helper_api.py                      <-- Shared logic for secure external API connection calls
@@ -125,44 +94,14 @@ frontend/pages/resources/      <-- Resource List Views
 ├── Sites.html             
 ├── Sources.html           
 └── World Events.html      
-
-js/2.0_records/frontend/
-├── single_view.js             <-- Renders single record
-├── list_view.js               <-- Renders standard row-based data lists
-├── pictures_display.js        <-- Picture Rendering
-├── thumbnails_display.js      <-- Renders thumbnails
-└── display_snippet.js         <-- Renders inline snippets
-
-css/
-├── 1.0_foundation/
-│   ├── pictures.css               <-- Specific styles for pictures and labels
-│   └── thumbnails.css             <-- Specific styles for thumbnails
-└── 2.0_records/
-    ├── frontend/
-    │   ├── list_view.css          <-- Layout for aggregate list views
-    │   └── detail_view.css        <-- Layout for deep-dive record views
-    └── dashboard/
-        └── edit_records.css       <-- Admin styles for record editors and bulk upload
-
-js/2.0_records/dashboard/
-├── edit_record.js         <-- Core form for editing single records
-├── edit_picture.js        <-- Sub-module for PNG upload and resizing
-├── edit_lists.js          <-- Editor for resources lists
-├── edit_links.js          <-- Unified form for Internal/External/Context links
-└── edit_bulk_upload.js    <-- UI for bulk uploading CSV files to create records                [§2.5]
 ```
 
 ---
 
 ## 3.0 Visualizations Module
-**Scope:** Ardor diagram, Timeline chronological dots/progression, Map Geo-spatial layers.
-**Functionality:** Provides interactive and visual-first navigation through three distinct architectural systems:
-- **Recursive Ardor tree-like diagrams** for hierarchical relationship mapping.
-- **Linear chronological dot-event timelines** for temporal progression.
-- **Multi-layered vector-based geographic maps** for spatial context.
-These systems leverage dynamic rendering to transform relational database records into engaging narratives—populating interactive metadata panels with the title, date, category, and primary verse for every historical node.
+The Visualizations module provides interactive, visual-first navigation through recursive Ardor diagrams, chronological timelines, and multi-layered geographic maps. Its scope covers the specialized HTML templates required for these immersive displays, transforming relational database records into spatial and temporal narratives.
 
-**Files to create Structure:**
+**Supporting Files (Non-CSS/JS):**
 ```text
 frontend/pages/
 ├── maps.html                  <-- Visual Interactive Map Display
@@ -173,199 +112,79 @@ frontend/pages/
 │   └── map_judea.html         <-- Judea map
 ├── timeline.html              <-- Visual Interactive timeline Display
 └── evidence.html              <-- Visual Interactive Ardor diagram Display
-
-js/3.0_visualizations/frontend/
-├── ardor_display.js           <-- Renders Ardor diagram
-├── timeline_display.js        <-- Renders timeline dots and linear progression loops
-└── maps_display.js            <-- Renders overlapping geographic data layers
-
-css/3.0_visualizations/
-├── frontend/
-│   ├── ardor.css                  <-- Specific styles for Ardor diagram
-│   ├── timeline.css               <-- Specific styles for timeline diagram
-│   └── maps.css                   <-- Specific styles for map diagram
-└── dashboard/
-    └── edit_diagram.css           <-- Admin styles for visualization editors
-
-js/3.0_visualizations/dashboard/
-└── edit_diagram.js        <-- Visual tool to adjust recursive 'Ador' parent_id relations
 ```
 
 ---
 
 ## 4.0 Ranked Lists Module
-**Scope:** Ranked Wikipedia article lists (§4.1), Ranked historical challenge lists (§4.2).
-**Functionality:** Processes and ranks external data (Wikipedia) and historical challenge queries via separate sub-modules, providing curated, high-value entry points into historical debates. It utilizes **discrete sets of weighting multipliers for Wikipedia, academic debates, and popular queries**, allowing administrators to fine-tune rankings via specialized backend pipelines and management tools to ensure the most relevant evidence is prioritized. Challenge views embed a linked response record directly into the ranked list.
+The Ranked Lists module processes and prioritizes external Wikipedia data and historical challenges using discrete weighting multipliers to surface high-value evidence. Its scope includes the backend Python pipelines for automated ranking and the public-facing debate pages that embed challenge-response pairs directly into the user interface.
 
-**Files to create Structure:**
+**Supporting Files (Non-CSS/JS):**
 ```text
 backend/pipelines/
-├── pipeline_wikipedia.py              <-- Fetches, ranks, inserts Wikipedia reference data  [§4.1]
-├── pipeline_popular_challenges.py     <-- Finds, analyzes and ranks popular public queries   [§4.2]
-└── pipeline_academic_challenges.py    <-- Finds, analyzes and ranks academic historical debates [§4.2]
+├── pipeline_wikipedia.py              <-- Fetches, ranks, inserts Wikipedia reference data
+├── pipeline_popular_challenges.py     <-- Finds, analyzes and ranks popular public queries
+└── pipeline_academic_challenges.py    <-- Finds, analyzes and ranks academic historical debates
 
 frontend/pages/debate/
-├── wikipedia.html         <-- Ranked Wikipedia view                                          [§4.1]
-├── popular_challenge.html <-- Ranked Challenge View with Response Inserted                   [§4.2]
-└── academic_challenge.html<-- Ranked Challenge View with Response Inserted                   [§4.2]
-
-js/4.0_ranked_lists/frontend/
-├── list_view_wikipedia.js                       <-- Renders row-based ranked wikipedia links [§4.1]
-├── list_view_popular_challenges.js              <-- Renders ranked popular challenges        [§4.2]
-├── list_view_academic_challenges.js             <-- Renders ranked academic challenges       [§4.2]
-├── list_view_popular_challenges_with_response.js  <-- Popular challenges with response      [§4.2]
-└── list_view_academic_challenges_with_response.js <-- Academic challenges with response     [§4.2]
-
-js/4.0_ranked_lists/dashboard/
-├── edit_rank.js             <-- Form to manually override automated rankings
-├── edit_wiki_weights.js     <-- Admin tool for editing wikipedia ranking multipliers          [§4.1]
-├── edit_academic_weights.js <-- Admin tool for editing academic ranking multipliers           [§4.2]
-└── edit_popular_weights.js  <-- Admin tool for editing popular ranking multipliers            [§4.2]
-
-css/4.0_ranked_lists/dashboard/
-├── shared_ranks.css         <-- Shared table and input styles for rank editors
-├── edit_wikipedia.css       <-- Wikipedia-specific admin styles
-└── edit_challenges.css      <-- Challenge-specific admin styles
+├── wikipedia.html         <-- Ranked Wikipedia view
+├── popular_challenge.html <-- Ranked Challenge View with Response Inserted
+└── academic_challenge.html<-- Ranked Challenge View with Response Inserted
 ```
-
-> **Note:** `edit_lists.js` (from Module 2.0 Records) is also loaded by `admin.html` and wired under the `lists-resources` router branch for the "Edit Resources" sidebar link under Lists & Ranks.
 
 ---
 
 ## 5.0 Essays & Responses Module
-**Scope:** Context-Essays & Historiography (§5.1), Challenge Responses (§5.2).
-**Functionality:** Handles long-form editorial content as two distinct sub-modules. §5.1 covers thematic context essays and the historiography essay, with specialized typography and MLA citation rendering. §5.2 covers scholarly challenge responses, which are linked to ranked challenge lists via §4.3 Insert Responses. Both sub-modules use a split-pane markdown editor and share a bibliography system that automatically formats sources.
+The Essays & Responses module handles long-form editorial content, covering thematic context essays, historiography, and scholarly challenge responses. Its scope includes specialized HTML views for in-depth reading and a shared bibliography system that automatically formats scholarly sources.
 
-**Files to create Structure:**
+**Supporting Files (Non-CSS/JS):**
 ```text
 frontend/pages/
-└── context_essay.html         <-- Context essay single essay view                [§5.1]
+└── context_essay.html         <-- Context essay single essay view
 
 frontend/pages/debate/
-├── historiography.html    <-- Historiography essay                                [§5.1]
-└── response.html          <-- Challenge response single view                      [§5.2]
-
-js/5.0_essays_responses/frontend/
-├── view_context_essays.js     <-- Renders context essays                          [§5.1]
-├── view_historiography.js     <-- Renders historiography essay                    [§5.1]
-├── response_display.js        <-- Renders challenge responses                     [§5.2]
-├── list_view_responses.js     <-- Renders inserted list items (used for responses)[§5.2]
-
-├── sources_biblio_display.js  <-- Renders formatted MLA bibliography citations    [§5.1/§5.2]
-└── mla_snippet_display.js     <-- Renders inline MLA citations                   [§5.1/§5.2]
-
-css/5.0_essays_responses/
-├── frontend/
-│   ├── essays.css                 <-- Specific typography for long-form essays            [§5.1]
-│   └── responses.css              <-- Specific layouts for debate & responses             [§5.2]
-└── dashboard/
-    ├── edit_essays.css            <-- Admin styles for essay editors
-    ├── edit_responses.css         <-- Admin styles for response editors
-    └── markdown.css               <-- Specific styles for the admin WYSIWYG text editors
-
-js/5.0_essays_responses/dashboard/
-├── edit_historiography.js           <-- Editor for historiography essay           [§5.1]
-├── edit_essay.js                    <-- Editor for contextual essays              [§5.1]
-├── edit_mla_sources.js              <-- Admin tool for editing MLA sources        [§5.1]
-├── edit_response.js                 <-- Editor for challenge responses            [§5.2]
-├── edit_insert_response_academic.js <-- (cross-ref §4.3) Inserts responses into academic lists [§5.2]
-└── edit_insert_response_popular.js  <-- (cross-ref §4.3) Inserts responses into popular lists  [§5.2]
+├── historiography.html    <-- Historiography essay
+└── response.html          <-- Challenge response single view
 ```
 
 ---
 
 ## 6.0 News & Blog Module
-**Scope:** News Feed, Blog Feed, Combined Landing Page.
-**Functionality:** Manages all news and blog content, from automated ingestion pipelines through to public-facing feed pages. A combined landing page surfaces the latest snippets from both feeds and directs users to the dedicated full-feed pages. Admin tools cover the full CRUD lifecycle for blog posts, news snippets, and named news sources.
+The News & Blog module manages the end-to-end lifecycle of time-sensitive content, from automated news ingestion pipelines to public-facing feed pages. Its scope encompasses the Python crawling scripts, dedicated landing pages for news and blog updates, and individual post views served through a clean URL structure.
 
-**Files to create Structure:**
+**Supporting Files (Non-CSS/JS):**
 ```text
 backend/pipelines/
 └── pipeline_news.py                   <-- Crawls, ranks, inserts timeline news events
 
 frontend/pages/
-├── news_and_blog.html         <-- Combined News & Blog landing page (§6.1)
-├── news.html                  <-- Full News feed page (§6.2)
-├── blog.html                  <-- Full Blog feed page (§6.3)
-└── blog_post.html             <-- Individual blog post page (served at /blog/post)
-
-js/6.0_news_blog/frontend/
-├── list_newsitem.js           <-- Renders news items aka 'news feed'
-├── list_blogpost.js           <-- Renders blogposts aka 'blog feed'
-
-├── news_snippet_display.js    <-- Renders inline news snippets (landing page)
-└── blog_snippet_display.js    <-- Renders inline blog snippets (landing page)
-
-js/6.0_news_blog/dashboard/
-├── edit_news_snippet.js   <-- Editor for news snippets
-├── edit_news_sources.js   <-- Admin tool for editing news sources
-└── edit_blogpost.js       <-- Editor for blog posts
-
-css/6.0_news_blog/dashboard/
-├── edit_news.css          <-- Admin styles for news editors
-└── edit_blog.css          <-- Admin styles for blog editors
+├── news_and_blog.html         <-- Combined News & Blog landing page
+├── news.html                  <-- Full News feed page
+├── blog.html                  <-- Full Blog feed page
+└── blog_post.html             <-- Individual blog post page
 ```
 
 ---
 
 ## 7.0 System Module
-**Scope:** Initial setup, Agent instructions (`.agent`), backend API management, and VPS deployment.
-**Functionality:** Defines the operational backbone of the site, including AI-agent workflows, secure backend API management, and production deployment automation. It serves as the **primary active security layer**, implementing robust session handling, authentication, and rate limiting to protect the application's data and admin interfaces.
+The System module serves as the operational backbone of the site, encompassing AI-agent instructions, secure backend API management, and production deployment automation. Its scope includes the secure Admin Portal entry point, Python-based authentication and security utilities, global configuration files, and the infrastructure required for VPS hosting and MCP server exposure.
 
-### 7.1 Admin Portal (Sub-Module)
-**Functionality:** Secure administrative interface for managing the website's content. Features a JWT-over-Cookie authentication system and a modular dashboard for CRUD operations.
-
-**Files to create Structure:**
+**Supporting Files (Non-CSS/JS):**
 ```text
 admin/
 ├── frontend/
-│   ├── admin.html                 <-- Secure entry portal for admin editing features
-│   └── (JS scripts moved to js/7.0_system/dashboard/)
-│
-js/7.0_system/dashboard/
-├── dashboard_app.js           <-- Main Dashboard controller, UI router & Sidebar navigation
-├── admin_login.js             <-- Authentication & Session handling
-├── load_middleware.js         <-- JWT/Token validation middleware
-├── logout_middleware.js       <-- Session termination
-└── render_tab_bar.js          <-- Shared top-level section tab bar renderer; called by any editor module that wants Providence 3-column tabs
+│   └── admin.html                 <-- Secure entry portal for admin features
 └── backend/
     ├── admin_api.py               <-- Secure backend writing to SQL
     └── auth_utils.py              <-- JWT generation and Brute Force defense
 
-css/7.0_system/dashboard/
-├── auth_login.css         <-- Bespoke layout for the secure admin login UI
-├── admin_shell.css        <-- Global layout and shell navigation for admin portal
-└── admin_components.css   <-- Shared UI components (Providence grid, tabs)
-
-
-**§7.1.2 Dashboard Shell Layout**
-- **Purpose:** The shared editor layout shell inherited by every dashboard editor module — the Providence 3-column grid with section tab bar. Defined in `guide_dashboard_appearance.md` under **[Layout Convention — Providence 3-Column Pattern (Dashboard Shell)]**.
-- **Files to create Structure:**
-  - `js/7.0_system/dashboard/render_tab_bar.js` — Shared tab bar renderer (`window.renderTabBar()`)
-  - `css/7.0_system/dashboard/admin_components.css` — `.providence-editor-grid` grid classes
-  - `css/7.0_system/dashboard/admin_components.css` — `.blog-editor-grid` backward-compatible alias
-- **Every editor module** in `js/X.0_module/dashboard/` applies `.providence-editor-grid` or `.blog-editor-grid` to inherit this shell.
-- **Related docs:** `guide_dashboard_appearance.md` (Layout Convention section — Dashboard Shell), `guide_style.md §18.1`
-```
-
-### 7.2 Agent Logic & Instructional Prompts
-**Functionality:** Stores AI-agent configuration, workflows, and targeted guidance for LLM crawlers to ensure correct interpretation and response behavior.
-
-**Files to create Structure:**
-```text
 .agent/                  <-- Agent instructions & workflows
 
 assets/
 └── ai-instructions.txt  <-- Specialized guidance for LLM crawlers
 
 README.md                <-- Project overview
-```
 
-### 7.3 Backend API, MCP Server & VPS Config
-**Functionality:** Core configuration, read-only external API, Python dependencies, web server setup, and production deployment automation.
-
-**Files to create Structure:**
-```text
 mcp_server.py            <-- Exposes read-only API to external agents
 requirements.txt         <-- Python dependencies (FastAPI, JWT, etc)
 nginx.conf               <-- Global Web server and SSL/Proxy config
@@ -373,24 +192,15 @@ nginx.conf               <-- Global Web server and SSL/Proxy config
 LICENCE                  <-- Open Use Licencing with attribution requirement
 
 assets/
-├── favicon.png          <-- Website favicon (Aleph & Omega design)
-└── *.png                <-- Raw source images, portraits, and environment shots
+├── favicon.png          <-- Website favicon
+└── *.png                <-- Raw source images and portraits
 
 deployment/
 ├── deploy.sh            <-- Pull from GitHub and restart services
 ├── ssl_renew.sh         <-- Automates SSL certificate renewal
-├── admin.service        <-- Systemd config for Admin API (Auto-restart)
-└── mcp.service          <-- Systemd config for MCP Server (Auto-restart)
+├── admin.service        <-- Systemd config for Admin API
+└── mcp.service          <-- Systemd config for MCP Server
 
-css/7.0_system/frontend/
-└── pdf_export.css       <-- Print media queries for exporting essays and data cleanly
-```
-
-### 7.4 Security Protocols & JWT Management
-**Functionality:** Manages credentials, secrets, and security mechanisms including environment variables, rate limiting, and authentication protocols to protect application data and admin interfaces.
-
-**Files to create Structure:**
-```text
 .env                     <-- Global Admin, ESV and Deepseek credentials
 
 backend/middleware/
@@ -403,13 +213,9 @@ documentation/guides/
 ---
 
 ## 8.0 Setup & Testing Module
-**Scope:** Browser tests, data seeders, local performance audits, Documentation.
-**Functionality:** Supports the development lifecycle through automated testing, database seeding, and the maintenance of comprehensive architectural documentation. It **complements system security through passive auditing**, performing regular vulnerability scans and performance benchmarks to ensure the long-term health and stability of the platform.
+The Setup & Testing module supports the development lifecycle through automated test suites, database seeding tools, and comprehensive architectural documentation. Its scope covers root-level build scripts, local environment initialization tools, security audit utilities, and the complete library of guides and sitemaps that define the project's logic and aesthetics.
 
-### 8.1 Local Environment Initialization
-**Functionality:** Provides scripts and seed data for setting up the local development environment, including database initialization and pipeline orchestration.
-
-**Files to create Structure:**
+**Supporting Files (Non-CSS/JS):**
 ```text
 build.py                   <-- Root script to trigger backend pipelines
 tools/
@@ -418,39 +224,29 @@ tools/
 ├── minify_admin.py        <-- Automates admin code obfuscation
 ├── generate_sitemap.py    <-- Dynamic XML sitemap builder
 └── test_records.sql       <-- Small sample dataset for test runs
+
 logs/                      <-- Storage for pipeline and API error logs
-```
 
-### 8.2 Core Unit & Integration Testing
-**Functionality:** Automated test suites, security audits, and AI-readability verification to ensure system reliability and correctness.
-
-**Files to create Structure:**
-```text
 tests/
 ├── port_test.py               <-- Verifies all local ports are responding
 ├── security_audit.py          <-- Runs automated vulnerability scans
 ├── agent_readability_test.py  <-- Simulates AI "headless" crawl
 ├── browser_test_skill.md      <-- Instructions for Agents to run browser tests
 └── reports/                   <-- Output directory for UI/UX audit logs
-```
 
-### 8.3 Architectural Documentation & Guides
-**Functionality:** Comprehensive documentation covering architecture, style guides, data schemas, and operational procedures for developers and AI agents.
-
-**Files to create Structure:**
-```text
 documentation/
 ├── implementation_plan.md             <-- Implementation Plan
-├── module_sitemap.md                  <-- Architectural blueprints and logic flows (This File)
-├── vibe_coding_rules.md               <-- Foundational coding philosophies and aesthetic mandates
+├── module_sitemap.md                  <-- Architectural blueprints (This File)
+├── site_map.md                        <-- Consolidated master site map
+├── vibe_coding_rules.md               <-- Foundational coding philosophies
 ├── style_guide.md                     <-- UI / UX visual design guide
-├── data_schema.md                     <-- Core SQLite database blueprint 'source of truth'
+├── data_schema.md                     <-- Core SQLite database blueprint
 └── guides/
     ├── guide_appearance.md            <-- ASCI diagram of page appearance
-    ├── guide_dashboard_appearance.md  <-- ASCI diagram of dashboard page appearance
-    ├── guide_donations.md             <-- Reference for external support integrations
-    ├── guide_function.md              <-- Detailed explanation of system logic flows
-    ├── guide_security.md              <-- Security protocols and auth mechanism overview
-    ├── guide_style.md                 <-- UI / UX visual design guide (style_guide.md)
+    ├── guide_dashboard_appearance.md  <-- ASCI diagram of dashboard appearance
+    ├── guide_donations.md             <-- Reference for external integrations
+    ├── guide_function.md              <-- Detailed explanation of system logic
+    ├── guide_security.md              <-- Security protocols and auth overview
+    ├── guide_style.md                 <-- UI / UX visual design guide
     └── guide_welcoming_robots.md      <-- SEO and AI accessibility standards
 ```

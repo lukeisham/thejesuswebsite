@@ -21,7 +21,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `index.html`
-- **CSS:** `css/1.0_foundation/landing.css`, `css/1.0_foundation/grid.css`, `css/1.0_foundation/typography.css`
+- **CSS:** `css/1.0_foundation/landing.css`, `css/1.0_foundation/grid.css`, `css/1.0_foundation/typography.css`, `css/1.0_foundation/shell.css`
 - **JS:** `frontend/display_other/header.js`, `frontend/display_other/footer.js`, `frontend/core/setup_db.js`, `frontend/core/sql-wasm.js`
 
 ```text
