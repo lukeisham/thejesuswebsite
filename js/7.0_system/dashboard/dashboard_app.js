@@ -31,7 +31,7 @@ function renderDashboardShell() {
   const html = `
         <div class="admin-dashboard-container">
             <header class="admin-header">
-                <h1>Dashboard App: Authenticated as Admin</h1>
+                <h1>The Jesuswebsite Dashboard</h1>
                 <button id="logout-btn" class="admin-logout-btn">Logout</button>
             </header>
             <div class="admin-body-layout">

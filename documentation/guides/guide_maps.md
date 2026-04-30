@@ -9,7 +9,7 @@ purpose: Visual ASCII representations of the interactive map layouts, mapped to 
 **Purpose:** Interactive geospatial visualization of historical record data. Maps provide spatial context for events, people, and objects, allowing users to understand the geographical scope of the archive.
 
 **Relevant Files:**
-- **HTML:** `frontend/pages/maps.html`, `frontend/pages/maps/map_*.html`
+- **HTML:** `frontend/pages/maps.html`, `frontend/pages/maps/map_*.html`, `fr ontend/pages/maps/map_*.html`
 - **CSS:** `css/3.0_visualizations/maps.css`
 - **JS:** `frontend/display_other/maps_display.js`
 

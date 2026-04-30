@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "dashboard css seperation" 
+git commit -m "style tidyup" 
 git push origin main 
 
 # Pulling from Github to server 

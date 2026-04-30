@@ -140,49 +140,15 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Constraints** | Overflow | No horizontal scrolling except Timeline. |
 
 ## 18. Dashboard & Editor Aesthetics
-
-### 18.1 Layout Convention — Providence 3-Column Pattern
-
-All dashboard screens follow the **CollectiveAccess Providence** layout convention: a form-heavy, cataloguer-first aesthetic built for editors working across many fields per object. The design is light, restrained, and data-dense.
-
-```
-+------------------------------------------------------------------+
-| [ Tab: Section A ] [ Tab: Section B (active) ] [ Tab: Section C ]|  ← TOP BAR
-|------------------------------------------------------------------|
-| COL 1 (narrow)    | COL 2 (medium, optional) | COL 3 (widest)   |
-|                   |                          |                   |
-| Section-specific  | Sub-fields, secondary    | Data being edited |
-| buttons & fields  | controls, metadata       | or viewed         |
-| unique to this    | inputs tied to the       | (editor canvas,   |
-| active tab        | active record/item       |  list, or form)   |
-|                   |                          |                   |
-+------------------------------------------------------------------+
-```
-
-**Column rules:**
-- **Top bar** — tabs navigate between major sections of the module; the active tab is marked `[Active]`
-- **Column 1** — action buttons (Save, Discard, Delete) and the primary field or control unique to this section
-- **Column 2** — optional; used when a section has sub-fields, secondary metadata, or a filter/search control that warrants separation from the canvas
-- **Column 3** — always the widest; contains the main data entry surface (form fields, tables, tree views, editors, or live previews)
-
-> **Architecture note — Shell vs. Editor layout:** The `.admin-body-layout` (sidebar + `.admin-canvas`) is the **dashboard navigation frame** — it provides the persistent sidebar nav and a single canvas area. The Providence 3-column pattern described above applies to **editor content rendered inside `.admin-canvas`**, not to the shell itself. Any editor module that wants this layout should apply the `.providence-editor-grid` CSS class (defined in `dashboard_admin.css`) as the grid container, with child columns using `.providence-editor-col-actions`, `.providence-editor-col-list`, and `.providence-editor-col-editor`. The Blog Editor's `.blog-editor-grid` is a backward-compatible alias of this same class.
-
-### 18.2 Field Ownership Map Convention
-
-Each dashboard section documents which editor file owns each database column via a **Field Ownership Map** table. The map uses `§N.M` notation to cross-reference the editor file (e.g., `§2.2 edit_record.js`, `§4.1 edit_wiki_weights.js`). Fields referencing `§2.5` are handled by the Bulk Upload CSV editor, and `§4.3` references belong to the Insert Responses editors — these omit heading numbers in the document because they are sub-features of existing sub-modules rather than distinct sitemap entries.
-
-### 18.3 Sub-Section Numbering Convention
-
-Dashboard sub-sections follow a strict convention: numbered headings (`### 2.1`, `### 4.2`, etc.) are reserved for editors that correspond to a named sub-module in the sitemap. Un-numbered headings (`### Backend for ...`) denote sub-features of those sub-modules. This distinguishes sitemap-aligned components from auxiliary tooling.
-
-### 18.4 Component Token Reference
-
-| Component | Visual Description | CSS Variable |
+| Category | Rule / Visual Description | Implementation / CSS |
 | :--- | :--- | :--- |
+| **Layout Convention** | 3-column Providence grid; Form-heavy, cataloguer-first aesthetic. | `.providence-editor-grid`, `.providence-editor-col-*` |
+| **Field Ownership Map** | Documents database column ownership using `§N.M` notation. | Documentation convention |
+| **Section Numbering** | Numbered (`### 2.1`) for sitemap modules; un-numbered for sub-features. | Documentation convention |
 | **Admin Shell** | Dashboard color scheme; Gold accents. | `--color-dash-accent` |
-| **Editor** | 3-column Providence grid (`.providence-editor-grid`); Mono fields. | `--font-mono`, `.providence-editor-grid` |
+| **Editor Style** | Mono fields; data-dense aesthetics. | `--font-mono` |
 | **Action Bar** | Floating footer; Gold focus. | `--color-dash-accent` |
-| **Sidebar Return Link** | Pinned to sidebar base via `margin-top: auto` on a flex column (`display: flex; flex-direction: column` on `.admin-sidebar`). Mono font, Lead Grey colour, `border-top` separator, `--transition-fast` hover to primary text + tertiary BG. Use this pattern for any future pinned-bottom sidebar element. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
+| **Sidebar Return Link**| Pinned to base (`margin-top: auto`); Lead Grey, tertiary BG hover. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
 
 ## 19. Consistency Checklist
 To maintain the Technical Blueprint aesthetic, all new elements must pass:
