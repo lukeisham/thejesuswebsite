@@ -136,6 +136,35 @@
     background-color: var(--color-bg-primary);
 }
 
+/* Default dashboard home: 2-column Providence grid inside the canvas.
+   COL 1 (sidebar) is outside the canvas; this grid splits the remaining
+   area into COL 2 (1fr — System Status + Activity Log) and COL 3 (2fr — Quick Actions).
+   See guide_dashboard_appearance.md §7.1 */
+.dashboard-home-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-6);
+}
+
+/* System status metadata definition list (users, page_views, etc.) */
+.system-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-1) var(--space-2);
+    margin-top: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+}
+
+.system-meta dt {
+    color: var(--color-text-muted);
+}
+
+.system-meta dd {
+    margin: 0;
+    color: var(--color-text-secondary);
+}
+
 .admin-card {
     border: var(--border-width-thin) solid var(--color-border);
     border-radius: var(--radius-none);

@@ -31,9 +31,16 @@ function renderDashboardShell() {
   const html = `
         <div class="admin-dashboard-container">
             <header class="admin-header">
-                <h1>The Jesuswebsite Dashboard</h1>
+                <h1>Dashboard App: Authenticated as Admin</h1>
                 <button id="logout-btn" class="admin-logout-btn">Logout</button>
             </header>
+            <nav class="admin-tab-bar">
+                <button class="admin-tab-btn is-active">Records</button>
+                <button class="admin-tab-btn">Lists &amp; Ranks</button>
+                <button class="admin-tab-btn">Text Content</button>
+                <button class="admin-tab-btn">Configuration</button>
+                <button class="admin-tab-btn">Home</button>
+            </nav>
             <div class="admin-body-layout">
                 <nav class="admin-sidebar" id="admin-sidebar">
                     <h3>Records</h3>
@@ -66,29 +73,45 @@ function renderDashboardShell() {
                         <li><a href="#" data-module="config-news">News Sources</a></li>
                     </ul>
 
-                    <a id="sidebar-return-link" href="/">Return to Front-End</a>
+                    <a id="sidebar-return-link" href="/">Return to Site</a>
                 </nav>
                 <main class="admin-canvas" id="admin-canvas">
-                    <!-- Default Dashboard Home / Status -->
-                    <div class="admin-card">
-                        <h2>System Status</h2>
-                        <p class="status-indicator status-online">● Online (WASM SQLite Sync Active)</p>
-                    </div>
+                    <!-- Default Dashboard Home — 3-Column Providence Layout -->
+                    <!-- COL 1 (sidebar) is outside the canvas; COL 2 + COL 3 are here -->
+                    <div class="dashboard-home-grid">
+                        <!-- COL 2 — System Status -->
+                        <div class="column-two">
+                            <div class="admin-card">
+                                <h2>System Status</h2>
+                                <p class="status-indicator status-online">● System Status: Online</p>
+                                <p class="status-indicator status-online">● WASM SQLite Sync: Active</p>
+                                <dl class="system-meta">
+                                    <dt>users:</dt>
+                                    <dd>system-managed</dd>
+                                    <dt>page_views:</dt>
+                                    <dd>auto-incremented <span class="text-muted">(read-only across all views)</span></dd>
+                                </dl>
+                            </div>
 
-                    <div class="admin-card">
-                        <h2>Recent Edits / Activity Log</h2>
-                        <ul>
-                            <li>Updated Record: "Crucifixion"</li>
-                            <li>Modified Wiki Weight: +0.5</li>
-                            <li>Added Essay: "Historiography Overview"</li>
-                        </ul>
-                    </div>
+                            <div class="admin-card">
+                                <h2>Recent Edits / Activity Log</h2>
+                                <ul>
+                                    <li>Updated: "Crucifixion"</li>
+                                    <li>Wiki Weight: &times;1.20</li>
+                                    <li>Essay: "Historiography Overview"</li>
+                                </ul>
+                            </div>
+                        </div>
 
-                    <div class="admin-card">
-                        <h2>Quick Actions</h2>
-                        <div class="mt-4">
-                            <button class="quick-action-btn">Add New Record</button>
-                            <button class="quick-action-btn">Run Sync Pipeline</button>
+                        <!-- COL 3 — Dashboard Home / Quick Actions -->
+                        <div class="column-three">
+                            <div class="admin-card">
+                                <h2>Quick Actions</h2>
+                                <div class="mt-4">
+                                    <button class="quick-action-btn">Add New Record</button>
+                                    <button class="quick-action-btn">Run Sync Pipeline</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </main>
@@ -117,6 +140,9 @@ function renderDashboardShell() {
       e.target.classList.add("is-active");
     });
   });
+
+  // Default to Single Record Layout (§2.2) on login
+  loadModule("records-edit");
 }
 
 async function loadModule(moduleName) {

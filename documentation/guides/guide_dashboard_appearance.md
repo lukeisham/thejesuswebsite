@@ -742,9 +742,9 @@ System-managed fields (never manually edited in any dashboard section):
 
 ```text
 +----------------------------------------------------------------------------------------------+
-| [ Dashboard App: Authenticated as Admin ]                               [Logout]            |
+| [ The Jesuswebsite Dashboard ]                              [Return to frontend]    [Logout] |
 |----------------------------------------------------------------------------------------------|
-| [ Records ]  [ Lists & Ranks ]  [ Text Content ]  [ Configuration ]  [ Home (Active) ]      |
+| [ Records ]  [ Lists & Ranks ]  [ Text Content ]  [ Configuration ]  [ Home (Active) ]       |
 |----------------------------------------------------------------------------------------------|
 | COL 1                  | COL 2 — SYSTEM STATUS              | COL 3 — DASHBOARD HOME         |
 |                        |                                    |                                |
