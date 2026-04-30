@@ -4,13 +4,13 @@
    Version: 1.1.0
    Purpose: All macro page layout logic — the structural skeleton that positions
             Sidebar, Header, Main content area, and Footer across every page
-            template (except admin.html).
+            template.
    Source:  guide_appearance.md, guide_style.md §5–6, vibe_coding_rules.md §2
 ============================================================================= */
 
-@import url('./typography.css');
-@import url('../design_layouts/universal/sidebar.css');
-@import url('../design_layouts/universal/footer.css');
+@import url('./admin_typography_base.css');
+@import url('../../1.0_foundation/design_layouts/universal/sidebar.css');
+@import url('../../1.0_foundation/design_layouts/universal/footer.css');
 
 /* =============================================================================
    GLOBAL UTILITIES: JS-CONTROLLED VISIBILITY
@@ -159,14 +159,12 @@
 
 .site-header__search-input {
     width: 100%;
-    font-family: var(--font-mono);
-    /* Technical metadata feel for search */
+    font-family: var(--font-mono); /* Technical metadata feel for search */
     font-size: var(--text-sm);
     color: var(--color-text-primary);
     background-color: var(--color-bg-primary);
     border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-none);
-    /* Technical blueprint = no rounded corners */
+    border-radius: var(--radius-none); /* Technical blueprint = no rounded corners */
     padding: var(--space-1) var(--space-2);
     outline: none;
     transition: border-color var(--transition-fast),
@@ -265,8 +263,7 @@
     color: var(--color-text-secondary);
     padding-bottom: var(--space-2);
     margin-bottom: var(--space-3);
-    border-bottom: 1px dashed var(--color-border);
-    /* Blueprint divider */
+    border-bottom: 1px dashed var(--color-border); /* Blueprint divider */
 }
 
 /* Sidebar nav list */
@@ -286,8 +283,7 @@
     font-weight: var(--weight-regular);
     color: var(--color-text-secondary);
     padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-none);
-    /* Sharp borders for blueprint */
+    border-radius: var(--radius-none); /* Sharp borders for blueprint */
     text-decoration: none;
     transition: color var(--transition-fast),
         background-color var(--transition-fast);
