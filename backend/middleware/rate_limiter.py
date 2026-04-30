@@ -35,7 +35,7 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
         
         # 2. PATH EXCLUSIONS (Original Logic Kept)
         # Don't rate-limit local health checks or static assets
-        if request.url.path.startswith(("/css/", "/assets/", "/frontend/core/")):
+        if request.url.path.startswith(("/css/", "/js/", "/assets/", "/frontend/core/")):
             return await call_next(request)
 
         now = time.time()

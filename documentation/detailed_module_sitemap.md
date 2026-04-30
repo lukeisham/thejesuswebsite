@@ -62,14 +62,15 @@ frontend/pages/
 ├── debate.html                <-- Internal Landing Page (Debate)
 └── resources.html             <-- Internal Landing Page (Resources)
 
-frontend/display_other/
+js/1.0_foundation/frontend/
 ├── sidebar.js                 <-- Universal Sticky Sidebar (Module 1.4). Provides functional
 │                                   entry point to the Admin Portal (Module 7.1). See 
 │                                   guide_appearance.md §1.5.1.
 ├── footer.js                  <-- Universal Footer
 ├── header.js                  <-- Universal Header (+ SEO injected)
-└── search_header.js           <-- Injects search bar (search input only) into
-                                   certain pages. No logo or nav links.
+├── search_header.js           <-- Injects search bar (search input only) into
+│                                   certain pages. No logo or nav links.
+└── initializer.js             <-- Central script initialization logic
                                    (see guide_appearance.md §1.8, §1.8.1 & §1.8.2 for
                                     full DOM structure, CSS anatomy and end-to-end logic flow)
 
@@ -96,7 +97,7 @@ database/
 ├── database.sql                           <-- The blueprint schema
 └── database.sqlite                        <-- The COMPILED actual database file
 
-frontend/core/
+js/2.0_records/frontend/
 ├── sql-wasm.wasm              <-- Downloaded library
 ├── sql-wasm.js                <-- Downloaded library
 ├── setup_db.js                <-- Fetches & inits SQLite for pages
@@ -125,11 +126,9 @@ frontend/pages/resources/      <-- Resource List Views
 ├── Sources.html           
 └── World Events.html      
 
-frontend/display_big/
+js/2.0_records/frontend/
 ├── single_view.js             <-- Renders single record
-└── list_view.js               <-- Renders standard row-based data lists
-
-frontend/display_other/
+├── list_view.js               <-- Renders standard row-based data lists
 ├── pictures_display.js        <-- Picture Rendering
 ├── thumbnails_display.js      <-- Renders thumbnails
 └── display_snippet.js         <-- Renders inline snippets
@@ -145,7 +144,7 @@ css/
     └── dashboard/
         └── edit_records.css       <-- Admin styles for record editors and bulk upload
 
-admin/frontend/edit_modules/
+js/2.0_records/dashboard/
 ├── edit_record.js         <-- Core form for editing single records
 ├── edit_picture.js        <-- Sub-module for PNG upload and resizing
 ├── edit_lists.js          <-- Editor for resources lists
@@ -175,10 +174,8 @@ frontend/pages/
 ├── timeline.html              <-- Visual Interactive timeline Display
 └── evidence.html              <-- Visual Interactive Ardor diagram Display
 
-frontend/display_big/
-└── ardor_display.js           <-- Renders Ardor diagram
-
-frontend/display_other/
+js/3.0_visualizations/frontend/
+├── ardor_display.js           <-- Renders Ardor diagram
 ├── timeline_display.js        <-- Renders timeline dots and linear progression loops
 └── maps_display.js            <-- Renders overlapping geographic data layers
 
@@ -190,7 +187,7 @@ css/3.0_visualizations/
 └── dashboard/
     └── edit_diagram.css           <-- Admin styles for visualization editors
 
-admin/frontend/edit_modules/
+js/3.0_visualizations/dashboard/
 └── edit_diagram.js        <-- Visual tool to adjust recursive 'Ador' parent_id relations
 ```
 
@@ -212,20 +209,18 @@ frontend/pages/debate/
 ├── popular_challenge.html <-- Ranked Challenge View with Response Inserted                   [§4.2]
 └── academic_challenge.html<-- Ranked Challenge View with Response Inserted                   [§4.2]
 
-frontend/display_big/
+js/4.0_ranked_lists/frontend/
 ├── list_view_wikipedia.js                       <-- Renders row-based ranked wikipedia links [§4.1]
 ├── list_view_popular_challenges.js              <-- Renders ranked popular challenges        [§4.2]
 ├── list_view_academic_challenges.js             <-- Renders ranked academic challenges       [§4.2]
 ├── list_view_popular_challenges_with_response.js  <-- Popular challenges with response      [§4.2]
 └── list_view_academic_challenges_with_response.js <-- Academic challenges with response     [§4.2]
 
-admin/frontend/edit_modules/
+js/4.0_ranked_lists/dashboard/
 ├── edit_rank.js             <-- Form to manually override automated rankings
 ├── edit_wiki_weights.js     <-- Admin tool for editing wikipedia ranking multipliers          [§4.1]
 ├── edit_academic_weights.js <-- Admin tool for editing academic ranking multipliers           [§4.2]
-├── edit_popular_weights.js  <-- Admin tool for editing popular ranking multipliers            [§4.2]
-├── edit_insert_response_academic.js <-- (cross-ref from Module 5.0 Essays & Responses) Loaded & wired by dashboard router for `ranks-responses` [§4.2]
-└── edit_insert_response_popular.js  <-- (cross-ref from Module 5.0 Essays & Responses) Loaded & wired by dashboard router for `ranks-responses` [§4.2]
+└── edit_popular_weights.js  <-- Admin tool for editing popular ranking multipliers            [§4.2]
 
 css/4.0_ranked_lists/dashboard/
 ├── shared_ranks.css         <-- Shared table and input styles for rank editors
@@ -250,13 +245,12 @@ frontend/pages/debate/
 ├── historiography.html    <-- Historiography essay                                [§5.1]
 └── response.html          <-- Challenge response single view                      [§5.2]
 
-frontend/display_big/
+js/5.0_essays_responses/frontend/
 ├── view_context_essays.js     <-- Renders context essays                          [§5.1]
 ├── view_historiography.js     <-- Renders historiography essay                    [§5.1]
 ├── response_display.js        <-- Renders challenge responses                     [§5.2]
-└── list_view_responses.js     <-- Renders inserted list items (used for responses)[§5.2]
+├── list_view_responses.js     <-- Renders inserted list items (used for responses)[§5.2]
 
-frontend/display_other/
 ├── sources_biblio_display.js  <-- Renders formatted MLA bibliography citations    [§5.1/§5.2]
 └── mla_snippet_display.js     <-- Renders inline MLA citations                   [§5.1/§5.2]
 
@@ -269,7 +263,7 @@ css/5.0_essays_responses/
     ├── edit_responses.css         <-- Admin styles for response editors
     └── markdown.css               <-- Specific styles for the admin WYSIWYG text editors
 
-admin/frontend/edit_modules/
+js/5.0_essays_responses/dashboard/
 ├── edit_historiography.js           <-- Editor for historiography essay           [§5.1]
 ├── edit_essay.js                    <-- Editor for contextual essays              [§5.1]
 ├── edit_mla_sources.js              <-- Admin tool for editing MLA sources        [§5.1]
@@ -295,15 +289,14 @@ frontend/pages/
 ├── blog.html                  <-- Full Blog feed page (§6.3)
 └── blog_post.html             <-- Individual blog post page (served at /blog/post)
 
-frontend/display_big/
+js/6.0_news_blog/frontend/
 ├── list_newsitem.js           <-- Renders news items aka 'news feed'
-└── list_blogpost.js           <-- Renders blogposts aka 'blog feed'
+├── list_blogpost.js           <-- Renders blogposts aka 'blog feed'
 
-frontend/display_other/
 ├── news_snippet_display.js    <-- Renders inline news snippets (landing page)
 └── blog_snippet_display.js    <-- Renders inline blog snippets (landing page)
 
-admin/frontend/edit_modules/
+js/6.0_news_blog/dashboard/
 ├── edit_news_snippet.js   <-- Editor for news snippets
 ├── edit_news_sources.js   <-- Admin tool for editing news sources
 └── edit_blogpost.js       <-- Editor for blog posts
@@ -327,11 +320,14 @@ css/6.0_news_blog/dashboard/
 admin/
 ├── frontend/
 │   ├── admin.html                 <-- Secure entry portal for admin editing features
-│   ├── dashboard_app.js           <-- Main Dashboard controller, UI router & Sidebar navigation
-│   ├── admin_login.js             <-- Authentication & Session handling
-│   ├── load_middleware.js         <-- JWT/Token validation middleware
-│   ├── logout_middleware.js       <-- Session termination
-│   └── render_tab_bar.js          <-- Shared top-level section tab bar renderer; called by any editor module that wants Providence 3-column tabs
+│   └── (JS scripts moved to js/7.0_system/dashboard/)
+│
+js/7.0_system/dashboard/
+├── dashboard_app.js           <-- Main Dashboard controller, UI router & Sidebar navigation
+├── admin_login.js             <-- Authentication & Session handling
+├── load_middleware.js         <-- JWT/Token validation middleware
+├── logout_middleware.js       <-- Session termination
+└── render_tab_bar.js          <-- Shared top-level section tab bar renderer; called by any editor module that wants Providence 3-column tabs
 └── backend/
     ├── admin_api.py               <-- Secure backend writing to SQL
     └── auth_utils.py              <-- JWT generation and Brute Force defense
@@ -345,10 +341,10 @@ css/7.0_system/dashboard/
 **§7.1.2 Dashboard Shell Layout**
 - **Purpose:** The shared editor layout shell inherited by every dashboard editor module — the Providence 3-column grid with section tab bar. Defined in `guide_dashboard_appearance.md` under **[Layout Convention — Providence 3-Column Pattern (Dashboard Shell)]**.
 - **Files to create Structure:**
-  - `admin/frontend/render_tab_bar.js` — Shared tab bar renderer (`window.renderTabBar()`)
+  - `js/7.0_system/dashboard/render_tab_bar.js` — Shared tab bar renderer (`window.renderTabBar()`)
   - `css/7.0_system/dashboard/admin_components.css` — `.providence-editor-grid` grid classes
   - `css/7.0_system/dashboard/admin_components.css` — `.blog-editor-grid` backward-compatible alias
-- **Every editor module** in `admin/frontend/edit_modules/` applies `.providence-editor-grid` or `.blog-editor-grid` to inherit this shell.
+- **Every editor module** in `js/X.0_module/dashboard/` applies `.providence-editor-grid` or `.blog-editor-grid` to inherit this shell.
 - **Related docs:** `guide_dashboard_appearance.md` (Layout Convention section — Dashboard Shell), `guide_style.md §18.1`
 ```
 
