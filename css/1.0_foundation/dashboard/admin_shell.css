@@ -32,9 +32,11 @@
 /* Left group: favicon + heading */
 .admin-header__left {
     display: flex;
+    flex-direction: row;
     align-items: center;
     gap: var(--space-3);
     flex-shrink: 0;
+    flex-wrap: nowrap;
 }
 
 .admin-header__favicon {
@@ -46,6 +48,7 @@
     font-size: var(--text-xl);
     margin: 0;
     color: var(--color-text-primary);
+    white-space: nowrap;
 }
 
 /* Right group: action buttons */
