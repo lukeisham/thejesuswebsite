@@ -167,13 +167,14 @@ frontend/pages/
 ---
 
 ## 7.0 System Module
-The System module serves as the operational backbone of the site, encompassing AI-agent instructions, secure backend API management, and production deployment automation. Its scope includes the secure Admin Portal entry point, Python-based authentication and security utilities, global configuration files, and the infrastructure required for VPS hosting and MCP server exposure.
+The System module serves as the operational backbone of the site, encompassing AI-agent instructions, secure backend API management, and production deployment automation. Its scope includes the secure two-page Admin Portal (login → dashboard), Python-based authentication and security utilities, global configuration files, and the infrastructure required for VPS hosting and MCP server exposure.
 
 **Supporting Files (Non-CSS/JS):**
 ```text
 admin/
 ├── frontend/
-│   └── admin.html                 <-- Secure entry portal for admin features
+│   ├── admin.html                 <-- Login-only entry portal for admin authentication
+│   └── dashboard.html             <-- Post-login dashboard shell with module tab bar
 └── backend/
     ├── admin_api.py               <-- Secure backend writing to SQL
     └── auth_utils.py              <-- JWT generation and Brute Force defense

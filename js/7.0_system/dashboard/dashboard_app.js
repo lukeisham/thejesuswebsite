@@ -1,218 +1,33 @@
 // =============================================================================
-//
-//   THE JESUS WEBSITE — DASHBOARD APP CONTROLLER
+//   THE JESUS WEBSITE — DASHBOARD MODULE ROUTER
 //   File:    js/7.0_system/dashboard/dashboard_app.js
-//   Version: 1.3.0
-//   Purpose: Main Dashboard controller, UI router & Sidebar navigation.
-//
+//   Version: 2.0.0
+//   Purpose: Pure module router — maps module names to editor render functions
+//            and populates #admin-canvas. No shell rendering, no event wiring.
 // =============================================================================
 
-// Trigger: 'adminAuthSuccess' custom event dispatched by admin_login.js after successful authentication
-// Function: Renders the full dashboard shell (header, nav tab bar, sidebar, canvas) and attaches navigation routing
-// Output: Injects admin interface HTML into the #dashboard-app element and wires all nav links.
-//         Nav tab bar follows the Providence 3-column pattern (guide_dashboard_appearance.md §0.1, §7.1).
-
-function renderDashboardShell() {
-  const dashboardApp = document.getElementById("dashboard-app");
-  if (!dashboardApp) return;
-
-  // Remove is-hidden class and ensure full-height layout via CSS class
-  dashboardApp.classList.remove("is-hidden");
-  dashboardApp.classList.add("is-visible", "admin-full-height");
-
-  // Inject the CSS dynamically just to be safe, though it's linked in admin.html
-  if (!document.getElementById("dashboard-admin-css-link")) {
-    const link = document.createElement("link");
-    link.id = "dashboard-admin-css-link";
-    link.rel = "stylesheet";
-    link.href = "/css/1.0_foundation/dashboard/admin_shell.css";
-    document.head.appendChild(link);
-  }
-
-  const html = `
-        <div class="admin-dashboard-container">
-            <header class="admin-header">
-                <h1>The JesusWebsite Dashboard</h1>
-                <button id="logout-btn" class="admin-logout-btn">Logout</button>
-            </header>
-            <nav class="admin-tab-bar" id="main-tab-bar">
-                <button class="admin-tab-btn" data-module="records-edit">Records</button>
-                <button class="admin-tab-btn" data-module="ranks-wikipedia">Lists &amp; Ranks</button>
-                <button class="admin-tab-btn" data-module="text-essays">Text Content</button>
-                <button class="admin-tab-btn" data-module="config-diagrams">Configuration</button>
-            </nav>
-            <div class="admin-body-layout">
-                <nav class="admin-sidebar" id="admin-sidebar">
-                    <h3>Records</h3>
-                    <ul>
-                        <li><a href="#" data-module="records-new">Create New</a></li>
-                        <li><a href="#" data-module="records-edit">Edit Existing</a></li>
-                        <li><a href="#" data-module="records-bulk">Bulk Upload CSV</a></li>
-                    </ul>
-
-                    <h3>Lists & Ranks</h3>
-                    <ul>
-                        <li><a href="#" data-module="ranks-wikipedia">Wikipedia Weights</a></li>
-                        <li><a href="#" data-module="ranks-challenges">Challenge Weights</a></li>
-                        <li><a href="#" data-module="lists-resources">Edit Resources</a></li>
-                        <li><a href="#" data-module="ranks-responses">Insert Responses</a></li>
-                    </ul>
-
-                    <h3>Text Content</h3>
-                    <ul>
-                        <li><a href="#" data-module="text-essays">Essays</a></li>
-                        <li><a href="#" data-module="text-responses">Responses</a></li>
-                        <li><a href="#" data-module="text-mla">MLA Sources</a></li>
-                        <li><a href="#" data-module="text-news">News</a></li>
-                        <li><a href="#" data-module="text-blog">Blog Posts</a></li>
-                    </ul>
-
-                    <h3>Configuration</h3>
-                    <ul>
-                        <li><a href="#" data-module="config-diagrams">Edit Diagrams</a></li>
-                        <li><a href="#" data-module="config-news">News Sources</a></li>
-                    </ul>
-
-                    <a id="sidebar-return-link" href="/">Return to Site</a>
-                </nav>
-                <main class="admin-canvas" id="admin-canvas">
-                    <!-- Default Dashboard Home — Providence 3-Column Layout (§7.1) -->
-                    <!-- COL 1 (sidebar) lives outside the canvas in the flex shell;
-                         this grid splits the remaining area into COL 2 + COL 3.
-                         See guide_dashboard_appearance.md §0.1, §7.1 -->
-                    <div class="dashboard-home-grid">
-                        <!-- COL 2 — System Status -->
-                        <div class="column-two">
-                            <div class="admin-card">
-                                <h2>System Status</h2>
-                                <p class="status-indicator status-online">● System Status: Online</p>
-                                <p class="status-indicator status-online">● WASM SQLite Sync: Active</p>
-                                <dl class="system-meta">
-                                    <dt>users:</dt>
-                                    <dd>system-managed</dd>
-                                    <dt>page_views:</dt>
-                                    <dd>auto-incremented <span class="text-muted">(read-only across all views)</span></dd>
-                                </dl>
-                            </div>
-
-                            <div class="admin-card">
-                                <h2>Recent Edits / Activity Log</h2>
-                                <ul>
-                                    <li>Updated: "Crucifixion"</li>
-                                    <li>Wiki Weight: &times;1.20</li>
-                                    <li>Essay: "Historiography Overview"</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- COL 3 — Dashboard Home / Quick Actions -->
-                        <div class="column-three">
-                            <div class="admin-card">
-                                <h2>Quick Actions</h2>
-                                <div style="margin-top: var(--space-4);">
-                                    <button class="quick-action-btn">Add New Record</button>
-                                    <button class="quick-action-btn">Run Sync Pipeline</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            </div>
-        </div>
-    `;
-
-  dashboardApp.innerHTML = html;
-
-  // Attach Logout Event
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn && typeof window.adminLogout === "function") {
-    logoutBtn.addEventListener("click", window.adminLogout);
-  }
-
-  // Attach Navigation Events — Sidebar links
-  // Helper: synchronise main tab bar active state with the loaded module
-  function syncTabBar(moduleName) {
-    var tabBar = document.getElementById("main-tab-bar");
-    if (!tabBar) return;
-    var tabBtns = tabBar.querySelectorAll("[data-module]");
-    // Map module name → the group it belongs to
-    var moduleGroupMap = {
-      "records-new": "records-edit",
-      "records-edit": "records-edit",
-      "records-bulk": "records-edit",
-      "lists-resources": "ranks-wikipedia",
-      "ranks-wikipedia": "ranks-wikipedia",
-      "ranks-challenges": "ranks-wikipedia",
-      "ranks-responses": "ranks-wikipedia",
-      "text-essays": "text-essays",
-      "text-historiography": "text-essays",
-      "text-responses": "text-essays",
-      "text-mla": "text-essays",
-      "text-news": "text-essays",
-      "text-blog": "text-essays",
-      "config-diagrams": "config-diagrams",
-      "config-news": "config-diagrams",
-    };
-    var group = moduleGroupMap[moduleName] || moduleName;
-    tabBtns.forEach(function (b) {
-      b.classList.toggle("is-active", b.getAttribute("data-module") === group);
-    });
-  }
-
-  // Attach Navigation Events — Sidebar links
-  const sidebarLinks = dashboardApp.querySelectorAll(".admin-sidebar a");
-  sidebarLinks.forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      const moduleName = e.target.getAttribute("data-module");
-      loadModule(moduleName);
-
-      // Toggle active class instead of inline fontWeight
-      sidebarLinks.forEach((l) => l.classList.remove("is-active"));
-      e.target.classList.add("is-active");
-      syncTabBar(moduleName);
-    });
-  });
-
-  // Attach Navigation Events — Main tab bar
-  const tabBar = document.getElementById("main-tab-bar");
-  if (tabBar) {
-    tabBar.addEventListener("click", function (e) {
-      var btn = e.target.closest("[data-module]");
-      if (!btn) return;
-
-      var moduleName = btn.getAttribute("data-module");
-      if (!moduleName) return;
-
-      // Update active state on all tab buttons
-      this.querySelectorAll("[data-module]").forEach(function (b) {
-        b.classList.remove("is-active");
-      });
-      btn.classList.add("is-active");
-
-      loadModule(moduleName);
-    });
-  }
-
-  // Default to Dashboard Home (§7.1) on login — no loadModule call needed
-  // as the home template is already rendered in the canvas above.
-  // Users navigate to other sections via the nav tab bar or sidebar.
-}
+// Trigger: Called by dashboard_init.js (on DOMContentLoaded) to load the default
+//         module, or by render_tab_bar.js click handler when a tab is clicked
+// Function: Updates is-active on #module-tab-bar, routes module name to the
+//           correct editor render function, and populates #admin-canvas.
+//           Clicking the active tab re-renders the module fresh.
+// Output: #module-tab-bar active state updated, #admin-canvas populated with
+//         the routed editor view
 
 async function loadModule(moduleName) {
   const canvas = document.getElementById("admin-canvas");
   if (!canvas) return;
 
-  // Middleware check
-  if (typeof window.verifyAdminSession === "function") {
-    const isValid = await window.verifyAdminSession();
-    if (!isValid) {
-      if (typeof window.adminLogout === "function") {
-        window.adminLogout();
-      } else {
-        console.error("Session invalid and window.adminLogout not found.");
-      }
-      return;
+  // Update is-active state on the top-level module tab bar
+  var moduleTabBar = document.getElementById("module-tab-bar");
+  if (moduleTabBar) {
+    var allButtons = moduleTabBar.querySelectorAll("[data-module]");
+    allButtons.forEach(function (btn) {
+      btn.classList.remove("is-active");
+    });
+    var activeBtn = moduleTabBar.querySelector('[data-module="' + moduleName + '"]');
+    if (activeBtn) {
+      activeBtn.classList.add("is-active");
     }
   }
 
@@ -243,8 +58,6 @@ async function loadModule(moduleName) {
     return;
   }
 
-  // Sync main tab bar to reflect current module
-  syncTabBar(moduleName);
 
   if (moduleName === "records-edit") {
     canvas.innerHTML =
@@ -362,32 +175,6 @@ async function loadModule(moduleName) {
                         </div>
                     </div>
                 `;
-
-        // Render top-level section tab bar (Records active)
-        if (typeof window.renderTabBar === "function") {
-          window.renderTabBar(
-            "records-list-card",
-            [
-              { name: "records", label: "Records", module: "records-edit" },
-              {
-                name: "lists-ranks",
-                label: "Lists & Ranks",
-                module: "lists-resources",
-              },
-              {
-                name: "text-content",
-                label: "Text Content",
-                module: "text-blog",
-              },
-              {
-                name: "configuration",
-                label: "Configuration",
-                module: "config-diagrams",
-              },
-            ],
-            "records",
-          );
-        }
 
         // Wire column_one action buttons (New Record, Bulk Upload)
         canvas
@@ -873,8 +660,5 @@ async function loadModule(moduleName) {
   `;
 }
 
-// Expose loadModule globally so renderTabBar and other modules can navigate
+// Expose loadModule globally for dashboard_init.js, render_tab_bar.js, and other modules
 window.loadModule = loadModule;
-
-// Listen for the auth success event dispatched by admin_login.js
-window.addEventListener("adminAuthSuccess", renderDashboardShell);

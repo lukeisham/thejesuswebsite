@@ -7,9 +7,10 @@
 //
 // =============================================================================
 
-// Trigger: Called by dashboard_app.js before loading any admin sub-module
+// Trigger: Called by dashboard_auth.js on DOMContentLoaded (dashboard.html page
+//         guard) — verifies the session once at page load rather than per-module
 // Function: Verifies that a valid admin session is active (HttpOnly cookie / JWT check)
-// Output: Returns true if session is valid, false if expired or invalid (triggers logout)
+// Output: Returns true if session is valid, false if expired or invalid (triggers redirect)
 
 window.verifyAdminSession = async function() {
     /**

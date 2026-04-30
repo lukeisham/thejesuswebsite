@@ -3,18 +3,24 @@
 //   THE JESUS WEBSITE — TOP-LEVEL SECTION TAB BAR
 //   File:    js/7.0_system/dashboard/render_tab_bar.js
 //   Version: 1.0.0
-//   Purpose: Renders the top-level section tab bar (Records, Lists & Ranks,
-//            Text Content, Configuration) into a given container element.
-//            Sub-tab bars (e.g., Academic/Popular, Essay/Historiography)
-//            remain handled by dashboard_app.js event delegation.
+//   Purpose: Renders module tab bars into a given container element. Has two
+//            call sites: (1) dashboard_init.js for the top-level 13-tab module bar;
+//            (2) individual editor render functions for within-canvas sub-module
+//            tab bars (e.g. Academic/Popular, Essay/Historiography).
 //   Source:  guide_style.md §18.1, guide_dashboard_appearance.md §7.1
 //
 // =============================================================================
 
-// Trigger: dashboard_app.js routing or editor module calls renderTabBar()
-// Function: Injects top-level section tab bar HTML into container, wires click
-//           navigation via data-module attributes
-// Output: Populated tab bar with active state styling and navigation handlers
+// Trigger: Two call sites — (1) dashboard_init.js on DOMContentLoaded calls
+//         renderTabBar("module-tab-bar", allModules, "records-all") to build the
+//         top-level 13-tab module bar; (2) individual editor render functions
+//         call renderTabBar(containerId, tabs, activeTab) for within-canvas
+//         sub-module tab bars (e.g. Academic/Popular, Essay/Historiography)
+// Function: Injects tab bar HTML into the given container, wires click navigation
+//           via data-module attributes, and toggles is-active state
+// Output: Populated tab bar with active state styling; clicking any tab calls
+//         window.loadModule(moduleName); clicking the already-active tab
+//         re-fires loadModule() to refresh the editor and clear unsaved input
 
 window.renderTabBar = function (containerId, tabs, activeTab) {
   var container = document.getElementById(containerId);
@@ -43,6 +49,12 @@ window.renderTabBar = function (containerId, tabs, activeTab) {
   });
 
   html += "</div>";
+
+  // Remove any existing tab bar in this container before inserting a fresh one
+  var existingTabBar = document.getElementById(containerId + "-section-tabs");
+  if (existingTabBar) {
+    existingTabBar.remove();
+  }
 
   // Render into container (prepend so it sits above existing content)
   container.insertAdjacentHTML("afterbegin", html);

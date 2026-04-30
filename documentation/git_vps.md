@@ -18,9 +18,9 @@ sudo journalctl -u thejesuswebsite.service -n 20 --no-pager
 
 # Next actions
 
-1. cooler / tighter dashboard setup
+1. Fixing and completing the dashboard
 2. image upload
-3. url tidyup 
+3. Test dashboard functionality
 4. add and modify record test
 5. ESV expand feature 
 6. bulk upload and picture upload test

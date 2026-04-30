@@ -522,6 +522,8 @@ popular_challenge_weight  TEXT (Label-Value)
 | [ Wikipedia ] [ ★ Challenge ] [ Responses ] [ Essay & Historiography ]            |
 | [ Challenge Response ] [ News & Sources ] [ Blog Posts ] [ System ]               |
 |-----------------------------------------------------------------------------------|
+| [ ★ Academic ] [ Popular ]                                                         |
+|-----------------------------------------------------------------------------------|
 | COL 1                  | COL 2                          | COL 3 — CHALLENGE WEIGHTS          |
 |                        |                                |                                    |
 | [Save All Changes]     | Academic tab WRITE:            | slug / title       rank  weight    |
@@ -567,6 +569,8 @@ popular_challenge_rank    INTEGER    — sort order
 | [ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]       |
 | [ Wikipedia ] [ Challenge ] [ ★ Responses ] [ Essay & Historiography ]            |
 | [ Challenge Response ] [ News & Sources ] [ Blog Posts ] [ System ]               |
+|-----------------------------------------------------------------------------------|
+| [ ★ Academic ] [ Popular ]                                                         |
 |-----------------------------------------------------------------------------------|
 | COL 1                  | COL 2                     | COL 3 — INSERT RESPONSES                |
 |                        | (reserved)                | Academic Challenges                      |
@@ -617,6 +621,8 @@ ordo_salutis        TEXT (Enum)        — order-of-salvation classification
 | [ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]       |
 | [ Wikipedia ] [ Challenge ] [ Responses ] [ ★ Essay & Historiography ]            |
 | [ Challenge Response ] [ News & Sources ] [ Blog Posts ] [ System ]               |
+|-----------------------------------------------------------------------------------|
+| [ ★ Context Essay ] [ Historiography ]                                             |
 |-----------------------------------------------------------------------------------|
 | COL 1                      | COL 2 — MARKDOWN EDITOR         | COL 3 — LIVE PREVIEW                       |
 |                            |                                  |                                            |

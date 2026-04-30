@@ -55,7 +55,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
   - In `guide_security.md`: note the `dashboard_auth.js` page guard and its dependency on `load_middleware.js`.
 - **Vibe Rule(s):** Maintain documentation as source of truth · Keep docs in sync with architecture
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -66,7 +66,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline styles · No inline `<script>` blocks · Descriptive `id` hooks for JS · Modular `class` names for CSS · Component injection pattern for dynamic content
 - Do not use the async attribute on any script tag. defer is acceptable if used consistently across all scripts in the file, since defer preserves document order.
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -76,7 +76,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - **Action:** Create a new JS file that on DOMContentLoaded calls `window.verifyAdminSession()` (defined in `load_middleware.js` — do not duplicate the fetch logic). If the returned promise resolves to `false`, redirect `window.location.href` to `/admin/frontend/admin.html`. If it resolves to `true`, do nothing. `load_middleware.js` must be loaded before this file in `dashboard.html` (enforced by script tag order in T2).
 - **Vibe Rule(s):** One function per file · Three-line comment header (trigger, main function, output) · Vanilla ES6+ · No frameworks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -90,7 +90,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - Confirm load_middleware.js three-line comment header correctly reflects the new call site (dashboard_auth.js on DOMContentLoaded) rather than the old call site (dashboard_app.js per-module)
 - **Vibe Rule(s):** Three-line comment header · Single Responsibility (one function, two call sites) · No dead code
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -100,7 +100,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - **Action:** Remove the `#dashboard-app` container, all dashboard-related CSS links (`admin_shell.css`, `admin_components.css`, all editor module CSS files), and all dashboard JS scripts (`load_middleware.js`, `logout_middleware.js`, `dashboard_app.js`, `dashboard_init.js`, `render_tab_bar.js`, all edit module scripts). Keep only the login view markup, the login stylesheet (`auth_login.css`), and `admin_login.js`. Remove the `admin-full-height` body class if present.
 - **Vibe Rule(s):** Semantic HTML5 tags · Clean skeletons · No dead DOM · Predictable hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -110,7 +110,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - **Action:** Rewrite so the `DOMContentLoaded` callback is the only function. Remove `transitionToDashboard()` — on successful login or passing auto-session check, set `window.location.href = '/admin/frontend/dashboard.html'` directly in the success branch. Remove the `adminAuthSuccess` event dispatch. Remove all DOM toggle logic (`loginView.classList` / `dashboardApp` references). Keep form handling, error display, and brute-force delay intact.
 - **Vibe Rule(s):** One function per file · Three-line comment header · Vanilla ES6+ · Single Responsibility
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -120,7 +120,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - **Action:** Change `window.adminLogout` so that after the POST to `/api/admin/logout`, it sets `window.location.href = '/admin/frontend/admin.html'` instead of manipulating DOM elements. Remove all DOM references (`dashboardApp`, `loginView`, `passField`). Keep the fetch call and error handling.
 - **Vibe Rule(s):** One function per file · Three-line comment header · Vanilla ES6+ · Single Responsibility
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -130,7 +130,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - **Action:** Create a new JS file with a single `DOMContentLoaded` listener that: (1) defines the full 13-module tabs config array — each entry is `{ label, module }` matching the tab structure table in the Purpose section above; (2) calls `window.renderTabBar("module-tab-bar", allModules, "records-all")` to render the flat module tab bar; (3) attaches a click handler to `#logout-btn` that calls `window.adminLogout()`; (4) calls `window.loadModule("records-all")` to set the default view. No routing logic belongs in this file.
 - **Vibe Rule(s):** One function per file · Three-line comment header (trigger: DOMContentLoaded on dashboard.html · main function: renders module tab bar and fires initial loadModule · output: module-tab-bar populated, default module loaded) · Vanilla ES6+ · Single Responsibility
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -140,7 +140,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - **Action:** Remove `renderDashboardShell()` entirely. Remove all event wiring (logout, sidebar delegation — all of that moves to `dashboard_init.js`). Remove the `moduleGroupMap` and `syncTabBar()` — the flat tab bar has no section grouping to sync. Remove the `DOMContentLoaded` listener from this file. The file must contain exactly one declared function: `window.loadModule(module)`, which: (1) updates `is-active` on `#module-tab-bar` by removing it from all buttons and adding it to the button whose `data-module` matches `module`; (2) routes `module` to the appropriate editor render function and populates `#admin-canvas`. Clicking the active tab passes the same `module` value again — `loadModule()` re-renders the editor fresh, which clears any unsaved DOM state. Update the three-line comment header to reflect the new scope.
 - **Vibe Rule(s):** One function per file · Three-line comment header (trigger: called by dashboard_init.js or render_tab_bar.js click handler · main function: sets active tab and routes module name to editor · output: #module-tab-bar active state updated, #admin-canvas populated) · Vanilla ES6+ · Component injection pattern
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -150,7 +150,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - **Action:** Confirm that the existing `.admin-tab-btn.is-active` rule (currently at line 32) correctly styles the active button in `#module-tab-bar`. The rule is already class-based and not container-scoped, so it should apply correctly. Confirm colour values reference CSS variables from `typography_colors.css`. No changes required if the rule is already correct.
 - **Vibe Rule(s):** CSS Grid for macro layout · Flexbox for micro alignment · All colours/fonts/spacing reference CSS variables · Section headings as comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -163,7 +163,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
   - Confirm all class names used in the static `dashboard.html` shell markup have corresponding rules.
 - **Vibe Rule(s):** No dead code · Clean skeletons · All colours reference CSS variables · Section headings as comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -173,7 +173,7 @@ One flat tab bar with 13 tabs, rendered into `#module-tab-bar` by `dashboard_ini
 - **Action:** Audit every file touched by this plan for code, class names, function names, IDs, event names, and comments that are misaligned, misleading, or redundant given the new architecture. Check for: (a) any remaining references to `adminAuthSuccess` custom event; (b) JS comments referencing `renderDashboardShell()` or the old injection flow; (c) any `data-module` values in HTML or JS that do not match a valid entry in the module tab structure table in the Purpose section; (d) any remaining sidebar references (`.admin-sidebar`, `#admin-sidebar`, `#sidebar-return-link`, `admin-body-layout`) in HTML, JS, or CSS; (e) any remaining `.blog-editor-grid` references in JS, HTML, or documentation; (f) any CSS class in the static `dashboard.html` shell with no rule in the stylesheet, or any CSS rule in the stylesheet with no corresponding element in the shell; (g) any comments or strings referencing "Home", "home screen", "welcome page", "welcome screen", or "Dashboard Home"; (h) `.admin-full-height` and `.is-visible-flex` — confirm they are fully dead before removal; (i) any reference to `moduleGroupMap`, `syncTabBar`, `main-tab-bar`, `sub-tab-bar`, or section-grouping navigation labels (Records / Lists & Ranks / Text Content / Configuration) — artefacts of the superseded two-tier hierarchy.
 - **Vibe Rule(s):** Clean skeletons · No dead code · Single Responsibility · No dead DOM
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 

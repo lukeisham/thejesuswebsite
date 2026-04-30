@@ -1,8 +1,13 @@
 /* =============================================================================
    THE JESUS WEBSITE — DASHBOARD ADMIN SHELL
    File:    css/1.0_foundation/dashboard/admin_shell.css
-   Version: 1.0.0
-   Purpose: Global layout, sidebar, and shell navigation for the admin portal.
+   Version: 2.0.0
+   Purpose: Global layout and shell chrome for the admin dashboard.
+            No sidebar — the dashboard uses a flat module tab bar.
+============================================================================= */
+
+/* =============================================================================
+   1. DASHBOARD CONTAINER & HEADER
 ============================================================================= */
 
 .admin-dashboard-container {
@@ -31,6 +36,30 @@
     color: var(--color-bg-primary);
 }
 
+.admin-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.admin-return-link {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-bg-primary);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    transition: opacity var(--transition-fast);
+}
+
+.admin-return-link:hover {
+    opacity: 0.8;
+}
+
+/* =============================================================================
+   2. LOGOUT BUTTON
+============================================================================= */
+
 .admin-logout-btn {
     background-color: transparent;
     color: var(--color-text-primary);
@@ -50,84 +79,9 @@
     color: var(--color-white);
 }
 
-.admin-body-layout {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-}
-
-.admin-sidebar {
-    width: var(--sidebar-width);
-    background-color: var(--color-bg-secondary);
-    border-right: var(--border-width-thin) dashed var(--color-border);
-    padding: var(--space-6) var(--space-4);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-.admin-sidebar h3 {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    margin-top: var(--space-6);
-    margin-bottom: var(--space-2);
-    letter-spacing: 0.05em;
-}
-
-.admin-sidebar h3:first-child {
-    margin-top: 0;
-}
-
-.admin-sidebar ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.admin-sidebar li {
-    margin-bottom: var(--space-1);
-}
-
-.admin-sidebar a {
-    text-decoration: none;
-    color: var(--color-text-secondary);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    display: block;
-    padding: var(--space-2) var(--space-2);
-    border-radius: var(--radius-none);
-    transition:
-        background-color var(--transition-fast),
-        color var(--transition-fast);
-}
-
-.admin-sidebar a:hover {
-    background-color: var(--color-bg-tertiary);
-    color: var(--color-text-primary);
-}
-
-#sidebar-return-link {
-    display: block;
-    margin-top: auto;
-    padding: var(--space-3) var(--space-2);
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    border-top: var(--border-width-thin) solid var(--color-border);
-    transition:
-        color var(--transition-fast),
-        background-color var(--transition-fast);
-}
-
-#sidebar-return-link:hover {
-    color: var(--color-text-primary);
-    background-color: var(--color-bg-tertiary);
-}
+/* =============================================================================
+   3. MAIN CANVAS
+============================================================================= */
 
 .admin-canvas {
     flex: 1;
@@ -136,34 +90,11 @@
     background-color: var(--color-bg-primary);
 }
 
-/* Default dashboard home: 2-column Providence grid inside the canvas.
-   COL 1 (sidebar) is outside the canvas; this grid splits the remaining
-   area into COL 2 (1fr — System Status + Activity Log) and COL 3 (2fr — Quick Actions).
-   See guide_dashboard_appearance.md §7.1 */
-.dashboard-home-grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: var(--space-6);
-}
-
-/* System status metadata definition list (users, page_views, etc.) */
-.system-meta {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--space-1) var(--space-2);
-    margin-top: var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-}
-
-.system-meta dt {
-    color: var(--color-text-muted);
-}
-
-.system-meta dd {
-    margin: 0;
-    color: var(--color-text-secondary);
-}
+/* =============================================================================
+   4. SHARED EDITOR COMPONENTS
+   Used by edit_record.js, edit_lists.js, edit_bulk_upload.js, and other
+   editor modules that render into #admin-canvas.
+============================================================================= */
 
 .admin-card {
     border: var(--border-width-thin) solid var(--color-border);
@@ -223,9 +154,9 @@
     gap: var(--space-1);
 }
 
-.status-online {
-    color: var(--color-status-success);
-}
+/* =============================================================================
+   5. DISPLAY UTILITIES
+============================================================================= */
 
 .is-hidden {
     display: none !important;
@@ -237,15 +168,4 @@
 
 .is-visible-flex {
     display: flex !important;
-}
-
-.admin-sidebar a.is-active {
-    font-weight: var(--weight-bold);
-    color: var(--color-accent-primary);
-    background-color: var(--color-bg-tertiary);
-}
-
-.admin-full-height {
-    height: 100vh;
-    overflow: hidden;
 }

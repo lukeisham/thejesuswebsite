@@ -151,6 +151,9 @@
     --border-width-thin: 1px;
     --border-width-base: 2px;
 
+    /* Editor layout */
+    --editor-col-one-width: 160px; /* Providence grid column 1 (actions) */
+
     /* Radii intentionally minimal — this is an archival site, not an app */
     --radius-none: 0px;
     --radius-sm: 2px; /* Only for very subtle rounding on tags       */
