@@ -46,7 +46,7 @@
 }
 
 .admin-logout-btn:hover {
-    background-color: var(--color-accent-primary);
+    background-color: var(--color-dash-accent);
     color: var(--color-white);
 }
 
@@ -57,7 +57,7 @@
 }
 
 .admin-sidebar {
-    width: 260px;
+    width: var(--sidebar-width);
     background-color: var(--color-bg-secondary);
     border-right: var(--border-width-thin) solid var(--color-border);
     padding: var(--space-6) var(--space-4);
@@ -99,8 +99,8 @@
     padding: var(--space-2) var(--space-2);
     border-radius: var(--radius-none);
     transition:
-        background-color 0.2s,
-        color 0.2s;
+        background-color var(--transition-fast),
+        color var(--transition-fast);
 }
 
 .admin-sidebar a:hover {
@@ -177,7 +177,7 @@
 .admin-card h2 {
     font-family: var(--font-serif);
     font-size: var(--text-lg);
-    border-bottom: 2px solid var(--color-border);
+    border-bottom: var(--border-width-thin) dashed var(--color-border);
     padding-bottom: var(--space-2);
     margin-bottom: var(--space-4);
     color: var(--color-text);
@@ -211,7 +211,7 @@
 }
 
 .quick-action-btn:hover {
-    background-color: var(--color-accent-primary);
+    background-color: var(--color-dash-accent);
     color: var(--color-white);
 }
 
