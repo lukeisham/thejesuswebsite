@@ -310,7 +310,7 @@ function _loadRecordsAll() {
         _clearColumnContent("list");
         _setColumn(
           "list",
-          '<p>Records Overview</p>' +
+          "<p>Records Overview</p>" +
             '<p class="text-sm text-muted">' +
             totalText +
             "</p>",
@@ -453,23 +453,12 @@ function _loadRecordsAll() {
     });
 }
 
-// --- records-edit (single record lookup) -----------------------------------
+// --- records-edit (single record editor) ---------------------------------
 
 function _loadRecordsEdit() {
-  _setColumn(
-    "actions",
-    '<p class="text-sm text-muted">Select a record from All Records to edit.</p>',
-  );
-  _setColumn(
-    "list",
-    '<p>Single Record</p>' +
-      '<p class="text-sm text-muted">Use the All Records view to browse and select a record for editing.</p>',
-  );
-  _setColumn(
-    "editor",
-    '<div class="admin-card"><h2>Single Record Editor</h2>' +
-      '<p class="text-sm text-muted">Click <strong>Edit</strong> on any row in the All Records view to load that record here.</p></div>',
-  );
+  if (typeof window.renderEditRecord === "function") {
+    window.renderEditRecord("canvas-col-editor", null, true);
+  }
 }
 
 // --- ranks-challenges (2-tab inline) ---------------------------------------
