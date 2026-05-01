@@ -9,7 +9,7 @@
               On DOMContentLoaded, dashboard_auth.js verifies the session cookie
               (redirecting back to admin.html if invalid), then dashboard_init.js
               renders the module tab bar via renderTabBar() and loads the default
-              module (records-all) into #admin-canvas.
+              module (records-edit) into #admin-canvas.
      Source:  guide_dashboard_appearance.md §7.1
 
 ============================================================================= -->
@@ -62,7 +62,7 @@
         <!-- Admin Edit Modules Stylesheets -->
         <link
             rel="stylesheet"
-            href="../../css/2.0_records/dashboard/edit_records.css"
+            href="../../css/2.0_records/dashboard/edit_records.css?v=2"
         />
         <link
             rel="stylesheet"
@@ -149,8 +149,8 @@
         <script src="../../js/7.0_system/dashboard/dashboard_auth.js"></script>
         <script src="../../js/7.0_system/dashboard/logout_middleware.js"></script>
         <script src="../../js/7.0_system/dashboard/return_to_site.js"></script>
-        <script src="../../js/7.0_system/dashboard/dashboard_app.js"></script>
-        <script src="../../js/7.0_system/dashboard/dashboard_init.js"></script>
+        <script src="../../js/7.0_system/dashboard/dashboard_app.js?v=2"></script>
+        <script src="../../js/7.0_system/dashboard/dashboard_init.js?v=2"></script>
         <script src="../../js/7.0_system/dashboard/render_tab_bar.js"></script>
 
         <!-- Admin Edit Module Scripts -->
@@ -160,8 +160,8 @@
         <script src="../../js/2.0_records/dashboard/edit_misc.js"></script>
         <script src="../../js/2.0_records/dashboard/edit_picture.js"></script>
         <script src="../../js/2.0_records/dashboard/edit_links.js"></script>
-        <script src="../../js/2.0_records/dashboard/edit_record_column_two.js"></script>
-        <script src="../../js/2.0_records/dashboard/edit_record.js"></script>
+        <script src="../../js/2.0_records/dashboard/edit_record_column_two.js?v=2"></script>
+        <script src="../../js/2.0_records/dashboard/edit_record.js?v=2"></script>
         <script src="../../js/2.0_records/dashboard/edit_record_save.js"></script>
         <script src="../../js/2.0_records/dashboard/edit_record_discard.js"></script>
         <script src="../../js/2.0_records/dashboard/edit_record_delete.js"></script>

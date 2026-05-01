@@ -4,15 +4,15 @@
 //   Version: 1.0.0
 //   Purpose: One-time initialisation on dashboard.html load — renders the
 //            top-level 13-tab module bar, wires the logout button, and loads
-//            the default module (records-all) into the canvas.
+//            the default module (records-edit) into the canvas.
 // =============================================================================
 
 // Trigger: DOMContentLoaded on dashboard.html (after dashboard_auth.js passes)
 // Function: Defines the full 13-module tab config, calls renderTabBar() to
 //           populate #module-tab-bar, attaches the logout click handler, and
-//           calls loadModule("records-all") to render the default view
-// Output: #module-tab-bar populated with all 13 tabs (records-all active),
-//         logout button wired, default records-all editor rendered in canvas
+//           calls loadModule("records-edit") to render the default view
+// Output: #module-tab-bar populated with all 13 tabs (records-edit active),
+//         logout button wired, default records-edit editor rendered in canvas
 
 document.addEventListener("DOMContentLoaded", function () {
   // 13-module tab config — matches dashboard_page_split.md §Module Tab Structure
