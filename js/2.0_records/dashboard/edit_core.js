@@ -19,7 +19,7 @@ window.renderEditCore = function (containerId) {
 
   container.innerHTML =
     '<section id="core-identifiers">\n' +
-    '<p class="blog-editor-list-heading">CORE IDENTIFIERS</p>\n' +
+    '<p>CORE IDENTIFIERS</p>\n' +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">id</label>\n' +
     '<input type="text" id="record-id" class="blog-editor-field-input" value="[auto-generated ULID]" readonly>\n' +

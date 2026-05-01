@@ -26,7 +26,7 @@ window.renderEditRank = function (containerId) {
 
                 <!-- column_two: Field documentation -->
                 <div class="providence-editor-col-list">
-                    <p class="blog-editor-list-heading">Override Fields</p>
+                    <p>Override Fields</p>
                     <div class="blog-editor-field">
                         <label class="blog-editor-field-label">target_slug</label>
                     </div>

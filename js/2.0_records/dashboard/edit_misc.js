@@ -20,28 +20,28 @@ window.renderEditMisc = function (containerId) {
 
   container.innerHTML =
     '<section id="misc" class="record-section-spacing">\n' +
-    '<p class="blog-editor-list-heading">MISCELLANEOUS</p>\n' +
+    '<p>MISCELLANEOUS</p>\n' +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">metadata_json</label>\n' +
     '<textarea id="record-metadata-json" class="blog-editor-field-input misc-textarea" placeholder="{ ... JSON blob ... }"></textarea>\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">iaa</label>\n' +
     '<input type="text" id="record-iaa" class="blog-editor-field-input" placeholder="Institute for Archaeology & Antiquity">\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">pledius</label>\n' +
     '<input type="text" id="record-pledius" class="blog-editor-field-input" placeholder="Pleiades ID">\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">manuscript</label>\n' +
     '<input type="text" id="record-manuscript" class="blog-editor-field-input" placeholder="Manuscript reference">\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">url</label>\n' +
     '<textarea id="record-url" class="blog-editor-field-input misc-textarea" placeholder="[ ... JSON blob of URLs ... ]"></textarea>\n' +
-    '</div>\n' +
-    '</section>';
+    "</div>\n" +
+    "</section>";
 };
 
 window.loadEditMisc = function (data) {

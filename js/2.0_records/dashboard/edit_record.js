@@ -2,7 +2,7 @@
 //
 //   THE JESUS WEBSITE — EDIT RECORD MODULE (ORCHESTRATOR)
 //   File:    js/2.0_records/dashboard/edit_record.js
-//   Version: 2.2.0
+//   Version: 2.3.0
 //   Purpose: Orchestrator for the single-record editor. Renders the 3-column
 //            Providence layout, bootstraps child sub-modules, and delegates
 //            action button rendering/wiring to edit_record_save.js,
@@ -11,6 +11,12 @@
 //            Verse builders and paragraph editors remain inline (Phase 2).
 //            Refactored to Providence 3-column grid per guide_dashboard_appearance.md §2.2.
 //   Changelog:
+//            v2.3.0 — Column 2 section navigator: replaced static listHtml with
+//                     delegation to window.renderEditRecordColumnTwo() for
+//                     interactive scroll-spy buttons. Wrapped bare <div>
+//                     containers (core, taxonomy, bibliography, misc) and
+//                     renamed text-content/relations-links sections with
+//                     stable id attributes matching Column 2 observer targets.
 //            v2.2.0 — Phase 2 button modularisation: extracted Save, Discard,
 //                     Delete, and View Live buttons into their own 1-function
 //                     JS files. Orchestrator now delegates rendering/wiring to
@@ -32,8 +38,9 @@
 
 // Trigger: dashboard_app.js routing -> window.renderEditRecord(containerId, recordId, useProvidenceColumns)
 // Function: Renders a full-field admin form for creating or editing a single archive record row.
-//           When useProvidenceColumns is true, uses _setColumn to populate the three
-//           Providence grid columns (canvas-col-actions, canvas-col-list, canvas-col-editor).
+//           When useProvidenceColumns is true, uses _setColumn to populate columns 1 & 3,
+//           and delegates Column 2 to window.renderEditRecordColumnTwo() for interactive
+//           scroll-spy navigation.
 //           When false (legacy), injects the full form HTML directly into the container.
 //           Delegates Core, Taxonomy, Bibliography, Misc, and Action Button
 //           rendering/loading/collection to sub-modules injected before this script.
@@ -220,46 +227,10 @@ window.renderEditRecord = function (
     '<div id="save-status" class="status-feedback is-hidden"></div>';
 
   // ============================================================================
-  // COLUMN 2 — listHtml (1fr)
-  // Lightweight section-index sidebar. Headings + field-name hints only.
-  // NO form inputs — all actual fields live in column 3.
+  // COLUMN 2 — section navigator (delegated to edit_record_column_two.js)
+  // Interactive scroll-spy buttons replace the old static text index.
+  // Rendered by window.renderEditRecordColumnTwo() into #canvas-col-list.
   // ============================================================================
-  var listHtml =
-    '<section id="core-identifiers-sidebar" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">CORE IDENTIFIERS</p>' +
-    '<p class="text-sm text-muted">id &middot; title &middot; slug &middot; created_at &middot; updated_at</p>' +
-    "</section>" +
-    '<section id="picture-sidebar" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">PICTURE</p>' +
-    '<p class="text-sm text-muted">edit_picture.js</p>' +
-    '<p class="text-sm text-muted">picture_name &middot; picture_bytes &middot; picture_thumbnail</p>' +
-    "</section>" +
-    '<section id="taxonomy-sidebar" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">TAXONOMY &amp; DIAGRAMS</p>' +
-    '<p class="text-sm text-muted">era &middot; timeline &middot; map_label &middot; gospel_category &middot; geo_id &middot; parent_id</p>' +
-    "</section>" +
-    '<section id="verses-sidebar" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">VERSES</p>' +
-    '<p class="text-sm text-muted">primary_verse &middot; secondary_verse</p>' +
-    "</section>" +
-    '<section id="text-content-sidebar" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">TEXT CONTENT</p>' +
-    '<p class="text-sm text-muted">description &middot; snippet</p>' +
-    "</section>" +
-    '<section id="bibliography-sidebar" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">BIBLIOGRAPHY</p>' +
-    '<p class="text-sm text-muted">bibliography (JSON blob)</p>' +
-    '<p class="text-sm text-muted">6 MLA sub-keys</p>' +
-    "</section>" +
-    '<section id="links-sidebar" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">LINKS</p>' +
-    '<p class="text-sm text-muted">edit_links.js</p>' +
-    '<p class="text-sm text-muted">context_links</p>' +
-    "</section>" +
-    '<section id="miscellaneous-sidebar" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">MISCELLANEOUS</p>' +
-    '<p class="text-sm text-muted">metadata_json &middot; iaa &middot; pledius &middot; manuscript &middot; url</p>' +
-    "</section>";
 
   // ============================================================================
   // COLUMN 3 — editorHtml (2fr)
@@ -270,46 +241,62 @@ window.renderEditRecord = function (
   // ============================================================================
   var editorHtml =
     // 1. Core Identifiers → child module slot
+    '<section id="core-identifiers-section" class="record-section-spacing">' +
+    "<p>CORE IDENTIFIERS</p>" +
     '<div id="core-identifiers-container" class="child-module-slot record-child-slot"></div>' +
+    "</section>" +
     // 2. Picture (separate child module)
     '<section id="picture-section" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">PICTURE</p>' +
+    "<p>PICTURE</p>" +
     '<div id="picture-upload-container" class="child-module-slot record-child-slot"></div>' +
     "</section>" +
     // 3. Taxonomy → child module slot
+    '<section id="taxonomy-diagrams-section" class="record-section-spacing">' +
+    "<p>TAXONOMY &amp; DIAGRAMS</p>" +
     '<div id="taxonomy-diagrams-container" class="child-module-slot record-child-slot"></div>' +
+    "</section>" +
     // 4. Verses (STAYS INLINE for Phase 2)
     '<section id="verses-section" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">VERSES</p>' +
+    "<p>VERSES</p>" +
     primaryVerseHtml +
     secondaryVerseHtml +
     "</section>" +
     // 5. Text Content (STAYS INLINE for Phase 2)
-    '<section id="text-content" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">TEXT CONTENT</p>' +
+    '<section id="text-content-section" class="record-section-spacing">' +
+    "<p>TEXT CONTENT</p>" +
     descriptionHtml +
     snippetHtml +
     "</section>" +
     // 6. Bibliography → child module slot
+    '<section id="bibliography-section" class="record-section-spacing">' +
+    "<p>BIBLIOGRAPHY</p>" +
     '<div id="bibliography-container" class="child-module-slot record-child-slot"></div>' +
+    "</section>" +
     // 7. Links (separate child module)
-    '<section id="relations-links" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">LINKS</p>' +
+    '<section id="relations-links-section" class="record-section-spacing">' +
+    "<p>LINKS</p>" +
     '<div id="relations-links-container" class="child-module-slot record-child-slot"></div>' +
     "</section>" +
     // 8. Miscellaneous → child module slot
+    '<section id="misc-section" class="record-section-spacing">' +
+    "<p>MISCELLANEOUS</p>" +
     '<div id="misc-container" class="child-module-slot record-child-slot"></div>' +
+    "</section>" +
     // 9. Sources (separate child module)
     '<section id="sources-section" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">SOURCES</p>' +
+    "<p>SOURCES</p>" +
     '<div id="sources-container" class="child-module-slot record-child-slot"></div>' +
     "</section>";
 
   // ---- Inject content ----
   if (useProvidenceColumns && typeof _setColumn === "function") {
     _setColumn("actions", actionsHtml);
-    _setColumn("list", listHtml);
     _setColumn("editor", editorHtml);
+
+    // Delegate Column 2 to the interactive scroll-spy navigator
+    if (typeof window.renderEditRecordColumnTwo === "function") {
+      window.renderEditRecordColumnTwo();
+    }
 
     // Render top-level section tab bar (Records active)
     if (typeof window.renderTabBar === "function") {
@@ -333,10 +320,10 @@ window.renderEditRecord = function (
       );
     }
   } else {
+    // Legacy path: no Providence columns; Column 2 navigator not rendered.
     container.innerHTML =
       '<div class="admin-card" id="edit-record-card">' +
       actionsHtml +
-      listHtml +
       editorHtml +
       "</div>";
 

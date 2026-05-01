@@ -310,7 +310,7 @@ function _loadRecordsAll() {
         _clearColumnContent("list");
         _setColumn(
           "list",
-          '<p class="blog-editor-list-heading">Records Overview</p>' +
+          '<p>Records Overview</p>' +
             '<p class="text-sm text-muted">' +
             totalText +
             "</p>",
@@ -462,7 +462,7 @@ function _loadRecordsEdit() {
   );
   _setColumn(
     "list",
-    '<p class="blog-editor-list-heading">Single Record</p>' +
+    '<p>Single Record</p>' +
       '<p class="text-sm text-muted">Use the All Records view to browse and select a record for editing.</p>',
   );
   _setColumn(

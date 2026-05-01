@@ -20,34 +20,34 @@ window.renderEditBibliography = function (containerId) {
 
   container.innerHTML =
     '<section id="bibliography" class="record-section-spacing">\n' +
-    '<p class="blog-editor-list-heading">BIBLIOGRAPHY (MLA)</p>\n' +
+    '<p>BIBLIOGRAPHY (MLA)</p>\n' +
     '<div class="bibliography-grid">\n' +
     '<div class="bibliography-cell">\n' +
     '<label class="field-label" for="record-mla-book">mla_book:</label>\n' +
     '<textarea id="record-mla-book" class="bibliography-textarea" placeholder="Full MLA book citation" data-mla-key="mla_book"></textarea>\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="bibliography-cell">\n' +
     '<label class="field-label" for="record-mla-book-inline">mla_book_inline:</label>\n' +
     '<textarea id="record-mla-book-inline" class="bibliography-textarea" placeholder="Short inline MLA book citation" data-mla-key="mla_book_inline"></textarea>\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="bibliography-cell">\n' +
     '<label class="field-label" for="record-mla-article">mla_article:</label>\n' +
     '<textarea id="record-mla-article" class="bibliography-textarea" placeholder="Full MLA article citation" data-mla-key="mla_article"></textarea>\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="bibliography-cell">\n' +
     '<label class="field-label" for="record-mla-article-inline">mla_article_inline:</label>\n' +
     '<textarea id="record-mla-article-inline" class="bibliography-textarea" placeholder="Short inline MLA article citation" data-mla-key="mla_article_inline"></textarea>\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="bibliography-cell">\n' +
     '<label class="field-label" for="record-mla-website">mla_website:</label>\n' +
     '<textarea id="record-mla-website" class="bibliography-textarea" placeholder="Full MLA website citation" data-mla-key="mla_website"></textarea>\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="bibliography-cell">\n' +
     '<label class="field-label" for="record-mla-website-inline">mla_website_inline:</label>\n' +
     '<textarea id="record-mla-website-inline" class="bibliography-textarea" placeholder="Short inline MLA website citation" data-mla-key="mla_website_inline"></textarea>\n' +
-    '</div>\n' +
-    '</div>\n' +
-    '</section>';
+    "</div>\n" +
+    "</div>\n" +
+    "</section>";
 };
 
 window.loadEditBibliography = function (data) {
@@ -60,19 +60,19 @@ window.loadEditBibliography = function (data) {
     }
   }
 
-  var elBook        = document.getElementById("record-mla-book");
-  var elBookInline  = document.getElementById("record-mla-book-inline");
-  var elArticle     = document.getElementById("record-mla-article");
+  var elBook = document.getElementById("record-mla-book");
+  var elBookInline = document.getElementById("record-mla-book-inline");
+  var elArticle = document.getElementById("record-mla-article");
   var elArticleInline = document.getElementById("record-mla-article-inline");
-  var elWebsite     = document.getElementById("record-mla-website");
+  var elWebsite = document.getElementById("record-mla-website");
   var elWebsiteInline = document.getElementById("record-mla-website-inline");
 
-  if (elBook)           elBook.value           = bib.mla_book           || "";
-  if (elBookInline)     elBookInline.value     = bib.mla_book_inline    || "";
-  if (elArticle)        elArticle.value        = bib.mla_article        || "";
-  if (elArticleInline)  elArticleInline.value  = bib.mla_article_inline || "";
-  if (elWebsite)        elWebsite.value        = bib.mla_website        || "";
-  if (elWebsiteInline)  elWebsiteInline.value  = bib.mla_website_inline || "";
+  if (elBook) elBook.value = bib.mla_book || "";
+  if (elBookInline) elBookInline.value = bib.mla_book_inline || "";
+  if (elArticle) elArticle.value = bib.mla_article || "";
+  if (elArticleInline) elArticleInline.value = bib.mla_article_inline || "";
+  if (elWebsite) elWebsite.value = bib.mla_website || "";
+  if (elWebsiteInline) elWebsiteInline.value = bib.mla_website_inline || "";
 };
 
 window.collectEditBibliography = function () {
@@ -88,6 +88,6 @@ window.collectEditBibliography = function () {
   }
 
   return {
-    bibliography: JSON.stringify(bibObject)
+    bibliography: JSON.stringify(bibObject),
   };
 };

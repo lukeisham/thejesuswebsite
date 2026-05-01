@@ -25,7 +25,7 @@ window.renderEditAcademicWeights = async function (containerId) {
     "<!-- column_one: Action buttons -->" +
     '<button class="blog-editor-action-btn" id="academic-save-btn">Save All Changes</button>' +
     "<!-- column_two: Field documentation -->" +
-    '<p class="blog-editor-list-heading">WRITE Fields</p>' +
+    '<p>WRITE Fields</p>' +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">academic_challenge_link</label>' +
     "</div>" +

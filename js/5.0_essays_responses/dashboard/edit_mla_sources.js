@@ -50,7 +50,7 @@ window.renderEditMlaSources = async function (containerId) {
   // COL 2 (list): Filter Records heading + search input
   _setColumn(
     "list",
-    '<p class="blog-editor-list-heading">Filter Records</p>' +
+    '<p>Filter Records</p>' +
       '<div class="search-container">' +
       '<input type="text" class="admin-search-input" id="mla-search-input" placeholder="Filter by Record Title or Slug…">' +
       "</div>",

@@ -1,7 +1,7 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components and database fields (source of truth)
-version: 2.2.0
+version: 2.3.0
 dependencies: [guide_appearance.md, detailed_module_sitemap.md, data_schema.md]
 ---
 
@@ -222,7 +222,7 @@ primary_verse     JSON Array  — verse reference column
 
 ---
 
-### 2.2 Backend for Single Record Layout (`edit_record.js`, `edit_picture.js`, `edit_links.js`)
+### 2.2 Backend for Single Record Layout (`edit_record.js`, `edit_record_column_two.js`, `edit_picture.js`, `edit_links.js`)
 **Corresponds to Public Section:** 2.2 Single Record Deep-Dive
 **Purpose:** Dense, scrollable data-entry form for one row in the `records` table. Organised into eight labelled sections covering every column owned by this editor.
 
@@ -353,6 +353,30 @@ page_views          → system-managed
 |                            |                                | url:           [textarea — JSON blob     ]   |
 +----------------------------------------------------------------------------------------------------------+
 ```
+
+**Interactive Column 2 — Section Navigator (`edit_record_column_two.js`):**
+
+Column 2 (`#canvas-col-list`) is no longer a static text index. It now renders an interactive `<nav>` with 8 clickable section-navigator buttons, one per form section. The navigator replaces the old inline `listHtml` variable in `edit_record.js`.
+
+- **Click-to-scroll:** Each button calls `scrollIntoView({ behavior: "smooth", block: "start" })` on the matching `<section>` in Column 3.
+- **Scroll-spy:** An `IntersectionObserver` with `root: canvas-col-editor` watches all 8 target sections. As the user scrolls Column 3, `.is-active` is applied to the button whose section occupies the top ~40% of the viewport.
+- **Sticky positioning:** The navigator uses `position: sticky; top: var(--space-6)` so it remains visible while Column 3 scrolls.
+- **Active highlight:** The `.record-column-two-btn.is-active` state renders in Deep Oxblood (`--color-dash-accent`) with a 2px left-border accent marker, bold weight, and subtle parchment background.
+
+Section ID mapping (Column 2 `data-scroll-target` ↔ Column 3 `<section id="...">`):
+
+| # | Column 2 Button      | Column 3 Section ID              |
+|---|----------------------|----------------------------------|
+| 1 | CORE IDENTIFIERS     | `core-identifiers-section`       |
+| 2 | PICTURE              | `picture-section`                |
+| 3 | TAXONOMY & DIAGRAMS  | `taxonomy-diagrams-section`      |
+| 4 | VERSES               | `verses-section`                 |
+| 5 | TEXT CONTENT         | `text-content-section`           |
+| 6 | BIBLIOGRAPHY         | `bibliography-section`           |
+| 7 | LINKS                | `relations-links-section`        |
+| 8 | MISCELLANEOUS        | `misc-section`                   |
+
+The ASCII diagram above reflects the section labels but does not change — the structural Column 2 role as a navigational index for Column 3 is preserved.
 
 ---
 

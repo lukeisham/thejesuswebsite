@@ -124,7 +124,7 @@ window.renderEditDiagram = async function (containerId) {
       ? window.__diagramNodes[activeParentId]
       : null;
 
-    var html = '<p class="blog-editor-list-heading">Orphan Nodes</p>';
+    var html = '<p>Orphan Nodes</p>';
 
     // Active parent readout
     if (activeNode) {

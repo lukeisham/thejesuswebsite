@@ -41,7 +41,7 @@ window.renderEditWikiWeights = async function (containerId) {
   _setColumn(
     "list",
     "<!-- column_two: WRITE field documentation -->" +
-      '<p class="blog-editor-list-heading">WRITE Fields</p>' +
+      '<p>WRITE Fields</p>' +
       '<div class="blog-editor-field">' +
       '<label class="blog-editor-field-label">wikipedia_link</label>' +
       "</div>" +

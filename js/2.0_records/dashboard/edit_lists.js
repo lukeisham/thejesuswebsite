@@ -26,7 +26,7 @@ window.renderEditLists = function (containerId, listName) {
   container.innerHTML =
     '<button class="blog-editor-action-btn btn-save-list" id="btn-save-list" type="button">Save List</button>' +
     '<div id="lists-save-status" class="status-feedback is-hidden lists-save-status"></div>' +
-    '<p class="blog-editor-list-heading">List Info</p>' +
+    '<p>List Info</p>' +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">Name</label>' +
     '<p class="text-sm lists-meta-value">' +

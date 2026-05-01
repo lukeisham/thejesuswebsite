@@ -95,14 +95,14 @@ window.renderBulkUpload = function (containerId) {
   container.innerHTML =
     '<button class="blog-editor-action-btn" data-module="records-edit">&#8592; Back to Records</button>' +
     '<button class="blog-editor-action-btn" data-module="records-new">+ New Record (manual)</button>' +
-    '<p class="blog-editor-list-heading bulk-upload-field-heading">Required CSV Fields</p>' +
+    '<p class="bulk-upload-field-heading">Required CSV Fields</p>' +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label is-danger">title (required)</label>' +
     "</div>" +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label is-danger">slug (required)</label>' +
     "</div>" +
-    '<p class="blog-editor-list-heading">Optional CSV Fields</p>' +
+    "<p>Optional CSV Fields</p>" +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">era</label>' +
     "</div>" +
