@@ -2,13 +2,21 @@
 //
 //   THE JESUS WEBSITE — EDIT RECORD MODULE (ORCHESTRATOR)
 //   File:    js/2.0_records/dashboard/edit_record.js
-//   Version: 2.1.0
+//   Version: 2.2.0
 //   Purpose: Orchestrator for the single-record editor. Renders the 3-column
-//            Providence layout, bootstraps child sub-modules, and wires the
-//            Save/Discard/Delete/View Live action buttons.
+//            Providence layout, bootstraps child sub-modules, and delegates
+//            action button rendering/wiring to edit_record_save.js,
+//            edit_record_discard.js, edit_record_delete.js, and
+//            edit_record_view_live.js.
 //            Verse builders and paragraph editors remain inline (Phase 2).
 //            Refactored to Providence 3-column grid per guide_dashboard_appearance.md §2.2.
 //   Changelog:
+//            v2.2.0 — Phase 2 button modularisation: extracted Save, Discard,
+//                     Delete, and View Live buttons into their own 1-function
+//                     JS files. Orchestrator now delegates rendering/wiring to
+//                     window.renderEditRecordSave/Discard/Delete/ViewLive().
+//                     Shared helpers _showEditRecordStatus and
+//                     _generateEditRecordUlid exposed on window.
 //            v2.1.0 — Phase 1 modularisation: extracted edit_core.js,
 //                     edit_taxonomy.js, edit_bibliography.js, edit_misc.js.
 //                     Orchestrator now delegates render/load/collect to
@@ -27,8 +35,8 @@
 //           When useProvidenceColumns is true, uses _setColumn to populate the three
 //           Providence grid columns (canvas-col-actions, canvas-col-list, canvas-col-editor).
 //           When false (legacy), injects the full form HTML directly into the container.
-//           Delegates Core, Taxonomy, Bibliography, and Misc rendering/loading/collection
-//           to sub-modules injected before this script in dashboard.html.
+//           Delegates Core, Taxonomy, Bibliography, Misc, and Action Button
+//           rendering/loading/collection to sub-modules injected before this script.
 // Output: Providence columns populated, or raw inner HTML injected into container
 
 window.renderEditRecord = function (
@@ -39,9 +47,7 @@ window.renderEditRecord = function (
   var container = document.getElementById(containerId);
   if (!container && !useProvidenceColumns) return;
 
-  var headingText = recordId
-    ? "EDIT RECORD: " + recordId
-    : "CREATE NEW RECORD";
+  var headingText = recordId ? "EDIT RECORD: " + recordId : "CREATE NEW RECORD";
 
   // ---- Bible books (all 66 canonical) ----
   var bibleBooks = [
@@ -204,18 +210,13 @@ window.renderEditRecord = function (
 
   // ============================================================================
   // COLUMN 1 — actionsHtml (160px)
-  // Buttons + status only. No picture upload here — moved to column 3.
+  // Actions heading + status feedback. Buttons are delegated to sub-modules
+  // (edit_record_save.js, edit_record_discard.js, edit_record_delete.js,
+  //  edit_record_view_live.js) which inject themselves into the column.
   // ============================================================================
   var actionsHtml =
     '<h3 class="section-heading-serif record-actions-heading">Actions</h3>' +
-    '<button class="blog-editor-action-btn" id="btn-save-record">Save Changes</button>' +
-    '<button class="blog-editor-action-btn btn-discard-record" id="btn-discard-record">Discard</button>' +
-    (recordId
-      ? '<button class="blog-editor-action-btn is-danger" id="btn-delete-record">Delete</button>'
-      : "") +
-    (recordId
-      ? '<button class="blog-editor-action-btn" id="btn-view-live-record">View Live</button>'
-      : "") +
+    '<div class="record-actions-group" id="record-actions-group"></div>' +
     '<div id="save-status" class="status-feedback is-hidden"></div>';
 
   // ============================================================================
@@ -673,11 +674,12 @@ window.renderEditRecord = function (
   }
 
   // ============================================================================
-  // ACTION BAR BUTTON WIRING
+  // SHARED HELPERS — exposed on window for button sub-modules
   // ============================================================================
-  var statusEl = document.getElementById("save-status");
 
-  function showStatus(msg, type) {
+  // Status feedback helper (used by Save, Delete, View Live sub-modules)
+  window._showEditRecordStatus = function (msg, type) {
+    var statusEl = document.getElementById("save-status");
     if (!statusEl) return;
     statusEl.textContent = msg;
     statusEl.className = "status-feedback";
@@ -690,10 +692,10 @@ window.renderEditRecord = function (
     }
     statusEl.classList.remove("is-hidden");
     statusEl.classList.add("is-visible");
-  }
+  };
 
-  // ULID generator (Crockford Base32, 26-char)
-  function generateUlid() {
+  // ULID generator — Crockford Base32, 26-char (used by Save sub-module)
+  window._generateEditRecordUlid = function () {
     var encoding = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
     var time = Date.now();
     var ulid = "";
@@ -708,177 +710,27 @@ window.renderEditRecord = function (
       ulid += encoding.charAt(Math.floor(Math.random() * 32));
     }
     return ulid;
+  };
+
+  // ============================================================================
+  // ACTION BUTTON DELEGATION — each button is injected by its own sub-module
+  // ============================================================================
+
+  if (typeof window.renderEditRecordSave === "function") {
+    window.renderEditRecordSave(recordId, containerId, useProvidenceColumns);
   }
-
-  // Discard — hard-reset the form
-  document
-    .getElementById("btn-discard-record")
-    .addEventListener("click", function () {
-      window.renderEditRecord(containerId, recordId, useProvidenceColumns);
-    });
-
-  // Save Changes — collect, validate, POST/PUT (refactored v2.1.0)
-  document
-    .getElementById("btn-save-record")
-    .addEventListener("click", function () {
-      var saveData = {};
-
-      // ---- Core Identifiers (delegated to sub-module) ----
-      if (typeof window.collectEditCore === "function") {
-        var coreData = window.collectEditCore();
-        saveData.title = coreData.title;
-        saveData.slug = coreData.slug;
-      }
-
-      // ---- Taxonomy (delegated to sub-module) ----
-      if (typeof window.collectEditTaxonomy === "function") {
-        var taxData = window.collectEditTaxonomy();
-        saveData.era = taxData.era;
-        saveData.timeline = taxData.timeline;
-        saveData.map_label = taxData.map_label;
-        saveData.gospel_category = taxData.gospel_category;
-        saveData.geo_id = taxData.geo_id;
-        saveData.parent_id = taxData.parent_id;
-      }
-
-      // ---- Verses (already JSON in hidden inputs) — STAYS INLINE ----
-      var pvEl = document.getElementById("record-primary-verse");
-      saveData.primary_verse = pvEl ? pvEl.value : "[]";
-
-      var svEl = document.getElementById("record-secondary-verse");
-      saveData.secondary_verse = svEl ? svEl.value : "[]";
-
-      // ---- Text Content (already JSON in hidden inputs) — STAYS INLINE ----
-      var descEl = document.getElementById("record-description");
-      saveData.description = descEl ? descEl.value : "[]";
-
-      var snipEl = document.getElementById("record-snippet");
-      saveData.snippet = snipEl ? snipEl.value : "[]";
-
-      // ---- Bibliography (delegated to sub-module) ----
-      if (typeof window.collectEditBibliography === "function") {
-        var bibData = window.collectEditBibliography();
-        saveData.bibliography = bibData.bibliography;
-      }
-
-      // ---- Miscellaneous (delegated to sub-module) ----
-      if (typeof window.collectEditMisc === "function") {
-        var miscData = window.collectEditMisc();
-        saveData.metadata_json = miscData.metadata_json;
-        saveData.iaa = miscData.iaa;
-        saveData.pledius = miscData.pledius;
-        saveData.manuscript = miscData.manuscript;
-        saveData.url = miscData.url;
-      }
-
-      // ---- Relations & Links (context_links hidden field from edit_links.js) ----
-      var contextLinksEl = document.getElementById("context-links-hidden");
-      saveData.context_links = contextLinksEl ? contextLinksEl.value : "[]";
-
-      // ---- Validate JSON blobs (metadata_json, url, context_links) ----
-      var jsonFields = ["metadata_json", "url"];
-      for (var ji = 0; ji < jsonFields.length; ji++) {
-        var val = saveData[jsonFields[ji]];
-        if (val && val.trim() !== "") {
-          try {
-            JSON.parse(val);
-          } catch (e) {
-            showStatus(
-              "Invalid JSON in " +
-                jsonFields[ji] +
-                ". Please fix and try again.",
-              "error",
-            );
-            return;
-          }
-        }
-      }
-
-      // Set timestamps and ID
-      if (!recordId) {
-        saveData.id = generateUlid();
-        saveData.created_at = new Date().toISOString();
-        saveData.updated_at = saveData.created_at;
-      } else {
-        saveData.updated_at = new Date().toISOString();
-      }
-
-      var method = recordId ? "PUT" : "POST";
-      var url = recordId
-        ? "/api/admin/records/" + encodeURIComponent(recordId)
-        : "/api/admin/records";
-
-      showStatus("Saving...", "loading");
-
-      fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(saveData),
-      })
-        .then(function (res) {
-          if (!res.ok) throw new Error("Save failed with status " + res.status);
-          return res.json();
-        })
-        .then(function () {
-          showStatus("Record saved successfully.", "success");
-        })
-        .catch(function (err) {
-          console.error("Save error:", err);
-          showStatus("Failed to save record. " + err.message, "error");
-        });
-    });
-
-  // Delete (only if recordId)
-  if (recordId) {
-    document
-      .getElementById("btn-delete-record")
-      .addEventListener("click", function () {
-        if (
-          !confirm(
-            "Are you sure you want to delete this record? This action cannot be undone.",
-          )
-        )
-          return;
-
-        showStatus("Deleting...", "loading");
-
-        fetch("/api/admin/records/" + encodeURIComponent(recordId), {
-          method: "DELETE",
-        })
-          .then(function (res) {
-            if (!res.ok)
-              throw new Error("Delete failed with status " + res.status);
-            // Return to §2.1 records list
-            var editLink = document.querySelector(
-              '[data-module="records-edit"]',
-            );
-            if (editLink) {
-              editLink.click();
-            } else {
-              window.location.reload();
-            }
-          })
-          .catch(function (err) {
-            console.error("Delete error:", err);
-            showStatus("Failed to delete record. " + err.message, "error");
-          });
-      });
+  if (typeof window.renderEditRecordDiscard === "function") {
+    window.renderEditRecordDiscard(recordId, containerId, useProvidenceColumns);
   }
-
-  // View Live (only if recordId)
-  if (recordId) {
-    document
-      .getElementById("btn-view-live-record")
-      .addEventListener("click", function () {
-        var slugEl = document.getElementById("record-slug");
-        var slug = slugEl ? slugEl.value.trim() : "";
-        if (!slug) {
-          showStatus("Cannot open live view: slug is empty.", "error");
-          return;
-        }
-        var publicUrl = window.location.origin + "/" + slug;
-        window.open(publicUrl, "_blank");
-      });
+  if (typeof window.renderEditRecordDelete === "function") {
+    window.renderEditRecordDelete(recordId, containerId, useProvidenceColumns);
+  }
+  if (typeof window.renderEditRecordViewLive === "function") {
+    window.renderEditRecordViewLive(
+      recordId,
+      containerId,
+      useProvidenceColumns,
+    );
   }
 
   // ---- Child module boot: Links (separate module) ----

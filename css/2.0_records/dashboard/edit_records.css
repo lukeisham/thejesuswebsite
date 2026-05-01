@@ -281,6 +281,18 @@
     gap: var(--space-2);
 }
 
+/* =============================================================================
+   3a. RECORD ACTIONS GROUP — BUTTON CONTAINER IN COLUMN 1
+   Wraps the Save / Discard / Delete / View Live action buttons injected by
+   their respective sub-modules into #canvas-col-actions.
+============================================================================= */
+
+.record-actions-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
 .btn-discard-record {
     background-color: var(--color-muted);
     color: var(--color-text);
