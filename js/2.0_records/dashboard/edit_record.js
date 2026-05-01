@@ -2,12 +2,20 @@
 //
 //   THE JESUS WEBSITE — EDIT RECORD MODULE
 //   File:    js/2.0_records/dashboard/edit_record.js
-//   Version: 1.9.0
+//   Version: 2.0.0
 //   Purpose: Form layout for editing a single row in the records table.
 //            Includes JSON-array verse builders for primary_verse / secondary_verse,
 //            paragraph-array editors for description / snippet,
 //            MLA bibliography textareas, and miscellaneous fields.
-//            Refactored to Providence 3-column grid per §18.1.
+//            Refactored to Providence 3-column grid per guide_dashboard_appearance.md §2.2.
+//            Column 2 is now a lightweight section-index sidebar (headings + hints only).
+//            All form inputs and the picture upload slot live in column 3.
+//   Changelog:
+//            v2.0.0 — Moved form fields from col 2 to col 3 per ASCII diagram §2.2.
+//                     Moved picture upload from col 1 to col 3 per diagram.
+//                     Col 2 is now a section-index sidebar (headings + field-name hints).
+//                     Fixed bibliography save bug (line ~857) — removed ancestor scoping.
+//            v1.9.0 — Previous version.
 //   Source:  guide_dashboard_appearance.md §2.2
 //
 // =============================================================================
@@ -190,7 +198,10 @@ window.renderEditRecord = function (
   );
   var snippetHtml = paragraphEditorHtml("snippet", "Snippet", "record-snippet");
 
-  // ---- Build column_actions HTML ----
+  // ============================================================================
+  // COLUMN 1 — actionsHtml (160px)
+  // Buttons + status only. No picture upload here — moved to column 3.
+  // ============================================================================
   var actionsHtml =
     '<h3 class="section-heading-serif record-actions-heading">Actions</h3>' +
     '<button class="blog-editor-action-btn" id="btn-save-record">Save Changes</button>' +
@@ -201,13 +212,58 @@ window.renderEditRecord = function (
     (recordId
       ? '<button class="blog-editor-action-btn" id="btn-view-live-record">View Live</button>'
       : "") +
-    '<div id="save-status" class="status-feedback is-hidden"></div>' +
-    '<div id="picture-upload-container" class="child-module-slot record-child-slot"></div>';
+    '<div id="save-status" class="status-feedback is-hidden"></div>';
 
-  // ---- Build column_list HTML (Core Identifiers + Taxonomy + Verses) ----
+  // ============================================================================
+  // COLUMN 2 — listHtml (1fr)
+  // Lightweight section-index sidebar. Headings + field-name hints only.
+  // NO form inputs — all actual fields live in column 3.
+  // ============================================================================
   var listHtml =
+    '<section id="core-identifiers-sidebar" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">CORE IDENTIFIERS</p>' +
+    '<p class="text-sm text-muted">id &middot; title &middot; slug &middot; created_at &middot; updated_at</p>' +
+    "</section>" +
+    '<section id="picture-sidebar" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">PICTURE</p>' +
+    '<p class="text-sm text-muted">edit_picture.js</p>' +
+    '<p class="text-sm text-muted">picture_name &middot; picture_bytes &middot; picture_thumbnail</p>' +
+    "</section>" +
+    '<section id="taxonomy-sidebar" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">TAXONOMY &amp; DIAGRAMS</p>' +
+    '<p class="text-sm text-muted">era &middot; timeline &middot; map_label &middot; gospel_category &middot; geo_id &middot; parent_id</p>' +
+    "</section>" +
+    '<section id="verses-sidebar" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">VERSES</p>' +
+    '<p class="text-sm text-muted">primary_verse &middot; secondary_verse</p>' +
+    "</section>" +
+    '<section id="text-content-sidebar" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">TEXT CONTENT</p>' +
+    '<p class="text-sm text-muted">description &middot; snippet</p>' +
+    "</section>" +
+    '<section id="bibliography-sidebar" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">BIBLIOGRAPHY</p>' +
+    '<p class="text-sm text-muted">bibliography (JSON blob)</p>' +
+    '<p class="text-sm text-muted">6 MLA sub-keys</p>' +
+    "</section>" +
+    '<section id="links-sidebar" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">LINKS</p>' +
+    '<p class="text-sm text-muted">edit_links.js</p>' +
+    '<p class="text-sm text-muted">context_links</p>' +
+    "</section>" +
+    '<section id="miscellaneous-sidebar" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">MISCELLANEOUS</p>' +
+    '<p class="text-sm text-muted">metadata_json &middot; iaa &middot; pledius &middot; manuscript &middot; url</p>' +
+    "</section>";
+
+  // ============================================================================
+  // COLUMN 3 — editorHtml (2fr)
+  // ALL actual form fields live here. Section order mirrors column 2.
+  // ============================================================================
+  var editorHtml =
+    // 1. Core Identifiers
     '<section id="core-identifiers">' +
-    '<p class="blog-editor-list-heading">Core Identifiers</p>' +
+    '<p class="blog-editor-list-heading">CORE IDENTIFIERS</p>' +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">id</label>' +
     '<input type="text" id="record-id" class="blog-editor-field-input" value="[auto-generated ULID]" readonly>' +
@@ -229,8 +285,14 @@ window.renderEditRecord = function (
     '<input type="text" id="record-updated-at" class="blog-editor-field-input" value="[auto]" readonly>' +
     "</div>" +
     "</section>" +
+    // 2. Picture (moved from col 1)
+    '<section id="picture-section" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">PICTURE</p>' +
+    '<div id="picture-upload-container" class="child-module-slot record-child-slot"></div>' +
+    "</section>" +
+    // 3. Taxonomy & Diagrams
     '<section id="taxonomy-diagrams" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">Taxonomy & Diagrams</p>' +
+    '<p class="blog-editor-list-heading">TAXONOMY &amp; DIAGRAMS</p>' +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">era</label>' +
     '<select id="record-era" class="blog-editor-field-input">' +
@@ -321,21 +383,21 @@ window.renderEditRecord = function (
     '<input type="text" id="record-parent-id" class="blog-editor-field-input" placeholder="Parent record ID (FK)">' +
     "</div>" +
     "</section>" +
+    // 4. Verses
     '<section id="verses-section" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">Verses</p>' +
+    '<p class="blog-editor-list-heading">VERSES</p>' +
     primaryVerseHtml +
     secondaryVerseHtml +
-    "</section>";
-
-  // ---- Build column_editor HTML (Text Content + Bibliography + Misc + Links + Sources) ----
-  var editorHtml =
-    '<section id="text-content">' +
-    '<p class="blog-editor-list-heading">Text Content</p>' +
+    "</section>" +
+    // 5. Text Content
+    '<section id="text-content" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">TEXT CONTENT</p>' +
     descriptionHtml +
     snippetHtml +
     "</section>" +
+    // 6. Bibliography (MLA)
     '<section id="bibliography" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">Bibliography (MLA)</p>' +
+    '<p class="blog-editor-list-heading">BIBLIOGRAPHY (MLA)</p>' +
     '<div class="bibliography-grid">' +
     '<div class="bibliography-cell">' +
     '<label class="field-label" for="record-mla-book">mla_book:</label>' +
@@ -363,8 +425,14 @@ window.renderEditRecord = function (
     "</div>" +
     "</div>" +
     "</section>" +
+    // 7. Links
+    '<section id="relations-links" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">LINKS</p>' +
+    '<div id="relations-links-container" class="child-module-slot record-child-slot"></div>' +
+    "</section>" +
+    // 8. Miscellaneous
     '<section id="misc" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">Miscellaneous</p>' +
+    '<p class="blog-editor-list-heading">MISCELLANEOUS</p>' +
     '<div class="blog-editor-field">' +
     '<label class="blog-editor-field-label">metadata_json</label>' +
     '<textarea id="record-metadata-json" class="blog-editor-field-input misc-textarea" placeholder="{ ... JSON blob ... }"></textarea>' +
@@ -386,9 +454,11 @@ window.renderEditRecord = function (
     '<textarea id="record-url" class="blog-editor-field-input misc-textarea" placeholder="[ ... JSON blob of URLs ... ]"></textarea>' +
     "</div>" +
     "</section>" +
-    "<!-- Child module injection points -->" +
-    '<div id="relations-links-container" class="child-module-slot record-child-slot"></div>' +
-    '<div id="sources-container" class="child-module-slot record-child-slot"></div>';
+    "<!-- Sources child module injection point (appears after Miscellaneous) -->" +
+    '<section id="sources-section" class="record-section-spacing">' +
+    '<p class="blog-editor-list-heading">SOURCES</p>' +
+    '<div id="sources-container" class="child-module-slot record-child-slot"></div>' +
+    "</section>";
 
   // ---- Inject content ----
   if (useProvidenceColumns && typeof _setColumn === "function") {
@@ -853,10 +923,11 @@ window.renderEditRecord = function (
       saveData.snippet = snipEl ? snipEl.value : "[]";
 
       // Bibliography — build JSON blob from data-mla-key textareas
+      // FIXED (v2.0.0): removed ancestor scoping to work regardless of which column
+      // the textareas are in. Previously used "#edit-record-card [data-mla-key]"
+      // which only worked in legacy mode.
       var bib = {};
-      var bibTextareas = document.querySelectorAll(
-        "#edit-record-card [data-mla-key]",
-      );
+      var bibTextareas = document.querySelectorAll("[data-mla-key]");
       for (var bi = 0; bi < bibTextareas.length; bi++) {
         var ta = bibTextareas[bi];
         bib[ta.getAttribute("data-mla-key")] = ta.value;
