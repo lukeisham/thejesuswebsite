@@ -1,18 +1,24 @@
 // =============================================================================
 //   THE JESUS WEBSITE — DASHBOARD MODULE ROUTER
 //   File:    js/7.0_system/dashboard/dashboard_app.js
-//   Version: 3.0.0
+//   Version: 3.1.0
 //   Purpose: Pure module router — maps module names to editor render functions
 //            and populates the three permanent Providence grid columns inside
 //            #admin-canvas. No shell rendering, no event wiring.
+//
+//   IMMUTABLE SHELL CONTRACT: The three Providence column divs
+//   (#canvas-col-actions, #canvas-col-list, #canvas-col-editor) are permanent
+//   structural elements — never destroyed or replaced. Only their inner content
+//   children are cleared and repopulated via _setColumn(). No module may call
+//   innerHTML = "" or innerHTML = "..." directly on a column ID.
 // =============================================================================
 
 // Trigger: Called by dashboard_init.js (on DOMContentLoaded) to load the default
 //         module, or by render_tab_bar.js click handler when a tab is clicked
-// Function: Clears all three Providence columns, updates is-active on
-//           #module-tab-bar, routes module name to the correct editor render
-//           function, and populates #canvas-col-actions, #canvas-col-list,
-//           and #canvas-col-editor.
+// Function: Clears child content from all three Providence columns, updates
+//           is-active on #module-tab-bar, routes module name to the correct
+//           editor render function, and populates #canvas-col-actions,
+//           #canvas-col-list, and #canvas-col-editor.
 // Output: #module-tab-bar active state updated, Providence columns populated
 
 var _providenceColumns = null;
@@ -28,17 +34,40 @@ function _getColumns() {
   return _providenceColumns;
 }
 
-function _clearColumns() {
+// Clears only injected content children from a single Providence column.
+// The column div itself is an immutable shell element — never destroyed.
+function _clearColumnContent(colName) {
   var cols = _getColumns();
-  if (cols.actions) cols.actions.innerHTML = "";
-  if (cols.list) cols.list.innerHTML = "";
-  if (cols.editor) cols.editor.innerHTML = "";
+  var el = cols[colName];
+  if (!el) return;
+  while (el.firstChild) {
+    el.removeChild(el.firstChild);
+  }
+}
+
+function _clearColumns() {
+  _clearColumnContent("actions");
+  _clearColumnContent("list");
+  _clearColumnContent("editor");
+  // Reset grid to default 1fr/2fr ratio (T9)
+  _setGridColumns("1fr", "2fr");
 }
 
 function _setColumn(colName, html) {
   var cols = _getColumns();
   var el = cols[colName];
-  if (el) el.innerHTML = html;
+  if (!el) return;
+  // Use insertAdjacentHTML to add content without destroying the column div
+  el.insertAdjacentHTML("beforeend", html);
+}
+
+// T9: Set variable column widths via CSS custom properties on the grid.
+// twoFr / threeFr replace the default 1fr / 2fr track sizes.
+function _setGridColumns(twoFr, threeFr) {
+  var canvas = document.getElementById("admin-canvas");
+  if (!canvas) return;
+  canvas.style.setProperty("--editor-col-two-fr", twoFr);
+  canvas.style.setProperty("--editor-col-three-fr", threeFr);
 }
 
 async function loadModule(moduleName) {
@@ -185,17 +214,17 @@ async function loadModule(moduleName) {
 
 // ============================================================================
 //   INLINE MODULE BUILDERS
-//   Each populates the three Providence columns directly.
+//   Each populates the three Providence columns directly via _setColumn().
+//   Never sets innerHTML directly on a Providence column div.
 // ============================================================================
 
 // --- records-all ------------------------------------------------------------
 
 function _loadRecordsAll() {
-  var editorCol = _getColumns().editor;
-  if (!editorCol) return;
-
-  editorCol.innerHTML =
-    '<div class="admin-card"><h2>Loading Records...</h2></div>';
+  _setColumn(
+    "editor",
+    '<div class="admin-card"><h2>Loading Records...</h2></div>',
+  );
 
   fetch("/api/admin/records")
     .then(function (response) {
@@ -206,10 +235,13 @@ function _loadRecordsAll() {
       var records = data.records || [];
 
       if (!Array.isArray(records) || records.length === 0) {
-        editorCol.innerHTML =
+        _clearColumnContent("editor");
+        _setColumn(
+          "editor",
           '<div class="admin-card"><h2>No Records Found</h2>' +
-          "<p>There are no records in the database yet. " +
-          '<a href="#" data-module="records-new">Create one</a>.</p></div>';
+            "<p>There are no records in the database yet. " +
+            '<a href="#" data-module="records-new">Create one</a>.</p></div>',
+        );
         return;
       }
 
@@ -268,12 +300,14 @@ function _loadRecordsAll() {
           ? "Showing " + filtered.length + " of " + records.length + " records"
           : records.length + " records total";
 
+        _clearColumnContent("actions");
         _setColumn(
           "actions",
           '<button class="blog-editor-action-btn" data-module="records-new">+ New Record</button>' +
             '<button class="blog-editor-action-btn" data-module="records-bulk">Bulk Upload CSV</button>',
         );
 
+        _clearColumnContent("list");
         _setColumn(
           "list",
           '<p class="blog-editor-list-heading">Records Overview</p>' +
@@ -282,36 +316,39 @@ function _loadRecordsAll() {
             "</p>",
         );
 
-        editorCol.innerHTML =
+        _clearColumnContent("editor");
+        _setColumn(
+          "editor",
           '<div class="search-container">' +
-          '<input type="text" id="records-search-input" class="admin-search-input" ' +
-          'placeholder="Search by title or primary verse..." value="' +
-          searchQuery +
-          '">' +
-          "</div>" +
-          '<div class="table-wrapper">' +
-          '<table class="admin-records-table">' +
-          "<thead><tr><th>Title</th><th>Primary Verse</th><th>Actions</th></tr></thead>" +
-          "<tbody>" +
-          rowsHtml +
-          "</tbody>" +
-          "</table>" +
-          "</div>" +
-          (totalPages > 1
-            ? '<div class="pagination-controls">' +
-              '<button class="quick-action-btn pagination-btn js-prev-page" ' +
-              (currentPage <= 1 ? "disabled" : "") +
-              ">Previous</button>" +
-              '<span class="pagination-info">Page ' +
-              currentPage +
-              " of " +
-              totalPages +
-              "</span>" +
-              '<button class="quick-action-btn pagination-btn js-next-page" ' +
-              (currentPage >= totalPages ? "disabled" : "") +
-              ">Next</button>" +
-              "</div>"
-            : "");
+            '<input type="text" id="records-search-input" class="admin-search-input" ' +
+            'placeholder="Search by title or primary verse..." value="' +
+            searchQuery +
+            '">' +
+            "</div>" +
+            '<div class="table-wrapper">' +
+            '<table class="admin-records-table">' +
+            "<thead><tr><th>Title</th><th>Primary Verse</th><th>Actions</th></tr></thead>" +
+            "<tbody>" +
+            rowsHtml +
+            "</tbody>" +
+            "</table>" +
+            "</div>" +
+            (totalPages > 1
+              ? '<div class="pagination-controls">' +
+                '<button class="quick-action-btn pagination-btn js-prev-page" ' +
+                (currentPage <= 1 ? "disabled" : "") +
+                ">Previous</button>" +
+                '<span class="pagination-info">Page ' +
+                currentPage +
+                " of " +
+                totalPages +
+                "</span>" +
+                '<button class="quick-action-btn pagination-btn js-next-page" ' +
+                (currentPage >= totalPages ? "disabled" : "") +
+                ">Next</button>" +
+                "</div>"
+              : ""),
+        );
 
         // Wire column_one action buttons
         var actionsCol = _getColumns().actions;
@@ -337,60 +374,69 @@ function _loadRecordsAll() {
         }
 
         // Wire edit buttons
-        editorCol.querySelectorAll(".js-edit-record").forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            var recordId = this.getAttribute("data-record-id");
-            if (typeof window.renderEditRecord === "function") {
-              window.renderEditRecord("canvas-col-editor", recordId, true);
-            } else {
-              console.error("renderEditRecord not available");
-            }
-          });
-        });
-
-        // Wire delete buttons
-        editorCol.querySelectorAll(".js-delete-record").forEach(function (btn) {
-          btn.addEventListener("click", async function () {
-            var recordId = this.getAttribute("data-record-id");
-            if (!confirm("Are you sure you want to delete this record?"))
-              return;
-
-            try {
-              var delResp = await fetch("/api/admin/records/" + recordId, {
-                method: "DELETE",
-              });
-              if (!delResp.ok) throw new Error("Delete failed");
-              var idx = records.findIndex(function (r) {
-                return r.id === recordId;
-              });
-              if (idx !== -1) records.splice(idx, 1);
-              renderRecordList();
-            } catch (err) {
-              console.error("Delete error:", err);
-              alert("Failed to delete record. See console for details.");
-            }
-          });
-        });
-
-        // Wire pagination
-        var prevBtn = editorCol.querySelector(".js-prev-page");
-        if (prevBtn) {
-          prevBtn.addEventListener("click", function () {
-            if (currentPage > 1) {
-              currentPage--;
-              renderRecordList();
-            }
+        var editorCol = _getColumns().editor;
+        if (editorCol) {
+          editorCol.querySelectorAll(".js-edit-record").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var recordId = this.getAttribute("data-record-id");
+              if (typeof window.renderEditRecord === "function") {
+                window.renderEditRecord("canvas-col-editor", recordId, true);
+              } else {
+                console.error("renderEditRecord not available");
+              }
+            });
           });
         }
 
-        var nextBtn = editorCol.querySelector(".js-next-page");
-        if (nextBtn) {
-          nextBtn.addEventListener("click", function () {
-            if (currentPage < totalPages) {
-              currentPage++;
-              renderRecordList();
-            }
-          });
+        // Wire delete buttons
+        if (editorCol) {
+          editorCol
+            .querySelectorAll(".js-delete-record")
+            .forEach(function (btn) {
+              btn.addEventListener("click", async function () {
+                var recordId = this.getAttribute("data-record-id");
+                if (!confirm("Are you sure you want to delete this record?"))
+                  return;
+
+                try {
+                  var delResp = await fetch("/api/admin/records/" + recordId, {
+                    method: "DELETE",
+                  });
+                  if (!delResp.ok) throw new Error("Delete failed");
+                  var idx = records.findIndex(function (r) {
+                    return r.id === recordId;
+                  });
+                  if (idx !== -1) records.splice(idx, 1);
+                  renderRecordList();
+                } catch (err) {
+                  console.error("Delete error:", err);
+                  alert("Failed to delete record. See console for details.");
+                }
+              });
+            });
+        }
+
+        // Wire pagination
+        if (editorCol) {
+          var prevBtn = editorCol.querySelector(".js-prev-page");
+          if (prevBtn) {
+            prevBtn.addEventListener("click", function () {
+              if (currentPage > 1) {
+                currentPage--;
+                renderRecordList();
+              }
+            });
+          }
+
+          var nextBtn = editorCol.querySelector(".js-next-page");
+          if (nextBtn) {
+            nextBtn.addEventListener("click", function () {
+              if (currentPage < totalPages) {
+                currentPage++;
+                renderRecordList();
+              }
+            });
+          }
         }
       }
 
@@ -398,9 +444,12 @@ function _loadRecordsAll() {
     })
     .catch(function (err) {
       console.error("Error loading records:", err);
-      editorCol.innerHTML =
+      _clearColumnContent("editor");
+      _setColumn(
+        "editor",
         '<div class="admin-card"><h2>Error Loading Records</h2>' +
-        "<p>Could not fetch records from the server. Please try again later.</p></div>";
+          "<p>Could not fetch records from the server. Please try again later.</p></div>",
+      );
     });
 }
 

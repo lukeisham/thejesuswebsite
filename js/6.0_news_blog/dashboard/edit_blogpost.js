@@ -2,30 +2,64 @@
 //
 //   THE JESUS WEBSITE — EDIT BLOGPOST MODULE
 //   File:    js/6.0_news_blog/dashboard/edit_blogpost.js
-//   Version: 2.0.0
+//   Version: 2.1.0
 //   Purpose: 3-column CRUD interface for authoring, editing, and deleting
 //            blog posts. Loads real data from API — no mock rows.
 //   Source:  guide_dashboard_appearance.md §6.2, guide_function.md §6.3
+//
+//   Changelog:
+//     v2.1.0 — Providence grid refactor: split single container.innerHTML dump
+//              into three _setColumn() / _clearColumnContent() calls targeting
+//              "actions", "list", and "editor". Loading indicator renders into
+//              the editor column. showSaveResult() appends into _getColumns().editor.
+//              renderTabBar() continues passing containerId as-is.
+//     v2.0.0 — Initial version with container.innerHTML injection.
 //
 // =============================================================================
 
 // Trigger: dashboard_app.js routing -> window.renderEditBlogpost(containerId)
 // Function: Fetches blog posts from API, renders 3-column Providence layout,
 //           and manages create/edit/delete operations via PUT/DELETE
-// Output: Injects a blog post management interface into the specified container
+// Output: Populates the three Providence grid columns (canvas-col-actions,
+//         canvas-col-list, canvas-col-editor) via _setColumn()
 
 window.renderEditBlogpost = async function (containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+  // containerId is "canvas-col-editor" when routed via dashboard_app.js loadModule().
+  // We keep it for renderTabBar compatibility but no longer dump innerHTML into it.
 
-  // ----- Render shell (loading state) -----
-  container.innerHTML =
-    '<div class="loading-placeholder" id="blog-loading-indicator">Loading blog posts…</div>' +
-    '<div id="blog-editor-root"></div>';
+  // ----- Render shell (loading state) into Providence columns -----
+  // COL 1: Action buttons (placeholders shown while loading)
+  _setColumn(
+    "actions",
+    "<!-- column_one: Action buttons -->" +
+      '<button class="blog-editor-action-btn" id="blog-btn-save">Save Post</button>' +
+      '<button class="blog-editor-action-btn" id="blog-btn-discard">Discard</button>' +
+      '<button class="blog-editor-action-btn is-danger" id="blog-btn-delete">Delete Post</button>' +
+      '<button class="blog-editor-action-btn" id="blog-btn-new">+ New Post</button>',
+  );
+
+  // COL 2: Existing Posts list (empty placeholder while loading)
+  _setColumn(
+    "list",
+    "<!-- column_two: Existing Posts list -->" +
+      '<p class="blog-editor-list-heading">Existing Posts</p>',
+  );
+
+  // COL 3: Loading indicator inside the editor column
+  _setColumn(
+    "editor",
+    "<!-- column_three: Editor (loading) -->" +
+      '<div class="loading-placeholder" id="blog-loading-indicator">Loading blog posts…</div>',
+  );
 
   // ----- Internal state -----
   var blogPosts = []; // Array of { id, slug, blogposts (parsed), title, publish_date, author, body }
   var selectedPostId = null; // Currently selected post id (null = new post)
+
+  // ----- Helper: get a reference to the editor column DOM element -----
+  function _getEditorEl() {
+    return document.getElementById("canvas-col-editor");
+  }
 
   // ----- Helpers -----
   function escapeHtml(str) {
@@ -96,32 +130,29 @@ window.renderEditBlogpost = async function (containerId) {
     }
   }
 
-  // ----- Render the 3-column editor layout -----
+  // ----- Render the 3-column editor layout via Providence grid -----
   function renderEditor() {
-    var root = document.getElementById("blog-editor-root");
-    if (!root) return;
+    // --- COL 1: Action buttons (re-render to ensure fresh event bindings) ---
+    _clearColumnContent("actions");
+    _setColumn(
+      "actions",
+      "<!-- column_one: Action buttons -->" +
+        '<button class="blog-editor-action-btn" id="blog-btn-save">Save Post</button>' +
+        '<button class="blog-editor-action-btn" id="blog-btn-discard">Discard</button>' +
+        '<button class="blog-editor-action-btn is-danger" id="blog-btn-delete">Delete Post</button>' +
+        '<button class="blog-editor-action-btn" id="blog-btn-new">+ New Post</button>',
+    );
 
-    var html = "";
-
-    // ---- column_one: Action Buttons ----
-    html +=
-      '<button class="blog-editor-action-btn" id="blog-btn-save">Save Post</button>';
-    html +=
-      '<button class="blog-editor-action-btn" id="blog-btn-discard">Discard</button>';
-    html +=
-      '<button class="blog-editor-action-btn is-danger" id="blog-btn-delete">Delete Post</button>';
-    html +=
-      '<button class="blog-editor-action-btn" id="blog-btn-new">+ New Post</button>';
-
-    // ---- column_two: Existing Posts List ----
-    html += '<p class="blog-editor-list-heading">Existing Posts</p>';
+    // --- COL 2: Existing Posts list ---
+    var listHtml = "<!-- column_two: Existing Posts list -->";
+    listHtml += '<p class="blog-editor-list-heading">Existing Posts</p>';
 
     if (blogPosts.length === 0) {
-      html += '<p class="blog-editor-empty-msg">No blog posts yet.</p>';
+      listHtml += '<p class="blog-editor-empty-msg">No blog posts yet.</p>';
     } else {
       blogPosts.forEach(function (post) {
         var isSelected = post.id === selectedPostId;
-        html +=
+        listHtml +=
           '<div class="blog-post-list-item' +
           (isSelected ? " is-selected" : "") +
           '" data-post-id="' +
@@ -147,7 +178,10 @@ window.renderEditBlogpost = async function (containerId) {
       });
     }
 
-    // ---- column_three: Editor Form ----
+    _clearColumnContent("list");
+    _setColumn("list", listHtml);
+
+    // --- COL 3: Editor Form ---
     var currentPost = null;
     if (selectedPostId) {
       for (var i = 0; i < blogPosts.length; i++) {
@@ -158,99 +192,106 @@ window.renderEditBlogpost = async function (containerId) {
       }
     }
 
+    var editorHtml = "<!-- column_three: Editor form -->";
+
     // Publish Date
-    html += '<div class="blog-editor-field">';
-    html += '<label class="blog-editor-field-label">Publish Date</label>';
-    html +=
+    editorHtml += '<div class="blog-editor-field">';
+    editorHtml += '<label class="blog-editor-field-label">Publish Date</label>';
+    editorHtml +=
       '<input type="date" class="blog-editor-field-input" id="blog-field-date" value="' +
       escapeHtml(formatDate(currentPost ? currentPost.publish_date : "")) +
       '">';
-    html += "</div>";
+    editorHtml += "</div>";
 
     // Title
-    html += '<div class="blog-editor-field">';
-    html += '<label class="blog-editor-field-label">Title</label>';
-    html +=
+    editorHtml += '<div class="blog-editor-field">';
+    editorHtml += '<label class="blog-editor-field-label">Title</label>';
+    editorHtml +=
       '<input type="text" class="blog-editor-field-input" id="blog-field-title" placeholder="Post title…" value="' +
       escapeHtml(currentPost ? currentPost.title : "") +
       '">';
-    html += "</div>";
+    editorHtml += "</div>";
 
     // Author
-    html += '<div class="blog-editor-field">';
-    html += '<label class="blog-editor-field-label">Author</label>';
-    html +=
+    editorHtml += '<div class="blog-editor-field">';
+    editorHtml += '<label class="blog-editor-field-label">Author</label>';
+    editorHtml +=
       '<input type="text" class="blog-editor-field-input" id="blog-field-author" placeholder="Author name…" value="' +
       escapeHtml(currentPost ? currentPost.author : "") +
       '">';
-    html += "</div>";
+    editorHtml += "</div>";
 
     // Markdown Editor + Preview split
-    html += '<div class="blog-editor-split">';
+    editorHtml += '<div class="blog-editor-split">';
 
     // Markdown textarea
-    html += '<div class="blog-editor-textarea-pane">';
-    html += '<div class="blog-editor-pane-label">Markdown (Edit)</div>';
-    html +=
+    editorHtml += '<div class="blog-editor-textarea-pane">';
+    editorHtml += '<div class="blog-editor-pane-label">Markdown (Edit)</div>';
+    editorHtml +=
       '<textarea class="blog-editor-textarea" id="blog-field-body" placeholder="Write blog post markdown here…">' +
       escapeHtml(currentPost ? currentPost.body : "") +
       "</textarea>";
-    html += "</div>";
+    editorHtml += "</div>";
 
     // Live preview
-    html += '<div class="blog-editor-textarea-pane">';
-    html += '<div class="blog-editor-pane-label is-preview">Live Preview</div>';
-    html +=
+    editorHtml += '<div class="blog-editor-textarea-pane">';
+    editorHtml +=
+      '<div class="blog-editor-pane-label is-preview">Live Preview</div>';
+    editorHtml +=
       '<div class="blog-editor-preview-pane" id="blog-preview-pane"></div>';
-    html += "</div>";
+    editorHtml += "</div>";
 
-    html += "</div>"; // end .blog-editor-split
+    editorHtml += "</div>"; // end .blog-editor-split
 
-    root.innerHTML = html;
+    _clearColumnContent("editor");
+    _setColumn("editor", editorHtml);
 
     // ----- Wire column_two: Post list selection -----
-    root.querySelectorAll("[data-action='edit']").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var postId = this.getAttribute("data-post-id");
-        if (postId) {
-          selectedPostId = postId;
-          renderEditor();
-          wireEditorEvents();
-        }
-      });
-    });
-
-    // ----- Wire column_two: Delete from list -----
-    root.querySelectorAll("[data-action='delete']").forEach(function (btn) {
-      btn.addEventListener("click", async function () {
-        var postId = this.getAttribute("data-post-id");
-        if (!postId) return;
-        if (!confirm("Delete this blog post permanently?")) return;
-
-        try {
-          var resp = await fetch("/api/admin/records/" + postId, {
-            method: "DELETE",
-            credentials: "include",
-          });
-
-          if (resp.ok) {
-            // Remove from local list
-            blogPosts = blogPosts.filter(function (p) {
-              return p.id !== postId;
-            });
-            if (selectedPostId === postId) {
-              selectedPostId = null;
-            }
+    var listEl = _getColumns().list;
+    if (listEl) {
+      listEl.querySelectorAll("[data-action='edit']").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var postId = this.getAttribute("data-post-id");
+          if (postId) {
+            selectedPostId = postId;
             renderEditor();
             wireEditorEvents();
-          } else {
-            alert("Delete failed: " + resp.statusText);
           }
-        } catch (err) {
-          alert("Delete failed: " + err.message);
-        }
+        });
       });
-    });
+
+      // ----- Wire column_two: Delete from list -----
+      listEl.querySelectorAll("[data-action='delete']").forEach(function (btn) {
+        btn.addEventListener("click", async function () {
+          var postId = this.getAttribute("data-post-id");
+          if (!postId) return;
+          if (!confirm("Delete this blog post permanently?")) return;
+
+          try {
+            var resp = await fetch("/api/admin/records/" + postId, {
+              method: "DELETE",
+              credentials: "include",
+            });
+
+            if (resp.ok) {
+              // Remove from local list
+              blogPosts = blogPosts.filter(function (p) {
+                return p.id !== postId;
+              });
+              if (selectedPostId === postId) {
+                selectedPostId = null;
+              }
+              renderEditor();
+              wireEditorEvents();
+            } else {
+              alert("Delete failed: " + resp.statusText);
+            }
+          } catch (err) {
+            alert("Delete failed: " + err.message);
+          }
+        });
+      });
+    }
 
     // ----- Wire column_three: Live preview on body input -----
     var bodyField = document.getElementById("blog-field-body");
@@ -263,7 +304,7 @@ window.renderEditBlogpost = async function (containerId) {
       updatePreview();
     }
 
-    // Wire save, discard, delete, new buttons
+    // Wire save, discard, delete, new buttons (column_one)
     wireColumnOneButtons();
   }
 
@@ -429,15 +470,17 @@ window.renderEditBlogpost = async function (containerId) {
 
   // ----- Show save result message -----
   function showSaveResult(msg, type) {
-    var card = document.getElementById("edit-blogpost-card");
-    if (!card) return;
-    var existing = card.querySelector(".save-result-indicator");
+    var editorEl = _getEditorEl();
+    if (!editorEl) return;
+
+    // Remove any existing save-result indicator from the editor column
+    var existing = editorEl.querySelector(".save-result-indicator");
     if (existing) existing.remove();
 
     var indicator = document.createElement("div");
     indicator.className = "save-result-indicator " + type;
     indicator.textContent = msg;
-    card.appendChild(indicator);
+    editorEl.appendChild(indicator);
   }
 
   // ----- Wire editor events after re-render -----
@@ -445,49 +488,53 @@ window.renderEditBlogpost = async function (containerId) {
     // This is called after renderEditor() to wire any dynamic events.
     // The post list and save buttons are already wired inside renderEditor.
     // If there's a currently selected post, scroll to it.
-    var selectedEl = document.querySelector(".blog-post-list-item.is-selected");
-    if (selectedEl) {
-      selectedEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    var listEl = _getColumns().list;
+    if (listEl) {
+      var selectedEl = listEl.querySelector(".blog-post-list-item.is-selected");
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
     }
   }
 
   // ----- Render top-level section tab bar -----
   // Shows [ Records ] [ Lists & Ranks ] [ Text Content (Active) ] [ Configuration ]
-  window.renderTabBar(
-    containerId,
-    [
-      { name: "records", label: "Records", module: "records-edit" },
-      {
-        name: "lists-ranks",
-        label: "Lists & Ranks",
-        module: "lists-resources",
-      },
-      { name: "text-content", label: "Text Content", module: "text-blog" },
-      {
-        name: "configuration",
-        label: "Configuration",
-        module: "config-diagrams",
-      },
-    ],
-    "text-content",
-  );
+  if (typeof window.renderTabBar === "function") {
+    window.renderTabBar(
+      containerId,
+      [
+        { name: "records", label: "Records", module: "records-edit" },
+        {
+          name: "lists-ranks",
+          label: "Lists & Ranks",
+          module: "lists-resources",
+        },
+        { name: "text-content", label: "Text Content", module: "text-blog" },
+        {
+          name: "configuration",
+          label: "Configuration",
+          module: "config-diagrams",
+        },
+      ],
+      "text-content",
+    );
+  }
 
   // ----- Initialize: Load data and render -----
   try {
     await loadBlogPosts();
-    document
-      .getElementById("blog-loading-indicator")
-      .classList.add("is-hidden");
+    var loadingEl = document.getElementById("blog-loading-indicator");
+    if (loadingEl) {
+      loadingEl.classList.add("is-hidden");
+    }
     renderEditor();
     wireEditorEvents();
   } catch (err) {
-    document.getElementById("blog-loading-indicator").textContent =
-      "Error loading blog posts: " + err.message;
-    document
-      .getElementById("blog-loading-indicator")
-      .classList.remove("loading-placeholder");
-    document
-      .getElementById("blog-loading-indicator")
-      .classList.add("error-message");
+    var loadingEl = document.getElementById("blog-loading-indicator");
+    if (loadingEl) {
+      loadingEl.textContent = "Error loading blog posts: " + err.message;
+      loadingEl.classList.remove("loading-placeholder");
+      loadingEl.classList.add("error-message");
+    }
   }
 };

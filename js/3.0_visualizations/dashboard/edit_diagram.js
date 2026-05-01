@@ -2,7 +2,7 @@
 //
 //   THE JESUS WEBSITE — EDIT DIAGRAM MODULE
 //   File:    js/3.0_visualizations/dashboard/edit_diagram.js
-//   Version: 2.0.0
+//   Version: 2.1.0
 //   Purpose: UI for managing recursive tree structures (like Ardor Graph).
 //            Zero inline styles — all CSS classes.
 //   Source:  guide_dashboard_appearance.md §3.1
@@ -19,16 +19,33 @@ window.renderEditDiagram = async function (containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // ----- Render shell (loading state) -----
-  container.innerHTML =
-    '<button class="quick-action-btn btn-save-diagram" id="save-diagram-btn">Save Graph</button>' +
+  // ----- Render shell across Providence three-column grid -----
+  // COL 1 (actions): Save Graph button
+  _clearColumnContent("actions");
+  _setColumn(
+    "actions",
+    '<button class="quick-action-btn btn-save-diagram" id="save-diagram-btn">Save Graph</button>',
+  );
+
+  // COL 2 (list): orphan inventory placeholder (populated later by renderOrphanInventory)
+  _clearColumnContent("list");
+  _setColumn(
+    "list",
+    '<p class="loading-placeholder">Loading orphan inventory…</p>',
+  );
+
+  // COL 3 (editor): search input + diagram tree container + save indicator
+  _clearColumnContent("editor");
+  _setColumn(
+    "editor",
     '<div class="diagram-search-section">' +
-    '<input type="text" id="diagram-search-input" class="admin-search-input diagram-search-input" placeholder="Search nodes…">' +
-    "</div>" +
-    '<div class="admin-diagram-tree" id="diagram-tree-container">' +
-    '<p class="loading-placeholder">Loading diagram data…</p>' +
-    "</div>" +
-    '<div id="diagram-save-indicator" class="diagram-save-indicator"></div>';
+      '<input type="text" id="diagram-search-input" class="admin-search-input diagram-search-input" placeholder="Search nodes…">' +
+      "</div>" +
+      '<div class="admin-diagram-tree" id="diagram-tree-container">' +
+      '<p class="loading-placeholder">Loading diagram data…</p>' +
+      "</div>" +
+      '<div id="diagram-save-indicator" class="diagram-save-indicator"></div>',
+  );
 
   // ----- Fetch flat node list from API -----
   let nodes;
@@ -59,9 +76,6 @@ window.renderEditDiagram = async function (containerId) {
 
   // ----- Build and populate COL 2 orphan inventory -----
   function renderOrphanInventory() {
-    var orphanCol = document.getElementById("canvas-col-list");
-    if (!orphanCol) return;
-
     // Rebuild childrenMap from current __diagramNodes state
     var cm = {};
     var allIds = Object.keys(window.__diagramNodes);
@@ -149,25 +163,30 @@ window.renderEditDiagram = async function (containerId) {
       html += '<p class="text-sm text-muted">No orphan nodes available.</p>';
     }
 
-    orphanCol.innerHTML = html;
+    // Inject into COL 2 via Providence grid API
+    _clearColumnContent("list");
+    _setColumn("list", html);
 
-    // Wire orphan list item clicks
-    orphanCol.querySelectorAll(".orphan-list-item").forEach(function (item) {
-      item.addEventListener("click", function () {
-        var orphanId = this.getAttribute("data-orphan-id");
-        if (!orphanId || !activeParentId) return;
-        if (window.__diagramNodes[orphanId]) {
-          window.__diagramNodes[orphanId].parent_id = activeParentId;
-          window.__changedNodes.set(orphanId, {
-            id: orphanId,
-            parent_id: activeParentId,
-          });
-        }
-        activeParentId = null;
-        renderTree();
-        renderOrphanInventory();
+    // Wire orphan list item clicks (target the column div for querySelectorAll)
+    var orphanCol = document.getElementById("canvas-col-list");
+    if (orphanCol) {
+      orphanCol.querySelectorAll(".orphan-list-item").forEach(function (item) {
+        item.addEventListener("click", function () {
+          var orphanId = this.getAttribute("data-orphan-id");
+          if (!orphanId || !activeParentId) return;
+          if (window.__diagramNodes[orphanId]) {
+            window.__diagramNodes[orphanId].parent_id = activeParentId;
+            window.__changedNodes.set(orphanId, {
+              id: orphanId,
+              parent_id: activeParentId,
+            });
+          }
+          activeParentId = null;
+          renderTree();
+          renderOrphanInventory();
+        });
       });
-    });
+    }
 
     // Wire clear active parent button
     var clearBtn = document.getElementById("orphan-clear-active");

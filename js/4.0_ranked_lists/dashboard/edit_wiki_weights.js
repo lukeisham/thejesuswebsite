@@ -2,64 +2,89 @@
 //
 //   THE JESUS WEBSITE — EDIT WIKI WEIGHTS MODULE
 //   File:    js/4.0_ranked_lists/dashboard/edit_wiki_weights.js
-//   Version: 2.0.0
+//   Version: 2.1.0
 //   Purpose: Table UI to adjust numerical ranking multipliers for Wikipedia lists.
 //            Loads real data from API — no mock rows.
 //   Source:  guide_dashboard_appearance.md §4.1
+//
+//   Changelog:
+//     v2.1.0 — Providence grid refactor: split single container.innerHTML dump
+//              into three _setColumn() calls targeting "actions", "list", and
+//              "editor". Uses _clearColumnContent("editor") before re-rendering
+//              the editor column on data load. Save-result indicator appends
+//              into the editor column instead of the legacy container.
+//     v2.0.0 — Initial version with container.innerHTML injection.
 //
 // =============================================================================
 
 // Trigger: dashboard_app.js routing -> window.renderEditWikiWeights(containerId)
 // Function: Fetches Wikipedia-ranked records from API, renders editable weight table,
 //           and saves changes via PUT
-// Output: Injects a weight-management table with search and save controls
+// Output: Populates the three Providence grid columns (canvas-col-actions,
+//         canvas-col-list, canvas-col-editor) via _setColumn()
 
 window.renderEditWikiWeights = async function (containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+  // containerId is "canvas-col-editor" when routed via dashboard_app.js loadModule().
+  // We keep it for renderTabBar compatibility but no longer dump innerHTML into it.
 
-  // ----- Render shell (loading state) -----
-  // Output col1 + col2 + col3 inner contents directly into the container
-  // (no admin-card or providence-editor-grid wrappers; renderTabBar prepends the sub-tab bar)
-  container.innerHTML =
+  // ----- Render shell (loading state) into Providence columns -----
+  // COL 1: Action buttons
+  _setColumn(
+    "actions",
     "<!-- column_one: Action buttons -->" +
-    '<button class="blog-editor-action-btn" id="wiki-save-btn">Save All Changes</button>' +
-    '<button class="blog-editor-action-btn" id="wiki-add-override-btn">+ Add Override</button>' +
-    '<button class="blog-editor-action-btn is-danger" id="wiki-delete-row-btn">Delete Row</button>' +
+      '<button class="blog-editor-action-btn" id="wiki-save-btn">Save All Changes</button>' +
+      '<button class="blog-editor-action-btn" id="wiki-add-override-btn">+ Add Override</button>' +
+      '<button class="blog-editor-action-btn is-danger" id="wiki-delete-row-btn">Delete Row</button>',
+  );
+
+  // COL 2: WRITE field documentation
+  _setColumn(
+    "list",
     "<!-- column_two: WRITE field documentation -->" +
-    '<p class="blog-editor-list-heading">WRITE Fields</p>' +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">wikipedia_link</label>' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">wikipedia_title</label>' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">wikipedia_rank</label>' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">wikipedia_weight</label>' +
-    "</div>" +
+      '<p class="blog-editor-list-heading">WRITE Fields</p>' +
+      '<div class="blog-editor-field">' +
+      '<label class="blog-editor-field-label">wikipedia_link</label>' +
+      "</div>" +
+      '<div class="blog-editor-field">' +
+      '<label class="blog-editor-field-label">wikipedia_title</label>' +
+      "</div>" +
+      '<div class="blog-editor-field">' +
+      '<label class="blog-editor-field-label">wikipedia_rank</label>' +
+      "</div>" +
+      '<div class="blog-editor-field">' +
+      '<label class="blog-editor-field-label">wikipedia_weight</label>' +
+      "</div>",
+  );
+
+  // COL 3: Weights table (editor column)
+  _setColumn(
+    "editor",
     "<!-- column_three: Weights table -->" +
-    '<div class="search-container">' +
-    '<input type="text" class="admin-search-input" id="wiki-search-input" placeholder="Search by Record Slug…">' +
-    "</div>" +
-    '<div class="loading-placeholder" id="wiki-loading-indicator">Loading Wikipedia records…</div>' +
-    '<div class="table-wrapper is-hidden" id="wiki-table-wrapper">' +
-    '<table class="admin-records-table" id="wiki-records-table">' +
-    "<thead>" +
-    '<tr class="weight-table-header-row">' +
-    "<th>Item Slug</th>" +
-    "<th>Base Score (Pipeline)</th>" +
-    "<th>Administrative Multiplier</th>" +
-    "</tr>" +
-    "</thead>" +
-    '<tbody id="wiki-table-body"></tbody>' +
-    "</table>" +
-    "</div>";
+      '<div class="search-container">' +
+      '<input type="text" class="admin-search-input" id="wiki-search-input" placeholder="Search by Record Slug…">' +
+      "</div>" +
+      '<div class="loading-placeholder" id="wiki-loading-indicator">Loading Wikipedia records…</div>' +
+      '<div class="table-wrapper is-hidden" id="wiki-table-wrapper">' +
+      '<table class="admin-records-table" id="wiki-records-table">' +
+      "<thead>" +
+      '<tr class="weight-table-header-row">' +
+      "<th>Item Slug</th>" +
+      "<th>Base Score (Pipeline)</th>" +
+      "<th>Administrative Multiplier</th>" +
+      "</tr>" +
+      "</thead>" +
+      '<tbody id="wiki-table-body"></tbody>' +
+      "</table>" +
+      "</div>",
+  );
 
   // ----- Internal state -----
   var wikiRecords = []; // Array of { id, title, slug, score, weight }
+
+  // ----- Helper: get a reference to the editor column DOM element -----
+  function _getEditorEl() {
+    return document.getElementById("canvas-col-editor");
+  }
 
   // ----- Fetch data from API -----
   async function fetchWikiRecords() {
@@ -169,7 +194,8 @@ window.renderEditWikiWeights = async function (containerId) {
       .classList.add("is-hidden");
     document.getElementById("wiki-table-wrapper").classList.remove("is-hidden");
 
-    // Render sub-tab bar as first element of the editor column
+    // Render sub-tab bar into the editor column (prepends above editor content).
+    // containerId ("canvas-col-editor") is the DOM id that renderTabBar targets.
     if (typeof window.renderTabBar === "function") {
       window.renderTabBar(
         containerId,
@@ -351,7 +377,14 @@ window.renderEditWikiWeights = async function (containerId) {
         }
       }
 
-      // Show save result
+      // Show save result in the editor column
+      var editorEl = _getEditorEl();
+      if (!editorEl) return;
+
+      // Remove any existing save-result indicator from the editor column
+      var existing = editorEl.querySelector(".save-result-indicator");
+      if (existing) existing.remove();
+
       var indicator = document.createElement("div");
       indicator.className = "save-result-indicator";
 
@@ -370,10 +403,7 @@ window.renderEditWikiWeights = async function (containerId) {
         indicator.classList.add("is-error");
       }
 
-      var existing = container.querySelector(".save-result-indicator");
-      if (existing) existing.remove();
-      indicator.classList.add("save-result-indicator");
-      container.appendChild(indicator);
+      editorEl.appendChild(indicator);
     });
   }
 };

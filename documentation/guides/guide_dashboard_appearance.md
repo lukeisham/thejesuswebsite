@@ -1,7 +1,7 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components and database fields (source of truth)
-version: 2.1.0
+version: 2.2.0
 dependencies: [guide_appearance.md, detailed_module_sitemap.md, data_schema.md]
 ---
 
@@ -33,33 +33,77 @@ Each section includes a **DB Fields** block listing the exact column names from 
 
 ## 0.1 Layout Convention — Providence 3-Column Pattern (Dashboard Shell)
 
-**Purpose:** Shared `.providence-editor-grid` architectural shell inherited by dashboard editor modules.
+**Purpose:** Shared `.providence-editor-grid` architectural shell inherited by all dashboard editor modules. The three Providence column divs are **immutable structural elements** — never cleared or replaced by JavaScript. Only their inner content children are populated via `_setColumn()`.
 
-The dashboard has two rows above the editor canvas: a static header and a single dynamic module tab bar.
+**Render chain:** `dashboard.html` (static shell) → `dashboard_init.js` → `renderTabBar("module-tab-bar", ...)` → `loadModule(moduleName)` → `_clearColumns()` → `_setColumn("actions"/"list"/"editor", html)`
+
+**Variable widths:** CSS custom properties `--editor-col-two-fr` and `--editor-col-three-fr` (default `1fr` / `2fr`) let modules request wider columns via `_setGridColumns(twoFr, threeFr)`. Divider tracks (1px) and gap tracks (24px) never change.
 
 ```
-+-----------------------------------------------------------------------------------+
-| [✦✦ The JesusWebsite Dashboard]          [Return to Frontend]  [Logout]  |  ← static header
-|-----------------------------------------------------------------------------------|
-| [ ★ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]     |
-| [ Wikipedia ] [ Challenge ] [ Responses ] [ Essay & Historiography ]              |  ← module tab bar
-| [ Challenge Response ] [ News & Sources ] [ Blog Posts ] [ System ]               |
-|   rendered by dashboard_init.js → renderTabBar("module-tab-bar", modules, active) |
-|   ★ = active module — clicking the active tab clears unsaved input and refreshes  |
-|-----------------------------------------------------------------------------------|
-
-| COL 1 (narrow)    | COL 2 (medium, optional) | COL 3 (widest)                    |
-|                   |                          |                                    |
-| Action Buttons    | Sub-fields, Metadata     | Main Editor Form & Live Previews   |
-| & Primary Controls| & Secondary Controls     |                                    |
-|                   |                          |                                    |
-| .col-actions      | .col-list                | .col-editor                        |
-+-----------------------------------------------------------------------------------+
++===================================================================================+
+|  <header class="admin-header">                                                     |
+|  ┌─────────────────────────────────────────────────────────────────────────────┐  |
+|  │ [✦✦]  <h1>The JesusWebsite Dashboard</h1>    [Return to Frontend] [Logout]  │  |
+|  │ .admin-header__favicon  .admin-header h1     .admin-return-btn .admin-logout │  |
+|  └─────────────────────────────────────────────────────────────────────────────┘  |
+|  CSS: admin_shell.css §1                                                          |
++===================================================================================+
+|  <nav id="module-tab-bar">                                                         |
+|  ┌─────────────────────────────────────────────────────────────────────────────┐  |
+|  │ [★ All Records] [Single Record] [Ordinary Lists] [Bulk CSV] [Arbor] … [System]│  |
+|  │ Rendered by dashboard_init.js → renderTabBar("module-tab-bar", …)           │  |
+|  │ CSS: admin_components.css §1 (.admin-tab-bar, .admin-tab-btn, .is-active)    │  |
+|  └─────────────────────────────────────────────────────────────────────────────┘  |
++===================================================================================+
+|  <main class="admin-canvas providence-editor-grid" id="admin-canvas">              |
+|                                                                                    |
+|  COL 1 — 160px           │  COL 2 — 1fr            │  COL 3 — 2fr                 |
+|                           │  (--editor-col-two-fr)   │  (--editor-col-three-fr)     |
+|                           │                         │                               |
+|  <div .providence-        │ 1px  │ 24px │ <div      │ 1px  │ 24px │ <div          |
+|       editor-col-actions  │ div- │ gap  │  .provid-  │ div- │ gap  │  .provid-     |
+|       id="canvas-col-     │ ider │      │  ence-     │ ider │      │  ence-        |
+|       actions">           │      │      │  editor-   │      │      │  editor-      |
+|  ┌─────────────────────┐  │      │      │  col-list  │      │      │  col-editor   |
+|  │ Action Buttons      │  │      │      │  id="can-  │      │      │  id="canvas-  |
+|  │ & Primary Controls  │  │      │      │  vas-col-  │      │      │  col-editor"> |
+|  │                     │  │      │      │  list">    │      │      │  ┌──────────┐ │
+|  │ Populated by        │  │      │      │  ┌───────┐ │      │      │  │ Main     │ │
+|  │ _setColumn(         │  │      │      │  │ Sub-   │ │      │      │  │ Editor   │ │
+|  │   "actions", html)  │  │      │      │  │ fields,│ │      │      │  │ Form &   │ │
+|  │                     │  │      │      │  │ Meta-  │ │      │      │  │ Live     │ │
+|  │ NEVER innerHTML     │  │      │      │  │ data,  │ │      │      │  │ Previews │ │
+|  │ replaced wholesale  │  │      │      │  │ Second-│ │      │      │  │          │ │
+|  │                     │  │      │      │  │ ary    │ │      │      │  │ Populated│ │
+|  │                     │  │      │      │  │ Controls│ │     │      │  │ by       │ │
+|  │                     │  │      │      │  │        │ │      │      │  │ _setCol- │ │
+|  │                     │  │      │      │  │ Popul- │ │      │      │  │ umn(     │ │
+|  │                     │  │      │      │  │ ated by│ │      │      │  │ "editor",│ │
+|  │                     │  │      │      │  │ _setCol-│ │     │      │  │ html)    │ │
+|  │                     │  │      │      │  │ umn(    │ │     │      │  │ — OR —   │ │
+|  │                     │  │      │      │  │ "list", │ │     │      │  │ _clearCol │ │
+|  │                     │  │      │      │  │ html)   │ │     │      │  │ umnContent│ │
+|  │                     │  │      │      │  │         │ │     │      │  │ +        │ │
+|  │                     │  │      │      │  │ NEVER   │ │     │      │  │ _setColumn│ │
+|  │                     │  │      │      │  │ innerHTML│ │     │      │  │ (for re-  │ │
+|  │                     │  │      │      │  │ replaced│ │      │      │  │ renders) │ │
+|  │                     │  │      │      │  │ wholesale│ │     │      │  └──────────┘ │
+|  └─────────────────────┘  │      │      │  └───────┘ │      │      │               │
+|                           │      │      │             │      │      │               │
+|  CSS: admin_components.css §2 (.providence-editor-grid, .providence-editor-col-*)  │
+|  Thin dividers: 1px grid tracks with background-color: var(--color-border)         │
+|  Gaps: 24px var(--space-6) empty grid tracks                                       │
+|  IMMUTABLE SHELL: Columns never cleared or replaced — only content is populated    │
++===================================================================================+
 ```
 
+> **Immutable Shell Contract:** The three Providence column `<div>`s inside `<main id="admin-canvas">` are permanent structural elements. JavaScript modules must never call `innerHTML = ""` or `innerHTML = "..."` directly on any column ID (`canvas-col-actions`, `canvas-col-list`, `canvas-col-editor`). All content injection goes through `_setColumn()`. Intra-module re-renders must call `_clearColumnContent(colName)` before `_setColumn(colName, html)`.
+>
 > **Note:** Child modules (`edit_picture.js`, `edit_links.js`) bypass the grid and inject directly into `edit_record.js` parent columns.
 
 ---
+
+## 0.2 Field Ownership Map
 
 ## 0.2 Field Ownership Map
 
@@ -132,33 +176,48 @@ primary_verse     JSON Array  — verse reference column
 *All other columns are fetched only when a record is opened in the editor (§2.2).*
 
 ```text
-+-----------------------------------------------------------------------------------+
-| [✦✦ The JesusWebsite Dashboard]          [Return to Frontend]  [Logout]  |
-|-----------------------------------------------------------------------------------|
-| [ ★ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]     |
-| [ Wikipedia ] [ Challenge ] [ Responses ] [ Essay & Historiography ]              |
-| [ Challenge Response ] [ News & Sources ] [ Blog Posts ] [ System ]               |
-|-----------------------------------------------------------------------------------|
-| COL 1                  | COL 2                     | COL 3 — ALL DATABASE RECORDS            |
-|                        |                           |                                          |
-| [+ New Record]         | Records Overview          |  READ: title · primary_verse            |
-| [Bulk Upload CSV]      | (12 total records)        |  [ Search by title or primary_verse...] |
-|                        |                           |------------------------------------------|
-|                        | Reserved for future       |  title               primary_verse      |
-|                        | metadata use (1)          |------------------------------------------|
-|                        |                           |  Jesus is Baptized    Mark 1:9-11       |
-|                        |                           |                     [Edit]   [Delete]   |
-|                        |                           |------------------------------------------|
-|                        |                           |  Crucifixion of Jesus Matt 27:32-56     |
-|                        |                           |                     [Edit]   [Delete]   |
-|                        |                           |------------------------------------------|
-|                        |                           |  Sermon on the Mount  Matt 5:1-7:29     |
-|                        |                           |                     [Edit]   [Delete]   |
-|                        |                           |------------------------------------------|
-|                        |                           |  [ Load More Records... ]               |
-+-----------------------------------------------------------------------------------+
++===================================================================================+
+|  <header class="admin-header">  (admin_shell.css §1)                               |
+|  [✦✦ The JesusWebsite Dashboard]          [Return to Frontend]  [Logout]            |
++===================================================================================+
+|  <nav id="module-tab-bar">  (admin_components.css §1)                              |
+|  [ ★ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]     |
+|  [ Wikipedia ] [ Challenge ] [ Responses ] [ Essay & Historiography ]              |
+|  [ Challenge Response ] [ News & Sources ] [ Blog Posts ] [ System ]               |
++===================================================================================+
+|  <main id="admin-canvas" class="providence-editor-grid">                           |
+|                                                                                    |
+|  #canvas-col-actions      │  #canvas-col-list       │  #canvas-col-editor          |
+|  160px                    │  │  1fr                 │  │  2fr                      |
+|                           │ 1px divider + 24px gap  │ 1px divider + 24px gap       |
+|  ┌─────────────────────┐  │  ┌───────────────────┐  │  ┌────────────────────────┐  |
+|  │ [+ New Record]      │  │  │ Records Overview  │  │  │ [Search by title or    │  |
+|  │ [Bulk Upload CSV]   │  │  │ (12 total records)│  │  │  primary_verse...]     │  |
+|  │                     │  │  │                   │  │  │────────────────────────│  |
+|  │ _setColumn(         │  │  │ Reserved for      │  │  │ title     primary_verse│  |
+|  │   "actions", html)  │  │  │ future metadata   │  │  │────────────────────────│  |
+|  │                     │  │  │ use               │  │  │ Jesus is  Mark 1:9-11 │  |
+|  │                     │  │  │                   │  │  │ Baptized  [Edit][Del] │  |
+|  │                     │  │  │ _setColumn(       │  │  │────────────────────────│  |
+|  │                     │  │  │   "list", html)   │  │  │ Crucifixion Matt 27   │  |
+|  │                     │  │  │                   │  │  │ of Jesus   [Edit][Del]│  |
+|  │                     │  │  │                   │  │  │────────────────────────│  |
+|  │                     │  │  │                   │  │  │ Sermon on  Matt 5      │  |
+|  │                     │  │  │                   │  │  │ the Mount  [Edit][Del] │  |
+|  │                     │  │  │                   │  │  │────────────────────────│  |
+|  │                     │  │  │                   │  │  │ [Load More Records...] │  |
+|  │                     │  │  │                   │  │  │                        │  |
+|  │                     │  │  │                   │  │  │ _setColumn(            │  |
+|  │                     │  │  │                   │  │  │   "editor", html)     │  |
+|  └─────────────────────┘  │  └───────────────────┘  │  └────────────────────────┘  |
+|                           │                         │                               |
+|  CSS: admin_components.css §2  |  Dividers: 1px grid tracks (--color-border)       |
+|  Gaps: 24px (--space-6) empty tracks  |  Variable widths: --editor-col-*-fr        |
++===================================================================================+
 
 > **(1)** COL 2 in the Records List view is reserved for future metadata use. It currently displays the total record count and a heading placeholder, but no interactive controls.
+>
+> **(Immutable Shell)** The three Providence column divs are permanent — only inner content is populated via _setColumn(). No direct innerHTML on column IDs.
 ```
 
 ---
@@ -813,23 +872,46 @@ System-managed fields (never manually edited in any dashboard section):
 
 **`dashboard.html` — Default view on load (`records-all`):**
 ```text
-+-----------------------------------------------------------------------------------+
-| [✦✦ The JesusWebsite Dashboard]          [Return to Frontend]  [Logout]  |
-|-----------------------------------------------------------------------------------|
-| [ ★ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]     |
-| [ Wikipedia ] [ Challenge ] [ Responses ] [ Essay & Historiography ]              |
-| [ Challenge Response ] [ News & Sources ] [ Blog Posts ] [ System ]               |
-|-----------------------------------------------------------------------------------|
-| COL 1         | COL 2                     | COL 3 — ALL DATABASE RECORDS          |
-|               |                           |                                        |
-| [+ New Record]| Records Overview          | READ: title · primary_verse           |
-| [Bulk Upload] | (12 total records)        | [ Search by title or primary_verse...] |
-|               |                           |---------------------------------------|
-|               | Reserved for future use   | title               primary_verse     |
-|               |                           |---------------------------------------|
-|               |                           | Jesus is Baptized    Mark 1:9-11      |
-|               |                           |                    [Edit]   [Delete]  |
-|               |                           |---------------------------------------|
-|               |                           | [ Load More Records... ]              |
-+-----------------------------------------------------------------------------------+
++===================================================================================+
+|  <header class="admin-header">                                                     |
+|  [✦✦ The JesusWebsite Dashboard]          [Return to Frontend]  [Logout]            |
+|  CSS: admin_shell.css §1                                                            |
++===================================================================================+
+|  <nav id="module-tab-bar">                                                         |
+|  [ ★ All Records ] [ Single Record ] [ Ordinary Lists ] [ Bulk CSV ] [ Arbor ]     |
+|  [ Wikipedia ] [ Challenge ] [ Responses ] [ Essay & Historiography ]              |
+|  [ Challenge Response ] [ News & Sources ] [ Blog Posts ] [ System ]               |
+|  Rendered by dashboard_init.js → renderTabBar("module-tab-bar", …)                 |
++===================================================================================+
+|  <main class="admin-canvas providence-editor-grid" id="admin-canvas">              |
+|                                                                                    |
+|  #canvas-col-actions      │  #canvas-col-list       │  #canvas-col-editor          |
+|  .providence-editor-      │  .providence-editor-    │  .providence-editor-        |
+|     col-actions           │     col-list             │     col-editor               |
+|  160px                    │  │  1fr                 │  │  2fr                      |
+|                           │ 1px divider + 24px gap  │ 1px divider + 24px gap       |
+|  ┌─────────────────────┐  │  ┌───────────────────┐  │  ┌────────────────────────┐  |
+|  │ [+ New Record]      │  │  │ Records Overview  │  │  │ [Search by title...]   │  |
+|  │ [Bulk Upload CSV]   │  │  │ (12 total records)│  │  │────────────────────────│  |
+|  │                     │  │  │                   │  │  │ title     primary_verse│  |
+|  │ Populated via       │  │  │ Reserved for      │  │  │────────────────────────│  |
+|  │ _setColumn(         │  │  │ future metadata   │  │  │ Jesus is  Mark 1:9-11 │  |
+|  │   "actions", html)  │  │  │ use               │  │  │ Baptized  [Edit][Del] │  |
+|  │                     │  │  │                   │  │  │────────────────────────│  |
+|  │ IMMUTABLE SHELL —   │  │  │ Populated via     │  │  │ [Load More Records...] │  |
+|  │ never innerHTML     │  │  │ _setColumn(       │  │  │                        │  |
+|  │ replaced            │  │  │   "list", html)   │  │  │ Populated via          │  |
+|  │                     │  │  │                   │  │  │ _setColumn(            │  |
+|  │                     │  │  │ IMMUTABLE SHELL   │  │  │   "editor", html)     │  |
+|  │                     │  │  │ — never innerHTML │  │  │                        │  |
+|  │                     │  │  │ replaced          │  │  │ IMMUTABLE SHELL —      │  |
+|  │                     │  │  │                   │  │  │ never innerHTML        │  |
+|  │                     │  │  │                   │  │  │ replaced               │  |
+|  └─────────────────────┘  │  └───────────────────┘  │  └────────────────────────┘  |
+|                           │                         │                               |
+|  CSS: admin_components.css §2 (.providence-editor-grid, .providence-editor-col-*)  |
+|  Dividers: 1px grid tracks (background-color: var(--color-border))                 |
+|  Gaps: 24px var(--space-6) empty grid tracks                                       |
+|  Variable widths: --editor-col-two-fr / --editor-col-three-fr (default 1fr / 2fr)  |
++===================================================================================+
 ```

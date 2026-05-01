@@ -43,7 +43,12 @@
     flex-shrink: 0;
 }
 
+/* T3+T4 fix: h1 is display:block by browser default.
+   Explicitly set it as an inline-level flex child so it sits
+   side-by-side with the favicon inside .admin-header__left. */
 .admin-header h1 {
+    display: inline;
+    flex: 0 1 auto;
     font-family: var(--font-heading);
     font-size: var(--text-xl);
     margin: 0;

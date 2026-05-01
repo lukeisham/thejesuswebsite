@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "dashboard styling" 
+git commit -m "Dashboard columns and dividers debug"
 git push origin main 
 
 # Pulling from Github to server 

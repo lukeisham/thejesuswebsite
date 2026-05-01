@@ -1,7 +1,7 @@
 /* =============================================================================
    THE JESUS WEBSITE — DASHBOARD ADMIN COMPONENTS
    File:    css/1.0_foundation/dashboard/admin_components.css
-   Version: 1.1.0
+   Version: 1.2.0
    Purpose: Shared UI components used across multiple dashboard editor modules.
 ============================================================================= */
 
@@ -48,46 +48,89 @@
 /* =============================================================================
    2. PROVIDENCE 3-COLUMN EDITOR GRID
    Source: guide_style.md §18.1, guide_dashboard_appearance.md §0.1
+
+   Nomenclature convention:
+     JS hooks (id):  #canvas-col-actions  #canvas-col-list  #canvas-col-editor
+     CSS hooks (class): .providence-editor-col-actions  .providence-editor-col-list
+                         .providence-editor-col-editor  .providence-editor-col-divider
+
    column_one (160px):   Action buttons, primary fields
    column_two (1fr):     Sub-fields, list, metadata
    column_three (2fr):   Main data entry surface
+
+   DIVIDER SYSTEM (T7+T8): Two 1px grid tracks filled with var(--color-border).
+   Gaps are var(--space-6) empty tracks — NOT borders — so dividers render
+   regardless of column content height. Each of the 5 child elements is
+   explicitly placed into its correct grid-column to prevent the
+   7-track/5-child misalignment that was silently collapsing the dividers.
+
+   VARIABLE WIDTHS (T9): --editor-col-two-fr and --editor-col-three-fr
+   override the default 1fr / 2fr track sizes. Set via JS:
+   _setGridColumns(twoFr, threeFr) in dashboard_app.js.
 ============================================================================= */
 
 .providence-editor-grid {
     display: grid;
-    grid-template-columns: var(--editor-col-one-width) 1px var(
-            --space-6
-        ) 1fr 1px var(--space-6) 2fr;
+    grid-template-columns:
+        var(--editor-col-one-width)
+        1px
+        var(--space-6)
+        var(--editor-col-two-fr, 1fr)
+        1px
+        var(--space-6)
+        var(--editor-col-three-fr, 2fr);
     margin-bottom: var(--space-6);
 }
 
+/* ---- 2a. PROVIDENCE COLUMN DIVIDERS (grid-track approach) ---- */
+
+/* T7+T8 fix: Explicit grid-column placement so each child lands in the
+   correct track. The 7-track grid has gap tracks (3 and 6) that are
+   intentionally empty — they render as transparent 24px spacing. */
+
 .providence-editor-col-actions {
+    grid-column: 1;
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
 }
 
+/* First divider — grid track 2 (1px, filled with var(--color-border)) */
+.providence-editor-col-divider:nth-of-type(1) {
+    grid-column: 2;
+}
+
 .providence-editor-col-list {
+    grid-column: 4;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
 }
 
+/* Second divider — grid track 5 (1px, filled with var(--color-border)) */
+.providence-editor-col-divider:nth-of-type(2) {
+    grid-column: 5;
+}
+
 .providence-editor-col-editor {
+    grid-column: 7;
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
 }
 
-/* Thin vertical dividers between Providence columns.
-   These are 1px grid tracks filled with the border color, separated from
-   content by gap tracks — guaranteed to render regardless of column height. */
+/* Divider base style — 1px vertical line between Providence columns.
+   Background-color is the visible line; min-height:0 allows the grid
+   track to collapse to 1px when columns are short. */
 .providence-editor-col-divider {
     background-color: var(--color-border);
     min-height: 0;
 }
 
-/* Wireframe alias classes — used by all Providence 3-column editor modules. Not specific to any one view. (guide_dashboard_appearance.md §0.1) */
+/* ---- 2b. WIREFRAME ALIAS CLASSES ---- */
+
+/* Wireframe alias classes — used by all Providence 3-column editor modules.
+   Not specific to any one view. (guide_dashboard_appearance.md §0.1) */
 .column-one {
     display: flex;
     flex-direction: column;

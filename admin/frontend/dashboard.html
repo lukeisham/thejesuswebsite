@@ -128,6 +128,9 @@
 
         <main class="admin-canvas providence-editor-grid" id="admin-canvas">
             <!-- Providence 3-Column Grid (guide_dashboard_appearance.md §0.1) -->
+            <!-- IMMUTABLE PROVIDENCE GRID — never cleared or replaced.
+                 Columns are populated by dashboard_app.js → _setColumn() only.
+                 JS must never set innerHTML directly on these divs. -->
             <div class="providence-editor-col-actions" id="canvas-col-actions">
                 <!-- COL 1: Action Buttons & Primary Controls — populated by loadModule() -->
             </div>

@@ -2,11 +2,19 @@
 //
 //   THE JESUS WEBSITE — EDIT MLA SOURCES
 //   File:    js/5.0_essays_responses/dashboard/edit_mla_sources.js
-//   Version: 2.1.0
+//   Version: 2.2.0
 //   Purpose: UI mapping for editing MLA bibliography source data.
 //            Fetches real records from API — no mock rows.
 //            Refactored to Providence 3-column grid per §18.1.
 //            Wireframe: §5.1 bibliography grid (6 MLA sub-keys per record).
+//
+//   Changelog:
+//     v2.2.0 — Providence grid refactor: split single container.innerHTML dump
+//              into three _setColumn() / _clearColumnContent() calls targeting
+//              "actions", "list", and "editor". showSaveResult() appends into
+//              _getColumns().editor. renderTabBar() continues passing
+//              containerId as-is.
+//     v2.1.0 — Initial version with container.innerHTML injection.
 //
 // =============================================================================
 
@@ -15,11 +23,12 @@
 //           bibliography, and renders an expandable grid of 6 MLA textareas.
 //           Saves changes via PUT /api/admin/records/{id} with full
 //           bibliography JSON payload.
-// Output: Injects collapsible bibliography grid editor into container
+// Output: Populates the three Providence grid columns (canvas-col-actions,
+//         canvas-col-list, canvas-col-editor) via _setColumn()
 
 window.renderEditMlaSources = async function (containerId) {
-  var container = document.getElementById(containerId);
-  if (!container) return;
+  // containerId is "canvas-col-editor" when routed via dashboard_app.js loadModule().
+  // We keep it for renderTabBar compatibility but no longer dump innerHTML into it.
 
   // --- The 6 MLA sub-keys per the §5.1 wireframe ---
   var MLA_KEYS = [
@@ -31,15 +40,28 @@ window.renderEditMlaSources = async function (containerId) {
     { key: "mla_website_inline", label: "mla_website_inline" },
   ];
 
-  // ----- Render shell (loading state) -----
-  container.innerHTML =
-    '<button class="blog-editor-action-btn" id="mla-save-all-btn">Save All</button>' +
+  // ----- Render shell (loading state) across Providence three-column grid -----
+  // COL 1 (actions): Save All button
+  _setColumn(
+    "actions",
+    '<button class="blog-editor-action-btn" id="mla-save-all-btn">Save All</button>',
+  );
+
+  // COL 2 (list): Filter Records heading + search input
+  _setColumn(
+    "list",
     '<p class="blog-editor-list-heading">Filter Records</p>' +
-    '<div class="search-container">' +
-    '<input type="text" class="admin-search-input" id="mla-search-input" placeholder="Filter by Record Title or Slug…">' +
-    "</div>" +
+      '<div class="search-container">' +
+      '<input type="text" class="admin-search-input" id="mla-search-input" placeholder="Filter by Record Title or Slug…">' +
+      "</div>",
+  );
+
+  // COL 3 (editor): Loading indicator + mla records container
+  _setColumn(
+    "editor",
     '<div class="loading-placeholder" id="mla-loading-indicator">Loading MLA bibliography records…</div>' +
-    '<div id="mla-records-container"></div>';
+      '<div id="mla-records-container"></div>',
+  );
 
   // ----- Internal state -----
   var mlaRecords = []; // Array of { id, title, slug, bibliography: { mla_book, ... }, changed: bool }
@@ -102,16 +124,22 @@ window.renderEditMlaSources = async function (containerId) {
   // ---------------------------------------------------------------------------
 
   function renderAll(records) {
-    var containerEl = document.getElementById("mla-records-container");
+    // Build the HTML for the editor column, then clear and re-inject
+    var containerEl = _getColumns().editor;
     if (!containerEl) return;
 
+    // Clear the editor column before rebuilding
+    _clearColumnContent("editor");
+
+    var html = "";
+
     if (records.length === 0) {
-      containerEl.innerHTML =
+      html +=
         '<div class="empty-table-msg">No records with MLA bibliography found.</div>';
+      _setColumn("editor", html);
       return;
     }
 
-    var html = "";
     records.forEach(function (rec, index) {
       var bib = rec.bibliography || {};
       var displayTitle = rec.title || rec.slug || "Record #" + rec.id;
@@ -176,9 +204,10 @@ window.renderEditMlaSources = async function (containerId) {
       html += "</div>"; // .mla-record-card
     });
 
-    containerEl.innerHTML = html;
+    _setColumn("editor", html);
 
     // --- Wire collapsible toggles ---
+    // Query the editor column for the freshly injected DOM
     containerEl
       .querySelectorAll(".mla-record-header")
       .forEach(function (header) {
@@ -250,6 +279,7 @@ window.renderEditMlaSources = async function (containerId) {
     document.getElementById("mla-loading-indicator").classList.add("is-hidden");
 
     // Render top-level section tab bar (Text Content active)
+    // containerId is "canvas-col-editor" — renderTabBar prepends into the editor column
     if (typeof window.renderTabBar === "function") {
       window.renderTabBar(
         containerId,
@@ -411,16 +441,16 @@ window.renderEditMlaSources = async function (containerId) {
   // ---------------------------------------------------------------------------
 
   function showSaveResult(message, className) {
-    var containerEl = document.getElementById(containerId);
-    if (!containerEl) return;
+    var editorEl = _getColumns().editor;
+    if (!editorEl) return;
 
     var indicator = document.createElement("div");
     indicator.className = "save-result-indicator " + className;
     indicator.textContent = message;
 
-    var existing = containerEl.querySelector(".save-result-indicator");
+    var existing = editorEl.querySelector(".save-result-indicator");
     if (existing) existing.remove();
 
-    containerEl.appendChild(indicator);
+    editorEl.appendChild(indicator);
   }
 };
