@@ -379,10 +379,10 @@ function _loadRecordsAll() {
           editorCol.querySelectorAll(".js-edit-record").forEach(function (btn) {
             btn.addEventListener("click", function () {
               var recordId = this.getAttribute("data-record-id");
-              if (typeof window.renderEditRecord === "function") {
-                window.renderEditRecord("canvas-col-editor", recordId, true);
-              } else {
-                console.error("renderEditRecord not available");
+              if (typeof window.loadModule === "function") {
+                // Store recordId for _loadRecordsEdit to pick up
+                window._pendingEditRecordId = recordId;
+                window.loadModule("records-edit");
               }
             });
           });
@@ -457,7 +457,9 @@ function _loadRecordsAll() {
 
 function _loadRecordsEdit() {
   if (typeof window.renderEditRecord === "function") {
-    window.renderEditRecord("canvas-col-editor", null, true);
+    var recordId = window._pendingEditRecordId || null;
+    window._pendingEditRecordId = null;
+    window.renderEditRecord("canvas-col-editor", recordId, true);
   }
 }
 

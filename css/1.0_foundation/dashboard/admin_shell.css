@@ -127,8 +127,8 @@
 .admin-canvas > .providence-editor-col-actions,
 .admin-canvas > .providence-editor-col-list,
 .admin-canvas > .providence-editor-col-editor {
-    padding-top: var(--space-8);
-    padding-bottom: var(--space-8);
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
 }
 
 .admin-canvas > .providence-editor-col-actions {

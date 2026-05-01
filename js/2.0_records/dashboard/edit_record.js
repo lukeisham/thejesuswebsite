@@ -298,27 +298,6 @@ window.renderEditRecord = function (
       window.renderEditRecordColumnTwo();
     }
 
-    // Render top-level section tab bar (Records active)
-    if (typeof window.renderTabBar === "function") {
-      window.renderTabBar(
-        containerId,
-        [
-          { name: "records", label: "Records", module: "records-edit" },
-          {
-            name: "lists-ranks",
-            label: "Lists & Ranks",
-            module: "lists-resources",
-          },
-          { name: "text-content", label: "Text Content", module: "text-blog" },
-          {
-            name: "configuration",
-            label: "Configuration",
-            module: "config-diagrams",
-          },
-        ],
-        "records",
-      );
-    }
   } else {
     // Legacy path: no Providence columns; Column 2 navigator not rendered.
     container.innerHTML =
@@ -327,27 +306,6 @@ window.renderEditRecord = function (
       editorHtml +
       "</div>";
 
-    // Render top-level section tab bar (Records active)
-    if (typeof window.renderTabBar === "function") {
-      window.renderTabBar(
-        "edit-record-card",
-        [
-          { name: "records", label: "Records", module: "records-edit" },
-          {
-            name: "lists-ranks",
-            label: "Lists & Ranks",
-            module: "lists-resources",
-          },
-          { name: "text-content", label: "Text Content", module: "text-blog" },
-          {
-            name: "configuration",
-            label: "Configuration",
-            module: "config-diagrams",
-          },
-        ],
-        "records",
-      );
-    }
   }
 
   // ============================================================================

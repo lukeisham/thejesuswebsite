@@ -733,7 +733,7 @@
 
 .record-column-two {
     position: sticky;
-    top: var(--space-6);
+    top: 0;
     display: flex;
     flex-direction: column;
     gap: 0;

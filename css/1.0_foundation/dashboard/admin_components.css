@@ -120,11 +120,10 @@
 }
 
 /* Divider base style — 1px vertical line between Providence columns.
-   Background-color is the visible line; min-height:0 allows the grid
-   track to collapse to 1px when columns are short. */
+   align-self: stretch ensures the divider spans full row height. */
 .providence-editor-col-divider {
     background-color: var(--color-border);
-    min-height: 0;
+    align-self: stretch;
 }
 
 /* ---- 2b. WIREFRAME ALIAS CLASSES ---- */

@@ -31,7 +31,7 @@ window.renderEditLinks = function (containerId, contextLinksData) {
   if (!Array.isArray(links)) links = [];
 
   var html =
-    '<section class="links-section" id="relations-links-section">\n' +
+    '<section class="links-section">\n' +
     '  <div class="links-header">\n' +
     '    <h3 class="section-heading-serif">Relations &amp; Links</h3>\n' +
     '    <button class="quick-action-btn btn-add-link" id="btn-add-link" type="button">+ Add Link</button>\n' +

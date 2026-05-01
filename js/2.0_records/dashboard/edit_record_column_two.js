@@ -57,28 +57,36 @@ window.renderEditRecordColumnTwo = function () {
   var allButtons = colList.querySelectorAll(".record-column-two-btn");
 
   var observerOptions = {
-    root: colEditor,
+    root: scrollRoot,
     rootMargin: "0px 0px -60% 0px",
     threshold: 0,
   };
 
   var observerCallback = function (entries) {
+    // Find the intersecting entry closest to the top of the scrollport
+    var bestEntry = null;
+    var bestTop = Infinity;
     for (var j = 0; j < entries.length; j++) {
       var entry = entries[j];
       if (!entry.isIntersecting) continue;
+      var rect = entry.target.getBoundingClientRect();
+      if (rect.top < bestTop) {
+        bestTop = rect.top;
+        bestEntry = entry;
+      }
+    }
+    if (!bestEntry) return;
 
-      // Find the button whose data-scroll-target matches the intersecting section
-      var targetId = entry.target.id;
-      for (var k = 0; k < allButtons.length; k++) {
-        var btn = allButtons[k];
-        if (btn.getAttribute("data-scroll-target") === targetId) {
-          // Remove .is-active from all buttons, add to the matched one
-          for (var m = 0; m < allButtons.length; m++) {
-            allButtons[m].classList.remove("is-active");
-          }
-          btn.classList.add("is-active");
-          break;
+    // Find and highlight the matching button
+    var targetId = bestEntry.target.id;
+    for (var k = 0; k < allButtons.length; k++) {
+      var btn = allButtons[k];
+      if (btn.getAttribute("data-scroll-target") === targetId) {
+        for (var m = 0; m < allButtons.length; m++) {
+          allButtons[m].classList.remove("is-active");
         }
+        btn.classList.add("is-active");
+        break;
       }
     }
   };
