@@ -11,6 +11,21 @@
    Styling for the record editor's image management sub-module.
 ============================================================================= */
 
+/* ---- Section Heading Paragraphs (Column 3 section labels) ---- */
+
+.record-section-spacing > p {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-dash-accent);
+    letter-spacing: var(--tracking-widest);
+    text-align: left;
+    margin-top: 0;
+    margin-bottom: var(--space-4);
+}
+
+/* ---- Picture Upload ---- */
+
 .picture-upload-section {
     margin-top: var(--space-8);
     margin-bottom: var(--space-8);
