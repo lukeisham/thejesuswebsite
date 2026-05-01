@@ -25,17 +25,18 @@ window.renderEditRecordColumnTwo = function () {
   // ---- Section definitions (order matches Column 3 layout) ----
   var sections = [
     { id: "core-identifiers-section", label: "CORE IDENTIFIERS" },
-    { id: "picture-section",          label: "PICTURE" },
+    { id: "picture-section", label: "PICTURE" },
     { id: "taxonomy-diagrams-section", label: "TAXONOMY & DIAGRAMS" },
-    { id: "verses-section",           label: "VERSES" },
-    { id: "text-content-section",     label: "TEXT CONTENT" },
-    { id: "bibliography-section",     label: "BIBLIOGRAPHY" },
-    { id: "relations-links-section",  label: "LINKS" },
-    { id: "misc-section",             label: "MISCELLANEOUS" },
+    { id: "verses-section", label: "VERSES" },
+    { id: "text-content-section", label: "TEXT CONTENT" },
+    { id: "bibliography-section", label: "BIBLIOGRAPHY" },
+    { id: "relations-links-section", label: "LINKS" },
+    { id: "misc-section", label: "MISCELLANEOUS" },
   ];
 
   // ---- Render the navigator container and buttons ----
-  var navHtml = '<nav class="record-column-two" aria-label="Record section navigation">';
+  var navHtml =
+    '<nav class="record-column-two" aria-label="Record section navigation">';
   for (var i = 0; i < sections.length; i++) {
     navHtml +=
       '<button class="record-column-two-btn" data-scroll-target="' +
@@ -52,6 +53,7 @@ window.renderEditRecordColumnTwo = function () {
 
   // ---- Scroll-spy: IntersectionObserver on Column 3 sections ----
   var colEditor = document.getElementById("canvas-col-editor");
+  var scrollRoot = document.getElementById("admin-canvas");
   if (!colEditor) return;
 
   var allButtons = colList.querySelectorAll(".record-column-two-btn");
