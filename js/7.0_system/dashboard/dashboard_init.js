@@ -17,8 +17,8 @@
 document.addEventListener("DOMContentLoaded", function () {
   // 13-module tab config — matches dashboard_page_split.md §Module Tab Structure
   var allModules = [
-    { name: "records-all", label: "All Records", module: "records-all" },
     { name: "records-edit", label: "Single Record", module: "records-edit" },
+    { name: "records-all", label: "All Records", module: "records-all" },
     {
       name: "lists-ordinary",
       label: "Ordinary Lists",
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
   ];
 
   // Render the flat module tab bar into the shell nav container
-  window.renderTabBar("module-tab-bar", allModules, "records-all");
+  window.renderTabBar("module-tab-bar", allModules, "records-edit");
 
   // Wire the return-to-frontend button (verifies session, then redirects to "/")
   var returnBtn = document.getElementById("return-to-frontend-btn");
@@ -65,6 +65,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Load the default module view
   if (typeof window.loadModule === "function") {
-    window.loadModule("records-all");
+    window.loadModule("records-edit");
   }
 });
