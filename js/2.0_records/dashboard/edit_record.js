@@ -286,6 +286,10 @@ window.renderEditRecord = function (
 
   // ---- Inject content ----
   if (useProvidenceColumns && typeof _setColumn === "function") {
+    // Clear all three columns before re-rendering (Discard, re-edit, etc.)
+    if (typeof _clearColumns === "function") {
+      _clearColumns();
+    }
     _setColumn("actions", actionsHtml);
     _setColumn("editor", editorHtml);
 
