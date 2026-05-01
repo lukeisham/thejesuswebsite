@@ -130,15 +130,19 @@ window.loadEditTaxonomy = function (data) {
 };
 
 window.collectEditTaxonomy = function () {
+  var elEra = document.getElementById("record-era");
+  var elTimeline = document.getElementById("record-timeline");
+  var elMapLabel = document.getElementById("record-map-label");
+  var elGospelCategory = document.getElementById("record-gospel-category");
+  var elGeoId = document.getElementById("record-geo-id");
+  var elParentId = document.getElementById("record-parent-id");
+
   return {
-    era: document.getElementById("record-era")?.value || "",
-    timeline: document.getElementById("record-timeline")?.value || "",
-    map_label: document.getElementById("record-map-label")?.value || "",
-    gospel_category: document.getElementById("record-gospel-category")?.value || "",
-    geo_id: (function () {
-      var el = document.getElementById("record-geo-id");
-      return el && el.value !== "" ? parseInt(el.value, 10) : null;
-    })(),
-    parent_id: document.getElementById("record-parent-id")?.value || "",
+    era: elEra ? elEra.value : "",
+    timeline: elTimeline ? elTimeline.value : "",
+    map_label: elMapLabel ? elMapLabel.value : "",
+    gospel_category: elGospelCategory ? elGospelCategory.value : "",
+    geo_id: elGeoId && elGeoId.value !== "" ? parseInt(elGeoId.value, 10) : null,
+    parent_id: elParentId ? elParentId.value : "",
   };
 };

@@ -1,16 +1,18 @@
 // =============================================================================
 //
-//   THE JESUS WEBSITE — EDIT RECORD MODULE
+//   THE JESUS WEBSITE — EDIT RECORD MODULE (ORCHESTRATOR)
 //   File:    js/2.0_records/dashboard/edit_record.js
-//   Version: 2.0.0
-//   Purpose: Form layout for editing a single row in the records table.
-//            Includes JSON-array verse builders for primary_verse / secondary_verse,
-//            paragraph-array editors for description / snippet,
-//            MLA bibliography textareas, and miscellaneous fields.
+//   Version: 2.1.0
+//   Purpose: Orchestrator for the single-record editor. Renders the 3-column
+//            Providence layout, bootstraps child sub-modules, and wires the
+//            Save/Discard/Delete/View Live action buttons.
+//            Verse builders and paragraph editors remain inline (Phase 2).
 //            Refactored to Providence 3-column grid per guide_dashboard_appearance.md §2.2.
-//            Column 2 is now a lightweight section-index sidebar (headings + hints only).
-//            All form inputs and the picture upload slot live in column 3.
 //   Changelog:
+//            v2.1.0 — Phase 1 modularisation: extracted edit_core.js,
+//                     edit_taxonomy.js, edit_bibliography.js, edit_misc.js.
+//                     Orchestrator now delegates render/load/collect to
+//                     sub-modules via window.* APIs.
 //            v2.0.0 — Moved form fields from col 2 to col 3 per ASCII diagram §2.2.
 //                     Moved picture upload from col 1 to col 3 per diagram.
 //                     Col 2 is now a section-index sidebar (headings + field-name hints).
@@ -25,6 +27,8 @@
 //           When useProvidenceColumns is true, uses _setColumn to populate the three
 //           Providence grid columns (canvas-col-actions, canvas-col-list, canvas-col-editor).
 //           When false (legacy), injects the full form HTML directly into the container.
+//           Delegates Core, Taxonomy, Bibliography, and Misc rendering/loading/collection
+//           to sub-modules injected before this script in dashboard.html.
 // Output: Providence columns populated, or raw inner HTML injected into container
 
 window.renderEditRecord = function (
@@ -32,10 +36,10 @@ window.renderEditRecord = function (
   recordId = null,
   useProvidenceColumns = false,
 ) {
-  const container = document.getElementById(containerId);
+  var container = document.getElementById(containerId);
   if (!container && !useProvidenceColumns) return;
 
-  const headingText = recordId
+  var headingText = recordId
     ? "EDIT RECORD: " + recordId
     : "CREATE NEW RECORD";
 
@@ -258,203 +262,43 @@ window.renderEditRecord = function (
 
   // ============================================================================
   // COLUMN 3 — editorHtml (2fr)
-  // ALL actual form fields live here. Section order mirrors column 2.
+  // Refactored v2.1.0: Core, Taxonomy, Bibliography, Misc are now injection
+  // slots populated by their respective sub-modules (edit_core.js, etc.).
+  // Verses and Text Content sections remain inline (Phase 2).
+  // Picture and Links remain separate child modules.
   // ============================================================================
   var editorHtml =
-    // 1. Core Identifiers
-    '<section id="core-identifiers">' +
-    '<p class="blog-editor-list-heading">CORE IDENTIFIERS</p>' +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">id</label>' +
-    '<input type="text" id="record-id" class="blog-editor-field-input" value="[auto-generated ULID]" readonly>' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">title</label>' +
-    '<input type="text" id="record-title" class="blog-editor-field-input" placeholder="Record Title">' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">slug</label>' +
-    '<input type="text" id="record-slug" class="blog-editor-field-input" placeholder="url-friendly-slug">' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">created_at</label>' +
-    '<input type="text" id="record-created-at" class="blog-editor-field-input" value="[auto]" readonly>' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">updated_at</label>' +
-    '<input type="text" id="record-updated-at" class="blog-editor-field-input" value="[auto]" readonly>' +
-    "</div>" +
-    "</section>" +
-    // 2. Picture (moved from col 1)
+    // 1. Core Identifiers → child module slot
+    '<div id="core-identifiers-container" class="child-module-slot record-child-slot"></div>' +
+    // 2. Picture (separate child module)
     '<section id="picture-section" class="record-section-spacing">' +
     '<p class="blog-editor-list-heading">PICTURE</p>' +
     '<div id="picture-upload-container" class="child-module-slot record-child-slot"></div>' +
     "</section>" +
-    // 3. Taxonomy & Diagrams
-    '<section id="taxonomy-diagrams" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">TAXONOMY &amp; DIAGRAMS</p>' +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">era</label>' +
-    '<select id="record-era" class="blog-editor-field-input">' +
-    '<option value="">\u2014 Select Era \u2014</option>' +
-    "<option>PreIncarnation</option>" +
-    "<option>OldTestament</option>" +
-    "<option>EarlyLife</option>" +
-    "<option>Life</option>" +
-    "<option>GalileeMinistry</option>" +
-    "<option>JudeanMinistry</option>" +
-    "<option>PassionWeek</option>" +
-    "<option>Post-Passion</option>" +
-    "</select>" +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">timeline</label>' +
-    '<select id="record-timeline" class="blog-editor-field-input">' +
-    '<option value="">\u2014 Select Timeline \u2014</option>' +
-    "<option>PreIncarnation</option>" +
-    "<option>OldTestament</option>" +
-    "<option>EarlyLifeUnborn</option>" +
-    "<option>EarlyLifeBirth</option>" +
-    "<option>EarlyLifeInfancy</option>" +
-    "<option>EarlyLifeChildhood</option>" +
-    "<option>LifeTradie</option>" +
-    "<option>LifeBaptism</option>" +
-    "<option>LifeTemptation</option>" +
-    "<option>GalileeCallingTwelve</option>" +
-    "<option>GalileeSermonMount</option>" +
-    "<option>GalileeMiraclesSea</option>" +
-    "<option>GalileeTransfiguration</option>" +
-    "<option>JudeanOutsideJudea</option>" +
-    "<option>JudeanMissionSeventy</option>" +
-    "<option>JudeanTeachingTemple</option>" +
-    "<option>JudeanRaisingLazarus</option>" +
-    "<option>JudeanFinalJourney</option>" +
-    "<option>PassionPalmSunday</option>" +
-    "<option>PassionMondayCleansing</option>" +
-    "<option>PassionTuesdayTeaching</option>" +
-    "<option>PassionWednesdaySilent</option>" +
-    "<option>PassionMaundyThursday</option>" +
-    "<option>PassionMaundyLastSupper</option>" +
-    "<option>PassionMaundyGethsemane</option>" +
-    "<option>PassionMaundyBetrayal</option>" +
-    "<option>PassionFridaySanhedrin</option>" +
-    "<option>PassionFridayCivilTrials</option>" +
-    "<option>PassionFridayCrucifixionBegins</option>" +
-    "<option>PassionFridayDarkness</option>" +
-    "<option>PassionFridayDeath</option>" +
-    "<option>PassionFridayBurial</option>" +
-    "<option>PassionSaturdayWatch</option>" +
-    "<option>PassionSundayResurrection</option>" +
-    "<option>PostResurrectionAppearances</option>" +
-    "<option>Ascension</option>" +
-    "<option>OurResponse</option>" +
-    "<option>ReturnOfJesus</option>" +
-    "</select>" +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">map_label</label>' +
-    '<select id="record-map-label" class="blog-editor-field-input">' +
-    '<option value="">\u2014 Select Map Label \u2014</option>' +
-    "<option>Overview</option>" +
-    "<option>Empire</option>" +
-    "<option>Levant</option>" +
-    "<option>Judea</option>" +
-    "<option>Galilee</option>" +
-    "<option>Jerusalem</option>" +
-    "</select>" +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">gospel_category</label>' +
-    '<select id="record-gospel-category" class="blog-editor-field-input">' +
-    '<option value="">\u2014 Select Category \u2014</option>' +
-    "<option>event</option>" +
-    "<option>location</option>" +
-    "<option>person</option>" +
-    "<option>theme</option>" +
-    "<option>object</option>" +
-    "</select>" +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">geo_id</label>' +
-    '<input type="number" id="record-geo-id" class="blog-editor-field-input" placeholder="Geographic node ID">' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">parent_id</label>' +
-    '<input type="text" id="record-parent-id" class="blog-editor-field-input" placeholder="Parent record ID (FK)">' +
-    "</div>" +
-    "</section>" +
-    // 4. Verses
+    // 3. Taxonomy → child module slot
+    '<div id="taxonomy-diagrams-container" class="child-module-slot record-child-slot"></div>' +
+    // 4. Verses (STAYS INLINE for Phase 2)
     '<section id="verses-section" class="record-section-spacing">' +
     '<p class="blog-editor-list-heading">VERSES</p>' +
     primaryVerseHtml +
     secondaryVerseHtml +
     "</section>" +
-    // 5. Text Content
+    // 5. Text Content (STAYS INLINE for Phase 2)
     '<section id="text-content" class="record-section-spacing">' +
     '<p class="blog-editor-list-heading">TEXT CONTENT</p>' +
     descriptionHtml +
     snippetHtml +
     "</section>" +
-    // 6. Bibliography (MLA)
-    '<section id="bibliography" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">BIBLIOGRAPHY (MLA)</p>' +
-    '<div class="bibliography-grid">' +
-    '<div class="bibliography-cell">' +
-    '<label class="field-label" for="record-mla-book">mla_book:</label>' +
-    '<textarea id="record-mla-book" class="bibliography-textarea" placeholder="Full MLA book citation" data-mla-key="mla_book"></textarea>' +
-    "</div>" +
-    '<div class="bibliography-cell">' +
-    '<label class="field-label" for="record-mla-book-inline">mla_book_inline:</label>' +
-    '<textarea id="record-mla-book-inline" class="bibliography-textarea" placeholder="Short inline MLA book citation" data-mla-key="mla_book_inline"></textarea>' +
-    "</div>" +
-    '<div class="bibliography-cell">' +
-    '<label class="field-label" for="record-mla-article">mla_article:</label>' +
-    '<textarea id="record-mla-article" class="bibliography-textarea" placeholder="Full MLA article citation" data-mla-key="mla_article"></textarea>' +
-    "</div>" +
-    '<div class="bibliography-cell">' +
-    '<label class="field-label" for="record-mla-article-inline">mla_article_inline:</label>' +
-    '<textarea id="record-mla-article-inline" class="bibliography-textarea" placeholder="Short inline MLA article citation" data-mla-key="mla_article_inline"></textarea>' +
-    "</div>" +
-    '<div class="bibliography-cell">' +
-    '<label class="field-label" for="record-mla-website">mla_website:</label>' +
-    '<textarea id="record-mla-website" class="bibliography-textarea" placeholder="Full MLA website citation" data-mla-key="mla_website"></textarea>' +
-    "</div>" +
-    '<div class="bibliography-cell">' +
-    '<label class="field-label" for="record-mla-website-inline">mla_website_inline:</label>' +
-    '<textarea id="record-mla-website-inline" class="bibliography-textarea" placeholder="Short inline MLA website citation" data-mla-key="mla_website_inline"></textarea>' +
-    "</div>" +
-    "</div>" +
-    "</section>" +
-    // 7. Links
+    // 6. Bibliography → child module slot
+    '<div id="bibliography-container" class="child-module-slot record-child-slot"></div>' +
+    // 7. Links (separate child module)
     '<section id="relations-links" class="record-section-spacing">' +
     '<p class="blog-editor-list-heading">LINKS</p>' +
     '<div id="relations-links-container" class="child-module-slot record-child-slot"></div>' +
     "</section>" +
-    // 8. Miscellaneous
-    '<section id="misc" class="record-section-spacing">' +
-    '<p class="blog-editor-list-heading">MISCELLANEOUS</p>' +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">metadata_json</label>' +
-    '<textarea id="record-metadata-json" class="blog-editor-field-input misc-textarea" placeholder="{ ... JSON blob ... }"></textarea>' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">iaa</label>' +
-    '<input type="text" id="record-iaa" class="blog-editor-field-input" placeholder="Institute for Archaeology & Antiquity">' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">pledius</label>' +
-    '<input type="text" id="record-pledius" class="blog-editor-field-input" placeholder="Pleiades ID">' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">manuscript</label>' +
-    '<input type="text" id="record-manuscript" class="blog-editor-field-input" placeholder="Manuscript reference">' +
-    "</div>" +
-    '<div class="blog-editor-field">' +
-    '<label class="blog-editor-field-label">url</label>' +
-    '<textarea id="record-url" class="blog-editor-field-input misc-textarea" placeholder="[ ... JSON blob of URLs ... ]"></textarea>' +
-    "</div>" +
-    "</section>" +
-    "<!-- Sources child module injection point (appears after Miscellaneous) -->" +
+    // 8. Miscellaneous → child module slot
+    '<div id="misc-container" class="child-module-slot record-child-slot"></div>' +
+    // 9. Sources (separate child module)
     '<section id="sources-section" class="record-section-spacing">' +
     '<p class="blog-editor-list-heading">SOURCES</p>' +
     '<div id="sources-container" class="child-module-slot record-child-slot"></div>' +
@@ -518,7 +362,26 @@ window.renderEditRecord = function (
     }
   }
 
-  // ---- Verse Builder Logic ----
+  // ============================================================================
+  // BOOT CHILD SUB-MODULES (v2.1.0)
+  // Inject Core, Taxonomy, Bibliography, Misc into their designated slots
+  // ============================================================================
+  if (typeof window.renderEditCore === "function") {
+    window.renderEditCore("core-identifiers-container");
+  }
+  if (typeof window.renderEditTaxonomy === "function") {
+    window.renderEditTaxonomy("taxonomy-diagrams-container");
+  }
+  if (typeof window.renderEditBibliography === "function") {
+    window.renderEditBibliography("bibliography-container");
+  }
+  if (typeof window.renderEditMisc === "function") {
+    window.renderEditMisc("misc-container");
+  }
+
+  // ============================================================================
+  // VERSE BUILDER LOGIC (inline — Phase 2)
+  // ============================================================================
   function setupVerseBuilder(prefix, hiddenId) {
     var addBtn = document.getElementById(prefix + "-add-btn");
     var hiddenInput = document.getElementById(hiddenId);
@@ -613,7 +476,9 @@ window.renderEditRecord = function (
     return { setData: setChipData, getData: getChipData };
   }
 
-  // ---- Paragraph Editor Logic ----
+  // ============================================================================
+  // PARAGRAPH EDITOR LOGIC (inline — Phase 2)
+  // ============================================================================
   function setupParagraphEditor(fieldName, hiddenId) {
     var addBtn = document.getElementById(fieldName + "-add-btn");
     var hiddenInput = document.getElementById(hiddenId);
@@ -727,7 +592,11 @@ window.renderEditRecord = function (
   var descEditor = setupParagraphEditor("description", "record-description");
   var snipEditor = setupParagraphEditor("snippet", "record-snippet");
 
-  // ---- Data Loading ----
+  // ============================================================================
+  // DATA LOADING (refactored v2.1.0)
+  // Sub-module fields are loaded via window.loadEdit* APIs instead of inline
+  // setInput/setSelect calls. Verse and text-content loading stays inline.
+  // ============================================================================
   if (recordId) {
     fetch("/api/admin/records/" + encodeURIComponent(recordId))
       .then(function (res) {
@@ -735,34 +604,17 @@ window.renderEditRecord = function (
         return res.json();
       })
       .then(function (data) {
-        // Helper to set a select element's value
-        function setSelect(id, val) {
-          var el = document.getElementById(id);
-          if (el) el.value = val != null && val !== "" ? val : "";
+        // ---- Core Identifiers (delegated to sub-module) ----
+        if (typeof window.loadEditCore === "function") {
+          window.loadEditCore(data);
         }
 
-        // Helper to set a text input / textarea value
-        function setInput(id, val) {
-          var el = document.getElementById(id);
-          if (el) el.value = val != null ? String(val) : "";
+        // ---- Taxonomy & Diagrams (delegated to sub-module) ----
+        if (typeof window.loadEditTaxonomy === "function") {
+          window.loadEditTaxonomy(data);
         }
 
-        // ---- Core Identifiers ----
-        setInput("record-id", data.id || "[auto-generated ULID]");
-        setInput("record-title", data.title);
-        setInput("record-slug", data.slug);
-        setInput("record-created-at", data.created_at || "[auto]");
-        setInput("record-updated-at", data.updated_at || "[auto]");
-
-        // ---- Taxonomy & Diagrams ----
-        setSelect("record-era", data.era);
-        setSelect("record-timeline", data.timeline);
-        setSelect("record-map-label", data.map_label);
-        setSelect("record-gospel-category", data.gospel_category);
-        setInput("record-geo-id", data.geo_id);
-        setInput("record-parent-id", data.parent_id);
-
-        // ---- Verses (JSON arrays) ----
+        // ---- Verses (JSON arrays) — STAYS INLINE ----
         var pv = [];
         try {
           pv = JSON.parse(data.primary_verse || "[]");
@@ -779,7 +631,7 @@ window.renderEditRecord = function (
         }
         svBuilder.setData(sv);
 
-        // ---- Text Content (JSON paragraph arrays) ----
+        // ---- Text Content (JSON paragraph arrays) — STAYS INLINE ----
         var desc = [];
         try {
           desc = JSON.parse(data.description || "[]");
@@ -796,26 +648,15 @@ window.renderEditRecord = function (
         }
         snipEditor.setData(snip);
 
-        // ---- Bibliography (MLA JSON blob) ----
-        var bib = {};
-        try {
-          bib = JSON.parse(data.bibliography || "{}");
-        } catch (e) {
-          bib = {};
+        // ---- Bibliography (delegated to sub-module) ----
+        if (typeof window.loadEditBibliography === "function") {
+          window.loadEditBibliography(data);
         }
-        setInput("record-mla-book", bib.mla_book);
-        setInput("record-mla-book-inline", bib.mla_book_inline);
-        setInput("record-mla-article", bib.mla_article);
-        setInput("record-mla-article-inline", bib.mla_article_inline);
-        setInput("record-mla-website", bib.mla_website);
-        setInput("record-mla-website-inline", bib.mla_website_inline);
 
-        // ---- Miscellaneous ----
-        setInput("record-metadata-json", data.metadata_json);
-        setInput("record-iaa", data.iaa);
-        setInput("record-pledius", data.pledius);
-        setInput("record-manuscript", data.manuscript);
-        setInput("record-url", data.url);
+        // ---- Miscellaneous (delegated to sub-module) ----
+        if (typeof window.loadEditMisc === "function") {
+          window.loadEditMisc(data);
+        }
 
         // ---- Re-render Relations & Links with loaded context_links ----
         if (typeof window.renderEditLinks === "function") {
@@ -831,8 +672,9 @@ window.renderEditRecord = function (
       });
   }
 
-  // ---- Action Bar Button Wiring ----
-  // Helper: show inline status message
+  // ============================================================================
+  // ACTION BAR BUTTON WIRING
+  // ============================================================================
   var statusEl = document.getElementById("save-status");
 
   function showStatus(msg, type) {
@@ -875,86 +717,65 @@ window.renderEditRecord = function (
       window.renderEditRecord(containerId, recordId, useProvidenceColumns);
     });
 
-  // Save Changes — collect, validate, POST/PUT
+  // Save Changes — collect, validate, POST/PUT (refactored v2.1.0)
   document
     .getElementById("btn-save-record")
     .addEventListener("click", function () {
       var saveData = {};
 
-      // Core Identifiers
-      var titleEl = document.getElementById("record-title");
-      saveData.title = titleEl ? titleEl.value : "";
+      // ---- Core Identifiers (delegated to sub-module) ----
+      if (typeof window.collectEditCore === "function") {
+        var coreData = window.collectEditCore();
+        saveData.title = coreData.title;
+        saveData.slug = coreData.slug;
+      }
 
-      var slugEl = document.getElementById("record-slug");
-      saveData.slug = slugEl ? slugEl.value : "";
+      // ---- Taxonomy (delegated to sub-module) ----
+      if (typeof window.collectEditTaxonomy === "function") {
+        var taxData = window.collectEditTaxonomy();
+        saveData.era = taxData.era;
+        saveData.timeline = taxData.timeline;
+        saveData.map_label = taxData.map_label;
+        saveData.gospel_category = taxData.gospel_category;
+        saveData.geo_id = taxData.geo_id;
+        saveData.parent_id = taxData.parent_id;
+      }
 
-      // Taxonomy
-      var eraEl = document.getElementById("record-era");
-      saveData.era = eraEl ? eraEl.value : "";
-
-      var timelineEl = document.getElementById("record-timeline");
-      saveData.timeline = timelineEl ? timelineEl.value : "";
-
-      var mapLabelEl = document.getElementById("record-map-label");
-      saveData.map_label = mapLabelEl ? mapLabelEl.value : "";
-
-      var gospelCatEl = document.getElementById("record-gospel-category");
-      saveData.gospel_category = gospelCatEl ? gospelCatEl.value : "";
-
-      var geoEl = document.getElementById("record-geo-id");
-      saveData.geo_id =
-        geoEl && geoEl.value !== "" ? parseInt(geoEl.value, 10) : null;
-
-      var parentEl = document.getElementById("record-parent-id");
-      saveData.parent_id = parentEl ? parentEl.value : "";
-
-      // Verses (already JSON in hidden inputs)
+      // ---- Verses (already JSON in hidden inputs) — STAYS INLINE ----
       var pvEl = document.getElementById("record-primary-verse");
       saveData.primary_verse = pvEl ? pvEl.value : "[]";
 
       var svEl = document.getElementById("record-secondary-verse");
       saveData.secondary_verse = svEl ? svEl.value : "[]";
 
-      // Text Content (already JSON in hidden inputs)
+      // ---- Text Content (already JSON in hidden inputs) — STAYS INLINE ----
       var descEl = document.getElementById("record-description");
       saveData.description = descEl ? descEl.value : "[]";
 
       var snipEl = document.getElementById("record-snippet");
       saveData.snippet = snipEl ? snipEl.value : "[]";
 
-      // Bibliography — build JSON blob from data-mla-key textareas
-      // FIXED (v2.0.0): removed ancestor scoping to work regardless of which column
-      // the textareas are in. Previously used "#edit-record-card [data-mla-key]"
-      // which only worked in legacy mode.
-      var bib = {};
-      var bibTextareas = document.querySelectorAll("[data-mla-key]");
-      for (var bi = 0; bi < bibTextareas.length; bi++) {
-        var ta = bibTextareas[bi];
-        bib[ta.getAttribute("data-mla-key")] = ta.value;
+      // ---- Bibliography (delegated to sub-module) ----
+      if (typeof window.collectEditBibliography === "function") {
+        var bibData = window.collectEditBibliography();
+        saveData.bibliography = bibData.bibliography;
       }
-      saveData.bibliography = JSON.stringify(bib);
 
-      // Miscellaneous
-      var metaEl = document.getElementById("record-metadata-json");
-      saveData.metadata_json = metaEl ? metaEl.value : "";
+      // ---- Miscellaneous (delegated to sub-module) ----
+      if (typeof window.collectEditMisc === "function") {
+        var miscData = window.collectEditMisc();
+        saveData.metadata_json = miscData.metadata_json;
+        saveData.iaa = miscData.iaa;
+        saveData.pledius = miscData.pledius;
+        saveData.manuscript = miscData.manuscript;
+        saveData.url = miscData.url;
+      }
 
-      var iaaEl = document.getElementById("record-iaa");
-      saveData.iaa = iaaEl ? iaaEl.value : "";
-
-      var plediusEl = document.getElementById("record-pledius");
-      saveData.pledius = plediusEl ? plediusEl.value : "";
-
-      var manuscriptEl = document.getElementById("record-manuscript");
-      saveData.manuscript = manuscriptEl ? manuscriptEl.value : "";
-
-      var urlEl = document.getElementById("record-url");
-      saveData.url = urlEl ? urlEl.value : "";
-
-      // Relations & Links (context_links hidden field from edit_links.js)
+      // ---- Relations & Links (context_links hidden field from edit_links.js) ----
       var contextLinksEl = document.getElementById("context-links-hidden");
       saveData.context_links = contextLinksEl ? contextLinksEl.value : "[]";
 
-      // Validate JSON blobs (metadata_json, url, context_links)
+      // ---- Validate JSON blobs (metadata_json, url, context_links) ----
       var jsonFields = ["metadata_json", "url"];
       for (var ji = 0; ji < jsonFields.length; ji++) {
         var val = saveData[jsonFields[ji]];
@@ -1060,12 +881,12 @@ window.renderEditRecord = function (
       });
   }
 
-  // Load edit_links module if the script has been parsed
+  // ---- Child module boot: Links (separate module) ----
   if (typeof window.renderEditLinks === "function") {
     window.renderEditLinks("relations-links-container");
   }
 
-  // Load edit_picture module if the script has been parsed
+  // ---- Child module boot: Picture (separate module) ----
   if (typeof window.renderEditPicture === "function" && recordId) {
     window.renderEditPicture("picture-upload-container", recordId);
   }

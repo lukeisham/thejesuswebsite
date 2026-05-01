@@ -23,24 +23,24 @@ window.renderEditCore = function (containerId) {
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">id</label>\n' +
     '<input type="text" id="record-id" class="blog-editor-field-input" value="[auto-generated ULID]" readonly>\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">title</label>\n' +
     '<input type="text" id="record-title" class="blog-editor-field-input" placeholder="Record Title">\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">slug</label>\n' +
     '<input type="text" id="record-slug" class="blog-editor-field-input" placeholder="url-friendly-slug">\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">created_at</label>\n' +
     '<input type="text" id="record-created-at" class="blog-editor-field-input" value="[auto]" readonly>\n' +
-    '</div>\n' +
+    "</div>\n" +
     '<div class="blog-editor-field">\n' +
     '<label class="blog-editor-field-label">updated_at</label>\n' +
     '<input type="text" id="record-updated-at" class="blog-editor-field-input" value="[auto]" readonly>\n' +
-    '</div>\n' +
-    '</section>';
+    "</div>\n" +
+    "</section>";
 };
 
 window.loadEditCore = function (data) {
@@ -58,8 +58,11 @@ window.loadEditCore = function (data) {
 };
 
 window.collectEditCore = function () {
+  var elTitle = document.getElementById("record-title");
+  var elSlug = document.getElementById("record-slug");
+
   return {
-    title: document.getElementById("record-title")?.value || "",
-    slug: document.getElementById("record-slug")?.value || "",
+    title: elTitle ? elTitle.value : "",
+    slug: elSlug ? elSlug.value : "",
   };
 };
