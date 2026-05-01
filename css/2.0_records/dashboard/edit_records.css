@@ -759,7 +759,9 @@
 /* ---- Section Navigator Buttons ---- */
 
 .record-column-two-btn {
-    display: block;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
     width: 100%;
     padding: var(--space-2) var(--space-3);
     font-family: var(--font-mono);
