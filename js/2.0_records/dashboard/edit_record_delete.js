@@ -43,6 +43,8 @@ window.renderEditRecordDelete = function (
   // ---- Render the button ----
   var btnHtml =
     '<button class="blog-editor-action-btn is-danger" id="btn-delete-record">Delete</button>';
+    var existing = document.getElementById("btn-delete-record");
+  if (existing) existing.remove();
   targetEl.insertAdjacentHTML("beforeend", btnHtml);
 
   // ---- Wire the click handler ----

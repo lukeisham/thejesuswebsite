@@ -120,10 +120,10 @@
 }
 
 /* Divider base style — 1px vertical line between Providence columns.
-   align-self: stretch ensures the divider spans full row height. */
+   height: 100% forces the empty div to fill the full grid row height. */
 .providence-editor-col-divider {
     background-color: var(--color-border);
-    align-self: stretch;
+    height: 100%;
 }
 
 /* ---- 2b. WIREFRAME ALIAS CLASSES ---- */

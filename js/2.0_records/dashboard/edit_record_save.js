@@ -41,6 +41,8 @@ window.renderEditRecordSave = function (
   // ---- Render the button ----
   var btnHtml =
     '<button class="blog-editor-action-btn" id="btn-save-record">Save Changes</button>';
+    var existing = document.getElementById("btn-save-record");
+  if (existing) existing.remove();
   targetEl.insertAdjacentHTML("beforeend", btnHtml);
 
   // ---- Wire the click handler ----

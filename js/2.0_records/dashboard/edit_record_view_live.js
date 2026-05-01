@@ -43,6 +43,8 @@ window.renderEditRecordViewLive = function (
   // ---- Render the button ----
   var btnHtml =
     '<button class="blog-editor-action-btn btn-view-live-record" id="btn-view-live-record">View Live</button>';
+    var existing = document.getElementById("btn-view-live-record");
+  if (existing) existing.remove();
   targetEl.insertAdjacentHTML("beforeend", btnHtml);
 
   // ---- Wire the click handler ----

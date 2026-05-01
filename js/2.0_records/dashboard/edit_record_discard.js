@@ -36,6 +36,8 @@ window.renderEditRecordDiscard = function (
   // ---- Render the button ----
   var btnHtml =
     '<button class="blog-editor-action-btn btn-discard-record" id="btn-discard-record">Discard</button>';
+    var existing = document.getElementById("btn-discard-record");
+  if (existing) existing.remove();
   targetEl.insertAdjacentHTML("beforeend", btnHtml);
 
   // ---- Wire the click handler ----
