@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "Dashboard columns and dividers debug"
+git commit -m "Single record alignment"
 git push origin main 
 
 # Pulling from Github to server 
@@ -41,6 +41,8 @@ sudo journalctl -u thejesuswebsite.service -n 20 --no-pager
 21. Theology features
 
 # Next project
+
+blog-editor-list-heading
 
 ---
 

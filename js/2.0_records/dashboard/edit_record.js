@@ -242,7 +242,6 @@ window.renderEditRecord = function (
   var editorHtml =
     // 1. Core Identifiers → child module slot
     '<section id="core-identifiers-section" class="record-section-spacing">' +
-    "<p>CORE IDENTIFIERS</p>" +
     '<div id="core-identifiers-container" class="child-module-slot record-child-slot"></div>' +
     "</section>" +
     // 2. Picture (separate child module)
@@ -252,7 +251,6 @@ window.renderEditRecord = function (
     "</section>" +
     // 3. Taxonomy → child module slot
     '<section id="taxonomy-diagrams-section" class="record-section-spacing">' +
-    "<p>TAXONOMY &amp; DIAGRAMS</p>" +
     '<div id="taxonomy-diagrams-container" class="child-module-slot record-child-slot"></div>' +
     "</section>" +
     // 4. Verses (STAYS INLINE for Phase 2)
@@ -269,7 +267,6 @@ window.renderEditRecord = function (
     "</section>" +
     // 6. Bibliography → child module slot
     '<section id="bibliography-section" class="record-section-spacing">' +
-    "<p>BIBLIOGRAPHY</p>" +
     '<div id="bibliography-container" class="child-module-slot record-child-slot"></div>' +
     "</section>" +
     // 7. Links (separate child module)
@@ -279,7 +276,6 @@ window.renderEditRecord = function (
     "</section>" +
     // 8. Miscellaneous → child module slot
     '<section id="misc-section" class="record-section-spacing">' +
-    "<p>MISCELLANEOUS</p>" +
     '<div id="misc-container" class="child-module-slot record-child-slot"></div>' +
     "</section>" +
     // 9. Sources (separate child module)
@@ -297,7 +293,6 @@ window.renderEditRecord = function (
     if (typeof window.renderEditRecordColumnTwo === "function") {
       window.renderEditRecordColumnTwo();
     }
-
   } else {
     // Legacy path: no Providence columns; Column 2 navigator not rendered.
     container.innerHTML =
@@ -305,7 +300,6 @@ window.renderEditRecord = function (
       actionsHtml +
       editorHtml +
       "</div>";
-
   }
 
   // ============================================================================
@@ -684,7 +678,7 @@ window.renderEditRecord = function (
   }
 
   // ---- Child module boot: Picture (separate module) ----
-  if (typeof window.renderEditPicture === "function" && recordId) {
+  if (typeof window.renderEditPicture === "function") {
     window.renderEditPicture("picture-upload-container", recordId);
   }
 };
