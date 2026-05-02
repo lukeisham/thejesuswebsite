@@ -1,7 +1,7 @@
 ---
 name: generate_plan
 version: 1.2.0
-description: Generates a structured implementation plan .md file from plan_template.md, with a purpose summary, bite-sized checkbox tasks guided by vibe_coding_rules.md, a vibe-coding audit, a sitemap impact audit, a module impact audit (intra-module and cross-module checks against detailed_module_sitemap.md), and a documentation update section covering all affected files in documentation/.
+description: Generates a structured implementation plan .md file from plan_template.md, with a purpose summary, bite-sized checkbox tasks guided by vibe_coding_rules.md, final tasks for a vibe-coding audit and purpose check, and a documentation update section covering all affected files in documentation/.
 ---
 
 # Skill: generate_plan
@@ -50,9 +50,8 @@ Replace every `{{placeholder}}` with concrete values:
   - `Action` — a single, imperative sentence describing the work
   - `Vibe Rule(s)` — the specific rules from `vibe_coding_rules.md` that apply to that file type
   - A single `- [ ] Task complete` checkbox
-- **Impact Audit table**: one row per file in the Tasks section, cross-referenced against `detailed_module_sitemap.md`
-- **Module Impact Audit**: intra-module table (all other files in the same module) and cross-module table (all architecturally connected modules), each with `Yes / No` and a reason — null result is valid but both tables must be fully populated (see Step 5)
-- **Documentation Update table**: one row per document in `documentation/` whose scope overlaps with this plan's work (see Step 6)
+- **Final Tasks**: Update `T[Final]` and `T[Final+1]` to the correct sequential task numbers (e.g., T4 and T5) following the generated tasks.
+- **Documentation Update table**: one row per document in `documentation/` whose scope overlaps with this plan's work (see Step 5)
 
 ### Step 3: Task Sizing Rules
 
@@ -74,25 +73,7 @@ For each task, assign only the rules that apply to the file type being created o
 | `.py` | Explicit readable logic, stateless/repeatable, document API quirks |
 | `.sql` / `.sqlite` | `snake_case` fields, explicit queries |
 
-### Step 5: Populate the Module Impact Audit
-
-Using `documentation/detailed_module_sitemap.md` as the reference:
-
-**Intra-Module Check**
-1. Identify the target module (by `module_number`) in the sitemap.
-2. List every file in that module that is **not** being created or edited by this plan.
-3. For each file, assess whether the plan's changes could affect it — consider: shared CSS variables or classes, JS event listeners or injected components, database schema changes, API contract changes, Python pipeline dependencies.
-4. Record each file with `Yes / No` and a one-sentence reason. For `No` rows, write `"No impact identified"` so the reader knows the check was made.
-
-**Cross-Module Check**
-1. Using the System Architecture diagram in `detailed_module_sitemap.md`, identify all modules that are architecturally connected to the target module (e.g. a display module connects to the CSS System, the SQL Database, and any admin modules that edit its data).
-2. For each connected module, assess whether the plan's changes ripple into it.
-3. Record each module with `Yes / No` and a one-sentence reason. For `No` rows, write `"No impact identified"`.
-
-**Null Result Rule**
-If no intra-module or cross-module impacts are found, the result is **Null** — this is a valid outcome. Still populate both tables fully and mark the summary checkbox as `Null — no downstream impact identified`. Do not omit the section.
-
-### Step 6: Populate the Documentation Update Section
+### Step 5: Populate the Documentation Update Section
 
 Every row in the Documentation Update table must include **all 16 files** currently in `documentation/` (root + `guides/` subfolder). For each document, decide whether the plan's scope affects it:
 
@@ -125,7 +106,7 @@ Set `Yes / No` for each row and write a one-sentence `Change Description` for ev
 
 `IF` file written successfully:
   - **State**: `PLAN_GENERATED`
-  - **Action**: Confirm to the user with the output path (`{{plan_name}}.md` in the project root) and a brief summary of: how many tasks were generated, how many documents in the Documentation Update section are marked `Yes`, and whether the Module Impact Audit found any intra-module or cross-module impacts (or returned Null). Remind the user to run `/sync_sitemap` after any plan that adds new files to the codebase.
+  - **Action**: Confirm to the user with the output path (`{{plan_name}}.md` in the project root) and a brief summary of: how many tasks were generated, and how many documents in the Documentation Update section are marked `Yes`. Remind the user to run `/sync_sitemap` after any plan that adds new files to the codebase. Finally, automatically trigger and execute the `documentation/dashboard_refractor.md` skill.
 
 `IF` required inputs are missing or ambiguous:
   - **State**: `AWAITING_INPUT`

@@ -18,8 +18,12 @@ created: {{date}}
 
 ## Tasks
 
-> Each task is a focused, bite-sized unit of work. Follow `documentation/vibe_coding_rules.md` for all code creation and edits.
-> Check each box as you complete the task.
+> Each task is a focused, bite-sized unit of work.
+> 
+> **Instructions for the Agent:**
+> 1. **Read `documentation/vibe_coding_rules.md`** at the beginning of every task.
+> 2. **Remind yourself** of the project purpose and Section 7 (AI Execution & Drift Control) of the vibe-coding rules.
+> 3. **Mark the task as complete** (check the box) ONLY when the specific task requirements are fully met.
 
 ### T1 — {{task_1_title}}
 
@@ -55,84 +59,51 @@ created: {{date}}
 
 ---
 
-## Vibe-Coding Audit
+## Final Tasks
+
+### T[Final] — Vibe-Coding Audit
 
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
-### HTML
+#### HTML
 - [ ] Semantic tags used — no `<div>` soup
 - [ ] No inline `style="..."` attributes
 - [ ] No inline `<script>` blocks
 - [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
 
-### CSS
+#### CSS
 - [ ] CSS Grid used for macro layout; Flexbox for micro alignment
 - [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
 - [ ] Section headings and subheadings present as comments
 - [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
-### JavaScript
+#### JavaScript
 - [ ] One function per file
 - [ ] File opens with three comment lines: trigger, main function, output
 - [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
 - [ ] Repeating UI elements injected via component injection pattern
 
-### Python
+#### Python
 - [ ] Logic is explicit and self-documenting — no overly clever tricks
 - [ ] Scripts are stateless and safe to run repeatedly
 - [ ] API quirks or data anomalies documented inline
 
-### SQL / Database
+#### SQL / Database
 - [ ] All field names in `snake_case`
 - [ ] Queries are explicit — no deeply nested frontend WASM logic
 
-### Purpose Check
-- [ ] Plan purpose stated in §Purpose has been fully achieved
-- [ ] No scope creep — only files listed in §Tasks were created or modified
-
 ---
 
-## Impact Audit
+### T[Final+1] — Purpose Check
 
-> Cross-reference every file touched against `documentation/detailed_module_sitemap.md`.
-> Confirm the sitemap is still accurate; update it if any new files were added or paths changed.
+> Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-| File | Module | Sitemap Entry Exists? | Action Required |
-|------|--------|-----------------------|-----------------|
-| `{{file_path}}` | {{module_number}} — {{module_name}} | Yes / No | None / Add entry / Update entry |
+- [ ] **Achievement**: The core objective outlined in the summary has been fully met
+- [ ] **Necessity**: The underlying reason/need for this plan has been resolved
+- [ ] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
+- [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
 
-### Sitemap Integrity Checks
-- [ ] All new files are listed under the correct module in `detailed_module_sitemap.md`
-- [ ] No existing sitemap entries were broken or made stale by this plan
-- [ ] If new files were added, run `/sync_sitemap` to propagate changes to `site_map.md`
-- [ ] `detailed_module_sitemap.md` version number incremented if structure changed
 
----
-
-## Module Impact Audit
-
-> Using `documentation/detailed_module_sitemap.md` as the reference, check whether this plan's changes affect other files or functionality **within the same module**, and whether any **connected or dependent modules** are impacted. A null result is valid — but the check must always be completed and shown.
-
-### Intra-Module Check — Module {{module_number}}: {{module_name}}
-
-> Every other file in this module that is NOT being touched by this plan. Assess whether the plan's changes (schema shifts, shared CSS variables, JS event listeners, API contract changes, etc.) could affect each.
-
-| File | Potentially Affected? | Reason / Null |
-|------|-----------------------|---------------|
-| `{{other_file_in_module}}` | Yes / No | {{reason, or "No impact identified"}} |
-
-### Cross-Module Check
-
-> Modules that are architecturally connected to Module {{module_number}} per the System Architecture diagram in `detailed_module_sitemap.md`. Assess whether this plan's changes ripple into each.
-
-| Module | Potentially Affected? | Reason / Null |
-|--------|-----------------------|---------------|
-| {{connected_module_number}} — {{connected_module_name}} | Yes / No | {{reason, or "No impact identified"}} |
-
-### Module Impact Summary
-- [ ] Intra-module check completed — all other files in Module {{module_number}} reviewed
-- [ ] Cross-module check completed — all architecturally connected modules reviewed
-- [ ] Impact result: **Null — no downstream impact identified** / **See flagged rows above**
 
 ---
 

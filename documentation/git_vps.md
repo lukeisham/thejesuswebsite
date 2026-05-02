@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "Single record alignment"
+git commit -m "Single record debugging"
 git push origin main 
 
 # Pulling from Github to server 

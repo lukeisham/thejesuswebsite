@@ -239,18 +239,22 @@ dependencies: [site_map.md, module_sitemap.md]
 `wikipedia_rank` | TEXT | Flat Indexable (64-bit int) 
 `wikipedia_title` | TEXT | Flat Indexable 
 `wikipedia_weight` | TEXT | Label-Value Pair 
+`wikipedia_search_term` | TEXT | JSON Blob 
 `popular_challenge_link` | TEXT | JSON Blob 
 `popular_challenge_title` | TEXT | Flat Indexable     
 `popular_challenge_rank` | TEXT | Flat Indexable (64-bit int) 
 `popular_challenge_weight` | TEXT | Label-Value Pair 
+`popular_challenge_search_term` | TEXT | JSON Blob 
 `academic_challenge_link` | TEXT | JSON Blob 
 `academic_challenge_title` | TEXT | Flat Indexable 
 `academic_challenge_rank` | TEXT | Flat Indexable (64-bit int) 
 `academic_challenge_weight` | TEXT | Label-Value Pair 
+`academic_challenge_search_term` | TEXT | JSON Blob 
 `responses` | TEXT | JSON Blob 
 `blogposts` | TEXT | JSON Blob 
 `news_sources` | TEXT | Label-Value Pair    
 `news_items` | TEXT | JSON Blob    
+`news_search_term` | TEXT | JSON Blob 
 `users` | TEXT | JSON Blob (SPA Routing)
     `Admin`
     `Public`

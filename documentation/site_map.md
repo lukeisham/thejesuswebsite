@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.46
+version: 1.0.48
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -18,7 +18,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   │   ├── admin_api.py       <-- Secure backend writing to SQL
 │   │   └── auth_utils.py      <-- JWT generation and Brute Force defense
 │   └── frontend/
-│       └── admin.html         <-- Secure entry portal for admin features
+│       ├── admin.html         <-- Login-only entry portal for admin authentication
+│       └── dashboard.html     <-- Post-login dashboard shell with module tab bar
 ├── assets/
 │   ├── *.png                  <-- Raw source images and portraits
 │   ├── ai-instructions.txt    <-- Specialized guidance for LLM crawlers
@@ -53,7 +54,19 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   │   ├── guide_style.md     <-- UI / UX visual design guide
 │   │   └── guide_welcoming_robots.md <-- SEO and AI accessibility standards
 │   ├── implementation_plan.md <-- Implementation Plan
+│   ├── master_dashboard_refactor_roadmap.md <-- Roadmap for full dashboard refactor
 │   ├── module_sitemap.md      <-- Architectural blueprints (This File)
+│   ├── plan_dashboard_arbor.md <-- Plan: Arbor Diagram Module
+│   ├── plan_dashboard_blog_posts.md <-- Plan: Blog Posts Module
+│   ├── plan_dashboard_challenge.md <-- Plan: Challenge Ranked List Module
+│   ├── plan_dashboard_challenge_response.md <-- Plan: Challenge Response Module
+│   ├── plan_dashboard_essay_historiography.md <-- Plan: Essay & Historiography Module
+│   ├── plan_dashboard_login_shell.md <-- Plan: Admin Login & Dashboard Shell
+│   ├── plan_dashboard_news_sources.md <-- Plan: News Sources Module
+│   ├── plan_dashboard_records_all.md <-- Plan: All Records Module
+│   ├── plan_dashboard_records_single.md <-- Plan: Single Record Module
+│   ├── plan_dashboard_system.md <-- Plan: System Health Module
+│   ├── plan_dashboard_wikipedia.md <-- Plan: Wikipedia Ranked List Module
 │   ├── site_map.md            <-- Consolidated master site map
 │   ├── style_guide.md         <-- UI / UX visual design guide
 │   └── vibe_coding_rules.md   <-- Foundational coding philosophies

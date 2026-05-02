@@ -237,6 +237,18 @@ tests/
 
 documentation/
 ├── implementation_plan.md             <-- Implementation Plan
+├── master_dashboard_refactor_roadmap.md <-- Roadmap for full dashboard refactor
+├── plan_dashboard_login_shell.md   <-- Plan: Admin Login & Dashboard Shell
+├── plan_dashboard_records_all.md      <-- Plan: All Records Module
+├── plan_dashboard_records_single.md   <-- Plan: Single Record Module
+├── plan_dashboard_arbor.md            <-- Plan: Arbor Diagram Module
+├── plan_dashboard_wikipedia.md        <-- Plan: Wikipedia Ranked List Module
+├── plan_dashboard_challenge.md        <-- Plan: Challenge Ranked List Module
+├── plan_dashboard_challenge_response.md <-- Plan: Challenge Response Module
+├── plan_dashboard_essay_historiography.md <-- Plan: Essay & Historiography Module
+├── plan_dashboard_news_sources.md     <-- Plan: News Sources Module
+├── plan_dashboard_blog_posts.md       <-- Plan: Blog Posts Module
+├── plan_dashboard_system.md           <-- Plan: System Health Module
 ├── module_sitemap.md                  <-- Architectural blueprints (This File)
 ├── site_map.md                        <-- Consolidated master site map
 ├── vibe_coding_rules.md               <-- Foundational coding philosophies

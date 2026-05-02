@@ -196,6 +196,9 @@ CREATE TABLE IF NOT EXISTS records (
     wikipedia_weight            TEXT,
     -- Label-Value Pair: multiplier metadata used by the Wikipedia ranking pipeline
 
+    wikipedia_search_term       TEXT,
+    -- JSON Blob: search terms used to source Wikipedia content for this record
+
 
     -- -------------------------------------------------------------------------
     --  POPULAR CHALLENGE RANKED DATA
@@ -213,6 +216,9 @@ CREATE TABLE IF NOT EXISTS records (
     popular_challenge_weight    TEXT,
     -- Label-Value Pair: multiplier metadata used by the popular challenge ranking pipeline
 
+    popular_challenge_search_term TEXT,
+    -- JSON Blob: search terms used to source popular challenge content for this record
+
 
     -- -------------------------------------------------------------------------
     --  ACADEMIC CHALLENGE RANKED DATA
@@ -229,6 +235,9 @@ CREATE TABLE IF NOT EXISTS records (
 
     academic_challenge_weight   TEXT,
     -- Label-Value Pair: multiplier metadata used by the academic challenge ranking pipeline
+
+    academic_challenge_search_term TEXT,
+    -- JSON Blob: search terms used to source academic challenge content for this record
 
 
     -- -------------------------------------------------------------------------
@@ -251,6 +260,9 @@ CREATE TABLE IF NOT EXISTS records (
 
     news_items                  TEXT,
     -- JSON Blob: individual news stories or items linked to this record
+
+    news_search_term            TEXT,
+    -- JSON Blob: search terms used to source news content for this record
 
 
     -- -------------------------------------------------------------------------

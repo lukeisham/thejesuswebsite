@@ -37,7 +37,6 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Oxblood** | Active Accents | `#8E3B46` | `--color-accent-primary` |
 | **Antique Gold** | Dashboard Focus | `#D4AF37` | `--color-dash-accent` |
 | **Clay Stone** | Standard Borders | `#E0DCD1` | `--color-border` |
-| **Inkpot Dark** | Dashboard BG | `#121212` | `--color-dash-bg` |
 | **Blueprint Green** | Success States | `#2E7D32` | `--color-status-success` |
 
 ## 5. Architectural Constraints
@@ -142,13 +141,13 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 ## 18. Dashboard & Editor Aesthetics
 | Category | Rule / Visual Description | Implementation / CSS |
 | :--- | :--- | :--- |
-| **Layout Convention** | 3-column Providence grid; Form-heavy, cataloguer-first aesthetic. | `.providence-editor-grid`, `.providence-editor-col-*` |
+| **Layout Convention** | Bespoke single page layout, featuring a double header, an occasional sidebar and a fixed universal footer | Documentation convention|
 | **Field Ownership Map** | Documents database column ownership using `§N.M` notation. | Documentation convention |
 | **Section Numbering** | Numbered (`### 2.1`) for sitemap modules; un-numbered for sub-features. | Documentation convention |
 | **Admin Shell** | Dashboard color scheme; Gold accents. | `--color-dash-accent` |
 | **Editor Style** | Mono fields; data-dense aesthetics. | `--font-mono` |
-| **Action Bar** | Floating footer; Gold focus. | `--color-dash-accent` |
-| **Sidebar Return Link**| Pinned to base (`margin-top: auto`); Lead Grey, tertiary BG hover. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
+| **Action Bar** | Gold focus. | `--color-dash-accent` |
+| **Return Link**| Lead Grey, tertiary BG hover. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
 
 ## 19. Consistency Checklist
 To maintain the Technical Blueprint aesthetic, all new elements must pass:

@@ -384,56 +384,40 @@ This document provides visual ASCII representations detailing how data physicall
 
 ### 4.1 Wikipedia Weights — Data Flow
 
-```text
- +--------------------------+
- |  4.1 Wikipedia (Metrics) |
- | (Base Importance Score)  |
- |                          |
- | pipeline_wikipedia.py    |
- |  (scheduled or manual)   |
- +-----------+--------------+
-             |
-             v
- +---------------------------------------------------+
- |  Admin Editor: edit_wiki_weights.js               |
- |  (ranks-wikipedia tab -> loadModule)              |
- |                                                   |
- |  -> Fetches current wikipedia_rank,               |
- |     wikipedia_weight, wikipedia_title,            |
- |     wikipedia_link from records table              |
- |                                                   |
- |  -> Renders editable rows:                        |
- |     slug / title    rank    weight                |
- |     tacitus-annals   98   [× 1.20]               |
- |                                                   |
- |  -> Save per row: PUT /api/admin/records/{id}     |
- |     Body: { wikipedia_weight: "×1.20",           |
- |             wikipedia_rank: 98 }                  |
- +---------------------------------------------------+
-             |
-             v
- +--------------------------+
- | Calculate Final Wikipedia |
- | Rank = Base × Multiplier |
- +-----------+--------------+
-             |
-             v
- +---------------------------------------------------+
- |         Update SQLite DB Records                  |
- |  wikipedia_rank, wikipedia_weight columns         |
- |  (plus wikipedia_title, wikipedia_link)           |
- +---------------------------------------------------+
-             |
-             v
- +---------------------------------------------------+
- |     WASM Query -> ORDER BY wikipedia_rank DESC    |
- +---------------------------------------------------+
-             |
-             v
- +---------------------------------------------------+
- |  Frontend Render: Ranked Wikipedia List (§4.1)   |
- +---------------------------------------------------+
-```
+ +----------------------------------------------------------+
+ | 1. ADMIN ACTION: Modify Wikipedia search terms           |
+ |                                                          |
+ +------------------------+---------------------------------+
+                          |
+                          v
+ +----------------------------------------------------------+
+ | 2. ADMIN ACTION: Click "Recalculate"                     |
+ |    -> launches `pipeline_wikipedia.py`                   |
+ |    -> queries Wikipedia API with search terms            |
+ |    -> filters out non-article results                    |
+ |    -> writes wikipedia_title, wikipedia_link,            |
+ |       wikipedia_rank (base score) to SQLite records      |
+ +------------------------+---------------------------------+
+                          |
+                          v
+ +----------------------------------------------------------+
+ | 3. ADMIN ACTION: Modify wikipedia_weight (multiplier)    |
+ |    (ranks-wikipedia tab -> editable weight column)       |
+ +------------------------+---------------------------------+
+                          |
+                          v
+ +----------------------------------------------------------+
+ | 4. ADMIN ACTION: Click "Refresh"                         |
+ |    -> recalculates: Final Rank = Base × Multiplier       |
+ |    -> re-sorts & re-renders the ranked list              |
+ +----------------------------------------------------------+
+                          |
+                          v
+ +----------------------------------------------------------+
+ | 5. FRONTEND: Ranked Wikipedia List (§4.1)                |
+ |    WASM query -> ORDER BY wikipedia_rank DESC            |
+ +----------------------------------------------------------+
+
 
 ### 4.2 Challenge Weights — Data Flow
 
@@ -666,68 +650,44 @@ This document provides visual ASCII representations detailing how data physicall
 
 ### 6.2 News Articles & Sources — Admin Editor Flow
 
-```text
- +-------------------------------------------------------+
- |        Admin Portal: dashboard_app.js                 |
- |   Routing -> text-news (News & Sources tab)           |
- +-------------------------------------------------------+
-                         |
-                         v
- +--------------------------+
- | text-news branch         |
- | (2-tab container)        |
- |                          |
- | [ News Snippet (Active) ]|
- | [ News Sources        ]  |
- +-----------+--------------+
-             |
-    +--------+--------+
-    |                  |
-    v                  v
- +----------+  +-------------+
- | News     |  | News        |
- | Snippet  |  | Sources     |
- | tab      |  | tab         |
- | (loaded  |  | (lazy-      |
- | first)   |  | loaded)     |
- +-----+----+  +------+------+
-       |              |
-       v              v
- +-------------------------------------------------------+
- |  edit_news_snippet.js              edit_news_sources.js |
- |                                                       |
- |  Form fields:                      Form fields:       |
- |  - Publish Date                    - Label + URL pair |
- |  - Headline                        - List of existing |
- |  - Snippet Body (WYSIWYG)           sources shown as  |
- |  - External Link                     removable tags   |
- |                                                       |
- |  Save: POST /api/admin/             Save: POST/       |
- |        records/{id}/news-snippet    PUT /api/admin/   |
- |  Body: { news_items: { ... } }      records/{id}/    |
- |                                      news-sources     |
- |                                      Body: { news_    |
- |                                      sources: {...} } |
- +-------------------------------------------------------+
-             |                                |
-             +-------+----------------+-------+
-                     |                |
-                     v                v
- +-------------------------------------------------------+
- |               SQLite Database                         |
- |                                                       |
- |  news_items  (JSON Blob) — snippet content + metadata  |
- |  news_sources (Label-Value) — named source references  |
- +-------------------------------------------------------+
-                     |
-                     v
- +-------------------------------------------------------+
- |  WASM Query                                           |
- |                                                       |
- |  news_snippet_display.js → Combined Landing Page     |
- |  list_newsitem.js        → Full News Feed (§6.2)     |
- +-------------------------------------------------------+
-```
+ +---------------------------------------------------------------+
+ |                     Admin Dashboard                           |
+ |                                                               |
+ |  User manages search keywords & news sources, then clicks     |
+ |  [Launch News-Crawler]                                        |
+ +---------------------------------------+-----------------------+
+                                         |
+                                         v
+ +---------------------------------------------------------------+
+ |   `launch_news_crawler.js` — Triggers the backend pipeline    |
+ +---------------------------------------+-----------------------+
+                                         |
+                                         v
+ +---------------------------------------------------------------+
+ |          `backend/pipelines/pipeline_news.py`                 |
+ |                                                               |
+ |  1. Reads search keywords                                     |
+ |  2. Reads news source URLs                                    |
+ |  3. Crawls news source URLs                                   |
+ |  4. Extracts news items                                       |
+ |  5. Saves to SQLite                                           |
+ +---------------------------------------+-----------------------+
+                                         |
+                                         v
+ +---------------------------------------------------------------+
+ |                      SQLite Database                          |
+ |                                                               |
+ |  `news_items` table populated with crawled results            |
+ +---------------------------------------+-----------------------+
+                                         |
+                                         v
+ +---------------------------------------------------------------+
+ |                    Frontend Display                           |
+ |                                                               |
+ |  `list_newsitem.js` → News Feed                               |
+ |  `news_snippet_display.js` → Combined Landing Page            |
+ +---------------------------------------------------------------+
+
 
 ### 6.3 Blog Posts — Admin Editor Flow
 
@@ -1096,6 +1056,54 @@ This document provides visual ASCII representations detailing how data physicall
  |  -> Password verification against .env hash                |
  +-------------------------------------------------------------+
 ```
+
+### 7.5 Admin Dashboard Refactor Roadmap
+
+The Admin Portal is undergoing a systematic refactor to implement the 'providence' design system and a modular 3-column architecture. The implementation follows this sequence:
+
+1.  **Module 7.1: Login & Dashboard Shell**
+    - [plan_dashboard_login_shell.md]
+    - Entry point, authentication, and the universal orchestrator for the dashboard grid.
+
+2.  **Module 2.1: All Records Management**
+    - [plan_dashboard_records_all.md]
+    - High-density tabular view with endless scroll and bulk CSV ingestion.
+
+3.  **Module 2.2: Single Record Editor**
+    - [plan_dashboard_records_single.md]
+    - Dense multi-section form with sidebar navigation and image handling.
+
+4.  **Module 3.1: Arbor Diagram Management**
+    - [plan_dashboard_arbor.md]
+    - Interactive hierarchy editor for the recursive evidence tree.
+
+5.  **Module 4.1: Wikipedia Ranked Lists**
+    - [plan_dashboard_wikipedia.md]
+    - Ranked list curation with integrated weighting and scoring sidebars.
+
+6.  **Module 4.2: Challenge Ranked Lists**
+    - [plan_dashboard_challenge.md]
+    - Academic/Popular debate management with category-specific weights.
+
+7.  **Module 5.1: Challenge Responses**
+    - [plan_dashboard_challenge_response.md]
+    - Markdown editor with live preview for scholarly response authoring.
+
+8.  **Module 5.2: Essay & Historiography**
+    - [plan_dashboard_essay_historiography.md]
+    - Long-form thematic context and historiography document editing.
+
+9.  **Module 6.1: News Sources & Crawler**
+    - [plan_dashboard_news_sources.md]
+    - Source curation and search keyword management for automated news ingestion.
+
+10. **Module 6.2: Blog Posts**
+    - [plan_dashboard_blog_posts.md]
+    - Update management with integrated markdown editing and feed control.
+
+11. **Module 7.2: System Health & Maintenance**
+    - [plan_dashboard_system.md]
+    - Real-time API monitoring, test orchestration, and agent generation.
 
 ---
 

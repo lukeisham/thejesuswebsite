@@ -35,4 +35,14 @@ This document outlines the core coding philosophies ("vibe coding rules") for ma
 
 ## 5. SQL (Database)
 - **Human Readable:** Keep schema structures logical. Database fields and JSON keys must strictly use `snake_case`.
-- **Single Source of Truth:** The structure originates from `database.sql`. Keep queries explicit and avoid complex, nested logic inside the frontend WASM calls.
+
+## 6. Source-of-Truth Discipline
+- **Documentation Verification:** During implementation, the agent must cross-reference the active plan with `dashboard_refractor.md` and `detailed_module_sitemap.md` every 3 tasks.
+- **Strict File Names:** Do not deviate from the filenames specified in implementation plans. If a file is not in the plan but is in the refractor document, it must be created.
+- **Inventory Check:** Before marking a module as complete, perform a manual inventory of all created files against the "File Inventory" section of the plan.
+
+## 7. AI Execution & Drift Control
+- **Anti-Drift Reminder:** Before every task, explicitly remind yourself of the project purpose and what has been completed. Do not drift from the plan.
+- **Precise Completion:** Slow down and burn tokens. Complete tasks with precision rather than guessing or skipping steps. Fidelity is more important than speed.
+- **Stuck in a Loop:** If you find yourself stuck in a loop or repeating the same error, STOP. Do not keep guessing. Explain the situation and ask the user for help.
+- **Cross-Plan Shared-Tool Consistency:** Several dashboard modules contain files with identical names and purposes across different module directories (e.g., `picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_handler.js`). If you are creating or modifying one of these files, you MUST check whether counterparts exist in other modules. If a module-specific variation is needed, document the reason in a comment at the top of the file. If no variation is needed, the implementations should behave identically — same function signature, same DOM contract, same API expectations.
