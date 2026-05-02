@@ -14,6 +14,26 @@ created: 2026-05-02
 
 This plan implements the "All Records" dashboard view, providing a high-density tabular interface for managing the core database records. It features endless scrolling, dynamic display toggles for sorting and filtering (Creation Date, Unique ID, Bible Verse, Title, etc.), and a bulk CSV upload handler for mass data ingestion. This module serves as the primary entry point for record selection and administrative oversight within the 'providence' themed Admin Portal.
 
+```text
++---------------------------------------------------------------------------------+
+| [Logo] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >   |
++---------------------------------------------------------------------------------+
+| Toggle: [Creation Date] [Unique ID] [Primary Verse] [Title] [List Ord.] [Bulk]  |
++---------------------------------------------------------------------------------+
+| Title             | Primary Verse  | Snippet                      | Status      |
++-------------------+----------------+------------------------------+-------------+
+| Jesus is born     | Luke 2:1-7     | In those days Caesar Aug...  | Published   |
+| Sermon on Mount   | Matthew 5-7    | Seeing the crowds, he we...  | Published   |
+| Draft Item 1      |                | Pending content...           | Draft       |
+| Bulk Upload Item  |                | Uploaded from CSV...         | Draft       |
+| ...               | ...            | ...                          | ...         |
++---------------------------------------------------------------------------------+
+| (Endless Scroll)                                                                |
++---------------------------------------------------------------------------------+
+| [ Error Message Display: System running normally / Error logs appear here ]     |
++---------------------------------------------------------------------------------+
+```
+
 ---
 
 ## File Inventory
@@ -30,6 +50,20 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 | **JS** | `js/2.0_records/dashboard/endless_scroll.js` | Performance-optimized overflow handling |
 | **JS** | `js/2.0_records/dashboard/table_toggle_display.js` | Sort/Filter logic for the function bar |
 | **JS** | `js/2.0_records/dashboard/bulk_csv_upload_handler.js` | CSV parsing & bulk API submission |
+
+---
+
+## Dependencies
+
+> Files outside this plan's inventory that are touched, called, or relied upon by tasks in this plan. Task authors must coordinate with these surfaces.
+
+| Dependency | Owned By | Relationship |
+| :--- | :--- | :--- |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4/T5/T6/T7 call `get_all_records`, `bulk_upload_records` endpoints for record fetching and CSV ingestion |
+| `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers the All Records module with the dashboard router |
+| `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T3 surfaces fetch and upload failures via shared error display |
+| `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
+| `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T4 reads all record rows; T7 writes bulk-uploaded rows |
 
 ---
 
@@ -105,7 +139,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 ### T7 — Implement Bulk CSV Upload Logic
 
 - **File(s):** `js/2.0_records/dashboard/bulk_csv_upload_handler.js`
-- **Action:** Implement the logic for ingesting CSV data, performing client-side validation, and submitting to the bulk upload API.
+- **Action:** Implement the logic for ingesting CSV data, performing client-side validation, and submitting to the bulk upload API. **All bulk-uploaded records are saved with status set to draft** — the admin must review and publish each record individually via the Single Record editor.
 - **Dependencies:** `admin/backend/admin_api.py` (get_all_records, bulk_upload_records)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
@@ -115,7 +149,31 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 
 ## Final Tasks
 
-### T8 — Vibe-Coding Audit
+### T8 — Error Message Generation
+
+- **File(s):**
+  - `js/2.0_records/dashboard/data_populate_table.js`
+  - `js/2.0_records/dashboard/endless_scroll.js`
+  - `js/2.0_records/dashboard/table_toggle_display.js`
+  - `js/2.0_records/dashboard/bulk_csv_upload_handler.js`
+- **Action:** Add structured error message generation at every key failure point across the JavaScript modules. Each error must surface a human-readable message to the dashboard Status Bar via `js/admin_core/error_handler.js`. Failure points to cover:
+
+  1. **Initial Records Fetch Failed** — `data_populate_table.js` fetch to `/api/admin/records` fails or returns non-OK on first load: `"Error: Unable to load records. Please refresh and try again."`
+  2. **Batch Load Failed** — `endless_scroll.js` Intersection Observer triggers a paginated fetch that fails or returns non-OK: `"Error: Failed to load the next batch of records. Scroll up and try again."`
+  3. **Sort/Filter Fetch Failed** — `table_toggle_display.js` fetch after a toggle (sort by date, verse, title, etc.) fails or returns non-OK: `"Error: Failed to re-sort records. Please try again."`
+  4. **CSV Parse Failed** — `bulk_csv_upload_handler.js` cannot parse the selected file (wrong format, malformed rows): `"Error: CSV file could not be parsed. Check the file format and try again."`
+  5. **CSV Validation Failed** — client-side validation finds missing required columns or invalid field values in the CSV: `"Error: CSV validation failed. {n} row(s) contain missing or invalid fields."`
+  6. **Bulk Upload Failed** — `bulk_csv_upload_handler.js` POST to `bulk_upload_records` returns non-OK: `"Error: Bulk upload failed. {n} record(s) were not saved. Check the CSV and try again."`
+
+  All errors must be routed through `js/admin_core/error_handler.js` and displayed in the Status Bar.
+
+- **Vibe Rule(s):** Logic is explicit and self-documenting · User Comments · Vanilla ES6+
+
+- [ ] Task complete
+
+---
+
+### T9 — Vibe-Coding Audit
 
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
@@ -148,7 +206,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 
 ---
 
-### T9 — Purpose Check
+### T10 — Purpose Check
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
@@ -188,3 +246,4 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 - [ ] Each "Yes" row has been updated with accurate, current information
 - [ ] No document contains stale references to files or logic changed by this plan
 - [ ] Version numbers incremented where frontmatter versioning is present
+

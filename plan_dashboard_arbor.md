@@ -14,6 +14,25 @@ created: 2026-05-02
 
 This plan implements the "Arbor Diagram" dashboard module, an interactive administrative tool for managing the recursive hierarchical structure of the project's evidence tree. It features a drag-and-drop node editor that mimics the frontend visualization while allowing administrators to re-parent records, refresh the diagram state, and publish structural changes to the live site. This module is essential for maintaining the relational integrity and logical flow of the historical evidence graph, providing a visual interface for complex database relationship management.
 
+```text
++---------------------------------------------------------------------------------+
+| [Logo] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >   |
++---------------------------------------------------------------------------------+
+| Function Bar:          [ Refresh ]   [ Publish ]                                |
++---------------------------------------------------------------------------------+
+|                                                                                 |
+|  (Root Node) --+-- (Child 1) --+-- (Sub 1)                                      |
+|                |               |                                                |
+|                |               +-- (Sub 2)                                      |
+|                |                                                                |
+|                +-- (Child 2) ----- (Sub 3)                                      |
+|                                                                                 |
+|  [Drag & Drop UI matching Frontend Arbor]                                       |
++---------------------------------------------------------------------------------+
+| [ Error Message Display: System running normally / Error logs appear here ]     |
++---------------------------------------------------------------------------------+
+```
+
 ---
 
 ## File Inventory
@@ -31,6 +50,21 @@ This plan implements the "Arbor Diagram" dashboard module, an interactive admini
 | **JS** | `js/3.0_visualizations/dashboard/draw_arbor_connections.js` | SVG/Canvas logic for relationship lines |
 | **JS** | `js/3.0_visualizations/dashboard/handle_node_drag.js` | Drag-and-drop interaction logic |
 | **JS** | `js/3.0_visualizations/dashboard/update_node_parent.js` | Parent-child re-assignment logic |
+
+---
+
+## Dependencies
+
+> Files outside this plan's inventory that are touched, called, or relied upon by tasks in this plan. Task authors must coordinate with these surfaces.
+
+| Dependency | Owned By | Relationship |
+| :--- | :--- | :--- |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 calls `get_diagram_tree`; T8 calls `update_diagram_tree` to commit parent-child changes |
+| `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers the Arbor module with the dashboard router |
+| `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T10 routes all fetch, render, drag, and publish failures to the shared Status Bar |
+| `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
+| `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T4 reads `parent_id` for all records to build the tree; T8 writes updated `parent_id` after drag-and-drop |
+| `js/3.0_visualizations/frontpage/render_arbor.js` | (public frontend) | T8/Publish writes `parent_id` changes that feed the public-facing Arbor visualization |
 
 ---
 
@@ -117,7 +151,7 @@ This plan implements the "Arbor Diagram" dashboard module, an interactive admini
 ### T8 — Implement Relational Update Logic
 
 - **File(s):** `js/3.0_visualizations/dashboard/update_node_parent.js`
-- **Action:** Implement the logic to calculate a new parent-child relationship after a drag event and commit the change to the database.
+- **Action:** Implement the logic to calculate a new parent-child relationship after a drag event and commit the change to the database **with status set to draft**. Every drag-and-drop re-parenting auto-saves as draft — only the explicit "Publish" button in the function bar commits structural changes to the live frontend.
 - **Dependencies:** `admin/backend/admin_api.py` (update_diagram_tree)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
@@ -136,7 +170,34 @@ This plan implements the "Arbor Diagram" dashboard module, an interactive admini
 
 ## Final Tasks
 
-### T6 — Vibe-Coding Audit
+### T10 — Error Message Generation
+
+- **File(s):**
+  - `js/3.0_visualizations/dashboard/fetch_arbor_data.js`
+  - `js/3.0_visualizations/dashboard/handle_node_drag.js`
+  - `js/3.0_visualizations/dashboard/update_node_parent.js`
+  - `js/3.0_visualizations/dashboard/render_arbor_node.js`
+  - `js/3.0_visualizations/dashboard/draw_arbor_connections.js`
+- **Action:** Add structured error message generation at every key failure point across the JavaScript modules. Each error must surface a human-readable message to the dashboard Status Bar via `js/admin_core/error_handler.js`. Failure points to cover:
+
+  1. **Tree Fetch Failed** — `fetch_arbor_data.js` fetch to `/api/admin/diagram_tree` fails or returns non-OK: `"Error: Unable to load the arbor diagram. Please refresh and try again."`
+  2. **Empty Tree** — API returns successfully but the tree payload is empty or malformed: `"Error: No diagram data was returned. Check that records have parent relationships set."`
+  3. **Node Render Failed** — `render_arbor_node.js` receives a record with missing required fields and cannot build the node: `"Error: Failed to render node for record '{title}'. Data may be incomplete."`
+  4. **Connection Draw Failed** — `draw_arbor_connections.js` cannot resolve a parent or child reference when drawing a relationship line: `"Error: Failed to draw connection for '{title}'. Parent record may be missing."`
+  5. **Drag Conflict** — `handle_node_drag.js` detects a drop that would create a circular parent-child loop: `"Error: Cannot re-parent '{title}' — this would create a circular loop in the tree."`
+  6. **Relational Update Failed** — `update_node_parent.js` PUT to `/api/admin/records/{id}` returns non-OK after a drag-and-drop: `"Error: Failed to save new parent for '{title}'. The diagram has been reset to its previous state."`
+  7. **Publish Failed** — the Publish action returns non-OK when committing tree changes to the live site: `"Error: Failed to publish arbor diagram changes. Please try again."`
+  8. **Refresh Failed** — the Refresh action cannot re-fetch the current tree state: `"Error: Failed to refresh the arbor diagram. Please reload the page."`
+
+  All errors must be routed through `js/admin_core/error_handler.js` and displayed in the Status Bar. For item 6, the UI must additionally undo the visual drag position and restore the node to its pre-drag location.
+
+- **Vibe Rule(s):** Logic is explicit and self-documenting · User Comments · Vanilla ES6+
+
+- [ ] Task complete
+
+---
+
+### T11 — Vibe-Coding Audit
 
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
@@ -169,7 +230,7 @@ This plan implements the "Arbor Diagram" dashboard module, an interactive admini
 
 ---
 
-### T7 — Purpose Check
+### T12 — Purpose Check
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 

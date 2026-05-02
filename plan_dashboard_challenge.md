@@ -14,6 +14,27 @@ created: 2026-05-02
 
 This plan implements the "Challenge" dashboard module, which manages the two primary debate lists (Academic and Popular). It features a toggle-driven interface for switching between the lists, a weighting sidebar for fine-tuning the ranking logic for each category, and a main area for viewing and publishing the ranked challenges. This module is critical for organizing and prioritizing the historical and public challenges that the project addresses through its scholarly responses, ensuring that the most impactful queries are surfaced with appropriate prominence.
 
+```text
++---------------------------------------------------------------------------------+
+| [Logo] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >   |
++---------------------------------------------------------------------------------+
+| Function Bar: [ Academic | Popular ] Toggle   [ Refresh ]   [ Publish ]   [ Agent Search ] |
++---------------------------------------------------------------------------------+
+| Weighting Ranks (Sidebar) | Challenge Items (Main Area)                         |
+|---------------------------+-----------------------------------------------------|
+| Difficulty (8)            | 1. Challenge Title One (Total Score: 85)            |
+| [^] [v]                   |                                                     |
+|                           | 2. Challenge Title Two (Total Score: 72)            |
+| Popularity (3)            |                                                     |
+| [^] [v]                   | 3. Challenge Title Three (Total Score: 60)          |
+|                           |                                                     |
+|                           | ... (Endless Scroll)                                |
+| [New Name] [Val] [Publish]|                                                     |
++---------------------------------------------------------------------------------+
+| [ Error Message Display: System running normally / Error logs appear here ]     |
++---------------------------------------------------------------------------------+
+```
+
 ---
 
 ## File Inventory
@@ -30,6 +51,25 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 | **JS** | `js/4.0_ranked_lists/dashboard/challenge_ranking_calculator.js` | Real-time score/rank logic |
 | **JS** | `js/4.0_ranked_lists/dashboard/insert_challenge_response.js` | Response creation & challenge linking |
 | **JS** | `js/4.0_ranked_lists/dashboard/metadata_handler.js` | Metadata footer (Snippet/Slug/Meta) management |
+
+---
+
+## Dependencies
+
+> Files outside this plan's inventory that are touched, called, or relied upon by tasks in this plan. Task authors must coordinate with these surfaces.
+
+| Dependency | Owned By | Relationship |
+| :--- | :--- | :--- |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 calls get_list; T5/T5a PUT weighting and search terms; T6 calls agent/run + agent/logs + update_list; T7 creates draft responses |
+| `backend/pipelines/pipeline_academic_challenges.py` | `plan_backend_infrastructure` | T6 Agent Search triggers this pipeline which now calls `agent_client.py` for DeepSeek web search |
+| `backend/pipelines/pipeline_popular_challenges.py` | `plan_backend_infrastructure` | T6 Agent Search triggers this pipeline which now calls `agent_client.py` for DeepSeek web search |
+| `backend/scripts/agent_client.py` | `plan_backend_infrastructure` | T6 depends on the agent client for DeepSeek API web-search article discovery |
+| `backend/scripts/snippet_generator.py` | `plan_backend_infrastructure` | T8 auto-gen snippet button triggers this script |
+| `backend/scripts/metadata_generator.py` | `plan_backend_infrastructure` | T8 auto-gen meta button triggers this script |
+| `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers the Challenge module with the dashboard router |
+| `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T9 routes all fetch, save, and agent failures to the shared Status Bar |
+| `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
+| `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T4 reads challenge rows; T5/T5a writes weights and search terms; T6 reads/writes ranks |
 
 ---
 
@@ -85,7 +125,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 ### T5 — Implement Challenge Weighting Logic
 
 - **File(s):** `js/4.0_ranked_lists/dashboard/challenge_weighting_handler.js`
-- **Action:** Implement the UI logic for managing multipliers for the current challenge category and adding new weighting criteria.
+- **Action:** Implement the UI logic for managing multipliers for the current challenge category and adding new weighting criteria. **Any weight modification auto-saves the record as draft.**
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -95,7 +135,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 ### T5a — Implement Search Term Management
 
 - **File(s):** `js/4.0_ranked_lists/dashboard/challenge_weighting_handler.js`
-- **Action:** Implement UI for viewing and editing the `popular_challenge_search_term` (TEXT / JSON Blob) and `academic_challenge_search_term` (TEXT / JSON Blob) fields for the active record. Each field stores the search terms used to source pipeline content. The active field is determined by the current Academic/Popular toggle state. Changes must be saved back to the database via the admin API.
+- **Action:** Implement UI for viewing and editing the `popular_challenge_search_term` (TEXT / JSON Blob) and `academic_challenge_search_term` (TEXT / JSON Blob) fields for the active record. Each field stores the search terms the DeepSeek agent uses to discover relevant articles on the open web. The active field is determined by the current Academic/Popular toggle state. **Any search term modification auto-saves the record as draft.** Changes must be saved back to the database via the admin API before the agent can use them.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -105,13 +145,14 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 ### T6 — Implement Challenge Ranking Calculator
 
 - **File(s):** `js/4.0_ranked_lists/dashboard/challenge_ranking_calculator.js`
-- **Action:** Implement the logic to compute challenge ranks based on category-specific weights and push updates to the database. The calculator must read `popular_challenge_search_term` or `academic_challenge_search_term` (depending on active toggle) and pass those terms to the pipeline when triggering a re-run.
-- **Dependencies:** `admin/backend/admin_api.py` (get_list, update_list), `backend/pipelines/pipeline_academic_challenges.py`, `backend/pipelines/pipeline_popular_challenges.py`
+- **Action:** Implement the logic to compute challenge ranks based on category-specific weights and the agent-discovered article scores, with full draft/publish cycle integration. The calculator must:
+  1. On "Refresh": read all records' current `academic_challenge_rank` / `popular_challenge_rank` (depending on active toggle), apply the admin's weight multipliers from `challenge_weighting_handler.js`, re-sort the list, and **set all affected records to draft**. This ensures re-sorted rankings are not live until explicitly published.
+  2. On "Agent Search": POST to `/api/admin/agent/run` with `{"pipeline": "academic_challenges" | "popular_challenges", "slug": str}` for the selected record. The DeepSeek agent then searches the open web using the record's search terms, discovers relevant articles, and the Python pipeline (`pipeline_academic_challenges.py` / `pipeline_popular_challenges.py`) writes the base rank and discovered articles back to the database **with status set to draft** (ingested external data must be reviewed before going live). Display a loading indicator until the agent run completes, then auto-refresh the list.
+  3. On "Publish": commit the current ranked order to the live frontend data and **set all listed records to published**. This is the only path by which challenge rankings reach the public site.
+- **Dependencies:** `admin/backend/admin_api.py` (get_list, update_list, agent/run, agent/logs), `backend/pipelines/pipeline_academic_challenges.py`, `backend/pipelines/pipeline_popular_challenges.py`, `backend/scripts/agent_client.py`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
-
----
 
 ### T7 — Implement Response Insertion Logic
 
@@ -131,6 +172,34 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **File(s):** `js/4.0_ranked_lists/dashboard/metadata_handler.js`
 - **Action:** Implement the Metadata Footer logic to display/edit Snippet, Slug, and Meta-Data. Include buttons to trigger auto-generation via `snippet_generator.py` and `metadata_generator.py` with manual override support.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+
+- [ ] Task complete
+
+---
+
+### T9 — Error Message Generation
+
+- **File(s):**
+  - `js/4.0_ranked_lists/dashboard/challenge_list_display.js`
+  - `js/4.0_ranked_lists/dashboard/challenge_weighting_handler.js`
+  - `js/4.0_ranked_lists/dashboard/challenge_ranking_calculator.js`
+  - `js/4.0_ranked_lists/dashboard/insert_challenge_response.js`
+  - `js/4.0_ranked_lists/dashboard/metadata_handler.js`
+- **Action:** Add structured error message generation at every key failure point across the JavaScript modules. Each error must surface a human-readable message to the dashboard Status Bar via `js/admin_core/error_handler.js`. Failure points to cover:
+
+  1. **Challenge List Fetch Failed** — `challenge_list_display.js` fetch to `/api/admin/records` fails or returns non-OK: `"Error: Unable to load challenge list. Please refresh and try again."`
+  2. **Weight Save Failed** — `challenge_weighting_handler.js` PUT for weighting criteria returns non-OK: `"Error: Failed to save weighting changes. Please try again."`
+  3. **Search Term Save Failed** — `challenge_weighting_handler.js` PUT for search terms returns non-OK: `"Error: Failed to save search terms. Please try again."`
+  4. **Rank Calculation Failed** — `challenge_ranking_calculator.js` cannot compute or commit updated ranks: `"Error: Failed to refresh challenge rankings. Please try again."`
+  5. **Pipeline Trigger Failed** — `challenge_ranking_calculator.js` POST to trigger pipeline returns non-OK or times out: `"Error: Challenge pipeline did not respond. Rankings may not be current."`
+  6. **Agent Search Failed** — `challenge_ranking_calculator.js` POST to `/api/admin/agent/run` returns non-OK: `"Error: Agent search failed for '{title}'. Check search terms and API key."`
+  7. **Agent Run Timeout** — agent run status remains `'running'` beyond the expected timeout threshold: `"Error: Agent search timed out for '{title}'. Partial results may have been saved."`
+  8. **Response Insertion Failed** — `insert_challenge_response.js` POST to create draft response returns non-OK: `"Error: Failed to create response for challenge '{title}'."`
+  9. **Metadata Save Failed** — `metadata_handler.js` PUT for snippet/slug/meta returns non-OK: `"Error: Failed to save metadata for '{title}'."`
+
+  All errors must be routed through `js/admin_core/error_handler.js` and displayed in the Status Bar.
+
+- **Vibe Rule(s):** Logic is explicit and self-documenting · User Comments · Vanilla ES6+
 
 - [ ] Task complete
 

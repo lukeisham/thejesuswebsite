@@ -12,7 +12,35 @@ created: 2026-05-02
 
 > **One-paragraph summary of what this plan achieves, why it is needed, and which part of the site it affects.**
 
-This plan implements the "Single Record" dashboard view, a dense and comprehensive editor for individual database records. It features a split-pane layout with a dedicated section navigator for fast jumping between fields (Core Identifiers, Pictures, Taxonomy, Verses, etc.), integrated image upload handling with previews, and status controls (Draft, Publish, Delete). This module is the primary administrative interface for curating, editing, and publishing the historical records that form the core of the website's archival collection.
+This plan implements the "Single Record" dashboard view, a dense and comprehensive editor for individual database records. It features a split-pane layout with a dedicated section navigator for fast jumping between fields (Core Identifiers, Pictures, Taxonomy, Verses, etc.), integrated image upload handling with previews, and status controls (Save, Publish, Delete). This module is the primary administrative interface for curating, editing, and publishing the historical records that form the core of the website's archival collection.
+
+```text
++---------------------------------------------------------------------------------+
+| [Logo] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >   |
++---------------------------------------------------------------------------------+
+| Function Bar:          [ Save ]   [ Publish ]   [ Delete ]                     |
++---------------------------------------------------------------------------------+
+|  Title:           [___________________________________________]                 |
+|  Primary Verse:   [___________________________________________]                 |
+|  Creation Date:   [___________________________________________]                 |
+|  Unique ID:       [___________________________________________]                 |
+|                                                                                 |
+|  +-------------------------------------+                                        |
+|  |                                     |  [ Add Picture ]                       |
+|  |          Image Display              |                                        |
+|  |                                     |                                        |
+|  +-------------------------------------+                                        |
+|                                                                                 |
+|  Snippet:         [___________________________________________]  [Generate]     |
+|  Date Added:      [___________________________________________]                 |
+|  Status:          [ Draft | Published | Archived ]                              |
+|                                                                                 |
+|  MLA Sources:     [___________________________________________]  [Add Source]   |
+|  Context Links:   [___________________________________________]  [Add Link]     |
++---------------------------------------------------------------------------------+
+| [ Error Message Display: System running normally / Error logs appear here ]     |
++---------------------------------------------------------------------------------+
+```
 
 ---
 
@@ -27,11 +55,26 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 | **CSS** | `css/2.0_records/dashboard/dashboard_records_single.css` | Multi-column form layout & grouping |
 | **JS** | `js/2.0_records/dashboard/dashboard_records_single.js` | Module orchestration & initialization |
 | **JS** | `js/2.0_records/dashboard/display_single_record_data.js` | Record fetching & form hydration |
-| **JS** | `js/2.0_records/dashboard/record_status_handler.js` | Draft, Publish & Delete status management |
+| **JS** | `js/2.0_records/dashboard/record_status_handler.js` | Save, Publish & Delete status management |
 | **JS** | `js/2.0_records/dashboard/picture_handler.js` | Shared tool: Thumbnail & Image processing |
 | **JS** | `js/2.0_records/dashboard/mla_source_handler.js` | Shared tool: Bibliography management |
 | **JS** | `js/2.0_records/dashboard/context_link_handler.js` | Shared tool: Relational links |
 | **JS** | `js/2.0_records/dashboard/snippet_generator.js` | Shared tool: Summary generator |
+
+---
+
+## Dependencies
+
+> Files outside this plan's inventory that are touched, called, or relied upon by tasks in this plan. Task authors must coordinate with these surfaces.
+
+| Dependency | Owned By | Relationship |
+| :--- | :--- | :--- |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 calls `get_single_record`; T5 calls `update_record` (draft/publish/delete); T6 calls `upload_record_picture`; T9 calls snippet trigger endpoint |
+| `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers the Single Record module with the dashboard router |
+| `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T10 routes all save, upload, and generation failures to the shared Status Bar |
+| `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
+| `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T4 reads a single record row; T5 writes status changes; T6 writes `picture_bytes` and `picture_thumbnail` |
+| `backend/scripts/snippet_generator.py` | `plan_backend_infrastructure` | T9 auto-generation button triggers this script via the API |
 
 ---
 
@@ -87,7 +130,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 ### T5 — Implement Record Status Handling
 
 - **File(s):** `js/2.0_records/dashboard/record_status_handler.js`
-- **Action:** Implement the logical flow for Draft, Publish, and Delete operations, interfacing with the backend record status API.
+- **Action:** Implement the logical flow for Save, Publish, and Delete operations with automatic draft behaviour. Any modification to the record (field edits, image upload, MLA/context/snippet changes) auto-saves with status set to draft. Only the explicit "Publish" button sets status to published. "Delete" removes the record from the database entirely. Interfacing with the backend record status API.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -137,7 +180,37 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 
 ## Final Tasks
 
-### T10 — Vibe-Coding Audit
+### T10 — Error Message Generation
+
+- **File(s):**
+  - `js/2.0_records/dashboard/display_single_record_data.js`
+  - `js/2.0_records/dashboard/record_status_handler.js`
+  - `js/2.0_records/dashboard/picture_handler.js`
+  - `js/2.0_records/dashboard/mla_source_handler.js`
+  - `js/2.0_records/dashboard/context_link_handler.js`
+  - `js/2.0_records/dashboard/snippet_generator.js`
+- **Action:** Add structured error message generation at every key failure point across the JavaScript modules. Each error must surface a human-readable message to the dashboard Status Bar via `js/admin_core/error_handler.js`. Failure points to cover:
+
+  1. **Record Fetch Failed** — `display_single_record_data.js` fetch to `/api/admin/records/{id}` fails or returns non-OK: `"Error: Unable to load record data. Please refresh and try again."`
+  2. **Record Save Failed** — any PUT to `/api/admin/records/{id}` returns non-OK: `"Error: Failed to save changes to '{title}'. Please try again."`
+  3. **Draft Failed** — `record_status_handler.js` PATCH to set draft status returns non-OK: `"Error: Failed to set record '{title}' to Draft."`
+  4. **Publish Failed** — `record_status_handler.js` PATCH to publish returns non-OK: `"Error: Failed to publish record '{title}'. Check required fields."`
+  5. **Delete Failed** — `record_status_handler.js` DELETE returns non-OK: `"Error: Failed to delete record '{title}'. Please try again."`
+  6. **Image Upload Failed** — `picture_handler.js` POST to `upload_record_picture` returns non-OK or the file exceeds size/format limits: `"Error: Image upload failed for '{title}'. Max 250 KB PNG only."`
+  7. **Image Preview Failed** — `picture_handler.js` cannot render a preview from the selected file (unreadable/corrupt): `"Error: Unable to preview the selected image. Please choose a valid PNG file."`
+  8. **MLA Source Save Failed** — `mla_source_handler.js` PUT for bibliography returns non-OK: `"Error: Failed to save bibliography changes for '{title}'."`
+  9. **Context Link Save Failed** — `context_link_handler.js` PUT for context links returns non-OK: `"Error: Failed to save context links for '{title}'."`
+  10. **Snippet Generation Failed** — `snippet_generator.js` request to `snippet_generator.py` returns non-OK or times out: `"Error: Snippet generation failed for '{title}'. Please try again or enter manually."`
+
+  All errors must be routed through `js/admin_core/error_handler.js` and displayed in the Status Bar.
+
+- **Vibe Rule(s):** Logic is explicit and self-documenting · User Comments · Vanilla ES6+
+
+- [ ] Task complete
+
+---
+
+### T11 — Vibe-Coding Audit
 
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
@@ -177,7 +250,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 
 ---
 
-### T11 — Purpose Check
+### T12 — Purpose Check
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 

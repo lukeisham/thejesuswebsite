@@ -1,6 +1,6 @@
 ---
 name: plan_dashboard_news_sources
-version: 1.0.0
+version: 1.1.0
 module: 6.0 — News & Blog
 status: draft
 created: 2026-05-02
@@ -12,7 +12,37 @@ created: 2026-05-02
 
 > **One-paragraph summary of what this plan achieves, why it is needed, and which part of the site it affects.**
 
-This plan implements the "News Sources" dashboard module, which manages the archival data sources and search criteria used by the automated news ingestion system. It features a dual-pane layout with a main table of news sources and a sidebar for managing search keywords and source URLs. This module enables administrators to control the automated discovery process, launch the news-crawler on demand, and curate the feed of relevant external updates, ensuring the news section remains accurate and current.
+This plan implements the "News Sources" dashboard module, which manages the archival data sources and search criteria used by the automated news ingestion system. It features a dual-pane layout with a main table of news sources and a contextual record-detail sidebar for managing search keywords, source URLs, snippet/slug/meta editing with auto-gen buttons, and the news-crawler launch trigger, with all modifications and crawled items saved as draft until explicitly published. This module enables administrators to control the automated discovery process, launch the news-crawler on demand, and curate the feed of relevant external updates, ensuring the news section remains accurate and current.
+
+```text
++---------------------------------------------------------------------------------+
+| [Logo] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >   |
++---------------------------------------------------------------------------------+
+| Function Bar: [ Refresh ]   [ Publish ]   [ Crawl ]    |
++---------------------------------------------------------------------------------+
+| Record Detail Sidebar         | News Sources List (Main Area)                   |
+| (contextual — selected source)|                                                 |
+|-------------------------------+-------------------------------------------------|
+| SOURCE: Example News          | Source Name          | URL            | Status  |
+| URL: example.com/news         | ---------------------+----------------+-------- |
+|                               | Example News         | example.com/.. | Active  |
+| Search Keywords:              | Christian Post       | cpost.com/rss  | Active  |
+| +----------------------------+| Daily Bugle          | bugle.com      | Inactive|
+| | keyword 1             [x]  || ...                                            |
+| | keyword 2             [x]  || (Endless Scroll)                               |
+| +----------------------------+|                                                 |
+| [ Add Keyword _________ ] [Add]                                                |
+|                               |                                                 |
+| ----------------------------- |                                                 |
+| Snippet:                       |                                                 |
+| [ Latest headlines from...   ]|                                                 |
+| Slug: [ example-news       ]  |                                                 |
+| Meta: [ {"region":"us"}     ] |                                                 |
+| [Auto-gen Snippet] [Auto-gen Slug] [Auto-gen Meta]                             |
++---------------------------------------------------------------------------------+
+| [ Status Bar: System running normally / Error logs appear here ]               |
++---------------------------------------------------------------------------------+
+``` 
 
 ---
 
@@ -28,8 +58,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 | **JS** | `js/6.0_news_blog/dashboard/dashboard_news_sources.js` | Module orchestration & initialization |
 | **JS** | `js/6.0_news_blog/dashboard/news_sources_handler.js` | Data fetching & row hydration |
 | **JS** | `js/6.0_news_blog/dashboard/launch_news_crawler.js` | News crawler pipeline trigger |
-| **JS** | `js/6.0_news_blog/dashboard/search_keywords_handler.js` | Search keyword management |
-| **JS** | `js/6.0_news_blog/dashboard/snippet_generator.js` | Automated snippet generator trigger |
+| **JS** | `js/6.0_news_blog/dashboard/news_sources_sidebar_handler.js` | Sidebar: keywords, source URLs, crawler trigger |
 | **JS** | `js/6.0_news_blog/dashboard/metadata_handler.js` | Metadata footer (Snippet/Slug/Meta) management |
 | **Python** | `backend/pipelines/pipeline_news.py` | News crawler pipeline script |
 
@@ -77,7 +106,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 ### T4 — Implement News Sources Handling
 
 - **File(s):** `js/6.0_news_blog/dashboard/news_sources_handler.js`
-- **Action:** Implement the logic to fetch, render, and update the list of external news source references and their statuses.
+- **Action:** Implement the logic to fetch, render, and update the list of external news source references and their statuses. On "Refresh", re-fetch the sources list and **set affected records to draft**. On "Publish", commit the current source configuration to live and set all listed records to published.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -87,7 +116,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 ### T5 — Implement Search Keywords Logic
 
 - **File(s):** `js/6.0_news_blog/dashboard/search_keywords_handler.js`
-- **Action:** Implement the UI logic for adding, editing, and publishing the search keywords used by the news discovery crawler. All keyword state for the active record is read from and written to the `news_search_term` field (TEXT / JSON Blob). Changes must be saved back to the database via the admin API before the crawler is triggered.
+- **Action:** Implement the UI logic for adding, editing, and publishing the search keywords used by the news discovery crawler. All keyword state for the active record is read from and written to the `news_search_term` field (TEXT / JSON Blob). **Any keyword modification auto-saves the record as draft.** Changes must be saved back to the database via the admin API before the crawler is triggered.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -105,7 +134,16 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 
 ---
 
-### T7 — Implement News Crawler Pipeline
+### T7 — Implement Metadata Footer
+- **File(s):** `js/6.0_news_blog/dashboard/metadata_handler.js`
+- **Action:** Implement the Metadata Footer logic to display/edit Snippet, Slug, and Meta-Data. Include buttons to trigger auto-generation via `snippet_generator.py` and `metadata_generator.py` with manual override support.
+- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+
+- [ ] Task complete
+
+---
+
+### T8 — Implement News Crawler Pipeline
 
 - **File(s):** `backend/pipelines/pipeline_news.py`
 - **Action:** Implement the Python news crawler pipeline. The script must:
@@ -121,31 +159,41 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 
 ---
 
-### T8 — Implement Snippet Generation Logic
-
-- **File(s):** `js/6.0_news_blog/dashboard/snippet_generator.js`
-- **Action:** Implement the UI trigger for generating automated snippets for news items.
-- **Dependencies:** `backend/scripts/snippet_generator.py`
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
-
-- [ ] Task complete
-
----
-
 ## Final Tasks
 
----
+### T9 — Error Message Generation
 
-### T9 — Implement Metadata Footer
-- **File(s):** `js/6.0_news_blog/dashboard/metadata_handler.js`
-- **Action:** Implement the Metadata Footer logic to display/edit Snippet, Slug, and Meta-Data. Include buttons to trigger auto-generation via `snippet_generator.py` and `metadata_generator.py` with manual override support.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+- **File(s):**
+  - `backend/pipelines/pipeline_news.py`
+  - `js/6.0_news_blog/dashboard/news_sources_handler.js`
+  - `js/6.0_news_blog/dashboard/news_sources_sidebar_handler.js`
+  - `js/6.0_news_blog/dashboard/launch_news_crawler.js`
+- **Action:** Add structured error message generation at every key failure point across the Python pipeline and JavaScript modules. Each error must surface a human-readable message to the dashboard Status Bar. Failure points to cover:
+
+  **Python (`pipeline_news.py`):**
+  1. **Source Unreachable** — `requests.get` raises `ConnectionError` or `Timeout` for a source URL: `"Error: Unable to connect to news source '{url}'. Check network or source availability."`
+  2. **Feed Parse Failed** — source returns a non-200 status or an unparseable feed format: `"Error: Failed to retrieve news feed from '{url}'. Status: {status}."`
+  3. **No Matching Items** — crawler finds zero news items matching any search keyword across all sources: `"Error: No news items found matching the current search keywords."`
+  4. **Script Timeout** — overall execution exceeds the configured timeout threshold: `"Error: News crawler timed out after {n}s. Partial results may have been saved."`
+  5. **Database Write Failed** — SQLite write raises an exception after a successful crawl: `"Error: Failed to save news items to the database. Write error on 'global-news-feed'."`
+
+  **JavaScript (frontend modules):**
+  6. **Sources List Fetch Failed** — `news_sources_handler.js` fetch to `/api/admin/records` fails or returns non-OK: `"Error: Unable to retrieve news sources list. Please refresh."`
+  7. **Source Add/Delete Failed** — `news_sources_handler.js` PUT/DELETE for a source returns non-OK: `"Error: Failed to update news source '{name}'. Please try again."`
+  8. **Keyword Save Failed** — `news_sources_sidebar_handler.js` PUT for keywords returns non-OK: `"Error: Failed to save search keywords. Please try again."`
+  9. **Crawler Launch Failed** — `launch_news_crawler.js` POST to trigger pipeline returns non-OK or times out: `"Error: News crawler did not respond. Pipeline may not have started."`
+  10. **Snippet Generation Failed** — `news_sources_sidebar_handler.js` auto-gen snippet request to `snippet_generator.py` returns non-OK: `"Error: Snippet generation failed. Please try again or enter manually."`
+  11. **Metadata Save Failed** — `news_sources_sidebar_handler.js` PUT for snippet/slug/meta returns non-OK: `"Error: Failed to save metadata for the selected record."`
+
+  All errors must be routed through `js/admin_core/error_handler.js` and displayed in the Status Bar. Python errors must be returned as structured JSON `{"error": "..."}` in the API response body so the JS layer can relay them.
+
+- **Vibe Rule(s):** Logic is explicit and self-documenting · API quirks or data anomalies documented inline · User Comments
 
 - [ ] Task complete
 
 ---
 
-### T11 — Vibe-Coding Audit
+### T10 — Vibe-Coding Audit
 
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
@@ -183,7 +231,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 
 ---
 
-### T12 — Purpose Check
+### T11 — Purpose Check
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
@@ -209,10 +257,10 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |
-| `documentation/guides/guide_dashboard_appearance.md` | Yes | Update ASCII diagram for the News Sources and Keyword editor. |
-| `documentation/guides/guide_function.md` | Yes | Document news discovery flow and crawler orchestration logic. |
-| `documentation/guides/guide_security.md` | Yes | Note validation for source URLs and crawler trigger restrictions. |
-| `documentation/guides/guide_style.md` | Yes | Document the news source table and keyword sidebar CSS patterns. |
+| `documentation/guides/guide_dashboard_appearance.md` | Yes | Update ASCII diagram for the News Sources editor with metadata now in sidebar. |
+| `documentation/guides/guide_function.md` | Yes | Document news discovery flow, metadata editing in sidebar, and crawler orchestration logic. |
+| `documentation/guides/guide_security.md` | Yes | Note validation for source URLs, keywords, metadata fields, and crawler trigger restrictions. |
+| `documentation/guides/guide_style.md` | Yes | Document the news source table, sidebar section stacking with horizontal rules, and CSS patterns. |
 | `documentation/guides/guide_maps.md` | No | Map documentation is unaffected. |
 | `documentation/guides/guide_timeline.md` | No | Timeline documentation is unaffected. |
 | `documentation/guides/guide_donations.md` | No | Donation documentation is unaffected. |
@@ -240,22 +288,26 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 | T4 | admin/backend/admin_api.py (news routes) |
 | T5 | admin/backend/admin_api.py (system_config routes) |
 | T6 | admin/backend/admin_api.py (news routes), backend/pipelines/pipeline_news.py |
-| T7 | admin/backend/admin_api.py (system_config GET), backend/scripts/helper_api.py |
-| T8 | backend/scripts/snippet_generator.py |
-| T9 | backend/scripts/snippet_generator.py, backend/scripts/metadata_generator.py |
-| T11 (Vibe Audit) | All files in File Inventory |
-| T12 (Purpose Check) | All tasks complete |
+| T7 | backend/scripts/snippet_generator.py, backend/scripts/metadata_generator.py |
+| T8 | admin/backend/admin_api.py (system_config GET), backend/scripts/helper_api.py |
+| T9 | T4 (news_sources_handler.js), T5 (news_sources_sidebar_handler.js), T6 (launch_news_crawler.js), T7 (metadata_handler.js), T8 (pipeline_news.py) |
+| T10 (Vibe Audit) | All files in File Inventory |
+| T11 (Purpose Check) | All tasks complete |
 
 ### Cross-Plan Dependencies
 
-| This plan requires | Supplied by |
-|--------------------|-------------|
-| admin/backend/admin_api.py (news, system_config routes) | plan_backend_infrastructure |
-| backend/scripts/snippet_generator.py | plan_backend_infrastructure |
-| backend/scripts/metadata_generator.py | plan_backend_infrastructure |
-| backend/scripts/helper_api.py | Existing shared utility |
+| This plan requires | Supplied by | Notes |
+|--------------------|-------------|-------|
+| `admin/backend/admin_api.py` (news, system_config routes) | `plan_backend_infrastructure` | T4/T5/T6/T8 depend on news and system_config endpoints |
+| `backend/scripts/snippet_generator.py` | `plan_backend_infrastructure` | T7 auto-gen snippet button triggers this script |
+| `backend/scripts/metadata_generator.py` | `plan_backend_infrastructure` | T7 auto-gen meta button triggers this script |
+| `backend/scripts/helper_api.py` | Existing shared utility | T8 crawler uses for HTTP requests to news sources |
+| `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 module registration with dashboard router |
+| `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T9 error routing to universal Status Bar |
+| `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 Providence CSS custom properties |
 
 ### Implementation Order
 
-1. plan_backend_infrastructure — must complete first (provides API routes + scripts)
-2. plan_dashboard_news_sources — this plan (depends on #1)
+1. `plan_backend_infrastructure` — must complete first (provides API routes, snippet/metadata/helper scripts)
+2. `plan_dashboard_login_shell` — must complete second (provides dashboard router, error handler, CSS variables)
+3. `plan_dashboard_news_sources` — this plan (depends on #1 and #2)

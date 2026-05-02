@@ -223,6 +223,9 @@ dependencies: [site_map.md, module_sitemap.md]
 `parent_id` | TEXT | Foreign Key (Recursive) 
 `created_at` | TEXT | ISO8601 String 
 `updated_at` | TEXT | ISO8601 String 
+`status` | TEXT | Flat Indexable
+    `draft`
+    `published`
 `context_essays` | TEXT | JSON Array 
 `theological_essays` | TEXT | JSON Array 
 `spiritual_articles` | TEXT | JSON Array 

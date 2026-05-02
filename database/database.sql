@@ -160,6 +160,9 @@ CREATE TABLE IF NOT EXISTS records (
     updated_at                  TEXT,
     -- ISO8601 String: timestamp of last record modification
 
+    status                      TEXT        DEFAULT 'draft',
+    -- Flat Indexable: publication state. Enum values: draft | published
+
 
     -- -------------------------------------------------------------------------
     --  LONG-FORM CONTENT
@@ -320,6 +323,7 @@ CREATE INDEX IF NOT EXISTS idx_records_map_label                ON records (map_
 CREATE INDEX IF NOT EXISTS idx_records_geo_id                   ON records (geo_id);
 CREATE INDEX IF NOT EXISTS idx_records_gospel_category          ON records (gospel_category);
 CREATE INDEX IF NOT EXISTS idx_records_parent_id                ON records (parent_id);
+CREATE INDEX IF NOT EXISTS idx_records_status                   ON records (status);
 CREATE INDEX IF NOT EXISTS idx_records_ordo_salutis             ON records (ordo_salutis);
 CREATE INDEX IF NOT EXISTS idx_records_wikipedia_rank           ON records (wikipedia_rank);
 CREATE INDEX IF NOT EXISTS idx_records_wikipedia_title          ON records (wikipedia_title);
