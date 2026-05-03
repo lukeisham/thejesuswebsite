@@ -59,7 +59,8 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 | **JS** | `js/6.0_news_blog/dashboard/news_sources_handler.js` | Data fetching & row hydration |
 | **JS** | `js/6.0_news_blog/dashboard/launch_news_crawler.js` | News crawler pipeline trigger |
 | **JS** | `js/6.0_news_blog/dashboard/news_sources_sidebar_handler.js` | Sidebar: keywords, source URLs, crawler trigger |
-| **JS** | `js/6.0_news_blog/dashboard/metadata_handler.js` | Metadata footer (Snippet/Slug/Meta) management |
+| **JS** | `js/2.0_records/dashboard/metadata_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Metadata footer |
+| **JS** | `js/2.0_records/dashboard/snippet_generator.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Automated snippet trigger |
 | **Python** | `backend/pipelines/pipeline_news.py` | News crawler pipeline script |
 
 ---
@@ -127,17 +128,17 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 
 - **File(s):** `js/6.0_news_blog/dashboard/launch_news_crawler.js`
 - **Action:** Implement the logic to trigger the backend news-crawler pipeline and display the process status in the universal footer.
-- **Dependencies:** `admin/backend/admin_api.py` (news routes planned), `backend/pipelines/pipeline_news.py`
+- **Dependencies:** `admin/backend/admin_api.py` (`GET /api/admin/news/items`, `POST /api/admin/news/crawl`), `backend/pipelines/pipeline_news.py`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
 
 ---
 
-### T7 — Implement Metadata Footer
-- **File(s):** `js/6.0_news_blog/dashboard/metadata_handler.js`
-- **Action:** Implement the Metadata Footer logic to display/edit Snippet, Slug, and Meta-Data. Include buttons to trigger auto-generation via `snippet_generator.py` and `metadata_generator.py` with manual override support.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+### T7 — Include Metadata Footer (Shared Tool)
+- **File(s):** Include `js/2.0_records/dashboard/metadata_handler.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script>` tag and call `window.renderMetadataFooter(containerId, recordId)`. Also include `js/2.0_records/dashboard/snippet_generator.js` and call `window.generateSnippet()`. Shared tools owned by `plan_dashboard_records_single`.
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
@@ -224,10 +225,9 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 - [ ] All field names in `snake_case`
 - [ ] Queries are explicit — no deeply nested frontend WASM logic
 
-#### Shared-Tool Consistency
-- [ ] snippet_generator.js: Verify identical behaviour with counterparts in records_single, essay_historiography, blog_posts, challenge_response
-- [ ] metadata_handler.js: Verify identical behaviour with counterparts in essay_historiography, blog_posts, challenge_response, challenge, wikipedia
-- [ ] Any module-specific variations are documented in a comment at the top of the file
+#### Shared-Tool Ownership
+- [ ] `snippet_generator.js` and `metadata_handler.js` included via `<script>` tag from `js/2.0_records/dashboard/` — no local copies created
+- [ ] This plan does NOT own any shared JS tools
 
 ---
 
@@ -253,7 +253,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new news source management files. |
 | `documentation/data_schema.md` | Yes | `news_search_term` (TEXT / JSON Blob) added; confirm field is documented. |
-| `documentation/vibe_coding_rules.md` | No | Rules remain consistent. |
+| `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7). |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |
@@ -285,11 +285,11 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 | T1 | — (self-contained HTML) |
 | T2 | — (self-contained CSS) |
 | T3 | — (self-contained JS orchestrator) |
-| T4 | admin/backend/admin_api.py (news routes) |
-| T5 | admin/backend/admin_api.py (system_config routes) |
-| T6 | admin/backend/admin_api.py (news routes), backend/pipelines/pipeline_news.py |
-| T7 | backend/scripts/snippet_generator.py, backend/scripts/metadata_generator.py |
-| T8 | admin/backend/admin_api.py (system_config GET), backend/scripts/helper_api.py |
+| T4 | admin/backend/admin_api.py (`GET /api/admin/news/items`, `PUT /api/admin/records/{id}`) |
+| T5 | admin/backend/admin_api.py (`GET /api/admin/system/config`, `PUT /api/admin/records/{id}`) |
+| T6 | admin/backend/admin_api.py (`POST /api/admin/news/crawl`), backend/pipelines/pipeline_news.py |
+| T7 | backend/scripts/snippet_generator.py, backend/scripts/metadata_generator.py, admin/backend/admin_api.py (`POST /api/admin/snippet/generate`, `POST /api/admin/metadata/generate`) |
+| T8 | admin/backend/admin_api.py (`GET /api/admin/system/config`), backend/scripts/helper_api.py |
 | T9 | T4 (news_sources_handler.js), T5 (news_sources_sidebar_handler.js), T6 (launch_news_crawler.js), T7 (metadata_handler.js), T8 (pipeline_news.py) |
 | T10 (Vibe Audit) | All files in File Inventory |
 | T11 (Purpose Check) | All tasks complete |
@@ -298,10 +298,12 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 
 | This plan requires | Supplied by | Notes |
 |--------------------|-------------|-------|
-| `admin/backend/admin_api.py` (news, system_config routes) | `plan_backend_infrastructure` | T4/T5/T6/T8 depend on news and system_config endpoints |
+| `admin/backend/admin_api.py` (`GET /api/admin/news/items`, `POST /api/admin/news/crawl`, `GET /api/admin/system/config`, `PUT /api/admin/records/{id}`) | `plan_backend_infrastructure` | T4/T5/T6/T8 depend on news, system_config, and record endpoints |
 | `backend/scripts/snippet_generator.py` | `plan_backend_infrastructure` | T7 auto-gen snippet button triggers this script |
 | `backend/scripts/metadata_generator.py` | `plan_backend_infrastructure` | T7 auto-gen meta button triggers this script |
 | `backend/scripts/helper_api.py` | Existing shared utility | T8 crawler uses for HTTP requests to news sources |
+| `js/2.0_records/dashboard/snippet_generator.js` | `plan_dashboard_records_single` | T7 includes this via `<script>` tag; calls `window.generateSnippet()` |
+| `js/2.0_records/dashboard/metadata_handler.js` | `plan_dashboard_records_single` | T7 includes this via `<script>` tag; calls `window.renderMetadataFooter()` |
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 module registration with dashboard router |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T9 error routing to universal Status Bar |
 | `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 Providence CSS custom properties |
@@ -310,4 +312,5 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 
 1. `plan_backend_infrastructure` — must complete first (provides API routes, snippet/metadata/helper scripts)
 2. `plan_dashboard_login_shell` — must complete second (provides dashboard router, error handler, CSS variables)
-3. `plan_dashboard_news_sources` — this plan (depends on #1 and #2)
+3. `plan_dashboard_records_single` — must complete third (provides shared JS tools: snippet_generator.js, metadata_handler.js)
+4. `plan_dashboard_news_sources` — this plan (depends on #1, #2, and #3)

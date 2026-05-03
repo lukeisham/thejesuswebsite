@@ -59,7 +59,7 @@ This plan implements the "Arbor Diagram" dashboard module, an interactive admini
 
 | Dependency | Owned By | Relationship |
 | :--- | :--- | :--- |
-| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 calls `get_diagram_tree`; T8 calls `update_diagram_tree` to commit parent-child changes |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 calls `GET /api/admin/diagram/tree`; T8 calls `PUT /api/admin/diagram/tree` to commit parent-child changes |
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers the Arbor module with the dashboard router |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T10 routes all fetch, render, drag, and publish failures to the shared Status Bar |
 | `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
@@ -111,7 +111,7 @@ This plan implements the "Arbor Diagram" dashboard module, an interactive admini
 
 - **File(s):** `js/3.0_visualizations/dashboard/fetch_arbor_data.js`
 - **Action:** Implement the logic to fetch the full hierarchical record tree from the backend API.
-- **Dependencies:** `admin/backend/admin_api.py` (get_diagram_tree)
+- **Dependencies:** `admin/backend/admin_api.py` (`GET /api/admin/diagram/tree`)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -152,7 +152,7 @@ This plan implements the "Arbor Diagram" dashboard module, an interactive admini
 
 - **File(s):** `js/3.0_visualizations/dashboard/update_node_parent.js`
 - **Action:** Implement the logic to calculate a new parent-child relationship after a drag event and commit the change to the database **with status set to draft**. Every drag-and-drop re-parenting auto-saves as draft — only the explicit "Publish" button in the function bar commits structural changes to the live frontend.
-- **Dependencies:** `admin/backend/admin_api.py` (update_diagram_tree)
+- **Dependencies:** `admin/backend/admin_api.py` (`PUT /api/admin/diagram/tree`)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -252,7 +252,7 @@ This plan implements the "Arbor Diagram" dashboard module, an interactive admini
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new Arbor editor files. |
 | `documentation/data_schema.md` | No | No schema changes in this plan. |
-| `documentation/vibe_coding_rules.md` | No | Rules remain consistent. |
+| `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7). |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |

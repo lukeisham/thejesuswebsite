@@ -52,13 +52,13 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 | **CSS** | `css/6.0_news_blog/dashboard/blog_WYSIWYG_editor.css` | Markdown editor canvas, toolbar, and live preview pane styling |
 | **JS** | `js/6.0_news_blog/dashboard/dashboard_blog_posts.js` | Module orchestration & initialization |
 | **JS** | `js/6.0_news_blog/dashboard/display_blog_posts_data.js` | Blog post fetching & field population |
-| **JS** | `js/6.0_news_blog/dashboard/markdown_editor.js` | Markdown parsing & live preview logic |
+| **JS** | `js/5.0_essays_responses/dashboard/markdown_editor.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_essay_historiography): Markdown parsing & live preview |
 | **JS** | `js/6.0_news_blog/dashboard/blog_post_status_handler.js` | Save/Publish/Delete state logic |
-| **JS** | `js/6.0_news_blog/dashboard/picture_handler.js` | Image upload & integration handler |
-| **JS** | `js/6.0_news_blog/dashboard/mla_source_handler.js` | Citation management handler |
-| **JS** | `js/6.0_news_blog/dashboard/context_link_handler.js` | Database relationship link handler |
-| **JS** | `js/6.0_news_blog/dashboard/snippet_generator.js` | Automated snippet generator trigger |
-| **JS** | `js/6.0_news_blog/dashboard/metadata_handler.js` | Metadata footer (Snippet/Slug/Meta) management |
+| **JS** | `js/2.0_records/dashboard/picture_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Image upload & integration |
+| **JS** | `js/2.0_records/dashboard/mla_source_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Citation management |
+| **JS** | `js/2.0_records/dashboard/context_link_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Database relationship links |
+| **JS** | `js/2.0_records/dashboard/snippet_generator.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Automated snippet trigger |
+| **JS** | `js/2.0_records/dashboard/metadata_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Metadata footer |
 
 ---
 
@@ -68,13 +68,21 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 
 | Dependency | Owned By | Relationship |
 | :--- | :--- | :--- |
-| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T5 calls `get_blog_posts`; T7 calls `update_record` (draft/publish/delete); T8 calls `upload_record_picture`; T11 calls snippet trigger endpoint |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T5 calls `GET /api/admin/blogposts`; T7 calls `PUT /api/admin/records/{id}` (draft/publish/delete) + `DELETE /api/admin/records/{id}`; T8 calls `POST /api/admin/records/{id}/picture`; T11 calls `POST /api/admin/snippet/generate` |
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T4 registers the Blog Posts module with the dashboard router |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T13 routes all save, upload, and generation failures to the shared Status Bar |
 | `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
 | `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T4 reads blog post rows; T6 writes status changes; T7 writes `picture_bytes` and `picture_thumbnail` |
 | `backend/scripts/snippet_generator.py` | `plan_backend_infrastructure` | T10 auto-generation button triggers this script via the API |
 | `backend/scripts/metadata_generator.py` | `plan_backend_infrastructure` | T11 auto-gen meta button triggers this script via the API |
+| `js/2.0_records/dashboard/picture_handler.js` | `plan_dashboard_records_single` | T8 includes this via `<script>` tag; calls `window.renderEditPicture()` |
+| `js/2.0_records/dashboard/mla_source_handler.js` | `plan_dashboard_records_single` | T9 includes this via `<script>` tag; calls `window.renderEditBibliography()` etc. |
+| `js/2.0_records/dashboard/context_link_handler.js` | `plan_dashboard_records_single` | T10 includes this via `<script>` tag; calls `window.renderEditLinks()` |
+| `js/2.0_records/dashboard/snippet_generator.js` | `plan_dashboard_records_single` | T11 includes this via `<script>` tag; calls `window.generateSnippet()` |
+| `js/2.0_records/dashboard/metadata_handler.js` | `plan_dashboard_records_single` | T12 includes this via `<script>` tag; calls `window.renderMetadataFooter()` |
+| `js/5.0_essays_responses/dashboard/markdown_editor.js` | `plan_dashboard_essay_historiography` | T6 includes this via `<script>` tag; calls the shared markdown editor |
+
+> ⚠️ This plan does NOT own any shared tools. All shared JS is consumed via `<script>` tag from the owner plan's directory.
 
 ---
 
@@ -137,11 +145,11 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 
 ---
 
-### T6 — Implement Markdown Editor Logic
+### T6 — Include Markdown Editor (Shared Tool)
 
-- **File(s):** `js/6.0_news_blog/dashboard/markdown_editor.js`
-- **Action:** Implement the core markdown editing logic, including toolbar actions and the live HTML preview generation for blog updates.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+- **File(s):** Include `js/5.0_essays_responses/dashboard/markdown_editor.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script src="/js/5.0_essays_responses/dashboard/markdown_editor.js"></script>` to the HTML and call the shared markdown editor's `window.*` API. The shared tool (owned by `plan_dashboard_essay_historiography`) provides toolbar actions and live HTML preview generation.
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
@@ -157,42 +165,42 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 
 ---
 
-### T8 — Implement Picture Upload Handling
+### T8 — Include Picture Upload Handler (Shared Tool)
 
-- **File(s):** `js/6.0_news_blog/dashboard/picture_handler.js`
-- **Action:** Implement the client-side logic for image file selection, preview rendering, and submission for blog imagery.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
-
-- [ ] Task complete
-
----
-
-### T9 — Implement MLA Source Handling
-
-- **File(s):** `js/6.0_news_blog/dashboard/mla_source_handler.js`
-- **Action:** Implement the dynamic UI logic for adding, removing, and displaying MLA formatted sources within the blog editor.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+- **File(s):** Include `js/2.0_records/dashboard/picture_handler.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script src="/js/2.0_records/dashboard/picture_handler.js"></script>` to the HTML and call `window.renderEditPicture(containerId, recordId)`. Shared tool owned by `plan_dashboard_records_single`.
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
 ---
 
-### T10 — Implement Context Link Handling
+### T9 — Include MLA Source Handler (Shared Tool)
 
-- **File(s):** `js/6.0_news_blog/dashboard/context_link_handler.js`
-- **Action:** Implement the dynamic UI logic for associating and displaying context links for the blog post.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+- **File(s):** Include `js/2.0_records/dashboard/mla_source_handler.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script src="/js/2.0_records/dashboard/mla_source_handler.js"></script>` to the HTML and call `window.renderEditBibliography()`, `window.loadEditBibliography()`, `window.collectEditBibliography()`. Shared tool owned by `plan_dashboard_records_single`.
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
 ---
 
-### T11 — Implement Snippet Generation Logic
+### T10 — Include Context Link Handler (Shared Tool)
 
-- **File(s):** `js/6.0_news_blog/dashboard/snippet_generator.js`
-- **Action:** Implement the UI trigger for generating automated snippets for blog posts.
+- **File(s):** Include `js/2.0_records/dashboard/context_link_handler.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script src="/js/2.0_records/dashboard/context_link_handler.js"></script>` to the HTML and call `window.renderEditLinks(containerId, contextLinksData)`. Shared tool owned by `plan_dashboard_records_single`.
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
+
+- [ ] Task complete
+
+---
+
+### T11 — Include Snippet Generator (Shared Tool)
+
+- **File(s):** Include `js/2.0_records/dashboard/snippet_generator.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script src="/js/2.0_records/dashboard/snippet_generator.js"></script>` to the HTML and call `window.generateSnippet(recordId, content)`. Shared tool owned by `plan_dashboard_records_single`.
 - **Dependencies:** `admin/backend/admin_api.py` (blog routes planned), `backend/scripts/snippet_generator.py`
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
@@ -202,10 +210,10 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 
 ---
 
-### T12 — Implement Metadata Footer
-- **File(s):** `js/6.0_news_blog/dashboard/metadata_handler.js`
-- **Action:** Implement the Metadata Footer logic to display/edit Snippet, Slug, and Meta-Data. Include buttons to trigger auto-generation via `snippet_generator.py` and `metadata_generator.py` with manual override support.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+### T12 — Include Metadata Footer (Shared Tool)
+- **File(s):** Include `js/2.0_records/dashboard/metadata_handler.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script src="/js/2.0_records/dashboard/metadata_handler.js"></script>` to the HTML and call `window.renderMetadataFooter(containerId, recordId)`. Shared tool owned by `plan_dashboard_records_single`.
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
@@ -278,14 +286,9 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - [ ] All field names in `snake_case`
 - [ ] Queries are explicit — no deeply nested frontend WASM logic
 
-#### Shared-Tool Consistency
-- [ ] picture_handler.js: Verify identical behaviour with counterparts in records_single, essay_historiography, challenge_response
-- [ ] mla_source_handler.js: Verify identical behaviour with counterparts in records_single, essay_historiography, challenge_response
-- [ ] context_link_handler.js: Verify identical behaviour with counterparts in records_single, essay_historiography
-- [ ] snippet_generator.js: Verify identical behaviour with counterparts in records_single, essay_historiography, challenge_response, news_sources
-- [ ] metadata_handler.js: Verify identical behaviour with counterparts in essay_historiography, challenge_response, challenge, wikipedia, news_sources
-- [ ] markdown_editor.js: Verify identical behaviour with counterpart in essay_historiography
-- [ ] Any module-specific variations are documented in a comment at the top of the file
+#### Shared-Tool Ownership
+- [ ] All shared tools (`markdown_editor.js`, `picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_handler.js`) included via `<script>` tag from owner directories — no local copies created
+- [ ] This plan does NOT own any shared tools and creates zero files outside `js/6.0_news_blog/dashboard/` except for its own module-specific files
 
 ---
 
@@ -311,7 +314,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new blog post editor files. |
 | `documentation/data_schema.md` | No | No schema changes in this plan. |
-| `documentation/vibe_coding_rules.md` | No | Rules remain consistent. |
+| `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7). |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |

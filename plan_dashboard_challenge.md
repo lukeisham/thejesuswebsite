@@ -50,7 +50,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 | **JS** | `js/4.0_ranked_lists/dashboard/challenge_list_display.js` | Data fetching & row hydration |
 | **JS** | `js/4.0_ranked_lists/dashboard/challenge_ranking_calculator.js` | Real-time score/rank logic |
 | **JS** | `js/4.0_ranked_lists/dashboard/insert_challenge_response.js` | Response creation & challenge linking |
-| **JS** | `js/4.0_ranked_lists/dashboard/metadata_handler.js` | Metadata footer (Snippet/Slug/Meta) management |
+| **JS** | `js/2.0_records/dashboard/metadata_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Metadata footer |
 
 ---
 
@@ -60,12 +60,13 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 
 | Dependency | Owned By | Relationship |
 | :--- | :--- | :--- |
-| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 calls get_list; T5/T5a PUT weighting and search terms; T6 calls agent/run + agent/logs + update_list; T7 creates draft responses |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 calls `GET /api/admin/records` (filtered); T5/T5a PUT to `PUT /api/admin/records/{id}` for weighting/search terms; T6 calls `POST /api/admin/agent/run` + `GET /api/admin/agent/logs` + `PUT /api/admin/lists/{name}`; T7 calls `POST /api/admin/responses` |
 | `backend/pipelines/pipeline_academic_challenges.py` | `plan_backend_infrastructure` | T6 Agent Search triggers this pipeline which now calls `agent_client.py` for DeepSeek web search |
 | `backend/pipelines/pipeline_popular_challenges.py` | `plan_backend_infrastructure` | T6 Agent Search triggers this pipeline which now calls `agent_client.py` for DeepSeek web search |
 | `backend/scripts/agent_client.py` | `plan_backend_infrastructure` | T6 depends on the agent client for DeepSeek API web-search article discovery |
 | `backend/scripts/snippet_generator.py` | `plan_backend_infrastructure` | T8 auto-gen snippet button triggers this script |
 | `backend/scripts/metadata_generator.py` | `plan_backend_infrastructure` | T8 auto-gen meta button triggers this script |
+| `js/2.0_records/dashboard/metadata_handler.js` | `plan_dashboard_records_single` | T8 includes this via `<script>` tag; calls `window.renderMetadataFooter()` |
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers the Challenge module with the dashboard router |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T9 routes all fetch, save, and agent failures to the shared Status Bar |
 | `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
@@ -149,7 +150,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
   1. On "Refresh": read all records' current `academic_challenge_rank` / `popular_challenge_rank` (depending on active toggle), apply the admin's weight multipliers from `challenge_weighting_handler.js`, re-sort the list, and **set all affected records to draft**. This ensures re-sorted rankings are not live until explicitly published.
   2. On "Agent Search": POST to `/api/admin/agent/run` with `{"pipeline": "academic_challenges" | "popular_challenges", "slug": str}` for the selected record. The DeepSeek agent then searches the open web using the record's search terms, discovers relevant articles, and the Python pipeline (`pipeline_academic_challenges.py` / `pipeline_popular_challenges.py`) writes the base rank and discovered articles back to the database **with status set to draft** (ingested external data must be reviewed before going live). Display a loading indicator until the agent run completes, then auto-refresh the list.
   3. On "Publish": commit the current ranked order to the live frontend data and **set all listed records to published**. This is the only path by which challenge rankings reach the public site.
-- **Dependencies:** `admin/backend/admin_api.py` (get_list, update_list, agent/run, agent/logs), `backend/pipelines/pipeline_academic_challenges.py`, `backend/pipelines/pipeline_popular_challenges.py`, `backend/scripts/agent_client.py`
+- **Dependencies:** `admin/backend/admin_api.py` (`GET /api/admin/records`, `PUT /api/admin/records/{id}`, `PUT /api/admin/lists/{name}`, `POST /api/admin/agent/run`, `GET /api/admin/agent/logs`), `backend/pipelines/pipeline_academic_challenges.py`, `backend/pipelines/pipeline_popular_challenges.py`, `backend/scripts/agent_client.py`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -168,10 +169,10 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 
 ---
 
-### T8 — Implement Metadata Footer
-- **File(s):** `js/4.0_ranked_lists/dashboard/metadata_handler.js`
-- **Action:** Implement the Metadata Footer logic to display/edit Snippet, Slug, and Meta-Data. Include buttons to trigger auto-generation via `snippet_generator.py` and `metadata_generator.py` with manual override support.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+### T8 — Include Metadata Footer (Shared Tool)
+- **File(s):** Include `js/2.0_records/dashboard/metadata_handler.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script>` tag and call `window.renderMetadataFooter(containerId, recordId)`. Shared tool owned by `plan_dashboard_records_single`.
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
@@ -236,9 +237,9 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - [ ] All field names in `snake_case`
 - [ ] Queries are explicit — no deeply nested frontend WASM logic
 
-#### Shared-Tool Consistency
-- [ ] metadata_handler.js: Verify identical behaviour with counterparts in essay_historiography, blog_posts, challenge_response, wikipedia, news_sources
-- [ ] Any module-specific variations are documented in a comment at the top of the file
+#### Shared-Tool Ownership
+- [ ] `metadata_handler.js` included via `<script>` tag from `js/2.0_records/dashboard/` — no local copy created
+- [ ] This plan does NOT own any shared tools
 
 ---
 
@@ -264,7 +265,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new Challenge editor files. |
 | `documentation/data_schema.md` | Yes | `popular_challenge_search_term` and `academic_challenge_search_term` (TEXT / JSON Blob) added; confirm fields are documented. |
-| `documentation/vibe_coding_rules.md` | No | Rules remain consistent. |
+| `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7). |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |

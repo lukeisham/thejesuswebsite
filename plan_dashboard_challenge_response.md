@@ -51,13 +51,13 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 | **CSS** | `css/5.0_essays_responses/dashboard/response_markdown.css` | Markdown editor & live preview styling |
 | **JS** | `js/5.0_essays_responses/dashboard/dashboard_challenge_response.js` | Module orchestration & initialization |
 | **JS** | `js/5.0_essays_responses/dashboard/display_challenge_response_data.js` | Response fetching & field population |
-| **JS** | `js/5.0_essays_responses/dashboard/markdown_editor.js` | Markdown editing & live preview logic |
+| **JS** | `js/5.0_essays_responses/dashboard/markdown_editor.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_essay_historiography): Markdown editing & live preview |
 | **JS** | `js/5.0_essays_responses/dashboard/response_status_handler.js` | Save/Publish/Delete status logic |
 | **JS** | `js/5.0_essays_responses/dashboard/challenge_link_handler.js` | Parent challenge association logic |
-| **JS** | `js/5.0_essays_responses/dashboard/picture_handler.js` | Shared tool: Image integration |
-| **JS** | `js/5.0_essays_responses/dashboard/mla_source_handler.js` | Shared tool: Citation management |
-| **JS** | `js/5.0_essays_responses/dashboard/snippet_generator.js` | Shared tool: Abstract generator |
-| **JS** | `js/5.0_essays_responses/dashboard/metadata_handler.js` | Metadata footer (Snippet/Slug/Meta) management |
+| **JS** | `js/2.0_records/dashboard/picture_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Image integration |
+| **JS** | `js/2.0_records/dashboard/mla_source_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Citation management |
+| **JS** | `js/2.0_records/dashboard/snippet_generator.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Abstract generator |
+| **JS** | `js/2.0_records/dashboard/metadata_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Metadata footer |
 
 ---
 
@@ -67,13 +67,20 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 
 | Dependency | Owned By | Relationship |
 | :--- | :--- | :--- |
-| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T5 calls challenge response CRUD routes; T7 calls status update routes; T8 calls snippet trigger endpoint |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T5 calls `GET /api/admin/responses` / `GET /api/admin/responses/{id}`; T7 calls `PUT /api/admin/records/{id}` (draft/publish/delete) + `DELETE /api/admin/records/{id}`; T8 calls `POST /api/admin/snippet/generate` |
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T4 registers the Challenge Response module with the dashboard router |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T9b routes all save, fetch, upload, and generation failures to the shared Status Bar |
 | `css/typography_colors.css` | `plan_dashboard_login_shell` | T2/T3 reference Providence CSS custom properties |
 | `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T5 reads response rows; T7 writes status changes |
 | `backend/scripts/snippet_generator.py` | `plan_backend_infrastructure` | T8 auto-generation button triggers this script via the API |
 | `backend/scripts/metadata_generator.py` | `plan_backend_infrastructure` | T9 auto-gen meta button triggers this script via the API |
+| `js/2.0_records/dashboard/picture_handler.js` | `plan_dashboard_records_single` | Included via `<script>` tag; calls `window.renderEditPicture()` |
+| `js/2.0_records/dashboard/mla_source_handler.js` | `plan_dashboard_records_single` | Included via `<script>` tag; calls `window.renderEditBibliography()` etc. |
+| `js/2.0_records/dashboard/snippet_generator.js` | `plan_dashboard_records_single` | Included via `<script>` tag; calls `window.generateSnippet()` |
+| `js/2.0_records/dashboard/metadata_handler.js` | `plan_dashboard_records_single` | Included via `<script>` tag; calls `window.renderMetadataFooter()` |
+| `js/5.0_essays_responses/dashboard/markdown_editor.js` | `plan_dashboard_essay_historiography` | Included via `<script>` tag; calls shared markdown editor |
+
+> ⚠️ This plan does NOT own any shared tools. All shared JS is consumed via `<script>` tag from the owner plan's directory.
 
 ---
 
@@ -136,11 +143,11 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 
 ---
 
-### T6 — Implement Markdown Editor Logic
+### T6 — Include Markdown Editor (Shared Tool)
 
-- **File(s):** `js/5.0_essays_responses/dashboard/markdown_editor.js`
-- **Action:** Implement the core markdown editing logic, including toolbar actions and the live HTML preview generation.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+- **File(s):** Include `js/5.0_essays_responses/dashboard/markdown_editor.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** The shared markdown editor is owned by `plan_dashboard_essay_historiography` and lives at `js/5.0_essays_responses/dashboard/markdown_editor.js`. Include it via `<script>` tag and call its `window.*` API.
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
@@ -156,21 +163,21 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 
 ---
 
-### T8 — Implement Snippet Generation Logic
+### T8 — Include Snippet Generator (Shared Tool)
 
-- **File(s):** `js/5.0_essays_responses/dashboard/snippet_generator.js`
-- **Action:** Implement the UI trigger to request automated snippet generation for the current response.
+- **File(s):** Include `js/2.0_records/dashboard/snippet_generator.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script>` tag and call `window.generateSnippet(recordId, content)`. Shared tool owned by `plan_dashboard_records_single`.
 - **Dependencies:** `admin/backend/admin_api.py` (challenge response routes planned), `backend/scripts/snippet_generator.py`
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
 ---
 
-### T9 — Implement Metadata Footer
-- **File(s):** `js/5.0_essays_responses/dashboard/metadata_handler.js`
-- **Action:** Implement the Metadata Footer logic to display/edit Snippet, Slug, and Meta-Data. Include buttons to trigger auto-generation via `snippet_generator.py` and `metadata_generator.py` with manual override support.
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+### T9 — Include Metadata Footer (Shared Tool)
+- **File(s):** Include `js/2.0_records/dashboard/metadata_handler.js` via `<script>` tag — DO NOT create a local copy
+- **Action:** Add `<script>` tag and call `window.renderMetadataFooter(containerId, recordId)`. Shared tool owned by `plan_dashboard_records_single`.
+- **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
 - [ ] Task complete
 
@@ -244,12 +251,9 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 - [ ] All field names in `snake_case`
 - [ ] Queries are explicit — no deeply nested frontend WASM logic
 
-#### Shared-Tool Consistency
-- [ ] picture_handler.js: Verify identical behaviour with counterparts in records_single, essay_historiography, blog_posts
-- [ ] mla_source_handler.js: Verify identical behaviour with counterparts in records_single, essay_historiography, blog_posts
-- [ ] snippet_generator.js: Verify identical behaviour with counterparts in records_single, essay_historiography, blog_posts, news_sources
-- [ ] metadata_handler.js: Verify identical behaviour with counterparts in essay_historiography, blog_posts, challenge, wikipedia, news_sources
-- [ ] Any module-specific variations are documented in a comment at the top of the file
+#### Shared-Tool Ownership
+- [ ] All shared tools (`markdown_editor.js`, `picture_handler.js`, `mla_source_handler.js`, `snippet_generator.js`, `metadata_handler.js`) included via `<script>` tag from owner directories — no local copies created
+- [ ] This plan does NOT own any shared tools and creates zero files outside `js/5.0_essays_responses/dashboard/` except for its own module-specific files
 
 ---
 
@@ -275,7 +279,7 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new response editor files. |
 | `documentation/data_schema.md` | No | No schema changes in this plan. |
-| `documentation/vibe_coding_rules.md` | No | Rules remain consistent. |
+| `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7). |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |

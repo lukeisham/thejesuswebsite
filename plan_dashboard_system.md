@@ -81,7 +81,7 @@ This plan implements the "System" dashboard module, the central administrative h
 
 | Dependency | Owned By | Relationship |
 | :--- | :--- | :--- |
-| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 polls health_check + agent/logs; T5 triggers test suites; T6a polls agent/logs on interval |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 polls `GET /api/admin/health_check` + `GET /api/admin/agent/logs`; T5 triggers test suites; T6a polls `GET /api/admin/agent/logs` on interval |
 | `backend/scripts/agent_client.py` | `plan_backend_infrastructure` | T6a displays token usage and trace reasoning logged by the agent client |
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers the System module with the dashboard router |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T6a routes agent log fetch failures to the shared Status Bar |
@@ -288,7 +288,7 @@ This plan implements the "System" dashboard module, the central administrative h
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new system monitoring files. |
 | `documentation/data_schema.md" | No | No schema changes in this plan. |
-| `documentation/vibe_coding_rules.md` | No | Rules remain consistent. |
+| `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7). |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | Yes | Document integration with VPS health monitoring and testing. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |

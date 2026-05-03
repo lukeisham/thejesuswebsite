@@ -80,9 +80,9 @@ This plan implements the "Wikipedia" dashboard module, a specialized interface f
 | T1 | — (self-contained HTML) | |
 | T2 | `css/typography_colors.css` | References Providence CSS custom properties for colours, fonts, spacing |
 | T3 | `js/7.0_system/dashboard/dashboard_app.js` | Registers module with the dashboard router; calls `_setGridColumns()` for wider sidebar |
-| T4 | `admin/backend/admin_api.py` | Calls `get_list` to fetch ranked records |
-| T5 | `admin/backend/admin_api.py`, `backend/pipelines/snippet_generator.py`, `backend/pipelines/metadata_generator.py` | PUTs weight/search-terms/metadata via API; auto-gen buttons call snippet/metadata scripts |
-| T6 | `admin/backend/admin_api.py`, `backend/pipelines/pipeline_wikipedia.py` | Calls `get_list` to read base ranks, `update_list` to commit final scores |
+| T4 | `admin/backend/admin_api.py` | Calls `GET /api/admin/records` to fetch ranked records |
+| T5 | `admin/backend/admin_api.py`, `backend/pipelines/snippet_generator.py`, `backend/pipelines/metadata_generator.py` | PUTs weight/search-terms/metadata via `PUT /api/admin/records/{id}`; auto-gen buttons call `POST /api/admin/snippet/generate` / `POST /api/admin/metadata/generate` |
+| T6 | `admin/backend/admin_api.py`, `backend/pipelines/pipeline_wikipedia.py` | Calls `GET /api/admin/records` to read base ranks, `PUT /api/admin/lists/{name}` to commit final scores |
 | T7 | `database/database.sqlite` (records table) | Reads `wikipedia_search_terms`; writes `wikipedia_title`, `wikipedia_link`, `wikipedia_rank` |
 | T8 | T4, T5, T6, T7, `js/admin_core/error_handler.js` | Error messages route through shared error handler to Status Bar |
 | T9 (Vibe Audit) | All files in File Inventory | |
@@ -92,7 +92,7 @@ This plan implements the "Wikipedia" dashboard module, a specialized interface f
 
 | This plan requires | Supplied by | Notes |
 |--------------------|-------------|-------|
-| `admin/backend/admin_api.py` (get_list, update_list routes) | `plan_backend_infrastructure` | T3/T4/T5/T6 depend on record CRUD endpoints |
+| `admin/backend/admin_api.py` (`GET /api/admin/records`, `PUT /api/admin/records/{id}`, `PUT /api/admin/lists/{name}` routes) | `plan_backend_infrastructure` | T3/T4/T5/T6 depend on record CRUD endpoints |
 | `backend/pipelines/snippet_generator.py` | `plan_backend_infrastructure` | T5 auto-gen snippet button triggers this script |
 | `backend/pipelines/metadata_generator.py` | `plan_backend_infrastructure` | T5 auto-gen meta button triggers this script |
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 module registration and `_setGridColumns()` sidebar width hook |
@@ -183,7 +183,7 @@ This plan implements the "Wikipedia" dashboard module, a specialized interface f
 - **Action:** Implement the logic to compute total ranking scores from the current weights, with full draft/publish cycle integration. The calculator must:
   1. On "Refresh": read all records' current `wikipedia_rank`, apply the admin's weight multipliers from `wikipedia_sidebar_handler.js`, re-sort the list, and **set all affected records to draft**. This ensures re-sorted rankings are not live until explicitly published.
   2. On "Publish": commit the current ranked order to the live frontend data and **set all listed records to published**. This is the only path by which Wikipedia rankings reach the public site.
-- **Dependencies:** `admin/backend/admin_api.py` (get_list, update_list), `backend/pipelines/pipeline_wikipedia.py`
+- **Dependencies:** `admin/backend/admin_api.py` (`GET /api/admin/records`, `PUT /api/admin/records/{id}`, `PUT /api/admin/lists/{name}`), `backend/pipelines/pipeline_wikipedia.py`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -266,6 +266,9 @@ This plan implements the "Wikipedia" dashboard module, a specialized interface f
 - [ ] All field names in `snake_case`
 - [ ] Queries are explicit — no deeply nested frontend WASM logic
 
+#### Shared-Tool Ownership
+- [ ] This plan does NOT own or consume any shared JS tools (snippet/metadata generation is handled by direct calls to the Python backends `snippet_generator.py` and `metadata_generator.py` from the sidebar handler)
+
 ---
 
 ### T10 — Purpose Check
@@ -290,7 +293,7 @@ This plan implements the "Wikipedia" dashboard module, a specialized interface f
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new Wikipedia editor files. |
 | `documentation/data_schema.md` | No | No schema changes in this plan. |
-| `documentation/vibe_coding_rules.md` | No | Rules remain consistent. |
+| `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7). |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |

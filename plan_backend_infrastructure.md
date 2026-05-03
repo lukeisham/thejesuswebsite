@@ -45,6 +45,54 @@ This plan implements the essential backend infrastructure and shared utilities r
 
 ---
 
+## 🔑 API Route Registry
+
+> This is the canonical reference for every route implemented or expanded by this plan. Consuming plans reference routes by these exact paths. Routes marked **(existing)** already exist in `admin_api.py` and are listed for completeness; do not re-create them.
+
+### Existing routes (do not modify — listed for consumer reference)
+
+| Method | Path | Purpose | Consumed By |
+|:---|:---|:---|:---|
+| `POST` | `/api/admin/login` | Admin authentication | `plan_dashboard_login_shell` |
+| `POST` | `/api/admin/logout` | Session termination | `plan_dashboard_login_shell` |
+| `GET` | `/api/admin/verify` | Session validation | `plan_dashboard_login_shell` |
+| `GET` | `/api/admin/records` | List all records (paginated) | `plan_dashboard_records_all`, `plan_dashboard_challenge`, `plan_dashboard_wikipedia`, `plan_dashboard_news_sources` |
+| `GET` | `/api/admin/records/{id}` | Get single record by ID | `plan_dashboard_records_single`, `plan_dashboard_arbor` |
+| `POST` | `/api/admin/records` | Create new record | `plan_dashboard_records_single` |
+| `PUT` | `/api/admin/records/{id}` | Update record fields | ALL dashboard plans |
+| `DELETE` | `/api/admin/records/{id}` | Delete record | ALL dashboard plans |
+| `POST` | `/api/admin/records/{id}/picture` | Upload record picture (PNG) | `plan_dashboard_records_single` (shared tool) |
+| `DELETE` | `/api/admin/records/{id}/picture` | Delete record picture | `plan_dashboard_records_single` (shared tool) |
+| `GET` | `/api/admin/lists/{name}` | Get ranked list entries | `plan_dashboard_challenge`, `plan_dashboard_wikipedia` |
+| `PUT` | `/api/admin/lists/{name}` | Replace ranked list | `plan_dashboard_challenge`, `plan_dashboard_wikipedia` |
+| `GET` | `/api/admin/diagram/tree` | Get flat node list for Arbor tree | `plan_dashboard_arbor` |
+| `PUT` | `/api/admin/diagram/tree` | Batch-update parent_id relationships | `plan_dashboard_arbor` |
+| `POST` | `/api/admin/bulk-upload` | CSV bulk record ingestion | `plan_dashboard_records_all` |
+
+### New routes (implemented by this plan)
+
+| Method | Path | Task | Purpose | Consumed By |
+|:---|:---|:---|:---|:---|
+| `GET` | `/api/admin/system/config` | T4 | Read all system_config key/value pairs | `plan_dashboard_system`, `plan_dashboard_news_sources` |
+| `PUT` | `/api/admin/system/config` | T4 | Upsert system_config key/value pairs | `plan_dashboard_system` |
+| `GET` | `/api/admin/health_check` | T4a | System health + DeepSeek API status + VPS resource usage | `plan_dashboard_system` |
+| `GET` | `/api/admin/mcp/health` | T4b | MCP server status (tools, errors, uptime) | `plan_dashboard_system` |
+| `POST` | `/api/admin/snippet/generate` | T5a | Trigger snippet_generator.py for a record; body: `{"slug": str, "content": str}`; returns `{"snippet": str}` | All plans with snippet auto-gen (shared tool) |
+| `POST` | `/api/admin/metadata/generate` | T5b | Trigger metadata_generator.py for a record; body: `{"slug": str, "content": str}`; returns `{"keywords": str, "meta_description": str}` | All plans with metadata auto-gen (shared tool) |
+| `GET` | `/api/admin/essays` | T5 | List all essay records (filtered by type) | `plan_dashboard_essay_historiography` |
+| `GET` | `/api/admin/historiography` | T5 | Get the single historiography record | `plan_dashboard_essay_historiography` |
+| `GET` | `/api/admin/blogposts` | T6 | List all blog post records | `plan_dashboard_blog_posts` |
+| `DELETE` | `/api/admin/records/{id}/blogpost` | T6 | Remove blog post content from record (does not delete record) | `plan_dashboard_blog_posts` |
+| `GET` | `/api/admin/news/items` | T6 | List all news item records | `plan_dashboard_news_sources` |
+| `POST` | `/api/admin/news/crawl` | T6 | Trigger pipeline_news.py crawler | `plan_dashboard_news_sources` |
+| `POST` | `/api/admin/responses` | T7 | Create a draft challenge response linked to a parent challenge; body: `{"parent_slug": str, "title": str}`; returns `{"id": int}` | `plan_dashboard_challenge_response`, `plan_dashboard_challenge` |
+| `GET` | `/api/admin/responses` | T7 | List all challenge responses (academic + popular) | `plan_dashboard_challenge_response` |
+| `GET` | `/api/admin/responses/{id}` | T7 | Get single challenge response by ID | `plan_dashboard_challenge_response` |
+| `POST` | `/api/admin/agent/run` | T8 | Trigger DeepSeek agent pipeline; body: `{"pipeline": str, "slug": str}`; returns `{"run_id": int, "status": "running"}` (202 Accepted) | `plan_dashboard_challenge` |
+| `GET` | `/api/admin/agent/logs` | T9 | Paginated agent run history; query: `?limit=50&offset=0&pipeline=str`; returns array of agent_run_log rows | `plan_dashboard_system`, `plan_dashboard_challenge` |
+
+---
+
 ## Tasks
 
 > Each task is a focused, bite-sized unit of work.
@@ -126,20 +174,30 @@ This plan implements the essential backend infrastructure and shared utilities r
 
 ---
 
-### T4 — Expand API: System Config Endpoints
+### T4 — Expand API: System Config & Health Endpoints
 
 - **File(s):** `admin/backend/admin_api.py`
-- **Action:** Implement GET/PUT endpoints for the `system_config` table to allow the dashboard to manage global site configuration. **Note:** News-related data (`news_sources`, `news_items`, `news_search_term`) lives on the `records` table — these endpoints are for configuration not tied to any single record. **Append new routes to the end of the file — do not restructure or reformat existing routes.**
-- **Vibe Rule(s):** 1 function per JS file (N/A Python) · Explicit logic · Auth protected
+- **Action:** Implement the following exact routes. Append new routes to the end of the file — do not restructure or reformat existing routes.
+  1. `GET /api/admin/system/config` — returns all rows from `system_config` as a JSON object of key/value pairs. Consumed by `plan_dashboard_system` and `plan_dashboard_news_sources`.
+  2. `PUT /api/admin/system/config` — accepts a JSON body with key/value pairs, upserts into `system_config`. Returns 200 on success.
+  3. `GET /api/admin/health_check` — returns system health including DeepSeek API status, VPS CPU/memory, and uptime. Consumed by `plan_dashboard_system`.
+  4. `GET /api/admin/mcp/health` — proxies MCP server status (online/offline/degraded, tool count, error count, last request timestamp). Consumed by `plan_dashboard_system`.
+  **Note:** News-related data lives on the `records` table — the system_config endpoints are for configuration not tied to any single record.
+- **Vibe Rule(s):** Auth protected · Explicit logic · SQLi safe
 
 - [ ] Task complete
 
 ---
 
-### T5 — Expand API: Essay & Historiography Endpoints
+### T5 — Expand API: Essay, Historiography & Snippet/Metadata Trigger Endpoints
 
 - **File(s):** `admin/backend/admin_api.py`
-- **Action:** Implement CRUD endpoints for the Essays table and the unique Historiography record. **Append new routes to the end of the file — do not restructure or reformat existing routes.**
+- **Action:** Implement the following exact routes. Append new routes to the end of the file — do not restructure or reformat existing routes.
+  1. `GET /api/admin/essays` — returns all records where type is 'essay', ordered by title. Consumed by `plan_dashboard_essay_historiography`.
+  2. `GET /api/admin/historiography` — returns the single record where slug = 'historiography'. 404 if missing.
+  3. `POST /api/admin/snippet/generate` — triggers `snippet_generator.py` for a record. Accepts JSON body with `slug` and `content` fields. Returns the generated snippet string. Consumed by the shared `snippet_generator.js` tool.
+  4. `POST /api/admin/metadata/generate` — triggers `metadata_generator.py` for a record. Accepts JSON body with `slug` and `content` fields. Returns keywords and meta_description. Consumed by the shared `metadata_handler.js` tool.
+  > **Note:** Essays and Historiography use the existing `PUT /api/admin/records/{id}` for updates and `DELETE /api/admin/records/{id}` for deletion. Only the list/get endpoints are new.
 - **Vibe Rule(s):** Auth protected · Explicit logic · SQLi safe
 
 - [ ] Task complete
@@ -149,7 +207,12 @@ This plan implements the essential backend infrastructure and shared utilities r
 ### T6 — Expand API: Blog & News Endpoints
 
 - **File(s):** `admin/backend/admin_api.py`
-- **Action:** Implement CRUD endpoints for Blog Posts and News Items. **Append new routes to the end of the file — do not restructure or reformat existing routes.**
+- **Action:** Implement the following exact routes. Append new routes to the end of the file — do not restructure or reformat existing routes.
+  1. `GET /api/admin/blogposts` — returns all records where `blogposts` column is NOT NULL, ordered by `created_at DESC`. Consumed by `plan_dashboard_blog_posts`.
+  2. `DELETE /api/admin/records/{id}/blogpost` — sets the record's `blogposts` column to NULL (removes blog content without deleting the record). Returns 200 on success.
+  3. `GET /api/admin/news/items` — returns all records where `news_items` column is NOT NULL, ordered by `created_at DESC`. Consumed by `plan_dashboard_news_sources`.
+  4. `POST /api/admin/news/crawl` — triggers `pipeline_news.py` asynchronously. Returns 202 with status and started_at timestamp.
+  > **Note:** Blog posts and news items use the existing `PUT /api/admin/records/{id}` for content updates and the existing `DELETE /api/admin/records/{id}` for full record deletion.
 - **Vibe Rule(s):** Auth protected · Explicit logic · SQLi safe
 
 - [ ] Task complete
@@ -159,7 +222,11 @@ This plan implements the essential backend infrastructure and shared utilities r
 ### T7 — Expand API: Challenge Response Endpoints
 
 - **File(s):** `admin/backend/admin_api.py`
-- **Action:** Implement the logic to create draft responses and link them to parent challenges. **Append new routes to the end of the file — do not restructure or reformat existing routes.**
+- **Action:** Implement the following exact routes. Append new routes to the end of the file — do not restructure or reformat existing routes.
+  1. `POST /api/admin/responses` — creates a draft challenge response. Accepts JSON body with `parent_slug` and `title`. Inserts a new record with status = 'draft' and links it to the parent challenge via the parent record's `responses` JSON field. Returns 201 with the new record's id and slug. Consumed by `plan_dashboard_challenge_response` and `plan_dashboard_challenge` (T7 insert logic).
+  2. `GET /api/admin/responses` — returns all records where type includes 'response', ordered by `created_at DESC`. Consumed by `plan_dashboard_challenge_response`.
+  3. `GET /api/admin/responses/{id}` — returns a single response record by ID. 404 if not found or not a response type.
+  > **Note:** Responses use the existing `PUT /api/admin/records/{id}` for content/status updates and `DELETE /api/admin/records/{id}` for deletion.
 - **Vibe Rule(s):** Auth protected · Explicit logic · Relational integrity
 
 - [ ] Task complete
@@ -229,7 +296,7 @@ This plan implements the essential backend infrastructure and shared utilities r
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new backend files. |
 | `documentation/data_schema.md` | Yes | Document the new `system_config` and `agent_run_log` tables. |
-| `documentation/vibe_coding_rules.md` | No | Rules remain consistent. |
+| `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7). |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |

@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "big dashboard refractor preperation"
+git commit -m "save point"
 git push origin main 
 
 # Pulling from Github to server 

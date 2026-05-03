@@ -6,6 +6,7 @@
 
 ## Reference Files
 - **Vibe Coding Rules:** `documentation/vibe_coding_rules.md` — read this before creating or editing any code file.
+- **Plan Issue Log:** `plan_issues.md` — cross-plan issue tracker. Read this before starting any plan to check for open issues that affect the plan. At the end of every plan execution, append any cross-cutting issues discovered (conflicts, gaps, missing dependencies, implementation issues) to the Issue Table.
 
 ## Skills
 

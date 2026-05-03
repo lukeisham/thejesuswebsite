@@ -59,7 +59,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 
 | Dependency | Owned By | Relationship |
 | :--- | :--- | :--- |
-| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4/T5/T6/T7 call `get_all_records`, `bulk_upload_records` endpoints for record fetching and CSV ingestion |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4/T5/T6 call `GET /api/admin/records` (paginated); T7 calls `POST /api/admin/bulk-upload` for CSV ingestion |
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers the All Records module with the dashboard router |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T3 surfaces fetch and upload failures via shared error display |
 | `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
@@ -140,7 +140,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 
 - **File(s):** `js/2.0_records/dashboard/bulk_csv_upload_handler.js`
 - **Action:** Implement the logic for ingesting CSV data, performing client-side validation, and submitting to the bulk upload API. **All bulk-uploaded records are saved with status set to draft** — the admin must review and publish each record individually via the Single Record editor.
-- **Dependencies:** `admin/backend/admin_api.py` (get_all_records, bulk_upload_records)
+- **Dependencies:** `admin/backend/admin_api.py` (`GET /api/admin/records`, `POST /api/admin/bulk-upload`)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -163,7 +163,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
   3. **Sort/Filter Fetch Failed** — `table_toggle_display.js` fetch after a toggle (sort by date, verse, title, etc.) fails or returns non-OK: `"Error: Failed to re-sort records. Please try again."`
   4. **CSV Parse Failed** — `bulk_csv_upload_handler.js` cannot parse the selected file (wrong format, malformed rows): `"Error: CSV file could not be parsed. Check the file format and try again."`
   5. **CSV Validation Failed** — client-side validation finds missing required columns or invalid field values in the CSV: `"Error: CSV validation failed. {n} row(s) contain missing or invalid fields."`
-  6. **Bulk Upload Failed** — `bulk_csv_upload_handler.js` POST to `bulk_upload_records` returns non-OK: `"Error: Bulk upload failed. {n} record(s) were not saved. Check the CSV and try again."`
+  6. **Bulk Upload Failed** — `bulk_csv_upload_handler.js` POST to `/api/admin/bulk-upload` returns non-OK: `"Error: Bulk upload failed. {n} record(s) were not saved. Check the CSV and try again."`
 
   All errors must be routed through `js/admin_core/error_handler.js` and displayed in the Status Bar.
 

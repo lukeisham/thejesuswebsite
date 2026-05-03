@@ -56,10 +56,11 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 | **JS** | `js/2.0_records/dashboard/dashboard_records_single.js` | Module orchestration & initialization |
 | **JS** | `js/2.0_records/dashboard/display_single_record_data.js` | Record fetching & form hydration |
 | **JS** | `js/2.0_records/dashboard/record_status_handler.js` | Save, Publish & Delete status management |
-| **JS** | `js/2.0_records/dashboard/picture_handler.js` | Shared tool: Thumbnail & Image processing |
-| **JS** | `js/2.0_records/dashboard/mla_source_handler.js` | Shared tool: Bibliography management |
-| **JS** | `js/2.0_records/dashboard/context_link_handler.js` | Shared tool: Relational links |
-| **JS** | `js/2.0_records/dashboard/snippet_generator.js` | Shared tool: Summary generator |
+| **JS** | `js/2.0_records/dashboard/picture_handler.js` | 🔑 OWNED shared tool: Image upload & preview (consumed by Blog Posts, Essay/Historiography, Challenge Response) |
+| **JS** | `js/2.0_records/dashboard/mla_source_handler.js` | 🔑 OWNED shared tool: MLA bibliography management (consumed by Blog Posts, Essay/Historiography, Challenge Response) |
+| **JS** | `js/2.0_records/dashboard/context_link_handler.js` | 🔑 OWNED shared tool: Database relationship links (consumed by Blog Posts, Essay/Historiography) |
+| **JS** | `js/2.0_records/dashboard/snippet_generator.js` | 🔑 OWNED shared tool: Automated snippet trigger (consumed by Blog Posts, Essay/Historiography, Challenge Response, News Sources) |
+| **JS** | `js/2.0_records/dashboard/metadata_handler.js` | 🔑 OWNED shared tool: Snippet/Slug/Meta footer (consumed by Blog Posts, Essay/Historiography, Challenge Response, Challenges, Wikipedia, News Sources) |
 
 ---
 
@@ -69,12 +70,25 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 
 | Dependency | Owned By | Relationship |
 | :--- | :--- | :--- |
-| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 calls `get_single_record`; T5 calls `update_record` (draft/publish/delete); T6 calls `upload_record_picture`; T9 calls snippet trigger endpoint |
+| `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 calls `GET /api/admin/records/{id}`; T5 calls `PUT /api/admin/records/{id}` (draft/publish/delete) + `DELETE /api/admin/records/{id}`; T6 calls `POST /api/admin/records/{id}/picture`; T9 calls `POST /api/admin/snippet/generate` |
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers the Single Record module with the dashboard router |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T10 routes all save, upload, and generation failures to the shared Status Bar |
 | `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
 | `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T4 reads a single record row; T5 writes status changes; T6 writes `picture_bytes` and `picture_thumbnail` |
 | `backend/scripts/snippet_generator.py` | `plan_backend_infrastructure` | T9 auto-generation button triggers this script via the API |
+| `backend/scripts/metadata_generator.py` | `plan_backend_infrastructure` | T0 auto-gen meta button triggers this script via the API |
+
+### 🔑 Shared-Tool Ownership (Published by this plan)
+
+> The following files are AUTHORED here and CONSUMED by downstream plans via `<script>` tag inclusion. Consumer plans MUST NOT create local copies. See `documentation/vibe_coding_rules.md` §7 for the shared-tool ownership rule.
+
+| Shared Tool | Consumer Plans |
+|---|---|
+| `js/2.0_records/dashboard/picture_handler.js` | `plan_dashboard_blog_posts`, `plan_dashboard_essay_historiography`, `plan_dashboard_challenge_response` |
+| `js/2.0_records/dashboard/mla_source_handler.js` | `plan_dashboard_blog_posts`, `plan_dashboard_essay_historiography`, `plan_dashboard_challenge_response` |
+| `js/2.0_records/dashboard/context_link_handler.js` | `plan_dashboard_blog_posts`, `plan_dashboard_essay_historiography` |
+| `js/2.0_records/dashboard/snippet_generator.js` | `plan_dashboard_blog_posts`, `plan_dashboard_essay_historiography`, `plan_dashboard_challenge_response`, `plan_dashboard_news_sources` |
+| `js/2.0_records/dashboard/metadata_handler.js` | `plan_dashboard_blog_posts`, `plan_dashboard_essay_historiography`, `plan_dashboard_challenge_response`, `plan_dashboard_challenge`, `plan_dashboard_wikipedia`, `plan_dashboard_news_sources` |
 
 ---
 
@@ -86,6 +100,27 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 > 1. **Read `documentation/vibe_coding_rules.md`** at the beginning of every task.
 > 2. **Remind yourself** of the project purpose and Section 7 (AI Execution & Drift Control) of the vibe-coding rules.
 > 3. **Mark the task as complete** (check the box) ONLY when the specific task requirements are fully met.
+
+### T0 — Implement Shared Dashboard Tools 🔑
+
+- **File(s):**
+  - `js/2.0_records/dashboard/picture_handler.js`
+  - `js/2.0_records/dashboard/mla_source_handler.js`
+  - `js/2.0_records/dashboard/context_link_handler.js`
+  - `js/2.0_records/dashboard/snippet_generator.js`
+  - `js/2.0_records/dashboard/metadata_handler.js`
+- **Action:** Create each shared handler with a `window.*` public API contract. These five files are the SOLE authoritative copies — consumer plans (Blog Posts, Essay/Historiography, Challenge Response, Challenges, Wikipedia, News Sources) include them via `<script>` tag in their HTML and call the exposed `window.*` functions. They MUST NOT create local copies. Each file follows the 1-function-per-file rule.
+  - `picture_handler.js`: Exposes `window.renderEditPicture(containerId, recordId)` — image file selection, preview rendering, and binary upload. Reuses/extracts the pattern from the existing `edit_picture.js`.
+  - `mla_source_handler.js`: Exposes `window.renderEditBibliography(containerId)`, `window.loadEditBibliography(data)`, `window.collectEditBibliography()` — MLA bibliography textarea management. Reuses/extracts the pattern from the existing `edit_bibliography.js`.
+  - `context_link_handler.js`: Exposes `window.renderEditLinks(containerId, contextLinksData)` — `{slug, type}` chip management. Reuses/extracts the pattern from the existing `edit_links.js`.
+  - `snippet_generator.js`: Exposes `window.generateSnippet(recordId, content)` — triggers `backend/scripts/snippet_generator.py` via the admin API and returns the generated snippet string.
+  - `metadata_handler.js`: Exposes `window.renderMetadataFooter(containerId, recordId)` — renders an editable Snippet/Slug/Meta footer with auto-gen buttons that call `snippet_generator.py` and `metadata_generator.py`.
+- **Dependencies:** `admin/backend/admin_api.py` (snippet trigger endpoint, record update endpoint), `backend/scripts/snippet_generator.py`, `backend/scripts/metadata_generator.py`
+- **Vibe Rule(s):** 1 function per JS file · Vanilla ES6+ · window.* API contract · Explicit logic
+
+- [ ] Task complete
+
+---
 
 ### T1 — Create Single Record HTML
 
@@ -171,7 +206,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 
 - **File(s):** `js/2.0_records/dashboard/snippet_generator.js`
 - **Action:** Implement the UI trigger to request automated snippet generation from the backend pipeline.
-- **Dependencies:** `admin/backend/admin_api.py` (get_single_record, create_record, update_record, delete_record, upload_record_picture), `backend/scripts/snippet_generator.py`
+- **Dependencies:** `admin/backend/admin_api.py` (`GET /api/admin/records/{id}`, `POST /api/admin/records`, `PUT /api/admin/records/{id}`, `DELETE /api/admin/records/{id}`, `POST /api/admin/records/{id}/picture`), `backend/scripts/snippet_generator.py`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -180,7 +215,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 
 ## Final Tasks
 
-### T10 — Error Message Generation
+### T11 — Error Message Generation
 
 - **File(s):**
   - `js/2.0_records/dashboard/display_single_record_data.js`
@@ -196,7 +231,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   3. **Draft Failed** — `record_status_handler.js` PATCH to set draft status returns non-OK: `"Error: Failed to set record '{title}' to Draft."`
   4. **Publish Failed** — `record_status_handler.js` PATCH to publish returns non-OK: `"Error: Failed to publish record '{title}'. Check required fields."`
   5. **Delete Failed** — `record_status_handler.js` DELETE returns non-OK: `"Error: Failed to delete record '{title}'. Please try again."`
-  6. **Image Upload Failed** — `picture_handler.js` POST to `upload_record_picture` returns non-OK or the file exceeds size/format limits: `"Error: Image upload failed for '{title}'. Max 250 KB PNG only."`
+  6. **Image Upload Failed** — `picture_handler.js` POST to `/api/admin/records/{id}/picture` returns non-OK or the file exceeds size/format limits: `"Error: Image upload failed for '{title}'. Max 250 KB PNG only."`
   7. **Image Preview Failed** — `picture_handler.js` cannot render a preview from the selected file (unreadable/corrupt): `"Error: Unable to preview the selected image. Please choose a valid PNG file."`
   8. **MLA Source Save Failed** — `mla_source_handler.js` PUT for bibliography returns non-OK: `"Error: Failed to save bibliography changes for '{title}'."`
   9. **Context Link Save Failed** — `context_link_handler.js` PUT for context links returns non-OK: `"Error: Failed to save context links for '{title}'."`
@@ -210,7 +245,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 
 ---
 
-### T11 — Vibe-Coding Audit
+### T12 — Vibe-Coding Audit
 
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
@@ -241,16 +276,14 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 - [ ] All field names in `snake_case`
 - [ ] Queries are explicit — no deeply nested frontend WASM logic
 
-#### Shared-Tool Consistency
-- [ ] picture_handler.js: Verify identical behaviour with counterparts in essay_historiography, blog_posts, challenge_response
-- [ ] mla_source_handler.js: Verify identical behaviour with counterparts in essay_historiography, blog_posts, challenge_response
-- [ ] context_link_handler.js: Verify identical behaviour with counterparts in essay_historiography, blog_posts
-- [ ] snippet_generator.js: Verify identical behaviour with counterparts in essay_historiography, blog_posts, challenge_response, news_sources
-- [ ] Any module-specific variations are documented in a comment at the top of the file
+#### Shared-Tool Ownership
+- [ ] All five shared tools (`picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_handler.js`) expose a single `window.*` function each — no duplicate files created in consumer module directories
+- [ ] Consumer plans reference these files via `<script>` tag in their HTML, not by copying the source
+- [ ] Each file opens with a comment stating "This is the authoritative copy — consumed by [list of consumer plans]"
 
 ---
 
-### T12 — Purpose Check
+### T13 — Purpose Check
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
@@ -272,7 +305,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new record editor files. |
 | `documentation/data_schema.md` | No | No schema changes in this plan. |
-| `documentation/vibe_coding_rules.md` | No | Rules remain consistent. |
+| `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7) — records_single is the canonical owner of 5 shared JS tools. |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
 | `documentation/guides/guide_appearance.md` | No | Public-facing appearance is unaffected. |
