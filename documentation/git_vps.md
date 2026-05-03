@@ -18,6 +18,21 @@ sudo journalctl -u thejesuswebsite.service -n 20 --no-pager
 
 # Next actions
 
+# | Plan | Depends On |
+|---|---|---|
+| 1 | `plan_backend_infrastructure` | — |
+| 2 | `plan_dashboard_login_and_shell` | 1 |
+| 3 | `plan_dashboard_records_single` | 1, 2 |
+| 4 | `plan_dashboard_essay_historiography` | 1, 2, 3 |
+| 5 | `plan_dashboard_records_all` | 1, 2, 3 |
+| 6 | `plan_dashboard_arbor` | 1, 2 |
+| 7 | `plan_dashboard_challenge` | 1, 2, 3 |
+| 8 | `plan_dashboard_wikipedia` | 1, 2 |
+| 9 | `plan_dashboard_challenge_response` | 1, 2, 3, 4, 7 |
+| 10 | `plan_dashboard_blog_posts` | 1, 2, 3, 4 |
+| 11 | `plan_dashboard_news_sources` | 1, 2, 3 |
+| 12 | `plan_dashboard_system
+
 1. Fixing and completing the dashboard
 2. image upload
 3. Test dashboard functionality

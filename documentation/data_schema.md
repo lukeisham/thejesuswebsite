@@ -253,6 +253,7 @@ dependencies: [site_map.md, module_sitemap.md]
 `academic_challenge_rank` | TEXT | Flat Indexable (64-bit int) 
 `academic_challenge_weight` | TEXT | Label-Value Pair 
 `academic_challenge_search_term` | TEXT | JSON Blob 
+`challenge_id` | TEXT | Foreign Key → records(id) (stored on the response record; points to the parent challenge this response addresses)
 `responses` | TEXT | JSON Blob 
 `blogposts` | TEXT | JSON Blob 
 `news_sources` | TEXT | Label-Value Pair    

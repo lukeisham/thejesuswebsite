@@ -247,6 +247,9 @@ CREATE TABLE IF NOT EXISTS records (
     --  RESPONSES & DEBATE CONTENT
     -- -------------------------------------------------------------------------
 
+    challenge_id                TEXT        REFERENCES records(id),
+    -- Foreign Key: stored on the response record; points to the parent challenge this response addresses
+
     responses                   TEXT,
     -- JSON Blob: structured apologetics responses to associated challenges
 
@@ -331,6 +334,7 @@ CREATE INDEX IF NOT EXISTS idx_records_popular_challenge_rank   ON records (popu
 CREATE INDEX IF NOT EXISTS idx_records_popular_challenge_title  ON records (popular_challenge_title);
 CREATE INDEX IF NOT EXISTS idx_records_academic_challenge_rank  ON records (academic_challenge_rank);
 CREATE INDEX IF NOT EXISTS idx_records_academic_challenge_title ON records (academic_challenge_title);
+CREATE INDEX IF NOT EXISTS idx_records_challenge_id             ON records (challenge_id);
 CREATE INDEX IF NOT EXISTS idx_records_page_views               ON records (page_views);
 CREATE INDEX IF NOT EXISTS idx_records_iaa                      ON records (iaa);
 CREATE INDEX IF NOT EXISTS idx_records_pledius                  ON records (pledius);

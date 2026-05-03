@@ -12,7 +12,7 @@ created: 2026-05-02
 
 > **One-paragraph summary of what this plan achieves, why it is needed, and which part of the site it affects.**
 
-This plan implements the "Challenge Response" dashboard module, a dedicated CRUD interface for authoring scholarly responses to historical challenges. It features a markdown-based WYSIWYG editor with live preview, a specialized sidebar for navigating between academic and popular responses, and integrated status management (Draft, Publish, Delete). This module enables the creation of high-quality, long-form content that directly addresses the ranked challenges surfaced in the debate sections, ensuring a robust and well-documented defense of the archival material.
+This plan implements the "Challenge Response" dashboard module, a dedicated CRUD interface for authoring scholarly responses to historical challenges. It features a sidebar search bar for filtering responses by title, a markdown-based WYSIWYG editor with live preview, a specialized sidebar for navigating between academic and popular responses, and integrated status management (Draft, Publish, Delete). This module enables the creation of high-quality, long-form content that directly addresses the ranked challenges surfaced in the debate sections, ensuring a robust and well-documented defense of the archival material.
 
 ```text
 +---------------------------------------------------------------------------------+
@@ -22,7 +22,8 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 +---------------------------------------------------------------------------------+
 | Response Sidebar          | Response WYSIWYG Editor                             |
 |---------------------------+-----------------------------------------------------|
-| *Academic*                | Title: [___________________________________]        |
+| Search: [_______________] | Title: [___________________________________]        |
+| *Academic*                |                                                     |
 | - Response 1 (Draft)      |                                                     |
 | - Response 2 (Pub)        | [B] [I] [U] [Link] [Image] [Code]                   |
 |                           | +-----------------------------------------------+   |
@@ -51,9 +52,10 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 | **CSS** | `css/5.0_essays_responses/dashboard/response_markdown.css` | Markdown editor & live preview styling |
 | **JS** | `js/5.0_essays_responses/dashboard/dashboard_challenge_response.js` | Module orchestration & initialization |
 | **JS** | `js/5.0_essays_responses/dashboard/display_challenge_response_data.js` | Response fetching & field population |
+| **JS** | `js/5.0_essays_responses/dashboard/search_responses.js` | Sidebar search bar: real-time title filtering of response lists |
 | **JS** | `js/5.0_essays_responses/dashboard/markdown_editor.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_essay_historiography): Markdown editing & live preview |
 | **JS** | `js/5.0_essays_responses/dashboard/response_status_handler.js` | Save/Publish/Delete status logic |
-| **JS** | `js/5.0_essays_responses/dashboard/challenge_link_handler.js` | Parent challenge association logic |
+| **JS** | `js/5.0_essays_responses/dashboard/challenge_link_handler.js` | Parent challenge association logic — reads and writes the `challenge_id` field (TEXT, FK → records(id)) on the response record via `PUT /api/admin/records/{id}` |
 | **JS** | `js/2.0_records/dashboard/picture_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Image integration |
 | **JS** | `js/2.0_records/dashboard/mla_source_handler.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Citation management |
 | **JS** | `js/2.0_records/dashboard/snippet_generator.js` | ⬅️ Consumed shared tool (owned by plan_dashboard_records_single): Abstract generator |
@@ -71,7 +73,7 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 | `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T4 registers the Challenge Response module with the dashboard router |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T9b routes all save, fetch, upload, and generation failures to the shared Status Bar |
 | `css/typography_colors.css` | `plan_dashboard_login_shell` | T2/T3 reference Providence CSS custom properties |
-| `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T5 reads response rows; T7 writes status changes |
+| `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T5 reads response rows; T7 writes status changes; `challenge_link_handler.js` reads/writes `challenge_id` (TEXT, FK → records(id)) on the response row |
 | `backend/scripts/snippet_generator.py` | `plan_backend_infrastructure` | T8 auto-generation button triggers this script via the API |
 | `backend/scripts/metadata_generator.py` | `plan_backend_infrastructure` | T9 auto-gen meta button triggers this script via the API |
 | `js/2.0_records/dashboard/picture_handler.js` | `plan_dashboard_records_single` | Included via `<script>` tag; calls `window.renderEditPicture()` |
@@ -143,6 +145,22 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 
 ---
 
+### T5b — Implement Sidebar Search
+
+- **File(s):** `js/5.0_essays_responses/dashboard/search_responses.js`
+- **Action:** Implement a sidebar search bar that performs real-time client-side filtering of the response list. Detailed behaviour:
+  1. The search input sits at the top of the Response Sidebar, above the *Academic* and *Popular* groupings, with placeholder text `"Filter responses by title..."`.
+  2. On each keystroke (debounced at 150ms), filter the sidebar list items by matching the search term against the response title (case-insensitive, fuzzy — characters must appear in order).
+  3. Non-matching items are hidden via CSS (`display: none`). Group headers (*Academic*, *Popular*) are hidden when they contain zero visible children.
+  4. When the search input is cleared, all items are restored and group headers reappear.
+  5. The search bar is a thin, unobtrusive input styled to match the sidebar aesthetic within `dashboard_challenge_response.css`.
+- **Dependencies:** `js/5.0_essays_responses/dashboard/display_challenge_response_data.js` (reads loaded sidebar items), `js/5.0_essays_responses/dashboard/dashboard_challenge_response.js` (orchestrator integration)
+- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+
+- [ ] Task complete
+
+---
+
 ### T6 — Include Markdown Editor (Shared Tool)
 
 - **File(s):** Include `js/5.0_essays_responses/dashboard/markdown_editor.js` via `<script>` tag — DO NOT create a local copy
@@ -157,6 +175,22 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 
 - **File(s):** `js/5.0_essays_responses/dashboard/response_status_handler.js`
 - **Action:** Implement the logical flow for saving, publishing, and deleting responses with automatic draft behaviour. Any modification to the response (content edits, image upload, MLA/snippet/metadata changes, challenge link changes) auto-saves with status set to draft. Only the explicit "Publish" button sets status to published. "Delete" removes the response from the database entirely. Interfacing with the backend response API.
+- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+
+- [ ] Task complete
+
+---
+
+### T7b — Implement Challenge Link Handler
+
+- **File(s):** `js/5.0_essays_responses/dashboard/challenge_link_handler.js`
+- **Action:** Implement the logic for displaying, editing, and persisting the parent challenge association for a response record. Detailed behaviour:
+  1. Display the current `challenge_id` (TEXT, FK → records(id)) — if the response was created via "Insert Response" from the Challenge dashboard, the field is pre-populated; otherwise it is empty and the admin can set or change it.
+  2. Provide a lookup input that lets the admin search for a challenge by title (case-insensitive, debounced) and select it, populating the `challenge_id` field with the selected challenge's ULID.
+  3. On change, auto-save the response as draft via `PUT /api/admin/records/{id}` with the updated `challenge_id`. The auto-save behaviour is coordinated with `response_status_handler.js` — any modification sets status to draft.
+  4. A visual badge or indicator shows whether a parent challenge is linked (e.g. "Linked to: Challenge Title" or "No parent challenge linked").
+  5. If the linked challenge is subsequently deleted, the field is set to NULL server-side and the UI shows "Parent challenge no longer exists".
+- **Dependencies:** `admin/backend/admin_api.py` (`PUT /api/admin/records/{id}` with `challenge_id` field), `response_status_handler.js` (draft auto-save coordination), `display_challenge_response_data.js` (reads current challenge_id)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
 - [ ] Task complete
@@ -189,6 +223,7 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 
 - **File(s):**
   - `js/5.0_essays_responses/dashboard/display_challenge_response_data.js`
+  - `js/5.0_essays_responses/dashboard/search_responses.js`
   - `js/5.0_essays_responses/dashboard/response_status_handler.js`
   - `js/5.0_essays_responses/dashboard/markdown_editor.js`
   - `js/5.0_essays_responses/dashboard/picture_handler.js`
@@ -198,19 +233,20 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
   - `js/5.0_essays_responses/dashboard/challenge_link_handler.js`
 - **Action:** Add structured error message generation at every key failure point across the JavaScript modules. Each error must surface a human-readable message to the dashboard Status Bar via `js/admin_core/error_handler.js`. Failure points to cover:
 
-  1. **Response List Fetch Failed** — `display_challenge_response_data.js` fetch of the sidebar response list fails or returns non-OK: `"Error: Unable to load response list. Please refresh and try again."`
-  2. **Response Content Fetch Failed** — `display_challenge_response_data.js` fetch of a selected response's content returns non-OK: `"Error: Unable to load response '{title}'. Please try again."`
-  3. **Response Save Failed** — any PUT to `/api/admin/records/{id}` returns non-OK: `"Error: Failed to save changes to '{title}'. Please try again."`
-  4. **Draft Failed** — `response_status_handler.js` PATCH to set draft status returns non-OK: `"Error: Failed to set '{title}' to Draft."`
-  5. **Publish Failed** — `response_status_handler.js` PATCH to publish returns non-OK: `"Error: Failed to publish '{title}'. Check required fields."`
-  6. **Delete Failed** — `response_status_handler.js` DELETE returns non-OK: `"Error: Failed to delete '{title}'. Please try again."`
-  7. **Markdown Preview Failed** — `markdown_editor.js` cannot parse the response content and render a live preview: `"Error: Markdown preview failed. Check response content for invalid syntax."`
-  8. **Image Upload Failed** — `picture_handler.js` POST to upload returns non-OK or file exceeds size/format limits: `"Error: Image upload failed for '{title}'. Max 250 KB PNG only."`
-  9. **Image Preview Failed** — `picture_handler.js` cannot render a preview from the selected file: `"Error: Unable to preview the selected image. Please choose a valid PNG file."`
-  10. **MLA Source Save Failed** — `mla_source_handler.js` PUT for bibliography returns non-OK: `"Error: Failed to save bibliography changes for '{title}'."`
-  11. **Challenge Link Failed** — `challenge_link_handler.js` PUT for parent challenge association returns non-OK: `"Error: Failed to link '{title}' to its parent challenge."`
-  12. **Snippet Generation Failed** — `snippet_generator.js` request to `snippet_generator.py` returns non-OK or times out: `"Error: Snippet generation failed for '{title}'. Please try again or enter manually."`
-  13. **Metadata Save Failed** — `metadata_handler.js` PUT for snippet/slug/meta returns non-OK: `"Error: Failed to save metadata for '{title}'."`
+  1. **Sidebar Search Error** — `search_responses.js` encounters a DOM mismatch: `"Search filter error. Please refresh the response list."`
+  2. **Response List Fetch Failed** — `display_challenge_response_data.js` fetch of the sidebar response list fails or returns non-OK: `"Error: Unable to load response list. Please refresh and try again."`
+  3. **Response Content Fetch Failed** — `display_challenge_response_data.js` fetch of a selected response's content returns non-OK: `"Error: Unable to load response '{title}'. Please try again."`
+  4. **Response Save Failed** — any PUT to `/api/admin/records/{id}` returns non-OK: `"Error: Failed to save changes to '{title}'. Please try again."`
+  5. **Draft Failed** — `response_status_handler.js` PATCH to set draft status returns non-OK: `"Error: Failed to set '{title}' to Draft."`
+  6. **Publish Failed** — `response_status_handler.js` PATCH to publish returns non-OK: `"Error: Failed to publish '{title}'. Check required fields."`
+  7. **Delete Failed** — `response_status_handler.js` DELETE returns non-OK: `"Error: Failed to delete '{title}'. Please try again."`
+  8. **Markdown Preview Failed** — `markdown_editor.js` cannot parse the response content and render a live preview: `"Error: Markdown preview failed. Check response content for invalid syntax."`
+  9. **Image Upload Failed** — `picture_handler.js` POST to upload returns non-OK or file exceeds size/format limits: `"Error: Image upload failed for '{title}'. Max 250 KB PNG only."`
+  10. **Image Preview Failed** — `picture_handler.js` cannot render a preview from the selected file: `"Error: Unable to preview the selected image. Please choose a valid PNG file."`
+  11. **MLA Source Save Failed** — `mla_source_handler.js` PUT for bibliography returns non-OK: `"Error: Failed to save bibliography changes for '{title}'."`
+  12. **Challenge Link Failed** — `challenge_link_handler.js` PUT for parent challenge association returns non-OK: `"Error: Failed to link '{title}' to its parent challenge."`
+  13. **Snippet Generation Failed** — `snippet_generator.js` request to `snippet_generator.py` returns non-OK or times out: `"Error: Snippet generation failed for '{title}'. Please try again or enter manually."`
+  14. **Metadata Save Failed** — `metadata_handler.js` PUT for snippet/slug/meta returns non-OK: `"Error: Failed to save metadata for '{title}'."`
 
   All errors must be routed through `js/admin_core/error_handler.js` and displayed in the Status Bar.
 
@@ -240,6 +276,8 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 - [ ] One function per file
 - [ ] File opens with three comment lines: trigger, main function, output
 - [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [ ] `search_responses.js` opens with three comment lines: trigger, main function, output
+- [ ] `search_responses.js` uses fuzzy matching and debounced input
 - [ ] Repeating UI elements injected via component injection pattern
 
 #### Python
@@ -261,7 +299,7 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement**: The core objective outlined in the summary has been fully met
+- [ ] **Achievement**: The core objective outlined in the summary has been fully met — response editor with sidebar search filtering
 - [ ] **Necessity**: The underlying reason/need for this plan has been resolved
 - [ ] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
 - [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
@@ -278,7 +316,7 @@ This plan implements the "Challenge Response" dashboard module, a dedicated CRUD
 | `documentation/detailed_module_sitemap.md` | Yes | Add new Challenge Response dashboard files under Module 5.0. |
 | `documentation/simple_module_sitemap.md` | No | High-level module structure remains unchanged. |
 | `documentation/site_map.md` | Yes | Run /sync_sitemap to track new response editor files. |
-| `documentation/data_schema.md` | No | No schema changes in this plan. |
+| `documentation/data_schema.md` | Yes | `challenge_id` (TEXT, FK → records(id)) added — verify it is documented under Responses & Debate Content. |
 | `documentation/vibe_coding_rules.md` | Yes | Updated shared-tool consistency rule to ownership model (§7). |
 | `documentation/style_mockup.html` | No | Style mockup is unaffected. |
 | `documentation/git_vps.md` | No | No deployment changes. |
