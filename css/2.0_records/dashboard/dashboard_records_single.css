@@ -1,0 +1,635 @@
+/* =============================================================================
+   THE JESUS WEBSITE — SINGLE RECORD DASHBOARD CSS
+   File:    css/2.0_records/dashboard/dashboard_records_single.css
+   Version: 1.2.0
+   Module:  2.0 — Records
+   Purpose: Multi-section form layout for the single record editor. Sticky
+            section navigator, grouped section blocks, dense form field styling,
+            image preview containers, chip/tag styling for verse references
+            and context links. All colours, fonts, and spacing reference
+            Providence CSS custom properties from typography.css.
+   Trigger: Loaded alongside dashboard_records_single.html when the Single
+            Record module is activated.
+============================================================================= */
+
+/* =============================================================================
+   1. FUNCTION BAR — sticky top bar with Save Draft / Publish / Delete
+============================================================================= */
+.function-bar {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-bg-secondary);
+    border-bottom: var(--border-width-thin) solid var(--color-border-strong);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-wrap: wrap;
+}
+
+.function-bar .btn {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    padding: var(--space-1) var(--space-3);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-fast),
+                border-color var(--transition-fast),
+                color var(--transition-fast);
+}
+
+.btn--draft {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+}
+.btn--draft:hover,
+.btn--draft:focus-visible {
+    background-color: var(--color-bg-tertiary);
+    border-color: var(--color-border-strong);
+}
+
+.btn--publish {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+    border-color: var(--color-accent-primary);
+}
+.btn--publish:hover,
+.btn--publish:focus-visible {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+.btn--delete {
+    background-color: var(--color-bg-primary);
+    color: var(--color-accent-primary);
+    border-color: var(--color-border-accent);
+}
+.btn--delete:hover,
+.btn--delete:focus-visible {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+}
+
+.btn--secondary {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    border: var(--border-width-thin) solid var(--color-border);
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    padding: var(--space-1) var(--space-2);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+}
+.btn--secondary:hover,
+.btn--secondary:focus-visible {
+    background-color: var(--color-border);
+}
+
+/* =============================================================================
+   2. SECTION NAVIGATOR — sticky horizontal link row
+============================================================================= */
+.section-nav {
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    background-color: var(--color-bg-secondary);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    position: sticky;
+    top: 56px; /* sits below function bar */
+    z-index: 9;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+
+.section-nav__link {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding: var(--space-1) var(--space-2);
+    border: var(--border-width-thin) solid transparent;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast),
+                border-color var(--transition-fast),
+                background-color var(--transition-fast);
+}
+
+.section-nav__link:hover,
+.section-nav__link:focus-visible {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border-color: var(--color-border);
+}
+
+.section-nav__link--active {
+    color: var(--color-accent-primary);
+    border-color: var(--color-border-accent);
+    background-color: var(--color-bg-primary);
+}
+
+/* =============================================================================
+   3. FORM SECTIONS — grouped blocks with clear visual separation
+============================================================================= */
+.form-section {
+    padding: var(--space-3);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.form-section__heading {
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-3) 0;
+    padding-bottom: var(--space-1);
+    border-bottom: var(--border-width-base) solid var(--color-border-accent);
+}
+
+/* =============================================================================
+   4. FORM FIELDS — dense text inputs, selects, textareas
+============================================================================= */
+.form-field {
+    margin-bottom: var(--space-2);
+}
+
+.form-field:last-child {
+    margin-bottom: 0;
+}
+
+.form-field__label {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: var(--space-1);
+}
+
+.form-field__input {
+    display: block;
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast);
+    box-sizing: border-box;
+}
+
+.form-field__input:focus {
+    outline: none;
+    border-color: var(--color-border-accent);
+}
+
+.form-field__input--readonly {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-muted);
+    cursor: default;
+}
+
+.form-field__input--readonly:focus {
+    border-color: var(--color-border);
+}
+
+.form-field__select {
+    display: block;
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+    box-sizing: border-box;
+}
+
+.form-field__select:focus {
+    outline: none;
+    border-color: var(--color-border-accent);
+}
+
+.form-field__textarea {
+    display: block;
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color var(--transition-fast);
+    box-sizing: border-box;
+}
+
+.form-field__textarea:focus {
+    outline: none;
+    border-color: var(--color-border-accent);
+}
+
+.form-field__textarea--mono {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.form-field__hint {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin-top: 4px;
+}
+
+.form-field__inline {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.form-field__file {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+}
+
+/* Radio group for status toggle */
+.form-field__radio-group {
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+.form-field__radio-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.form-field__radio {
+    accent-color: var(--color-accent-primary);
+    cursor: pointer;
+}
+
+/* =============================================================================
+   5. PICTURE PREVIEW — full + thumbnail side-by-side
+============================================================================= */
+.picture-preview-row {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+}
+
+.picture-preview {
+    background-color: var(--color-bg-tertiary);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    overflow: hidden;
+}
+
+.picture-preview--full {
+    max-width: 800px;
+}
+
+.picture-preview--thumb {
+    max-width: 200px;
+    min-height: 100px;
+}
+
+.picture-preview__placeholder {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    text-align: center;
+    padding: var(--space-2);
+}
+
+.picture-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* =============================================================================
+   6. PARAGRAPH EDITOR — dynamic textarea rows
+============================================================================= */
+.paragraph-editor {
+    margin-bottom: var(--space-2);
+}
+
+.paragraph-editor__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-1);
+    align-items: start;
+    margin-bottom: var(--space-1);
+}
+
+.paragraph-editor__textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    resize: vertical;
+    min-height: 60px;
+    transition: border-color var(--transition-fast);
+    box-sizing: border-box;
+}
+
+.paragraph-editor__textarea:focus {
+    outline: none;
+    border-color: var(--color-border-accent);
+}
+
+.paragraph-editor__remove {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    background: none;
+    border: var(--border-width-thin) solid transparent;
+    cursor: pointer;
+    padding: var(--space-1);
+    line-height: 1;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast),
+                border-color var(--transition-fast);
+}
+
+.paragraph-editor__remove:hover {
+    color: var(--color-accent-primary);
+    border-color: var(--color-border-accent);
+}
+
+.paragraph-editor__add {
+    margin-top: var(--space-1);
+}
+
+/* =============================================================================
+   7. VERSE BUILDER — Bible book/chapter/verse chip UI
+============================================================================= */
+.verse-builder {
+    margin-bottom: var(--space-3);
+}
+
+.verse-builder__heading {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-1) 0;
+}
+
+.verse-builder__inputs {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: var(--space-1);
+    align-items: end;
+    margin-bottom: var(--space-2);
+}
+
+.verse-builder__select,
+.verse-builder__input {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    box-sizing: border-box;
+}
+
+.verse-builder__select:focus,
+.verse-builder__input:focus {
+    outline: none;
+    border-color: var(--color-border-accent);
+}
+
+.verse-builder__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    min-height: 32px;
+    padding: var(--space-1);
+    background-color: var(--color-bg-tertiary);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+}
+
+/* =============================================================================
+   8. CHIPS / TAGS — verse references, context links, URL pairs
+============================================================================= */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border-strong);
+    padding: 2px var(--space-1);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+
+.chip__remove {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    transition: color var(--transition-fast);
+}
+
+.chip__remove:hover {
+    color: var(--color-accent-primary);
+}
+
+/* =============================================================================
+   9. MLA BIBLIOGRAPHY EDITOR — type-toggled forms
+============================================================================= */
+.bibliography-editor {
+    margin-bottom: var(--space-3);
+}
+
+.bibliography-editor__entry {
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.bibliography-editor__type-select {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+    cursor: pointer;
+}
+
+.bibliography-editor__fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-1) var(--space-2);
+}
+
+.bibliography-editor__field-full {
+    grid-column: 1 / -1;
+}
+
+.bibliography-editor__remove {
+    margin-top: var(--space-1);
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    color: var(--color-accent-primary);
+    background: none;
+    border: var(--border-width-thin) solid var(--color-border-accent);
+    cursor: pointer;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast),
+                color var(--transition-fast);
+}
+
+.bibliography-editor__remove:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+}
+
+/* =============================================================================
+   10. CONTEXT LINKS EDITOR — slug + type chip management
+============================================================================= */
+.context-links-editor {
+    margin-bottom: var(--space-3);
+}
+
+.context-links-editor__inputs {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: var(--space-1);
+    align-items: end;
+    margin-bottom: var(--space-2);
+}
+
+.context-links-editor__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    min-height: 32px;
+    padding: var(--space-1);
+    background-color: var(--color-bg-tertiary);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+}
+
+/* =============================================================================
+   11. URL ARRAY EDITOR — label/URL pair editor
+============================================================================= */
+.url-array-editor {
+    margin-top: var(--space-3);
+}
+
+.url-array-editor__row {
+    display: grid;
+    grid-template-columns: 1fr 2fr auto;
+    gap: var(--space-1);
+    align-items: end;
+    margin-bottom: var(--space-1);
+}
+
+.url-array-editor__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-top: var(--space-1);
+}
+
+/* =============================================================================
+   12. SNIPPET GENERATE AREA
+============================================================================= */
+#snippet-generate-area {
+    margin-top: var(--space-2);
+}
+
+/* =============================================================================
+   13. RESPONSIVE — collapse picture preview row on narrow viewports
+============================================================================= */
+@media (max-width: 640px) {
+    .picture-preview-row {
+        grid-template-columns: 1fr;
+    }
+
+    .picture-preview--thumb {
+        max-width: 100%;
+    }
+
+    .bibliography-editor__fields {
+        grid-template-columns: 1fr;
+    }
+
+    .verse-builder__inputs {
+        grid-template-columns: 1fr;
+    }
+
+    .context-links-editor__inputs {
+        grid-template-columns: 1fr;
+    }
+
+    .url-array-editor__row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-field__inline {
+        grid-template-columns: 1fr;
+    }
+}

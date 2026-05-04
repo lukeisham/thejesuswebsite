@@ -1,0 +1,381 @@
+// Trigger:  Called by dashboard_app.js as window.renderRecordsSingle() when the
+//           user navigates to the Single Record module (row click from All Records
+//           or context link from another editor).
+// Main:    renderRecordsSingle() — sets full-width layout, parses record ID from
+//           URL/module context, loads the HTML form, fetches record data, initialises
+//           all 17 sub-editor components, wires the section navigator, and activates
+//           status buttons with keyboard shortcuts.
+// Output:  Fully interactive single-record editor rendered in the Providence main
+//           work area with all 7 sections populated and ready for editing.
+
+"use strict";
+
+/* =============================================================================
+   THE JESUS WEBSITE — SINGLE RECORD DASHBOARD ORCHESTRATOR
+   File:    js/2.0_records/dashboard/dashboard_records_single.js
+   Version: 1.2.0
+   Module:  2.0 — Records
+   Purpose: Initialises the single record edit module and manages the full
+            form lifecycle: layout setup, HTML injection, record fetching,
+            sub-editor initialisation, section navigation, dirty-checking,
+            and Save Draft / Publish / Delete coordination.
+============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   SCRIPT DEPENDENCIES — all JS files that must be loaded before editors init
+   These are injected dynamically when the module loads. Consumer plans that
+   include individual tools via <script> tag will find them already loaded.
+----------------------------------------------------------------------------- */
+const RECORDS_SINGLE_SCRIPTS = [
+  "../../js/2.0_records/dashboard/taxonomy_selector.js",
+  "../../js/2.0_records/dashboard/map_fields_handler.js",
+  "../../js/2.0_records/dashboard/external_refs_handler.js",
+  "../../js/2.0_records/dashboard/parent_selector.js",
+  "../../js/2.0_records/dashboard/url_array_editor.js",
+  "../../js/2.0_records/dashboard/mla_source_handler.js",
+  "../../js/2.0_records/dashboard/context_link_handler.js",
+  "../../js/2.0_records/dashboard/picture_handler.js",
+  "../../js/2.0_records/dashboard/metadata_handler.js",
+  "../../js/2.0_records/dashboard/description_editor.js",
+  "../../js/2.0_records/dashboard/verse_builder.js",
+  "../../js/2.0_records/dashboard/snippet_generator.js",
+  "../../js/2.0_records/dashboard/display_single_record_data.js",
+  "../../js/2.0_records/dashboard/record_status_handler.js",
+];
+
+/* -----------------------------------------------------------------------------
+   MAIN: renderRecordsSingle
+   Entry point called by dashboard_app.js loadModule('records-single').
+----------------------------------------------------------------------------- */
+async function renderRecordsSingle(recordId) {
+  // --- 1. Layout: full-width canvas, no sidebar ---
+  if (typeof window._setLayoutColumns === "function") {
+    window._setLayoutColumns(false, "1fr");
+  }
+
+  // --- 2. Show loading state ---
+  if (typeof window._setColumn === "function") {
+    window._setColumn(
+      "main",
+      `
+            <div class="state-loading">
+                <span class="state-loading__label">Loading record editor…</span>
+            </div>
+        `,
+    );
+  }
+
+  // --- 3. Resolve record ID ---
+  const resolvedId = _resolveRecordId(recordId);
+  if (!resolvedId) {
+    if (typeof window._setColumn === "function") {
+      window._setColumn(
+        "main",
+        `
+                <div class="state-error">
+                    <span class="state-error__label">Error: No record ID specified.</span>
+                    <p>Please select a record from the All Records list or provide a valid record ID.</p>
+                </div>
+            `,
+      );
+    }
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: No record ID specified. Cannot load record editor.",
+      );
+    }
+    return;
+  }
+
+  // --- 4. Load HTML template into the main column ---
+  try {
+    const htmlResponse = await fetch(
+      "../../admin/frontend/dashboard_records_single.html",
+    );
+    if (!htmlResponse.ok) {
+      throw new Error(`Failed to load HTML template: ${htmlResponse.status}`);
+    }
+    const html = await htmlResponse.text();
+
+    if (typeof window._setColumn === "function") {
+      window._setColumn("main", html);
+    }
+  } catch (err) {
+    console.error("[dashboard_records_single] HTML load failed:", err);
+    if (typeof window._setColumn === "function") {
+      window._setColumn(
+        "main",
+        `
+                <div class="state-error">
+                    <span class="state-error__label">Error loading the record editor.</span>
+                    <p>Please refresh the page and try again.</p>
+                </div>
+            `,
+      );
+    }
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Error: Failed to load the record editor interface.");
+    }
+    return;
+  }
+
+  // --- 5. Inject all required JS dependencies ---
+  await _injectScripts(RECORDS_SINGLE_SCRIPTS);
+
+  // --- 6. Initialise all sub-editor components ---
+  await _initialiseAllEditors(resolvedId);
+
+  // --- 7. Wire section navigator for smooth-scroll jumping ---
+  _wireSectionNavigator();
+
+  // --- 8. Wire status buttons (Save Draft, Publish, Delete) ---
+  if (typeof window.wireStatusButtons === "function") {
+    window.wireStatusButtons();
+  }
+
+  // --- 9. Surface ready state ---
+  if (typeof window.surfaceError === "function") {
+    window.surfaceError("Record editor ready.");
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: Resolve record ID from arguments, URL, or module context
+----------------------------------------------------------------------------- */
+function _resolveRecordId(recordId) {
+  // If passed directly as argument
+  if (recordId && typeof recordId === "string" && recordId.length > 0) {
+    return recordId;
+  }
+
+  // Check for a global set by All Records or context links
+  if (
+    typeof window._selectedRecordId === "string" &&
+    window._selectedRecordId
+  ) {
+    return window._selectedRecordId;
+  }
+
+  // Try parsing from URL: /admin/records/{id}
+  const pathMatch = window.location.pathname.match(
+    /\/admin\/records\/([A-Za-z0-9]+)/,
+  );
+  if (pathMatch) {
+    return pathMatch[1];
+  }
+
+  // Try query parameter: ?recordId=...
+  const params = new URLSearchParams(window.location.search);
+  const queryId = params.get("recordId") || params.get("id");
+  if (queryId) {
+    return queryId;
+  }
+
+  return null;
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: Inject multiple JS scripts sequentially
+----------------------------------------------------------------------------- */
+function _injectScripts(scriptPaths) {
+  return Promise.all(
+    scriptPaths.map(function (src) {
+      return new Promise(function (resolve, reject) {
+        // Skip if already loaded
+        const existing = document.querySelector('script[src="' + src + '"]');
+        if (existing) {
+          resolve();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = false;
+        script.onload = function () {
+          resolve();
+        };
+        script.onerror = function () {
+          console.warn(
+            "[dashboard_records_single] Failed to load script:",
+            src,
+          );
+          resolve(); // Continue even if one fails
+        };
+        document.head.appendChild(script);
+      });
+    }),
+  );
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: Initialise all editor sub-components in sequence
+----------------------------------------------------------------------------- */
+async function _initialiseAllEditors(recordId) {
+  // Load the CSS first so styles are ready when components render
+  _injectStylesheet(
+    "../../css/2.0_records/dashboard/dashboard_records_single.css",
+  );
+
+  // ---- Shared Tool Initialisation (order matters for dependencies) ----
+
+  // Taxonomy selectors
+  if (typeof window.renderTaxonomySelectors === "function") {
+    window.renderTaxonomySelectors();
+  }
+
+  // Map fields
+  if (typeof window.renderMapFields === "function") {
+    window.renderMapFields();
+  }
+
+  // External refs
+  if (typeof window.renderExternalRefs === "function") {
+    window.renderExternalRefs();
+  }
+
+  // Parent selector
+  if (typeof window.renderParentSelector === "function") {
+    window.renderParentSelector();
+  }
+
+  // URL array editor
+  if (typeof window.renderUrlArrayEditor === "function") {
+    window.renderUrlArrayEditor("url-array-editor-container");
+  }
+
+  // Bibliography editor
+  if (typeof window.renderEditBibliography === "function") {
+    window.renderEditBibliography("bibliography-editor-container");
+  }
+
+  // Context links editor
+  if (typeof window.renderEditLinks === "function") {
+    window.renderEditLinks("context-links-container", []);
+  }
+
+  // Picture handler
+  if (typeof window.renderEditPicture === "function") {
+    window.renderEditPicture("picture-preview-container", recordId);
+  }
+
+  // Metadata handler
+  if (typeof window.renderMetadataFooter === "function") {
+    window.renderMetadataFooter("metadata-footer-container", recordId);
+  }
+
+  // ---- Fetch and hydrate record data ----
+  let record = null;
+  if (typeof window.fetchAndDisplaySingleRecord === "function") {
+    record = await window.fetchAndDisplaySingleRecord(recordId);
+  }
+
+  // Store the record title globally for error messages in all sub-components
+  if (record && record.title) {
+    window._recordTitle = record.title;
+    window._recordSlug = record.slug || recordId;
+  } else {
+    window._recordTitle = "";
+    window._recordSlug = recordId;
+  }
+
+  // Store the loaded record for dirty-checking
+  window._loadedRecordData = record;
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: Wire the section navigator for smooth-scroll between sections
+----------------------------------------------------------------------------- */
+function _wireSectionNavigator() {
+  const navLinks = document.querySelectorAll(".section-nav__link");
+
+  navLinks.forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      const targetId = link.getAttribute("href");
+      if (!targetId) return;
+
+      const target = document.querySelector(targetId);
+      if (target) {
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+
+      // Highlight active nav link
+      navLinks.forEach(function (l) {
+        l.classList.remove("section-nav__link--active");
+      });
+      link.classList.add("section-nav__link--active");
+    });
+  });
+
+  // Scroll spy: highlight the nav link corresponding to the currently visible section
+  _setupScrollSpy(navLinks);
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: Scroll spy — update active nav link based on scroll position
+----------------------------------------------------------------------------- */
+function _setupScrollSpy(navLinks) {
+  const mainColumn = document.getElementById("providence-col-main");
+  if (!mainColumn) return;
+
+  const sections = document.querySelectorAll(".form-section");
+
+  mainColumn.addEventListener(
+    "scroll",
+    function () {
+      let currentSection = null;
+
+      sections.forEach(function (section) {
+        const rect = section.getBoundingClientRect();
+        // Consider a section "active" when its top is near the top of the viewport
+        if (rect.top <= 200) {
+          currentSection = section.id;
+        }
+      });
+
+      if (currentSection) {
+        navLinks.forEach(function (link) {
+          link.classList.remove("section-nav__link--active");
+          if (link.getAttribute("href") === "#" + currentSection) {
+            link.classList.add("section-nav__link--active");
+          }
+        });
+      }
+    },
+    { passive: true },
+  );
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: Dynamically inject a CSS stylesheet if not already present
+----------------------------------------------------------------------------- */
+function _injectStylesheet(href) {
+  // Avoid duplicate injection
+  const existing = document.querySelector('link[href="' + href + '"]');
+  if (existing) return;
+
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.appendChild(link);
+}
+
+/* -----------------------------------------------------------------------------
+   PUBLIC: setRecordId
+   Allows external modules (e.g., All Records list, context links) to set the
+   current record ID before calling renderRecordsSingle().
+----------------------------------------------------------------------------- */
+function setRecordId(recordId) {
+  window._selectedRecordId = recordId;
+}
+
+/* -----------------------------------------------------------------------------
+   GLOBAL EXPOSURE
+   renderRecordsSingle is the canonical entry point registered in
+   dashboard_app.js MODULE_RENDERERS as 'records-single'.
+----------------------------------------------------------------------------- */
+window.renderRecordsSingle = renderRecordsSingle;
+window.setRecordId = setRecordId;

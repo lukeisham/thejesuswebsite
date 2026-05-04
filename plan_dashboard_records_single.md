@@ -2,7 +2,7 @@
 name: plan_dashboard_records_single
 version: 1.2.0
 module: 2.0 — Records
-status: draft
+status: complete
 created: 2026-05-02
 ---
 
@@ -227,7 +227,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 | Dependency | Owned By | Relationship |
 | :--- | :--- | :--- |
 | `admin/backend/admin_api.py` | `plan_backend_infrastructure` | T4 GET record; T5 PUT/DELETE record; T6 POST picture; T9 POST snippet generate |
-| `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers module with dashboard router; calls `_setGridColumns()` for single-record layout |
+| `js/7.0_system/dashboard/dashboard_app.js` | `plan_dashboard_login_shell` | T3 registers module with dashboard router; calls `_setLayoutColumns()` (no sidebar: `_setLayoutColumns(false, "1fr")`) |
 | `js/admin_core/error_handler.js` | `plan_dashboard_login_shell` | T18 routes all failures to shared Status Bar |
 | `css/typography_colors.css` | `plan_dashboard_login_shell` | T2 references Providence CSS custom properties |
 | `database/database.sqlite` (`records` table) | `plan_backend_infrastructure` | T4 reads single row; T5 writes status; T6 writes picture_bytes/thumbnail |
@@ -280,7 +280,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 - **Dependencies:** `admin/backend/admin_api.py` (snippet trigger endpoint, record update endpoint), `backend/scripts/snippet_generator.py`, `backend/scripts/metadata_generator.py`
 - **Vibe Rule(s):** 1 function per JS file · Vanilla ES6+ · window.* API contract · Explicit logic
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -290,7 +290,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 - **Action:** Create the dense multi-section form structure for single record editing, including the section navigator with anchors for all 7 sections (Core IDs, Images, Description, Taxonomy, Verses, External Refs, Metadata & Status). Each section is a `<section>` with a semantic `id` hook matching the navigator. No fields from other modules (rankings, responses, blogposts, news, essays, ordo_salutis) are included.
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline styles · No inline scripts · Predictable Hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -305,7 +305,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   - Chip/tag styling for verse references and context links
 - **Vibe Rule(s):** Grid for everything · CSS Variables · Vanilla Excellence · User Comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -319,10 +319,10 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   - Wire the section navigator for smooth-scroll jumping between sections
   - Manage dirty-checking: track which fields have been modified
   - Coordinate Save Draft / Publish / Delete via `record_status_handler.js`
-  - Call `_setGridColumns()` to request the Providence 3-column layout (single record uses default 1fr/2fr)
+  - Call `_setLayoutColumns(false, "1fr")` to collapse the sidebar and use the full canvas width for the single-record form
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -340,7 +340,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   - Metadata: `metadata_json` (read-only collapsed), `created_at` (read-only), `updated_at` (read-only), `status` (draft/published toggle)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -350,7 +350,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 - **Action:** Implement the logical flow for Save Draft, Publish, and Delete operations with automatic draft behaviour. Any modification to any field auto-saves with status set to `draft`. Only the explicit "Publish" button sets status to `published`. "Delete" removes the record from the database entirely. On save, `updated_at` is auto-set server-side.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -360,7 +360,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 - **Action:** Implement the client-side logic for image file selection, full-size preview (max 800px width), thumbnail preview (200px auto-derivative), picture name text field, and base64/blob submission. Enforce PNG-only and ≤ 250 KB client-side before upload.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -375,7 +375,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   - Add/remove citation entries
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -385,7 +385,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 - **Action:** Implement the dynamic UI logic for associating and displaying context links. Each link has a slug and a type (record/essay/blog). Slug input with type dropdown. Links displayed as removable chips. Array serialized to JSON for save.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -396,7 +396,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 - **Dependencies:** `admin/backend/admin_api.py`, `backend/scripts/snippet_generator.py`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -412,7 +412,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   - Shared tool contract: `window.renderDescriptionEditor(containerId, paragraphs)`, `window.collectDescription()`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+ · window.* API
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -426,7 +426,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   Dropdowns render the currently selected value and emit changes into the form's dirty-checking system.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -438,7 +438,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   - `geo_id` integer input with validation (64-bit int range)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -455,7 +455,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   - Two instances: one for primary, one for secondary
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+ · window.* API
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -465,7 +465,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 - **Action:** Implement ULID text input for `parent_id`. Validates format (ULID pattern). Optionally fetches the parent record title from the API to display next to the input for confirmation.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -475,7 +475,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 - **Action:** Implement text inputs for `iaa`, `pledius`, and `manuscript` fields. Each is a single-line text input with label. No special formatting required — free-text external reference identifiers.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -499,7 +499,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
   - Slug auto-generation trigger that calls `metadata_generator.py`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -532,7 +532,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 
 - **Vibe Rule(s):** Logic is explicit and self-documenting · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -541,40 +541,36 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### HTML
-- [ ] Semantic tags used — no `<div>` soup; `<section>` for form groups, `<nav>` for section navigator
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup; `<section>` for form groups, `<nav>` for section navigator
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 #### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
-- [ ] Section navigator uses sticky positioning
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] Section navigator uses sticky positioning
 
 #### JavaScript
-- [ ] One function per file
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
-- [ ] All shared tools expose `window.*` API contracts
+- [x] One function per file
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
+- [x] All shared tools expose `window.*` API contracts
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] N/A — no Python files created in this plan (Python files are owned by plan_backend_infrastructure)
 
 #### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
-- [ ] All schema fields specified in the plan are accounted for in the form
+- [x] N/A — no SQL files created in this plan (database owns schema)
 
 #### Shared-Tool Ownership
-- [ ] All shared tools expose a single `window.*` function each — no duplicate files created in consumer module directories
-- [ ] Consumer plans reference these files via `<script>` tag in their HTML, not by copying the source
-- [ ] Each file opens with a comment stating "This is the authoritative copy — consumed by [list of consumer plans]"
-- [ ] `description_editor.js` and `verse_builder.js` are newly published as shared tools consumed by downstream plans
+- [x] All shared tools expose a single `window.*` function each — no duplicate files created in consumer module directories
+- [x] Consumer plans reference these files via `<script>` tag in their HTML, not by copying the source
+- [x] Each file opens with a comment stating "This is the authoritative copy — consumed by [list of consumer plans]"
+- [x] `description_editor.js` and `verse_builder.js` are newly published as shared tools consumed by downstream plans
 
 ---
 

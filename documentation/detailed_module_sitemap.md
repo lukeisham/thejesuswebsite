@@ -432,7 +432,7 @@ js/7.0_system/
 └── dashboard/
     ├── dashboard_orchestrator.js        <-- Main app initialization & session check
     ├── load_middleware.js               <-- Session page guard: verifyAdminSession()
-    ├── dashboard_app.js                 <-- Module router: loadModule(), _setGridColumns()
+    ├── dashboard_app.js                 <-- Module router: loadModule(), _setLayoutColumns()
     ├── dashboard_universal_header.js    <-- Header injection & logout logic
     ├── display_dashboard_cards.js       <-- Module navigation card rendering
     ├── display_error_footer.js          <-- Universal status/error log stream UI
