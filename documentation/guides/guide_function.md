@@ -1,7 +1,7 @@
 ---
 name: guide_function.md
 purpose: Visual ASCII representations of module functions 
-version: 2.0.0
+version: 2.1.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, data_schema.md, detailed_module_sitemap.md]
 ---
 
@@ -882,76 +882,107 @@ the final ranked order to the live frontend.
 ```text
  +-------------------------------------------------------+
  |        Admin Portal: dashboard_app.js                 |
- |   Routing -> text-blog (Blog Posts tab)               |
+ |   Routing -> loadModule("blog-posts")                 |
+ |   Calls window.renderBlogPosts()                      |
  +-------------------------------------------------------+
                          |
                          v
  +-------------------------------------------------------+
- |   Direct single-pane call:                            |
- |   window.renderEditBlogpost("admin-canvas")           |
- |   (protected by typeof guard)                         |
- +-------------------------------------------------------+
-                         |
-                         v
- +-------------------------------------------------------+
- |   edit_blogpost.js                                    |
+ |   dashboard_blog_posts.js (Orchestrator)               |
  |                                                       |
- |  On mount: GET /api/admin/blogposts                   |
- |    -> SELECT id, title, created_at, blogposts         |
+ |  1. Sets layout: _setLayoutColumns(false, '1fr')      |
+ |  2. Fetches HTML template:                            |
+ |     GET /admin/frontend/dashboard_blog_posts.html     |
+ |  3. Injects into main column via _setColumn()         |
+ |  4. Initialises sub-modules:                          |
+ |     - displayBlogPostsList() — sidebar population     |
+ |     - initMarkdownEditor() — markdown WYSIWYG         |
+ |     - initBlogPostStatusHandler() — Save/Pub/Del      |
+ |  5. Wires shared tools (picture, MLA, links, etc.)    |
+ +-------------------------------------------------------+
+                         |
+                         v
+ +-------------------------------------------------------+
+ |   display_blog_posts_data.js                          |
+ |                                                       |
+ |  Loads sidebar: GET /api/admin/blogposts              |
+ |    -> SELECT id, title, slug, snippet, blogposts,      |
+ |       created_at, updated_at, status                  |
  |       FROM records WHERE blogposts IS NOT NULL        |
  |       ORDER BY created_at DESC                        |
  |                                                       |
- |  Renders 3-column dashboard layout:                   |
+ |  Separates into Published / Drafts groups             |
+ |  Clicking a post -> loadBlogPostContent(id, title)    |
+ |    GET /api/admin/records/{id}                        |
+ |    Populates: title, markdown (via setMarkdownContent),|
+ |    snippet, slug, metadata, bibliography, links        |
+ +-------------------------------------------------------+
+                         |
+                         v
+ +-------------------------------------------------------+
+ |   Split-Pane Blog Editor                              |
  |                                                       |
- |  COL 1                    | COL 2               | COL 3 — BLOG POST        |
- |  [Save Post]              | [ Existing posts:   | Publish Date: [______]   |
- |  [Discard]                | "Jesus and History" | Title:        [______]   |
- |  [Delete Post]            |   2025-01-10        | Author:       [______]   |
- |  [+ New Post]             |   [Edit] [Delete]   | Body:                   |
- |                           | "The Empty Tomb"    | [WYSIWYG / Markdown    |
- |                           |   2024-12-03        |  editor                ]|
- |                           |   [Edit] [Delete]   |                         |
+ |  Sidebar (260px)           | Main Editor Area         |
+ |  ┌──────────────────┐     | ┌─────────────────────┐  |
+ |  │ *Published*       │     | │ Title: [_________]  │  |
+ |  │ - Post 1          │     | │ [B][I][U][Link]...  │  |
+ |  │ - Post 2          │     | │ ┌─────────────────┐ │  |
+ |  │ *Drafts*          │     | │ │ Markdown Input  │ │  |
+ |  │ - Draft A         │     | │ │                 │ │  |
+ |  │ - Draft B         │     | │ └─────────────────┘ │  |
+ |  └──────────────────┘     | │ ┌─────────────────┐ │  |
+ |                           | │ │ Live Preview    │ │  |
+ |                           | │ └─────────────────┘ │  |
+ |                           | │ Snippet: [_______]  │  |
+ |                           | │ MLA Sources         │  |
+ |                           | │ Context Links       │  |
+ |                           | │ Picture Upload      │  |
+ |                           | │ Metadata Footer     │  |
+ |                           | └─────────────────────┘  |
  +-------------------------------------------------------+
                          |
              +-----------+-----------+
-             |                       |
-             v                       v
- +-------------------------+  +---------------------------+
- |  Save: PUT /api/admin/  |  Delete: DELETE /api/admin/ |
- |  records/{id}            |  records/{id}/blogpost      |
- |  Body: { blogposts:      |                             |
- |    { "publish_date":     |  -> Clears blogposts field  |
- |      "2025-01-10",       |     on the record           |
- |      "title": "...",     |                             |
- |      "author": "...",    |                             |
- |      "body": "..."       |                             |
- |    }                     |                             |
- |  }                       |                             |
- +-------------------------+  +---------------------------+
-             |                       |
+             |           |           |
+             v           v           v
+ +------------------+ +------------------+ +------------------+
+ | Save:            | | Publish:         | | Delete:          |
+ | PUT /api/admin/  | | PUT /api/admin/  | | DELETE /api/admin|
+ | records/{id}     | | records/{id}     | | /records/{id}    |
+ | status: 'draft'  | | status:          | |                  |
+ | blogposts: (...) | |   'published'    | | Removes record   |
+ |                  | | Validates title  | | Confirms first   |
+ | Checks dirty     | | & blogposts      | | Clears editor    |
+ | state first      | | non-empty        | | Refreshes list   |
+ +------------------+ +------------------+ +------------------+
+             |           |           |
              +-------+------+--------+
-                     |      |
-                     v      v
+                     |
+                     v
  +-------------------------------------------------------+
  |               SQLite Database                         |
- |    blogposts column (JSON Blob) — full CRUD           |
+ |    blogposts column (TEXT) — full markdown content    |
+ |    bibliography (JSON Blob) — MLA citation entries    |
+ |    context_links (JSON Blob) — {slug, type} chips     |
+ |    snippet (TEXT) — auto-generated summary            |
  +-------------------------------------------------------+
                      |
                      v
  +-------------------------------------------------------+
- |   Frontend re-render: editor clears or loads post     |
- |   List refreshes to reflect changes                   |
+ |   Frontend re-render:                                 |
+ |   - Sidebar list refreshes to reflect status changes  |
+ |   - Editor clears (delete) or stays (save/publish)    |
+ |   - Status bar shows success/error message            |
  +-------------------------------------------------------+
                      |
                      v
  +-------------------------------------------------------+
- |  WASM Query (public side):                            |
- |    SELECT blogposts FROM records                      |
+ |  Public blog feed reads blogposts column:             |
+ |    SELECT ... FROM records                            |
  |    WHERE blogposts IS NOT NULL                        |
- |    ORDER BY json_extract(blogposts,                    |
- |             '$.publish_date') DESC                     |
+ |      AND status = 'published'                         |
+ |    ORDER BY created_at DESC                           |
  |                                                       |
- |  list_blogitem.js renders blog feed (§6.3 Public)    |
+ |  Frontend renders markdown → HTML for visitors        |
  +-------------------------------------------------------+
 ```
 

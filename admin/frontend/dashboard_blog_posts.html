@@ -1,0 +1,359 @@
+<!doctype html>
+<!-- =============================================================================
+   THE JESUS WEBSITE — BLOG POSTS DASHBOARD EDITOR
+   File:    admin/frontend/dashboard_blog_posts.html
+   Version: 1.0.0
+   Module:  6.0 — News & Blog
+   Purpose: Split-pane WYSIWYG editor for authoring and managing historical and
+            theological blog updates. Features a scrollable sidebar of published
+            and draft posts, a markdown-based editor with live preview, and
+            integrated metadata management (MLA sources, context links, and
+            pictures). Follows the 'providence' design system for consistent
+            archival-quality blog content production.
+   Trigger: Loaded by dashboard_app.js when user clicks "Blog Posts" card or tab.
+            Injected via _setColumn() into the Providence main work area.
+============================================================================= -->
+
+<!-- =============================================================================
+   FUNCTION BAR — Blog Post Status Actions
+============================================================================= -->
+<section
+    id="blog-function-bar"
+    class="function-bar function-bar--blog"
+    aria-label="Blog post actions"
+>
+    <div
+        class="function-bar__status-group"
+        role="group"
+        aria-label="Blog post status actions"
+    >
+        <button id="btn-save-draft" class="btn btn--draft" type="button">
+            Save
+        </button>
+        <button id="btn-publish" class="btn btn--publish" type="button">
+            Publish
+        </button>
+        <button id="btn-delete" class="btn btn--delete" type="button">
+            Delete
+        </button>
+    </div>
+</section>
+
+<!-- =============================================================================
+   SPLIT-PANE EDITOR LAYOUT
+   Sidebar (Published + Drafts blog post lists) | WYSIWYG Editor
+============================================================================= -->
+<section
+    id="blog-editor-layout"
+    class="blog-editor-layout"
+    aria-label="Blog post editor"
+>
+    <!-- =========================================================================
+       EDITOR SIDEBAR — Published/Drafts blog post lists
+    ========================================================================= -->
+    <aside
+        id="blog-sidebar"
+        class="blog-sidebar"
+        aria-label="Blog post list sidebar"
+    >
+        <!-- Published Posts Group -->
+        <div id="blog-published-group" class="blog-sidebar-group">
+            <h3 id="blog-published-header" class="blog-sidebar-group__header">
+                Published
+            </h3>
+            <ul
+                id="blog-published-list"
+                class="blog-sidebar-list"
+                aria-labelledby="blog-published-header"
+            >
+                <!-- Populated by display_blog_posts_data.js -->
+            </ul>
+        </div>
+
+        <!-- Draft Posts Group -->
+        <div id="blog-drafts-group" class="blog-sidebar-group">
+            <h3 id="blog-drafts-header" class="blog-sidebar-group__header">
+                Drafts
+            </h3>
+            <ul
+                id="blog-drafts-list"
+                class="blog-sidebar-list"
+                aria-labelledby="blog-drafts-header"
+            >
+                <!-- Populated by display_blog_posts_data.js -->
+            </ul>
+        </div>
+    </aside>
+
+    <!-- =========================================================================
+       WYSIWYG EDITOR AREA
+    ========================================================================= -->
+    <article
+        id="blog-editor-area"
+        class="blog-editor-area"
+        aria-label="Blog post editor"
+    >
+        <!-- Blog Post Title -->
+        <div class="blog-editor-field">
+            <label for="blog-title-input" class="blog-editor-field__label"
+                >Title</label
+            >
+            <input
+                id="blog-title-input"
+                class="blog-editor-field__input blog-editor-field__input--title"
+                type="text"
+                placeholder="Enter blog post title..."
+                aria-label="Blog post title"
+            />
+        </div>
+
+        <!-- Markdown Toolbar -->
+        <div
+            id="markdown-toolbar"
+            class="markdown-toolbar"
+            role="toolbar"
+            aria-label="Markdown formatting toolbar"
+        >
+            <button
+                class="markdown-toolbar__btn"
+                data-action="bold"
+                type="button"
+                title="Bold (Ctrl+B)"
+            >
+                <strong>B</strong>
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="italic"
+                type="button"
+                title="Italic (Ctrl+I)"
+            >
+                <em>I</em>
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="underline"
+                type="button"
+                title="Underline"
+            >
+                <u>U</u>
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="link"
+                type="button"
+                title="Insert Link"
+            >
+                Link
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="image"
+                type="button"
+                title="Insert Image"
+            >
+                Image
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="code"
+                type="button"
+                title="Code"
+            >
+                Code
+            </button>
+        </div>
+
+        <!-- Split Editor: Markdown Input | Live Preview -->
+        <div id="markdown-editor-panes" class="markdown-editor-panes">
+            <!-- Markdown Input -->
+            <div class="markdown-editor-pane markdown-editor-pane--input">
+                <label
+                    for="markdown-textarea"
+                    class="markdown-editor-pane__label"
+                    >Markdown</label
+                >
+                <textarea
+                    id="markdown-textarea"
+                    class="markdown-editor-textarea"
+                    placeholder="Write your markdown blog content here..."
+                    aria-label="Markdown content editor"
+                ></textarea>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="markdown-editor-pane markdown-editor-pane--preview">
+                <label class="markdown-editor-pane__label">Preview</label>
+                <div
+                    id="markdown-preview"
+                    class="markdown-editor-preview"
+                    aria-label="Live HTML preview"
+                >
+                    <p class="markdown-editor-preview__placeholder">
+                        Live preview will appear here as you type...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Snippet Generator -->
+        <div
+            id="blog-snippet-area"
+            class="blog-editor-section"
+            aria-label="Snippet generator"
+        >
+            <label for="blog-snippet-input" class="blog-editor-field__label"
+                >Snippet</label
+            >
+            <div class="blog-editor-inline">
+                <input
+                    id="blog-snippet-input"
+                    class="blog-editor-field__input"
+                    type="text"
+                    placeholder="Auto-generated scholarly snippet..."
+                    aria-label="Blog post snippet"
+                />
+                <button
+                    id="btn-generate-snippet"
+                    class="btn btn--secondary"
+                    type="button"
+                >
+                    Generate
+                </button>
+            </div>
+        </div>
+
+        <!-- MLA Sources Container -->
+        <div
+            id="blog-bibliography-container"
+            class="blog-editor-section"
+            aria-label="MLA sources editor"
+        >
+            <!-- Populated by mla_source_handler.js -->
+        </div>
+
+        <!-- Context Links Container -->
+        <div
+            id="blog-context-links-container"
+            class="blog-editor-section"
+            aria-label="Context links editor"
+        >
+            <!-- Populated by context_link_handler.js -->
+        </div>
+
+        <!-- Picture Upload Container -->
+        <div
+            id="blog-picture-container"
+            class="blog-editor-section"
+            aria-label="Picture upload"
+        >
+            <h4 class="blog-editor-section__heading">Picture</h4>
+            <div id="picture-preview-container" class="picture-preview-row">
+                <div
+                    id="picture-preview-full"
+                    class="picture-preview picture-preview--full"
+                >
+                    <span class="picture-preview__placeholder"
+                        >Image Preview (max 800px)</span
+                    >
+                </div>
+                <div
+                    id="picture-preview-thumb"
+                    class="picture-preview picture-preview--thumb"
+                >
+                    <span class="picture-preview__placeholder"
+                        >Thumbnail (200px)</span
+                    >
+                </div>
+            </div>
+            <div id="picture-upload-area" class="blog-editor-field">
+                <input
+                    id="record-picture-upload"
+                    class="blog-editor-field__file"
+                    type="file"
+                    accept="image/png"
+                />
+                <span class="blog-editor-field__hint">PNG only, ≤ 250 KB</span>
+            </div>
+        </div>
+
+        <!-- Metadata Footer Container -->
+        <div
+            id="blog-metadata-container"
+            class="blog-editor-section"
+            aria-label="Metadata footer"
+        >
+            <h4 class="blog-editor-section__heading">Metadata</h4>
+            <div class="blog-editor-field">
+                <label for="record-slug" class="blog-editor-field__label"
+                    >Slug</label
+                >
+                <div class="blog-editor-inline">
+                    <input
+                        id="record-slug"
+                        class="blog-editor-field__input"
+                        type="text"
+                        placeholder="auto-generated-or-manual-slug"
+                    />
+                    <button
+                        id="btn-auto-slug"
+                        class="btn btn--secondary"
+                        type="button"
+                    >
+                        Auto-Generate from Title
+                    </button>
+                </div>
+            </div>
+            <div class="blog-editor-field">
+                <label
+                    for="record-metadata-json"
+                    class="blog-editor-field__label"
+                    >Metadata JSON</label
+                >
+                <textarea
+                    id="record-metadata-json"
+                    class="blog-editor-field__textarea blog-editor-field__textarea--mono"
+                    rows="4"
+                    placeholder="Raw JSON blob — auto-managed; editable for advanced use"
+                    readonly
+                ></textarea>
+                <span class="blog-editor-field__hint"
+                    >raw JSON blob — auto-managed</span
+                >
+            </div>
+            <div class="blog-editor-field">
+                <label for="record-created-at" class="blog-editor-field__label"
+                    >Created At</label
+                >
+                <input
+                    id="record-created-at"
+                    class="blog-editor-field__input blog-editor-field__input--readonly"
+                    type="text"
+                    readonly
+                />
+                <span class="blog-editor-field__hint">ISO8601 — read-only</span>
+            </div>
+            <div class="blog-editor-field">
+                <label for="record-updated-at" class="blog-editor-field__label"
+                    >Updated At</label
+                >
+                <input
+                    id="record-updated-at"
+                    class="blog-editor-field__input blog-editor-field__input--readonly"
+                    type="text"
+                    readonly
+                />
+                <span class="blog-editor-field__hint"
+                    >ISO8601 — auto-set on save</span
+                >
+            </div>
+        </div>
+    </article>
+</section>
+
+<!-- =============================================================================
+   ERROR / STATUS DISPLAY
+   Error messages are routed through window.surfaceError() to the shared
+   Status Bar footer (js/admin_core/error_handler.js), which is already
+   present in the dashboard shell.
+============================================================================= -->

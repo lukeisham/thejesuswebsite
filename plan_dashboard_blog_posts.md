@@ -2,8 +2,9 @@
 name: plan_dashboard_blog_posts
 version: 1.0.0
 module: 6.0 — News & Blog
-status: draft
+status: complete
 created: 2026-05-02
+completed: 2026-05-02
 ---
 
 # Plan: plan_dashboard_blog_posts
@@ -101,7 +102,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Create the structural split-pane container for the blog editor, featuring the post navigator sidebar and the markdown editing canvas.
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline styles · No inline scripts · Predictable Hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -111,7 +112,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Implement the 'providence' theme layout for the dual-pane editor, with specific focus on the post sidebar and sticky function bar.
 - **Vibe Rule(s):** Grid for everything · CSS Variables · Vanilla Excellence · User Comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -121,7 +122,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Implement the utilitarian styling for the markdown editing area, toolbar buttons, and the live preview pane for blog content. The preview pane must apply the same typographic tokens (`--font-body`, `--color-text`, `--color-background`, etc.) used by the public-facing blog template, so the preview is a faithful representation of the published output.
 - **Vibe Rule(s):** CSS Variables · Rich Aesthetics · User Comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -131,7 +132,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Initialize the blog posts module and coordinate the sidebar loading, editor population, and preview synchronization.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -141,7 +142,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Implement the logic to fetch specific blog post content and metadata from the API and populate the editor fields.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -151,7 +152,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Add `<script src="/js/5.0_essays_responses/dashboard/markdown_editor.js"></script>` to the HTML and call the shared markdown editor's `window.*` API. The shared tool (owned by `plan_dashboard_essay_historiography`) provides toolbar actions and live HTML preview generation.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -161,7 +162,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Implement the logical flow for saving, publishing, and deleting blog posts, interfacing with the backend blog API. Before executing any status action, check for unsaved changes in the markdown editor (dirty-state flag set by `markdown_editor.js`). If unsaved changes exist, prompt the admin to save first — do not allow save, publish, or delete to proceed with stale content in the editor.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -171,7 +172,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Add `<script src="/js/2.0_records/dashboard/picture_handler.js"></script>` to the HTML and call `window.renderEditPicture(containerId, recordId)`. Shared tool owned by `plan_dashboard_records_single`.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -181,7 +182,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Add `<script src="/js/2.0_records/dashboard/mla_source_handler.js"></script>` to the HTML and call `window.renderEditBibliography()`, `window.loadEditBibliography()`, `window.collectEditBibliography()`. Shared tool owned by `plan_dashboard_records_single`.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -202,7 +203,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Dependencies:** `admin/backend/admin_api.py` (blog routes planned), `backend/scripts/snippet_generator.py`
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -215,7 +216,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 - **Action:** Add `<script src="/js/2.0_records/dashboard/metadata_handler.js"></script>` to the HTML and call `window.renderMetadataFooter(containerId, recordId)`. Shared tool owned by `plan_dashboard_records_single`.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -250,7 +251,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 
 - **Vibe Rule(s):** Logic is explicit and self-documenting · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -259,36 +260,36 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### HTML
-- [ ] Semantic tags used — no `<div>` soup
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 #### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
 #### JavaScript
-- [ ] One function per file
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
-- [ ] Markdown live preview output matches the public frontend rendering — same parser behaviour, same CSS typographic tokens
+- [x] One function per file
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
+- [x] Markdown live preview output matches the public frontend rendering — same parser behaviour, same CSS typographic tokens
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
 
 #### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic
 
 #### Shared-Tool Ownership
-- [ ] All shared tools (`markdown_editor.js`, `picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_handler.js`) included via `<script>` tag from owner directories — no local copies created
-- [ ] This plan does NOT own any shared tools and creates zero files outside `js/6.0_news_blog/dashboard/` except for its own module-specific files
+- [x] All shared tools (`markdown_editor.js`, `picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_handler.js`) included via `<script>` tag from owner directories — no local copies created
+- [x] This plan does NOT own any shared tools and creates zero files outside `js/6.0_news_blog/dashboard/` except for its own module-specific files
 
 ---
 
@@ -296,10 +297,10 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement**: The core objective outlined in the summary has been fully met
-- [ ] **Necessity**: The underlying reason/need for this plan has been resolved
-- [ ] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
-- [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
+- [x] **Achievement**: The core objective outlined in the summary has been fully met
+- [x] **Necessity**: The underlying reason/need for this plan has been resolved
+- [x] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
+- [x] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
@@ -328,7 +329,7 @@ This plan implements the "Blog Posts" dashboard module, a dedicated WYSIWYG edit
 | `documentation/guides/guide_welcoming_robots.md` | No | SEO documentation is unaffected. |
 
 ### Documentation Checklist
-- [ ] All affected documents identified in the table above
-- [ ] Each "Yes" row has been updated with accurate, current information
-- [ ] No document contains stale references to files or logic changed by this plan
-- [ ] Version numbers incremented where frontmatter versioning is present
+- [x] All affected documents identified in the table above
+- [x] Each "Yes" row has been updated with accurate, current information
+- [x] No document contains stale references to files or logic changed by this plan
+- [x] Version numbers incremented where frontmatter versioning is present

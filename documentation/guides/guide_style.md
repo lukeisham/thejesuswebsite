@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.3.0
+version: 1.4.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -150,6 +150,7 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Editor Style** | Mono fields; data-dense aesthetics. | `--font-mono` |
 | **Action Bar** | Gold focus. | `--color-dash-accent` |
 | **Return Link**| Lead Grey, tertiary BG hover. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
+| **Blog WYSIWYG Editor** | Split-pane markdown editor with live preview. Toolbar uses Providence type scale. Preview matches public blog typography (`--font-body`). | `blog_WYSIWYG_editor.css`, `blog_posts_dashboard.css` |
 
 ## 19. Arbor Dashboard Editor — Interactive Node Patterns
 
