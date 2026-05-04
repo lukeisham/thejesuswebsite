@@ -5,10 +5,10 @@
 # Push to GitHub
 
 git add .
-git commit -m "records all"
+git commit -m "plan wikipedia"
 git push origin main 
 
-# Pulling from Github to server 
+# Pulling from Github to server
 
 cd /var/www/thejesuswebsite
 

@@ -534,38 +534,76 @@ The bulk upload workflow is a **two-phase process** designed to prevent accident
 
 ### 4.1 Wikipedia Weights — Data Flow
 
+The Wikipedia dashboard module provides a dual-pane interface for managing
+Wikipedia article rankings. The left sidebar shows contextual record details
+(title, slug, weight multiplier, search terms, snippet, slug, meta) for the
+selected record. The right pane displays the ranked list.
+
+**Draft/Publish Cycle:** All edits (weight, search terms, metadata) save the
+record as draft. "Refresh" re-sorts by weight and sets records to draft.
+"Recalculate" re-fetches Wikipedia data via the pipeline and sets the record
+to draft. Only "Publish" sets all listed records to published and commits
+the final ranked order to the live frontend.
+
  +----------------------------------------------------------+
- | 1. ADMIN ACTION: Modify Wikipedia search terms           |
- |                                                          |
+ | 1. ADMIN ACTION: Select a record from the ranked list    |
+ |    -> sidebar populates with record title, slug, weight |
+ |    -> search terms render as deletable chips             |
+ |    -> metadata (snippet/slug/meta) loads for editing     |
  +------------------------+---------------------------------+
                           |
                           v
  +----------------------------------------------------------+
- | 2. ADMIN ACTION: Click "Recalculate"                     |
+ | 2. ADMIN ACTION: Edit weight / search terms / metadata   |
+ |    -> Weight: PUT /api/admin/records/{id} with           |
+ |       wikipedia_weight + status=draft                    |
+ |    -> Search Terms: add/remove chips, save as JSON array |
+ |       via PUT with status=draft                          |
+ |    -> Metadata: snippet/slug/meta editable with          |
+ |       auto-gen buttons (calls snippet_generator.py /      |
+ |       metadata_generator.py via POST endpoints)          |
+ |    -> Slug auto-gen: local slugify from title            |
+ +------------------------+---------------------------------+
+                          |
+                          v
+ +----------------------------------------------------------+
+ | 3. ADMIN ACTION: Click "Recalculate" (per record or all) |
  |    -> launches `pipeline_wikipedia.py`                   |
- |    -> queries Wikipedia API with search terms            |
- |    -> filters out non-article results                    |
- |    -> writes wikipedia_title, wikipedia_link,            |
- |       wikipedia_rank (base score) to SQLite records      |
+ |    -> reads wikipedia_search_term from records table     |
+ |    -> queries Wikipedia REST API with search terms       |
+ |    -> filters out non-article pages (disambiguation,     |
+ |       lists, categories, portals, templates)             |
+ |    -> selects best match, computes base score from       |
+ |       wordcount (log scale, 1-100)                       |
+ |    -> writes wikipedia_title, wikipedia_link (JSON),     |
+ |       wikipedia_rank (base score) with status=draft      |
  +------------------------+---------------------------------+
                           |
                           v
  +----------------------------------------------------------+
- | 3. ADMIN ACTION: Modify wikipedia_weight (multiplier)    |
- |    (ranks-wikipedia tab -> editable weight column)       |
+ | 4. ADMIN ACTION: Modify wikipedia_weight (multiplier)    |
+ |    (sidebar -> weight input × prefix)                   |
  +------------------------+---------------------------------+
                           |
                           v
  +----------------------------------------------------------+
- | 4. ADMIN ACTION: Click "Refresh"                         |
- |    -> recalculates: Final Rank = Base × Multiplier       |
- |    -> re-sorts & re-renders the ranked list              |
- +----------------------------------------------------------+
+ | 5. ADMIN ACTION: Click "Refresh"                         |
+ |    -> recalculates: Final Rank = Base Rank × Multiplier  |
+ |    -> re-sorts list by computed score                    |
+ |    -> PUTs new rank positions + status=draft             |
+ +------------------------+---------------------------------+
                           |
                           v
  +----------------------------------------------------------+
- | 5. FRONTEND: Ranked Wikipedia List (§4.1)                |
- |    WASM query -> ORDER BY wikipedia_rank DESC            |
+ | 6. ADMIN ACTION: Click "Publish"                         |
+ |    -> PUT /api/admin/lists/wikipedia (ranked order)      |
+ |    -> Sets all listed records to status=published        |
+ +------------------------+---------------------------------+
+                          |
+                          v
+ +----------------------------------------------------------+
+ | 7. FRONTEND: Ranked Wikipedia List (§4.1)                |
+ |    Public page reads wikipedia_rank, sorts, displays     |
  +----------------------------------------------------------+
 
 

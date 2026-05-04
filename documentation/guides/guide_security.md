@@ -117,7 +117,49 @@ is enforced at two independent layers:
   fails (e.g., missing record, circular reference), the entire batch is
   rolled back, preventing partial corruption.
 
-## 7. Dependency Monitoring and Vulnerability Scanning
+## 7. Wikipedia & Challenge Ranking — Field Validation
+
+The Ranked Lists dashboard modules (Wikipedia, Challenge) accept admin-edited
+weighting values, search terms, and metadata fields that are written directly
+to the `records` table via `PUT /api/admin/records/{id}`. The following
+validation rules apply:
+
+- **Weight Multipliers (`wikipedia_weight`, `*_challenge_weight`):**
+  The frontend constrains weight inputs to `min="0" max="100" step="0.01"`,
+  preventing negative or excessively large values. The server-side
+  `update_record` endpoint writes these as JSON blobs via parameterized
+  queries — the database itself does not evaluate the arithmetic, so
+  injection is not possible.
+
+- **Search Terms (`wikipedia_search_term`):**
+  Terms are stored as JSON arrays in the database. The frontend sidebar
+  handler (`wikipedia_sidebar_handler.js`) serialises them via
+  `JSON.stringify()` before sending to the API, preventing hand-crafted
+  injection. The pipeline (`pipeline_wikipedia.py`) reads these terms and
+  passes them as URL parameters to the Wikipedia REST API — they are
+  percent-encoded by the `requests` library automatically.
+
+- **Metadata Fields (snippet, slug, meta):**
+  Snippet and meta fields accept free-text and JSON respectively. The
+  `update_record` endpoint uses parameterized SQLite queries, preventing
+  SQL injection regardless of field content. The auto-gen buttons call
+  separate `POST /api/admin/snippet/generate` and
+  `POST /api/admin/metadata/generate` endpoints that validate input before
+  invoking DeepSeek-powered generation scripts.
+
+- **Rank Updates (`wikipedia_rank`, `*_challenge_rank`):**
+  The ranking calculator (`wikipedia_ranking_calculator.js`) computes new
+  rank positions as integers before sending them via PUT. The frontend
+  constrains ranking to the actual set of records being ranked — no rank
+  can exceed the list length or be negative.
+
+- **Draft-Gating:** All Wikipedia and Challenge edits explicitly set
+  `status: "draft"` in the PUT payload. The only path to `status: "published"`
+  is through the explicit "Publish" action, which requires the admin to
+  have reviewed the full ranked order first. This prevents partially
+  edited or un-reviewed ranking data from reaching the public site.
+
+## 8. Dependency Monitoring and Vulnerability Scanning
 To ensure long-term stability, dependencies are audited both manually and automatically.
 
 - **Automated Security Audits:** Use `tests/security_audit.py` to run weekly safety scans (`npm audit`, `pip-audit`).
