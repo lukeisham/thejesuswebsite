@@ -1,0 +1,145 @@
+<!doctype html>
+<!-- =============================================================================
+   THE JESUS WEBSITE — ADMIN DASHBOARD SHELL
+   File:    admin/frontend/dashboard.html
+   Version: 1.1.0
+   Purpose: Main dashboard grid orchestrator — session-guarded entry point for all
+            admin modules. Contains the Providence 2-column work canvas (optional
+            sidebar + main work area) with a permanent 1px divider track between
+            them, a 10-card module navigation landing area, universal header, and
+            error/status footer.
+   Trigger: Redirected here from login.html after successful authentication.
+   Output:  Dashboard orchestrator initializes session check, renders cards,
+            header, and error footer. Module loads replace card grid with the
+            Providence 2-column work layout.
+============================================================================= -->
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>The Jesus Website — Admin Dashboard</title>
+
+        <!-- Providence Theme Foundation -->
+        <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
+        <link rel="stylesheet" href="../../css/1.0_foundation/shell.css" />
+        <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
+
+        <!-- Dashboard Core Styles -->
+        <link
+            rel="stylesheet"
+            href="../../css/1.0_foundation/dashboard/admin_components.css"
+        />
+        <link
+            rel="stylesheet"
+            href="../../css/1.0_foundation/dashboard/admin_shell.css"
+        />
+
+        <!-- Universal Header Styling -->
+        <link
+            rel="stylesheet"
+            href="../../css/7.0_system/dashboard/dashboard_universal_header.css"
+        />
+    </head>
+    <body id="admin-dashboard">
+        <!-- =====================================================================
+       UNIVERSAL HEADER
+       Injected by dashboard_universal_header.js at init time.
+       Contains: double favicon, title, Return/Dashboard/Logout nav links.
+    ===================================================================== -->
+        <header id="admin-header" aria-label="Admin navigation header">
+            <!-- Populated by dashboard_universal_header.js -->
+        </header>
+
+        <!-- =====================================================================
+       MODULE TAB BAR
+       Horizontal tab strip for switching between loaded modules.
+       Active tab is highlighted via .is-active class.
+    ===================================================================== -->
+        <nav
+            id="module-tab-bar"
+            role="tablist"
+            aria-label="Dashboard module tabs"
+        >
+            <!-- Populated dynamically by dashboard_app.js -->
+        </nav>
+
+        <!-- =====================================================================
+       DASHBOARD CARDS LANDING AREA
+       10 cards in a 3x3 + 1 centered bottom row grid.
+       Visible on initial load / when no module is active.
+       Replaced by Providence work canvas when a module is loaded.
+    ===================================================================== -->
+        <section id="admin-cards" aria-label="Module navigation cards">
+            <!-- Populated by display_dashboard_cards.js -->
+        </section>
+
+        <!-- =====================================================================
+       PROVIDENCE 2-COLUMN WORK CANVAS
+       Hidden on landing. Shown when a module is loaded via loadModule().
+       Two content columns with a permanent 1px divider track:
+         [sidebar] | [main work area]
+       CSS custom property hooks (--sidebar-width, --main-width) let modules
+       request custom column widths at render time via _setLayoutColumns().
+    ===================================================================== -->
+        <main id="admin-canvas" aria-label="Module work area">
+            <!-- Sidebar Column (default 280px, overridable) -->
+            <section
+                id="providence-col-sidebar"
+                class="providence-col"
+                aria-label="Sidebar"
+            >
+                <!-- Populated by module render functions via _setColumn() -->
+            </section>
+
+            <!-- Divider: sidebar | main -->
+            <div
+                id="providence-divider"
+                class="providence-divider"
+                aria-hidden="true"
+            ></div>
+
+            <!-- Main Work Area (default 1fr) -->
+            <section
+                id="providence-col-main"
+                class="providence-col"
+                aria-label="Main work area"
+            >
+                <!-- Populated by module render functions via _setColumn() -->
+            </section>
+        </main>
+
+        <!-- =====================================================================
+       ERROR / STATUS FOOTER
+       Fixed at the bottom of the viewport. Displays the most recent
+       status or error message with timestamp. Injected by
+       display_error_footer.js; messages routed via window.surfaceError().
+    ===================================================================== -->
+        <footer
+            id="admin-error-footer"
+            role="status"
+            aria-live="polite"
+            aria-label="Status and error messages"
+        >
+            <!-- Populated by display_error_footer.js -->
+        </footer>
+
+        <!-- =====================================================================
+       SCRIPTS — Load order matters.
+       1. Shared error handler (must be first — other scripts depend on it)
+       2. Session middleware (verifyAdminSession page guard)
+       3. Dashboard app core (module router + column hooks)
+       4. Header injection + logout
+       5. Card rendering
+       6. Error footer injection
+       7. Dashboard orchestrator (init + session check)
+    ===================================================================== -->
+        <script src="../../js/admin_core/error_handler.js"></script>
+        <script src="../../js/7.0_system/dashboard/load_middleware.js"></script>
+        <script src="../../js/7.0_system/dashboard/dashboard_app.js"></script>
+        <script src="../../js/7.0_system/dashboard/dashboard_universal_header.js"></script>
+        <script src="../../js/7.0_system/dashboard/display_dashboard_cards.js"></script>
+        <script src="../../js/7.0_system/dashboard/display_error_footer.js"></script>
+        <script src="../../js/7.0_system/dashboard/dashboard_orchestrator.js"></script>
+    </body>
+</html>

@@ -1,0 +1,132 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD SHELL CHROME
+   File:    css/1.0_foundation/dashboard/admin_shell.css
+   Version: 1.0.0
+   Purpose: Dashboard body chrome — full-height flex layout, universal header
+            placeholder dimensions, canvas container, error footer, and
+            global dashboard state classes.
+   Source:  plan_dashboard_login_and_shell §T5
+============================================================================= */
+
+/* =============================================================================
+   1. DASHBOARD BODY — Full-height flex column
+   Flex layout: header | tab-bar | cards-or-canvas | error-footer
+   Header and footer are fixed height. Cards/canvas fills remaining space.
+============================================================================= */
+
+#admin-dashboard {
+    display: flex;
+    flex-direction: column;
+
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+
+    background-color: var(--color-bg-primary);
+    font-family: var(--font-body);
+    color: var(--color-text-primary);
+
+    /* Prevent body scroll — scrolling happens within canvas/columns */
+    overflow: hidden;
+}
+
+/* =============================================================================
+   2. UNIVERSAL HEADER PLACEHOLDER
+   dashboard_universal_header.js injects content into #admin-header.
+   These base styles ensure correct sizing before injection.
+============================================================================= */
+
+#admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    /* Match public-facing header height for consistency */
+    height: var(--header-height, 64px);
+    min-height: var(--header-height, 64px);
+
+    padding: 0 var(--space-4);
+
+    background-color: var(--color-bg-primary);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+
+    /* Prevent shrinking when canvas grows */
+    flex-shrink: 0;
+}
+
+/* =============================================================================
+   3. ERROR / STATUS FOOTER
+   Fixed-height bar at the bottom. Receives messages from window.surfaceError().
+   Injected by display_error_footer.js.
+============================================================================= */
+
+#admin-error-footer {
+    display: flex;
+    align-items: center;
+
+    height: 36px;
+    min-height: 36px;
+
+    padding: 0 var(--space-3);
+
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+
+    background-color: var(--color-bg-secondary);
+    border-top: var(--border-width-thin) solid var(--color-border);
+
+    flex-shrink: 0;
+}
+
+/* Status message text inside the footer */
+#admin-error-footer .error-footer__message {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* =============================================================================
+   4. MODULE LOADING STATE
+   When a module is loading, the canvas shows a subtle overlay.
+============================================================================= */
+
+#admin-canvas.is-loading::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-bg-primary);
+    opacity: 0.6;
+    z-index: 10;
+}
+
+/* =============================================================================
+   5. CANVAS DEFAULT HIDDEN STATE
+   #admin-canvas is hidden by default — cards are shown on landing.
+   _showCanvas() in dashboard_app.js sets display: grid when a module loads.
+   This rule overrides the display: grid from admin_components.css because
+   admin_shell.css loads AFTER admin_components.css in dashboard.html.
+============================================================================= */
+
+#admin-canvas {
+    display: none;
+}
+
+/* =============================================================================
+   6. HIDDEN STATE
+   .is-hidden applied to cards to toggle landing vs. work view.
+============================================================================= */
+
+#admin-cards.is-hidden {
+    display: none;
+}
+
+/* =============================================================================
+   7. NO-SIDEBAR STATE (collapsed sidebar)
+   When _setLayoutColumns(false) is called, the .no-sidebar class is added
+   to #admin-canvas. Hides the sidebar column element for good measure.
+============================================================================= */
+
+#admin-canvas.no-sidebar #providence-col-sidebar {
+    display: none;
+}

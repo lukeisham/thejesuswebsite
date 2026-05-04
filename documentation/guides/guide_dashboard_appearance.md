@@ -1,7 +1,7 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components and database fields (source of truth)
-version: 3.0.0
+version: 3.1.0
 dependencies: [guide_appearance.md, detailed_module_sitemap.md, data_schema.md]
 ---
 
@@ -33,13 +33,13 @@ Each section includes a **DB Fields** block listing the exact column names from 
 
 ---
 
-## 0.1 Layout Convention — Providence 3-Column Pattern (Dashboard Shell)
+## 0.1 Layout Convention — Providence 2-Column Pattern (Dashboard Shell)
 
-**Purpose:** Shared `.providence-editor-grid` architectural shell inherited by all dashboard editor modules. The three Providence column divs are **immutable structural elements** — never cleared or replaced by JavaScript. Only their inner content children are populated via `_setColumn()`.
+**Purpose:** Shared architectural shell inherited by all dashboard editor modules. The two Providence column divs (`#providence-col-sidebar` and `#providence-col-main`) are **immutable structural elements** — never cleared or replaced by JavaScript. Only their inner content children are populated via `_setColumn()`.
 
-**Render chain:** `dashboard.html` (static shell) → `dashboard_init.js` → `renderTabBar("module-tab-bar", ...)` → `loadModule(moduleName)` → `_clearColumns()` → `_setColumn("actions"/"list"/"editor", html)`
+**Render chain:** `dashboard.html` (static shell) → `dashboard_orchestrator.js` → `renderDashboardCards()` → `loadModule(moduleName)` → `_clearColumns()` → `_setColumn("sidebar"/"main", html)`
 
-**Variable widths:** CSS custom properties `--editor-col-two-fr` and `--editor-col-three-fr` (default `1fr` / `2fr`) let modules request wider columns via `_setGridColumns(twoFr, threeFr)`. CSS custom property `--editor-col-one-width` controls the fixed actions column width (default `160px`). Divider tracks (1px) and gap tracks (24px) never change.
+**Variable widths:** CSS custom properties `--sidebar-width` (default `280px`) and `--main-width` (default `1fr`) let modules request custom column widths via `_setLayoutColumns(sidebarWidth, mainWidth)`. When `--sidebar-width` is set to `0px`, the divider and gap tracks collapse so the main area spans the full canvas width. The divider track (1px) and gap track (24px) remain fixed otherwise.
 
 **CSS files:**
 - `css/1.0_foundation/dashboard/admin_shell.css` — Dashboard chrome, header, canvas background
@@ -64,18 +64,18 @@ Each section includes a **DB Fields** block listing the exact column names from 
 |  │ CSS: admin_components.css §1 (.admin-tab-bar, .admin-tab-btn, .is-active)    │  |
 |  └─────────────────────────────────────────────────────────────────────────────┘  |
 +===================================================================================+
-|  <main class="admin-canvas providence-editor-grid" id="admin-canvas">              |
+|  <main id="admin-canvas">                                                          |
 |                                                                                    |
-|  COL 1 — 160px           │  COL 2 — 1fr            │  COL 3 — 2fr                 |
-|  (--editor-col-one-width) │  (--editor-col-two-fr)   │  (--editor-col-three-fr)     |
+|  SIDEBAR — 280px                  │  MAIN — 1fr                                   |
+|  (--sidebar-width)                │  (--main-width)                                |
 |                           │                         │                               |
 |  <div .providence-        │ 1px  │ 24px │ <div      │ 1px  │ 24px │ <div          |
-|       editor-col-actions  │ div- │ gap  │  .provid-  │ div- │ gap  │  .provid-     |
-|       id="canvas-col-     │ ider │      │  ence-     │ ider │      │  ence-        |
-|       actions">           │      │      │  editor-   │      │      │  editor-      |
+|       col-sidebar  │ div- │ gap  │  .provid-  │ div- │ gap  │  .provid-     |
+|       id="providence-col-     │ ider │      │  ence-     │ ider │      │  ence-        |
+|       sidebar">           │      │      │  editor-   │      │      │  editor-      |
 |  ┌─────────────────────┐  │      │      │  col-list  │      │      │  col-editor   |
-|  │ Action Buttons      │  │      │      │  id="can-  │      │      │  id="canvas-  |
-|  │ & Primary Controls  │  │      │      │  vas-col-  │      │      │  col-editor"> |
+|  │ Sidebar Controls      │  │      │      │  id="can-  │      │      │  id="canvas-  |
+|  │ & Record Selection  │  │      │      │  vas-col-  │      │      │  col-editor"> |
 |  │                     │  │      │      │  list">    │      │      │  ┌──────────┐ │ |
 |  │ Populated by        │  │      │      │  ┌───────┐ │      │      │  │ Main     │ │ |
 |  │ _setColumn(         │  │      │      │  │ Sub-   │ │      │      │  │ Editor   │ │ |
@@ -112,11 +112,11 @@ Each section includes a **DB Fields** block listing the exact column names from 
 +===================================================================================+
 ```
 
-> **Immutable Shell Contract:** The three Providence column `<div>`s inside `<main id="admin-canvas">` are permanent structural elements. JavaScript modules must never call `innerHTML = ""` or `innerHTML = "..."` directly on any column ID (`canvas-col-actions`, `canvas-col-list`, `canvas-col-editor`). All content injection goes through `_setColumn()`. Intra-module re-renders must call `_clearColumnContent(colName)` before `_setColumn(colName, html)`.
+> **Immutable Shell Contract:** The two Providence column `<section>`s inside `<main id="admin-canvas">` (`#providence-col-sidebar` and `#providence-col-main`) are permanent structural elements. JavaScript modules must never call `innerHTML = ""` or `innerHTML = "..."` directly on these column elements. All content injection goes through `_setColumn()`. Intra-module re-renders must call `_clearColumns()` before `_setColumn(colName, html)`.
 >
 > **Note:** Child modules (`edit_picture.js`, `edit_links.js`) bypass the grid and inject directly into `edit_record.js` parent columns.
 >
-> **Dual-Pane Modules:** Several modules (Wikipedia, Challenge, Essay & Historiography, Challenge Response, News & Sources, Blog Posts) use a dual-pane layout that still runs within the Providence 3-column grid. Their Column 2 and Column 3 are merged visually via `_setGridColumns()` to create the sidebar + main area ratio. The immutable column divs remain structurally present.
+> **Dual-Pane Modules:** Several modules (Wikipedia, Challenge, Essay & Historiography, Challenge Response, News & Sources, Blog Posts) use a dual-pane layout (sidebar + main) that maps directly to the Providence 2-column grid. The sidebar column hosts controls and record selection; the main column hosts the editor form. Module-specific widths are set via `_setLayoutColumns()`.
 >
 > **Dashboard Landing Page:** The card-based landing page (accessed via the "Dashboard" header link) renders outside the Providence editor grid — it fills `#admin-canvas` with a 3×3+tenth card grid directly. See §7.1.
 
@@ -251,7 +251,7 @@ status            TEXT        — Draft / Published indicator
 +===================================================================================================+
 ```
 
-> **Note:** This module does NOT use the Providence 3-column grid. It renders as a full-width flat layout within `#admin-canvas`, replacing the grid entirely for this module. The Bulk CSV workflow (previously a separate tab) is now integrated as the "Bulk" toggle within this view.
+> **Note:** This module does NOT use the Providence 2-column grid. It renders as a full-width flat layout within `#admin-canvas`, replacing the grid entirely for this module. The Bulk CSV workflow (previously a separate tab) is now integrated as the "Bulk" toggle within this view.
 
 **File Inventory:**
 | File | Purpose |
@@ -482,7 +482,7 @@ page_views          → system-managed
 +====================================================================================================+
 ```
 
-> **Note:** This module does NOT use the Providence 3-column grid. It renders as a full-width vertically stacked form layout within `#admin-canvas`. The section navigator bar is sticky at the top.
+> **Note:** This module does NOT use the Providence 2-column grid. It renders as a full-width vertically stacked form layout within `#admin-canvas`. The section navigator bar is sticky at the top.
 
 **File Inventory:**
 | File | Purpose |

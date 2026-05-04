@@ -1,0 +1,174 @@
+/* =============================================================================
+   THE JESUS WEBSITE — ADMIN LOGIN STYLING
+   File:    css/7.0_system/admin.css
+   Version: 1.0.0
+   Purpose: 'Providence' theme aesthetics for the admin login screen.
+            Centered card layout using CSS Grid, gold/oxblood accents,
+            all tokens sourced from typography.css variables.
+============================================================================= */
+
+/* =============================================================================
+   1. LOGIN PAGE SHELL — Full-viewport centering
+   Grid used for precise vertical + horizontal centering of the login card.
+============================================================================= */
+
+#login-page {
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-bg-primary);
+    font-family: var(--font-body);
+}
+
+#login-shell {
+    display: grid;
+    place-items: center;
+    min-height: 100dvh;
+    padding: var(--space-4);
+}
+
+/* =============================================================================
+   2. LOGO — Double-sized favicon, visually anchoring the card
+============================================================================= */
+
+#login-logo {
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+}
+
+#login-logo img {
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin-bottom: var(--space-3);
+    opacity: 0.85;
+}
+
+/* =============================================================================
+   3. LOGIN CARD — The bordered form container
+============================================================================= */
+
+#login-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+
+    width: 100%;
+    max-width: 380px;
+    padding: var(--space-6) var(--space-5);
+
+    background-color: var(--color-white);
+    border: var(--border-width-thin) solid var(--color-border);
+    box-shadow: var(--shadow-base);
+}
+
+/* =============================================================================
+   4. HEADING — "Admin Login"
+============================================================================= */
+
+#login-heading {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-text-primary);
+    text-align: center;
+}
+
+/* =============================================================================
+   5. FORM — Password input + submit button
+   Flexbox column layout for micro alignment.
+============================================================================= */
+
+#login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+   5a. Password Input
+--------------------------------------------------------------------------- */
+
+#login-password {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+
+    font-family: var(--font-mono);
+    font-size: var(--text-base);
+    color: var(--color-text-primary);
+
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    outline: none;
+
+    transition: border-color var(--transition-fast);
+}
+
+#login-password::placeholder {
+    color: var(--color-text-muted);
+}
+
+#login-password:focus {
+    border-color: var(--color-accent-primary);
+    box-shadow: 0 0 0 1px var(--color-accent-primary);
+}
+
+/* ---------------------------------------------------------------------------
+   5b. Submit Button
+--------------------------------------------------------------------------- */
+
+#login-submit {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-inverse);
+
+    background-color: var(--color-dash-accent);
+    border: var(--border-width-thin) solid var(--color-dash-accent);
+    cursor: pointer;
+
+    transition: background-color var(--transition-fast);
+}
+
+#login-submit:hover {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+#login-submit:active {
+    background-color: var(--color-accent-hover);
+}
+
+/* =============================================================================
+   6. ERROR MESSAGE — Inline status display
+   Hidden by default; admin.js makes it visible with error text.
+============================================================================= */
+
+#login-error {
+    display: none;
+    width: 100%;
+    padding: var(--space-2);
+    margin: 0;
+
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-accent-primary);
+    text-align: center;
+
+    background-color: var(--color-bg-secondary);
+    border: var(--border-width-thin) solid var(--color-border);
+}
+
+#login-error.is-visible {
+    display: block;
+}

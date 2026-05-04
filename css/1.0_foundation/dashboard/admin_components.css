@@ -1,0 +1,263 @@
+/* =============================================================================
+   THE JESUS WEBSITE — DASHBOARD COMPONENTS
+   File:    css/1.0_foundation/dashboard/admin_components.css
+   Version: 1.1.0
+   Purpose: Providence 2-column grid system (optional sidebar + main work area)
+            with a permanent 1px divider track, per-module CSS custom property
+            width hooks, dashboard card grid layout, module tab bar, and shared
+            component tokens.
+   Source:  plan_dashboard_login_and_shell §T5 (refactored to 2-column per purpose)
+============================================================================= */
+
+/* =============================================================================
+   1. PROVIDENCE 2-COLUMN GRID (the work canvas)
+   Four explicit column tracks:
+     1. sidebar  (--sidebar-width, default 280px — matches site sidebar)
+     2. divider  (1px, var(--color-border))
+     3. gap      (24px)
+     4. main     (--main-width, default 1fr)
+   The divider is a structural grid track — never a border on a column element.
+   Width hooks are CSS custom properties set dynamically by _setLayoutColumns().
+============================================================================= */
+
+#admin-canvas {
+    display: grid;
+    grid-template-columns:
+        var(--sidebar-width, 280px) /* sidebar column      */
+        1px /* divider             */
+        24px /* gap                 */
+        var(--main-width, 1fr); /* main work area      */
+
+    grid-template-rows: 1fr;
+    grid-template-areas: "sidebar . . main";
+
+    /* The canvas fills available height between tab bar and error footer */
+    flex: 1;
+    min-height: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    background-color: var(--color-bg-primary);
+}
+
+/* Assign each column to its grid area */
+#providence-col-sidebar {
+    grid-area: sidebar;
+}
+#providence-col-main {
+    grid-area: main;
+}
+
+/* =============================================================================
+   2. PERMANENT DIVIDER LINE
+   1px grid track filled with var(--color-border). Always visible regardless
+   of whether adjacent columns have content. Spans full canvas height.
+   The divider is a structural grid element — not a border on a column.
+============================================================================= */
+
+.providence-divider {
+    width: 1px;
+    height: 100%;
+    background-color: var(--color-border);
+}
+
+#providence-divider {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+/* =============================================================================
+   3. PROVIDENCE COLUMN COMMONS
+   Shared styling for both content columns. Each scrolls independently.
+============================================================================= */
+
+.providence-col {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: var(--space-3);
+    min-height: 0;
+
+    /* Thin scrollbar for column content */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+}
+
+.providence-col::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.providence-col::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 0;
+}
+
+/* =============================================================================
+   4. DASHBOARD CARD GRID — Landing page module navigation cards
+   3-column grid with a centered 10th card on the bottom row.
+   Cards are rendered by display_dashboard_cards.js.
+============================================================================= */
+
+#admin-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+
+    padding: var(--space-6);
+    flex: 1;
+    align-content: start;
+
+    background-color: var(--color-bg-primary);
+}
+
+/* Individual card */
+.admin-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+
+    padding: var(--space-5) var(--space-3);
+
+    background-color: var(--color-white);
+    border: var(--border-width-thin) solid var(--color-border);
+    cursor: pointer;
+
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.admin-card:hover {
+    border-color: var(--color-dash-accent);
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-card:focus-visible {
+    outline: 2px solid var(--color-dash-accent);
+    outline-offset: 2px;
+}
+
+/* Card icon (monospace emoji or SVG) */
+.admin-card__icon {
+    font-size: var(--text-2xl);
+    line-height: 1;
+    user-select: none;
+}
+
+/* Card title */
+.admin-card__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-text-primary);
+    text-align: center;
+}
+
+/* Card description */
+.admin-card__desc {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    text-align: center;
+    line-height: var(--line-height-snug);
+}
+
+/* Center the 10th (System) card on the bottom row */
+.admin-card--centered {
+    grid-column: 2;
+}
+
+/* =============================================================================
+   5. MODULE TAB BAR
+   Horizontal tab strip below the universal header. Each tab represents a
+   loaded module. Active tab gets .is-active.
+============================================================================= */
+
+#module-tab-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+
+    padding: 0 var(--space-3);
+    height: 40px;
+
+    background-color: var(--color-bg-secondary);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+#module-tab-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.module-tab {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-3);
+    height: 100%;
+
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+
+    transition:
+        color var(--transition-fast),
+        border-color var(--transition-fast);
+
+    white-space: nowrap;
+}
+
+.module-tab:hover {
+    color: var(--color-text-primary);
+}
+
+.module-tab.is-active {
+    color: var(--color-dash-accent);
+    border-bottom-color: var(--color-dash-accent);
+}
+
+/* Close button on tabs */
+.module-tab__close {
+    margin-left: var(--space-1);
+    font-size: var(--text-xs);
+    line-height: 1;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.module-tab__close:hover {
+    opacity: 1;
+}
+
+/* =============================================================================
+   6. CARD GRID RESPONSIVE — narrow viewports stack to 2 then 1 column
+============================================================================= */
+
+@media (max-width: 900px) {
+    #admin-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .admin-card--centered {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    #admin-cards {
+        grid-template-columns: 1fr;
+    }
+}

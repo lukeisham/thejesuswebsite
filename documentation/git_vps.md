@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "plan_backend_infrastructure"
+git commit -m "plan_dashboard_login_and_shell"
 git push origin main 
 
 # Pulling from Github to server 
