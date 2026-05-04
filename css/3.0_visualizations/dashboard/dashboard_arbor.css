@@ -1,0 +1,368 @@
+/* =============================================================================
+   THE JESUS WEBSITE — ARBOR DIAGRAM DASHBOARD CSS
+   File:    css/3.0_visualizations/dashboard/dashboard_arbor.css
+   Version: 1.0.0
+   Purpose: Canvas and node aesthetics for the interactive drag-and-drop
+            evidence tree editor. Styles the function bar, tree canvas with
+            SVG connector overlay, draggable node components with drop-target
+            affordances, orphan node pool, and all interactive states.
+   Source:  guide_dashboard_appearance.md §3.1, vibe_coding_rules.md §2
+            §18-compliance audit: all colours, fonts, spacing use CSS variables
+            from typography.css.
+============================================================================= */
+
+/* =============================================================================
+   1. FUNCTION BAR — Refresh / Publish action row
+============================================================================= */
+
+.arbor__function-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-bg-secondary);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    flex-shrink: 0;
+}
+
+/* =============================================================================
+   2. TREE CANVAS — scrollable diagram container with grid background
+============================================================================= */
+
+.arbor-tree-canvas {
+    position: relative;
+    flex: 1;
+    overflow: auto;
+    padding: var(--space-4) var(--space-4) var(--space-8) var(--space-4);
+    background-color: var(--color-bg-primary);
+    /* Subtle grid background for blueprint canvas feel */
+    background-image: radial-gradient(
+        var(--color-border) var(--border-width-thin),
+        transparent var(--border-width-thin)
+    );
+    background-size: 20px 20px;
+    min-height: 400px;
+}
+
+/* --- SVG overlay for parent-child connector lines --- */
+.arbor-connections-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* --- Connector line paths --- */
+.arbor-connections-svg path {
+    fill: none;
+    stroke: var(--color-border-strong);
+    stroke-width: var(--border-width-thin);
+    opacity: 0.7;
+}
+
+/* =============================================================================
+   3. TREE ROOT — outermost <ul> for recursive hierarchy
+============================================================================= */
+
+.arbor-tree-root {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    z-index: 2;
+}
+
+.arbor-tree-root ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-left: var(--space-8);
+    border-left: var(--border-width-base) solid var(--color-border-strong);
+    padding-left: var(--space-3);
+}
+
+/* =============================================================================
+   4. NODE STYLES — individual draggable record item
+       Each node is an <li> containing a .arbor-node-row element.
+============================================================================= */
+
+/* --- List item wrapper (nesting boundary) --- */
+.arbor-node-item {
+    margin: var(--space-1) 0;
+    position: relative;
+}
+
+/* --- Horizontal connector line from parent branch to node --- */
+.arbor-node-item::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--space-4) + var(--space-1));
+    left: calc(-1 * var(--space-4) + var(--space-1));
+    width: calc(var(--space-4) - var(--space-1) - var(--border-width-base));
+    height: var(--border-width-base);
+    background-color: var(--color-border-strong);
+}
+
+/* --- Node row — draggable card --- */
+.arbor-node-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    background-color: var(--color-bg-secondary);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-none);
+    cursor: grab;
+    user-select: none;
+    transition:
+        border-color var(--transition-fast),
+        background-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+    max-width: 380px;
+}
+
+.arbor-node-row:active {
+    cursor: grabbing;
+}
+
+.arbor-node-row:hover {
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-base);
+}
+
+/* --- Drag handle icon --- */
+.arbor-node-row__grip {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    cursor: grab;
+    padding: 0 var(--space-1);
+}
+
+.arbor-node-row__grip:active {
+    cursor: grabbing;
+}
+
+/* --- Node label (title) --- */
+.arbor-node-row__label {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+}
+
+/* --- Node meta (id) --- */
+.arbor-node-row__id {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    pointer-events: none;
+}
+
+/* --- Action buttons inside node --- */
+.arbor-node-row__actions {
+    display: flex;
+    gap: var(--space-1);
+    flex-shrink: 0;
+}
+
+.arbor-node-row__btn {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    border: var(--border-width-thin) solid var(--color-border);
+    background: var(--color-bg-primary);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 2px var(--space-1);
+    border-radius: var(--radius-sm);
+    transition:
+        background var(--transition-fast),
+        color var(--transition-fast),
+        border-color var(--transition-fast);
+    white-space: nowrap;
+}
+
+.arbor-node-row__btn:hover {
+    background: var(--color-accent-primary);
+    color: var(--color-white);
+    border-color: var(--color-accent-primary);
+}
+
+.arbor-node-row__btn--remove:hover {
+    background: var(--color-accent-primary);
+    color: var(--color-white);
+    border-color: var(--color-accent-primary);
+}
+
+/* --- Dragging state --- */
+.arbor-node-row.is-dragging {
+    opacity: 0.4;
+    border-style: dashed;
+}
+
+/* --- Drop target state — shown when a dragged node hovers over a valid parent --- */
+.arbor-node-row.is-drop-target {
+    border-color: var(--color-accent-primary);
+    background-color: var(--color-bg-secondary);
+    box-shadow: 0 0 0 2px var(--color-accent-muted);
+}
+
+.arbor-node-item.is-drop-target > .arbor-node-row {
+    border-color: var(--color-accent-primary);
+    background-color: var(--color-bg-secondary);
+    box-shadow: 0 0 0 2px var(--color-accent-muted);
+}
+
+/* --- Invalid drop target (would create circular reference) --- */
+.arbor-node-row.is-drop-invalid {
+    border-color: var(--color-accent-primary);
+    background-color: var(--color-bg-tertiary);
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =============================================================================
+   5. ORPHAN NODE POOL — unparented records area
+============================================================================= */
+
+.arbor-orphan-pool {
+    border-top: var(--border-width-base) solid var(--color-border-strong);
+    padding: var(--space-3) var(--space-3);
+    background-color: var(--color-bg-secondary);
+    flex-shrink: 0;
+}
+
+.arbor-orphan-pool__heading {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-2) 0;
+    padding: 0;
+    text-transform: none;
+    letter-spacing: var(--tracking-normal);
+}
+
+/* --- Orphan list — horizontal flex wrap for compact display --- */
+.arbor-orphan-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+/* --- Orphan node — compact pill style --- */
+.arbor-orphan-list .arbor-node-item {
+    margin: 0;
+}
+
+.arbor-orphan-list .arbor-node-item::before {
+    display: none;
+}
+
+.arbor-orphan-list .arbor-node-row {
+    max-width: none;
+    background-color: var(--color-bg-primary);
+}
+
+/* --- Orphan pool as drop target --- */
+.arbor-orphan-pool.is-drop-target {
+    background-color: var(--color-bg-tertiary);
+    box-shadow: inset 0 0 0 2px var(--color-accent-muted);
+}
+
+/* =============================================================================
+   6. EMPTY STATES
+============================================================================= */
+
+.arbor-tree-empty,
+.arbor-orphan-empty {
+    padding: var(--space-6);
+    text-align: center;
+}
+
+/* =============================================================================
+   7. CHILD DROPDOWN — [+Child] selector for adding children from orphan pool
+============================================================================= */
+
+.arbor-child-dropdown {
+    position: absolute;
+    z-index: 100;
+    background: var(--color-bg-primary);
+    border: var(--border-width-base) solid var(--color-border-strong);
+    box-shadow: var(--shadow-md);
+    max-height: 240px;
+    overflow-y: auto;
+    min-width: 200px;
+    border-radius: var(--radius-none);
+}
+
+.arbor-child-dropdown__item {
+    display: block;
+    width: 100%;
+    padding: var(--space-1) var(--space-2);
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.arbor-child-dropdown__item:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-accent-primary);
+}
+
+/* =============================================================================
+   8. SAVE INDICATOR — brief feedback after auto-save
+============================================================================= */
+
+.arbor-save-indicator {
+    position: fixed;
+    bottom: 60px;
+    right: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-status-success);
+    background: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    pointer-events: none;
+    z-index: 200;
+}
+
+.arbor-save-indicator.is-visible {
+    opacity: 1;
+}
+
+/* =============================================================================
+   9. LOADING STATE
+============================================================================= */
+
+.arbor-tree-canvas.is-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

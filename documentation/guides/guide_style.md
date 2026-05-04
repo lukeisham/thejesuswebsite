@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.2.0
+version: 1.3.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -151,7 +151,27 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Action Bar** | Gold focus. | `--color-dash-accent` |
 | **Return Link**| Lead Grey, tertiary BG hover. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
 
-## 19. Consistency Checklist
+## 19. Arbor Dashboard Editor — Interactive Node Patterns
+
+The Arbor Diagram dashboard editor (`dashboard_arbor.css`) extends the
+Providence design system with interactive tree-editing patterns:
+
+| Category | Pattern | Implementation |
+| :--- | :--- | :--- |
+| **Tree Canvas** | Blueprint grid background, scrollable overflow | `radial-gradient` with `--color-border` dots at 20px spacing |
+| **Node Row** | Sharp-cornered drag card with shadow | `--radius-none`, `--shadow-sm`, `--color-bg-secondary` fill |
+| **Node Grip** | Mono trigram (☰) drag handle | `--font-mono`, `--text-xs`, `--color-text-muted` |
+| **Node Label** | Inter heading, text-overflow ellipsis | `--font-heading`, `--text-sm`, `pointer-events: none` |
+| **Drag State** | Dashed border, reduced opacity | `.is-dragging { border-style: dashed; opacity: 0.4 }` |
+| **Drop Target** | Oxblood border + rose glow | `--color-accent-primary` border, `box-shadow: 0 0 0 2px var(--color-accent-muted)` |
+| **Invalid Drop** | Muted background, not-allowed cursor | `.is-drop-invalid { opacity: 0.6; cursor: not-allowed }` |
+| **Tree Branches** | 2px vertical border + horizontal `::before` pseudo-elements | `border-left: 2px solid var(--color-border-strong)` on nested `<ul>` |
+| **Orphan Pool** | Horizontal flex wrap, inset drop target glow | `display: flex; flex-wrap: wrap; gap: var(--space-2)` |
+| **SVG Connectors** | Cubic bezier paths, non-interactive overlay | `pointer-events: none; z-index: 1` |
+| **Child Dropdown** | Positioned dropdown with hover highlight | `position: fixed; z-index: 100; --shadow-md` |
+| **Save Indicator** | Fading toast notification | `opacity 0 → 1 transition, auto-hides after 1.5s` |
+
+## 20. Consistency Checklist
 To maintain the Technical Blueprint aesthetic, all new elements must pass:
 1.  **Zero Rounding:** Is `var(--radius-none)` applied?
 2.  **Mono Logic:** Is `var(--font-mono)` used for UI labels?

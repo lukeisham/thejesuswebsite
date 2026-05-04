@@ -1,7 +1,7 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens, mapped to front-end components and database fields (source of truth)
-version: 3.1.0
+version 3.2.0
 dependencies: [guide_appearance.md, detailed_module_sitemap.md, data_schema.md]
 ---
 

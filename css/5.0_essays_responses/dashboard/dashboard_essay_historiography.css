@@ -36,10 +36,6 @@
     z-index: 5;
 }
 
-.function-bar--essay {
-    /* Same base styling — module-specific modifier for potential future overrides */
-}
-
 /* --- Toggle Group (Essay | Historiography) --- */
 
 .function-bar__toggle-group {

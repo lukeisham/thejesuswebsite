@@ -1,0 +1,123 @@
+<!-- =============================================================================
+   THE JESUS WEBSITE — ARBOR DIAGRAM DASHBOARD EDITOR
+   File:    admin/frontend/dashboard_arbor.html
+   Version: 1.0.0
+   Module:  3.0 — Visualizations
+   Purpose: Interactive drag-and-drop tree editor for managing the recursive
+            parent-child evidence hierarchy. Features a Refresh/Publish function
+            bar, an SVG-enhanced DOM tree with draggable nodes, an orphan pool
+            for unparented records, and integrated error display via the shared
+            Status Bar.
+   Trigger: Loaded by dashboard_app.js when user clicks "Arbor" card or tab.
+            Injected via _setColumn() into the Providence main work area.
+============================================================================= -->
+
+<!-- =============================================================================
+   FUNCTION BAR — Refresh / Publish actions
+============================================================================= -->
+<section
+    id="arbor-function-bar"
+    class="function-bar arbor__function-bar"
+    aria-label="Arbor diagram actions"
+>
+    <button
+        id="arbor-btn-refresh"
+        class="btn btn--secondary"
+        type="button"
+        title="Re-fetch the tree from the database, discarding unsaved changes"
+    >
+        Refresh
+    </button>
+    <button
+        id="arbor-btn-publish"
+        class="btn btn--publish"
+        type="button"
+        title="Commit all draft parent-child changes to the live site"
+    >
+        Publish
+    </button>
+</section>
+
+<!-- =============================================================================
+   ARBOR TREE CANVAS
+   Contains the recursively rendered tree with draggable nodes. An SVG overlay
+   layer draws connector lines between parent and child nodes. The tree is
+   built from flat node data fetched from the backend and assembled into a
+   hierarchy based on parent_id relationships.
+============================================================================= -->
+<section
+    id="arbor-tree-canvas"
+    class="arbor-tree-canvas"
+    aria-label="Arbor evidence tree"
+>
+    <!-- SVG overlay for connection lines between parent-child nodes -->
+    <svg
+        id="arbor-connections-svg"
+        class="arbor-connections-svg"
+        aria-hidden="true"
+    >
+        <!-- Connection paths drawn dynamically by draw_arbor_connections.js -->
+    </svg>
+
+    <!-- Recursive tree root — populated by render_arbor_node.js -->
+    <ul
+        id="arbor-tree-root"
+        class="arbor-tree-root"
+        role="tree"
+        aria-label="Evidence hierarchy tree"
+    >
+        <!-- Tree nodes injected dynamically -->
+    </ul>
+
+    <!-- Empty state when no tree data exists -->
+    <div
+        id="arbor-tree-empty"
+        class="arbor-tree-empty state-empty"
+        hidden
+    >
+        <span class="state-empty__label">
+            No diagram data was returned. Check that records have parent relationships set.
+        </span>
+    </div>
+</section>
+
+<!-- =============================================================================
+   ORPHAN NODES POOL
+   Nodes with parent_id = null (root nodes) are displayed here when they are
+   not currently assigned as children of another node. Users can drag nodes
+   from the tree into this pool to detach them from their parent, or drag
+   from this pool into the tree to assign a parent.
+============================================================================= -->
+<section
+    id="arbor-orphan-pool"
+    class="arbor-orphan-pool"
+    aria-label="Orphan nodes — unparented records"
+>
+    <h3 id="arbor-orphan-heading" class="arbor-orphan-pool__heading">
+        Orphan Nodes (no parent)
+    </h3>
+    <ul
+        id="arbor-orphan-list"
+        class="arbor-orphan-list"
+        role="list"
+        aria-labelledby="arbor-orphan-heading"
+    >
+        <!-- Orphan nodes injected dynamically -->
+    </ul>
+    <div
+        id="arbor-orphan-empty"
+        class="arbor-orphan-empty"
+        hidden
+    >
+        <span class="state-empty__label">
+            All nodes have parent relationships.
+        </span>
+    </div>
+</section>
+
+<!-- =============================================================================
+   ERROR / STATUS DISPLAY
+   Error messages are routed through window.surfaceError() to the shared
+   Status Bar footer (js/admin_core/error_handler.js), which is already
+   present in the dashboard shell.
+============================================================================= -->

@@ -1,7 +1,7 @@
 ---
 name: guide_security.md
 purpose: description of security measures taken to protect the backend section 
-version: 1.1.0
+version: 1.2.0
 dependencies: [guide_dashboard_appearance.md, module_sitemap.md]
 ---
 
@@ -90,7 +90,34 @@ Administrative logic is protected by minification and structural obscurity.
 - **Directory Exclusion:** Nginx config explicitly forbids directory listing in the `/admin/` folder structure.
 - **Agent Restriction:** `mcp_server.py` exposes only a read-only API, ensuring external automated agents cannot access admin editing tools.
 
-## 5. Dependency Monitoring and Vulnerability Scanning
+## 6. Arbor Diagram — Relational Integrity Checks
+
+The Arbor Diagram editor allows administrators to re-parent records through
+drag-and-drop, which could introduce circular parent-child loops (e.g., A → B
+and B → A simultaneously). To prevent data corruption, relational integrity
+is enforced at two independent layers:
+
+- **Client-Side Validation (handle_node_drag.js + update_node_parent.js):**
+  Before allowing a drop, `_wouldCreateCircularReference()` walks up the
+  ancestor chain from the proposed parent to verify the dragged node is not
+  already an ancestor. If a cycle is detected, the drop is rejected with
+  a visual `is-drop-invalid` state, and `surfaceError()` displays:
+  "Error: Cannot re-parent '{title}' — this would create a circular loop
+  in the tree."
+
+- **Server-Side Validation (admin_api.py → update_diagram_tree):**
+  As a defense-in-depth measure, the backend also detects direct 2-node
+  cycles (`A ↔ B`) before committing the transaction. If found, it returns
+  HTTP 422 with a descriptive error. The frontend catches this response
+  in `update_node_parent.js` and rolls back both the in-memory state
+  and the visual tree to the pre-drag configuration.
+
+- **Transaction Atomicity:** All parent_id updates within a batch are wrapped
+  in a single `BEGIN TRANSACTION … COMMIT / ROLLBACK` block. If any update
+  fails (e.g., missing record, circular reference), the entire batch is
+  rolled back, preventing partial corruption.
+
+## 7. Dependency Monitoring and Vulnerability Scanning
 To ensure long-term stability, dependencies are audited both manually and automatically.
 
 - **Automated Security Audits:** Use `tests/security_audit.py` to run weekly safety scans (`npm audit`, `pip-audit`).
