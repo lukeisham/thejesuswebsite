@@ -1,0 +1,331 @@
+// Trigger:  Called by dashboard_app.js as window.renderRecordsAll() when the
+//           user navigates to the All Records module (card click or tab select).
+// Main:    renderRecordsAll() — sets full-width layout, fetches the HTML template,
+//           injects dependent scripts and CSS, initialises sort toggles, search,
+//           endless scroll, CSV upload handler, and bulk review handler. Manages
+//           view switching between the main records table and the isolated bulk
+//           review panel.
+// Output:  Fully interactive All Records dashboard rendered in the Providence
+//           main work area with live data, sort/filter controls, search, and
+//           bulk CSV upload workflow.
+
+"use strict";
+
+/* =============================================================================
+   THE JESUS WEBSITE — ALL RECORDS DASHBOARD ORCHESTRATOR
+   File:    js/2.0_records/dashboard/dashboard_records_all.js
+   Version: 1.0.0
+   Module:  2.0 — Records
+   Purpose: Initialises the All Records dashboard module and manages the full
+            view lifecycle: HTML injection, dependent script injection, toggle
+            coordination, search integration, endless scroll, and the two-phase
+            bulk CSV upload workflow (parse → ephemeral review → commit).
+            Coordinates all sub-modules via their window.* API contracts.
+============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   DEPENDENCY TRACKING — scripts injected dynamically at module load
+----------------------------------------------------------------------------- */
+const RECORDS_ALL_SCRIPTS = [
+  "../../js/2.0_records/dashboard/data_populate_table.js",
+  "../../js/2.0_records/dashboard/endless_scroll.js",
+  "../../js/2.0_records/dashboard/table_toggle_display.js",
+  "../../js/2.0_records/dashboard/search_records.js",
+  "../../js/2.0_records/dashboard/bulk_csv_upload_handler.js",
+  "../../js/2.0_records/dashboard/bulk_upload_review_handler.js",
+];
+
+/* Track the active sort mode so we can return to it after bulk commit */
+let _activeSort = "created_at";
+
+/* Track whether the bulk panel is currently visible */
+let _bulkPanelVisible = false;
+
+/* -----------------------------------------------------------------------------
+   MAIN: renderRecordsAll
+   Entry point called by dashboard_app.js loadModule('records-all').
+----------------------------------------------------------------------------- */
+async function renderRecordsAll() {
+  // --- 1. Layout: full-width canvas, no sidebar ---
+  if (typeof window._setLayoutColumns === "function") {
+    window._setLayoutColumns(false, "1fr");
+  }
+
+  // --- 2. Show loading state ---
+  if (typeof window._setColumn === "function") {
+    window._setColumn(
+      "main",
+      '<div class="state-loading"><span class="state-loading__label">Loading All Records…</span></div>',
+    );
+  }
+
+  // --- 3. Fetch and inject HTML template ---
+  try {
+    const htmlResponse = await fetch(
+      "../../admin/frontend/dashboard_records_all.html",
+    );
+    if (!htmlResponse.ok) {
+      throw new Error("Failed to load HTML template: " + htmlResponse.status);
+    }
+    const html = await htmlResponse.text();
+
+    if (typeof window._setColumn === "function") {
+      window._setColumn("main", html);
+    }
+  } catch (err) {
+    console.error("[dashboard_records_all] HTML load failed:", err);
+    if (typeof window._setColumn === "function") {
+      window._setColumn(
+        "main",
+        '<div class="state-error"><span class="state-error__label">Error loading the All Records dashboard.</span><p>Please refresh the page and try again.</p></div>',
+      );
+    }
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to load the All Records dashboard interface.",
+      );
+    }
+    return;
+  }
+
+  // --- 4. Inject CSS ---
+  _injectStylesheet(
+    "../../css/2.0_records/dashboard/dashboard_records_all.css",
+  );
+
+  // --- 5. Inject all dependent JS scripts ---
+  await _injectScripts(RECORDS_ALL_SCRIPTS);
+
+  // --- 6. Initialise toggles ---
+  if (typeof window.initTableToggles === "function") {
+    window.initTableToggles();
+  } else {
+    _wireTogglesFallback();
+  }
+
+  // --- 7. Initialise search ---
+  if (typeof window.initRecordsSearch === "function") {
+    window.initRecordsSearch();
+  }
+
+  // --- 8. Initialise endless scroll ---
+  if (typeof window.initEndlessScroll === "function") {
+    window.initEndlessScroll();
+  }
+
+  // --- 9. Initialise CSV upload handler ---
+  if (typeof window.initBulkCsvUpload === "function") {
+    window.initBulkCsvUpload();
+  }
+
+  // --- 10. Initialise bulk review handler ---
+  if (typeof window.initBulkReview === "function") {
+    window.initBulkReview();
+  }
+
+  // --- 11. Fetch initial batch of records ---
+  if (typeof window.fetchRecordsBatch === "function") {
+    window.fetchRecordsBatch(_activeSort, 0);
+  }
+
+  // --- 12. Surface ready state ---
+  if (typeof window.surfaceError === "function") {
+    window.surfaceError("All Records dashboard ready.");
+  }
+
+  _updateStatusBar("System running normally.", "");
+}
+
+/* -----------------------------------------------------------------------------
+   PUBLIC: setActiveSort
+   Called by table_toggle_display.js when a toggle is clicked.
+   Updates the tracked sort mode and triggers a re-fetch of records.
+----------------------------------------------------------------------------- */
+function setActiveSort(sortKey) {
+  _activeSort = sortKey;
+}
+
+/* -----------------------------------------------------------------------------
+   PUBLIC: getActiveSort
+   Returns the currently active sort key.
+----------------------------------------------------------------------------- */
+function getActiveSort() {
+  return _activeSort;
+}
+
+/* -----------------------------------------------------------------------------
+   PUBLIC: showBulkReviewPanel
+   Hides the main records table and reveals the bulk review panel.
+   Called by table_toggle_display.js when "Bulk" toggle is selected.
+----------------------------------------------------------------------------- */
+function showBulkReviewPanel() {
+  _bulkPanelVisible = true;
+
+  const tableContainer = document.getElementById("records-all-table-container");
+  const bulkPanel = document.getElementById("bulk-review-panel");
+  const searchBar = document.getElementById("records-all-search-bar");
+
+  if (tableContainer) tableContainer.hidden = true;
+  if (bulkPanel) bulkPanel.hidden = false;
+
+  // Disable search in bulk mode
+  if (searchBar) {
+    const searchInput = document.getElementById("records-all-search-input");
+    if (searchInput) {
+      searchInput.disabled = true;
+      searchInput.placeholder = "Search unavailable in Bulk Review mode";
+      searchInput.classList.add("records-all__search-input--disabled");
+    }
+  }
+
+  // Disable endless scroll while bulk panel is visible
+  if (typeof window.pauseEndlessScroll === "function") {
+    window.pauseEndlessScroll();
+  }
+
+  // Render bulk review if data exists
+  if (typeof window.renderBulkReview === "function") {
+    window.renderBulkReview();
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   PUBLIC: hideBulkReviewPanel
+   Hides the bulk review panel and restores the main records table.
+   Called after bulk commit, discard, or when switching away from Bulk toggle.
+----------------------------------------------------------------------------- */
+function hideBulkReviewPanel() {
+  _bulkPanelVisible = false;
+
+  const tableContainer = document.getElementById("records-all-table-container");
+  const bulkPanel = document.getElementById("bulk-review-panel");
+  const searchBar = document.getElementById("records-all-search-bar");
+
+  if (tableContainer) tableContainer.hidden = false;
+  if (bulkPanel) bulkPanel.hidden = true;
+
+  // Re-enable search
+  if (searchBar) {
+    const searchInput = document.getElementById("records-all-search-input");
+    if (searchInput) {
+      searchInput.disabled = false;
+      searchInput.placeholder =
+        "Search records by title, verse, or keyword... (Cmd+K)";
+      searchInput.classList.remove("records-all__search-input--disabled");
+    }
+  }
+
+  // Re-enable endless scroll
+  if (typeof window.resumeEndlessScroll === "function") {
+    window.resumeEndlessScroll();
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   PUBLIC: isBulkPanelVisible
+   Returns whether the bulk review panel is currently shown.
+----------------------------------------------------------------------------- */
+function isBulkPanelVisible() {
+  return _bulkPanelVisible;
+}
+
+/* -----------------------------------------------------------------------------
+   PUBLIC: updateStatusBar
+   Updates the module-scoped status bar with a message and optional CSS class.
+   Messages are also routed through surfaceError for the global footer.
+----------------------------------------------------------------------------- */
+function _updateStatusBar(message, cssClass) {
+  const statusBar = document.getElementById("records-all-status-bar");
+  if (statusBar) {
+    statusBar.textContent = message;
+    statusBar.className = "records-all__status-bar";
+    if (cssClass) {
+      statusBar.classList.add(cssClass);
+    }
+  }
+
+  // Also route to global error footer
+  if (typeof window.surfaceError === "function") {
+    window.surfaceError(message);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _injectScripts — inject multiple JS scripts sequentially
+----------------------------------------------------------------------------- */
+function _injectScripts(scriptPaths) {
+  return Promise.all(
+    scriptPaths.map(function (src) {
+      return new Promise(function (resolve) {
+        const existing = document.querySelector('script[src="' + src + '"]');
+        if (existing) {
+          resolve();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = false;
+        script.onload = function () {
+          resolve();
+        };
+        script.onerror = function () {
+          console.warn("[dashboard_records_all] Failed to load script:", src);
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+    }),
+  );
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _injectStylesheet — dynamically inject a CSS file
+----------------------------------------------------------------------------- */
+function _injectStylesheet(href) {
+  const existing = document.querySelector('link[href="' + href + '"]');
+  if (existing) return;
+
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.appendChild(link);
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _wireTogglesFallback — basic toggle wiring if initTableToggles
+   hasn't loaded yet (shouldn't happen, but safe fallback)
+----------------------------------------------------------------------------- */
+function _wireTogglesFallback() {
+  const toggleButtons = document.querySelectorAll(".toggle-btn");
+  toggleButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const sortKey = btn.getAttribute("data-sort");
+      if (sortKey === "bulk") {
+        if (typeof window.showBulkReviewPanel === "function") {
+          window.showBulkReviewPanel();
+        }
+        return;
+      }
+      if (typeof window.setActiveSort === "function") {
+        window.setActiveSort(sortKey);
+      }
+      if (typeof window.fetchRecordsBatch === "function") {
+        window.fetchRecordsBatch(sortKey, 0);
+      }
+    });
+  });
+}
+
+/* -----------------------------------------------------------------------------
+   GLOBAL EXPOSURE
+   renderRecordsAll is the canonical entry point registered in
+   dashboard_app.js MODULE_RENDERERS as 'records-all'.
+----------------------------------------------------------------------------- */
+window.renderRecordsAll = renderRecordsAll;
+window.setActiveSort = setActiveSort;
+window.getActiveSort = getActiveSort;
+window.showBulkReviewPanel = showBulkReviewPanel;
+window.hideBulkReviewPanel = hideBulkReviewPanel;
+window.isBulkPanelVisible = isBulkPanelVisible;
+window.updateRecordsAllStatusBar = _updateStatusBar;

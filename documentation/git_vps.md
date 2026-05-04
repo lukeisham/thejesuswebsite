@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "plan_dashboard_login_and_shell"
+git commit -m "records all"
 git push origin main 
 
 # Pulling from Github to server 
@@ -32,6 +32,8 @@ sudo journalctl -u thejesuswebsite.service -n 20 --no-pager
 | 10 | `plan_dashboard_blog_posts` | 1, 2, 3, 4 |
 | 11 | `plan_dashboard_news_sources` | 1, 2, 3 |
 | 12 | `plan_dashboard_system
+
+Fix the 3 column layout, responsive design,  into working canvas and optional sidebar. Check css and html and JS to confirm this change. 
 
 1. Fixing and completing the dashboard
 2. image upload

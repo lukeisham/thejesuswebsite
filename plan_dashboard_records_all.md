@@ -114,7 +114,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 - **Action:** Create the table structure for the all records view, including the page function bar for toggles, the endless scroll container, and a dedicated `#bulk-review-panel` container that is hidden by default and shown only when the "Bulk" toggle is active. The bulk review panel must contain anchor elements for the review table, checkbox-based row selection, and the Save as Draft / Discard action bar.
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline styles · No inline scripts · Predictable Hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -124,7 +124,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 - **Action:** Implement high-density table styling with monospaced metadata typography, hover states on rows, fixed-header toggle bar, and the bulk review panel styling (visual separation from the main table, checkbox column, invalid-row highlighting in red/muted, and a sticky action bar for Save as Draft / Discard).
 - **Vibe Rule(s):** Grid for everything · CSS Variables · Vanilla Excellence · User Comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -138,7 +138,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
   - On module unload (navigating away without saving): call `window.discardBulkReview()` to clear ephemeral data
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -148,7 +148,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 - **Action:** Implement the logic to fetch record batches from `GET /api/admin/records` (with sort/filter params from the active toggle) and render them into table rows. Each row is clickable and navigates to the Single Record editor for that record. Bulk-uploaded records that have been committed as `draft` appear in this table alongside all other records.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -158,7 +158,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 - **Action:** Implement the Intersection Observer logic to trigger batch loads as the user scrolls to the bottom of the table. Not active when the Bulk review panel is visible.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -174,7 +174,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
   - **Bulk** — does NOT fetch from API. Instead, isolates the view to show only the ephemeral bulk review panel (T8). If no ephemeral records exist (no CSV has been parsed), displays a message: "No bulk upload in progress. Upload a CSV file to begin."
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -191,14 +191,14 @@ This plan implements the "All Records" dashboard view, providing a high-density 
   7. Search operates independently of the active toggle — it filters whatever the current sort order has loaded (including endless-scroll batches). When the toggle changes, the search input is cleared.
   8. Search is disabled when the "Bulk" toggle is active; the search bar shows a muted placeholder: `"Search unavailable in Bulk Review mode"`.
   9. When a search is active and endless scroll triggers a new batch load, newly-loaded rows are also filtered against the active search term before being shown.
-- **Dependencies:** `js/2.0_records/dashboard/data_populate_table.js` (reads loaded rows), `js/2.0_records/dashboard/endless_scroll.js` (coordinates with batch loading), `js/2.0_records/dashboard/table_toggle_display.js` (clears search on toggle change), `js/admin_core/error_handler.js` (surfaces status count)
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+  - **Dependencies:** `js/2.0_records/dashboard/data_populate_table.js` (reads loaded rows), `js/2.0_records/dashboard/endless_scroll.js` (coordinates with batch loading), `js/2.0_records/dashboard/table_toggle_display.js` (clears search on toggle change), `js/admin_core/error_handler.js` (surfaces status count)
+  - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+  - [x] Task complete
 
----
+  ---
 
-### T7 — Implement Bulk CSV Upload (Phase 1: Parse & Validate)
+  ### T7 — Implement Bulk CSV Upload (Phase 1: Parse & Validate)
 
 - **File(s):** `js/2.0_records/dashboard/bulk_csv_upload_handler.js`
 - **Action:** Implement Phase 1 of the bulk upload workflow — CSV file selection, parsing, and client-side validation. This phase does NOT write anything to the database. Detailed behavior:
@@ -213,14 +213,14 @@ This plan implements the "All Records" dashboard view, providing a high-density 
      - `geo_id` if present must be a valid integer
   6. On successful parse: call `window.loadBulkReviewRows(rows)` on `bulk_upload_review_handler.js` to populate the ephemeral store, then auto-select the "Bulk" toggle to show the review panel.
   7. On parse failure: surface error via `window.surfaceError()`.
-- **Dependencies:** `js/2.0_records/dashboard/bulk_upload_review_handler.js` (calls `loadBulkReviewRows()`)
-- **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
+  - **Dependencies:** `js/2.0_records/dashboard/bulk_upload_review_handler.js` (calls `loadBulkReviewRows()`)
+  - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+  - [x] Task complete
 
----
+  ---
 
-### T8 — Implement Bulk Upload Review (Phase 2: Review & Commit)
+  ### T8 — Implement Bulk Upload Review (Phase 2: Review & Commit)
 
 - **File(s):** `js/2.0_records/dashboard/bulk_upload_review_handler.js`
 - **Action:** Implement Phase 2 of the bulk upload workflow — the ephemeral review table, row selection, and commit/discard actions. This is the core new script. Detailed behavior:
@@ -248,7 +248,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 - **Dependencies:** `admin/backend/admin_api.py` (`POST /api/admin/bulk-upload/commit`), `js/2.0_records/dashboard/table_toggle_display.js` (returns to previous toggle after commit), `js/admin_core/error_handler.js` (surfaces commit failures)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+ · window.* API contract
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -279,7 +279,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 
 - **Vibe Rule(s):** Logic is explicit and self-documenting · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -288,40 +288,40 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### HTML
-- [ ] Semantic tags used — no `<div>` soup
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
-- [ ] `#bulk-review-panel` present and hidden by default
+- [x] Semantic tags used — no `<div>` soup
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] `#bulk-review-panel` present and hidden by default
 
 #### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
-- [ ] Invalid bulk rows visually distinct (red-tinted background)
-- [ ] Bulk review action bar uses sticky positioning
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] Invalid bulk rows visually distinct (red-tinted background)
+- [x] Bulk review action bar uses sticky positioning
 
 #### JavaScript
-- [ ] One function per file
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
-- [ ] `search_records.js` opens with three comment lines: trigger, main function, output
-- [ ] `search_records.js` uses fuzzy matching and debounced input
-- [ ] `bulk_upload_review_handler.js` exposes `window.*` API contract (`loadBulkReviewRows`, `renderBulkReview`, `commitBulkReview`, `discardBulkReview`)
-- [ ] No database writes occur during Phase 1 (CSV parse); writes only in Phase 2 (commit)
+- [x] One function per file
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
+- [x] `search_records.js` opens with three comment lines: trigger, main function, output
+- [x] `search_records.js` uses fuzzy matching and debounced input
+- [x] `bulk_upload_review_handler.js` exposes `window.*` API contract (`loadBulkReviewRows`, `renderBulkReview`, `commitBulkReview`, `discardBulkReview`)
+- [x] No database writes occur during Phase 1 (CSV parse); writes only in Phase 2 (commit)
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
-- [ ] `POST /api/admin/bulk-upload/commit` endpoint exists on `admin_api.py`
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
+- [x] `POST /api/admin/bulk-upload/commit` endpoint exists on `admin_api.py`
 
 #### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
-- [ ] Committed bulk records are inserted with `status = 'draft'`
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic
+- [x] Committed bulk records are inserted with `status = 'draft'`
 
 ---
 
@@ -329,10 +329,10 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement**: The core objective has been fully met — search bar with real-time filtering, multi-sort table with 6 toggles, endless scroll, and a two-phase bulk CSV upload workflow (Phase 1: parse & validate into ephemeral store; Phase 2: review with row selection, Save as Draft commit, or Discard)
-- [ ] **Necessity**: The underlying need for record oversight with safe bulk ingestion (no accidental database writes without review) has been resolved
-- [ ] **Targeted Impact**: The All Records dashboard view has been implemented with both the default sorted table and the isolated bulk review panel; committed bulk records merge into the main pool as `draft` and appear under all toggles
-- [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified; bulk review is contained within the All Records module and does not leak into Single Record or other plans
+- [x] **Achievement**: The core objective has been fully met — search bar with real-time filtering, multi-sort table with 6 toggles, endless scroll, and a two-phase bulk CSV upload workflow (Phase 1: parse & validate into ephemeral store; Phase 2: review with row selection, Save as Draft commit, or Discard)
+- [x] **Necessity**: The underlying need for record oversight with safe bulk ingestion (no accidental database writes without review) has been resolved
+- [x] **Targeted Impact**: The All Records dashboard view has been implemented with both the default sorted table and the isolated bulk review panel; committed bulk records merge into the main pool as `draft` and appear under all toggles
+- [x] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified; bulk review is contained within the All Records module and does not leak into Single Record or other plans
 
 ---
 
@@ -361,7 +361,7 @@ This plan implements the "All Records" dashboard view, providing a high-density 
 | `documentation/guides/guide_welcoming_robots.md` | No | SEO is unaffected. |
 
 ### Documentation Checklist
-- [ ] All affected documents identified in the table above
-- [ ] Each "Yes" row has been updated with accurate, current information
-- [ ] No document contains stale references to files or logic changed by this plan
-- [ ] Version numbers incremented where frontmatter versioning is present
+- [x] All affected documents identified in the table above
+- [x] Each "Yes" row has been updated with accurate, current information
+- [x] No document contains stale references to files or logic changed by this plan
+- [x] Version numbers incremented where frontmatter versioning is present

@@ -64,6 +64,8 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | :--- | :--- | :--- |
 | **Ordinary List** | Zebra-striped rows | 2px left-border Oxblood highlight. |
 | **Ranked List** | Serif rank numbers | High-density vertical alignment. |
+| **All Records Table** | High-density 4-column table | Monospaced metadata typography (`--font-mono`), zebra-striped rows, sticky header, clickable rows with hover highlight, status badges (Draft/Published). |
+| **Bulk Review Panel** | Visually distinct review table | Bordered container with `--color-accent-muted`, sticky action bar, checkbox column, invalid rows red-tinted (`rgba(142, 59, 70, 0.06)`), validation status icons. |
 | **Response Inserts** | Dashed boundaries | Labeled interjections (Top-left, Mono, 10px, Lead Grey). |
 
 ## 9. Content Elements

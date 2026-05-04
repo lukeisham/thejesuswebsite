@@ -266,48 +266,104 @@ This document provides visual ASCII representations detailing how data physicall
  +---------------------------------------------------+
 ```
 
-### 2.5 Bulk Upload Pipeline
+### 2.5 Bulk Upload Pipeline (Two-Phase: Parse → Review → Commit)
+
+The bulk upload workflow is a **two-phase process** designed to prevent accidental database writes. Phase 1 parses and validates the CSV client-side into an ephemeral preview store — nothing is written to the database. Phase 2 presents a review table where the admin can deselect individual rows and must explicitly click "Save as Draft" to commit them as permanent `draft` records.
 
 ```text
+  ═══════════════════════════════════════════════════════════════
+  PHASE 1 — CLIENT-SIDE PARSE & VALIDATE (no DB writes)
+  ═══════════════════════════════════════════════════════════════
+
  +---------------------------------------------------+
- |       Admin Editor: edit_bulk_upload.js           |
- |            (Drag & Drop .csv file)                |
- |  (Client validates < 5MB and .csv extension)      |
+ |  Admin clicks "Upload CSV" button                 |
+ |  (bulk_csv_upload_handler.js)                     |
  +---------------------------------------------------+
                           |
                           v
  +---------------------------------------------------+
- |           POST /api/admin/bulk-upload             |
- |       (Requires verify_token JWT Admin Auth)      |
+ |  FileReader reads .csv as text                    |
+ |  Parse: split by newlines, comma-split with       |
+ |  quote handling (vanilla JS, no library)          |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |  Map CSV column headers → schema fields           |
+ |  (title, primary_verse, description, snippet,     |
+ |   era, timeline, gospel_category, map_label,      |
+ |   geo_id, bibliography, context_links, etc.)      |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |  Client-side Validation:                          |
+ |  • title is required (non-empty)                  |
+ |  • primary_verse matches "Book Ch:V" pattern      |
+ |  • era, timeline, gospel_category, map_label      |
+ |    checked against valid enum values              |
+ |  • geo_id must be valid integer if present        |
+ +---------------------------------------------------+
+                          |
+                          v
+ +---------------------------------------------------+
+ |  Parsed rows loaded into EPHEMERAL STORE           |
+ |  (_ephemeralRows[] in bulk_upload_review_handler) |
+ |  Each entry: { rowIndex, fields, valid, checked,  |
+ |                errors[] }                         |
+ |                                                   |
+ |  ⚠ NOTHING written to database yet                |
+ +---------------------------------------------------+
+                          |
+        Auto-selects "Bulk" toggle, shows review panel
+                          |
+                          v
+  ═══════════════════════════════════════════════════════════════
+  PHASE 2 — REVIEW & COMMIT (admin-gated DB write)
+  ═══════════════════════════════════════════════════════════════
+
+ +---------------------------------------------------+
+ |  Bulk Review Panel (bulk_upload_review_handler)   |
+ |  • Checkbox column — valid rows pre-checked       |
+ |  • Invalid rows red-tinted, unchecked, disabled   |
+ |  • "Save as Draft" shows count of checked rows    |
+ |  • "Discard All" clears ephemeral store           |
+ +---------------------------------------------------+
+                          |
+            Admin reviews, deselects as needed
+                          |
+                          v
+ +---------------------------------------------------+
+ |  Admin clicks "Save as Draft"                     |
+ |  → Confirmation dialog                            |
+ |  → POST /api/admin/bulk-upload/commit            |
+ |    { records: [ {title, primary_verse, ...} ] }  |
  +---------------------------------------------------+
                           |
                           v
  +---------------------------------------------------+
  |                 admin_api.py                      |
+ |  bulk_upload_commit() endpoint                    |
  |                                                   |
- |  -> Decodes CSV as utf-8-sig (strips Excel BOM)   |
- |  -> Parses CSV via csv.DictReader                 |
- |  -> Checks required fields (title, slug)          |
- |  -> Checks database for slug uniqueness           |
- |  -> Validates ENUMS against system schema         |
- |  -> Validates primary_verse JSON format           |
- |  (ALL rows validated before any insert)           |
+ |  -> Validates required fields (title)             |
+ |  -> Validates ENUMS server-side                   |
+ |  -> Forces status = 'draft' on ALL records        |
+ |  -> Generates UUID ids if missing                 |
+ |  -> Sets created_at / updated_at timestamps       |
+ |  -> Executes individual INSERT per record         |
+ |  -> COMMIT transaction                            |
  +---------------------------------------------------+
                |                       |
-      [ERRORS FOUND]             [ALL ROWS VALID]
+      [ERRORS / PARTIAL]         [ALL SUCCESS]
                |                       |
                v                       v
  +------------------------+  +--------------------------------------------+
- | Return 200 Response:   |  | -> Map to SQLite cols dynamically          |
- | {                      |  | -> Generate UUID string for each id        |
- |  "success": false,     |  | -> Auto-set created_at / updated_at (UTC)  |
- |  "errors": ["Row 2.."],|  | -> Execute Bulk INSERT into SQLite DB      |
- |  "created": 0          |  +--------------------------------------------+
- | }                      |                    |
- +------------------------+                    v
-                             +--------------------------------------------+
-                             | Return 200 Response:                       |
-                             | { "success": true,                         |
+ | Return 200:            |  | Return 200:                                |
+ | { success: false,      |  | { success: true,                           |
+ |   errors: [...],       |  |   created: n,                              |
+ |   created: partial_n } |  |   message: "Successfully created n ..." }  |
+ | Ephemeral data PRESERVED|  | Ephemeral store CLEARED                   |
+ | (admin can retry)      |  | Records now appear in main table           |
                              |   "message": "Successfully created X ...", |
                              |   "created": X,                           |
                              |   "errors": [] }                          |

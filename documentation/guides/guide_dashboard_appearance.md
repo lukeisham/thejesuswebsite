@@ -1318,7 +1318,8 @@ System-managed fields (never manually edited in any dashboard section):
 | `PUT` | `/api/admin/lists/{name}` | Replace ranked list |
 | `GET` | `/api/admin/diagram/tree` | Get flat node list for Arbor tree |
 | `PUT` | `/api/admin/diagram/tree` | Batch-update parent_id relationships |
-| `POST` | `/api/admin/bulk-upload` | CSV bulk record ingestion |
+| `POST` | `/api/admin/bulk-upload` | CSV bulk record ingestion (Phase 1: parse & validate, auto-insert) |
+| `POST` | `/api/admin/bulk-upload/commit` | Commit reviewed bulk records as draft (Phase 2: review-gated insert) |
 
 ### New routes (implemented by plan_backend_infrastructure)
 

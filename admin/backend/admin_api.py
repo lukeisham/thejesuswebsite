@@ -798,6 +798,182 @@ async def bulk_upload_records(
     }
 
 
+class BulkReviewRecordsRequest(BaseModel):
+    records: list[dict]
+
+
+@app.post("/api/admin/bulk-upload/commit")
+async def bulk_upload_commit(
+    payload: BulkReviewRecordsRequest,
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Phase 2 of bulk upload: commit reviewed records as draft.
+    Receives a JSON payload with a `records` array of field dicts.
+    Each record is inserted with status='draft'. Validates required fields
+    and enum values server-side before insertion.
+    """
+    records = payload.records
+    if not records:
+        raise HTTPException(status_code=400, detail="No records provided")
+
+    # Valid enum sets (mirrors bulk_upload_records)
+    valid_eras = {
+        "PreIncarnation",
+        "OldTestament",
+        "EarlyLife",
+        "Life",
+        "GalileeMinistry",
+        "JudeanMinistry",
+        "PassionWeek",
+        "Post-Passion",
+    }
+    valid_timelines = {
+        "PreIncarnation",
+        "OldTestament",
+        "EarlyLifeUnborn",
+        "EarlyLifeBirth",
+        "EarlyLifeInfancy",
+        "EarlyLifeChildhood",
+        "LifeTradie",
+        "LifeBaptism",
+        "LifeTemptation",
+        "GalileeCallingTwelve",
+        "GalileeSermonMount",
+        "GalileeMiraclesSea",
+        "GalileeTransfiguration",
+        "JudeanOutsideJudea",
+        "JudeanMissionSeventy",
+        "JudeanTeachingTemple",
+        "JudeanRaisingLazarus",
+        "JudeanFinalJourney",
+        "PassionPalmSunday",
+        "PassionMondayCleansing",
+        "PassionTuesdayTeaching",
+        "PassionWednesdaySilent",
+        "PassionMaundyThursday",
+        "PassionMaundyLastSupper",
+        "PassionMaundyGethsemane",
+        "PassionMaundyBetrayal",
+        "PassionFridaySanhedrin",
+        "PassionFridayCivilTrials",
+        "PassionFridayCrucifixionBegins",
+        "PassionFridayDarkness",
+        "PassionFridayDeath",
+        "PassionFridayBurial",
+        "PassionSaturdayWatch",
+        "PassionSundayResurrection",
+        "PostResurrectionAppearances",
+        "Ascension",
+        "OurResponse",
+        "ReturnOfJesus",
+    }
+    valid_map_labels = {"Overview", "Empire", "Levant", "Judea", "Galilee", "Jerusalem"}
+    valid_gospel_categories = {"event", "location", "person", "theme", "object"}
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    valid_cols = get_valid_columns()
+
+    errors = []
+    valid_records = []
+
+    for index, row in enumerate(records):
+        row_num = index + 1
+        title = row.get("title", "").strip()
+
+        if not title:
+            errors.append(f"Row {row_num}: Missing 'title'")
+            continue
+
+        # Enum validation
+        era = row.get("era", "")
+        if era and era.strip() and era.strip() not in valid_eras:
+            errors.append(f"Row {row_num}: Invalid era '{era}'")
+            continue
+
+        timeline = row.get("timeline", "")
+        if timeline and timeline.strip() and timeline.strip() not in valid_timelines:
+            errors.append(f"Row {row_num}: Invalid timeline '{timeline}'")
+            continue
+
+        map_label = row.get("map_label", "")
+        if (
+            map_label
+            and map_label.strip()
+            and map_label.strip() not in valid_map_labels
+        ):
+            errors.append(f"Row {row_num}: Invalid map_label '{map_label}'")
+            continue
+
+        gospel_category = row.get("gospel_category", "")
+        if (
+            gospel_category
+            and gospel_category.strip()
+            and gospel_category.strip() not in valid_gospel_categories
+        ):
+            errors.append(f"Row {row_num}: Invalid gospel_category '{gospel_category}'")
+            continue
+
+        # Build insert data
+        insert_data = {}
+        for col in valid_cols:
+            if col in row and row[col] and str(row[col]).strip():
+                insert_data[col] = str(row[col]).strip()
+
+        # Force status to draft
+        insert_data["status"] = "draft"
+
+        # Generate ID and timestamps
+        if "id" not in insert_data:
+            insert_data["id"] = str(uuid.uuid4())
+
+        now_iso = datetime.utcnow().isoformat() + "Z"
+        if "created_at" not in insert_data:
+            insert_data["created_at"] = now_iso
+        if "updated_at" not in insert_data:
+            insert_data["updated_at"] = now_iso
+
+        valid_records.append(insert_data)
+
+    if not valid_records:
+        conn.close()
+        return {
+            "success": False,
+            "errors": errors if errors else ["No valid records to insert"],
+            "created": 0,
+        }
+
+    # Bulk insertion
+    created = 0
+    try:
+        for record in valid_records:
+            columns = ", ".join(record.keys())
+            placeholders = ", ".join(["?" for _ in record])
+            values = tuple(record.values())
+            cursor.execute(
+                f"INSERT INTO records ({columns}) VALUES ({placeholders})", values
+            )
+            created += 1
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        raise HTTPException(
+            status_code=500, detail=f"Database insertion error: {str(e)}"
+        )
+
+    conn.close()
+
+    return {
+        "success": True,
+        "message": f"Successfully created {created} records as draft.",
+        "created": created,
+        "errors": errors,
+    }
+
+
 # =============================================================================
 # T4 — System Config & Health Endpoints
 # =============================================================================

@@ -1,0 +1,291 @@
+<!-- =============================================================================
+   THE JESUS WEBSITE — ALL RECORDS DASHBOARD TABLE
+   File:    admin/frontend/dashboard_records_all.html
+   Version: 1.0.0
+   Module:  2.0 — Records
+   Purpose: High-density tabular interface for managing all database records.
+            Features keyboard-driven search (Cmd+K), endless scrolling, 6 sort
+            toggles (Creation Date, Unique ID, Primary Verse, Title, List
+            Ordinary, Bulk), and a two-phase bulk CSV upload workflow with an
+            isolated ephemeral review panel. Bulk upload commits records as
+            `draft` status only after explicit admin review and approval.
+   Trigger: Loaded by dashboard_records_all.js when the user navigates to
+            the All Records module. Injected into #providence-col-main via
+            _setColumn().
+============================================================================= -->
+
+<!-- =============================================================================
+   FUNCTION BAR — Sort/Filter Toggles
+   Six toggle buttons: Creation Date, Unique ID, Primary Verse, Title,
+   List Ordinary, and Bulk. Clicking a toggle changes the active sort
+   order for the main records table. The "Bulk" toggle is special: it
+   isolates the view to show ONLY the ephemeral bulk review panel.
+============================================================================= -->
+<section
+    id="records-all-function-bar"
+    class="function-bar records-all__function-bar"
+    aria-label="Record sort toggles"
+>
+    <span class="function-bar__label">Sort by:</span>
+    <button
+        id="toggle-created-at"
+        class="toggle-btn toggle-btn--active"
+        type="button"
+        data-sort="created_at"
+        aria-pressed="true"
+    >
+        Creation Date
+    </button>
+    <button
+        id="toggle-id"
+        class="toggle-btn"
+        type="button"
+        data-sort="id"
+        aria-pressed="false"
+    >
+        Unique ID
+    </button>
+    <button
+        id="toggle-primary-verse"
+        class="toggle-btn"
+        type="button"
+        data-sort="primary_verse"
+        aria-pressed="false"
+    >
+        Primary Verse
+    </button>
+    <button
+        id="toggle-title"
+        class="toggle-btn"
+        type="button"
+        data-sort="title"
+        aria-pressed="false"
+    >
+        Title
+    </button>
+    <button
+        id="toggle-list-ord"
+        class="toggle-btn"
+        type="button"
+        data-sort="list_ordinary"
+        aria-pressed="false"
+    >
+        List Ord.
+    </button>
+    <button
+        id="toggle-bulk"
+        class="toggle-btn toggle-btn--bulk"
+        type="button"
+        data-sort="bulk"
+        aria-pressed="false"
+    >
+        Bulk
+    </button>
+</section>
+
+<!-- =============================================================================
+   SEARCH BAR — Keyboard-driven (Cmd+K / Ctrl+K) client-side filtering
+   Searches across title, primary_verse, and snippet fields with fuzzy
+   matching. Hidden/inactive when Bulk toggle is selected.
+============================================================================= -->
+<section
+    id="records-all-search-bar"
+    class="records-all__search-bar"
+    aria-label="Search records"
+>
+    <label for="records-all-search-input" class="records-all__search-label">
+        <span class="records-all__search-icon" aria-hidden="true"
+            >&#128269;</span
+        >
+        <input
+            id="records-all-search-input"
+            class="records-all__search-input"
+            type="search"
+            placeholder="Search records by title, verse, or keyword... (Cmd+K)"
+            autocomplete="off"
+        />
+        <button
+            id="records-all-search-clear"
+            class="records-all__search-clear"
+            type="button"
+            aria-label="Clear search"
+            hidden
+        >
+            &#10005;
+        </button>
+    </label>
+    <span
+        id="records-all-search-status"
+        class="records-all__search-status"
+        aria-live="polite"
+    ></span>
+</section>
+
+<!-- =============================================================================
+   UPLOAD CSV BUTTON — visible in the function bar area (Phase 1 entry point)
+============================================================================= -->
+<section
+    id="records-all-upload-bar"
+    class="records-all__upload-bar"
+    aria-label="CSV upload"
+>
+    <label
+        for="records-all-csv-input"
+        class="btn btn--secondary records-all__upload-btn"
+        tabindex="0"
+    >
+        Upload CSV
+    </label>
+    <input
+        id="records-all-csv-input"
+        class="records-all__csv-input"
+        type="file"
+        accept=".csv"
+        hidden
+    />
+</section>
+
+<!-- =============================================================================
+   MAIN RECORDS TABLE — default view (shown when any toggle except Bulk is active)
+   Endless-scroll container with a dense 4-column tabular layout:
+   Title | Primary Verse | Snippet | Status
+   Rows are clickable → navigates to Single Record editor for that record.
+============================================================================= -->
+<section
+    id="records-all-table-container"
+    class="records-all__table-container"
+    aria-label="All records table"
+>
+    <table id="records-all-table" class="records-all__table">
+        <thead>
+            <tr>
+                <th scope="col" class="records-all__col-title">Title</th>
+                <th scope="col" class="records-all__col-verse">
+                    Primary Verse
+                </th>
+                <th scope="col" class="records-all__col-snippet">Snippet</th>
+                <th scope="col" class="records-all__col-status">Status</th>
+            </tr>
+        </thead>
+        <tbody id="records-all-tbody">
+            <!-- Populated by data_populate_table.js — rows injected here -->
+        </tbody>
+    </table>
+
+    <!-- Endless scroll sentinel — Intersection Observer target -->
+    <div
+        id="records-all-scroll-sentinel"
+        class="records-all__scroll-sentinel"
+        aria-hidden="true"
+    ></div>
+
+    <!-- Loading indicator (shown during batch fetch) -->
+    <div
+        id="records-all-loading"
+        class="records-all__loading state-loading"
+        hidden
+    >
+        <span class="state-loading__label">Loading more records…</span>
+    </div>
+
+    <!-- Empty state (shown when no records match current filter/sort) -->
+    <div id="records-all-empty" class="records-all__empty state-empty" hidden>
+        <span class="state-empty__label">No records found.</span>
+    </div>
+</section>
+
+<!-- =============================================================================
+   BULK REVIEW PANEL — hidden by default, shown only when "Bulk" toggle is active
+   Phase 2 of the bulk CSV upload workflow: the admin reviews parsed records
+   in an ephemeral preview table, deselects individual rows, and must explicitly
+   click "Save as Draft" to commit them. Unsaved records are discarded on
+   navigating away or switching toggles.
+============================================================================= -->
+<section
+    id="bulk-review-panel"
+    class="bulk-review-panel"
+    aria-label="Bulk upload review"
+    hidden
+>
+    <!-- Bulk Review Action Bar -->
+    <header class="bulk-review-panel__header">
+        <h2 id="bulk-review-heading" class="bulk-review-panel__heading">
+            Bulk Upload Review — <span id="bulk-review-count">0</span> records
+            parsed
+        </h2>
+        <div class="bulk-review-panel__actions">
+            <button
+                id="bulk-review-save-btn"
+                class="btn btn--publish"
+                type="button"
+            >
+                Save as Draft
+            </button>
+            <button
+                id="bulk-review-discard-btn"
+                class="btn btn--delete"
+                type="button"
+            >
+                Discard All
+            </button>
+        </div>
+    </header>
+
+    <!-- Bulk Review Table -->
+    <div
+        id="bulk-review-table-wrapper"
+        class="bulk-review-panel__table-wrapper"
+    >
+        <table id="bulk-review-table" class="bulk-review-panel__table">
+            <thead>
+                <tr>
+                    <th scope="col" class="bulk-review__col-check">
+                        <input
+                            id="bulk-review-select-all"
+                            type="checkbox"
+                            title="Select/Deselect all valid rows"
+                        />
+                    </th>
+                    <th scope="col" class="bulk-review__col-row">Row</th>
+                    <th scope="col" class="bulk-review__col-title">Title</th>
+                    <th scope="col" class="bulk-review__col-verse">
+                        Primary Verse
+                    </th>
+                    <th scope="col" class="bulk-review__col-status">
+                        Validation
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="bulk-review-tbody">
+                <!-- Populated by bulk_upload_review_handler.js -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bulk Review Empty State (no CSV parsed yet) -->
+    <div id="bulk-review-empty" class="bulk-review-panel__empty" hidden>
+        <p>No bulk upload in progress. Upload a CSV file to begin.</p>
+    </div>
+
+    <!-- Bulk Review All-Invalid State -->
+    <div
+        id="bulk-review-all-invalid"
+        class="bulk-review-panel__all-invalid"
+        hidden
+    >
+        <p>All rows contain validation errors. Fix the CSV and re-upload.</p>
+    </div>
+</section>
+
+<!-- =============================================================================
+   STATUS BAR — error and informational messages routed via window.surfaceError()
+   Mirrors the shared #admin-error-footer but scoped to this module's view.
+============================================================================= -->
+<footer
+    id="records-all-status-bar"
+    class="records-all__status-bar"
+    role="status"
+    aria-live="polite"
+>
+    System running normally.
+</footer>

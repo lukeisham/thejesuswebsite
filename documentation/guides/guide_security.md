@@ -72,6 +72,16 @@ exclusive use of parameterized queries (`?` placeholders).
 
 - **Brute Force Defense:** The backend implements login delays and temporary IP lockouts after 5 consecutive failed attempts, handled within `auth_utils.py`.
 
+## 5. Bulk CSV Upload Security
+
+The bulk CSV upload workflow implements a **two-phase review gate** to prevent accidental or malicious data ingestion:
+
+- **Phase 1 — Client-Side Validation:** CSV files are parsed and validated entirely in the browser (`bulk_csv_upload_handler.js`). Required fields are checked, enum values are validated against the canonical set, and verse patterns are verified against a regex. No data touches the server in this phase — all parsed records live in an ephemeral in-memory store (`_ephemeralRows[]`).
+- **Phase 2 — Admin-Gated Commit:** Records are only written to the database when the admin explicitly reviews the parsed data and clicks "Save as Draft". Valid rows are pre-checked; invalid rows are visually flagged (red-tinted) and cannot be selected. The commit endpoint (`POST /api/admin/bulk-upload/commit`) forces `status = 'draft'` on all inserted records regardless of any `status` field in the payload, preventing bulk-publishing of unreviewed content.
+- **Ephemeral Store Pattern:** If the admin navigates away or switches toggles without saving, all ephemeral records are discarded — no API call is made and the records simply vanish. This ensures that abandoned uploads never reach the database.
+- **Server-Side Re-validation:** The commit endpoint re-validates all fields server-side (required fields, enum values) before insertion, as a defense-in-depth measure against tampered client-side requests.
+- **Re-upload Warning:** If a second CSV is uploaded while a previous review is still pending, the admin is prompted with a confirmation dialog before the old ephemeral store is replaced.
+
 ## 4. Obfuscating the Dashboard Code and Documentation
 Administrative logic is protected by minification and structural obscurity.
 
