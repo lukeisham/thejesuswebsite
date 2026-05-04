@@ -2,7 +2,7 @@
 name: plan_dashboard_challenge
 version: 1.0.0
 module: 4.0 — Ranked Lists
-status: draft
+status: complete
 created: 2026-05-02
 ---
 
@@ -89,7 +89,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **Action:** Create the structural container for the challenge editor, including the Academic/Popular toggle bar, weighting sidebar anchor, and ranked list container.
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline styles · No inline scripts · Predictable Hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -99,7 +99,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **Action:** Implement the toggle-driven dual-pane layout styling, with specific visual states for active list selections and the weighting sidebar.
 - **Vibe Rule(s):** Grid for everything · CSS Variables · Vanilla Excellence · User Comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -109,7 +109,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **Action:** Initialize the challenge module and coordinate the switching between Academic/Popular views and the ranking recalculation logic.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -119,7 +119,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **Action:** Implement the logic to fetch and render the active challenge list. The renderer must nest 'Response' sub-cards (showing Draft/Published status) directly under their parent challenges, mimicking the frontend layout in `guide_appearance.md`.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -129,7 +129,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **Action:** Implement the UI logic for managing multipliers for the current challenge category and adding new weighting criteria. **Any weight modification auto-saves the record as draft.**
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -139,7 +139,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **Action:** Implement UI for viewing and editing the `popular_challenge_search_term` (TEXT / JSON Blob) and `academic_challenge_search_term` (TEXT / JSON Blob) fields for the active record. Each field stores the search terms the DeepSeek agent uses to discover relevant articles on the open web. The active field is determined by the current Academic/Popular toggle state. **Any search term modification auto-saves the record as draft.** Changes must be saved back to the database via the admin API before the agent can use them.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -153,7 +153,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **Dependencies:** `admin/backend/admin_api.py` (`GET /api/admin/records`, `PUT /api/admin/records/{id}`, `PUT /api/admin/lists/{name}`, `POST /api/admin/agent/run`, `GET /api/admin/agent/logs`), `backend/pipelines/pipeline_academic_challenges.py`, `backend/pipelines/pipeline_popular_challenges.py`, `backend/scripts/agent_client.py`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ### T7 — Implement Response Insertion Logic
 
@@ -162,7 +162,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **Database field:** `challenge_id` (TEXT, FK → `records(id)`) — stored on the response record; set at creation time and updated by `challenge_link_handler.js` in `plan_dashboard_challenge_response`.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -175,7 +175,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 - **Action:** Add `<script>` tag and call `window.renderMetadataFooter(containerId, recordId)`. Shared tool owned by `plan_dashboard_records_single`.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -203,7 +203,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 
 - **Vibe Rule(s):** Logic is explicit and self-documenting · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -212,35 +212,35 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### HTML
-- [ ] Semantic tags used — no `<div>` soup
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 #### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
 #### JavaScript
-- [ ] One function per file
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
+- [x] One function per file
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
 
 #### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic
 
 #### Shared-Tool Ownership
-- [ ] `metadata_handler.js` included via `<script>` tag from `js/2.0_records/dashboard/` — no local copy created
-- [ ] This plan does NOT own any shared tools
+- [x] `metadata_handler.js` included via `<script>` tag from `js/2.0_records/dashboard/` — no local copy created
+- [x] This plan does NOT own any shared tools
 
 ---
 
@@ -248,10 +248,10 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement**: The core objective outlined in the summary has been fully met
-- [ ] **Necessity**: The underlying reason/need for this plan has been resolved
-- [ ] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
-- [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
+- [x] **Achievement**: The core objective outlined in the summary has been fully met
+- [x] **Necessity**: The underlying reason/need for this plan has been resolved
+- [x] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
+- [x] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
@@ -280,7 +280,7 @@ This plan implements the "Challenge" dashboard module, which manages the two pri
 | `documentation/guides/guide_welcoming_robots.md` | No | SEO is unaffected. |
 
 ### Documentation Checklist
-- [ ] All affected documents identified in the table above
-- [ ] Each "Yes" row has been updated with accurate, current information
-- [ ] No document contains stale references to files or logic changed by this plan
-- [ ] Version numbers incremented where frontmatter versioning is present
+- [x] All affected documents identified in the table above
+- [x] Each "Yes" row has been updated with accurate, current information
+- [x] No document contains stale references to files or logic changed by this plan
+- [x] Version numbers incremented where frontmatter versioning is present

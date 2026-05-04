@@ -181,9 +181,7 @@ async def get_all_records(admin_data: dict = Depends(verify_token)):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, title, slug, primary_verse, era, timeline FROM records"
-        )
+        cursor.execute("SELECT * FROM records")
         records = [dict(row) for row in cursor.fetchall()]
         conn.close()
         return {"records": records}
