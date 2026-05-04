@@ -1,0 +1,649 @@
+/* =============================================================================
+   THE JESUS WEBSITE — NEWS SOURCES DASHBOARD LAYOUT
+   File:    css/6.0_news_blog/dashboard/news_sources_dashboard.css
+   Version: 1.0.0
+   Module:  6.0 — News & Blog
+   Purpose: Providence-themed dual-pane layout for the News Sources dashboard
+            editor. Features a sticky function bar with Refresh/Publish/Crawl
+            buttons, a fixed record-detail sidebar with vertically stacked
+            sections separated by horizontal rules (source URL, search keywords,
+            metadata, record metadata footer), and a main area for the news
+            sources table. All colours, fonts, and spacing reference CSS
+            variables from typography.css.
+   Source:  plan_dashboard_news_sources §T2
+============================================================================= */
+
+/* =============================================================================
+   1. FUNCTION BAR
+   Sticky bar spanning the full width of the main column. Contains action
+   buttons on the right. Uses Flexbox for micro alignment.
+============================================================================= */
+
+#news-sources-function-bar.function-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    padding: var(--space-2) var(--space-3);
+
+    background-color: var(--color-bg-secondary);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+
+    flex-shrink: 0;
+
+    /* Sticky — stays visible as the list scrolls */
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+/* --- Actions Group --- */
+#news-sources-function-bar .function-bar__actions-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+/* --- Accent button (Crawl) --- */
+#news-sources-function-bar .btn--accent {
+    background-color: var(--color-accent-primary);
+    color: var(--color-text-inverse);
+    border: 1px solid var(--color-accent-primary);
+}
+
+#news-sources-function-bar .btn--accent:hover {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+/* =============================================================================
+   2. SPLIT-PANE EDITOR LAYOUT
+   Two columns: sidebar (record detail, ~360px) | main (news sources table, 1fr).
+   CSS Grid for macro layout; a permanent 1px divider column between them.
+============================================================================= */
+
+.news-sources-editor-layout {
+    display: grid;
+    grid-template-columns: 360px 1px 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: "sidebar divider main";
+
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* =============================================================================
+   3. SIDEBAR — Record detail
+   Scrolls independently. Contains vertically stacked sections separated
+   by thin horizontal rules: source URL, search keywords, metadata
+   (snippet/slug/meta), and record metadata footer.
+============================================================================= */
+
+.news-sources-sidebar {
+    grid-area: sidebar;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    background-color: var(--color-bg-secondary);
+
+    /* Thin scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+}
+
+.news-sources-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.news-sources-sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 0;
+}
+
+/* --- Sidebar Header --- */
+
+.news-sources-sidebar__header {
+    padding: var(--space-3) var(--space-3) var(--space-2);
+
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.news-sources-sidebar__heading {
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+
+    margin: 0 0 var(--space-1);
+}
+
+.news-sources-sidebar__record-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --- Sidebar Section --- */
+
+.news-sources-sidebar__section {
+    padding: var(--space-3);
+}
+
+.news-sources-sidebar__section:last-child {
+    padding-bottom: var(--space-4);
+}
+
+.news-sources-sidebar__subheader {
+    margin-bottom: var(--space-2);
+}
+
+.news-sources-sidebar__subheading {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+    letter-spacing: var(--tracking-wide);
+
+    margin: 0;
+}
+
+/* --- Sidebar Divider --- */
+
+.news-sources-sidebar__divider {
+    border: none;
+    border-top: var(--border-width-thin) solid var(--color-border);
+    margin: 0;
+}
+
+/* =============================================================================
+   4. SOURCE URL EDITOR
+   Input + Save button in an inline row. Uses Flexbox for alignment.
+============================================================================= */
+
+.news-sources-url-editor__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.news-sources-url-editor__input {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.news-sources-url-editor__input:focus {
+    outline: none;
+    border-color: var(--color-accent-primary);
+}
+
+.news-sources-url-editor__input::placeholder {
+    color: var(--color-text-muted);
+}
+
+/* =============================================================================
+   5. SEARCH KEYWORDS EDITOR
+   Chip-based keyword list with an add input row below.
+============================================================================= */
+
+.news-sources-search-terms__editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+/* --- Keyword Chips List --- */
+
+.news-sources-search-terms__list {
+    list-style: none;
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+
+    margin: 0;
+    padding: 0;
+
+    min-height: var(--space-4);
+}
+
+/* --- Keyword Chip --- */
+
+.news-sources-search-term-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-full);
+
+    padding: 2px var(--space-1) 2px var(--space-2);
+
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-primary);
+
+    transition: background-color var(--transition-fast);
+}
+
+.news-sources-search-term-chip:hover {
+    background-color: var(--color-bg-tertiary);
+}
+
+.news-sources-search-term-chip__text {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.news-sources-search-term-chip__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 16px;
+    height: 16px;
+
+    background: none;
+    border: none;
+    border-radius: var(--radius-full);
+
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    line-height: 1;
+
+    cursor: pointer;
+    padding: 0;
+
+    transition: color var(--transition-fast),
+                background-color var(--transition-fast);
+}
+
+.news-sources-search-term-chip__remove:hover {
+    color: var(--color-accent-primary);
+    background-color: var(--color-bg-tertiary);
+}
+
+/* --- Add Keyword Row --- */
+
+.news-sources-search-terms__add-row {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.news-sources-search-terms__add-input {
+    flex: 1;
+
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+}
+
+.news-sources-search-terms__add-input:focus {
+    outline: none;
+    border-color: var(--color-accent-primary);
+}
+
+.news-sources-search-terms__add-input::placeholder {
+    color: var(--color-text-muted);
+}
+
+/* =============================================================================
+   6. METADATA EDITOR (Snippet / Slug / Meta)
+   Vertically stacked fields with labels, inputs, and auto-gen buttons.
+============================================================================= */
+
+.news-sources-metadata-editor__field {
+    margin-bottom: var(--space-2);
+}
+
+.news-sources-metadata-editor__field:last-child {
+    margin-bottom: 0;
+}
+
+.news-sources-metadata-editor__label {
+    display: block;
+
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+    letter-spacing: var(--tracking-wide);
+
+    margin-bottom: var(--space-1);
+}
+
+.news-sources-metadata-editor__textarea {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.news-sources-metadata-editor__textarea:focus {
+    outline: none;
+    border-color: var(--color-accent-primary);
+}
+
+.news-sources-metadata-editor__textarea--mono {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    background-color: var(--color-bg-tertiary);
+}
+
+.news-sources-metadata-editor__input {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.news-sources-metadata-editor__input:focus {
+    outline: none;
+    border-color: var(--color-accent-primary);
+}
+
+.news-sources-metadata-editor__input--readonly {
+    color: var(--color-text-muted);
+    background-color: var(--color-bg-tertiary);
+    cursor: default;
+}
+
+.news-sources-metadata-editor__inline {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.news-sources-metadata-editor__inline .news-sources-metadata-editor__input {
+    flex: 1;
+}
+
+.news-sources-metadata-editor__hint {
+    display: block;
+
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+
+    margin-top: 2px;
+}
+
+/* =============================================================================
+   7. DIVIDER — sidebar | main
+   Permanent 1px track that separates the sidebar from the main area.
+============================================================================= */
+
+.news-sources-divider {
+    grid-area: divider;
+
+    background-color: var(--color-border);
+
+    cursor: default;
+    user-select: none;
+}
+
+/* =============================================================================
+   8. MAIN AREA — News Sources Table
+   Scrolls independently. Contains a full-width table with source name,
+   URL, status, and select columns.
+============================================================================= */
+
+.news-sources-list-area {
+    grid-area: main;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    background-color: var(--color-bg-primary);
+
+    /* Thin scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+}
+
+.news-sources-list-area::-webkit-scrollbar {
+    width: 4px;
+}
+
+.news-sources-list-area::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 0;
+}
+
+/* --- News Sources Table --- */
+
+.news-sources-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.news-sources-table__th {
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-secondary);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    text-align: left;
+
+    padding: var(--space-2) var(--space-3);
+
+    background-color: var(--color-bg-secondary);
+    border-bottom: var(--border-width-thin) solid var(--color-border-strong);
+
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.news-sources-table__th--status {
+    width: 90px;
+}
+
+.news-sources-table__th--select {
+    width: 60px;
+    text-align: center;
+}
+
+/* --- Table Rows --- */
+
+.news-sources-row {
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    transition: background-color var(--transition-fast);
+    cursor: pointer;
+}
+
+.news-sources-row:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+.news-sources-row--selected {
+    background-color: var(--color-bg-tertiary);
+    outline: 1px solid var(--color-accent-muted);
+    outline-offset: -1px;
+}
+
+/* --- Table Cells --- */
+
+.news-sources-row__cell {
+    padding: var(--space-1) var(--space-3);
+
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+
+    vertical-align: middle;
+}
+
+.news-sources-row__cell--name {
+    font-family: var(--font-heading);
+    font-weight: var(--weight-medium);
+}
+
+.news-sources-row__cell--url {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --- Status Badges --- */
+
+.news-sources-row__status {
+    display: inline-block;
+
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+
+    padding: 2px var(--space-1);
+
+    border-radius: var(--radius-sm);
+}
+
+.news-sources-row__status--active {
+    color: var(--color-status-success);
+    background-color: rgba(46, 125, 50, 0.1);
+}
+
+.news-sources-row__status--inactive {
+    color: var(--color-text-muted);
+    background-color: var(--color-bg-tertiary);
+}
+
+/* --- Select Button --- */
+
+.news-sources-row__select-btn {
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+
+    background-color: transparent;
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+
+    padding: 2px var(--space-1);
+
+    cursor: pointer;
+
+    transition: color var(--transition-fast),
+                border-color var(--transition-fast);
+}
+
+.news-sources-row__select-btn:hover {
+    color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+}
+
+.news-sources-row--selected .news-sources-row__select-btn {
+    color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+}
+
+/* =============================================================================
+   9. STATE INDICATORS — Loading, Empty, Error
+   Centered messages within the main list area.
+============================================================================= */
+
+.news-sources-list-area .state-loading,
+.news-sources-list-area .state-empty,
+.news-sources-list-area .state-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 100%;
+    min-height: 200px;
+
+    padding: var(--space-4);
+}
+
+.state-loading__label,
+.state-empty__label,
+.state-error__label {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+.state-error__label {
+    color: var(--color-accent-primary);
+}
+
+.state-loading[aria-hidden="true"],
+.state-empty[aria-hidden="true"],
+.state-error[aria-hidden="true"] {
+    display: none;
+}
+
+/* =============================================================================
+   10. RESPONSIVE — Stack on narrow viewports
+============================================================================= */
+
+@media (max-width: 768px) {
+    .news-sources-editor-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1px 1fr;
+        grid-template-areas:
+            "sidebar"
+            "divider"
+            "main";
+    }
+
+    .news-sources-sidebar {
+        max-height: 40vh;
+    }
+
+    .news-sources-divider {
+        height: 1px;
+    }
+}

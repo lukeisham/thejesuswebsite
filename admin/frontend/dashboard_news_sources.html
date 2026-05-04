@@ -1,0 +1,170 @@
+<!-- =============================================================================
+   THE JESUS WEBSITE — NEWS SOURCES DASHBOARD EDITOR
+   File:    admin/frontend/dashboard_news_sources.html
+   Version: 1.0.0
+   Module:  6.0 — News & Blog
+   Purpose: News source management container — dual-pane layout with a
+            contextual record-detail sidebar (search keywords, source URLs,
+            snippet/slug/meta editing with auto-gen buttons, crawler trigger)
+            alongside a main scrollable table of news sources.
+            Refresh/Publish/Crawl buttons control the draft/publish cycle
+            and automated news ingestion.
+   Trigger: Loaded via fetch by dashboard_news_sources.js and injected into the
+            Providence main column when the user navigates to the News Sources
+            module.
+============================================================================= -->
+
+<!-- =============================================================================
+   FUNCTION BAR — News Sources actions
+   Sticky bar with Refresh, Publish, and Crawl buttons.
+============================================================================= -->
+<section id="news-sources-function-bar" class="function-bar" aria-label="News sources actions">
+    <div class="function-bar__actions-group">
+        <button id="btn-news-refresh" class="btn btn--draft" type="button" title="Refresh news sources list and set affected records to draft">Refresh</button>
+        <button id="btn-news-publish" class="btn btn--publish" type="button" title="Publish current source configuration to live">Publish</button>
+        <button id="btn-news-crawl" class="btn btn--accent" type="button" title="Launch the news crawler pipeline">Crawl</button>
+    </div>
+</section>
+
+<!-- =============================================================================
+   SPLIT-PANE LAYOUT — Record-detail sidebar + News sources list main area
+   Two columns: sidebar (record detail: source URL, search keywords, snippet,
+   slug, meta, actions) | main (news sources table).
+   CSS Grid for macro layout; Flexbox for micro alignment within columns.
+============================================================================= -->
+<article id="news-sources-editor-layout" class="news-sources-editor-layout" aria-label="News sources editor">
+    <!-- Sidebar Column: Record Detail -->
+    <aside id="news-sources-sidebar" class="news-sources-sidebar" aria-label="Record detail">
+        <header class="news-sources-sidebar__header">
+            <h2 class="news-sources-sidebar__heading">SOURCE DETAIL</h2>
+            <p id="news-sources-record-title" class="news-sources-sidebar__record-title">—</p>
+        </header>
+
+        <!-- Section 1: Source URL -->
+        <section id="news-sources-url-section" class="news-sources-sidebar__section" aria-label="Source URL editor">
+            <header class="news-sources-sidebar__subheader">
+                <h3 class="news-sources-sidebar__subheading">Source URL</h3>
+            </header>
+            <div class="news-sources-url-editor__form">
+                <input id="news-sources-url-input" class="news-sources-url-editor__input" type="url" placeholder="https://example.com/rss" aria-label="News source URL" />
+                <button id="btn-news-save-url" class="btn btn--draft" type="button" title="Save source URL and set record to draft">Save URL</button>
+            </div>
+        </section>
+
+        <hr class="news-sources-sidebar__divider" aria-hidden="true" />
+
+        <!-- Section 2: Search Keywords -->
+        <section id="news-sources-search-terms" class="news-sources-sidebar__section" aria-label="Search keywords editor">
+            <header class="news-sources-sidebar__subheader">
+                <h3 class="news-sources-sidebar__subheading">Search Keywords</h3>
+            </header>
+            <div class="news-sources-search-terms__editor">
+                <!-- Keyword chips — populated by news_sources_sidebar_handler.js -->
+                <ul id="news-search-terms-list" class="news-sources-search-terms__list" aria-label="Active search keywords">
+                    <!-- Dynamically populated -->
+                </ul>
+                <div class="news-sources-search-terms__add-row">
+                    <input id="news-search-term-input" class="news-sources-search-terms__add-input" type="text" placeholder="Add search keyword..." aria-label="New search keyword" />
+                    <button id="btn-news-add-term" class="btn btn--draft" type="button" title="Add search keyword">Add</button>
+                </div>
+            </div>
+        </section>
+
+        <hr class="news-sources-sidebar__divider" aria-hidden="true" />
+
+        <!-- Section 3: Metadata (Snippet / Slug / Meta) -->
+        <section id="news-sources-metadata-editor" class="news-sources-sidebar__section" aria-label="Metadata editor">
+            <header class="news-sources-sidebar__subheader">
+                <h3 class="news-sources-sidebar__subheading">Metadata</h3>
+            </header>
+
+            <!-- Snippet -->
+            <div class="news-sources-metadata-editor__field">
+                <label for="news-sources-snippet-input" class="news-sources-metadata-editor__label">Snippet</label>
+                <textarea id="news-sources-snippet-input" class="news-sources-metadata-editor__textarea" rows="3" placeholder="Latest headlines from..." aria-label="Snippet text"></textarea>
+                <button id="btn-news-auto-snippet" class="btn btn--secondary btn--sm" type="button" title="Auto-generate snippet via DeepSeek">Auto-gen Snippet</button>
+            </div>
+
+            <!-- Slug -->
+            <div class="news-sources-metadata-editor__field">
+                <label for="news-sources-slug-input" class="news-sources-metadata-editor__label">Slug</label>
+                <input id="news-sources-slug-input" class="news-sources-metadata-editor__input" type="text" placeholder="example-news" aria-label="Record slug" />
+                <button id="btn-news-auto-slug" class="btn btn--secondary btn--sm" type="button" title="Auto-generate slug from title">Auto-gen Slug</button>
+            </div>
+
+            <!-- Meta (JSON) -->
+            <div class="news-sources-metadata-editor__field">
+                <label for="news-sources-meta-input" class="news-sources-metadata-editor__label">Meta (JSON)</label>
+                <input id="news-sources-meta-input" class="news-sources-metadata-editor__input" type="text" placeholder='{"region":"us"}' aria-label="Metadata JSON" />
+                <button id="btn-news-auto-meta" class="btn btn--secondary btn--sm" type="button" title="Auto-generate metadata via DeepSeek">Auto-gen Meta</button>
+            </div>
+        </section>
+
+        <hr class="news-sources-sidebar__divider" aria-hidden="true" />
+
+        <!-- Section 4: Metadata Footer (shared tool) -->
+        <section id="news-sources-metadata-footer" class="news-sources-sidebar__section" aria-label="Record metadata footer">
+            <header class="news-sources-sidebar__subheader">
+                <h3 class="news-sources-sidebar__subheading">Record Metadata</h3>
+            </header>
+            <div class="news-sources-metadata-editor__field">
+                <label for="record-slug" class="news-sources-metadata-editor__label">Slug</label>
+                <div class="news-sources-metadata-editor__inline">
+                    <input id="record-slug" class="news-sources-metadata-editor__input" type="text" placeholder="auto-generated-or-manual-slug" />
+                    <button id="btn-auto-slug" class="btn btn--secondary btn--sm" type="button">Auto-Generate from Title</button>
+                </div>
+            </div>
+            <div class="news-sources-metadata-editor__field">
+                <label for="record-metadata-json" class="news-sources-metadata-editor__label">Metadata JSON</label>
+                <textarea id="record-metadata-json" class="news-sources-metadata-editor__textarea news-sources-metadata-editor__textarea--mono" rows="4" placeholder="Raw JSON blob — auto-managed" readonly></textarea>
+                <span class="news-sources-metadata-editor__hint">raw JSON blob — auto-managed</span>
+            </div>
+            <div class="news-sources-metadata-editor__field">
+                <label for="record-created-at" class="news-sources-metadata-editor__label">Created At</label>
+                <input id="record-created-at" class="news-sources-metadata-editor__input news-sources-metadata-editor__input--readonly" type="text" readonly />
+                <span class="news-sources-metadata-editor__hint">ISO8601 — read-only</span>
+            </div>
+            <div class="news-sources-metadata-editor__field">
+                <label for="record-updated-at" class="news-sources-metadata-editor__label">Updated At</label>
+                <input id="record-updated-at" class="news-sources-metadata-editor__input news-sources-metadata-editor__input--readonly" type="text" readonly />
+                <span class="news-sources-metadata-editor__hint">ISO8601 — auto-set on save</span>
+            </div>
+        </section>
+    </aside>
+
+    <!-- Divider between sidebar and main -->
+    <div class="news-sources-divider" aria-hidden="true"></div>
+
+    <!-- Main Column: News Sources Table -->
+    <section id="news-sources-list-area" class="news-sources-list-area" aria-label="News sources list">
+        <!-- Loading State -->
+        <div id="news-sources-list-loading" class="state-loading" role="status">
+            <span class="state-loading__label">Loading news sources...</span>
+        </div>
+
+        <!-- News Sources Table Container — populated by news_sources_handler.js -->
+        <table id="news-sources-table" class="news-sources-table" aria-label="News sources">
+            <thead>
+                <tr>
+                    <th scope="col" class="news-sources-table__th news-sources-table__th--name">Source Name</th>
+                    <th scope="col" class="news-sources-table__th news-sources-table__th--url">URL</th>
+                    <th scope="col" class="news-sources-table__th news-sources-table__th--status">Status</th>
+                    <th scope="col" class="news-sources-table__th news-sources-table__th--select"><span class="sr-only">Select</span></th>
+                </tr>
+            </thead>
+            <tbody id="news-sources-table-body">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div id="news-sources-list-empty" class="state-empty" aria-hidden="true">
+            <p class="state-empty__label">No news sources configured. Add a news source record to begin.</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="news-sources-list-error" class="state-error" aria-hidden="true">
+            <p class="state-error__label">Unable to load news sources list.</p>
+        </div>
+    </section>
+</article>

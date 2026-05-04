@@ -53,3 +53,6 @@ created: 2026-05-02
 4. **If resolved during the same plan**, mark it `Resolved` and describe the resolution.
 5. **If unresolved**, mark it `Open` so the next agent or the user can address it.
 6. **Do not log** issues that are purely internal to a single plan and have no impact outside it. Those belong in the plan's own task checkboxes.
+
+| 10 | `plan_dashboard_news_sources.md` | Low | Nomenclature Drift | Plan T5 task description references `search_keywords_handler.js` but the File Inventory and detailed_module_sitemap.md both use `news_sources_sidebar_handler.js` as the canonical filename. | Implementation used the File Inventory name (`news_sources_sidebar_handler.js`). The plan T5 title should be updated to match. | RESOLVED |
+| 11 | `plan_dashboard_news_sources.md` | Low | Documentation Drift | Plan T8 references a `news_sources` TABLE for reading source URLs, but the database schema only has `news_sources` as a TEXT COLUMN on the `records` table. | Pipeline reads from `records` table WHERE `news_sources IS NOT NULL`. The plan T8 description should be updated to reference the column, not a table. | RESOLVED |

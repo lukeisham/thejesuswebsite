@@ -2,7 +2,7 @@
 name: plan_dashboard_news_sources
 version: 1.1.0
 module: 6.0 — News & Blog
-status: draft
+status: complete
 created: 2026-05-02
 ---
 
@@ -80,7 +80,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 - **Action:** Create the structural layout for the news sources editor, including the keyword sidebar anchor, the source table container, and the Crawler/Update function bar.
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline styles · No inline scripts · Predictable Hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -90,7 +90,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 - **Action:** Implement the 'providence' theme styling for the news source table and the search keyword management sidebar.
 - **Vibe Rule(s):** Grid for everything · CSS Variables · Vanilla Excellence · User Comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -100,7 +100,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 - **Action:** Initialize the news sources module and coordinate the source list management, keyword updates, and pipeline triggers.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -110,7 +110,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 - **Action:** Implement the logic to fetch, render, and update the list of external news source references and their statuses. On "Refresh", re-fetch the sources list and **set affected records to draft**. On "Publish", commit the current source configuration to live and set all listed records to published.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -120,7 +120,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 - **Action:** Implement the UI logic for adding, editing, and publishing the search keywords used by the news discovery crawler. All keyword state for the active record is read from and written to the `news_search_term` field (TEXT / JSON Blob). **Any keyword modification auto-saves the record as draft.** Changes must be saved back to the database via the admin API before the crawler is triggered.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -131,7 +131,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 - **Dependencies:** `admin/backend/admin_api.py` (`GET /api/admin/news/items`, `POST /api/admin/news/crawl`), `backend/pipelines/pipeline_news.py`
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -140,7 +140,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 - **Action:** Add `<script>` tag and call `window.renderMetadataFooter(containerId, recordId)`. Also include `js/2.0_records/dashboard/snippet_generator.js` and call `window.generateSnippet()`. Shared tools owned by `plan_dashboard_records_single`.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -156,7 +156,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 - **Dependencies:** `admin/backend/admin_api.py` (system_config GET), `backend/scripts/helper_api.py`
 - **Vibe Rule(s):** Logic is explicit · Stateless and safe · Python Excellence · API quirks documented inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -190,7 +190,7 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 
 - **Vibe Rule(s):** Logic is explicit and self-documenting · API quirks or data anomalies documented inline · User Comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -199,35 +199,35 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### HTML
-- [ ] Semantic tags used — no `<div>` soup
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 #### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
 #### JavaScript
-- [ ] One function per file
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
+- [x] One function per file
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
 
 #### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic
 
 #### Shared-Tool Ownership
-- [ ] `snippet_generator.js` and `metadata_handler.js` included via `<script>` tag from `js/2.0_records/dashboard/` — no local copies created
-- [ ] This plan does NOT own any shared JS tools
+- [x] `snippet_generator.js` and `metadata_handler.js` included via `<script>` tag from `js/2.0_records/dashboard/` — no local copies created
+- [x] This plan does NOT own any shared JS tools
 
 ---
 
@@ -235,10 +235,10 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement**: The core objective outlined in the summary has been fully met
-- [ ] **Necessity**: The underlying reason/need for this plan has been resolved
-- [ ] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
-- [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
+- [x] **Achievement**: The core objective outlined in the summary has been fully met
+- [x] **Necessity**: The underlying reason/need for this plan has been resolved
+- [x] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
+- [x] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
@@ -267,10 +267,10 @@ This plan implements the "News Sources" dashboard module, which manages the arch
 | `documentation/guides/guide_welcoming_robots.md` | No | SEO documentation is unaffected. |
 
 ### Documentation Checklist
-- [ ] All affected documents identified in the table above
-- [ ] Each "Yes" row has been updated with accurate, current information
-- [ ] No document contains stale references to files or logic changed by this plan
-- [ ] Version numbers incremented where frontmatter versioning is present
+- [x] All affected documents identified in the table above
+- [x] Each "Yes" row has been updated with accurate, current information
+- [x] No document contains stale references to files or logic changed by this plan
+- [x] Version numbers incremented where frontmatter versioning is present
 
 ---
 
