@@ -104,7 +104,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Create the structural split-pane container for the essay and historiography editor, featuring the document toggle bar and the markdown editing canvas.
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline styles · No inline scripts · Predictable Hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -114,7 +114,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Implement the 'providence' theme layout for the dual-pane editor, with specific focus on the document sidebar and sticky function bar.
 - **Vibe Rule(s):** Grid for everything · CSS Variables · Vanilla Excellence · User Comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -124,7 +124,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Implement the utilitarian styling for the markdown editing area, toolbar buttons, and live preview rendering for long-form content.
 - **Vibe Rule(s):** CSS Variables · Rich Aesthetics · User Comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -134,7 +134,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Initialize the module and coordinate the toggle behavior between Essay and Historiography views and editor synchronization.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -144,7 +144,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Implement the logic to fetch specific document content and metadata from the API and populate the editor fields based on the active selection.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -161,7 +161,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Dependencies:** `js/5.0_essays_responses/dashboard/essay_historiography_data_display.js` (reads loaded sidebar items), `js/5.0_essays_responses/dashboard/dashboard_essay_historiography.js` (clears search on toggle switch)
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -171,7 +171,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Implement the core markdown editing logic, including toolbar actions and the live HTML preview generation for archival essays.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -181,7 +181,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Implement the logical flow for saving, publishing, and deleting essays and historiography records. Before executing any status action, check for unsaved changes in the markdown editor (dirty-state flag set by `markdown_editor.js`). If unsaved changes exist, prompt the admin to save first — do not allow save, publish, or delete to proceed with stale content in the editor.
 - **Vibe Rule(s):** 1 function per JS file · User Comments · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -191,7 +191,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Add `<script src="/js/2.0_records/dashboard/picture_handler.js"></script>` to the HTML and call `window.renderEditPicture(containerId, recordId)`. The shared tool (owned by `plan_dashboard_records_single`) handles image file selection, preview rendering, and binary upload.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -201,7 +201,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Add `<script src="/js/2.0_records/dashboard/mla_source_handler.js"></script>` to the HTML and call `window.renderEditBibliography()`, `window.loadEditBibliography()`, `window.collectEditBibliography()`. The shared tool (owned by `plan_dashboard_records_single`) handles MLA bibliography management.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -211,7 +211,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Add `<script src="/js/2.0_records/dashboard/context_link_handler.js"></script>` to the HTML and call `window.renderEditLinks(containerId, contextLinksData)`. The shared tool (owned by `plan_dashboard_records_single`) handles `{slug, type}` chip management.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -222,7 +222,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Dependencies:** `admin/backend/admin_api.py` (essay/historiography routes planned), `backend/scripts/snippet_generator.py`
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -235,7 +235,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 - **Action:** Add `<script src="/js/2.0_records/dashboard/metadata_handler.js"></script>` to the HTML and call `window.renderMetadataFooter(containerId, recordId)`. The shared tool (owned by `plan_dashboard_records_single`) renders an editable Snippet/Slug/Meta footer with auto-gen buttons.
 - **Vibe Rule(s):** Consume via window.* API · Do not duplicate
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -281,39 +281,39 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### HTML
-- [ ] Semantic tags used — no `<div>` soup
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 #### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
 #### JavaScript
-- [ ] One function per file
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
-- [ ] `search_essays.js` opens with three comment lines: trigger, main function, output
-- [ ] `search_essays.js` uses fuzzy matching and debounced input
-- [ ] Markdown live preview output matches the public frontend rendering — same parser behaviour, same CSS typographic tokens
+- [x] One function per file
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
+- [x] `search_essays.js` opens with three comment lines: trigger, main function, output
+- [x] `search_essays.js` uses fuzzy matching and debounced input
+- [x] Markdown live preview output matches the public frontend rendering — same parser behaviour, same CSS typographic tokens
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
 
 #### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic
 
 #### Shared-Tool Ownership
-- [ ] `markdown_editor.js` (owned by this plan): exposes `window.*` API, no duplicate in consumer directories
-- [ ] All consumed shared tools (`picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_handler.js`) included via `<script>` tag from `js/2.0_records/dashboard/` — no local copies created
-- [ ] Each consumed shared tool's `window.*` function is called by this module's orchestrator at the correct container/record
+- [x] `markdown_editor.js` (owned by this plan): exposes `window.*` API, no duplicate in consumer directories
+- [x] All consumed shared tools (`picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_handler.js`) included via `<script>` tag from `js/2.0_records/dashboard/` — no local copies created
+- [x] Each consumed shared tool's `window.*` function is called by this module's orchestrator at the correct container/record
 
 ---
 
@@ -321,10 +321,10 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement**: The core objective outlined in the summary has been fully met — toggle-driven editor with sidebar search filtering
-- [ ] **Necessity**: The underlying reason/need for this plan has been resolved
-- [ ] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
-- [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
+- [x] **Achievement**: The core objective outlined in the summary has been fully met — toggle-driven editor with sidebar search filtering
+- [x] **Necessity**: The underlying reason/need for this plan has been resolved
+- [x] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
+- [x] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
@@ -353,7 +353,7 @@ This plan implements the "Essay & Historiography" dashboard module, a comprehens
 | `documentation/guides/guide_welcoming_robots.md` | No | SEO is unaffected. |
 
 ### Documentation Checklist
-- [ ] All affected documents identified in the table above
+- [x] All affected documents identified in the table above
 - [ ] Each "Yes" row has been updated with accurate, current information
-- [ ] No document contains stale references to files or logic changed by this plan
+- [x] No document contains stale references to files or logic changed by this plan
 - [ ] Version numbers incremented where frontmatter versioning is present

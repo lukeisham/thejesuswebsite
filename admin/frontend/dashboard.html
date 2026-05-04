@@ -40,6 +40,16 @@
             rel="stylesheet"
             href="../../css/7.0_system/dashboard/dashboard_universal_header.css"
         />
+
+        <!-- Essay & Historiography Dashboard Styles -->
+        <link
+            rel="stylesheet"
+            href="../../css/5.0_essays_responses/dashboard/dashboard_essay_historiography.css"
+        />
+        <link
+            rel="stylesheet"
+            href="../../css/5.0_essays_responses/dashboard/essay_WYSIWYG_editor.css"
+        />
     </head>
     <body id="admin-dashboard">
         <!-- =====================================================================
@@ -133,6 +143,8 @@
        5. Card rendering
        6. Error footer injection
        7. Dashboard orchestrator (init + session check)
+       8. Shared tools (2.0 Records — consumed by 5.0, 6.0 modules)
+       9. Essay & Historiography module scripts (5.0)
     ===================================================================== -->
         <script src="../../js/admin_core/error_handler.js"></script>
         <script src="../../js/7.0_system/dashboard/load_middleware.js"></script>
@@ -141,5 +153,19 @@
         <script src="../../js/7.0_system/dashboard/display_dashboard_cards.js"></script>
         <script src="../../js/7.0_system/dashboard/display_error_footer.js"></script>
         <script src="../../js/7.0_system/dashboard/dashboard_orchestrator.js"></script>
+
+        <!-- Shared Tools (owned by plan_dashboard_records_single, consumed here) -->
+        <script src="../../js/2.0_records/dashboard/picture_handler.js"></script>
+        <script src="../../js/2.0_records/dashboard/mla_source_handler.js"></script>
+        <script src="../../js/2.0_records/dashboard/context_link_handler.js"></script>
+        <script src="../../js/2.0_records/dashboard/snippet_generator.js"></script>
+        <script src="../../js/2.0_records/dashboard/metadata_handler.js"></script>
+
+        <!-- Essay & Historiography Module (5.0) -->
+        <script src="../../js/5.0_essays_responses/dashboard/markdown_editor.js"></script>
+        <script src="../../js/5.0_essays_responses/dashboard/search_essays.js"></script>
+        <script src="../../js/5.0_essays_responses/dashboard/essay_historiography_data_display.js"></script>
+        <script src="../../js/5.0_essays_responses/dashboard/document_status_handler.js"></script>
+        <script src="../../js/5.0_essays_responses/dashboard/dashboard_essay_historiography.js"></script>
     </body>
 </html>
