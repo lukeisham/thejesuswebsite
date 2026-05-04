@@ -1,6 +1,6 @@
 ---
 name: data_schema.md
-version: 1.0.1
+version: 1.0.2
 purpose: data schema for the jesus website (source of truth)
 dependencies: [site_map.md, module_sitemap.md]
 ---
@@ -269,3 +269,38 @@ dependencies: [site_map.md, module_sitemap.md]
 `url` | TEXT | JSON Blob 
 
 
+
+
+---
+
+## `system_config` Table
+
+Global key/value configuration store for site-wide settings not tied to any
+single record. Populated at runtime by the admin dashboard.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `key` | TEXT | Primary Key — Configuration key |
+| `value` | TEXT | Configuration value stored as text (JSON for complex values) |
+| `updated_at` | TEXT | ISO8601 String — timestamp of last modification |
+| `updated_by` | TEXT | Admin user who last modified this config entry |
+
+---
+
+## `agent_run_log` Table
+
+Tracks every DeepSeek agent pipeline execution for observability, debugging,
+and cost monitoring.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | INTEGER | Primary Key — Auto-incrementing unique identifier |
+| `pipeline` | TEXT | NOT NULL — Pipeline name |
+| `record_slug` | TEXT | Slug of the record being processed (NULL for batch runs) |
+| `status` | TEXT | NOT NULL — running, completed, failed |
+| `trace_reasoning` | TEXT | Agent chain-of-thought reasoning log from DeepSeek |
+| `articles_found` | INTEGER | DEFAULT 0 — Count of articles discovered |
+| `tokens_used` | INTEGER | DEFAULT 0 — Total tokens consumed |
+| `error_message` | TEXT | Error details if status is failed (NULL otherwise) |
+| `started_at` | TEXT | NOT NULL — ISO-8601 timestamp of run start |
+| `completed_at` | TEXT | ISO-8601 timestamp of run finish (NULL while running) |

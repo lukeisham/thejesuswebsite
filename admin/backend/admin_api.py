@@ -11,12 +11,23 @@ import json
 import os
 import pathlib
 import sqlite3
+import subprocess
 import sys
+import threading
 import uuid
-from datetime import datetime
-from typing import Any, Dict, List
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
+from fastapi import (
+    Depends,
+    FastAPI,
+    File,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+)
 from pydantic import BaseModel
 
 # Add the project root to sys.path to allow absolute imports
@@ -27,6 +38,9 @@ from auth_utils import AuthUtils
 from backend.middleware.logger_setup import setup_logger
 from backend.middleware.rate_limiter import RateLimiterMiddleware
 from backend.pipelines.image_processor import process_uploaded_png
+from backend.scripts.agent_client import search_web
+from backend.scripts.metadata_generator import generate_metadata
+from backend.scripts.snippet_generator import generate_snippet
 
 # Initialize central logging to /logs
 logger = setup_logger(__file__)
@@ -782,3 +796,779 @@ async def bulk_upload_records(
         "created": len(valid_records),
         "errors": [],
     }
+
+
+# =============================================================================
+# T4 — System Config & Health Endpoints
+# =============================================================================
+
+
+@app.get("/api/admin/system/config")
+async def get_system_config(admin_data: dict = Depends(verify_token)):
+    """
+    Returns all rows from system_config as a JSON object of key/value pairs.
+    Consumed by plan_dashboard_system and plan_dashboard_news_sources.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT key, value FROM system_config ORDER BY key")
+        rows = cursor.fetchall()
+        conn.close()
+
+        # Build a flat key/value dict
+        config = {row["key"]: row["value"] for row in rows}
+        return config
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch system config: " + str(e)
+        )
+
+
+@app.put("/api/admin/system/config")
+async def update_system_config(
+    body: Dict[str, Any], admin_data: dict = Depends(verify_token)
+):
+    """
+    Upserts system_config key/value pairs.
+    Accepts a JSON body of key/value pairs. Each key is upserted individually.
+    Returns 200 on success.
+    """
+    if not body:
+        raise HTTPException(status_code=400, detail="Request body must not be empty.")
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        now = datetime.now(timezone.utc).isoformat()
+
+        for key, value in body.items():
+            key_str = str(key)
+            value_str = str(value) if value is not None else None
+            cursor.execute(
+                """
+                INSERT INTO system_config (key, value, updated_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(key) DO UPDATE SET
+                    value = excluded.value,
+                    updated_at = excluded.updated_at
+                """,
+                (key_str, value_str, now),
+            )
+
+        conn.commit()
+        conn.close()
+        return {
+            "message": "System config updated successfully",
+            "keys": list(body.keys()),
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to update system config: " + str(e),
+        )
+
+
+@app.get("/api/admin/health_check")
+async def health_check_admin(admin_data: dict = Depends(verify_token)):
+    """
+    Returns system health including DeepSeek API status, VPS CPU/memory,
+    database status, and uptime. Consumed by plan_dashboard_system.
+    """
+    import time as time_module
+
+    health: Dict[str, Any] = {
+        "status": "ok",
+        "service": "The Jesus Website Admin API",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+    # --- Database check ---
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) as count FROM records")
+        record_count = cursor.fetchone()["count"]
+        conn.close()
+        health["database"] = {"status": "connected", "record_count": record_count}
+    except Exception as e:
+        health["database"] = {"status": "error", "error": str(e)}
+        health["status"] = "degraded"
+
+    # --- DeepSeek API check ---
+    deepseek_key = os.getenv("DEEPSEEK_API_KEY", "")
+    if deepseek_key:
+        health["deepseek_api"] = {"status": "configured"}
+    else:
+        health["status"] = "degraded"  # mark overall health as degraded
+        health["deepseek_api"] = {
+            "status": "unavailable",
+            "error": "DEEPSEEK_API_KEY not set in .env",
+        }
+
+    # --- VPS resource usage (best-effort, available on Linux/macOS) ---
+    try:
+        import psutil
+
+        cpu_percent = psutil.cpu_percent(interval=0.5)
+        mem = psutil.virtual_memory()
+        disk = psutil.disk_usage("/")
+
+        health["resources"] = {
+            "cpu_percent": cpu_percent,
+            "memory": {
+                "total_gb": round(mem.total / (1024**3), 1),
+                "used_gb": round(mem.used / (1024**3), 1),
+                "percent": mem.percent,
+            },
+            "disk": {
+                "total_gb": round(disk.total / (1024**3), 1),
+                "used_gb": round(disk.used / (1024**3), 1),
+                "percent": disk.percent,
+            },
+            "uptime_seconds": time_module.time() - psutil.boot_time(),
+        }
+    except ImportError:
+        health["resources"] = {
+            "status": "unavailable",
+            "error": "psutil not installed — install with: pip install psutil",
+        }
+    except Exception as e:
+        health["resources"] = {"status": "error", "error": str(e)}
+
+    return health
+
+
+@app.get("/api/admin/mcp/health")
+async def mcp_health(admin_data: dict = Depends(verify_token)):
+    """
+    Proxies MCP server status (online/offline/degraded, tool count, error count,
+    last request timestamp). Consumed by plan_dashboard_system.
+
+    The MCP server is expected to run on a local port (e.g. 8001) or be
+    configured via MCP_SERVER_URL in .env. If unreachable, returns degraded status.
+    """
+    mcp_url = os.getenv("MCP_SERVER_URL", "http://127.0.0.1:8001/health")
+
+    try:
+        import requests as req
+
+        resp = req.get(mcp_url, timeout=5)
+        if resp.status_code == 200:
+            mcp_data = resp.json()
+            return {
+                "status": "online",
+                "mcp": mcp_data,
+                "checked_at": datetime.now(timezone.utc).isoformat(),
+            }
+        else:
+            return {
+                "status": "degraded",
+                "mcp": {"http_status": resp.status_code},
+                "checked_at": datetime.now(timezone.utc).isoformat(),
+            }
+    except Exception as e:
+        return {
+            "status": "offline",
+            "mcp": {"error": str(e)},
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+
+# =============================================================================
+# T5 — Essay, Historiography & Snippet/Metadata Trigger Endpoints
+# =============================================================================
+
+
+@app.get("/api/admin/essays")
+async def get_essays(
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Returns all records where type column contains 'essay', ordered by title.
+    Consumed by plan_dashboard_essay_historiography.
+
+    Note: The 'type' field is not a dedicated column in the current schema.
+    Essay records are identified by having non-NULL context_essays or
+    theological_essays columns, or by the slug pattern.
+    For forward compatibility, this endpoint checks for records whose slug
+    matches known essay patterns or has essay content populated.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # Essay records are those with essay content or essay-related slugs
+        cursor.execute(
+            """
+            SELECT id, title, slug, snippet, created_at, updated_at, status,
+                   context_essays, theological_essays, spiritual_articles
+            FROM records
+            WHERE context_essays IS NOT NULL
+               OR theological_essays IS NOT NULL
+               OR spiritual_articles IS NOT NULL
+               OR slug LIKE '%essay%'
+            ORDER BY title ASC
+            """
+        )
+        essays = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return essays
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to fetch essays: " + str(e))
+
+
+@app.get("/api/admin/historiography")
+async def get_historiography(admin_data: dict = Depends(verify_token)):
+    """
+    Returns the single record where slug = 'historiography'. 404 if missing.
+    Consumed by plan_dashboard_essay_historiography.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM records WHERE slug = ?", ("historiography",))
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            raise HTTPException(
+                status_code=404, detail="Historiography record not found."
+            )
+
+        return dict(row)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch historiography: " + str(e)
+        )
+
+
+class SnippetGenerateRequest(BaseModel):
+    slug: str
+    content: str
+
+
+@app.post("/api/admin/snippet/generate")
+async def trigger_snippet_generation(
+    body: SnippetGenerateRequest,
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Triggers snippet_generator.py for a record.
+    Accepts JSON body with slug and content. Returns the generated snippet string.
+    Consumed by the shared snippet_generator.js dashboard tool.
+    """
+    if not body.content or not body.content.strip():
+        raise HTTPException(status_code=400, detail="Content must not be empty.")
+
+    try:
+        snippet = generate_snippet(content=body.content, slug=body.slug)
+        return {"snippet": snippet, "slug": body.slug}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail="DeepSeek API error: " + str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to generate snippet: " + str(e)
+        )
+
+
+class MetadataGenerateRequest(BaseModel):
+    slug: str
+    content: str
+
+
+@app.post("/api/admin/metadata/generate")
+async def trigger_metadata_generation(
+    body: MetadataGenerateRequest,
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Triggers metadata_generator.py for a record.
+    Accepts JSON body with slug and content. Returns keywords and meta_description.
+    Consumed by the shared metadata_handler.js dashboard tool.
+    """
+    if not body.content or not body.content.strip():
+        raise HTTPException(status_code=400, detail="Content must not be empty.")
+
+    try:
+        result = generate_metadata(content=body.content, slug=body.slug)
+        return {
+            "keywords": result["keywords"],
+            "meta_description": result["meta_description"],
+            "slug": body.slug,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail="DeepSeek API error: " + str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to generate metadata: " + str(e)
+        )
+
+
+# =============================================================================
+# T6 — Blog & News Endpoints
+# =============================================================================
+
+
+@app.get("/api/admin/blogposts")
+async def get_blogposts(admin_data: dict = Depends(verify_token)):
+    """
+    Returns all records where blogposts column is NOT NULL,
+    ordered by created_at DESC. Consumed by plan_dashboard_blog_posts.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, title, slug, snippet, blogposts, created_at, updated_at, status
+            FROM records
+            WHERE blogposts IS NOT NULL
+            ORDER BY created_at DESC
+            """
+        )
+        blogposts = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return blogposts
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch blog posts: " + str(e)
+        )
+
+
+@app.delete("/api/admin/records/{record_id}/blogpost")
+async def delete_blogpost(record_id: str, admin_data: dict = Depends(verify_token)):
+    """
+    Sets the record's blogposts column to NULL (removes blog content
+    without deleting the record). Returns 200 on success.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verify the record exists
+        cursor.execute("SELECT id FROM records WHERE id = ?", (record_id,))
+        if not cursor.fetchone():
+            conn.close()
+            raise HTTPException(status_code=404, detail="Record not found.")
+
+        cursor.execute(
+            "UPDATE records SET blogposts = NULL, updated_at = ? WHERE id = ?",
+            (datetime.now(timezone.utc).isoformat(), record_id),
+        )
+        conn.commit()
+        conn.close()
+        return {"message": "Blog post content removed successfully."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to remove blog post: " + str(e)
+        )
+
+
+@app.get("/api/admin/news/items")
+async def get_news_items(admin_data: dict = Depends(verify_token)):
+    """
+    Returns all records where news_items column is NOT NULL,
+    ordered by created_at DESC. Consumed by plan_dashboard_news_sources.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, title, slug, snippet, news_items, news_sources,
+                   news_search_term, created_at, updated_at, status
+            FROM records
+            WHERE news_items IS NOT NULL
+            ORDER BY created_at DESC
+            """
+        )
+        news = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return news
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch news items: " + str(e)
+        )
+
+
+@app.post("/api/admin/news/crawl")
+async def trigger_news_crawl(admin_data: dict = Depends(verify_token)):
+    """
+    Triggers pipeline_news.py asynchronously.
+    Returns 202 Accepted with status and started_at timestamp.
+    """
+    started_at = datetime.now(timezone.utc).isoformat()
+
+    def _run_news_pipeline():
+        """Run the news pipeline in a background thread."""
+        try:
+            project_root = os.path.join(os.path.dirname(__file__), "..", "..")
+            subprocess.run(
+                [sys.executable, "-m", "backend.pipelines.pipeline_news"],
+                cwd=project_root,
+                capture_output=True,
+                timeout=300,  # 5-minute timeout
+            )
+        except Exception as exc:
+            logger.error(f"News crawl background task failed: {exc}")
+
+    thread = threading.Thread(target=_run_news_pipeline, daemon=True)
+    thread.start()
+
+    return {
+        "status": "accepted",
+        "message": "News crawl triggered successfully.",
+        "started_at": started_at,
+    }
+
+
+# =============================================================================
+# T7 — Challenge Response Endpoints
+# =============================================================================
+
+
+class CreateResponseRequest(BaseModel):
+    parent_slug: str
+    title: str
+
+
+@app.post("/api/admin/responses", status_code=201)
+async def create_response(
+    body: CreateResponseRequest,
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Creates a draft challenge response linked to a parent challenge.
+    Accepts JSON body with parent_slug and title.
+    Inserts a new record with status='draft' and links to the parent challenge
+    via the challenge_id column. Returns 201 with the new record's id and slug.
+    Consumed by plan_dashboard_challenge_response and plan_dashboard_challenge.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verify parent challenge exists
+        cursor.execute(
+            "SELECT id, slug, responses FROM records WHERE slug = ?",
+            (body.parent_slug,),
+        )
+        parent = cursor.fetchone()
+        if not parent:
+            conn.close()
+            raise HTTPException(
+                status_code=404,
+                detail=f"Parent challenge with slug '{body.parent_slug}' not found.",
+            )
+
+        # Generate new record ID and slug
+        new_id = str(uuid.uuid4())
+        new_slug = f"response-{body.parent_slug}-{new_id[:8]}"
+        now = datetime.now(timezone.utc).isoformat()
+
+        # Insert the new response record
+        cursor.execute(
+            """
+            INSERT INTO records (id, title, slug, challenge_id, status,
+                                 created_at, updated_at, responses)
+            VALUES (?, ?, ?, ?, 'draft', ?, ?, ?)
+            """,
+            (
+                new_id,
+                body.title,
+                new_slug,
+                parent["id"],
+                now,
+                now,
+                json.dumps([]),
+            ),
+        )
+
+        # Update the parent record's responses JSON array to include this new response
+        existing_responses = parent["responses"]
+        try:
+            response_list = json.loads(existing_responses) if existing_responses else []
+        except (json.JSONDecodeError, TypeError):
+            response_list = []
+
+        response_list.append({"id": new_id, "title": body.title, "slug": new_slug})
+        cursor.execute(
+            "UPDATE records SET responses = ?, updated_at = ? WHERE id = ?",
+            (json.dumps(response_list), now, parent["id"]),
+        )
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "id": new_id,
+            "slug": new_slug,
+            "title": body.title,
+            "parent_slug": body.parent_slug,
+            "status": "draft",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to create response: " + str(e)
+        )
+
+
+@app.get("/api/admin/responses")
+async def get_responses(admin_data: dict = Depends(verify_token)):
+    """
+    Returns all records where challenge_id IS NOT NULL (i.e., response records),
+    ordered by created_at DESC. Consumed by plan_dashboard_challenge_response.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, title, slug, challenge_id, snippet, responses,
+                   created_at, updated_at, status
+            FROM records
+            WHERE challenge_id IS NOT NULL
+            ORDER BY created_at DESC
+            """
+        )
+        responses = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return responses
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch responses: " + str(e)
+        )
+
+
+@app.get("/api/admin/responses/{response_id}")
+async def get_single_response(
+    response_id: str, admin_data: dict = Depends(verify_token)
+):
+    """
+    Returns a single response record by ID.
+    404 if not found or if it's not a response type (challenge_id is NULL).
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM records WHERE id = ? AND challenge_id IS NOT NULL",
+            (response_id,),
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail="Response not found or is not a response record.",
+            )
+
+        return dict(row)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch response: " + str(e)
+        )
+
+
+# =============================================================================
+# T8 — Agent Run Endpoint
+# =============================================================================
+
+
+class AgentRunRequest(BaseModel):
+    pipeline: str  # 'academic_challenges' or 'popular_challenges'
+    slug: str
+
+
+@app.post("/api/admin/agent/run", status_code=202)
+async def trigger_agent_run(
+    body: AgentRunRequest,
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Triggers a DeepSeek agent pipeline for a specific record.
+    Accepts JSON body: {"pipeline": "academic_challenges" | "popular_challenges",
+    "slug": str}.
+
+    The endpoint:
+    1. Verifies admin session via auth_utils (done by Depends).
+    2. Looks up the record's search terms from the appropriate column.
+    3. Spawns the agent run asynchronously (returns 202 Accepted immediately).
+    4. Returns {"run_id": int, "status": "running"}.
+    """
+    valid_pipelines = {"academic_challenges", "popular_challenges"}
+
+    if body.pipeline not in valid_pipelines:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid pipeline. Must be one of: {', '.join(valid_pipelines)}.",
+        )
+
+    # Look up the record
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM records WHERE slug = ?", (body.slug,))
+        record = cursor.fetchone()
+
+        if not record:
+            conn.close()
+            raise HTTPException(
+                status_code=404, detail=f"Record with slug '{body.slug}' not found."
+            )
+
+        # Determine the search term column based on pipeline
+        if body.pipeline == "academic_challenges":
+            search_term_col = "academic_challenge_search_term"
+        else:
+            search_term_col = "popular_challenge_search_term"
+
+        search_terms_raw = (
+            record[search_term_col] if search_term_col in record.keys() else None
+        )
+
+        if not search_terms_raw:
+            conn.close()
+            raise HTTPException(
+                status_code=400,
+                detail=f"Record '{body.slug}' has no {search_term_col} set. "
+                f"Set search terms before triggering an agent run.",
+            )
+
+        # Parse search terms (stored as JSON blob)
+        try:
+            search_terms_data = json.loads(search_terms_raw)
+            if isinstance(search_terms_data, list):
+                search_terms = " ".join(search_terms_data)
+            elif isinstance(search_terms_data, dict):
+                search_terms = " ".join(str(v) for v in search_terms_data.values())
+            else:
+                search_terms = str(search_terms_data)
+        except (json.JSONDecodeError, TypeError):
+            search_terms = str(search_terms_raw)
+
+        conn.close()
+
+        # Insert a 'running' row immediately and get its ID
+        now = datetime.now(timezone.utc).isoformat()
+        conn2 = get_db_connection()
+        cursor2 = conn2.cursor()
+        cursor2.execute(
+            """
+            INSERT INTO agent_run_log (pipeline, record_slug, status, started_at)
+            VALUES (?, ?, 'running', ?)
+            """,
+            (body.pipeline, body.slug, now),
+        )
+        conn2.commit()
+        run_id = cursor2.lastrowid
+        conn2.close()
+
+        # Spawn background thread
+        def _run_agent():
+            """Execute the agent pipeline in a background thread."""
+            try:
+                result = search_web(
+                    search_terms=search_terms,
+                    record_slug=body.slug,
+                    pipeline=body.pipeline,
+                    run_id=run_id,
+                )
+                found = result.get(
+                    "articles_found",
+                    len(result.get("articles", [])),
+                )
+                logger.info(f"Agent run {run_id} completed: {found} articles found.")
+            except Exception as exc:
+                logger.error(f"Agent run {run_id} failed: {exc}")
+
+        thread = threading.Thread(target=_run_agent, daemon=True)
+        thread.start()
+
+        return {"run_id": run_id, "status": "running"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to trigger agent run: " + str(e)
+        )
+
+
+# =============================================================================
+# T9 — Agent Logs Endpoint
+# =============================================================================
+
+
+@app.get("/api/admin/agent/logs")
+async def get_agent_logs(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    pipeline: Optional[str] = Query(None),
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Returns paginated agent run history for the System dashboard monitor.
+
+    Query params:
+        limit: Max rows to return (1-200, default 50).
+        offset: Number of rows to skip (default 0).
+        pipeline: Optional filter by pipeline name.
+
+    Returns array of agent_run_log rows ordered by started_at DESC.
+    Each row includes all columns: id, pipeline, record_slug, status,
+    trace_reasoning, articles_found, tokens_used, error_message,
+    started_at, completed_at.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Build WHERE clause and params
+        where_clause = ""
+        count_params = []
+        if pipeline:
+            where_clause = "WHERE pipeline = ?"
+            count_params.append(pipeline)
+
+        # Get total count first
+        cursor.execute(
+            f"SELECT COUNT(*) as total FROM agent_run_log {where_clause}",
+            count_params,
+        )
+        total = cursor.fetchone()["total"]
+
+        # Get paginated rows
+        query = (
+            f"SELECT * FROM agent_run_log {where_clause}"
+            f" ORDER BY started_at DESC LIMIT ? OFFSET ?"
+        )
+        cursor.execute(query, count_params + [limit, offset])
+        rows = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+
+        return {
+            "data": rows,
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch agent logs: " + str(e),
+        )

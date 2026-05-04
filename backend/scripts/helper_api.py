@@ -22,10 +22,13 @@
 
 import logging
 import time
+
 import requests
 
 # Set up basic logging for monitoring API connections
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Standard user agent for The Jesus Website automated jobs
@@ -33,75 +36,86 @@ DEFAULT_USER_AGENT = "TheJesusWebsite/1.0.0 (https://github.com/thejesuswebsite;
 DEFAULT_TIMEOUT_SECONDS = 15
 MAX_RETRIES = 3
 
-def make_request(url: str, method: str = "GET", params: dict = None, headers: dict = None, json_data: dict = None) -> dict:
+
+def make_request(
+    url: str,
+    method: str = "GET",
+    params: dict | None = None,
+    headers: dict | None = None,
+    json_data: dict | None = None,
+) -> dict | None:
     """
-    Executes a secure HTTP request, automatically handling retries, timeouts, and logging.
-    
+    Execute a secure HTTP request with automatic retries, timeouts, and logging.
+
     Args:
         url (str): The target URL endpoint.
         method (str): HTTP method (e.g., 'GET', 'POST'). Defaults to 'GET'.
         params (dict): URL query parameters.
         headers (dict): Custom HTTP headers.
         json_data (dict): JSON payload for POST/PUT requests.
-        
+
     Returns:
         dict: The parsed JSON response, or None if the request fully failed.
     """
-    request_headers = {
-        "User-Agent": DEFAULT_USER_AGENT,
-        "Accept": "application/json"
-    }
-    
+    request_headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "application/json"}
+
     if headers:
         request_headers.update(headers)
-        
+
     attempt = 0
     backoff_time = 2  # Start with 2 seconds backoff
-    
+    response = None
+
     while attempt < MAX_RETRIES:
         try:
-            logger.info(f"API Request: {method} {url} (Attempt {attempt + 1}/{MAX_RETRIES})")
-            
+            logger.info(
+                f"API Request: {method} {url} (Attempt {attempt + 1}/{MAX_RETRIES})"
+            )
+
             response = requests.request(
                 method=method,
                 url=url,
                 params=params,
                 headers=request_headers,
                 json=json_data,
-                timeout=DEFAULT_TIMEOUT_SECONDS
+                timeout=DEFAULT_TIMEOUT_SECONDS,
             )
-            
+
             response.raise_for_status()
-            
+
             # Return parsed JSON
             return response.json()
-            
+
         except requests.exceptions.HTTPError as http_error:
             # Handle rate limiting (429) specifically
-            if response.status_code == 429:
+            if response is not None and response.status_code == 429:
                 logger.warning(f"Rate limited (429) by {url}. Waiting before retry...")
                 time.sleep(backoff_time * 2)
-            else:
+            elif response is not None:
                 logger.error(f"HTTP Error {response.status_code}: {http_error}")
-                
+            else:
+                logger.error(f"HTTP Error (no response): {http_error}")
+
         except requests.exceptions.ConnectionError:
             logger.error(f"Connection Error when reaching {url}")
-            
+
         except requests.exceptions.Timeout:
-            logger.error(f"Timeout Error after {DEFAULT_TIMEOUT_SECONDS}s when reaching {url}")
-            
+            logger.error(
+                f"Timeout Error after {DEFAULT_TIMEOUT_SECONDS}s when reaching {url}"
+            )
+
         except ValueError:
             logger.error(f"Invalid JSON response from {url}")
-            return None # If it's not JSON, we fail early rather than retrying usually
-            
+            return None  # If it's not JSON, we fail early rather than retrying usually
+
         except Exception as e:
             logger.error(f"Unexpected connection error: {e}")
-            
+
         attempt += 1
         if attempt < MAX_RETRIES:
             logger.info(f"Retrying in {backoff_time} seconds...")
             time.sleep(backoff_time)
             backoff_time *= 2  # Exponential backoff
-            
+
     logger.error(f"Failed to fetch {url} after {MAX_RETRIES} attempts.")
     return None

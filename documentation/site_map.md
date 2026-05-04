@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.48
+version: 1.0.49
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -33,7 +33,10 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── pipeline_popular_challenges.py <-- Finds, analyzes and ranks popular public queries
 │   └── pipeline_wikipedia.py  <-- Fetches, ranks, inserts Wikipedia reference data
 ├── backend/scripts/
-│   └── helper_api.py          <-- Shared logic for secure external API connection calls
+│   ├── agent_client.py       <-- Shared DeepSeek API client for AI-powered pipelines
+│   ├── helper_api.py          <-- Shared logic for secure external API connection calls
+│   ├── metadata_generator.py  <-- DeepSeek-powered SEO/Keyword extraction
+│   └── snippet_generator.py   <-- DeepSeek-powered archival abstract generation
 ├── build.py                   <-- Root script to trigger backend pipelines
 ├── database/
 │   ├── database.sql           <-- The blueprint schema

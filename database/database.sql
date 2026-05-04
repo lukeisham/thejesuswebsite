@@ -387,5 +387,85 @@ CREATE INDEX IF NOT EXISTS idx_resource_lists_list_position
 
 
 -- =============================================================================
+-- TABLE: system_config
+-- Global key/value configuration store for site-wide settings not tied to
+-- any single record. Populated at runtime by the admin dashboard.
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS system_config (
+
+    key             TEXT        PRIMARY KEY,
+    -- Configuration key (e.g. 'site_title', 'default_snippet_length')
+
+    value           TEXT,
+    -- Configuration value stored as text (JSON for complex values)
+
+    updated_at      TEXT,
+    -- ISO8601 String: timestamp of last modification
+
+    updated_by      TEXT
+    -- Identifier of the admin user who last modified this config entry
+
+);
+
+
+-- =============================================================================
+-- TABLE: agent_run_log
+-- Tracks every DeepSeek agent pipeline execution for observability,
+-- debugging, and cost monitoring.
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS agent_run_log (
+
+    id              INTEGER     PRIMARY KEY AUTOINCREMENT,
+    -- Auto-incrementing unique identifier for each agent run
+
+    pipeline        TEXT        NOT NULL,
+    -- Name of the pipeline that triggered this run
+    -- e.g. 'academic_challenges', 'popular_challenges',
+    --      'snippet_generation', 'metadata_generation'
+
+    record_slug     TEXT,
+    -- Slug of the record being processed (NULL for batch runs)
+
+    status          TEXT        NOT NULL DEFAULT 'running',
+    -- Execution status: 'running', 'completed', 'failed'
+
+    trace_reasoning TEXT,
+    -- The agent's chain-of-thought reasoning log from the DeepSeek response
+
+    articles_found  INTEGER     DEFAULT 0,
+    -- Count of articles discovered (for web-search pipelines)
+
+    tokens_used     INTEGER     DEFAULT 0,
+    -- Total tokens consumed by this run (prompt + completion)
+
+    error_message   TEXT,
+    -- Error details if status is 'failed' (NULL otherwise)
+
+    started_at      TEXT        NOT NULL,
+    -- ISO-8601 timestamp of when the run began
+
+    completed_at    TEXT
+    -- ISO-8601 timestamp of when the run finished (NULL while running)
+
+);
+
+
+-- =============================================================================
+-- INDEXES for agent_run_log
+-- =============================================================================
+
+CREATE INDEX IF NOT EXISTS idx_agent_run_log_pipeline
+    ON agent_run_log (pipeline);
+
+CREATE INDEX IF NOT EXISTS idx_agent_run_log_status
+    ON agent_run_log (status);
+
+CREATE INDEX IF NOT EXISTS idx_agent_run_log_started_at
+    ON agent_run_log (started_at);
+
+
+-- =============================================================================
 -- END OF SCHEMA
 -- =============================================================================

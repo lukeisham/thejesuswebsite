@@ -17,20 +17,25 @@
 #     It does not insert or delete rows — only updates existing ones.
 # =============================================================================
 
+import json
 import os
 import sqlite3
-import json
 import sys
 from datetime import datetime
 
 # Ensure package context is recognized when running directly from CLI
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 from backend.middleware.logger_setup import setup_logger
 
 # Initialize central logging to /logs
 logger = setup_logger(__file__)
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'database', 'database.sqlite')
+DB_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "..", "database", "database.sqlite"
+)
+
 
 def analyze_search_trends(challenge_slug: str):
     """
@@ -43,6 +48,7 @@ def analyze_search_trends(challenge_slug: str):
     logger.info(f"Analyzing search momentum for '{challenge_slug}'...")
     return {"trend_score": 500}
 
+
 def run_pipeline():
     """
     Trigger:  Run directly via CLI or via build.py.
@@ -50,21 +56,23 @@ def run_pipeline():
     Output:   Updated records.popular_challenge_rank for every row.
     """
     logger.info("Starting Popular Challenges Pipeline...")
-    
+
     if not os.path.exists(DB_PATH):
         logger.error("Database not found! Aborting.")
         return
-        
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
     # 1. Fetch records designed as popular challenges
-    cursor.execute("SELECT id, slug, popular_challenge_weight FROM records WHERE slug IS NOT NULL")
+    cursor.execute(
+        "SELECT id, slug, popular_challenge_weight FROM records WHERE slug IS NOT NULL"
+    )
     records = cursor.fetchall()
-    
+
     for row in records:
         record_id, slug, raw_weight = row
-        
+
         # Parse the optional editorial weight override stored as a JSON blob
         multiplier = 1.0
         if raw_weight:
@@ -73,20 +81,24 @@ def run_pipeline():
                 multiplier = float(weight_data.get("multiplier", 1.0))
             except json.JSONDecodeError:
                 pass
-                
+
         metrics = analyze_search_trends(slug)
         final_rank = int(metrics["trend_score"] * multiplier)
-        
-        cursor.execute("""
-            UPDATE records 
+
+        cursor.execute(
+            """
+            UPDATE records
             SET popular_challenge_rank = ?,
                 updated_at = ?
             WHERE id = ?
-        """, (final_rank, datetime.utcnow().isoformat(), record_id))
-        
+        """,
+            (final_rank, datetime.utcnow().isoformat(), record_id),
+        )
+
     conn.commit()
     conn.close()
     logger.info("Popular Challenges Pipeline completed.")
+
 
 if __name__ == "__main__":
     run_pipeline()

@@ -196,7 +196,7 @@ This plan implements the "Single Record" dashboard view, a dense and comprehensi
 ## File Inventory
 
 > [!IMPORTANT]
-> To prevent skipping or drift, ensure all of the following files exist and match the logic in `documentation/dashboard_refractor.md` before marking the Audit task as complete.
+> To prevent skipping or drift, work through the tasks sequentially, and ensure each task is fully completed, and marked as complete, before moving to the next.  
 
 | Type | Path | Purpose |
 | :--- | :--- | :--- |

@@ -1,7 +1,7 @@
 ---
 name: guide_function.md
 purpose: Visual ASCII representations of module functions 
-version: 1.8.0
+version: 1.9.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, data_schema.md, detailed_module_sitemap.md]
 ---
 
@@ -1104,6 +1104,220 @@ The Admin Portal is undergoing a systematic refactor to implement the 'providenc
 11. **Module 7.2: System Health & Maintenance**
     - [plan_dashboard_system.md]
     - Real-time API monitoring, test orchestration, and agent generation.
+
+
+
+### 7.6 DeepSeek Agent Client & Generator Scripts
+
+The System module includes three shared Python scripts that power AI-assisted
+editorial workflows across the admin dashboard:
+
+```text
+             [ Admin Dashboard (JS Frontend) ]
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |               admin_api.py (FastAPI)                        |
+ |                                                             |
+ |  POST /api/admin/snippet/generate                           |
+ |  POST /api/admin/metadata/generate                          |
+ |  POST /api/admin/agent/run                                  |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |           backend/scripts/agent_client.py                   |
+ |                                                             |
+ |  -> Shared DeepSeek API client (OpenAI-compatible)          |
+ |  -> Three public functions:                                 |
+ |     - search_web(search_terms, record_slug, pipeline)       |
+ |       Web-search enabled DeepSeek call for article          |
+ |       discovery with relevance scores. Logs to              |
+ |       agent_run_log. Returns articles, trace_reasoning,     |
+ |       tokens_used.                                          |
+ |     - generate_snippet(content, slug)                       |
+ |       Non-search DeepSeek call requesting a 2-3 sentence    |
+ |       archival-quality summary in scholarly tone. Logs to   |
+ |       agent_run_log with pipeline = snippet_generation.     |
+ |     - generate_metadata(content, slug)                      |
+ |       Non-search DeepSeek call requesting 5-10 SEO keywords |
+ |       and a meta-description (max 160 chars). Logs to       |
+ |       agent_run_log with pipeline = metadata_generation.    |
+ |                                                             |
+ |  -> All functions write a running row to agent_run_log      |
+ |     at start, then update to completed/failed on finish.    |
+ |  -> On exception (timeout, auth failure, malformed          |
+ |     response), updates log row to failed and re-raises.     |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |               DeepSeek Chat Completions API                 |
+ |               (api.deepseek.com/v1/chat/completions)        |
+ |                                                             |
+ |  -> Reads DEEPSEEK_API_KEY from .env                        |
+ |  -> Retries on 429 with exponential backoff (up to 3x)     |
+ |  -> Returns content, reasoning_content, and token usage     |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |                  database/database.sqlite                   |
+ |                  (agent_run_log table)                      |
+ +-------------------------------------------------------------+
+```
+
+### 7.6.1 Snippet Generator Flow
+
+```text
+ [ Dashboard: User clicks "Generate Snippet" on a record ]
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  JS: snippet_generator.js                                   |
+ |  -> Sends POST /api/admin/snippet/generate                  |
+ |     Body: { "slug": "jesus-baptism", "content": "..." }    |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  admin_api.py: trigger_snippet_generation()                 |
+ |  -> Validates content is non-empty and >= 50 chars          |
+ |  -> Calls snippet_generator.generate_snippet(content, slug) |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  backend/scripts/snippet_generator.py                       |
+ |  -> Thin wrapper: validates input length                    |
+ |  -> Delegates to agent_client.generate_snippet()            |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  backend/scripts/agent_client.py                            |
+ |  -> Inserts agent_run_log row (status: running)             |
+ |  -> Constructs system + user prompts for scholarly summary  |
+ |  -> Calls _call_deepseek() with web_search=False            |
+ |  -> Updates agent_run_log row (status: completed)            |
+ |  -> Returns snippet string to API                           |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ [ API returns { "snippet": "...", "slug": "..." } ]
+ [ JS saves snippet to record via PUT /api/admin/records/{id} ]
+```
+
+### 7.6.2 Metadata Generator Flow
+
+```text
+ [ Dashboard: User clicks "Generate Metadata" on a record ]
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  JS: metadata_handler.js                                    |
+ |  -> Sends POST /api/admin/metadata/generate                 |
+ |     Body: { "slug": "jesus-baptism", "content": "..." }    |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  admin_api.py: trigger_metadata_generation()                |
+ |  -> Validates content is non-empty and >= 100 chars         |
+ |  -> Calls metadata_generator.generate_metadata(content,     |
+ |     slug)                                                   |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  backend/scripts/metadata_generator.py                      |
+ |  -> Thin wrapper: validates input length                    |
+ |  -> Delegates to agent_client.generate_metadata()           |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  backend/scripts/agent_client.py                            |
+ |  -> Inserts agent_run_log row (status: running)             |
+ |  -> Constructs system + user prompts for SEO extraction     |
+ |  -> Calls _call_deepseek() with web_search=False            |
+ |  -> Parses JSON response for keywords + meta_description    |
+ |  -> Updates agent_run_log row (status: completed)            |
+ |  -> Returns dict to API                                     |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ [ API returns { "keywords": "...", "meta_description": "..." } ]
+ [ JS saves metadata to record via PUT /api/admin/records/{id} ]
+```
+
+### 7.6.3 Agent Run Flow (Challenge Pipeline)
+
+```text
+ [ Dashboard: User clicks "Run Agent" on a challenge record ]
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  admin_api.py: trigger_agent_run()                          |
+ |  -> Validates pipeline (academic_challenges |                |
+ |     popular_challenges)                                     |
+ |  -> Looks up record's search terms from                     |
+ |     academic_challenge_search_term or                       |
+ |     popular_challenge_search_term                           |
+ |  -> Inserts agent_run_log row (status: running)             |
+ |  -> Returns 202 Accepted with run_id                        |
+ |  -> Spawns background thread:                               |
+ |     agent_client.search_web(search_terms, slug, pipeline)   |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  backend/scripts/agent_client.py :: search_web()            |
+ |  -> Updates agent_run_log row (now managed in-function)     |
+ |  -> Constructs system + user prompts for article discovery  |
+ |  -> Calls _call_deepseek() with web_search=True             |
+ |  -> Parses JSON response for articles array                 |
+ |  -> Updates agent_run_log row (status: completed,           |
+ |     articles_found, tokens_used)                            |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  GET /api/admin/agent/logs                                  |
+ |  -> Dashboard polls for run completion + results            |
+ +-------------------------------------------------------------+
+```
+
+### 7.6.4 System Config Flow
+
+The `system_config` table provides a key/value store for global site-wide
+configuration that is not tied to any single record. The admin dashboard
+reads and writes config values through the system config API endpoints.
+
+```text
+ [ Dashboard: System Health module loads ]
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  GET /api/admin/system/config                               |
+ |  -> Returns all system_config rows as JSON key/value pairs  |
+ +-------------------------------------------------------------+
+                           |
+                           v
+ [ Dashboard displays current configuration ]
+                           |
+                           v
+ [ Admin edits a config value ]
+                           |
+                           v
+ +-------------------------------------------------------------+
+ |  PUT /api/admin/system/config                               |
+ |  -> Accepts JSON body: { "key": "value", ... }              |
+ |  -> Upserts each key/value pair into system_config table    |
+ |  -> Uses INSERT ... ON CONFLICT DO UPDATE (SQLite upsert)   |
+ +-------------------------------------------------------------+
+```
+
 
 ---
 

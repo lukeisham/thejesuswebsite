@@ -1,7 +1,7 @@
 ---
 name: guide_security.md
 purpose: description of security measures taken to protect the backend section 
-version: 1.0.0
+version: 1.1.0
 dependencies: [guide_dashboard_appearance.md, module_sitemap.md]
 ---
 
@@ -30,6 +30,46 @@ The Admin Portal requires a robust authentication flow to prevent unauthorized c
 - **Environment Credentials:** The `ADMIN_PASSWORD` is stored in a hidden `.env` file (ignored by `.gitignore`) and managed by the Python `admin_api.py`.
 - **JWT & Auth Utilities:** Successful logins generate a secure JSON Web Token (JWT) managed by `admin/backend/auth_utils.py` and stored in a HttpOnly cookie.
 - **Session Middleware:** On `admin.html` (login page), `admin_login.js` sends credentials and redirects on success. On `dashboard.html` (dashboard), `dashboard_auth.js` calls `verifyAdminSession()` from `load_middleware.js` as a page guard — if the session cookie is invalid or expired, the browser is redirected back to `admin.html`. Individual module loads do not re-check the session (verified once at page load). The "Return to Frontend" button (`return_to_site.js`) also calls `/api/admin/verify` but preserves the session cookie — unlike logout, this is a session-preserving navigation that lets the user return to the dashboard without re-authenticating. Only the "Logout" button (`logout_middleware.js`) calls `POST /api/admin/logout` to destroy the cookie and terminate the session.
+
+## 3a. Expanded Admin API Endpoints (plan_backend_infrastructure)
+
+The following API endpoints were added as part of the backend infrastructure
+plan. All are protected by the admin JWT session verification middleware
+(`verify_token` dependency).
+
+**System Config & Health:**
+- `GET /api/admin/system/config` — Read all system_config key/value pairs
+- `PUT /api/admin/system/config` — Upsert system_config key/value pairs
+- `GET /api/admin/health_check` — System health (DB, DeepSeek API, VPS resources)
+- `GET /api/admin/mcp/health` — MCP server status proxy
+
+**Content Generation (DeepSeek-powered):**
+- `POST /api/admin/snippet/generate` — Trigger AI snippet generation
+- `POST /api/admin/metadata/generate` — Trigger AI metadata/keyword extraction
+
+**Essay & Historiography:**
+- `GET /api/admin/essays` — List all essay records
+- `GET /api/admin/historiography` — Get the single historiography record
+
+**Blog & News:**
+- `GET /api/admin/blogposts` — List all blog post records
+- `DELETE /api/admin/records/{id}/blogpost` — Remove blog content (preserves record)
+- `GET /api/admin/news/items` — List all news item records
+- `POST /api/admin/news/crawl` — Trigger news crawler pipeline
+
+**Challenge Responses:**
+- `POST /api/admin/responses` — Create draft challenge response (201 Created)
+- `GET /api/admin/responses` — List all challenge responses
+- `GET /api/admin/responses/{id}` — Get single response by ID
+
+**Agent Management:**
+- `POST /api/admin/agent/run` — Trigger DeepSeek agent pipeline (202 Accepted, async)
+- `GET /api/admin/agent/logs` — Paginated agent run history with pipeline filter
+
+All endpoints require a valid JWT session cookie. Rate limiting (30 req/min)
+applies globally via `RateLimiterMiddleware`. SQL injection is prevented through
+exclusive use of parameterized queries (`?` placeholders).
+
 - **Brute Force Defense:** The backend implements login delays and temporary IP lockouts after 5 consecutive failed attempts, handled within `auth_utils.py`.
 
 ## 4. Obfuscating the Dashboard Code and Documentation

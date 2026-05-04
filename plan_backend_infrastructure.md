@@ -2,7 +2,7 @@
 name: plan_backend_infrastructure
 version: 1.0.0
 module: 7.0 — System (Backend)
-status: draft
+status: complete
 created: 2026-05-02
 ---
 
@@ -19,7 +19,7 @@ This plan implements the essential backend infrastructure and shared utilities r
 ## File Inventory
 
 > [!IMPORTANT]
-> To prevent skipping or drift, ensure all of the following files exist and match the logic in `documentation/dashboard_refractor.md` before marking the Audit task as complete.
+> To prevent skipping or drift, work through the tasks sequentially, and ensure each task is fully completed, and marked as complete, before moving to the next.  
 
 | Type | Path | Purpose |
 | :--- | :--- | :--- |
@@ -122,7 +122,7 @@ This plan implements the essential backend infrastructure and shared utilities r
   > **Note:** `news_sources`, `news_items`, and `news_search_term` all live as columns on the `records` table per the data schema. The `system_config` table holds configuration that is truly global (e.g. site-wide settings), not per-record news data. The `agent_run_log` table stores traceable execution history for every agent pipeline trigger.
 - **Vibe Rule(s):** snake_case fields · Explicit queries
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -137,7 +137,7 @@ This plan implements the essential backend infrastructure and shared utilities r
 - **Dependencies:** `backend/scripts/agent_client.py`, `.env` (`DEEPSEEK_API_KEY`), `database/database.sqlite` (`agent_run_log` table)
 - **Vibe Rule(s):** Logic is explicit · Stateless and safe · Python Excellence · API quirks documented inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -155,7 +155,7 @@ This plan implements the essential backend infrastructure and shared utilities r
 - **Dependencies:** `.env` (`DEEPSEEK_API_KEY`), `database/database.sqlite` (`agent_run_log` table), `backend/scripts/helper_api.py` (for HTTP patterns)
 - **Vibe Rule(s):** Logic is explicit · Stateless and safe · Python Excellence · API quirks documented inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -170,7 +170,7 @@ This plan implements the essential backend infrastructure and shared utilities r
 - **Dependencies:** `backend/scripts/agent_client.py`, `.env` (`DEEPSEEK_API_KEY`), `database/database.sqlite` (`agent_run_log` table)
 - **Vibe Rule(s):** Logic is explicit · Stateless and safe · Python Excellence · API quirks documented inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -185,7 +185,7 @@ This plan implements the essential backend infrastructure and shared utilities r
   **Note:** News-related data lives on the `records` table — the system_config endpoints are for configuration not tied to any single record.
 - **Vibe Rule(s):** Auth protected · Explicit logic · SQLi safe
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -200,7 +200,7 @@ This plan implements the essential backend infrastructure and shared utilities r
   > **Note:** Essays and Historiography use the existing `PUT /api/admin/records/{id}` for updates and `DELETE /api/admin/records/{id}` for deletion. Only the list/get endpoints are new.
 - **Vibe Rule(s):** Auth protected · Explicit logic · SQLi safe
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -215,7 +215,7 @@ This plan implements the essential backend infrastructure and shared utilities r
   > **Note:** Blog posts and news items use the existing `PUT /api/admin/records/{id}` for content updates and the existing `DELETE /api/admin/records/{id}` for full record deletion.
 - **Vibe Rule(s):** Auth protected · Explicit logic · SQLi safe
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -229,7 +229,7 @@ This plan implements the essential backend infrastructure and shared utilities r
   > **Note:** Responses use the existing `PUT /api/admin/records/{id}` for content/status updates and `DELETE /api/admin/records/{id}` for deletion.
 - **Vibe Rule(s):** Auth protected · Explicit logic · Relational integrity
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -243,7 +243,7 @@ This plan implements the essential backend infrastructure and shared utilities r
   4. Return `{"run_id": int, "status": "running"}`.
 - **Vibe Rule(s):** Auth protected · Explicit logic · SQLi safe · Non-blocking
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -253,7 +253,7 @@ This plan implements the essential backend infrastructure and shared utilities r
 - **Action:** Implement `GET /api/admin/agent/logs` — returns paginated agent run history for the System dashboard monitor. Query params: `?limit=50&offset=0&pipeline=academic_challenges`. Returns array of `agent_run_log` rows ordered by `started_at DESC`. Each row includes all columns: `id`, `pipeline`, `record_slug`, `status`, `trace_reasoning`, `articles_found`, `tokens_used`, `error_message`, `started_at`, `completed_at`.
 - **Vibe Rule(s):** Auth protected · Explicit logic · SQLi safe
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -264,13 +264,13 @@ This plan implements the essential backend infrastructure and shared utilities r
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
 
 #### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic
 
 ---
 
@@ -278,10 +278,10 @@ This plan implements the essential backend infrastructure and shared utilities r
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement**: The core objective outlined in the summary has been fully met
-- [ ] **Necessity**: The underlying reason/need for this plan has been resolved
-- [ ] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
-- [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
+- [x] **Achievement**: The core objective outlined in the summary has been fully met
+- [x] **Necessity**: The underlying reason/need for this plan has been resolved
+- [x] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
+- [x] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
@@ -310,7 +310,7 @@ This plan implements the essential backend infrastructure and shared utilities r
 | `documentation/guides/guide_welcoming_robots.md` | No | SEO logic is unaffected. |
 
 ### Documentation Checklist
-- [ ] All affected documents identified in the table above
-- [ ] Each "Yes" row has been updated with accurate, current information
-- [ ] No document contains stale references to files or logic changed by this plan
-- [ ] Version numbers incremented where frontmatter versioning is present
+- [x] All affected documents identified in the table above
+- [x] Each "Yes" row has been updated with accurate, current information
+- [x] No document contains stale references to files or logic changed by this plan
+- [x] Version numbers incremented where frontmatter versioning is present

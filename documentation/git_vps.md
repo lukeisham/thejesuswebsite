@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "save point"
+git commit -m "plan_backend_infrastructure"
 git push origin main 
 
 # Pulling from Github to server 
