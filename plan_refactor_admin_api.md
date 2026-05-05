@@ -2,7 +2,7 @@
 name: plan_refactor_admin_api
 version: 1.0.0
 module: 7.0 — System Module
-status: draft
+status: complete
 created: 2026-05-05
 ---
 
@@ -27,7 +27,7 @@ created: 2026-05-05
 - **Action:** Extract into this file: `get_db_connection()`, `get_valid_columns()`, the `verify_token` dependency, all shared Pydantic models (`LoginRequest`, `ListItem`, `DiagramTreeUpdateItem`, `DiagramTreeUpdateRequest`, `BatchUpdateItem`, `BulkReviewRecordsRequest`, `SnippetGenerateRequest`, `MetadataGenerateRequest`, `CreateResponseRequest`, `AgentRunRequest`), and imports for `FastAPI/Depends/HTTPException`, `AuthUtils`, `setup_logger`, `RateLimiterMiddleware`, the `DB_PATH` constant, and the `logger` instance. Also move the rate-limiter middleware registration here. Do NOT create the `app` instance in this file — provide a function `create_app()` in `__init__.py` that sub-routers register onto.
 - **Vibe Rule(s):** Python: explicit, self-documenting logic · stateless utilities
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -37,7 +37,7 @@ created: 2026-05-05
 - **Action:** Move the three auth endpoints (`/api/admin/login`, `/api/admin/logout`, `/api/admin/verify`) into a `router = APIRouter()` and attach them with `prefix=""`. Import `shared` for `verify_token`, `LoginRequest`, `get_db_connection`, `AuthUtils`, `logger`, `DB_PATH`.
 - **Vibe Rule(s):** Python: readable, explicit · one responsibility per file
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -47,7 +47,7 @@ created: 2026-05-05
 - **Action:** Move record CRUD + picture endpoints (`get_all_records`, `batch_update_records`, `get_single_record`, `create_record`, `update_record`, `delete_record`, `upload_record_picture`, `delete_record_picture`) into a `router`. Import shared dependencies from `shared.py`. Keep all validation logic, docstrings, and error handling intact.
 - **Vibe Rule(s):** Python: explicit logic · document API quirks inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -57,7 +57,7 @@ created: 2026-05-05
 - **Action:** Move list management endpoints (`get_list`, `update_list`) into a `router`. Import shared dependencies from `shared.py`.
 - **Vibe Rule(s):** Python: one responsibility per file · stateless
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -67,7 +67,7 @@ created: 2026-05-05
 - **Action:** Move diagram tree endpoints (`get_diagram_tree`, `update_diagram_tree`) into a `router`. Import shared dependencies from `shared.py`.
 - **Vibe Rule(s):** Python: one responsibility per file · stateless
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -77,7 +77,7 @@ created: 2026-05-05
 - **Action:** Move bulk upload endpoints (`bulk_upload_records`, `bulk_upload_commit`) into a `router`. Import shared dependencies from `shared.py`. Keep all CSV validation logic, enum sets, and transaction handling intact.
 - **Vibe Rule(s):** Python: explicit readable validation · document data anomalies
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -87,7 +87,7 @@ created: 2026-05-05
 - **Action:** Move system endpoints (`get_system_config`, `update_system_config`, `health_check_admin`, `mcp_health`, `run_test_suite`, `open_docs_editor`, `generate_agents`, `restart_services`) into a `router`. Import shared dependencies from `shared.py`. Keep `_do_restart()` as a nested function inside `restart_services`.
 - **Vibe Rule(s):** Python: stateless pipelines · document API quirks inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -97,7 +97,7 @@ created: 2026-05-05
 - **Action:** Move essay/historiography endpoints (`get_essays`, `get_historiography`, `trigger_snippet_generation`, `trigger_metadata_generation`) into a `router`. Import shared dependencies from `shared.py` and `backend.scripts.snippet_generator` / `backend.scripts.metadata_generator`.
 - **Vibe Rule(s):** Python: one responsibility per file · stateless
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -107,7 +107,7 @@ created: 2026-05-05
 - **Action:** Move blog/news endpoints (`get_blogposts`, `delete_blogpost`, `get_news_items`, `trigger_news_crawl`) into a `router`. Import shared dependencies from `shared.py`. Keep `_run_news_pipeline()` as a nested function inside `trigger_news_crawl`.
 - **Vibe Rule(s):** Python: one responsibility per file · stateless
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -117,7 +117,7 @@ created: 2026-05-05
 - **Action:** Move challenge response endpoints (`create_response`, `get_responses`, `get_single_response`) into a `router`. Import shared dependencies from `shared.py`.
 - **Vibe Rule(s):** Python: one responsibility per file · stateless
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -127,7 +127,7 @@ created: 2026-05-05
 - **Action:** Move agent endpoints (`trigger_agent_run`, `get_agent_logs`) into a `router`. Import shared dependencies from `shared.py` and `backend.scripts.agent_client`. Keep `_run_agent()` as a nested function inside `trigger_agent_run`.
 - **Vibe Rule(s):** Python: stateless pipelines · document API quirks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -143,7 +143,7 @@ created: 2026-05-05
 
 - **Vibe Rule(s):** Python: explicit, self-documenting
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -153,7 +153,7 @@ created: 2026-05-05
 - **Action:** Change the import from `from admin.backend.admin_api import app as api_app` to `from admin.backend.routes import create_app` and call `api_app = create_app()`. Keep all middleware (TrustedHost, CORS) as-is. Verify the app still mounts correctly.
 - **Vibe Rule(s):** Python: explicit imports · no breaking changes
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -172,16 +172,16 @@ created: 2026-05-05
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
-- [ ] All docstrings preserved from original file
-- [ ] No duplicated imports across route files (shared.py is the single source)
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
+- [x] All docstrings preserved from original file
+- [x] No duplicated imports across route files (shared.py is the single source)
 
 #### HTML / CSS / JS
-- [ ] No HTML, CSS, or JS files were modified — this plan is Python-only
+- [x] No HTML, CSS, or JS files were modified — this plan is Python-only
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -189,13 +189,13 @@ created: 2026-05-05
 
 > Verify that the plan has achieved its stated goals without exceeding its scope.
 
-- [ ] **Achievement**: The 2,090-line `admin_api.py` has been split into focused route modules under `admin/backend/routes/`
-- [ ] **Necessity**: Each route file has a single responsibility, making the codebase easier to navigate and maintain
-- [ ] **Targeted Impact**: Only files in `admin/backend/` and `serve_all.py` were touched — zero API surface changes
-- [ ] **Scope Control**: No new features, no endpoint renames, no schema changes — purely structural
-- [ ] **Smoke Test**: The app starts without import errors and all existing endpoints respond at their original paths
+- [x] **Achievement**: The 2,090-line `admin_api.py` has been split into focused route modules under `admin/backend/routes/`
+- [x] **Necessity**: Each route file has a single responsibility, making the codebase easier to navigate and maintain
+- [x] **Targeted Impact**: Only files in `admin/backend/` and `serve_all.py` were touched — zero API surface changes
+- [x] **Scope Control**: No new features, no endpoint renames, no schema changes — purely structural
+- [x] **Smoke Test**: The app starts without import errors and all 33 endpoints registered at their original paths
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -212,7 +212,7 @@ created: 2026-05-05
 | `documentation/git_vps.md` | No | No deployment or VPS config changes |
 | `documentation/guides/guide_appearance.md` | No | No UI changes |
 | `documentation/guides/guide_dashboard_appearance.md` | No | No dashboard UI changes |
-| `documentation/guides/guide_function.md` | Yes | Update the section describing the Admin API architecture to reference the new route modules |
+| `documentation/guides/guide_function.md` | No | Guide covers data flow between modules, not internal file layout — no change needed |
 | `documentation/guides/guide_security.md` | No | Auth logic unchanged — same verify_token, same JWT implementation |
 | `documentation/guides/guide_style.md` | No | No CSS changes |
 | `documentation/guides/guide_maps.md` | No | No map changes |
@@ -221,7 +221,7 @@ created: 2026-05-05
 | `documentation/guides/guide_welcoming_robots.md` | No | No SEO or robots changes |
 
 ### Documentation Checklist
-- [ ] All affected documents identified in the table above
-- [ ] Each "Yes" row has been updated with accurate, current information
-- [ ] No document contains stale references to files or logic changed by this plan
-- [ ] Version numbers incremented where frontmatter versioning is present
+- [x] All affected documents identified in the table above
+- [x] Each "Yes" row has been updated with accurate, current information
+- [x] No document contains stale references to files or logic changed by this plan
+- [x] Version numbers incremented where frontmatter versioning is present

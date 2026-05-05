@@ -9,7 +9,7 @@ import os
 
 from fastapi import APIRouter, Depends, Request, Response
 
-from .shared import AuthUtils, HTTPException, LoginRequest, logger, verify_token
+from .shared import AuthUtils, HTTPException, LoginRequest, verify_token
 
 router = APIRouter()
 

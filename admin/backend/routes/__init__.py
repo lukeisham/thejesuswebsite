@@ -8,7 +8,7 @@
 
 from fastapi import FastAPI
 
-from .shared import RateLimiterMiddleware
+from backend.middleware.rate_limiter import RateLimiterMiddleware
 
 
 def create_app() -> FastAPI:

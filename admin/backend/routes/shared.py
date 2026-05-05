@@ -8,29 +8,23 @@
 # =============================================================================
 
 import os
-import pathlib
 import sqlite3
-from datetime import datetime, timezone
+import sys
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, File, HTTPException, Query, Request, Response, UploadFile
+from fastapi import HTTPException, Request
 from pydantic import BaseModel
 
 # -----------------------------------------------------------------------------
 # Path hacks — needed so auth_utils and backend.* imports resolve from inside
 # the routes/ subdirectory.
 # -----------------------------------------------------------------------------
-# Go up two levels from routes/ to the project root
-_PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "..")
-import sys
-
 sys.path.insert(0, os.path.dirname(__file__))  # routes/ itself
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))  # admin/backend/
 
-from auth_utils import AuthUtils
+from auth_utils import AuthUtils  # noqa: E402
 
-from backend.middleware.logger_setup import setup_logger
-from backend.middleware.rate_limiter import RateLimiterMiddleware
+from backend.middleware.logger_setup import setup_logger  # noqa: E402
 
 # -----------------------------------------------------------------------------
 # Logger — one shared instance for all routes

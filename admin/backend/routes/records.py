@@ -6,7 +6,6 @@
 #            picture upload/delete).
 # =============================================================================
 
-import os
 import pathlib
 import uuid
 from datetime import datetime, timezone
