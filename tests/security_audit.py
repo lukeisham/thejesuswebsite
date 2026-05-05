@@ -63,22 +63,24 @@ def audit_directory_structure():
 
 def audit_api_endpoints():
     """
-    Validates that admin_api requires token-verification.
+    Validates that admin routes require token-verification.
+    Scans all .py files in admin/backend/routes/ for Depends(verify_token).
     """
     logger.info("Target: API Endpoint Logic Audit...")
-    api_path = os.path.join(
-        ROOT_DIR,
-        "admin",
-        "backend",
-        "admin_api.py",
-    )
+    routes_dir = os.path.join(ROOT_DIR, "admin", "backend", "routes")
 
-    if not os.path.exists(api_path):
-        logger.warning("Admin API script missing. Skipping logic audit.")
+    if not os.path.isdir(routes_dir):
+        logger.warning("Admin routes directory missing. Skipping logic audit.")
         return False
 
-    with open(api_path, "r") as f:
-        content = f.read()
+    # Concatenate all route files into one content blob for the check
+    content = ""
+    for root, _, files in os.walk(routes_dir):
+        for fname in files:
+            if fname.endswith(".py"):
+                fpath = os.path.join(root, fname)
+                with open(fpath, "r") as f:
+                    content += f.read()
 
     # Check for presence of Depends(verify_token) baseline protection
     if "Depends(verify_token)" in content:

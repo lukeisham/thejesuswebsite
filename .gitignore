@@ -31,6 +31,14 @@ Thumbs.db
 .spotlight-V100
 .Trashes
 
+# --- Documentation (local only) ---
+documentation/guides/guide_dashboard_appearance.md
+documentation/guides/guide_donations.md
+documentation/guides/guide_function.md
+documentation/guides/guide_security.md
+documentation/git_vps.md
+documentation/detailed_module_sitemap.md
+
 # --- Tooling & Environments ---
 .vscode/
 .idea/

@@ -19,14 +19,11 @@ sys.path.append(os.path.join(ROOT_DIR, "admin", "backend"))
 
 load_dotenv()  # noqa: E402 — must run after sys.path
 
-# 2. Import the existing Admin API
-# This ensures all your existing API routes are preserved
-from admin.backend.admin_api import (  # noqa: E402 — sys.path must be set first
-    app as api_app,
-)
+# 2. Import the Admin API from the modular routes package
+from admin.backend.routes import create_app  # noqa: E402 — sys.path must be set first
 
-# Create a container app (using the existing app as the base)
-app = api_app
+# Create the app using the factory function (replaces monolithic admin_api.py)
+app = create_app()
 
 # --- MIDDLEWARE SECTION ---
 
