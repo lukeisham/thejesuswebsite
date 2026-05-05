@@ -295,7 +295,10 @@ async def public_blogposts():
         conn = get_public_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, title, slug, snippet, blogposts, created_at, updated_at, picture_name, bibliography, context_links FROM records WHERE blogposts IS NOT NULL AND status = 'published' ORDER BY created_at DESC"
+            "SELECT id, title, slug, snippet, blogposts, "
+            "created_at, updated_at, picture_name, bibliography, context_links "
+            "FROM records WHERE blogposts IS NOT NULL "
+            "AND status = 'published' ORDER BY created_at DESC"
         )
         rows = cursor.fetchall()
         conn.close()
@@ -334,7 +337,11 @@ async def public_blogpost_by_slug(slug: str):
         conn = get_public_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, title, slug, snippet, blogposts, description, created_at, updated_at, picture_name, picture_bytes, picture_thumbnail, bibliography, context_links FROM records WHERE slug = ? AND blogposts IS NOT NULL AND status = 'published'",
+            "SELECT id, title, slug, snippet, blogposts, description, "
+            "created_at, updated_at, picture_name, picture_bytes, "
+            "picture_thumbnail, bibliography, context_links "
+            "FROM records WHERE slug = ? AND blogposts IS NOT NULL "
+            "AND status = 'published'",
             (slug,),
         )
         row = cursor.fetchone()
@@ -382,7 +389,9 @@ async def public_news_items():
         conn = get_public_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, title, slug, snippet, news_items, created_at, updated_at FROM records WHERE news_items IS NOT NULL AND status = 'published' ORDER BY created_at DESC"
+            "SELECT id, title, slug, snippet, news_items, created_at, "
+            "updated_at FROM records WHERE news_items IS NOT NULL "
+            "AND status = 'published' ORDER BY created_at DESC"
         )
         rows = cursor.fetchall()
         conn.close()
@@ -412,7 +421,10 @@ async def public_response_by_slug(slug: str):
         conn = get_public_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, title, slug, snippet, description, challenge_id, created_at, updated_at, picture_name, bibliography, context_links FROM records WHERE slug = ? AND challenge_id IS NOT NULL AND status = 'published'",
+            "SELECT id, title, slug, snippet, description, challenge_id, "
+            "created_at, updated_at, picture_name, bibliography, context_links "
+            "FROM records WHERE slug = ? AND challenge_id IS NOT NULL "
+            "AND status = 'published'",
             (slug,),
         )
         row = cursor.fetchone()
@@ -451,7 +463,10 @@ async def public_essays():
         conn = get_public_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, title, slug, snippet, context_essays, description, created_at, updated_at, picture_name, bibliography, context_links FROM records WHERE context_essays IS NOT NULL AND status = 'published' ORDER BY created_at DESC"
+            "SELECT id, title, slug, snippet, context_essays, description, "
+            "created_at, updated_at, picture_name, bibliography, context_links "
+            "FROM records WHERE context_essays IS NOT NULL "
+            "AND status = 'published' ORDER BY created_at DESC"
         )
         rows = cursor.fetchall()
         conn.close()
