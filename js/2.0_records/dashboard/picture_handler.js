@@ -28,7 +28,7 @@
 /* -----------------------------------------------------------------------------
    CONSTANTS
 ----------------------------------------------------------------------------- */
-const MAX_PICTURE_SIZE_BYTES = 250 * 1024; // 250 KB
+const MAX_PICTURE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB (server compresses to ≤250 KB)
 const ALLOWED_MIME_TYPE = "image/png";
 const API_BASE = "/api/admin";
 
@@ -39,174 +39,199 @@ const API_BASE = "/api/admin";
    before allowing upload to POST /api/admin/records/{recordId}/picture.
 ----------------------------------------------------------------------------- */
 function renderEditPicture(containerId, recordId) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-        console.warn("[picture_handler] renderEditPicture: container not found —", containerId);
-        return;
-    }
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.warn(
+      "[picture_handler] renderEditPicture: container not found —",
+      containerId,
+    );
+    return;
+  }
 
-    // Locate existing DOM elements (injected by the HTML template)
-    const fileInput = document.getElementById("record-picture-upload");
-    const fullPreview = document.getElementById("picture-preview-full");
-    const thumbPreview = document.getElementById("picture-preview-thumb");
+  // Locate existing DOM elements (injected by the HTML template)
+  const fileInput = document.getElementById("record-picture-upload");
+  const fullPreview = document.getElementById("picture-preview-full");
+  const thumbPreview = document.getElementById("picture-preview-thumb");
 
-    if (!fileInput) {
-        console.warn("[picture_handler] renderEditPicture: #record-picture-upload not found");
-        return;
-    }
-    if (!fullPreview) {
-        console.warn("[picture_handler] renderEditPicture: #picture-preview-full not found");
-    }
-    if (!thumbPreview) {
-        console.warn("[picture_handler] renderEditPicture: #picture-preview-thumb not found");
-    }
+  if (!fileInput) {
+    console.warn(
+      "[picture_handler] renderEditPicture: #record-picture-upload not found",
+    );
+    return;
+  }
+  if (!fullPreview) {
+    console.warn(
+      "[picture_handler] renderEditPicture: #picture-preview-full not found",
+    );
+  }
+  if (!thumbPreview) {
+    console.warn(
+      "[picture_handler] renderEditPicture: #picture-preview-thumb not found",
+    );
+  }
 
-    // Ensure the file input accepts only PNG
-    fileInput.setAttribute("accept", "image/png");
+  // Ensure the file input accepts only PNG
+  fileInput.setAttribute("accept", "image/png");
 
-    // Inject an upload button if one doesn't already exist
-    let uploadBtn = document.getElementById("btn-picture-upload");
-    if (!uploadBtn) {
-        const uploadArea = document.getElementById("picture-upload-area") || container;
-        uploadBtn = document.createElement("button");
-        uploadBtn.id = "btn-picture-upload";
-        uploadBtn.className = "btn btn--primary";
-        uploadBtn.type = "button";
-        uploadBtn.textContent = "Upload Picture";
-        uploadBtn.disabled = true;
-        uploadBtn.style.marginTop = "var(--space-1)";
-        uploadArea.appendChild(uploadBtn);
-    }
+  // Inject an upload button if one doesn't already exist
+  let uploadBtn = document.getElementById("btn-picture-upload");
+  if (!uploadBtn) {
+    const uploadArea =
+      document.getElementById("picture-upload-area") || container;
+    uploadBtn = document.createElement("button");
+    uploadBtn.id = "btn-picture-upload";
+    uploadBtn.className = "btn btn--primary";
+    uploadBtn.type = "button";
+    uploadBtn.textContent = "Upload Picture";
+    uploadBtn.disabled = true;
+    uploadBtn.style.marginTop = "var(--space-1)";
+    uploadArea.appendChild(uploadBtn);
+  }
 
-    let selectedFile = null;
+  let selectedFile = null;
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        FILE INPUT CHANGE HANDLER
        Validates PNG type and ≤250 KB, then renders previews in both
        full-size and thumbnail containers.
     ------------------------------------------------------------------------- */
-    fileInput.addEventListener("change", function () {
-        // Reset state
-        selectedFile = null;
+  fileInput.addEventListener("change", function () {
+    // Reset state
+    selectedFile = null;
 
-        if (uploadBtn) {
-            uploadBtn.disabled = true;
-        }
+    if (uploadBtn) {
+      uploadBtn.disabled = true;
+    }
 
-        // Clear previous previews
-        _clearPreview(fullPreview);
-        _clearPreview(thumbPreview);
+    // Clear previous previews
+    _clearPreview(fullPreview);
+    _clearPreview(thumbPreview);
 
-        const file = fileInput.files[0];
-        if (!file) {
-            // User cancelled selection — nothing to do
-            return;
-        }
+    const file = fileInput.files[0];
+    if (!file) {
+      // User cancelled selection — nothing to do
+      return;
+    }
 
-        // --- Client-side validation: PNG only ---
-        if (file.type !== ALLOWED_MIME_TYPE) {
-            _surfaceError("Error: Unable to preview the selected image. Please choose a valid PNG file.");
-            fileInput.value = "";
-            return;
-        }
+    // --- Client-side validation: PNG only ---
+    if (file.type !== ALLOWED_MIME_TYPE) {
+      _surfaceError(
+        "Error: Unable to preview the selected image. Please choose a valid PNG file.",
+      );
+      fileInput.value = "";
+      return;
+    }
 
-        // --- Client-side validation: ≤ 250 KB ---
-        if (file.size > MAX_PICTURE_SIZE_BYTES) {
-            _surfaceError("Error: Image upload failed for '" + _recordTitle() + "'. Max 250 KB PNG only.");
-            fileInput.value = "";
-            return;
-        }
+    // --- Client-side validation: ≤ 250 KB ---
+    if (file.size > MAX_PICTURE_SIZE_BYTES) {
+      _surfaceError(
+        "Error: Image upload failed for '" +
+          _recordTitle() +
+          "'. Max 250 KB PNG only.",
+      );
+      fileInput.value = "";
+      return;
+    }
 
-        // --- Render previews ---
-        const reader = new FileReader();
+    // --- Render previews ---
+    const reader = new FileReader();
 
-        reader.onload = function (e) {
-            const dataUrl = e.target.result;
+    reader.onload = function (e) {
+      const dataUrl = e.target.result;
 
-            // Full-size preview
-            _renderPreviewImage(fullPreview, dataUrl, file.name, 800);
+      // Full-size preview
+      _renderPreviewImage(fullPreview, dataUrl, file.name, 800);
 
-            // Thumbnail preview
-            _renderPreviewImage(thumbPreview, dataUrl, file.name, 200);
-        };
+      // Thumbnail preview
+      _renderPreviewImage(thumbPreview, dataUrl, file.name, 200);
+    };
 
-        reader.onerror = function () {
-            _surfaceError("Error: Unable to preview the selected image. Please choose a valid PNG file.");
-            fileInput.value = "";
-        };
+    reader.onerror = function () {
+      _surfaceError(
+        "Error: Unable to preview the selected image. Please choose a valid PNG file.",
+      );
+      fileInput.value = "";
+    };
 
-        reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
 
-        // Mark file as valid and enable upload
-        selectedFile = file;
-        if (uploadBtn) {
-            uploadBtn.disabled = false;
-        }
-    });
+    // Mark file as valid and enable upload
+    selectedFile = file;
+    if (uploadBtn) {
+      uploadBtn.disabled = false;
+    }
+  });
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        UPLOAD BUTTON CLICK HANDLER
        POSTs the validated file as multipart/form-data to the picture endpoint.
        On success, updates the picture_name text field. On failure, surfaces
        an error through window.surfaceError().
     ------------------------------------------------------------------------- */
-    if (uploadBtn) {
-        uploadBtn.addEventListener("click", async function () {
-            if (!selectedFile) {
-                _surfaceError("Error: No image file selected. Please choose a valid PNG file.");
-                return;
-            }
+  if (uploadBtn) {
+    uploadBtn.addEventListener("click", async function () {
+      if (!selectedFile) {
+        _surfaceError(
+          "Error: No image file selected. Please choose a valid PNG file.",
+        );
+        return;
+      }
 
-            const formData = new FormData();
-            formData.append("file", selectedFile, selectedFile.name);
+      const formData = new FormData();
+      formData.append("file", selectedFile, selectedFile.name);
 
-            // Disable button during upload to prevent double-submission
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = "Uploading…";
+      // Disable button during upload to prevent double-submission
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = "Uploading…";
 
-            try {
-                const response = await fetch(
-                    `${API_BASE}/records/${encodeURIComponent(recordId)}/picture`,
-                    {
-                        method: "POST",
-                        body: formData,
-                    }
-                );
+      try {
+        const response = await fetch(
+          `${API_BASE}/records/${encodeURIComponent(recordId)}/picture`,
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
 
-                if (!response.ok) {
-                    const errorBody = await response.json().catch(() => ({}));
-                    const detail = errorBody.detail || `HTTP ${response.status}`;
-                    throw new Error(detail);
-                }
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          const detail = errorBody.detail || `HTTP ${response.status}`;
+          throw new Error(detail);
+        }
 
-                const result = await response.json();
+        const result = await response.json();
 
-                // On success, update the picture_name field
-                if (result.picture_name) {
-                    _setPictureNameField(result.picture_name);
-                }
+        // On success, update the picture_name field
+        if (result.picture_name) {
+          _setPictureNameField(result.picture_name);
+        }
 
-                // Reset upload button state
-                uploadBtn.textContent = "Upload Picture";
-                uploadBtn.disabled = true;
-                selectedFile = null;
+        // Reset upload button state
+        uploadBtn.textContent = "Upload Picture";
+        uploadBtn.disabled = true;
+        selectedFile = null;
 
-                // Signal success via surfaceError (status message)
-                if (typeof window.surfaceError === "function") {
-                    window.surfaceError("Picture uploaded successfully: " + (result.picture_name || ""));
-                }
+        // Signal success via surfaceError (status message)
+        if (typeof window.surfaceError === "function") {
+          window.surfaceError(
+            "Picture uploaded successfully: " + (result.picture_name || ""),
+          );
+        }
+      } catch (error) {
+        _surfaceError(
+          "Error: Image upload failed for '" +
+            _recordTitle() +
+            "'. Max 250 KB PNG only.",
+        );
 
-            } catch (error) {
-                _surfaceError("Error: Image upload failed for '" + _recordTitle() + "'. Max 250 KB PNG only.");
+        // Restore button state
+        uploadBtn.textContent = "Upload Picture";
+        uploadBtn.disabled = false;
 
-                // Restore button state
-                uploadBtn.textContent = "Upload Picture";
-                uploadBtn.disabled = false;
-
-                console.error("[picture_handler] Upload failed:", error);
-            }
-        });
-    }
+        console.error("[picture_handler] Upload failed:", error);
+      }
+    });
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -215,75 +240,80 @@ function renderEditPicture(containerId, recordId) {
    The target element has id "record-picture-name".
 ----------------------------------------------------------------------------- */
 function renderPictureName(containerId, pictureName) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-        console.warn("[picture_handler] renderPictureName: container not found —", containerId);
-        return;
-    }
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.warn(
+      "[picture_handler] renderPictureName: container not found —",
+      containerId,
+    );
+    return;
+  }
 
-    _setPictureNameField(pictureName);
+  _setPictureNameField(pictureName);
 }
 
 /* -----------------------------------------------------------------------------
    INTERNAL: Set the value of the picture_name text field
 ----------------------------------------------------------------------------- */
 function _setPictureNameField(pictureName) {
-    const nameField = document.getElementById("record-picture-name");
-    if (nameField) {
-        nameField.value = pictureName || "";
-    } else {
-        console.warn("[picture_handler] _setPictureNameField: #record-picture-name not found");
-    }
+  const nameField = document.getElementById("record-picture-name");
+  if (nameField) {
+    nameField.value = pictureName || "";
+  } else {
+    console.warn(
+      "[picture_handler] _setPictureNameField: #record-picture-name not found",
+    );
+  }
 }
 
 /* -----------------------------------------------------------------------------
    INTERNAL: Clear a preview container, restoring its placeholder
 ----------------------------------------------------------------------------- */
 function _clearPreview(previewEl) {
-    if (!previewEl) return;
+  if (!previewEl) return;
 
-    // Check if this is the full or thumb container to restore correct placeholder
-    const isThumb = previewEl.id === "picture-preview-thumb";
-    const placeholderText = isThumb
-        ? "Thumbnail (200px)"
-        : "Image Preview (max 800px)";
+  // Check if this is the full or thumb container to restore correct placeholder
+  const isThumb = previewEl.id === "picture-preview-thumb";
+  const placeholderText = isThumb
+    ? "Thumbnail (200px)"
+    : "Image Preview (max 800px)";
 
-    previewEl.innerHTML = `<span class="picture-preview__placeholder">${placeholderText}</span>`;
+  previewEl.innerHTML = `<span class="picture-preview__placeholder">${placeholderText}</span>`;
 }
 
 /* -----------------------------------------------------------------------------
    INTERNAL: Render an <img> into a preview container with styling
 ----------------------------------------------------------------------------- */
 function _renderPreviewImage(previewEl, dataUrl, altText, maxWidthPx) {
-    if (!previewEl) return;
+  if (!previewEl) return;
 
-    const img = document.createElement("img");
-    img.src = dataUrl;
-    img.alt = altText || "Picture preview";
-    img.className = "picture-preview__image";
-    img.style.maxWidth = maxWidthPx + "px";
-    img.style.width = "100%";
-    img.style.height = "auto";
-    img.style.display = "block";
-    img.style.borderRadius = "var(--radius-sm)";
-    img.style.border = "var(--border-width-thin) solid var(--color-border)";
-    img.style.backgroundColor = "var(--color-bg-tertiary)";
-    img.style.transition = "opacity var(--transition-fast)";
+  const img = document.createElement("img");
+  img.src = dataUrl;
+  img.alt = altText || "Picture preview";
+  img.className = "picture-preview__image";
+  img.style.maxWidth = maxWidthPx + "px";
+  img.style.width = "100%";
+  img.style.height = "auto";
+  img.style.display = "block";
+  img.style.borderRadius = "var(--radius-sm)";
+  img.style.border = "var(--border-width-thin) solid var(--color-border)";
+  img.style.backgroundColor = "var(--color-bg-tertiary)";
+  img.style.transition = "opacity var(--transition-fast)";
 
-    previewEl.innerHTML = "";
+  previewEl.innerHTML = "";
 
-    // Fade-in on load for a polished feel
-    img.style.opacity = "0";
-    previewEl.appendChild(img);
+  // Fade-in on load for a polished feel
+  img.style.opacity = "0";
+  previewEl.appendChild(img);
 
-    img.onload = function () {
-        img.style.opacity = "1";
-    };
+  img.onload = function () {
+    img.style.opacity = "1";
+  };
 
-    // If the image is already cached / loads before onload fires
-    if (img.complete) {
-        img.style.opacity = "1";
-    }
+  // If the image is already cached / loads before onload fires
+  if (img.complete) {
+    img.style.opacity = "1";
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -291,10 +321,13 @@ function _renderPreviewImage(previewEl, dataUrl, altText, maxWidthPx) {
    Falls back to "this record" if window._recordTitle is not set.
 ----------------------------------------------------------------------------- */
 function _recordTitle() {
-    if (typeof window._recordTitle === "string" && window._recordTitle.trim().length > 0) {
-        return window._recordTitle;
-    }
-    return "this record";
+  if (
+    typeof window._recordTitle === "string" &&
+    window._recordTitle.trim().length > 0
+  ) {
+    return window._recordTitle;
+  }
+  return "this record";
 }
 
 /* -----------------------------------------------------------------------------
@@ -302,11 +335,11 @@ function _recordTitle() {
    Falls back to console.error if window.surfaceError is unavailable.
 ----------------------------------------------------------------------------- */
 function _surfaceError(message) {
-    if (typeof window.surfaceError === "function") {
-        window.surfaceError(message);
-    } else {
-        console.error("[picture_handler]", message);
-    }
+  if (typeof window.surfaceError === "function") {
+    window.surfaceError(message);
+  } else {
+    console.error("[picture_handler]", message);
+  }
 }
 
 /* -----------------------------------------------------------------------------

@@ -209,19 +209,25 @@ async def get_single_record(record_id: str, admin_data: dict = Depends(verify_to
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def get_valid_columns():
+def get_valid_columns(conn=None):
     """
     Returns a set of valid column names in the 'records' table to prevent SQL injection.
+    Accepts an optional existing connection to avoid opening redundant connections.
     """
+    own_conn = False
     try:
-        conn = get_db_connection()
+        if conn is None:
+            conn = get_db_connection()
+            own_conn = True
         cursor = conn.cursor()
         cursor.execute("PRAGMA table_info(records)")
         columns = {row["name"] for row in cursor.fetchall()}
-        conn.close()
         return columns
     except Exception:
         return set()
+    finally:
+        if own_conn and conn:
+            conn.close()
 
 
 @app.post("/api/admin/records")
@@ -354,6 +360,10 @@ async def upload_record_picture(
             ),
         )
 
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Record not found")
+
         conn.commit()
         conn.close()
 
@@ -361,10 +371,11 @@ async def upload_record_picture(
             "message": "Picture uploaded successfully",
             "picture_name": picture_name,
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail="Failed to upload picture: " + str(e)
-        )
+        logger.error(f"Picture upload failed for record {record_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload picture")
 
 
 @app.delete("/api/admin/records/{record_id}/picture")
@@ -398,12 +409,11 @@ async def delete_record_picture(
         conn.close()
 
         return {"message": "Picture removed successfully"}
-    except HTTPException as he:
-        raise he
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail="Failed to remove picture: " + str(e)
-        )
+        logger.error(f"Picture delete failed for record {record_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to remove picture")
 
 
 # -----------------------------------------------------------------------------
@@ -682,6 +692,12 @@ async def bulk_upload_records(
 
     errors = []
     valid_records = []
+    seen_slugs = set()  # Track slugs within this batch to catch duplicates
+    valid_cols = get_valid_columns(conn)  # Reuse the existing connection
+
+    # Pre-fetch all existing slugs from DB into a set for O(1) lookup
+    cursor.execute("SELECT slug FROM records")
+    existing_slugs = {row["slug"] for row in cursor.fetchall()}
 
     # Validation
     for index, row in enumerate(rows):
@@ -695,11 +711,16 @@ async def bulk_upload_records(
             errors.append(f"Row {row_num}: Missing 'title' or 'slug'")
             continue
 
-        # Uniqueness check for slug
-        cursor.execute("SELECT id FROM records WHERE slug = ?", (slug,))
-        if cursor.fetchone():
-            errors.append(f"Row {row_num}: Slug '{slug}' already exists")
+        # Uniqueness check for slug — against DB and within-batch
+        if slug in existing_slugs:
+            errors.append(f"Row {row_num}: Slug '{slug}' already exists in database")
             continue
+        if slug in seen_slugs:
+            errors.append(
+                f"Row {row_num}: Slug '{slug}' is a duplicate within this CSV"
+            )
+            continue
+        seen_slugs.add(slug)
 
         # Enum validation
         era = row.get("era", "")
@@ -740,7 +761,6 @@ async def bulk_upload_records(
                 continue
 
         # Prepare for insertion
-        valid_cols = get_valid_columns()
         insert_data = {}
         for col in valid_cols:
             if col in row and row[col].strip():
@@ -873,7 +893,12 @@ async def bulk_upload_commit(
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    valid_cols = get_valid_columns()
+    valid_cols = get_valid_columns(conn)  # Reuse the existing connection
+
+    # Pre-fetch existing slugs and track in-batch duplicates
+    cursor.execute("SELECT slug FROM records")
+    existing_slugs = {row["slug"] for row in cursor.fetchall()}
+    seen_slugs = set()
 
     errors = []
     valid_records = []
@@ -881,10 +906,23 @@ async def bulk_upload_commit(
     for index, row in enumerate(records):
         row_num = index + 1
         title = row.get("title", "").strip()
+        slug = row.get("slug", "").strip()
 
         if not title:
             errors.append(f"Row {row_num}: Missing 'title'")
             continue
+
+        # Slug uniqueness check — against DB and within-batch
+        if slug and slug in existing_slugs:
+            errors.append(f"Row {row_num}: Slug '{slug}' already exists in database")
+            continue
+        if slug and slug in seen_slugs:
+            errors.append(
+                f"Row {row_num}: Slug '{slug}' is a duplicate within this batch"
+            )
+            continue
+        if slug:
+            seen_slugs.add(slug)
 
         # Enum validation
         era = row.get("era", "")

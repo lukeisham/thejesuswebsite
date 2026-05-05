@@ -26,88 +26,126 @@
    VALID ENUM VALUES — mirrors server-side validation in admin_api.py
 ----------------------------------------------------------------------------- */
 const VALID_ERAS = [
-    "PreIncarnation", "OldTestament", "EarlyLife", "Life",
-    "GalileeMinistry", "JudeanMinistry", "PassionWeek", "Post-Passion"
+  "PreIncarnation",
+  "OldTestament",
+  "EarlyLife",
+  "Life",
+  "GalileeMinistry",
+  "JudeanMinistry",
+  "PassionWeek",
+  "Post-Passion",
 ];
 
 const VALID_TIMELINES = [
-    "PreIncarnation", "OldTestament", "EarlyLifeUnborn", "EarlyLifeBirth",
-    "EarlyLifeInfancy", "EarlyLifeChildhood", "LifeTradie", "LifeBaptism",
-    "LifeTemptation", "GalileeCallingTwelve", "GalileeSermonMount",
-    "GalileeMiraclesSea", "GalileeTransfiguration", "JudeanOutsideJudea",
-    "JudeanMissionSeventy", "JudeanTeachingTemple", "JudeanRaisingLazarus",
-    "JudeanFinalJourney", "PassionPalmSunday", "PassionMondayCleansing",
-    "PassionTuesdayTeaching", "PassionWednesdaySilent", "PassionMaundyThursday",
-    "PassionMaundyLastSupper", "PassionMaundyGethsemane", "PassionMaundyBetrayal",
-    "PassionFridaySanhedrin", "PassionFridayCivilTrials",
-    "PassionFridayCrucifixionBegins", "PassionFridayDarkness",
-    "PassionFridayDeath", "PassionFridayBurial", "PassionSaturdayWatch",
-    "PassionSundayResurrection", "PostResurrectionAppearances", "Ascension",
-    "OurResponse", "ReturnOfJesus"
+  "PreIncarnation",
+  "OldTestament",
+  "EarlyLifeUnborn",
+  "EarlyLifeBirth",
+  "EarlyLifeInfancy",
+  "EarlyLifeChildhood",
+  "LifeTradie",
+  "LifeBaptism",
+  "LifeTemptation",
+  "GalileeCallingTwelve",
+  "GalileeSermonMount",
+  "GalileeMiraclesSea",
+  "GalileeTransfiguration",
+  "JudeanOutsideJudea",
+  "JudeanMissionSeventy",
+  "JudeanTeachingTemple",
+  "JudeanRaisingLazarus",
+  "JudeanFinalJourney",
+  "PassionPalmSunday",
+  "PassionMondayCleansing",
+  "PassionTuesdayTeaching",
+  "PassionWednesdaySilent",
+  "PassionMaundyThursday",
+  "PassionMaundyLastSupper",
+  "PassionMaundyGethsemane",
+  "PassionMaundyBetrayal",
+  "PassionFridaySanhedrin",
+  "PassionFridayCivilTrials",
+  "PassionFridayCrucifixionBegins",
+  "PassionFridayDarkness",
+  "PassionFridayDeath",
+  "PassionFridayBurial",
+  "PassionSaturdayWatch",
+  "PassionSundayResurrection",
+  "PostResurrectionAppearances",
+  "Ascension",
+  "OurResponse",
+  "ReturnOfJesus",
 ];
 
 const VALID_MAP_LABELS = [
-    "Overview", "Empire", "Levant", "Judea", "Galilee", "Jerusalem"
+  "Overview",
+  "Empire",
+  "Levant",
+  "Judea",
+  "Galilee",
+  "Jerusalem",
 ];
 
 const VALID_GOSPEL_CATEGORIES = [
-    "event", "location", "person", "theme", "object"
+  "event",
+  "location",
+  "person",
+  "theme",
+  "object",
 ];
 
 /* Schema field mapping — CSV column header → records table column */
 const CSV_FIELD_MAP = {
-    title: "title",
-    primary_verse: "primary_verse",
-    description: "description",
-    snippet: "snippet",
-    era: "era",
-    timeline: "timeline",
-    gospel_category: "gospel_category",
-    map_label: "map_label",
-    geo_id: "geo_id",
-    bibliography: "bibliography",
-    context_links: "context_links",
-    iaa: "iaa",
-    pledius: "pledius",
-    manuscript: "manuscript",
-    url: "url",
+  title: "title",
+  slug: "slug",
+  primary_verse: "primary_verse",
+  description: "description",
+  snippet: "snippet",
+  era: "era",
+  timeline: "timeline",
+  gospel_category: "gospel_category",
+  map_label: "map_label",
+  geo_id: "geo_id",
+  bibliography: "bibliography",
+  context_links: "context_links",
+  iaa: "iaa",
+  pledius: "pledius",
+  manuscript: "manuscript",
+  url: "url",
 };
-
-/* Verse pattern: "Book Chapter:Verse" or "Book Chapter:Verse-Verse" */
-const VERSE_PATTERN = /^(\d?\s?\w+)\s+(\d+):(\d+)(?:-(\d+))?$/;
 
 /* -----------------------------------------------------------------------------
    PUBLIC: initBulkCsvUpload
    Wires the CSV file input to trigger parsing on file selection.
 ----------------------------------------------------------------------------- */
 function initBulkCsvUpload() {
-    const fileInput = document.getElementById("records-all-csv-input");
-    if (!fileInput) return;
+  const fileInput = document.getElementById("records-all-csv-input");
+  if (!fileInput) return;
 
-    fileInput.addEventListener("change", function () {
-        const file = fileInput.files[0];
-        if (!file) return;
+  fileInput.addEventListener("change", function () {
+    const file = fileInput.files[0];
+    if (!file) return;
 
-        // Validate file extension
-        if (!file.name.endsWith(".csv")) {
-            if (typeof window.surfaceError === "function") {
-                window.surfaceError(
-                    "Error: Only CSV files are accepted. Please select a .csv file."
-                );
-            }
-            if (typeof window.updateRecordsAllStatusBar === "function") {
-                window.updateRecordsAllStatusBar(
-                    "Error: Only CSV files are accepted.",
-                    "is-error"
-                );
-            }
-            fileInput.value = "";
-            return;
-        }
+    // Validate file extension
+    if (!file.name.endsWith(".csv")) {
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError(
+          "Error: Only CSV files are accepted. Please select a .csv file.",
+        );
+      }
+      if (typeof window.updateRecordsAllStatusBar === "function") {
+        window.updateRecordsAllStatusBar(
+          "Error: Only CSV files are accepted.",
+          "is-error",
+        );
+      }
+      fileInput.value = "";
+      return;
+    }
 
-        // Parse the CSV file
-        _parseCsvFile(file);
-    });
+    // Parse the CSV file
+    _parseCsvFile(file);
+  });
 }
 
 /* -----------------------------------------------------------------------------
@@ -116,204 +154,185 @@ function initBulkCsvUpload() {
    quote handling, maps headers, and validates each row.
 ----------------------------------------------------------------------------- */
 function _parseCsvFile(file) {
-    const reader = new FileReader();
+  const reader = new FileReader();
 
-    reader.onload = function (e) {
-        const text = e.target.result;
+  reader.onload = function (e) {
+    const text = e.target.result;
 
-        try {
-            const lines = _splitCsvLines(text);
-            if (lines.length < 2) {
-                throw new Error("CSV file is empty or missing data rows.");
-            }
+    try {
+      const lines = _splitCsvLines(text);
+      if (lines.length < 2) {
+        throw new Error("CSV file is empty or missing data rows.");
+      }
 
-            // Extract headers from first line
-            const headers = _parseCsvLine(lines[0]);
-            const dataLines = lines.slice(1);
+      // Extract headers from first line
+      const headers = _parseCsvLine(lines[0]);
+      const dataLines = lines.slice(1);
 
-            // Parse and validate each row
-            const parsedRows = [];
+      // Parse and validate each row
+      const parsedRows = [];
 
-            dataLines.forEach(function (line, index) {
-                if (!line.trim()) return; // Skip empty lines
+      dataLines.forEach(function (line, index) {
+        if (!line.trim()) return; // Skip empty lines
 
-                const values = _parseCsvLine(line);
-                const rowData = {};
-                const rowErrors = [];
+        const values = _parseCsvLine(line);
+        const rowData = {};
+        const rowErrors = [];
 
-                // Map CSV columns to schema fields
-                headers.forEach(function (header, colIdx) {
-                    const normalizedHeader = header
-                        .trim()
-                        .toLowerCase()
-                        .replace(/[^a-z0-9_]/g, "_");
-                    const schemaField =
-                        CSV_FIELD_MAP[normalizedHeader] || normalizedHeader;
+        // Map CSV columns to schema fields
+        headers.forEach(function (header, colIdx) {
+          const normalizedHeader = header
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9_]/g, "_");
+          const schemaField =
+            CSV_FIELD_MAP[normalizedHeader] || normalizedHeader;
 
-                    if (colIdx < values.length) {
-                        rowData[schemaField] = values[colIdx].trim();
-                    }
-                });
+          if (colIdx < values.length) {
+            rowData[schemaField] = values[colIdx].trim();
+          }
+        });
 
-                // Validate required fields
-                if (!rowData.title) {
-                    rowErrors.push("Missing title");
-                }
-
-                // Validate primary_verse pattern (if present)
-                if (
-                    rowData.primary_verse &&
-                    !VERSE_PATTERN.test(rowData.primary_verse)
-                ) {
-                    rowErrors.push(
-                        'Invalid primary verse format: "' +
-                            rowData.primary_verse +
-                            '". Expected "Book Chapter:Verse"'
-                    );
-                }
-
-                // Validate enum fields
-                if (
-                    rowData.era &&
-                    !VALID_ERAS.includes(rowData.era)
-                ) {
-                    rowErrors.push(
-                        'Invalid era "' + rowData.era + '"'
-                    );
-                }
-
-                if (
-                    rowData.timeline &&
-                    !VALID_TIMELINES.includes(rowData.timeline)
-                ) {
-                    rowErrors.push(
-                        'Invalid timeline "' + rowData.timeline + '"'
-                    );
-                }
-
-                if (
-                    rowData.gospel_category &&
-                    !VALID_GOSPEL_CATEGORIES.includes(rowData.gospel_category)
-                ) {
-                    rowErrors.push(
-                        'Invalid gospel_category "' + rowData.gospel_category + '"'
-                    );
-                }
-
-                if (
-                    rowData.map_label &&
-                    !VALID_MAP_LABELS.includes(rowData.map_label)
-                ) {
-                    rowErrors.push(
-                        'Invalid map_label "' + rowData.map_label + '"'
-                    );
-                }
-
-                // Validate geo_id is a valid integer if present
-                if (
-                    rowData.geo_id &&
-                    rowData.geo_id.length > 0
-                ) {
-                    const geoNum = parseInt(rowData.geo_id, 10);
-                    if (isNaN(geoNum) || !Number.isInteger(geoNum)) {
-                        rowErrors.push(
-                            'Invalid geo_id "' +
-                                rowData.geo_id +
-                                '" — must be an integer'
-                        );
-                    }
-                }
-
-                parsedRows.push({
-                    rowIndex: index + 2, // 1-based + header row
-                    fields: rowData,
-                    valid: rowErrors.length === 0,
-                    checked: rowErrors.length === 0, // Pre-check valid rows
-                    errors: rowErrors,
-                });
-            });
-
-            // Count validation results
-            const totalRows = parsedRows.length;
-            const validCount = parsedRows.filter(function (r) {
-                return r.valid;
-            }).length;
-            const invalidCount = totalRows - validCount;
-
-            if (parsedRows.length === 0) {
-                if (typeof window.surfaceError === "function") {
-                    window.surfaceError(
-                        "Error: No data rows found in the CSV file."
-                    );
-                }
-                if (typeof window.updateRecordsAllStatusBar === "function") {
-                    window.updateRecordsAllStatusBar(
-                        "Error: No data rows found in the CSV file.",
-                        "is-error"
-                    );
-                }
-                return;
-            }
-
-            // If there are errors, surface them
-            if (invalidCount > 0) {
-                if (typeof window.surfaceError === "function") {
-                    window.surfaceError(
-                        "Error: CSV validation failed. " +
-                            invalidCount +
-                            " row(s) contain missing or invalid fields."
-                    );
-                }
-            }
-
-            // Load rows into the ephemeral review store (Phase 2)
-            if (typeof window.loadBulkReviewRows === "function") {
-                window.loadBulkReviewRows(parsedRows);
-            } else {
-                console.warn(
-                    "[bulk_csv_upload] loadBulkReviewRows not available"
-                );
-                if (typeof window.surfaceError === "function") {
-                    window.surfaceError(
-                        "Error: Bulk review panel is not available. Please reload the page."
-                    );
-                }
-            }
-        } catch (err) {
-            console.error("[bulk_csv_upload] Parse error:", err);
-            if (typeof window.surfaceError === "function") {
-                window.surfaceError(
-                    "Error: CSV file could not be parsed. Check the file format and try again."
-                );
-            }
-            if (typeof window.updateRecordsAllStatusBar === "function") {
-                window.updateRecordsAllStatusBar(
-                    "Error: CSV file could not be parsed. Check the file format and try again.",
-                    "is-error"
-                );
-            }
-        } finally {
-            // Reset file input so the same file can be re-uploaded
-            fileInput.value = "";
+        // Validate required fields
+        if (!rowData.title) {
+          rowErrors.push("Missing title");
         }
-    };
+        if (!rowData.slug) {
+          rowErrors.push("Missing slug");
+        }
 
-    reader.onerror = function () {
-        console.error("[bulk_csv_upload] File read error");
-        if (typeof window.surfaceError === "function") {
-            window.surfaceError(
-                "Error: Could not read the CSV file. Please try again."
+        // Validate primary_verse is valid JSON (if present)
+        if (rowData.primary_verse && rowData.primary_verse.trim()) {
+          try {
+            JSON.parse(rowData.primary_verse.trim());
+          } catch (jsonErr) {
+            rowErrors.push(
+              'Invalid primary_verse JSON: "' + rowData.primary_verse + '"',
             );
+          }
+        }
+
+        // Validate enum fields
+        if (rowData.era && !VALID_ERAS.includes(rowData.era)) {
+          rowErrors.push('Invalid era "' + rowData.era + '"');
+        }
+
+        if (rowData.timeline && !VALID_TIMELINES.includes(rowData.timeline)) {
+          rowErrors.push('Invalid timeline "' + rowData.timeline + '"');
+        }
+
+        if (
+          rowData.gospel_category &&
+          !VALID_GOSPEL_CATEGORIES.includes(rowData.gospel_category)
+        ) {
+          rowErrors.push(
+            'Invalid gospel_category "' + rowData.gospel_category + '"',
+          );
+        }
+
+        if (
+          rowData.map_label &&
+          !VALID_MAP_LABELS.includes(rowData.map_label)
+        ) {
+          rowErrors.push('Invalid map_label "' + rowData.map_label + '"');
+        }
+
+        // Validate geo_id is a valid integer if present
+        if (rowData.geo_id && rowData.geo_id.length > 0) {
+          const geoNum = parseInt(rowData.geo_id, 10);
+          if (isNaN(geoNum) || !Number.isInteger(geoNum)) {
+            rowErrors.push(
+              'Invalid geo_id "' + rowData.geo_id + '" — must be an integer',
+            );
+          }
+        }
+
+        parsedRows.push({
+          rowIndex: index + 2, // 1-based + header row
+          fields: rowData,
+          valid: rowErrors.length === 0,
+          checked: rowErrors.length === 0, // Pre-check valid rows
+          errors: rowErrors,
+        });
+      });
+
+      // Count validation results
+      const totalRows = parsedRows.length;
+      const validCount = parsedRows.filter(function (r) {
+        return r.valid;
+      }).length;
+      const invalidCount = totalRows - validCount;
+
+      if (parsedRows.length === 0) {
+        if (typeof window.surfaceError === "function") {
+          window.surfaceError("Error: No data rows found in the CSV file.");
         }
         if (typeof window.updateRecordsAllStatusBar === "function") {
-            window.updateRecordsAllStatusBar(
-                "Error: Could not read the CSV file.",
-                "is-error"
-            );
+          window.updateRecordsAllStatusBar(
+            "Error: No data rows found in the CSV file.",
+            "is-error",
+          );
         }
-    };
+        return;
+      }
 
-    reader.readAsText(file);
+      // If there are errors, surface them
+      if (invalidCount > 0) {
+        if (typeof window.surfaceError === "function") {
+          window.surfaceError(
+            "Error: CSV validation failed. " +
+              invalidCount +
+              " row(s) contain missing or invalid fields.",
+          );
+        }
+      }
+
+      // Load rows into the ephemeral review store (Phase 2)
+      if (typeof window.loadBulkReviewRows === "function") {
+        window.loadBulkReviewRows(parsedRows);
+      } else {
+        console.warn("[bulk_csv_upload] loadBulkReviewRows not available");
+        if (typeof window.surfaceError === "function") {
+          window.surfaceError(
+            "Error: Bulk review panel is not available. Please reload the page.",
+          );
+        }
+      }
+    } catch (err) {
+      console.error("[bulk_csv_upload] Parse error:", err);
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError(
+          "Error: CSV file could not be parsed. Check the file format and try again.",
+        );
+      }
+      if (typeof window.updateRecordsAllStatusBar === "function") {
+        window.updateRecordsAllStatusBar(
+          "Error: CSV file could not be parsed. Check the file format and try again.",
+          "is-error",
+        );
+      }
+    } finally {
+      // Reset file input so the same file can be re-uploaded
+      fileInput.value = "";
+    }
+  };
+
+  reader.onerror = function () {
+    console.error("[bulk_csv_upload] File read error");
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Could not read the CSV file. Please try again.",
+      );
+    }
+    if (typeof window.updateRecordsAllStatusBar === "function") {
+      window.updateRecordsAllStatusBar(
+        "Error: Could not read the CSV file.",
+        "is-error",
+      );
+    }
+  };
+
+  reader.readAsText(file);
 }
 
 /* -----------------------------------------------------------------------------
@@ -321,7 +340,7 @@ function _parseCsvFile(file) {
    Splits text into lines, handling both \n and \r\n line endings.
 ----------------------------------------------------------------------------- */
 function _splitCsvLines(text) {
-    return text.split(/\r?\n/);
+  return text.split(/\r?\n/);
 }
 
 /* -----------------------------------------------------------------------------
@@ -330,40 +349,40 @@ function _splitCsvLines(text) {
    that may contain commas and escaped double-quotes.
 ----------------------------------------------------------------------------- */
 function _parseCsvLine(line) {
-    const result = [];
-    let current = "";
-    let inQuotes = false;
+  const result = [];
+  let current = "";
+  let inQuotes = false;
 
-    for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
 
-        if (inQuotes) {
-            if (ch === '"') {
-                // Check for escaped quote (double-double-quote)
-                if (i + 1 < line.length && line[i + 1] === '"') {
-                    current += '"';
-                    i++; // Skip the next quote
-                } else {
-                    inQuotes = false;
-                }
-            } else {
-                current += ch;
-            }
+    if (inQuotes) {
+      if (ch === '"') {
+        // Check for escaped quote (double-double-quote)
+        if (i + 1 < line.length && line[i + 1] === '"') {
+          current += '"';
+          i++; // Skip the next quote
         } else {
-            if (ch === '"') {
-                inQuotes = true;
-            } else if (ch === ",") {
-                result.push(current);
-                current = "";
-            } else {
-                current += ch;
-            }
+          inQuotes = false;
         }
+      } else {
+        current += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ",") {
+        result.push(current);
+        current = "";
+      } else {
+        current += ch;
+      }
     }
+  }
 
-    // Push the last value
-    result.push(current);
-    return result;
+  // Push the last value
+  result.push(current);
+  return result;
 }
 
 /* -----------------------------------------------------------------------------

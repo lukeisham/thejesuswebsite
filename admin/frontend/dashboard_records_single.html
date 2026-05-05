@@ -17,47 +17,115 @@
 <!-- =============================================================================
    FUNCTION BAR — Save Draft / Publish / Delete
 ============================================================================= -->
-<section id="records-single-function-bar" class="function-bar" aria-label="Record actions">
-    <button id="btn-save-draft" class="btn btn--draft" type="button">Save Draft</button>
-    <button id="btn-publish" class="btn btn--publish" type="button">Publish</button>
-    <button id="btn-delete" class="btn btn--delete" type="button">Delete</button>
+<section
+    id="records-single-function-bar"
+    class="function-bar"
+    aria-label="Record actions"
+>
+    <button id="btn-save-draft" class="btn btn--draft" type="button">
+        Save Draft
+    </button>
+    <button id="btn-publish" class="btn btn--publish" type="button">
+        Publish
+    </button>
+    <button id="btn-delete" class="btn btn--delete" type="button">
+        Delete
+    </button>
 </section>
 
 <!-- =============================================================================
    SECTION NAVIGATOR — sticky anchors for 7 grouped sections
 ============================================================================= -->
-<nav id="records-single-section-nav" class="section-nav" aria-label="Record section navigation">
-    <a href="#section-core-ids" class="section-nav__link" data-section="core-ids">Core IDs</a>
-    <a href="#section-images" class="section-nav__link" data-section="images">Images</a>
-    <a href="#section-description" class="section-nav__link" data-section="description">Description</a>
-    <a href="#section-taxonomy" class="section-nav__link" data-section="taxonomy">Taxonomy</a>
-    <a href="#section-verses" class="section-nav__link" data-section="verses">Verses</a>
-    <a href="#section-external-refs" class="section-nav__link" data-section="external-refs">External Refs</a>
-    <a href="#section-metadata" class="section-nav__link" data-section="metadata">Metadata &amp; Status</a>
+<nav
+    id="records-single-section-nav"
+    class="section-nav"
+    aria-label="Record section navigation"
+>
+    <a
+        href="#section-core-ids"
+        class="section-nav__link"
+        data-section="core-ids"
+        >Core IDs</a
+    >
+    <a href="#section-images" class="section-nav__link" data-section="images"
+        >Images</a
+    >
+    <a
+        href="#section-description"
+        class="section-nav__link"
+        data-section="description"
+        >Description</a
+    >
+    <a
+        href="#section-taxonomy"
+        class="section-nav__link"
+        data-section="taxonomy"
+        >Taxonomy</a
+    >
+    <a href="#section-verses" class="section-nav__link" data-section="verses"
+        >Verses</a
+    >
+    <a
+        href="#section-external-refs"
+        class="section-nav__link"
+        data-section="external-refs"
+        >External Refs</a
+    >
+    <a
+        href="#section-metadata"
+        class="section-nav__link"
+        data-section="metadata"
+        >Metadata &amp; Status</a
+    >
 </nav>
 
 <!-- =============================================================================
    SECTION 1: CORE IDENTIFIERS
 ============================================================================= -->
-<section id="section-core-ids" class="form-section" aria-labelledby="heading-core-ids">
-    <h2 id="heading-core-ids" class="form-section__heading">CORE IDENTIFIERS</h2>
+<section
+    id="section-core-ids"
+    class="form-section"
+    aria-labelledby="heading-core-ids"
+>
+    <h2 id="heading-core-ids" class="form-section__heading">
+        CORE IDENTIFIERS
+    </h2>
 
     <div class="form-field">
-        <label for="record-id" class="form-field__label">Unique ID (ULID)</label>
-        <input id="record-id" class="form-field__input form-field__input--readonly" type="text" readonly />
+        <label for="record-id" class="form-field__label"
+            >Unique ID (ULID)</label
+        >
+        <input
+            id="record-id"
+            class="form-field__input form-field__input--readonly"
+            type="text"
+            readonly
+        />
         <span class="form-field__hint">read-only</span>
     </div>
 
     <div class="form-field">
         <label for="record-title" class="form-field__label">Title</label>
-        <input id="record-title" class="form-field__input" type="text" placeholder="Enter record title" />
+        <input
+            id="record-title"
+            class="form-field__input"
+            type="text"
+            placeholder="Enter record title"
+        />
     </div>
 
     <div class="form-field">
         <label for="record-slug" class="form-field__label">Slug</label>
         <div class="form-field__inline">
-            <input id="record-slug" class="form-field__input" type="text" placeholder="auto-generated-or-manual-slug" />
-            <button id="btn-auto-slug" class="btn btn--secondary" type="button">Auto-Generate from Title</button>
+            <input
+                id="record-slug"
+                class="form-field__input"
+                type="text"
+                placeholder="auto-generated-or-manual-slug"
+            />
+            <button id="btn-auto-slug" class="btn btn--secondary" type="button">
+                Auto-Generate from Title
+            </button>
         </div>
     </div>
 </section>
@@ -65,52 +133,98 @@
 <!-- =============================================================================
    SECTION 2: IMAGES
 ============================================================================= -->
-<section id="section-images" class="form-section" aria-labelledby="heading-images">
+<section
+    id="section-images"
+    class="form-section"
+    aria-labelledby="heading-images"
+>
     <h2 id="heading-images" class="form-section__heading">IMAGES</h2>
 
     <div class="form-field">
-        <label for="record-picture-name" class="form-field__label">Picture Name</label>
-        <input id="record-picture-name" class="form-field__input" type="text" placeholder="picture filename" />
+        <label for="record-picture-name" class="form-field__label"
+            >Picture Name</label
+        >
+        <input
+            id="record-picture-name"
+            class="form-field__input"
+            type="text"
+            placeholder="picture filename"
+        />
     </div>
 
     <!-- Image preview row: full-size + thumbnail side-by-side -->
     <div id="picture-preview-container" class="picture-preview-row">
-        <div id="picture-preview-full" class="picture-preview picture-preview--full">
-            <span class="picture-preview__placeholder">Image Preview (max 800px)</span>
+        <div
+            id="picture-preview-full"
+            class="picture-preview picture-preview--full"
+        >
+            <span class="picture-preview__placeholder"
+                >Image Preview (max 800px)</span
+            >
         </div>
-        <div id="picture-preview-thumb" class="picture-preview picture-preview--thumb">
+        <div
+            id="picture-preview-thumb"
+            class="picture-preview picture-preview--thumb"
+        >
             <span class="picture-preview__placeholder">Thumbnail (200px)</span>
         </div>
     </div>
 
     <div id="picture-upload-area" class="form-field">
-        <input id="record-picture-upload" class="form-field__file" type="file" accept="image/png" />
-        <span class="form-field__hint">PNG only, ≤ 250 KB</span>
+        <input
+            id="record-picture-upload"
+            class="form-field__file"
+            type="file"
+            accept="image/png"
+        />
+        <span class="form-field__hint">PNG only, max 5 MB (compressed server-side to ≤ 250 KB)</span>
     </div>
 </section>
 
 <!-- =============================================================================
    SECTION 3: DESCRIPTION
 ============================================================================= -->
-<section id="section-description" class="form-section" aria-labelledby="heading-description">
+<section
+    id="section-description"
+    class="form-section"
+    aria-labelledby="heading-description"
+>
     <h2 id="heading-description" class="form-section__heading">DESCRIPTION</h2>
 
-    <div id="description-editor-container" class="paragraph-editor" aria-label="Description paragraph editor">
+    <div
+        id="description-editor-container"
+        class="paragraph-editor"
+        aria-label="Description paragraph editor"
+    >
         <!-- Populated by description_editor.js -->
     </div>
 
-    <div id="snippet-editor-container" class="paragraph-editor" aria-label="Snippet paragraph editor">
+    <div
+        id="snippet-editor-container"
+        class="paragraph-editor"
+        aria-label="Snippet paragraph editor"
+    >
         <!-- Populated by description_editor.js (reused for snippet) -->
     </div>
     <div id="snippet-generate-area">
-        <button id="btn-generate-snippet" class="btn btn--secondary" type="button">Generate from Description</button>
+        <button
+            id="btn-generate-snippet"
+            class="btn btn--secondary"
+            type="button"
+        >
+            Generate from Description
+        </button>
     </div>
 </section>
 
 <!-- =============================================================================
    SECTION 4: TAXONOMY
 ============================================================================= -->
-<section id="section-taxonomy" class="form-section" aria-labelledby="heading-taxonomy">
+<section
+    id="section-taxonomy"
+    class="form-section"
+    aria-labelledby="heading-taxonomy"
+>
     <h2 id="heading-taxonomy" class="form-section__heading">TAXONOMY</h2>
 
     <div class="form-field">
@@ -128,14 +242,18 @@
     </div>
 
     <div class="form-field">
-        <label for="record-gospel-category" class="form-field__label">Gospel Category</label>
+        <label for="record-gospel-category" class="form-field__label"
+            >Gospel Category</label
+        >
         <select id="record-gospel-category" class="form-field__select">
             <!-- Populated by taxonomy_selector.js -->
         </select>
     </div>
 
     <div class="form-field">
-        <label for="record-map-label" class="form-field__label">Map Label</label>
+        <label for="record-map-label" class="form-field__label"
+            >Map Label</label
+        >
         <select id="record-map-label" class="form-field__select">
             <!-- Populated by map_fields_handler.js -->
         </select>
@@ -143,21 +261,38 @@
 
     <div class="form-field">
         <label for="record-geo-id" class="form-field__label">Geo ID</label>
-        <input id="record-geo-id" class="form-field__input" type="number" placeholder="64-bit integer" />
+        <input
+            id="record-geo-id"
+            class="form-field__input"
+            type="number"
+            placeholder="64-bit integer"
+        />
     </div>
 </section>
 
 <!-- =============================================================================
    SECTION 5: VERSES
 ============================================================================= -->
-<section id="section-verses" class="form-section" aria-labelledby="heading-verses">
+<section
+    id="section-verses"
+    class="form-section"
+    aria-labelledby="heading-verses"
+>
     <h2 id="heading-verses" class="form-section__heading">VERSES</h2>
 
-    <div id="primary-verse-container" class="verse-builder" aria-label="Primary verse builder">
+    <div
+        id="primary-verse-container"
+        class="verse-builder"
+        aria-label="Primary verse builder"
+    >
         <!-- Populated by verse_builder.js -->
     </div>
 
-    <div id="secondary-verse-container" class="verse-builder" aria-label="Secondary verse builder">
+    <div
+        id="secondary-verse-container"
+        class="verse-builder"
+        aria-label="Secondary verse builder"
+    >
         <!-- Populated by verse_builder.js -->
     </div>
 </section>
@@ -165,41 +300,87 @@
 <!-- =============================================================================
    SECTION 6: EXTERNAL REFERENCES
 ============================================================================= -->
-<section id="section-external-refs" class="form-section" aria-labelledby="heading-external-refs">
-    <h2 id="heading-external-refs" class="form-section__heading">EXTERNAL REFERENCES</h2>
+<section
+    id="section-external-refs"
+    class="form-section"
+    aria-labelledby="heading-external-refs"
+>
+    <h2 id="heading-external-refs" class="form-section__heading">
+        EXTERNAL REFERENCES
+    </h2>
 
-    <div id="bibliography-editor-container" class="bibliography-editor" aria-label="MLA bibliography editor">
+    <div
+        id="bibliography-editor-container"
+        class="bibliography-editor"
+        aria-label="MLA bibliography editor"
+    >
         <!-- Populated by mla_source_handler.js -->
     </div>
 
-    <div id="context-links-container" class="context-links-editor" aria-label="Context links editor">
+    <div
+        id="context-links-container"
+        class="context-links-editor"
+        aria-label="Context links editor"
+    >
         <!-- Populated by context_link_handler.js -->
     </div>
 
     <div class="form-field">
-        <label for="record-parent-id" class="form-field__label">Parent ID</label>
-        <input id="record-parent-id" class="form-field__input" type="text" placeholder="ULID of parent record" />
+        <label for="record-parent-id" class="form-field__label"
+            >Parent ID</label
+        >
+        <input
+            id="record-parent-id"
+            class="form-field__input"
+            type="text"
+            placeholder="ULID of parent record"
+        />
         <span id="parent-title-display" class="form-field__hint"></span>
     </div>
 
     <div id="external-refs-container" aria-label="External reference fields">
         <div class="form-field">
-            <label for="record-iaa" class="form-field__label">IAA Reference</label>
-            <input id="record-iaa" class="form-field__input" type="text" placeholder="IAA reference identifier" />
+            <label for="record-iaa" class="form-field__label"
+                >IAA Reference</label
+            >
+            <input
+                id="record-iaa"
+                class="form-field__input"
+                type="text"
+                placeholder="IAA reference identifier"
+            />
         </div>
 
         <div class="form-field">
-            <label for="record-pledius" class="form-field__label">Pledius Reference</label>
-            <input id="record-pledius" class="form-field__input" type="text" placeholder="Pledius reference identifier" />
+            <label for="record-pledius" class="form-field__label"
+                >Pledius Reference</label
+            >
+            <input
+                id="record-pledius"
+                class="form-field__input"
+                type="text"
+                placeholder="Pledius reference identifier"
+            />
         </div>
 
         <div class="form-field">
-            <label for="record-manuscript" class="form-field__label">Manuscript Ref</label>
-            <input id="record-manuscript" class="form-field__input" type="text" placeholder="Manuscript reference identifier" />
+            <label for="record-manuscript" class="form-field__label"
+                >Manuscript Ref</label
+            >
+            <input
+                id="record-manuscript"
+                class="form-field__input"
+                type="text"
+                placeholder="Manuscript reference identifier"
+            />
         </div>
     </div>
 
-    <div id="url-array-editor-container" class="url-array-editor" aria-label="URL array editor">
+    <div
+        id="url-array-editor-container"
+        class="url-array-editor"
+        aria-label="URL array editor"
+    >
         <!-- Populated by url_array_editor.js -->
     </div>
 </section>
@@ -207,36 +388,81 @@
 <!-- =============================================================================
    SECTION 7: METADATA & STATUS
 ============================================================================= -->
-<section id="section-metadata" class="form-section" aria-labelledby="heading-metadata">
-    <h2 id="heading-metadata" class="form-section__heading">METADATA &amp; STATUS</h2>
+<section
+    id="section-metadata"
+    class="form-section"
+    aria-labelledby="heading-metadata"
+>
+    <h2 id="heading-metadata" class="form-section__heading">
+        METADATA &amp; STATUS
+    </h2>
 
     <div id="metadata-footer-container" aria-label="Metadata footer">
         <div class="form-field">
-            <label for="record-metadata-json" class="form-field__label">Metadata JSON</label>
-            <textarea id="record-metadata-json" class="form-field__textarea form-field__textarea--mono" rows="6" placeholder="Raw JSON blob — auto-managed; editable for advanced use"></textarea>
-            <span class="form-field__hint">raw JSON blob — auto-managed; editable for advanced use</span>
+            <label for="record-metadata-json" class="form-field__label"
+                >Metadata JSON</label
+            >
+            <textarea
+                id="record-metadata-json"
+                class="form-field__textarea form-field__textarea--mono"
+                rows="6"
+                placeholder="Raw JSON blob — auto-managed; editable for advanced use"
+            ></textarea>
+            <span class="form-field__hint"
+                >raw JSON blob — auto-managed; editable for advanced use</span
+            >
         </div>
 
         <div class="form-field">
-            <label for="record-created-at" class="form-field__label">Created At</label>
-            <input id="record-created-at" class="form-field__input form-field__input--readonly" type="text" readonly />
+            <label for="record-created-at" class="form-field__label"
+                >Created At</label
+            >
+            <input
+                id="record-created-at"
+                class="form-field__input form-field__input--readonly"
+                type="text"
+                readonly
+            />
             <span class="form-field__hint">ISO8601 — read-only</span>
         </div>
 
         <div class="form-field">
-            <label for="record-updated-at" class="form-field__label">Updated At</label>
-            <input id="record-updated-at" class="form-field__input form-field__input--readonly" type="text" readonly />
+            <label for="record-updated-at" class="form-field__label"
+                >Updated At</label
+            >
+            <input
+                id="record-updated-at"
+                class="form-field__input form-field__input--readonly"
+                type="text"
+                readonly
+            />
             <span class="form-field__hint">ISO8601 — auto-set on save</span>
         </div>
 
-        <fieldset id="record-status-group" class="form-field__radio-group" aria-label="Record status">
+        <fieldset
+            id="record-status-group"
+            class="form-field__radio-group"
+            aria-label="Record status"
+        >
             <legend class="form-field__label">Status</legend>
             <label class="form-field__radio-label">
-                <input id="record-status-draft" class="form-field__radio" type="radio" name="record-status" value="draft" />
+                <input
+                    id="record-status-draft"
+                    class="form-field__radio"
+                    type="radio"
+                    name="record-status"
+                    value="draft"
+                />
                 Draft
             </label>
             <label class="form-field__radio-label">
-                <input id="record-status-published" class="form-field__radio" type="radio" name="record-status" value="published" />
+                <input
+                    id="record-status-published"
+                    class="form-field__radio"
+                    type="radio"
+                    name="record-status"
+                    value="published"
+                />
                 Published
             </label>
         </fieldset>
