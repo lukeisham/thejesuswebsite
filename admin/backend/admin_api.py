@@ -176,14 +176,37 @@ def get_db_connection():
 
 
 @app.get("/api/admin/records")
-async def get_all_records(admin_data: dict = Depends(verify_token)):
+async def get_all_records(
+    admin_data: dict = Depends(verify_token),
+    sort: str = "created_at",
+    offset: int = 0,
+    limit: int = 50,
+):
     """
-    Fetches high-level record list for the Dashboard.
+    Fetches paginated, sortable record list for the Dashboard.
+
+    Query parameters:
+      sort   — Column name to ORDER BY (validated against schema).
+               Defaults to "created_at". Falls back to "created_at"
+               if the requested column doesn't exist.
+      offset — Row offset for pagination (default 0).
+      limit  — Max rows to return (default 50, clamped to 1-500).
     """
     try:
         conn = get_db_connection()
+        valid_cols = get_valid_columns(conn)
+
+        # Validate and sanitise sort column
+        sort_col = sort if sort in valid_cols else "created_at"
+        # Clamp limit to a safe range
+        safe_limit = max(1, min(limit, 500))
+        safe_offset = max(0, offset)
+
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM records")
+        cursor.execute(
+            f"SELECT * FROM records ORDER BY {sort_col} ASC LIMIT ? OFFSET ?",
+            (safe_limit, safe_offset),
+        )
         records = [dict(row) for row in cursor.fetchall()]
         conn.close()
         return {"records": records}

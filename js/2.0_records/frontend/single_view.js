@@ -2,10 +2,10 @@
 //
 //   THE JESUS WEBSITE — SINGLE VIEW RENDERER
 //   File:    js/2.0_records/frontend/single_view.js
-//   Version: 1.1.0
-//   Purpose: Reads the 'slug' from the URL query string, queries the global
-//            TheJesusDB for that record, and injects the data into the HTML
-//            DOM of record.html.
+//   Version: 1.2.0
+//   Purpose: Resolves the record slug from the URL (query param ?slug= or
+//            clean path /record/{slug}), queries the global TheJesusDB for
+//            that record, and injects the data into the HTML DOM of record.html.
 //   Source:  guide_function.md, module_sitemap.md §2.0
 //
 //   DEPENDENCIES:
@@ -16,9 +16,19 @@
 // =============================================================================
 
 function renderSingleRecord() {
-  // 1. Get slug from URL
+  // 1. Resolve slug from URL — prefer query param, fallback to clean path
   const urlParams = new URLSearchParams(window.location.search);
-  const slug = sanitizeSlug(urlParams.get("slug"));
+  let slug = sanitizeSlug(urlParams.get("slug"));
+
+  if (!slug) {
+    // Fallback: parse slug from clean URL path /record/{slug}
+    const pathMatch = window.location.pathname.match(
+      /\/record\/([a-z0-9_-]+)/i,
+    );
+    if (pathMatch) {
+      slug = sanitizeSlug(pathMatch[1]);
+    }
+  }
 
   const titleEl = document.getElementById("record-title");
   const verseEl = document.getElementById("record-primary-verse");
