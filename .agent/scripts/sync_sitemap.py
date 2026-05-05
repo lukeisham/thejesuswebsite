@@ -6,13 +6,16 @@
 #            into the master site_map.md and auto-increments its version number.
 #
 #   DATA FLOW:
-#     Input   →  documentation/detailed_module_sitemap.md  (### headings + ```text blocks)
-#     Output  →  documentation/site_map.md                  (```text master tree, version field)
+#   Input   →  documentation/detailed_module_sitemap.md
+#              (### headings + ```text blocks)
+#   Output  →  documentation/site_map.md
+#              (```text master tree, version field)
 #
 #   USAGE:
 #     Run from the project root:
 #       python3 .agent/scripts/sync_sitemap.py
-#       python3 .agent/scripts/sync_sitemap.py --dry-run   (preview only, no writes)
+#       python3 .agent/scripts/sync_sitemap.py --dry-run
+#       (preview only, no writes)
 #
 #   QUIRKS:
 #     - The parser strips ASCII box-drawing characters to calculate indent depth.
@@ -32,7 +35,8 @@ SITE_FILE = "documentation/site_map.md"
 
 def parse_ascii_tree(block):
     """
-    Parses a raw ASCII file-tree block into a list of (path_list, is_dir, annotation) tuples.
+    Parses a raw ASCII file-tree block into a list of
+    (path_list, is_dir, annotation) tuples.
     Strips box-drawing characters (├──, └──, │) to determine node depth.
     """
     paths = []
@@ -138,8 +142,12 @@ def extract_file_tree_blocks(content, source_label=""):
     raw_blocks = re.findall(r"```text\n(.*?)\n```", content, re.DOTALL)
 
     # Secondary: legacy **Bold Header:** format
+    legacy_pat = (
+        r"\*\*(?:Files to create Structure|Supporting Files [^:]+):\*\*"
+        r"\s*```\w*\n(.*?)\n```"
+    )
     legacy_blocks = re.findall(
-        r"\*\*(?:Files to create Structure|Supporting Files [^:]+):\*\*\s*```\w*\n(.*?)\n```",
+        legacy_pat,
         content,
         re.DOTALL,
     )
@@ -216,7 +224,12 @@ def main():
         v[-1] = str(int(v[-1]) + 1)
         return "version: " + ".".join(v)
 
-    new_site_content = re.sub(r"version:\s*([0-9\.]+)", bump_version, site_content, count=1)
+    new_site_content = re.sub(
+        r"version:\s*([0-9\.]+)",
+        bump_version,
+        site_content,
+        count=1,
+    )
 
     # ── Replace the first master tree block only ───────────────────────────
     if "```text" in new_site_content:

@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.51
+version: 1.0.52
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -192,7 +192,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── taxonomy_selector.js   <-- Selectors for era, timeline, gospel_category fields
 │   ├── url_array_editor.js    <-- Label/URL pair array editor
 │   ├── verse_builder.js       <-- Structured book/chapter/verse chip UI
-│   └── 🔑 Shared Tools (owned here, consumed by other dashboard modules)
+│   └── 🔑 Shared Tools (owned here, consumed by other dashboard modules) ──
 ├── js/2.0_records/frontpage/
 │   └── *.js                   <-- Public-facing record display logic
 ├── js/3.0_visualizations/dashboard/
@@ -226,7 +226,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── response_status_handler.js <-- Save/Publish/Delete status logic
 │   ├── search_essays.js       <-- Sidebar search: real-time title filtering
 │   ├── search_responses.js    <-- Sidebar search: real-time title filtering
-│   └── 🔑 Shared Tool (owned here, consumed by Blog Posts & Challenge Response)
+│   └── 🔑 Shared Tool (owned here, consumed by Blog Posts & Challenge Response) ──
 ├── js/5.0_essays_responses/frontpage/
 │   └── *.js                   <-- Public-facing essay/response logic
 ├── js/6.0_news_blog/dashboard/

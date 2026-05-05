@@ -1,7 +1,7 @@
 ---
-name: simple_module_map.md
+name: simple_module_sitemap.md
 purpose: High-level ASCII map of the project's modular architecture (1.0 - 8.0)
-version: 1.1.0
+version: 1.2.0
 dependencies: [detailed_module_sitemap.md]
 ---
 
@@ -42,12 +42,15 @@ dependencies: [detailed_module_sitemap.md]
 6.0 News & Blog Module
 ├── 6.1 Combined News & Blog Landing Page
 ├── 6.2 News Feed Page
-└── 6.3 Blog Feed Page
+├── 6.3 Blog Feed Page
+└── 6.4 Individual Blog Post View
 
 7.0 System Module
-├── 7.1 Admin Portal
+├── 7.1 Admin Portal (Login → Dashboard Shell → Module Grid)
+│   └── 7.1.1 System Health Monitoring Dashboard
 ├── 7.2 Agent Logic & Instructional Prompts
 ├── 7.3 Backend API, MCP Server & VPS Config
+│   └── 7.3.1 URL Slug Rewriting Architecture
 └── 7.4 Security Protocols & JWT Management
 
 8.0 Setup & Testing Module

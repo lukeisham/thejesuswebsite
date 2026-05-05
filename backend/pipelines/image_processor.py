@@ -24,24 +24,26 @@
 #     Stateless and safe to call repeatedly. No database or filesystem I/O.
 # =============================================================================
 
-from PIL import Image
 from io import BytesIO
+
+from PIL import Image
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-MAX_FULL_WIDTH   = 800        # pixels — maximum width for the full image
-MAX_THUMB_WIDTH  = 200        # pixels — maximum width for the thumbnail
-MAX_FILE_SIZE_KB = 250        # kilobytes — upper size limit for the full image
-INITIAL_QUALITY  = 85         # PNG-equivalent starting quality (for JPEG fallback path)
-QUALITY_STEP     = 5          # reduction per iteration
-QUALITY_FLOOR    = 10         # lowest acceptable quality
+MAX_FULL_WIDTH = 800  # pixels — maximum width for the full image
+MAX_THUMB_WIDTH = 200  # pixels — maximum width for the thumbnail
+MAX_FILE_SIZE_KB = 250  # kilobytes — upper size limit for the full image
+INITIAL_QUALITY = 85  # PNG-equivalent starting quality (for JPEG fallback path)
+QUALITY_STEP = 5  # reduction per iteration
+QUALITY_FLOOR = 10  # lowest acceptable quality
 
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _resize_to_max_width(image: Image.Image, max_width: int) -> Image.Image:
     """
@@ -54,9 +56,9 @@ def _resize_to_max_width(image: Image.Image, max_width: int) -> Image.Image:
     if width <= max_width:
         return image
 
-    new_width  = max_width
+    new_width = max_width
     new_height = int(height * (max_width / width))
-    return image.resize((new_width, new_height), Image.LANCZOS)
+    return image.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
 
 def _compress_to_limit(image: Image.Image, max_kb: int) -> bytes:
@@ -104,6 +106,7 @@ def _compress_to_limit(image: Image.Image, max_kb: int) -> bytes:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def process_uploaded_png(raw_bytes: bytes) -> dict:
     """
     Trigger:  Called by admin_api.py after receiving a raw PNG upload.
@@ -119,16 +122,16 @@ def process_uploaded_png(raw_bytes: bytes) -> dict:
         source_image = source_image.convert("RGBA")
 
     # --- Full image: resize then compress ---
-    resized_image    = _resize_to_max_width(source_image, MAX_FULL_WIDTH)
-    picture_bytes    = _compress_to_limit(resized_image, MAX_FILE_SIZE_KB)
+    resized_image = _resize_to_max_width(source_image, MAX_FULL_WIDTH)
+    picture_bytes = _compress_to_limit(resized_image, MAX_FILE_SIZE_KB)
 
     # --- Thumbnail: resize only, no quality loop needed ---
-    thumbnail_image  = _resize_to_max_width(source_image, MAX_THUMB_WIDTH)
-    thumb_buffer     = BytesIO()
+    thumbnail_image = _resize_to_max_width(source_image, MAX_THUMB_WIDTH)
+    thumb_buffer = BytesIO()
     thumbnail_image.save(thumb_buffer, format="PNG", optimize=True)
     picture_thumbnail = thumb_buffer.getvalue()
 
     return {
-        "picture_bytes":     picture_bytes,
+        "picture_bytes": picture_bytes,
         "picture_thumbnail": picture_thumbnail,
     }

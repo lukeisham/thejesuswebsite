@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "plan wikipedia"
+git commit -m "Security update"
 git push origin main 
 
 # Pulling from Github to server
@@ -33,7 +33,8 @@ sudo journalctl -u thejesuswebsite.service -n 20 --no-pager
 | 11 | `plan_dashboard_news_sources` | 1, 2, 3 |
 | 12 | `plan_dashboard_system
 
-Fix the 3 column layout, responsive design,  into working canvas and optional sidebar. Check css and html and JS to confirm this change. 
+Check that the logic of image uploading and CSV is working 
+Compare the frontend and backend functionality matches  
 
 1. Fixing and completing the dashboard
 2. image upload

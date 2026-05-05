@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 2.0.0
+version: 2.1.0
 purpose: visual and list taxonomy of codebase — canonical source of truth for all files
 dependencies: [site_map.md]
 ---
@@ -67,16 +67,22 @@ css/1.0_foundation/
 ├── dashboard/
 │   ├── admin_components.css   <-- Providence grid, dividers, column width hooks (shared dashboard shell)
 │   └── admin_shell.css        <-- Dashboard chrome, header, canvas background
-└── frontpage/
-    └── *.css                  <-- Public-facing foundation styles
+└── frontend/
+    ├── buttons.css             <-- Public-facing button system
+    └── forms.css               <-- Public-facing form styles
 ```
 
 ### JS Files
 ```text
 js/1.0_foundation/
-├── frontpage/
-│   └── *.js                   <-- Public-facing foundation scripts
-└── (shared navigation/UI logic)
+├── frontend/
+│   ├── footer.js              <-- Footer injection & print logic
+│   ├── header.js              <-- SEO metadata & og:tags injection
+│   ├── initializer.js         <-- Central bootstrapper on DOMContentLoaded
+│   ├── search_header.js       <-- Visible search bar injection
+│   └── sidebar.js             <-- Left nav tree + admin entry
+└── dashboard/
+    (reserved for future dashboard shell scripts)
 ```
 
 ### Supporting Files
@@ -137,13 +143,13 @@ js/2.0_records/dashboard/
 
 ### Frontend CSS Files
 ```text
-css/2.0_records/frontpage/
+css/2.0_records/frontend/
 └── *.css                      <-- Public-facing record display styles
 ```
 
 ### Frontend JS Files
 ```text
-js/2.0_records/frontpage/
+js/2.0_records/frontend/
 └── *.js                       <-- Public-facing record display logic
 ```
 
@@ -206,14 +212,18 @@ js/3.0_visualizations/dashboard/
 
 ### Frontend CSS Files
 ```text
-css/3.0_visualizations/frontpage/
-└── *.css                          <-- Public-facing visualization styles
+css/3.0_visualizations/frontend/
+├── ardor.css                  <-- Interactive SVG evidence graph
+├── maps.css                   <-- Map display styles
+└── timeline.css               <-- Timeline display styles
 ```
 
 ### Frontend JS Files
 ```text
-js/3.0_visualizations/frontpage/
-└── *.js                           <-- Public-facing visualization logic (render_arbor.js, etc.)
+js/3.0_visualizations/frontend/
+├── ardor_display.js           <-- SVG evidence diagram (static mock-up)
+├── maps_display.js            <-- Interactive map rendering
+└── timeline_display.js        <-- Timeline rendering
 ```
 
 ### Supporting Files
@@ -257,19 +267,20 @@ js/4.0_ranked_lists/dashboard/
 ├── wikipedia_ranking_calculator.js    <-- Real-time ranking & weight logic
 ├── dashboard_challenge.js             <-- Module orchestration & initialization
 ├── challenge_list_display.js          <-- Data fetching & row hydration
+├── challenge_weighting_handler.js     <-- Weight/rank sidebar for Academic/Popular
 ├── challenge_ranking_calculator.js    <-- Real-time score/rank logic
 └── insert_challenge_response.js       <-- Response creation & challenge linking
 ```
 
 ### Frontend CSS Files
 ```text
-css/4.0_ranked_lists/frontpage/
+css/4.0_ranked_lists/frontend/
 └── *.css                          <-- Public-facing ranked list styles
 ```
 
 ### Frontend JS Files
 ```text
-js/4.0_ranked_lists/frontpage/
+js/4.0_ranked_lists/frontend/
 └── *.js                           <-- Public-facing ranked list logic
 ```
 
@@ -294,17 +305,20 @@ The Essays & Responses module handles long-form editorial content, covering them
 ### Dashboard HTML Files
 ```text
 admin/frontend/
-├── dashboard_essay_historiography.html   <-- Split-pane editor with Essay/Historiography toggle
-└── dashboard_challenge_response.html     <-- Split-pane response editor with Academic/Popular sidebar
+└── dashboard_essay_historiography.html   <-- Split-pane editor with Essay/Historiography toggle
 ```
+
+> **Note:** A dedicated Challenge Response dashboard HTML (`dashboard_challenge_response.html`)
+> does not yet exist. Response creation is currently handled through the
+> `insert_challenge_response.js` shared tool in §4.0 Ranked Lists, and
+> the `markdown_editor.js` shared tool in this module (used in conjunction
+> with the frontend `frontend/pages/debate/response.html` page).
 
 ### Dashboard CSS Files
 ```text
 css/5.0_essays_responses/dashboard/
 ├── dashboard_essay_historiography.css    <-- Dual-state layout & toolbar
-├── essay_WYSIWYG_editor.css             <-- Markdown input & live preview styling
-├── dashboard_challenge_response.css     <-- Response editor layout & typography
-└── response_markdown.css                <-- Markdown editor & live preview styling
+└── essay_WYSIWYG_editor.css             <-- Markdown input & live preview styling
 ```
 
 ### Dashboard JS Files
@@ -314,27 +328,28 @@ js/5.0_essays_responses/dashboard/
 ├── essay_historiography_data_display.js    <-- Content fetching & population
 ├── search_essays.js                        <-- Sidebar search: real-time title filtering
 ├── document_status_handler.js              <-- Save/Publish/Delete state management
-├── dashboard_challenge_response.js         <-- Module orchestration & initialization
-├── display_challenge_response_data.js      <-- Response fetching & field population
-├── search_responses.js                     <-- Sidebar search: real-time title filtering
-├── response_status_handler.js              <-- Save/Publish/Delete status logic
-├── challenge_link_handler.js               <-- Parent challenge association logic
 │
-│   ── 🔑 Shared Tool (owned here, consumed by Blog Posts & Challenge Response) ──
+│   ── 🔑 Shared Tool (owned here, consumed by Blog Posts & elsewhere) ──
 │
 └── markdown_editor.js                  <-- Core WYSIWYG markdown editing & live HTML preview
 ```
 
 ### Frontend CSS Files
 ```text
-css/5.0_essays_responses/frontpage/
-└── *.css                              <-- Public-facing essay/response styles
+css/5.0_essays_responses/frontend/
+├── essays.css                        <-- Public-facing essay typography
+└── responses.css                     <-- Public-facing response typography
 ```
 
 ### Frontend JS Files
 ```text
-js/5.0_essays_responses/frontpage/
-└── *.js                               <-- Public-facing essay/response logic
+js/5.0_essays_responses/frontend/
+├── view_context_essays.js            <-- Context essay single-view logic
+├── view_historiography.js            <-- Historiography essay view
+├── response_display.js               <-- Challenge response display
+├── list_view_responses.js            <-- Response list rendering
+├── mla_snippet_display.js            <-- MLA citation display
+└── sources_biblio_display.js         <-- Source bibliography rendering
 ```
 
 ### Supporting Files
@@ -381,14 +396,17 @@ js/6.0_news_blog/dashboard/
 
 ### Frontend CSS Files
 ```text
-css/6.0_news_blog/frontpage/
-└── *.css                          <-- Public-facing news/blog styles
+css/6.0_news_blog/frontend/
+└── (reserved for future frontend styles)
 ```
 
 ### Frontend JS Files
 ```text
-js/6.0_news_blog/frontpage/
-└── *.js                           <-- Public-facing news/blog logic
+js/6.0_news_blog/frontend/
+├── blog_snippet_display.js        <-- Blog snippet on landing page
+├── list_blogpost.js               <-- Full blog feed list
+├── list_newsitem.js               <-- News feed list
+└── news_snippet_display.js        <-- News snippet on landing page
 ```
 
 ### Supporting Files
@@ -469,6 +487,7 @@ assets/
 README.md                <-- Project overview
 
 mcp_server.py            <-- Exposes read-only API to external agents
+serve_all.py             <-- Main FastAPI app: combines admin API, public routes, static serving
 requirements.txt         <-- Python dependencies (FastAPI, JWT, etc)
 nginx.conf               <-- Global Web server and SSL/Proxy config
 .gitignore               <-- Ensures secrets (like .env) aren't committed to GitHub
@@ -481,8 +500,9 @@ assets/
 deployment/
 ├── deploy.sh            <-- Pull from GitHub and restart services
 ├── ssl_renew.sh         <-- Automates SSL certificate renewal
-├── admin.service        <-- Systemd config for Admin API
-└── mcp.service          <-- Systemd config for MCP Server
+├── admin.service               <-- Systemd config for Admin API
+├── mcp.service                 <-- Systemd config for MCP Server
+└── thejesuswebsite.service     <-- Systemd config for main FastAPI server (serve_all.py)
 
 .env                     <-- Global Admin, ESV and Deepseek credentials
 
@@ -490,8 +510,17 @@ backend/middleware/
 ├── rate_limiter.py      <-- DDoS protection for API endpoints
 └── logger_setup.py      <-- Centralized logging configuration
 
-documentation/guides/
-└── guide_security.md    <-- Security protocols and auth mechanism overview
+documentation/
+├── data_schema.md           <-- Core SQLite database blueprint
+├── vibe_coding_rules.md     <-- Foundational coding philosophies
+├── site_map.md              <-- Consolidated master site map
+├── detailed_module_sitemap.md <-- Architectural blueprints (this file)
+└── guides/
+    ├── guide_security.md           <-- Security protocols and auth overview
+    ├── guide_function.md           <-- Detailed system logic flows
+    ├── guide_appearance.md         <-- Page appearance diagrams
+    ├── guide_dashboard_appearance.md <-- Dashboard appearance
+    └── ... (see §8.0 for full listing)
 ```
 
 ---
@@ -507,6 +536,7 @@ tools/
 ├── seed_data.sql          <-- Initial data payload for first build
 ├── minify_admin.py        <-- Automates admin code obfuscation
 ├── generate_sitemap.py    <-- Dynamic XML sitemap builder
+├── migrate_schema.py      <-- Database schema migration utility
 └── test_records.sql       <-- Small sample dataset for test runs
 
 logs/                      <-- Storage for pipeline and API error logs
@@ -519,34 +549,41 @@ tests/
 └── reports/                   <-- Output directory for UI/UX audit logs
 
 documentation/
-├── implementation_plan.md                  <-- Implementation Plan
-├── master_dashboard_refactor_roadmap.md    <-- Roadmap for full dashboard refactor
-├── plan_backend_infrastructure.md          <-- Plan: Backend Infrastructure & Shared Scripts
-├── plan_dashboard_login_and_shell.md       <-- Plan: Admin Login & Dashboard Shell
-├── plan_dashboard_records_all.md           <-- Plan: All Records Module
-├── plan_dashboard_records_single.md        <-- Plan: Single Record Module
-├── plan_dashboard_arbor.md                 <-- Plan: Arbor Diagram Module
-├── plan_dashboard_wikipedia.md             <-- Plan: Wikipedia Ranked List Module
-├── plan_dashboard_challenge.md             <-- Plan: Challenge Ranked List Module
-├── plan_dashboard_challenge_response.md    <-- Plan: Challenge Response Module
-├── plan_dashboard_essay_historiography.md  <-- Plan: Essay & Historiography Module
-├── plan_dashboard_news_sources.md          <-- Plan: News Sources Module
-├── plan_dashboard_blog_posts.md            <-- Plan: Blog Posts Module
-├── plan_dashboard_system.md                <-- Plan: System Health Module
-├── plan_issues.md                          <-- Cross-plan issue tracker
-├── module_sitemap.md                       <-- Architectural blueprints (This File)
-├── site_map.md                             <-- Consolidated master site map
-├── vibe_coding_rules.md                    <-- Foundational coding philosophies
-├── style_guide.md                          <-- UI / UX visual design guide
 ├── data_schema.md                          <-- Core SQLite database blueprint
+├── detailed_module_sitemap.md              <-- Architectural blueprints (This File)
+├── git_vps.md                              <-- VPS deployment & Git workflow reference
+├── simple_module_sitemap.md                <-- Lightweight module overview
+├── site_map.md                             <-- Consolidated master site map
+├── style_mockup.html                       <-- Visual style mockup prototype
+├── vibe_coding_rules.md                    <-- Foundational coding philosophies
 └── guides/
     ├── guide_appearance.md                 <-- ASCII diagram of page appearance
     ├── guide_dashboard_appearance.md       <-- ASCII diagram of dashboard appearance
     ├── guide_donations.md                  <-- Reference for external integrations
     ├── guide_function.md                   <-- Detailed explanation of system logic
+    ├── guide_maps.md                       <-- Map module layout & interaction
     ├── guide_security.md                   <-- Security protocols and auth overview
     ├── guide_style.md                      <-- UI / UX visual design guide
+    ├── guide_timeline.md                   <-- Timeline module layout & interaction
     └── guide_welcoming_robots.md           <-- SEO and AI accessibility standards
+
+Implementation plans are stored at the **project root** as standalone `.md` files:
+```text
+plan_backend_infrastructure.md        <-- Plan: Backend Infrastructure & Shared Scripts
+plan_dashboard_login_and_shell.md     <-- Plan: Admin Login & Dashboard Shell
+plan_dashboard_records_all.md         <-- Plan: All Records Module
+plan_dashboard_records_single.md      <-- Plan: Single Record Module
+plan_dashboard_arbor.md               <-- Plan: Arbor Diagram Module
+plan_dashboard_wikipedia.md           <-- Plan: Wikipedia Ranked List Module
+plan_dashboard_challenge.md           <-- Plan: Challenge Ranked List Module
+plan_dashboard_challenge_response.md  <-- Plan: Challenge Response Module
+plan_dashboard_essay_historiography.md <-- Plan: Essay & Historiography Module
+plan_dashboard_news_sources.md        <-- Plan: News Sources Module
+plan_dashboard_blog_posts.md          <-- Plan: Blog Posts Module
+plan_dashboard_system.md              <-- Plan: System Health Module
+plan_issues.md                        <-- Cross-plan issue tracker
+plan_system_api_endpoints.md          <-- Plan: API endpoint design
+```
 ```
 
 ---
@@ -557,14 +594,14 @@ documentation/
 
 | Shared Tool | Owner Module | Consumer Modules |
 |---|---|---|
-| `js/2.0_records/dashboard/picture_handler.js` | 2.0 Records | 5.0 Essays, 5.0 Challenge Response, 6.0 Blog Posts |
-| `js/2.0_records/dashboard/mla_source_handler.js` | 2.0 Records | 5.0 Essays, 5.0 Challenge Response, 6.0 Blog Posts |
+| `js/2.0_records/dashboard/picture_handler.js` | 2.0 Records | 5.0 Essays, 6.0 Blog Posts |
+| `js/2.0_records/dashboard/mla_source_handler.js` | 2.0 Records | 5.0 Essays, 6.0 Blog Posts |
 | `js/2.0_records/dashboard/context_link_handler.js` | 2.0 Records | 5.0 Essays, 6.0 Blog Posts |
-| `js/2.0_records/dashboard/snippet_generator.js` | 2.0 Records | 5.0 Essays, 5.0 Challenge Response, 6.0 Blog Posts, 6.0 News Sources |
-| `js/2.0_records/dashboard/metadata_handler.js` | 2.0 Records | 4.0 Wikipedia, 4.0 Challenges, 5.0 Essays, 5.0 Challenge Response, 6.0 Blog Posts, 6.0 News Sources |
-| `js/2.0_records/dashboard/description_editor.js` | 2.0 Records | 5.0 Essays, 5.0 Challenge Response, 6.0 Blog Posts |
+| `js/2.0_records/dashboard/snippet_generator.js` | 2.0 Records | 5.0 Essays, 6.0 Blog Posts, 6.0 News Sources |
+| `js/2.0_records/dashboard/metadata_handler.js` | 2.0 Records | 4.0 Wikipedia, 4.0 Challenges, 5.0 Essays, 6.0 Blog Posts, 6.0 News Sources |
+| `js/2.0_records/dashboard/description_editor.js` | 2.0 Records | 5.0 Essays, 6.0 Blog Posts |
 | `js/2.0_records/dashboard/verse_builder.js` | 2.0 Records | (available for future plans) |
-| `js/5.0_essays_responses/dashboard/markdown_editor.js` | 5.0 Essays & Responses | 5.0 Challenge Response, 6.0 Blog Posts |
+| `js/5.0_essays_responses/dashboard/markdown_editor.js` | 5.0 Essays & Responses | 6.0 Blog Posts |
 
 ---
 
@@ -589,7 +626,8 @@ documentation/
 | `DELETE` | `/api/admin/records/{id}` | Delete record |
 | `POST` | `/api/admin/records/{id}/picture` | Upload record picture (PNG) |
 | `DELETE` | `/api/admin/records/{id}/picture` | Delete record picture |
-| `POST` | `/api/admin/bulk-upload` | CSV bulk record ingestion |
+| `POST` | `/api/admin/bulk-upload` | Phase 1: CSV bulk record ingestion (parse & validate) |
+| `POST` | `/api/admin/bulk-upload/commit` | Phase 2: commit reviewed records as draft |
 
 ### Ranked Lists
 | Method | Path | Purpose |

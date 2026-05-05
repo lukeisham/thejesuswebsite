@@ -129,13 +129,15 @@ async def login(req: LoginRequest, request: Request, response: Response):
         # Generate JWT
         token = AuthUtils.create_access_token(data={"role": "admin"})
 
-        # Set HttpOnly Cookie (secure=True in production behind HTTPS)
+        # Set HttpOnly Cookie
+        # secure=True in production behind HTTPS; set COOKIE_SECURE=true in .env
+        cookie_secure = os.getenv("COOKIE_SECURE", "false").lower() == "true"
         response.set_cookie(
             key="admin_token",
             value=token,
             httponly=True,
             samesite="lax",
-            secure=False,
+            secure=cookie_secure,
             max_age=43200,  # 12 hours
         )
         return {"message": "Login successful"}
@@ -748,7 +750,7 @@ async def bulk_upload_records(
         if "id" not in insert_data:
             insert_data["id"] = str(uuid.uuid4())
 
-        now_iso = datetime.utcnow().isoformat() + "Z"
+        now_iso = datetime.now(timezone.utc).isoformat()
         if "created_at" not in insert_data:
             insert_data["created_at"] = now_iso
         if "updated_at" not in insert_data:
@@ -926,7 +928,7 @@ async def bulk_upload_commit(
         if "id" not in insert_data:
             insert_data["id"] = str(uuid.uuid4())
 
-        now_iso = datetime.utcnow().isoformat() + "Z"
+        now_iso = datetime.now(timezone.utc).isoformat()
         if "created_at" not in insert_data:
             insert_data["created_at"] = now_iso
         if "updated_at" not in insert_data:

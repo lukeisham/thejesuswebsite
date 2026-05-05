@@ -21,7 +21,7 @@ import json
 import os
 import sqlite3
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Ensure package context is recognized when running directly from CLI
 sys.path.append(
@@ -92,7 +92,7 @@ def run_pipeline():
                 updated_at = ?
             WHERE id = ?
         """,
-            (final_rank, datetime.utcnow().isoformat(), record_id),
+            (final_rank, datetime.now(timezone.utc).isoformat(), record_id),
         )
 
     conn.commit()

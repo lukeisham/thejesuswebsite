@@ -1,7 +1,7 @@
 ---
 name: guide_security.md
 purpose: description of security measures taken to protect the backend section 
-version: 1.2.0
+version: 1.4.0
 dependencies: [guide_dashboard_appearance.md, module_sitemap.md]
 ---
 
@@ -13,7 +13,7 @@ This is the source of truth for the codebase security.
 The project implements a multi-layer defense against high-volume traffic and automated bot flood patterns.
 
 - **Nginx Rate Limiting:** The primary defense layer. Configure `nginx.conf` (`limit_req_zone`) to limit requests per IP.
-- **MCP Server Throttling:** Implement `backend/middleware/rate_limiter.py` on the Python MCP server to reject over-threshold requests.
+- **MCP Server Throttling:** The `backend/middleware/rate_limiter.py` FastAPI middleware applies rate limiting to the admin API. The read-only MCP server (`mcp_server.py` at the project root) uses stdio/SSE transport and is not directly exposed to the public internet — AI agents connect via local transport.
 - **SSL Integrity:** Use `deployment/ssl_renew.sh` to automate SSL certificate renewal via Certbot, ensuring encrypted traffic.
 - **WAF Coverage:** Use a developer-friendly firewall (like Cloudflare) to auto-detect and block robotic flood patterns before they reach the VPS.
 
@@ -21,14 +21,17 @@ The project implements a multi-layer defense against high-volume traffic and aut
 Since the search function interacts with the SQLite database, sanitization is required at both the entry and query points.
 
 - **Parameterized Queries:** NEVER use string concatenation (f-strings). Always use the standard placeholder syntax (`?` in SQLite/sql.js) which escapes all user input automatically.
-- **Frontend Validation:** Use `frontend/core/sanitize_query.js` to strip out special SQL control characters (like `;`, `--`, or `/*`) before passing them to the WASM database engine.
+- **Frontend Validation:** Use `js/2.0_records/frontend/sanitize_query.js` to strip out special SQL control characters (like `;`, `--`, or `/*`) before passing them to the WASM database engine.
 - **Read-Only WASM:** The frontend `sql.js` instance is naturally limited to the local browser memory, preventing direct injection attacks from affecting the primary server-side database file.
 
 ## 3. Admin-only access to the Dashboard
 The Admin Portal requires a robust authentication flow to prevent unauthorized content modification.
 
-- **Environment Credentials:** The `ADMIN_PASSWORD` is stored in a hidden `.env` file (ignored by `.gitignore`) and managed by the Python `admin_api.py`.
-- **JWT & Auth Utilities:** Successful logins generate a secure JSON Web Token (JWT) managed by `admin/backend/auth_utils.py` and stored in a HttpOnly cookie.
+- **Environment Credentials:** The `ADMIN_PASSWORD` and `SECRET_KEY` are stored in a hidden `.env` file (ignored by `.gitignore`) and managed by the Python `admin_api.py`.
+  > **⚠️ Warning — Default fallback values:** Both `ADMIN_PASSWORD` and `SECRET_KEY` have hardcoded fallback defaults (`"admin"` and `"default-secret-key"` respectively) if the `.env` file is missing or malformed. In production, verify that `.env` exists with strong unique values. Consider adding a startup-time check that refuses to launch if either value matches its default.
+  > **Password storage note:** The password is compared as plaintext (`password == ADMIN_PASSWORD`) rather than a hashed digest (e.g., bcrypt). This is an accepted trade-off for a single-admin system with credentials loaded from environment variables, where the `.env` file itself serves as the primary secret boundary. The 1-second artificial delay on failed attempts (see brute-force defense) mitigates timing attacks.
+- **JWT & Auth Utilities:** Successful logins generate a JSON Web Token (JWT) managed by `admin/backend/auth_utils.py` and stored in a HttpOnly cookie.  
+  > **Cookie security:** The cookie secure flag is controlled by the `COOKIE_SECURE` environment variable. Set `COOKIE_SECURE=true` in the production `.env` file to enforce HTTPS-only transmission and prevent session interception over plain HTTP. Defaults to `false` so local dev on `http://localhost` works without friction.
 - **Session Middleware:** On `admin.html` (login page), `admin_login.js` sends credentials and redirects on success. On `dashboard.html` (dashboard), `dashboard_auth.js` calls `verifyAdminSession()` from `load_middleware.js` as a page guard — if the session cookie is invalid or expired, the browser is redirected back to `admin.html`. Individual module loads do not re-check the session (verified once at page load). The "Return to Frontend" button (`return_to_site.js`) also calls `/api/admin/verify` but preserves the session cookie — unlike logout, this is a session-preserving navigation that lets the user return to the dashboard without re-authenticating. Only the "Logout" button (`logout_middleware.js`) calls `POST /api/admin/logout` to destroy the cookie and terminate the session.
 
 ## 3a. Expanded Admin API Endpoints (plan_backend_infrastructure)
@@ -66,11 +69,20 @@ plan. All are protected by the admin JWT session verification middleware
 - `POST /api/admin/agent/run` — Trigger DeepSeek agent pipeline (202 Accepted, async)
 - `GET /api/admin/agent/logs` — Paginated agent run history with pipeline filter
 
-All endpoints require a valid JWT session cookie. Rate limiting (30 req/min)
-applies globally via `RateLimiterMiddleware`. SQL injection is prevented through
-exclusive use of parameterized queries (`?` placeholders).
+All endpoints require a valid JWT session cookie. Rate limiting (60 req/min, configurable) applies globally via `RateLimiterMiddleware`. SQL injection is prevented through exclusive use of parameterized queries (`?` placeholders).
 
 - **Brute Force Defense:** The backend implements login delays and temporary IP lockouts after 5 consecutive failed attempts, handled within `auth_utils.py`.
+- **Scaling Note:** Both the rate limiter and brute-force tracker use in-memory dictionaries. Under a single-process VPS deployment this is sufficient, but if the app is ever scaled to multiple workers/processes, these should be backed by Redis to maintain shared state.
+
+## 4. Obfuscating the Dashboard Code and Documentation
+Administrative logic is protected by minification and structural obscurity.
+
+> **Caveat:** Obfuscation is **not a security boundary** — it is a minor deterrent against casual browser inspection. The real protection for admin functionality comes from the JWT authentication layer (Section 3). Do not rely on minification or code splitting as a substitute for proper access controls.
+
+- **Minification Pipeline:** All code inside `/admin/frontend/` is processed by `tools/minify_admin.py` before deployment. The tool writes minified `.min.js` / `.min.css` files alongside the originals (preserving dev sources) with comments stripped and whitespace compressed.
+- **Code Splitting:** Crucial admin logic is split into multiple modules as defined in the `module_sitemap.md`, preventing reverse-engineering from a single file.
+- **Directory Exclusion:** Nginx config explicitly forbids directory listing in the `/admin/` folder structure.
+- **Agent Restriction:** `mcp_server.py` (project root) exposes only a read-only API via SELECT queries with parameterized placeholders, ensuring external automated agents cannot access admin editing tools.
 
 ## 5. Bulk CSV Upload Security
 
@@ -82,20 +94,13 @@ The bulk CSV upload workflow implements a **two-phase review gate** to prevent a
 - **Server-Side Re-validation:** The commit endpoint re-validates all fields server-side (required fields, enum values) before insertion, as a defense-in-depth measure against tampered client-side requests.
 - **Re-upload Warning:** If a second CSV is uploaded while a previous review is still pending, the admin is prompted with a confirmation dialog before the old ephemeral store is replaced.
 
-## 4. Obfuscating the Dashboard Code and Documentation
-Administrative logic is protected by minification and structural obscurity.
-
-- **Minification Pipeline:** All code inside `/admin/frontend/` is processed by `tools/minify_admin.py` (using Terser) before deployment to mangle variable names and remove comments.
-- **Code Splitting:** Crucial admin logic is split into multiple modules as defined in the `module_sitemap.md`, preventing reverse-engineering from a single file.
-- **Directory Exclusion:** Nginx config explicitly forbids directory listing in the `/admin/` folder structure.
-- **Agent Restriction:** `mcp_server.py` exposes only a read-only API, ensuring external automated agents cannot access admin editing tools.
-
 ## 6. Arbor Diagram — Relational Integrity Checks
 
-The Arbor Diagram editor allows administrators to re-parent records through
-drag-and-drop, which could introduce circular parent-child loops (e.g., A → B
-and B → A simultaneously). To prevent data corruption, relational integrity
-is enforced at two independent layers:
+The **Arbor Diagram** is the admin dashboard's interactive tree-view editor that visualises the hierarchical parent-child relationships between records (e.g., a "Miracle" record nested under a "Life of Jesus" parent). It allows administrators to reorganise the site's content tree via drag-and-drop.
+
+Because re-parenting could introduce circular parent-child loops (e.g., A → B
+and B → A simultaneously), the editor prevents data corruption through
+relational integrity enforced at two independent layers:
 
 - **Client-Side Validation (handle_node_drag.js + update_node_parent.js):**
   Before allowing a drop, `_wouldCreateCircularReference()` walks up the

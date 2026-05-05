@@ -7,7 +7,7 @@
 
 import os
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import jwt
 from dotenv import load_dotenv
@@ -19,7 +19,19 @@ SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
 ALGORITHM = "HS256"
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
 
-# Brute force defense state mechanism
+# --- Startup credential validation ---
+# Refuse to launch if defaults are still in place (security guard).
+if SECRET_KEY == "default-secret-key":
+    raise RuntimeError(
+        "SECRET_KEY is still set to the default value. "
+        "Create a .env file with a strong SECRET_KEY before launching."
+    )
+if ADMIN_PASSWORD == "admin":
+    raise RuntimeError(
+        "ADMIN_PASSWORD is still set to the default value. "
+        "Create a .env file with a strong ADMIN_PASSWORD before launching."
+    )
+
 # In production with multiple workers, this should be backed by Redis.
 # For single-instance VPS, in-memory dictionary is sufficient.
 login_attempts = {}
@@ -79,9 +91,9 @@ class AuthUtils:
         """
         to_encode = data.copy()
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(hours=12)
+            expire = datetime.now(timezone.utc) + timedelta(hours=12)
 
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

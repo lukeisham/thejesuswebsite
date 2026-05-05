@@ -1,0 +1,35 @@
+# =============================================================================
+#   THE JESUS WEBSITE — DEPENDABOT CONFIGURATION
+#   File:    .github/dependabot.yml
+#   Version: 1.0.0
+#   Purpose: Automated dependency update alerts and security patch PRs.
+# =============================================================================
+
+version: 2
+updates:
+  # Python (pip) dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+    assignees:
+      - "lukeisham"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "ci"
