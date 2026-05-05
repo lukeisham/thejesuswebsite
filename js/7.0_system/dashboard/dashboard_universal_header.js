@@ -31,7 +31,6 @@ function injectUniversalHeader() {
   headerEl.innerHTML = `
         <!-- Left: Branding -->
         <div class="header-brand">
-            <span class="header-brand__accent" aria-hidden="true">✦✦</span>
             <img class="header-brand__logo"
                  src="../../assets/favicon.png"
                  alt="The Jesus Website"

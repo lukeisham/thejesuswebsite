@@ -36,14 +36,6 @@
     white-space: nowrap;
 }
 
-/* Gold accent on the "✦✦" or decorative prefix */
-#admin-header .header-brand__accent {
-    color: var(--color-dash-accent);
-    margin-right: var(--space-1);
-    font-size: var(--text-md);
-    line-height: 1;
-}
-
 /* =============================================================================
    2. NAVIGATION LINKS
    Return to Frontend | Dashboard | Logout
@@ -76,8 +68,9 @@
     border-bottom: 2px solid transparent;
     cursor: pointer;
 
-    transition: color var(--transition-fast),
-                border-color var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        border-color var(--transition-fast);
 
     white-space: nowrap;
 }

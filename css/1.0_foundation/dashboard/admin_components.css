@@ -108,6 +108,10 @@
     flex: 1;
     align-content: start;
 
+    /* Enable scrolling if cards overflow the viewport */
+    overflow-y: auto;
+    min-height: 0;
+
     background-color: var(--color-bg-primary);
 }
 

@@ -42,10 +42,11 @@ Object.defineProperty(window, "_recordTitle", {
 ----------------------------------------------------------------------------- */
 async function renderWikipedia() {
   /* -------------------------------------------------------------------------
-       1. SET LAYOUT — Request wider sidebar for the content-heavy record detail
+       1. SET LAYOUT — This module has its own internal split-pane layout,
+          so collapse the Providence sidebar and use the full main column.
     ------------------------------------------------------------------------- */
   if (typeof window._setLayoutColumns === "function") {
-    window._setLayoutColumns("360px", "2fr");
+    window._setLayoutColumns(false, "1fr");
   }
 
   /* -------------------------------------------------------------------------
