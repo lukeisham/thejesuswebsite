@@ -1,0 +1,280 @@
+<!doctype html>
+<!-- =============================================================================
+   THE JESUS WEBSITE — SYSTEM DASHBOARD
+   File:    admin/frontend/dashboard_system.html
+   Version: 1.0.0
+   Module:  7.0 — System
+   Purpose: Central administrative hub for monitoring and managing the project's
+            infrastructure and development lifecycle. Features real-time status
+            displays for API health, VPS resource usage, DeepSeek agent activity
+            (token consumption, run history, chain-of-thought trace reasoning),
+            security alerts, interactive test suite controls, and agent
+            generation triggers.
+   Trigger: Loaded by dashboard_app.js when user clicks "System" card or tab.
+            Injected via _setColumn() into the Providence main work area.
+   Output:  Fully functional System monitoring dashboard with live polling,
+            activity tables, trace reasoning panels, and test controls.
+============================================================================= -->
+
+<!-- =============================================================================
+   FUNCTION BAR — Save Configuration & Restart Services
+============================================================================= -->
+<section
+    id="system-function-bar"
+    class="function-bar function-bar--system"
+    aria-label="System actions"
+>
+    <button
+        id="btn-system-save-config"
+        class="btn btn--primary"
+        type="button"
+    >
+        Save Configuration
+    </button>
+    <button
+        id="btn-system-restart"
+        class="btn btn--secondary"
+        type="button"
+    >
+        Restart Services
+    </button>
+</section>
+
+<!-- =============================================================================
+   SYSTEM DATA & LOGS — Health monitoring grid
+   Populated by display_system_data.js and mcp_monitor.js
+============================================================================= -->
+<section
+    id="system-health-grid"
+    class="system-health-grid"
+    aria-label="System health status"
+>
+    <h2 id="system-health-heading" class="system-section-heading">
+        System Data &amp; Logs
+    </h2>
+
+    <div id="system-health-cards" class="system-health-cards">
+        <!-- Each card populated dynamically by display_system_data.js -->
+
+        <!-- API Health Card -->
+        <article
+            id="card-api-health"
+            class="health-card"
+            aria-label="API health status"
+        >
+            <h3 class="health-card__label">API Health</h3>
+            <p id="api-health-status" class="health-card__value health-card__value--loading">
+                Checking...
+            </p>
+            <p id="api-health-detail" class="health-card__detail"></p>
+        </article>
+
+        <!-- VPS Resources Card -->
+        <article
+            id="card-vps"
+            class="health-card"
+            aria-label="VPS resource usage"
+        >
+            <h3 class="health-card__label">VPS Resources</h3>
+            <div id="vps-cpu-meter" class="health-card__meter">
+                <label for="vps-cpu-fill" class="health-card__meter-label">CPU</label>
+                <div id="vps-cpu-bar" class="meter-bar" role="meter" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <div id="vps-cpu-fill" class="meter-bar__fill"></div>
+                </div>
+                <span id="vps-cpu-text" class="health-card__meter-value">--</span>
+            </div>
+            <div id="vps-mem-meter" class="health-card__meter">
+                <label for="vps-mem-fill" class="health-card__meter-label">MEM</label>
+                <div id="vps-mem-bar" class="meter-bar" role="meter" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <div id="vps-mem-fill" class="meter-bar__fill"></div>
+                </div>
+                <span id="vps-mem-text" class="health-card__meter-value">--</span>
+            </div>
+            <p id="vps-detail" class="health-card__detail"></p>
+        </article>
+
+        <!-- Security Card -->
+        <article
+            id="card-security"
+            class="health-card"
+            aria-label="Security status"
+        >
+            <h3 class="health-card__label">Security</h3>
+            <p id="security-status" class="health-card__value health-card__value--loading">
+                Checking...
+            </p>
+            <p id="security-detail" class="health-card__detail"></p>
+        </article>
+
+        <!-- DeepSeek API Card -->
+        <article
+            id="card-deepseek"
+            class="health-card"
+            aria-label="DeepSeek API status"
+        >
+            <h3 class="health-card__label">DeepSeek API</h3>
+            <p id="deepseek-status" class="health-card__value health-card__value--loading">
+                Checking...
+            </p>
+            <p id="deepseek-detail" class="health-card__detail"></p>
+        </article>
+
+        <!-- MCP Server Card -->
+        <article
+            id="card-mcp"
+            class="health-card"
+            aria-label="MCP server status"
+        >
+            <h3 class="health-card__label">MCP Server</h3>
+            <p id="mcp-status" class="health-card__value health-card__value--loading">
+                Checking...
+            </p>
+            <p id="mcp-detail" class="health-card__detail"></p>
+        </article>
+    </div>
+</section>
+
+<!-- =============================================================================
+   AGENT ACTIVITY MONITOR
+   Populated by agent_monitor.js
+============================================================================= -->
+<section
+    id="system-agent-monitor"
+    class="system-agent-monitor"
+    aria-label="Agent activity monitor"
+>
+    <h2 class="system-section-heading">Agent Activity Monitor</h2>
+
+    <!-- Summary Bar -->
+    <div
+        id="agent-summary-bar"
+        class="agent-summary-bar"
+        aria-label="Agent run summary"
+    >
+        <span id="agent-summary-runs" class="agent-summary__stat">Runs Today: --</span>
+        <span id="agent-summary-tokens" class="agent-summary__stat">Tokens Today: --</span>
+        <span id="agent-summary-rate" class="agent-summary__stat">Success Rate: --</span>
+    </div>
+
+    <!-- Activity Table -->
+    <div id="agent-table-wrapper" class="agent-table-wrapper">
+        <table
+            id="agent-activity-table"
+            class="agent-activity-table"
+            aria-label="Recent agent runs"
+        >
+            <thead>
+                <tr>
+                    <th scope="col">Started</th>
+                    <th scope="col">Pipeline</th>
+                    <th scope="col">Record</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Tokens</th>
+                </tr>
+            </thead>
+            <tbody id="agent-activity-tbody">
+                <!-- Populated by agent_monitor.js -->
+            </tbody>
+        </table>
+        <p id="agent-table-empty" class="agent-table-empty">
+            No agent runs recorded yet. Trigger a search from the Challenge dashboard.
+        </p>
+    </div>
+
+    <!-- Trace Reasoning Panel -->
+    <details
+        id="trace-reasoning-panel"
+        class="trace-reasoning-panel"
+        aria-label="Trace reasoning for selected run"
+        open
+    >
+        <summary class="trace-reasoning-panel__summary">
+            Trace Reasoning <span id="trace-run-label">(select a run)</span>
+        </summary>
+        <pre
+            id="trace-reasoning-content"
+            class="trace-reasoning-panel__content"
+        >
+Select an agent run above to view its chain-of-thought reasoning.
+        </pre>
+    </details>
+</section>
+
+<!-- =============================================================================
+   CORE UNIT & INTEGRATION TESTING
+   Controlled by test_execution_logic.js
+============================================================================= -->
+<section
+    id="system-testing"
+    class="system-testing"
+    aria-label="Test suite controls"
+>
+    <h2 class="system-section-heading">Core Unit &amp; Integration Testing</h2>
+
+    <div id="test-controls" class="test-controls" role="group" aria-label="Test execution buttons">
+        <button
+            id="btn-run-all-tests"
+            class="btn btn--primary"
+            type="button"
+        >
+            Run All Tests
+        </button>
+        <button
+            id="btn-run-api-tests"
+            class="btn btn--secondary"
+            type="button"
+        >
+            Run API Tests
+        </button>
+        <button
+            id="btn-run-agent-tests"
+            class="btn btn--secondary"
+            type="button"
+        >
+            Run Agent Tests
+        </button>
+    </div>
+
+    <!-- Test Output Console -->
+    <div id="test-output-console" class="test-output-console" aria-label="Test output console">
+        <pre id="test-output-content" class="test-output-console__content">
+Test output will appear here...
+        </pre>
+    </div>
+</section>
+
+<!-- =============================================================================
+   ARCHITECTURAL DOCS — View/Edit Docs & Generate Agents
+   Controlled by agent_generation_controls.js
+============================================================================= -->
+<section
+    id="system-docs"
+    class="system-docs"
+    aria-label="Architectural documentation controls"
+>
+    <h2 class="system-section-heading">Architectural Docs</h2>
+
+    <div id="docs-controls" class="docs-controls" role="group" aria-label="Documentation actions">
+        <button
+            id="btn-view-edit-docs"
+            class="btn btn--secondary"
+            type="button"
+        >
+            View / Edit Docs
+        </button>
+        <button
+            id="btn-generate-agents"
+            class="btn btn--primary"
+            type="button"
+        >
+            Generate Agents
+        </button>
+    </div>
+</section>
+
+<!-- =============================================================================
+   ERROR / STATUS DISPLAY
+   Error messages are routed through window.surfaceError() to the shared
+   Status Bar footer (js/admin_core/error_handler.js), which is already
+   present in the dashboard shell.
+============================================================================= -->

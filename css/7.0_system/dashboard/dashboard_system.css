@@ -1,0 +1,590 @@
+/* =============================================================================
+   THE JESUS WEBSITE — SYSTEM DASHBOARD STYLES
+   File:    css/7.0_system/dashboard/dashboard_system.css
+   Version: 1.0.0
+   Purpose: Providence-themed styling for the System health monitoring dashboard.
+            Covers health status cards, resource usage meters, agent activity
+            tables, trace reasoning panels, test execution console, and
+            documentation controls.
+   Source:  plan_dashboard_system §T2
+   Dependencies: typography.css (CSS custom properties)
+============================================================================= */
+
+/* =============================================================================
+   1. SECTION HEADINGS
+   Consistent heading treatment across all System dashboard sections.
+============================================================================= */
+
+.system-section-heading {
+    font-family: var(--font-heading);
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-text-primary);
+
+    margin: 0 0 var(--space-3) 0;
+    padding-bottom: var(--space-1);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* =============================================================================
+   2. FUNCTION BAR
+   Action bar at the top of the system module.
+============================================================================= */
+
+.function-bar--system {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--space-3);
+
+    padding: var(--space-3) 0;
+    margin-bottom: var(--space-4);
+
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* =============================================================================
+   3. HEALTH CARDS GRID
+   CSS Grid layout for the 5 system health cards.
+============================================================================= */
+
+.system-health-grid {
+    margin-bottom: var(--space-5);
+}
+
+.system-health-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-3);
+}
+
+/* -----------------------------------------------------------------------------
+   3a. Individual Health Card
+----------------------------------------------------------------------------- */
+
+.health-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background-color: var(--color-bg-secondary);
+
+    transition: border-color var(--transition-fast),
+                background-color var(--transition-fast);
+}
+
+.health-card:hover {
+    border-color: var(--color-border-strong);
+}
+
+.health-card__label {
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+
+    margin: 0;
+}
+
+.health-card__value {
+    font-family: var(--font-mono);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+
+    margin: var(--space-1) 0;
+
+    transition: color var(--transition-slow);
+}
+
+/* Status colour states */
+.health-card__value--ok {
+    color: var(--color-status-success);
+}
+
+.health-card__value--degraded {
+    color: #c79100;
+    /* amber — not in token set, matches theme */
+}
+
+.health-card__value--error {
+    color: var(--color-accent-primary);
+}
+
+.health-card__value--offline {
+    color: var(--color-text-muted);
+}
+
+.health-card__value--loading {
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.health-card__detail {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+
+    margin: 0;
+    min-height: 1em;
+}
+
+/* -----------------------------------------------------------------------------
+   3b. Resource Meter Bars
+   Used for CPU and Memory visual gauges inside the VPS card.
+----------------------------------------------------------------------------- */
+
+.health-card__meter {
+    display: grid;
+    grid-template-columns: 36px 1fr 48px;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.health-card__meter-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+
+    margin: 0;
+}
+
+.meter-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background-color: var(--color-bg-tertiary);
+    overflow: hidden;
+}
+
+.meter-bar__fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 4px;
+    background-color: var(--color-status-success);
+
+    transition: width var(--transition-base),
+                background-color var(--transition-base);
+}
+
+.meter-bar__fill--warning {
+    background-color: #c79100;
+}
+
+.meter-bar__fill--critical {
+    background-color: var(--color-accent-primary);
+}
+
+.health-card__meter-value {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-primary);
+    text-align: right;
+}
+
+/* =============================================================================
+   4. AGENT ACTIVITY MONITOR
+   Run history table, summary bar, and trace reasoning panel.
+============================================================================= */
+
+.system-agent-monitor {
+    margin-bottom: var(--space-5);
+}
+
+/* -----------------------------------------------------------------------------
+   4a. Summary Bar
+----------------------------------------------------------------------------- */
+
+.agent-summary-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+
+    padding: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-bg-secondary);
+}
+
+.agent-summary__stat {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+}
+
+/* -----------------------------------------------------------------------------
+   4b. Activity Table
+----------------------------------------------------------------------------- */
+
+.agent-table-wrapper {
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.agent-activity-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.agent-activity-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.agent-activity-table th {
+    text-align: left;
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+
+    border-bottom: 1px solid var(--color-border-strong);
+}
+
+.agent-activity-table td {
+    padding: var(--space-1) var(--space-3);
+    color: var(--color-text-primary);
+
+    border-bottom: 1px solid var(--color-border);
+}
+
+.agent-activity-table tbody tr {
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.agent-activity-table tbody tr:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+.agent-activity-table tbody tr.is-selected {
+    background-color: var(--color-bg-tertiary);
+}
+
+/* Status colour coding for table rows */
+.agent-activity-table .status--completed {
+    color: var(--color-status-success);
+    font-weight: var(--weight-semibold);
+}
+
+.agent-activity-table .status--failed {
+    color: var(--color-accent-primary);
+    font-weight: var(--weight-semibold);
+}
+
+.agent-activity-table .status--running {
+    color: #c79100;
+    font-weight: var(--weight-semibold);
+}
+
+/* Pulsing animation for running rows */
+.agent-activity-table tbody tr.is-running {
+    animation: agent-pulse 2s ease-in-out infinite;
+}
+
+@keyframes agent-pulse {
+    0%,
+    100% {
+        background-color: transparent;
+    }
+    50% {
+        background-color: rgba(199, 145, 0, 0.08);
+    }
+}
+
+/* Spinner for running status */
+.status--running .status-spinner {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--color-border);
+    border-top-color: #c79100;
+    border-radius: 50%;
+    animation: agent-spin 0.8s linear infinite;
+    margin-right: var(--space-1);
+}
+
+@keyframes agent-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.agent-table-empty {
+    display: none;
+    padding: var(--space-4);
+    text-align: center;
+
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+}
+
+.agent-table-empty.is-visible {
+    display: block;
+}
+
+/* -----------------------------------------------------------------------------
+   4c. Trace Reasoning Panel
+----------------------------------------------------------------------------- */
+
+.trace-reasoning-panel {
+    margin-top: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+}
+
+.trace-reasoning-panel__summary {
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-bg-tertiary);
+
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+
+    cursor: pointer;
+    user-select: none;
+
+    border-bottom: 1px solid var(--color-border);
+}
+
+.trace-reasoning-panel[open] .trace-reasoning-panel__summary {
+    border-bottom: 1px solid var(--color-border-strong);
+}
+
+#trace-run-label {
+    font-weight: var(--weight-regular);
+    text-transform: none;
+    letter-spacing: var(--tracking-normal);
+    color: var(--color-text-muted);
+}
+
+.trace-reasoning-panel__content {
+    padding: var(--space-3);
+    margin: 0;
+
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    background-color: var(--color-bg-primary);
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+/* =============================================================================
+   5. TEST EXECUTION
+   Test controls and output console.
+============================================================================= */
+
+.system-testing {
+    margin-bottom: var(--space-5);
+}
+
+.test-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.test-output-console {
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-bg-secondary);
+    overflow: hidden;
+}
+
+.test-output-console__content {
+    padding: var(--space-3);
+    margin: 0;
+
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: var(--color-bg-secondary);
+}
+
+/* =============================================================================
+   6. ARCHITECTURAL DOCS CONTROLS
+============================================================================= */
+
+.system-docs {
+    margin-bottom: var(--space-5);
+}
+
+.docs-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* =============================================================================
+   7. SHARED BUTTON STYLES
+   Reused across all System dashboard sections.
+============================================================================= */
+
+.btn {
+    padding: var(--space-1) var(--space-3);
+
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+
+    transition: background-color var(--transition-fast),
+                border-color var(--transition-fast),
+                color var(--transition-fast);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn--primary {
+    color: var(--color-text-inverse);
+    background-color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+}
+
+.btn--primary:hover:not(:disabled) {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+.btn--secondary {
+    color: var(--color-text-secondary);
+    background-color: var(--color-bg-secondary);
+    border-color: var(--color-border);
+}
+
+.btn--secondary:hover:not(:disabled) {
+    background-color: var(--color-bg-tertiary);
+    border-color: var(--color-border-strong);
+    color: var(--color-text-primary);
+}
+
+/* =============================================================================
+   8. MCP ERROR LOG STREAM
+   Compact scrollable error log beneath the MCP status card.
+============================================================================= */
+
+.mcp-error-log {
+    margin-top: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.mcp-error-log__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: var(--space-1) var(--space-2);
+    background-color: var(--color-bg-tertiary);
+
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+}
+
+.mcp-error-log__count {
+    font-family: var(--font-mono);
+    font-weight: var(--weight-regular);
+    color: var(--color-text-muted);
+}
+
+.mcp-error-log__stream {
+    padding: var(--space-2);
+    margin: 0;
+
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    max-height: 160px;
+    overflow-y: auto;
+    background-color: var(--color-bg-primary);
+}
+
+.mcp-error-log__empty {
+    padding: var(--space-2);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+/* =============================================================================
+   9. RESPONSIVE — stack cards on narrow viewports
+============================================================================= */
+
+@media (max-width: 600px) {
+    .system-health-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .agent-summary-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-1);
+    }
+
+    .test-controls,
+    .docs-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .function-bar--system {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
