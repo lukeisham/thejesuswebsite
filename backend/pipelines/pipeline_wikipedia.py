@@ -18,7 +18,6 @@
 # =============================================================================
 
 import json
-import logging
 import os
 import sqlite3
 import sys
@@ -51,7 +50,8 @@ WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php"
 # Timeout for Wikipedia API calls (seconds)
 API_TIMEOUT = 15
 
-# Overall pipeline timeout per record (seconds) — after which we abort processing that record
+# Overall pipeline timeout per record (seconds).
+# After this duration we abort processing that record.
 RECORD_TIMEOUT = 60
 
 # User-Agent header required by Wikipedia API policy
@@ -284,15 +284,17 @@ def _compute_base_score(wordcount: int, total_results: int) -> int:
     Returns:
         int: A base importance score between 1 and 100.
     """
-    # Base score from wordcount: log scale so a 100k-word article isn't 100x a 1k article
+    # Base score from wordcount: log scale so a 100k-word article
+    # isn't 100x a 1k article
     if wordcount <= 0:
         wordcount = 100  # fallback for unknown
 
     import math
 
     # log10(wordcount) maps:
-    #   100 words → 2.0,   1,000 words → 3.0,   10,000 words → 4.0
-    #   50,000 words → ~4.7,  100,000 words → 5.0
+    #   100 words → 2.0,   1,000 words → 3.0
+    #   10,000 words → 4.0,  50,000 words → ~4.7
+    #   100,000 words → 5.0
     log_wordcount = math.log10(max(wordcount, 1))
 
     # Scale to roughly 20-100 range
@@ -425,6 +427,7 @@ def _save_wikipedia_data(
     Returns:
         bool: True on success, False on failure.
     """
+    conn = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -470,10 +473,11 @@ def _save_wikipedia_data(
             f"Error: Failed to save Wikipedia data for record '{record_id}'. "
             f"Database write error: {e}"
         )
-        try:
-            conn.close()
-        except Exception:
-            pass
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
         return False
 
 
@@ -742,13 +746,19 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Wikipedia ingestion pipeline — fetches and ranks Wikipedia articles for records."
+        description=(
+            "Wikipedia ingestion pipeline — "
+            "fetches and ranks Wikipedia articles for records."
+        )
     )
     parser.add_argument(
         "--record-id",
         type=str,
         default=None,
-        help="Process only the specified record ID. If omitted, processes all records with search terms.",
+        help=(
+            "Process only the specified record ID. "
+            "If omitted, processes all records with search terms."
+        ),
     )
 
     args = parser.parse_args()

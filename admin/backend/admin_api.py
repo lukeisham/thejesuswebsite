@@ -1150,6 +1150,221 @@ async def mcp_health(admin_data: dict = Depends(verify_token)):
 
 
 # =============================================================================
+# T4a — System Dashboard Action Endpoints
+#   Added by: plan_system_api_endpoints (resolves plan_issues.md #12)
+#   These endpoints are called by js/7.0_system/dashboard/test_execution_logic.js
+#   and js/7.0_system/dashboard/agent_generation_controls.js.
+# =============================================================================
+
+
+@app.post("/api/admin/tests/run")
+async def run_test_suite(
+    suite: str = Query("all"),
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Spawns test suites as subprocesses and returns their output.
+
+    Query params:
+        suite — 'all' (default), 'api', 'agent', or 'port'
+
+    Suite-to-script mapping:
+        all   → port_test.py + security_audit.py + agent_readability_test.py
+        api   → port_test.py + security_audit.py
+        agent → agent_readability_test.py
+        port  → port_test.py
+
+    Returns { status, results: [{ name, passed, message }], summary }.
+    Consumed by test_execution_logic.js in the System dashboard.
+    """
+    valid_suites = {"all", "api", "agent", "port"}
+    if suite not in valid_suites:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid suite. Must be one of: {', '.join(sorted(valid_suites))}.",
+        )
+
+    # Determine which test scripts to run
+    tests_dir = os.path.join(os.path.dirname(__file__), "..", "..", "tests")
+    script_map = {
+        "port_test.py": "Port Availability",
+        "security_audit.py": "Security Baseline Audit",
+        "agent_readability_test.py": "Agent Readability",
+    }
+
+    scripts_to_run = []
+    if suite in ("all", "api", "port"):
+        scripts_to_run.append("port_test.py")
+    if suite in ("all", "api"):
+        scripts_to_run.append("security_audit.py")
+    if suite in ("all", "agent"):
+        scripts_to_run.append("agent_readability_test.py")
+
+    results = []
+    passed_count = 0
+    total_count = len(scripts_to_run)
+
+    for script in scripts_to_run:
+        script_path = os.path.join(tests_dir, script)
+        script_label = script_map.get(script, script)
+
+        if not os.path.exists(script_path):
+            results.append(
+                {
+                    "name": script_label,
+                    "passed": False,
+                    "message": f"Test script not found: {script_path}",
+                }
+            )
+            continue
+
+        try:
+            proc = subprocess.run(
+                [sys.executable, script_path],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=os.path.join(os.path.dirname(__file__), "..", ".."),
+            )
+            passed = proc.returncode == 0
+            if passed:
+                passed_count += 1
+
+            # Collect the last few meaningful lines of output for the message
+            output_lines = [
+                line.strip()
+                for line in (proc.stdout + proc.stderr).splitlines()
+                if line.strip()
+            ]
+            # Take up to 5 most relevant lines (look for SUCCESS/FAILURE/ERROR
+            # keywords first, then fall back to the last lines)
+            keyword_lines = [
+                line
+                for line in output_lines
+                if any(
+                    kw in line.upper()
+                    for kw in (
+                        "SUCCESS",
+                        "FAILURE",
+                        "ERROR",
+                        "PASSED",
+                        "FAIL",
+                        "STABLE",
+                        "VULNERABILITIES",
+                    )
+                )
+            ]
+            message_lines = keyword_lines if keyword_lines else output_lines[-5:]
+            message = "; ".join(message_lines) if message_lines else "(no output)"
+
+            results.append(
+                {
+                    "name": script_label,
+                    "passed": passed,
+                    "message": message,
+                }
+            )
+        except subprocess.TimeoutExpired:
+            results.append(
+                {
+                    "name": script_label,
+                    "passed": False,
+                    "message": "Test timed out after 30 seconds.",
+                }
+            )
+        except Exception as exc:
+            results.append(
+                {
+                    "name": script_label,
+                    "passed": False,
+                    "message": f"Subprocess error: {exc}",
+                }
+            )
+
+    summary = f"{passed_count}/{total_count} test suites passed"
+    return {
+        "status": "completed"
+        if passed_count == total_count
+        else "completed_with_failures",
+        "results": results,
+        "summary": summary,
+    }
+
+
+@app.post("/api/admin/docs/open")
+async def open_docs_editor(admin_data: dict = Depends(verify_token)):
+    """
+    PLACEHOLDER — returns 501 Not Implemented.
+    The frontend handleViewEditDocs() already handles non-2xx responses
+    gracefully via its catch block and surfaceError().
+
+    Future plan: implement a documentation editing session that returns
+    a URL to a live docs editor.
+    """
+    raise HTTPException(
+        status_code=501,
+        detail="Documentation editor is not yet implemented.",
+    )
+
+
+@app.post("/api/admin/agents/generate")
+async def generate_agents(admin_data: dict = Depends(verify_token)):
+    """
+    PLACEHOLDER — returns 501 Not Implemented.
+    The frontend handleGenerateAgents() already handles non-2xx responses
+    gracefully via its catch block and surfaceError().
+
+    Future plan: implement an agent generation workflow that spawns new
+    AI agents based on architectural documentation and returns a count
+    of agents created.
+    """
+    raise HTTPException(
+        status_code=501,
+        detail="Agent generation workflow is not yet implemented.",
+    )
+
+
+@app.post("/api/admin/services/restart")
+async def restart_services(admin_data: dict = Depends(verify_token)):
+    """
+    Initiates a restart of the admin.service systemd unit.
+
+    Design: The endpoint returns HTTP 200 immediately, then spawns a
+    daemon thread that sleeps 1 second (allowing the HTTP response to
+    flush to the client) before running `sudo systemctl restart admin.service`.
+
+    The frontend handleRestartServices() waits 3 seconds after receiving
+    the response before calling location.reload(), which gives the systemd
+    unit enough time to cycle.
+
+    Consumed by agent_generation_controls.js in the System dashboard.
+    """
+
+    def _do_restart():
+        """Daemon thread: wait for response to flush, then restart."""
+        import time as _time
+
+        _time.sleep(1.0)
+        try:
+            subprocess.run(
+                ["sudo", "systemctl", "restart", "admin.service"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except Exception as exc:
+            logger.error(f"Service restart failed: {exc}")
+
+    thread = threading.Thread(target=_do_restart, daemon=True)
+    thread.start()
+
+    return {
+        "message": "Services restart initiated.",
+        "service": "admin.service",
+    }
+
+
+# =============================================================================
 # T5 — Essay, Historiography & Snippet/Metadata Trigger Endpoints
 # =============================================================================
 

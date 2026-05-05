@@ -639,3 +639,7 @@ documentation/
 | `GET` | `/api/admin/mcp/health` | MCP server status (tools, errors, uptime) |
 | `POST` | `/api/admin/agent/run` | Trigger DeepSeek agent pipeline |
 | `GET` | `/api/admin/agent/logs` | Paginated agent run history |
+| `POST` | `/api/admin/tests/run` | Spawn test suites (port, security, agent readability) via subprocess |
+| `POST` | `/api/admin/docs/open` | Stub — documentation editor (future plan) |
+| `POST` | `/api/admin/agents/generate` | Stub — agent generation workflow (future plan) |
+| `POST` | `/api/admin/services/restart` | Restart admin.service systemd unit |

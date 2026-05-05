@@ -40,13 +40,11 @@
 # =============================================================================
 
 import json
-import logging
 import os
 import sqlite3
 import sys
 import time
 from datetime import datetime, timezone
-from xml.etree import ElementTree
 
 # Ensure package context is recognized when running directly from CLI
 sys.path.append(
@@ -101,7 +99,9 @@ def run_pipeline():
         if not keywords:
             logger.warning("No search keywords found in any source or global config.")
             return {
-                "error": "Error: No news items found matching the current search keywords.",
+                "error": (
+                    "Error: No news items found matching the current search keywords."
+                ),
                 "items_collected": 0,
             }
 
@@ -112,7 +112,10 @@ def run_pipeline():
         if not sources:
             logger.warning("No news sources configured in the database.")
             return {
-                "error": "Error: No news sources configured. Add sources in the News Sources dashboard.",
+                "error": (
+                    "Error: No news sources configured. "
+                    "Add sources in the News Sources dashboard."
+                ),
                 "items_collected": 0,
             }
 
@@ -138,7 +141,11 @@ def run_pipeline():
                 )
                 all_items.append(
                     {
-                        "title": f"[Pipeline Timeout] Partial crawl: {len(all_items)} items collected before timeout.",
+                        "title": (
+                            f"[Pipeline Timeout] Partial crawl: "
+                            f"{len(all_items)} items collected "
+                            f"before timeout."
+                        ),
                         "timestamp": datetime.now(timezone.utc).isoformat(),
                         "url": "",
                     }
@@ -160,7 +167,9 @@ def run_pipeline():
         if not all_items:
             logger.warning("No news items found matching the current search keywords.")
             return {
-                "error": "Error: No news items found matching the current search keywords.",
+                "error": (
+                    "Error: No news items found matching the current search keywords."
+                ),
                 "items_collected": 0,
                 "failed_sources": failed_sources,
             }
@@ -185,12 +194,15 @@ def run_pipeline():
                 )
             else:
                 # Create the anchor record if missing
-                import ulid
+                from ulid import ULID
 
-                record_id = str(ulid.new())
+                record_id = str(ULID())
                 cursor.execute(
                     """
-                    INSERT INTO records (id, title, slug, news_items, created_at, updated_at, status)
+                    INSERT INTO records (
+                        id, title, slug, news_items,
+                        created_at, updated_at, status
+                    )
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
@@ -223,7 +235,10 @@ def run_pipeline():
         except sqlite3.Error as db_err:
             logger.error(f"Database write failed: {db_err}")
             return {
-                "error": "Error: Failed to save news items to the database. Write error on 'global-news-feed'.",
+                "error": (
+                    "Error: Failed to save news items to the "
+                    "database. Write error on 'global-news-feed'."
+                ),
                 "items_collected": len(all_items),
             }
 
@@ -259,7 +274,8 @@ def _collect_search_keywords(conn):
 
     # Collect from per-record news_search_term fields
     cursor.execute(
-        "SELECT news_search_term FROM records WHERE news_search_term IS NOT NULL AND news_search_term != ''"
+        "SELECT news_search_term FROM records "
+        "WHERE news_search_term IS NOT NULL AND news_search_term != ''"
     )
     rows = cursor.fetchall()
 
@@ -317,7 +333,8 @@ def _collect_source_urls(conn):
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT id, title, slug, news_sources FROM records WHERE news_sources IS NOT NULL AND news_sources != ''"
+        "SELECT id, title, slug, news_sources FROM records "
+        "WHERE news_sources IS NOT NULL AND news_sources != ''"
     )
     rows = cursor.fetchall()
 
