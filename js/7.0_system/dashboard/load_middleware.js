@@ -16,25 +16,25 @@
    Calls the verify endpoint. Redirects to login on failure.
 ----------------------------------------------------------------------------- */
 async function verifyAdminSession() {
-    try {
-        const response = await fetch("/api/admin/verify", {
-            method: "GET",
-            credentials: "same-origin",
-        });
+  try {
+    const response = await fetch("/api/admin/verify", {
+      method: "GET",
+      credentials: "same-origin",
+    });
 
-        if (response.ok) {
-            // Session is valid — dashboard can proceed
-            return true;
-        }
-
-        // Session invalid — redirect to login
-        console.warn("[load_middleware] Session invalid — redirecting to login.");
-        window.location.href = "/admin/login.html";
-        return false;
-    } catch (err) {
-        // Network error or API unreachable — redirect to login for safety
-        console.error("[load_middleware] Session verification failed:", err);
-        window.location.href = "/admin/login.html";
-        return false;
+    if (response.ok) {
+      // Session is valid — dashboard can proceed
+      return true;
     }
+
+    // Session invalid — redirect to login
+    console.warn("[load_middleware] Session invalid — redirecting to login.");
+    window.location.href = "/admin/frontend/login.html";
+    return false;
+  } catch (err) {
+    // Network error or API unreachable — redirect to login for safety
+    console.error("[load_middleware] Session verification failed:", err);
+    window.location.href = "/admin/frontend/login.html";
+    return false;
+  }
 }

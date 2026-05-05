@@ -26,7 +26,6 @@ const MODULE_RENDERERS = {
   arbor: "renderArbor",
   wikipedia: "renderWikipedia",
   challenge: "renderChallenge",
-  "challenge-response": "renderChallengeResponse",
   "essay-historiography": "renderEssayHistoriography",
   "news-sources": "renderNewsSources",
   "blog-posts": "renderBlogPosts",
@@ -40,7 +39,6 @@ const MODULE_LABELS = {
   arbor: "Arbor",
   wikipedia: "Wikipedia",
   challenge: "Challenges",
-  "challenge-response": "Challenge Resp.",
   "essay-historiography": "Essay & Hist.",
   "news-sources": "News Sources",
   "blog-posts": "Blog Posts",
@@ -154,9 +152,7 @@ function _setLayoutColumns(sidebarWidth, mainWidth) {
   const noSidebar =
     sidebarWidth !== undefined &&
     sidebarWidth !== null &&
-    (sidebarWidth === false ||
-      sidebarWidth === "0px" ||
-      sidebarWidth === "0");
+    (sidebarWidth === false || sidebarWidth === "0px" || sidebarWidth === "0");
 
   if (noSidebar) {
     // Collapse sidebar, divider, and gap - main area goes full width

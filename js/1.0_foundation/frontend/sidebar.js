@@ -94,7 +94,7 @@ function injectSidebar(anchorId, activePage, tocItems) {
 
     <div class="site-sidebar__footer">
         <hr class="site-sidebar__divider" aria-hidden="true" />
-        <a href="/admin/frontend/admin.html" id="sidebar-admin-link" class="site-sidebar__admin-link">
+        <a href="/admin/frontend/login.html" id="sidebar-admin-link" class="site-sidebar__admin-link">
             Admin Portal
         </a>
     </div>

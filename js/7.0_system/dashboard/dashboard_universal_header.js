@@ -19,14 +19,16 @@
    event handlers.
 ----------------------------------------------------------------------------- */
 function injectUniversalHeader() {
-    const headerEl = document.getElementById("admin-header");
-    if (!headerEl) {
-        console.warn("[dashboard_universal_header] #admin-header not found — header injection skipped.");
-        return;
-    }
+  const headerEl = document.getElementById("admin-header");
+  if (!headerEl) {
+    console.warn(
+      "[dashboard_universal_header] #admin-header not found — header injection skipped.",
+    );
+    return;
+  }
 
-    // Build the header DOM
-    headerEl.innerHTML = `
+  // Build the header DOM
+  headerEl.innerHTML = `
         <!-- Left: Branding -->
         <div class="header-brand">
             <span class="header-brand__accent" aria-hidden="true">✦✦</span>
@@ -64,10 +66,14 @@ function injectUniversalHeader() {
         </nav>
     `;
 
-    // Wire up navigation handlers
-    document.getElementById("nav-return-frontend").addEventListener("click", handleReturnToFrontend);
-    document.getElementById("nav-dashboard-home").addEventListener("click", handleDashboardHome);
-    document.getElementById("nav-logout").addEventListener("click", handleLogout);
+  // Wire up navigation handlers
+  document
+    .getElementById("nav-return-frontend")
+    .addEventListener("click", handleReturnToFrontend);
+  document
+    .getElementById("nav-dashboard-home")
+    .addEventListener("click", handleDashboardHome);
+  document.getElementById("nav-logout").addEventListener("click", handleLogout);
 }
 
 /* -----------------------------------------------------------------------------
@@ -76,7 +82,7 @@ function injectUniversalHeader() {
    user can return to the dashboard without re-authenticating.
 ----------------------------------------------------------------------------- */
 function handleReturnToFrontend() {
-    window.location.href = "/";
+  window.location.href = "/";
 }
 
 /* -----------------------------------------------------------------------------
@@ -85,7 +91,7 @@ function handleReturnToFrontend() {
    this reloads the page to reset to the clean landing state.
 ----------------------------------------------------------------------------- */
 function handleDashboardHome() {
-    window.location.href = "/admin/dashboard.html";
+  window.location.href = "/admin/frontend/dashboard.html";
 }
 
 /* -----------------------------------------------------------------------------
@@ -94,16 +100,16 @@ function handleDashboardHome() {
    then redirects to the public-facing site.
 ----------------------------------------------------------------------------- */
 async function handleLogout() {
-    try {
-        await fetch("/api/admin/logout", {
-            method: "POST",
-            credentials: "same-origin",
-        });
-    } catch (err) {
-        // Even if the API call fails (e.g. network), still redirect.
-        // The cookie may persist but the user navigates away.
-        console.warn("[dashboard_universal_header] Logout API call failed:", err);
-    }
+  try {
+    await fetch("/api/admin/logout", {
+      method: "POST",
+      credentials: "same-origin",
+    });
+  } catch (err) {
+    // Even if the API call fails (e.g. network), still redirect.
+    // The cookie may persist but the user navigates away.
+    console.warn("[dashboard_universal_header] Logout API call failed:", err);
+  }
 
-    window.location.href = "/";
+  window.location.href = "/";
 }
