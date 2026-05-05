@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "Security update"
+git commit -m "synching frontend and backend"
 git push origin main 
 
 # Pulling from Github to server
@@ -60,7 +60,6 @@ Compare the frontend and backend functionality matches
 
 # Next project
 
-blog-editor-list-heading
 
 ---
 
