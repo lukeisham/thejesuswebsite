@@ -214,6 +214,63 @@ async def get_all_records(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class BatchUpdateItem(BaseModel):
+    slug: str
+    data: Dict[str, Any]
+
+
+@app.put("/api/admin/records/batch")
+async def batch_update_records(
+    body: List[BatchUpdateItem],
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Batch-updates multiple records in a single transaction.
+    Accepts a JSON array of {"slug": str, "data": {column: value}} objects.
+    Each object's data is filtered against valid columns to prevent SQL injection.
+    Matches records by slug (not ULID) since challenge operations use slugs.
+    Returns count of successfully updated records. If any update fails,
+    the entire transaction is rolled back.
+    """
+    if not body:
+        return {"message": "No updates provided", "count": 0}
+
+    try:
+        conn = get_db_connection()
+        valid_cols = get_valid_columns(conn)
+        cursor = conn.cursor()
+        updated = 0
+
+        cursor.execute("BEGIN TRANSACTION")
+
+        for item in body:
+            safe_data = {k: v for k, v in item.data.items() if k in valid_cols}
+            if not safe_data:
+                continue
+
+            set_clause = ", ".join([f"{k} = ?" for k in safe_data.keys()])
+            values = tuple(safe_data.values()) + (item.slug,)
+            cursor.execute(f"UPDATE records SET {set_clause} WHERE slug = ?", values)
+            if cursor.rowcount > 0:
+                updated += 1
+
+        conn.commit()
+        conn.close()
+        return {
+            "message": f"{updated} record(s) updated successfully",
+            "count": updated,
+        }
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+            conn.close()
+        raise HTTPException(
+            status_code=500,
+            detail="Batch update failed, all changes rolled back: " + str(e),
+        )
+
+
 @app.get("/api/admin/records/{record_id}")
 async def get_single_record(record_id: str, admin_data: dict = Depends(verify_token)):
     """
@@ -1751,7 +1808,9 @@ async def create_response(
         except (json.JSONDecodeError, TypeError):
             response_list = []
 
-        response_list.append({"id": new_id, "title": body.title, "slug": new_slug})
+        response_list.append(
+            {"id": new_id, "title": body.title, "slug": new_slug, "status": "draft"}
+        )
         cursor.execute(
             "UPDATE records SET responses = ?, updated_at = ? WHERE id = ?",
             (json.dumps(response_list), now, parent["id"]),

@@ -81,8 +81,8 @@ async function refreshChallengeRankings() {
     return b.score - a.score;
   });
 
-  // Assign new ranks and save
-  var savePromises = [];
+  // Assign new ranks and build batch payload
+  var updates = [];
   var newChallenges = [];
 
   scored.forEach(function (item, index) {
@@ -92,24 +92,26 @@ async function refreshChallengeRankings() {
 
     var payload = {};
     payload[rankCol] = String(newRank);
-    payload["status"] = "draft"; // Set to draft — rankings not live until published
 
-    savePromises.push(
-      fetch("/api/admin/records/" + encodeURIComponent(challenge.slug), {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }).then(function (resp) {
-        if (!resp.ok) {
-          throw new Error("Failed to update rank for " + challenge.slug);
-        }
-        return resp.json();
-      }),
-    );
+    updates.push({
+      slug: challenge.slug,
+      data: payload,
+    });
   });
 
   try {
-    await Promise.all(savePromises);
+    // Use the batch endpoint — atomic transaction with automatic rollback
+    var batchResponse = await fetch("/api/admin/records/batch", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    });
+
+    if (!batchResponse.ok) {
+      throw new Error(
+        "Batch update failed with status " + batchResponse.status,
+      );
+    }
 
     // Update module state
     window._challengeModuleState.challenges = newChallenges;
@@ -120,15 +122,13 @@ async function refreshChallengeRankings() {
     }
 
     if (typeof window.surfaceError === "function") {
-      window.surfaceError(
-        "Challenge rankings recalculated. All records set to draft.",
-      );
+      window.surfaceError("Challenge rankings recalculated.");
     }
   } catch (err) {
     console.error("[challenge_ranking_calculator] Rank refresh failed:", err);
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
-        "Error: Failed to refresh challenge rankings. Please try again.",
+        "Error: Failed to refresh challenge rankings. No changes were saved.",
       );
     }
   }
@@ -203,7 +203,7 @@ async function triggerAgentSearch() {
 
       try {
         var logsResponse = await fetch(
-          "/api/admin/agent/logs?limit=5&pipeline=" +
+          "/api/admin/agent/logs?limit=50&pipeline=" +
             encodeURIComponent(pipeline),
           {
             method: "GET",
@@ -334,21 +334,10 @@ async function publishChallengeRankings() {
       );
     }
 
-    // 2. Set all listed records to published
-    var publishPromises = challenges.map(function (challenge) {
-      return fetch("/api/admin/records/" + encodeURIComponent(challenge.slug), {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "published" }),
-      }).then(function (resp) {
-        if (!resp.ok) {
-          throw new Error("Failed to publish " + challenge.slug);
-        }
-        return resp.json();
-      });
-    });
-
-    await Promise.all(publishPromises);
+    // Note: We do NOT change each record's status to 'published' here.
+    // The record lifecycle status (draft/published) is independent of
+    // whether it appears in a published challenge list. The resource_lists
+    // table handles list-level publication.
 
     // Refresh display
     if (typeof window.displayChallengeList === "function") {
