@@ -413,17 +413,36 @@ async def public_blogpost_by_slug(slug: str):
 
 
 @app.get("/api/public/news")
-async def public_news_items():
+async def public_news_items(
+    limit: int = 50,
+    offset: int = 0,
+):
     """
-    Returns all published records with news_items column NOT NULL.
+    Returns paginated, published records with news_items column NOT NULL.
+
+    Query parameters:
+      limit  — Max rows to return (default 50, max 200).
+      offset — Row offset for pagination (default 0).
     """
     try:
         conn = get_public_db_connection()
         cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT COUNT(*) as total FROM records WHERE news_items IS NOT NULL "
+            "AND status = 'published'"
+        )
+        total = cursor.fetchone()["total"]
+
+        safe_limit = max(1, min(limit, 200))
+        safe_offset = max(0, offset)
+
         cursor.execute(
             "SELECT id, title, slug, snippet, news_items, created_at, "
             "updated_at FROM records WHERE news_items IS NOT NULL "
-            "AND status = 'published' ORDER BY created_at DESC"
+            "AND status = 'published' ORDER BY created_at DESC "
+            "LIMIT ? OFFSET ?",
+            (safe_limit, safe_offset),
         )
         rows = cursor.fetchall()
         conn.close()
@@ -436,7 +455,14 @@ async def public_news_items():
                 except (json.JSONDecodeError, TypeError):
                     pass
             items.append(item)
-        return {"news": items}
+        has_more = (safe_offset + len(items)) < total
+        return {
+            "news": items,
+            "total": total,
+            "offset": safe_offset,
+            "limit": safe_limit,
+            "has_more": has_more,
+        }
     except HTTPException:
         raise
     except Exception as e:

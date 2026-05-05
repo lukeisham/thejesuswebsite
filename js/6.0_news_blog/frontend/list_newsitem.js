@@ -2,26 +2,45 @@
 //
 //   THE JESUS WEBSITE — NEWS FEED DISPLAY
 //   File:    js/6.0_news_blog/frontend/list_newsitem.js
-//   Version: 1.1.0
-//   Purpose: Fetches and renders news items from the public API.
+//   Version: 1.2.0
+//   Purpose: Fetches and renders news items from the public API with
+//            rolling pagination ("Load More" button).
 //   Source:  guide_appearance.md §5.3
 //
 // =============================================================================
 
-// Trigger: DOMContentLoaded -> renderNewsFeed()
-// Function: Fetches published news items from the public API and renders
-//           them as a chronological feed.
-// Output: Injects a list of <article> elements into #news-feed-content
+var _newsFeedState = {
+  offset: 0,
+  limit: 10,
+  hasMore: true,
+  loading: false,
+};
 
 function renderNewsFeed() {
   var listEl = document.getElementById("news-feed-content");
   if (!listEl) return;
 
-  // Show loading state
   listEl.innerHTML = '<p class="text-sm text-muted">Loading news feed...</p>';
 
-  // Fetch news items from the public API
-  fetch("/api/public/news")
+  _newsFeedState.offset = 0;
+  _newsFeedState.hasMore = true;
+
+  _fetchAndAppendNews(listEl, true);
+}
+
+function _fetchAndAppendNews(listEl, isFresh) {
+  if (_newsFeedState.loading) return;
+  if (!_newsFeedState.hasMore && !isFresh) return;
+
+  _newsFeedState.loading = true;
+
+  var url =
+    "/api/public/news?limit=" +
+    _newsFeedState.limit +
+    "&offset=" +
+    _newsFeedState.offset;
+
+  fetch(url)
     .then(function (response) {
       if (!response.ok) {
         throw new Error(
@@ -32,71 +51,127 @@ function renderNewsFeed() {
     })
     .then(function (data) {
       var newsItems = data.news || [];
+      _newsFeedState.hasMore = data.has_more || false;
 
-      if (newsItems.length === 0) {
+      if (isFresh) {
+        listEl.innerHTML = "";
+      }
+
+      if (newsItems.length === 0 && isFresh) {
         listEl.innerHTML =
           '<div class="empty-state text-center py-12">' +
           '<p class="text-lg text-muted font-serif">No news items yet.</p>' +
-          '<p class="text-sm text-secondary mt-2">Check back soon for updates.</p>' +
+          '<p class="text-sm text-secondary mt-2">' +
+          "Check back soon for updates.</p>" +
           "</div>";
+        _newsFeedState.loading = false;
         return;
       }
 
       var html = newsItems
         .map(function (item) {
-          var date = item.updated_at || item.created_at || "";
-          var title = item.title || "Untitled";
-          var snippet = "";
-
-          // Extract snippet from the news_items JSON blob
-          if (item.news_items && typeof item.news_items === "object") {
-            snippet = item.news_items.summary || item.news_items.excerpt || "";
-          }
-          if (!snippet && item.snippet) {
-            try {
-              var parsed =
-                typeof item.snippet === "string"
-                  ? JSON.parse(item.snippet)
-                  : item.snippet;
-              snippet = Array.isArray(parsed) ? parsed[0] || "" : parsed;
-            } catch (e) {
-              snippet = item.snippet;
-            }
-          }
-          if (typeof snippet === "object") {
-            snippet = snippet.text || "";
-          }
-
-          return (
-            '<article class="essay-container mb-8" style="padding-bottom: var(--space-6); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-6);">' +
-            '<h2 class="text-2xl font-bold mb-2 font-serif text-primary">' +
-            escapeHtml(title) +
-            "</h2>" +
-            '<div class="text-sm font-mono text-muted mb-4">' +
-            escapeHtml(formatDate(date)) +
-            "</div>" +
-            (snippet
-              ? '<div class="text-base text-body" style="line-height: var(--line-height-relaxed);">' +
-                "<p>" +
-                escapeHtml(String(snippet).substring(0, 300)) +
-                "</p>" +
-                "</div>"
-              : "") +
-            "</article>"
-          );
+          var snippet = _extractNewsSnippet(item);
+          return _buildNewsHtml(item, snippet);
         })
         .join("");
 
-      listEl.innerHTML = html;
+      var oldBtn = listEl.querySelector(".news-feed__load-more");
+      if (oldBtn) oldBtn.remove();
+
+      if (isFresh) {
+        listEl.innerHTML = html;
+      } else {
+        listEl.insertAdjacentHTML("beforeend", html);
+      }
+
+      _newsFeedState.offset += newsItems.length;
+
+      if (_newsFeedState.hasMore) {
+        var loadMoreBtn = document.createElement("button");
+        loadMoreBtn.className = "news-feed__load-more";
+        loadMoreBtn.textContent = "Load More";
+        loadMoreBtn.addEventListener("click", function () {
+          _fetchAndAppendNews(listEl, false);
+        });
+        listEl.appendChild(loadMoreBtn);
+      }
+
+      _newsFeedState.loading = false;
     })
     .catch(function (err) {
       console.error("News feed error:", err);
-      listEl.innerHTML =
-        '<div class="empty-state text-center py-12">' +
-        '<p class="text-lg text-muted font-serif">Unable to load news feed.</p>' +
-        '<p class="text-sm text-secondary mt-2">Please try again later.</p>' +
-        "</div>";
+      if (isFresh) {
+        listEl.innerHTML =
+          '<div class="empty-state text-center py-12">' +
+          '<p class="text-lg text-muted font-serif">' +
+          "Unable to load news feed.</p>" +
+          '<p class="text-sm text-secondary mt-2">' +
+          "Please try again later.</p>" +
+          "</div>";
+      }
+      _newsFeedState.loading = false;
     });
+}
+
+function _extractNewsSnippet(item) {
+  var snippet = "";
+
+  if (item.news_items && typeof item.news_items === "object") {
+    snippet = item.news_items.summary || item.news_items.excerpt || "";
+
+    // Fallback: extract first 300 chars from news_items content
+    if (!snippet) {
+      var content = item.news_items.content || item.news_items.body || "";
+      if (typeof content === "string") {
+        snippet = content.replace(/\n{2,}/g, " ").substring(0, 300);
+      }
+    }
+  }
+
+  if (!snippet && item.snippet) {
+    try {
+      var parsed =
+        typeof item.snippet === "string"
+          ? JSON.parse(item.snippet)
+          : item.snippet;
+      snippet = Array.isArray(parsed) ? parsed[0] || "" : parsed;
+    } catch (e) {
+      snippet = item.snippet;
+    }
+  }
+
+  if (typeof snippet === "object") {
+    snippet = snippet.text || "";
+  }
+
+  return snippet;
+}
+
+function _buildNewsHtml(item, snippet) {
+  var date = item.updated_at || item.created_at || "";
+  var title = item.title || "Untitled";
+
+  return (
+    '<article class="essay-container mb-8" style="' +
+    "padding-bottom: var(--space-6); " +
+    "border-bottom: 1px solid var(--color-border); " +
+    "margin-bottom: var(--space-6);" +
+    '">' +
+    '<h2 class="text-2xl font-bold mb-2 font-serif text-primary">' +
+    escapeHtml(title) +
+    "</h2>" +
+    '<div class="text-sm font-mono text-muted mb-4">' +
+    escapeHtml(formatDate(date)) +
+    "</div>" +
+    (snippet
+      ? '<div class="text-base text-body" style="line-height: var(--line-height-relaxed);">' +
+        "<p>" +
+        escapeHtml(String(snippet).substring(0, 300)) +
+        "</p>" +
+        "</div>"
+      : "") +
+    "</article>"
+  );
 }
 
 function escapeHtml(str) {
