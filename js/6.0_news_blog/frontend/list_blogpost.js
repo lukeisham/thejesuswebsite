@@ -26,8 +26,7 @@ function renderBlogFeed() {
   if (!listEl) return;
 
   // Show loading state
-  listEl.innerHTML =
-    '<p class="text-sm text-muted">Loading blog posts...</p>';
+  listEl.innerHTML = '<p class="text-sm text-muted">Loading blog posts...</p>';
 
   // Reset pagination state
   _blogFeedState.offset = 0;
@@ -128,8 +127,7 @@ function _extractSnippet(item) {
 
   // Try blogposts.summary or blogposts.excerpt
   if (item.blogposts && typeof item.blogposts === "object") {
-    snippet =
-      item.blogposts.summary || item.blogposts.excerpt || "";
+    snippet = item.blogposts.summary || item.blogposts.excerpt || "";
 
     // Fallback: extract first 300 chars from blogposts.content or body
     if (!snippet) {
@@ -169,7 +167,7 @@ function _buildPostHtml(item, snippet) {
     '<article class="essay-container mb-8" style="' +
     "padding-bottom: var(--space-6); " +
     "border-bottom: 1px solid var(--color-border); " +
-    "margin-bottom: var(--space-6);">" +
+    'margin-bottom: var(--space-6);">' +
     '<h2 class="text-2xl font-bold mb-2 font-serif text-primary">' +
     (slug
       ? '<a href="/blog/' +

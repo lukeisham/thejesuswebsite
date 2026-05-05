@@ -235,6 +235,7 @@ async def batch_update_records(
     if not body:
         return {"message": "No updates provided", "count": 0}
 
+    conn = None
     try:
         conn = get_db_connection()
         valid_cols = get_valid_columns(conn)
