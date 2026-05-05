@@ -5,7 +5,7 @@
 # Push to GitHub
 
 git add .
-git commit -m "synching frontend and backend"
+git commit -m "wikipedia list fixes"
 git push origin main 
 
 # Pulling from Github to server

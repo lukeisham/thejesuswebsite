@@ -1921,7 +1921,11 @@ async def trigger_agent_run(
     3. Spawns the agent run asynchronously (returns 202 Accepted immediately).
     4. Returns {"run_id": int, "status": "running"}.
     """
-    valid_pipelines = {"academic_challenges", "popular_challenges"}
+    valid_pipelines = {
+        "academic_challenges",
+        "popular_challenges",
+        "wikipedia_pipeline",
+    }
 
     if body.pipeline not in valid_pipelines:
         raise HTTPException(

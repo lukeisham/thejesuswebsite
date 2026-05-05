@@ -127,6 +127,11 @@ async def blog_post_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/blog_post.html"))
 
 
+@app.get("/blog/{slug}")
+async def blog_post_by_slug(slug: str):
+    return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/blog_post.html"))
+
+
 @app.get("/about")
 async def about_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/about.html"))
@@ -287,18 +292,38 @@ async def resources_world_events_page():
 
 
 @app.get("/api/public/blogposts")
-async def public_blogposts():
+async def public_blogposts(
+    limit: int = 50,
+    offset: int = 0,
+):
     """
-    Returns all published records with blogposts column NOT NULL.
+    Returns paginated, published records with blogposts column NOT NULL.
+
+    Query parameters:
+      limit  — Max rows to return (default 50, max 200).
+      offset — Row offset for pagination (default 0).
     """
     try:
         conn = get_public_db_connection()
         cursor = conn.cursor()
+
+        # Get total count for pagination metadata
+        cursor.execute(
+            "SELECT COUNT(*) as total FROM records WHERE blogposts IS NOT NULL "
+            "AND status = 'published'"
+        )
+        total = cursor.fetchone()["total"]
+
+        safe_limit = max(1, min(limit, 200))
+        safe_offset = max(0, offset)
+
         cursor.execute(
             "SELECT id, title, slug, snippet, blogposts, "
             "created_at, updated_at, picture_name, bibliography, context_links "
             "FROM records WHERE blogposts IS NOT NULL "
-            "AND status = 'published' ORDER BY created_at DESC"
+            "AND status = 'published' ORDER BY created_at DESC "
+            "LIMIT ? OFFSET ?",
+            (safe_limit, safe_offset),
         )
         rows = cursor.fetchall()
         conn.close()
@@ -321,7 +346,14 @@ async def public_blogposts():
                 except (json.JSONDecodeError, TypeError):
                     pass
             posts.append(post)
-        return {"posts": posts}
+        has_more = (safe_offset + len(posts)) < total
+        return {
+            "posts": posts,
+            "total": total,
+            "offset": safe_offset,
+            "limit": safe_limit,
+            "has_more": has_more,
+        }
     except HTTPException:
         raise
     except Exception as e:

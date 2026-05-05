@@ -19,9 +19,16 @@ function renderBlogPost() {
   var container = document.getElementById("blog-post-container");
   if (!container) return;
 
-  // Read slug from query string
+  // Resolve slug from URL — prefer query param, fallback to clean path /blog/{slug}
   var urlParams = new URLSearchParams(window.location.search);
   var slug = urlParams.get("slug");
+
+  if (!slug) {
+    var pathMatch = window.location.pathname.match(/\/blog\/([a-z0-9_-]+)/i);
+    if (pathMatch) {
+      slug = pathMatch[1];
+    }
+  }
 
   if (!slug) {
     container.innerHTML =
@@ -33,7 +40,8 @@ function renderBlogPost() {
   }
 
   // Show loading state
-  container.innerHTML = '<p class="text-sm text-muted">Loading blog post...</p>';
+  container.innerHTML =
+    '<p class="text-sm text-muted">Loading blog post...</p>';
 
   // Update page title
   var titleEl = document.querySelector("title");
@@ -47,7 +55,9 @@ function renderBlogPost() {
         if (response.status === 404) {
           throw new Error("Blog post not found");
         }
-        throw new Error("Failed to fetch blog post (HTTP " + response.status + ")");
+        throw new Error(
+          "Failed to fetch blog post (HTTP " + response.status + ")",
+        );
       }
       return response.json();
     })
@@ -71,9 +81,10 @@ function renderBlogPost() {
       // Extract description as fallback
       if (!bodyContent && post.description) {
         try {
-          var desc = typeof post.description === "string"
-            ? JSON.parse(post.description)
-            : post.description;
+          var desc =
+            typeof post.description === "string"
+              ? JSON.parse(post.description)
+              : post.description;
           if (Array.isArray(desc)) {
             bodyContent = desc
               .map(function (p) {
@@ -126,7 +137,7 @@ function renderBlogPost() {
         (err.message === "Blog post not found"
           ? "Blog post not found."
           : "Unable to load blog post.") +
-        '</p>' +
+        "</p>" +
         '<p class="text-sm text-secondary mt-2"><a href="/blog" class="text-accent hover:underline">Browse all blog posts →</a></p>' +
         "</div>";
     });

@@ -48,29 +48,9 @@ function injectBlogSnippets(containerId) {
           var date = item.updated_at || item.created_at || "";
           var title = item.title || "Untitled";
           var slug = item.slug || "";
-          var snippet = "";
+          var snippet = _extractSnippet(item);
 
-          if (item.blogposts && typeof item.blogposts === "object") {
-            snippet = item.blogposts.summary || item.blogposts.excerpt || "";
-          }
-          if (!snippet && item.snippet) {
-            try {
-              var parsed =
-                typeof item.snippet === "string"
-                  ? JSON.parse(item.snippet)
-                  : item.snippet;
-              snippet = Array.isArray(parsed) ? parsed[0] || "" : parsed;
-            } catch (e) {
-              snippet = item.snippet;
-            }
-          }
-          if (typeof snippet === "object") {
-            snippet = snippet.text || "";
-          }
-
-          var link = slug
-            ? "/blog/post?slug=" + encodeURIComponent(slug)
-            : null;
+          var link = slug ? "/blog/" + encodeURIComponent(slug) : null;
 
           return (
             '<div class="news-snippet mb-4" style="border-bottom: 1px dotted var(--color-border); padding-bottom: var(--space-2);">' +
@@ -101,6 +81,42 @@ function injectBlogSnippets(containerId) {
       container.innerHTML =
         '<p class="text-sm text-muted">Blog posts coming soon.</p>';
     });
+}
+
+function _extractSnippet(item) {
+  var snippet = "";
+
+  // Try blogposts.summary or blogposts.excerpt
+  if (item.blogposts && typeof item.blogposts === "object") {
+    snippet = item.blogposts.summary || item.blogposts.excerpt || "";
+
+    // Fallback: extract first 150 chars from blogposts.content or body
+    if (!snippet) {
+      var content = item.blogposts.content || item.blogposts.body || "";
+      if (typeof content === "string") {
+        snippet = content.replace(/\n{2,}/g, " ").substring(0, 150);
+      }
+    }
+  }
+
+  // Fallback to snippet column
+  if (!snippet && item.snippet) {
+    try {
+      var parsed =
+        typeof item.snippet === "string"
+          ? JSON.parse(item.snippet)
+          : item.snippet;
+      snippet = Array.isArray(parsed) ? parsed[0] || "" : parsed;
+    } catch (e) {
+      snippet = item.snippet;
+    }
+  }
+
+  if (typeof snippet === "object") {
+    snippet = snippet.text || "";
+  }
+
+  return snippet;
 }
 
 function escapeHtml(str) {
