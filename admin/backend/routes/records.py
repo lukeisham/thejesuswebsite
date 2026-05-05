@@ -94,11 +94,12 @@ async def batch_update_records(
         cursor.execute("BEGIN TRANSACTION")
 
         for item in body:
-            safe_data = {k: v for k, v in item.data.items() if k in valid_cols}
+            # Filter item.data to only keys that are valid column names
+            safe_data = dict((k, item.data[k]) for k in item.data if k in valid_cols)
             if not safe_data:
                 continue
 
-            set_clause = ", ".join([f"{k} = ?" for k in safe_data.keys()])
+            set_clause = ", ".join(f"{c} = ?" for c in safe_data)
             values = tuple(safe_data.values()) + (item.slug,)
             cursor.execute(f"UPDATE records SET {set_clause} WHERE slug = ?", values)
             if cursor.rowcount > 0:

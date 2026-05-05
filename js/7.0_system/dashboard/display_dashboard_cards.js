@@ -47,6 +47,12 @@ const MODULE_CARDS = [
     desc: "Create and manage historical Jesus challenge questions.",
   },
   {
+    id: "challenge-response",
+    icon: "💬",
+    title: "Challenge Resp.",
+    desc: "Edit challenge response records via the full record editor.",
+  },
+  {
     id: "essay-historiography",
     icon: "✍️",
     title: "Essay & Hist.",
