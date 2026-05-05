@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <!-- =============================================================================
    THE JESUS WEBSITE — ADMIN LOGIN
    File:    admin/frontend/login.html
@@ -10,84 +10,79 @@
             dashboard.html. On failure, displays error message inline.
 ============================================================================= -->
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>The Jesus Website — Admin Login</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>The Jesus Website — Admin Login</title>
+        <link rel="icon" href="../../assets/favicon.png" />
 
-    <!-- Providence Theme Foundation -->
-    <link rel="stylesheet" href="../../css/1.0_foundation/typography.css">
-    <link rel="stylesheet" href="../../css/1.0_foundation/shell.css">
-    <link rel="stylesheet" href="../../css/1.0_foundation/grid.css">
+        <!-- Providence Theme Foundation -->
+        <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
+        <link rel="stylesheet" href="../../css/1.0_foundation/shell.css" />
+        <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
 
-    <!-- Login Page Styling -->
-    <link rel="stylesheet" href="../../css/7.0_system/admin.css">
-</head>
-<body id="login-page">
-
-    <!-- =====================================================================
+        <!-- Login Page Styling -->
+        <link rel="stylesheet" href="../../css/7.0_system/admin.css" />
+    </head>
+    <body id="login-page">
+        <!-- =====================================================================
        LOGIN SHELL
        Full-viewport centering wrapper. Semantic landmark for the login form.
     ===================================================================== -->
-    <main id="login-shell" aria-labelledby="login-heading">
-
-        <!-- =================================================================
+        <main id="login-shell" aria-labelledby="login-heading">
+            <!-- =================================================================
            LOGO
            Double-sized favicon — the visual anchor of the admin portal.
         ================================================================= -->
-        <figure id="login-logo" aria-hidden="true">
-            <img src="../../assets/favicon.png"
-                 alt="The Jesus Website logo"
-                 width="64"
-                 height="64">
-        </figure>
+            <figure id="login-logo" aria-hidden="true">
+                <img
+                    src="../../assets/favicon.png"
+                    alt="The Jesus Website logo"
+                    width="64"
+                    height="64"
+                />
+            </figure>
 
-        <!-- =================================================================
+            <!-- =================================================================
            LOGIN CARD
            Password-only authentication form. No username field.
            Security: per guide_security.md §3 — single ADMIN_PASSWORD from .env.
         ================================================================= -->
-        <section id="login-card" aria-label="Admin login form">
+            <section id="login-card" aria-label="Admin login form">
+                <h1 id="login-heading">Admin Login</h1>
 
-            <h1 id="login-heading">Admin Login</h1>
+                <form
+                    id="login-form"
+                    method="post"
+                    autocomplete="off"
+                    spellcheck="false"
+                    novalidate
+                >
+                    <!-- Password field — the only credential required -->
+                    <label for="login-password" class="sr-only">Password</label>
 
-            <form id="login-form"
-                  method="post"
-                  autocomplete="off"
-                  spellcheck="false"
-                  novalidate>
+                    <input
+                        type="password"
+                        id="login-password"
+                        name="password"
+                        autocomplete="current-password"
+                        placeholder="Password"
+                        required
+                        aria-describedby="login-error"
+                    />
 
-                <!-- Password field — the only credential required -->
-                <label for="login-password" class="sr-only">Password</label>
+                    <!-- Submit -->
+                    <button type="submit" id="login-submit">Login</button>
+                </form>
 
-                <input type="password"
-                       id="login-password"
-                       name="password"
-                       autocomplete="current-password"
-                       placeholder="Password"
-                       required
-                       aria-describedby="login-error">
+                <!-- Error message container — populated by admin.js on failure -->
+                <output id="login-error" role="alert" aria-live="polite">
+                </output>
+            </section>
+        </main>
 
-                <!-- Submit -->
-                <button type="submit" id="login-submit">
-                    Login
-                </button>
-
-            </form>
-
-            <!-- Error message container — populated by admin.js on failure -->
-            <output id="login-error"
-                    role="alert"
-                    aria-live="polite">
-            </output>
-
-        </section>
-
-    </main>
-
-    <!-- Login Logic — external, vanilla ES6+ -->
-    <script src="../../js/7.0_system/admin.js"></script>
-
-</body>
+        <!-- Login Logic — external, vanilla ES6+ -->
+        <script src="../../js/7.0_system/admin.js"></script>
+    </body>
 </html>

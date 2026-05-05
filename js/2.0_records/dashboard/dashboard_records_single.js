@@ -71,17 +71,10 @@ async function renderRecordsSingle(recordId) {
     if (typeof window._setColumn === "function") {
       window._setColumn(
         "main",
-        `
-                <div class="state-error">
-                    <span class="state-error__label">Error: No record ID specified.</span>
-                    <p>Please select a record from the All Records list or provide a valid record ID.</p>
-                </div>
-            `,
-      );
-    }
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError(
-        "Error: No record ID specified. Cannot load record editor.",
+        `<div class="state-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:var(--space-3)">
+          <span class="state-empty__label">Single Record Editor</span>
+          <p style="font-family:var(--font-body);font-size:var(--text-sm);color:var(--color-text-secondary);max-width:360px;text-align:center">Select a record from the All Records list to edit it here.</p>
+        </div>`,
       );
     }
     return;
