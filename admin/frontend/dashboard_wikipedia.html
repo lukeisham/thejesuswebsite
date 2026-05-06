@@ -4,8 +4,9 @@
    Version: 1.0.0
    Module:  4.0 — Ranked Lists
    Purpose: Wikipedia list management container — dual-pane layout with a
-            contextual record-detail sidebar (title, slug, weight multiplier,
-            editable search terms, snippet/slug/meta editing with auto-gen
+            contextual record-detail sidebar (title, slug, weighting criteria
+            list matching Challenge styling, search terms textarea matching
+            Challenge styling, snippet/slug/meta editing with auto-gen
             buttons, and per-record recalculate) alongside a main scrollable
             list of ranked Wikipedia articles. Refresh/Publish buttons
             control the draft/publish cycle.
@@ -18,12 +19,37 @@
    FUNCTION BAR — Wikipedia actions
    Sticky bar with Refresh, Publish, and Recalculate buttons.
 ============================================================================= -->
-<section id="wikipedia-function-bar" class="function-bar" aria-label="Wikipedia actions">
+<section
+    id="wikipedia-function-bar"
+    class="function-bar"
+    aria-label="Wikipedia actions"
+>
     <!-- Actions Group -->
     <div class="function-bar__actions-group">
-        <button id="btn-wikipedia-refresh" class="btn btn--draft" type="button" title="Recalculate rankings with current weights">Refresh</button>
-        <button id="btn-wikipedia-publish" class="btn btn--publish" type="button" title="Publish current ranked order to live site">Publish</button>
-        <button id="btn-wikipedia-recalculate-all" class="btn btn--secondary" type="button" title="Recalculate all Wikipedia data from pipeline">Recalculate All</button>
+        <button
+            id="btn-wikipedia-refresh"
+            class="btn btn--draft"
+            type="button"
+            title="Recalculate rankings with current weights"
+        >
+            Refresh
+        </button>
+        <button
+            id="btn-wikipedia-publish"
+            class="btn btn--publish"
+            type="button"
+            title="Publish current ranked order to live site"
+        >
+            Publish
+        </button>
+        <button
+            id="btn-wikipedia-recalculate-all"
+            class="btn btn--secondary"
+            type="button"
+            title="Recalculate all Wikipedia data from pipeline"
+        >
+            Recalculate All
+        </button>
     </div>
 </section>
 
@@ -33,94 +59,199 @@
    actions) | main (ranked Wikipedia article list).
    CSS Grid for macro layout; Flexbox for micro alignment within columns.
 ============================================================================= -->
-<article id="wikipedia-editor-layout" class="wikipedia-editor-layout" aria-label="Wikipedia editor">
+<article
+    id="wikipedia-editor-layout"
+    class="wikipedia-editor-layout"
+    aria-label="Wikipedia editor"
+>
     <!-- Sidebar Column: Record Detail -->
-    <aside id="wikipedia-sidebar" class="wikipedia-sidebar" aria-label="Record detail">
+    <aside
+        id="wikipedia-sidebar"
+        class="wikipedia-sidebar"
+        aria-label="Record detail"
+    >
         <header class="wikipedia-sidebar__header">
             <h2 class="wikipedia-sidebar__heading">RECORD DETAIL</h2>
         </header>
 
         <!-- Section 1: Record Info (read-only) -->
-        <section id="wikipedia-record-info" class="wikipedia-sidebar__section" aria-label="Record information">
+        <section
+            id="wikipedia-record-info"
+            class="wikipedia-sidebar__section"
+            aria-label="Record information"
+        >
             <header class="wikipedia-sidebar__subheader">
                 <h3 class="wikipedia-sidebar__subheading">Record</h3>
             </header>
             <div class="wikipedia-record-info__content">
-                <p id="wikipedia-record-title" class="wikipedia-record-info__title">—</p>
-                <p id="wikipedia-record-slug" class="wikipedia-record-info__slug">—</p>
+                <p
+                    id="wikipedia-record-title"
+                    class="wikipedia-record-info__title"
+                >
+                    —
+                </p>
+                <p
+                    id="wikipedia-record-slug"
+                    class="wikipedia-record-info__slug"
+                >
+                    —
+                </p>
             </div>
         </section>
 
         <hr class="wikipedia-sidebar__divider" aria-hidden="true" />
 
-        <!-- Section 2: Wikipedia Weight -->
-        <section id="wikipedia-weight-editor" class="wikipedia-sidebar__section" aria-label="Wikipedia weight editor">
+        <!-- Section 2: Wikipedia Weight (matching Challenge weighting criteria list style) -->
+        <section
+            id="wikipedia-weight-editor"
+            class="wikipedia-sidebar__section"
+            aria-label="Wikipedia weight editor"
+        >
             <header class="wikipedia-sidebar__subheader">
                 <h3 class="wikipedia-sidebar__subheading">Wikipedia Weight</h3>
             </header>
-            <div class="wikipedia-weight-editor__form">
-                <div class="wikipedia-weight-editor__input-group">
-                    <span class="wikipedia-weight-editor__prefix">×</span>
-                    <input id="wikipedia-weight-input" class="wikipedia-weight-editor__input" type="number" min="0" max="100" step="0.01" placeholder="1.00" aria-label="Wikipedia weight multiplier" />
-                </div>
-                <button id="btn-wikipedia-save-weight" class="btn btn--draft" type="button" title="Save weight and set record to draft">Save Weight</button>
+            <!-- Weighting Criteria List — populated by wikipedia_sidebar_handler.js -->
+            <div
+                id="wikipedia-weighting-list"
+                class="wikipedia-weighting-list"
+                aria-label="Weighting criteria"
+            >
+                <!-- Dynamically populated — single criterion row matching challenge-weight-item style -->
             </div>
         </section>
 
         <hr class="wikipedia-sidebar__divider" aria-hidden="true" />
 
-        <!-- Section 3: Wikipedia Search Terms -->
-        <section id="wikipedia-search-terms" class="wikipedia-sidebar__section" aria-label="Wikipedia search terms">
+        <!-- Section 3: Wikipedia Search Terms (matching Challenge search terms textarea style) -->
+        <section
+            id="wikipedia-search-terms"
+            class="wikipedia-sidebar__section"
+            aria-label="Wikipedia search terms"
+        >
             <header class="wikipedia-sidebar__subheader">
                 <h3 class="wikipedia-sidebar__subheading">Search Terms</h3>
             </header>
             <div class="wikipedia-search-terms__editor">
-                <!-- Term chips — populated by wikipedia_sidebar_handler.js -->
-                <ul id="wikipedia-search-terms-list" class="wikipedia-search-terms__list" aria-label="Active search terms">
-                    <!-- Dynamically populated -->
-                </ul>
-                <div class="wikipedia-search-terms__add-row">
-                    <input id="wikipedia-search-term-input" class="wikipedia-search-terms__add-input" type="text" placeholder="Add search term..." aria-label="New search term" />
-                    <button id="btn-wikipedia-add-term" class="btn btn--draft" type="button" title="Add search term">Add</button>
-                </div>
+                <textarea
+                    id="wikipedia-search-terms-input"
+                    class="wikipedia-search-terms__textarea"
+                    rows="4"
+                    placeholder="Enter search terms (one per line or comma-separated).&#10;These are used to discover Wikipedia articles."
+                    aria-label="Search terms editor"
+                ></textarea>
+                <span
+                    id="wikipedia-search-terms-hint"
+                    class="wikipedia-search-terms__hint"
+                    >Currently editing:
+                    <strong id="wikipedia-search-terms-field-label"
+                        >Wikipedia</strong
+                    >
+                    search terms</span
+                >
             </div>
         </section>
 
         <hr class="wikipedia-sidebar__divider" aria-hidden="true" />
 
         <!-- Section 4: Metadata (Snippet / Slug / Meta) -->
-        <section id="wikipedia-metadata-editor" class="wikipedia-sidebar__section" aria-label="Metadata editor">
+        <section
+            id="wikipedia-metadata-editor"
+            class="wikipedia-sidebar__section"
+            aria-label="Metadata editor"
+        >
             <header class="wikipedia-sidebar__subheader">
                 <h3 class="wikipedia-sidebar__subheading">Metadata</h3>
             </header>
 
             <!-- Snippet -->
             <div class="wikipedia-metadata-editor__field">
-                <label for="wikipedia-snippet-input" class="wikipedia-metadata-editor__label">Snippet</label>
-                <textarea id="wikipedia-snippet-input" class="wikipedia-metadata-editor__textarea" rows="3" placeholder="Record snippet..." aria-label="Snippet text"></textarea>
-                <button id="btn-wikipedia-auto-snippet" class="btn btn--secondary btn--sm" type="button" title="Auto-generate snippet via DeepSeek">Auto-gen Snippet</button>
+                <label
+                    for="wikipedia-snippet-input"
+                    class="wikipedia-metadata-editor__label"
+                    >Snippet</label
+                >
+                <textarea
+                    id="wikipedia-snippet-input"
+                    class="wikipedia-metadata-editor__textarea"
+                    rows="3"
+                    placeholder="Record snippet..."
+                    aria-label="Snippet text"
+                ></textarea>
+                <button
+                    id="btn-wikipedia-auto-snippet"
+                    class="btn btn--secondary btn--sm"
+                    type="button"
+                    title="Auto-generate snippet via DeepSeek"
+                >
+                    Auto-gen Snippet
+                </button>
             </div>
 
             <!-- Slug -->
             <div class="wikipedia-metadata-editor__field">
-                <label for="wikipedia-slug-input" class="wikipedia-metadata-editor__label">Slug</label>
-                <input id="wikipedia-slug-input" class="wikipedia-metadata-editor__input" type="text" placeholder="record-slug" aria-label="Record slug" />
-                <button id="btn-wikipedia-auto-slug" class="btn btn--secondary btn--sm" type="button" title="Auto-generate slug from title">Auto-gen Slug</button>
+                <label
+                    for="wikipedia-slug-input"
+                    class="wikipedia-metadata-editor__label"
+                    >Slug</label
+                >
+                <input
+                    id="wikipedia-slug-input"
+                    class="wikipedia-metadata-editor__input"
+                    type="text"
+                    placeholder="record-slug"
+                    aria-label="Record slug"
+                />
+                <button
+                    id="btn-wikipedia-auto-slug"
+                    class="btn btn--secondary btn--sm"
+                    type="button"
+                    title="Auto-generate slug from title"
+                >
+                    Auto-gen Slug
+                </button>
             </div>
 
             <!-- Meta (JSON) -->
             <div class="wikipedia-metadata-editor__field">
-                <label for="wikipedia-meta-input" class="wikipedia-metadata-editor__label">Meta (JSON)</label>
-                <input id="wikipedia-meta-input" class="wikipedia-metadata-editor__input" type="text" placeholder='{"era":"early_church"}' aria-label="Metadata JSON" />
-                <button id="btn-wikipedia-auto-meta" class="btn btn--secondary btn--sm" type="button" title="Auto-generate metadata via DeepSeek">Auto-gen Meta</button>
+                <label
+                    for="wikipedia-meta-input"
+                    class="wikipedia-metadata-editor__label"
+                    >Meta (JSON)</label
+                >
+                <input
+                    id="wikipedia-meta-input"
+                    class="wikipedia-metadata-editor__input"
+                    type="text"
+                    placeholder='{"era":"early_church"}'
+                    aria-label="Metadata JSON"
+                />
+                <button
+                    id="btn-wikipedia-auto-meta"
+                    class="btn btn--secondary btn--sm"
+                    type="button"
+                    title="Auto-generate metadata via DeepSeek"
+                >
+                    Auto-gen Meta
+                </button>
             </div>
         </section>
 
         <hr class="wikipedia-sidebar__divider" aria-hidden="true" />
 
         <!-- Section 5: Actions -->
-        <section id="wikipedia-actions" class="wikipedia-sidebar__section" aria-label="Record actions">
-            <button id="btn-wikipedia-recalculate-record" class="btn btn--secondary btn--full" type="button" title="Recalculate Wikipedia data for this record">Recalculate This Record</button>
+        <section
+            id="wikipedia-actions"
+            class="wikipedia-sidebar__section"
+            aria-label="Record actions"
+        >
+            <button
+                id="btn-wikipedia-recalculate-record"
+                class="btn btn--secondary btn--full"
+                type="button"
+                title="Recalculate Wikipedia data for this record"
+            >
+                Recalculate This Record
+            </button>
         </section>
     </aside>
 
@@ -128,20 +259,33 @@
     <div class="wikipedia-divider" aria-hidden="true"></div>
 
     <!-- Main Column: Ranked Wikipedia List -->
-    <section id="wikipedia-list-area" class="wikipedia-list-area" aria-label="Wikipedia list">
+    <section
+        id="wikipedia-list-area"
+        class="wikipedia-list-area"
+        aria-label="Wikipedia list"
+    >
         <!-- Loading State -->
         <div id="wikipedia-list-loading" class="state-loading" role="status">
-            <span class="state-loading__label">Loading Wikipedia articles...</span>
+            <span class="state-loading__label"
+                >Loading Wikipedia articles...</span
+            >
         </div>
 
         <!-- Wikipedia List Container — populated by wikipedia_list_display.js -->
-        <ol id="wikipedia-ranked-list" class="wikipedia-ranked-list" aria-label="Ranked Wikipedia articles">
+        <ol
+            id="wikipedia-ranked-list"
+            class="wikipedia-ranked-list"
+            aria-label="Ranked Wikipedia articles"
+        >
             <!-- Dynamically populated -->
         </ol>
 
         <!-- Empty State -->
         <div id="wikipedia-list-empty" class="state-empty" aria-hidden="true">
-            <p class="state-empty__label">No Wikipedia articles found. Run "Recalculate All" to fetch data from Wikipedia.</p>
+            <p class="state-empty__label">
+                No Wikipedia articles found. Run "Recalculate All" to fetch data
+                from Wikipedia.
+            </p>
         </div>
 
         <!-- Error State -->
