@@ -6,9 +6,9 @@
    Purpose: Dual-list challenge management container for Academic and Popular
             debate lists. Features a toggle-driven function bar to switch
             between lists, a weighting sidebar for fine-tuning ranking logic,
-            and a main area for viewing and publishing the ranked challenges.
-            Includes insert response functionality to create and link a new
-            response to a parent challenge.
+            read-only overview lists for current search terms and ranking
+            weights, and a main area for viewing and publishing the ranked
+            challenges. Includes insert response functionality.
    Trigger: Loaded via fetch by dashboard_challenge.js and injected into the
             Providence main column when the user navigates to the Challenge
             module.
@@ -139,6 +139,54 @@
             </div>
         </section>
 
+        <!-- ==================================================================
+           Current Search Terms Overview — read-only list, refreshed on toggle.
+           Populated by academic_challenge_search_terms.js /
+           popular_challenge_search_terms.js
+        ================================================================== -->
+        <section
+            id="challenge-search-terms-overview"
+            class="challenge-search-terms-overview"
+            aria-label="Current search terms"
+        >
+            <header class="challenge-sidebar__subheader">
+                <h3 class="challenge-sidebar__subheading">
+                    Current Search Terms
+                </h3>
+            </header>
+            <ul
+                id="challenge-search-terms-overview-list"
+                class="challenge-overview-list"
+                aria-label="Active search terms"
+            >
+                <!-- Dynamically populated -->
+            </ul>
+        </section>
+
+        <!-- ==================================================================
+           Current Ranking Weights Overview — read-only list, refreshed on toggle.
+           Populated by academic_challenge_ranking_weights.js /
+           popular_challenge_ranking_weights.js
+        ================================================================== -->
+        <section
+            id="challenge-ranking-weights-overview"
+            class="challenge-ranking-weights-overview"
+            aria-label="Current ranking weights"
+        >
+            <header class="challenge-sidebar__subheader">
+                <h3 class="challenge-sidebar__subheading">
+                    Current Ranking Weights
+                </h3>
+            </header>
+            <ul
+                id="challenge-ranking-weights-overview-list"
+                class="challenge-overview-list"
+                aria-label="Active ranking weights"
+            >
+                <!-- Dynamically populated -->
+            </ul>
+        </section>
+
         <!-- New Weighting Criterion Form -->
         <section
             id="challenge-new-weight"
@@ -146,7 +194,7 @@
             aria-label="Add weighting criterion"
         >
             <header class="challenge-sidebar__subheader">
-                <h3 class="challenge-sidebar__subheading">Add Criterion</h3>
+                <h3 class="challenge-sidebar__subheading">Add Weight</h3>
             </header>
             <div class="challenge-new-weight__form">
                 <input

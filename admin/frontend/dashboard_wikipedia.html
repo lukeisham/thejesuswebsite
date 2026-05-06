@@ -131,6 +131,18 @@
             <header class="wikipedia-sidebar__subheader">
                 <h3 class="wikipedia-sidebar__subheading">Search Terms</h3>
             </header>
+
+            <!-- Saved Search Terms Overview — read-only list, matching Challenge pattern -->
+            <div class="wikipedia-search-terms-overview">
+                <ul
+                    id="wikipedia-search-terms-overview-list"
+                    class="wikipedia-search-terms-overview-list"
+                    aria-label="Saved search terms"
+                >
+                    <!-- Dynamically populated by wikipedia_sidebar_handler.js -->
+                </ul>
+            </div>
+
             <div class="wikipedia-search-terms__editor">
                 <textarea
                     id="wikipedia-search-terms-input"

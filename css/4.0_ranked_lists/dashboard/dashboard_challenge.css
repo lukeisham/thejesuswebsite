@@ -900,3 +900,57 @@
         display: none;
     }
 }
+
+/* =============================================================================
+   15. SEARCH TERMS + RANKING WEIGHTS OVERVIEW LISTS
+   Read-only lists showing the current search terms and ranking weights for
+   the active mode. Refreshed on toggle and row selection.
+============================================================================= */
+
+.challenge-search-terms-overview,
+.challenge-ranking-weights-overview {
+    padding: var(--space-2);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.challenge-overview-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.challenge-overview-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-05) var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-snug);
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.challenge-overview-item--empty {
+    color: var(--color-text-muted);
+    font-style: italic;
+    background-color: transparent;
+}
+
+.challenge-overview-item__name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.challenge-overview-item__value {
+    font-weight: var(--weight-semibold);
+    color: var(--color-dash-accent);
+    flex-shrink: 0;
+}

@@ -155,6 +155,9 @@ async function renderChallenge() {
     window.initChallengeWeighting();
   }
 
+  // 3b2. Initialise the overview lists for the default mode (academic)
+  _refreshOverviews("academic");
+
   // 3c. Load BOTH challenge lists in parallel so each is pre-loaded.
   //     The Popular region is hidden (aria-hidden="true") but its DOM is ready.
   if (typeof window.displayChallengeList === "function") {
@@ -327,6 +330,9 @@ function _restoreModeState(mode) {
   if (termsInput) {
     termsInput.value = savedSearchTerms || "";
   }
+
+  // Refresh the read-only overview lists for this mode
+  _refreshOverviews(mode);
 }
 
 /* -----------------------------------------------------------------------------
@@ -348,6 +354,29 @@ function _hideListRegion(mode) {
   if (region) {
     region.setAttribute("aria-hidden", "true");
     region.classList.remove("challenge-list-region--active");
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _refreshOverviews
+   Calls the appropriate per-mode overview renderers for search terms and
+   ranking weights. Used after toggle, init, and row selection.
+----------------------------------------------------------------------------- */
+function _refreshOverviews(mode) {
+  if (mode === "academic") {
+    if (typeof window.renderAcademicSearchTermsOverview === "function") {
+      window.renderAcademicSearchTermsOverview();
+    }
+    if (typeof window.renderAcademicRankingWeightsOverview === "function") {
+      window.renderAcademicRankingWeightsOverview();
+    }
+  } else {
+    if (typeof window.renderPopularSearchTermsOverview === "function") {
+      window.renderPopularSearchTermsOverview();
+    }
+    if (typeof window.renderPopularRankingWeightsOverview === "function") {
+      window.renderPopularRankingWeightsOverview();
+    }
   }
 }
 

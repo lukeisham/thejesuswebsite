@@ -110,6 +110,17 @@ function loadChallengeSearchTerms(challenge) {
     termsInput.value = rawTerms;
   }
 
+  // Refresh the search terms overview after loading
+  if (window._challengeModuleState.mode === "academic") {
+    if (typeof window.renderAcademicSearchTermsOverview === "function") {
+      window.renderAcademicSearchTermsOverview();
+    }
+  } else {
+    if (typeof window.renderPopularSearchTermsOverview === "function") {
+      window.renderPopularSearchTermsOverview();
+    }
+  }
+
   // Store for auto-save reference
   termsInput.setAttribute("data-record-slug", challenge.slug || "");
   termsInput.setAttribute("data-search-term-col", searchTermCol);
@@ -238,6 +249,17 @@ function _renderWeightingList() {
 
     listEl.appendChild(itemEl);
   });
+
+  // Refresh the ranking weights overview after re-render
+  if (window._challengeModuleState.mode === "academic") {
+    if (typeof window.renderAcademicRankingWeightsOverview === "function") {
+      window.renderAcademicRankingWeightsOverview();
+    }
+  } else {
+    if (typeof window.renderPopularRankingWeightsOverview === "function") {
+      window.renderPopularRankingWeightsOverview();
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -266,7 +288,7 @@ function _moveWeight(index, direction) {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _wireNewWeightForm
-   Binds the "Add Criterion" form to append new weighting criteria.
+   Binds the "Add Weight" form to append new weighting criteria.
 ----------------------------------------------------------------------------- */
 function _wireNewWeightForm() {
   var nameInput = document.getElementById("challenge-new-weight-name");

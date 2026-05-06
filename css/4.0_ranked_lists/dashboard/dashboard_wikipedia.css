@@ -646,3 +646,40 @@
         height: 1px;
     }
 }
+
+/* =============================================================================
+   15. SAVED SEARCH TERMS OVERVIEW
+   Read-only list of saved search terms, matching Challenge overview pattern.
+============================================================================= */
+
+.wikipedia-search-terms-overview {
+    padding: var(--space-1) var(--space-2) 0 var(--space-2);
+}
+
+.wikipedia-search-terms-overview-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.wikipedia-search-terms-overview-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-05) var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-snug);
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.wikipedia-search-terms-overview-item--empty {
+    color: var(--color-text-muted);
+    font-style: italic;
+    background-color: transparent;
+}

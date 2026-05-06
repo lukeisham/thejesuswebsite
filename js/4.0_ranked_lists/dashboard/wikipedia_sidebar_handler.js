@@ -177,6 +177,12 @@ function _clearSidebar() {
 
   var termsInput = document.getElementById("wikipedia-search-terms-input");
   if (termsInput) termsInput.value = "";
+
+  // Clear the saved search terms overview
+  var overviewList = document.getElementById(
+    "wikipedia-search-terms-overview-list",
+  );
+  if (overviewList) overviewList.innerHTML = "";
 }
 
 /* -----------------------------------------------------------------------------
@@ -250,6 +256,58 @@ function _populateSearchTermsTextarea(record) {
 
   // Also update state for consistency
   window._wikipediaModuleState.activeRecordSearchTerms = rawTerms;
+
+  // Refresh the saved search terms overview
+  _renderSearchTermsOverview();
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _renderSearchTermsOverview
+   Populates the saved search terms overview list from the textarea value.
+   Read-only list items showing each term on its own line.
+----------------------------------------------------------------------------- */
+function _renderSearchTermsOverview() {
+  var listEl = document.getElementById("wikipedia-search-terms-overview-list");
+  if (!listEl) return;
+
+  listEl.innerHTML = "";
+
+  var termsInput = document.getElementById("wikipedia-search-terms-input");
+  var rawValue = termsInput ? termsInput.value.trim() : "";
+
+  if (!rawValue) {
+    var emptyItem = document.createElement("li");
+    emptyItem.className =
+      "wikipedia-search-terms-overview-item wikipedia-search-terms-overview-item--empty";
+    emptyItem.textContent = "No search terms saved.";
+    listEl.appendChild(emptyItem);
+    return;
+  }
+
+  var terms = rawValue
+    .split(/[\n,]+/)
+    .map(function (t) {
+      return t.trim();
+    })
+    .filter(function (t) {
+      return t.length > 0;
+    });
+
+  if (terms.length === 0) {
+    var emptyItem = document.createElement("li");
+    emptyItem.className =
+      "wikipedia-search-terms-overview-item wikipedia-search-terms-overview-item--empty";
+    emptyItem.textContent = "No search terms saved.";
+    listEl.appendChild(emptyItem);
+    return;
+  }
+
+  terms.forEach(function (term) {
+    var itemEl = document.createElement("li");
+    itemEl.className = "wikipedia-search-terms-overview-item";
+    itemEl.textContent = term;
+    listEl.appendChild(itemEl);
+  });
 }
 
 /* -----------------------------------------------------------------------------
@@ -347,6 +405,9 @@ async function _autoSaveSearchTerms() {
       );
     }
   }
+
+  // Refresh the saved search terms overview after save
+  _renderSearchTermsOverview();
 }
 
 /* -----------------------------------------------------------------------------
