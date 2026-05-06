@@ -110,83 +110,6 @@
             <!-- Dynamically populated -->
         </section>
 
-        <!-- Search Terms Section -->
-        <section
-            id="challenge-search-terms"
-            class="challenge-search-terms"
-            aria-label="Search terms"
-        >
-            <header class="challenge-sidebar__subheader">
-                <h3 class="challenge-sidebar__subheading">Search Terms</h3>
-            </header>
-            <div class="challenge-search-terms__editor">
-                <textarea
-                    id="challenge-search-terms-input"
-                    class="challenge-search-terms__textarea"
-                    rows="4"
-                    placeholder="Enter search terms (one per line or comma-separated).&#10;These are used by the agent to discover articles on the open web."
-                    aria-label="Search terms editor"
-                ></textarea>
-                <span
-                    id="challenge-search-terms-hint"
-                    class="challenge-search-terms__hint"
-                    >Currently editing:
-                    <strong id="challenge-search-terms-field-label"
-                        >Academic</strong
-                    >
-                    search terms</span
-                >
-            </div>
-        </section>
-
-        <!-- ==================================================================
-           Current Search Terms Overview — read-only list, refreshed on toggle.
-           Populated by academic_challenge_search_terms.js /
-           popular_challenge_search_terms.js
-        ================================================================== -->
-        <section
-            id="challenge-search-terms-overview"
-            class="challenge-search-terms-overview"
-            aria-label="Current search terms"
-        >
-            <header class="challenge-sidebar__subheader">
-                <h3 class="challenge-sidebar__subheading">
-                    Current Search Terms
-                </h3>
-            </header>
-            <ul
-                id="challenge-search-terms-overview-list"
-                class="challenge-overview-list"
-                aria-label="Active search terms"
-            >
-                <!-- Dynamically populated -->
-            </ul>
-        </section>
-
-        <!-- ==================================================================
-           Current Ranking Weights Overview — read-only list, refreshed on toggle.
-           Populated by academic_challenge_ranking_weights.js /
-           popular_challenge_ranking_weights.js
-        ================================================================== -->
-        <section
-            id="challenge-ranking-weights-overview"
-            class="challenge-ranking-weights-overview"
-            aria-label="Current ranking weights"
-        >
-            <header class="challenge-sidebar__subheader">
-                <h3 class="challenge-sidebar__subheading">
-                    Current Ranking Weights
-                </h3>
-            </header>
-            <ul
-                id="challenge-ranking-weights-overview-list"
-                class="challenge-overview-list"
-                aria-label="Active ranking weights"
-            >
-                <!-- Dynamically populated -->
-            </ul>
-        </section>
-
         <!-- New Weighting Criterion Form -->
         <section
             id="challenge-new-weight"
@@ -224,6 +147,61 @@
                 </button>
             </div>
         </section>
+
+        <!-- ==================================================================
+           Saved Search Terms Overview — read-only list, refreshed on toggle.
+           Populated by academic_challenge_search_terms.js /
+           popular_challenge_search_terms.js
+        ================================================================== -->
+        <section
+            id="challenge-search-terms-overview"
+            class="challenge-search-terms-overview"
+            aria-label="Saved search terms"
+        >
+            <header class="challenge-sidebar__subheader">
+                <h3 class="challenge-sidebar__subheading">
+                    Saved Search Terms
+                </h3>
+            </header>
+            <ul
+                id="challenge-search-terms-overview-list"
+                class="challenge-overview-list"
+                aria-label="Active search terms"
+            >
+                <!-- Dynamically populated -->
+            </ul>
+        </section>
+
+        <!-- Search Terms Section -->
+        <section
+            id="challenge-search-terms"
+            class="challenge-search-terms"
+            aria-label="Search terms"
+        >
+            <header class="challenge-sidebar__subheader">
+                <h3 class="challenge-sidebar__subheading">
+                    Search Terms (add/modify)
+                </h3>
+            </header>
+            <div class="challenge-search-terms__editor">
+                <textarea
+                    id="challenge-search-terms-input"
+                    class="challenge-search-terms__textarea"
+                    rows="4"
+                    placeholder="Enter search terms (one per line or comma-separated).&#10;These are used by the agent to discover articles on the open web."
+                    aria-label="Search terms editor"
+                ></textarea>
+                <span
+                    id="challenge-search-terms-hint"
+                    class="challenge-search-terms__hint"
+                    >Currently editing:
+                    <strong id="challenge-search-terms-field-label"
+                        >Academic</strong
+                    >
+                    search terms</span
+                >
+            </div>
+        </section>
     </aside>
 
     <!-- Divider between sidebar and main -->
@@ -235,6 +213,30 @@
         class="challenge-list-area"
         aria-label="Challenge list"
     >
+        <!-- ==================================================================
+           STATUS LEGEND
+        ================================================================== -->
+        <div
+            id="challenge-status-legend"
+            class="challenge-status-legend"
+            aria-label="Status legend"
+        >
+            <span class="challenge-status-legend__item">
+                <span
+                    class="challenge-status-legend__symbol challenge-status-legend__symbol--draft"
+                    >&#9675;D</span
+                >
+                = Draft status
+            </span>
+            <span class="challenge-status-legend__item">
+                <span
+                    class="challenge-status-legend__symbol challenge-status-legend__symbol--published"
+                    >&#9679;P</span
+                >
+                = Published status
+            </span>
+        </div>
+
         <!-- ==================================================================
            ACADEMIC CHALLENGE LIST REGION
            Default visible list; toggled via aria-hidden when Popular is active.

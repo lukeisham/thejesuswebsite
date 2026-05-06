@@ -367,15 +367,9 @@ function _refreshOverviews(mode) {
     if (typeof window.renderAcademicSearchTermsOverview === "function") {
       window.renderAcademicSearchTermsOverview();
     }
-    if (typeof window.renderAcademicRankingWeightsOverview === "function") {
-      window.renderAcademicRankingWeightsOverview();
-    }
   } else {
     if (typeof window.renderPopularSearchTermsOverview === "function") {
       window.renderPopularSearchTermsOverview();
-    }
-    if (typeof window.renderPopularRankingWeightsOverview === "function") {
-      window.renderPopularRankingWeightsOverview();
     }
   }
 }

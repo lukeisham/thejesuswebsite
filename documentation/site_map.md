@@ -109,7 +109,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── plan_backend_infrastructure.md <-- Plan: Backend Infrastructure & Shared Scripts
 │   ├── plan_dashboard_arbor.md <-- Plan: Arbor Diagram Module
 │   ├── plan_dashboard_blog_posts.md <-- Plan: Blog Posts Module
-│   ├── plan_dashboard_challenge.md <-- Plan: Challenge Ranked List Module
+│   ├── guide_dashboard_appearance.md §4.2 <-- Challenge Ranked List Module (plan replaced by guide)
 │   ├── plan_dashboard_challenge_response.md <-- Plan: Challenge Response Module
 │   ├── plan_dashboard_essay_historiography.md <-- Plan: Essay & Historiography Module
 │   ├── plan_dashboard_login_and_shell.md <-- Plan: Admin Login & Dashboard Shell

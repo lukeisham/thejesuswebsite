@@ -249,17 +249,6 @@ function _renderWeightingList() {
 
     listEl.appendChild(itemEl);
   });
-
-  // Refresh the ranking weights overview after re-render
-  if (window._challengeModuleState.mode === "academic") {
-    if (typeof window.renderAcademicRankingWeightsOverview === "function") {
-      window.renderAcademicRankingWeightsOverview();
-    }
-  } else {
-    if (typeof window.renderPopularRankingWeightsOverview === "function") {
-      window.renderPopularRankingWeightsOverview();
-    }
-  }
 }
 
 /* -----------------------------------------------------------------------------

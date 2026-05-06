@@ -211,10 +211,12 @@ function _buildChallengeRow(challenge, index, mode) {
   statusEl.className = "challenge-row__status";
   if (status === "published") {
     statusEl.classList.add("challenge-row__status--published");
-    statusEl.textContent = "Published";
+    statusEl.innerHTML = "&#9679;P";
+    statusEl.title = "Published";
   } else {
     statusEl.classList.add("challenge-row__status--draft");
-    statusEl.textContent = "Draft";
+    statusEl.innerHTML = "&#9675;D";
+    statusEl.title = "Draft";
   }
   headerEl.appendChild(statusEl);
 
@@ -250,13 +252,16 @@ function _buildChallengeRow(challenge, index, mode) {
 
       const respStatusEl = document.createElement("span");
       respStatusEl.className = "challenge-response-card__status";
-      respStatusEl.textContent = resp.status || "Draft";
       if (resp.status === "published") {
         respStatusEl.classList.add(
           "challenge-response-card__status--published",
         );
+        respStatusEl.innerHTML = "&#9679;P";
+        respStatusEl.title = "Published";
       } else {
         respStatusEl.classList.add("challenge-response-card__status--draft");
+        respStatusEl.innerHTML = "&#9675;D";
+        respStatusEl.title = "Draft";
       }
       respCardEl.appendChild(respStatusEl);
 

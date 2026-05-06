@@ -309,12 +309,12 @@
 
 /* =============================================================================
    6. NEW WEIGHT CRITERION FORM
-   Compact form at the bottom of the sidebar for adding new criteria.
+   Compact form between the criteria list and the overview sections.
 ============================================================================= */
 
 .challenge-new-weight {
     padding: var(--space-2);
-    border-top: var(--border-width-thin) solid var(--color-border);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
     flex-shrink: 0;
 }
 
@@ -376,6 +376,29 @@
 .challenge-new-weight__value::placeholder {
     color: var(--color-text-muted);
     font-size: var(--text-xs);
+}
+
+/* =============================================================================
+   6b. OVERVIEW LIST (shared by Saved Search Terms)
+   Read-only unordered list of term items.
+============================================================================= */
+
+.challenge-overview-list {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-1) var(--space-2);
+}
+
+.challenge-overview-item {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    padding: 2px 0;
+}
+
+.challenge-overview-item--empty {
+    font-style: italic;
+    color: var(--color-text-muted);
 }
 
 /* =============================================================================
@@ -745,6 +768,49 @@
 
     border-top: var(--border-width-thin) solid var(--color-border);
     background-color: var(--color-bg-secondary);
+}
+
+/* =============================================================================
+   10b. STATUS LEGEND
+   Compact legend showing Draft/Published symbol meanings.
+============================================================================= */
+
+.challenge-status-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+
+    padding: var(--space-1) var(--space-3);
+
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+
+    background-color: var(--color-bg-secondary);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+
+    flex-shrink: 0;
+}
+
+.challenge-status-legend__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.challenge-status-legend__symbol {
+    font-family: var(--font-heading);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+}
+
+.challenge-status-legend__symbol--draft {
+    color: var(--color-text-muted);
+}
+
+.challenge-status-legend__symbol--published {
+    color: var(--color-dash-accent);
 }
 
 /* =============================================================================
