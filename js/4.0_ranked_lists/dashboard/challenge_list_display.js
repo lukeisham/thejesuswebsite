@@ -1,12 +1,13 @@
 // Trigger:  Called by dashboard_challenge.js → window.displayChallengeList(mode)
-//           on initial load and toggle switch.
+//           on initial load for both academic and popular, and after Refresh.
 // Main:    displayChallengeList(mode) — fetches records from the API filtered
 //           by challenge type (academic/popular), sorts by rank, renders the
-//           ranked list with nested response sub-cards, and manages row
-//           selection for agent search and insert response operations.
-// Output:  Ranked challenge list rendered in #challenge-ranked-list with
-//          selection state tracked in _challengeModuleState. Errors routed
-//          through window.surfaceError().
+//           ranked list with nested response sub-cards, adds a frontend-page
+//           link to each row, and manages row selection for agent search and
+//           insert response operations. Targets mode-specific containers.
+// Output:  Ranked challenge list rendered in #academic-challenge-ranked-list
+//          or #popular-challenge-ranked-list with selection state tracked in
+//          _challengeModuleState. Errors routed through window.surfaceError().
 
 "use strict";
 
@@ -14,16 +15,17 @@
    MAIN FUNCTION: displayChallengeList
    Fetches records for the active challenge mode, sorts by rank, and renders
    them as a ranked ordered list. Each challenge row is expandable to reveal
-   nested response sub-cards showing Draft/Published status.
+   nested response sub-cards showing Draft/Published status, and includes a
+   link to the public frontend page.
 
    Parameters:
      mode (string) — 'academic' or 'popular'
 ----------------------------------------------------------------------------- */
 async function displayChallengeList(mode) {
-  const loadingEl = document.getElementById("challenge-list-loading");
-  const listEl = document.getElementById("challenge-ranked-list");
-  const emptyEl = document.getElementById("challenge-list-empty");
-  const errorEl = document.getElementById("challenge-list-error");
+  const loadingEl = document.getElementById(mode + "-challenge-list-loading");
+  const listEl = document.getElementById(mode + "-challenge-ranked-list");
+  const emptyEl = document.getElementById(mode + "-challenge-list-empty");
+  const errorEl = document.getElementById(mode + "-challenge-list-error");
 
   // Show loading state
   if (loadingEl) loadingEl.style.display = "flex";
@@ -111,7 +113,7 @@ async function displayChallengeList(mode) {
    INTERNAL: _buildChallengeRow
    Constructs a single challenge row DOM element. The row includes:
    - Rank number (from list position)
-   - Challenge title
+   - Challenge title (with frontend-page link anchor)
    - Total score (derived from weight × rank)
    - Status badge (Draft / Published)
    - Expandable body showing nested response sub-cards
@@ -145,6 +147,15 @@ function _buildChallengeRow(challenge, index, mode) {
   const status = challenge.status || "draft";
   const weightRaw = challenge[weightCol] || "{}";
 
+  // Build the frontend page URL for this record
+  const frontendPage =
+    mode === "academic" ? "academic_challenge.html" : "popular_challenge.html";
+  const frontendUrl =
+    "/frontend/pages/debate/" +
+    frontendPage +
+    "?id=" +
+    encodeURIComponent(challenge.slug || "");
+
   // Compute total score from weight criteria
   let totalScore = 0;
   try {
@@ -176,10 +187,17 @@ function _buildChallengeRow(challenge, index, mode) {
   rankEl.textContent = String(index + 1);
   headerEl.appendChild(rankEl);
 
-  // Title
+  // Title (with link to public frontend page)
   const titleEl = document.createElement("span");
   titleEl.className = "challenge-row__title";
-  titleEl.textContent = title;
+  const titleLink = document.createElement("a");
+  titleLink.className = "challenge-row__title-link";
+  titleLink.href = frontendUrl;
+  titleLink.target = "_blank";
+  titleLink.rel = "noopener";
+  titleLink.textContent = title;
+  titleLink.title = "Open " + title + " on the public site";
+  titleEl.appendChild(titleLink);
   headerEl.appendChild(titleEl);
 
   // Score
@@ -232,7 +250,6 @@ function _buildChallengeRow(challenge, index, mode) {
 
       const respStatusEl = document.createElement("span");
       respStatusEl.className = "challenge-response-card__status";
-      // Determine status from sub-query (simplified — we don't fetch each response's full record)
       respStatusEl.textContent = resp.status || "Draft";
       if (resp.status === "published") {
         respStatusEl.classList.add(
@@ -257,9 +274,18 @@ function _buildChallengeRow(challenge, index, mode) {
   rowEl.appendChild(bodyEl);
 
   // --- Click Handler: Select row + toggle expansion ---
+  // Only the header area triggers selection; the title link has stopPropagation
+  // so clicking the link opens the frontend page without selecting the row.
+  titleLink.addEventListener("click", function (e) {
+    e.stopPropagation();
+  });
+
   headerEl.addEventListener("click", function () {
-    // Deselect all rows
-    const allRows = document.querySelectorAll(".challenge-row");
+    // Deselect all rows in THIS mode's list only
+    const listEl = document.getElementById(mode + "-challenge-ranked-list");
+    const allRows = listEl
+      ? listEl.querySelectorAll(".challenge-row")
+      : document.querySelectorAll(".challenge-row");
     allRows.forEach(function (r) {
       r.classList.remove("challenge-row--selected");
     });
@@ -269,7 +295,7 @@ function _buildChallengeRow(challenge, index, mode) {
 
     // Toggle expansion
     const wasExpanded = rowEl.classList.contains("challenge-row--expanded");
-    // Collapse all
+    // Collapse all rows in THIS mode's list only
     allRows.forEach(function (r) {
       r.classList.remove("challenge-row--expanded");
     });
@@ -277,7 +303,7 @@ function _buildChallengeRow(challenge, index, mode) {
       rowEl.classList.add("challenge-row--expanded");
     }
 
-    // Update module state
+    // Update module state — getters route to correct per-mode slot
     window._challengeModuleState.activeRecordId = challenge.id || "";
     window._challengeModuleState.activeRecordTitle = title;
     window._challengeModuleState.activeRecordSlug = challenge.slug || "";

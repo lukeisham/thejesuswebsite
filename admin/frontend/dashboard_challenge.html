@@ -19,23 +19,65 @@
    Sticky bar with list toggle (Academic | Popular), Refresh, Publish,
    Agent Search, and Insert Response buttons.
 ============================================================================= -->
-<section id="challenge-function-bar" class="function-bar" aria-label="Challenge actions">
+<section
+    id="challenge-function-bar"
+    class="function-bar"
+    aria-label="Challenge actions"
+>
     <!-- Toggle: Academic / Popular -->
     <div class="function-bar__toggle-group">
-        <button id="btn-toggle-academic" class="btn--toggle btn--toggle-active" type="button" aria-pressed="true">
+        <button
+            id="btn-toggle-academic"
+            class="btn--toggle btn--toggle-active"
+            type="button"
+            aria-pressed="true"
+        >
             Academic
         </button>
-        <button id="btn-toggle-popular" class="btn--toggle" type="button" aria-pressed="false">
+        <button
+            id="btn-toggle-popular"
+            class="btn--toggle"
+            type="button"
+            aria-pressed="false"
+        >
             Popular
         </button>
     </div>
 
     <!-- Actions Group -->
     <div class="function-bar__actions-group">
-        <button id="btn-challenge-refresh" class="btn btn--draft" type="button" title="Refresh and recalculate rankings">Refresh</button>
-        <button id="btn-challenge-publish" class="btn btn--publish" type="button" title="Publish current ranked order to live site">Publish</button>
-        <button id="btn-challenge-agent-search" class="btn btn--secondary" type="button" title="Run agent search for selected record">Agent Search</button>
-        <button id="btn-challenge-insert-response" class="btn btn--secondary" type="button" title="Create a new response linked to the selected challenge">Insert Response</button>
+        <button
+            id="btn-challenge-refresh"
+            class="btn btn--draft"
+            type="button"
+            title="Refresh and recalculate rankings"
+        >
+            Refresh
+        </button>
+        <button
+            id="btn-challenge-publish"
+            class="btn btn--publish"
+            type="button"
+            title="Publish current ranked order to live site"
+        >
+            Publish
+        </button>
+        <button
+            id="btn-challenge-agent-search"
+            class="btn btn--secondary"
+            type="button"
+            title="Run agent search for selected record"
+        >
+            Agent Search
+        </button>
+        <button
+            id="btn-challenge-insert-response"
+            class="btn btn--secondary"
+            type="button"
+            title="Create a new response linked to the selected challenge"
+        >
+            Insert Response
+        </button>
     </div>
 </section>
 
@@ -44,38 +86,94 @@
    Two columns: sidebar (weighting controls) | main (ranked challenge list).
    CSS Grid for macro layout; Flexbox for micro alignment within columns.
 ============================================================================= -->
-<article id="challenge-editor-layout" class="challenge-editor-layout" aria-label="Challenge editor">
+<article
+    id="challenge-editor-layout"
+    class="challenge-editor-layout"
+    aria-label="Challenge editor"
+>
     <!-- Sidebar Column: Weighting Ranks -->
-    <aside id="challenge-sidebar" class="challenge-sidebar" aria-label="Weighting controls">
+    <aside
+        id="challenge-sidebar"
+        class="challenge-sidebar"
+        aria-label="Weighting controls"
+    >
         <header class="challenge-sidebar__header">
             <h2 class="challenge-sidebar__heading">WEIGHTING RANKS</h2>
         </header>
 
         <!-- Weighting Criteria List — populated by challenge_weighting_handler.js -->
-        <section id="challenge-weighting-list" class="challenge-weighting-list" aria-label="Weighting criteria">
+        <section
+            id="challenge-weighting-list"
+            class="challenge-weighting-list"
+            aria-label="Weighting criteria"
+        >
             <!-- Dynamically populated -->
         </section>
 
         <!-- Search Terms Section -->
-        <section id="challenge-search-terms" class="challenge-search-terms" aria-label="Search terms">
+        <section
+            id="challenge-search-terms"
+            class="challenge-search-terms"
+            aria-label="Search terms"
+        >
             <header class="challenge-sidebar__subheader">
                 <h3 class="challenge-sidebar__subheading">Search Terms</h3>
             </header>
             <div class="challenge-search-terms__editor">
-                <textarea id="challenge-search-terms-input" class="challenge-search-terms__textarea" rows="4" placeholder="Enter search terms (one per line or comma-separated).&#10;These are used by the agent to discover articles on the open web." aria-label="Search terms editor"></textarea>
-                <span id="challenge-search-terms-hint" class="challenge-search-terms__hint">Currently editing: <strong id="challenge-search-terms-field-label">Academic</strong> search terms</span>
+                <textarea
+                    id="challenge-search-terms-input"
+                    class="challenge-search-terms__textarea"
+                    rows="4"
+                    placeholder="Enter search terms (one per line or comma-separated).&#10;These are used by the agent to discover articles on the open web."
+                    aria-label="Search terms editor"
+                ></textarea>
+                <span
+                    id="challenge-search-terms-hint"
+                    class="challenge-search-terms__hint"
+                    >Currently editing:
+                    <strong id="challenge-search-terms-field-label"
+                        >Academic</strong
+                    >
+                    search terms</span
+                >
             </div>
         </section>
 
         <!-- New Weighting Criterion Form -->
-        <section id="challenge-new-weight" class="challenge-new-weight" aria-label="Add weighting criterion">
+        <section
+            id="challenge-new-weight"
+            class="challenge-new-weight"
+            aria-label="Add weighting criterion"
+        >
             <header class="challenge-sidebar__subheader">
                 <h3 class="challenge-sidebar__subheading">Add Criterion</h3>
             </header>
             <div class="challenge-new-weight__form">
-                <input id="challenge-new-weight-name" class="challenge-new-weight__name" type="text" placeholder="New name" aria-label="New criterion name" />
-                <input id="challenge-new-weight-value" class="challenge-new-weight__value" type="number" min="0" max="100" step="1" placeholder="Val" aria-label="New criterion value" />
-                <button id="btn-challenge-add-weight" class="btn btn--draft" type="button" title="Publish new weighting criterion">Publish</button>
+                <input
+                    id="challenge-new-weight-name"
+                    class="challenge-new-weight__name"
+                    type="text"
+                    placeholder="New name"
+                    aria-label="New criterion name"
+                />
+                <input
+                    id="challenge-new-weight-value"
+                    class="challenge-new-weight__value"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    placeholder="Val"
+                    aria-label="New criterion value"
+                />
+                <button
+                    id="btn-challenge-add-weight"
+                    class="btn btn--draft"
+                    type="button"
+                    title="Publish new weighting criterion"
+                >
+                    Publish
+                </button>
             </div>
         </section>
     </aside>
@@ -83,27 +181,137 @@
     <!-- Divider between sidebar and main -->
     <div class="challenge-divider" aria-hidden="true"></div>
 
-    <!-- Main Column: Ranked Challenge List -->
-    <section id="challenge-list-area" class="challenge-list-area" aria-label="Challenge list">
-        <!-- Loading State -->
-        <div id="challenge-list-loading" class="state-loading" role="status">
-            <span class="state-loading__label">Loading challenges...</span>
-        </div>
+    <!-- Main Column: Ranked Challenge Lists (dual-region for Academic and Popular) -->
+    <section
+        id="challenge-list-area"
+        class="challenge-list-area"
+        aria-label="Challenge list"
+    >
+        <!-- ==================================================================
+           ACADEMIC CHALLENGE LIST REGION
+           Default visible list; toggled via aria-hidden when Popular is active.
+        ================================================================== -->
+        <section
+            id="academic-challenge-list-region"
+            class="challenge-list-region challenge-list-region--active"
+            aria-label="Academic challenges"
+            aria-hidden="false"
+        >
+            <header class="challenge-list-region__header">
+                <h3 class="challenge-list-region__heading">
+                    Academic Challenges
+                </h3>
+                <a
+                    class="challenge-list-region__frontend-link"
+                    href="/frontend/pages/debate/academic_challenge.html"
+                    target="_blank"
+                    rel="noopener"
+                    title="View academic challenges on the public site"
+                    >View Public Page →</a
+                >
+            </header>
 
-        <!-- Challenge List Container — populated by challenge_list_display.js -->
-        <ol id="challenge-ranked-list" class="challenge-ranked-list" aria-label="Ranked challenges">
-            <!-- Dynamically populated -->
-        </ol>
+            <!-- Loading State -->
+            <div
+                id="academic-challenge-list-loading"
+                class="state-loading"
+                role="status"
+            >
+                <span class="state-loading__label">Loading challenges...</span>
+            </div>
 
-        <!-- Empty State -->
-        <div id="challenge-list-empty" class="state-empty" aria-hidden="true">
-            <p class="state-empty__label">No challenges found for this category.</p>
-        </div>
+            <!-- Challenge List Container — populated by challenge_list_display.js -->
+            <ol
+                id="academic-challenge-ranked-list"
+                class="challenge-ranked-list"
+                aria-label="Ranked academic challenges"
+            >
+                <!-- Dynamically populated -->
+            </ol>
 
-        <!-- Error State -->
-        <div id="challenge-list-error" class="state-error" aria-hidden="true">
-            <p class="state-error__label">Unable to load challenge list.</p>
-        </div>
+            <!-- Empty State -->
+            <div
+                id="academic-challenge-list-empty"
+                class="state-empty"
+                aria-hidden="true"
+            >
+                <p class="state-empty__label">No academic challenges found.</p>
+            </div>
+
+            <!-- Error State -->
+            <div
+                id="academic-challenge-list-error"
+                class="state-error"
+                aria-hidden="true"
+            >
+                <p class="state-error__label">
+                    Unable to load academic challenge list.
+                </p>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+           POPULAR CHALLENGE LIST REGION
+           Hidden by default; shown when Popular toggle is active.
+        ================================================================== -->
+        <section
+            id="popular-challenge-list-region"
+            class="challenge-list-region"
+            aria-label="Popular challenges"
+            aria-hidden="true"
+        >
+            <header class="challenge-list-region__header">
+                <h3 class="challenge-list-region__heading">
+                    Popular Challenges
+                </h3>
+                <a
+                    class="challenge-list-region__frontend-link"
+                    href="/frontend/pages/debate/popular_challenge.html"
+                    target="_blank"
+                    rel="noopener"
+                    title="View popular challenges on the public site"
+                    >View Public Page →</a
+                >
+            </header>
+
+            <!-- Loading State -->
+            <div
+                id="popular-challenge-list-loading"
+                class="state-loading"
+                role="status"
+            >
+                <span class="state-loading__label">Loading challenges...</span>
+            </div>
+
+            <!-- Challenge List Container — populated by challenge_list_display.js -->
+            <ol
+                id="popular-challenge-ranked-list"
+                class="challenge-ranked-list"
+                aria-label="Ranked popular challenges"
+            >
+                <!-- Dynamically populated -->
+            </ol>
+
+            <!-- Empty State -->
+            <div
+                id="popular-challenge-list-empty"
+                class="state-empty"
+                aria-hidden="true"
+            >
+                <p class="state-empty__label">No popular challenges found.</p>
+            </div>
+
+            <!-- Error State -->
+            <div
+                id="popular-challenge-list-error"
+                class="state-error"
+                aria-hidden="true"
+            >
+                <p class="state-error__label">
+                    Unable to load popular challenge list.
+                </p>
+            </div>
+        </section>
     </section>
 </article>
 
@@ -111,17 +319,46 @@
    INSERT RESPONSE DIALOG (Hidden by default)
    Shown when Insert Response is clicked and no challenge is selected.
 ============================================================================= -->
-<dialog id="challenge-insert-response-dialog" class="challenge-dialog" aria-label="Insert response to challenge">
+<dialog
+    id="challenge-insert-response-dialog"
+    class="challenge-dialog"
+    aria-label="Insert response to challenge"
+>
     <header class="challenge-dialog__header">
         <h3 class="challenge-dialog__heading">Create Response</h3>
     </header>
     <div class="challenge-dialog__body">
-        <label for="challenge-response-title-input" class="challenge-dialog__label">Response Title</label>
-        <input id="challenge-response-title-input" class="challenge-dialog__input" type="text" placeholder="Enter response title" aria-label="Response title" />
-        <p id="challenge-response-parent-label" class="challenge-dialog__parent-label"></p>
+        <label
+            for="challenge-response-title-input"
+            class="challenge-dialog__label"
+            >Response Title</label
+        >
+        <input
+            id="challenge-response-title-input"
+            class="challenge-dialog__input"
+            type="text"
+            placeholder="Enter response title"
+            aria-label="Response title"
+        />
+        <p
+            id="challenge-response-parent-label"
+            class="challenge-dialog__parent-label"
+        ></p>
     </div>
     <footer class="challenge-dialog__footer">
-        <button id="btn-challenge-response-cancel" class="btn btn--draft" type="button">Cancel</button>
-        <button id="btn-challenge-response-create" class="btn btn--publish" type="button">Create Draft Response</button>
+        <button
+            id="btn-challenge-response-cancel"
+            class="btn btn--draft"
+            type="button"
+        >
+            Cancel
+        </button>
+        <button
+            id="btn-challenge-response-create"
+            class="btn btn--publish"
+            type="button"
+        >
+            Create Draft Response
+        </button>
     </footer>
 </dialog>

@@ -51,6 +51,7 @@ Replace every `{{placeholder}}` with concrete values:
   - `Vibe Rule(s)` — the specific rules from `vibe_coding_rules.md` that apply to that file type
   - A single `- [ ] Task complete` checkbox
 - **Final Tasks**: Update `T[Final]` and `T[Final+1]` to the correct sequential task numbers (e.g., T4 and T5) following the generated tasks.
+  - **T[Final+1] (Purpose Check)**: Populate the checklist by extracting concrete achievements from the `purpose_summary`. If the plan involves parallel modes or duplicated logic (e.g., "split into two containers", "Academic/Popular modes"), you MUST include the **Symmetry** check.
 - **Documentation Update table**: one row per document in `documentation/` whose scope overlaps with this plan's work (see Step 5)
 
 ### Step 3: Task Sizing Rules

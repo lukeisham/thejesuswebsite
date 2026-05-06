@@ -98,7 +98,9 @@ created: {{date}}
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement**: The core objective outlined in the summary has been fully met
+- [ ] **Achievement**: [Extract key achievement 1 from purpose summary]
+- [ ] **Achievement**: [Extract key achievement 2 from purpose summary]
+- [ ] **Symmetry**: Identical code verification — all duplicated logic, row-building, and event handlers are functionally identical across modes (no drift) [Include ONLY if plan involves parallel modes]
 - [ ] **Necessity**: The underlying reason/need for this plan has been resolved
 - [ ] **Targeted Impact**: The specific parts of the site mentioned have been updated as intended
 - [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified

@@ -3,28 +3,86 @@
 // Main:    renderChallenge() — injects the challenge editor HTML, sets the
 //           Providence canvas layout, initialises the weighting handler, list
 //           display, ranking calculator, and insert response handler, wires the
-//           Academic/Popular toggle, and loads the initial challenge list.
+//           Academic/Popular toggle (now shows/hides dual pre-loaded containers),
+//           and loads both challenge lists in parallel on init.
 // Output:  Fully functional Challenge dashboard editor in the Providence work
-//          canvas. Errors routed through window.surfaceError().
+//          canvas with independent Academic and Popular list state. Errors
+//          routed through window.surfaceError().
 
-'use strict';
+"use strict";
 
 /* -----------------------------------------------------------------------------
    MODULE STATE — tracked globally so sub-modules can reference active state
 ----------------------------------------------------------------------------- */
 window._challengeModuleState = {
-    mode: 'academic',                     // 'academic' | 'popular'
-    activeRecordId: null,                 // currently selected record ID (slug)
-    activeRecordTitle: '',                // currently selected record title
-    activeRecordSlug: '',                 // currently selected record slug
-    challenges: [],                       // full list of challenge records
-    weightingCriteria: [],                // active weighting criteria
+  mode: "academic", // 'academic' | 'popular'
+
+  // Per-mode active record tracking — each list retains its own selection
+  academicActiveRecordId: null,
+  popularActiveRecordId: null,
+  academicActiveRecordTitle: "",
+  popularActiveRecordTitle: "",
+  academicActiveRecordSlug: "",
+  popularActiveRecordSlug: "",
+
+  // Convenience getters/setters — sub-modules read/write these; they route to
+  // the correct per-mode slot based on the current mode value.
+  get activeRecordId() {
+    return this.mode === "academic"
+      ? this.academicActiveRecordId
+      : this.popularActiveRecordId;
+  },
+  set activeRecordId(val) {
+    if (this.mode === "academic") {
+      this.academicActiveRecordId = val;
+    } else {
+      this.popularActiveRecordId = val;
+    }
+  },
+  get activeRecordTitle() {
+    return this.mode === "academic"
+      ? this.academicActiveRecordTitle
+      : this.popularActiveRecordTitle;
+  },
+  set activeRecordTitle(val) {
+    if (this.mode === "academic") {
+      this.academicActiveRecordTitle = val;
+    } else {
+      this.popularActiveRecordTitle = val;
+    }
+  },
+  get activeRecordSlug() {
+    return this.mode === "academic"
+      ? this.academicActiveRecordSlug
+      : this.popularActiveRecordSlug;
+  },
+  set activeRecordSlug(val) {
+    if (this.mode === "academic") {
+      this.academicActiveRecordSlug = val;
+    } else {
+      this.popularActiveRecordSlug = val;
+    }
+  },
+
+  // Direct-access storage for sub-modules
+  challenges: [],
+
+  // Active weighting criteria for the CURRENT mode's UI
+  weightingCriteria: [],
+
+  // Per-mode weighting + search term cache (saved on toggle, restored on return)
+  academicWeightingCriteria: [],
+  popularWeightingCriteria: [],
+  academicSearchTerms: "",
+  popularSearchTerms: "",
 };
 
 // Alias for shared tool compatibility (metadata_handler expects this)
-Object.defineProperty(window, '_recordTitle', {
-    get: function () { return window._challengeModuleState.activeRecordTitle; },
-    configurable: true
+Object.defineProperty(window, "_recordTitle", {
+  get: function () {
+    return window._challengeModuleState.activeRecordTitle;
+  },
+  configurable: true,
 });
 
 /* -----------------------------------------------------------------------------
@@ -33,154 +91,264 @@ Object.defineProperty(window, '_recordTitle', {
    1. Sets the Providence canvas layout (full-width, no sidebar).
    2. Fetches and injects the challenge editor HTML into the main column.
    3. Initialises all sub-modules in dependency order.
-   4. Wires the Academic/Popular toggle buttons and action bar.
-   5. Loads the initial challenge list.
+   4. Loads BOTH challenge lists in parallel so each is pre-loaded.
+   5. Wires the Academic/Popular toggle buttons and action bar.
 ----------------------------------------------------------------------------- */
 async function renderChallenge() {
-
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        1. SET LAYOUT — We use our own internal split-pane, so collapse the
           Providence sidebar and use the full main column.
     ------------------------------------------------------------------------- */
-    if (typeof window._setLayoutColumns === 'function') {
-        window._setLayoutColumns(false, '1fr');
-    }
+  if (typeof window._setLayoutColumns === "function") {
+    window._setLayoutColumns(false, "1fr");
+  }
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        2. INJECT HTML — Fetch the challenge editor template and inject it
           into the Providence main column.
     ------------------------------------------------------------------------- */
-    try {
-        const response = await fetch('/admin/frontend/dashboard_challenge.html');
-        if (!response.ok) {
-            throw new Error('Failed to load challenge editor template (HTTP ' + response.status + ')');
-        }
-        const html = await response.text();
-
-        if (typeof window._setColumn === 'function') {
-            window._setColumn('main', html);
-        }
-    } catch (err) {
-        console.error('[dashboard_challenge] Template load failed:', err);
-        if (typeof window.surfaceError === 'function') {
-            window.surfaceError('Error: Unable to load the Challenge editor. Please refresh and try again.');
-        }
-        return;
+  try {
+    const response = await fetch("/admin/frontend/dashboard_challenge.html");
+    if (!response.ok) {
+      throw new Error(
+        "Failed to load challenge editor template (HTTP " +
+          response.status +
+          ")",
+      );
     }
+    const html = await response.text();
 
-    /* -------------------------------------------------------------------------
+    if (typeof window._setColumn === "function") {
+      window._setColumn("main", html);
+    }
+  } catch (err) {
+    console.error("[dashboard_challenge] Template load failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Unable to load the Challenge editor. Please refresh and try again.",
+      );
+    }
+    return;
+  }
+
+  /* -------------------------------------------------------------------------
        3. INITIALISE SUB-MODULES
        Each sub-module exposes a function on window. We call them in dependency
        order after HTML injection so DOM elements are available.
     ------------------------------------------------------------------------- */
 
-    // 3a. Set initial mode to academic
-    window._challengeModuleState.mode = 'academic';
-    window._challengeModuleState.activeRecordId = null;
-    window._challengeModuleState.activeRecordTitle = '';
-    window._challengeModuleState.activeRecordSlug = '';
+  // 3a. Initialise per-mode state (default: academic visible)
+  window._challengeModuleState.mode = "academic";
+  window._challengeModuleState.academicActiveRecordId = null;
+  window._challengeModuleState.academicActiveRecordTitle = "";
+  window._challengeModuleState.academicActiveRecordSlug = "";
+  window._challengeModuleState.popularActiveRecordId = null;
+  window._challengeModuleState.popularActiveRecordTitle = "";
+  window._challengeModuleState.popularActiveRecordSlug = "";
+  window._challengeModuleState.academicWeightingCriteria = [];
+  window._challengeModuleState.popularWeightingCriteria = [];
+  window._challengeModuleState.academicSearchTerms = "";
+  window._challengeModuleState.popularSearchTerms = "";
 
-    // 3b. Initialise the weighting handler (sidebar)
-    if (typeof window.initChallengeWeighting === 'function') {
-        window.initChallengeWeighting();
-    }
+  // 3b. Initialise the weighting handler (sidebar)
+  if (typeof window.initChallengeWeighting === "function") {
+    window.initChallengeWeighting();
+  }
 
-    // 3c. Load the initial challenge list for the default mode
-    if (typeof window.displayChallengeList === 'function') {
-        await window.displayChallengeList('academic');
-    }
+  // 3c. Load BOTH challenge lists in parallel so each is pre-loaded.
+  //     The Popular region is hidden (aria-hidden="true") but its DOM is ready.
+  if (typeof window.displayChallengeList === "function") {
+    await Promise.all([
+      window.displayChallengeList("academic"),
+      window.displayChallengeList("popular"),
+    ]);
+  }
 
-    // 3d. Initialise insert response handler
-    if (typeof window.initInsertChallengeResponse === 'function') {
-        window.initInsertChallengeResponse();
-    }
+  // 3d. Initialise insert response handler
+  if (typeof window.initInsertChallengeResponse === "function") {
+    window.initInsertChallengeResponse();
+  }
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        4. WIRE TOGGLE BUTTONS — Academic / Popular switch
+       Now swaps aria-hidden on the two list regions instead of re-fetching.
+       Saves/restores per-mode weighting and search term state.
     ------------------------------------------------------------------------- */
-    _wireToggleButtons();
+  _wireToggleButtons();
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        5. WIRE ACTION BAR BUTTONS — Refresh, Publish, Agent Search, Insert Response
     ------------------------------------------------------------------------- */
-    _wireActionButtons();
+  _wireActionButtons();
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        6. INITIALISE SHARED TOOLS — Metadata footer
        The metadata_handler.js is loaded globally via dashboard.html.
     ------------------------------------------------------------------------- */
-    if (typeof window.renderMetadataFooter === 'function') {
-        window.renderMetadataFooter('challenge-metadata-container', '');
-    }
+  if (typeof window.renderMetadataFooter === "function") {
+    window.renderMetadataFooter("challenge-metadata-container", "");
+  }
 }
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _wireToggleButtons
    Binds click handlers to the Academic and Popular toggle buttons.
-   Switches the active mode, reloads the challenge list, resets the weighting
-   sidebar, and updates search term labels.
+   Swaps aria-hidden on the two list regions (show/hide pre-loaded containers)
+   instead of re-fetching data. Saves the outgoing mode's weighting criteria
+   and search terms to per-mode cache, then restores the incoming mode's state
+   (or loads defaults if no saved state exists).
 ----------------------------------------------------------------------------- */
 function _wireToggleButtons() {
-    const btnAcademic = document.getElementById('btn-toggle-academic');
-    const btnPopular = document.getElementById('btn-toggle-popular');
+  const btnAcademic = document.getElementById("btn-toggle-academic");
+  const btnPopular = document.getElementById("btn-toggle-popular");
 
-    if (!btnAcademic || !btnPopular) return;
+  if (!btnAcademic || !btnPopular) return;
 
-    btnAcademic.addEventListener('click', async function () {
-        if (window._challengeModuleState.mode === 'academic') return;
+  btnAcademic.addEventListener("click", async function () {
+    if (window._challengeModuleState.mode === "academic") return;
 
-        window._challengeModuleState.mode = 'academic';
-        window._challengeModuleState.activeRecordId = null;
-        window._challengeModuleState.activeRecordTitle = '';
-        window._challengeModuleState.activeRecordSlug = '';
+    // 1. Save outgoing popular state to per-mode cache
+    _saveCurrentModeState();
 
-        btnAcademic.classList.add('btn--toggle-active');
-        btnAcademic.setAttribute('aria-pressed', 'true');
-        btnPopular.classList.remove('btn--toggle-active');
-        btnPopular.setAttribute('aria-pressed', 'false');
+    // 2. Switch mode
+    window._challengeModuleState.mode = "academic";
 
-        // Update search terms label
-        const labelEl = document.getElementById('challenge-search-terms-field-label');
-        if (labelEl) labelEl.textContent = 'Academic';
+    // 3. Show Academic region, hide Popular region
+    _showListRegion("academic");
+    _hideListRegion("popular");
 
-        // Reload weighting criteria from the first record's weights
-        if (typeof window.reloadChallengeWeighting === 'function') {
-            window.reloadChallengeWeighting('academic');
-        }
+    // 4. Update toggle button states
+    btnAcademic.classList.add("btn--toggle-active");
+    btnAcademic.setAttribute("aria-pressed", "true");
+    btnPopular.classList.remove("btn--toggle-active");
+    btnPopular.setAttribute("aria-pressed", "false");
 
-        // Reload challenge list
-        if (typeof window.displayChallengeList === 'function') {
-            await window.displayChallengeList('academic');
-        }
-    });
+    // 5. Restore incoming academic state (or load defaults)
+    _restoreModeState("academic");
 
-    btnPopular.addEventListener('click', async function () {
-        if (window._challengeModuleState.mode === 'popular') return;
+    // 6. Update search terms label
+    const labelEl = document.getElementById(
+      "challenge-search-terms-field-label",
+    );
+    if (labelEl) labelEl.textContent = "Academic";
+  });
 
-        window._challengeModuleState.mode = 'popular';
-        window._challengeModuleState.activeRecordId = null;
-        window._challengeModuleState.activeRecordTitle = '';
-        window._challengeModuleState.activeRecordSlug = '';
+  btnPopular.addEventListener("click", async function () {
+    if (window._challengeModuleState.mode === "popular") return;
 
-        btnPopular.classList.add('btn--toggle-active');
-        btnPopular.setAttribute('aria-pressed', 'true');
-        btnAcademic.classList.remove('btn--toggle-active');
-        btnAcademic.setAttribute('aria-pressed', 'false');
+    // 1. Save outgoing academic state to per-mode cache
+    _saveCurrentModeState();
 
-        // Update search terms label
-        const labelEl = document.getElementById('challenge-search-terms-field-label');
-        if (labelEl) labelEl.textContent = 'Popular';
+    // 2. Switch mode
+    window._challengeModuleState.mode = "popular";
 
-        // Reload weighting criteria from the first record's weights
-        if (typeof window.reloadChallengeWeighting === 'function') {
-            window.reloadChallengeWeighting('popular');
-        }
+    // 3. Show Popular region, hide Academic region
+    _showListRegion("popular");
+    _hideListRegion("academic");
 
-        // Reload challenge list
-        if (typeof window.displayChallengeList === 'function') {
-            await window.displayChallengeList('popular');
-        }
-    });
+    // 4. Update toggle button states
+    btnPopular.classList.add("btn--toggle-active");
+    btnPopular.setAttribute("aria-pressed", "true");
+    btnAcademic.classList.remove("btn--toggle-active");
+    btnAcademic.setAttribute("aria-pressed", "false");
+
+    // 5. Restore incoming popular state (or load defaults)
+    _restoreModeState("popular");
+
+    // 6. Update search terms label
+    const labelEl = document.getElementById(
+      "challenge-search-terms-field-label",
+    );
+    if (labelEl) labelEl.textContent = "Popular";
+  });
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _saveCurrentModeState
+   Reads the current sidebar weighting criteria and search terms textarea value
+   and saves them to the per-mode cache for the currently active mode.
+----------------------------------------------------------------------------- */
+function _saveCurrentModeState() {
+  const mode = window._challengeModuleState.mode;
+
+  // Save weighting criteria
+  const currentCriteria = window._challengeModuleState.weightingCriteria || [];
+  if (mode === "academic") {
+    window._challengeModuleState.academicWeightingCriteria =
+      currentCriteria.slice();
+  } else {
+    window._challengeModuleState.popularWeightingCriteria =
+      currentCriteria.slice();
+  }
+
+  // Save search terms
+  const termsInput = document.getElementById("challenge-search-terms-input");
+  const termsValue = termsInput ? termsInput.value : "";
+  if (mode === "academic") {
+    window._challengeModuleState.academicSearchTerms = termsValue;
+  } else {
+    window._challengeModuleState.popularSearchTerms = termsValue;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _restoreModeState
+   Restores the weighting criteria and search terms for the given mode from
+   the per-mode cache. If no saved state exists, loads defaults via
+   reloadChallengeWeighting.
+----------------------------------------------------------------------------- */
+function _restoreModeState(mode) {
+  var savedCriteria;
+  var savedSearchTerms;
+
+  if (mode === "academic") {
+    savedCriteria = window._challengeModuleState.academicWeightingCriteria;
+    savedSearchTerms = window._challengeModuleState.academicSearchTerms;
+  } else {
+    savedCriteria = window._challengeModuleState.popularWeightingCriteria;
+    savedSearchTerms = window._challengeModuleState.popularSearchTerms;
+  }
+
+  // Restore weighting criteria (or load defaults if empty)
+  if (savedCriteria && savedCriteria.length > 0) {
+    window._challengeModuleState.weightingCriteria = savedCriteria.slice();
+    if (typeof window._renderWeightingListExposed === "function") {
+      window._renderWeightingListExposed();
+    }
+  } else {
+    // No saved state — load defaults
+    if (typeof window.reloadChallengeWeighting === "function") {
+      window.reloadChallengeWeighting(mode);
+    }
+  }
+
+  // Restore search terms (or leave empty if nothing saved)
+  var termsInput = document.getElementById("challenge-search-terms-input");
+  if (termsInput) {
+    termsInput.value = savedSearchTerms || "";
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _showListRegion / _hideListRegion
+   Toggle aria-hidden on the dual list regions to show/hide pre-loaded lists.
+----------------------------------------------------------------------------- */
+function _showListRegion(mode) {
+  var regionId = mode + "-challenge-list-region";
+  var region = document.getElementById(regionId);
+  if (region) {
+    region.setAttribute("aria-hidden", "false");
+    region.classList.add("challenge-list-region--active");
+  }
+}
+
+function _hideListRegion(mode) {
+  var regionId = mode + "-challenge-list-region";
+  var region = document.getElementById(regionId);
+  if (region) {
+    region.setAttribute("aria-hidden", "true");
+    region.classList.remove("challenge-list-region--active");
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -189,59 +357,64 @@ function _wireToggleButtons() {
    buttons in the function bar.
 ----------------------------------------------------------------------------- */
 function _wireActionButtons() {
-    const btnRefresh = document.getElementById('btn-challenge-refresh');
-    const btnPublish = document.getElementById('btn-challenge-publish');
-    const btnAgentSearch = document.getElementById('btn-challenge-agent-search');
-    const btnInsertResponse = document.getElementById('btn-challenge-insert-response');
+  const btnRefresh = document.getElementById("btn-challenge-refresh");
+  const btnPublish = document.getElementById("btn-challenge-publish");
+  const btnAgentSearch = document.getElementById("btn-challenge-agent-search");
+  const btnInsertResponse = document.getElementById(
+    "btn-challenge-insert-response",
+  );
 
-    // Refresh — recalculate rankings
-    if (btnRefresh && typeof window.refreshChallengeRankings === 'function') {
-        btnRefresh.addEventListener('click', async function () {
-            btnRefresh.disabled = true;
-            btnRefresh.textContent = 'Refreshing...';
-            try {
-                await window.refreshChallengeRankings();
-            } finally {
-                btnRefresh.disabled = false;
-                btnRefresh.textContent = 'Refresh';
-            }
-        });
-    }
+  // Refresh — recalculate rankings
+  if (btnRefresh && typeof window.refreshChallengeRankings === "function") {
+    btnRefresh.addEventListener("click", async function () {
+      btnRefresh.disabled = true;
+      btnRefresh.textContent = "Refreshing...";
+      try {
+        await window.refreshChallengeRankings();
+      } finally {
+        btnRefresh.disabled = false;
+        btnRefresh.textContent = "Refresh";
+      }
+    });
+  }
 
-    // Publish — commit ranked order to live site
-    if (btnPublish && typeof window.publishChallengeRankings === 'function') {
-        btnPublish.addEventListener('click', async function () {
-            btnPublish.disabled = true;
-            btnPublish.textContent = 'Publishing...';
-            try {
-                await window.publishChallengeRankings();
-            } finally {
-                btnPublish.disabled = false;
-                btnPublish.textContent = 'Publish';
-            }
-        });
-    }
+  // Publish — commit ranked order to live site
+  if (btnPublish && typeof window.publishChallengeRankings === "function") {
+    btnPublish.addEventListener("click", async function () {
+      btnPublish.disabled = true;
+      btnPublish.textContent = "Publishing...";
+      try {
+        await window.publishChallengeRankings();
+      } finally {
+        btnPublish.disabled = false;
+        btnPublish.textContent = "Publish";
+      }
+    });
+  }
 
-    // Agent Search — trigger pipeline for selected record
-    if (btnAgentSearch && typeof window.triggerAgentSearch === 'function') {
-        btnAgentSearch.addEventListener('click', async function () {
-            btnAgentSearch.disabled = true;
-            btnAgentSearch.textContent = 'Searching...';
-            try {
-                await window.triggerAgentSearch();
-            } finally {
-                btnAgentSearch.disabled = false;
-                btnAgentSearch.textContent = 'Agent Search';
-            }
-        });
-    }
+  // Agent Search — trigger pipeline for selected record
+  if (btnAgentSearch && typeof window.triggerAgentSearch === "function") {
+    btnAgentSearch.addEventListener("click", async function () {
+      btnAgentSearch.disabled = true;
+      btnAgentSearch.textContent = "Searching...";
+      try {
+        await window.triggerAgentSearch();
+      } finally {
+        btnAgentSearch.disabled = false;
+        btnAgentSearch.textContent = "Agent Search";
+      }
+    });
+  }
 
-    // Insert Response — create new response linked to selected challenge
-    if (btnInsertResponse && typeof window.insertChallengeResponse === 'function') {
-        btnInsertResponse.addEventListener('click', function () {
-            window.insertChallengeResponse();
-        });
-    }
+  // Insert Response — create new response linked to selected challenge
+  if (
+    btnInsertResponse &&
+    typeof window.insertChallengeResponse === "function"
+  ) {
+    btnInsertResponse.addEventListener("click", function () {
+      window.insertChallengeResponse();
+    });
+  }
 }
 
 /* -----------------------------------------------------------------------------

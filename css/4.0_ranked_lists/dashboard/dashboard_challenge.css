@@ -495,15 +495,25 @@
     flex: 1;
     min-width: 0;
 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.challenge-row__title-link {
     font-family: var(--font-heading);
     font-size: var(--text-base);
     font-weight: var(--weight-medium);
     color: var(--color-text-primary);
     letter-spacing: var(--tracking-tight);
+    text-decoration: none;
 
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    transition: color var(--transition-fast);
+}
+
+.challenge-row__title-link:hover {
+    color: var(--color-dash-accent);
+    text-decoration: underline;
 }
 
 /* Total score badge */
@@ -651,7 +661,7 @@
     background-color: var(--color-bg-primary);
     border: var(--border-width-thin) solid var(--color-border);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.12));
+    box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.12));
 
     /* Center the dialog */
     position: fixed;
@@ -772,15 +782,111 @@
 }
 
 @keyframes challenge-loading-dots {
-    0%   { content: ""; }
-    25%  { content: "."; }
-    50%  { content: ".."; }
-    75%  { content: "..."; }
-    100% { content: ""; }
+    0% {
+        content: "";
+    }
+    25% {
+        content: ".";
+    }
+    50% {
+        content: "..";
+    }
+    75% {
+        content: "...";
+    }
+    100% {
+        content: "";
+    }
 }
 
 /* =============================================================================
-   13. RESPONSIVE — Narrow viewports collapse sidebar
+   13. DUAL-LIST REGIONS — Academic and Popular list containers
+   Each list region is independently toggled via aria-hidden. Both regions
+   share identical CSS — the only difference is the data they display.
+============================================================================= */
+
+.challenge-list-region {
+    display: none;
+    flex-direction: column;
+
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+}
+
+.challenge-list-region::-webkit-scrollbar {
+    width: 4px;
+}
+
+.challenge-list-region::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 0;
+}
+
+/* Visible when aria-hidden is false */
+.challenge-list-region[aria-hidden="false"] {
+    display: flex;
+}
+
+/* --- Region Header --- */
+
+.challenge-list-region__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: var(--space-2) var(--space-3);
+
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    background-color: var(--color-bg-secondary);
+
+    flex-shrink: 0;
+}
+
+.challenge-list-region__heading {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.challenge-list-region__frontend-link {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-dash-accent);
+    text-decoration: none;
+
+    transition: color var(--transition-fast);
+}
+
+.challenge-list-region__frontend-link:hover {
+    color: var(--color-text-primary);
+    text-decoration: underline;
+}
+
+/* Region-specific state containers — extend shared state classes */
+
+.challenge-list-region .state-loading,
+.challenge-list-region .state-empty,
+.challenge-list-region .state-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 1;
+    min-height: 200px;
+
+    text-align: center;
+}
+
+/* =============================================================================
+   14. RESPONSIVE — Narrow viewports collapse sidebar
 ============================================================================= */
 
 @media (max-width: 768px) {
