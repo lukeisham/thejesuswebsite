@@ -266,3 +266,66 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* =============================================================================
+   7. SIDEBAR RESIZE HANDLE — draggable width control
+   Positioned in the divider grid track (column 2) between the sidebar and the
+   permanent 1px divider line. The handle provides an 8px hit target but its
+   visual indicator is centred to 1px so it aligns with the existing divider.
+   Uses z-index to sit above the static divider.
+   States: hover (subtle highlight), is-dragging (accent colour feedback).
+============================================================================= */
+
+.sidebar-resize-handle {
+    grid-column: 2 / 4; /* spans divider (1px) + gap (24px) for 8px hit target */
+    grid-row: 1;
+    z-index: 1;
+
+    width: 8px;
+    height: 100%;
+    cursor: col-resize;
+    justify-self: start; /* left-align so the indicator sits at the divider line */
+
+    /* Transparent hit area by default — only the ::after indicator is visible */
+    background: transparent;
+
+    /* Centre the 1px visual indicator within the 8px hit target */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: background-color var(--transition-fast);
+}
+
+/* Visual indicator — 1px line centred in the 8px handle, matching divider */
+.sidebar-resize-handle::after {
+    content: "";
+    display: block;
+    width: 1px;
+    height: 100%;
+    background-color: var(--color-border);
+    transition: background-color var(--transition-fast);
+}
+
+/* Hover state — subtle background highlight */
+.sidebar-resize-handle:hover {
+    background-color: var(--color-bg-tertiary);
+}
+
+.sidebar-resize-handle:hover::after {
+    background-color: var(--color-text-muted);
+}
+
+/* Dragging state — accent colour for active feedback */
+.sidebar-resize-handle.is-dragging {
+    background-color: var(--color-bg-tertiary);
+}
+
+.sidebar-resize-handle.is-dragging::after {
+    background-color: var(--color-accent-primary);
+}
+
+/* No-sidebar state — hide entirely when the sidebar is collapsed */
+#admin-canvas.no-sidebar #providence-drag-handle {
+    display: none;
+}

@@ -151,6 +151,7 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Action Bar** | Gold focus. | `--color-dash-accent` |
 | **Return Link**| Lead Grey, tertiary BG hover. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
 | **Blog WYSIWYG Editor** | Split-pane markdown editor with live preview. Toolbar uses Providence type scale. Preview matches public blog typography (`--font-body`). | `blog_WYSIWYG_editor.css`, `blog_posts_dashboard.css` |
+| **Sidebar Resize Handle** | 8px-wide drag handle in the divider track of the Providence grid. Hidden by default; reveals on hover with a subtle background highlight. Active drag state uses Oxblood accent. | `admin_components.css` §7 (`.sidebar-resize-handle`), `dashboard_sidebar_resize.js` |
 
 ## 19. Arbor Dashboard Editor — Interactive Node Patterns
 

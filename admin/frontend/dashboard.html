@@ -150,6 +150,14 @@
                 aria-hidden="true"
             ></div>
 
+            <!-- Drag Handle: resizable sidebar width -->
+            <div
+                id="providence-drag-handle"
+                class="sidebar-resize-handle"
+                aria-hidden="true"
+                title="Drag to resize sidebar"
+            ></div>
+
             <!-- Main Work Area (default 1fr) -->
             <section
                 id="providence-col-main"
@@ -180,12 +188,14 @@
        1. Shared error handler (must be first — other scripts depend on it)
        2. Session middleware (verifyAdminSession page guard)
        3. Dashboard app core (module router + column hooks)
-       4. Header injection + logout
-       5. Card rendering
-       6. Error footer injection
-       7. Dashboard orchestrator (init + session check)
-       8. Shared tools (2.0 Records — consumed by 5.0, 6.0 modules)
-       9. Essay & Historiography module scripts (5.0)
+       4. Sidebar resize utility (initSidebarResize — must load after dashboard_app.js)
+       5. Sidebar resize init wrapper (patches _setLayoutColumns — must load after utility)
+       6. Header injection + logout
+       7. Card rendering
+       8. Error footer injection
+       9. Dashboard orchestrator (init + session check)
+      10. Shared tools (2.0 Records — consumed by 5.0, 6.0 modules)
+      11. Essay & Historiography module scripts (5.0)
     ===================================================================== -->
         <script src="../../js/admin_core/error_handler.js"></script>
         <script src="../../js/admin_core/autogen_snippet.js"></script>
@@ -195,6 +205,8 @@
         <script src="../../js/admin_core/sidebar_term_chips.js"></script>
         <script src="../../js/7.0_system/dashboard/load_middleware.js"></script>
         <script src="../../js/7.0_system/dashboard/dashboard_app.js"></script>
+        <script src="../../js/7.0_system/dashboard/dashboard_sidebar_resize.js"></script>
+        <script src="../../js/7.0_system/dashboard/dashboard_sidebar_resize_init.js"></script>
         <script src="../../js/7.0_system/dashboard/dashboard_universal_header.js"></script>
         <script src="../../js/7.0_system/dashboard/display_dashboard_cards.js"></script>
         <script src="../../js/7.0_system/dashboard/display_error_footer.js"></script>
