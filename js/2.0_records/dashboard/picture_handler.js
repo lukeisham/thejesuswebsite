@@ -167,9 +167,25 @@ function renderEditPicture(containerId, recordId) {
        POSTs the validated file as multipart/form-data to the picture endpoint.
        On success, updates the picture_name text field. On failure, surfaces
        an error through window.surfaceError().
+       Disabled when recordId is null (new record not yet saved).
     ------------------------------------------------------------------------- */
   if (uploadBtn) {
+    // If no recordId yet, disable upload with a hint — the record must be
+    // saved first (Save Draft or Publish) before a picture can be uploaded.
+    if (!recordId) {
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = "Save record first to upload picture";
+      uploadBtn.title = "You must save the record before uploading a picture";
+    }
+
     uploadBtn.addEventListener("click", async function () {
+      if (!recordId) {
+        _surfaceError(
+          "Error: Please save the record as Draft before uploading a picture.",
+        );
+        return;
+      }
+
       if (!selectedFile) {
         _surfaceError(
           "Error: No image file selected. Please choose a valid PNG file.",

@@ -15,17 +15,29 @@
 ============================================================================= -->
 
 <!-- =============================================================================
-   FUNCTION BAR — Sort/Filter Toggles
-   Six toggle buttons: Creation Date, Unique ID, Primary Verse, Title,
-   List Ordinary, and Bulk. Clicking a toggle changes the active sort
-   order for the main records table. The "Bulk" toggle is special: it
-   isolates the view to show ONLY the ephemeral bulk review panel.
+   FUNCTION BAR — Actions + Sort/Filter Toggles
+   "+ New Record" button opens a blank single-record editor for creating a
+   record from scratch. Six toggle buttons: Creation Date, Unique ID,
+   Primary Verse, Title, List Ordinary, and Bulk. Clicking a toggle changes
+   the active sort order for the main records table. The "Bulk" toggle is
+   special: it isolates the view to show ONLY the ephemeral bulk review panel.
 ============================================================================= -->
 <section
     id="records-all-function-bar"
     class="function-bar records-all__function-bar"
-    aria-label="Record sort toggles"
+    aria-label="Record actions and sort toggles"
 >
+    <button
+        id="btn-new-record"
+        class="btn btn--primary records-all__new-record-btn"
+        type="button"
+        aria-label="Create a new record"
+    >
+        + New Record
+    </button>
+
+    <span class="function-bar__divider" aria-hidden="true"></span>
+
     <span class="function-bar__label">Sort by:</span>
     <button
         id="toggle-created-at"

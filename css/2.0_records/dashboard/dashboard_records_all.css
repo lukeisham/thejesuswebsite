@@ -51,9 +51,10 @@
     border-radius: var(--radius-sm);
     padding: var(--space-1) var(--space-2);
     cursor: pointer;
-    transition: background-color var(--transition-fast),
-                border-color var(--transition-fast),
-                color var(--transition-fast);
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
     white-space: nowrap;
 }
 
@@ -80,6 +81,28 @@
     border-color: var(--color-accent-hover);
 }
 
+/* --- New Record button (action, not a toggle) --- */
+
+.records-all__new-record-btn {
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    padding: var(--space-1) var(--space-3);
+    margin-right: var(--space-1);
+    white-space: nowrap;
+}
+
+.function-bar__divider {
+    display: inline-block;
+    width: 1px;
+    height: 20px;
+    background-color: var(--color-border);
+    margin: 0 var(--space-2);
+    align-self: center;
+}
+
 /* =============================================================================
    2. SEARCH BAR
    Inline search input with icon, clear button, and status text.
@@ -103,8 +126,9 @@
     background-color: var(--color-bg-secondary);
     border: var(--border-width-thin) solid var(--color-border);
     border-radius: var(--radius-sm);
-    transition: border-color var(--transition-fast),
-                background-color var(--transition-fast);
+    transition:
+        border-color var(--transition-fast),
+        background-color var(--transition-fast);
 }
 
 .records-all__search-label:focus-within {
@@ -151,8 +175,9 @@
     cursor: pointer;
     padding: 0;
     border-radius: var(--radius-sm);
-    transition: color var(--transition-fast),
-                background-color var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        background-color var(--transition-fast);
 }
 
 .records-all__search-clear:hover {
@@ -466,7 +491,7 @@
 }
 
 .bulk-review-panel__table tbody tr.bulk-review__row--invalid:hover {
-    background-color: rgba(142, 59, 70, 0.10);
+    background-color: rgba(142, 59, 70, 0.1);
 }
 
 /* Validation status text */

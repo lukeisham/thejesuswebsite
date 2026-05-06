@@ -65,20 +65,9 @@ async function renderRecordsSingle(recordId) {
     );
   }
 
-  // --- 3. Resolve record ID ---
+  // --- 3. Resolve record ID (null/undefined = create-new mode) ---
   const resolvedId = _resolveRecordId(recordId);
-  if (!resolvedId) {
-    if (typeof window._setColumn === "function") {
-      window._setColumn(
-        "main",
-        `<div class="state-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:var(--space-3)">
-          <span class="state-empty__label">Single Record Editor</span>
-          <p style="font-family:var(--font-body);font-size:var(--text-sm);color:var(--color-text-secondary);max-width:360px;text-align:center">Select a record from the All Records list to edit it here.</p>
-        </div>`,
-      );
-    }
-    return;
-  }
+  // resolvedId may be null/undefined — that's valid: it means "create new record"
 
   // --- 4. Load HTML template into the main column ---
   try {
@@ -257,6 +246,8 @@ async function _initialiseAllEditors(recordId) {
   }
 
   // ---- Fetch and hydrate record data ----
+  // For new records (recordId is null/undefined), fetchAndDisplaySingleRecord
+  // skips the API call and returns null — all form fields remain blank.
   let record = null;
   if (typeof window.fetchAndDisplaySingleRecord === "function") {
     record = await window.fetchAndDisplaySingleRecord(recordId);

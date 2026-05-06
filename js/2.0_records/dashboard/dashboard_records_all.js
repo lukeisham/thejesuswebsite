@@ -96,7 +96,10 @@ async function renderRecordsAll() {
   // --- 5. Inject all dependent JS scripts ---
   await _injectScripts(RECORDS_ALL_SCRIPTS);
 
-  // --- 6. Initialise toggles ---
+  // --- 6. Wire "+ New Record" button ---
+  _wireNewRecordButton();
+
+  // --- 7. Initialise toggles ---
   if (typeof window.initTableToggles === "function") {
     window.initTableToggles();
   } else {
@@ -290,6 +293,25 @@ function _injectStylesheet(href) {
   link.rel = "stylesheet";
   link.href = href;
   document.head.appendChild(link);
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _wireNewRecordButton — navigate to blank single-record editor
+----------------------------------------------------------------------------- */
+function _wireNewRecordButton() {
+  const btn = document.getElementById("btn-new-record");
+  if (!btn) return;
+
+  btn.addEventListener("click", function () {
+    // Clear any preselected record ID so the single-record module
+    // renders in "create" mode with all fields blank.
+    if (typeof window.setRecordId === "function") {
+      window.setRecordId(null);
+    }
+    if (typeof window.loadModule === "function") {
+      window.loadModule("records-single");
+    }
+  });
 }
 
 /* -----------------------------------------------------------------------------
