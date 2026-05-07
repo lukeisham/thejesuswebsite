@@ -203,22 +203,22 @@ async function _initialiseAllEditors(recordId) {
 
   // Taxonomy selectors
   if (typeof window.renderTaxonomySelectors === "function") {
-    window.renderTaxonomySelectors();
+    window.renderTaxonomySelectors("section-taxonomy");
   }
 
   // Map fields
   if (typeof window.renderMapFields === "function") {
-    window.renderMapFields();
+    window.renderMapFields("section-taxonomy");
   }
 
   // External refs
   if (typeof window.renderExternalRefs === "function") {
-    window.renderExternalRefs();
+    window.renderExternalRefs("external-refs-container");
   }
 
   // Parent selector
   if (typeof window.renderParentSelector === "function") {
-    window.renderParentSelector();
+    window.renderParentSelector("section-external-refs");
   }
 
   // URL array editor
