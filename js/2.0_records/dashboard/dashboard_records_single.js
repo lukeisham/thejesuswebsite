@@ -250,11 +250,43 @@ async function _initialiseAllEditors(recordId) {
           'input[name="record-status"]:checked',
         );
         if (statusRadio && statusRadio.value === "published") {
-          // Already published — do not auto-save, just fill the fields
           return;
         }
+
+        // Sync widget-generated values into the canonical form fields
+        // so that collectAllFormData() picks them up on save.
+        if (recordData) {
+          // Slug → Section 1
+          if (recordData.slug) {
+            var slugInput = document.getElementById("record-slug");
+            if (slugInput) slugInput.value = recordData.slug;
+          }
+          // Snippet → Section 3 snippet editor
+          if (
+            recordData.snippet &&
+            typeof window.renderDescriptionEditor === "function"
+          ) {
+            var paragraphs;
+            try {
+              paragraphs = JSON.parse(recordData.snippet);
+              if (!Array.isArray(paragraphs)) paragraphs = [recordData.snippet];
+            } catch (e) {
+              paragraphs = [recordData.snippet];
+            }
+            window.renderDescriptionEditor(
+              "snippet-editor-container",
+              paragraphs,
+            );
+          }
+          // Metadata JSON → hidden form field
+          if (recordData.metadata_json) {
+            var metaEl = document.getElementById("record-metadata-json");
+            if (metaEl) metaEl.value = recordData.metadata_json;
+          }
+        }
+
         // Trigger a save draft via the status handler
-        const btnSaveDraft = document.getElementById("btn-save-draft");
+        var btnSaveDraft = document.getElementById("btn-save-draft");
         if (btnSaveDraft) {
           btnSaveDraft.click();
         }
@@ -268,6 +300,13 @@ async function _initialiseAllEditors(recordId) {
         return slugInput ? slugInput.value : window._recordSlug || "";
       },
     });
+  }
+
+  // Wire the Section 1 btn-auto-slug via the legacy metadata handler.
+  // renderMetadataFooter expects #record-slug, #btn-auto-slug,
+  // #record-metadata-json, #record-created-at, #record-updated-at to exist.
+  if (typeof window.renderMetadataFooter === "function") {
+    window.renderMetadataFooter("section-core-ids", resolvedId || "");
   }
 
   // Metadata handler (legacy — kept for backward compatibility)

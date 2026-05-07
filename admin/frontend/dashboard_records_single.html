@@ -402,6 +402,12 @@
     <!-- Shared metadata widget (slug, snippet, metadata, timestamps, generate all) -->
     <div id="metadata-widget-container" aria-label="Metadata widget"></div>
 
+    <!-- Hidden form fields populated by the metadata widget on auto-gen
+         and read by collectAllFormData() on save. -->
+    <input id="record-metadata-json" type="hidden" />
+    <input id="record-created-at" type="hidden" />
+    <input id="record-updated-at" type="hidden" />
+
     <fieldset
         id="record-status-group"
         class="form-field__radio-group"
