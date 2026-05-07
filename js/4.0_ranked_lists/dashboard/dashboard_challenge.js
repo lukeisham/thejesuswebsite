@@ -77,14 +77,6 @@ window._challengeModuleState = {
   popularSearchTerms: "",
 };
 
-// Alias for shared tool compatibility (metadata_handler expects this)
-Object.defineProperty(window, "_recordTitle", {
-  get: function () {
-    return window._challengeModuleState.activeRecordTitle;
-  },
-  configurable: true,
-});
-
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: renderChallenge
    Called by dashboard_app.js when the user navigates to the Challenge module.
@@ -149,6 +141,15 @@ async function renderChallenge() {
   window._challengeModuleState.popularWeightingCriteria = [];
   window._challengeModuleState.academicSearchTerms = "";
   window._challengeModuleState.popularSearchTerms = "";
+
+  // Alias for shared tool compatibility — redefines _recordTitle to
+  // dynamically read current challenge's active record title.
+  Object.defineProperty(window, "_recordTitle", {
+    get: function () {
+      return window._challengeModuleState.activeRecordTitle;
+    },
+    configurable: true,
+  });
 
   // 3b. Initialise the weighting handler (sidebar)
   if (typeof window.initChallengeWeighting === "function") {

@@ -18,13 +18,6 @@ window._blogModuleState = {
   isDirty: false, // true when markdown has unsaved changes
 };
 
-// Alias for shared tool compatibility (picture_handler, snippet_generator, etc.)
-Object.defineProperty(window, "_recordTitle", {
-  get: function () {
-    return window._blogModuleState.activeRecordTitle;
-  },
-  configurable: true,
-});
 Object.defineProperty(window, "_recordSlug", {
   get: function () {
     return window._blogModuleState.activeRecordId;
@@ -83,6 +76,14 @@ async function renderBlogPosts() {
      Each sub-module exposes a function on window. We call them after the
      HTML is injected so DOM elements are available.
   ------------------------------------------------------------------------- */
+
+  // Alias for shared tool compatibility (picture_handler, snippet_generator, etc.)
+  Object.defineProperty(window, "_recordTitle", {
+    get: function () {
+      return window._blogModuleState.activeRecordTitle;
+    },
+    configurable: true,
+  });
 
   // 3a. Load the sidebar blog post list
   if (typeof window.displayBlogPostsList === "function") {

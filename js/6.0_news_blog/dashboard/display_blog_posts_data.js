@@ -15,7 +15,7 @@
 /* -----------------------------------------------------------------------------
    CONSTANTS
 ----------------------------------------------------------------------------- */
-const API_BASE_URL = "/api/admin";
+const BLOG_API_BASE_URL = "/api/admin";
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: displayBlogPostsList
@@ -24,7 +24,7 @@ const API_BASE_URL = "/api/admin";
 ----------------------------------------------------------------------------- */
 async function displayBlogPostsList() {
   try {
-    const response = await fetch(API_BASE_URL + "/blogposts");
+    const response = await fetch(BLOG_API_BASE_URL + "/blogposts");
 
     if (!response.ok) {
       throw new Error("API responded with status " + response.status);
@@ -75,7 +75,7 @@ async function loadBlogPostContent(recordId, title) {
 
   try {
     const response = await fetch(
-      API_BASE_URL + "/records/" + encodeURIComponent(recordId),
+      BLOG_API_BASE_URL + "/records/" + encodeURIComponent(recordId),
     );
 
     if (!response.ok) {

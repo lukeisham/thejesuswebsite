@@ -126,7 +126,7 @@ function renderEditPicture(containerId, recordId) {
     if (file.size > MAX_PICTURE_SIZE_BYTES) {
       _surfaceError(
         "Error: Image upload failed for '" +
-          _recordTitle() +
+          _getRecordTitle() +
           "'. Max 250 KB PNG only.",
       );
       fileInput.value = "";
@@ -236,7 +236,7 @@ function renderEditPicture(containerId, recordId) {
       } catch (error) {
         _surfaceError(
           "Error: Image upload failed for '" +
-            _recordTitle() +
+            _getRecordTitle() +
             "'. Max 250 KB PNG only.",
         );
 
@@ -336,7 +336,7 @@ function _renderPreviewImage(previewEl, dataUrl, altText, maxWidthPx) {
    INTERNAL: Resolve the record title for error messages
    Falls back to "this record" if window._recordTitle is not set.
 ----------------------------------------------------------------------------- */
-function _recordTitle() {
+function _getRecordTitle() {
   if (
     typeof window._recordTitle === "string" &&
     window._recordTitle.trim().length > 0

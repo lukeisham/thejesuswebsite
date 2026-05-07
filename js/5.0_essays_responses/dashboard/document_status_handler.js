@@ -7,32 +7,32 @@
 // Output:  Save, Publish, and Delete operations performed via the admin API.
 //           Errors are routed through window.surfaceError().
 
-'use strict';
+"use strict";
 
 /* -----------------------------------------------------------------------------
    CONSTANTS
 ----------------------------------------------------------------------------- */
-const API_BASE = '/api/admin';
+const DOC_STATUS_API_BASE = "/api/admin";
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: initDocumentStatusHandler
    Wires click handlers to the Save Draft, Publish, and Delete buttons.
 ----------------------------------------------------------------------------- */
 function initDocumentStatusHandler() {
-  const btnSaveDraft = document.getElementById('btn-save-draft');
-  const btnPublish = document.getElementById('btn-publish');
-  const btnDelete = document.getElementById('btn-delete');
+  const btnSaveDraft = document.getElementById("btn-save-draft");
+  const btnPublish = document.getElementById("btn-publish");
+  const btnDelete = document.getElementById("btn-delete");
 
   if (btnSaveDraft) {
-    btnSaveDraft.addEventListener('click', _handleSaveDraft);
+    btnSaveDraft.addEventListener("click", _handleSaveDraft);
   }
 
   if (btnPublish) {
-    btnPublish.addEventListener('click', _handlePublish);
+    btnPublish.addEventListener("click", _handlePublish);
   }
 
   if (btnDelete) {
-    btnDelete.addEventListener('click', _handleDelete);
+    btnDelete.addEventListener("click", _handleDelete);
   }
 }
 
@@ -45,65 +45,75 @@ function initDocumentStatusHandler() {
 async function _handleSaveDraft() {
   // Check dirty state — if no unsaved changes, no need to save
   if (!window._essayModuleState.isDirty) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('No changes to save.');
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("No changes to save.");
     }
     return;
   }
 
   const recordId = window._essayModuleState.activeRecordId;
-  const title = window._essayModuleState.activeRecordTitle || 'this document';
+  const title = window._essayModuleState.activeRecordTitle || "this document";
 
   if (!recordId) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Error: No document selected. Please select a document from the sidebar first.');
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: No document selected. Please select a document from the sidebar first.",
+      );
     }
     return;
   }
 
   const payload = _collectEditorData();
-  payload.status = 'draft';
+  payload.status = "draft";
 
-  const btn = document.getElementById('btn-save-draft');
+  const btn = document.getElementById("btn-save-draft");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Saving…';
+    btn.textContent = "Saving…";
   }
 
   try {
-    const response = await fetch(API_BASE + '/records/' + encodeURIComponent(recordId), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const response = await fetch(
+      DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(function () { return {}; });
-      const detail = errorBody.detail || 'HTTP ' + response.status;
+      const errorBody = await response.json().catch(function () {
+        return {};
+      });
+      const detail = errorBody.detail || "HTTP " + response.status;
       throw new Error(detail);
     }
 
     // Mark as clean
     window._essayModuleState.isDirty = false;
 
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Draft saved: ' + title);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Draft saved: " + title);
     }
 
     // Refresh the sidebar list to reflect status changes
-    if (typeof window.displayEssayHistoriographyList === 'function') {
-      await window.displayEssayHistoriographyList(window._essayModuleState.mode);
+    if (typeof window.displayEssayHistoriographyList === "function") {
+      await window.displayEssayHistoriographyList(
+        window._essayModuleState.mode,
+      );
     }
-
   } catch (err) {
-    console.error('[document_status_handler] Save draft failed:', err);
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to save changes to '" + title + "'. Please try again.");
+    console.error("[document_status_handler] Save draft failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to save changes to '" + title + "'. Please try again.",
+      );
     }
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Save Draft';
+      btn.textContent = "Save Draft";
     }
   }
 }
@@ -115,11 +125,13 @@ async function _handleSaveDraft() {
 ----------------------------------------------------------------------------- */
 async function _handlePublish() {
   const recordId = window._essayModuleState.activeRecordId;
-  const title = window._essayModuleState.activeRecordTitle || 'this document';
+  const title = window._essayModuleState.activeRecordTitle || "this document";
 
   if (!recordId) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Error: No document selected. Please select a document from the sidebar first.');
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: No document selected. Please select a document from the sidebar first.",
+      );
     }
     return;
   }
@@ -128,61 +140,73 @@ async function _handlePublish() {
   const payload = _collectEditorData();
 
   if (!payload.title || !payload.title.trim()) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to publish '" + title + "'. Check required fields.");
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to publish '" + title + "'. Check required fields.",
+      );
     }
     return;
   }
 
   if (!payload.markdown_content || !payload.markdown_content.trim()) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to publish '" + title + "'. Check required fields.");
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to publish '" + title + "'. Check required fields.",
+      );
     }
     return;
   }
 
-  payload.status = 'published';
+  payload.status = "published";
 
-  const btn = document.getElementById('btn-publish');
+  const btn = document.getElementById("btn-publish");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Publishing…';
+    btn.textContent = "Publishing…";
   }
 
   try {
-    const response = await fetch(API_BASE + '/records/' + encodeURIComponent(recordId), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const response = await fetch(
+      DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(function () { return {}; });
-      const detail = errorBody.detail || 'HTTP ' + response.status;
+      const errorBody = await response.json().catch(function () {
+        return {};
+      });
+      const detail = errorBody.detail || "HTTP " + response.status;
       throw new Error(detail);
     }
 
     // Mark as clean
     window._essayModuleState.isDirty = false;
 
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Published: ' + title);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Published: " + title);
     }
 
     // Refresh the sidebar list
-    if (typeof window.displayEssayHistoriographyList === 'function') {
-      await window.displayEssayHistoriographyList(window._essayModuleState.mode);
+    if (typeof window.displayEssayHistoriographyList === "function") {
+      await window.displayEssayHistoriographyList(
+        window._essayModuleState.mode,
+      );
     }
-
   } catch (err) {
-    console.error('[document_status_handler] Publish failed:', err);
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to publish '" + title + "'. Check required fields.");
+    console.error("[document_status_handler] Publish failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to publish '" + title + "'. Check required fields.",
+      );
     }
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Publish';
+      btn.textContent = "Publish";
     }
   }
 }
@@ -194,69 +218,81 @@ async function _handlePublish() {
 ----------------------------------------------------------------------------- */
 async function _handleDelete() {
   const recordId = window._essayModuleState.activeRecordId;
-  const title = window._essayModuleState.activeRecordTitle || 'this document';
+  const title = window._essayModuleState.activeRecordTitle || "this document";
 
   if (!recordId) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Error: No document selected. Please select a document from the sidebar first.');
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: No document selected. Please select a document from the sidebar first.",
+      );
     }
     return;
   }
 
   // Confirmation prompt
-  const confirmed = confirm("Are you sure you want to delete '" + title + "'? This cannot be undone.");
+  const confirmed = confirm(
+    "Are you sure you want to delete '" + title + "'? This cannot be undone.",
+  );
   if (!confirmed) return;
 
-  const btn = document.getElementById('btn-delete');
+  const btn = document.getElementById("btn-delete");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Deleting…';
+    btn.textContent = "Deleting…";
   }
 
   try {
-    const response = await fetch(API_BASE + '/records/' + encodeURIComponent(recordId), {
-      method: 'DELETE'
-    });
+    const response = await fetch(
+      DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+      {
+        method: "DELETE",
+      },
+    );
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(function () { return {}; });
-      const detail = errorBody.detail || 'HTTP ' + response.status;
+      const errorBody = await response.json().catch(function () {
+        return {};
+      });
+      const detail = errorBody.detail || "HTTP " + response.status;
       throw new Error(detail);
     }
 
     // Clear the editor
     window._essayModuleState.activeRecordId = null;
-    window._essayModuleState.activeRecordTitle = '';
+    window._essayModuleState.activeRecordTitle = "";
     window._essayModuleState.isDirty = false;
 
     // Reset editor fields
-    if (typeof window.setMarkdownContent === 'function') {
-      window.setMarkdownContent('');
+    if (typeof window.setMarkdownContent === "function") {
+      window.setMarkdownContent("");
     }
 
-    const titleInput = document.getElementById('essay-title-input');
-    const snippetInput = document.getElementById('essay-snippet-input');
-    if (titleInput) titleInput.value = '';
-    if (snippetInput) snippetInput.value = '';
+    const titleInput = document.getElementById("essay-title-input");
+    const snippetInput = document.getElementById("essay-snippet-input");
+    if (titleInput) titleInput.value = "";
+    if (snippetInput) snippetInput.value = "";
 
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Deleted: ' + title);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Deleted: " + title);
     }
 
     // Refresh sidebar
-    if (typeof window.displayEssayHistoriographyList === 'function') {
-      await window.displayEssayHistoriographyList(window._essayModuleState.mode);
+    if (typeof window.displayEssayHistoriographyList === "function") {
+      await window.displayEssayHistoriographyList(
+        window._essayModuleState.mode,
+      );
     }
-
   } catch (err) {
-    console.error('[document_status_handler] Delete failed:', err);
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to delete '" + title + "'. Please try again.");
+    console.error("[document_status_handler] Delete failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to delete '" + title + "'. Please try again.",
+      );
     }
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Delete';
+      btn.textContent = "Delete";
     }
   }
 }
@@ -271,34 +307,40 @@ async function _handleDelete() {
                 context_links, and slug fields.
 ----------------------------------------------------------------------------- */
 function _collectEditorData() {
-  const titleInput = document.getElementById('essay-title-input');
-  const textarea = document.getElementById('markdown-textarea');
-  const snippetInput = document.getElementById('essay-snippet-input');
-  const slugInput = document.getElementById('record-slug');
+  const titleInput = document.getElementById("essay-title-input");
+  const textarea = document.getElementById("markdown-textarea");
+  const snippetInput = document.getElementById("essay-snippet-input");
+  const slugInput = document.getElementById("record-slug");
 
   const payload = {
-    title: titleInput ? titleInput.value : '',
-    markdown_content: textarea ? textarea.value : '',
-    snippet: snippetInput ? snippetInput.value : '',
-    slug: slugInput ? slugInput.value : '',
+    title: titleInput ? titleInput.value : "",
+    markdown_content: textarea ? textarea.value : "",
+    snippet: snippetInput ? snippetInput.value : "",
+    slug: slugInput ? slugInput.value : "",
   };
 
   // Collect bibliography from shared tool
-  if (typeof window.collectEditBibliography === 'function') {
+  if (typeof window.collectEditBibliography === "function") {
     try {
       payload.bibliography = window.collectEditBibliography();
     } catch (err) {
-      console.warn('[document_status_handler] Failed to collect bibliography:', err);
+      console.warn(
+        "[document_status_handler] Failed to collect bibliography:",
+        err,
+      );
       payload.bibliography = [];
     }
   }
 
   // Collect context links from shared tool
-  if (typeof window.collectEditLinks === 'function') {
+  if (typeof window.collectEditLinks === "function") {
     try {
       payload.context_links = window.collectEditLinks();
     } catch (err) {
-      console.warn('[document_status_handler] Failed to collect context links:', err);
+      console.warn(
+        "[document_status_handler] Failed to collect context links:",
+        err,
+      );
       payload.context_links = [];
     }
   }

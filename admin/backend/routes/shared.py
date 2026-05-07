@@ -35,7 +35,7 @@ logger = setup_logger(__file__)
 # Database path
 # -----------------------------------------------------------------------------
 DB_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "..", "database", "database.sqlite"
+    os.path.dirname(__file__), "..", "..", "..", "database", "database.sqlite"
 )
 
 

@@ -9,14 +9,14 @@
 // Output:  Filtered sidebar document list. On clear, all items restored.
 //           On toggle switch, search input is cleared by the orchestrator.
 
-'use strict';
+"use strict";
 
 /* -----------------------------------------------------------------------------
    CONSTANTS
 ----------------------------------------------------------------------------- */
-const DEBOUNCE_MS = 150;
-const GROUP_HEADER_SELECTOR = '.essay-sidebar-group__header';
-const LIST_ITEM_SELECTOR = '.essay-sidebar-list__item';
+const ESSAY_SEARCH_DEBOUNCE_MS = 150;
+const GROUP_HEADER_SELECTOR = ".essay-sidebar-group__header";
+const LIST_ITEM_SELECTOR = ".essay-sidebar-list__item";
 
 /* -----------------------------------------------------------------------------
    INTERNAL STATE
@@ -29,17 +29,19 @@ let _searchDebounceTimer = null;
    client-side filtering of the sidebar document list.
 ----------------------------------------------------------------------------- */
 function initEssaySearch() {
-  const searchInput = document.getElementById('essay-search-input');
+  const searchInput = document.getElementById("essay-search-input");
   if (!searchInput) {
-    console.warn('[search_essays] #essay-search-input not found — search disabled.');
+    console.warn(
+      "[search_essays] #essay-search-input not found — search disabled.",
+    );
     return;
   }
 
-  searchInput.addEventListener('input', function () {
+  searchInput.addEventListener("input", function () {
     if (_searchDebounceTimer) clearTimeout(_searchDebounceTimer);
     _searchDebounceTimer = setTimeout(function () {
       _filterSidebar(searchInput.value);
-    }, DEBOUNCE_MS);
+    }, ESSAY_SEARCH_DEBOUNCE_MS);
   });
 }
 
@@ -59,17 +61,17 @@ function _filterSidebar(searchTerm) {
 
   if (!allItems.length) return;
 
-  const term = (searchTerm || '').trim().toLowerCase();
+  const term = (searchTerm || "").trim().toLowerCase();
 
   // Track which groups have visible items
   const groupVisibility = {};
 
   allItems.forEach(function (item) {
-    const title = (item.textContent || '').trim().toLowerCase();
+    const title = (item.textContent || "").trim().toLowerCase();
 
     if (!term) {
       // No search term — show all items
-      item.style.display = '';
+      item.style.display = "";
       _markGroupVisible(item);
       return;
     }
@@ -78,10 +80,10 @@ function _filterSidebar(searchTerm) {
     const matches = _fuzzyMatch(title, term);
 
     if (matches) {
-      item.style.display = '';
+      item.style.display = "";
       _markGroupVisible(item);
     } else {
-      item.style.display = 'none';
+      item.style.display = "none";
     }
   });
 
@@ -130,7 +132,7 @@ function _markGroupVisible(item) {
   // Walk up to find the parent .essay-sidebar-group
   let parent = item.parentElement;
   while (parent) {
-    if (parent.classList.contains('essay-sidebar-group')) {
+    if (parent.classList.contains("essay-sidebar-group")) {
       parent._hasVisibleChildren = true;
       return;
     }
@@ -144,7 +146,7 @@ function _markGroupVisible(item) {
    visible children. Groups are identified by the .essay-sidebar-group class.
 ----------------------------------------------------------------------------- */
 function _updateGroupHeaders() {
-  const groups = document.querySelectorAll('.essay-sidebar-group');
+  const groups = document.querySelectorAll(".essay-sidebar-group");
 
   groups.forEach(function (group) {
     // Reset marker before checking
@@ -153,7 +155,7 @@ function _updateGroupHeaders() {
     // Check all list items in this group
     const items = group.querySelectorAll(LIST_ITEM_SELECTOR);
     items.forEach(function (item) {
-      if (item.style.display !== 'none') {
+      if (item.style.display !== "none") {
         group._hasVisibleChildren = true;
       }
     });
@@ -161,7 +163,7 @@ function _updateGroupHeaders() {
     // Show or hide the group header
     const header = group.querySelector(GROUP_HEADER_SELECTOR);
     if (header) {
-      header.style.display = group._hasVisibleChildren ? '' : 'none';
+      header.style.display = group._hasVisibleChildren ? "" : "none";
     }
   });
 }

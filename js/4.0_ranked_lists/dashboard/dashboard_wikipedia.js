@@ -23,14 +23,6 @@ window._wikipediaModuleState = {
   wikipediaRecords: [], // full list of Wikipedia-ranked records
 };
 
-// Alias for shared tool compatibility (metadata_handler expects this)
-Object.defineProperty(window, "_recordTitle", {
-  get: function () {
-    return window._wikipediaModuleState.activeRecordTitle;
-  },
-  configurable: true,
-});
-
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: renderWikipedia
    Called by dashboard_app.js when the user navigates to the Wikipedia module.
@@ -91,6 +83,14 @@ async function renderWikipedia() {
   window._wikipediaModuleState.activeRecordSearchTerms = [];
   window._wikipediaModuleState.activeRecordSnippet = "";
   window._wikipediaModuleState.activeRecordMeta = "";
+
+  // Alias for shared tool compatibility (metadata_handler expects this)
+  Object.defineProperty(window, "_recordTitle", {
+    get: function () {
+      return window._wikipediaModuleState.activeRecordTitle;
+    },
+    configurable: true,
+  });
 
   // 3b. Initialise the sidebar handler (populate empty sidebar)
   if (typeof window.initWikipediaSidebar === "function") {
