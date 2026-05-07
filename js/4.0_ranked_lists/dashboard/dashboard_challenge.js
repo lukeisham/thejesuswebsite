@@ -185,9 +185,33 @@ async function renderChallenge() {
   _wireActionButtons();
 
   /* -------------------------------------------------------------------------
-       6. INITIALISE SHARED TOOLS — Metadata footer
-       The metadata_handler.js is loaded globally via dashboard.html.
+       6. INITIALISE SHARED TOOLS — Metadata widget + footer
+       The metadata_handler.js and metadata_widget.js are loaded globally
+       via dashboard.html.
     ------------------------------------------------------------------------- */
+  if (typeof window.renderMetadataWidget === "function") {
+    window.renderMetadataWidget("metadata-widget-container", {
+      onAutoSaveDraft: async function (recordData) {
+        // Challenge responses are auto-saved as draft
+        if (typeof window._saveChallengeRecord === "function") {
+          await window._saveChallengeRecord();
+        }
+      },
+      getRecordTitle: function () {
+        return window._challengeModuleState &&
+          window._challengeModuleState.activeRecordTitle
+          ? window._challengeModuleState.activeRecordTitle
+          : "";
+      },
+      getRecordId: function () {
+        return window._challengeModuleState &&
+          window._challengeModuleState.activeRecordSlug
+          ? window._challengeModuleState.activeRecordSlug
+          : "";
+      },
+    });
+  }
+
   if (typeof window.renderMetadataFooter === "function") {
     window.renderMetadataFooter("challenge-metadata-container", "");
   }

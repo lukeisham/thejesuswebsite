@@ -177,7 +177,9 @@
             type="file"
             accept="image/png"
         />
-        <span class="form-field__hint">PNG only, max 5 MB (compressed server-side to ≤ 250 KB)</span>
+        <span class="form-field__hint"
+            >PNG only, max 5 MB (compressed server-side to ≤ 250 KB)</span
+        >
     </div>
 </section>
 
@@ -397,74 +399,34 @@
         METADATA &amp; STATUS
     </h2>
 
-    <div id="metadata-footer-container" aria-label="Metadata footer">
-        <div class="form-field">
-            <label for="record-metadata-json" class="form-field__label"
-                >Metadata JSON</label
-            >
-            <textarea
-                id="record-metadata-json"
-                class="form-field__textarea form-field__textarea--mono"
-                rows="6"
-                placeholder="Raw JSON blob — auto-managed; editable for advanced use"
-            ></textarea>
-            <span class="form-field__hint"
-                >raw JSON blob — auto-managed; editable for advanced use</span
-            >
-        </div>
+    <!-- Shared metadata widget (slug, snippet, metadata, timestamps, generate all) -->
+    <div id="metadata-widget-container" aria-label="Metadata widget"></div>
 
-        <div class="form-field">
-            <label for="record-created-at" class="form-field__label"
-                >Created At</label
-            >
+    <fieldset
+        id="record-status-group"
+        class="form-field__radio-group"
+        aria-label="Record status"
+    >
+        <legend class="form-field__label">Status</legend>
+        <label class="form-field__radio-label">
             <input
-                id="record-created-at"
-                class="form-field__input form-field__input--readonly"
-                type="text"
-                readonly
+                id="record-status-draft"
+                class="form-field__radio"
+                type="radio"
+                name="record-status"
+                value="draft"
             />
-            <span class="form-field__hint">ISO8601 — read-only</span>
-        </div>
-
-        <div class="form-field">
-            <label for="record-updated-at" class="form-field__label"
-                >Updated At</label
-            >
+            Draft
+        </label>
+        <label class="form-field__radio-label">
             <input
-                id="record-updated-at"
-                class="form-field__input form-field__input--readonly"
-                type="text"
-                readonly
+                id="record-status-published"
+                class="form-field__radio"
+                type="radio"
+                name="record-status"
+                value="published"
             />
-            <span class="form-field__hint">ISO8601 — auto-set on save</span>
-        </div>
-
-        <fieldset
-            id="record-status-group"
-            class="form-field__radio-group"
-            aria-label="Record status"
-        >
-            <legend class="form-field__label">Status</legend>
-            <label class="form-field__radio-label">
-                <input
-                    id="record-status-draft"
-                    class="form-field__radio"
-                    type="radio"
-                    name="record-status"
-                    value="draft"
-                />
-                Draft
-            </label>
-            <label class="form-field__radio-label">
-                <input
-                    id="record-status-published"
-                    class="form-field__radio"
-                    type="radio"
-                    name="record-status"
-                    value="published"
-                />
-                Published
-            </label>
-        </fieldset>
-    </div>
+            Published
+        </label>
+    </fieldset>
 </section>

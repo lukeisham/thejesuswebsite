@@ -116,10 +116,10 @@ async function fetchAndDisplaySingleRecord(recordId) {
       window.setUrlArrayData(record.url);
     }
 
-    // Section 7: Metadata & Status
-    _setFieldValue("record-metadata-json", _formatJson(record.metadata_json));
-    _setFieldValue("record-created-at", record.created_at || "");
-    _setFieldValue("record-updated-at", record.updated_at || "");
+    // Section 7: Metadata & Status — populate the shared widget
+    if (typeof window.populateMetadataWidget === "function") {
+      window.populateMetadataWidget("metadata-widget-container", record);
+    }
 
     _setStatusRadio(record.status || "draft");
 
@@ -340,10 +340,10 @@ function _initialiseBlankForm() {
     window.setUrlArrayData(null);
   }
 
-  // Section 7: Metadata & Status
-  _setFieldValue("record-metadata-json", "");
-  _setFieldValue("record-created-at", "");
-  _setFieldValue("record-updated-at", "");
+  // Section 7: Metadata & Status — clear the shared widget
+  if (typeof window.populateMetadataWidget === "function") {
+    window.populateMetadataWidget("metadata-widget-container", null);
+  }
   _setStatusRadio("draft");
 
   // Clear loaded record reference for dirty-checking

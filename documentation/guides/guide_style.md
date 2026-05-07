@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.4.0
+version: 1.5.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -152,6 +152,40 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Return Link**| Lead Grey, tertiary BG hover. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
 | **Blog WYSIWYG Editor** | Split-pane markdown editor with live preview. Toolbar uses Providence type scale. Preview matches public blog typography (`--font-body`). | `blog_WYSIWYG_editor.css`, `blog_posts_dashboard.css` |
 | **Sidebar Resize Handle** | 8px-wide drag handle in the divider track of the Providence grid. Hidden by default; reveals on hover with a subtle background highlight. Active drag state uses Oxblood accent. | `admin_components.css` §7 (`.sidebar-resize-handle`), `dashboard_sidebar_resize.js` |
+| **Metadata Widget** | Shared unified slug/snippet/metadata editor rendered across all six dashboard modules. BEM-scoped (`.metadata-widget__*`), injected via `window.renderMetadataWidget()`, styled exclusively with CSS variables. See §21. | `metadata_widget.css`, `metadata_widget.js` |
+
+## 21. Shared-Component Styling — `.metadata-widget` BEM Namespace
+
+The `metadata_widget.css` stylesheet is the canonical example of a shared
+dashboard component styled with the BEM (Block Element Modifier) naming
+convention and CSS variables exclusively from `typography.css`. It is consumed
+by all six dashboard editor modules.
+
+| BEM Class | Purpose | Key Variables Used |
+|:---|:---|:---|
+| `.metadata-widget` | Block container — vertical flex stack | `--space-2` gap |
+| `.metadata-widget__heading` | Section heading | `--font-heading`, `--text-sm`, `--weight-medium`, `--color-text-secondary`, `--tracking-wide` |
+| `.metadata-widget__field` | Label + input/textarea + button vertical stack | `--space-1` gap |
+| `.metadata-widget__label` | Field label | `--font-heading`, `--text-xs`, `--weight-medium`, `--color-text-secondary`, `--tracking-wide` |
+| `.metadata-widget__inline` | Horizontal input + button row | Flexbox, `--space-1` gap |
+| `.metadata-widget__input` | Text input (monospace) | `--font-mono`, `--text-xs`, `--color-text-primary`, `--color-bg-primary`, `--border-width-thin`, `--color-border` |
+| `.metadata-widget__input--readonly` | Read-only modifier (muted) | `--color-text-muted`, `--color-bg-tertiary` |
+| `.metadata-widget__textarea` | Textarea (monospace, resizable) | Same as input + `resize: vertical` |
+| `.metadata-widget__textarea--mono` | Mono modifier (muted, tertiary bg) | `--color-text-muted`, `--color-bg-tertiary` |
+| `.metadata-widget__btn` | Individual auto-gen button | `--font-heading`, `--text-xs`, `--weight-medium`, `--color-border`, hover→`--color-bg-tertiary`, `--color-border-strong`, active→`--color-accent-primary` |
+| `.metadata-widget__generate-all` | Primary "Generate All" button (full-width Oxblood) | `--font-heading`, `--text-sm`, `--weight-semibold`, `--color-text-inverse`, `--color-accent-primary`, hover→`--color-accent-hover` |
+| `.metadata-widget__divider` | Horizontal rule separator | `--border-width-thin`, `--color-border` |
+| `.metadata-widget__hint` | Helper text below fields | `--font-mono`, `--text-xs`, `--color-text-muted` |
+| `.metadata-widget__readonly-row` | Two-column read-only timestamp row | Flexbox, `--space-2` gap |
+| `.metadata-widget__status` | Generation progress text (italic) | `--font-mono`, `--text-xs`, `--color-text-muted` |
+
+**Design principles demonstrated:**
+- **Zero rounding:** All elements use implicit `--radius-none` (0px).
+- **Mono logic:** All inputs, textareas, hints use `--font-mono`.
+- **Border precision:** All borders are `var(--border-width-thin)`.
+- **Oxblood accent:** Generate All button uses `--color-accent-primary` with `--color-accent-hover` on hover.
+- **Grid alignment:** All spacing uses `--space-N` multiples of 8px.
+- **Transition subtlety:** Buttons use `--transition-fast` (150ms).
 
 ## 19. Arbor Dashboard Editor — Interactive Node Patterns
 

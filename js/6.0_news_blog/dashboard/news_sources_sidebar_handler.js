@@ -169,6 +169,11 @@ function populateNewsSourcesSidebar(record) {
     });
   }
 
+  // Populate the shared metadata widget
+  if (typeof window.populateMetadataWidget === "function") {
+    window.populateMetadataWidget("metadata-widget-container", record);
+  }
+
   var sharedSlugInput = document.getElementById("record-slug");
   if (sharedSlugInput) sharedSlugInput.value = state.activeRecordSlug || "";
 
@@ -215,6 +220,11 @@ function _clearSidebar() {
 
   var termsList = document.getElementById("news-search-terms-list");
   if (termsList) termsList.innerHTML = "";
+
+  // Clear the shared metadata widget
+  if (typeof window.populateMetadataWidget === "function") {
+    window.populateMetadataWidget("metadata-widget-container", null);
+  }
 }
 
 /* -----------------------------------------------------------------------------

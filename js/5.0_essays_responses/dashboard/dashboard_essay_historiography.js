@@ -8,26 +8,30 @@
 // Output:  Fully functional Essay & Historiography editor in the Providence
 //          work canvas. Errors are routed through window.surfaceError().
 
-'use strict';
+"use strict";
 
 /* -----------------------------------------------------------------------------
    MODULE STATE — tracked globally so sub-modules can reference active state
 ----------------------------------------------------------------------------- */
 window._essayModuleState = {
-  mode: 'essay',                        // 'essay' | 'historiography'
-  activeRecordId: null,                 // currently selected record ID (slug)
-  activeRecordTitle: '',               // currently selected record title
-  isDirty: false,                       // true when markdown has unsaved changes
+  mode: "essay", // 'essay' | 'historiography'
+  activeRecordId: null, // currently selected record ID (slug)
+  activeRecordTitle: "", // currently selected record title
+  isDirty: false, // true when markdown has unsaved changes
 };
 
 // Alias for shared tool compatibility (picture_handler, snippet_generator, etc.)
-Object.defineProperty(window, '_recordTitle', {
-  get: function () { return window._essayModuleState.activeRecordTitle; },
-  configurable: true
+Object.defineProperty(window, "_recordTitle", {
+  get: function () {
+    return window._essayModuleState.activeRecordTitle;
+  },
+  configurable: true,
 });
-Object.defineProperty(window, '_recordSlug', {
-  get: function () { return window._essayModuleState.activeRecordId; },
-  configurable: true
+Object.defineProperty(window, "_recordSlug", {
+  get: function () {
+    return window._essayModuleState.activeRecordId;
+  },
+  configurable: true,
 });
 
 /* -----------------------------------------------------------------------------
@@ -39,13 +43,12 @@ Object.defineProperty(window, '_recordSlug', {
    4. Wires the Essay/Historiography toggle buttons.
 ----------------------------------------------------------------------------- */
 async function renderEssayHistoriography() {
-
   /* -------------------------------------------------------------------------
      1. SET LAYOUT — Sidebar is internal to this module, so we collapse the
         Providence sidebar and use the full main column for our split-pane.
   ------------------------------------------------------------------------- */
-  if (typeof window._setLayoutColumns === 'function') {
-    window._setLayoutColumns(false, '1fr');
+  if (typeof window._setLayoutColumns === "function") {
+    window._setLayoutColumns(false, "1fr");
   }
 
   /* -------------------------------------------------------------------------
@@ -53,19 +56,28 @@ async function renderEssayHistoriography() {
         into the Providence main column.
   ------------------------------------------------------------------------- */
   try {
-    const response = await fetch('/admin/frontend/dashboard_essay_historiography.html');
+    const response = await fetch(
+      "/admin/frontend/dashboard_essay_historiography.html",
+    );
     if (!response.ok) {
-      throw new Error('Failed to load editor template (HTTP ' + response.status + ')');
+      throw new Error(
+        "Failed to load editor template (HTTP " + response.status + ")",
+      );
     }
     const html = await response.text();
 
-    if (typeof window._setColumn === 'function') {
-      window._setColumn('main', html);
+    if (typeof window._setColumn === "function") {
+      window._setColumn("main", html);
     }
   } catch (err) {
-    console.error('[dashboard_essay_historiography] Template load failed:', err);
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Error: Unable to load the Essay & Historiography editor. Please refresh and try again.');
+    console.error(
+      "[dashboard_essay_historiography] Template load failed:",
+      err,
+    );
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Unable to load the Essay & Historiography editor. Please refresh and try again.",
+      );
     }
     return;
   }
@@ -77,25 +89,25 @@ async function renderEssayHistoriography() {
   ------------------------------------------------------------------------- */
 
   // 3a. Set initial mode
-  window._essayModuleState.mode = 'essay';
+  window._essayModuleState.mode = "essay";
 
   // 3b. Load the sidebar document list for the initial mode
-  if (typeof window.displayEssayHistoriographyList === 'function') {
-    await window.displayEssayHistoriographyList('essay');
+  if (typeof window.displayEssayHistoriographyList === "function") {
+    await window.displayEssayHistoriographyList("essay");
   }
 
   // 3c. Initialise the markdown editor with empty content
-  if (typeof window.initMarkdownEditor === 'function') {
-    window.initMarkdownEditor('');
+  if (typeof window.initMarkdownEditor === "function") {
+    window.initMarkdownEditor("");
   }
 
   // 3d. Initialise document status handler
-  if (typeof window.initDocumentStatusHandler === 'function') {
+  if (typeof window.initDocumentStatusHandler === "function") {
     window.initDocumentStatusHandler();
   }
 
   // 3e. Initialise search bar
-  if (typeof window.initEssaySearch === 'function') {
+  if (typeof window.initEssaySearch === "function") {
     window.initEssaySearch();
   }
 
@@ -107,23 +119,43 @@ async function renderEssayHistoriography() {
   ------------------------------------------------------------------------- */
 
   // 4a. Picture upload handler
-  if (typeof window.renderEditPicture === 'function') {
-    window.renderEditPicture('essay-picture-container', '');
+  if (typeof window.renderEditPicture === "function") {
+    window.renderEditPicture("essay-picture-container", "");
   }
 
   // 4b. MLA bibliography handler
-  if (typeof window.renderEditBibliography === 'function') {
-    window.renderEditBibliography('essay-bibliography-container');
+  if (typeof window.renderEditBibliography === "function") {
+    window.renderEditBibliography("essay-bibliography-container");
   }
 
   // 4c. Context links handler
-  if (typeof window.renderEditLinks === 'function') {
-    window.renderEditLinks('essay-context-links-container', []);
+  if (typeof window.renderEditLinks === "function") {
+    window.renderEditLinks("essay-context-links-container", []);
   }
 
-  // 4d. Metadata footer
-  if (typeof window.renderMetadataFooter === 'function') {
-    window.renderMetadataFooter('essay-metadata-container', '');
+  // 4d. Metadata widget — shared unified slug/snippet/metadata UI
+  if (typeof window.renderMetadataWidget === "function") {
+    window.renderMetadataWidget("metadata-widget-container", {
+      onAutoSaveDraft: async function (recordData) {
+        if (typeof window._saveEssayDocument === "function") {
+          await window._saveEssayDocument();
+        }
+      },
+      getRecordTitle: function () {
+        const titleInput = document.getElementById("essay-title-input");
+        return titleInput ? titleInput.value : "";
+      },
+      getRecordId: function () {
+        return window._essayModuleState
+          ? window._essayModuleState.activeRecordId || ""
+          : "";
+      },
+    });
+  }
+
+  // 4e. Metadata footer (legacy — kept for backward compatibility)
+  if (typeof window.renderMetadataFooter === "function") {
+    window.renderMetadataFooter("essay-metadata-container", "");
   }
 
   /* -------------------------------------------------------------------------
@@ -139,72 +171,78 @@ async function renderEssayHistoriography() {
    Clears the search input on toggle switch.
 ----------------------------------------------------------------------------- */
 function _wireToggleButtons() {
-  const btnEssay = document.getElementById('btn-toggle-essay');
-  const btnHistoriography = document.getElementById('btn-toggle-historiography');
+  const btnEssay = document.getElementById("btn-toggle-essay");
+  const btnHistoriography = document.getElementById(
+    "btn-toggle-historiography",
+  );
 
   if (!btnEssay || !btnHistoriography) return;
 
-  btnEssay.addEventListener('click', async function () {
-    if (window._essayModuleState.mode === 'essay') return;
+  btnEssay.addEventListener("click", async function () {
+    if (window._essayModuleState.mode === "essay") return;
 
     // Warn about unsaved changes before switching
     if (window._essayModuleState.isDirty) {
-      const proceed = confirm('You have unsaved changes. Switch to Essay mode and discard changes?');
+      const proceed = confirm(
+        "You have unsaved changes. Switch to Essay mode and discard changes?",
+      );
       if (!proceed) return;
     }
 
-    window._essayModuleState.mode = 'essay';
+    window._essayModuleState.mode = "essay";
     window._essayModuleState.activeRecordId = null;
-    window._essayModuleState.activeRecordTitle = '';
+    window._essayModuleState.activeRecordTitle = "";
     window._essayModuleState.isDirty = false;
 
-    btnEssay.classList.add('btn--toggle-active');
-    btnEssay.setAttribute('aria-pressed', 'true');
-    btnHistoriography.classList.remove('btn--toggle-active');
-    btnHistoriography.setAttribute('aria-pressed', 'false');
+    btnEssay.classList.add("btn--toggle-active");
+    btnEssay.setAttribute("aria-pressed", "true");
+    btnHistoriography.classList.remove("btn--toggle-active");
+    btnHistoriography.setAttribute("aria-pressed", "false");
 
     // Clear search input
-    const searchInput = document.getElementById('essay-search-input');
-    if (searchInput) searchInput.value = '';
+    const searchInput = document.getElementById("essay-search-input");
+    if (searchInput) searchInput.value = "";
 
     // Clear editor
     _clearEditor();
 
     // Reload sidebar
-    if (typeof window.displayEssayHistoriographyList === 'function') {
-      await window.displayEssayHistoriographyList('essay');
+    if (typeof window.displayEssayHistoriographyList === "function") {
+      await window.displayEssayHistoriographyList("essay");
     }
   });
 
-  btnHistoriography.addEventListener('click', async function () {
-    if (window._essayModuleState.mode === 'historiography') return;
+  btnHistoriography.addEventListener("click", async function () {
+    if (window._essayModuleState.mode === "historiography") return;
 
     // Warn about unsaved changes before switching
     if (window._essayModuleState.isDirty) {
-      const proceed = confirm('You have unsaved changes. Switch to Historiography mode and discard changes?');
+      const proceed = confirm(
+        "You have unsaved changes. Switch to Historiography mode and discard changes?",
+      );
       if (!proceed) return;
     }
 
-    window._essayModuleState.mode = 'historiography';
+    window._essayModuleState.mode = "historiography";
     window._essayModuleState.activeRecordId = null;
-    window._essayModuleState.activeRecordTitle = '';
+    window._essayModuleState.activeRecordTitle = "";
     window._essayModuleState.isDirty = false;
 
-    btnHistoriography.classList.add('btn--toggle-active');
-    btnHistoriography.setAttribute('aria-pressed', 'true');
-    btnEssay.classList.remove('btn--toggle-active');
-    btnEssay.setAttribute('aria-pressed', 'false');
+    btnHistoriography.classList.add("btn--toggle-active");
+    btnHistoriography.setAttribute("aria-pressed", "true");
+    btnEssay.classList.remove("btn--toggle-active");
+    btnEssay.setAttribute("aria-pressed", "false");
 
     // Clear search input
-    const searchInput = document.getElementById('essay-search-input');
-    if (searchInput) searchInput.value = '';
+    const searchInput = document.getElementById("essay-search-input");
+    if (searchInput) searchInput.value = "";
 
     // Clear editor
     _clearEditor();
 
     // Reload sidebar
-    if (typeof window.displayEssayHistoriographyList === 'function') {
-      await window.displayEssayHistoriographyList('historiography');
+    if (typeof window.displayEssayHistoriographyList === "function") {
+      await window.displayEssayHistoriographyList("historiography");
     }
   });
 }
@@ -215,26 +253,28 @@ function _wireToggleButtons() {
    a document.
 ----------------------------------------------------------------------------- */
 function _clearEditor() {
-  const titleInput = document.getElementById('essay-title-input');
-  const textarea = document.getElementById('markdown-textarea');
-  const preview = document.getElementById('markdown-preview');
-  const snippetInput = document.getElementById('essay-snippet-input');
+  const titleInput = document.getElementById("essay-title-input");
+  const textarea = document.getElementById("markdown-textarea");
+  const preview = document.getElementById("markdown-preview");
+  const snippetInput = document.getElementById("essay-snippet-input");
 
-  if (titleInput) titleInput.value = '';
-  if (textarea) textarea.value = '';
-  if (preview) preview.innerHTML = '<p class="markdown-editor-preview__placeholder">Live preview will appear here as you type...</p>';
-  if (snippetInput) snippetInput.value = '';
+  if (titleInput) titleInput.value = "";
+  if (textarea) textarea.value = "";
+  if (preview)
+    preview.innerHTML =
+      '<p class="markdown-editor-preview__placeholder">Live preview will appear here as you type...</p>';
+  if (snippetInput) snippetInput.value = "";
 
   // Reset metadata display fields
-  const slugInput = document.getElementById('record-slug');
-  const metadataJson = document.getElementById('record-metadata-json');
-  const createdAt = document.getElementById('record-created-at');
-  const updatedAt = document.getElementById('record-updated-at');
+  const slugInput = document.getElementById("record-slug");
+  const metadataJson = document.getElementById("record-metadata-json");
+  const createdAt = document.getElementById("record-created-at");
+  const updatedAt = document.getElementById("record-updated-at");
 
-  if (slugInput) slugInput.value = '';
-  if (metadataJson) metadataJson.value = '';
-  if (createdAt) createdAt.value = '';
-  if (updatedAt) updatedAt.value = '';
+  if (slugInput) slugInput.value = "";
+  if (metadataJson) metadataJson.value = "";
+  if (createdAt) createdAt.value = "";
+  if (updatedAt) updatedAt.value = "";
 
   window._essayModuleState.isDirty = false;
 }

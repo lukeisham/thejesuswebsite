@@ -7,32 +7,37 @@
 // Output:  Save, Publish, and Delete operations performed via the admin API.
 //           Errors are routed through window.surfaceError().
 
-'use strict';
+"use strict";
 
 /* -----------------------------------------------------------------------------
    CONSTANTS
 ----------------------------------------------------------------------------- */
-const API_BASE = '/api/admin';
+const API_BASE = "/api/admin";
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: initBlogPostStatusHandler
    Wires click handlers to the Save, Publish, and Delete buttons.
 ----------------------------------------------------------------------------- */
 function initBlogPostStatusHandler() {
-  const btnSaveDraft = document.getElementById('btn-save-draft');
-  const btnPublish = document.getElementById('btn-publish');
-  const btnDelete = document.getElementById('btn-delete');
+  const btnSaveDraft = document.getElementById("btn-save-draft");
+  const btnPublish = document.getElementById("btn-publish");
+  const btnDelete = document.getElementById("btn-delete");
 
   if (btnSaveDraft) {
-    btnSaveDraft.addEventListener('click', _handleSave);
+    btnSaveDraft.addEventListener("click", _handleSave);
   }
 
   if (btnPublish) {
-    btnPublish.addEventListener('click', _handlePublish);
+    btnPublish.addEventListener("click", _handlePublish);
   }
 
   if (btnDelete) {
-    btnDelete.addEventListener('click', _handleDelete);
+    btnDelete.addEventListener("click", _handleDelete);
+
+    // Hide Delete button when no blog post is selected (initial state)
+    if (!window._blogModuleState.activeRecordId) {
+      btnDelete.hidden = true;
+    }
   }
 }
 
@@ -44,66 +49,103 @@ function initBlogPostStatusHandler() {
 ----------------------------------------------------------------------------- */
 async function _handleSave() {
   const recordId = window._blogModuleState.activeRecordId;
-  const title = window._blogModuleState.activeRecordTitle || 'this post';
+  const title = window._blogModuleState.activeRecordTitle || "this post";
 
-  if (!recordId) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Error: No blog post selected. Please select a post from the sidebar first.');
-    }
-    return;
-  }
-
-  // Check dirty state — if no unsaved changes, no need to save
-  if (!window._blogModuleState.isDirty) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('No changes to save.');
+  // If there IS a recordId but no unsaved changes, skip the save
+  if (recordId && !window._blogModuleState.isDirty) {
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("No changes to save.");
     }
     return;
   }
 
   const payload = _collectEditorData();
-  payload.status = 'draft';
+  payload.status = "draft";
 
-  const btn = document.getElementById('btn-save-draft');
+  const btn = document.getElementById("btn-save-draft");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Saving…';
+    btn.textContent = "Saving…";
   }
 
   try {
-    const response = await fetch(API_BASE + '/records/' + encodeURIComponent(recordId), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    if (recordId) {
+      // --- UPDATE existing record ---
+      const response = await fetch(
+        API_BASE + "/records/" + encodeURIComponent(recordId),
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
 
-    if (!response.ok) {
-      const errorBody = await response.json().catch(function () { return {}; });
-      const detail = errorBody.detail || 'HTTP ' + response.status;
-      throw new Error(detail);
+      if (!response.ok) {
+        const errorBody = await response.json().catch(function () {
+          return {};
+        });
+        const detail = errorBody.detail || "HTTP " + response.status;
+        throw new Error(detail);
+      }
+    } else {
+      // --- CREATE new record ---
+      const response = await fetch(API_BASE + "/records", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(function () {
+          return {};
+        });
+        const detail = errorBody.detail || "HTTP " + response.status;
+        throw new Error(detail);
+      }
+
+      const result = await response.json();
+
+      if (result.id) {
+        // Update module state with the new ID
+        window._blogModuleState.activeRecordId = result.id;
+        window._blogModuleState.activeRecordTitle = payload.title || "Untitled";
+
+        // Re-initialise shared tools with the new ID
+        if (typeof window.renderEditPicture === "function") {
+          window.renderEditPicture("blog-picture-container", result.id);
+        }
+        if (typeof window.renderMetadataFooter === "function") {
+          window.renderMetadataFooter("blog-metadata-container", result.id);
+        }
+
+        // Show Delete button
+        const deleteBtn = document.getElementById("btn-delete");
+        if (deleteBtn) deleteBtn.hidden = false;
+      }
     }
 
     // Mark as clean
     window._blogModuleState.isDirty = false;
 
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Saved: ' + title);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Saved: " + title);
     }
 
     // Refresh the sidebar list to reflect status changes
-    if (typeof window.displayBlogPostsList === 'function') {
+    if (typeof window.displayBlogPostsList === "function") {
       await window.displayBlogPostsList();
     }
-
   } catch (err) {
-    console.error('[blog_post_status_handler] Save failed:', err);
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to save changes to '" + title + "'. Please try again.");
+    console.error("[blog_post_status_handler] Save failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to save changes to '" + title + "'. Please try again.",
+      );
     }
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Save';
+      btn.textContent = "Save";
     }
   }
 }
@@ -115,18 +157,22 @@ async function _handleSave() {
 ----------------------------------------------------------------------------- */
 async function _handlePublish() {
   const recordId = window._blogModuleState.activeRecordId;
-  const title = window._blogModuleState.activeRecordTitle || 'this post';
+  const title = window._blogModuleState.activeRecordTitle || "this post";
 
   if (!recordId) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Error: No blog post selected. Please select a post from the sidebar first.');
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: No blog post selected. Please select a post from the sidebar first.",
+      );
     }
     return;
   }
 
   // Check dirty state — warn about unsaved changes before publishing
   if (window._blogModuleState.isDirty) {
-    const proceed = confirm('You have unsaved changes. Save before publishing?');
+    const proceed = confirm(
+      "You have unsaved changes. Save before publishing?",
+    );
     if (!proceed) return;
 
     // Auto-save first
@@ -139,61 +185,71 @@ async function _handlePublish() {
   const payload = _collectEditorData();
 
   if (!payload.title || !payload.title.trim()) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to publish '" + title + "'. Check required fields.");
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to publish '" + title + "'. Check required fields.",
+      );
     }
     return;
   }
 
   if (!payload.blogposts || !payload.blogposts.trim()) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to publish '" + title + "'. Check required fields.");
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to publish '" + title + "'. Check required fields.",
+      );
     }
     return;
   }
 
-  payload.status = 'published';
+  payload.status = "published";
 
-  const btn = document.getElementById('btn-publish');
+  const btn = document.getElementById("btn-publish");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Publishing…';
+    btn.textContent = "Publishing…";
   }
 
   try {
-    const response = await fetch(API_BASE + '/records/' + encodeURIComponent(recordId), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const response = await fetch(
+      API_BASE + "/records/" + encodeURIComponent(recordId),
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(function () { return {}; });
-      const detail = errorBody.detail || 'HTTP ' + response.status;
+      const errorBody = await response.json().catch(function () {
+        return {};
+      });
+      const detail = errorBody.detail || "HTTP " + response.status;
       throw new Error(detail);
     }
 
     // Mark as clean
     window._blogModuleState.isDirty = false;
 
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Published: ' + title);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Published: " + title);
     }
 
     // Refresh the sidebar list
-    if (typeof window.displayBlogPostsList === 'function') {
+    if (typeof window.displayBlogPostsList === "function") {
       await window.displayBlogPostsList();
     }
-
   } catch (err) {
-    console.error('[blog_post_status_handler] Publish failed:', err);
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to publish '" + title + "'. Check required fields.");
+    console.error("[blog_post_status_handler] Publish failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to publish '" + title + "'. Check required fields.",
+      );
     }
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Publish';
+      btn.textContent = "Publish";
     }
   }
 }
@@ -205,69 +261,79 @@ async function _handlePublish() {
 ----------------------------------------------------------------------------- */
 async function _handleDelete() {
   const recordId = window._blogModuleState.activeRecordId;
-  const title = window._blogModuleState.activeRecordTitle || 'this post';
+  const title = window._blogModuleState.activeRecordTitle || "this post";
 
   if (!recordId) {
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Error: No blog post selected. Please select a post from the sidebar first.');
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: No blog post selected. Please select a post from the sidebar first.",
+      );
     }
     return;
   }
 
   // Confirmation prompt
-  const confirmed = confirm("Are you sure you want to delete '" + title + "'? This cannot be undone.");
+  const confirmed = confirm(
+    "Are you sure you want to delete '" + title + "'? This cannot be undone.",
+  );
   if (!confirmed) return;
 
-  const btn = document.getElementById('btn-delete');
+  const btn = document.getElementById("btn-delete");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Deleting…';
+    btn.textContent = "Deleting…";
   }
 
   try {
-    const response = await fetch(API_BASE + '/records/' + encodeURIComponent(recordId), {
-      method: 'DELETE'
-    });
+    const response = await fetch(
+      API_BASE + "/records/" + encodeURIComponent(recordId),
+      {
+        method: "DELETE",
+      },
+    );
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(function () { return {}; });
-      const detail = errorBody.detail || 'HTTP ' + response.status;
+      const errorBody = await response.json().catch(function () {
+        return {};
+      });
+      const detail = errorBody.detail || "HTTP " + response.status;
       throw new Error(detail);
     }
 
     // Clear the editor
     window._blogModuleState.activeRecordId = null;
-    window._blogModuleState.activeRecordTitle = '';
+    window._blogModuleState.activeRecordTitle = "";
     window._blogModuleState.isDirty = false;
 
     // Reset editor fields
-    if (typeof window.setMarkdownContent === 'function') {
-      window.setMarkdownContent('');
+    if (typeof window.setMarkdownContent === "function") {
+      window.setMarkdownContent("");
     }
 
-    const titleInput = document.getElementById('blog-title-input');
-    const snippetInput = document.getElementById('blog-snippet-input');
-    if (titleInput) titleInput.value = '';
-    if (snippetInput) snippetInput.value = '';
+    const titleInput = document.getElementById("blog-title-input");
+    const snippetInput = document.getElementById("blog-snippet-input");
+    if (titleInput) titleInput.value = "";
+    if (snippetInput) snippetInput.value = "";
 
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError('Deleted: ' + title);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Deleted: " + title);
     }
 
     // Refresh sidebar
-    if (typeof window.displayBlogPostsList === 'function') {
+    if (typeof window.displayBlogPostsList === "function") {
       await window.displayBlogPostsList();
     }
-
   } catch (err) {
-    console.error('[blog_post_status_handler] Delete failed:', err);
-    if (typeof window.surfaceError === 'function') {
-      window.surfaceError("Error: Failed to delete '" + title + "'. Please try again.");
+    console.error("[blog_post_status_handler] Delete failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to delete '" + title + "'. Please try again.",
+      );
     }
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Delete';
+      btn.textContent = "Delete";
     }
   }
 }
@@ -282,34 +348,40 @@ async function _handleDelete() {
                 bibliography, context_links, and slug fields.
 ----------------------------------------------------------------------------- */
 function _collectEditorData() {
-  const titleInput = document.getElementById('blog-title-input');
-  const textarea = document.getElementById('markdown-textarea');
-  const snippetInput = document.getElementById('blog-snippet-input');
-  const slugInput = document.getElementById('record-slug');
+  const titleInput = document.getElementById("blog-title-input");
+  const textarea = document.getElementById("markdown-textarea");
+  const snippetInput = document.getElementById("blog-snippet-input");
+  const slugInput = document.getElementById("record-slug");
 
   const payload = {
-    title: titleInput ? titleInput.value : '',
-    blogposts: textarea ? textarea.value : '',
-    snippet: snippetInput ? snippetInput.value : '',
-    slug: slugInput ? slugInput.value : '',
+    title: titleInput ? titleInput.value : "",
+    blogposts: textarea ? textarea.value : "",
+    snippet: snippetInput ? snippetInput.value : "",
+    slug: slugInput ? slugInput.value : "",
   };
 
   // Collect bibliography from shared tool
-  if (typeof window.collectEditBibliography === 'function') {
+  if (typeof window.collectEditBibliography === "function") {
     try {
       payload.bibliography = window.collectEditBibliography();
     } catch (err) {
-      console.warn('[blog_post_status_handler] Failed to collect bibliography:', err);
+      console.warn(
+        "[blog_post_status_handler] Failed to collect bibliography:",
+        err,
+      );
       payload.bibliography = [];
     }
   }
 
   // Collect context links from shared tool
-  if (typeof window.collectEditLinks === 'function') {
+  if (typeof window.collectEditLinks === "function") {
     try {
       payload.context_links = window.collectEditLinks();
     } catch (err) {
-      console.warn('[blog_post_status_handler] Failed to collect context links:', err);
+      console.warn(
+        "[blog_post_status_handler] Failed to collect context links:",
+        err,
+      );
       payload.context_links = [];
     }
   }

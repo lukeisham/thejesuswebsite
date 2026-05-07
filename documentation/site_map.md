@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.52
+version: 1.0.53
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -45,6 +45,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── agent_client.py        <-- Shared utility: DeepSeek API client for web-search, snippets, metadata
 │   ├── helper_api.py          <-- Shared logic for secure external API connection calls
 │   ├── metadata_generator.py  <-- Shared utility: DeepSeek-powered SEO/Keyword extraction
+│   ├── slug_generator.py      <-- Shared utility: DeepSeek-powered URL-slug generation
 │   └── snippet_generator.py   <-- Shared utility: DeepSeek-powered archival abstract generation
 ├── build.py                   <-- Root script to trigger backend pipelines
 ├── css/1.0_foundation/
@@ -55,7 +56,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │       └── *.css              <-- Public-facing foundation styles
 ├── css/2.0_records/dashboard/
 │   ├── dashboard_records_all.css <-- High-density table, sorting aesthetics, bulk review panel
-│   └── dashboard_records_single.css <-- Multi-section form layout, sticky section navigator
+│   ├── dashboard_records_single.css <-- Multi-section form layout, sticky section navigator
+│   └── metadata_widget.css   <-- Shared slug/snippet/metadata widget styles
 ├── css/2.0_records/frontpage/
 │   └── *.css                  <-- Public-facing record display styles
 ├── css/3.0_visualizations/dashboard/
@@ -182,6 +184,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── external_refs_handler.js <-- Text inputs for iaa, pledius, manuscript
 │   ├── map_fields_handler.js  <-- Selector for map_label + integer input for geo_id
 │   ├── metadata_handler.js    <-- Snippet/Slug/Meta footer with auto-gen buttons
+│   ├── metadata_widget.js     <-- Shared slug/snippet/metadata widget with Generate All
 │   ├── mla_source_handler.js  <-- Structured MLA bibliography management
 │   ├── parent_selector.js     <-- ULID input for parent_id with validation
 │   ├── picture_handler.js     <-- Image upload, preview & thumbnail

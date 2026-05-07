@@ -411,6 +411,90 @@ def generate_snippet(content: str, slug: str) -> str:
         raise
 
 
+def generate_slug(title: str, slug: str) -> str:
+    """
+    Non-search DeepSeek call requesting a one-to-two-word URL-friendly slug
+    phrase (lowercase, hyphenated, no stop words).
+
+    Logs to agent_run_log with pipeline = 'slug_generation'.
+
+    Args:
+        title: The record title to derive a slug from.
+        slug: The record slug for logging.
+
+    Returns:
+        The generated slug string (one-to-two words, lowercase, hyphenated).
+    """
+    run_id = _insert_log_run(pipeline="slug_generation", record_slug=slug)
+
+    try:
+        system_prompt = (
+            "You are an archival editor for The Jesus Website, a scholarly "
+            "website organising historical information about Jesus of Nazareth. "
+            "You produce clean, URL-friendly slug phrases from record titles."
+        )
+
+        user_prompt = (
+            f"Convert the following record title into a one-to-two-word "
+            f"URL-friendly slug phrase. Rules:\n"
+            f"- Output ONLY the slug (no explanation, no quotes, no markdown).\n"
+            f"- Lowercase only.\n"
+            f"- Use hyphens between words (e.g., 'jesus-baptism').\n"
+            f"- Remove stop words (the, a, an, of, in, on, at, to, for, etc.).\n"
+            f"- Keep it concise: 1-2 words maximum.\n"
+            f"- Preserve key meaning from the title.\n\n"
+            f"TITLE: {title}"
+        )
+
+        result = _call_deepseek(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            web_search=False,
+            max_tokens=64,
+        )
+
+        generated_slug = result["content"].strip()
+
+        # Sanitise: DeepSeek may return markdown formatting, backticks, or
+        # quoted text despite explicit instructions. Defensively strip all
+        # non-slug characters to produce a clean URL-safe phrase.
+        generated_slug = generated_slug.lower().strip()
+        # Replace spaces and underscores with hyphens
+        generated_slug = generated_slug.replace(" ", "-").replace("_", "-")
+        # Collapse multiple hyphens
+        while "--" in generated_slug:
+            generated_slug = generated_slug.replace("--", "-")
+        # Strip leading/trailing hyphens
+        generated_slug = generated_slug.strip("-")
+        # Remove any characters that aren't lowercase letters or hyphens
+        generated_slug = "".join(c for c in generated_slug if c.islower() or c == "-")
+
+        if not generated_slug:
+            # Fallback: use the title sanitised
+            generated_slug = title.lower().strip()
+            generated_slug = "".join(
+                c for c in generated_slug if c.islower() or c == " " or c == "-"
+            )
+            generated_slug = generated_slug.replace(" ", "-")
+            while "--" in generated_slug:
+                generated_slug = generated_slug.replace("--", "-")
+            generated_slug = generated_slug.strip("-")[:80]
+
+        _update_log_completed(
+            run_id=run_id,
+            trace_reasoning=result["trace_reasoning"],
+            tokens_used=result["tokens_used"],
+        )
+
+        return generated_slug
+
+    except Exception as e:
+        _update_log_failed(run_id=run_id, error_message=str(e))
+        raise
+
+
 def generate_metadata(content: str, slug: str) -> dict:
     """
     Non-search DeepSeek call requesting 5-10 SEO keywords and a meta-description

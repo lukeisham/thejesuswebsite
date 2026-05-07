@@ -36,6 +36,7 @@ const RECORDS_SINGLE_SCRIPTS = [
   "../../js/2.0_records/dashboard/context_link_handler.js",
   "../../js/2.0_records/dashboard/picture_handler.js",
   "../../js/2.0_records/dashboard/metadata_handler.js",
+  "../../js/2.0_records/dashboard/metadata_widget.js",
   "../../js/2.0_records/dashboard/description_editor.js",
   "../../js/2.0_records/dashboard/verse_builder.js",
   "../../js/2.0_records/dashboard/snippet_generator.js",
@@ -240,10 +241,36 @@ async function _initialiseAllEditors(recordId) {
     window.renderEditPicture("picture-preview-container", recordId);
   }
 
-  // Metadata handler
-  if (typeof window.renderMetadataFooter === "function") {
-    window.renderMetadataFooter("metadata-footer-container", recordId);
+  // Metadata widget — shared unified slug/snippet/metadata UI
+  if (typeof window.renderMetadataWidget === "function") {
+    window.renderMetadataWidget("metadata-widget-container", {
+      onAutoSaveDraft: async function (recordData) {
+        // Auto-save as draft unless already published
+        const statusRadio = document.querySelector(
+          'input[name="record-status"]:checked',
+        );
+        if (statusRadio && statusRadio.value === "published") {
+          // Already published — do not auto-save, just fill the fields
+          return;
+        }
+        // Trigger a save draft via the status handler
+        const btnSaveDraft = document.getElementById("btn-save-draft");
+        if (btnSaveDraft) {
+          btnSaveDraft.click();
+        }
+      },
+      getRecordTitle: function () {
+        const titleInput = document.getElementById("record-title");
+        return titleInput ? titleInput.value : "";
+      },
+      getRecordId: function () {
+        const slugInput = document.getElementById("record-slug");
+        return slugInput ? slugInput.value : window._recordSlug || "";
+      },
+    });
   }
+
+  // Metadata handler (legacy — kept for backward compatibility)
 
   // ---- Fetch and hydrate record data ----
   // For new records (recordId is null/undefined), fetchAndDisplaySingleRecord

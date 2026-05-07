@@ -116,11 +116,46 @@ async function renderNewsSources() {
   _wireActionButtons();
 
   /* -------------------------------------------------------------------------
-       5. INITIALISE SHARED TOOL — Metadata footer
-       The metadata_handler.js is loaded globally via dashboard.html.
-       We call it here to wire the auto-generate slug button and manage
-       read-only display fields within the news-sources-metadata-footer section.
+       5. INITIALISE SHARED TOOLS — Metadata widget + footer
+       The metadata_handler.js and metadata_widget.js are loaded globally
+       via dashboard.html.
     ------------------------------------------------------------------------- */
+  if (typeof window.renderMetadataWidget === "function") {
+    window.renderMetadataWidget("metadata-widget-container", {
+      onAutoSaveDraft: async function (recordData) {
+        // News Sources has its own save-on-blur pattern — auto-save via PUT
+        const state = window._newsSourcesModuleState;
+        if (state && state.activeRecordId) {
+          try {
+            await fetch("/api/admin/records/" + state.activeRecordId, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                slug: recordData.slug,
+                snippet: recordData.snippet,
+                metadata_json: recordData.metadata_json,
+                status: "draft",
+              }),
+            });
+          } catch (err) {
+            console.warn(
+              "[dashboard_news_sources] Auto-save draft failed:",
+              err,
+            );
+          }
+        }
+      },
+      getRecordTitle: function () {
+        const titleEl = document.getElementById("news-sources-record-title");
+        return titleEl ? titleEl.textContent.replace(/\u2014/, "").trim() : "";
+      },
+      getRecordId: function () {
+        const state = window._newsSourcesModuleState;
+        return state ? state.activeRecordId || "" : "";
+      },
+    });
+  }
+
   if (typeof window.renderMetadataFooter === "function") {
     window.renderMetadataFooter("news-sources-metadata-footer", "");
   }

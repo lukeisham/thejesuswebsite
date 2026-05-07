@@ -317,6 +317,11 @@ function _buildChallengeRow(challenge, index, mode) {
     if (typeof window.loadChallengeSearchTerms === "function") {
       window.loadChallengeSearchTerms(challenge);
     }
+
+    // Populate the shared metadata widget with the selected record
+    if (typeof window.populateMetadataWidget === "function") {
+      window.populateMetadataWidget("metadata-widget-container", challenge);
+    }
   });
 
   return rowEl;

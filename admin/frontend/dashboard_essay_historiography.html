@@ -117,6 +117,13 @@
                 <!-- Populated by essay_historiography_data_display.js -->
             </ul>
         </div>
+
+        <!-- Shared metadata widget (slug, snippet, metadata, timestamps, generate all) -->
+        <div
+            id="metadata-widget-container"
+            class="essay-sidebar-group"
+            aria-label="Metadata widget"
+        ></div>
     </aside>
 
     <!-- =========================================================================
@@ -310,80 +317,6 @@
                 <span class="essay-editor-field__hint"
                     >PNG only, max 5 MB (compressed server-side to ≤ 250
                     KB)</span
-                >
-            </div>
-        </div>
-
-        <!-- Metadata Footer Container -->
-        <div
-            id="essay-metadata-container"
-            class="essay-editor-section"
-            aria-label="Metadata footer"
-        >
-            <h4 class="essay-editor-section__heading">Metadata</h4>
-            <div class="essay-editor-field">
-                <label for="record-slug" class="essay-editor-field__label"
-                    >Slug</label
-                >
-                <div class="essay-editor-inline">
-                    <input
-                        id="record-slug"
-                        class="essay-editor-field__input"
-                        type="text"
-                        placeholder="auto-generated-or-manual-slug"
-                    />
-                    <button
-                        id="btn-auto-slug"
-                        class="btn btn--secondary"
-                        type="button"
-                    >
-                        Auto-Generate from Title
-                    </button>
-                </div>
-            </div>
-            <div class="essay-editor-field">
-                <label
-                    for="record-metadata-json"
-                    class="essay-editor-field__label"
-                    >Metadata JSON</label
-                >
-                <textarea
-                    id="record-metadata-json"
-                    class="essay-editor-field__textarea essay-editor-field__textarea--mono"
-                    rows="4"
-                    placeholder="Raw JSON blob — auto-managed; editable for advanced use"
-                    readonly
-                ></textarea>
-                <span class="essay-editor-field__hint"
-                    >raw JSON blob — auto-managed</span
-                >
-            </div>
-            <div class="essay-editor-field">
-                <label for="record-created-at" class="essay-editor-field__label"
-                    >Created At</label
-                >
-                <input
-                    id="record-created-at"
-                    class="essay-editor-field__input essay-editor-field__input--readonly"
-                    type="text"
-                    readonly
-                />
-                <span class="essay-editor-field__hint"
-                    >ISO8601 — read-only</span
-                >
-            </div>
-            <div class="essay-editor-field">
-                <label for="record-updated-at" class="essay-editor-field__label"
-                    >Updated At</label
-                >
-                <input
-                    id="record-updated-at"
-                    class="essay-editor-field__input essay-editor-field__input--readonly"
-                    type="text"
-                    readonly
-                />
-                <span class="essay-editor-field__hint"
-                    >ISO8601 — auto-set on save</span
                 >
             </div>
         </div>
