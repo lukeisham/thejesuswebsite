@@ -1,7 +1,7 @@
 ---
 name: generate_plan
-version: 1.2.0
-description: Generates a structured implementation plan .md file from plan_template.md, with a purpose summary, bite-sized checkbox tasks guided by vibe_coding_rules.md, final tasks for a vibe-coding audit and purpose check, and a documentation update section covering all affected files in documentation/.
+version: 1.3.0
+description: Generates a structured implementation plan .md file from plan_template.md, with a purpose summary, bite-sized checkbox tasks guided by vibe_coding_rules.md, final tasks for a vibe-coding audit, purpose check, and a mandatory documentation update task covering all affected files in documentation/ (including ASCII diagrams, site maps, and style guide).
 ---
 
 # Skill: generate_plan
@@ -50,9 +50,10 @@ Replace every `{{placeholder}}` with concrete values:
   - `Action` — a single, imperative sentence describing the work
   - `Vibe Rule(s)` — the specific rules from `vibe_coding_rules.md` that apply to that file type
   - A single `- [ ] Task complete` checkbox
-- **Final Tasks**: Update `T[Final]` and `T[Final+1]` to the correct sequential task numbers (e.g., T4 and T5) following the generated tasks.
+- **Final Tasks**: Update `T[Final]`, `T[Final+1]`, and `T[Final+2]` to the correct sequential task numbers (e.g., T4, T5, T6) following the generated tasks.
+  - **T[Final] (Vibe-Coding Audit)**: Copy the audit checklist from the template — it is identical for every plan.
   - **T[Final+1] (Purpose Check)**: Populate the checklist by extracting concrete achievements from the `purpose_summary`. If the plan involves parallel modes or duplicated logic (e.g., "split into two containers", "Academic/Popular modes"), you MUST include the **Symmetry** check.
-- **Documentation Update table**: one row per document in `documentation/` whose scope overlaps with this plan's work (see Step 5)
+  - **T[Final+2] (Documentation Update)**: This is a **mandatory task** — not a passive section. Populate the table with all 16 documents. For every "Yes" row, write a specific, actionable Change Description that tells the executor exactly what to add or update — including whether to add/update ASCII layout diagrams, ASCII logic-flow diagrams, file-tree entries, BEM namespace tables, or shared-tool ownership tables. The task includes its own checkbox sub-checklist for site maps, ASCII diagrams, style guide, shared-tool ownership, version bumps, and stale-reference checks.
 
 ### Step 3: Task Sizing Rules
 
@@ -74,9 +75,30 @@ For each task, assign only the rules that apply to the file type being created o
 | `.py` | Explicit readable logic, stateless/repeatable, document API quirks |
 | `.sql` / `.sqlite` | `snake_case` fields, explicit queries |
 
-### Step 5: Populate the Documentation Update Section
+### Step 5: Populate T[Final+2] — Documentation Update Task
 
-Every row in the Documentation Update table must include **all 16 files** currently in `documentation/` (root + `guides/` subfolder). For each document, decide whether the plan's scope affects it:
+This is now a **mandatory checkbox task** (not a passive appendix). The task includes:
+- A table with all 16 documents in `documentation/` (root + `guides/` subfolder), each marked Yes/No with a specific Change Description.
+- A checkbox sub-checklist covering: site-map documents, ASCII diagrams, style guide, shared-tool ownership, version bumps, and stale-reference checks.
+
+**For every "Yes" row, the Change Description must be specific and actionable**, telling the executor exactly what to do:
+
+| If the doc is… | The Change Description should include… |
+|-----------------|----------------------------------------|
+| `detailed_module_sitemap.md` | Which module section, which new file(s) to add to the file tree, and what description comment to attach |
+| `simple_module_sitemap.md` | What high-level module structure change to reflect (if any) |
+| `site_map.md` | Every new file path to add, plus "bump version" |
+| `data_schema.md` | Which new table/column/relationship to document |
+| `vibe_coding_rules.md` | Whether to update §7 shared-tool ownership table, or clarify a specific rule |
+| `guide_dashboard_appearance.md` | Where to add/update ASCII layout diagrams (which dashboard section), and whether to update the Shared Tool Ownership Reference table |
+| `guide_appearance.md` | Where to add/update ASCII layout diagrams for public-facing pages or components |
+| `guide_function.md` | Which new pipeline/flow to document with an ASCII logic-flow diagram, and which subsection to place it in |
+| `guide_style.md` | The new BEM namespace to add as a canonical example, with a table of classes and their CSS variable references |
+| Any other guide | The specific section, diagram, or reference to update |
+
+**Every "No" row must still be listed** so the executor knows it was considered and ruled out.
+
+**Decision criteria** for whether a document is affected (same as before):
 
 | Document | Affects it if… |
 |----------|----------------|
@@ -97,7 +119,7 @@ Every row in the Documentation Update table must include **all 16 files** curren
 | `documentation/guides/guide_donations.md` | External support integrations or donation flows are changed |
 | `documentation/guides/guide_welcoming_robots.md` | SEO, sitemap, robots.txt, or AI-accessibility standards are changed |
 
-Set `Yes / No` for each row and write a one-sentence `Change Description` for every `Yes` row. Mark all `No` rows clearly so the executor knows they were considered and ruled out.
+Set `Yes / No` for each row and write a specific, actionable `Change Description` for every `Yes` row (see Step 5 for per-document guidance). Mark all `No` rows clearly so the executor knows they were considered and ruled out.
 
 ### Step 6: Write the Output File
 - **Output path**: `{{plan_name}}.md` (project root directory)
@@ -107,7 +129,7 @@ Set `Yes / No` for each row and write a one-sentence `Change Description` for ev
 
 `IF` file written successfully:
   - **State**: `PLAN_GENERATED`
-  - **Action**: Confirm to the user with the output path (`{{plan_name}}.md` in the project root) and a brief summary of: how many tasks were generated, and how many documents in the Documentation Update section are marked `Yes`. Remind the user to run `/sync_sitemap` after any plan that adds new files to the codebase. Finally, automatically trigger and execute the `documentation/dashboard_refractor.md` skill.
+  - **Action**: Confirm to the user with the output path (`{{plan_name}}.md` in the project root) and a brief summary of: how many tasks were generated, and how many documents in the T[Final+2] Documentation Update task are marked `Yes`. Remind the user to run `/sync_sitemap` after any plan that adds new files to the codebase. Finally, automatically trigger and execute the `documentation/dashboard_refractor.md` skill.
 
 `IF` required inputs are missing or ambiguous:
   - **State**: `AWAITING_INPUT`

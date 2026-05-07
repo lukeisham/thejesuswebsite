@@ -2,7 +2,7 @@
 name: fix_news_module_bugs
 version: 1.0.0
 module: 6.0 — News & Blog
-status: draft
+status: complete
 created: 2026-05-06
 ---
 
@@ -31,7 +31,7 @@ This plan fixes three bugs identified in the News Sources dashboard module (Modu
 - **Action:** Refactor `_crawl_source` to detect whether the `make_request` response is a dict (JSON) or a string/bytes (XML), and add a new internal helper `_parse_rss_feed(raw_text, source_url, keywords)` that uses Python's built-in `xml.etree.ElementTree` to extract `<item>` (RSS 2.0) and `<entry>` (Atom) elements, applying the same keyword-matching and standard `{title, timestamp, url}` output shape as `_parse_json_feed`.
 - **Vibe Rule(s):** Readability First · Modular Pipelines — stateless and safe to run repeatedly · Document API quirks and data anomalies inline
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -41,7 +41,7 @@ This plan fixes three bugs identified in the News Sources dashboard module (Modu
 - **Action:** Update the `_crawl_source` dispatch logic so that when `make_request` returns a string or bytes value (indicating an XML/text response), it calls `_parse_rss_feed` instead of raising a `ValueError`, and only raises `ValueError` if *both* parsers return zero items.
 - **Vibe Rule(s):** Readability First · API quirks documented inline · Stateless and repeatable
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -51,7 +51,7 @@ This plan fixes three bugs identified in the News Sources dashboard module (Modu
 - **Action:** Replace the duplicate `var url` / `var name` declarations inside the `try/catch` block in `_handleSaveUrl` with a single `let url` and `let name` declared before the `try` block, assigned inside `try` (for JSON input) and reassigned in `catch` (for plain URL string input), eliminating the fragile hoisting dependency.
 - **Vibe Rule(s):** Vanilla ES6+ · One function per file · File opens with three comment lines
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -61,7 +61,7 @@ This plan fixes three bugs identified in the News Sources dashboard module (Modu
 - **Action:** Add a `_setSidebarDisabled(disabled)` internal helper that sets the `disabled` attribute on all sidebar interactive elements (`#news-sources-url-input`, `#btn-news-save-url`, `#news-search-term-input`, `#btn-news-add-term`, `#news-sources-snippet-input`, `#btn-news-auto-snippet`, `#news-sources-slug-input`, `#btn-news-auto-slug`, `#news-sources-meta-input`, `#btn-news-auto-meta`) and an `opacity: 0.45` inline style on the sidebar sections, then call `_setSidebarDisabled(true)` inside `initNewsSourcesSidebar` and `_setSidebarDisabled(false)` at the top of `populateNewsSourcesSidebar`.
 - **Vibe Rule(s):** Vanilla ES6+ · One function per file · Component Injection pattern · No inline styles on structural HTML (inline `disabled` attribute on form controls is standard and acceptable)
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -71,7 +71,7 @@ This plan fixes three bugs identified in the News Sources dashboard module (Modu
 - **Action:** Update the §6.1 ASCII diagram (News Sources section) to reflect that (a) the sidebar inputs and buttons are visually disabled/dimmed when no record is selected, and (b) a note is added below the diagram clarifying that selecting a row from the right-hand table activates the sidebar controls.
 - **Vibe Rule(s):** Source-of-Truth Discipline — documentation must stay in sync with implementation · Human-readable comments
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -80,31 +80,31 @@ This plan fixes three bugs identified in the News Sources dashboard module (Modu
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### HTML
-- [ ] Semantic tags used — no `<div>` soup
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 #### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography_colors.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
 #### JavaScript
-- [ ] One function per file
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
+- [x] One function per file
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
 
 #### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic
 
 ---
 
@@ -112,13 +112,13 @@ This plan fixes three bugs identified in the News Sources dashboard module (Modu
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary.
 
-- [ ] **Achievement**: The news crawler pipeline correctly parses both RSS/Atom XML and JSON API feeds — no source type causes a silent failure
-- [ ] **Achievement**: `_handleSaveUrl` uses `let`-scoped variables with no duplicate declarations — the try/catch scoping bug is resolved
-- [ ] **Achievement**: All sidebar inputs and action buttons are disabled (with visual opacity reduction) until a record row is selected — no silent no-ops
-- [ ] **Necessity**: All three bugs identified in the code review have been resolved
-- [ ] **Achievement**: The §6.1 ASCII diagram in `guide_dashboard_appearance.md` accurately reflects the disabled-sidebar UX behaviour
-- [ ] **Targeted Impact**: Only `pipeline_news.py`, `news_sources_sidebar_handler.js`, and `guide_dashboard_appearance.md` were modified — no other files touched
-- [ ] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
+- [x] **Achievement**: The news crawler pipeline correctly parses both RSS/Atom XML and JSON API feeds — no source type causes a silent failure
+- [x] **Achievement**: `_handleSaveUrl` uses `let`-scoped variables with no duplicate declarations — the try/catch scoping bug is resolved
+- [x] **Achievement**: All sidebar inputs and action buttons are disabled (with visual opacity reduction) until a record row is selected — no silent no-ops
+- [x] **Necessity**: All three bugs identified in the code review have been resolved
+- [x] **Achievement**: The §6.1 ASCII diagram in `guide_dashboard_appearance.md` accurately reflects the disabled-sidebar UX behaviour
+- [x] **Targeted Impact**: Only `pipeline_news.py`, `news_sources_sidebar_handler.js`, and `guide_dashboard_appearance.md` were modified — no other files touched
+- [x] **Scope Control**: No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
@@ -147,7 +147,7 @@ This plan fixes three bugs identified in the News Sources dashboard module (Modu
 | `documentation/guides/guide_welcoming_robots.md` | No | No SEO, sitemap, or robots.txt changes |
 
 ### Documentation Checklist
-- [ ] All affected documents identified in the table above
-- [ ] Each "Yes" row has been updated with accurate, current information
-- [ ] No document contains stale references to files or logic changed by this plan
-- [ ] Version numbers incremented where frontmatter versioning is present
+- [x] All affected documents identified in the table above
+- [x] Each "Yes" row has been updated with accurate, current information
+- [x] No document contains stale references to files or logic changed by this plan
+- [x] Version numbers incremented where frontmatter versioning is present

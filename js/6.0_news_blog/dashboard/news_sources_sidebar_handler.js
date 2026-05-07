@@ -128,6 +128,9 @@ function initNewsSourcesSidebar() {
   // --- Source URL input (auto-save on blur) ---
   var urlInput = document.getElementById("news-sources-url-input");
   if (urlInput) urlInput.addEventListener("blur", _handleSaveUrl);
+
+  // Sidebar starts disabled — no record selected yet
+  _setSidebarDisabled(true);
 }
 
 /* -----------------------------------------------------------------------------
@@ -136,6 +139,8 @@ function initNewsSourcesSidebar() {
 function populateNewsSourcesSidebar(record) {
   var state = window._newsSourcesModuleState;
   if (!state) return;
+
+  _setSidebarDisabled(false);
 
   var titleEl = document.getElementById("news-sources-record-title");
   if (titleEl) {
@@ -228,6 +233,52 @@ function _clearSidebar() {
 }
 
 /* -----------------------------------------------------------------------------
+   INTERNAL: _setSidebarDisabled
+   Disables/enables all sidebar interactive elements and dims the sidebar
+   sections when no record row is selected. Called on init (disabled state)
+   and when populateNewsSourcesSidebar activates a record (enabled state).
+----------------------------------------------------------------------------- */
+function _setSidebarDisabled(disabled) {
+  var ids = [
+    "news-sources-url-input",
+    "btn-news-save-url",
+    "news-search-term-input",
+    "btn-news-add-term",
+    "news-sources-snippet-input",
+    "btn-news-auto-snippet",
+    "news-sources-slug-input",
+    "btn-news-auto-slug",
+    "news-sources-meta-input",
+    "btn-news-auto-meta",
+  ];
+
+  ids.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) {
+      if (disabled) {
+        el.setAttribute("disabled", "");
+      } else {
+        el.removeAttribute("disabled");
+      }
+    }
+  });
+
+  // Dim sidebar sections via inline style (opacity for visual feedback)
+  var sectionIds = [
+    "news-sources-url-section",
+    "news-sources-search-terms",
+    "metadata-widget-container",
+  ];
+
+  sectionIds.forEach(function (id) {
+    var section = document.getElementById(id);
+    if (section) {
+      section.style.opacity = disabled ? "0.45" : "";
+    }
+  });
+}
+
+/* -----------------------------------------------------------------------------
    INTERNAL: _renderSearchKeywords
    Remove buttons call window.removeSidebarTerm (shared).
 ----------------------------------------------------------------------------- */
@@ -282,14 +333,15 @@ async function _handleSaveUrl() {
   var rawUrl = urlInput.value.trim();
   if (!rawUrl) return;
 
+  let url, name;
   try {
     var parsed = JSON.parse(rawUrl);
-    var url = parsed.url || rawUrl;
-    var name = parsed.name || "";
+    url = parsed.url || rawUrl;
+    name = parsed.name || "";
   } catch (e) {
     // Input is a plain URL string, not JSON
-    var url = rawUrl;
-    var name = "";
+    url = rawUrl;
+    name = "";
   }
 
   try {

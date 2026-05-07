@@ -44,6 +44,7 @@ import os
 import sqlite3
 import sys
 import time
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 # Ensure package context is recognized when running directly from CLI
@@ -395,18 +396,117 @@ def _crawl_source(source_url, source_name, keywords):
     # ---- Parse the response ----
     items = []
 
-    # Try RSS/Atom XML parsing
-    if isinstance(response, dict) and response:
+    # Route: JSON dict or XML string/bytes
+    if isinstance(response, dict):
         # JSON API response — look for common news API shapes
-        items = _parse_json_feed(response, source_url, keywords)
+        if response:
+            items = _parse_json_feed(response, source_url, keywords)
+    elif isinstance(response, (str, bytes)):
+        # RSS/Atom XML feed — parse with ElementTree
+        if response:
+            items = _parse_rss_feed(response, source_url, keywords)
     else:
         logger.info(f"  [{source_name}] Unexpected response type: {type(response)}")
 
+    # Only raise if BOTH parsers returned zero items
     if not items:
         raise ValueError(
             f"Error: Failed to retrieve news feed from '{source_url}'. "
             f"Status: response parsed but no items extracted."
         )
+
+    return items
+
+
+def _parse_rss_feed(raw_text, source_url, keywords):
+    """
+    Parses an RSS 2.0 or Atom XML feed, extracting items that match keywords.
+
+    RSS 2.0 structure:
+      <rss version="2.0"><channel><item>
+        <title>...</title><link>...</link><pubDate>...</pubDate>
+      </item></channel></rss>
+
+    Atom structure:
+      <feed xmlns="http://www.w3.org/2005/Atom"><entry>
+        <title>...</title><link href="..."/><published>...</published>
+      </entry></feed>
+
+    Args:
+        raw_text (str|bytes): Raw XML response body.
+        source_url (str): The originating source URL (for error context).
+        keywords (list[str]): Lowercase keywords to match.
+
+    Returns:
+        list[dict]: Matching items in standard shape.
+    """
+    items = []
+
+    # ElementTree handles both str and bytes input
+    try:
+        root = ET.fromstring(raw_text)
+    except ET.ParseError as exc:
+        logger.warning(f"  XML parse error for '{source_url}': {exc}")
+        return items
+
+    # ---- Detect feed type and collect candidate elements ----
+    # RSS 2.0: <item> elements anywhere under <channel>
+    # Atom:    <entry> elements (handle namespace {http://www.w3.org/2005/Atom})
+    candidates = []
+
+    # Try RSS <item> elements first
+    rss_items = root.findall(".//item")
+    if rss_items:
+        candidates = rss_items
+    else:
+        # Try Atom <entry> — may have namespace
+        # Strip namespace by searching for local tag 'entry'
+        atom_entries = []
+        for el in root.iter():
+            tag = el.tag.split("}")[-1] if "}" in el.tag else el.tag
+            if tag == "entry":
+                atom_entries.append(el)
+        candidates = atom_entries
+
+    # ---- Extract fields from each candidate ----
+    for el in candidates:
+        # Strip namespaces from child tags for lookup
+        def _child_text(parent, *tag_names):
+            """Return the text content of the first child matching any tag name."""
+            for child in parent:
+                child_tag = child.tag.split("}")[-1] if "}" in child.tag else child.tag
+                if child_tag in tag_names:
+                    return child.text or ""
+            return ""
+
+        def _child_attr(parent, *tag_names, attr="href"):
+            """Return the attribute value of the first child matching any tag name."""
+            for child in parent:
+                child_tag = child.tag.split("}")[-1] if "}" in child.tag else child.tag
+                if child_tag in tag_names:
+                    return child.get(attr) or ""
+            return ""
+
+        title = _child_text(el, "title")
+        url = _child_text(el, "link") or _child_attr(el, "link", attr="href") or ""
+        timestamp = _child_text(el, "pubDate", "published", "updated", "date") or ""
+
+        if not title:
+            continue
+
+        # Check if any keyword matches the title (case-insensitive)
+        title_lower = title.lower()
+        matches = any(kw in title_lower for kw in keywords)
+
+        if matches:
+            items.append(
+                {
+                    "title": title,
+                    "timestamp": _normalize_timestamp(timestamp),
+                    "url": url or "",
+                    "source": source_url,
+                }
+            )
 
     return items
 
