@@ -15,7 +15,7 @@
 /* -----------------------------------------------------------------------------
    MODULE STATE
 ----------------------------------------------------------------------------- */
-let _pollIntervalId = null;
+let _mcpPollIntervalId = null;
 let _mcpActive = false;
 let _previousState = null; // 'online' | 'offline' | 'degraded' | null
 let _errorLog = []; // Rolling log of last 20 error events
@@ -298,7 +298,7 @@ function startMcpMonitorPolling() {
   fetchMcpHealth();
 
   // Then poll every 10 seconds
-  _pollIntervalId = setInterval(fetchMcpHealth, 10000);
+  _mcpPollIntervalId = setInterval(fetchMcpHealth, 10000);
 }
 
 /* -----------------------------------------------------------------------------
@@ -308,9 +308,9 @@ function startMcpMonitorPolling() {
 ----------------------------------------------------------------------------- */
 function stopMcpMonitorPolling() {
   _mcpActive = false;
-  if (_pollIntervalId !== null) {
-    clearInterval(_pollIntervalId);
-    _pollIntervalId = null;
+  if (_mcpPollIntervalId !== null) {
+    clearInterval(_mcpPollIntervalId);
+    _mcpPollIntervalId = null;
   }
 }
 

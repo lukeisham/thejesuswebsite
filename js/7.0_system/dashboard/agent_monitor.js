@@ -14,7 +14,7 @@
 /* -----------------------------------------------------------------------------
    MODULE STATE
 ----------------------------------------------------------------------------- */
-let _pollIntervalId = null;
+let _agentPollIntervalId = null;
 let _agentActive = false;
 let _selectedRunId = null;
 let _allRuns = [];
@@ -316,7 +316,7 @@ function startAgentMonitorPolling() {
   fetchAgentLogs();
 
   // Then poll every 5 seconds
-  _pollIntervalId = setInterval(fetchAgentLogs, 5000);
+  _agentPollIntervalId = setInterval(fetchAgentLogs, 5000);
 }
 
 /* -----------------------------------------------------------------------------
@@ -326,9 +326,9 @@ function startAgentMonitorPolling() {
 ----------------------------------------------------------------------------- */
 function stopAgentMonitorPolling() {
   _agentActive = false;
-  if (_pollIntervalId !== null) {
-    clearInterval(_pollIntervalId);
-    _pollIntervalId = null;
+  if (_agentPollIntervalId !== null) {
+    clearInterval(_agentPollIntervalId);
+    _agentPollIntervalId = null;
   }
 }
 

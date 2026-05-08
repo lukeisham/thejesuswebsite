@@ -12,7 +12,7 @@
 /* -----------------------------------------------------------------------------
    MODULE STATE — tracked for comparison between poll cycles
 ----------------------------------------------------------------------------- */
-let _pollIntervalId = null;
+let _systemDataPollIntervalId = null;
 let _systemDataActive = false;
 
 /* -----------------------------------------------------------------------------
@@ -373,7 +373,7 @@ function startSystemDataPolling() {
   fetchSystemHealth();
 
   // Then poll every 10 seconds
-  _pollIntervalId = setInterval(fetchSystemHealth, 10000);
+  _systemDataPollIntervalId = setInterval(fetchSystemHealth, 10000);
 }
 
 /* -----------------------------------------------------------------------------
@@ -383,9 +383,9 @@ function startSystemDataPolling() {
 ----------------------------------------------------------------------------- */
 function stopSystemDataPolling() {
   _systemDataActive = false;
-  if (_pollIntervalId !== null) {
-    clearInterval(_pollIntervalId);
-    _pollIntervalId = null;
+  if (_systemDataPollIntervalId !== null) {
+    clearInterval(_systemDataPollIntervalId);
+    _systemDataPollIntervalId = null;
   }
 }
 
