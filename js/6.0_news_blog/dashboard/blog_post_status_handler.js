@@ -12,7 +12,7 @@
 /* -----------------------------------------------------------------------------
    CONSTANTS
 ----------------------------------------------------------------------------- */
-const API_BASE = "/api/admin";
+const BLOG_API_BASE = "/api/admin";
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: initBlogPostStatusHandler
@@ -72,7 +72,7 @@ async function _handleSave() {
     if (recordId) {
       // --- UPDATE existing record ---
       const response = await fetch(
-        API_BASE + "/records/" + encodeURIComponent(recordId),
+        BLOG_API_BASE + "/records/" + encodeURIComponent(recordId),
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -89,7 +89,7 @@ async function _handleSave() {
       }
     } else {
       // --- CREATE new record ---
-      const response = await fetch(API_BASE + "/records", {
+      const response = await fetch(BLOG_API_BASE + "/records", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -212,7 +212,7 @@ async function _handlePublish() {
 
   try {
     const response = await fetch(
-      API_BASE + "/records/" + encodeURIComponent(recordId),
+      BLOG_API_BASE + "/records/" + encodeURIComponent(recordId),
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -286,7 +286,7 @@ async function _handleDelete() {
 
   try {
     const response = await fetch(
-      API_BASE + "/records/" + encodeURIComponent(recordId),
+      BLOG_API_BASE + "/records/" + encodeURIComponent(recordId),
       {
         method: "DELETE",
       },

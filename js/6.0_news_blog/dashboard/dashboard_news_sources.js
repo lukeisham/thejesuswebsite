@@ -25,12 +25,8 @@ window._newsSourcesModuleState = {
   newsSourcesRecords: [], // full list of news source records
 };
 
-Object.defineProperty(window, "_recordSlug", {
-  get: function () {
-    return window._newsSourcesModuleState.activeRecordSlug;
-  },
-  configurable: true,
-});
+// Set _recordSlug for shared tool compatibility
+window._recordSlug = window._newsSourcesModuleState.activeRecordSlug;
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: renderNewsSources
@@ -87,13 +83,8 @@ async function renderNewsSources() {
   // 3a. Reset module state
   _resetState();
 
-  // Alias for shared tool compatibility (metadata_handler, snippet_generator)
-  Object.defineProperty(window, "_recordTitle", {
-    get: function () {
-      return window._newsSourcesModuleState.activeRecordTitle;
-    },
-    configurable: true,
-  });
+  // Set _recordTitle for shared tool compatibility
+  window._recordTitle = window._newsSourcesModuleState.activeRecordTitle;
 
   // 3b. Initialise the sidebar handler (wires keyword chips, URL save, metadata)
   if (typeof window.initNewsSourcesSidebar === "function") {

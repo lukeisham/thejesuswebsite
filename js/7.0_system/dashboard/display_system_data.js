@@ -7,13 +7,13 @@
 // Output:  Health cards populated with live status, colour coding, resource
 //           meter bars, and detail text. Errors routed via window.surfaceError().
 
-'use strict';
+"use strict";
 
 /* -----------------------------------------------------------------------------
    MODULE STATE — tracked for comparison between poll cycles
 ----------------------------------------------------------------------------- */
 let _pollIntervalId = null;
-let _isActive = false;
+let _systemDataActive = false;
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: fetchSystemHealth
@@ -21,42 +21,42 @@ let _isActive = false;
    Called once on module load and then on a recurring 10s interval.
 ----------------------------------------------------------------------------- */
 async function fetchSystemHealth() {
-    try {
-        // --- 1. Fetch health check data ---
-        const healthResponse = await fetch('/api/admin/health_check', {
-            method: 'GET',
-            credentials: 'same-origin',
-        });
+  try {
+    // --- 1. Fetch health check data ---
+    const healthResponse = await fetch("/api/admin/health_check", {
+      method: "GET",
+      credentials: "same-origin",
+    });
 
-        if (!healthResponse.ok) {
-            _setAllCardsError();
-            if (typeof window.surfaceError === 'function') {
-                window.surfaceError(
-                    'Error: System health check failed. Backend may be unreachable.'
-                );
-            }
-            return;
-        }
-
-        const healthData = await healthResponse.json();
-
-        // --- 2. Parse and render each card ---
-        _renderApiHealth(healthData);
-        _renderVpsResources(healthData);
-        _renderSecurity(healthData);
-        _renderDeepSeek(healthData);
-
-        // --- 3. Fetch DeepSeek token/run counts from agent logs ---
-        await _fetchDeepSeekCounts();
-    } catch (err) {
-        console.error('[display_system_data] Health check failed:', err);
-        _setAllCardsError();
-        if (typeof window.surfaceError === 'function') {
-            window.surfaceError(
-                'Error: System health check failed. Backend may be unreachable.'
-            );
-        }
+    if (!healthResponse.ok) {
+      _setAllCardsError();
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError(
+          "Error: System health check failed. Backend may be unreachable.",
+        );
+      }
+      return;
     }
+
+    const healthData = await healthResponse.json();
+
+    // --- 2. Parse and render each card ---
+    _renderApiHealth(healthData);
+    _renderVpsResources(healthData);
+    _renderSecurity(healthData);
+    _renderDeepSeek(healthData);
+
+    // --- 3. Fetch DeepSeek token/run counts from agent logs ---
+    await _fetchDeepSeekCounts();
+  } catch (err) {
+    console.error("[display_system_data] Health check failed:", err);
+    _setAllCardsError();
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: System health check failed. Backend may be unreachable.",
+      );
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -64,40 +64,40 @@ async function fetchSystemHealth() {
    Updates the API Health card with overall service status.
 ----------------------------------------------------------------------------- */
 function _renderApiHealth(data) {
-    const statusEl = document.getElementById('api-health-status');
-    const detailEl = document.getElementById('api-health-detail');
+  const statusEl = document.getElementById("api-health-status");
+  const detailEl = document.getElementById("api-health-detail");
 
-    if (!statusEl) return;
+  if (!statusEl) return;
 
-    const status = data.status || 'unknown';
-    const timestamp = data.timestamp || '';
+  const status = data.status || "unknown";
+  const timestamp = data.timestamp || "";
 
-    statusEl.classList.remove(
-        'health-card__value--loading',
-        'health-card__value--ok',
-        'health-card__value--degraded',
-        'health-card__value--error'
-    );
+  statusEl.classList.remove(
+    "health-card__value--loading",
+    "health-card__value--ok",
+    "health-card__value--degraded",
+    "health-card__value--error",
+  );
 
-    if (status === 'ok') {
-        statusEl.textContent = 'OK';
-        statusEl.classList.add('health-card__value--ok');
-    } else if (status === 'degraded') {
-        statusEl.textContent = 'Degraded';
-        statusEl.classList.add('health-card__value--degraded');
-    } else {
-        statusEl.textContent = 'Error';
-        statusEl.classList.add('health-card__value--error');
-    }
+  if (status === "ok") {
+    statusEl.textContent = "OK";
+    statusEl.classList.add("health-card__value--ok");
+  } else if (status === "degraded") {
+    statusEl.textContent = "Degraded";
+    statusEl.classList.add("health-card__value--degraded");
+  } else {
+    statusEl.textContent = "Error";
+    statusEl.classList.add("health-card__value--error");
+  }
 
-    if (detailEl) {
-        const db = data.database || {};
-        const dbStatus = db.status || 'unknown';
-        const recordCount = db.record_count !== undefined ? db.record_count : '--';
-        detailEl.textContent =
-            `Service: ${data.service || 'API'} | DB: ${dbStatus} | ` +
-            `Records: ${recordCount} | ${_formatTimestamp(timestamp)}`;
-    }
+  if (detailEl) {
+    const db = data.database || {};
+    const dbStatus = db.status || "unknown";
+    const recordCount = db.record_count !== undefined ? db.record_count : "--";
+    detailEl.textContent =
+      `Service: ${data.service || "API"} | DB: ${dbStatus} | ` +
+      `Records: ${recordCount} | ${_formatTimestamp(timestamp)}`;
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -105,57 +105,60 @@ function _renderApiHealth(data) {
    Updates the VPS Resources card with CPU and memory gauges.
 ----------------------------------------------------------------------------- */
 function _renderVpsResources(data) {
-    const cpuFillEl = document.getElementById('vps-cpu-fill');
-    const cpuTextEl = document.getElementById('vps-cpu-text');
-    const cpuBarEl = document.getElementById('vps-cpu-bar');
-    const memFillEl = document.getElementById('vps-mem-fill');
-    const memTextEl = document.getElementById('vps-mem-text');
-    const memBarEl = document.getElementById('vps-mem-bar');
-    const detailEl = document.getElementById('vps-detail');
+  const cpuFillEl = document.getElementById("vps-cpu-fill");
+  const cpuTextEl = document.getElementById("vps-cpu-text");
+  const cpuBarEl = document.getElementById("vps-cpu-bar");
+  const memFillEl = document.getElementById("vps-mem-fill");
+  const memTextEl = document.getElementById("vps-mem-text");
+  const memBarEl = document.getElementById("vps-mem-bar");
+  const detailEl = document.getElementById("vps-detail");
 
-    const resources = data.resources || {};
+  const resources = data.resources || {};
 
-    if (resources.status === 'unavailable' || resources.status === 'error') {
-        if (cpuTextEl) cpuTextEl.textContent = 'N/A';
-        if (memTextEl) memTextEl.textContent = 'N/A';
-        if (detailEl) detailEl.textContent = resources.error || 'Resource data unavailable';
-        return;
-    }
+  if (resources.status === "unavailable" || resources.status === "error") {
+    if (cpuTextEl) cpuTextEl.textContent = "N/A";
+    if (memTextEl) memTextEl.textContent = "N/A";
+    if (detailEl)
+      detailEl.textContent = resources.error || "Resource data unavailable";
+    return;
+  }
 
-    const cpuPercent = resources.cpu_percent;
-    const mem = resources.memory || {};
-    const memPercent = mem.percent;
-    const disk = resources.disk || {};
+  const cpuPercent = resources.cpu_percent;
+  const mem = resources.memory || {};
+  const memPercent = mem.percent;
+  const disk = resources.disk || {};
 
-    // CPU gauge
-    if (cpuFillEl && cpuPercent !== undefined) {
-        cpuFillEl.style.width = `${cpuPercent}%`;
-        _setMeterColor(cpuFillEl, cpuPercent);
-        if (cpuBarEl) cpuBarEl.setAttribute('aria-valuenow', String(Math.round(cpuPercent)));
-    }
-    if (cpuTextEl && cpuPercent !== undefined) {
-        cpuTextEl.textContent = `${Math.round(cpuPercent)}%`;
-    }
+  // CPU gauge
+  if (cpuFillEl && cpuPercent !== undefined) {
+    cpuFillEl.style.width = `${cpuPercent}%`;
+    _setMeterColor(cpuFillEl, cpuPercent);
+    if (cpuBarEl)
+      cpuBarEl.setAttribute("aria-valuenow", String(Math.round(cpuPercent)));
+  }
+  if (cpuTextEl && cpuPercent !== undefined) {
+    cpuTextEl.textContent = `${Math.round(cpuPercent)}%`;
+  }
 
-    // Memory gauge
-    if (memFillEl && memPercent !== undefined) {
-        memFillEl.style.width = `${memPercent}%`;
-        _setMeterColor(memFillEl, memPercent);
-        if (memBarEl) memBarEl.setAttribute('aria-valuenow', String(Math.round(memPercent)));
-    }
-    if (memTextEl && memPercent !== undefined) {
-        memTextEl.textContent = `${Math.round(memPercent)}%`;
-    }
+  // Memory gauge
+  if (memFillEl && memPercent !== undefined) {
+    memFillEl.style.width = `${memPercent}%`;
+    _setMeterColor(memFillEl, memPercent);
+    if (memBarEl)
+      memBarEl.setAttribute("aria-valuenow", String(Math.round(memPercent)));
+  }
+  if (memTextEl && memPercent !== undefined) {
+    memTextEl.textContent = `${Math.round(memPercent)}%`;
+  }
 
-    // Detail line
-    if (detailEl) {
-        const memUsed = mem.used_gb !== undefined ? `${mem.used_gb} GB` : '--';
-        const memTotal = mem.total_gb !== undefined ? `${mem.total_gb} GB` : '--';
-        const diskUsed = disk.used_gb !== undefined ? `${disk.used_gb} GB` : '--';
-        const diskTotal = disk.total_gb !== undefined ? `${disk.total_gb} GB` : '--';
-        detailEl.textContent =
-            `Memory: ${memUsed} / ${memTotal} | Disk: ${diskUsed} / ${diskTotal}`;
-    }
+  // Detail line
+  if (detailEl) {
+    const memUsed = mem.used_gb !== undefined ? `${mem.used_gb} GB` : "--";
+    const memTotal = mem.total_gb !== undefined ? `${mem.total_gb} GB` : "--";
+    const diskUsed = disk.used_gb !== undefined ? `${disk.used_gb} GB` : "--";
+    const diskTotal =
+      disk.total_gb !== undefined ? `${disk.total_gb} GB` : "--";
+    detailEl.textContent = `Memory: ${memUsed} / ${memTotal} | Disk: ${diskUsed} / ${diskTotal}`;
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -164,12 +167,15 @@ function _renderVpsResources(data) {
    the percentage value (> 75% = warning, > 90% = critical).
 ----------------------------------------------------------------------------- */
 function _setMeterColor(fillEl, percent) {
-    fillEl.classList.remove('meter-bar__fill--warning', 'meter-bar__fill--critical');
-    if (percent > 90) {
-        fillEl.classList.add('meter-bar__fill--critical');
-    } else if (percent > 75) {
-        fillEl.classList.add('meter-bar__fill--warning');
-    }
+  fillEl.classList.remove(
+    "meter-bar__fill--warning",
+    "meter-bar__fill--critical",
+  );
+  if (percent > 90) {
+    fillEl.classList.add("meter-bar__fill--critical");
+  } else if (percent > 75) {
+    fillEl.classList.add("meter-bar__fill--warning");
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -177,36 +183,37 @@ function _setMeterColor(fillEl, percent) {
    Updates the Security card based on overall health status.
 ----------------------------------------------------------------------------- */
 function _renderSecurity(data) {
-    const statusEl = document.getElementById('security-status');
-    const detailEl = document.getElementById('security-detail');
+  const statusEl = document.getElementById("security-status");
+  const detailEl = document.getElementById("security-detail");
 
-    if (!statusEl) return;
+  if (!statusEl) return;
 
-    statusEl.classList.remove(
-        'health-card__value--loading',
-        'health-card__value--ok',
-        'health-card__value--degraded',
-        'health-card__value--error'
-    );
+  statusEl.classList.remove(
+    "health-card__value--loading",
+    "health-card__value--ok",
+    "health-card__value--degraded",
+    "health-card__value--error",
+  );
 
-    const overallStatus = data.status || 'unknown';
+  const overallStatus = data.status || "unknown";
 
-    if (overallStatus === 'ok') {
-        statusEl.textContent = 'JWT Valid';
-        statusEl.classList.add('health-card__value--ok');
-    } else if (overallStatus === 'degraded') {
-        statusEl.textContent = 'Warning';
-        statusEl.classList.add('health-card__value--degraded');
-    } else {
-        statusEl.textContent = 'Alert';
-        statusEl.classList.add('health-card__value--error');
-    }
+  if (overallStatus === "ok") {
+    statusEl.textContent = "JWT Valid";
+    statusEl.classList.add("health-card__value--ok");
+  } else if (overallStatus === "degraded") {
+    statusEl.textContent = "Warning";
+    statusEl.classList.add("health-card__value--degraded");
+  } else {
+    statusEl.textContent = "Alert";
+    statusEl.classList.add("health-card__value--error");
+  }
 
-    if (detailEl) {
-        detailEl.textContent = overallStatus === 'ok'
-            ? 'No active alerts'
-            : 'Check system status for details';
-    }
+  if (detailEl) {
+    detailEl.textContent =
+      overallStatus === "ok"
+        ? "No active alerts"
+        : "Check system status for details";
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -215,33 +222,34 @@ function _renderSecurity(data) {
    field. Token and run counts are updated separately by _fetchDeepSeekCounts().
 ----------------------------------------------------------------------------- */
 function _renderDeepSeek(data) {
-    const statusEl = document.getElementById('deepseek-status');
-    const detailEl = document.getElementById('deepseek-detail');
+  const statusEl = document.getElementById("deepseek-status");
+  const detailEl = document.getElementById("deepseek-detail");
 
-    if (!statusEl) return;
+  if (!statusEl) return;
 
-    statusEl.classList.remove(
-        'health-card__value--loading',
-        'health-card__value--ok',
-        'health-card__value--error',
-        'health-card__value--offline'
-    );
+  statusEl.classList.remove(
+    "health-card__value--loading",
+    "health-card__value--ok",
+    "health-card__value--error",
+    "health-card__value--offline",
+  );
 
-    const ds = data.deepseek_api || {};
+  const ds = data.deepseek_api || {};
 
-    if (ds.status === 'configured') {
-        statusEl.textContent = 'OK';
-        statusEl.classList.add('health-card__value--ok');
-    } else {
-        statusEl.textContent = 'Unavailable';
-        statusEl.classList.add('health-card__value--error');
-    }
+  if (ds.status === "configured") {
+    statusEl.textContent = "OK";
+    statusEl.classList.add("health-card__value--ok");
+  } else {
+    statusEl.textContent = "Unavailable";
+    statusEl.classList.add("health-card__value--error");
+  }
 
-    if (detailEl) {
-        detailEl.textContent = ds.status === 'configured'
-            ? 'API key verified'
-            : (ds.error || 'API key not configured');
-    }
+  if (detailEl) {
+    detailEl.textContent =
+      ds.status === "configured"
+        ? "API key verified"
+        : ds.error || "API key not configured";
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -250,50 +258,49 @@ function _renderDeepSeek(data) {
    the DeepSeek card detail line.
 ----------------------------------------------------------------------------- */
 async function _fetchDeepSeekCounts() {
-    try {
-        const response = await fetch('/api/admin/agent/logs?limit=200', {
-            method: 'GET',
-            credentials: 'same-origin',
-        });
+  try {
+    const response = await fetch("/api/admin/agent/logs?limit=200", {
+      method: "GET",
+      credentials: "same-origin",
+    });
 
-        if (!response.ok) {
-            if (typeof window.surfaceError === 'function') {
-                window.surfaceError(
-                    'Error: Unable to verify DeepSeek API connectivity. Check API key and network.'
-                );
-            }
-            return;
-        }
-
-        const result = await response.json();
-        const runs = result.data || [];
-
-        // Filter for today's runs only
-        const today = new Date().toISOString().substring(0, 10);
-        const todayRuns = runs.filter(function (r) {
-            return r.started_at && r.started_at.substring(0, 10) === today;
-        });
-
-        const runCount = todayRuns.length;
-        const tokenTotal = todayRuns.reduce(function (sum, r) {
-            return sum + (r.tokens_used || 0);
-        }, 0);
-
-        // Update the DeepSeek card detail
-        const detailEl = document.getElementById('deepseek-detail');
-        if (detailEl) {
-            const currentText = detailEl.textContent || '';
-            detailEl.textContent =
-                `${currentText.split('|')[0].trim()} | Tokens Today: ${tokenTotal.toLocaleString()} | Runs Today: ${runCount}`;
-        }
-    } catch (err) {
-        console.error('[display_system_data] DeepSeek count fetch failed:', err);
-        if (typeof window.surfaceError === 'function') {
-            window.surfaceError(
-                'Error: Unable to verify DeepSeek API connectivity. Check API key and network.'
-            );
-        }
+    if (!response.ok) {
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError(
+          "Error: Unable to verify DeepSeek API connectivity. Check API key and network.",
+        );
+      }
+      return;
     }
+
+    const result = await response.json();
+    const runs = result.data || [];
+
+    // Filter for today's runs only
+    const today = new Date().toISOString().substring(0, 10);
+    const todayRuns = runs.filter(function (r) {
+      return r.started_at && r.started_at.substring(0, 10) === today;
+    });
+
+    const runCount = todayRuns.length;
+    const tokenTotal = todayRuns.reduce(function (sum, r) {
+      return sum + (r.tokens_used || 0);
+    }, 0);
+
+    // Update the DeepSeek card detail
+    const detailEl = document.getElementById("deepseek-detail");
+    if (detailEl) {
+      const currentText = detailEl.textContent || "";
+      detailEl.textContent = `${currentText.split("|")[0].trim()} | Tokens Today: ${tokenTotal.toLocaleString()} | Runs Today: ${runCount}`;
+    }
+  } catch (err) {
+    console.error("[display_system_data] DeepSeek count fetch failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Unable to verify DeepSeek API connectivity. Check API key and network.",
+      );
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -301,26 +308,42 @@ async function _fetchDeepSeekCounts() {
    Sets all health cards to an error state when the health check fails.
 ----------------------------------------------------------------------------- */
 function _setAllCardsError() {
-    const cards = [
-        { statusId: 'api-health-status', detailId: 'api-health-detail', label: 'API Health' },
-        { statusId: 'security-status', detailId: 'security-detail', label: 'Security' },
-        { statusId: 'deepseek-status', detailId: 'deepseek-detail', label: 'DeepSeek API' },
-    ];
+  const cards = [
+    {
+      statusId: "api-health-status",
+      detailId: "api-health-detail",
+      label: "API Health",
+    },
+    {
+      statusId: "security-status",
+      detailId: "security-detail",
+      label: "Security",
+    },
+    {
+      statusId: "deepseek-status",
+      detailId: "deepseek-detail",
+      label: "DeepSeek API",
+    },
+  ];
 
-    cards.forEach(function (card) {
-        const statusEl = document.getElementById(card.statusId);
-        const detailEl = document.getElementById(card.detailId);
+  cards.forEach(function (card) {
+    const statusEl = document.getElementById(card.statusId);
+    const detailEl = document.getElementById(card.detailId);
 
-        if (statusEl) {
-            statusEl.classList.remove('health-card__value--loading', 'health-card__value--ok',
-                'health-card__value--degraded', 'health-card__value--error');
-            statusEl.textContent = 'Unreachable';
-            statusEl.classList.add('health-card__value--error');
-        }
-        if (detailEl) {
-            detailEl.textContent = 'Backend connection failed';
-        }
-    });
+    if (statusEl) {
+      statusEl.classList.remove(
+        "health-card__value--loading",
+        "health-card__value--ok",
+        "health-card__value--degraded",
+        "health-card__value--error",
+      );
+      statusEl.textContent = "Unreachable";
+      statusEl.classList.add("health-card__value--error");
+    }
+    if (detailEl) {
+      detailEl.textContent = "Backend connection failed";
+    }
+  });
 }
 
 /* -----------------------------------------------------------------------------
@@ -328,13 +351,13 @@ function _setAllCardsError() {
    Formats an ISO8601 timestamp to a compact display format.
 ----------------------------------------------------------------------------- */
 function _formatTimestamp(iso) {
-    if (!iso) return '';
-    try {
-        const t = iso.substring(11, 19);
-        return t;
-    } catch (e) {
-        return '';
-    }
+  if (!iso) return "";
+  try {
+    const t = iso.substring(11, 19);
+    return t;
+  } catch (e) {
+    return "";
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -343,14 +366,14 @@ function _formatTimestamp(iso) {
    Starts a 10-second recurring poll of system health data.
 ----------------------------------------------------------------------------- */
 function startSystemDataPolling() {
-    if (_isActive) return;
-    _isActive = true;
+  if (_systemDataActive) return;
+  _systemDataActive = true;
 
-    // Fetch immediately on start
-    fetchSystemHealth();
+  // Fetch immediately on start
+  fetchSystemHealth();
 
-    // Then poll every 10 seconds
-    _pollIntervalId = setInterval(fetchSystemHealth, 10000);
+  // Then poll every 10 seconds
+  _pollIntervalId = setInterval(fetchSystemHealth, 10000);
 }
 
 /* -----------------------------------------------------------------------------
@@ -359,11 +382,11 @@ function startSystemDataPolling() {
    the user navigates away. Clears the polling interval.
 ----------------------------------------------------------------------------- */
 function stopSystemDataPolling() {
-    _isActive = false;
-    if (_pollIntervalId !== null) {
-        clearInterval(_pollIntervalId);
-        _pollIntervalId = null;
-    }
+  _systemDataActive = false;
+  if (_pollIntervalId !== null) {
+    clearInterval(_pollIntervalId);
+    _pollIntervalId = null;
+  }
 }
 
 /* -----------------------------------------------------------------------------

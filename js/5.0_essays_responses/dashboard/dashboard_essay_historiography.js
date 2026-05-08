@@ -20,12 +20,8 @@ window._essayModuleState = {
   isDirty: false, // true when markdown has unsaved changes
 };
 
-Object.defineProperty(window, "_recordSlug", {
-  get: function () {
-    return window._essayModuleState.activeRecordId;
-  },
-  configurable: true,
-});
+// Set _recordSlug for shared tool compatibility
+window._recordSlug = window._essayModuleState.activeRecordId;
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: renderEssayHistoriography
@@ -84,13 +80,8 @@ async function renderEssayHistoriography() {
   // 3a. Set initial mode
   window._essayModuleState.mode = "essay";
 
-  // Alias for shared tool compatibility (picture_handler, snippet_generator, etc.)
-  Object.defineProperty(window, "_recordTitle", {
-    get: function () {
-      return window._essayModuleState.activeRecordTitle;
-    },
-    configurable: true,
-  });
+  // Set _recordTitle for shared tool compatibility
+  window._recordTitle = window._essayModuleState.activeRecordTitle;
 
   // 3b. Load the sidebar document list for the initial mode
   if (typeof window.displayEssayHistoriographyList === "function") {

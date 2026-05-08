@@ -18,12 +18,8 @@ window._blogModuleState = {
   isDirty: false, // true when markdown has unsaved changes
 };
 
-Object.defineProperty(window, "_recordSlug", {
-  get: function () {
-    return window._blogModuleState.activeRecordId;
-  },
-  configurable: true,
-});
+// Set _recordSlug for shared tool compatibility
+window._recordSlug = window._blogModuleState.activeRecordId;
 
 // Bridge: markdown_editor.js writes to window._essayModuleState.isDirty.
 // Point it to our blog module state so dirty tracking works for blog posts.
@@ -77,13 +73,8 @@ async function renderBlogPosts() {
      HTML is injected so DOM elements are available.
   ------------------------------------------------------------------------- */
 
-  // Alias for shared tool compatibility (picture_handler, snippet_generator, etc.)
-  Object.defineProperty(window, "_recordTitle", {
-    get: function () {
-      return window._blogModuleState.activeRecordTitle;
-    },
-    configurable: true,
-  });
+  // Set _recordTitle for shared tool compatibility
+  window._recordTitle = window._blogModuleState.activeRecordTitle;
 
   // 3a. Load the sidebar blog post list
   if (typeof window.displayBlogPostsList === "function") {

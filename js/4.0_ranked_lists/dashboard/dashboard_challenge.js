@@ -142,14 +142,8 @@ async function renderChallenge() {
   window._challengeModuleState.academicSearchTerms = "";
   window._challengeModuleState.popularSearchTerms = "";
 
-  // Alias for shared tool compatibility — redefines _recordTitle to
-  // dynamically read current challenge's active record title.
-  Object.defineProperty(window, "_recordTitle", {
-    get: function () {
-      return window._challengeModuleState.activeRecordTitle;
-    },
-    configurable: true,
-  });
+  // Set _recordTitle for shared tool compatibility
+  window._recordTitle = window._challengeModuleState.activeRecordTitle;
 
   // 3b. Initialise the weighting handler (sidebar)
   if (typeof window.initChallengeWeighting === "function") {

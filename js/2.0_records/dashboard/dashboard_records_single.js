@@ -306,7 +306,7 @@ async function _initialiseAllEditors(recordId) {
   // renderMetadataFooter expects #record-slug, #btn-auto-slug,
   // #record-metadata-json, #record-created-at, #record-updated-at to exist.
   if (typeof window.renderMetadataFooter === "function") {
-    window.renderMetadataFooter("section-core-ids", resolvedId || "");
+    window.renderMetadataFooter("section-core-ids", recordId || "");
   }
 
   // Metadata handler (legacy — kept for backward compatibility)
