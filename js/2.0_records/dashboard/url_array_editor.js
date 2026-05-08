@@ -8,7 +8,7 @@
 
 /* This is the authoritative copy — consumed by (no consumers yet — available for future plans) */
 
-'use strict';
+"use strict";
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: renderUrlArrayEditor
@@ -20,19 +20,22 @@
      containerId (string) — DOM element ID to inject the editor into
 ----------------------------------------------------------------------------- */
 function renderUrlArrayEditor(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-        if (typeof window.surfaceError === 'function') {
-            const title = (typeof window._recordTitle !== 'undefined') ? window._recordTitle : containerId;
-            window.surfaceError(`Error: Failed to save URL data for '${title}'.`);
-        }
-        return;
+  const container = document.getElementById(containerId);
+  if (!container) {
+    if (typeof window.surfaceError === "function") {
+      const title =
+        typeof window._recordTitle !== "undefined"
+          ? window._recordTitle
+          : containerId;
+      window.surfaceError(`Error: Failed to save URL data for '${title}'.`);
     }
+    return;
+  }
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        BUILD: Editor skeleton with an empty rows area and Add URL button
     ------------------------------------------------------------------------- */
-    container.innerHTML = `
+  container.innerHTML = `
         <div class="url-array-editor" data-url-array-editor>
             <div class="url-array-editor__rows" data-url-array-rows></div>
             <div class="url-array-editor__add">
@@ -43,17 +46,17 @@ function renderUrlArrayEditor(containerId) {
         </div>
     `;
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        EVENT BINDING: Add URL button appends a new empty row
     ------------------------------------------------------------------------- */
-    const rowsContainer = container.querySelector('[data-url-array-rows]');
-    const addBtn = container.querySelector('[data-url-array-add]');
+  const rowsContainer = container.querySelector("[data-url-array-rows]");
+  const addBtn = container.querySelector("[data-url-array-add]");
 
-    if (addBtn) {
-        addBtn.addEventListener('click', function () {
-            _addUrlRow(rowsContainer, '', '');
-        });
-    }
+  if (addBtn) {
+    addBtn.addEventListener("click", function () {
+      _addUrlRow(rowsContainer, "", "");
+    });
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -67,41 +70,43 @@ function renderUrlArrayEditor(containerId) {
                              provided or parsing fails, the editor is cleared.
 ----------------------------------------------------------------------------- */
 function setUrlArrayData(data) {
-    const rowsContainer = document.querySelector('[data-url-array-rows]');
-    if (!rowsContainer) { return; }
+  const rowsContainer = document.querySelector("[data-url-array-rows]");
+  if (!rowsContainer) {
+    return;
+  }
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        CLEAR: Remove all existing rows before hydration
     ------------------------------------------------------------------------- */
-    rowsContainer.innerHTML = '';
+  rowsContainer.innerHTML = "";
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        PARSE: Resolve data into a clean array of {label, url} objects
     ------------------------------------------------------------------------- */
-    let urlArray = [];
+  let urlArray = [];
 
-    if (data !== undefined && data !== null) {
-        if (typeof data === 'string') {
-            try {
-                const parsed = JSON.parse(data);
-                urlArray = Array.isArray(parsed) ? parsed : [];
-            } catch (e) {
-                console.error('[url_array_editor] Failed to parse URL data JSON:', e);
-                urlArray = [];
-            }
-        } else if (Array.isArray(data)) {
-            urlArray = data.slice();
-        }
+  if (data !== undefined && data !== null) {
+    if (typeof data === "string") {
+      try {
+        const parsed = JSON.parse(data);
+        urlArray = Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.error("[url_array_editor] Failed to parse URL data JSON:", e);
+        urlArray = [];
+      }
+    } else if (Array.isArray(data)) {
+      urlArray = data.slice();
     }
+  }
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        HYDRATE: Render a row for each {label, url} object
     ------------------------------------------------------------------------- */
-    urlArray.forEach(function (entry) {
-        if (entry && typeof entry === 'object') {
-            _addUrlRow(rowsContainer, entry.label || '', entry.url || '');
-        }
-    });
+  urlArray.forEach(function (entry) {
+    if (entry && typeof entry === "object") {
+      _addUrlRow(rowsContainer, entry.label || "", entry.url || "");
+    }
+  });
 }
 
 /* -----------------------------------------------------------------------------
@@ -114,33 +119,33 @@ function setUrlArrayData(data) {
      Array of {label, url} objects for all non-empty rows
 ----------------------------------------------------------------------------- */
 function collectUrlArray() {
-    const rowsContainer = document.querySelector('[data-url-array-rows]');
-    if (!rowsContainer) {
-        return [];
+  const rowsContainer = document.querySelector("[data-url-array-rows]");
+  if (!rowsContainer) {
+    return [];
+  }
+
+  const rows = rowsContainer.querySelectorAll(".url-array-editor__row");
+  const results = [];
+
+  rows.forEach(function (row) {
+    const labelInput = row.querySelector("[data-url-array-label]");
+    const urlInput = row.querySelector("[data-url-array-url]");
+
+    const label = labelInput ? labelInput.value.trim() : "";
+    const url = urlInput ? urlInput.value.trim() : "";
+
+    // Skip rows where both fields are empty
+    if (label === "" && url === "") {
+      return;
     }
 
-    const rows = rowsContainer.querySelectorAll('.url-array-editor__row');
-    const results = [];
-
-    rows.forEach(function (row) {
-        const labelInput = row.querySelector('[data-url-array-label]');
-        const urlInput = row.querySelector('[data-url-array-url]');
-
-        const label = labelInput ? labelInput.value.trim() : '';
-        const url = urlInput ? urlInput.value.trim() : '';
-
-        // Skip rows where both fields are empty
-        if (label === '' && url === '') {
-            return;
-        }
-
-        results.push({
-            label: label,
-            url: url
-        });
+    results.push({
+      label: label,
+      url: url,
     });
+  });
 
-    return results;
+  return results;
 }
 
 /* -----------------------------------------------------------------------------
@@ -154,47 +159,51 @@ function collectUrlArray() {
      url           (string)      — initial value for the URL input
 ----------------------------------------------------------------------------- */
 function _addUrlRow(rowsContainer, label, url) {
-    if (!rowsContainer) { return; }
+  if (!rowsContainer) {
+    return;
+  }
 
-    const row = document.createElement('div');
-    row.className = 'url-array-editor__row';
+  const row = document.createElement("div");
+  row.className = "url-array-editor__row";
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        Label input
     ------------------------------------------------------------------------- */
-    const labelInput = document.createElement('input');
-    labelInput.type = 'text';
-    labelInput.className = 'form-field__input';
-    labelInput.setAttribute('data-url-array-label', '');
-    labelInput.placeholder = 'Label';
-    labelInput.value = (typeof label === 'string') ? label : '';
+  const labelInput = document.createElement("input");
+  labelInput.type = "text";
+  labelInput.className = "form-field__input";
+  labelInput.setAttribute("data-url-array-label", "");
+  labelInput.placeholder = "Label";
+  labelInput.setAttribute("aria-label", "URL label");
+  labelInput.value = typeof label === "string" ? label : "";
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        URL input
     ------------------------------------------------------------------------- */
-    const urlInput = document.createElement('input');
-    urlInput.type = 'url';
-    urlInput.className = 'form-field__input';
-    urlInput.setAttribute('data-url-array-url', '');
-    urlInput.placeholder = 'https://…';
-    urlInput.value = (typeof url === 'string') ? url : '';
+  const urlInput = document.createElement("input");
+  urlInput.type = "url";
+  urlInput.className = "form-field__input";
+  urlInput.setAttribute("data-url-array-url", "");
+  urlInput.placeholder = "https://…";
+  urlInput.setAttribute("aria-label", "URL");
+  urlInput.value = typeof url === "string" ? url : "";
 
-    /* -------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------
        Remove button
     ------------------------------------------------------------------------- */
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'url-array-editor__remove';
-    removeBtn.setAttribute('aria-label', 'Remove URL entry');
-    removeBtn.innerHTML = '&times;';
-    removeBtn.addEventListener('click', function () {
-        row.remove();
-    });
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "url-array-editor__remove";
+  removeBtn.setAttribute("aria-label", "Remove URL entry");
+  removeBtn.innerHTML = "&times;";
+  removeBtn.addEventListener("click", function () {
+    row.remove();
+  });
 
-    row.appendChild(labelInput);
-    row.appendChild(urlInput);
-    row.appendChild(removeBtn);
-    rowsContainer.appendChild(row);
+  row.appendChild(labelInput);
+  row.appendChild(urlInput);
+  row.appendChild(removeBtn);
+  rowsContainer.appendChild(row);
 }
 
 /* -----------------------------------------------------------------------------
