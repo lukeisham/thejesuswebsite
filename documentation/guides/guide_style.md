@@ -268,9 +268,9 @@ Visual treatment: Inter semibold, `--text-md`, `--tracking-tight`, 1px
 
 | Component | Visual Pattern | Key CSS Classes |
 | :--- | :--- | :--- |
-| **Layout** | Dual-pane: parameter sidebar + ranked list area, separated by 1px divider | `.challenge-editor-layout` (CSS Grid) |
+| **Layout** | Dual-pane: parameter sidebar + ranked list area, integrated into Providence columns | `.providence-col-sidebar` + `.providence-col-main` |
 | **Function Bar** | Toggle (Academic / Popular) + Refresh / Publish actions | `.function-bar__toggle-group`, `.btn--toggle-active` |
-| **Sidebar** | Vertically stacked sections: search terms textarea + weighting list with reorder buttons + add-weight form. Thin scrollbar. | `.challenge-sidebar`, `.challenge-weight-item` |
+| **Sidebar** | Vertically stacked sections with a primary heading: "ACADEMIC/POPULAR WEIGHTING AND SEARCH TERMS". | `.challenge-sidebar`, `.challenge-sidebar__heading` |
 | **Weight Items** | Horizontal row: reorder grip (≡) + name (Inter) + numeric value input (Mono) + remove (×) | `.challenge-weight-item__name`, `__value`, `__remove` |
 | **Ranked List** | Zebra-striped rows; rank badge (Mono, `--radius-sm`, `--color-bg-tertiary`); score column (Mono semibold); expandable body area showing linked responses | `.challenge-row`, `.challenge-row__rank`, `__score`, `__body` |
 | **Response Cards** | Nested inside expanded rows: card with title (Inter) + status badge (Draft/Published) | `.challenge-response-card` |

@@ -41,6 +41,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# 5. Content Security Policy Middleware
+# Overrides Cloudflare's report-only CSP with an enforced policy that
+# allows all self-hosted scripts, styles, and API connections while
+# still permitting Cloudflare's own analytics beacon.
+@app.middleware("http")
+async def add_csp_header(request, call_next):
+    response = await call_next(request)
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src-elem 'self' https://static.cloudflareinsights.com; "
+        "connect-src 'self' https://static.cloudflareinsights.com; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "font-src 'self'; "
+        "frame-src 'self'"
+    )
+    return response
+
+
 # --- PUBLIC API DATABASE CONNECTION ---
 
 # Database path for public JSON API endpoints
