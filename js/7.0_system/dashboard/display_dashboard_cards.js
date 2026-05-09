@@ -38,7 +38,7 @@ const MODULE_CARDS = [
     id: "wikipedia",
     icon: "📚",
     title: "Wikipedia",
-    desc: "Import and manage Wikipedia-sourced reference articles.",
+    desc: "Sort ranked list of Wikipedia articles.",
   },
   {
     id: "challenge",
@@ -50,13 +50,13 @@ const MODULE_CARDS = [
     id: "challenge-response",
     icon: "💬",
     title: "Challenge Resp.",
-    desc: "Edit challenge response records via the full record editor.",
+    desc: "Write and edit challenge response essays.",
   },
   {
     id: "essay-historiography",
     icon: "✍️",
     title: "Essay & Hist.",
-    desc: "Write and manage essays and historiography entries.",
+    desc: "Write and manage essays and the historiography essay.",
   },
   {
     id: "news-sources",

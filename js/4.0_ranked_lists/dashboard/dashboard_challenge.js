@@ -259,11 +259,6 @@ async function _saveChallengeRecord(data) {
   }
 }
 
-  if (typeof window.renderMetadataFooter === "function") {
-    window.renderMetadataFooter("challenge-metadata-container", "");
-  }
-}
-
 /* -----------------------------------------------------------------------------
    INTERNAL: _wireToggleButtons
    Binds click handlers to the Academic and Popular toggle buttons.
