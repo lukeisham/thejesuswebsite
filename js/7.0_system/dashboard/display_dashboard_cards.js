@@ -3,7 +3,7 @@
    File:    js/7.0_system/dashboard/display_dashboard_cards.js
    Version: 1.0.0
    Trigger: Called by dashboard_orchestrator.js on initial page load.
-   Main:    renderDashboardCards() — component-injects 10 module navigation
+   Main:    renderDashboardCards() — component-injects 11 module navigation
             cards into #admin-cards in a 3×3 + 1 centered grid layout.
             Each card has an icon, title, and description. Clicks route to
             the module via window.loadModule().
@@ -41,10 +41,16 @@ const MODULE_CARDS = [
     desc: "Sort ranked list of Wikipedia articles.",
   },
   {
-    id: "challenge",
-    icon: "⚡",
-    title: "Challenges",
-    desc: "Create and manage historical Jesus challenge questions.",
+    id: "challenge-academic",
+    icon: "🎓",
+    title: "Academic Challenges",
+    desc: "Rank and manage academic historical debate challenges.",
+  },
+  {
+    id: "challenge-popular",
+    icon: "🔥",
+    title: "Popular Challenges",
+    desc: "Rank and manage popular public query challenges.",
   },
   {
     id: "challenge-response",

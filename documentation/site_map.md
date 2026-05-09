@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.57
+version: 1.0.60
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -33,7 +33,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── dashboard.html         <-- Main module grid orchestrator (3×3+1 card layout)
 │   ├── dashboard_arbor.html   <-- Interactive diagram container with Refresh/Publish bar
 │   ├── dashboard_blog_posts.html <-- Split-pane blog editor with Published/Drafts sidebar
-│   ├── dashboard_challenge.html <-- Challenge list management container (Academic/Popular toggle)
+│   ├── dashboard_challenge_academic.html <-- Academic-only challenge list management container
+│   ├── dashboard_challenge_popular.html <-- Popular-only challenge list management container
 │   ├── dashboard_essay_historiography.html <-- Split-pane editor with Essay/Historiography toggle
 │   ├── dashboard_news_sources.html <-- News source management with keyword sidebar & crawler trigger
 │   ├── dashboard_records_all.html <-- Tabular records management with bulk CSV upload
@@ -81,7 +82,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── maps.css               <-- Map display styles
 │   └── timeline.css           <-- Timeline display styles
 ├── css/4.0_ranked_lists/dashboard/
-│   ├── dashboard_challenge.css <-- Toggle-driven dual-pane layout & weighting sidebar
+│   ├── dashboard_challenge.css <-- Dual-pane layout & weighting sidebar (shared by Academic and Popular pages)
 │   └── dashboard_wikipedia.css <-- Sidebar controls & list aesthetics
 ├── css/4.0_ranked_lists/frontend/
 │   └── *.css                  <-- Public-facing ranked list styles
@@ -224,7 +225,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── challenge_list_display.js <-- Data fetching & row hydration
 │   ├── challenge_ranking_calculator.js <-- Real-time score/rank logic
 │   ├── challenge_weighting_handler.js <-- Weight/rank sidebar for Academic/Popular
-│   ├── dashboard_challenge.js <-- Module orchestration & initialization
+│   ├── dashboard_challenge_academic.js <-- Academic module orchestration & initialization
+│   ├── dashboard_challenge_popular.js <-- Popular module orchestration & initialization
 │   ├── dashboard_challenge_response.js <-- Sidebar: Response insert logic (patch)
 │   ├── dashboard_wikipedia.js <-- Module orchestration & initialization
 │   ├── insert_challenge_response.js <-- Response creation & challenge linking

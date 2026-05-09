@@ -6,7 +6,7 @@
    Purpose: Main dashboard grid orchestrator — session-guarded entry point for all
             admin modules. Contains the Providence 2-column work canvas (optional
             sidebar + main work area) with a permanent 1px divider track between
-            them, a 10-card module navigation landing area, universal header, and
+            them, a 11-card module navigation landing area, universal header, and
             error/status footer.
    Trigger: Redirected here from login.html after successful authentication.
    Output:  Dashboard orchestrator initializes session check, renders cards,
@@ -123,7 +123,7 @@
 
         <!-- =====================================================================
        DASHBOARD CARDS LANDING AREA
-       10 cards in a 3x3 + 1 centered bottom row grid.
+       11 cards in a 3x3 + 1 centered bottom row grid.
        Visible on initial load / when no module is active.
        Replaced by Providence work canvas when a module is loaded.
     ===================================================================== -->
@@ -244,7 +244,8 @@
         <script src="../../js/4.0_ranked_lists/dashboard/challenge_weighting_handler.js"></script>
         <script src="../../js/4.0_ranked_lists/dashboard/challenge_ranking_calculator.js"></script>
         <script src="../../js/4.0_ranked_lists/dashboard/insert_challenge_response.js"></script>
-        <script src="../../js/4.0_ranked_lists/dashboard/dashboard_challenge.js"></script>
+        <script src="../../js/4.0_ranked_lists/dashboard/dashboard_challenge_academic.js"></script>
+        <script src="../../js/4.0_ranked_lists/dashboard/dashboard_challenge_popular.js"></script>
         <script src="../../js/4.0_ranked_lists/dashboard/academic_challenge_search_terms.js"></script>
         <script src="../../js/4.0_ranked_lists/dashboard/popular_challenge_search_terms.js"></script>
         <script src="../../js/4.0_ranked_lists/dashboard/academic_challenge_ranking_weights.js"></script>

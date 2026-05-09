@@ -1,49 +1,27 @@
 <!-- =============================================================================
-   THE JESUS WEBSITE — CHALLENGE DASHBOARD EDITOR
-   File:    admin/frontend/dashboard_challenge.html
+   THE JESUS WEBSITE — POPULAR CHALLENGE DASHBOARD EDITOR
+   File:    admin/frontend/dashboard_challenge_popular.html
    Version: 1.0.0
    Module:  4.0 — Ranked Lists
-   Purpose: Dual-list challenge management container for Academic and Popular
-            debate lists. Features a toggle-driven function bar to switch
-            between lists, a weighting sidebar for fine-tuning ranking logic,
-            read-only overview lists for current search terms and ranking
-            weights, and a main area for viewing and publishing the ranked
-            challenges. Includes insert response functionality.
-   Trigger: Loaded via fetch by dashboard_challenge.js and injected into the
-            Providence main column when the user navigates to the Challenge
-            module.
+   Purpose: Single-list Popular challenge management container. Features a
+            function bar with action buttons, a weighting sidebar for fine-tuning
+            ranking logic, read-only overview lists for current search terms and
+            ranking weights, and a main area for viewing and publishing the ranked
+            popular challenges. Includes insert response functionality.
+   Trigger: Loaded via fetch by dashboard_challenge_popular.js and injected into
+            the Providence main column when the user navigates to the Popular
+            Challenges module.
 ============================================================================= -->
 
 <!-- =============================================================================
-   FUNCTION BAR — Academic/Popular toggle + challenge actions
-   Sticky bar with list toggle (Academic | Popular), Refresh, Publish,
-   Agent Search, and Insert Response buttons.
+   FUNCTION BAR — Challenge actions (no toggle)
+   Sticky bar with Refresh, Publish, Agent Search, and Insert Response buttons.
 ============================================================================= -->
 <section
     id="challenge-function-bar"
     class="function-bar"
     aria-label="Challenge actions"
 >
-    <!-- Toggle: Academic / Popular -->
-    <div class="function-bar__toggle-group">
-        <button
-            id="btn-toggle-academic"
-            class="btn--toggle btn--toggle-active"
-            type="button"
-            aria-pressed="true"
-        >
-            Academic
-        </button>
-        <button
-            id="btn-toggle-popular"
-            class="btn--toggle"
-            type="button"
-            aria-pressed="false"
-        >
-            Popular
-        </button>
-    </div>
-
     <!-- Actions Group -->
     <div class="function-bar__actions-group">
         <button
@@ -89,7 +67,7 @@
 <article
     id="challenge-editor-layout"
     class="challenge-editor-layout"
-    aria-label="Challenge editor"
+    aria-label="Popular challenge editor"
 >
     <!-- Sidebar Column: Weighting Ranks -->
     <aside
@@ -102,7 +80,7 @@
                 class="challenge-sidebar__heading"
                 id="challenge-sidebar-heading"
             >
-                ACADEMIC WEIGHTING AND SEARCH TERMS
+                POPULAR WEIGHTING AND SEARCH TERMS
             </h2>
         </header>
 
@@ -154,9 +132,8 @@
         </section>
 
         <!-- ==================================================================
-           Saved Ranking Weights Overview — read-only list, refreshed on toggle.
-           Populated by academic_challenge_ranking_weights.js /
-           popular_challenge_ranking_weights.js
+           Saved Ranking Weights Overview — read-only list.
+           Populated by popular_challenge_ranking_weights.js
         ================================================================== -->
         <section
             id="challenge-ranking-weights-overview"
@@ -178,9 +155,8 @@
         </section>
 
         <!-- ==================================================================
-           Saved Search Terms Overview — read-only list, refreshed on toggle.
-           Populated by academic_challenge_search_terms.js /
-           popular_challenge_search_terms.js
+           Saved Search Terms Overview — read-only list.
+           Populated by popular_challenge_search_terms.js
         ================================================================== -->
         <section
             id="challenge-search-terms-overview"
@@ -225,7 +201,7 @@
                     class="challenge-search-terms__hint"
                     >Currently editing:
                     <strong id="challenge-search-terms-field-label"
-                        >Academic</strong
+                        >Popular</strong
                     >
                     search terms</span
                 >
@@ -243,11 +219,11 @@
     <!-- Divider between sidebar and main -->
     <div class="challenge-divider" aria-hidden="true"></div>
 
-    <!-- Main Column: Ranked Challenge Lists (dual-region for Academic and Popular) -->
+    <!-- Main Column: Ranked Popular Challenge List -->
     <section
         id="challenge-list-area"
         class="challenge-list-area"
-        aria-label="Challenge list"
+        aria-label="Popular challenge list"
     >
         <!-- ==================================================================
            STATUS LEGEND
@@ -274,77 +250,13 @@
         </div>
 
         <!-- ==================================================================
-           ACADEMIC CHALLENGE LIST REGION
-           Default visible list; toggled via aria-hidden when Popular is active.
-        ================================================================== -->
-        <section
-            id="academic-challenge-list-region"
-            class="challenge-list-region"
-            aria-label="Academic challenges"
-            aria-hidden="false"
-        >
-            <header class="challenge-list-region__header">
-                <h3 class="challenge-list-region__heading">
-                    Academic Challenges
-                </h3>
-                <a
-                    class="challenge-list-region__frontend-link"
-                    href="/frontend/pages/debate/academic_challenge.html"
-                    target="_blank"
-                    rel="noopener"
-                    title="View academic challenges on the public site"
-                    >View Public Page →</a
-                >
-            </header>
-
-            <!-- Loading State -->
-            <div
-                id="academic-challenge-list-loading"
-                class="state-loading"
-                role="status"
-            >
-                <span class="state-loading__label">Loading challenges...</span>
-            </div>
-
-            <!-- Challenge List Container — populated by challenge_list_display.js -->
-            <ol
-                id="academic-challenge-ranked-list"
-                class="challenge-ranked-list"
-                aria-label="Ranked academic challenges"
-            >
-                <!-- Dynamically populated -->
-            </ol>
-
-            <!-- Empty State -->
-            <div
-                id="academic-challenge-list-empty"
-                class="state-empty"
-                aria-hidden="true"
-            >
-                <p class="state-empty__label">No academic challenges found.</p>
-            </div>
-
-            <!-- Error State -->
-            <div
-                id="academic-challenge-list-error"
-                class="state-error"
-                aria-hidden="true"
-            >
-                <p class="state-error__label">
-                    Unable to load academic challenge list.
-                </p>
-            </div>
-        </section>
-
-        <!-- ==================================================================
            POPULAR CHALLENGE LIST REGION
-           Hidden by default; shown when Popular toggle is active.
+           Single visible list — no toggle, no dual region.
         ================================================================== -->
         <section
             id="popular-challenge-list-region"
             class="challenge-list-region"
             aria-label="Popular challenges"
-            aria-hidden="true"
         >
             <header class="challenge-list-region__header">
                 <h3 class="challenge-list-region__heading">
