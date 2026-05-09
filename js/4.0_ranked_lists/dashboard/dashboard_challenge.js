@@ -116,17 +116,28 @@ async function renderChallenge() {
     const sidebar = doc.getElementById("challenge-sidebar");
     const listArea = doc.getElementById("challenge-list-area");
 
-    if (!functionBar || !sidebar || !listArea) {
-      console.warn("[dashboard_challenge.js] Template elements missing:", {
-        functionBar: !!functionBar,
-        sidebar: !!sidebar,
-        listArea: !!listArea,
-      });
+    // --- Detached Node Update (Pre-Injection) ---
+    // Update labels and headings on the parsed elements BEFORE they are
+    // stringified and injected into the document. This is more reliable than
+    // document.getElementById immediately after injection.
+    if (sidebar) {
+      const detachedHeading = sidebar.querySelector("#challenge-sidebar-heading");
+      if (detachedHeading) {
+        detachedHeading.textContent = "ACADEMIC WEIGHTING AND SEARCH TERMS";
+      }
     }
 
+    if (listArea) {
+      const detachedLabel = sidebar ? sidebar.querySelector("#challenge-search-terms-field-label") : null;
+      if (detachedLabel) detachedLabel.textContent = "Academic";
+    }
+
+    // --- Inject into Providence Canvas ---
     if (typeof window._setColumn === "function") {
       if (sidebar) {
         window._setColumn("sidebar", sidebar.outerHTML);
+      } else {
+        console.warn("[dashboard_challenge.js] #challenge-sidebar not found in template.");
       }
 
       let mainHtml = "";
@@ -135,18 +146,11 @@ async function renderChallenge() {
 
       if (mainHtml) {
         window._setColumn("main", mainHtml);
+      } else {
+        console.warn("[dashboard_challenge.js] Main content elements missing in template.");
       }
-    }
-
-    // --- Synchronize Initial Heading State ---
-    // Ensure the heading shows up correctly on load (defaulting to Academic)
-    const headingEl = document.getElementById("challenge-sidebar-heading");
-    if (headingEl) {
-      headingEl.textContent = "ACADEMIC WEIGHTING AND SEARCH TERMS";
     } else {
-      console.warn(
-        "[dashboard_challenge.js] Sidebar heading element not found after injection.",
-      );
+      console.error("[dashboard_challenge.js] window._setColumn utility missing. Injection failed.");
     }
   } catch (err) {
     console.error("[dashboard_challenge] Template load failed:", err);
