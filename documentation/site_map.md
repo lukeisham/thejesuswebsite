@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.54
+version: 1.0.56
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -11,17 +11,29 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ├── .agent/                    <-- Agent instructions & workflows
 ├── .env                       <-- Global Admin, ESV and Deepseek credentials
 ├── .gitignore                 <-- Ensures secrets (like .env) aren't committed to GitHub
+├── Implementation plans are stored at the **project root** as standalone `.md` files:
 ├── LICENCE                    <-- Open Use Licencing with attribution requirement
 ├── README.md                  <-- Project overview
 ├── admin/backend/
-│   ├── admin_api.py           <-- Central API: CRUD endpoints, agent run/logs, health, MCP proxy
-│   └── auth_utils.py          <-- JWT generation, session verification, brute-force defense
+│   ├── .env                   <-- Admin credentials (secret)
+│   ├── auth_utils.py          <-- JWT generation, session verification, brute-force defense
+│   └── routes/
+│       ├── agents.py          <-- Agent run trigger + log retrieval (~200 lines)
+│       ├── auth.py            <-- Login, logout, session verification (~70 lines)
+│       ├── bulk.py            <-- CSV bulk upload phases 1 & 2 (~385 lines)
+│       ├── diagram.py         <-- Diagram tree parent_id editor (~120 lines)
+│       ├── essays.py          <-- Essay listing, historiography, snippet/metadata triggers (~140 lines)
+│       ├── lists.py           <-- Resource list management (~90 lines)
+│       ├── news.py            <-- Blog posts, news items, crawl trigger (~135 lines)
+│       ├── records.py         <-- Record CRUD + picture upload/delete (~330 lines)
+│       ├── responses.py       <-- Challenge response CRUD (~165 lines)
+│       ├── shared.py          <-- Shared DB helpers, models, auth dependency, logger
+│       └── system.py          <-- Config, health, MCP proxy, tests, restart (~410 lines)
 ├── admin/frontend/
 │   ├── dashboard.html         <-- Main module grid orchestrator (3×3+1 card layout)
 │   ├── dashboard_arbor.html   <-- Interactive diagram container with Refresh/Publish bar
 │   ├── dashboard_blog_posts.html <-- Split-pane blog editor with Published/Drafts sidebar
 │   ├── dashboard_challenge.html <-- Challenge list management container (Academic/Popular toggle)
-│   ├── dashboard_challenge_response.html <-- Split-pane response editor with Academic/Popular sidebar
 │   ├── dashboard_essay_historiography.html <-- Split-pane editor with Essay/Historiography toggle
 │   ├── dashboard_news_sources.html <-- News source management with keyword sidebar & crawler trigger
 │   ├── dashboard_records_all.html <-- Tabular records management with bulk CSV upload
@@ -49,39 +61,42 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   └── snippet_generator.py   <-- Shared utility: DeepSeek-powered archival abstract generation
 ├── build.py                   <-- Root script to trigger backend pipelines
 ├── css/1.0_foundation/
+│   ├── typography.css         <-- 🔑 Canonical Design Tokens: colors, fonts, spacing, shadows, radii
 │   ├── dashboard/
 │   │   ├── admin_components.css <-- Providence grid, dividers, column width hooks (shared dashboard shell)
 │   │   └── admin_shell.css    <-- Dashboard chrome, header, canvas background
-│   └── frontpage/
-│       └── *.css              <-- Public-facing foundation styles
+│   └── frontend/
+│       ├── buttons.css        <-- Public-facing button system
+│       └── forms.css          <-- Public-facing form styles
 ├── css/2.0_records/dashboard/
 │   ├── dashboard_records_all.css <-- High-density table, sorting aesthetics, bulk review panel
 │   ├── dashboard_records_single.css <-- Multi-section form layout, sticky section navigator
-│   └── metadata_widget.css   <-- Shared slug/snippet/metadata widget styles
-├── css/2.0_records/frontpage/
+│   └── metadata_widget.css    <-- 🔑 Shared Tool: unified slug/snippet/metadata widget styles (BEM)
+├── css/2.0_records/frontend/
 │   └── *.css                  <-- Public-facing record display styles
 ├── css/3.0_visualizations/dashboard/
 │   └── dashboard_arbor.css    <-- Canvas & Node aesthetics
-├── css/3.0_visualizations/frontpage/
-│   └── *.css                  <-- Public-facing visualization styles
+├── css/3.0_visualizations/frontend/
+│   ├── ardor.css              <-- Interactive SVG evidence graph
+│   ├── maps.css               <-- Map display styles
+│   └── timeline.css           <-- Timeline display styles
 ├── css/4.0_ranked_lists/dashboard/
 │   ├── dashboard_challenge.css <-- Toggle-driven dual-pane layout & weighting sidebar
 │   └── dashboard_wikipedia.css <-- Sidebar controls & list aesthetics
-├── css/4.0_ranked_lists/frontpage/
+├── css/4.0_ranked_lists/frontend/
 │   └── *.css                  <-- Public-facing ranked list styles
 ├── css/5.0_essays_responses/dashboard/
-│   ├── dashboard_challenge_response.css <-- Response editor layout & typography
 │   ├── dashboard_essay_historiography.css <-- Dual-state layout & toolbar
-│   ├── essay_WYSIWYG_editor.css <-- Markdown input & live preview styling
-│   └── response_markdown.css  <-- Markdown editor & live preview styling
-├── css/5.0_essays_responses/frontpage/
-│   └── *.css                  <-- Public-facing essay/response styles
+│   └── essay_WYSIWYG_editor.css <-- Markdown input & live preview styling
+├── css/5.0_essays_responses/frontend/
+│   ├── essays.css             <-- Public-facing essay typography
+│   └── responses.css          <-- Public-facing response typography
 ├── css/6.0_news_blog/dashboard/
 │   ├── blog_WYSIWYG_editor.css <-- Markdown editor canvas, toolbar, and live preview pane
 │   ├── blog_posts_dashboard.css <-- Navigator sidebar & editor layout
 │   └── news_sources_dashboard.css <-- Pipeline control aesthetics & keyword sidebar
-├── css/6.0_news_blog/frontpage/
-│   └── *.css                  <-- Public-facing news/blog styles
+├── css/6.0_news_blog/frontend/
+│   └── (reserved for future frontend styles)
 ├── css/7.0_system/
 │   ├── admin.css              <-- Login page 'providence' styling
 │   └── dashboard/
@@ -94,38 +109,27 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── admin.service          <-- Systemd config for Admin API
 │   ├── deploy.sh              <-- Pull from GitHub and restart services
 │   ├── mcp.service            <-- Systemd config for MCP Server
-│   └── ssl_renew.sh           <-- Automates SSL certificate renewal
+│   ├── ssl_renew.sh           <-- Automates SSL certificate renewal
+│   └── thejesuswebsite.service <-- Systemd config for main FastAPI server (serve_all.py)
 ├── documentation/
 │   ├── data_schema.md         <-- Core SQLite database blueprint
+│   ├── detailed_module_sitemap.md <-- Architectural blueprints (This File)
+│   ├── git_vps.md             <-- VPS deployment & Git workflow reference
 │   ├── guides/
+│   │   ├── ... (see §8.0 for full listing)
 │   │   ├── guide_appearance.md <-- ASCII diagram of page appearance
 │   │   ├── guide_dashboard_appearance.md <-- ASCII diagram of dashboard appearance
 │   │   ├── guide_donations.md <-- Reference for external integrations
 │   │   ├── guide_function.md  <-- Detailed explanation of system logic
+│   │   ├── guide_maps.md      <-- Map module layout & interaction
 │   │   ├── guide_security.md  <-- Security protocols and auth overview
 │   │   ├── guide_style.md     <-- UI / UX visual design guide
+│   │   ├── guide_timeline.md  <-- Timeline module layout & interaction
 │   │   └── guide_welcoming_robots.md <-- SEO and AI accessibility standards
-│   ├── implementation_plan.md <-- Implementation Plan
-│   ├── master_dashboard_refactor_roadmap.md <-- Roadmap for full dashboard refactor
-│   ├── module_sitemap.md      <-- Architectural blueprints (This File)
-│   ├── plan_backend_infrastructure.md <-- Plan: Backend Infrastructure & Shared Scripts
-│   ├── plan_dashboard_arbor.md <-- Plan: Arbor Diagram Module
-│   ├── plan_dashboard_blog_posts.md <-- Plan: Blog Posts Module
-│   ├── guide_dashboard_appearance.md §4.2 <-- Challenge Ranked List Module (plan replaced by guide)
-│   ├── plan_dashboard_challenge_response.md <-- Plan: Challenge Response Module
-│   ├── plan_dashboard_essay_historiography.md <-- Plan: Essay & Historiography Module
-│   ├── plan_dashboard_login_and_shell.md <-- Plan: Admin Login & Dashboard Shell
-│   ├── plan_dashboard_news_sources.md <-- Plan: News Sources Module
-│   ├── plan_dashboard_records_all.md <-- Plan: All Records Module
-│   ├── plan_dashboard_records_single.md <-- Plan: Single Record Module
-│   ├── plan_dashboard_system.md <-- Plan: System Health Module
-│   ├── plan_dashboard_wikipedia.md <-- Plan: Wikipedia Ranked List Module
-│   ├── plan_issues.md         <-- Cross-plan issue tracker
+│   ├── simple_module_sitemap.md <-- Lightweight module overview
 │   ├── site_map.md            <-- Consolidated master site map
-│   ├── style_guide.md         <-- UI / UX visual design guide
+│   ├── style_mockup.html      <-- Visual style mockup prototype
 │   └── vibe_coding_rules.md   <-- Foundational coding philosophies
-├── documentation/guides/
-│   └── guide_security.md      <-- Security protocols and auth mechanism overview
 ├── frontend/pages/
 │   ├── about.html             <-- About page
 │   ├── blog.html              <-- Full Blog feed page
@@ -168,9 +172,14 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   └── World Events.html
 ├── index.html                 <-- Website Landing Page (Root Entry)
 ├── js/1.0_foundation/
-│   ├── (shared navigation/UI logic)
-│   └── frontpage/
-│       └── *.js               <-- Public-facing foundation scripts
+│   ├── (reserved for future dashboard shell scripts)
+│   ├── dashboard/
+│   └── frontend/
+│       ├── footer.js          <-- Footer injection & print logic
+│       ├── header.js          <-- SEO metadata & og:tags injection
+│       ├── initializer.js     <-- Central bootstrapper on DOMContentLoaded
+│       ├── search_header.js   <-- Visible search bar injection
+│       └── sidebar.js         <-- Left nav tree + admin entry
 ├── js/2.0_records/dashboard/
 │   ├── bulk_csv_upload_handler.js <-- Phase 1: CSV parsing & client-side validation
 │   ├── bulk_upload_review_handler.js <-- Phase 2: Ephemeral review, Save as Draft / Discard
@@ -183,8 +192,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── endless_scroll.js      <-- Performance-optimized overflow handling
 │   ├── external_refs_handler.js <-- Text inputs for iaa, pledius, manuscript
 │   ├── map_fields_handler.js  <-- Selector for map_label + integer input for geo_id
-│   ├── metadata_handler.js    <-- Snippet/Slug/Meta footer with auto-gen buttons
-│   ├── metadata_widget.js     <-- Shared slug/snippet/metadata widget with Generate All
+│   ├── metadata_handler.js    <-- (Legacy) — Replaced by metadata_widget.js
+│   ├── metadata_widget.js     <-- 🔑 Shared Tool: unified slug/snippet/metadata widget with Generate All
 │   ├── mla_source_handler.js  <-- Structured MLA bibliography management
 │   ├── parent_selector.js     <-- ULID input for parent_id with validation
 │   ├── picture_handler.js     <-- Image upload, preview & thumbnail
@@ -196,7 +205,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── url_array_editor.js    <-- Label/URL pair array editor
 │   ├── verse_builder.js       <-- Structured book/chapter/verse chip UI
 │   └── 🔑 Shared Tools (owned here, consumed by other dashboard modules) ──
-├── js/2.0_records/frontpage/
+├── js/2.0_records/frontend/
 │   └── *.js                   <-- Public-facing record display logic
 ├── js/3.0_visualizations/dashboard/
 │   ├── dashboard_arbor.js     <-- Module orchestration & initialization
@@ -205,35 +214,38 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── handle_node_drag.js    <-- Drag-and-drop interaction logic
 │   ├── render_arbor_node.js   <-- Individual node creation & styling
 │   └── update_node_parent.js  <-- Parent-child re-assignment logic (auto-saves as draft)
-├── js/3.0_visualizations/frontpage/
-│   └── *.js                   <-- Public-facing visualization logic (render_arbor.js, etc.)
+├── js/3.0_visualizations/frontend/
+│   ├── ardor_display.js       <-- SVG evidence diagram (static mock-up)
+│   ├── maps_display.js        <-- Interactive map rendering
+│   └── timeline_display.js    <-- Timeline rendering
 ├── js/4.0_ranked_lists/dashboard/
 │   ├── challenge_list_display.js <-- Data fetching & row hydration
 │   ├── challenge_ranking_calculator.js <-- Real-time score/rank logic
+│   ├── challenge_weighting_handler.js <-- Weight/rank sidebar for Academic/Popular
 │   ├── dashboard_challenge.js <-- Module orchestration & initialization
 │   ├── dashboard_wikipedia.js <-- Module orchestration & initialization
 │   ├── insert_challenge_response.js <-- Response creation & challenge linking
 │   ├── wikipedia_list_display.js <-- Data fetching & row hydration
 │   ├── wikipedia_ranking_calculator.js <-- Real-time ranking & multi-weight logic
+│   ├── wikipedia_search_terms.js <-- Wikipedia Search Terms editor (overview + textarea)
 │   ├── wikipedia_sidebar_handler.js <-- Sidebar: delegate to weights/search terms
-│   ├── wikipedia_weights.js   <-- Wikipedia Weight editor (multi-weight)
-│   └── wikipedia_search_terms.js <-- Wikipedia Search Terms editor (overview + textarea)
-├── js/4.0_ranked_lists/frontpage/
+│   └── wikipedia_weights.js   <-- Wikipedia Weight editor (multi-weight)
+├── js/4.0_ranked_lists/frontend/
 │   └── *.js                   <-- Public-facing ranked list logic
 ├── js/5.0_essays_responses/dashboard/
-│   ├── challenge_link_handler.js <-- Parent challenge association logic
-│   ├── dashboard_challenge_response.js <-- Module orchestration & initialization
 │   ├── dashboard_essay_historiography.js <-- Dual-state toggle orchestrator
-│   ├── display_challenge_response_data.js <-- Response fetching & field population
 │   ├── document_status_handler.js <-- Save/Publish/Delete state management
 │   ├── essay_historiography_data_display.js <-- Content fetching & population
 │   ├── markdown_editor.js     <-- Core WYSIWYG markdown editing & live HTML preview
-│   ├── response_status_handler.js <-- Save/Publish/Delete status logic
 │   ├── search_essays.js       <-- Sidebar search: real-time title filtering
-│   ├── search_responses.js    <-- Sidebar search: real-time title filtering
-│   └── 🔑 Shared Tool (owned here, consumed by Blog Posts & Challenge Response) ──
-├── js/5.0_essays_responses/frontpage/
-│   └── *.js                   <-- Public-facing essay/response logic
+│   └── 🔑 Shared Tool (owned here, consumed by Blog Posts & elsewhere) ──
+├── js/5.0_essays_responses/frontend/
+│   ├── list_view_responses.js <-- Response list rendering
+│   ├── mla_snippet_display.js <-- MLA citation display
+│   ├── response_display.js    <-- Challenge response display
+│   ├── sources_biblio_display.js <-- Source bibliography rendering
+│   ├── view_context_essays.js <-- Context essay single-view logic
+│   └── view_historiography.js <-- Historiography essay view
 ├── js/6.0_news_blog/dashboard/
 │   ├── blog_post_status_handler.js <-- Save/Publish/Delete state logic
 │   ├── dashboard_blog_posts.js <-- Module orchestration & initialization
@@ -242,8 +254,11 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── launch_news_crawler.js <-- News crawler pipeline trigger
 │   ├── news_sources_handler.js <-- Data fetching & row hydration
 │   └── news_sources_sidebar_handler.js <-- Sidebar: keywords, source URLs, crawler trigger
-├── js/6.0_news_blog/frontpage/
-│   └── *.js                   <-- Public-facing news/blog logic
+├── js/6.0_news_blog/frontend/
+│   ├── blog_snippet_display.js <-- Blog snippet on landing page
+│   ├── list_blogpost.js       <-- Full blog feed list
+│   ├── list_newsitem.js       <-- News feed list
+│   └── news_snippet_display.js <-- News snippet on landing page
 ├── js/7.0_system/
 │   ├── admin.js               <-- Login submission & error handling
 │   └── dashboard/
@@ -251,6 +266,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │       ├── agent_monitor.js   <-- Agent run log polling, activity table & trace reasoning
 │       ├── dashboard_app.js   <-- Module router: loadModule(), _setLayoutColumns()
 │       ├── dashboard_orchestrator.js <-- Main app initialization & session check
+│       ├── dashboard_sidebar_resize.js <-- Sidebar drag resize utility: initSidebarResize()
+│       ├── dashboard_sidebar_resize_init.js <-- Init wrapper: patches _setLayoutColumns for resize
 │       ├── dashboard_system.js <-- Module orchestration & initialization
 │       ├── dashboard_universal_header.js <-- Header injection & logout logic
 │       ├── display_dashboard_cards.js <-- Module navigation card rendering
@@ -265,6 +282,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ├── mcp_server.py              <-- Exposes read-only API to external agents
 ├── nginx.conf                 <-- Global Web server and SSL/Proxy config
 ├── requirements.txt           <-- Python dependencies (FastAPI, JWT, etc)
+├── serve_all.py               <-- Main FastAPI app: combines admin API, public routes, static serving
 ├── tests/
 │   ├── agent_readability_test.py <-- Simulates AI "headless" crawl
 │   ├── browser_test_skill.md  <-- Instructions for Agents to run browser tests
@@ -274,6 +292,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 └── tools/
     ├── db_seeder.py           <-- Logic to populate the SQLite database
     ├── generate_sitemap.py    <-- Dynamic XML sitemap builder
+    ├── migrate_schema.py      <-- Database schema migration utility
     ├── minify_admin.py        <-- Automates admin code obfuscation
     ├── seed_data.sql          <-- Initial data payload for first build
     └── test_records.sql       <-- Small sample dataset for test runs

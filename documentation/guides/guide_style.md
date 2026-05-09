@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.5.0
+version: 1.7.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -107,7 +107,7 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | :--- | :--- | :--- |
 | **8px Grid** | Multiples of 8px | All layout spacing MUST use `--space-N`. |
 | **Corner Radius**| Globally 0px | Enforced via `--radius-none`. |
-| **Border Width**| 1px (thin), 2px (base) | `--border-width-thin` / `--border-width-base`. |
+| **Border Width**| 1px (thin), 2px (base/thick) | `--border-width-thin` / `--border-width-base` / `--border-width-thick`. |
 
 ## 14. System Feedback & States
 | State | Visual Treatment | CSS Variable |
@@ -194,18 +194,18 @@ All dashboard modules share these visual conventions (sourced from `typography.c
 
 | Element | Font | Size | Border Radius | Border |
 | :--- | :--- | :--- | :--- | :--- |
-| **Primary Action Button** | Inter (heading) | `--text-xs` | `--radius-sm` (2px) | `--border-width-thin` |
+| **Primary Action Button** | Inter (heading) | `--text-xs` | `--radius-sm` (2px) or `--radius-md` (3px) | `--border-width-thin` |
 | **Secondary Button** | Inter | `--text-xs` | `--radius-sm` | `--border-width-thin` |
 | **Toggle Button** | Inter | `--text-xs` | `--radius-sm` | `--border-width-thin` |
 | **Text Input** | Roboto Mono | `--text-sm` | `--radius-sm` | `--border-width-thin` |
 | **Textarea** | Body or Mono | `--text-sm` | `--radius-sm` | `--border-width-thin` |
 | **Select Dropdown** | Roboto Mono | `--text-sm` | `--radius-sm` | `--border-width-thin` |
-| **Chip / Tag** | Roboto Mono | `--text-xs` | `--radius-full` (pill) or `--radius-sm` | `--border-width-thin` |
+| **Chip / Tag** | Roboto Mono | `--text-xs` | `--radius-full` (pill) or `--radius-md` or `--radius-sm` | `--border-width-thin` |
 | **Status Badge** | Inter | `--text-xs` | `--radius-sm` | none |
 
 **Rounding policy**: Structural containers (cards, panels, modals) use `--radius-none` (0px).
-Interactive controls (buttons, inputs, selects) use `--radius-sm` (2px).
-Tags may use `--radius-full` for pill shapes. Nothing exceeds `--radius-base` (4px).
+Interactive controls (buttons, inputs, selects) use `--radius-sm` (2px) or `--radius-md` (3px).
+Tags may use `--radius-full` (9999px) for pill shapes. Nothing exceeds `--radius-base` (4px).
 
 **Button color states**:
 
@@ -366,7 +366,7 @@ Providence design system with interactive tree-editing patterns:
 To maintain the Providence Technical Ledger aesthetic, all new dashboard
 elements must pass:
 
-1.  **Rounding Discipline:** Structural containers and cards use `--radius-none` (0px). Interactive controls (buttons, inputs) use `--radius-sm` (2px). Tags may use `--radius-full`. Nothing exceeds `--radius-base` (4px).
+1.  **Rounding Discipline:** Structural containers and cards use `--radius-none` (0px). Interactive controls (buttons, inputs) use `--radius-sm` (2px) or `--radius-md` (3px). Tags may use `--radius-full` (9999px). Nothing exceeds `--radius-base` (4px).
 2.  **Mono Logic:** Is `var(--font-mono)` used for all metadata, IDs, dates, and UI labels?
 3.  **Border Precision:** Are borders `var(--border-width-thin)` (1px)? Are structural dividers 1px `--color-border` tracks — never borders on column elements?
 4.  **Oxblood Accent:** Do active/hover states transition to `var(--color-accent-primary)` or `var(--color-dash-accent)`?
@@ -413,8 +413,3 @@ Posts, Challenge, News Sources, and Wikipedia.
 - **Transition subtlety:** Buttons use `--transition-fast` (150ms).
 - **CSS variable purity:** No hardcoded colors, font sizes, or spacing values.
 
-> **⚠️ Codebase note:** The current `metadata_widget.css` has sections (tags,
-> Generate All button, divider, status) that use hardcoded dark-mode colors
-> (`#1c1c1e`, `#0a84ff`, `rgba(255,255,255,0.1)`) and non-Providence spacing
-> (`4px`, `8px`, `10px`, `16px`). These sections need refactoring to match the
-> design principles documented above. See `plan_issues.md` for tracking.

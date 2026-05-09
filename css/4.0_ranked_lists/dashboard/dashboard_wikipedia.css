@@ -240,6 +240,84 @@
     border-color: var(--color-dash-accent);
 }
 
+.wikipedia-weight-item__remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 20px;
+    height: 20px;
+
+    font-size: 16px;
+    color: var(--color-text-muted);
+
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+
+    transition: all var(--transition-fast);
+}
+
+.wikipedia-weight-item__remove:hover {
+    color: var(--color-error-text);
+    background-color: var(--color-error-bg);
+}
+
+/* --- New Weight Form --- */
+
+.wikipedia-new-weight {
+    padding: var(--space-1) var(--space-2);
+}
+
+.wikipedia-new-weight__form {
+    display: flex;
+    align-items: center;
+    gap: var(--space-05);
+}
+
+.wikipedia-new-weight__name {
+    flex: 1;
+    min-width: 0;
+    padding: 2px var(--space-1);
+
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+
+    background-color: var(--color-white);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    outline: none;
+
+    transition: border-color var(--transition-fast);
+}
+
+.wikipedia-new-weight__name:focus {
+    border-color: var(--color-dash-accent);
+}
+
+.wikipedia-new-weight__value {
+    width: 42px;
+    padding: 2px var(--space-1);
+
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    text-align: center;
+    color: var(--color-text-primary);
+
+    background-color: var(--color-white);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    outline: none;
+
+    transition: border-color var(--transition-fast);
+}
+
+.wikipedia-new-weight__value:focus {
+    border-color: var(--color-dash-accent);
+}
+
 /* =============================================================================
    6. SIDEBAR SECTION: Search Terms
    Matching Challenge styling — textarea with hint text. Auto-saves on change.

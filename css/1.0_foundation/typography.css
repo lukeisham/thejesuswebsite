@@ -2,7 +2,7 @@
 
    THE JESUS WEBSITE — TYPOGRAPHY & COLOR TOKENS
    File:    css/1.0_foundation/typography.css
-   Version: 1.1.0
+   Version: 1.2.0
    Purpose: Universal CSS custom properties (design tokens) for every font
             scale, color, and spacing value used across the site - except admin.html
             All other stylesheets MUST reference these variables — never
@@ -202,13 +202,18 @@
 
     --border-width-thin: 1px;
     --border-width-base: 2px;
+    --border-width-thick: 2px;
 
     /* Radii intentionally minimal — this is an archival site, not an app */
     --radius-none: 0px;
     --radius-sm: 2px;
     /* Only for very subtle rounding on tags       */
+    --radius-md: 3px;
+    /* Medium rounding for buttons/inputs          */
     --radius-base: 4px;
     /* Soft cards if needed                        */
+    --radius-full: 9999px;
+    /* Pill shapes                                 */
 
     /* ===========================================================================
        9. SHADOWS
@@ -219,6 +224,7 @@
     --shadow-sm: 0 1px 3px rgba(36, 36, 35, 0.08);
     --shadow-base: 0 2px 8px rgba(36, 36, 35, 0.1);
     --shadow-md: 0 4px 16px rgba(36, 36, 35, 0.12);
+    --shadow-lg: 0 8px 24px rgba(36, 36, 35, 0.12);
 
     /* ===========================================================================
        10. ANIMATION & TRANSITION TOKENS

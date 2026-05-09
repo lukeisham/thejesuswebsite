@@ -1,6 +1,6 @@
 ---
 name: data_schema.md
-version: 1.0.2
+version: 1.0.3
 purpose: data schema for the jesus website (source of truth)
 dependencies: [site_map.md, module_sitemap.md]
 ---
@@ -241,18 +241,18 @@ dependencies: [site_map.md, module_sitemap.md]
 `wikipedia_link` | TEXT | JSON Blob 
 `wikipedia_rank` | TEXT | Flat Indexable (64-bit int) 
 `wikipedia_title` | TEXT | Flat Indexable 
-`wikipedia_weight` | TEXT | Label-Value Pair 
-`wikipedia_search_term` | TEXT | JSON Blob 
+`wikipedia_weight` | TEXT | JSON Object (Multi-Weight Multipliers) 
+`wikipedia_search_term` | TEXT | JSON Array (Search Scope) 
 `popular_challenge_link` | TEXT | JSON Blob 
 `popular_challenge_title` | TEXT | Flat Indexable     
 `popular_challenge_rank` | TEXT | Flat Indexable (64-bit int) 
-`popular_challenge_weight` | TEXT | Label-Value Pair 
-`popular_challenge_search_term` | TEXT | JSON Blob 
+`popular_challenge_weight` | TEXT | JSON Object (Multi-Weight Multipliers) 
+`popular_challenge_search_term` | TEXT | JSON Array (Search Scope) 
 `academic_challenge_link` | TEXT | JSON Blob 
 `academic_challenge_title` | TEXT | Flat Indexable 
 `academic_challenge_rank` | TEXT | Flat Indexable (64-bit int) 
-`academic_challenge_weight` | TEXT | Label-Value Pair 
-`academic_challenge_search_term` | TEXT | JSON Blob 
+`academic_challenge_weight` | TEXT | JSON Object (Multi-Weight Multipliers) 
+`academic_challenge_search_term` | TEXT | JSON Array (Search Scope) 
 `challenge_id` | TEXT | Foreign Key → records(id) (stored on the response record; points to the parent challenge this response addresses)
 `responses` | TEXT | JSON Blob 
 `blogposts` | TEXT | JSON Blob 

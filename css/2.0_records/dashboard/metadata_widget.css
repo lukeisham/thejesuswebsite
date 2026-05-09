@@ -4,7 +4,7 @@
    plan_dashboard_essay_historiography, plan_dashboard_challenge,
    plan_dashboard_news_sources, and plan_dashboard_records_single.
    File:    css/2.0_records/dashboard/metadata_widget.css
-   Version: 1.0.0
+   Version: 1.1.0
    Owner:   plan_dashboard_records_single (2.0 Records Module)
    Purpose: Shared stylesheet for the unified slug/snippet/metadata widget
             rendered across all dashboard editor modules. Scoped to the
@@ -185,121 +185,110 @@
 }
 
 /* =============================================================================
-   8. GENERATE ALL BUTTON — Primary action
-   Distinct, prominent button that fires all three pipelines in parallel.
-   Full-width with Deep Oxblood accent to stand out from individual buttons.
+   8. KEYWORDS (TAGS)
+   Interactive chip collection for search keywords.
 ============================================================================= */
 
-/* --- Keywords (Tags) --- */
 .metadata-widget__tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 8px;
-    min-height: 32px;
-    padding: 4px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 4px;
+    gap: var(--space-1);
+    margin-bottom: var(--space-1);
+    min-height: var(--space-4);
 }
 
 .metadata-widget__tag {
     display: inline-flex;
     align-items: center;
-    background: var(--color-bg-light, #3a3a3c);
-    color: var(--color-text, #ffffff);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    padding: var(--space-1) var(--space-1);
+    border-radius: var(--radius-full);
+    border: var(--border-width-thin) solid var(--color-border);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    letter-spacing: var(--tracking-wide);
 }
 
 .metadata-widget__tag-remove {
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.5);
-    margin-left: 6px;
+    color: var(--color-text-muted);
+    margin-left: var(--space-1);
     cursor: pointer;
-    font-size: 14px;
+    font-size: 1.2em;
     line-height: 1;
     padding: 0;
-    transition: color 0.2s ease;
+    transition: color var(--transition-fast);
 }
 
 .metadata-widget__tag-remove:hover {
-    color: #ff453a;
+    color: var(--color-accent-primary);
 }
 
 .metadata-widget__tag-add-wrapper {
     display: flex;
-    gap: 4px;
-    margin-top: 4px;
+    gap: var(--space-1);
+    margin-top: var(--space-1);
 }
 
 .metadata-widget__tag-input {
-    background: var(--color-bg-dark, #1c1c1e);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    color: #fff;
-    font-size: 12px;
-    padding: 4px 8px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    padding: var(--space-1) var(--space-2);
     width: 80px;
 }
 
 .metadata-widget__tag-input:focus {
     outline: none;
-    border-color: var(--color-accent, #0a84ff);
+    border-color: var(--color-accent-primary);
 }
 
 .metadata-widget__tag-add-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    border-radius: 4px;
-    color: #fff;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    padding: 0 var(--space-2);
     cursor: pointer;
-    font-size: 14px;
-    padding: 0 8px;
-    transition: background 0.2s ease;
+    transition: background-color var(--transition-fast);
 }
 
 .metadata-widget__tag-add-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background-color: var(--color-border);
 }
 
-/* --- Status & Footer --- */
-.metadata-widget__status {
-    font-size: 11px;
-    color: var(--color-accent, #0a84ff);
-    margin: 8px 0;
-    min-height: 1.2em;
-    font-style: italic;
-}
-
-.metadata-widget__divider {
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin: 16px 0;
-}
+/* =============================================================================
+   9. GENERATE ALL BUTTON — Primary action
+   Distinct, prominent button that fires all pipelines in parallel.
+============================================================================= */
 
 .metadata-widget__generate-all {
     width: 100%;
-    padding: 10px;
-    background: linear-gradient(135deg, #0a84ff, #0070e0);
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    font-weight: 600;
-    font-size: 12px;
-    letter-spacing: 0.05em;
+    background-color: var(--color-accent-primary);
+    color: var(--color-text-inverse);
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    border-radius: var(--radius-sm);
+    border: var(--border-width-thin) solid var(--color-accent-primary);
+    padding: var(--space-2);
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
     text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .metadata-widget__generate-all:hover {
+    background-color: var(--color-accent-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
 }
 
 .metadata-widget__generate-all:active {
@@ -307,42 +296,25 @@
 }
 
 .metadata-widget__generate-all:disabled {
-    background: #3a3a3c;
-    color: rgba(255, 255, 255, 0.3);
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
     cursor: not-allowed;
     transform: none;
-    box-shadow: none;
-}
-
-/* --- Responsive & Field Overrides --- */
-.metadata-widget__field + .metadata-widget__field {
-    margin-top: 16px;
-}
-
-.metadata-widget__inline {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-@media (min-width: 320px) {
-    .metadata-widget__inline {
-        /* Keep vertical in sidebar typically */
-    }
 }
 
 /* =============================================================================
-   9. DIVIDER — Separator before the Generate All button
+   10. DIVIDER — Separator before the Generate All button
 ============================================================================= */
 
 .metadata-widget__divider {
     border: none;
     border-top: var(--border-width-thin) solid var(--color-border);
-    margin: var(--space-1) 0;
+    margin: var(--space-2) 0;
 }
 
 /* =============================================================================
-   10. HINT TEXT — Small helper text below fields
+   11. HINT TEXT — Small helper text below fields
 ============================================================================= */
 
 .metadata-widget__hint {
@@ -354,7 +326,7 @@
 }
 
 /* =============================================================================
-   11. READ-ONLY DISPLAY ROW — created_at / updated_at timestamps
+   12. READ-ONLY DISPLAY ROW — created_at / updated_at timestamps
    Two read-only inputs side-by-side in a horizontal row.
 ============================================================================= */
 
@@ -368,7 +340,7 @@
 }
 
 /* =============================================================================
-   12. STATUS INDICATOR — Generation progress text
+   13. STATUS INDICATOR — Generation progress text
 ============================================================================= */
 
 .metadata-widget__status {
@@ -377,6 +349,6 @@
     color: var(--color-text-muted);
     font-style: italic;
 
-    min-height: var(--text-xs);
+    min-height: 1.2em;
     margin: 0;
 }
