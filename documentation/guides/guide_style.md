@@ -35,7 +35,7 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Ink (Primary)** | Body Text | `#242423` | `--color-text-primary` |
 | **Lead (Secondary)**| Meta-text | `#5B5B5B` | `--color-text-secondary` |
 | **Oxblood** | Active Accents | `#8E3B46` | `--color-accent-primary` |
-| **Antique Gold** | Dashboard Focus | `#D4AF37` | `--color-dash-accent` |
+| **Deep Oxblood** | Dashboard Accent | `#8E3B46` | `--color-dash-accent` |
 | **Clay Stone** | Standard Borders | `#E0DCD1` | `--color-border` |
 | **Blueprint Green** | Success States | `#2E7D32` | `--color-status-success` |
 
@@ -140,26 +140,251 @@ The "Living Museum" aesthetic blends a technical blueprint architecture with an 
 | **Typography** | Scaled Scale | 112.5% (Desktop) to 100% (Mobile). |
 | **Constraints** | Overflow | No horizontal scrolling except Timeline. |
 
-## 18. Dashboard & Editor Aesthetics
-| Category | Rule / Visual Description | Implementation / CSS |
+## 18. Dashboard Architecture & Module Aesthetics
+
+The admin dashboard (`dashboard.html`) is a single-page application shell with a
+Providence 2-column work canvas, a universal header, a module tab bar, a card
+grid landing area, and a fixed error/status footer. All ten dashboard modules
+are loaded as fragments into this shell via `dashboard_app.js`.
+
+### 18.1 Dashboard Shell Layout
+
+| Component | Visual Description | Implementation |
 | :--- | :--- | :--- |
-| **Layout Convention** | Bespoke single page layout, featuring a double header, an occasional sidebar and a fixed universal footer | Documentation convention|
-| **Field Ownership Map** | Documents database column ownership using `§N.M` notation. | Documentation convention |
-| **Section Numbering** | Numbered (`### 2.1`) for sitemap modules; un-numbered for sub-features. | Documentation convention |
-| **Admin Shell** | Dashboard color scheme; Gold accents. | `--color-dash-accent` |
-| **Editor Style** | Mono fields; data-dense aesthetics. | `--font-mono` |
-| **Action Bar** | Gold focus. | `--color-dash-accent` |
-| **Return Link**| Lead Grey, tertiary BG hover. | `--font-mono`, `--color-text-muted`, `--transition-fast` |
-| **Blog WYSIWYG Editor** | Split-pane markdown editor with live preview. Toolbar uses Providence type scale. Preview matches public blog typography (`--font-body`). | `blog_WYSIWYG_editor.css`, `blog_posts_dashboard.css` |
-| **Sidebar Resize Handle** | 8px-wide drag handle in the divider track of the Providence grid. Hidden by default; reveals on hover with a subtle background highlight. Active drag state uses Oxblood accent. | `admin_components.css` §7 (`.sidebar-resize-handle`), `dashboard_sidebar_resize.js` |
-| **Metadata Widget** | Shared unified slug/snippet/metadata editor rendered across all six dashboard modules. BEM-scoped (`.metadata-widget__*`), injected via `window.renderMetadataWidget()`, styled exclusively with CSS variables. See §21. | `metadata_widget.css`, `metadata_widget.js` |
+| **Body** | Full-height flex column (`100dvh`), `overflow: hidden` | `#admin-dashboard` in `admin_shell.css` |
+| **Universal Header** | 64px fixed height, 1pt bottom border, double favicon (32px), site title (Inter semibold), nav links (Return / Dashboard / Logout) with Oxblood hover | `dashboard_universal_header.css`, `admin_shell.css` |
+| **Module Tab Bar** | 40px horizontal strip, `--color-bg-secondary` fill, UPPERCASE Inter labels; active tab: Oxblood text + 2px bottom border | `.module-tab` in `admin_components.css` §5 |
+| **Card Grid** | 3-column grid (3×3 + 1 centred), 1pt border cards with `--color-dash-accent` hover, card title (Inter semibold), description (EB Garamond) | `#admin-cards`, `.admin-card` in `admin_components.css` §4 |
+| **Error/Status Footer** | 36px fixed bottom, Roboto Mono xs, `--color-bg-secondary` fill, 1pt top border | `#admin-error-footer` in `admin_shell.css` §3 |
 
-## 21. Shared-Component Styling — `.metadata-widget` BEM Namespace
+### 18.2 Providence 2-Column Work Canvas
 
-The `metadata_widget.css` stylesheet is the canonical example of a shared
-dashboard component styled with the BEM (Block Element Modifier) naming
-convention and CSS variables exclusively from `typography.css`. It is consumed
-by all six dashboard editor modules.
+When a module is loaded, the card grid is replaced by a CSS Grid canvas:
+
+```
+[sidebar column] | [1px divider] | [24px gap] | [main column]
+```
+
+| Property | Specification |
+| :--- | :--- |
+| **Grid Tracks** | `--sidebar-width` (default 280px) + `1px` + `24px` + `--main-width` (default `1fr`) |
+| **Column Hook** | `_setLayoutColumns(width/null)` sets `--sidebar-width` and `--main-width` via CSS custom properties |
+| **Divider** | Permanent 1px `--color-border` track — not a border on a column element |
+| **Columns Scroll** | Both `.providence-col` panels scroll independently; 4px thin scrollbar, zero radius |
+| **No-Sidebar State** | `.no-sidebar` on `#admin-canvas` hides the sidebar column and resize handle |
+| **Resize Handle** | 8px-wide drag target in the divider track; 1px centred indicator; `is-dragging`: Oxblood indicator | `admin_components.css` §7 |
+
+### 18.3 Per-Module Layout Patterns
+
+Each dashboard module renders its own layout inside the Providence canvas. Three
+structural patterns recur:
+
+| Pattern | Description | Used By |
+| :--- | :--- | :--- |
+| **Split-Pane (Sidebar + Main)** | Fixed-width sidebar with a document list + scrollable editor area, separated by a 1px divider | Essay, Blog Posts, News Sources |
+| **Full-Width Table** | A single main-area table with a sticky function bar, search bar, and optional bulk review panel | Records All |
+| **Multi-Section Form** | Vertically stacked form sections with a sticky section navigator sidebar | Records Single |
+| **Dual-Pane (Controls + List)** | A parameter sidebar (weights, search terms) + a scrollable ranked list with row expansion | Challenge, Wikipedia |
+| **Canvas + Sidebar** | A visual canvas (tree, map, timeline) with an optional control sidebar | Arbor |
+| **Card Grid Dashboard** | Row-oriented health cards, activity table, trace panel, and test console | System |
+
+### 18.4 Shared Button & Form Token Conventions
+
+All dashboard modules share these visual conventions (sourced from `typography.css`):
+
+| Element | Font | Size | Border Radius | Border |
+| :--- | :--- | :--- | :--- | :--- |
+| **Primary Action Button** | Inter (heading) | `--text-xs` | `--radius-sm` (2px) | `--border-width-thin` |
+| **Secondary Button** | Inter | `--text-xs` | `--radius-sm` | `--border-width-thin` |
+| **Toggle Button** | Inter | `--text-xs` | `--radius-sm` | `--border-width-thin` |
+| **Text Input** | Roboto Mono | `--text-sm` | `--radius-sm` | `--border-width-thin` |
+| **Textarea** | Body or Mono | `--text-sm` | `--radius-sm` | `--border-width-thin` |
+| **Select Dropdown** | Roboto Mono | `--text-sm` | `--radius-sm` | `--border-width-thin` |
+| **Chip / Tag** | Roboto Mono | `--text-xs` | `--radius-full` (pill) or `--radius-sm` | `--border-width-thin` |
+| **Status Badge** | Inter | `--text-xs` | `--radius-sm` | none |
+
+**Rounding policy**: Structural containers (cards, panels, modals) use `--radius-none` (0px).
+Interactive controls (buttons, inputs, selects) use `--radius-sm` (2px).
+Tags may use `--radius-full` for pill shapes. Nothing exceeds `--radius-base` (4px).
+
+**Button color states**:
+
+| State | Visual Treatment |
+| :--- | :--- |
+| **Save Draft** | Secondary fill (`--color-white`), Clay border, Lead Grey text |
+| **Publish** | Oxblood fill (`--color-dash-accent`), parchment text (`--color-text-inverse`) |
+| **Delete** | Transparent fill, Lead Grey text, Oxblood hover border/text |
+| **Generate All** (metadata widget) | Full-width Oxblood fill (`--color-accent-primary`), parchment text |
+| **Refresh / Crawl** | Accent fill (`--color-accent-primary`), parchment text |
+
+**Focus states**: All dashboard inputs, selects, and buttons use `border-color:
+--color-dash-accent` on `:focus` and `:focus-visible`. Focus rings are 2px solid
+`--color-dash-accent` with 2px offset.
+
+### 18.5 Section Heading Convention (Dashboard)
+
+Dashboard section headings follow a uniform pattern:
+
+| Heading Level | Use |
+| :--- | :--- |
+| `### N.M` (numbered) | Modules that correspond to a named sitemap sub-module (e.g., `### 2.1`, `### 4.2`) |
+| `###` (un-numbered) | Sub-features within a module (e.g., search bars, editor sections) |
+
+Visual treatment: Inter semibold, `--text-md`, `--tracking-tight`, 1px
+`--color-border` bottom rule, `--space-1` padding-bottom.
+
+---
+
+## 19. Module Reference — Visual Patterns by Module
+
+### 19.1 Records All Dashboard (2.0 — `dashboard_records_all.*`)
+
+| Component | Visual Pattern | Key CSS Classes |
+| :--- | :--- | :--- |
+| **Layout** | Single-column table fills the main Providence column | `#admin-canvas` with sidebar hidden |
+| **Function Bar** | Sticky toolbar: 6 sort-toggle buttons (Roboto Mono xs) + New Record button (Inter semibold, Oxblood). Active toggle: Oxblood fill + parchment text. | `.records-all__function-bar`, `.toggle-btn`, `.toggle-btn--active` |
+| **Search Bar** | Inline search field with magnifying glass icon, clear button, hit-count status text | `.records-all__search-bar`, `.records-all__search-input` (`--font-mono`) |
+| **Upload Bar** | CSV upload button row below search | `.records-all__upload-bar` |
+| **Records Table** | 4-column (`title 28%` / `verse 22%` / `snippet 35%` / `status 15%`); sticky `thead` with Inter uppercase headers; monospaced `td`; zebra-striped rows; row hover → `--color-bg-tertiary`; clickable rows | `.records-all__table`, `.records-all__status--published` (Oxblood), `--draft` (muted) |
+| **Endless Scroll** | 1px sentinel div at table bottom triggers `IntersectionObserver` | `.records-all__scroll-sentinel` |
+| **Bulk Review Panel** | Visually distinct bordered container (`--color-accent-muted` border), sticky action bar (Save as Draft / Discard), review table with checkbox column, invalid rows: `rgba(142,59,70,0.06)` tint, validation status icons | `.bulk-review-panel`, `.bulk-review__row--invalid` |
+
+### 19.2 Records Single Dashboard (2.0 — `dashboard_records_single.*`)
+
+| Component | Visual Pattern | Key CSS Classes |
+| :--- | :--- | :--- |
+| **Layout** | Multi-section form in main column; sticky section navigator in sidebar | Providence grid with sidebar |
+| **Section Navigator** | Vertical link list, Inter xs, `--radius-sm`, active: left-border Oxblood highlight | `.section-nav__link` |
+| **Function Bar** | Sticky Save Draft / Publish / Delete buttons | `.function-bar`, `.btn--draft`, `.btn--publish`, `.btn--delete` |
+| **Form Fields** | Monospaced inputs and selects (`--text-sm`), `--radius-sm`, 1pt Clay border, `--color-bg-primary` fill. Focus: `--color-accent-primary` border | `.form-field__input`, `.form-field__select`, `.form-field__textarea` |
+| **Verse Builder** | 3-dropdown + input row (book / chapter / verse); rendered as chips in a flex-wrap container | `.verse-builder__select`, `.verse-builder__chips`, `.chip` |
+| **Bibliography Editor** | Per-source cards with type-select + 2-column field grid + remove button (Oxblood) | `.bibliography-editor__entry` |
+| **Paragraph Editor** | Dynamic textarea array with add/remove controls | `.paragraph-editor__textarea` |
+| **Picture Preview** | Full (400×300) and thumbnail (200×150) preview boxes, `--radius-sm`, `--color-bg-tertiary` fill | `.picture-preview`, `.picture-preview--full`, `--thumb` |
+| **Context Links** | Chip-based link list with add/remove | `.context-links-editor__chips` |
+| **Slug/Snippet/Metadata** | Rendered via shared `metadata_widget.js` (see §21) | `.metadata-widget` |
+
+### 19.3 Challenge Dashboard (4.0 — `dashboard_challenge.*`)
+
+| Component | Visual Pattern | Key CSS Classes |
+| :--- | :--- | :--- |
+| **Layout** | Dual-pane: parameter sidebar + ranked list area, separated by 1px divider | `.challenge-editor-layout` (CSS Grid) |
+| **Function Bar** | Toggle (Academic / Popular) + Refresh / Publish actions | `.function-bar__toggle-group`, `.btn--toggle-active` |
+| **Sidebar** | Vertically stacked sections: search terms textarea + weighting list with reorder buttons + add-weight form. Thin scrollbar. | `.challenge-sidebar`, `.challenge-weight-item` |
+| **Weight Items** | Horizontal row: reorder grip (≡) + name (Inter) + numeric value input (Mono) + remove (×) | `.challenge-weight-item__name`, `__value`, `__remove` |
+| **Ranked List** | Zebra-striped rows; rank badge (Mono, `--radius-sm`, `--color-bg-tertiary`); score column (Mono semibold); expandable body area showing linked responses | `.challenge-row`, `.challenge-row__rank`, `__score`, `__body` |
+| **Response Cards** | Nested inside expanded rows: card with title (Inter) + status badge (Draft/Published) | `.challenge-response-card` |
+| **Response Dialog** | Modal (`<dialog>`) for creating new responses: title input + full-width buttons | `.challenge-dialog` |
+| **List Region Toggle** | Aria-controlled dual list regions (Academic / Popular) with frontend-link | `.challenge-list-region` |
+
+### 19.4 Wikipedia Dashboard (4.0 — `dashboard_wikipedia.*`)
+
+| Component | Visual Pattern | Key CSS Classes |
+| :--- | :--- | :--- |
+| **Layout** | Dual-pane: parameter sidebar + ranked list area | `.wikipedia-editor-layout` |
+| **Sidebar** | Record info header + search terms textarea + weighting list + metadata editor + Recalculate button (full-width) | `.wikipedia-sidebar`, `.wikipedia-sidebar__header` |
+| **Ranked List** | Zebra-striped rows; rank badge (Mono, `--radius-sm`); title link; score column; status badge (Draft/Published); Select button to load record | `.wikipedia-row`, `.wikipedia-row__rank`, `__score`, `__select-btn` |
+| **Metadata Editor** | Inline slug/snippet/metadata fields + auto-generate buttons | `.wikipedia-metadata-editor__field` |
+
+### 19.5 Essay & Historiography Dashboard (5.0 — `dashboard_essay_historiography.*`)
+
+| Component | Visual Pattern | Key CSS Classes |
+| :--- | :--- | :--- |
+| **Layout** | Split-pane: document sidebar (260px) + 1px divider + editor area (1fr) | `.essay-editor-layout` (CSS Grid) |
+| **Function Bar** | Sticky: Essay/Historiography toggle (segmented, Oxblood active) + Save Draft / Publish / Delete buttons | `.function-bar__toggle-group`, `.btn--toggle-active` |
+| **Sidebar** | Search input + Published/Drafts grouped lists; active item: Oxblood text, 2px left border | `.essay-sidebar-list__item--active` |
+| **Editor Area** | Vertically stacked sections: title input (Inter xl), markdown editor panes, snippet generator, bibliography, context links, picture upload | `.essay-editor-area`, `.essay-editor-field` |
+| **Markdown Toolbar** | Horizontal button strip (Inter xs, `--radius-sm`), active: Oxblood fill. Styled by `essay_WYSIWYG_editor.css` | `.markdown-toolbar__btn` |
+| **Split Markdown Panes** | Left: monospaced textarea. Right: live preview matching public `--font-essay` typography (Crimson Pro). 1px divider between. | `.markdown-editor-panes`, `.markdown-editor-preview` |
+| **Bibliography Editor** | Scoped to `#essay-bibliography-container`; 2-column field grid; MLA type-select | Same `.bibliography-editor` BEM as Records module |
+
+### 19.6 Blog Posts Dashboard (6.0 — `blog_posts_dashboard.*`)
+
+| Component | Visual Pattern | Key CSS Classes |
+| :--- | :--- | :--- |
+| **Layout** | Split-pane: post sidebar (260px) + 1px divider + editor area (1fr) — mirrors Essay layout | `.blog-editor-layout` |
+| **Function Bar** | Sticky: New Post button + Save Draft / Publish / Delete buttons | `.blog-new-post-btn`, `.btn--draft`, `.btn--publish`, `.btn--delete` |
+| **Sidebar** | Published/Drafts grouped lists; active: Oxblood 2px left border | `.blog-sidebar-list__item--active` |
+| **Editor Area** | Title input (Inter xl), markdown panes (WYSIWYG), snippet generator, bibliography, context links, picture upload | `.blog-editor-area` |
+| **Markdown Preview** | Matches public blog rendering; `--font-body` (EB Garamond) in preview | `blog_WYSIWYG_editor.css` |
+
+### 19.7 News Sources Dashboard (6.0 — `news_sources_dashboard.*`)
+
+| Component | Visual Pattern | Key CSS Classes |
+| :--- | :--- | :--- |
+| **Layout** | Split-pane: record-detail sidebar (360px) + 1px divider + news sources table (1fr) | `.news-sources-editor-layout` |
+| **Function Bar** | Sticky: Refresh / Publish / Crawl (Oxblood accent) buttons, right-aligned | `#news-sources-function-bar` |
+| **Sidebar** | Header (record title, Inter lg) + URL editor (Mono input) + search keyword chips + metadata widget + record metadata footer. Sections separated by thin horizontal rules. | `.news-sources-sidebar__section`, `__header`, `__record-title` |
+| **Keyword Chips** | Pill-shaped (`--radius-full`), Mono xs, with circular remove button (×) | `.news-sources-search-term-chip` |
+| **Sources Table** | Sticky header (Inter uppercase, `--color-border-strong` bottom border), Mono URL cells, status badges (Active=Green, Inactive=Muted), Select button per row | `.news-sources-table`, `.news-sources-row__status` |
+
+### 19.8 System Dashboard (7.0 — `dashboard_system.*`)
+
+| Component | Visual Pattern | Key CSS Classes |
+| :--- | :--- | :--- |
+| **Layout** | Single-column scrolling area with card grid, tables, and console panels. No sidebar. | `#admin-canvas.no-sidebar` |
+| **Function Bar** | Action bar with Refresh button, 1px bottom border | `.function-bar--system` |
+| **Health Cards** | Responsive grid (`auto-fill, minmax(260px, 1fr)`); each card: `--color-bg-secondary` fill, 1pt border, `--radius-sm` (2px). Value: Mono lg, color-coded (green=ok, amber=degraded, oxblood=error, muted=offline). Resource meters: 8px bar with color-coded fill. | `.health-card`, `.health-card__value`, `.meter-bar` |
+| **Agent Activity Table** | Sticky header, Mono xs, zebra-striped rows; status color-coded (green, oxblood, amber). Running rows pulse. Clickable rows expand trace panel. | `.agent-activity-table`, `.status--completed`, `--failed`, `--running` |
+| **Trace Reasoning Panel** | Collapsible `<details>` with Mono pre-wrap content, max-height 240px | `.trace-reasoning-panel` |
+| **Test Console** | Button controls + scrollable output `<pre>` with Mono xs text, max-height 300px | `.test-output-console` |
+| **MCP Error Log** | Collapsible error stream, max-height 160px scroll, Mono xs | `.mcp-error-log` |
+| **Docs Controls** | Documentation regeneration buttons | `.docs-controls` |
+
+### 19.9 Arbor Diagram Dashboard (3.0 — `dashboard_arbor.*`)
+
+Detailed in §20 below. The Arbor editor uses a blueprint-grid canvas with
+draggable node rows, SVG connector overlays, and an orphan pool for unlinked
+nodes.
+
+---
+
+## 20. Arbor Dashboard Editor — Interactive Node Patterns
+
+The Arbor Diagram dashboard editor (`dashboard_arbor.css`) extends the
+Providence design system with interactive tree-editing patterns:
+
+| Category | Pattern | Implementation |
+| :--- | :--- | :--- |
+| **Tree Canvas** | Blueprint grid background, scrollable overflow | `radial-gradient` with `--color-border` dots at 20px spacing |
+| **Node Row** | Sharp-cornered drag card with shadow | `--radius-none`, `--shadow-sm`, `--color-bg-secondary` fill |
+| **Node Grip** | Mono trigram (☰) drag handle | `--font-mono`, `--text-xs`, `--color-text-muted` |
+| **Node Label** | Inter heading, text-overflow ellipsis | `--font-heading`, `--text-sm`, `pointer-events: none` |
+| **Drag State** | Dashed border, reduced opacity | `.is-dragging { border-style: dashed; opacity: 0.4 }` |
+| **Drop Target** | Oxblood border + rose glow | `--color-accent-primary` border, `box-shadow: 0 0 0 2px var(--color-accent-muted)` |
+| **Invalid Drop** | Muted background, not-allowed cursor | `.is-drop-invalid { opacity: 0.6; cursor: not-allowed }` |
+| **Tree Branches** | 2px vertical border + horizontal `::before` pseudo-elements | `border-left: 2px solid var(--color-border-strong)` on nested `<ul>` |
+| **Orphan Pool** | Horizontal flex wrap, inset drop target glow | `display: flex; flex-wrap: wrap; gap: var(--space-2)` |
+| **SVG Connectors** | Cubic bezier paths, non-interactive overlay | `pointer-events: none; z-index: 1` |
+| **Child Dropdown** | Positioned dropdown with hover highlight | `position: fixed; z-index: 100; --shadow-md` |
+| **Save Indicator** | Fading toast notification | `opacity 0 → 1 transition, auto-hides after 1.5s` |
+
+---
+
+## 21. Consistency Checklist
+
+To maintain the Providence Technical Ledger aesthetic, all new dashboard
+elements must pass:
+
+1.  **Rounding Discipline:** Structural containers and cards use `--radius-none` (0px). Interactive controls (buttons, inputs) use `--radius-sm` (2px). Tags may use `--radius-full`. Nothing exceeds `--radius-base` (4px).
+2.  **Mono Logic:** Is `var(--font-mono)` used for all metadata, IDs, dates, and UI labels?
+3.  **Border Precision:** Are borders `var(--border-width-thin)` (1px)? Are structural dividers 1px `--color-border` tracks — never borders on column elements?
+4.  **Oxblood Accent:** Do active/hover states transition to `var(--color-accent-primary)` or `var(--color-dash-accent)`?
+5.  **Grid Alignment:** Are all spacing values multiples of 8px (`var(--space-N)`)?
+6.  **Depth Integrity:** Is `var(--shadow-sm)` used for floating elements (dropdowns, drag cards)?
+7.  **Dashboard Contrast:** Do admin-specific elements (tab bar, card hover, publish buttons) use `var(--color-dash-accent)`?
+8.  **Status Feedback:** Are success states `var(--color-status-success)`, errors `var(--color-accent-primary)`, disabled states `--color-text-muted`?
+9.  **CSS Variable Only:** No hardcoded colors (`#fff`, `#000`, rgba values), no hardcoded font sizes (`11px`, `14px`), no hardcoded spacing (`4px`, `8px`). All values MUST come from `typography.css` variables.
+10. **Sub-Section Integrity:** Are dashboard sub-section headings numbered only when they correspond to a named sitemap sub-module? (Un-numbered for sub-features.)
+
+---
+
+## 22. Shared-Component Styling — `.metadata-widget` BEM Namespace
+
+The `metadata_widget.css` stylesheet defines the canonical shared dashboard
+component. It uses BEM (Block Element Modifier) naming and is consumed by all
+six dashboard editor modules: Records Single, Essay & Historiography, Blog
+Posts, Challenge, News Sources, and Wikipedia.
 
 | BEM Class | Purpose | Key Variables Used |
 |:---|:---|:---|
@@ -180,41 +405,16 @@ by all six dashboard editor modules.
 | `.metadata-widget__status` | Generation progress text (italic) | `--font-mono`, `--text-xs`, `--color-text-muted` |
 
 **Design principles demonstrated:**
-- **Zero rounding:** All elements use implicit `--radius-none` (0px).
+- **Rounding discipline:** Inputs and buttons use `--radius-sm` (2px). No rounding on structural containers.
 - **Mono logic:** All inputs, textareas, hints use `--font-mono`.
 - **Border precision:** All borders are `var(--border-width-thin)`.
 - **Oxblood accent:** Generate All button uses `--color-accent-primary` with `--color-accent-hover` on hover.
 - **Grid alignment:** All spacing uses `--space-N` multiples of 8px.
 - **Transition subtlety:** Buttons use `--transition-fast` (150ms).
+- **CSS variable purity:** No hardcoded colors, font sizes, or spacing values.
 
-## 19. Arbor Dashboard Editor — Interactive Node Patterns
-
-The Arbor Diagram dashboard editor (`dashboard_arbor.css`) extends the
-Providence design system with interactive tree-editing patterns:
-
-| Category | Pattern | Implementation |
-| :--- | :--- | :--- |
-| **Tree Canvas** | Blueprint grid background, scrollable overflow | `radial-gradient` with `--color-border` dots at 20px spacing |
-| **Node Row** | Sharp-cornered drag card with shadow | `--radius-none`, `--shadow-sm`, `--color-bg-secondary` fill |
-| **Node Grip** | Mono trigram (☰) drag handle | `--font-mono`, `--text-xs`, `--color-text-muted` |
-| **Node Label** | Inter heading, text-overflow ellipsis | `--font-heading`, `--text-sm`, `pointer-events: none` |
-| **Drag State** | Dashed border, reduced opacity | `.is-dragging { border-style: dashed; opacity: 0.4 }` |
-| **Drop Target** | Oxblood border + rose glow | `--color-accent-primary` border, `box-shadow: 0 0 0 2px var(--color-accent-muted)` |
-| **Invalid Drop** | Muted background, not-allowed cursor | `.is-drop-invalid { opacity: 0.6; cursor: not-allowed }` |
-| **Tree Branches** | 2px vertical border + horizontal `::before` pseudo-elements | `border-left: 2px solid var(--color-border-strong)` on nested `<ul>` |
-| **Orphan Pool** | Horizontal flex wrap, inset drop target glow | `display: flex; flex-wrap: wrap; gap: var(--space-2)` |
-| **SVG Connectors** | Cubic bezier paths, non-interactive overlay | `pointer-events: none; z-index: 1` |
-| **Child Dropdown** | Positioned dropdown with hover highlight | `position: fixed; z-index: 100; --shadow-md` |
-| **Save Indicator** | Fading toast notification | `opacity 0 → 1 transition, auto-hides after 1.5s` |
-
-## 20. Consistency Checklist
-To maintain the Technical Blueprint aesthetic, all new elements must pass:
-1.  **Zero Rounding:** Is `var(--radius-none)` applied?
-2.  **Mono Logic:** Is `var(--font-mono)` used for UI labels?
-3.  **Border Precision:** Are borders `var(--border-width-thin)`?
-4.  **Oxblood Hover:** Does it transition to `var(--color-accent-primary)`?
-5.  **Grid Alignment:** Are spacing values multiples of 8px (`var(--space-N)`)?
-6.  **Depth Integrity:** Is `var(--shadow-sm)` used for floating nodes?
-7.  **Dashboard Contrast:** Does the admin portal use `var(--color-dash-accent)`?
-8.  **Status Feedback:** Are success states using `var(--color-status-success)`?
-9.  **Sub-Section Integrity:** Are dashboard sub-section headings numbered only when they correspond to a named sitemap sub-module? (Un-numbered for sub-features.)
+> **⚠️ Codebase note:** The current `metadata_widget.css` has sections (tags,
+> Generate All button, divider, status) that use hardcoded dark-mode colors
+> (`#1c1c1e`, `#0a84ff`, `rgba(255,255,255,0.1)`) and non-Providence spacing
+> (`4px`, `8px`, `10px`, `16px`). These sections need refactoring to match the
+> design principles documented above. See `plan_issues.md` for tracking.

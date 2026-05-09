@@ -78,22 +78,6 @@ function initWikipediaSidebar() {
       });
     }
   }
-
-  // Wire search terms textarea auto-save (matching Challenge pattern)
-  var termsInput = document.getElementById("wikipedia-search-terms-input");
-  if (termsInput) {
-    var saveTimeout = null;
-    termsInput.addEventListener("input", function () {
-      if (saveTimeout) clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(function () {
-        _autoSaveSearchTerms();
-      }, 1000);
-    });
-    termsInput.addEventListener("blur", function () {
-      if (saveTimeout) clearTimeout(saveTimeout);
-      _autoSaveSearchTerms();
-    });
-  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -112,11 +96,15 @@ function populateWikipediaSidebar(record) {
   if (titleEl) titleEl.textContent = record.title || "\u2014";
   if (slugEl) slugEl.textContent = record.slug || "\u2014";
 
-  // Section 2: Wikipedia Weight — render single criterion row
-  _renderWeightCriterion();
+  // Section 2: Wikipedia Weight — delegate to wikipedia_weights.js
+  if (typeof window.loadWikipediaWeights === 'function') {
+    window.loadWikipediaWeights(record);
+  }
 
-  // Section 3: Search Terms — populate textarea from record
-  _populateSearchTermsTextarea(record);
+  // Section 3: Search Terms — delegate to wikipedia_search_terms.js
+  if (typeof window.loadWikipediaSearchTerms === 'function') {
+    window.loadWikipediaSearchTerms(record);
+  }
 
   // Section 4: Metadata (via widget)
   if (typeof window.populateMetadataWidget === 'function') {
@@ -158,230 +146,7 @@ function _clearSidebar() {
   if (overviewList) overviewList.innerHTML = "";
 }
 
-/* -----------------------------------------------------------------------------
-   INTERNAL: _renderWeightCriterion
-   Renders a single weighting criterion row (matching challenge-weight-item
-   style) for the Wikipedia weight multiplier. Auto-saves on change.
------------------------------------------------------------------------------ */
-function _renderWeightCriterion() {
-  var listEl = document.getElementById("wikipedia-weighting-list");
-  if (!listEl) return;
 
-  var state = window._wikipediaModuleState;
-  var currentWeight = state.activeRecordWeight || 1.0;
-
-  listEl.innerHTML = "";
-
-  // Single criterion row
-  var itemEl = document.createElement("div");
-  itemEl.className = "wikipedia-weight-item";
-
-  // Name label
-  var nameEl = document.createElement("span");
-  nameEl.className = "wikipedia-weight-item__name";
-  nameEl.textContent = "Wikipedia Weight";
-  itemEl.appendChild(nameEl);
-
-  // Value input
-  var valueInput = document.createElement("input");
-  valueInput.className = "wikipedia-weight-item__value";
-  valueInput.type = "number";
-  valueInput.min = "0";
-  valueInput.max = "100";
-  valueInput.step = "0.01";
-  valueInput.value = currentWeight;
-  valueInput.setAttribute("aria-label", "Wikipedia weight multiplier");
-
-  valueInput.addEventListener("change", function () {
-    var newValue = parseFloat(valueInput.value);
-    if (!isNaN(newValue) && newValue >= 0) {
-      state.activeRecordWeight = newValue;
-      _autoSaveWeight(newValue);
-    }
-  });
-  itemEl.appendChild(valueInput);
-
-  listEl.appendChild(itemEl);
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _populateSearchTermsTextarea
-   Reads search terms from the selected record and displays them in the
-   textarea, one term per line (matching Challenge pattern).
------------------------------------------------------------------------------ */
-function _populateSearchTermsTextarea(record) {
-  var termsInput = document.getElementById("wikipedia-search-terms-input");
-  if (!termsInput) return;
-
-  var rawTerms = record.wikipedia_search_term || "";
-  try {
-    var parsed = JSON.parse(rawTerms);
-    if (Array.isArray(parsed)) {
-      termsInput.value = parsed.join("\n");
-    } else if (typeof parsed === "object" && parsed !== null) {
-      termsInput.value = Object.values(parsed).join("\n");
-    } else {
-      termsInput.value = String(parsed);
-    }
-  } catch (e) {
-    termsInput.value = rawTerms;
-  }
-
-  // Also update state for consistency
-  window._wikipediaModuleState.activeRecordSearchTerms = rawTerms;
-
-  // Refresh the saved search terms overview
-  _renderSearchTermsOverview();
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _renderSearchTermsOverview
-   Populates the saved search terms overview list from the textarea value.
-   Read-only list items showing each term on its own line.
------------------------------------------------------------------------------ */
-function _renderSearchTermsOverview() {
-  var listEl = document.getElementById("wikipedia-search-terms-overview-list");
-  if (!listEl) return;
-
-  listEl.innerHTML = "";
-
-  var termsInput = document.getElementById("wikipedia-search-terms-input");
-  var rawValue = termsInput ? termsInput.value.trim() : "";
-
-  if (!rawValue) {
-    var emptyItem = document.createElement("li");
-    emptyItem.className =
-      "wikipedia-search-terms-overview-item wikipedia-search-terms-overview-item--empty";
-    emptyItem.textContent = "No search terms saved.";
-    listEl.appendChild(emptyItem);
-    return;
-  }
-
-  var terms = rawValue
-    .split(/[\n,]+/)
-    .map(function (t) {
-      return t.trim();
-    })
-    .filter(function (t) {
-      return t.length > 0;
-    });
-
-  if (terms.length === 0) {
-    var emptyItem = document.createElement("li");
-    emptyItem.className =
-      "wikipedia-search-terms-overview-item wikipedia-search-terms-overview-item--empty";
-    emptyItem.textContent = "No search terms saved.";
-    listEl.appendChild(emptyItem);
-    return;
-  }
-
-  terms.forEach(function (term) {
-    var itemEl = document.createElement("li");
-    itemEl.className = "wikipedia-search-terms-overview-item";
-    itemEl.textContent = term;
-    listEl.appendChild(itemEl);
-  });
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _autoSaveWeight
-   Saves the Wikipedia weight multiplier to the active record via PUT.
------------------------------------------------------------------------------ */
-async function _autoSaveWeight(newWeight) {
-  var state = window._wikipediaModuleState;
-  if (!state.activeRecordId) return;
-
-  var weightData = JSON.stringify({ multiplier: newWeight });
-
-  try {
-    var response = await fetch("/api/admin/records/" + state.activeRecordId, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ wikipedia_weight: weightData, status: "draft" }),
-    });
-
-    if (!response.ok) {
-      throw new Error("API responded with status " + response.status);
-    }
-
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError(
-        "Wikipedia weight saved for '" +
-          state.activeRecordTitle +
-          "'. Record set to draft.",
-      );
-    }
-  } catch (err) {
-    console.error("[wikipedia_sidebar] Weight save failed:", err);
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError(
-        "Error: Failed to save Wikipedia weight for '" +
-          state.activeRecordTitle +
-          "'.",
-      );
-    }
-  }
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _autoSaveSearchTerms
-   Saves the current search terms textarea value to the active record via PUT.
-   Matches Challenge auto-save pattern.
------------------------------------------------------------------------------ */
-async function _autoSaveSearchTerms() {
-  var state = window._wikipediaModuleState;
-  if (!state.activeRecordId) return;
-
-  var termsInput = document.getElementById("wikipedia-search-terms-input");
-  if (!termsInput) return;
-
-  var rawValue = termsInput.value.trim();
-  // Store as JSON array — split by newlines or commas
-  var termsArray = rawValue
-    .split(/[\n,]+/)
-    .map(function (t) {
-      return t.trim();
-    })
-    .filter(function (t) {
-      return t.length > 0;
-    });
-
-  try {
-    var response = await fetch("/api/admin/records/" + state.activeRecordId, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        wikipedia_search_term: JSON.stringify(termsArray),
-        status: "draft",
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("API responded with status " + response.status);
-    }
-
-    // Update in-memory state
-    state.activeRecordSearchTerms = JSON.stringify(termsArray);
-
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError(
-        "Wikipedia search terms saved for '" + state.activeRecordTitle + "'.",
-      );
-    }
-  } catch (err) {
-    console.error("[wikipedia_sidebar] Search term save failed:", err);
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError(
-        "Error: Failed to save search terms for '" +
-          state.activeRecordTitle +
-          "'.",
-      );
-    }
-  }
-
-  // Refresh the saved search terms overview after save
-  _renderSearchTermsOverview();
-}
 
 /* -----------------------------------------------------------------------------
    HANDLER: _handleRecalculateRecord (unique to Wikipedia)

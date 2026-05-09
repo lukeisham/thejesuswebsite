@@ -1,7 +1,7 @@
 ---
 name: simple_module_sitemap.md
 purpose: High-level ASCII map of the project's modular architecture (1.0 - 8.0)
-version: 1.2.0
+version: 1.3.0
 dependencies: [detailed_module_sitemap.md]
 ---
 

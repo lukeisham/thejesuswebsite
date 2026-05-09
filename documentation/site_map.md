@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.53
+version: 1.0.54
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -214,8 +214,10 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── dashboard_wikipedia.js <-- Module orchestration & initialization
 │   ├── insert_challenge_response.js <-- Response creation & challenge linking
 │   ├── wikipedia_list_display.js <-- Data fetching & row hydration
-│   ├── wikipedia_ranking_calculator.js <-- Real-time ranking & weight logic
-│   └── wikipedia_sidebar_handler.js <-- Sidebar: weight, search terms, metadata, recalculate
+│   ├── wikipedia_ranking_calculator.js <-- Real-time ranking & multi-weight logic
+│   ├── wikipedia_sidebar_handler.js <-- Sidebar: delegate to weights/search terms
+│   ├── wikipedia_weights.js   <-- Wikipedia Weight editor (multi-weight)
+│   └── wikipedia_search_terms.js <-- Wikipedia Search Terms editor (overview + textarea)
 ├── js/4.0_ranked_lists/frontpage/
 │   └── *.js                   <-- Public-facing ranked list logic
 ├── js/5.0_essays_responses/dashboard/

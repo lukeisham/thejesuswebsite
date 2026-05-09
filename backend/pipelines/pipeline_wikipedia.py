@@ -5,12 +5,13 @@
 #   Trigger: Called by the admin dashboard "Recalculate" button (via agent API)
 #            or run directly from CLI for batch processing.
 #   Purpose: Fetches, ranks, and inserts Wikipedia article data to SQLite.
-#            Processes one record at a time based on stored wikipedia_search_term.
-#            Calls the Wikipedia REST API to find matching articles, filters
-#            out non-article/disambiguation/list pages, selects the best match,
-#            and writes wikipedia_title, wikipedia_link, and wikipedia_rank
-#            (base importance score). The admin's wikipedia_weight multiplier
-#            is applied separately by the frontend ranking calculator on Refresh.
+#            Processes one record at a time based on stored wikipedia_search_term
+#            (discovery scope). Calls the Wikipedia REST API to find matching
+#            articles, filters out non-article/disambiguation/list pages, selects
+#            the best match, and writes wikipedia_title, wikipedia_link, and
+#            wikipedia_rank (base importance score). Multiple weight multipliers
+#            stored in wikipedia_weight are applied during the ranking phase
+#            by the frontend ranking calculator on Refresh.
 #   Output:  Updated records in SQLite with Wikipedia data. All writes set
 #            status to draft (ingested data must be reviewed before going live).
 #            Returns structured JSON with success/error details per record.

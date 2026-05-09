@@ -42,11 +42,25 @@ async function refreshWikipediaRankings() {
             typeof record.wikipedia_weight === "string"
               ? JSON.parse(record.wikipedia_weight)
               : record.wikipedia_weight;
-          weightMultiplier = parseFloat(
-            weightData.multiplier || weightData || 1.0,
-          );
+          
+          if (weightData.multiplier !== undefined) {
+            // Legacy single-weight format
+            weightMultiplier = parseFloat(weightData.multiplier) || 1.0;
+          } else if (typeof weightData === "object" && weightData !== null) {
+            // New multi-weight format: apply product of all multipliers
+            const weights = Object.values(weightData);
+            if (weights.length > 0) {
+              weightMultiplier = weights.reduce((acc, val) => {
+                const v = parseFloat(val);
+                return isNaN(v) ? acc : acc * v;
+              }, 1.0);
+            }
+          } else {
+            weightMultiplier = parseFloat(weightData) || 1.0;
+          }
         }
       } catch (e) {
+        console.warn("[wikipedia_ranking_calculator] Weight parse failed:", e);
         weightMultiplier = 1.0;
       }
 

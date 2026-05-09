@@ -110,13 +110,44 @@
             <header class="wikipedia-sidebar__subheader">
                 <h3 class="wikipedia-sidebar__subheading">Wikipedia Weight</h3>
             </header>
-            <!-- Weighting Criteria List — populated by wikipedia_sidebar_handler.js -->
+            <!-- Weighting Criteria List — populated by wikipedia_weights.js -->
             <div
                 id="wikipedia-weighting-list"
                 class="wikipedia-weighting-list"
                 aria-label="Weighting criteria"
             >
-                <!-- Dynamically populated — single criterion row matching challenge-weight-item style -->
+                <!-- Dynamically populated -->
+            </div>
+
+            <!-- New Weighting Criterion Form -->
+            <div id="wikipedia-new-weight" class="wikipedia-new-weight">
+                <div class="wikipedia-new-weight__form">
+                    <input
+                        id="wikipedia-new-weight-name"
+                        class="wikipedia-new-weight__name"
+                        type="text"
+                        placeholder="New name"
+                        aria-label="New weight name"
+                    />
+                    <input
+                        id="wikipedia-new-weight-value"
+                        class="wikipedia-new-weight__value"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        placeholder="Val"
+                        aria-label="New weight value"
+                    />
+                    <button
+                        id="btn-wikipedia-add-weight"
+                        class="btn btn--draft"
+                        type="button"
+                        title="Add new weighting criterion"
+                    >
+                        Add
+                    </button>
+                </div>
             </div>
         </section>
 
