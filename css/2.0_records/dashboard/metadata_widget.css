@@ -65,6 +65,7 @@
 
 .metadata-widget__inline {
     display: flex;
+    flex-wrap: nowrap;
     gap: var(--space-1);
     align-items: flex-start;
 }
@@ -79,6 +80,7 @@
 
 .metadata-widget__inline .metadata-widget__keywords-area {
     flex: 1;
+    min-width: 0;
 }
 
 /* =============================================================================
