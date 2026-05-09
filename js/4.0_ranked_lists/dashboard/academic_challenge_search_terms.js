@@ -1,4 +1,4 @@
-// Trigger:  Called by dashboard_challenge.js on Academic toggle/init, and by
+// Trigger:  Called by dashboard_challenge_academic.js on Academic init, and by
 //           challenge_weighting_handler.js on row selection.
 // Main:    renderAcademicSearchTermsOverview() — reads the active record's
 //           academic_challenge_search_term from the textarea or state cache
@@ -22,13 +22,13 @@ function renderAcademicSearchTermsOverview() {
   if (termsInput && termsInput.value.trim()) {
     rawValue = termsInput.value.trim();
   } else {
-    rawValue =
-      window._challengeModuleState.academicSearchTerms || "";
+    rawValue = window._challengeModuleState.academicSearchTerms || "";
   }
 
   if (!rawValue) {
     var emptyItem = document.createElement("li");
-    emptyItem.className = "challenge-overview-item challenge-overview-item--empty";
+    emptyItem.className =
+      "challenge-overview-item challenge-overview-item--empty";
     emptyItem.textContent = "No search terms saved.";
     listEl.appendChild(emptyItem);
     return;
@@ -46,7 +46,8 @@ function renderAcademicSearchTermsOverview() {
 
   if (terms.length === 0) {
     var emptyItem = document.createElement("li");
-    emptyItem.className = "challenge-overview-item challenge-overview-item--empty";
+    emptyItem.className =
+      "challenge-overview-item challenge-overview-item--empty";
     emptyItem.textContent = "No search terms saved.";
     listEl.appendChild(emptyItem);
     return;

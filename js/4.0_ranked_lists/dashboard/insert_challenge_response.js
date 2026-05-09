@@ -1,4 +1,4 @@
-// Trigger:  Called by dashboard_challenge.js:
+// Trigger:  Called by dashboard_challenge_academic.js or dashboard_challenge_popular.js:
 //           - window.initInsertChallengeResponse() — wires the dialog on init
 //           - window.insertChallengeResponse()     — opens the insert dialog
 // Main:    insertChallengeResponse() — opens a dialog to collect a response

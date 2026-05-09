@@ -27,15 +27,15 @@
     <!-- Actions Group -->
     <div class="function-bar__actions-group">
         <button
-            id="btn-wikipedia-refresh"
+            id="btn-save-draft"
             class="btn btn--draft"
             type="button"
-            title="Recalculate rankings with current weights"
+            title="Save sidebar state as draft"
         >
-            Refresh
+            Save Draft
         </button>
         <button
-            id="btn-wikipedia-publish"
+            id="btn-publish"
             class="btn btn--publish"
             type="button"
             title="Publish current ranked order to live site"
@@ -43,12 +43,28 @@
             Publish
         </button>
         <button
-            id="btn-wikipedia-recalculate-all"
+            id="btn-delete"
+            class="btn btn--delete"
+            type="button"
+            title="Delete the selected record"
+        >
+            Delete
+        </button>
+        <button
+            id="btn-gather"
+            class="btn btn--accent"
+            type="button"
+            title="Gather new Wikipedia articles from pipeline"
+        >
+            Gather
+        </button>
+        <button
+            id="btn-calculate"
             class="btn btn--secondary"
             type="button"
-            title="Recalculate all Wikipedia data from pipeline"
+            title="Re-rank list using saved weights"
         >
-            Recalculate All
+            Calculate
         </button>
     </div>
 </section>

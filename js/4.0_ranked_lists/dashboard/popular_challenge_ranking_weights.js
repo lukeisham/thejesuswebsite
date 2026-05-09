@@ -1,4 +1,4 @@
-// Trigger:  Called by dashboard_challenge.js on Popular toggle/init, and by
+// Trigger:  Called by dashboard_challenge_popular.js on Popular init, and by
 //           challenge_weighting_handler.js when weighting criteria change.
 // Main:    renderPopularRankingWeightsOverview() — reads the popular
 //           weighting criteria from the per-mode state cache and renders a
@@ -18,8 +18,7 @@ function renderPopularRankingWeightsOverview() {
   listEl.innerHTML = "";
 
   // Read from the per-mode cache (restored on toggle) or current state
-  var criteria =
-    window._challengeModuleState.popularWeightingCriteria || [];
+  var criteria = window._challengeModuleState.popularWeightingCriteria || [];
 
   // Fall back to current state if cache is empty
   if (criteria.length === 0) {

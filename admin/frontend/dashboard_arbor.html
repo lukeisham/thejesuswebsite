@@ -21,12 +21,12 @@
     aria-label="Arbor diagram actions"
 >
     <button
-        id="arbor-btn-refresh"
-        class="btn btn--secondary"
+        id="btn-save-draft"
+        class="btn btn--draft"
         type="button"
-        title="Re-fetch the tree from the database, discarding unsaved changes"
+        title="Save all pending node changes as draft"
     >
-        Refresh
+        Save Draft
     </button>
     <button
         id="arbor-btn-publish"
@@ -35,6 +35,14 @@
         title="Commit all draft parent-child changes to the live site"
     >
         Publish
+    </button>
+    <button
+        id="arbor-btn-refresh"
+        class="btn btn--secondary"
+        type="button"
+        title="Re-fetch the tree from the database, discarding unsaved changes"
+    >
+        Refresh
     </button>
 </section>
 
@@ -70,13 +78,10 @@
     </ul>
 
     <!-- Empty state when no tree data exists -->
-    <div
-        id="arbor-tree-empty"
-        class="arbor-tree-empty state-empty"
-        hidden
-    >
+    <div id="arbor-tree-empty" class="arbor-tree-empty state-empty" hidden>
         <span class="state-empty__label">
-            No diagram data was returned. Check that records have parent relationships set.
+            No diagram data was returned. Check that records have parent
+            relationships set.
         </span>
     </div>
 </section>
@@ -104,11 +109,7 @@
     >
         <!-- Orphan nodes injected dynamically -->
     </ul>
-    <div
-        id="arbor-orphan-empty"
-        class="arbor-orphan-empty"
-        hidden
-    >
+    <div id="arbor-orphan-empty" class="arbor-orphan-empty" hidden>
         <span class="state-empty__label">
             All nodes have parent relationships.
         </span>

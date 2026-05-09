@@ -24,7 +24,7 @@ function initBlogPostStatusHandler() {
   const btnDelete = document.getElementById("btn-delete");
 
   if (btnSaveDraft) {
-    btnSaveDraft.addEventListener("click", _handleSave);
+    btnSaveDraft.addEventListener("click", _handleSaveDraft);
   }
 
   if (btnPublish) {
@@ -42,12 +42,12 @@ function initBlogPostStatusHandler() {
 }
 
 /* -----------------------------------------------------------------------------
-   HANDLER: Save
+   HANDLER: Save Draft
    Collects all editor data and PUTs to /api/admin/records/{id} with
    status = 'draft'. Before saving, checks for unsaved changes — if none,
    notifies the admin that there are no changes to save.
 ----------------------------------------------------------------------------- */
-async function _handleSave() {
+async function _handleSaveDraft() {
   const recordId = window._blogModuleState.activeRecordId;
   const title = window._blogModuleState.activeRecordTitle || "this post";
 
@@ -115,7 +115,6 @@ async function _handleSave() {
           window.renderEditPicture("blog-picture-container", result.id);
         }
 
-
         // Show Delete button
         const deleteBtn = document.getElementById("btn-delete");
         if (deleteBtn) deleteBtn.hidden = false;
@@ -143,7 +142,7 @@ async function _handleSave() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "Save";
+      btn.textContent = "Save Draft";
     }
   }
 }
@@ -310,10 +309,10 @@ async function _handleDelete() {
 
     const titleInput = document.getElementById("blog-title-input");
     if (titleInput) titleInput.value = "";
-    
+
     // Clear metadata widget
-    if (typeof window.populateMetadataWidget === 'function') {
-      window.populateMetadataWidget('metadata-widget-container', null);
+    if (typeof window.populateMetadataWidget === "function") {
+      window.populateMetadataWidget("metadata-widget-container", null);
     }
 
     if (typeof window.surfaceError === "function") {
@@ -414,7 +413,7 @@ async function _saveBlogPost() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      }
+      },
     );
     if (!response.ok) throw new Error("Silent save failed");
   } catch (err) {
@@ -423,7 +422,51 @@ async function _saveBlogPost() {
 }
 
 /* -----------------------------------------------------------------------------
+   FUNCTION: scheduleAutoSave
+   Debounced auto-save (1500ms) that collects editor data via
+   _collectEditorData() and PUTs with status: 'draft'. Wired to input/change
+   events on title and markdown textarea. Clears the isDirty flag on success.
+----------------------------------------------------------------------------- */
+function scheduleAutoSave() {
+  if (window._autoSaveTimer) {
+    clearTimeout(window._autoSaveTimer);
+  }
+
+  window._autoSaveTimer = setTimeout(async function () {
+    var recordId = window._blogModuleState.activeRecordId;
+    if (!recordId) return;
+
+    var payload = _collectEditorData();
+    payload.status = "draft";
+
+    try {
+      var response = await fetch(
+        BLOG_API_BASE + "/records/" + encodeURIComponent(recordId),
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) {
+        var errorBody = await response.json().catch(function () {
+          return {};
+        });
+        throw new Error(errorBody.detail || "HTTP " + response.status);
+      }
+
+      // Clear dirty flag on success
+      window._blogModuleState.isDirty = false;
+    } catch (err) {
+      console.error("[blog_post_status_handler] Auto-save failed:", err);
+    }
+  }, 1500);
+}
+
+/* -----------------------------------------------------------------------------
    GLOBAL EXPOSURE
 ----------------------------------------------------------------------------- */
 window.initBlogPostStatusHandler = initBlogPostStatusHandler;
 window._saveBlogPost = _saveBlogPost;
+window.scheduleAutoSave = scheduleAutoSave;

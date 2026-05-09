@@ -1,4 +1,4 @@
-// Trigger:  Called by dashboard_challenge.js on Academic toggle/init, and by
+// Trigger:  Called by dashboard_challenge_academic.js on Academic init, and by
 //           challenge_weighting_handler.js when weighting criteria change.
 // Main:    renderAcademicRankingWeightsOverview() — reads the academic
 //           weighting criteria from the per-mode state cache and renders a
@@ -18,8 +18,7 @@ function renderAcademicRankingWeightsOverview() {
   listEl.innerHTML = "";
 
   // Read from the per-mode cache (restored on toggle) or current state
-  var criteria =
-    window._challengeModuleState.academicWeightingCriteria || [];
+  var criteria = window._challengeModuleState.academicWeightingCriteria || [];
 
   // Fall back to current state if cache is empty
   if (criteria.length === 0) {

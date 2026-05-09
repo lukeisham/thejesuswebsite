@@ -1,4 +1,4 @@
-// Trigger:  Called by dashboard_challenge.js on Popular toggle/init, and by
+// Trigger:  Called by dashboard_challenge_popular.js on Popular init, and by
 //           challenge_weighting_handler.js on row selection.
 // Main:    renderPopularSearchTermsOverview() — reads the active record's
 //           popular_challenge_search_term from the textarea or state cache
@@ -22,13 +22,13 @@ function renderPopularSearchTermsOverview() {
   if (termsInput && termsInput.value.trim()) {
     rawValue = termsInput.value.trim();
   } else {
-    rawValue =
-      window._challengeModuleState.popularSearchTerms || "";
+    rawValue = window._challengeModuleState.popularSearchTerms || "";
   }
 
   if (!rawValue) {
     var emptyItem = document.createElement("li");
-    emptyItem.className = "challenge-overview-item challenge-overview-item--empty";
+    emptyItem.className =
+      "challenge-overview-item challenge-overview-item--empty";
     emptyItem.textContent = "No search terms saved.";
     listEl.appendChild(emptyItem);
     return;
@@ -46,7 +46,8 @@ function renderPopularSearchTermsOverview() {
 
   if (terms.length === 0) {
     var emptyItem = document.createElement("li");
-    emptyItem.className = "challenge-overview-item challenge-overview-item--empty";
+    emptyItem.className =
+      "challenge-overview-item challenge-overview-item--empty";
     emptyItem.textContent = "No search terms saved.";
     listEl.appendChild(emptyItem);
     return;

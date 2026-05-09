@@ -1,4 +1,4 @@
-// Trigger:  Called by dashboard_challenge.js → window.initChallengeWeighting()
+// Trigger:  Called by dashboard_challenge_academic.js or dashboard_challenge_popular.js → window.initChallengeWeighting()
 //           on module initialisation. Also called on toggle switch via
 //           window.reloadChallengeWeighting(mode) and row selection via
 //           window.loadChallengeSearchTerms(challenge).
@@ -457,6 +457,24 @@ async function _autoSaveSearchTerms() {
 }
 
 /* -----------------------------------------------------------------------------
+   FUNCTION: scheduleAutoSave
+   Triggers the existing auto-save functions for weights and search terms.
+   Called by the standardized auto-save orchestrator.
+----------------------------------------------------------------------------- */
+function scheduleAutoSave() {
+  // Trigger the existing auto-save for weights if a record is selected
+  if (
+    window._challengeModuleState &&
+    window._challengeModuleState.activeRecordSlug
+  ) {
+    _autoSaveWeights();
+  }
+
+  // Trigger the existing auto-save for search terms
+  _autoSaveSearchTerms();
+}
+
+/* -----------------------------------------------------------------------------
    GLOBAL EXPOSURE
 ----------------------------------------------------------------------------- */
 window.initChallengeWeighting = initChallengeWeighting;
@@ -464,3 +482,4 @@ window.reloadChallengeWeighting = reloadChallengeWeighting;
 window.loadChallengeSearchTerms = loadChallengeSearchTerms;
 // Exposed so dashboard_challenge.js can re-render after restoring per-mode cache
 window._renderWeightingListExposed = _renderWeightingList;
+window.scheduleAutoSave = scheduleAutoSave;

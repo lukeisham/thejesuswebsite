@@ -104,6 +104,9 @@ def _update_log_completed(
 ) -> None:
     """
     Update an agent_run_log row to status='completed' with output metrics.
+
+    Note: `articles_found` now represents NEW items added (not total crawled).
+    The database column retains the name 'articles_found' for schema compatibility.
     """
     conn = _get_db()
     cursor = conn.cursor()

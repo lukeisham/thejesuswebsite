@@ -269,10 +269,10 @@ async function _handleDelete() {
 
     const titleInput = document.getElementById("essay-title-input");
     if (titleInput) titleInput.value = "";
-    
+
     // Clear metadata widget
-    if (typeof window.populateMetadataWidget === 'function') {
-      window.populateMetadataWidget('metadata-widget-container', null);
+    if (typeof window.populateMetadataWidget === "function") {
+      window.populateMetadataWidget("metadata-widget-container", null);
     }
 
     if (typeof window.surfaceError === "function") {
@@ -375,7 +375,7 @@ async function _saveEssayDocument() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      }
+      },
     );
     if (!response.ok) throw new Error("Silent save failed");
   } catch (err) {
@@ -384,7 +384,51 @@ async function _saveEssayDocument() {
 }
 
 /* -----------------------------------------------------------------------------
+   FUNCTION: scheduleAutoSave
+   Debounced auto-save (1500ms) that collects editor data and PUTs with
+   status: 'draft'. Wired to input/change events on title and markdown
+   textarea. Clears the isDirty flag on success.
+----------------------------------------------------------------------------- */
+function scheduleAutoSave() {
+  if (window._autoSaveTimer) {
+    clearTimeout(window._autoSaveTimer);
+  }
+
+  window._autoSaveTimer = setTimeout(async function () {
+    var recordId = window._essayModuleState.activeRecordId;
+    if (!recordId) return;
+
+    var payload = _collectEditorData();
+    payload.status = "draft";
+
+    try {
+      var response = await fetch(
+        DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) {
+        var errorBody = await response.json().catch(function () {
+          return {};
+        });
+        throw new Error(errorBody.detail || "HTTP " + response.status);
+      }
+
+      // Clear dirty flag on success
+      window._essayModuleState.isDirty = false;
+    } catch (err) {
+      console.error("[document_status_handler] Auto-save failed:", err);
+    }
+  }, 1500);
+}
+
+/* -----------------------------------------------------------------------------
    GLOBAL EXPOSURE
 ----------------------------------------------------------------------------- */
 window.initDocumentStatusHandler = initDocumentStatusHandler;
 window._saveEssayDocument = _saveEssayDocument;
+window.scheduleAutoSave = scheduleAutoSave;

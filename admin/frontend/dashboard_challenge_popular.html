@@ -25,15 +25,15 @@
     <!-- Actions Group -->
     <div class="function-bar__actions-group">
         <button
-            id="btn-challenge-refresh"
+            id="btn-save-draft"
             class="btn btn--draft"
             type="button"
-            title="Refresh and recalculate rankings"
+            title="Save sidebar state as draft"
         >
-            Refresh
+            Save Draft
         </button>
         <button
-            id="btn-challenge-publish"
+            id="btn-publish"
             class="btn btn--publish"
             type="button"
             title="Publish current ranked order to live site"
@@ -41,12 +41,28 @@
             Publish
         </button>
         <button
-            id="btn-challenge-agent-search"
-            class="btn btn--secondary"
+            id="btn-delete"
+            class="btn btn--delete"
+            type="button"
+            title="Delete the selected record"
+        >
+            Delete
+        </button>
+        <button
+            id="btn-gather"
+            class="btn btn--accent"
             type="button"
             title="Run agent search for selected record"
         >
-            Agent Search
+            Gather
+        </button>
+        <button
+            id="btn-calculate"
+            class="btn btn--secondary"
+            type="button"
+            title="Re-rank list using saved weights"
+        >
+            Calculate
         </button>
         <button
             id="btn-challenge-insert-response"
@@ -124,9 +140,9 @@
                     id="btn-challenge-add-weight"
                     class="btn btn--draft"
                     type="button"
-                    title="Publish new weighting criterion"
+                    title="Save new weighting criterion as draft"
                 >
-                    Publish
+                    Save Draft
                 </button>
             </div>
         </section>

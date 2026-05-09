@@ -175,9 +175,53 @@ def run_pipeline():
                 "failed_sources": failed_sources,
             }
 
-        # ---- Step 5: Save to anchor record ----
+        # ---- Step 4a: Dedup against existing news items ----
+        # Read existing news_items to build a set of known URLs
+        existing_urls = set()
+        all_existing_items = []
         try:
-            news_blob = json.dumps(all_items, ensure_ascii=False)
+            dedup_cursor = conn.cursor()
+            dedup_cursor.execute(
+                "SELECT news_items FROM records WHERE slug = ?", (ANCHOR_SLUG,)
+            )
+            existing_row = dedup_cursor.fetchone()
+            dedup_cursor.close()
+            if existing_row and existing_row["news_items"]:
+                try:
+                    existing_items = json.loads(existing_row["news_items"])
+                    if isinstance(existing_items, list):
+                        all_existing_items = existing_items
+                        for item in existing_items:
+                            item_url = item.get("url", "") or ""
+                            if item_url:
+                                existing_urls.add(item_url)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+        except Exception:
+            pass
+
+        # Filter duplicates: skip items whose URL is already in the database
+        total_candidates = len(all_items)
+        genuinely_new = []
+        for item in all_items:
+            item_url = item.get("url", "") or ""
+            if item_url and item_url in existing_urls:
+                continue
+            genuinely_new.append(item)
+            if item_url:
+                existing_urls.add(item_url)
+
+        new_items_count = len(genuinely_new)
+        logger.info(
+            f"Dedup: {total_candidates} candidates, "
+            f"{new_items_count} genuinely new, "
+            f"{total_candidates - new_items_count} duplicates skipped."
+        )
+
+        # ---- Step 5: Append new items to existing items and save ----
+        try:
+            merged_items = all_existing_items + genuinely_new
+            news_blob = json.dumps(merged_items, ensure_ascii=False)
             cursor = conn.cursor()
 
             # Upsert: create the record if it doesn't exist
@@ -219,12 +263,17 @@ def run_pipeline():
 
             conn.commit()
             logger.info(
-                f"Saved {len(all_items)} news items to anchor record '{ANCHOR_SLUG}'."
+                f"Saved {new_items_count} new news items to "
+                f"anchor record '{ANCHOR_SLUG}' "
+                f"(merged with {len(all_existing_items)} existing)."
             )
 
             result = {
                 "status": "success",
-                "items_collected": len(all_items),
+                "items_collected": len(genuinely_new),
+                "new_items": new_items_count,
+                "total_candidates": total_candidates,
+                "duplicates_skipped": total_candidates - new_items_count,
                 "sources_crawled": len(sources) - len(failed_sources),
                 "sources_failed": len(failed_sources),
             }
@@ -240,7 +289,8 @@ def run_pipeline():
                     "Error: Failed to save news items to the "
                     "database. Write error on 'global-news-feed'."
                 ),
-                "items_collected": len(all_items),
+                "items_collected": len(genuinely_new),
+                "new_items": new_items_count,
             }
 
     except Exception as exc:

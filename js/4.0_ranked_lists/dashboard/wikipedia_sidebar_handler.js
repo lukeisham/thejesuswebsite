@@ -25,7 +25,7 @@ async function _saveMetadataFromWidget(data) {
         slug: data.slug,
         snippet: data.snippet,
         metadata_json: data.metadata_json,
-        status: "draft"
+        status: "draft",
       }),
     });
 
@@ -37,7 +37,9 @@ async function _saveMetadataFromWidget(data) {
     state.activeRecordMeta = data.metadata_json;
 
     if (typeof window.surfaceError === "function") {
-      window.surfaceError("Metadata saved for '" + state.activeRecordTitle + "'.");
+      window.surfaceError(
+        "Metadata saved for '" + state.activeRecordTitle + "'.",
+      );
     }
   } catch (err) {
     console.error("[wikipedia_sidebar] Metadata save failed:", err);
@@ -60,19 +62,25 @@ function initWikipediaSidebar() {
   }
 
   // Initialise standardized metadata widget
-  if (typeof window.renderMetadataWidget === 'function') {
-    window.renderMetadataWidget('wikipedia-metadata-container', {
+  if (typeof window.renderMetadataWidget === "function") {
+    window.renderMetadataWidget("wikipedia-metadata-container", {
       onAutoSaveDraft: _saveMetadataFromWidget,
-      getRecordTitle: function() { return window._wikipediaModuleState.activeRecordTitle; },
-      getRecordId: function() { return window._wikipediaModuleState.activeRecordSlug; }
+      getRecordTitle: function () {
+        return window._wikipediaModuleState.activeRecordTitle;
+      },
+      getRecordId: function () {
+        return window._wikipediaModuleState.activeRecordSlug;
+      },
     });
 
     // Also wire manual blur save for the widget's inputs (if they exist yet)
-    var container = document.getElementById('wikipedia-metadata-container');
+    var container = document.getElementById("wikipedia-metadata-container");
     if (container) {
-      container.addEventListener('focusout', function(e) {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-          var data = window.collectMetadataWidget('wikipedia-metadata-container');
+      container.addEventListener("focusout", function (e) {
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+          var data = window.collectMetadataWidget(
+            "wikipedia-metadata-container",
+          );
           _saveMetadataFromWidget(data);
         }
       });
@@ -97,21 +105,21 @@ function populateWikipediaSidebar(record) {
   if (slugEl) slugEl.textContent = record.slug || "\u2014";
 
   // Section 2: Wikipedia Weight — delegate to wikipedia_weights.js
-  if (typeof window.loadWikipediaWeights === 'function') {
+  if (typeof window.loadWikipediaWeights === "function") {
     window.loadWikipediaWeights(record);
   }
 
   // Section 3: Search Terms — delegate to wikipedia_search_terms.js
-  if (typeof window.loadWikipediaSearchTerms === 'function') {
+  if (typeof window.loadWikipediaSearchTerms === "function") {
     window.loadWikipediaSearchTerms(record);
   }
 
   // Section 4: Metadata (via widget)
-  if (typeof window.populateMetadataWidget === 'function') {
-    window.populateMetadataWidget('wikipedia-metadata-container', {
+  if (typeof window.populateMetadataWidget === "function") {
+    window.populateMetadataWidget("wikipedia-metadata-container", {
       slug: record.slug,
       snippet: record.snippet,
-      metadata_json: record.metadata_json
+      metadata_json: record.metadata_json,
     });
   }
 }
@@ -128,8 +136,8 @@ function _clearSidebar() {
   if (slugEl) slugEl.textContent = "\u2014";
 
   // Clear metadata widget
-  if (typeof window.populateMetadataWidget === 'function') {
-    window.populateMetadataWidget('wikipedia-metadata-container', null);
+  if (typeof window.populateMetadataWidget === "function") {
+    window.populateMetadataWidget("wikipedia-metadata-container", null);
   }
 
   // Clear weighting list and search terms textarea
@@ -145,8 +153,6 @@ function _clearSidebar() {
   );
   if (overviewList) overviewList.innerHTML = "";
 }
-
-
 
 /* -----------------------------------------------------------------------------
    HANDLER: _handleRecalculateRecord (unique to Wikipedia)
@@ -217,5 +223,69 @@ async function _handleRecalculateRecord() {
   }
 }
 
+/* -----------------------------------------------------------------------------
+   FUNCTION: scheduleAutoSave
+   Debounced auto-save (1500ms) that collects editor data and PUTs with
+   status: 'draft'. Wired to input/change events on the search terms
+   textarea and weight inputs.
+----------------------------------------------------------------------------- */
+function scheduleAutoSave() {
+  if (window._wikipediaAutoSaveTimer) {
+    clearTimeout(window._wikipediaAutoSaveTimer);
+  }
+
+  window._wikipediaAutoSaveTimer = setTimeout(async function () {
+    var state = window._wikipediaModuleState;
+    if (!state || !state.activeRecordId) return;
+
+    // Collect search terms
+    var termsInput = document.getElementById("wikipedia-search-terms-input");
+    var searchTerms = termsInput ? termsInput.value : "";
+
+    // Collect weight from weight input
+    var weightInput = document.getElementById("wikipedia-weight-input");
+    var weightValue = weightInput ? weightInput.value : "";
+
+    var payload = {
+      status: "draft",
+    };
+
+    if (searchTerms) {
+      var termsArray = searchTerms
+        .split(/[\n,]+/)
+        .map(function (t) {
+          return t.trim();
+        })
+        .filter(function (t) {
+          return t.length > 0;
+        });
+      payload.wikipedia_search_term = JSON.stringify(termsArray);
+    }
+
+    if (weightValue) {
+      payload.wikipedia_weight = weightValue;
+    }
+
+    try {
+      var response = await fetch("/api/admin/records/" + state.activeRecordId, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("API responded with status " + response.status);
+      }
+
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError("Wikipedia record saved as draft.");
+      }
+    } catch (err) {
+      console.error("[wikipedia_sidebar] Auto-save failed:", err);
+    }
+  }, 1500);
+}
+
 window.initWikipediaSidebar = initWikipediaSidebar;
 window.populateWikipediaSidebar = populateWikipediaSidebar;
+window.scheduleAutoSave = scheduleAutoSave;

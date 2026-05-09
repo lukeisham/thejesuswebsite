@@ -1,4 +1,4 @@
-// Trigger:  Called by dashboard_challenge.js → window.displayChallengeList(mode)
+// Trigger:  Called by dashboard_challenge_academic.js or dashboard_challenge_popular.js → window.displayChallengeList(mode)
 //           on initial load for both academic and popular, and after Refresh.
 // Main:    displayChallengeList(mode) — fetches records from the API filtered
 //           by challenge type (academic/popular), sorts by rank, renders the
@@ -80,7 +80,6 @@ async function displayChallengeList(mode) {
     } else {
       window._challengeModuleState.popularChallenges = challenges;
     }
-
 
     // Hide loading
     if (loadingEl) loadingEl.style.display = "none";

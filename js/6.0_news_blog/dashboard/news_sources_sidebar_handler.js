@@ -33,7 +33,7 @@ async function _saveMetadataFromWidget(data) {
         slug: data.slug,
         snippet: data.snippet,
         metadata_json: data.metadata_json,
-        status: "draft"
+        status: "draft",
       }),
     });
 
@@ -45,7 +45,11 @@ async function _saveMetadataFromWidget(data) {
     state.activeMeta = data.metadata_json;
 
     if (typeof window.surfaceError === "function") {
-      window.surfaceError("Metadata saved for '" + (state.activeRecordTitle || state.activeRecordSlug) + "'.");
+      window.surfaceError(
+        "Metadata saved for '" +
+          (state.activeRecordTitle || state.activeRecordSlug) +
+          "'.",
+      );
     }
   } catch (err) {
     console.error("[news_sources_sidebar] Metadata save failed:", err);
@@ -82,21 +86,26 @@ function initNewsSourcesSidebar() {
   }
 
   // --- Standardized Metadata Widget ---
-  if (typeof window.renderMetadataWidget === 'function') {
-    window.renderMetadataWidget('metadata-widget-container', {
+  if (typeof window.renderMetadataWidget === "function") {
+    window.renderMetadataWidget("metadata-widget-container", {
       onAutoSaveDraft: _saveMetadataFromWidget,
-      getRecordTitle: function() { 
-        return window._newsSourcesModuleState.activeRecordTitle || window._newsSourcesModuleState.activeRecordSlug; 
+      getRecordTitle: function () {
+        return (
+          window._newsSourcesModuleState.activeRecordTitle ||
+          window._newsSourcesModuleState.activeRecordSlug
+        );
       },
-      getRecordId: function() { return window._newsSourcesModuleState.activeRecordSlug; }
+      getRecordId: function () {
+        return window._newsSourcesModuleState.activeRecordSlug;
+      },
     });
 
     // Wire manual blur save for the widget's inputs
-    var container = document.getElementById('metadata-widget-container');
+    var container = document.getElementById("metadata-widget-container");
     if (container) {
-      container.addEventListener('focusout', function(e) {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-          var data = window.collectMetadataWidget('metadata-widget-container');
+      container.addEventListener("focusout", function (e) {
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+          var data = window.collectMetadataWidget("metadata-widget-container");
           _saveMetadataFromWidget(data);
         }
       });
@@ -351,5 +360,72 @@ async function _handleSaveUrl() {
   }
 }
 
+/* -----------------------------------------------------------------------------
+   FUNCTION: scheduleAutoSave
+   Debounced auto-save (1500ms) that collects editor data and PUTs with
+   status: 'draft'. Wired to input/change events on URL input, search term
+   input, and other editable fields.
+----------------------------------------------------------------------------- */
+function scheduleAutoSave() {
+  if (window._newsAutoSaveTimer) {
+    clearTimeout(window._newsAutoSaveTimer);
+  }
+
+  window._newsAutoSaveTimer = setTimeout(async function () {
+    var state = window._newsSourcesModuleState;
+    if (!state || !state.activeRecordId) return;
+
+    // Collect URL input
+    var urlInput = document.getElementById("news-sources-url-input");
+    var rawUrl = urlInput ? urlInput.value.trim() : "";
+
+    // Collect search terms
+    var searchTerms = state.activeSearchKeywords || [];
+
+    var payload = {
+      status: "draft",
+    };
+
+    if (rawUrl) {
+      var parsedUrl, parsedName;
+      try {
+        var parsed = JSON.parse(rawUrl);
+        parsedUrl = parsed.url || rawUrl;
+        parsedName = parsed.name || "";
+      } catch (e) {
+        parsedUrl = rawUrl;
+        parsedName = "";
+      }
+      payload.news_sources = JSON.stringify({
+        url: parsedUrl,
+        name: parsedName,
+      });
+    }
+
+    if (searchTerms.length > 0) {
+      payload.news_search_term = JSON.stringify(searchTerms);
+    }
+
+    try {
+      var response = await fetch("/api/admin/records/" + state.activeRecordId, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("API responded with status " + response.status);
+      }
+
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError("News source saved as draft.");
+      }
+    } catch (err) {
+      console.error("[news_sources_sidebar] Auto-save failed:", err);
+    }
+  }, 1500);
+}
+
 window.initNewsSourcesSidebar = initNewsSourcesSidebar;
 window.populateNewsSourcesSidebar = populateNewsSourcesSidebar;
+window.scheduleAutoSave = scheduleAutoSave;

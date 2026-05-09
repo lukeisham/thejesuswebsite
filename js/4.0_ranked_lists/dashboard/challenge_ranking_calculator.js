@@ -1,4 +1,4 @@
-// Trigger:  Called by dashboard_challenge.js action bar buttons:
+// Trigger:  Called by dashboard_challenge_academic.js or dashboard_challenge_popular.js action bar buttons:
 //           - window.refreshChallengeRankings() → "Refresh" button
 //           - window.triggerAgentSearch()       → "Agent Search" button
 //           - window.publishChallengeRankings() → "Publish" button

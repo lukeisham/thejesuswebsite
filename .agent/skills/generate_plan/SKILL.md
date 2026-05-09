@@ -129,7 +129,7 @@ Set `Yes / No` for each row and write a specific, actionable `Change Description
 
 `IF` file written successfully:
   - **State**: `PLAN_GENERATED`
-  - **Action**: Confirm to the user with the output path (`{{plan_name}}.md` in the project root) and a brief summary of: how many tasks were generated, and how many documents in the T[Final+2] Documentation Update task are marked `Yes`. Remind the user to run `/sync_sitemap` after any plan that adds new files to the codebase. Finally, automatically trigger and execute the `documentation/dashboard_refractor.md` skill.
+  - **Action**: Confirm to the user with the output path (`{{plan_name}}.md` in the project root) and a brief summary of: how many tasks were generated, and how many documents in the T[Final+2] Documentation Update task are marked `Yes`. Remind the user to run `/sync_sitemap` after any plan that adds new files to the codebase. Finally, cross-reference `documentation/detailed_module_sitemap.md` and `documentation/vibe_coding_rules.md` to verify that all file paths and rules are correct — these two documents together serve the same inventory-and-rules purpose that the removed `dashboard_refractor.md` skill was intended to fill.
 
 `IF` required inputs are missing or ambiguous:
   - **State**: `AWAITING_INPUT`

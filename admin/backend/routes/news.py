@@ -6,9 +6,6 @@
 #            trigger.
 # =============================================================================
 
-import os
-import subprocess
-import sys
 import threading
 from datetime import datetime, timezone
 
@@ -114,13 +111,13 @@ async def trigger_news_crawl(admin_data: dict = Depends(verify_token)):
     def _run_news_pipeline():
         """Run the news pipeline in a background thread."""
         try:
-            project_root = os.path.join(os.path.dirname(__file__), "..", "..", "..")
-            subprocess.run(
-                [sys.executable, "-m", "backend.pipelines.pipeline_news"],
-                cwd=project_root,
-                capture_output=True,
-                timeout=300,  # 5-minute timeout
+            from backend.pipelines.pipeline_news import (
+                run_pipeline as run_news_pipeline,
             )
+
+            result = run_news_pipeline()
+            # Log the result for retrieval via agent_logs or monitoring
+            logger.info(f"News crawl completed: {result}")
         except Exception as exc:
             logger.error(f"News crawl background task failed: {exc}")
 

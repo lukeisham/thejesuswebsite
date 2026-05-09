@@ -72,11 +72,11 @@ async function renderNewsSources() {
       if (sidebar) {
         window._setColumn("sidebar", sidebar.outerHTML);
       }
-      
+
       let mainHtml = "";
       if (functionBar) mainHtml += functionBar.outerHTML;
       if (listArea) mainHtml += listArea.outerHTML;
-      
+
       window._setColumn("main", mainHtml);
     }
   } catch (err) {
@@ -117,8 +117,7 @@ async function renderNewsSources() {
   }
 
   /* -------------------------------------------------------------------------
-       4. WIRE FUNCTION BAR BUTTONS — Refresh, Publish
-       Crawl button is wired by launch_news_crawler.js
+       4. WIRE FUNCTION BAR BUTTONS — Save Draft, Publish, Delete, Gather
     ------------------------------------------------------------------------- */
   _wireActionButtons();
 
@@ -161,8 +160,6 @@ async function renderNewsSources() {
       },
     });
   }
-
-
 }
 
 /* -----------------------------------------------------------------------------
@@ -184,43 +181,31 @@ function _resetState() {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _wireActionButtons
-   Binds click handlers to Refresh and Publish buttons in the function bar.
+   Binds click handlers to Save Draft, Publish, Delete, and Gather buttons
+   in the function bar.
 ----------------------------------------------------------------------------- */
 function _wireActionButtons() {
-  const btnRefresh = document.getElementById("btn-news-refresh");
-  const btnPublish = document.getElementById("btn-news-publish");
-
-  // Refresh — re-fetch the sources list and set affected records to draft
-  if (btnRefresh && typeof window.displayNewsSourcesList === "function") {
-    btnRefresh.addEventListener("click", async function () {
-      btnRefresh.disabled = true;
-      btnRefresh.textContent = "Refreshing...";
+  // Save Draft — save current sidebar state (URL, keywords, metadata) as draft
+  const btnSaveDraft = document.getElementById("btn-save-draft");
+  if (btnSaveDraft) {
+    btnSaveDraft.addEventListener("click", async function () {
+      btnSaveDraft.disabled = true;
+      btnSaveDraft.textContent = "Saving…";
       try {
-        await window.displayNewsSourcesList();
-        if (typeof window.surfaceError === "function") {
-          window.surfaceError(
-            "News sources list refreshed. Records set to draft.",
-          );
-        }
-      } catch (err) {
-        console.error("[dashboard_news_sources] Refresh failed:", err);
-        if (typeof window.surfaceError === "function") {
-          window.surfaceError(
-            "Error: Unable to retrieve news sources list. Please refresh.",
-          );
-        }
+        await _handleSaveDraft();
       } finally {
-        btnRefresh.disabled = false;
-        btnRefresh.textContent = "Refresh";
+        btnSaveDraft.disabled = false;
+        btnSaveDraft.textContent = "Save Draft";
       }
     });
   }
 
   // Publish — commit current source configuration to live
+  const btnPublish = document.getElementById("btn-publish");
   if (btnPublish && typeof window.publishNewsSources === "function") {
     btnPublish.addEventListener("click", async function () {
       btnPublish.disabled = true;
-      btnPublish.textContent = "Publishing...";
+      btnPublish.textContent = "Publishing…";
       try {
         await window.publishNewsSources();
       } finally {
@@ -228,6 +213,128 @@ function _wireActionButtons() {
         btnPublish.textContent = "Publish";
       }
     });
+  }
+
+  // Delete — prompt and delete the selected record
+  const btnDelete = document.getElementById("btn-delete");
+  if (btnDelete) {
+    btnDelete.addEventListener("click", async function () {
+      const state = window._newsSourcesModuleState;
+      if (!state.activeRecordId) {
+        if (typeof window.surfaceError === "function") {
+          window.surfaceError("No record selected. Select a record to delete.");
+        }
+        return;
+      }
+      const confirmed = confirm(
+        'Are you sure you want to delete "' + state.activeRecordTitle + '"?',
+      );
+      if (!confirmed) return;
+      btnDelete.disabled = true;
+      btnDelete.textContent = "Deleting…";
+      try {
+        const response = await fetch(
+          "/api/admin/records/" + encodeURIComponent(state.activeRecordId),
+          { method: "DELETE" },
+        );
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        if (typeof window.surfaceError === "function") {
+          window.surfaceError('Deleted: "' + state.activeRecordTitle + '"');
+        }
+        if (typeof window.displayNewsSourcesList === "function") {
+          await window.displayNewsSourcesList();
+        }
+      } catch (err) {
+        console.error("[dashboard_news_sources] Delete failed:", err);
+        if (typeof window.surfaceError === "function") {
+          window.surfaceError("Error: Failed to delete record.");
+        }
+      } finally {
+        btnDelete.disabled = false;
+        btnDelete.textContent = "Delete";
+      }
+    });
+  }
+
+  // Gather — trigger the news crawler pipeline (shared gather tool)
+  const btnGather = document.getElementById("btn-gather");
+  if (btnGather) {
+    btnGather.addEventListener("click", async function () {
+      btnGather.disabled = true;
+      btnGather.textContent = "Gathering…";
+      try {
+        if (typeof window.triggerGather === "function") {
+          await window.triggerGather("news_crawl", "");
+        } else if (typeof window.startNewsCrawl === "function") {
+          await window.startNewsCrawl();
+        }
+      } finally {
+        btnGather.disabled = false;
+        btnGather.textContent = "Gather";
+      }
+    });
+  }
+
+  // Re-fetch the sources list
+  if (typeof window.displayNewsSourcesList === "function") {
+    // Ensure list is displayed
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _handleSaveDraft
+   Collects current sidebar state (source URL, search keywords, metadata) and
+   PUTs with status: 'draft'.
+----------------------------------------------------------------------------- */
+async function _handleSaveDraft() {
+  const state = window._newsSourcesModuleState;
+  if (!state.activeRecordId) {
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("No record selected. Select a record to save.");
+    }
+    return;
+  }
+
+  const payload = { status: "draft" };
+
+  // Collect slug and snippet from metadata widget
+  if (typeof window.collectMetadataWidget === "function") {
+    const metaData = window.collectMetadataWidget("metadata-widget-container");
+    payload.slug = metaData.slug || state.activeRecordSlug;
+    payload.snippet = metaData.snippet || state.activeSnippet;
+    payload.metadata_json = metaData.metadata_json || state.activeMeta;
+  }
+
+  // Collect current source URL
+  const urlInput = document.getElementById("news-sources-url-input");
+  if (urlInput && urlInput.value.trim()) {
+    payload.news_sources = JSON.stringify({ url: urlInput.value.trim() });
+  }
+
+  // Collect search keywords from state
+  if (state.activeSearchKeywords && state.activeSearchKeywords.length > 0) {
+    payload.news_search_term = JSON.stringify(state.activeSearchKeywords);
+  }
+
+  try {
+    const response = await fetch(
+      "/api/admin/records/" + encodeURIComponent(state.activeRecordId),
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
+    if (!response.ok) throw new Error("HTTP " + response.status);
+
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError('Draft saved: "' + state.activeRecordTitle + '"');
+    }
+  } catch (err) {
+    console.error("[dashboard_news_sources] Save draft failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Error: Failed to save draft.");
+    }
   }
 }
 

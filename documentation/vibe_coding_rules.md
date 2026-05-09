@@ -1,6 +1,6 @@
 ---
 name: vibe_coding_rules.md
-version: 1.1.1
+version: 1.1.2
 purpose: Foundational coding philosophies and aesthetic mandates for the project
 dependencies: []
 ---
@@ -37,8 +37,8 @@ This document outlines the core coding philosophies ("vibe coding rules") for ma
 - **Human Readable:** Keep schema structures logical. Database fields and JSON keys must strictly use `snake_case`.
 
 ## 6. Source-of-Truth Discipline
-- **Documentation Verification:** During implementation, the agent must cross-reference the active plan with `dashboard_refractor.md` and `detailed_module_sitemap.md` every 3 tasks.
-- **Strict File Names:** Do not deviate from the filenames specified in implementation plans. If a file is not in the plan but is in the refractor document, it must be created.
+- **Documentation Verification:** During implementation, the agent must cross-reference the active plan with `documentation/detailed_module_sitemap.md` and `documentation/vibe_coding_rules.md` every 3 tasks to verify file paths and coding rules.
+- **Strict File Names:** Do not deviate from the filenames specified in implementation plans. Use `documentation/detailed_module_sitemap.md` as the canonical source of truth for file paths.
 - **Inventory Check:** Before marking a module as complete, perform a manual inventory of all created files against the "File Inventory" section of the plan.
 
 ## 7. AI Execution & Drift Control
@@ -49,4 +49,7 @@ This document outlines the core coding philosophies ("vibe coding rules") for ma
 - **Cross-Plan Shared-Tool Ownership:** Several dashboard modules consume shared JS tools (`picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `markdown_editor.js`). Each shared tool is OWNED by exactly one plan and lives in ONE directory. Consumer plans MUST NOT create local copies. They MUST include the owner's file via a `<script>` tag in their HTML and call the exposed `window.*` function. The ownership table:
   - `plan_dashboard_records_single` owns: `picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_widget.js`, `metadata_widget.css` — all in `js/2.0_records/dashboard/` (CSS in `css/2.0_records/dashboard/`)
   - `plan_dashboard_essay_historiography` owns: `markdown_editor.js` — in `js/5.0_essays_responses/dashboard/`
+  - `plan_standardize_dashboard_buttons` owns: `gather_trigger.js`, `field_persistence.js` — both in `js/7.0_system/dashboard/`
+    - `gather_trigger.js` is consumed by: Wikipedia, Challenge Academic, Challenge Popular, News Sources dashboards
+    - `field_persistence.js` is consumed by: all dashboard modules (2.0–6.0)
   If a consumer needs module-specific behavior, add a parameter to the shared function signature on the OWNER's copy — do not fork the file.
