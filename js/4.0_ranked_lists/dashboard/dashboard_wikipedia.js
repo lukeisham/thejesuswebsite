@@ -38,7 +38,7 @@ async function renderWikipedia() {
           so collapse the Providence sidebar and use the full main column.
     ------------------------------------------------------------------------- */
   if (typeof window._setLayoutColumns === "function") {
-    window._setLayoutColumns(false, "1fr");
+    window._setLayoutColumns("360px", "1fr");
   }
 
   /* -------------------------------------------------------------------------
@@ -57,7 +57,22 @@ async function renderWikipedia() {
     const html = await response.text();
 
     if (typeof window._setColumn === "function") {
-      window._setColumn("main", html);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      const functionBar = doc.getElementById("wikipedia-function-bar");
+      const sidebar = doc.getElementById("wikipedia-sidebar");
+      const listArea = doc.getElementById("wikipedia-list-area");
+
+      if (sidebar) {
+        window._setColumn("sidebar", sidebar.outerHTML);
+      }
+      
+      let mainHtml = "";
+      if (functionBar) mainHtml += functionBar.outerHTML;
+      if (listArea) mainHtml += listArea.outerHTML;
+      
+      window._setColumn("main", mainHtml);
     }
   } catch (err) {
     console.error("[dashboard_wikipedia] Template load failed:", err);

@@ -92,7 +92,7 @@ async function renderChallenge() {
           Providence sidebar and use the full main column.
     ------------------------------------------------------------------------- */
   if (typeof window._setLayoutColumns === "function") {
-    window._setLayoutColumns(false, "1fr");
+    window._setLayoutColumns("360px", "1fr");
   }
 
   /* -------------------------------------------------------------------------
@@ -111,7 +111,22 @@ async function renderChallenge() {
     const html = await response.text();
 
     if (typeof window._setColumn === "function") {
-      window._setColumn("main", html);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      const functionBar = doc.getElementById("challenge-function-bar");
+      const sidebar = doc.getElementById("challenge-sidebar");
+      const listArea = doc.getElementById("challenge-list-area");
+
+      if (sidebar) {
+        window._setColumn("sidebar", sidebar.outerHTML);
+      }
+      
+      let mainHtml = "";
+      if (functionBar) mainHtml += functionBar.outerHTML;
+      if (listArea) mainHtml += listArea.outerHTML;
+      
+      window._setColumn("main", mainHtml);
     }
   } catch (err) {
     console.error("[dashboard_challenge] Template load failed:", err);

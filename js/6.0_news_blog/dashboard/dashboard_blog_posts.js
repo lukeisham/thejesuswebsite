@@ -38,7 +38,7 @@ async function renderBlogPosts() {
         Providence sidebar and use the full main column for our split-pane.
   ------------------------------------------------------------------------- */
   if (typeof window._setLayoutColumns === "function") {
-    window._setLayoutColumns(false, "1fr");
+    window._setLayoutColumns("360px", "1fr");
   }
 
   /* -------------------------------------------------------------------------
@@ -55,7 +55,22 @@ async function renderBlogPosts() {
     const html = await response.text();
 
     if (typeof window._setColumn === "function") {
-      window._setColumn("main", html);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      const functionBar = doc.getElementById("blog-function-bar");
+      const sidebar = doc.getElementById("blog-sidebar");
+      const editorArea = doc.getElementById("blog-editor-area");
+
+      if (sidebar) {
+        window._setColumn("sidebar", sidebar.outerHTML);
+      }
+      
+      let mainHtml = "";
+      if (functionBar) mainHtml += functionBar.outerHTML;
+      if (editorArea) mainHtml += editorArea.outerHTML;
+      
+      window._setColumn("main", mainHtml);
     }
   } catch (err) {
     console.error("[dashboard_blog_posts] Template load failed:", err);

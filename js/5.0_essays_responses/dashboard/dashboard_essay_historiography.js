@@ -37,7 +37,7 @@ async function renderEssayHistoriography() {
         Providence sidebar and use the full main column for our split-pane.
   ------------------------------------------------------------------------- */
   if (typeof window._setLayoutColumns === "function") {
-    window._setLayoutColumns(false, "1fr");
+    window._setLayoutColumns("360px", "1fr");
   }
 
   /* -------------------------------------------------------------------------
@@ -56,7 +56,22 @@ async function renderEssayHistoriography() {
     const html = await response.text();
 
     if (typeof window._setColumn === "function") {
-      window._setColumn("main", html);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      const functionBar = doc.getElementById("essay-function-bar");
+      const sidebar = doc.getElementById("essay-sidebar");
+      const editorArea = doc.getElementById("essay-editor-area");
+
+      if (sidebar) {
+        window._setColumn("sidebar", sidebar.outerHTML);
+      }
+      
+      let mainHtml = "";
+      if (functionBar) mainHtml += functionBar.outerHTML;
+      if (editorArea) mainHtml += editorArea.outerHTML;
+      
+      window._setColumn("main", mainHtml);
     }
   } catch (err) {
     console.error(

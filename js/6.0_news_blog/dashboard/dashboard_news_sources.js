@@ -43,7 +43,7 @@ async function renderNewsSources() {
           so collapse the Providence sidebar and use the full main column.
     ------------------------------------------------------------------------- */
   if (typeof window._setLayoutColumns === "function") {
-    window._setLayoutColumns(false, "1fr");
+    window._setLayoutColumns("360px", "1fr");
   }
 
   /* -------------------------------------------------------------------------
@@ -62,7 +62,22 @@ async function renderNewsSources() {
     const html = await response.text();
 
     if (typeof window._setColumn === "function") {
-      window._setColumn("main", html);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      const functionBar = doc.getElementById("news-sources-function-bar");
+      const sidebar = doc.getElementById("news-sources-sidebar");
+      const listArea = doc.getElementById("news-sources-list-area");
+
+      if (sidebar) {
+        window._setColumn("sidebar", sidebar.outerHTML);
+      }
+      
+      let mainHtml = "";
+      if (functionBar) mainHtml += functionBar.outerHTML;
+      if (listArea) mainHtml += listArea.outerHTML;
+      
+      window._setColumn("main", mainHtml);
     }
   } catch (err) {
     console.error("[dashboard_news_sources] Template load failed:", err);
