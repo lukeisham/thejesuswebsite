@@ -68,9 +68,24 @@ window._challengeModuleState = {
   academicChallenges: [],
   popularChallenges: [],
 
+  // Mode-aware getter/setter for challenges — sub-modules read/write
+  // window._challengeModuleState.challenges; it routes to the correct
+  // per-mode array based on the current mode value.
+  get challenges() {
+    return this.mode === "academic"
+      ? this.academicChallenges
+      : this.popularChallenges;
+  },
+  set challenges(val) {
+    if (this.mode === "academic") {
+      this.academicChallenges = val;
+    } else {
+      this.popularChallenges = val;
+    }
+  },
+
   // Active weighting criteria for the CURRENT mode's UI
   weightingCriteria: [],
-
 
   // Per-mode weighting + search term cache (saved on toggle, restored on return)
   academicWeightingCriteria: [],
@@ -105,7 +120,9 @@ async function renderChallenge() {
     const response = await fetch("/admin/frontend/dashboard_challenge.html");
     if (!response.ok) {
       throw new Error(
-        "Failed to load challenge editor template (HTTP " + response.status + ")",
+        "Failed to load challenge editor template (HTTP " +
+          response.status +
+          ")",
       );
     }
     const html = await response.text();
@@ -121,14 +138,18 @@ async function renderChallenge() {
     // stringified and injected into the document. This is more reliable than
     // document.getElementById immediately after injection.
     if (sidebar) {
-      const detachedHeading = sidebar.querySelector("#challenge-sidebar-heading");
+      const detachedHeading = sidebar.querySelector(
+        "#challenge-sidebar-heading",
+      );
       if (detachedHeading) {
         detachedHeading.textContent = "ACADEMIC WEIGHTING AND SEARCH TERMS";
       }
     }
 
     if (listArea) {
-      const detachedLabel = sidebar ? sidebar.querySelector("#challenge-search-terms-field-label") : null;
+      const detachedLabel = sidebar
+        ? sidebar.querySelector("#challenge-search-terms-field-label")
+        : null;
       if (detachedLabel) detachedLabel.textContent = "Academic";
     }
 
@@ -137,7 +158,9 @@ async function renderChallenge() {
       if (sidebar) {
         window._setColumn("sidebar", sidebar.outerHTML);
       } else {
-        console.warn("[dashboard_challenge.js] #challenge-sidebar not found in template.");
+        console.warn(
+          "[dashboard_challenge.js] #challenge-sidebar not found in template.",
+        );
       }
 
       let mainHtml = "";
@@ -147,10 +170,14 @@ async function renderChallenge() {
       if (mainHtml) {
         window._setColumn("main", mainHtml);
       } else {
-        console.warn("[dashboard_challenge.js] Main content elements missing in template.");
+        console.warn(
+          "[dashboard_challenge.js] Main content elements missing in template.",
+        );
       }
     } else {
-      console.error("[dashboard_challenge.js] window._setColumn utility missing. Injection failed.");
+      console.error(
+        "[dashboard_challenge.js] window._setColumn utility missing. Injection failed.",
+      );
     }
   } catch (err) {
     console.error("[dashboard_challenge] Template load failed:", err);
@@ -161,7 +188,6 @@ async function renderChallenge() {
     }
     return;
   }
-
 
   /* -------------------------------------------------------------------------
        3. INITIALISE SUB-MODULES
@@ -239,7 +265,6 @@ async function renderChallenge() {
     );
   }
 
-
   // 6. INITIALISE SHARED TOOLS — Metadata widget + footer
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {
@@ -255,11 +280,13 @@ async function renderChallenge() {
     });
 
     // Also wire manual blur save for the widget's inputs
-    const container = document.getElementById('metadata-widget-container');
+    const container = document.getElementById("metadata-widget-container");
     if (container) {
-      container.addEventListener('focusout', function(e) {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-          const data = window.collectMetadataWidget('metadata-widget-container');
+      container.addEventListener("focusout", function (e) {
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+          const data = window.collectMetadataWidget(
+            "metadata-widget-container",
+          );
           _saveChallengeRecord(data);
         }
       });
@@ -288,7 +315,7 @@ async function _saveChallengeRecord(data) {
         slug: data.slug,
         snippet: data.snippet,
         metadata_json: data.metadata_json,
-        status: "draft"
+        status: "draft",
       }),
     });
 
@@ -296,9 +323,11 @@ async function _saveChallengeRecord(data) {
 
     // Update local state
     state.activeRecordSlug = data.slug;
-    
+
     if (typeof window.surfaceError === "function") {
-      window.surfaceError("Metadata saved for '" + state.activeRecordTitle + "'.");
+      window.surfaceError(
+        "Metadata saved for '" + state.activeRecordTitle + "'.",
+      );
     }
   } catch (err) {
     console.error("[dashboard_challenge] Metadata save failed:", err);
@@ -361,7 +390,6 @@ function _wireToggleButtons() {
     }
   });
 
-
   btnPopular.addEventListener("click", async function () {
     if (window._challengeModuleState.mode === "popular") return;
 
@@ -397,9 +425,7 @@ function _wireToggleButtons() {
       headingEl.textContent = "POPULAR WEIGHTING AND SEARCH TERMS";
     }
   });
-
 }
-
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _saveCurrentModeState
@@ -490,8 +516,9 @@ function _syncMetadataWidget() {
   }
 
   // Find the record object in the mode-specific cache
-  const list = mode === "academic" ? state.academicChallenges : state.popularChallenges;
-  const record = list.find(r => String(r.id) === String(activeId));
+  const list =
+    mode === "academic" ? state.academicChallenges : state.popularChallenges;
+  const record = list.find((r) => String(r.id) === String(activeId));
 
   if (record) {
     window.populateMetadataWidget("metadata-widget-container", record);
