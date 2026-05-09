@@ -172,17 +172,7 @@ async function loadBlogPostContent(recordId, title) {
       }
     }
 
-    // Update metadata footer with the record ID
-    if (typeof window.renderMetadataFooter === "function") {
-      try {
-        window.renderMetadataFooter("blog-metadata-container", recordId);
-      } catch (err) {
-        console.warn(
-          "[display_blog_posts_data] Failed to wire metadata footer:",
-          err,
-        );
-      }
-    }
+
 
     // Populate the shared metadata widget
     if (typeof window.populateMetadataWidget === "function") {

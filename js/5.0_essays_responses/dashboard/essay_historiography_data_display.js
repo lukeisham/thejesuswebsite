@@ -178,17 +178,7 @@ async function loadDocumentContent(recordId, title) {
       }
     }
 
-    // Update metadata footer with the record ID
-    if (typeof window.renderMetadataFooter === "function") {
-      try {
-        window.renderMetadataFooter("essay-metadata-container", recordId);
-      } catch (err) {
-        console.warn(
-          "[essay_historiography_data_display] Failed to wire metadata footer:",
-          err,
-        );
-      }
-    }
+
 
     // Populate the shared metadata widget
     if (typeof window.populateMetadataWidget === "function") {

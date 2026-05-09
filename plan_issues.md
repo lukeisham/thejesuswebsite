@@ -10,9 +10,12 @@ Cross-plan issue tracker. Issues discovered during plan execution that affect ot
 |---|------|------|----------|-------------|--------|
 | 1 | 2026-05-09 | split_challenge_academic_popular | Medium | Legacy files `admin/frontend/dashboard_challenge.html` and `js/4.0_ranked_lists/dashboard/dashboard_challenge.js` still exist on disk — T8 deletion was not completed. These files are no longer referenced by any script tag or module route but should be removed to prevent confusion. | Resolved — files deleted and pushed to main |
 | 2 | 2026-05-09 | split_challenge_academic_popular | Low | Sub-module header comments in `challenge_weighting_handler.js`, `challenge_list_display.js`, `challenge_ranking_calculator.js`, `insert_challenge_response.js`, and the per-mode overview scripts still reference `dashboard_challenge.js` as their trigger. These are cosmetic only (the sub-modules function correctly via the new orchestrators) but could confuse future developers. | Open |
+| 3 | 2026-05-09 | fix_metadata_widget_persistence | High | Persistent UI misalignment and cross-scripting conflict in Metadata Widget due to legacy `metadata_handler.js` interference and browser caching. | Resolved — legacy script purged, cache-busters added, layout stabilized. |
 
 ---
 
 ## Resolution Notes
 
 - **2026-05-09:** Issue #1 resolved via commit `10037ba` — both legacy files deleted and pushed to `main`.
+- **2026-05-09:** Issue #3 resolved — legacy `metadata_handler.js` deleted, all dashboard module calls purged, and cache-busting (?v=1.1.2) applied to `metadata_widget.js` and `metadata_widget.css`.
+

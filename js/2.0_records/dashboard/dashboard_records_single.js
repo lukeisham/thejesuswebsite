@@ -35,7 +35,6 @@ const RECORDS_SINGLE_SCRIPTS = [
   "../../js/2.0_records/dashboard/mla_source_handler.js",
   "../../js/2.0_records/dashboard/context_link_handler.js",
   "../../js/2.0_records/dashboard/picture_handler.js",
-  "../../js/2.0_records/dashboard/metadata_handler.js",
   "../../js/2.0_records/dashboard/metadata_widget.js",
   "../../js/2.0_records/dashboard/description_editor.js",
   "../../js/2.0_records/dashboard/verse_builder.js",
@@ -302,14 +301,7 @@ async function _initialiseAllEditors(recordId) {
     });
   }
 
-  // Wire the Section 1 btn-auto-slug via the legacy metadata handler.
-  // renderMetadataFooter expects #record-slug, #btn-auto-slug,
-  // #record-metadata-json, #record-created-at, #record-updated-at to exist.
-  if (typeof window.renderMetadataFooter === "function") {
-    window.renderMetadataFooter("section-core-ids", recordId || "");
-  }
 
-  // Metadata handler (legacy — kept for backward compatibility)
 
   // ---- Fetch and hydrate record data ----
   // For new records (recordId is null/undefined), fetchAndDisplaySingleRecord

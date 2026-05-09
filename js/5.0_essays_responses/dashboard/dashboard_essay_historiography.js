@@ -160,10 +160,7 @@ async function renderEssayHistoriography() {
     });
   }
 
-  // 4e. Metadata footer (legacy — kept for backward compatibility)
-  if (typeof window.renderMetadataFooter === "function") {
-    window.renderMetadataFooter("essay-metadata-container", "");
-  }
+
 
   /* -------------------------------------------------------------------------
      5. WIRE TOGGLE BUTTONS — Essay / Historiography switch

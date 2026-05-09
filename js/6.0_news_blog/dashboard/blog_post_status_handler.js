@@ -114,9 +114,7 @@ async function _handleSave() {
         if (typeof window.renderEditPicture === "function") {
           window.renderEditPicture("blog-picture-container", result.id);
         }
-        if (typeof window.renderMetadataFooter === "function") {
-          window.renderMetadataFooter("blog-metadata-container", result.id);
-        }
+
 
         // Show Delete button
         const deleteBtn = document.getElementById("btn-delete");

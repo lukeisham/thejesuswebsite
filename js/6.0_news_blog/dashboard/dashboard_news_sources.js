@@ -123,9 +123,8 @@ async function renderNewsSources() {
   _wireActionButtons();
 
   /* -------------------------------------------------------------------------
-       5. INITIALISE SHARED TOOLS — Metadata widget + footer
-       The metadata_handler.js and metadata_widget.js are loaded globally
-       via dashboard.html.
+       5. INITIALISE SHARED TOOLS — Metadata widget
+       The metadata_widget.js is loaded globally via dashboard.html.
     ------------------------------------------------------------------------- */
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {
@@ -163,9 +162,7 @@ async function renderNewsSources() {
     });
   }
 
-  if (typeof window.renderMetadataFooter === "function") {
-    window.renderMetadataFooter("news-sources-metadata-footer", "");
-  }
+
 }
 
 /* -----------------------------------------------------------------------------

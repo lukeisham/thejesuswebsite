@@ -1,6 +1,6 @@
 ---
 name: vibe_coding_rules.md
-version: 1.1.0
+version: 1.1.1
 purpose: Foundational coding philosophies and aesthetic mandates for the project
 dependencies: []
 ---
@@ -46,7 +46,7 @@ This document outlines the core coding philosophies ("vibe coding rules") for ma
 - **Precise Completion:** Slow down and burn tokens. Complete tasks with precision rather than guessing or skipping steps. Fidelity is more important than speed.
 - **Identical Code Verification:** When a plan involves splitting or duplicating functionality into parallel modes (e.g., Academic vs. Popular), the agent must verify that both code paths remain functionally identical. No feature or code path may exist in one mode but not the other.
 - **Stuck in a Loop:** If you find yourself stuck in a loop or repeating the same error, STOP. Do not keep guessing. Explain the situation and ask the user for help.
-- **Cross-Plan Shared-Tool Ownership:** Several dashboard modules consume shared JS tools (`picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_handler.js`, `markdown_editor.js`). Each shared tool is OWNED by exactly one plan and lives in ONE directory. Consumer plans MUST NOT create local copies. They MUST include the owner's file via a `<script>` tag in their HTML and call the exposed `window.*` function. The ownership table:
-  - `plan_dashboard_records_single` owns: `picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_handler.js`, `metadata_widget.js`, `metadata_widget.css` — all in `js/2.0_records/dashboard/` (CSS in `css/2.0_records/dashboard/`)
+- **Cross-Plan Shared-Tool Ownership:** Several dashboard modules consume shared JS tools (`picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `markdown_editor.js`). Each shared tool is OWNED by exactly one plan and lives in ONE directory. Consumer plans MUST NOT create local copies. They MUST include the owner's file via a `<script>` tag in their HTML and call the exposed `window.*` function. The ownership table:
+  - `plan_dashboard_records_single` owns: `picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_widget.js`, `metadata_widget.css` — all in `js/2.0_records/dashboard/` (CSS in `css/2.0_records/dashboard/`)
   - `plan_dashboard_essay_historiography` owns: `markdown_editor.js` — in `js/5.0_essays_responses/dashboard/`
   If a consumer needs module-specific behavior, add a parameter to the shared function signature on the OWNER's copy — do not fork the file.

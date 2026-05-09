@@ -117,13 +117,7 @@ async function renderWikipedia() {
     ------------------------------------------------------------------------- */
   _wireActionButtons();
 
-  /* -------------------------------------------------------------------------
-       5. INITIALISE SHARED TOOLS — Metadata footer
-       The metadata_handler.js is loaded globally via dashboard.html.
-    ------------------------------------------------------------------------- */
-  if (typeof window.renderMetadataFooter === "function") {
-    window.renderMetadataFooter("wikipedia-metadata-container", "");
-  }
+
 }
 
 /* -----------------------------------------------------------------------------

@@ -152,10 +152,7 @@ async function renderBlogPosts() {
     });
   }
 
-  // 4e. Metadata footer (legacy — kept for backward compatibility)
-  if (typeof window.renderMetadataFooter === "function") {
-    window.renderMetadataFooter("blog-metadata-container", "");
-  }
+
 }
 
 /* -----------------------------------------------------------------------------
@@ -258,9 +255,7 @@ async function _handleNewBlogPost() {
     if (typeof window.renderEditPicture === "function") {
       window.renderEditPicture("blog-picture-container", newId);
     }
-    if (typeof window.renderMetadataFooter === "function") {
-      window.renderMetadataFooter("blog-metadata-container", newId);
-    }
+
     if (typeof window.renderEditLinks === "function") {
       window.renderEditLinks("blog-context-links-container", []);
     }
