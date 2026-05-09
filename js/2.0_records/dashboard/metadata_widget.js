@@ -135,6 +135,7 @@ function renderMetadataWidget(containerId, options) {
 
   const keywordsLabel = document.createElement("label");
   keywordsLabel.className = "metadata-widget__label";
+  keywordsLabel.setAttribute("for", "metadata-widget-tag-input");
   keywordsLabel.textContent = "Keywords";
 
   const keywordsInline = document.createElement("div");
@@ -149,6 +150,7 @@ function renderMetadataWidget(containerId, options) {
   addTagWrapper.className = "metadata-widget__tag-add-wrapper";
 
   const tagInput = document.createElement("input");
+  tagInput.id = "metadata-widget-tag-input";
   tagInput.className = "metadata-widget__tag-input";
   tagInput.type = "text";
   tagInput.placeholder = "Add...";
