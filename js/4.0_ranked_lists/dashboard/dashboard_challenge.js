@@ -168,6 +168,19 @@ async function renderChallenge() {
   // 3b2. Initialise the overview lists for the default mode (academic)
   _refreshOverviews("academic");
 
+  /* -------------------------------------------------------------------------
+       4. WIRE TOGGLE BUTTONS — Academic / Popular switch
+       Now swaps aria-hidden on the two list regions instead of re-fetching.
+       Saves/restores per-mode weighting and search term state.
+       Note: Wired BEFORE async fetch so buttons are active during load.
+    ------------------------------------------------------------------------- */
+  _wireToggleButtons();
+
+  /* -------------------------------------------------------------------------
+       5. WIRE ACTION BAR BUTTONS — Refresh, Publish, Agent Search, Insert Response
+    ------------------------------------------------------------------------- */
+  _wireActionButtons();
+
   // 3c. Load BOTH challenge lists in parallel so each is pre-loaded.
   //     The Popular region is hidden (aria-hidden="true") but its DOM is ready.
   if (typeof window.displayChallengeList === "function") {
@@ -181,18 +194,6 @@ async function renderChallenge() {
   if (typeof window.initInsertChallengeResponse === "function") {
     window.initInsertChallengeResponse();
   }
-
-  /* -------------------------------------------------------------------------
-       4. WIRE TOGGLE BUTTONS — Academic / Popular switch
-       Now swaps aria-hidden on the two list regions instead of re-fetching.
-       Saves/restores per-mode weighting and search term state.
-    ------------------------------------------------------------------------- */
-  _wireToggleButtons();
-
-  /* -------------------------------------------------------------------------
-       5. WIRE ACTION BAR BUTTONS — Refresh, Publish, Agent Search, Insert Response
-    ------------------------------------------------------------------------- */
-  _wireActionButtons();
 
   // 6. INITIALISE SHARED TOOLS — Metadata widget + footer
   if (typeof window.renderMetadataWidget === "function") {
@@ -295,11 +296,13 @@ function _wireToggleButtons() {
     // 5. Restore incoming academic state (or load defaults)
     _restoreModeState("academic");
 
-    // 6. Update search terms label
+    // 6. Update search terms label and sidebar heading
     const labelEl = document.getElementById(
       "challenge-search-terms-field-label",
     );
     if (labelEl) labelEl.textContent = "Academic";
+    const headingEl = document.getElementById("challenge-sidebar-heading");
+    if (headingEl) headingEl.textContent = "ACADEMIC WEIGHTING AND SEARCH TERMS";
   });
 
   btnPopular.addEventListener("click", async function () {
@@ -324,11 +327,13 @@ function _wireToggleButtons() {
     // 5. Restore incoming popular state (or load defaults)
     _restoreModeState("popular");
 
-    // 6. Update search terms label
+    // 6. Update search terms label and sidebar heading
     const labelEl = document.getElementById(
       "challenge-search-terms-field-label",
     );
     if (labelEl) labelEl.textContent = "Popular";
+    const headingEl = document.getElementById("challenge-sidebar-heading");
+    if (headingEl) headingEl.textContent = "POPULAR WEIGHTING AND SEARCH TERMS";
   });
 }
 
