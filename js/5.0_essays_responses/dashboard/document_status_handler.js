@@ -268,9 +268,12 @@ async function _handleDelete() {
     }
 
     const titleInput = document.getElementById("essay-title-input");
-    const snippetInput = document.getElementById("essay-snippet-input");
     if (titleInput) titleInput.value = "";
-    if (snippetInput) snippetInput.value = "";
+    
+    // Clear metadata widget
+    if (typeof window.populateMetadataWidget === 'function') {
+      window.populateMetadataWidget('metadata-widget-container', null);
+    }
 
     if (typeof window.surfaceError === "function") {
       window.surfaceError("Deleted: " + title);
@@ -315,9 +318,15 @@ function _collectEditorData() {
   const payload = {
     title: titleInput ? titleInput.value : "",
     markdown_content: textarea ? textarea.value : "",
-    snippet: snippetInput ? snippetInput.value : "",
-    slug: slugInput ? slugInput.value : "",
   };
+
+  // Collect from metadata widget
+  if (typeof window.collectMetadataWidget === "function") {
+    const metaData = window.collectMetadataWidget("metadata-widget-container");
+    payload.slug = metaData.slug;
+    payload.snippet = metaData.snippet;
+    payload.metadata_json = metaData.metadata_json;
+  }
 
   // Collect bibliography from shared tool
   if (typeof window.collectEditBibliography === "function") {
@@ -349,6 +358,33 @@ function _collectEditorData() {
 }
 
 /* -----------------------------------------------------------------------------
+   GLOBAL: _saveEssayDocument
+   Silent save for the metadata widget's auto-save feature.
+----------------------------------------------------------------------------- */
+async function _saveEssayDocument() {
+  const recordId = window._essayModuleState.activeRecordId;
+  if (!recordId) return;
+
+  const payload = _collectEditorData();
+  payload.status = "draft";
+
+  try {
+    const response = await fetch(
+      DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+    if (!response.ok) throw new Error("Silent save failed");
+  } catch (err) {
+    console.error("[document_status_handler] Silent save failed:", err);
+  }
+}
+
+/* -----------------------------------------------------------------------------
    GLOBAL EXPOSURE
 ----------------------------------------------------------------------------- */
 window.initDocumentStatusHandler = initDocumentStatusHandler;
+window._saveEssayDocument = _saveEssayDocument;

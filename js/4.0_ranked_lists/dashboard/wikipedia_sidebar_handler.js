@@ -12,34 +12,43 @@
 
 "use strict";
 
-// ---------------------------------------------------------------------------|
-// Config for shared admin_core functions — Wikipedia-specific element IDs    |
-// ---------------------------------------------------------------------------|
-var _wpSnippetConfig = {
-  snippetInputId: "wikipedia-snippet-input",
-  spinnerBtnId: "btn-wikipedia-auto-snippet",
-};
-var _wpSlugConfig = { slugInputId: "wikipedia-slug-input" };
-var _wpMetaConfig = {
-  metaInputId: "wikipedia-meta-input",
-  spinnerBtnId: "btn-wikipedia-auto-meta",
-};
-var _wpSaveMetaConfig = {
-  snippetInputId: "wikipedia-snippet-input",
-  slugInputId: "wikipedia-slug-input",
-  metaInputId: "wikipedia-meta-input",
-  stateFieldMap: {
-    snippet: "activeRecordSnippet",
-    slug: "activeRecordSlug",
-    meta: "activeRecordMeta",
-  },
-};
+/* --- Metadata Save Callback --- */
+async function _saveMetadataFromWidget(data) {
+  var state = window._wikipediaModuleState;
+  if (!state.activeRecordId) return;
+
+  try {
+    var response = await fetch("/api/admin/records/" + state.activeRecordId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug: data.slug,
+        snippet: data.snippet,
+        metadata_json: data.metadata_json,
+        status: "draft"
+      }),
+    });
+
+    if (!response.ok) throw new Error("Save failed");
+
+    // Update local state
+    state.activeRecordSlug = data.slug;
+    state.activeRecordSnippet = data.snippet;
+    state.activeRecordMeta = data.metadata_json;
+
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Metadata saved for '" + state.activeRecordTitle + "'.");
+    }
+  } catch (err) {
+    console.error("[wikipedia_sidebar] Metadata save failed:", err);
+  }
+}
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: initWikipediaSidebar
    Initialises the sidebar in its empty/default state. Wires up the weight
    criterion input (auto-save on change), search terms textarea (auto-save),
-   auto-gen buttons, and recalculate button. Called once on module load.
+   and standardized metadata widget. Called once on module load.
 ----------------------------------------------------------------------------- */
 function initWikipediaSidebar() {
   _clearSidebar();
@@ -50,29 +59,24 @@ function initWikipediaSidebar() {
     recalcBtn.addEventListener("click", _handleRecalculateRecord);
   }
 
-  // Wire auto-gen buttons → shared
-  var autoSnippetBtn = document.getElementById("btn-wikipedia-auto-snippet");
-  if (autoSnippetBtn) {
-    autoSnippetBtn.addEventListener("click", function () {
-      window.triggerAutoGenSnippet(
-        window._wikipediaModuleState,
-        _wpSnippetConfig,
-      );
+  // Initialise standardized metadata widget
+  if (typeof window.renderMetadataWidget === 'function') {
+    window.renderMetadataWidget('wikipedia-metadata-container', {
+      onAutoSaveDraft: _saveMetadataFromWidget,
+      getRecordTitle: function() { return window._wikipediaModuleState.activeRecordTitle; },
+      getRecordId: function() { return window._wikipediaModuleState.activeRecordSlug; }
     });
-  }
 
-  var autoSlugBtn = document.getElementById("btn-wikipedia-auto-slug");
-  if (autoSlugBtn) {
-    autoSlugBtn.addEventListener("click", function () {
-      window.triggerAutoGenSlug(window._wikipediaModuleState, _wpSlugConfig);
-    });
-  }
-
-  var autoMetaBtn = document.getElementById("btn-wikipedia-auto-meta");
-  if (autoMetaBtn) {
-    autoMetaBtn.addEventListener("click", function () {
-      window.triggerAutoGenMeta(window._wikipediaModuleState, _wpMetaConfig);
-    });
+    // Also wire manual blur save for the widget's inputs (if they exist yet)
+    var container = document.getElementById('wikipedia-metadata-container');
+    if (container) {
+      container.addEventListener('focusout', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          var data = window.collectMetadataWidget('wikipedia-metadata-container');
+          _saveMetadataFromWidget(data);
+        }
+      });
+    }
   }
 
   // Wire search terms textarea auto-save (matching Challenge pattern)
@@ -88,37 +92,6 @@ function initWikipediaSidebar() {
     termsInput.addEventListener("blur", function () {
       if (saveTimeout) clearTimeout(saveTimeout);
       _autoSaveSearchTerms();
-    });
-  }
-
-  // Wire metadata field save-on-blur → shared
-  var snippetInput = document.getElementById("wikipedia-snippet-input");
-  if (snippetInput) {
-    snippetInput.addEventListener("blur", function () {
-      window.saveSidebarMetadata(
-        window._wikipediaModuleState,
-        _wpSaveMetaConfig,
-      );
-    });
-  }
-
-  var slugInput = document.getElementById("wikipedia-slug-input");
-  if (slugInput) {
-    slugInput.addEventListener("blur", function () {
-      window.saveSidebarMetadata(
-        window._wikipediaModuleState,
-        _wpSaveMetaConfig,
-      );
-    });
-  }
-
-  var metaInput = document.getElementById("wikipedia-meta-input");
-  if (metaInput) {
-    metaInput.addEventListener("blur", function () {
-      window.saveSidebarMetadata(
-        window._wikipediaModuleState,
-        _wpSaveMetaConfig,
-      );
     });
   }
 }
@@ -145,13 +118,14 @@ function populateWikipediaSidebar(record) {
   // Section 3: Search Terms — populate textarea from record
   _populateSearchTermsTextarea(record);
 
-  // Section 4: Metadata
-  var snippetInput = document.getElementById("wikipedia-snippet-input");
-  var slugInput = document.getElementById("wikipedia-slug-input");
-  var metaInput = document.getElementById("wikipedia-meta-input");
-  if (snippetInput) snippetInput.value = state.activeRecordSnippet;
-  if (slugInput) slugInput.value = state.activeRecordSlug;
-  if (metaInput) metaInput.value = state.activeRecordMeta;
+  // Section 4: Metadata (via widget)
+  if (typeof window.populateMetadataWidget === 'function') {
+    window.populateMetadataWidget('wikipedia-metadata-container', {
+      slug: record.slug,
+      snippet: record.snippet,
+      metadata_json: record.metadata_json
+    });
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -161,15 +135,14 @@ function populateWikipediaSidebar(record) {
 function _clearSidebar() {
   var titleEl = document.getElementById("wikipedia-record-title");
   var slugEl = document.getElementById("wikipedia-record-slug");
-  var snippetInput = document.getElementById("wikipedia-snippet-input");
-  var slugInputEl = document.getElementById("wikipedia-slug-input");
-  var metaInput = document.getElementById("wikipedia-meta-input");
 
   if (titleEl) titleEl.textContent = "\u2014";
   if (slugEl) slugEl.textContent = "\u2014";
-  if (snippetInput) snippetInput.value = "";
-  if (slugInputEl) slugInputEl.value = "";
-  if (metaInput) metaInput.value = "";
+
+  // Clear metadata widget
+  if (typeof window.populateMetadataWidget === 'function') {
+    window.populateMetadataWidget('wikipedia-metadata-container', null);
+  }
 
   // Clear weighting list and search terms textarea
   var weightingList = document.getElementById("wikipedia-weighting-list");

@@ -165,87 +165,13 @@
 
         <hr class="wikipedia-sidebar__divider" aria-hidden="true" />
 
-        <!-- Section 4: Metadata (Snippet / Slug / Meta) -->
+        <!-- Section 4: Metadata (Slug / Snippet / Keywords) -->
         <section
-            id="wikipedia-metadata-editor"
+            id="wikipedia-metadata-container"
             class="wikipedia-sidebar__section"
             aria-label="Metadata editor"
         >
-            <header class="wikipedia-sidebar__subheader">
-                <h3 class="wikipedia-sidebar__subheading">Metadata</h3>
-            </header>
-
-            <!-- Snippet -->
-            <div class="wikipedia-metadata-editor__field">
-                <label
-                    for="wikipedia-snippet-input"
-                    class="wikipedia-metadata-editor__label"
-                    >Snippet</label
-                >
-                <textarea
-                    id="wikipedia-snippet-input"
-                    class="wikipedia-metadata-editor__textarea"
-                    rows="3"
-                    placeholder="Record snippet..."
-                    aria-label="Snippet text"
-                ></textarea>
-                <button
-                    id="btn-wikipedia-auto-snippet"
-                    class="btn btn--secondary btn--sm"
-                    type="button"
-                    title="Auto-generate snippet via DeepSeek"
-                >
-                    Auto-gen Snippet
-                </button>
-            </div>
-
-            <!-- Slug -->
-            <div class="wikipedia-metadata-editor__field">
-                <label
-                    for="wikipedia-slug-input"
-                    class="wikipedia-metadata-editor__label"
-                    >Slug</label
-                >
-                <input
-                    id="wikipedia-slug-input"
-                    class="wikipedia-metadata-editor__input"
-                    type="text"
-                    placeholder="record-slug"
-                    aria-label="Record slug"
-                />
-                <button
-                    id="btn-wikipedia-auto-slug"
-                    class="btn btn--secondary btn--sm"
-                    type="button"
-                    title="Auto-generate slug from title"
-                >
-                    Auto-gen Slug
-                </button>
-            </div>
-
-            <!-- Meta (JSON) -->
-            <div class="wikipedia-metadata-editor__field">
-                <label
-                    for="wikipedia-meta-input"
-                    class="wikipedia-metadata-editor__label"
-                    >Meta (JSON)</label
-                >
-                <input
-                    id="wikipedia-meta-input"
-                    class="wikipedia-metadata-editor__input"
-                    type="text"
-                    placeholder='{"era":"early_church"}'
-                    aria-label="Metadata JSON"
-                />
-                <button
-                    id="btn-wikipedia-auto-meta"
-                    class="btn btn--secondary btn--sm"
-                    type="button"
-                    title="Auto-generate metadata via DeepSeek"
-                >
-                    Auto-gen Meta
-                </button>
-            </div>
+            <!-- Standardized metadata widget injected here by wikipedia_sidebar_handler.js -->
         </section>
 
         <hr class="wikipedia-sidebar__divider" aria-hidden="true" />

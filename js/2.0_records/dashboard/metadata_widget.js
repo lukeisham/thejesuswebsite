@@ -64,7 +64,7 @@ function renderMetadataWidget(containerId, options) {
     // --- Heading ---
     const heading = document.createElement('h4');
     heading.className = 'metadata-widget__heading';
-    heading.textContent = 'Metadata';
+    heading.textContent = 'META DATA & SEO';
 
     // --- Slug Field ---
     const slugField = document.createElement('div');
@@ -73,7 +73,7 @@ function renderMetadataWidget(containerId, options) {
     const slugLabel = document.createElement('label');
     slugLabel.className = 'metadata-widget__label';
     slugLabel.setAttribute('for', 'metadata-widget-slug');
-    slugLabel.textContent = 'Slug';
+    slugLabel.textContent = 'URL Slug';
 
     const slugInline = document.createElement('div');
     slugInline.className = 'metadata-widget__inline';
@@ -89,7 +89,7 @@ function renderMetadataWidget(containerId, options) {
     slugBtn.id = 'metadata-widget-btn-slug';
     slugBtn.className = 'metadata-widget__btn';
     slugBtn.type = 'button';
-    slugBtn.textContent = 'Auto-gen Slug';
+    slugBtn.textContent = 'GENERATE';
 
     slugInline.appendChild(slugInput);
     slugInline.appendChild(slugBtn);
@@ -119,97 +119,56 @@ function renderMetadataWidget(containerId, options) {
     snippetBtn.id = 'metadata-widget-btn-snippet';
     snippetBtn.className = 'metadata-widget__btn';
     snippetBtn.type = 'button';
-    snippetBtn.textContent = 'Auto-gen Snippet';
+    snippetBtn.textContent = 'GENERATE';
 
     snippetInline.appendChild(snippetTextarea);
     snippetInline.appendChild(snippetBtn);
     snippetField.appendChild(snippetLabel);
     snippetField.appendChild(snippetInline);
 
-    // --- Metadata JSON Field ---
-    const metaField = document.createElement('div');
-    metaField.className = 'metadata-widget__field';
+    // --- Keywords (Tags) Field ---
+    const keywordsField = document.createElement('div');
+    keywordsField.className = 'metadata-widget__field';
 
-    const metaLabel = document.createElement('label');
-    metaLabel.className = 'metadata-widget__label';
-    metaLabel.setAttribute('for', 'metadata-widget-json');
-    metaLabel.textContent = 'Metadata JSON';
+    const keywordsLabel = document.createElement('label');
+    keywordsLabel.className = 'metadata-widget__label';
+    keywordsLabel.textContent = 'Keywords';
 
-    const metaInline = document.createElement('div');
-    metaInline.className = 'metadata-widget__inline';
+    const keywordsInline = document.createElement('div');
+    keywordsInline.className = 'metadata-widget__inline';
 
-    const metaTextarea = document.createElement('textarea');
-    metaTextarea.id = 'metadata-widget-json';
-    metaTextarea.className = 'metadata-widget__textarea metadata-widget__textarea--mono';
-    metaTextarea.rows = 4;
-    metaTextarea.placeholder = 'Raw JSON blob — auto-managed; editable for advanced use';
-    metaTextarea.setAttribute('aria-label', 'Metadata JSON');
+    const tagsContainer = document.createElement('div');
+    tagsContainer.id = 'metadata-widget-tags';
+    tagsContainer.className = 'metadata-widget__tags';
+    // Populated dynamically
 
-    const metaBtn = document.createElement('button');
-    metaBtn.id = 'metadata-widget-btn-meta';
-    metaBtn.className = 'metadata-widget__btn';
-    metaBtn.type = 'button';
-    metaBtn.textContent = 'Auto-gen Meta';
+    const addTagWrapper = document.createElement('div');
+    addTagWrapper.className = 'metadata-widget__tag-add-wrapper';
 
-    metaInline.appendChild(metaTextarea);
-    metaInline.appendChild(metaBtn);
-    metaField.appendChild(metaLabel);
-    metaField.appendChild(metaInline);
+    const tagInput = document.createElement('input');
+    tagInput.className = 'metadata-widget__tag-input';
+    tagInput.type = 'text';
+    tagInput.placeholder = 'Add...';
 
-    // --- Read-only Timestamps ---
-    const readonlyRow = document.createElement('div');
-    readonlyRow.className = 'metadata-widget__readonly-row';
+    const tagAddBtn = document.createElement('button');
+    tagAddBtn.className = 'metadata-widget__tag-add-btn';
+    tagAddBtn.type = 'button';
+    tagAddBtn.textContent = '+';
 
-    // Created At
-    const createdAtField = document.createElement('div');
-    createdAtField.className = 'metadata-widget__field';
+    const keywordsBtn = document.createElement('button');
+    keywordsBtn.id = 'metadata-widget-btn-keywords';
+    keywordsBtn.className = 'metadata-widget__btn';
+    keywordsBtn.type = 'button';
+    keywordsBtn.textContent = 'GENERATE';
 
-    const createdAtLabel = document.createElement('label');
-    createdAtLabel.className = 'metadata-widget__label';
-    createdAtLabel.setAttribute('for', 'metadata-widget-created-at');
-    createdAtLabel.textContent = 'Created At';
+    addTagWrapper.appendChild(tagInput);
+    addTagWrapper.appendChild(tagAddBtn);
 
-    const createdAtInput = document.createElement('input');
-    createdAtInput.id = 'metadata-widget-created-at';
-    createdAtInput.className = 'metadata-widget__input metadata-widget__input--readonly';
-    createdAtInput.type = 'text';
-    createdAtInput.readOnly = true;
-    createdAtInput.placeholder = 'ISO8601';
-
-    const createdAtHint = document.createElement('span');
-    createdAtHint.className = 'metadata-widget__hint';
-    createdAtHint.textContent = 'read-only';
-
-    createdAtField.appendChild(createdAtLabel);
-    createdAtField.appendChild(createdAtInput);
-    createdAtField.appendChild(createdAtHint);
-
-    // Updated At
-    const updatedAtField = document.createElement('div');
-    updatedAtField.className = 'metadata-widget__field';
-
-    const updatedAtLabel = document.createElement('label');
-    updatedAtLabel.className = 'metadata-widget__label';
-    updatedAtLabel.setAttribute('for', 'metadata-widget-updated-at');
-    updatedAtLabel.textContent = 'Updated At';
-
-    const updatedAtInput = document.createElement('input');
-    updatedAtInput.id = 'metadata-widget-updated-at';
-    updatedAtInput.className = 'metadata-widget__input metadata-widget__input--readonly';
-    updatedAtInput.type = 'text';
-    updatedAtInput.readOnly = true;
-    updatedAtInput.placeholder = 'ISO8601';
-
-    const updatedAtHint = document.createElement('span');
-    updatedAtHint.className = 'metadata-widget__hint';
-    updatedAtHint.textContent = 'auto-set on save';
-
-    updatedAtField.appendChild(updatedAtLabel);
-    updatedAtField.appendChild(updatedAtInput);
-    updatedAtField.appendChild(updatedAtHint);
-
-    readonlyRow.appendChild(createdAtField);
-    readonlyRow.appendChild(updatedAtField);
+    keywordsInline.appendChild(tagsContainer);
+    keywordsInline.appendChild(addTagWrapper);
+    keywordsInline.appendChild(keywordsBtn);
+    keywordsField.appendChild(keywordsLabel);
+    keywordsField.appendChild(keywordsInline);
 
     // --- Status Text ---
     const statusEl = document.createElement('p');
@@ -227,7 +186,7 @@ function renderMetadataWidget(containerId, options) {
     generateAllBtn.id = 'metadata-widget-btn-generate-all';
     generateAllBtn.className = 'metadata-widget__generate-all';
     generateAllBtn.type = 'button';
-    generateAllBtn.textContent = 'Generate All';
+    generateAllBtn.textContent = 'GENERATE ALL';
 
     /* -------------------------------------------------------------------------
        2. ASSEMBLE AND INJECT
@@ -237,486 +196,300 @@ function renderMetadataWidget(containerId, options) {
     container.appendChild(heading);
     container.appendChild(slugField);
     container.appendChild(snippetField);
-    container.appendChild(metaField);
-    container.appendChild(readonlyRow);
+    container.appendChild(keywordsField);
     container.appendChild(statusEl);
     container.appendChild(divider);
     container.appendChild(generateAllBtn);
 
     /* -------------------------------------------------------------------------
-       3. WIRE BUTTONS
+       3. TAG LOGIC
     ------------------------------------------------------------------------- */
+    let activeKeywords = [];
 
-    // --- Helper: Show status message ---
-    function _setStatus(msg) {
-        if (statusEl) {
-            statusEl.textContent = msg;
-        }
-    }
+    function _renderTags() {
+        tagsContainer.innerHTML = '';
+        activeKeywords.forEach((kw, index) => {
+            const tag = document.createElement('span');
+            tag.className = 'metadata-widget__tag';
+            tag.textContent = kw;
 
-    // --- Helper: Disable all buttons ---
-    function _setButtonsDisabled(disabled) {
-        [slugBtn, snippetBtn, metaBtn, generateAllBtn].forEach(function (btn) {
-            if (btn) btn.disabled = disabled;
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'metadata-widget__tag-remove';
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.onclick = () => {
+                activeKeywords.splice(index, 1);
+                _renderTags();
+            };
+
+            tag.appendChild(removeBtn);
+            tagsContainer.appendChild(tag);
         });
     }
 
-    // --- Helper: Get the current record title ---
-    function _getTitle() {
-        return opts.getRecordTitle();
+    function _addTag() {
+        const val = tagInput.value.trim();
+        if (val && !activeKeywords.includes(val)) {
+            activeKeywords.push(val);
+            tagInput.value = '';
+            _renderTags();
+        }
     }
 
-    // --- Helper: Get the current record ID ---
-    function _getRecordId() {
-        return opts.getRecordId();
+    tagAddBtn.onclick = _addTag;
+    tagInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            _addTag();
+        }
+    };
+
+    /* -------------------------------------------------------------------------
+       4. WIRE BUTTONS
+    ------------------------------------------------------------------------- */
+
+    function _setStatus(msg) {
+        if (statusEl) statusEl.textContent = msg;
     }
 
-    // --- Slug Auto-Gen Button ---
+    function _setButtonsDisabled(disabled) {
+        [slugBtn, snippetBtn, keywordsBtn, generateAllBtn, tagAddBtn].forEach(btn => {
+            if (btn) btn.disabled = disabled;
+        });
+        tagInput.disabled = disabled;
+    }
+
+    function _getTitle() { return opts.getRecordTitle(); }
+    function _getRecordId() { return opts.getRecordId(); }
+
+    // --- Slug Auto-Gen ---
     slugBtn.addEventListener('click', async function () {
         const title = _getTitle();
         if (!title || !title.trim()) {
-            if (typeof window.surfaceError === 'function') {
-                window.surfaceError(
-                    'Error: No title available for slug generation.'
-                );
-            }
+            if (typeof window.surfaceError === 'function') window.surfaceError('Error: No title available for slug generation.');
             return;
         }
-
         slugBtn.disabled = true;
-        slugBtn.textContent = 'Generating…';
+        slugBtn.textContent = '...';
         _setStatus('Generating slug…');
-
         try {
             const response = await fetch('/api/admin/slug/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    slug: _getRecordId(),
-                    content: title.trim()
-                })
+                body: JSON.stringify({ slug: _getRecordId(), content: title.trim() })
             });
-
-            if (!response.ok) {
-                throw new Error('API responded with status ' + response.status);
-            }
-
+            if (!response.ok) throw new Error('API Error');
             const data = await response.json();
             if (data && data.slug) {
                 slugInput.value = data.slug;
                 _setStatus('Slug generated.');
             }
         } catch (err) {
-            console.error('[metadata_widget] Slug generation failed:', err);
-            if (typeof window.surfaceError === 'function') {
-                window.surfaceError(
-                    'Error: Slug generation failed. Please try again or enter manually.'
-                );
-            }
+            if (typeof window.surfaceError === 'function') window.surfaceError('Error: Slug generation failed.');
             _setStatus('');
         } finally {
             slugBtn.disabled = false;
-            slugBtn.textContent = 'Auto-gen Slug';
+            slugBtn.textContent = 'GENERATE';
         }
     });
 
-    // --- Snippet Auto-Gen Button ---
+    // --- Snippet Auto-Gen ---
     snippetBtn.addEventListener('click', async function () {
-        // Resolve description content — try multiple sources
         let content = '';
-
-        // Primary: collectDescription if available
         if (typeof window.collectDescription === 'function') {
             try {
                 const paragraphs = window.collectDescription();
-                if (Array.isArray(paragraphs) && paragraphs.length > 0) {
-                    content = paragraphs
-                        .filter(function (p) { return typeof p === 'string' && p.trim(); })
-                        .join('\n\n');
-                }
-            } catch (_) { /* fall through */ }
+                if (Array.isArray(paragraphs)) content = paragraphs.join('\n\n');
+            } catch (_) {}
         }
-
-        // Fallback: description-editor-container textareas
-        if (!content) {
-            const descContainer = document.getElementById('description-editor-container');
-            if (descContainer) {
-                const textareas = descContainer.querySelectorAll('textarea');
-                const parts = [];
-                textareas.forEach(function (ta) {
-                    if (ta.value && ta.value.trim()) {
-                        parts.push(ta.value.trim());
-                    }
-                });
-                content = parts.join('\n\n');
-            }
-        }
-
-        // Fallback: markdown textarea (for blog/essay editors)
         if (!content) {
             const mdTextarea = document.getElementById('markdown-textarea');
-            if (mdTextarea && mdTextarea.value && mdTextarea.value.trim()) {
-                content = mdTextarea.value.trim();
-            }
+            if (mdTextarea) content = mdTextarea.value;
         }
-
-        // Fallback: title-only generation
-        if (!content) {
-            const title = _getTitle();
-            if (title && title.trim()) {
-                content = title.trim();
-            }
-        }
+        if (!content && _getTitle()) content = _getTitle();
 
         if (!content) {
-            if (typeof window.surfaceError === 'function') {
-                window.surfaceError(
-                    'Error: No content available for snippet generation. Please enter description text first.'
-                );
-            }
+            if (typeof window.surfaceError === 'function') window.surfaceError('Error: No content for snippet generation.');
             return;
         }
 
         snippetBtn.disabled = true;
-        snippetBtn.textContent = 'Generating…';
+        snippetBtn.textContent = '...';
         _setStatus('Generating snippet…');
-
         try {
             const response = await fetch('/api/admin/snippet/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    slug: _getRecordId(),
-                    content: content
-                })
+                body: JSON.stringify({ slug: _getRecordId(), content: content })
             });
-
-            if (!response.ok) {
-                throw new Error('API responded with status ' + response.status);
-            }
-
+            if (!response.ok) throw new Error('API Error');
             const data = await response.json();
-            if (data && typeof data.snippet === 'string' && data.snippet.trim()) {
+            if (data && data.snippet) {
                 snippetTextarea.value = data.snippet.trim();
                 _setStatus('Snippet generated.');
             }
         } catch (err) {
-            console.error('[metadata_widget] Snippet generation failed:', err);
-            if (typeof window.surfaceError === 'function') {
-                window.surfaceError(
-                    'Error: Snippet generation failed. Please try again or enter manually.'
-                );
-            }
+            if (typeof window.surfaceError === 'function') window.surfaceError('Error: Snippet generation failed.');
             _setStatus('');
         } finally {
             snippetBtn.disabled = false;
-            snippetBtn.textContent = 'Auto-gen Snippet';
+            snippetBtn.textContent = 'GENERATE';
         }
     });
 
-    // --- Metadata Auto-Gen Button ---
-    metaBtn.addEventListener('click', async function () {
-        // Resolve content — same strategy as snippet
+    // --- Keywords Auto-Gen ---
+    keywordsBtn.addEventListener('click', async function () {
         let content = '';
-
         if (typeof window.collectDescription === 'function') {
             try {
                 const paragraphs = window.collectDescription();
-                if (Array.isArray(paragraphs) && paragraphs.length > 0) {
-                    content = paragraphs
-                        .filter(function (p) { return typeof p === 'string' && p.trim(); })
-                        .join('\n\n');
-                }
-            } catch (_) { /* fall through */ }
+                if (Array.isArray(paragraphs)) content = paragraphs.join('\n\n');
+            } catch (_) {}
         }
-
-        if (!content) {
-            const descContainer = document.getElementById('description-editor-container');
-            if (descContainer) {
-                const textareas = descContainer.querySelectorAll('textarea');
-                const parts = [];
-                textareas.forEach(function (ta) {
-                    if (ta.value && ta.value.trim()) {
-                        parts.push(ta.value.trim());
-                    }
-                });
-                content = parts.join('\n\n');
-            }
-        }
-
         if (!content) {
             const mdTextarea = document.getElementById('markdown-textarea');
-            if (mdTextarea && mdTextarea.value && mdTextarea.value.trim()) {
-                content = mdTextarea.value.trim();
-            }
+            if (mdTextarea) content = mdTextarea.value;
         }
+        if (!content && _getTitle()) content = _getTitle();
 
         if (!content) {
-            const title = _getTitle();
-            if (title && title.trim()) {
-                content = title.trim();
-            }
-        }
-
-        if (!content) {
-            if (typeof window.surfaceError === 'function') {
-                window.surfaceError(
-                    'Error: No content available for metadata generation. Please enter description text first.'
-                );
-            }
+            if (typeof window.surfaceError === 'function') window.surfaceError('Error: No content for keyword generation.');
             return;
         }
 
-        metaBtn.disabled = true;
-        metaBtn.textContent = 'Generating…';
-        _setStatus('Generating metadata…');
-
+        keywordsBtn.disabled = true;
+        keywordsBtn.textContent = '...';
+        _setStatus('Generating keywords…');
         try {
             const response = await fetch('/api/admin/metadata/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    slug: _getRecordId(),
-                    content: content
-                })
+                body: JSON.stringify({ slug: _getRecordId(), content: content })
             });
-
-            if (!response.ok) {
-                throw new Error('API responded with status ' + response.status);
-            }
-
+            if (!response.ok) throw new Error('API Error');
             const data = await response.json();
-            if (data) {
-                // Format the returned metadata as pretty JSON
-                const formatted = (typeof data === 'string')
-                    ? data
-                    : JSON.stringify(data, null, 2);
-                metaTextarea.value = formatted;
-                _setStatus('Metadata generated.');
+            if (data && data.keywords) {
+                const kws = data.keywords.split(',').map(k => k.trim()).filter(k => k);
+                kws.forEach(k => { if (!activeKeywords.includes(k)) activeKeywords.push(k); });
+                _renderTags();
+                _setStatus('Keywords generated.');
             }
         } catch (err) {
-            console.error('[metadata_widget] Metadata generation failed:', err);
-            if (typeof window.surfaceError === 'function') {
-                window.surfaceError(
-                    'Error: Metadata generation failed. Please try again or enter manually.'
-                );
-            }
+            if (typeof window.surfaceError === 'function') window.surfaceError('Error: Keyword generation failed.');
             _setStatus('');
         } finally {
-            metaBtn.disabled = false;
-            metaBtn.textContent = 'Auto-gen Meta';
+            keywordsBtn.disabled = false;
+            keywordsBtn.textContent = 'GENERATE';
         }
     });
 
-    // --- Generate All Button ---
+    // --- Generate All ---
     generateAllBtn.addEventListener('click', async function () {
         _setButtonsDisabled(true);
-        generateAllBtn.textContent = 'Generating All…';
-        _setStatus('Generating slug, snippet, and metadata in parallel…');
+        generateAllBtn.textContent = 'GENERATING ALL…';
+        _setStatus('Generating slug, snippet, and keywords in parallel…');
 
         const title = _getTitle();
         let content = '';
-
-        // Resolve content
         if (typeof window.collectDescription === 'function') {
             try {
                 const paragraphs = window.collectDescription();
-                if (Array.isArray(paragraphs) && paragraphs.length > 0) {
-                    content = paragraphs
-                        .filter(function (p) { return typeof p === 'string' && p.trim(); })
-                        .join('\n\n');
-                }
-            } catch (_) { /* fall through */ }
-        }
-        if (!content) {
-            const descContainer = document.getElementById('description-editor-container');
-            if (descContainer) {
-                const textareas = descContainer.querySelectorAll('textarea');
-                const parts = [];
-                textareas.forEach(function (ta) {
-                    if (ta.value && ta.value.trim()) {
-                        parts.push(ta.value.trim());
-                    }
-                });
-                content = parts.join('\n\n');
-            }
+                if (Array.isArray(paragraphs)) content = paragraphs.join('\n\n');
+            } catch (_) {}
         }
         if (!content) {
             const mdTextarea = document.getElementById('markdown-textarea');
-            if (mdTextarea && mdTextarea.value && mdTextarea.value.trim()) {
-                content = mdTextarea.value.trim();
-            }
+            if (mdTextarea) content = mdTextarea.value;
         }
-        if (!content && title) {
-            content = title.trim();
-        }
+        if (!content && title) content = title;
 
         const recordId = _getRecordId();
-
-        // Build the three promises
         const promises = [];
 
-        // Slug promise
-        if (title && title.trim()) {
-            promises.push(
-                fetch('/api/admin/slug/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ slug: recordId, content: title.trim() })
-                }).then(function (r) {
-                    if (!r.ok) throw new Error('Slug API returned ' + r.status);
-                    return r.json();
-                }).then(function (data) {
-                    return { type: 'slug', value: data && data.slug ? data.slug : '' };
-                }).catch(function (err) {
-                    console.error('[metadata_widget] Parallel slug gen failed:', err);
-                    return { type: 'slug', value: null, error: err };
-                })
-            );
+        if (title) {
+            promises.push(fetch('/api/admin/slug/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slug: recordId, content: title.trim() })
+            }).then(r => r.json()).then(d => ({ type: 'slug', value: d.slug })).catch(() => ({ type: 'slug', value: null })));
         }
 
-        // Snippet promise
         if (content) {
-            promises.push(
-                fetch('/api/admin/snippet/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ slug: recordId, content: content })
-                }).then(function (r) {
-                    if (!r.ok) throw new Error('Snippet API returned ' + r.status);
-                    return r.json();
-                }).then(function (data) {
-                    return { type: 'snippet', value: data && data.snippet ? data.snippet.trim() : '' };
-                }).catch(function (err) {
-                    console.error('[metadata_widget] Parallel snippet gen failed:', err);
-                    return { type: 'snippet', value: null, error: err };
-                })
-            );
+            promises.push(fetch('/api/admin/snippet/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slug: recordId, content: content })
+            }).then(r => r.json()).then(d => ({ type: 'snippet', value: d.snippet })).catch(() => ({ type: 'snippet', value: null })));
+
+            promises.push(fetch('/api/admin/metadata/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slug: recordId, content: content })
+            }).then(r => r.json()).then(d => ({ type: 'keywords', value: d.keywords })).catch(() => ({ type: 'keywords', value: null })));
         }
 
-        // Metadata promise
-        if (content) {
-            promises.push(
-                fetch('/api/admin/metadata/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ slug: recordId, content: content })
-                }).then(function (r) {
-                    if (!r.ok) throw new Error('Metadata API returned ' + r.status);
-                    return r.json();
-                }).then(function (data) {
-                    let formatted = '';
-                    if (data) {
-                        formatted = (typeof data === 'string')
-                            ? data
-                            : JSON.stringify(data, null, 2);
-                    }
-                    return { type: 'metadata', value: formatted };
-                }).catch(function (err) {
-                    console.error('[metadata_widget] Parallel metadata gen failed:', err);
-                    return { type: 'metadata', value: null, error: err };
-                })
-            );
-        }
-
-        // Wait for all to settle
-        const results = await Promise.allSettled
-            ? await Promise.allSettled(promises)
-            : await Promise.all(promises.map(function (p) {
-                return p.then(
-                    function (v) { return { status: 'fulfilled', value: v }; },
-                    function (e) { return { status: 'rejected', reason: e }; }
-                );
-            }));
-
-        // Apply results to fields
-        let slugFilled = false;
-        let snippetFilled = false;
-        let metaFilled = false;
-
-        results.forEach(function (result) {
-            const res = result.value || result;
-            if (!res || !res.type) return;
-
-            if (res.type === 'slug' && res.value) {
-                slugInput.value = res.value;
-                slugFilled = true;
-            } else if (res.type === 'snippet' && res.value) {
-                snippetTextarea.value = res.value;
-                snippetFilled = true;
-            } else if (res.type === 'metadata' && res.value) {
-                metaTextarea.value = res.value;
-                metaFilled = true;
+        const results = await Promise.all(promises);
+        results.forEach(res => {
+            if (res.type === 'slug' && res.value) slugInput.value = res.value;
+            if (res.type === 'snippet' && res.value) snippetTextarea.value = res.value;
+            if (res.type === 'keywords' && res.value) {
+                const kws = res.value.split(',').map(k => k.trim()).filter(k => k);
+                kws.forEach(k => { if (!activeKeywords.includes(k)) activeKeywords.push(k); });
+                _renderTags();
             }
         });
 
-        const filledCount = (slugFilled ? 1 : 0) + (snippetFilled ? 1 : 0) + (metaFilled ? 1 : 0);
-        _setStatus('Generated ' + filledCount + ' of 3 fields.');
-
-        // Auto-save as draft if callback provided and record is not published
+        _setStatus('Generated metadata fields.');
         if (typeof opts.onAutoSaveDraft === 'function') {
-            try {
-                const recordData = {
-                    slug: slugInput.value,
-                    snippet: snippetTextarea.value,
-                    metadata_json: metaTextarea.value
-                };
-                await opts.onAutoSaveDraft(recordData);
-            } catch (err) {
-                console.error('[metadata_widget] Auto-save draft failed:', err);
-            }
+            const recordData = {
+                slug: slugInput.value,
+                snippet: snippetTextarea.value,
+                metadata_json: JSON.stringify({ keywords: activeKeywords.join(', ') })
+            };
+            await opts.onAutoSaveDraft(recordData);
         }
 
         _setButtonsDisabled(false);
-        generateAllBtn.textContent = 'Generate All';
+        generateAllBtn.textContent = 'GENERATE ALL';
     });
 
     /* -------------------------------------------------------------------------
-       4. EXPOSE POPULATE / COLLECT HELPERS ON THE CONTAINER
+       5. EXPOSE HELPERS
     ------------------------------------------------------------------------- */
-
     container._populateWidget = function (data) {
         if (!data) {
-            // Clear to placeholder state
             slugInput.value = '';
             snippetTextarea.value = '';
-            metaTextarea.value = '';
-            createdAtInput.value = '';
-            updatedAtInput.value = '';
+            activeKeywords = [];
+            _renderTags();
             return;
         }
-
         slugInput.value = data.slug || '';
         snippetTextarea.value = data.snippet || '';
-
-        // Format metadata_json for display
+        
+        let kws = [];
         if (data.metadata_json) {
-            if (typeof data.metadata_json === 'string') {
-                try {
-                    metaTextarea.value = JSON.stringify(JSON.parse(data.metadata_json), null, 2);
-                } catch (e) {
-                    metaTextarea.value = data.metadata_json;
+            try {
+                const parsed = (typeof data.metadata_json === 'string') ? JSON.parse(data.metadata_json) : data.metadata_json;
+                if (parsed.keywords) {
+                    kws = parsed.keywords.split(',').map(k => k.trim()).filter(k => k);
+                } else if (Array.isArray(parsed)) {
+                    kws = parsed;
                 }
-            } else {
-                try {
-                    metaTextarea.value = JSON.stringify(data.metadata_json, null, 2);
-                } catch (e) {
-                    metaTextarea.value = String(data.metadata_json);
-                }
+            } catch (e) {
+                // Fallback: treat string as comma-separated
+                kws = data.metadata_json.split(',').map(k => k.trim()).filter(k => k);
             }
-        } else {
-            metaTextarea.value = '';
         }
-
-        createdAtInput.value = data.created_at || '';
-        updatedAtInput.value = data.updated_at || '';
+        activeKeywords = kws;
+        _renderTags();
     };
 
     container._collectWidget = function () {
         return {
             slug: slugInput.value,
             snippet: snippetTextarea.value,
-            metadata_json: metaTextarea.value
+            metadata_json: JSON.stringify({ keywords: activeKeywords.join(', ') })
         };
     };
 }

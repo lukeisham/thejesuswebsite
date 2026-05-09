@@ -12,28 +12,6 @@
 
 "use strict";
 
-// ---------------------------------------------------------------------------|
-// Config for shared admin_core functions — News Sources-specific element IDs |
-// ---------------------------------------------------------------------------|
-var _nsSnippetConfig = {
-  snippetInputId: "news-sources-snippet-input",
-  spinnerBtnId: "btn-news-auto-snippet",
-};
-var _nsSlugConfig = { slugInputId: "news-sources-slug-input" };
-var _nsMetaConfig = {
-  metaInputId: "news-sources-meta-input",
-  spinnerBtnId: "btn-news-auto-meta",
-};
-var _nsSaveMetaConfig = {
-  snippetInputId: "news-sources-snippet-input",
-  slugInputId: "news-sources-slug-input",
-  metaInputId: "news-sources-meta-input",
-  stateFieldMap: {
-    snippet: "activeSnippet",
-    slug: "activeRecordSlug",
-    meta: "activeMeta",
-  },
-};
 var _nsTermChipConfig = {
   prefix: "news-",
   inputId: "news-search-term-input",
@@ -41,6 +19,38 @@ var _nsTermChipConfig = {
   stateTermsKey: "activeSearchKeywords",
   renderFn: _renderSearchKeywords,
 };
+
+/* --- Metadata Save Callback --- */
+async function _saveMetadataFromWidget(data) {
+  var state = window._newsSourcesModuleState;
+  if (!state.activeRecordId) return;
+
+  try {
+    var response = await fetch("/api/admin/records/" + state.activeRecordId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug: data.slug,
+        snippet: data.snippet,
+        metadata_json: data.metadata_json,
+        status: "draft"
+      }),
+    });
+
+    if (!response.ok) throw new Error("Save failed");
+
+    // Update local state
+    state.activeRecordSlug = data.slug;
+    state.activeSnippet = data.snippet;
+    state.activeMeta = data.metadata_json;
+
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Metadata saved for '" + (state.activeRecordTitle || state.activeRecordSlug) + "'.");
+    }
+  } catch (err) {
+    console.error("[news_sources_sidebar] Metadata save failed:", err);
+  }
+}
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: initNewsSourcesSidebar
@@ -71,58 +81,26 @@ function initNewsSourcesSidebar() {
     });
   }
 
-  // --- Auto-Gen Buttons → shared ---
-  var autoSnippetBtn = document.getElementById("btn-news-auto-snippet");
-  if (autoSnippetBtn) {
-    autoSnippetBtn.addEventListener("click", function () {
-      window.triggerAutoGenSnippet(
-        window._newsSourcesModuleState,
-        _nsSnippetConfig,
-      );
+  // --- Standardized Metadata Widget ---
+  if (typeof window.renderMetadataWidget === 'function') {
+    window.renderMetadataWidget('metadata-widget-container', {
+      onAutoSaveDraft: _saveMetadataFromWidget,
+      getRecordTitle: function() { 
+        return window._newsSourcesModuleState.activeRecordTitle || window._newsSourcesModuleState.activeRecordSlug; 
+      },
+      getRecordId: function() { return window._newsSourcesModuleState.activeRecordSlug; }
     });
-  }
 
-  var autoSlugBtn = document.getElementById("btn-news-auto-slug");
-  if (autoSlugBtn) {
-    autoSlugBtn.addEventListener("click", function () {
-      window.triggerAutoGenSlug(window._newsSourcesModuleState, _nsSlugConfig);
-    });
-  }
-
-  var autoMetaBtn = document.getElementById("btn-news-auto-meta");
-  if (autoMetaBtn) {
-    autoMetaBtn.addEventListener("click", function () {
-      window.triggerAutoGenMeta(window._newsSourcesModuleState, _nsMetaConfig);
-    });
-  }
-
-  // --- Metadata field save-on-blur → shared ---
-  var snippetInput = document.getElementById("news-sources-snippet-input");
-  var slugInput = document.getElementById("news-sources-slug-input");
-  var metaInput = document.getElementById("news-sources-meta-input");
-  if (snippetInput) {
-    snippetInput.addEventListener("blur", function () {
-      window.saveSidebarMetadata(
-        window._newsSourcesModuleState,
-        _nsSaveMetaConfig,
-      );
-    });
-  }
-  if (slugInput) {
-    slugInput.addEventListener("blur", function () {
-      window.saveSidebarMetadata(
-        window._newsSourcesModuleState,
-        _nsSaveMetaConfig,
-      );
-    });
-  }
-  if (metaInput) {
-    metaInput.addEventListener("blur", function () {
-      window.saveSidebarMetadata(
-        window._newsSourcesModuleState,
-        _nsSaveMetaConfig,
-      );
-    });
+    // Wire manual blur save for the widget's inputs
+    var container = document.getElementById('metadata-widget-container');
+    if (container) {
+      container.addEventListener('focusout', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          var data = window.collectMetadataWidget('metadata-widget-container');
+          _saveMetadataFromWidget(data);
+        }
+      });
+    }
   }
 
   // --- Source URL input (auto-save on blur) ---

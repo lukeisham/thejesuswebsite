@@ -194,33 +194,70 @@ async function renderChallenge() {
     ------------------------------------------------------------------------- */
   _wireActionButtons();
 
-  /* -------------------------------------------------------------------------
-       6. INITIALISE SHARED TOOLS — Metadata widget + footer
-       The metadata_handler.js and metadata_widget.js are loaded globally
-       via dashboard.html.
-    ------------------------------------------------------------------------- */
+  // 6. INITIALISE SHARED TOOLS — Metadata widget + footer
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {
       onAutoSaveDraft: async function (recordData) {
-        // Challenge responses are auto-saved as draft
-        if (typeof window._saveChallengeRecord === "function") {
-          await window._saveChallengeRecord();
-        }
+        await _saveChallengeRecord(recordData);
       },
       getRecordTitle: function () {
-        return window._challengeModuleState &&
-          window._challengeModuleState.activeRecordTitle
-          ? window._challengeModuleState.activeRecordTitle
-          : "";
+        return window._challengeModuleState.activeRecordTitle;
       },
       getRecordId: function () {
-        return window._challengeModuleState &&
-          window._challengeModuleState.activeRecordSlug
-          ? window._challengeModuleState.activeRecordSlug
-          : "";
+        return window._challengeModuleState.activeRecordSlug;
       },
     });
+
+    // Also wire manual blur save for the widget's inputs
+    const container = document.getElementById('metadata-widget-container');
+    if (container) {
+      container.addEventListener('focusout', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          const data = window.collectMetadataWidget('metadata-widget-container');
+          _saveChallengeRecord(data);
+        }
+      });
+    }
   }
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _saveChallengeRecord
+   Saves metadata (slug, snippet, keywords) for the active challenge record.
+----------------------------------------------------------------------------- */
+async function _saveChallengeRecord(data) {
+  const state = window._challengeModuleState;
+  if (!state.activeRecordId) return;
+
+  // If no data provided, collect it from the widget
+  if (!data) {
+    data = window.collectMetadataWidget("metadata-widget-container");
+  }
+
+  try {
+    const response = await fetch("/api/admin/records/" + state.activeRecordId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug: data.slug,
+        snippet: data.snippet,
+        metadata_json: data.metadata_json,
+        status: "draft"
+      }),
+    });
+
+    if (!response.ok) throw new Error("Save failed");
+
+    // Update local state
+    state.activeRecordSlug = data.slug;
+    
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Metadata saved for '" + state.activeRecordTitle + "'.");
+    }
+  } catch (err) {
+    console.error("[dashboard_challenge] Metadata save failed:", err);
+  }
+}
 
   if (typeof window.renderMetadataFooter === "function") {
     window.renderMetadataFooter("challenge-metadata-container", "");

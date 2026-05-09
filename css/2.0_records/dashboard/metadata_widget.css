@@ -190,41 +190,145 @@
    Full-width with Deep Oxblood accent to stand out from individual buttons.
 ============================================================================= */
 
-.metadata-widget__generate-all {
-    font-family: var(--font-heading);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
-    color: var(--color-text-inverse);
+/* --- Keywords (Tags) --- */
+.metadata-widget__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+    min-height: 32px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+}
 
-    background-color: var(--color-accent-primary);
-    border: var(--border-width-thin) solid var(--color-accent-primary);
+.metadata-widget__tag {
+    display: inline-flex;
+    align-items: center;
+    background: var(--color-bg-light, #3a3a3c);
+    color: var(--color-text, #ffffff);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-    padding: var(--space-2) var(--space-3);
-
-    width: 100%;
-    box-sizing: border-box;
-
+.metadata-widget__tag-remove {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    margin-left: 6px;
     cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s ease;
+}
 
-    transition: background-color var(--transition-fast),
-                border-color var(--transition-fast);
+.metadata-widget__tag-remove:hover {
+    color: #ff453a;
+}
+
+.metadata-widget__tag-add-wrapper {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.metadata-widget__tag-input {
+    background: var(--color-bg-dark, #1c1c1e);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
+    padding: 4px 8px;
+    width: 80px;
+}
+
+.metadata-widget__tag-input:focus {
+    outline: none;
+    border-color: var(--color-accent, #0a84ff);
+}
+
+.metadata-widget__tag-add-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 8px;
+    transition: background 0.2s ease;
+}
+
+.metadata-widget__tag-add-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Status & Footer --- */
+.metadata-widget__status {
+    font-size: 11px;
+    color: var(--color-accent, #0a84ff);
+    margin: 8px 0;
+    min-height: 1.2em;
+    font-style: italic;
+}
+
+.metadata-widget__divider {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 16px 0;
+}
+
+.metadata-widget__generate-all {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #0a84ff, #0070e0);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-transform: uppercase;
 }
 
 .metadata-widget__generate-all:hover {
-    background-color: var(--color-accent-hover);
-    border-color: var(--color-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
 }
 
 .metadata-widget__generate-all:active {
-    background-color: var(--color-accent-hover);
-    border-color: var(--color-accent-hover);
+    transform: translateY(0);
 }
 
 .metadata-widget__generate-all:disabled {
-    background-color: var(--color-text-muted);
-    border-color: var(--color-text-muted);
+    background: #3a3a3c;
+    color: rgba(255, 255, 255, 0.3);
     cursor: not-allowed;
-    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+
+/* --- Responsive & Field Overrides --- */
+.metadata-widget__field + .metadata-widget__field {
+    margin-top: 16px;
+}
+
+.metadata-widget__inline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+@media (min-width: 320px) {
+    .metadata-widget__inline {
+        /* Keep vertical in sidebar typically */
+    }
 }
 
 /* =============================================================================
