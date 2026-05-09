@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-    <!-- =============================================================================
+<!-- =============================================================================
 
      THE JESUS WEBSITE — DEBATE LANDING PAGE
      File:    frontend/pages/debate.html
@@ -10,131 +10,112 @@
 
 ============================================================================= -->
 
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <base href="/frontend/pages/" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/frontend/pages/" />
 
-        <title>Debate & Discussion | The Jesus Website</title>
+    <title>Debate & Discussion | The Jesus Website</title>
 
-        <!-- Stylesheets -->
-        <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
-        <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
-        <link rel="stylesheet" href="../../css/1.0_foundation/landing.css" />
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
+    <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
+    <link rel="stylesheet" href="../../css/1.0_foundation/landing.css" />
 
-        <!-- UI Logic Components -->
-        <script src="../../js/1.0_foundation/frontend/header.js"></script>
-        <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
-        <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
-        <script src="../../js/1.0_foundation/frontend/footer.js"></script>
+    <!-- UI Logic Components -->
+    <script src="../../js/1.0_foundation/frontend/header.js"></script>
+    <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
+    <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
+    <script src="../../js/1.0_foundation/frontend/footer.js"></script>
 
-        <!-- Central Initializer -->
-        <script src="../../js/1.0_foundation/frontend/initializer.js"></script>
-    </head>
+    <!-- Central Initializer -->
+    <script src="../../js/1.0_foundation/frontend/initializer.js"></script>
+</head>
 
-    <body
-        data-page-title="Debate & Discussion"
-        data-page-description="Explore historical challenges, scholarly debates, and critical responses regarding Jesus of Nazareth."
-        data-sidebar-active-nav="debate"
-        data-search-header-active-nav="debate"
-        data-footer-target="page-shell"
-    >
-        <!-- Main Page Shell Container -->
-        <div class="page-shell" id="page-shell">
-            <!-- Invisible Metadata Anchor -->
-            <header id="invisible-header" aria-hidden="true"></header>
+<body data-page-title="Debate & Discussion"
+    data-page-description="Explore historical challenges, scholarly debates, and critical responses regarding Jesus of Nazareth."
+    data-sidebar-active-nav="debate" data-search-header-active-nav="debate" data-footer-target="page-shell">
+    <!-- Main Page Shell Container -->
+    <div class="page-shell" id="page-shell">
+        <!-- Invisible Metadata Anchor -->
+        <header id="invisible-header" aria-hidden="true"></header>
 
-            <!-- Main Content Column -->
-            <main class="site-main" id="site-main" role="main">
-                <div class="content-wrap">
-                    <header class="landing-page__header">
-                        <h1 class="landing-page__heading">
-                            Debate &amp; Discussion
-                        </h1>
-                        <p class="text-sm text-secondary">
-                            An overview of the historiographical study of Jesus
-                            and responses to popular and academic challenges to
-                            the historicity of Jesus. (Plus a bonus page ranking
-                            all the Wikipedia articles related to Jesus from
-                            least reliable to most reliable.)
+        <!-- Main Content Column -->
+        <main class="site-main" id="site-main" role="main">
+            <div class="content-wrap">
+                <header class="landing-page__header">
+                    <h1 class="landing-page__heading">
+                        Debate &amp; Discussion
+                    </h1>
+                    <p class="text-sm text-secondary">
+                        An overview of the historiographical study of Jesus
+                        and responses to popular and academic challenges to
+                        the historicity of Jesus. (Plus a bonus page ranking
+                        all the Wikipedia articles related to Jesus from
+                        least reliable to most reliable.)
+                    </p>
+                </header>
+
+                <div class="landing-page__grid">
+                    <!-- Popular Challenges -->
+                    <a href="/debate/popular-challenges" class="landing-card" id="card-popular">
+                        <h2 class="landing-card__title">
+                            Popular Challenges
+                        </h2>
+                        <p class="landing-card__desc">
+                            List of the most common historical and theological
+                            questions raised about the historicity of Jesus.
                         </p>
-                    </header>
+                        <div class="landing-card__meta">
+                            RANKED LIST (WITH RESPONSES)
+                        </div>
+                    </a>
 
-                    <div class="landing-page__grid">
-                        <!-- Popular Challenges -->
-                        <a
-                            href="/debate/popular-challenges"
-                            class="landing-card"
-                            id="card-popular"
-                        >
-                            <h2 class="landing-card__title">
-                                Popular Challenges
-                            </h2>
-                            <p class="landing-card__desc">
-                                Addressing common historical and theological
-                                questions raised in the public sphere.
-                            </p>
-                            <div class="landing-card__meta">
-                                DEBATE-CATEGORY-A
-                            </div>
-                        </a>
+                    <!-- Academic Debates -->
+                    <a href="/debate/academic-challenges" class="landing-card" id="card-academic">
+                        <h2 class="landing-card__title">
+                            Academic Historical Debates
+                        </h2>
+                        <p class="landing-card__desc">
+                            List of the most persistent academic challenges to
+                            the historicity of Jesus.
+                        </p>
+                        <div class="landing-card__meta">
+                            RANKED LIST (WITH RESPONSES)
+                        </div>
+                    </a>
 
-                        <!-- Academic Debates -->
-                        <a
-                            href="/debate/academic-challenges"
-                            class="landing-card"
-                            id="card-academic"
-                        >
-                            <h2 class="landing-card__title">
-                                Academic Historical Debates
-                            </h2>
-                            <p class="landing-card__desc">
-                                Technical discussions on historiography,
-                                source-criticism, and peer-reviewed analysis.
-                            </p>
-                            <div class="landing-card__meta">
-                                DEBATE-CATEGORY-B
-                            </div>
-                        </a>
+                    <!-- Wikipedia View -->
+                    <a href="/debate/wikipedia-articles" class="landing-card" id="card-wikipedia">
+                        <h2 class="landing-card__title">
+                            Wikipedia
+                        </h2>
+                        <p class="landing-card__desc">
+                            A ranked list of Wikipedia articles about Jesus, ranked
+                            from most reliable to least reliable.
+                        </p>
+                        <div class="landing-card__meta">
+                            RANKED LIST
+                        </div>
+                    </a>
 
-                        <!-- Wikipedia View -->
-                        <a
-                            href="/debate/wikipedia-articles"
-                            class="landing-card"
-                            id="card-wikipedia"
-                        >
-                            <h2 class="landing-card__title">
-                                Wikipedia Perspective
-                            </h2>
-                            <p class="landing-card__desc">
-                                A ranked list of global historical consensus and
-                                the various wiki-driven debates.
-                            </p>
-                            <div class="landing-card__meta">
-                                DEBATE-CATEGORY-C
-                            </div>
-                        </a>
-
-                        <!-- Historiography Analysis -->
-                        <a
-                            href="/debate/historiography"
-                            class="landing-card"
-                            id="card-historiography"
-                        >
-                            <h2 class="landing-card__title">
-                                Historiographical Lessons
-                            </h2>
-                            <p class="landing-card__desc">
-                                Essays on how we know what we know about the
-                                1st-century historical record.
-                            </p>
-                            <div class="landing-card__meta">
-                                DEBATE-CATEGORY-D
-                            </div>
-                        </a>
-                    </div>
+                    <!-- Historiography Analysis -->
+                    <a href="/debate/historiography" class="landing-card" id="card-historiography">
+                        <h2 class="landing-card__title">
+                            Historiographical Lessons
+                        </h2>
+                        <p class="landing-card__desc">
+                            An essay about the historical study of Jesus from the
+                            first century until now.
+                        </p>
+                        <div class="landing-card__meta">
+                            ESSAY
+                        </div>
+                    </a>
                 </div>
-            </main>
-        </div>
-    </body>
+            </div>
+        </main>
+    </div>
+</body>
+
 </html>
