@@ -138,16 +138,13 @@ function renderMetadataWidget(containerId, options) {
   keywordsLabel.setAttribute("for", "metadata-widget-tag-input");
   keywordsLabel.textContent = "Keywords";
 
-  const keywordsInline = document.createElement("div");
-  keywordsInline.className = "metadata-widget__inline";
-
   const tagsContainer = document.createElement("div");
   tagsContainer.id = "metadata-widget-tags";
   tagsContainer.className = "metadata-widget__tags";
   // Populated dynamically
 
-  const addTagWrapper = document.createElement("div");
-  addTagWrapper.className = "metadata-widget__tag-add-wrapper";
+  const keywordsInline = document.createElement("div");
+  keywordsInline.className = "metadata-widget__inline";
 
   const tagInput = document.createElement("input");
   tagInput.id = "metadata-widget-tag-input";
@@ -166,18 +163,12 @@ function renderMetadataWidget(containerId, options) {
   keywordsBtn.type = "button";
   keywordsBtn.textContent = "GENERATE";
 
-  addTagWrapper.appendChild(tagInput);
-  addTagWrapper.appendChild(tagAddBtn);
-
-  // Wrap tags + add-wrapper so the GENERATE button aligns with sibling rows
-  const keywordsArea = document.createElement("div");
-  keywordsArea.className = "metadata-widget__keywords-area";
-  keywordsArea.appendChild(tagsContainer);
-  keywordsArea.appendChild(addTagWrapper);
-
-  keywordsInline.appendChild(keywordsArea);
+  keywordsInline.appendChild(tagInput);
+  keywordsInline.appendChild(tagAddBtn);
   keywordsInline.appendChild(keywordsBtn);
+
   keywordsField.appendChild(keywordsLabel);
+  keywordsField.appendChild(tagsContainer);
   keywordsField.appendChild(keywordsInline);
 
   // --- Status Text ---

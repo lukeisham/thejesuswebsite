@@ -4,7 +4,7 @@
    plan_dashboard_essay_historiography, plan_dashboard_challenge,
    plan_dashboard_news_sources, and plan_dashboard_records_single.
    File:    css/2.0_records/dashboard/metadata_widget.css
-   Version: 1.1.0
+   Version: 1.1.1
    Owner:   plan_dashboard_records_single (2.0 Records Module)
    Purpose: Shared stylesheet for the unified slug/snippet/metadata widget
             rendered across all dashboard editor modules. Scoped to the
@@ -78,9 +78,8 @@
     flex: 1;
 }
 
-.metadata-widget__inline .metadata-widget__keywords-area {
+.metadata-widget__inline .metadata-widget__tag-input {
     flex: 1;
-    min-width: 0;
 }
 
 /* =============================================================================
@@ -200,8 +199,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1);
-    margin-bottom: var(--space-1);
-    min-height: var(--space-4);
+}
+
+.metadata-widget__tags:empty {
+    display: none;
 }
 
 .metadata-widget__tag {
@@ -234,11 +235,7 @@
     color: var(--color-accent-primary);
 }
 
-.metadata-widget__tag-add-wrapper {
-    display: flex;
-    gap: var(--space-1);
-    margin-top: var(--space-1);
-}
+/* .metadata-widget__tag-add-wrapper removed in favor of .metadata-widget__inline */
 
 .metadata-widget__tag-input {
     font-family: var(--font-mono);
@@ -248,7 +245,7 @@
     background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
     padding: var(--space-1) var(--space-2);
-    width: 140px;
+    /* width removed to allow flex: 1 in inline row */
 }
 
 .metadata-widget__tag-input:focus {

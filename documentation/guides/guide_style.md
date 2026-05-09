@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.7.0
+version: 1.7.1
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -403,8 +403,11 @@ Posts, Challenge, News Sources, and Wikipedia.
 | `.metadata-widget__hint` | Helper text below fields | `--font-mono`, `--text-xs`, `--color-text-muted` |
 | `.metadata-widget__readonly-row` | Two-column read-only timestamp row | Flexbox, `--space-2` gap |
 | `.metadata-widget__status` | Generation progress text (italic) | `--font-mono`, `--text-xs`, `--color-text-muted` |
+| `.metadata-widget__tag-input` | Tag entry field (flex: 1) | `--font-mono`, `--text-xs`, fills row space |
 
 **Design principles demonstrated:**
+- **Standardized Horizontal Symmetry:** All fields (Slug, Snippet, Keywords) follow a strict horizontal row pattern: `[Input/Textarea/Tags] + [Action Button]`.
+- **Keywords Row Alignment:** The Keywords field is standardized to place the "Add" input and "GENERATE" button in a single flex row, ensuring visual parity with Slug and Snippet rows.
 - **Rounding discipline:** Inputs and buttons use `--radius-sm` (2px). No rounding on structural containers.
 - **Mono logic:** All inputs, textareas, hints use `--font-mono`.
 - **Border precision:** All borders are `var(--border-width-thin)`.
