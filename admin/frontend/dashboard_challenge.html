@@ -98,7 +98,10 @@
         aria-label="Weighting controls"
     >
         <header class="challenge-sidebar__header">
-            <h2 class="challenge-sidebar__heading" id="challenge-sidebar-heading">
+            <h2
+                class="challenge-sidebar__heading"
+                id="challenge-sidebar-heading"
+            >
                 ACADEMIC WEIGHTING AND SEARCH TERMS
             </h2>
         </header>
@@ -148,6 +151,30 @@
                     Publish
                 </button>
             </div>
+        </section>
+
+        <!-- ==================================================================
+           Saved Ranking Weights Overview — read-only list, refreshed on toggle.
+           Populated by academic_challenge_ranking_weights.js /
+           popular_challenge_ranking_weights.js
+        ================================================================== -->
+        <section
+            id="challenge-ranking-weights-overview"
+            class="challenge-ranking-weights-overview"
+            aria-label="Saved ranking weights"
+        >
+            <header class="challenge-sidebar__subheader">
+                <h3 class="challenge-sidebar__subheading">
+                    Saved Ranking Weights
+                </h3>
+            </header>
+            <ul
+                id="challenge-ranking-weights-overview-list"
+                class="challenge-overview-list"
+                aria-label="Active ranking weights"
+            >
+                <!-- Dynamically populated -->
+            </ul>
         </section>
 
         <!-- ==================================================================
@@ -252,7 +279,7 @@
         ================================================================== -->
         <section
             id="academic-challenge-list-region"
-            class="challenge-list-region challenge-list-region--active"
+            class="challenge-list-region"
             aria-label="Academic challenges"
             aria-hidden="false"
         >

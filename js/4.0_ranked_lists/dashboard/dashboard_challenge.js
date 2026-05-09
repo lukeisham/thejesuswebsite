@@ -538,7 +538,6 @@ function _showListRegion(mode) {
   var region = document.getElementById(regionId);
   if (region) {
     region.setAttribute("aria-hidden", "false");
-    region.classList.add("challenge-list-region--active");
   }
 }
 
@@ -547,7 +546,6 @@ function _hideListRegion(mode) {
   var region = document.getElementById(regionId);
   if (region) {
     region.setAttribute("aria-hidden", "true");
-    region.classList.remove("challenge-list-region--active");
   }
 }
 
@@ -561,9 +559,15 @@ function _refreshOverviews(mode) {
     if (typeof window.renderAcademicSearchTermsOverview === "function") {
       window.renderAcademicSearchTermsOverview();
     }
+    if (typeof window.renderAcademicRankingWeightsOverview === "function") {
+      window.renderAcademicRankingWeightsOverview();
+    }
   } else {
     if (typeof window.renderPopularSearchTermsOverview === "function") {
       window.renderPopularSearchTermsOverview();
+    }
+    if (typeof window.renderPopularRankingWeightsOverview === "function") {
+      window.renderPopularRankingWeightsOverview();
     }
   }
 }
