@@ -56,12 +56,14 @@ async def get_all_records(
         safe_limit = max(1, min(limit, 500))
         safe_offset = max(0, offset)
 
-        cols_to_select = [c for c in valid_cols if c not in ("picture_bytes", "picture_thumbnail")]
+        excluded = ("picture_bytes", "picture_thumbnail")
+        cols_to_select = [c for c in valid_cols if c not in excluded]
         select_clause = ", ".join(cols_to_select)
 
         cursor = conn.cursor()
         cursor.execute(
-            f"SELECT {select_clause} FROM records ORDER BY {sort_col} ASC LIMIT ? OFFSET ?",
+            f"SELECT {select_clause} FROM records "
+            f"ORDER BY {sort_col} ASC LIMIT ? OFFSET ?",
             (safe_limit, safe_offset),
         )
         records = [dict(row) for row in cursor.fetchall()]
@@ -132,6 +134,7 @@ async def get_single_record(record_id: str, admin_data: dict = Depends(verify_to
     """
     try:
         import base64
+
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM records WHERE id = ?", (record_id,))
@@ -140,9 +143,13 @@ async def get_single_record(record_id: str, admin_data: dict = Depends(verify_to
         if row:
             record_dict = dict(row)
             if record_dict.get("picture_bytes"):
-                record_dict["picture_bytes"] = base64.b64encode(record_dict["picture_bytes"]).decode("utf-8")
+                record_dict["picture_bytes"] = base64.b64encode(
+                    record_dict["picture_bytes"]
+                ).decode("utf-8")
             if record_dict.get("picture_thumbnail"):
-                record_dict["picture_thumbnail"] = base64.b64encode(record_dict["picture_thumbnail"]).decode("utf-8")
+                record_dict["picture_thumbnail"] = base64.b64encode(
+                    record_dict["picture_thumbnail"]
+                ).decode("utf-8")
             return record_dict
         raise HTTPException(status_code=404, detail="Record not found")
     except Exception as e:
