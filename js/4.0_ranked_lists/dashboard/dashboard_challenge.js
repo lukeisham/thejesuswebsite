@@ -103,30 +103,48 @@ async function renderChallenge() {
     const response = await fetch("/admin/frontend/dashboard_challenge.html");
     if (!response.ok) {
       throw new Error(
-        "Failed to load challenge editor template (HTTP " +
-          response.status +
-          ")",
+        "Failed to load challenge editor template (HTTP " + response.status + ")",
       );
     }
     const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    const functionBar = doc.getElementById("challenge-function-bar");
+    const sidebar = doc.getElementById("challenge-sidebar");
+    const listArea = doc.getElementById("challenge-list-area");
+
+    if (!functionBar || !sidebar || !listArea) {
+      console.warn("[dashboard_challenge.js] Template elements missing:", {
+        functionBar: !!functionBar,
+        sidebar: !!sidebar,
+        listArea: !!listArea,
+      });
+    }
 
     if (typeof window._setColumn === "function") {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-
-      const functionBar = doc.getElementById("challenge-function-bar");
-      const sidebar = doc.getElementById("challenge-sidebar");
-      const listArea = doc.getElementById("challenge-list-area");
-
       if (sidebar) {
         window._setColumn("sidebar", sidebar.outerHTML);
       }
-      
+
       let mainHtml = "";
       if (functionBar) mainHtml += functionBar.outerHTML;
       if (listArea) mainHtml += listArea.outerHTML;
-      
-      window._setColumn("main", mainHtml);
+
+      if (mainHtml) {
+        window._setColumn("main", mainHtml);
+      }
+    }
+
+    // --- Synchronize Initial Heading State ---
+    // Ensure the heading shows up correctly on load (defaulting to Academic)
+    const headingEl = document.getElementById("challenge-sidebar-heading");
+    if (headingEl) {
+      headingEl.textContent = "ACADEMIC WEIGHTING AND SEARCH TERMS";
+    } else {
+      console.warn(
+        "[dashboard_challenge.js] Sidebar heading element not found after injection.",
+      );
     }
   } catch (err) {
     console.error("[dashboard_challenge] Template load failed:", err);
@@ -137,6 +155,7 @@ async function renderChallenge() {
     }
     return;
   }
+
 
   /* -------------------------------------------------------------------------
        3. INITIALISE SUB-MODULES
@@ -161,12 +180,20 @@ async function renderChallenge() {
   window._recordTitle = window._challengeModuleState.activeRecordTitle;
 
   // 3b. Initialise the weighting handler (sidebar)
-  if (typeof window.initChallengeWeighting === "function") {
-    window.initChallengeWeighting();
+  try {
+    if (typeof window.initChallengeWeighting === "function") {
+      window.initChallengeWeighting();
+    }
+  } catch (e) {
+    console.error("[dashboard_challenge.js] initChallengeWeighting failed:", e);
   }
 
   // 3b2. Initialise the overview lists for the default mode (academic)
-  _refreshOverviews("academic");
+  try {
+    _refreshOverviews("academic");
+  } catch (e) {
+    console.error("[dashboard_challenge.js] _refreshOverviews failed:", e);
+  }
 
   /* -------------------------------------------------------------------------
        4. WIRE TOGGLE BUTTONS — Academic / Popular switch
@@ -183,17 +210,29 @@ async function renderChallenge() {
 
   // 3c. Load BOTH challenge lists in parallel so each is pre-loaded.
   //     The Popular region is hidden (aria-hidden="true") but its DOM is ready.
-  if (typeof window.displayChallengeList === "function") {
-    await Promise.all([
-      window.displayChallengeList("academic"),
-      window.displayChallengeList("popular"),
-    ]);
+  try {
+    if (typeof window.displayChallengeList === "function") {
+      await Promise.all([
+        window.displayChallengeList("academic"),
+        window.displayChallengeList("popular"),
+      ]);
+    }
+  } catch (e) {
+    console.error("[dashboard_challenge.js] displayChallengeList failed:", e);
   }
 
   // 3d. Initialise insert response handler
-  if (typeof window.initInsertChallengeResponse === "function") {
-    window.initInsertChallengeResponse();
+  try {
+    if (typeof window.initInsertChallengeResponse === "function") {
+      window.initInsertChallengeResponse();
+    }
+  } catch (e) {
+    console.error(
+      "[dashboard_challenge.js] initInsertChallengeResponse failed:",
+      e,
+    );
   }
+
 
   // 6. INITIALISE SHARED TOOLS — Metadata widget + footer
   if (typeof window.renderMetadataWidget === "function") {
@@ -272,7 +311,13 @@ function _wireToggleButtons() {
   const btnAcademic = document.getElementById("btn-toggle-academic");
   const btnPopular = document.getElementById("btn-toggle-popular");
 
-  if (!btnAcademic || !btnPopular) return;
+  if (!btnAcademic || !btnPopular) {
+    console.warn("[dashboard_challenge.js] Toggle buttons NOT found in DOM:", {
+      btnAcademic: !!btnAcademic,
+      btnPopular: !!btnPopular,
+    });
+    return;
+  }
 
   btnAcademic.addEventListener("click", async function () {
     if (window._challengeModuleState.mode === "academic") return;
@@ -302,7 +347,9 @@ function _wireToggleButtons() {
     );
     if (labelEl) labelEl.textContent = "Academic";
     const headingEl = document.getElementById("challenge-sidebar-heading");
-    if (headingEl) headingEl.textContent = "ACADEMIC WEIGHTING AND SEARCH TERMS";
+    if (headingEl) {
+      headingEl.textContent = "ACADEMIC WEIGHTING AND SEARCH TERMS";
+    }
   });
 
   btnPopular.addEventListener("click", async function () {
@@ -333,9 +380,12 @@ function _wireToggleButtons() {
     );
     if (labelEl) labelEl.textContent = "Popular";
     const headingEl = document.getElementById("challenge-sidebar-heading");
-    if (headingEl) headingEl.textContent = "POPULAR WEIGHTING AND SEARCH TERMS";
+    if (headingEl) {
+      headingEl.textContent = "POPULAR WEIGHTING AND SEARCH TERMS";
+    }
   });
 }
+
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _saveCurrentModeState

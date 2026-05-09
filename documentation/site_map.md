@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.56
+version: 1.0.57
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -61,13 +61,13 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   └── snippet_generator.py   <-- Shared utility: DeepSeek-powered archival abstract generation
 ├── build.py                   <-- Root script to trigger backend pipelines
 ├── css/1.0_foundation/
-│   ├── typography.css         <-- 🔑 Canonical Design Tokens: colors, fonts, spacing, shadows, radii
 │   ├── dashboard/
 │   │   ├── admin_components.css <-- Providence grid, dividers, column width hooks (shared dashboard shell)
 │   │   └── admin_shell.css    <-- Dashboard chrome, header, canvas background
-│   └── frontend/
-│       ├── buttons.css        <-- Public-facing button system
-│       └── forms.css          <-- Public-facing form styles
+│   ├── frontend/
+│   │   ├── buttons.css        <-- Public-facing button system
+│   │   └── forms.css          <-- Public-facing form styles
+│   └── typography.css         <-- 🔑 Canonical Design Tokens: colors, fonts, spacing, shadows, radii
 ├── css/2.0_records/dashboard/
 │   ├── dashboard_records_all.css <-- High-density table, sorting aesthetics, bulk review panel
 │   ├── dashboard_records_single.css <-- Multi-section form layout, sticky section navigator
@@ -219,12 +219,17 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── maps_display.js        <-- Interactive map rendering
 │   └── timeline_display.js    <-- Timeline rendering
 ├── js/4.0_ranked_lists/dashboard/
+│   ├── academic_challenge_ranking_weights.js <-- Sidebar: Academic weighting factors
+│   ├── academic_challenge_search_terms.js <-- Sidebar: Academic search terms overview
 │   ├── challenge_list_display.js <-- Data fetching & row hydration
 │   ├── challenge_ranking_calculator.js <-- Real-time score/rank logic
 │   ├── challenge_weighting_handler.js <-- Weight/rank sidebar for Academic/Popular
 │   ├── dashboard_challenge.js <-- Module orchestration & initialization
+│   ├── dashboard_challenge_response.js <-- Sidebar: Response insert logic (patch)
 │   ├── dashboard_wikipedia.js <-- Module orchestration & initialization
 │   ├── insert_challenge_response.js <-- Response creation & challenge linking
+│   ├── popular_challenge_ranking_weights.js <-- Sidebar: Popular weighting factors
+│   ├── popular_challenge_search_terms.js <-- Sidebar: Popular search terms overview
 │   ├── wikipedia_list_display.js <-- Data fetching & row hydration
 │   ├── wikipedia_ranking_calculator.js <-- Real-time ranking & multi-weight logic
 │   ├── wikipedia_search_terms.js <-- Wikipedia Search Terms editor (overview + textarea)
