@@ -77,6 +77,10 @@
     flex: 1;
 }
 
+.metadata-widget__inline .metadata-widget__keywords-area {
+    flex: 1;
+}
+
 /* =============================================================================
    5. INPUT
    Monospace, matching the existing form-field__input patterns.

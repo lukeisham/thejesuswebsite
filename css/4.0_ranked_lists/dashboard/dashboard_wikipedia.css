@@ -220,7 +220,7 @@
 }
 
 .wikipedia-weight-item__value {
-    width: 48px;
+    width: 56px;
     padding: 2px var(--space-1);
 
     font-family: var(--font-mono);
@@ -238,6 +238,42 @@
 
 .wikipedia-weight-item__value:focus {
     border-color: var(--color-dash-accent);
+}
+
+/* --- Reorder Buttons (▲/▼) --- */
+
+.wikipedia-weight-item__reorder {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.wikipedia-weight-item__reorder-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 18px;
+    height: 16px;
+
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1;
+    color: var(--color-text-muted);
+
+    background: none;
+    border: var(--border-width-thin) solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    transition:
+        color var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.wikipedia-weight-item__reorder-btn:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
 }
 
 .wikipedia-weight-item__remove {

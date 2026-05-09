@@ -65,10 +65,12 @@ window._challengeModuleState = {
   },
 
   // Direct-access storage for sub-modules
-  challenges: [],
+  academicChallenges: [],
+  popularChallenges: [],
 
   // Active weighting criteria for the CURRENT mode's UI
   weightingCriteria: [],
+
 
   // Per-mode weighting + search term cache (saved on toggle, restored on return)
   academicWeightingCriteria: [],
@@ -341,7 +343,10 @@ function _wireToggleButtons() {
     // 5. Restore incoming academic state (or load defaults)
     _restoreModeState("academic");
 
-    // 6. Update search terms label and sidebar heading
+    // 6. Synchronize Metadata Widget with the new mode's active record
+    _syncMetadataWidget();
+
+    // 7. Update search terms label and sidebar heading
     const labelEl = document.getElementById(
       "challenge-search-terms-field-label",
     );
@@ -351,6 +356,7 @@ function _wireToggleButtons() {
       headingEl.textContent = "ACADEMIC WEIGHTING AND SEARCH TERMS";
     }
   });
+
 
   btnPopular.addEventListener("click", async function () {
     if (window._challengeModuleState.mode === "popular") return;
@@ -374,7 +380,10 @@ function _wireToggleButtons() {
     // 5. Restore incoming popular state (or load defaults)
     _restoreModeState("popular");
 
-    // 6. Update search terms label and sidebar heading
+    // 6. Synchronize Metadata Widget with the new mode's active record
+    _syncMetadataWidget();
+
+    // 7. Update search terms label and sidebar heading
     const labelEl = document.getElementById(
       "challenge-search-terms-field-label",
     );
@@ -384,6 +393,7 @@ function _wireToggleButtons() {
       headingEl.textContent = "POPULAR WEIGHTING AND SEARCH TERMS";
     }
   });
+
 }
 
 
@@ -457,9 +467,41 @@ function _restoreModeState(mode) {
 }
 
 /* -----------------------------------------------------------------------------
+   INTERNAL: _syncMetadataWidget
+   Repopulates the shared metadata widget based on the current mode and its
+   active record selection. This prevents data from one mode's record being
+   saved to another's metadata during a toggle.
+----------------------------------------------------------------------------- */
+function _syncMetadataWidget() {
+  if (typeof window.populateMetadataWidget !== "function") return;
+
+  const state = window._challengeModuleState;
+  const activeId = state.activeRecordId;
+  const mode = state.mode;
+
+  if (!activeId) {
+    // No record selected in the new mode — clear the widget
+    window.populateMetadataWidget("metadata-widget-container", null);
+    return;
+  }
+
+  // Find the record object in the mode-specific cache
+  const list = mode === "academic" ? state.academicChallenges : state.popularChallenges;
+  const record = list.find(r => String(r.id) === String(activeId));
+
+  if (record) {
+    window.populateMetadataWidget("metadata-widget-container", record);
+  } else {
+    // Record not found (shouldn't happen) — clear
+    window.populateMetadataWidget("metadata-widget-container", null);
+  }
+}
+
+/* -----------------------------------------------------------------------------
    INTERNAL: _showListRegion / _hideListRegion
    Toggle aria-hidden on the dual list regions to show/hide pre-loaded lists.
 ----------------------------------------------------------------------------- */
+
 function _showListRegion(mode) {
   var regionId = mode + "-challenge-list-region";
   var region = document.getElementById(regionId);

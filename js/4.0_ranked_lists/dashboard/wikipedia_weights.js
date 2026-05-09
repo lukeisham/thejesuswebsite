@@ -13,7 +13,7 @@
 ----------------------------------------------------------------------------- */
 const DEFAULT_WIKIPEDIA_WEIGHTS = [
   { name: "Relevance", value: 1.0 },
-  { name: "Authority", value: 1.0 }
+  { name: "Authority", value: 1.0 },
 ];
 
 /**
@@ -29,12 +29,19 @@ function loadWikipediaWeights(record) {
 
   try {
     if (rawWeight) {
-      const parsed = typeof rawWeight === "string" ? JSON.parse(rawWeight) : rawWeight;
+      const parsed =
+        typeof rawWeight === "string" ? JSON.parse(rawWeight) : rawWeight;
       // Convert { name: value } object to [ { name, value } ] array for rendering
-      weights = Object.entries(parsed).map(([name, value]) => ({ name, value }));
+      weights = Object.entries(parsed).map(([name, value]) => ({
+        name,
+        value,
+      }));
     }
   } catch (e) {
-    console.warn("[wikipedia_weights] Failed to parse weights, using defaults.", e);
+    console.warn(
+      "[wikipedia_weights] Failed to parse weights, using defaults.",
+      e,
+    );
   }
 
   if (weights.length === 0) {
@@ -62,6 +69,30 @@ function _renderWikipediaWeightingList() {
   criteria.forEach((item, index) => {
     const itemEl = document.createElement("div");
     itemEl.className = "wikipedia-weight-item";
+
+    // Reorder buttons (up/down)
+    const reorderEl = document.createElement("div");
+    reorderEl.className = "wikipedia-weight-item__reorder";
+
+    const btnUp = document.createElement("button");
+    btnUp.className = "wikipedia-weight-item__reorder-btn";
+    btnUp.textContent = "\u25B2";
+    btnUp.title = "Move up";
+    btnUp.addEventListener("click", () => {
+      _moveWikipediaWeight(index, -1);
+    });
+    reorderEl.appendChild(btnUp);
+
+    const btnDown = document.createElement("button");
+    btnDown.className = "wikipedia-weight-item__reorder-btn";
+    btnDown.textContent = "\u25BC";
+    btnDown.title = "Move down";
+    btnDown.addEventListener("click", () => {
+      _moveWikipediaWeight(index, 1);
+    });
+    reorderEl.appendChild(btnDown);
+
+    itemEl.appendChild(reorderEl);
 
     // Name
     const nameEl = document.createElement("span");
@@ -103,6 +134,28 @@ function _renderWikipediaWeightingList() {
 }
 
 /**
+ * Moves a weighting criterion up or down in the list, re-renders, and
+ * auto-saves the new order.
+ * @param {number} index     — current position in the array
+ * @param {number} direction — negative for up, positive for down
+ * @private
+ */
+function _moveWikipediaWeight(index, direction) {
+  const criteria = window._wikipediaModuleState.weightingCriteria;
+  const newIndex = index + direction;
+
+  if (newIndex < 0 || newIndex >= criteria.length) return;
+
+  // Swap
+  const temp = criteria[index];
+  criteria[index] = criteria[newIndex];
+  criteria[newIndex] = temp;
+
+  _renderWikipediaWeightingList();
+  _autoSaveWikipediaWeights();
+}
+
+/**
  * Wires up the "Add Weight" form in the sidebar.
  * @private
  */
@@ -118,12 +171,14 @@ function _wireWikipediaNewWeightForm() {
     const val = parseFloat(valueInput.value);
 
     if (!name) {
-      if (window.surfaceError) window.surfaceError("Please enter a name for the weight.");
+      if (window.surfaceError)
+        window.surfaceError("Please enter a name for the weight.");
       return;
     }
 
     if (isNaN(val) || val < 0) {
-      if (window.surfaceError) window.surfaceError("Please enter a valid weight value.");
+      if (window.surfaceError)
+        window.surfaceError("Please enter a valid weight value.");
       return;
     }
 
@@ -148,7 +203,7 @@ async function _autoSaveWikipediaWeights() {
   if (!slug) return;
 
   const weightObj = {};
-  state.weightingCriteria.forEach(item => {
+  state.weightingCriteria.forEach((item) => {
     weightObj[item.name] = item.value;
   });
 
@@ -158,7 +213,7 @@ async function _autoSaveWikipediaWeights() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         wikipedia_weight: JSON.stringify(weightObj),
-        status: "draft"
+        status: "draft",
       }),
     });
 
