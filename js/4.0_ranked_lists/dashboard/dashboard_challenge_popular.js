@@ -96,10 +96,7 @@ async function renderChallengePopular() {
       );
     }
   } catch (err) {
-    console.error(
-      "[dashboard_challenge_popular] Template load failed:",
-      err,
-    );
+    console.error("[dashboard_challenge_popular] Template load failed:", err);
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
         "Error: Unable to load the Popular Challenge editor. Please refresh and try again.",
@@ -136,10 +133,10 @@ async function renderChallengePopular() {
 
   // 3b. Refresh overview lists for popular mode
   try {
-    _refreshOverviews("popular");
+    _refreshPopularOverviews("popular");
   } catch (e) {
     console.error(
-      "[dashboard_challenge_popular.js] _refreshOverviews failed:",
+      "[dashboard_challenge_popular.js] _refreshPopularOverviews failed:",
       e,
     );
   }
@@ -147,7 +144,7 @@ async function renderChallengePopular() {
   /* -------------------------------------------------------------------------
        4. WIRE ACTION BAR BUTTONS
     ------------------------------------------------------------------------- */
-  _wireActionButtons();
+  _wirePopularActionButtons();
 
   /* -------------------------------------------------------------------------
        5. LOAD POPULAR CHALLENGE LIST
@@ -179,7 +176,7 @@ async function renderChallengePopular() {
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {
       onAutoSaveDraft: async function (recordData) {
-        await _saveChallengeRecord(recordData);
+        await _savePopularChallengeRecord(recordData);
       },
       getRecordTitle: function () {
         return window._challengeModuleState.activeRecordTitle;
@@ -197,7 +194,7 @@ async function renderChallengePopular() {
           const data = window.collectMetadataWidget(
             "metadata-widget-container",
           );
-          _saveChallengeRecord(data);
+          _savePopularChallengeRecord(data);
         }
       });
     }
@@ -208,7 +205,7 @@ async function renderChallengePopular() {
    INTERNAL: _saveChallengeRecord
    Saves metadata (slug, snippet, keywords) for the active challenge record.
 ----------------------------------------------------------------------------- */
-async function _saveChallengeRecord(data) {
+async function _savePopularChallengeRecord(data) {
   const state = window._challengeModuleState;
   if (!state.activeRecordId) return;
 
@@ -240,10 +237,7 @@ async function _saveChallengeRecord(data) {
       );
     }
   } catch (err) {
-    console.error(
-      "[dashboard_challenge_popular] Metadata save failed:",
-      err,
-    );
+    console.error("[dashboard_challenge_popular] Metadata save failed:", err);
   }
 }
 
@@ -252,7 +246,7 @@ async function _saveChallengeRecord(data) {
    Calls the popular-mode overview renderers for search terms and ranking
    weights.
 ----------------------------------------------------------------------------- */
-function _refreshOverviews(mode) {
+function _refreshPopularOverviews(mode) {
   if (mode === "popular") {
     if (typeof window.renderPopularSearchTermsOverview === "function") {
       window.renderPopularSearchTermsOverview();
@@ -268,7 +262,7 @@ function _refreshOverviews(mode) {
    Binds click handlers to Refresh, Publish, Agent Search, and Insert Response
    buttons in the function bar.
 ----------------------------------------------------------------------------- */
-function _wireActionButtons() {
+function _wirePopularActionButtons() {
   const btnRefresh = document.getElementById("btn-challenge-refresh");
   const btnPublish = document.getElementById("btn-challenge-publish");
   const btnAgentSearch = document.getElementById("btn-challenge-agent-search");
