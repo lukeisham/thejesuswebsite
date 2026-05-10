@@ -301,8 +301,6 @@ async function _initialiseAllEditors(recordId) {
     });
   }
 
-
-
   // ---- Fetch and hydrate record data ----
   // For new records (recordId is null/undefined), fetchAndDisplaySingleRecord
   // skips the API call and returns null — all form fields remain blank.
@@ -322,6 +320,37 @@ async function _initialiseAllEditors(recordId) {
 
   // Store the loaded record for dirty-checking
   window._loadedRecordData = record;
+
+  // ---- Bidirectional slug sync between Section 1 and Metadata widget ----
+  _wireSlugSync();
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: Wire bidirectional slug sync
+   Keeps #record-slug (Section 1) and #metadata-widget-slug (Section 7)
+   in sync as the user types in either field. The GENERATE button for
+   auto-generating the slug lives in the metadata widget only.
+----------------------------------------------------------------------------- */
+function _wireSlugSync() {
+  const slug1 = document.getElementById("record-slug");
+  const slug2 = document.getElementById("metadata-widget-slug");
+  if (!slug1 || !slug2) return;
+
+  var syncing = false;
+
+  slug1.addEventListener("input", function () {
+    if (syncing) return;
+    syncing = true;
+    slug2.value = slug1.value;
+    syncing = false;
+  });
+
+  slug2.addEventListener("input", function () {
+    if (syncing) return;
+    syncing = true;
+    slug1.value = slug2.value;
+    syncing = false;
+  });
 }
 
 /* -----------------------------------------------------------------------------

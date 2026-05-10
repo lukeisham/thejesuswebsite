@@ -36,9 +36,10 @@
     border: var(--border-width-thin) solid var(--color-border);
     border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: background-color var(--transition-fast),
-                border-color var(--transition-fast),
-                color var(--transition-fast);
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
 }
 
 .btn--draft {
@@ -119,9 +120,10 @@
     padding: var(--space-1) var(--space-2);
     border: var(--border-width-thin) solid transparent;
     border-radius: var(--radius-sm);
-    transition: color var(--transition-fast),
-                border-color var(--transition-fast),
-                background-color var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        border-color var(--transition-fast),
+        background-color var(--transition-fast);
 }
 
 .section-nav__link:hover,
@@ -393,8 +395,9 @@
     padding: var(--space-1);
     line-height: 1;
     border-radius: var(--radius-sm);
-    transition: color var(--transition-fast),
-                border-color var(--transition-fast);
+    transition:
+        color var(--transition-fast),
+        border-color var(--transition-fast);
 }
 
 .paragraph-editor__remove:hover {
@@ -537,8 +540,9 @@
     cursor: pointer;
     padding: 2px var(--space-2);
     border-radius: var(--radius-sm);
-    transition: background-color var(--transition-fast),
-                color var(--transition-fast);
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
 }
 
 .bibliography-editor__remove:hover {
@@ -595,14 +599,7 @@
 }
 
 /* =============================================================================
-   12. SNIPPET GENERATE AREA
-============================================================================= */
-#snippet-generate-area {
-    margin-top: var(--space-2);
-}
-
-/* =============================================================================
-   13. RESPONSIVE — collapse picture preview row on narrow viewports
+   12. RESPONSIVE — collapse picture preview row on narrow viewports
 ============================================================================= */
 @media (max-width: 640px) {
     .picture-preview-row {
