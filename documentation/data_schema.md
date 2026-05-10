@@ -7,6 +7,25 @@ dependencies: [site_map.md, module_sitemap.md]
 
 # data schema 
 
+`type` | TEXT | Flat Indexable 
+    `record`
+    `context_essay`
+    `historiographical_essay`
+    `theological_essay`
+    `spiritual_article`
+    `challenge_response`
+    `blog_post`
+    `challenge_academic`
+    `challenge_popular`    
+    `wikipedia_entry` 
+    `news_article`
+    `system_data`
+`sub-type` | TEXT | Flat Indexable (Only on `challenge_academic` & `challenge_popular` & `news_article` & `wikipedia_entry`type)
+    `ranked_weight` 
+    `ranked_search_term`
+    `news_source`
+    `news_search_term` 
+    `trace_reasoning`
 `id` | TEXT | Primary Key (ULID) 
 `metadata_json` | TEXT | JSON Blob 
 `title` | TEXT | Flat Indexable 
@@ -256,17 +275,21 @@ dependencies: [site_map.md, module_sitemap.md]
 `challenge_id` | TEXT | Foreign Key → records(id) (stored on the response record; points to the parent challenge this response addresses)
 `responses` | TEXT | JSON Blob 
 `blogposts` | TEXT | JSON Blob 
-`news_sources` | TEXT | Label-Value Pair    
-`news_items` | TEXT | JSON Blob    
+`historiography` | TEXT | JSON Blob
+`news_sources` | TEXT | JASON Blob   
+`news_item_title` | TEXT | Flat Indexable  
+`news_item_link` | TEXT | Flat Indexable   
 `news_search_term` | TEXT | JSON Blob 
 `users` | TEXT | JSON Blob (SPA Routing)
     `Admin`
     `Public`
+    `Agent`
 `page_views` | INTEGER | Flat Indexable (64-bit int)
 `iaa` | TEXT | Flat Indexable 
 `pledius` | TEXT | Flat Indexable 
 `manuscript` | TEXT | Flat Indexable 
 `url` | TEXT | JSON Blob 
+`trace_reasoning` | TEXT | Flat Indexable (64-bit int) 
 
 
 
