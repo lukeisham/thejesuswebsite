@@ -1,10 +1,10 @@
 // Trigger:  window.loadModule("news-sources") → dashboard_app.js calls
 //           window.renderNewsSources()
 // Main:    renderNewsSources() — injects the HTML, sets layout columns,
-//           initialises the news sources list display, sidebar handler,
+//           initialises the news articles list display, sidebar handler,
 //           and crawler trigger, wires the function bar buttons, and
-//           loads the initial news sources list.
-// Output:  Fully functional News Sources editor in the Providence work
+//           loads the initial news articles list.
+// Output:  Fully functional News Articles editor in the Providence work
 //          canvas. Errors routed through window.surfaceError().
 
 "use strict";
@@ -29,12 +29,12 @@ window._recordSlug = window._newsSourcesModuleState.activeGroupId;
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: renderNewsSources
-   Called by dashboard_app.js when the user navigates to the News Sources module.
+   Called by dashboard_app.js when the user navigates to the News Articles module.
    1. Requests wider sidebar layout (360px sidebar + 2fr main).
-   2. Fetches and injects the News Sources editor HTML into the main column.
+   2. Fetches and injects the News Articles editor HTML into the main column.
    3. Initialises all sub-modules in dependency order.
    4. Wires the function bar action buttons.
-   5. Loads the initial news sources list.
+   5. Loads the initial news articles list.
 ----------------------------------------------------------------------------- */
 async function renderNewsSources() {
   /* -------------------------------------------------------------------------
@@ -46,14 +46,14 @@ async function renderNewsSources() {
   }
 
   /* -------------------------------------------------------------------------
-       2. INJECT HTML — Fetch the News Sources editor template and inject it
+       2. INJECT HTML — Fetch the News Articles editor template and inject it
           into the Providence main column.
     ------------------------------------------------------------------------- */
   try {
     const response = await fetch("/admin/frontend/dashboard_news_sources.html");
     if (!response.ok) {
       throw new Error(
-        "Failed to load News Sources editor template (HTTP " +
+        "Failed to load News Articles editor template (HTTP " +
           response.status +
           ")",
       );
@@ -82,7 +82,7 @@ async function renderNewsSources() {
     console.error("[dashboard_news_sources] Template load failed:", err);
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
-        "Error: Unable to load the News Sources editor. Please refresh and try again.",
+        "Error: Unable to load the News Articles editor. Please refresh and try again.",
       );
     }
     return;

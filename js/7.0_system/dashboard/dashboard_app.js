@@ -46,7 +46,7 @@ const MODULE_LABELS = {
   "challenge-response": "Challenge Resp.",
   essay: "Essays",
   historiography: "Historiography",
-  "news-sources": "News Sources",
+  "news-sources": "News Articles",
   "blog-posts": "Blog Posts",
   system: "System",
 };

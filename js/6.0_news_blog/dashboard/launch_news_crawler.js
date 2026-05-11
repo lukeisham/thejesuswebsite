@@ -1,5 +1,5 @@
 // Trigger:  User clicks the "Gather" button (#btn-gather) in the
-//           News Sources function bar, or a consumer module calls
+//           News Articles function bar, or a consumer module calls
 //           window.triggerCrawl() directly.
 // Main:    initNewsCrawler() — wires the Gather button to POST
 //           /api/admin/news/crawl and displays process status.

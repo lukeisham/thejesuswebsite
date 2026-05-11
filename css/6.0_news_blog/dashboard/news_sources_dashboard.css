@@ -57,7 +57,7 @@
 
 /* =============================================================================
    2. SPLIT-PANE EDITOR LAYOUT
-   Two columns: sidebar (record detail, ~360px) | main (news sources table, 1fr).
+   Two columns: sidebar (record detail, ~360px) | main (news articles table, 1fr).
    CSS Grid for macro layout; a permanent 1px divider column between them.
 ============================================================================= */
 
