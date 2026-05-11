@@ -1,44 +1,174 @@
-// =============================================================================
-//
-//   THE JESUS WEBSITE — LIST VIEW WIKIPEDIA
-//   File:    js/4.0_ranked_lists/frontend/list_view_wikipedia.js
-//   Version: 1.0.0
-//   Purpose: Renders a ranked list of Wikipedia articles.
-//   Source:  guide_appearance.md §4.1
-//
-// =============================================================================
+// Trigger: DOMContentLoaded -> renderWikipediaList('wikipedia-list-container')
+// Function: fetchWikipediaEntries fetches live API data, groups by id to merge weight
+//           from sub_type rows, sorts by rank, and injects ranked HTML rows
+// Output:  Ranked list of published Wikipedia entries with title links and weight scores
 
 function renderWikipediaList(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+  var container = document.getElementById(containerId);
+  if (!container) return;
 
-    // Mock data for Phase 2 - Ranked Wikipedia Articles
-    const articles = [
-        { title: "Jesus", rank: 1, snippet: "Jesus, also referred to as Jesus Christ, was a first-century Jewish preacher and religious leader.", thumb: "", link: "https://en.wikipedia.org/wiki/Jesus" },
-        { title: "Historicity of Jesus", rank: 2, snippet: "The historicity of Jesus is the question of whether or not Jesus of Nazareth historically existed.", thumb: "", link: "https://en.wikipedia.org/wiki/Historicity_of_Jesus" },
-        { title: "Historical Jesus", rank: 3, snippet: "The term 'historical Jesus' refers to the life and teachings of Jesus as reconstructed by critical historical methods.", thumb: "", link: "https://en.wikipedia.org/wiki/Historical_Jesus" }
-    ];
+  container.innerHTML =
+    '<p class="text-sm text-muted">Loading Wikipedia entries...</p>';
 
-    container.innerHTML = articles.map((article, index) => `
-        <div class="list-row flex gap-4 py-4" style="border-bottom: 1px solid var(--color-border);">
-            <div class="list-rank text-lg font-bold text-muted w-8">${index + 1}.</div>
-            <div class="list-thumb flex-shrink-0">
-                ${typeof renderThumbnail === 'function' ? renderThumbnail(article.thumb, article.title, 'md') : '<div class="thumbnail thumbnail--md"></div>'}
-            </div>
-            <div class="list-content flex-1">
-                <h2 class="text-lg font-semibold mb-1">
-                    <a href="${article.link}" target="_blank" class="text-primary hover:text-accent">${article.title}</a>
-                </h2>
-                ${typeof renderSnippet === 'function' ? renderSnippet(article.snippet, 150) : `<p class="inline-snippet">${article.snippet}</p>`}
-                <div class="mt-2">
-                    <span class="badge badge--muted">Rank ${article.rank}</span>
-                    <a href="${article.link}" target="_blank" class="text-xs text-accent ml-2">External Link ↗</a>
-                </div>
-            </div>
-        </div>
-    `).join('');
+  fetch("/api/public/wikipedia?status=published")
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error(
+          "Failed to fetch Wikipedia entries (HTTP " + response.status + ")",
+        );
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      var rows = data.wikipedia || data || [];
+      if (!Array.isArray(rows)) {
+        throw new Error("Unexpected API response format");
+      }
+
+      // Group rows by id so we can merge main entries with their weight sub-type rows
+      var groups = {};
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var rowId = row.id;
+        if (!rowId) continue;
+        if (!groups[rowId]) {
+          groups[rowId] = { main: null, weight: null };
+        }
+        var sub = row.sub_type;
+        if (sub === "ranked_weight") {
+          groups[rowId].weight = row;
+        } else if (!sub || sub === null || sub === "ranked_search_term") {
+          // Main entry or search-term row — prefer the null sub_type as main
+          if (!sub || sub === null) {
+            groups[rowId].main = row;
+          } else if (!groups[rowId].main) {
+            groups[rowId].main = row;
+          }
+        }
+      }
+
+      // Build a clean list of entries with merged weight scores
+      var entries = [];
+      for (var id in groups) {
+        if (!groups.hasOwnProperty(id)) continue;
+        var grp = groups[id];
+        var main = grp.main;
+        if (!main) continue;
+        // Skip if not published (defense-in-depth beyond API filter)
+        if (main.status && main.status !== "published") continue;
+        // Skip if missing required fields
+        if (!main.wikipedia_title) continue;
+
+        var score = null;
+        if (grp.weight && grp.weight.wikipedia_weight) {
+          var rawWeight = grp.weight.wikipedia_weight;
+          try {
+            var parsed =
+              typeof rawWeight === "string" ? JSON.parse(rawWeight) : rawWeight;
+            // Weight may be a single number, an array, or an object with score/weight/value keys
+            if (typeof parsed === "number") {
+              score = parsed;
+            } else if (Array.isArray(parsed) && parsed.length > 0) {
+              score = Number(parsed[0]) || null;
+            } else if (typeof parsed === "object" && parsed !== null) {
+              score =
+                Number(parsed.weight || parsed.score || parsed.value) || null;
+            }
+          } catch (e) {
+            // Weight parse failed — skip score display
+          }
+        }
+
+        entries.push({
+          title: main.wikipedia_title,
+          link: main.wikipedia_link || "",
+          rank: main.wikipedia_rank,
+          score: score,
+        });
+      }
+
+      // Sort by rank (numeric or string comparison)
+      entries.sort(function (a, b) {
+        var ra = parseInt(a.rank, 10);
+        var rb = parseInt(b.rank, 10);
+        if (!isNaN(ra) && !isNaN(rb)) return ra - rb;
+        return String(a.rank).localeCompare(String(b.rank));
+      });
+
+      if (entries.length === 0) {
+        container.innerHTML =
+          '<div class="empty-state text-center py-12">' +
+          '<p class="text-lg text-muted font-serif">No Wikipedia entries available yet.</p>' +
+          "</div>";
+        return;
+      }
+
+      container.innerHTML = entries
+        .map(function (entry, index) {
+          var rankDisplay = entry.rank || index + 1;
+          var titleHtml = entry.link
+            ? '<a href="' +
+              escapeHtml(entry.link) +
+              '" target="_blank" rel="noopener" class="text-primary hover:text-accent">' +
+              escapeHtml(entry.title) +
+              "</a>"
+            : '<span class="text-primary">' +
+              escapeHtml(entry.title) +
+              "</span>";
+
+          var scoreHtml = "";
+          if (entry.score !== null && !isNaN(entry.score)) {
+            scoreHtml =
+              '<span class="badge badge--accent ml-2">Score: ' +
+              Number(entry.score).toFixed(2) +
+              "</span>";
+          }
+
+          return (
+            '<div class="list-row flex gap-4 py-4" style="border-bottom: 1px solid var(--color-border);">' +
+            '<div class="list-rank text-lg font-bold text-muted w-8">' +
+            rankDisplay +
+            ".</div>" +
+            '<div class="list-content flex-1">' +
+            '<h2 class="text-lg font-semibold mb-1">' +
+            titleHtml +
+            "</h2>" +
+            '<div class="mt-2">' +
+            '<span class="badge badge--muted">Rank ' +
+            rankDisplay +
+            "</span>" +
+            scoreHtml +
+            (entry.link
+              ? '<a href="' +
+                escapeHtml(entry.link) +
+                '" target="_blank" rel="noopener" class="text-xs text-accent ml-2">External Link \u2197</a>'
+              : "") +
+            "</div>" +
+            "</div>" +
+            "</div>"
+          );
+        })
+        .join("");
+    })
+    .catch(function (err) {
+      console.error("Wikipedia list error:", err);
+      container.innerHTML =
+        '<div class="empty-state text-center py-12">' +
+        '<p class="text-lg text-muted font-serif">Unable to load Wikipedia entries.</p>' +
+        '<p class="text-sm text-secondary mt-2">Please try again later.</p>' +
+        "</div>";
+    });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderWikipediaList('wikipedia-list-container');
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  renderWikipediaList("wikipedia-list-container");
 });

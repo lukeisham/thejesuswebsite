@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.65
+version: 1.0.66
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -96,7 +96,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ├── css/6.0_news_blog/dashboard/
 │   └── news_sources_dashboard.css <-- Pipeline control aesthetics & keyword sidebar
 ├── css/6.0_news_blog/frontend/
-│   └── (reserved for future frontend styles)
+│   └── blog.css                <-- Public blog feed and single post styles (blog-* BEM)
 ├── css/9.0_cross_cutting/dashboard/
 │   ├── wysiwyg_editor.css     <-- Unified markdown toolbar, split panes, and live preview (wysiwyg-* BEM)
 │   └── wysiwyg_dashboard_layout.css <-- Unified function bar, sidebar, and editor area layout (wysiwyg-* BEM)
@@ -208,7 +208,16 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── verse_builder.js       <-- Structured book/chapter/verse chip UI
 │   └── 🔑 Shared Tools (owned here, consumed by other dashboard modules) ──
 ├── js/2.0_records/frontend/
-│   └── *.js                   <-- Public-facing record display logic
+│   ├── display_snippet.js     <-- JSON Array paragraph snippet renderer
+│   ├── json_ld_builder.js     <-- Structured SEO data builder
+│   ├── list_view.js           <-- Record list rendering
+│   ├── pictures_display.js    <-- Picture display handler
+│   ├── sanitize_query.js      <-- SQL query sanitizer
+│   ├── setup_db.js            <-- WASM SQLite initializer (filters type/status)
+│   ├── single_view.js         <-- Full-field record rendering (all schema columns)
+│   ├── sql-wasm.js            <-- SQLite WASM engine
+│   ├── sql-wasm.wasm          <-- SQLite WASM binary
+│   └── thumbnails_display.js  <-- Thumbnail rendering
 ├── js/3.0_visualizations/dashboard/
 │   ├── dashboard_arbor.js     <-- Module orchestration & initialization
 │   ├── draw_arbor_connections.js <-- SVG/Canvas logic for relationship lines
@@ -219,7 +228,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ├── js/3.0_visualizations/frontend/
 │   ├── ardor_display.js       <-- SVG evidence diagram (static mock-up)
 │   ├── maps_display.js        <-- Interactive map rendering
-│   └── timeline_display.js    <-- Timeline rendering
+│   └── timeline_display.js    <-- Timeline rendering (type='record', status='published' filter, Prophecy lane removed)
 ├── js/4.0_ranked_lists/dashboard/
 │   ├── academic_challenge_ranking_weights.js <-- Sidebar: Academic weighting factors
 │   ├── academic_challenge_search_terms.js <-- Sidebar: Academic search terms overview
@@ -242,7 +251,11 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── wikipedia_sidebar_handler.js <-- Sidebar: delegate to weights/search terms
 │   └── wikipedia_weights.js   <-- Wikipedia Weight editor (multi-weight)
 ├── js/4.0_ranked_lists/frontend/
-│   └── *.js                   <-- Public-facing ranked list logic
+│   ├── list_view_academic_challenges.js <-- Academic challenges ranked list (live API, type discriminator)
+│   ├── list_view_academic_challenges_with_response.js <-- Academic challenges with response cards
+│   ├── list_view_popular_challenges.js <-- Popular challenges ranked list (live API, type discriminator)
+│   ├── list_view_popular_challenges_with_response.js <-- Popular challenges with response cards
+│   └── list_view_wikipedia.js <-- Wikipedia ranked list (live API, wikipedia_entry discriminator)
 ├── js/5.0_essays_responses/dashboard/
 │   ├── dashboard_essay.js     <-- Essay WYSIWYG orchestrator (unified wysiwyg-* namespace)
 │   ├── dashboard_historiography.js <-- Historiography singleton WYSIWYG orchestrator (unified wysiwyg-* namespace)
@@ -253,12 +266,12 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── search_essays.js       <-- Sidebar search: real-time title filtering
 │   └── 🔑 Shared Tool (owned here, consumed by Blog Posts & elsewhere) ──
 ├── js/5.0_essays_responses/frontend/
-│   ├── list_view_responses.js <-- Response list rendering
+│   ├── list_view_responses.js <-- Response list rendering (live API, body field)
 │   ├── mla_snippet_display.js <-- MLA citation display
-│   ├── response_display.js    <-- Challenge response display
+│   ├── response_display.js    <-- Challenge response display (body markdown→HTML, bibliography)
 │   ├── sources_biblio_display.js <-- Source bibliography rendering
-│   ├── view_context_essays.js <-- Context essay single-view logic
-│   └── view_historiography.js <-- Historiography essay view
+│   ├── view_context_essays.js <-- Context essay single-view (live API, markdown→HTML, schema fields)
+│   └── view_historiography.js <-- Historiography singleton (live API, slug fixed)
 ├── js/6.0_news_blog/dashboard/
 │   ├── blog_post_status_handler.js <-- Save/Publish/Delete state logic (unified wysiwyg-* IDs)
 │   ├── blog_posts_list_display.js <-- Sidebar list population (split from display_blog_posts_data, unified wysiwyg-* IDs)
@@ -270,9 +283,10 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   └── news_sources_sidebar_handler.js <-- Sidebar: keywords, source URLs, crawler trigger
 ├── js/6.0_news_blog/frontend/
 │   ├── blog_snippet_display.js <-- Blog snippet on landing page
-│   ├── list_blogpost.js       <-- Full blog feed list
-│   ├── list_newsitem.js       <-- News feed list
-│   └── news_snippet_display.js <-- News snippet on landing page
+│   ├── display_blogpost.js    <-- Single blog post display (blog-* BEM, API fetch, schema fields)
+│   ├── list_blogpost.js       <-- Full blog feed list (type/status API filter)
+│   ├── list_newsitem.js       <-- News feed list (type/status API filter, schema-prefixed columns)
+│   └── news_snippet_display.js <-- News snippet on landing page (API fetch, news_item_title)
 ├── js/7.0_system/
 │   ├── admin.js               <-- Login submission & error handling
 │   └── dashboard/

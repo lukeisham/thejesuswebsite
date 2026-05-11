@@ -6,7 +6,7 @@
      File:    frontend/pages/blog_post.html
      Version: 1.0.0
      Purpose: Individual blog post page with long-form reading layout.
-              Receives ?id= query param to identify the post.
+              Receives ?slug= query param to identify the post.
      Source:  guide_appearance.md §5.3, url_slug_restructure.md
 
 ============================================================================= -->
@@ -23,7 +23,7 @@
         <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
         <link
             rel="stylesheet"
-            href="../../css/5.0_essays_responses/frontend/essays.css"
+            href="../../css/6.0_news_blog/frontend/blog.css"
         />
         <link rel="stylesheet" href="../../css/1.0_foundation/pictures.css" />
 
@@ -32,6 +32,9 @@
         <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
         <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
         <script src="../../js/1.0_foundation/frontend/footer.js"></script>
+        <script src="../../js/2.0_records/frontend/pictures_display.js"></script>
+        <script src="../../js/5.0_essays_responses/frontend/mla_snippet_display.js"></script>
+        <script src="../../js/5.0_essays_responses/frontend/sources_biblio_display.js"></script>
 
         <!-- Display Logic -->
         <script src="../../js/6.0_news_blog/frontend/display_blogpost.js"></script>
@@ -57,12 +60,12 @@
             <main class="site-main" id="site-main" role="main">
                 <div class="layout-two-col">
                     <!-- Right Blog Post Content Area -->
-                    <div class="essay-content-main">
+                    <div class="blog-content-main">
                         <article
-                            class="essay-container"
+                            class="blog-container"
                             id="blog-post-container"
                         >
-                            <!-- Injected by display logic when ?id= is present -->
+                            <!-- Injected by display logic when ?slug= is present -->
                             <p class="text-sm text-muted">
                                 Loading blog post...
                             </p>

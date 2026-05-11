@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.8.0
+version: 1.9.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -421,7 +421,7 @@ Posts, Challenge, News Sources, and Wikipedia.
 ## 23. Unified WYSIWYG Editor — `.wysiwyg-*` BEM Namespace
 
 > **Plan:** `plan_standardize_dashboard_wysiwyg.md`
->
+
 > The `wysiwyg_dashboard_layout.css` and `wysiwyg_editor.css` stylesheets define the canonical unified WYSIWYG editor layout, replacing the legacy `essay-*` and `blog-*` namespaces. All four markdown-authoring dashboards (Essays, Historiography, Blog Posts, Challenge Response) consume this shared namespace.
 
 ### Core Layout Classes
@@ -457,3 +457,44 @@ Posts, Challenge, News Sources, and Wikipedia.
 
 > **Namespace Migration:** These `.wysiwyg-*` classes replace the legacy `essay-*` and `blog-*` namespaces from the pre-standardization era. All four dashboards now use the unified namespace.
 
+
+---
+
+## 24. Public Blog Frontend — `.blog-*` BEM Namespace
+
+> **Plan:** `fix_frontend_schema_compliance.md`
+>
+> The `blog.css` stylesheet (`css/6.0_news_blog/frontend/blog.css`) defines the canonical public-facing blog display styles, replacing the old `essay-*` cross-references that were mistakenly applied to blog pages. The blog feed and single post pages use this BEM namespace exclusively.
+
+### Blog Feed Classes (list_blogpost.js, blog_snippet_display.js)
+
+| BEM Class | Purpose | CSS Variable References |
+|:---|:---|:---|
+| `.blog-item` | Feed item container, max-width constrained | `65ch` |
+| `.blog-item__title` | Post title in serif heading | `--font-serif`, `--color-primary` |
+| `.blog-item__link` | Title link, accent on hover | `--color-primary`, `--color-accent` |
+| `.blog-item__date` | Publication date in monospace | `--font-mono`, `--color-muted` |
+| `.blog-item__snippet` | Truncated snippet paragraph | `--color-secondary` |
+| `.blog-item__read-more` | "Read more →" link | `--color-accent` |
+
+### Blog Single Post Classes (display_blogpost.js)
+
+| BEM Class | Purpose | CSS Variable References |
+|:---|:---|:---|
+| `.blog-header` | Post header with bottom border | `--color-border`, `--space-6`, `--space-8` |
+| `.blog-title` | Main post title | `--font-serif`, `--color-primary` |
+| `.blog-date` | Publication date | `--font-mono`, `--color-muted` |
+| `.blog-body` | Markdown-rendered body content | `--font-body`, `--line-height-relaxed`, max-width `65ch` |
+| `.blog-content-main` | Wrapper for entire post content | `--content-max-width` |
+| `.blog-metadata` | Metadata section with top border | `--color-border`, `--space-8`, `--space-6` |
+| `.blog-metadata__heading` | Metadata section heading | `--font-heading`, `--weight-semibold` |
+| `.blog-metadata__grid` | Two-column definition list grid | CSS Grid, `--space-2` gap |
+| `.blog-metadata__item` | Individual metadata row (dt + dd) | `--color-secondary` |
+| `.blog-context-links` | Related resources section | `--space-6` |
+
+### Design Principles
+
+- **BEM Purity:** All classes use strict BEM naming — `blog-*` block, `__` element, no utility modifiers.
+- **Variable-Only:** No hardcoded colors, font sizes, or spacing — all values sourced from `typography_colors.css`.
+- **Reading Comfort:** Body content constrained to `65ch` with `--line-height-relaxed` for long-form readability.
+- **Separation from Dashboard:** These public-facing classes are entirely independent of the `.wysiwyg-*` dashboard namespace used in the admin editor.

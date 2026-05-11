@@ -76,18 +76,22 @@ async def delete_blogpost(record_id: str, admin_data: dict = Depends(verify_toke
 @router.get("/api/admin/news/items")
 async def get_news_items(admin_data: dict = Depends(verify_token)):
     """
-    Returns all records where news_items column is NOT NULL,
-    ordered by created_at DESC. Consumed by plan_dashboard_news_sources.
+    Returns records where type = 'news_article' OR news_items IS NOT NULL,
+    ordered by created_at DESC. Uses a type discriminator to include
+    news_article records even if news_items is NULL.
+    Consumed by plan_dashboard_news_sources.
     """
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT id, title, slug, snippet, news_items, news_sources,
-                   news_search_term, created_at, updated_at, status
+            SELECT id, title, slug, snippet, news_items, news_item_title,
+                   news_item_link, news_sources, news_search_term,
+                   last_crawled, source_url, keywords,
+                   created_at, updated_at, status, type, sub_type
             FROM records
-            WHERE news_items IS NOT NULL
+            WHERE (type = 'news_article' OR news_items IS NOT NULL)
             ORDER BY created_at DESC
             """
         )

@@ -35,7 +35,7 @@ function _fetchAndAppendNews(listEl, isFresh) {
   _newsFeedState.loading = true;
 
   var url =
-    "/api/public/news?limit=" +
+    "/api/public/news?type=news_article&status=published&limit=" +
     _newsFeedState.limit +
     "&offset=" +
     _newsFeedState.offset;
@@ -116,19 +116,8 @@ function _fetchAndAppendNews(listEl, isFresh) {
 function _extractNewsSnippet(item) {
   var snippet = "";
 
-  if (item.news_items && typeof item.news_items === "object") {
-    snippet = item.news_items.summary || item.news_items.excerpt || "";
-
-    // Fallback: extract first 300 chars from news_items content
-    if (!snippet) {
-      var content = item.news_items.content || item.news_items.body || "";
-      if (typeof content === "string") {
-        snippet = content.replace(/\n{2,}/g, " ").substring(0, 300);
-      }
-    }
-  }
-
-  if (!snippet && item.snippet) {
+  // Try the snippet column (JSON Array of paragraph strings per schema)
+  if (item.snippet) {
     try {
       var parsed =
         typeof item.snippet === "string"
@@ -140,6 +129,17 @@ function _extractNewsSnippet(item) {
     }
   }
 
+  // Fallback: legacy news_items blob
+  if (!snippet && item.news_items && typeof item.news_items === "object") {
+    snippet = item.news_items.summary || item.news_items.excerpt || "";
+    if (!snippet) {
+      var content = item.news_items.content || item.news_items.body || "";
+      if (typeof content === "string") {
+        snippet = content.replace(/\n{2,}/g, " ").substring(0, 300);
+      }
+    }
+  }
+
   if (typeof snippet === "object") {
     snippet = snippet.text || "";
   }
@@ -148,23 +148,33 @@ function _extractNewsSnippet(item) {
 }
 
 function _buildNewsHtml(item, snippet) {
-  var date = item.updated_at || item.created_at || "";
-  var title = item.title || "Untitled";
+  // Use schema column names: news_item_title for title, last_crawled for date
+  var displayTitle = item.news_item_title || item.title || "Untitled";
+  var displayLink = item.news_item_link || "";
+  var date = item.last_crawled || item.updated_at || item.created_at || "";
+
+  var titleHtml = displayLink
+    ? '<a href="' +
+      escapeHtml(displayLink) +
+      '" target="_blank" rel="noopener" class="news-item__link">' +
+      escapeHtml(displayTitle) +
+      ' <span class="news-item__external-icon">↗</span></a>'
+    : escapeHtml(displayTitle);
 
   return (
-    '<article class="essay-container mb-8" style="' +
+    '<article class="news-item" style="' +
     "padding-bottom: var(--space-6); " +
     "border-bottom: 1px solid var(--color-border); " +
     "margin-bottom: var(--space-6);" +
     '">' +
-    '<h2 class="text-2xl font-bold mb-2 font-serif text-primary">' +
-    escapeHtml(title) +
+    '<h2 class="news-item__title">' +
+    titleHtml +
     "</h2>" +
-    '<div class="text-sm font-mono text-muted mb-4">' +
+    '<div class="news-item__date">' +
     escapeHtml(formatDate(date)) +
     "</div>" +
     (snippet
-      ? '<div class="text-base text-body" style="line-height: var(--line-height-relaxed);">' +
+      ? '<div class="news-item__snippet" style="line-height: var(--line-height-relaxed);">' +
         "<p>" +
         escapeHtml(String(snippet).substring(0, 300)) +
         "</p>" +

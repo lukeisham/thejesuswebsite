@@ -4,46 +4,54 @@
 
      THE JESUS WEBSITE — HISTORIOGRAPHY ESSAY
      File:    frontend/pages/debate/historiography.html
-     Version: 1.0.0
-     Purpose: Long-form premium typography layout for tracing historical academic trends.
-     Source:  guide_appearance.md §5.1
+     Version: 1.1.0
+     Purpose: Long-form premium typography layout for tracing historical academic
+              trends. Uses declarative data-* attributes for page initialization
+              and external JS/CSS only — no inline styles or scripts.
+     Source:  guide_appearance.md §5.1, vibe_coding_rules.md §2
 
 ============================================================================= -->
 
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <base href="/frontend/pages/debate/" />
+        <base href="/frontend/pages/" />
 
         <title>Historiography | The Jesus Website</title>
 
         <!-- Stylesheets -->
+        <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
+        <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
         <link
             rel="stylesheet"
-            href="../../../css/1.0_foundation/typography.css"
+            href="../../css/5.0_essays_responses/frontend/essays.css"
         />
-        <link rel="stylesheet" href="../../../css/1.0_foundation/grid.css" />
-        <link
-            rel="stylesheet"
-            href="../../../css/5.0_essays_responses/frontend/essays.css"
-        />
-        <link rel="stylesheet" href="../../../css/1.0_foundation/pictures.css" />
+        <link rel="stylesheet" href="../../css/1.0_foundation/pictures.css" />
 
-        <!-- SEO / Metadata API Header -->
-        <script src="../../../js/1.0_foundation/frontend/header.js"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                injectPageMetadata({
-                    title: "Historiography",
-                    description:
-                        "Tracing the historical development of academic research concerning Jesus.",
-                    canonical:
-                        window.location.origin + "/debate/historiography",
-                });
-            });
-        </script>
+        <!-- UI Logic Components -->
+        <script src="../../js/1.0_foundation/frontend/header.js"></script>
+        <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
+        <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
+        <script src="../../js/1.0_foundation/frontend/footer.js"></script>
+        <script src="../../js/2.0_records/frontend/pictures_display.js"></script>
+        <script src="../../js/5.0_essays_responses/frontend/mla_snippet_display.js"></script>
+        <script src="../../js/5.0_essays_responses/frontend/sources_biblio_display.js"></script>
+
+        <!-- Display Logic -->
+        <script src="../../js/5.0_essays_responses/frontend/view_historiography.js"></script>
+
+        <!-- Central Initializer -->
+        <script src="../../js/1.0_foundation/frontend/initializer.js"></script>
     </head>
-    <body>
+
+    <body
+        data-page-title="Historiography"
+        data-page-description="Tracing the historical development of academic research concerning Jesus."
+        data-page-canonical="/debate/historiography"
+        data-sidebar-active-nav="debate"
+        data-search-header-active-nav="debate"
+        data-footer-target="page-shell"
+    >
         <!-- Main Page Shell Container -->
         <div class="page-shell" id="page-shell">
             <!-- Invisible Metadata Anchor -->
@@ -53,28 +61,15 @@
             <main class="site-main" id="site-main" role="main">
                 <div class="layout-two-col">
                     <!-- Left internal sidebar (Table of Contents) -->
-                    <aside
-                        class="list-filters"
-                        style="
-                            padding-right: var(--space-4);
-                            border-right: var(--border-width-thin) solid
-                                var(--color-border);
-                            margin-right: var(--space-4);
-                        "
-                    >
-                        <h3 class="text-sm font-semibold mb-2">
-                            Table of Contents
-                        </h3>
-                        <ul
-                            id="essay-toc"
-                            style="list-style: none; padding: 0; line-height: 2"
-                        >
+                    <aside class="essay-toc-aside">
+                        <h3 class="essay-toc-heading">Table of Contents</h3>
+                        <ul id="essay-toc" class="essay-toc-list">
                             <!-- Injected by JS -->
                         </ul>
                     </aside>
 
                     <!-- Right Essay Content Area -->
-                    <div class="layout-two-col__content" style="padding-top: 0">
+                    <div class="essay-content-main">
                         <article
                             class="essay-container"
                             id="historiography-container"
@@ -85,25 +80,5 @@
                 </div>
             </main>
         </div>
-
-        <!-- UI Components -->
-        <script src="../../../js/1.0_foundation/frontend/search_header.js"></script>
-        <script src="../../../js/1.0_foundation/frontend/sidebar.js"></script>
-        <script src="../../../js/1.0_foundation/frontend/footer.js"></script>
-        <script src="../../../js/2.0_records/frontend/pictures_display.js"></script>
-        <script src="../../../js/5.0_essays_responses/frontend/mla_snippet_display.js"></script>
-        <script src="../../../js/5.0_essays_responses/frontend/sources_biblio_display.js"></script>
-
-        <!-- Display Logic -->
-        <script src="../../../js/5.0_essays_responses/frontend/view_historiography.js"></script>
-
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                // Build Universal Layout Elements
-                injectSidebar("site-main", "debate");
-                injectSearchHeader("site-sidebar", "debate");
-                injectFooter("page-shell");
-            });
-        </script>
     </body>
 </html>

@@ -42,7 +42,7 @@ function _fetchAndAppendPosts(listEl, isFresh) {
   _blogFeedState.loading = true;
 
   var url =
-    "/api/public/blogposts?limit=" +
+    "/api/public/blogposts?type=blog_post&status=published&limit=" +
     _blogFeedState.limit +
     "&offset=" +
     _blogFeedState.offset;
@@ -164,33 +164,33 @@ function _buildPostHtml(item, snippet) {
   var slug = item.slug || "";
 
   return (
-    '<article class="essay-container mb-8" style="' +
+    '<article class="blog-item" style="' +
     "padding-bottom: var(--space-6); " +
     "border-bottom: 1px solid var(--color-border); " +
     'margin-bottom: var(--space-6);">' +
-    '<h2 class="text-2xl font-bold mb-2 font-serif text-primary">' +
+    '<h2 class="blog-item__title">' +
     (slug
       ? '<a href="/blog/' +
         encodeURIComponent(slug) +
-        '" class="text-primary hover:text-accent">' +
+        '" class="blog-item__link">' +
         escapeHtml(title) +
         "</a>"
       : escapeHtml(title)) +
     "</h2>" +
-    '<div class="text-sm font-mono text-muted mb-4">' +
+    '<div class="blog-item__date">' +
     escapeHtml(formatDate(date)) +
     "</div>" +
     (snippet
-      ? '<div class="text-base text-body" style="line-height: var(--line-height-relaxed);">' +
+      ? '<div class="blog-item__snippet" style="line-height: var(--line-height-relaxed);">' +
         "<p>" +
         escapeHtml(String(snippet).substring(0, 300)) +
         "</p>" +
         "</div>"
       : "") +
     (slug
-      ? '<div class="mt-3"><a href="/blog/' +
+      ? '<div style="margin-top: var(--space-3);"><a href="/blog/' +
         encodeURIComponent(slug) +
-        '" class="text-sm text-accent hover:underline">Read more →</a></div>'
+        '" class="blog-item__read-more">Read more →</a></div>'
       : "") +
     "</article>"
   );

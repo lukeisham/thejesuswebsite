@@ -22,7 +22,7 @@ function injectBlogSnippets(containerId) {
   container.innerHTML =
     '<p class="text-sm text-muted">Loading blog posts...</p>';
 
-  fetch("/api/public/blogposts")
+  fetch("/api/public/blogposts?type=blog_post&status=published")
     .then(function (response) {
       if (!response.ok) {
         throw new Error(

@@ -1,48 +1,169 @@
-// =============================================================================
-//
-//   THE JESUS WEBSITE — LIST VIEW POPULAR CHALLENGES
-//   File:    js/4.0_ranked_lists/frontend/list_view_popular_challenges.js
-//   Version: 1.0.0
-//   Purpose: Renders a ranked list of popular challenges/queries.
-//   Source:  guide_appearance.md
-//
-// =============================================================================
-
-// Trigger: DOMContentLoaded -> document looks for 'popular-challenges-container'
-// Function: renderPopularChallengesList takes the container ID, fetches/mocks data, and populates innerHTML
-// Output: Injects a series of HTML row elements displaying popular challenges in ranked order
+// Trigger: DOMContentLoaded -> renderPopularChallengesList('popular-challenges-container')
+// Function: fetchPopularChallenges fetches live API data, groups by id to merge weight
+//           from sub_type rows, sorts by rank, and injects ranked HTML rows
+// Output:  Ranked list of published popular challenges with title links and weight scores
 
 function renderPopularChallengesList(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+  var container = document.getElementById(containerId);
+  if (!container) return;
 
-    // Mock data for Phase 2 - Ranked Popular Challenges
-    const challenges = [
-        { title: "Did Jesus really exist?", rank: 1, snippet: "The most common popular query regarding the historical figure...", thumb: "", link: "/debate/popular_challenge.html?id=1" },
-        { title: "Did the resurrection happen?", rank: 2, snippet: "Examining the fundamental claim of early Christianity...", thumb: "", link: "/debate/popular_challenge.html?id=2" },
-        { title: "Are the Gospels reliable?", rank: 3, snippet: "Questioning the historical accuracy of the four canonical gospels...", thumb: "", link: "/debate/popular_challenge.html?id=3" }
-    ];
+  container.innerHTML =
+    '<p class="text-sm text-muted">Loading popular challenges...</p>';
 
-    container.innerHTML = challenges.map((challenge, index) => `
-        <div class="list-row flex gap-4 py-4">
-            <div class="list-rank text-lg font-bold text-muted w-8">${index + 1}.</div>
-            <div class="list-thumb flex-shrink-0">
-                ${typeof renderThumbnail === 'function' ? renderThumbnail(challenge.thumb, challenge.title, 'md') : '<div class="thumbnail thumbnail--md"></div>'}
-            </div>
-            <div class="list-content flex-1">
-                <h2 class="text-lg font-semibold mb-1">
-                    <a href="${challenge.link}" class="text-primary hover:text-accent">${challenge.title}</a>
-                </h2>
-                ${typeof renderSnippet === 'function' ? renderSnippet(challenge.snippet, 150) : `<p class="inline-snippet">${challenge.snippet}</p>`}
-                <div class="mt-2">
-                    <span class="badge badge--muted">Popular Rank ${challenge.rank}</span>
-                    <a href="${challenge.link}" class="text-xs text-accent ml-2">Read Response →</a>
-                </div>
-            </div>
-        </div>
-    `).join('');
+  fetch("/api/public/challenges?type=challenge_popular&status=published")
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error(
+          "Failed to fetch challenges (HTTP " + response.status + ")",
+        );
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      var rows = data.challenges || data || [];
+      if (!Array.isArray(rows)) {
+        throw new Error("Unexpected API response format");
+      }
+
+      // Group rows by id so we can merge main entries with their weight sub-type rows
+      var groups = {};
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var rowId = row.id;
+        if (!rowId) continue;
+        if (!groups[rowId]) {
+          groups[rowId] = { main: null, weight: null };
+        }
+        var sub = row.sub_type;
+        if (sub === "ranked_weight") {
+          groups[rowId].weight = row;
+        } else if (!sub || sub === null || sub === "ranked_search_term") {
+          // Main entry or search-term row — prefer the null sub_type as main
+          if (!sub || sub === null) {
+            groups[rowId].main = row;
+          } else if (!groups[rowId].main) {
+            groups[rowId].main = row;
+          }
+        }
+      }
+
+      // Build a clean list of challenges with merged weight scores
+      var challenges = [];
+      for (var id in groups) {
+        if (!groups.hasOwnProperty(id)) continue;
+        var grp = groups[id];
+        var main = grp.main;
+        if (!main) continue;
+        // Skip if not published (defense-in-depth beyond API filter)
+        if (main.status && main.status !== "published") continue;
+        // Skip if missing required fields
+        if (!main.popular_challenge_title) continue;
+
+        var score = null;
+        if (grp.weight && grp.weight.popular_challenge_weight) {
+          var rawWeight = grp.weight.popular_challenge_weight;
+          try {
+            var parsed =
+              typeof rawWeight === "string" ? JSON.parse(rawWeight) : rawWeight;
+            // Weight may be a single number, an array, or an object with score/weight/value keys
+            if (typeof parsed === "number") {
+              score = parsed;
+            } else if (Array.isArray(parsed) && parsed.length > 0) {
+              score = Number(parsed[0]) || null;
+            } else if (typeof parsed === "object" && parsed !== null) {
+              score =
+                Number(parsed.weight || parsed.score || parsed.value) || null;
+            }
+          } catch (e) {
+            // Weight parse failed — skip score display
+          }
+        }
+
+        challenges.push({
+          title: main.popular_challenge_title,
+          link: main.popular_challenge_link || "",
+          rank: main.popular_challenge_rank,
+          score: score,
+        });
+      }
+
+      // Sort by rank (numeric or string comparison)
+      challenges.sort(function (a, b) {
+        var ra = parseInt(a.rank, 10);
+        var rb = parseInt(b.rank, 10);
+        if (!isNaN(ra) && !isNaN(rb)) return ra - rb;
+        return String(a.rank).localeCompare(String(b.rank));
+      });
+
+      if (challenges.length === 0) {
+        container.innerHTML =
+          '<div class="empty-state text-center py-12">' +
+          '<p class="text-lg text-muted font-serif">No popular challenges available yet.</p>' +
+          "</div>";
+        return;
+      }
+
+      container.innerHTML = challenges
+        .map(function (challenge, index) {
+          var rankDisplay = challenge.rank || index + 1;
+          var titleHtml = challenge.link
+            ? '<a href="' +
+              escapeHtml(challenge.link) +
+              '" target="_blank" class="text-primary hover:text-accent">' +
+              escapeHtml(challenge.title) +
+              "</a>"
+            : '<span class="text-primary">' +
+              escapeHtml(challenge.title) +
+              "</span>";
+
+          var scoreHtml = "";
+          if (challenge.score !== null && !isNaN(challenge.score)) {
+            scoreHtml =
+              '<span class="badge badge--accent ml-2">Score: ' +
+              Number(challenge.score).toFixed(2) +
+              "</span>";
+          }
+
+          return (
+            '<div class="list-row flex gap-4 py-4">' +
+            '<div class="list-rank text-lg font-bold text-muted w-8">' +
+            rankDisplay +
+            ".</div>" +
+            '<div class="list-content flex-1">' +
+            '<h2 class="text-lg font-semibold mb-1">' +
+            titleHtml +
+            "</h2>" +
+            '<div class="mt-2">' +
+            '<span class="badge badge--muted">Popular Rank ' +
+            rankDisplay +
+            "</span>" +
+            scoreHtml +
+            "</div>" +
+            "</div>" +
+            "</div>"
+          );
+        })
+        .join("");
+    })
+    .catch(function (err) {
+      console.error("Popular challenges list error:", err);
+      container.innerHTML =
+        '<div class="empty-state text-center py-12">' +
+        '<p class="text-lg text-muted font-serif">Unable to load popular challenges.</p>' +
+        '<p class="text-sm text-secondary mt-2">Please try again later.</p>' +
+        "</div>";
+    });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderPopularChallengesList('popular-challenges-container');
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  renderPopularChallengesList("popular-challenges-container");
 });

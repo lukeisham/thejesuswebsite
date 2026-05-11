@@ -292,6 +292,12 @@ CREATE TABLE IF NOT EXISTS records (
     news_sources                TEXT,
     -- JSON Blob: metadata about the news source associated with this record
 
+    source_url                  TEXT,
+    -- Flat Indexable: canonical URL for news_source sub-type rows
+
+    keywords                    TEXT,
+    -- JSON Array: search keywords for news_source sub-type rows
+
     news_item_title             TEXT,
     -- Flat Indexable: title of the associated news item
 

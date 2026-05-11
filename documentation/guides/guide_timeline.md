@@ -1,6 +1,6 @@
 ---
 title: guide_timeline.md
-version: 1.1.1
+version: 1.2.0
 purpose: Visual ASCII representations of the interactive timeline layout, mapped to front-end components (source of truth)
 ---
 
@@ -11,7 +11,7 @@ purpose: Visual ASCII representations of the interactive timeline layout, mapped
 **Relevant Files:**
 - **HTML:** `frontend/pages/timeline.html`
 - **CSS:** `css/3.0_visualizations/timeline.css`
-- **JS:** `frontend/display_other/timeline_display.js`
+- **JS:** `js/3.0_visualizations/frontend/timeline_display.js`
 
 **Standards Reference:** All interactive controls (Zoom, Era Navigation) must adhere to the [UI Standards in guide_style.md §10](file:///Users/lukeishammacbookair/Developer/thejesuswebsite/documentation/guides/guide_style.md).
 
@@ -33,7 +33,7 @@ purpose: Visual ASCII representations of the interactive timeline layout, mapped
 |  [Layer Toggle]     |       *     *       *     *       *     *         |
 |  [x] Biblical       |  ====[*]====[*]====[*]====[*]====[*]====[*]====   |
 |  [ ] Secular        |     [Yr]   [Yr]   [Yr]   [Yr]   [Yr]   [Yr]       |
-|  [x] Prophecy       |      (Horizontal "Linear Pulse" Axis)             |
+|                     |      (Horizontal "Linear Pulse" Axis)             |
 |                     |                                                   |
 |  [Metadata Panel]   |      [ < PREV ERA ]           [ NEXT ERA > ]      |
 |  (Selected Node)    |                                                   |
@@ -56,13 +56,14 @@ purpose: Visual ASCII representations of the interactive timeline layout, mapped
 ```
 
 ## 3.2.2 Interactive Layers
-The timeline supports multiple vertical "lanes" or "layers" to provide context.
+The timeline supports two vertical "lanes" or "layers" to provide context.
+The legacy Prophecy lane has been removed; era-based lane assignment
+(PreIncarnation/OldTestament → secular, others → biblical) is determined
+at render time.
 
 ```text
   [ Vertical Lanes (Y-Axis) ]
   
-  (Prophecy)    [#]   [#]                <-- (Top Lane: Golden Squares)
-  ---------------------------------------
   (Biblical)     *     *     *     *     <-- (Mid Lane: Oxblood Dots)
   ---------------------------------------
   (Secular)      o           o           <-- (Bottom Lane: Charcoal Circles)
@@ -71,6 +72,16 @@ The timeline supports multiple vertical "lanes" or "layers" to provide context.
 
 ## 3.2.3 Data Injection & Mapping
 - **Mapping:** Database fields map directly to SVG attributes.
+- **Query:** Timeline nodes are queried from the WASM SQLite engine with type and status filters:
+
+```sql
+SELECT id, title, timeline, era, gospel_category, description, primary_verse, slug
+FROM records
+WHERE timeline IS NOT NULL
+  AND type = 'record'
+  AND status = 'published'
+LIMIT 200;
+```
 
 ```text
   [ DB to SVG Mapping ]
@@ -120,3 +131,18 @@ Standardized visual tokens for all timeline elements.
            [ Luke ]     *
   ======================|================ Axis
 ```
+
+## 3.2.7 Query Filters (v2.0 Schema Compliance)
+
+As of schema v2.0, the timeline display applies strict type and status
+discriminators to prevent draft leakage and wrong-type row inclusion:
+
+| Filter | Value | Purpose |
+| :--- | :--- | :--- |
+| `type` | `'record'` | Excludes essays, blog posts, challenges, responses, and news articles from the timeline |
+| `status` | `'published'` | Prevents draft records from appearing on the public timeline |
+| `timeline IS NOT NULL` | — | Only records with a timeline position are rendered as nodes |
+
+**Lane assignment** is now computed at render time based on the `era` field:
+- `PreIncarnation` and `OldTestament` era records are placed in the **secular** lane
+- All other era values are placed in the **biblical** lane

@@ -100,7 +100,7 @@ function initTimelineSystem() {
   if (window.dbReadyPromise) {
     window.dbReadyPromise.then((db) => {
       const query =
-        "SELECT id, title, timeline, era, gospel_category, description, primary_verse, slug FROM records WHERE timeline IS NOT NULL LIMIT 200";
+        "SELECT id, title, timeline, era, gospel_category, description, primary_verse, slug FROM records WHERE timeline IS NOT NULL AND type = 'record' AND status = 'published' LIMIT 200";
       try {
         const res = db.exec(query);
         if (res.length > 0 && res[0].values) {
@@ -119,7 +119,7 @@ function initTimelineSystem() {
 
           // Simple categorization for layers
           records.forEach((r, i) => {
-            if (r.era === "OldTestament" || r.timeline.includes("Prophecy")) {
+            if (r.era === "PreIncarnation" || r.era === "OldTestament") {
               r.lane = "prophecy";
             } else if (i % 5 === 0) {
               r.lane = "secular";

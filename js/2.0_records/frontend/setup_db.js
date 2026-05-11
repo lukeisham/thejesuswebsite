@@ -23,28 +23,24 @@
 //
 // =============================================================================
 
-
 // =============================================================================
 //   CONFIGURATION
 //   Centralised path constants — update if directory structure changes.
 // =============================================================================
 
 var DB_CONFIG = {
+  // Path to the compiled SQLite database file (served as a static asset)
+  databasePath: "/database/database.sqlite",
 
-    // Path to the compiled SQLite database file (served as a static asset)
-    databasePath: '/database/database.sqlite',
+  // Path to the sql.js WASM file — must match the location of sql-wasm.js
+  wasmPath: "/js/2.0_records/frontend/sql-wasm.wasm",
 
-    // Path to the sql.js WASM file — must match the location of sql-wasm.js
-    wasmPath: '/js/2.0_records/frontend/sql-wasm.wasm',
+  // Custom event name dispatched when the DB is ready for queries
+  readyEvent: "thejesusdb:ready",
 
-    // Custom event name dispatched when the DB is ready for queries
-    readyEvent: 'thejesusdb:ready',
-
-    // Custom event name dispatched if initialization fails
-    errorEvent: 'thejesusdb:error'
-
+  // Custom event name dispatched if initialization fails
+  errorEvent: "thejesusdb:error",
 };
-
 
 // =============================================================================
 //   GLOBAL DB INTERFACE
@@ -53,176 +49,172 @@ var DB_CONFIG = {
 // =============================================================================
 
 window.TheJesusDB = {
+  // The live sql.js Database instance — null until initDatabase() resolves
+  _db: null,
 
-    // The live sql.js Database instance — null until initDatabase() resolves
-    _db: null,
+  // True once the database is loaded and ready
+  ready: false,
 
-    // True once the database is loaded and ready
-    ready: false,
+  // -------------------------------------------------------------------------
+  //   runQuery
+  //   Execute a SELECT query against the in-memory SQLite database.
+  //
+  //   @param  {string}  sql     - The SQL SELECT statement to execute.
+  //   @param  {Array}   [params] - Optional parameterised values (binding).
+  //   @return {Array<Object>}   - Rows as plain JavaScript objects.
+  //                               Returns [] if the DB is not ready or
+  //                               the query returns no results.
+  //
+  //   NOTE:  Only read operations. This engine never writes to disk —
+  //          all writes go through the Python Admin API.
+  // -------------------------------------------------------------------------
 
-
-    // -------------------------------------------------------------------------
-    //   runQuery
-    //   Execute a SELECT query against the in-memory SQLite database.
-    //
-    //   @param  {string}  sql     - The SQL SELECT statement to execute.
-    //   @param  {Array}   [params] - Optional parameterised values (binding).
-    //   @return {Array<Object>}   - Rows as plain JavaScript objects.
-    //                               Returns [] if the DB is not ready or
-    //                               the query returns no results.
-    //
-    //   NOTE:  Only read operations. This engine never writes to disk —
-    //          all writes go through the Python Admin API.
-    // -------------------------------------------------------------------------
-
-    runQuery: function runQuery(sql, params) {
-
-        if (!this._db) {
-            console.warn('[setup_db.js] runQuery called before database is ready.');
-            return [];
-        }
-
-        // Sanitize input before execution (sanitize_query.js must be loaded)
-        var cleanSql = (typeof sanitizeQuery === 'function')
-            ? sanitizeQuery(sql)
-            : sql;
-
-        var bindParams = params || [];
-        var results    = [];
-
-        try {
-            var stmt = this._db.prepare(cleanSql);
-            stmt.bind(bindParams);
-
-            while (stmt.step()) {
-                results.push(stmt.getAsObject());
-            }
-
-            stmt.free();
-
-        } catch (queryError) {
-            console.error('[setup_db.js] Query error:', queryError.message, '\nSQL:', cleanSql);
-        }
-
-        return results;
-    },
-
-
-    // -------------------------------------------------------------------------
-    //   getRecord
-    //   Convenience: fetch a single record by its slug.
-    //
-    //   @param  {string} slug - The record's URL-safe slug identifier.
-    //   @return {Object|null} - The record row as an object, or null.
-    // -------------------------------------------------------------------------
-
-    getRecord: function getRecord(slug) {
-
-        var rows = this.runQuery(
-            'SELECT * FROM records WHERE slug = ? AND users = \'Public\' LIMIT 1;',
-            [slug]
-        );
-
-        return rows.length > 0 ? rows[0] : null;
-    },
-
-
-    // -------------------------------------------------------------------------
-    //   getRecordList
-    //   Convenience: fetch a list of public records with optional filters.
-    //   Returns lightweight list columns only — avoids fetching heavy BLOBs.
-    //
-    //   @param  {Object} [options]
-    //   @param  {string} [options.era]              - Filter by era enum
-    //   @param  {string} [options.gospel_category]  - Filter by category enum
-    //   @param  {string} [options.map_label]        - Filter by map label
-    //   @param  {number} [options.limit]            - Max rows (default: 100)
-    //   @param  {number} [options.offset]           - Pagination offset (default: 0)
-    //   @return {Array<Object>}
-    // -------------------------------------------------------------------------
-
-    getRecordList: function getRecordList(options) {
-
-        var opts   = options || {};
-        var limit  = opts.limit  || 100;
-        var offset = opts.offset || 0;
-
-        // Build WHERE clause dynamically from provided filters
-        var conditions = ["users = 'Public'"];
-        var bindings   = [];
-
-        if (opts.era) {
-            conditions.push('era = ?');
-            bindings.push(opts.era);
-        }
-
-        if (opts.gospel_category) {
-            conditions.push('gospel_category = ?');
-            bindings.push(opts.gospel_category);
-        }
-
-        if (opts.map_label) {
-            conditions.push('map_label = ?');
-            bindings.push(opts.map_label);
-        }
-
-        var where = conditions.join(' AND ');
-
-        // Lightweight column selection — omit heavy BLOBs for list views
-        var sql = [
-            'SELECT',
-            '  id, title, slug, snippet, era, timeline,',
-            '  map_label, gospel_category, primary_verse,',
-            '  picture_name, wikipedia_rank, popular_challenge_rank,',
-            '  academic_challenge_rank, page_views',
-            'FROM records',
-            'WHERE ' + where,
-            'ORDER BY title ASC',
-            'LIMIT ? OFFSET ?;'
-        ].join(' ');
-
-        bindings.push(limit, offset);
-
-        return this.runQuery(sql, bindings);
-    },
-
-
-    // -------------------------------------------------------------------------
-    //   searchRecords
-    //   Full-text search across title + snippet fields.
-    //
-    //   @param  {string} term   - Raw user search term (sanitized internally)
-    //   @param  {number} [limit] - Max rows (default: 50)
-    //   @return {Array<Object>}
-    // -------------------------------------------------------------------------
-
-    searchRecords: function searchRecords(term, limit) {
-
-        var maxRows  = limit || 50;
-
-        // Sanitize via sanitize_query.js if available
-        var cleanTerm = (typeof sanitizeSearchTerm === 'function')
-            ? sanitizeSearchTerm(term)
-            : term.trim();
-
-        var likeTerm = '%' + cleanTerm + '%';
-
-        var sql = [
-            'SELECT',
-            '  id, title, slug, snippet, era, gospel_category,',
-            '  primary_verse, picture_name',
-            'FROM records',
-            "WHERE users = 'Public'",
-            '  AND (title LIKE ? OR snippet LIKE ?)',
-            'ORDER BY page_views DESC',
-            'LIMIT ?;'
-        ].join(' ');
-
-        return this.runQuery(sql, [likeTerm, likeTerm, maxRows]);
+  runQuery: function runQuery(sql, params) {
+    if (!this._db) {
+      console.warn("[setup_db.js] runQuery called before database is ready.");
+      return [];
     }
 
-};
+    // Sanitize input before execution (sanitize_query.js must be loaded)
+    var cleanSql =
+      typeof sanitizeQuery === "function" ? sanitizeQuery(sql) : sql;
 
+    var bindParams = params || [];
+    var results = [];
+
+    try {
+      var stmt = this._db.prepare(cleanSql);
+      stmt.bind(bindParams);
+
+      while (stmt.step()) {
+        results.push(stmt.getAsObject());
+      }
+
+      stmt.free();
+    } catch (queryError) {
+      console.error(
+        "[setup_db.js] Query error:",
+        queryError.message,
+        "\nSQL:",
+        cleanSql,
+      );
+    }
+
+    return results;
+  },
+
+  // -------------------------------------------------------------------------
+  //   getRecord
+  //   Convenience: fetch a single record by its slug.
+  //
+  //   @param  {string} slug - The record's URL-safe slug identifier.
+  //   @return {Object|null} - The record row as an object, or null.
+  // -------------------------------------------------------------------------
+
+  getRecord: function getRecord(slug) {
+    var rows = this.runQuery(
+      "SELECT * FROM records WHERE slug = ? AND type = 'record' AND status = 'published' AND users = 'Public' LIMIT 1;",
+      [slug],
+    );
+
+    return rows.length > 0 ? rows[0] : null;
+  },
+
+  // -------------------------------------------------------------------------
+  //   getRecordList
+  //   Convenience: fetch a list of public records with optional filters.
+  //   Returns lightweight list columns only — avoids fetching heavy BLOBs.
+  //
+  //   @param  {Object} [options]
+  //   @param  {string} [options.era]              - Filter by era enum
+  //   @param  {string} [options.gospel_category]  - Filter by category enum
+  //   @param  {string} [options.map_label]        - Filter by map label
+  //   @param  {number} [options.limit]            - Max rows (default: 100)
+  //   @param  {number} [options.offset]           - Pagination offset (default: 0)
+  //   @return {Array<Object>}
+  // -------------------------------------------------------------------------
+
+  getRecordList: function getRecordList(options) {
+    var opts = options || {};
+    var limit = opts.limit || 100;
+    var offset = opts.offset || 0;
+
+    // Build WHERE clause dynamically from provided filters
+    var conditions = [
+      "type = 'record'",
+      "status = 'published'",
+      "users = 'Public'",
+    ];
+    var bindings = [];
+
+    if (opts.era) {
+      conditions.push("era = ?");
+      bindings.push(opts.era);
+    }
+
+    if (opts.gospel_category) {
+      conditions.push("gospel_category = ?");
+      bindings.push(opts.gospel_category);
+    }
+
+    if (opts.map_label) {
+      conditions.push("map_label = ?");
+      bindings.push(opts.map_label);
+    }
+
+    var where = conditions.join(" AND ");
+
+    // Lightweight column selection — omit heavy BLOBs for list views
+    var sql = [
+      "SELECT",
+      "  id, title, slug, snippet, era, timeline,",
+      "  map_label, gospel_category, primary_verse,",
+      "  picture_name, page_views",
+      "FROM records",
+      "WHERE " + where,
+      "ORDER BY title ASC",
+      "LIMIT ? OFFSET ?;",
+    ].join(" ");
+
+    bindings.push(limit, offset);
+
+    return this.runQuery(sql, bindings);
+  },
+
+  // -------------------------------------------------------------------------
+  //   searchRecords
+  //   Full-text search across title + snippet fields.
+  //
+  //   @param  {string} term   - Raw user search term (sanitized internally)
+  //   @param  {number} [limit] - Max rows (default: 50)
+  //   @return {Array<Object>}
+  // -------------------------------------------------------------------------
+
+  searchRecords: function searchRecords(term, limit) {
+    var maxRows = limit || 50;
+
+    // Sanitize via sanitize_query.js if available
+    var cleanTerm =
+      typeof sanitizeSearchTerm === "function"
+        ? sanitizeSearchTerm(term)
+        : term.trim();
+
+    var likeTerm = "%" + cleanTerm + "%";
+
+    var sql = [
+      "SELECT",
+      "  id, title, slug, snippet, era, gospel_category,",
+      "  primary_verse, picture_name",
+      "FROM records",
+      "WHERE type = 'record' AND status = 'published' AND users = 'Public'",
+      "  AND (title LIKE ? OR snippet LIKE ?)",
+      "ORDER BY page_views DESC",
+      "LIMIT ?;",
+    ].join(" ");
+
+    return this.runQuery(sql, [likeTerm, likeTerm, maxRows]);
+  },
+};
 
 // =============================================================================
 //   READY PROMISE
@@ -230,94 +222,90 @@ window.TheJesusDB = {
 //   Components can use window.dbReadyPromise.then(db => { ... })
 // =============================================================================
 
-window.dbReadyPromise = new Promise(function(resolve, reject) {
-    window._resolveDbReady = resolve;
-    window._rejectDbReady = reject;
+window.dbReadyPromise = new Promise(function (resolve, reject) {
+  window._resolveDbReady = resolve;
+  window._rejectDbReady = reject;
 });
-
 
 // =============================================================================
 //   TRIGGER — Auto-run on DOMContentLoaded
 //   Pages can also call initDatabase() manually if they need earlier control.
 // =============================================================================
 
-document.addEventListener('DOMContentLoaded', function onDOMReady() {
-    initDatabase();
+document.addEventListener("DOMContentLoaded", function onDOMReady() {
+  initDatabase();
 });
 
 function initDatabase() {
+  // --- 1. Boot sql.js WASM engine ------------------------------------------
+  //   locateFile tells sql.js where to find the .wasm binary.
+  //   We serve it locally to avoid CORS and CDN dependency at runtime.
 
-    // --- 1. Boot sql.js WASM engine ------------------------------------------
-    //   locateFile tells sql.js where to find the .wasm binary.
-    //   We serve it locally to avoid CORS and CDN dependency at runtime.
+  initSqlJs({
+    locateFile: function locateSqlWasm(filename) {
+      return DB_CONFIG.wasmPath;
+    },
+  })
+    .then(function onSqlJsReady(SQL) {
+      // --- 2. Fetch the compiled SQLite database file ----------------------
 
-    initSqlJs({
-        locateFile: function locateSqlWasm(filename) {
-            return DB_CONFIG.wasmPath;
-        }
+      return fetch(DB_CONFIG.databasePath)
+        .then(function onFetchResponse(response) {
+          if (!response.ok) {
+            throw new Error(
+              "[setup_db.js] Failed to fetch database: " +
+                response.status +
+                " " +
+                response.statusText,
+            );
+          }
 
-    }).then(function onSqlJsReady(SQL) {
+          return response.arrayBuffer();
+        })
+        .then(function onBufferReady(buffer) {
+          // --- 3. Load binary into sql.js in-memory database -----------
 
-        // --- 2. Fetch the compiled SQLite database file ----------------------
+          var uint8Array = new Uint8Array(buffer);
+          var db = new SQL.Database(uint8Array);
 
-        return fetch(DB_CONFIG.databasePath)
-            .then(function onFetchResponse(response) {
+          // --- 4. Attach to global interface ---------------------------
 
-                if (!response.ok) {
-                    throw new Error(
-                        '[setup_db.js] Failed to fetch database: '
-                        + response.status + ' ' + response.statusText
-                    );
-                }
+          window.TheJesusDB._db = db;
+          window.TheJesusDB.ready = true;
 
-                return response.arrayBuffer();
-            })
-            .then(function onBufferReady(buffer) {
+          console.info(
+            "[setup_db.js] Database loaded successfully.",
+            uint8Array.byteLength + " bytes in memory.",
+          );
 
-                // --- 3. Load binary into sql.js in-memory database -----------
+          // --- 5. Resolve the global promise ---------------------------
 
-                var uint8Array = new Uint8Array(buffer);
-                var db         = new SQL.Database(uint8Array);
+          if (typeof window._resolveDbReady === "function") {
+            window._resolveDbReady(db);
+          }
 
-                // --- 4. Attach to global interface ---------------------------
+          // --- 6. Dispatch ready event for view scripts to consume -----
 
-                window.TheJesusDB._db   = db;
-                window.TheJesusDB.ready = true;
+          var readyEvent = new CustomEvent(DB_CONFIG.readyEvent, {
+            detail: { db: window.TheJesusDB },
+          });
 
-                console.info(
-                    '[setup_db.js] Database loaded successfully.',
-                    uint8Array.byteLength + ' bytes in memory.'
-                );
-
-                // --- 5. Resolve the global promise ---------------------------
-
-                if (typeof window._resolveDbReady === 'function') {
-                    window._resolveDbReady(db);
-                }
-
-                // --- 6. Dispatch ready event for view scripts to consume -----
-
-                var readyEvent = new CustomEvent(DB_CONFIG.readyEvent, {
-                    detail: { db: window.TheJesusDB }
-                });
-
-                window.dispatchEvent(readyEvent);
-            });
-
-    }).catch(function onInitError(err) {
-
-        console.error('[setup_db.js] Database initialization failed:', err);
-
-        // Reject the global promise
-        if (typeof window._rejectDbReady === 'function') {
-            window._rejectDbReady(err);
-        }
-
-        // Dispatch error event so pages can display a graceful fallback
-        var errorEvent = new CustomEvent(DB_CONFIG.errorEvent, {
-            detail: { error: err.message }
+          window.dispatchEvent(readyEvent);
         });
+    })
+    .catch(function onInitError(err) {
+      console.error("[setup_db.js] Database initialization failed:", err);
 
-        window.dispatchEvent(errorEvent);
+      // Reject the global promise
+      if (typeof window._rejectDbReady === "function") {
+        window._rejectDbReady(err);
+      }
+
+      // Dispatch error event so pages can display a graceful fallback
+      var errorEvent = new CustomEvent(DB_CONFIG.errorEvent, {
+        detail: { error: err.message },
+      });
+
+      window.dispatchEvent(errorEvent);
     });
 }

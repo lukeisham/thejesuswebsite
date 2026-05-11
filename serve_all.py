@@ -312,6 +312,8 @@ async def resources_world_events_page():
 async def public_blogposts(
     limit: int = 50,
     offset: int = 0,
+    type: str = None,
+    status: str = None,
 ):
     """
     Returns paginated, published records with blogposts column NOT NULL.
@@ -319,29 +321,54 @@ async def public_blogposts(
     Query parameters:
       limit  — Max rows to return (default 50, max 200).
       offset — Row offset for pagination (default 0).
+      type   — Optional type discriminator (e.g. 'blog_post').
+      status — Optional status filter (e.g. 'published').
     """
     try:
         conn = get_public_db_connection()
         cursor = conn.cursor()
 
-        # Get total count for pagination metadata
+        # Build WHERE clause: prefer type discriminator, fall back to legacy
+        if type:
+            where_clause = "type = ?"
+            count_params = [type]
+            if status:
+                where_clause += " AND status = ?"
+                count_params.append(status)
+            else:
+                where_clause += " AND status = 'published'"
+        else:
+            where_clause = "blogposts IS NOT NULL AND status = 'published'"
+            count_params = []
+
         cursor.execute(
-            "SELECT COUNT(*) as total FROM records WHERE blogposts IS NOT NULL "
-            "AND status = 'published'"
+            f"SELECT COUNT(*) as total FROM records WHERE {where_clause}",
+            count_params,
         )
         total = cursor.fetchone()["total"]
 
         safe_limit = max(1, min(limit, 200))
         safe_offset = max(0, offset)
 
-        cursor.execute(
-            "SELECT id, title, slug, snippet, blogposts, "
-            "created_at, updated_at, picture_name, bibliography, context_links "
-            "FROM records WHERE blogposts IS NOT NULL "
-            "AND status = 'published' ORDER BY created_at DESC "
-            "LIMIT ? OFFSET ?",
-            (safe_limit, safe_offset),
-        )
+        if type:
+            select_cols = (
+                "SELECT id, title, slug, snippet, blogposts, body, iaa, "
+                "pledius, manuscript, url, page_views, metadata_json, "
+                "created_at, updated_at, picture_name, bibliography, context_links "
+                "FROM records WHERE " + where_clause + " ORDER BY created_at DESC "
+                "LIMIT ? OFFSET ?"
+            )
+            query_params = count_params + [safe_limit, safe_offset]
+        else:
+            select_cols = (
+                "SELECT id, title, slug, snippet, blogposts, "
+                "created_at, updated_at, picture_name, bibliography, context_links "
+                "FROM records WHERE " + where_clause + " ORDER BY created_at DESC "
+                "LIMIT ? OFFSET ?"
+            )
+            query_params = count_params + [safe_limit, safe_offset]
+
+        cursor.execute(select_cols, query_params)
         rows = cursor.fetchall()
         conn.close()
         posts = []
@@ -350,6 +377,21 @@ async def public_blogposts(
             if post.get("blogposts"):
                 try:
                     post["blogposts"] = json.loads(post["blogposts"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if post.get("snippet"):
+                try:
+                    post["snippet"] = json.loads(post["snippet"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if post.get("url"):
+                try:
+                    post["url"] = json.loads(post["url"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if post.get("metadata_json"):
+                try:
+                    post["metadata_json"] = json.loads(post["metadata_json"])
                 except (json.JSONDecodeError, TypeError):
                     pass
             if post.get("bibliography"):
@@ -386,10 +428,11 @@ async def public_blogpost_by_slug(slug: str):
         conn = get_public_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, title, slug, snippet, blogposts, description, "
+            "SELECT id, title, slug, snippet, blogposts, description, body, "
+            "iaa, pledius, manuscript, url, page_views, metadata_json, "
             "created_at, updated_at, picture_name, picture_bytes, "
             "picture_thumbnail, bibliography, context_links "
-            "FROM records WHERE slug = ? AND blogposts IS NOT NULL "
+            "FROM records WHERE slug = ? AND (type = 'blog_post' OR blogposts IS NOT NULL) "
             "AND status = 'published'",
             (slug,),
         )
@@ -407,9 +450,24 @@ async def public_blogpost_by_slug(slug: str):
                 post["blogposts"] = json.loads(post["blogposts"])
             except (json.JSONDecodeError, TypeError):
                 pass
+        if post.get("snippet"):
+            try:
+                post["snippet"] = json.loads(post["snippet"])
+            except (json.JSONDecodeError, TypeError):
+                pass
         if post.get("description"):
             try:
                 post["description"] = json.loads(post["description"])
+            except (json.JSONDecodeError, TypeError):
+                pass
+        if post.get("url"):
+            try:
+                post["url"] = json.loads(post["url"])
+            except (json.JSONDecodeError, TypeError):
+                pass
+        if post.get("metadata_json"):
+            try:
+                post["metadata_json"] = json.loads(post["metadata_json"])
             except (json.JSONDecodeError, TypeError):
                 pass
         if post.get("bibliography"):
@@ -433,34 +491,69 @@ async def public_blogpost_by_slug(slug: str):
 async def public_news_items(
     limit: int = 50,
     offset: int = 0,
+    type: str = None,
+    status: str = None,
 ):
     """
-    Returns paginated, published records with news_items column NOT NULL.
+    Returns paginated, published news articles using type discriminator.
+    Falls back to legacy news_items IS NOT NULL if no type param provided.
 
     Query parameters:
       limit  — Max rows to return (default 50, max 200).
       offset — Row offset for pagination (default 0).
+      type   — Optional type discriminator (e.g. 'news_article').
+      status — Optional status filter (e.g. 'published').
     """
     try:
         conn = get_public_db_connection()
         cursor = conn.cursor()
 
+        # Build WHERE clause: prefer type discriminator, fall back to legacy
+        if type:
+            where_clause = "type = ?"
+            count_params = [type]
+            if status:
+                where_clause += " AND status = ?"
+                count_params.append(status)
+            else:
+                where_clause += " AND status = 'published'"
+        else:
+            # Legacy fallback for backward compatibility
+            where_clause = "news_items IS NOT NULL AND status = 'published'"
+            count_params = []
+
         cursor.execute(
-            "SELECT COUNT(*) as total FROM records WHERE news_items IS NOT NULL "
-            "AND status = 'published'"
+            f"SELECT COUNT(*) as total FROM records WHERE {where_clause}",
+            count_params,
         )
         total = cursor.fetchone()["total"]
 
         safe_limit = max(1, min(limit, 200))
         safe_offset = max(0, offset)
 
-        cursor.execute(
-            "SELECT id, title, slug, snippet, news_items, created_at, "
-            "updated_at FROM records WHERE news_items IS NOT NULL "
-            "AND status = 'published' ORDER BY created_at DESC "
-            "LIMIT ? OFFSET ?",
-            (safe_limit, safe_offset),
-        )
+        # Use structured columns when querying by type; include legacy columns as fallback
+        if type:
+            select_cols = (
+                "SELECT id, title, slug, snippet, news_item_title, "
+                "news_item_link, last_crawled, news_items, created_at, "
+                "updated_at, status, type, sub_type "
+                "FROM records WHERE "
+                + where_clause
+                + " ORDER BY last_crawled DESC, created_at DESC "
+                "LIMIT ? OFFSET ?"
+            )
+            query_params = count_params + [safe_limit, safe_offset]
+        else:
+            select_cols = (
+                "SELECT id, title, slug, snippet, news_items, created_at, "
+                "updated_at FROM records WHERE "
+                + where_clause
+                + " ORDER BY created_at DESC "
+                "LIMIT ? OFFSET ?"
+            )
+            query_params = count_params + [safe_limit, safe_offset]
+
+        cursor.execute(select_cols, query_params)
         rows = cursor.fetchall()
         conn.close()
         items = []
@@ -469,6 +562,11 @@ async def public_news_items(
             if item.get("news_items"):
                 try:
                     item["news_items"] = json.loads(item["news_items"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("snippet"):
+                try:
+                    item["snippet"] = json.loads(item["snippet"])
                 except (json.JSONDecodeError, TypeError):
                     pass
             items.append(item)
@@ -496,7 +594,7 @@ async def public_response_by_slug(slug: str):
         conn = get_public_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, title, slug, snippet, description, challenge_id, "
+            "SELECT id, title, slug, snippet, description, body, challenge_id, "
             "created_at, updated_at, picture_name, bibliography, context_links "
             "FROM records WHERE slug = ? AND challenge_id IS NOT NULL "
             "AND status = 'published'",
@@ -507,9 +605,19 @@ async def public_response_by_slug(slug: str):
         if not row:
             raise HTTPException(status_code=404, detail="Response not found")
         resp = dict(row)
+        if resp.get("snippet"):
+            try:
+                resp["snippet"] = json.loads(resp["snippet"])
+            except (json.JSONDecodeError, TypeError):
+                pass
         if resp.get("description"):
             try:
                 resp["description"] = json.loads(resp["description"])
+            except (json.JSONDecodeError, TypeError):
+                pass
+        if resp.get("body"):
+            try:
+                resp["body"] = json.loads(resp["body"])
             except (json.JSONDecodeError, TypeError):
                 pass
         if resp.get("bibliography"):
@@ -570,6 +678,296 @@ async def public_essays():
                     pass
             essays.append(essay)
         return {"essays": essays}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/public/challenges")
+async def public_challenges(
+    limit: int = 50,
+    offset: int = 0,
+    type: str = None,
+    status: str = None,
+):
+    """
+    Returns paginated challenge records using type discriminator.
+
+    Query parameters:
+      limit  — Max rows to return (default 50, max 200).
+      offset — Row offset for pagination (default 0).
+      type   — Type discriminator (e.g. 'challenge_academic', 'challenge_popular').
+      status — Optional status filter (e.g. 'published').
+    """
+    try:
+        conn = get_public_db_connection()
+        cursor = conn.cursor()
+
+        # Build WHERE clause with type discriminator
+        if type:
+            where_clause = "type = ?"
+            count_params = [type]
+            if status:
+                where_clause += " AND status = ?"
+                count_params.append(status)
+            else:
+                where_clause += " AND status = 'published'"
+        else:
+            # Fallback: any challenge type
+            where_clause = "(type = 'challenge_academic' OR type = 'challenge_popular') AND status = 'published'"
+            count_params = []
+
+        cursor.execute(
+            f"SELECT COUNT(*) as total FROM records WHERE {where_clause}",
+            count_params,
+        )
+        total = cursor.fetchone()["total"]
+
+        safe_limit = max(1, min(limit, 200))
+        safe_offset = max(0, offset)
+
+        # Select type-specific and shared columns, grouped by id
+        select_cols = (
+            "SELECT id, title, slug, snippet, status, created_at, updated_at, "
+            "sub_type, academic_challenge_title, academic_challenge_link, "
+            "academic_challenge_rank, academic_challenge_weight, "
+            "popular_challenge_title, popular_challenge_link, "
+            "popular_challenge_rank, popular_challenge_weight "
+            "FROM records WHERE "
+            + where_clause
+            + " GROUP BY id ORDER BY created_at DESC "
+            "LIMIT ? OFFSET ?"
+        )
+        query_params = count_params + [safe_limit, safe_offset]
+
+        cursor.execute(select_cols, query_params)
+        rows = cursor.fetchall()
+        conn.close()
+        items = []
+        for row in rows:
+            item = dict(row)
+            # Parse JSON fields
+            if item.get("snippet"):
+                try:
+                    item["snippet"] = json.loads(item["snippet"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("academic_challenge_link"):
+                try:
+                    item["academic_challenge_link"] = json.loads(
+                        item["academic_challenge_link"]
+                    )
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("popular_challenge_link"):
+                try:
+                    item["popular_challenge_link"] = json.loads(
+                        item["popular_challenge_link"]
+                    )
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("academic_challenge_weight"):
+                try:
+                    item["academic_challenge_weight"] = json.loads(
+                        item["academic_challenge_weight"]
+                    )
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("popular_challenge_weight"):
+                try:
+                    item["popular_challenge_weight"] = json.loads(
+                        item["popular_challenge_weight"]
+                    )
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            items.append(item)
+        has_more = (safe_offset + len(items)) < total
+        return {
+            "challenges": items,
+            "total": total,
+            "offset": safe_offset,
+            "limit": safe_limit,
+            "has_more": has_more,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/public/wikipedia")
+async def public_wikipedia(
+    limit: int = 50,
+    offset: int = 0,
+    status: str = None,
+):
+    """
+    Returns paginated wikipedia_entry records.
+
+    Query parameters:
+      limit  — Max rows to return (default 50, max 200).
+      offset — Row offset for pagination (default 0).
+      status — Optional status filter (e.g. 'published').
+    """
+    try:
+        conn = get_public_db_connection()
+        cursor = conn.cursor()
+
+        where_clause = "type = 'wikipedia_entry'"
+        count_params = []
+        if status:
+            where_clause += " AND status = ?"
+            count_params.append(status)
+        else:
+            where_clause += " AND status = 'published'"
+
+        cursor.execute(
+            f"SELECT COUNT(*) as total FROM records WHERE {where_clause}",
+            count_params,
+        )
+        total = cursor.fetchone()["total"]
+
+        safe_limit = max(1, min(limit, 200))
+        safe_offset = max(0, offset)
+
+        select_cols = (
+            "SELECT id, title, slug, snippet, status, created_at, updated_at, "
+            "sub_type, wikipedia_title, wikipedia_link, "
+            "wikipedia_rank, wikipedia_weight "
+            "FROM records WHERE "
+            + where_clause
+            + " GROUP BY id ORDER BY created_at DESC "
+            "LIMIT ? OFFSET ?"
+        )
+        query_params = count_params + [safe_limit, safe_offset]
+
+        cursor.execute(select_cols, query_params)
+        rows = cursor.fetchall()
+        conn.close()
+        items = []
+        for row in rows:
+            item = dict(row)
+            if item.get("snippet"):
+                try:
+                    item["snippet"] = json.loads(item["snippet"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("wikipedia_link"):
+                try:
+                    item["wikipedia_link"] = json.loads(item["wikipedia_link"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("wikipedia_weight"):
+                try:
+                    item["wikipedia_weight"] = json.loads(item["wikipedia_weight"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            items.append(item)
+        has_more = (safe_offset + len(items)) < total
+        return {
+            "wikipedia": items,
+            "total": total,
+            "offset": safe_offset,
+            "limit": safe_limit,
+            "has_more": has_more,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/public/responses")
+async def public_responses(
+    limit: int = 50,
+    offset: int = 0,
+    type: str = None,
+    status: str = None,
+):
+    """
+    Returns paginated response records (type = 'challenge_response').
+
+    Query parameters:
+      limit  — Max rows to return (default 50, max 200).
+      offset — Row offset for pagination (default 0).
+      type   — Type discriminator override (default: 'challenge_response').
+      status — Optional status filter (e.g. 'published').
+    """
+    try:
+        conn = get_public_db_connection()
+        cursor = conn.cursor()
+
+        if type:
+            where_clause = "type = ?"
+            count_params = [type]
+        else:
+            # Fallback: use type discriminator or legacy check
+            where_clause = "(type = 'challenge_response' OR challenge_id IS NOT NULL)"
+            count_params = []
+        if status:
+            where_clause += " AND status = ?"
+            count_params.append(status)
+        else:
+            where_clause += " AND status = 'published'"
+
+        cursor.execute(
+            f"SELECT COUNT(*) as total FROM records WHERE {where_clause}",
+            count_params,
+        )
+        total = cursor.fetchone()["total"]
+
+        safe_limit = max(1, min(limit, 200))
+        safe_offset = max(0, offset)
+
+        select_cols = (
+            "SELECT id, title, slug, snippet, description, body, challenge_id, "
+            "created_at, updated_at, picture_name, bibliography, context_links "
+            "FROM records WHERE " + where_clause + " ORDER BY created_at DESC "
+            "LIMIT ? OFFSET ?"
+        )
+        query_params = count_params + [safe_limit, safe_offset]
+
+        cursor.execute(select_cols, query_params)
+        rows = cursor.fetchall()
+        conn.close()
+        items = []
+        for row in rows:
+            item = dict(row)
+            if item.get("snippet"):
+                try:
+                    item["snippet"] = json.loads(item["snippet"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("description"):
+                try:
+                    item["description"] = json.loads(item["description"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("body"):
+                try:
+                    item["body"] = json.loads(item["body"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("bibliography"):
+                try:
+                    item["bibliography"] = json.loads(item["bibliography"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            if item.get("context_links"):
+                try:
+                    item["context_links"] = json.loads(item["context_links"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            items.append(item)
+        has_more = (safe_offset + len(items)) < total
+        return {
+            "responses": items,
+            "total": total,
+            "offset": safe_offset,
+            "limit": safe_limit,
+            "has_more": has_more,
+        }
     except HTTPException:
         raise
     except Exception as e:

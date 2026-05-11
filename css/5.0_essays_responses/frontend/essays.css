@@ -8,7 +8,7 @@
 
 ============================================================================= */
 
-@import url('../../elements/typography_colors.css');
+@import url("../../elements/typography_colors.css");
 
 /* Main central column for essays */
 .essay-container {
@@ -122,8 +122,12 @@
     margin: 0 2px;
 }
 
-.footnote-ref::before { content: "["; }
-.footnote-ref::after { content: "]"; }
+.footnote-ref::before {
+    content: "[";
+}
+.footnote-ref::after {
+    content: "]";
+}
 
 /* Bible Verses §12 */
 .bible-verse {
@@ -162,6 +166,14 @@
     border-right: var(--border-width-thin) solid var(--color-border);
     margin-right: var(--space-4);
     min-width: 180px;
+}
+
+.essay-toc-heading {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-2);
+    color: var(--color-text-secondary);
 }
 
 .essay-toc-list {

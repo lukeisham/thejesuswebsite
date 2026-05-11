@@ -69,6 +69,26 @@ function renderSingleRecord() {
     }
   }
 
+  // Secondary Verse rendering — create container after primary verse
+  if (record.secondary_verse) {
+    try {
+      var secVerses = JSON.parse(record.secondary_verse);
+      if (secVerses && secVerses.length > 0) {
+        var secEl = document.createElement("p");
+        secEl.className = "record-secondary-verse";
+        secEl.id = "record-secondary-verse";
+        secEl.textContent = secVerses
+          .map(function (sv) {
+            return sv.book + " " + sv.chapter + ":" + sv.verse;
+          })
+          .join("; ");
+        verseEl.insertAdjacentElement("afterend", secEl);
+      }
+    } catch (e) {
+      console.error("Failed to parse secondary verse", e);
+    }
+  }
+
   // Description parsing (JSON array of paragraph strings)
   if (record.description) {
     try {
@@ -111,6 +131,21 @@ function renderSingleRecord() {
   if (record.map_label) {
     metadataItems.push({ label: "Map Category", value: record.map_label });
   }
+  if (record.timeline) {
+    metadataItems.push({ label: "Timeline", value: record.timeline });
+  }
+  if (record.geo_id) {
+    metadataItems.push({ label: "Geo ID", value: record.geo_id });
+  }
+  if (record.iaa) {
+    metadataItems.push({ label: "IAA", value: record.iaa });
+  }
+  if (record.pledius) {
+    metadataItems.push({ label: "Pledius", value: record.pledius });
+  }
+  if (record.manuscript) {
+    metadataItems.push({ label: "Manuscript", value: record.manuscript });
+  }
   if (record.page_views) {
     metadataItems.push({ label: "Page Views", value: record.page_views });
   }
@@ -128,6 +163,106 @@ function renderSingleRecord() {
       .join("");
     metaSection.classList.add("is-visible-block");
     metaSection.classList.remove("is-hidden");
+  }
+
+  // --- parent_id — navigable link to parent record ------------------------
+  if (record.parent_id) {
+    var parentRows = window.TheJesusDB.runQuery(
+      "SELECT slug, title FROM records WHERE id = ? LIMIT 1;",
+      [record.parent_id],
+    );
+    if (parentRows.length > 0) {
+      var parent = parentRows[0];
+      var parentEl = document.createElement("a");
+      parentEl.href = "/record/" + parent.slug;
+      parentEl.className = "record-parent-link";
+      parentEl.textContent = "Parent: " + parent.title;
+      metaSection.insertAdjacentElement("afterend", parentEl);
+    }
+  }
+
+  // --- context_links — render as linked list into #record-context-list -----
+  var contextListEl = document.getElementById("record-context-list");
+  var contextSectionEl = document.getElementById("record-section-context");
+  if (record.context_links && contextListEl && contextSectionEl) {
+    try {
+      var contextLinks = JSON.parse(record.context_links);
+      if (contextLinks && contextLinks.length > 0) {
+        contextListEl.innerHTML = contextLinks
+          .map(function (link) {
+            return (
+              '<li><a href="' +
+              link.url +
+              '">' +
+              (link.label || link.url) +
+              "</a></li>"
+            );
+          })
+          .join("");
+        contextSectionEl.classList.add("is-visible-block");
+        contextSectionEl.classList.remove("is-hidden");
+      }
+    } catch (e) {
+      console.error("Failed to parse context_links", e);
+    }
+  }
+
+  // --- url — render as linked reference -----------------------------------
+  if (record.url) {
+    try {
+      var urlData = JSON.parse(record.url);
+      var urlContainer = document.getElementById("record-container");
+      if (urlData && urlContainer) {
+        var urlSection = document.createElement("section");
+        urlSection.className = "record-section";
+        urlSection.id = "record-section-url";
+        var urlHeading = document.createElement("h2");
+        urlHeading.className = "record-section-title";
+        urlHeading.textContent = "External Reference";
+        urlSection.appendChild(urlHeading);
+
+        var urls = Array.isArray(urlData) ? urlData : [urlData];
+        var urlList = document.createElement("ul");
+        urlList.className = "record-url-list";
+        urlList.innerHTML = urls
+          .map(function (u) {
+            var href = typeof u === "string" ? u : u.url;
+            return (
+              '<li><a href="' +
+              href +
+              '" target="_blank" rel="noopener">' +
+              href +
+              "</a></li>"
+            );
+          })
+          .join("");
+        urlSection.appendChild(urlList);
+        urlContainer.appendChild(urlSection);
+      }
+    } catch (e) {
+      // Fallback: treat as plain string URL
+      var urlContainer = document.getElementById("record-container");
+      if (
+        urlContainer &&
+        typeof record.url === "string" &&
+        record.url.length > 0
+      ) {
+        var urlSection = document.createElement("section");
+        urlSection.className = "record-section";
+        urlSection.id = "record-section-url";
+        var urlHeading = document.createElement("h2");
+        urlHeading.className = "record-section-title";
+        urlHeading.textContent = "External Reference";
+        urlSection.appendChild(urlHeading);
+        var urlLink = document.createElement("a");
+        urlLink.href = record.url;
+        urlLink.target = "_blank";
+        urlLink.rel = "noopener";
+        urlLink.textContent = record.url;
+        urlSection.appendChild(urlLink);
+        urlContainer.appendChild(urlSection);
+      }
+    }
   }
 
   // 6. Trigger custom event for other displays (pictures, bibliography, context) to run

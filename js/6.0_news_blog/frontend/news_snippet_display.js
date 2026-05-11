@@ -20,7 +20,7 @@ function injectNewsSnippets(containerId) {
   // Show loading state
   container.innerHTML = '<p class="text-sm text-muted">Loading news...</p>';
 
-  fetch("/api/public/news")
+  fetch("/api/public/news?type=news_article&status=published")
     .then(function (response) {
       if (!response.ok) {
         throw new Error(
@@ -43,22 +43,15 @@ function injectNewsSnippets(containerId) {
 
       container.innerHTML = latest
         .map(function (item) {
-          var date = item.updated_at || item.created_at || "";
-          var title = item.title || "Untitled";
+          // Use schema column names: news_item_title for title, last_crawled for date
+          var displayTitle = item.news_item_title || item.title || "Untitled";
+          var displayLink = item.news_item_link || "";
+          var date =
+            item.last_crawled || item.updated_at || item.created_at || "";
           var snippet = "";
 
-          if (item.news_items && typeof item.news_items === "object") {
-            snippet = item.news_items.summary || item.news_items.excerpt || "";
-            // Fallback to body content
-            if (!snippet) {
-              var content =
-                item.news_items.content || item.news_items.body || "";
-              if (typeof content === "string") {
-                snippet = content.replace(/\n{2,}/g, " ").substring(0, 150);
-              }
-            }
-          }
-          if (!snippet && item.snippet) {
+          // Try the snippet column first (JSON Array of paragraph strings per schema)
+          if (item.snippet) {
             try {
               var parsed =
                 typeof item.snippet === "string"
@@ -69,20 +62,44 @@ function injectNewsSnippets(containerId) {
               snippet = item.snippet;
             }
           }
+
+          // Fallback: legacy news_items blob
+          if (
+            !snippet &&
+            item.news_items &&
+            typeof item.news_items === "object"
+          ) {
+            snippet = item.news_items.summary || item.news_items.excerpt || "";
+            if (!snippet) {
+              var content =
+                item.news_items.content || item.news_items.body || "";
+              if (typeof content === "string") {
+                snippet = content.replace(/\n{2,}/g, " ").substring(0, 150);
+              }
+            }
+          }
           if (typeof snippet === "object") {
             snippet = snippet.text || "";
           }
 
+          var titleHtml = displayLink
+            ? '<a href="' +
+              escapeHtml(displayLink) +
+              '" target="_blank" rel="noopener">' +
+              escapeHtml(displayTitle) +
+              " ↗</a>"
+            : escapeHtml(displayTitle);
+
           return (
-            '<div class="news-snippet mb-4" style="border-bottom: 1px dotted var(--color-border); padding-bottom: var(--space-2);">' +
-            '<p class="text-xs text-muted font-mono mb-1">' +
+            '<div class="news-snippet" style="border-bottom: 1px dotted var(--color-border); padding-bottom: var(--space-2); margin-bottom: var(--space-4);">' +
+            '<p class="news-snippet__date">' +
             escapeHtml(formatDate(date)) +
             "</p>" +
-            '<h3 class="text-base font-semibold mb-1">' +
-            escapeHtml(title) +
+            '<h3 class="news-snippet__title">' +
+            titleHtml +
             "</h3>" +
             (snippet
-              ? '<p class="text-sm">' +
+              ? '<p class="news-snippet__text">' +
                 escapeHtml(String(snippet).substring(0, 150)) +
                 "</p>"
               : "") +

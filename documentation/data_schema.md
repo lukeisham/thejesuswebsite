@@ -1,6 +1,6 @@
 ---
 name: data_schema.md
-version: 1.0.3
+version: 1.0.4
 purpose: data schema for the jesus website (source of truth)
 dependencies: [site_map.md, module_sitemap.md]
 ---
@@ -276,7 +276,9 @@ dependencies: [site_map.md, module_sitemap.md]
 `responses` | TEXT | JSON Blob 
 `blogposts` | TEXT | JSON Blob 
 `historiography` | TEXT | JSON Blob
-`news_sources` | TEXT | JASON Blob   
+`news_sources` | TEXT | JASON Blob
+`source_url` | TEXT | Flat Indexable (canonical URL for `news_source` sub-type rows)
+`keywords` | TEXT | JSON Array (search keywords for `news_source` sub-type rows)
 `news_item_title` | TEXT | Flat Indexable  
 `news_item_link` | TEXT | Flat Indexable   
 `news_search_term` | TEXT | JSON Blob 

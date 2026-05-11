@@ -263,7 +263,7 @@ created: 2026-07-01
 - **Action:** Replace the static mock HTML with a live API call to fetch a context essay by slug. Use `type=context_essay&status=published`. Render title, body (with markdown-to-HTML conversion), snippet, bibliography (wire `sources_biblio_display.js`), context_links, picture (wire `pictures_display.js`), iaa, pledius, manuscript, url. Remove all dead Tailwind-style utility classes and use proper `essay-*` BEM classes from `essays.css`.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · No utility frameworks · No inline styles
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -273,7 +273,7 @@ created: 2026-07-01
 - **Action:** Replace static mock HTML with a live API call to fetch the singleton historiography record by slug `"historiography"`. Same field rendering as T21. Enforce singleton behavior — there is exactly one historiography page.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · No utility frameworks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -283,7 +283,7 @@ created: 2026-07-01
 - **Action:** Add a lightweight markdown-to-HTML conversion function (or include a shared script) to convert the `body` markdown field into rendered HTML on the public essay and historiography pages. The dashboard already has `markdown_editor.js` — extract or share a standalone converter.
 - **Vibe Rule(s):** 1 function/file · Vanilla ES6+ · No heavy frameworks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -293,7 +293,7 @@ created: 2026-07-01
 - **Action:** Dispatch the `recordMainRendered` custom event with the fetched record data so that `sources_biblio_display.js` can render the bibliography. Add DOM containers with IDs `#record-section-bibliography` and `#record-bibliography-content`. Wire `pictures_display.js` to render the essay picture. Add context_links rendering.
 - **Vibe Rule(s):** Component injection · Descriptive `id` hooks · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -303,7 +303,7 @@ created: 2026-07-01
 - **Action:** Remove all dead Tailwind-style utility class tokens (`mb-8`, `pb-6`, `text-4xl`, `font-bold`, `max-w-prose`, etc.) from generated HTML strings. Replace with proper `essay-*` BEM class names defined in `essays.css`.
 - **Vibe Rule(s):** No third-party utility frameworks · Descriptive `class` names for CSS
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -313,7 +313,7 @@ created: 2026-07-01
 - **Action:** Remove the two inline `style="..."` attributes on the TOC `<aside>` and `<ul>`. Remove the inline `<script>` block at the bottom. Add `<script src="...initializer.js">` and use `data-*` attributes on `<body>` for declarative page setup, matching the `context_essay.html` pattern. Fix the TOC aside class from `list-filters` to `essay-toc-aside` for consistent styling. Fix the content area class from `layout-two-col__content` to `essay-content-main`.
 - **Vibe Rule(s):** Semantic HTML5 tags · No inline styles · No inline scripts · Descriptive `class` names
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -356,20 +356,20 @@ created: 2026-07-01
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement — Type Discriminator Filtering:** All 12 frontend modules now filter by the correct `type` discriminator (e.g., `type = 'record'`, `type = 'news_article'`, `type = 'challenge_academic'`)
-- [ ] **Achievement — Status Filtering:** All 12 frontend modules now filter by `status = 'published'` (or the API does server-side), preventing draft leakage
-- [ ] **Achievement — Correct Column Names:** All frontend files use schema-prefixed column names (`news_item_title`, `academic_challenge_title`, `wikipedia_title`, etc.) instead of generic `title`/`link`/`rank`
-- [ ] **Achievement — Mock Data Replaced:** All 8 files with static mock data (4 Challenge, Wikipedia, 2 Essays, Arbor) now fetch real data via live API calls or SQL queries
-- [ ] **Achievement — Missing Fields Rendered:** Records single view now displays all 10 previously missing fields; Blog single post displays all 17 schema fields; Response displays bibliography and context_links
-- [ ] **Achievement — Legacy Blobs Purged:** News module no longer references `news_items` or `news_sources` columns; uses structured `news_item_title`/`news_item_link`/`source_url`/`keywords` per schema
-- [ ] **Achievement — Dead Code Removed:** Timeline `Prophecy` code removed; stale rank columns removed from Records SELECT; dead utility classes removed from essay/historiography JS
-- [ ] **Achievement — Historiography Singleton:** Public historiography page enforces singleton — fetches by slug `"historiography"`, no list of multiple pages
-- [ ] **Achievement — CSS Namespace Cleanup:** Blog pages no longer load essay CSS; historiography.html uses consistent `essay-*` classes matching `context_essay.html`
-- [ ] **Symmetry — Challenge Academic/Popular:** Both Academic and Popular challenge frontend files follow identical patterns (same row-building logic, same score computation, same response sub-card handling)
-- [ ] **Symmetry — Essays/Historiography:** Context essay and historiography views follow identical fetch/render patterns, differing only in the slug/target
-- [ ] **Necessity:** The frontend now accurately reflects the database schema — visitors see correct data with correct field names, no drafts leak, no wrong-type rows appear
-- [ ] **Targeted Impact:** Only the public-facing frontend files listed in §Tasks were modified; no dashboard editor files were changed (they already comply); no database schema was altered beyond adding `source_url`/`keywords` columns
-- [ ] **Scope Control:** No scope creep — only files listed in §Tasks were created or modified
+- [x] **Achievement — Type Discriminator Filtering:** All 12 frontend modules now filter by the correct `type` discriminator (e.g., `type = 'record'`, `type = 'news_article'`, `type = 'challenge_academic'`)
+- [x] **Achievement — Status Filtering:** All 12 frontend modules now filter by `status = 'published'` (or the API does server-side), preventing draft leakage
+- [x] **Achievement — Correct Column Names:** All frontend files use schema-prefixed column names (`news_item_title`, `academic_challenge_title`, `wikipedia_title`, etc.) instead of generic `title`/`link`/`rank`
+- [x] **Achievement — Mock Data Replaced:** All 8 files with static mock data (4 Challenge, Wikipedia, 2 Essays, Arbor) now fetch real data via live API calls or SQL queries
+- [x] **Achievement — Missing Fields Rendered:** Records single view now displays all 10 previously missing fields; Blog single post displays all 17 schema fields; Response displays bibliography and context_links
+- [x] **Achievement — Legacy Blobs Purged:** News module no longer references `news_items` or `news_sources` columns; uses structured `news_item_title`/`news_item_link`/`source_url`/`keywords` per schema
+- [x] **Achievement — Dead Code Removed:** Timeline `Prophecy` code removed; stale rank columns removed from Records SELECT; dead utility classes removed from essay/historiography JS
+- [x] **Achievement — Historiography Singleton:** Public historiography page enforces singleton — fetches by slug `"historiography"`, no list of multiple pages
+- [x] **Achievement — CSS Namespace Cleanup:** Blog pages no longer load essay CSS; historiography.html uses consistent `essay-*` classes matching `context_essay.html`
+- [x] **Symmetry — Challenge Academic/Popular:** Both Academic and Popular challenge frontend files follow identical patterns (same row-building logic, same score computation, same response sub-card handling)
+- [x] **Symmetry — Essays/Historiography:** Context essay and historiography views follow identical fetch/render patterns, differing only in the slug/target
+- [x] **Necessity:** The frontend now accurately reflects the database schema — visitors see correct data with correct field names, no drafts leak, no wrong-type rows appear
+- [x] **Targeted Impact:** Only the public-facing frontend files listed in §Tasks were modified; no dashboard editor files were changed (they already comply); no database schema was altered beyond adding `source_url`/`keywords` columns
+- [x] **Scope Control:** No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
