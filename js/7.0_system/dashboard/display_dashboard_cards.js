@@ -59,10 +59,16 @@ const MODULE_CARDS = [
     desc: "Write and edit challenge response essays.",
   },
   {
-    id: "essay-historiography",
+    id: "essay",
     icon: "✍️",
-    title: "Essay & Hist.",
-    desc: "Write and manage essays and the historiography essay.",
+    title: "Essays",
+    desc: "Write and manage context essays, theological essays, and spiritual articles.",
+  },
+  {
+    id: "historiography",
+    icon: "📜",
+    title: "Historiography",
+    desc: "Author and manage the central historiography essay.",
   },
   {
     id: "news-sources",

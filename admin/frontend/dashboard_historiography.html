@@ -1,0 +1,287 @@
+<!doctype html>
+<!-- =============================================================================
+   THE JESUS WEBSITE — HISTORIOGRAPHY DASHBOARD EDITOR
+   File:    admin/frontend/dashboard_historiography.html
+   Version: 1.0.0
+   Module:  5.0 — Essays & Responses
+   Purpose: Split-pane WYSIWYG editor for authoring the central historiography
+            essay. Features a sidebar search bar for filtering documents by
+            title, a split-pane markdown editor with live preview, and
+            integrated metadata management (MLA sources, context links, and
+            pictures).
+   Trigger: Loaded by dashboard_app.js when user clicks "Historiography" card
+            or tab. Injected via _setColumn() into the Providence main work area.
+============================================================================= -->
+
+<!-- =============================================================================
+   FUNCTION BAR — Status Actions
+============================================================================= -->
+<section
+    id="historiography-function-bar"
+    class="function-bar function-bar--historiography"
+    aria-label="Historiography actions"
+>
+    <div
+        class="function-bar__status-group"
+        role="group"
+        aria-label="Document status actions"
+    >
+        <button id="btn-save-draft" class="btn btn--draft" type="button">
+            Save Draft
+        </button>
+        <button id="btn-publish" class="btn btn--publish" type="button">
+            Publish
+        </button>
+        <button id="btn-delete" class="btn btn--delete" type="button">
+            Delete
+        </button>
+    </div>
+</section>
+
+<!-- =============================================================================
+   SPLIT-PANE EDITOR LAYOUT
+   Sidebar (search + document list) | WYSIWYG Editor (title, toolbar, markdown)
+============================================================================= -->
+<section
+    id="historiography-editor-layout"
+    class="essay-editor-layout"
+    aria-label="Historiography editor"
+>
+    <!-- =========================================================================
+       EDITOR SIDEBAR — Search bar + Published/Drafts document lists
+       DOM IDs match the essay module so sub-modules work unchanged.
+    ========================================================================= -->
+    <aside
+        id="historiography-sidebar"
+        class="essay-sidebar"
+        aria-label="Document list sidebar"
+    >
+        <!-- Sidebar Search Bar -->
+        <div id="historiography-sidebar-search" class="essay-sidebar-search">
+            <input
+                id="essay-search-input"
+                class="essay-sidebar-search__input"
+                type="text"
+                placeholder="Filter by title..."
+                aria-label="Filter documents by title"
+            />
+        </div>
+
+        <!-- Published Documents Group -->
+        <div id="historiography-published-group" class="essay-sidebar-group">
+            <h3
+                id="historiography-published-header"
+                class="essay-sidebar-group__header"
+            >
+                Published
+            </h3>
+            <ul
+                id="essay-published-list"
+                class="essay-sidebar-list"
+                aria-labelledby="historiography-published-header"
+            >
+                <!-- Populated by essay_historiography_data_display.js -->
+            </ul>
+        </div>
+
+        <!-- Draft Documents Group -->
+        <div id="historiography-drafts-group" class="essay-sidebar-group">
+            <h3
+                id="historiography-drafts-header"
+                class="essay-sidebar-group__header"
+            >
+                Drafts
+            </h3>
+            <ul
+                id="essay-drafts-list"
+                class="essay-sidebar-list"
+                aria-labelledby="historiography-drafts-header"
+            >
+                <!-- Populated by essay_historiography_data_display.js -->
+            </ul>
+        </div>
+
+        <!-- Shared metadata widget (slug, snippet, metadata, timestamps, generate all) -->
+        <div
+            id="metadata-widget-container"
+            class="essay-sidebar-group"
+            aria-label="Metadata widget"
+        ></div>
+    </aside>
+
+    <!-- =========================================================================
+       WYSIWYG EDITOR AREA
+    ========================================================================= -->
+    <article
+        id="historiography-editor-area"
+        class="essay-editor-area"
+        aria-label="Document editor"
+    >
+        <!-- Document Title -->
+        <div class="essay-editor-field">
+            <label for="essay-title-input" class="essay-editor-field__label"
+                >Title</label
+            >
+            <input
+                id="essay-title-input"
+                class="essay-editor-field__input essay-editor-field__input--title"
+                type="text"
+                placeholder="Enter historiography title..."
+                aria-label="Historiography title"
+            />
+        </div>
+
+        <!-- Markdown Toolbar -->
+        <div
+            id="markdown-toolbar"
+            class="markdown-toolbar"
+            role="toolbar"
+            aria-label="Markdown formatting toolbar"
+        >
+            <button
+                class="markdown-toolbar__btn"
+                data-action="bold"
+                type="button"
+                title="Bold (Ctrl+B)"
+            >
+                <strong>B</strong>
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="italic"
+                type="button"
+                title="Italic (Ctrl+I)"
+            >
+                <em>I</em>
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="underline"
+                type="button"
+                title="Underline"
+            >
+                <u>U</u>
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="link"
+                type="button"
+                title="Insert Link"
+            >
+                Link
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="image"
+                type="button"
+                title="Insert Image"
+            >
+                Image
+            </button>
+            <button
+                class="markdown-toolbar__btn"
+                data-action="code"
+                type="button"
+                title="Code"
+            >
+                Code
+            </button>
+        </div>
+
+        <!-- Split Editor: Markdown Input | Live Preview -->
+        <div id="markdown-editor-panes" class="markdown-editor-panes">
+            <!-- Markdown Input -->
+            <div class="markdown-editor-pane markdown-editor-pane--input">
+                <label
+                    for="markdown-textarea"
+                    class="markdown-editor-pane__label"
+                    >Markdown</label
+                >
+                <textarea
+                    id="markdown-textarea"
+                    class="markdown-editor-textarea"
+                    placeholder="Write your historiography content here..."
+                    aria-label="Markdown content editor"
+                ></textarea>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="markdown-editor-pane markdown-editor-pane--preview">
+                <label class="markdown-editor-pane__label">Preview</label>
+                <div
+                    id="markdown-preview"
+                    class="markdown-editor-preview"
+                    aria-label="Live HTML preview"
+                >
+                    <p class="markdown-editor-preview__placeholder">
+                        Live preview will appear here as you type...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MLA Sources Container -->
+        <div
+            id="essay-bibliography-container"
+            class="essay-editor-section"
+            aria-label="MLA sources editor"
+        >
+            <!-- Populated by mla_source_handler.js -->
+        </div>
+
+        <!-- Context Links Container -->
+        <div
+            id="essay-context-links-container"
+            class="essay-editor-section"
+            aria-label="Context links editor"
+        >
+            <!-- Populated by context_link_handler.js -->
+        </div>
+
+        <!-- Picture Upload Container -->
+        <div
+            id="essay-picture-container"
+            class="essay-editor-section"
+            aria-label="Picture upload"
+        >
+            <h4 class="essay-editor-section__heading">Picture</h4>
+            <div id="picture-preview-container" class="picture-preview-row">
+                <div
+                    id="picture-preview-full"
+                    class="picture-preview picture-preview--full"
+                >
+                    <span class="picture-preview__placeholder"
+                        >Image Preview (max 800px)</span
+                    >
+                </div>
+                <div
+                    id="picture-preview-thumb"
+                    class="picture-preview picture-preview--thumb"
+                >
+                    <span class="picture-preview__placeholder"
+                        >Thumbnail (200px)</span
+                    >
+                </div>
+            </div>
+            <div id="picture-upload-area" class="essay-editor-field">
+                <input
+                    id="record-picture-upload"
+                    class="essay-editor-field__file"
+                    type="file"
+                    accept="image/png"
+                />
+                <span class="essay-editor-field__hint"
+                    >PNG only, max 5 MB (compressed server-side to ≤ 250
+                    KB)</span
+                >
+            </div>
+        </div>
+    </article>
+</section>
+
+<!-- =============================================================================
+   ERROR / STATUS DISPLAY
+   Error messages are routed through window.surfaceError() to the shared
+   Status Bar footer (js/admin_core/error_handler.js), which is already
+   present in the dashboard shell.
+============================================================================= -->

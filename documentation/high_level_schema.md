@@ -42,7 +42,7 @@ sub-type        TEXT    Flat Indexable  (only on challenge_academic,
     news_source
     news_search_term
     trace_reasoning
-
+```
 ---
 
 ## 2. Base Columns
