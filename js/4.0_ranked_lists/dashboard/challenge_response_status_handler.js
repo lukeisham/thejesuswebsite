@@ -1,9 +1,11 @@
-// Trigger:  Called by dashboard_essay_historiography.js at module initialisation.
-//           Wires the Save Draft, Publish, and Delete buttons in the function bar.
-// Main:    initDocumentStatusHandler() — binds click handlers to status action
-//           buttons. Before executing any action, checks for unsaved changes in
-//           the markdown editor (dirty-state flag set by markdown_editor.js).
-//           If unsaved changes exist, prompts the admin to save first.
+// Trigger:  Called by dashboard_challenge_response.js at module initialisation.
+//           Wires the Save Draft, Publish, and Delete buttons in the function
+//           bar.
+// Main:    initChallengeResponseStatusHandler() — binds click handlers to
+//           status action buttons. Before executing any action, checks for
+//           unsaved changes in the markdown editor (dirty-state flag set by
+//           markdown_editor.js). If unsaved changes exist, prompts the admin
+//           to save first.
 // Output:  Save, Publish, and Delete operations performed via the admin API.
 //           Errors are routed through window.surfaceError().
 
@@ -12,13 +14,13 @@
 /* -----------------------------------------------------------------------------
    CONSTANTS
 ----------------------------------------------------------------------------- */
-const DOC_STATUS_API_BASE = "/api/admin";
+const CR_STATUS_API_BASE = "/api/admin";
 
 /* -----------------------------------------------------------------------------
-   MAIN FUNCTION: initDocumentStatusHandler
+   MAIN FUNCTION: initChallengeResponseStatusHandler
    Wires click handlers to the Save Draft, Publish, and Delete buttons.
 ----------------------------------------------------------------------------- */
-function initDocumentStatusHandler() {
+function initChallengeResponseStatusHandler() {
   const btnSaveDraft = document.getElementById("btn-save-draft");
   const btnPublish = document.getElementById("btn-publish");
   const btnDelete = document.getElementById("btn-delete");
@@ -33,32 +35,28 @@ function initDocumentStatusHandler() {
 
   if (btnDelete) {
     btnDelete.addEventListener("click", _handleDelete);
+
+    // Hide Delete button when no response is selected (initial state)
+    if (!window._challengeResponseModuleState.activeRecordId) {
+      btnDelete.hidden = true;
+    }
   }
 }
 
 /* -----------------------------------------------------------------------------
    HANDLER: Save Draft
    Collects all editor data and PUTs to /api/admin/records/{id} with
-   status = 'draft'. Before saving, checks for unsaved changes — if none,
-   saves silently proceed.
+   status = 'draft'. Before saving, checks for unsaved changes.
 ----------------------------------------------------------------------------- */
 async function _handleSaveDraft() {
-  // Check dirty state — if no unsaved changes, no need to save
-  if (!window._essayModuleState.isDirty) {
+  const recordId = window._challengeResponseModuleState.activeRecordId;
+  const title =
+    window._challengeResponseModuleState.activeRecordTitle || "this response";
+
+  // If there IS a recordId but no unsaved changes, skip the save
+  if (recordId && !window._challengeResponseModuleState.isDirty) {
     if (typeof window.surfaceError === "function") {
       window.surfaceError("No changes to save.");
-    }
-    return;
-  }
-
-  const recordId = window._essayModuleState.activeRecordId;
-  const title = window._essayModuleState.activeRecordTitle || "this document";
-
-  if (!recordId) {
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError(
-        "Error: No document selected. Please select a document from the sidebar first.",
-      );
     }
     return;
   }
@@ -69,42 +67,71 @@ async function _handleSaveDraft() {
   const btn = document.getElementById("btn-save-draft");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "Saving…";
+    btn.textContent = "Saving...";
   }
 
   try {
-    const response = await fetch(
-      DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
-      {
-        method: "PUT",
+    if (recordId) {
+      // --- UPDATE existing record ---
+      const response = await fetch(
+        CR_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(function () {
+          return {};
+        });
+        const detail = errorBody.detail || "HTTP " + response.status;
+        throw new Error(detail);
+      }
+    } else {
+      // --- CREATE new record ---
+      const response = await fetch(CR_STATUS_API_BASE + "/records", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      },
-    );
-
-    if (!response.ok) {
-      const errorBody = await response.json().catch(function () {
-        return {};
       });
-      const detail = errorBody.detail || "HTTP " + response.status;
-      throw new Error(detail);
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(function () {
+          return {};
+        });
+        const detail = errorBody.detail || "HTTP " + response.status;
+        throw new Error(detail);
+      }
+
+      const result = await response.json();
+
+      if (result.id) {
+        // Update module state with the new ID
+        window._challengeResponseModuleState.activeRecordId = result.id;
+        window._challengeResponseModuleState.activeRecordTitle =
+          payload.title || "Untitled";
+
+        // Show Delete button
+        const deleteBtn = document.getElementById("btn-delete");
+        if (deleteBtn) deleteBtn.hidden = false;
+      }
     }
 
     // Mark as clean
-    window._essayModuleState.isDirty = false;
+    window._challengeResponseModuleState.isDirty = false;
 
     if (typeof window.surfaceError === "function") {
-      window.surfaceError("Draft saved: " + title);
+      window.surfaceError("Saved: " + title);
     }
 
     // Refresh the sidebar list to reflect status changes
-    if (typeof window.displayEssayHistoriographyList === "function") {
-      await window.displayEssayHistoriographyList(
-        window._essayModuleState.mode,
-      );
+    if (typeof window.displayChallengeResponseList === "function") {
+      await window.displayChallengeResponseList();
     }
   } catch (err) {
-    console.error("[document_status_handler] Save draft failed:", err);
+    console.error("[challenge_response_status_handler] Save failed:", err);
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
         "Error: Failed to save changes to '" + title + "'. Please try again.",
@@ -124,16 +151,29 @@ async function _handleSaveDraft() {
    status = 'published'. Requires all mandatory fields to be filled.
 ----------------------------------------------------------------------------- */
 async function _handlePublish() {
-  const recordId = window._essayModuleState.activeRecordId;
-  const title = window._essayModuleState.activeRecordTitle || "this document";
+  const recordId = window._challengeResponseModuleState.activeRecordId;
+  const title =
+    window._challengeResponseModuleState.activeRecordTitle || "this response";
 
   if (!recordId) {
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
-        "Error: No document selected. Please select a document from the sidebar first.",
+        "Error: No response selected. Please select a response from the sidebar first.",
       );
     }
     return;
+  }
+
+  // Check dirty state — warn about unsaved changes before publishing
+  if (window._challengeResponseModuleState.isDirty) {
+    const proceed = confirm(
+      "You have unsaved changes. Save before publishing?",
+    );
+    if (!proceed) return;
+
+    // Auto-save first
+    await _handleSaveDraft();
+    if (window._challengeResponseModuleState.isDirty) return;
   }
 
   // Collect data and validate required fields
@@ -162,12 +202,12 @@ async function _handlePublish() {
   const btn = document.getElementById("btn-publish");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "Publishing…";
+    btn.textContent = "Publishing...";
   }
 
   try {
     const response = await fetch(
-      DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+      CR_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -184,20 +224,18 @@ async function _handlePublish() {
     }
 
     // Mark as clean
-    window._essayModuleState.isDirty = false;
+    window._challengeResponseModuleState.isDirty = false;
 
     if (typeof window.surfaceError === "function") {
       window.surfaceError("Published: " + title);
     }
 
     // Refresh the sidebar list
-    if (typeof window.displayEssayHistoriographyList === "function") {
-      await window.displayEssayHistoriographyList(
-        window._essayModuleState.mode,
-      );
+    if (typeof window.displayChallengeResponseList === "function") {
+      await window.displayChallengeResponseList();
     }
   } catch (err) {
-    console.error("[document_status_handler] Publish failed:", err);
+    console.error("[challenge_response_status_handler] Publish failed:", err);
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
         "Error: Failed to publish '" + title + "'. Check required fields.",
@@ -217,13 +255,14 @@ async function _handlePublish() {
    and refreshes the sidebar on success.
 ----------------------------------------------------------------------------- */
 async function _handleDelete() {
-  const recordId = window._essayModuleState.activeRecordId;
-  const title = window._essayModuleState.activeRecordTitle || "this document";
+  const recordId = window._challengeResponseModuleState.activeRecordId;
+  const title =
+    window._challengeResponseModuleState.activeRecordTitle || "this response";
 
   if (!recordId) {
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
-        "Error: No document selected. Please select a document from the sidebar first.",
+        "Error: No response selected. Please select a response from the sidebar first.",
       );
     }
     return;
@@ -238,12 +277,12 @@ async function _handleDelete() {
   const btn = document.getElementById("btn-delete");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "Deleting…";
+    btn.textContent = "Deleting...";
   }
 
   try {
     const response = await fetch(
-      DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+      CR_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
       {
         method: "DELETE",
       },
@@ -258,9 +297,9 @@ async function _handleDelete() {
     }
 
     // Clear the editor
-    window._essayModuleState.activeRecordId = null;
-    window._essayModuleState.activeRecordTitle = "";
-    window._essayModuleState.isDirty = false;
+    window._challengeResponseModuleState.activeRecordId = null;
+    window._challengeResponseModuleState.activeRecordTitle = "";
+    window._challengeResponseModuleState.isDirty = false;
 
     // Reset editor fields
     if (typeof window.setMarkdownContent === "function") {
@@ -280,13 +319,11 @@ async function _handleDelete() {
     }
 
     // Refresh sidebar
-    if (typeof window.displayEssayHistoriographyList === "function") {
-      await window.displayEssayHistoriographyList(
-        window._essayModuleState.mode,
-      );
+    if (typeof window.displayChallengeResponseList === "function") {
+      await window.displayChallengeResponseList();
     }
   } catch (err) {
-    console.error("[document_status_handler] Delete failed:", err);
+    console.error("[challenge_response_status_handler] Delete failed:", err);
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
         "Error: Failed to delete '" + title + "'. Please try again.",
@@ -303,11 +340,12 @@ async function _handleDelete() {
 /* -----------------------------------------------------------------------------
    INTERNAL: _collectEditorData
    Gathers all data from the editor fields and shared tool sections into a
-   single payload object for the API.
+   single payload object for the API. The markdown body field is sent as
+   'body' (challenge_response type uses 'body' per schema).
 
    Returns:
-     (Object) — Payload with title, markdown_content, snippet, bibliography,
-                context_links, and slug fields.
+     (Object) — Payload with title, markdown_content/body, snippet,
+                bibliography, context_links, and slug fields.
 ----------------------------------------------------------------------------- */
 function _collectEditorData() {
   const titleInput = document.getElementById("wysiwyg-title-input");
@@ -332,7 +370,7 @@ function _collectEditorData() {
       payload.bibliography = window.collectEditBibliography();
     } catch (err) {
       console.warn(
-        "[document_status_handler] Failed to collect bibliography:",
+        "[challenge_response_status_handler] Failed to collect bibliography:",
         err,
       );
       payload.bibliography = [];
@@ -345,7 +383,7 @@ function _collectEditorData() {
       payload.context_links = window.collectEditLinks();
     } catch (err) {
       console.warn(
-        "[document_status_handler] Failed to collect context links:",
+        "[challenge_response_status_handler] Failed to collect context links:",
         err,
       );
       payload.context_links = [];
@@ -356,11 +394,11 @@ function _collectEditorData() {
 }
 
 /* -----------------------------------------------------------------------------
-   GLOBAL: _saveEssayDocument
+   GLOBAL: _saveChallengeResponse
    Silent save for the metadata widget's auto-save feature.
 ----------------------------------------------------------------------------- */
-async function _saveEssayDocument() {
-  const recordId = window._essayModuleState.activeRecordId;
+async function _saveChallengeResponse() {
+  const recordId = window._challengeResponseModuleState.activeRecordId;
   if (!recordId) return;
 
   const payload = _collectEditorData();
@@ -368,7 +406,7 @@ async function _saveEssayDocument() {
 
   try {
     const response = await fetch(
-      DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+      CR_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -377,15 +415,18 @@ async function _saveEssayDocument() {
     );
     if (!response.ok) throw new Error("Silent save failed");
   } catch (err) {
-    console.error("[document_status_handler] Silent save failed:", err);
+    console.error(
+      "[challenge_response_status_handler] Silent save failed:",
+      err,
+    );
   }
 }
 
 /* -----------------------------------------------------------------------------
    FUNCTION: scheduleAutoSave
-   Debounced auto-save (1500ms) that collects editor data and PUTs with
-   status: 'draft'. Wired to input/change events on title and markdown
-   textarea. Clears the isDirty flag on success.
+   Debounced auto-save (1500ms) that collects editor data via
+   _collectEditorData() and PUTs with status: 'draft'. Wired to input/change
+   events on title and markdown textarea. Clears the isDirty flag on success.
 ----------------------------------------------------------------------------- */
 function scheduleAutoSave() {
   if (window._autoSaveTimer) {
@@ -393,7 +434,7 @@ function scheduleAutoSave() {
   }
 
   window._autoSaveTimer = setTimeout(async function () {
-    var recordId = window._essayModuleState.activeRecordId;
+    var recordId = window._challengeResponseModuleState.activeRecordId;
     if (!recordId) return;
 
     var payload = _collectEditorData();
@@ -401,7 +442,7 @@ function scheduleAutoSave() {
 
     try {
       var response = await fetch(
-        DOC_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
+        CR_STATUS_API_BASE + "/records/" + encodeURIComponent(recordId),
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -417,9 +458,12 @@ function scheduleAutoSave() {
       }
 
       // Clear dirty flag on success
-      window._essayModuleState.isDirty = false;
+      window._challengeResponseModuleState.isDirty = false;
     } catch (err) {
-      console.error("[document_status_handler] Auto-save failed:", err);
+      console.error(
+        "[challenge_response_status_handler] Auto-save failed:",
+        err,
+      );
     }
   }, 1500);
 }
@@ -427,6 +471,6 @@ function scheduleAutoSave() {
 /* -----------------------------------------------------------------------------
    GLOBAL EXPOSURE
 ----------------------------------------------------------------------------- */
-window.initDocumentStatusHandler = initDocumentStatusHandler;
-window._saveEssayDocument = _saveEssayDocument;
+window.initChallengeResponseStatusHandler = initChallengeResponseStatusHandler;
+window._saveChallengeResponse = _saveChallengeResponse;
 window.scheduleAutoSave = scheduleAutoSave;

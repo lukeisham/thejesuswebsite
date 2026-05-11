@@ -2,39 +2,38 @@
 <!-- =============================================================================
    THE JESUS WEBSITE — BLOG POSTS DASHBOARD EDITOR
    File:    admin/frontend/dashboard_blog_posts.html
-   Version: 1.0.0
+   Version: 1.1.0
    Module:  6.0 — News & Blog
    Purpose: Split-pane WYSIWYG editor for authoring and managing historical and
-            theological blog updates. Features a scrollable sidebar of published
+            theological blog updates. Features a searchable sidebar of published
             and draft posts, a markdown-based editor with live preview, and
             integrated metadata management (MLA sources, context links, and
-            pictures). Follows the 'providence' design system for consistent
-            archival-quality blog content production.
+            pictures). Uses the unified wysiwyg-* BEM namespace.
    Trigger: Loaded by dashboard_app.js when user clicks "Blog Posts" card or tab.
             Injected via _setColumn() into the Providence main work area.
 ============================================================================= -->
 
 <!-- =============================================================================
-   FUNCTION BAR — Blog Post Status Actions
+   FUNCTION BAR — Blog Post Status Actions + "+ New Blog Post"
 ============================================================================= -->
 <section
-    id="blog-function-bar"
-    class="function-bar function-bar--blog"
+    id="wysiwyg-function-bar"
+    class="wysiwyg-function-bar"
     aria-label="Blog post actions"
 >
     <button
         id="btn-new-blog-post"
-        class="btn btn--primary blog-new-post-btn"
+        class="btn btn--primary wysiwyg-new-btn"
         type="button"
         aria-label="Create a new blog post"
     >
         + New Blog Post
     </button>
 
-    <span class="function-bar__divider" aria-hidden="true"></span>
+    <span class="wysiwyg-function-bar__divider" aria-hidden="true"></span>
 
     <div
-        class="function-bar__status-group"
+        class="wysiwyg-function-bar__status-group"
         role="group"
         aria-label="Blog post status actions"
     >
@@ -52,53 +51,70 @@
 
 <!-- =============================================================================
    SPLIT-PANE EDITOR LAYOUT
-   Sidebar (Published + Drafts blog post lists) | WYSIWYG Editor
+   Sidebar (search + Published/Drafts blog post lists) | WYSIWYG Editor
 ============================================================================= -->
 <section
-    id="blog-editor-layout"
-    class="blog-editor-layout"
+    id="wysiwyg-editor-layout"
+    class="wysiwyg-editor-layout"
     aria-label="Blog post editor"
 >
     <!-- =========================================================================
-       EDITOR SIDEBAR — Published/Drafts blog post lists
+       EDITOR SIDEBAR — Search + Published/Drafts blog post lists
     ========================================================================= -->
     <aside
-        id="blog-sidebar"
-        class="blog-sidebar"
+        id="wysiwyg-sidebar"
+        class="wysiwyg-sidebar"
         aria-label="Blog post list sidebar"
     >
+        <!-- Sidebar Search Bar -->
+        <div id="wysiwyg-sidebar-search" class="wysiwyg-sidebar-search">
+            <input
+                id="wysiwyg-search-input"
+                class="wysiwyg-sidebar-search__input"
+                type="text"
+                placeholder="Filter by title..."
+                aria-label="Filter blog posts by title"
+            />
+        </div>
+
         <!-- Published Posts Group -->
-        <div id="blog-published-group" class="blog-sidebar-group">
-            <h3 id="blog-published-header" class="blog-sidebar-group__header">
+        <div id="wysiwyg-published-group" class="wysiwyg-sidebar-group">
+            <h3
+                id="wysiwyg-published-header"
+                class="wysiwyg-sidebar-group__header"
+            >
                 Published
             </h3>
             <ul
-                id="blog-published-list"
-                class="blog-sidebar-list"
-                aria-labelledby="blog-published-header"
+                id="wysiwyg-published-list"
+                class="wysiwyg-sidebar-list"
+                aria-labelledby="wysiwyg-published-header"
             >
-                <!-- Populated by display_blog_posts_data.js -->
+                <!-- Populated by blog_posts_list_display.js -->
             </ul>
         </div>
 
         <!-- Draft Posts Group -->
-        <div id="blog-drafts-group" class="blog-sidebar-group">
-            <h3 id="blog-drafts-header" class="blog-sidebar-group__header">
+        <div id="wysiwyg-drafts-group" class="wysiwyg-sidebar-group">
+            <h3
+                id="wysiwyg-drafts-header"
+                class="wysiwyg-sidebar-group__header"
+            >
                 Drafts
             </h3>
             <ul
-                id="blog-drafts-list"
-                class="blog-sidebar-list"
-                aria-labelledby="blog-drafts-header"
+                id="wysiwyg-drafts-list"
+                class="wysiwyg-sidebar-list"
+                aria-labelledby="wysiwyg-drafts-header"
             >
-                <!-- Populated by display_blog_posts_data.js -->
+                <!-- Populated by blog_posts_list_display.js -->
             </ul>
         </div>
 
         <!-- Shared metadata widget (slug, snippet, metadata, timestamps, generate all) -->
         <div
             id="metadata-widget-container"
-            class="blog-sidebar-group"
+            class="wysiwyg-sidebar-group"
             aria-label="Metadata widget"
         ></div>
     </aside>
@@ -107,18 +123,18 @@
        WYSIWYG EDITOR AREA
     ========================================================================= -->
     <article
-        id="blog-editor-area"
-        class="blog-editor-area"
+        id="wysiwyg-editor-area"
+        class="wysiwyg-editor-area"
         aria-label="Blog post editor"
     >
         <!-- Blog Post Title -->
-        <div class="blog-editor-field">
-            <label for="blog-title-input" class="blog-editor-field__label"
+        <div class="wysiwyg-editor-field">
+            <label for="wysiwyg-title-input" class="wysiwyg-editor-field__label"
                 >Title</label
             >
             <input
-                id="blog-title-input"
-                class="blog-editor-field__input blog-editor-field__input--title"
+                id="wysiwyg-title-input"
+                class="wysiwyg-editor-field__input wysiwyg-editor-field__input--title"
                 type="text"
                 placeholder="Enter blog post title..."
                 aria-label="Blog post title"
@@ -216,8 +232,8 @@
 
         <!-- MLA Sources Container -->
         <div
-            id="blog-bibliography-container"
-            class="blog-editor-section"
+            id="wysiwyg-bibliography-container"
+            class="wysiwyg-editor-section"
             aria-label="MLA sources editor"
         >
             <!-- Populated by mla_source_handler.js -->
@@ -225,8 +241,8 @@
 
         <!-- Context Links Container -->
         <div
-            id="blog-context-links-container"
-            class="blog-editor-section"
+            id="wysiwyg-context-links-container"
+            class="wysiwyg-editor-section"
             aria-label="Context links editor"
         >
             <!-- Populated by context_link_handler.js -->
@@ -234,11 +250,11 @@
 
         <!-- Picture Upload Container -->
         <div
-            id="blog-picture-container"
-            class="blog-editor-section"
+            id="wysiwyg-picture-container"
+            class="wysiwyg-editor-section"
             aria-label="Picture upload"
         >
-            <h4 class="blog-editor-section__heading">Picture</h4>
+            <h4 class="wysiwyg-editor-section__heading">Picture</h4>
             <div id="picture-preview-container" class="picture-preview-row">
                 <div
                     id="picture-preview-full"
@@ -257,14 +273,14 @@
                     >
                 </div>
             </div>
-            <div id="picture-upload-area" class="blog-editor-field">
+            <div id="picture-upload-area" class="wysiwyg-editor-field">
                 <input
                     id="record-picture-upload"
-                    class="blog-editor-field__file"
+                    class="wysiwyg-editor-field__file"
                     type="file"
                     accept="image/png"
                 />
-                <span class="blog-editor-field__hint"
+                <span class="wysiwyg-editor-field__hint"
                     >PNG only, max 5 MB (compressed server-side to ≤ 250
                     KB)</span
                 >

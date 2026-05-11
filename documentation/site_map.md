@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.63
+version: 1.0.64
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -35,7 +35,9 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── dashboard_blog_posts.html <-- Split-pane blog editor with Published/Drafts sidebar
 │   ├── dashboard_challenge_academic.html <-- Academic-only challenge list management container
 │   ├── dashboard_challenge_popular.html <-- Popular-only challenge list management container
-│   ├── dashboard_essay_historiography.html <-- Split-pane editor with Essay/Historiography toggle
+│   ├── dashboard_challenge_response.html <-- Split-pane WYSIWYG editor for challenge responses (unified wysiwyg-* namespace)
+│   ├── dashboard_essay.html <-- Split-pane WYSIWYG context essay editor (unified wysiwyg-* namespace)
+│   ├── dashboard_historiography.html <-- Singleton WYSIWYG historiography editor (unified wysiwyg-* namespace)
 │   ├── dashboard_news_sources.html <-- News source management with keyword sidebar & crawler trigger
 │   ├── dashboard_records_all.html <-- Tabular records management with bulk CSV upload
 │   ├── dashboard_records_single.html <-- High-density single record editor with section navigator
@@ -87,17 +89,17 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ├── css/4.0_ranked_lists/frontend/
 │   └── *.css                  <-- Public-facing ranked list styles
 ├── css/5.0_essays_responses/dashboard/
-│   ├── dashboard_essay_historiography.css <-- Dual-state layout & toolbar
-│   └── essay_WYSIWYG_editor.css <-- Markdown input & live preview styling
+│   └── (styles migrated to css/9.0_cross_cutting/dashboard/)
 ├── css/5.0_essays_responses/frontend/
 │   ├── essays.css             <-- Public-facing essay typography
 │   └── responses.css          <-- Public-facing response typography
 ├── css/6.0_news_blog/dashboard/
-│   ├── blog_WYSIWYG_editor.css <-- Markdown editor canvas, toolbar, and live preview pane
-│   ├── blog_posts_dashboard.css <-- Navigator sidebar & editor layout
 │   └── news_sources_dashboard.css <-- Pipeline control aesthetics & keyword sidebar
 ├── css/6.0_news_blog/frontend/
 │   └── (reserved for future frontend styles)
+├── css/9.0_cross_cutting/dashboard/
+│   ├── wysiwyg_editor.css     <-- Unified markdown toolbar, split panes, and live preview (wysiwyg-* BEM)
+│   └── wysiwyg_dashboard_layout.css <-- Unified function bar, sidebar, and editor area layout (wysiwyg-* BEM)
 ├── css/7.0_system/
 │   ├── admin.css              <-- Login page 'providence' styling
 │   └── dashboard/
@@ -223,10 +225,13 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── academic_challenge_search_terms.js <-- Sidebar: Academic search terms overview
 │   ├── challenge_list_display.js <-- Data fetching & row hydration
 │   ├── challenge_ranking_calculator.js <-- Real-time score/rank logic
+│   ├── challenge_response_list_display.js <-- Response sidebar list population (unified wysiwyg-* IDs)
+│   ├── challenge_response_load_content.js <-- Response content loading into editor (unified wysiwyg-* IDs)
+│   ├── challenge_response_status_handler.js <-- Response Save/Publish/Delete status management
 │   ├── challenge_weighting_handler.js <-- Weight/rank sidebar for Academic/Popular
 │   ├── dashboard_challenge_academic.js <-- Academic module orchestration & initialization
 │   ├── dashboard_challenge_popular.js <-- Popular module orchestration & initialization
-│   ├── dashboard_challenge_response.js <-- Sidebar: Response insert logic (patch)
+│   ├── dashboard_challenge_response.js <-- Challenge Response WYSIWYG orchestrator (unified wysiwyg-* namespace)
 │   ├── dashboard_wikipedia.js <-- Module orchestration & initialization
 │   ├── insert_challenge_response.js <-- Response creation & challenge linking
 │   ├── popular_challenge_ranking_weights.js <-- Sidebar: Popular weighting factors
@@ -239,9 +244,11 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ├── js/4.0_ranked_lists/frontend/
 │   └── *.js                   <-- Public-facing ranked list logic
 ├── js/5.0_essays_responses/dashboard/
-│   ├── dashboard_essay_historiography.js <-- Dual-state toggle orchestrator
-│   ├── document_status_handler.js <-- Save/Publish/Delete state management
-│   ├── essay_historiography_data_display.js <-- Content fetching & population
+│   ├── dashboard_essay.js     <-- Essay WYSIWYG orchestrator (unified wysiwyg-* namespace)
+│   ├── dashboard_historiography.js <-- Historiography singleton WYSIWYG orchestrator (unified wysiwyg-* namespace)
+│   ├── document_status_handler.js <-- Save/Publish/Delete state management (unified wysiwyg-* IDs)
+│   ├── essay_historiography_list_display.js <-- Sidebar list population (split from data_display, unified wysiwyg-* IDs)
+│   ├── essay_historiography_load_content.js <-- Editor content loading (split from data_display, unified wysiwyg-* IDs)
 │   ├── markdown_editor.js     <-- Core WYSIWYG markdown editing & live HTML preview
 │   ├── search_essays.js       <-- Sidebar search: real-time title filtering
 │   └── 🔑 Shared Tool (owned here, consumed by Blog Posts & elsewhere) ──
@@ -253,10 +260,11 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── view_context_essays.js <-- Context essay single-view logic
 │   └── view_historiography.js <-- Historiography essay view
 ├── js/6.0_news_blog/dashboard/
-│   ├── blog_post_status_handler.js <-- Save/Publish/Delete state logic
-│   ├── dashboard_blog_posts.js <-- Module orchestration & initialization
+│   ├── blog_post_status_handler.js <-- Save/Publish/Delete state logic (unified wysiwyg-* IDs)
+│   ├── blog_posts_list_display.js <-- Sidebar list population (split from display_blog_posts_data, unified wysiwyg-* IDs)
+│   ├── blog_posts_load_content.js <-- Editor content loading (split from display_blog_posts_data, unified wysiwyg-* IDs)
+│   ├── dashboard_blog_posts.js <-- Module orchestration & initialization (unified wysiwyg-* namespace)
 │   ├── dashboard_news_sources.js <-- Module orchestration & initialization
-│   ├── display_blog_posts_data.js <-- Blog post fetching & field population
 │   ├── launch_news_crawler.js <-- News crawler pipeline trigger
 │   ├── news_sources_handler.js <-- Data fetching & row hydration
 │   └── news_sources_sidebar_handler.js <-- Sidebar: keywords, source URLs, crawler trigger

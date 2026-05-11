@@ -1,6 +1,6 @@
 ---
 name: vibe_coding_rules.md
-version: 1.1.2
+version: 1.2.0
 purpose: Foundational coding philosophies and aesthetic mandates for the project
 dependencies: []
 ---
@@ -52,4 +52,10 @@ This document outlines the core coding philosophies ("vibe coding rules") for ma
   - `plan_standardize_dashboard_buttons` owns: `gather_trigger.js`, `field_persistence.js` — both in `js/7.0_system/dashboard/`
     - `gather_trigger.js` is consumed by: Wikipedia, Challenge Academic, Challenge Popular, News Sources dashboards
     - `field_persistence.js` is consumed by: all dashboard modules (2.0–6.0)
+  - `plan_standardize_dashboard_wysiwyg` owns: `wysiwyg_editor.css`, `wysiwyg_dashboard_layout.css` — both in `css/9.0_cross_cutting/dashboard/`
+    - Consumed by all WYSIWYG dashboard modules: Context Essays (5.0), Historiography (5.0), Blog Posts (6.0), Challenge Response (4.0)
+    - Consumer plans MUST include these via `<link>` tags in `dashboard.html`
+  - `plan_standardize_dashboard_wysiwyg` owns: `dashboard_challenge_response.js`, `challenge_response_list_display.js`, `challenge_response_load_content.js`, `challenge_response_status_handler.js` — all in `js/4.0_ranked_lists/dashboard/`
+    - Consumed by the Challenge Response WYSIWYG dashboard module (4.0)
+  - `plan_dashboard_essay_historiography` owns: `markdown_editor.js` — in `js/5.0_essays_responses/dashboard/` (unchanged, ownership retained)
   If a consumer needs module-specific behavior, add a parameter to the shared function signature on the OWNER's copy — do not fork the file.

@@ -1,6 +1,6 @@
-// Trigger:  Called by dashboard_essay_historiography.js at module initialisation.
-//           Wires the sidebar search input (#essay-search-input) for real-time
-//           client-side filtering of the essay/historiography document list.
+// Trigger:  Called by dashboard_essay.js at module initialisation.
+//           Wires the sidebar search input (#wysiwyg-search-input) for
+//           real-time client-side filtering of the essay document list.
 // Main:    initEssaySearch() — binds a debounced input handler to the search
 //           field. Filters sidebar list items by title using fuzzy matching
 //           (characters must appear in order, case-insensitive). Non-matching
@@ -15,8 +15,8 @@
    CONSTANTS
 ----------------------------------------------------------------------------- */
 const ESSAY_SEARCH_DEBOUNCE_MS = 150;
-const GROUP_HEADER_SELECTOR = ".essay-sidebar-group__header";
-const LIST_ITEM_SELECTOR = ".essay-sidebar-list__item";
+const GROUP_HEADER_SELECTOR = ".wysiwyg-sidebar-group__header";
+const LIST_ITEM_SELECTOR = ".wysiwyg-sidebar-list__item";
 
 /* -----------------------------------------------------------------------------
    INTERNAL STATE
@@ -29,10 +29,10 @@ let _searchDebounceTimer = null;
    client-side filtering of the sidebar document list.
 ----------------------------------------------------------------------------- */
 function initEssaySearch() {
-  const searchInput = document.getElementById("essay-search-input");
+  const searchInput = document.getElementById("wysiwyg-search-input");
   if (!searchInput) {
     console.warn(
-      "[search_essays] #essay-search-input not found — search disabled.",
+      "[search_essays] #wysiwyg-search-input not found — search disabled.",
     );
     return;
   }
@@ -62,9 +62,6 @@ function _filterSidebar(searchTerm) {
   if (!allItems.length) return;
 
   const term = (searchTerm || "").trim().toLowerCase();
-
-  // Track which groups have visible items
-  const groupVisibility = {};
 
   allItems.forEach(function (item) {
     const title = (item.textContent || "").trim().toLowerCase();
@@ -129,10 +126,10 @@ function _fuzzyMatch(text, term) {
      item (HTMLElement) — A visible sidebar list item.
 ----------------------------------------------------------------------------- */
 function _markGroupVisible(item) {
-  // Walk up to find the parent .essay-sidebar-group
+  // Walk up to find the parent .wysiwyg-sidebar-group
   let parent = item.parentElement;
   while (parent) {
-    if (parent.classList.contains("essay-sidebar-group")) {
+    if (parent.classList.contains("wysiwyg-sidebar-group")) {
       parent._hasVisibleChildren = true;
       return;
     }
@@ -143,10 +140,10 @@ function _markGroupVisible(item) {
 /* -----------------------------------------------------------------------------
    INTERNAL: _updateGroupHeaders
    Shows or hides group headers based on whether their group has any
-   visible children. Groups are identified by the .essay-sidebar-group class.
+   visible children. Groups are identified by the .wysiwyg-sidebar-group class.
 ----------------------------------------------------------------------------- */
 function _updateGroupHeaders() {
-  const groups = document.querySelectorAll(".essay-sidebar-group");
+  const groups = document.querySelectorAll(".wysiwyg-sidebar-group");
 
   groups.forEach(function (group) {
     // Reset marker before checking

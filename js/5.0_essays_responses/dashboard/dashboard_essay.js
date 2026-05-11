@@ -43,9 +43,7 @@ async function renderEssay() {
         into the Providence main column.
   ------------------------------------------------------------------------- */
   try {
-    const response = await fetch(
-      "/admin/frontend/dashboard_essay.html",
-    );
+    const response = await fetch("/admin/frontend/dashboard_essay.html");
     if (!response.ok) {
       throw new Error(
         "Failed to load essay editor template (HTTP " + response.status + ")",
@@ -57,9 +55,9 @@ async function renderEssay() {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");
 
-      const functionBar = doc.getElementById("essay-function-bar");
-      const sidebar = doc.getElementById("essay-sidebar");
-      const editorArea = doc.getElementById("essay-editor-area");
+      const functionBar = doc.getElementById("wysiwyg-function-bar");
+      const sidebar = doc.getElementById("wysiwyg-sidebar");
+      const editorArea = doc.getElementById("wysiwyg-editor-area");
 
       if (sidebar) {
         window._setColumn("sidebar", sidebar.outerHTML);
@@ -72,10 +70,7 @@ async function renderEssay() {
       window._setColumn("main", mainHtml);
     }
   } catch (err) {
-    console.error(
-      "[dashboard_essay] Template load failed:",
-      err,
-    );
+    console.error("[dashboard_essay] Template load failed:", err);
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
         "Error: Unable to load the Essays editor. Please refresh and try again.",
@@ -116,23 +111,26 @@ async function renderEssay() {
     window.initEssaySearch();
   }
 
+  // 3f. Wire "+ New Context Essay" button
+  _wireNewEssayButton();
+
   /* -------------------------------------------------------------------------
-     4. INITIALISE SHARED TOOLS
+     4. INITIALISE SHARED TOOLS — all target unified wysiwyg-* container IDs
   ------------------------------------------------------------------------- */
 
   // 4a. Picture upload handler
   if (typeof window.renderEditPicture === "function") {
-    window.renderEditPicture("essay-picture-container", "");
+    window.renderEditPicture("wysiwyg-picture-container", "");
   }
 
   // 4b. MLA bibliography handler
   if (typeof window.renderEditBibliography === "function") {
-    window.renderEditBibliography("essay-bibliography-container");
+    window.renderEditBibliography("wysiwyg-bibliography-container");
   }
 
   // 4c. Context links handler
   if (typeof window.renderEditLinks === "function") {
-    window.renderEditLinks("essay-context-links-container", []);
+    window.renderEditLinks("wysiwyg-context-links-container", []);
   }
 
   // 4d. Metadata widget
@@ -144,7 +142,7 @@ async function renderEssay() {
         }
       },
       getRecordTitle: function () {
-        const titleInput = document.getElementById("essay-title-input");
+        const titleInput = document.getElementById("wysiwyg-title-input");
         return titleInput ? titleInput.value : "";
       },
       getRecordId: function () {
@@ -154,6 +152,134 @@ async function renderEssay() {
       },
     });
   }
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _generateUntitledTitle
+   Scans sidebar lists for existing "Untitled N" titles and returns the
+   next available number.
+----------------------------------------------------------------------------- */
+function _generateUntitledTitle() {
+  let maxN = 0;
+
+  const items = document.querySelectorAll(
+    "#wysiwyg-published-list .wysiwyg-sidebar-list__item, #wysiwyg-drafts-list .wysiwyg-sidebar-list__item",
+  );
+
+  items.forEach(function (item) {
+    const title = item.getAttribute("data-record-title") || "";
+    const match = title.match(/^Untitled (\d+)$/i);
+    if (match) {
+      const n = parseInt(match[1], 10);
+      if (n > maxN) {
+        maxN = n;
+      }
+    }
+  });
+
+  return "Untitled " + (maxN + 1);
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _handleNewEssay
+   Creates a new draft context essay via POST /api/admin/records.
+----------------------------------------------------------------------------- */
+async function _handleNewEssay() {
+  const btn = document.getElementById("btn-new-essay");
+  if (!btn) return;
+
+  btn.disabled = true;
+  btn.textContent = "Creating...";
+
+  const newTitle = _generateUntitledTitle();
+
+  try {
+    const response = await fetch("/api/admin/records", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: newTitle,
+        body: "",
+        snippet: "",
+        status: "draft",
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    const result = await response.json();
+    const newId = result.id;
+
+    if (!newId) {
+      throw new Error("No ID returned from server");
+    }
+
+    // Update module state
+    window._essayModuleState.activeRecordId = newId;
+    window._essayModuleState.activeRecordTitle = newTitle;
+    window._essayModuleState.isDirty = false;
+
+    // Clear editor fields
+    const titleInput = document.getElementById("wysiwyg-title-input");
+    if (titleInput) titleInput.value = newTitle;
+
+    if (typeof window.setMarkdownContent === "function") {
+      window.setMarkdownContent("");
+    }
+
+    // Re-initialise shared tools
+    if (typeof window.renderEditPicture === "function") {
+      window.renderEditPicture("wysiwyg-picture-container", newId);
+    }
+    if (typeof window.renderEditLinks === "function") {
+      window.renderEditLinks("wysiwyg-context-links-container", []);
+    }
+    if (typeof window.loadEditBibliography === "function") {
+      window.loadEditBibliography(null);
+    }
+
+    // Refresh sidebar
+    if (typeof window.displayEssayHistoriographyList === "function") {
+      await window.displayEssayHistoriographyList("essay");
+
+      setTimeout(function () {
+        const newItem = document.querySelector(
+          '.wysiwyg-sidebar-list__item[data-record-id="' +
+            CSS.escape(newId) +
+            '"]',
+        );
+        if (newItem) {
+          newItem.classList.add("wysiwyg-sidebar-list__item--active");
+        }
+      }, 100);
+    }
+
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("New draft created: " + newTitle);
+    }
+  } catch (err) {
+    console.error("[dashboard_essay] New essay failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to create new essay. Please try again.",
+      );
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "+ New Context Essay";
+    }
+  }
+}
+
+function _wireNewEssayButton() {
+  const btn = document.getElementById("btn-new-essay");
+  if (!btn) return;
+
+  btn.addEventListener("click", _handleNewEssay);
 }
 
 /* -----------------------------------------------------------------------------

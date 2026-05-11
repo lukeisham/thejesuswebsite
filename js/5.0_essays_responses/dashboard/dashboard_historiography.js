@@ -1,10 +1,10 @@
 // Trigger:  window.loadModule("historiography") → dashboard_app.js calls
 //           window.renderHistoriography()
 // Main:    renderHistoriography() — injects the historiography editor HTML,
-//           sets layout columns, initialises all sub-modules (data display,
-//           search, markdown editor, document status handler), and coordinates
-//           calls to shared tools (picture, MLA, context links, snippet,
-//           metadata).
+//           sets layout columns, auto-loads the singleton historiography
+//           record (slug = "historiography"), and initialises the markdown
+//           editor, document status handler, and shared tools (picture,
+//           MLA, context links, metadata).
 // Output:  Fully functional Historiography editor in the Providence work
 //           canvas. Errors are routed through window.surfaceError().
 
@@ -28,7 +28,8 @@ window._recordSlug = window._essayModuleState.activeRecordId;
    Called by dashboard_app.js when the user navigates to this module.
    1. Sets the Providence canvas layout (sidebar 360px, main 1fr).
    2. Injects the historiography editor HTML into the main column.
-   3. Initialises all sub-modules in dependency order.
+   3. Initialises sub-modules and shared tools.
+   4. AUTO-LOADS the singleton historiography record (slug = "historiography").
 ----------------------------------------------------------------------------- */
 async function renderHistoriography() {
   /* -------------------------------------------------------------------------
@@ -58,9 +59,9 @@ async function renderHistoriography() {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");
 
-      const functionBar = doc.getElementById("historiography-function-bar");
-      const sidebar = doc.getElementById("historiography-sidebar");
-      const editorArea = doc.getElementById("historiography-editor-area");
+      const functionBar = doc.getElementById("wysiwyg-function-bar");
+      const sidebar = doc.getElementById("wysiwyg-sidebar");
+      const editorArea = doc.getElementById("wysiwyg-editor-area");
 
       if (sidebar) {
         window._setColumn("sidebar", sidebar.outerHTML);
@@ -73,10 +74,7 @@ async function renderHistoriography() {
       window._setColumn("main", mainHtml);
     }
   } catch (err) {
-    console.error(
-      "[dashboard_historiography] Template load failed:",
-      err,
-    );
+    console.error("[dashboard_historiography] Template load failed:", err);
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
         "Error: Unable to load the Historiography editor. Please refresh and try again.",
@@ -95,46 +93,36 @@ async function renderHistoriography() {
   // Set _recordTitle for shared tool compatibility
   window._recordTitle = window._essayModuleState.activeRecordTitle;
 
-  // 3b. Load the sidebar document list
-  if (typeof window.displayEssayHistoriographyList === "function") {
-    await window.displayEssayHistoriographyList("historiography");
-  }
-
-  // 3c. Initialise the markdown editor with empty content
+  // 3b. Initialise the markdown editor with empty content
   if (typeof window.initMarkdownEditor === "function") {
     window.initMarkdownEditor("");
   }
 
-  // 3d. Initialise document status handler
+  // 3c. Initialise document status handler
   if (typeof window.initDocumentStatusHandler === "function") {
     window.initDocumentStatusHandler();
   }
 
-  // 3e. Initialise search bar
-  if (typeof window.initEssaySearch === "function") {
-    window.initEssaySearch();
-  }
-
   /* -------------------------------------------------------------------------
-     4. INITIALISE SHARED TOOLS
+     4. INITIALISE SHARED TOOLS — all target unified wysiwyg-* container IDs
   ------------------------------------------------------------------------- */
 
   // 4a. Picture upload handler
   if (typeof window.renderEditPicture === "function") {
-    window.renderEditPicture("essay-picture-container", "");
+    window.renderEditPicture("wysiwyg-picture-container", "");
   }
 
   // 4b. MLA bibliography handler
   if (typeof window.renderEditBibliography === "function") {
-    window.renderEditBibliography("essay-bibliography-container");
+    window.renderEditBibliography("wysiwyg-bibliography-container");
   }
 
   // 4c. Context links handler
   if (typeof window.renderEditLinks === "function") {
-    window.renderEditLinks("essay-context-links-container", []);
+    window.renderEditLinks("wysiwyg-context-links-container", []);
   }
 
-  // 4d. Metadata widget
+  // 4d. Metadata widget — slug locked to "historiography"
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {
       onAutoSaveDraft: async function (recordData) {
@@ -143,7 +131,7 @@ async function renderHistoriography() {
         }
       },
       getRecordTitle: function () {
-        const titleInput = document.getElementById("essay-title-input");
+        const titleInput = document.getElementById("wysiwyg-title-input");
         return titleInput ? titleInput.value : "";
       },
       getRecordId: function () {
@@ -152,6 +140,19 @@ async function renderHistoriography() {
           : "";
       },
     });
+  }
+
+  /* -------------------------------------------------------------------------
+     5. AUTO-LOAD SINGLETON RECORD
+     The historiography module is a singleton — there is exactly one page.
+     Automatically fetch and populate the record with slug "historiography"
+     on mount without requiring any sidebar click.
+  ------------------------------------------------------------------------- */
+  if (typeof window.loadDocumentContent === "function") {
+    // Small delay to let the DOM settle before loading content
+    setTimeout(async function () {
+      await window.loadDocumentContent("historiography", "Historiography");
+    }, 200);
   }
 }
 

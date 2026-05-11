@@ -58,18 +58,18 @@ async function renderBlogPosts() {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");
 
-      const functionBar = doc.getElementById("blog-function-bar");
-      const sidebar = doc.getElementById("blog-sidebar");
-      const editorArea = doc.getElementById("blog-editor-area");
+      const functionBar = doc.getElementById("wysiwyg-function-bar");
+      const sidebar = doc.getElementById("wysiwyg-sidebar");
+      const editorArea = doc.getElementById("wysiwyg-editor-area");
 
       if (sidebar) {
         window._setColumn("sidebar", sidebar.outerHTML);
       }
-      
+
       let mainHtml = "";
       if (functionBar) mainHtml += functionBar.outerHTML;
       if (editorArea) mainHtml += editorArea.outerHTML;
-      
+
       window._setColumn("main", mainHtml);
     }
   } catch (err) {
@@ -110,38 +110,34 @@ async function renderBlogPosts() {
   _wireNewBlogPostButton();
 
   /* -------------------------------------------------------------------------
-     4. INITIALISE SHARED TOOLS
-     Each shared tool is included via a <script> tag in the dashboard shell
-     and exposes a window.* function. We call them to wire up their
-     respective sections within the injected HTML.
+     4. INITIALISE SHARED TOOLS — all target unified wysiwyg-* container IDs
   ------------------------------------------------------------------------- */
 
   // 4a. Picture upload handler
   if (typeof window.renderEditPicture === "function") {
-    window.renderEditPicture("blog-picture-container", "");
+    window.renderEditPicture("wysiwyg-picture-container", "");
   }
 
   // 4b. MLA bibliography handler
   if (typeof window.renderEditBibliography === "function") {
-    window.renderEditBibliography("blog-bibliography-container");
+    window.renderEditBibliography("wysiwyg-bibliography-container");
   }
 
   // 4c. Context links handler
   if (typeof window.renderEditLinks === "function") {
-    window.renderEditLinks("blog-context-links-container", []);
+    window.renderEditLinks("wysiwyg-context-links-container", []);
   }
 
   // 4d. Metadata widget — shared unified slug/snippet/metadata UI
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {
       onAutoSaveDraft: async function (recordData) {
-        // Auto-save as draft — use the existing save handler
         if (typeof window._saveBlogPost === "function") {
           await window._saveBlogPost();
         }
       },
       getRecordTitle: function () {
-        const titleInput = document.getElementById("blog-title-input");
+        const titleInput = document.getElementById("wysiwyg-title-input");
         return titleInput ? titleInput.value : "";
       },
       getRecordId: function () {
@@ -151,23 +147,18 @@ async function renderBlogPosts() {
       },
     });
   }
-
-
 }
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _generateUntitledTitle
    Scans the sidebar lists (Published + Drafts) for existing "Untitled N"
    titles and returns the next available number.
-   e.g. if "Untitled 1" and "Untitled 2" exist, returns "Untitled 3".
-   If no matches, returns "Untitled 1".
 ----------------------------------------------------------------------------- */
 function _generateUntitledTitle() {
   let maxN = 0;
 
-  // Scan both sidebar lists for data-record-title attributes
   const items = document.querySelectorAll(
-    "#blog-published-list .blog-sidebar-list__item, #blog-drafts-list .blog-sidebar-list__item",
+    "#wysiwyg-published-list .wysiwyg-sidebar-list__item, #wysiwyg-drafts-list .wysiwyg-sidebar-list__item",
   );
 
   items.forEach(function (item) {
@@ -186,23 +177,18 @@ function _generateUntitledTitle() {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _handleNewBlogPost
-   Creates a new draft blog post via POST /api/admin/records, then loads it
-   into the editor. The new post appears in the sidebar Drafts list.
-   Title is auto-generated as "Untitled 1", "Untitled 2", etc.
+   Creates a new draft blog post via POST /api/admin/records.
 ----------------------------------------------------------------------------- */
 async function _handleNewBlogPost() {
   const btn = document.getElementById("btn-new-blog-post");
   if (!btn) return;
 
-  // Disable button during creation
   btn.disabled = true;
-  btn.textContent = "Creating…";
+  btn.textContent = "Creating...";
 
-  // Auto-generate a unique "Untitled N" title
   const newTitle = _generateUntitledTitle();
 
   try {
-    // Create a minimal draft record via the API
     const response = await fetch("/api/admin/records", {
       method: "POST",
       credentials: "same-origin",
@@ -231,33 +217,20 @@ async function _handleNewBlogPost() {
     window._blogModuleState.activeRecordTitle = newTitle;
     window._blogModuleState.isDirty = false;
 
-    // Clear the editor fields for a fresh start
-    const titleInput = document.getElementById("blog-title-input");
-    const snippetInput = document.getElementById("blog-snippet-input");
-    const slugInput = document.getElementById("record-slug");
-    const metadataJson = document.getElementById("record-metadata-json");
-    const createdAt = document.getElementById("record-created-at");
-    const updatedAt = document.getElementById("record-updated-at");
-
+    // Clear the editor fields
+    const titleInput = document.getElementById("wysiwyg-title-input");
     if (titleInput) titleInput.value = newTitle;
-    if (snippetInput) snippetInput.value = "";
-    if (slugInput) slugInput.value = "";
-    if (metadataJson) metadataJson.value = "";
-    if (createdAt) createdAt.value = "";
-    if (updatedAt) updatedAt.value = "";
 
-    // Clear markdown content
     if (typeof window.setMarkdownContent === "function") {
       window.setMarkdownContent("");
     }
 
     // Re-initialise shared tools with the new record ID
     if (typeof window.renderEditPicture === "function") {
-      window.renderEditPicture("blog-picture-container", newId);
+      window.renderEditPicture("wysiwyg-picture-container", newId);
     }
-
     if (typeof window.renderEditLinks === "function") {
-      window.renderEditLinks("blog-context-links-container", []);
+      window.renderEditLinks("wysiwyg-context-links-container", []);
     }
     if (typeof window.loadEditBibliography === "function") {
       window.loadEditBibliography(null);
@@ -267,20 +240,19 @@ async function _handleNewBlogPost() {
     if (typeof window.displayBlogPostsList === "function") {
       await window.displayBlogPostsList();
 
-      // Highlight the new post in the sidebar
       setTimeout(function () {
         const newItem = document.querySelector(
-          '.blog-sidebar-list__item[data-record-id="' +
+          '.wysiwyg-sidebar-list__item[data-record-id="' +
             CSS.escape(newId) +
             '"]',
         );
         if (newItem) {
-          newItem.classList.add("blog-sidebar-list__item--active");
+          newItem.classList.add("wysiwyg-sidebar-list__item--active");
         }
       }, 100);
     }
 
-    // Show the Delete button (it may have been hidden)
+    // Show the Delete button
     const deleteBtn = document.getElementById("btn-delete");
     if (deleteBtn) deleteBtn.hidden = false;
 

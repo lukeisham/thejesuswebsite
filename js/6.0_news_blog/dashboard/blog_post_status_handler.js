@@ -173,7 +173,7 @@ async function _handlePublish() {
     if (!proceed) return;
 
     // Auto-save first
-    await _handleSave();
+    await _handleSaveDraft();
     // If save failed, isDirty will still be true
     if (window._blogModuleState.isDirty) return;
   }
@@ -307,7 +307,7 @@ async function _handleDelete() {
       window.setMarkdownContent("");
     }
 
-    const titleInput = document.getElementById("blog-title-input");
+    const titleInput = document.getElementById("wysiwyg-title-input");
     if (titleInput) titleInput.value = "";
 
     // Clear metadata widget
@@ -348,10 +348,8 @@ async function _handleDelete() {
                 bibliography, context_links, and slug fields.
 ----------------------------------------------------------------------------- */
 function _collectEditorData() {
-  const titleInput = document.getElementById("blog-title-input");
+  const titleInput = document.getElementById("wysiwyg-title-input");
   const textarea = document.getElementById("markdown-textarea");
-  const snippetInput = document.getElementById("blog-snippet-input");
-  const slugInput = document.getElementById("record-slug");
 
   const payload = {
     title: titleInput ? titleInput.value : "",

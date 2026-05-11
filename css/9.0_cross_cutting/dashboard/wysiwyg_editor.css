@@ -1,13 +1,15 @@
 /* =============================================================================
-   THE JESUS WEBSITE — BLOG WYSIWYG EDITOR STYLING
-   File:    css/6.0_news_blog/dashboard/blog_WYSIWYG_editor.css
+   THE JESUS WEBSITE — UNIFIED WYSIWYG EDITOR STYLING
+   File:    css/9.0_cross_cutting/dashboard/wysiwyg_editor.css
    Version: 1.0.0
-   Module:  6.0 — News & Blog
-   Purpose: Utilitarian styling for the markdown editing area, toolbar buttons,
-            and live preview rendering for long-form blog content. The preview
-            output matches public frontend rendering with the same typographic
-            tokens from typography.css for a faithful WYSIWYG experience.
-   Source:  plan_dashboard_blog_posts §T3
+   Module:  9.0 — Cross-Cutting Standardization
+   Purpose: Unified styling for the markdown editing area, toolbar buttons,
+            and live preview rendering across all WYSIWYG dashboard modules
+            (Context Essays, Historiography, Blog Posts, Challenge Response).
+            The preview output matches public frontend rendering with the same
+            typographic tokens from typography.css for a faithful WYSIWYG
+            experience. Uses the wysiwyg-* BEM namespace.
+   Source:  standardize_dashboard_wysiwyg §T1
 ============================================================================= */
 
 /* =============================================================================
@@ -167,7 +169,7 @@
     overflow-y: auto;
     overflow-x: hidden;
 
-    /* Match the public frontend blog rendering typography */
+    /* Match the public frontend rendering typography */
     font-family: var(--font-body);
     font-size: var(--text-base);
     line-height: var(--line-height-relaxed);
@@ -197,10 +199,9 @@
 
 /* =============================================================================
    3. LIVE PREVIEW TYPOGRAPHY — Matches public frontend rendering
-   The preview must faithfully represent what visitors see on the public
-   blog pages. All heading, paragraph, link, list, and code styles mirror
-   the public typography tokens from typography.css so the editor preview
-   is a faithful WYSIWYG representation.
+   The preview must faithfully represent what visitors see. All heading,
+   paragraph, link, list, and code styles mirror the public typography tokens
+   from typography.css so the editor preview is WYSIWYG.
 ============================================================================= */
 
 /* --- Headings --- */
