@@ -187,7 +187,7 @@ function renderMetadataWidget(containerId, options) {
   generateAllBtn.id = "metadata-widget-btn-generate-all";
   generateAllBtn.className = "metadata-widget__generate-all";
   generateAllBtn.type = "button";
-  generateAllBtn.textContent = "GENERATE ALL";
+  generateAllBtn.textContent = "Generate all";
 
   /* -------------------------------------------------------------------------
        2. ASSEMBLE AND INJECT
@@ -404,7 +404,7 @@ function renderMetadataWidget(containerId, options) {
   // --- Generate All ---
   generateAllBtn.addEventListener("click", async function () {
     _setButtonsDisabled(true);
-    generateAllBtn.textContent = "GENERATING ALL…";
+    generateAllBtn.textContent = "Generating all…";
     _setStatus("Generating slug, snippet, and keywords in parallel…");
 
     const title = _getTitle();
@@ -489,7 +489,7 @@ function renderMetadataWidget(containerId, options) {
     }
 
     _setButtonsDisabled(false);
-    generateAllBtn.textContent = "GENERATE ALL";
+    generateAllBtn.textContent = "Generate all";
   });
 
   /* -------------------------------------------------------------------------
