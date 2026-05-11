@@ -47,7 +47,7 @@ async function displayNewsSourcesList() {
     const allRecords = data.records || data;
 
     // Filter: only news_article main entries (sub_type is null/empty/undefined)
-    const newsArticlesRecords = allRecords.filter(function (rec) {
+    var newsArticlesRecords = allRecords.filter(function (rec) {
       return (
         rec.type === "news_article" &&
         (rec.sub_type === null ||
@@ -57,9 +57,23 @@ async function displayNewsSourcesList() {
     });
 
     // Also store all news_article records (all sub-types) for cross-reference
-    const allNewsArticleRecords = allRecords.filter(function (rec) {
+    var allNewsArticleRecords = allRecords.filter(function (rec) {
       return rec.type === "news_article";
     });
+
+    // FALLBACK: If no type="news_article" records exist yet (pre-migration),
+    // use the legacy news_sources column filter so existing data still appears.
+    if (newsArticlesRecords.length === 0) {
+      newsArticlesRecords = allRecords.filter(function (rec) {
+        return (
+          rec.news_sources !== null &&
+          rec.news_sources !== undefined &&
+          rec.news_sources !== ""
+        );
+      });
+      // For fallback records, use all matching records as cross-reference
+      allNewsArticleRecords = newsArticlesRecords.slice();
+    }
 
     // Store in module state
     if (window._newsSourcesModuleState) {
@@ -162,10 +176,26 @@ function _buildNewsArticleRow(record) {
   rowEl.className = "news-articles-row";
   rowEl.setAttribute("data-record-id", record.id || "");
 
-  var title = record.news_item_title || "Untitled Article";
+  var title = record.news_item_title || record.title || "Untitled Article";
   var link = record.news_item_link || "";
   var lastCrawled = record.last_crawled || "";
   var status = record.status || "draft";
+
+  // FALLBACK: old-format records store link inside news_sources JSON blob
+  if (!link && record.news_sources) {
+    try {
+      var sourceData =
+        typeof record.news_sources === "string"
+          ? JSON.parse(record.news_sources)
+          : record.news_sources;
+      link = sourceData.url || sourceData.source_url || "";
+      if (!title || title === "Untitled Article") {
+        title = sourceData.name || sourceData.label || title;
+      }
+    } catch (e) {
+      link = record.news_sources || "";
+    }
+  }
 
   // --- Article Title cell ---
   var titleCell = document.createElement("td");
