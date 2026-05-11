@@ -62,9 +62,15 @@ async function displayChallengeList(mode) {
         ? "academic_challenge_weight"
         : "popular_challenge_weight";
 
-    // Filter: only records that have a challenge title for this mode
+    // Filter: only records of the correct challenge type that have a challenge title set
+    const expectedType =
+      mode === "academic" ? "challenge_academic" : "challenge_popular";
     const challenges = allRecords.filter(function (rec) {
-      return rec[titleCol] && rec[titleCol].trim() !== "";
+      return (
+        rec.type === expectedType &&
+        rec[titleCol] &&
+        rec[titleCol].trim() !== ""
+      );
     });
 
     // Sort by rank (ascending), nulls/empty at the bottom

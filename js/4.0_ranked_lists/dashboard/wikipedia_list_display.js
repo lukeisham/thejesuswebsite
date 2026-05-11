@@ -43,9 +43,10 @@ async function displayWikipediaList() {
     const data = await response.json();
     const allRecords = data.records || data;
 
-    // Filter: only records that have a wikipedia_rank set
+    // Filter: only records of type wikipedia_entry that have a wikipedia_rank set
     const wikipediaRecords = allRecords.filter(function (rec) {
       return (
+        rec.type === "wikipedia_entry" &&
         rec.wikipedia_rank !== null &&
         rec.wikipedia_rank !== undefined &&
         rec.wikipedia_rank !== ""
