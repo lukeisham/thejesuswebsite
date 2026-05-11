@@ -109,6 +109,34 @@ async function loadChallengeResponseContent(recordId, title) {
       }
     }
 
+    // Populate external references
+    if (typeof window.setExternalRefValues === "function") {
+      try {
+        window.setExternalRefValues({
+          iaa: doc.iaa || "",
+          pledius: doc.pledius || "",
+          manuscript: doc.manuscript || "",
+        });
+      } catch (err) {
+        console.warn(
+          "[challenge_response_load_content] Failed to set external refs:",
+          err,
+        );
+      }
+    }
+
+    // Populate URL array
+    if (typeof window.setUrlArrayData === "function") {
+      try {
+        window.setUrlArrayData(doc.url || []);
+      } catch (err) {
+        console.warn(
+          "[challenge_response_load_content] Failed to set URL array:",
+          err,
+        );
+      }
+    }
+
     // NOTE: No picture handler — challenge_response has no picture fields
 
     // Populate the shared metadata widget

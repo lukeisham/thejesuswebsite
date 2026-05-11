@@ -390,6 +390,34 @@ function _collectEditorData() {
     }
   }
 
+  // Collect external references
+  if (typeof window.collectExternalRefs === "function") {
+    try {
+      const refs = window.collectExternalRefs();
+      payload.iaa = refs.iaa || "";
+      payload.pledius = refs.pledius || "";
+      payload.manuscript = refs.manuscript || "";
+    } catch (err) {
+      console.warn(
+        "[challenge_response_status_handler] Failed to collect external refs:",
+        err,
+      );
+    }
+  }
+
+  // Collect URL array
+  if (typeof window.collectUrlArray === "function") {
+    try {
+      payload.url = window.collectUrlArray();
+    } catch (err) {
+      console.warn(
+        "[challenge_response_status_handler] Failed to collect URL array:",
+        err,
+      );
+      payload.url = [];
+    }
+  }
+
   return payload;
 }
 

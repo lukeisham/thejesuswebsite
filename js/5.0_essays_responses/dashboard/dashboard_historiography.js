@@ -122,6 +122,16 @@ async function renderHistoriography() {
     window.renderEditLinks("wysiwyg-context-links-container", []);
   }
 
+  // 4c2. External references handler (iaa, pledius, manuscript)
+  if (typeof window.renderExternalRefs === "function") {
+    window.renderExternalRefs("wysiwyg-external-refs-container");
+  }
+
+  // 4c3. URL array editor
+  if (typeof window.renderUrlArrayEditor === "function") {
+    window.renderUrlArrayEditor("wysiwyg-url-array-container");
+  }
+
   // 4d. Metadata widget — slug locked to "historiography"
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {

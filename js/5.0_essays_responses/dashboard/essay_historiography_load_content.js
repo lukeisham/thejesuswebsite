@@ -106,6 +106,34 @@ async function loadDocumentContent(recordId, title) {
       }
     }
 
+    // Populate external references
+    if (typeof window.setExternalRefValues === "function") {
+      try {
+        window.setExternalRefValues({
+          iaa: doc.iaa || "",
+          pledius: doc.pledius || "",
+          manuscript: doc.manuscript || "",
+        });
+      } catch (err) {
+        console.warn(
+          "[essay_historiography_load_content] Failed to set external refs:",
+          err,
+        );
+      }
+    }
+
+    // Populate URL array
+    if (typeof window.setUrlArrayData === "function") {
+      try {
+        window.setUrlArrayData(doc.url || []);
+      } catch (err) {
+        console.warn(
+          "[essay_historiography_load_content] Failed to set URL array:",
+          err,
+        );
+      }
+    }
+
     // Update picture handler with the record ID
     if (typeof window.renderEditPicture === "function") {
       try {

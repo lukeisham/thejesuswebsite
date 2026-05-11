@@ -197,7 +197,6 @@ Types: `record`, `context_essay`, `historiographical_essay`, `theological_essay`
 │  + created_at        ISO8601                         │
 │  + updated_at        ISO8601                         │
 │                                                      │
-│  + description       JSON Array (paragraphs)         │
 │  + bibliography      MLA-structured JSON             │
 │  + body              WYSIWYG markdown content        │
 │  + picture_name      Filename                        │
@@ -228,7 +227,6 @@ Types: `record`, `context_essay`, `historiographical_essay`, `theological_essay`
 │  + created_at        ISO8601                         │
 │  + updated_at        ISO8601                         │
 │                                                      │
-│  + description       JSON Array (paragraphs)         │
 │  + bibliography      MLA-structured JSON             │
 │  + body              WYSIWYG markdown content        │
 │  + picture_name      Filename                        │
@@ -259,7 +257,6 @@ Types: `record`, `context_essay`, `historiographical_essay`, `theological_essay`
 │  + created_at        ISO8601                         │
 │  + updated_at        ISO8601                         │
 │                                                      │
-│  + description       JSON Array (paragraphs)         │
 │  + bibliography      MLA-structured JSON             │
 │  + body              WYSIWYG markdown content        │
 │  + picture_name      Filename                        │
@@ -291,7 +288,6 @@ Types: `record`, `context_essay`, `historiographical_essay`, `theological_essay`
 │  + created_at        ISO8601                         │
 │  + updated_at        ISO8601                         │
 │                                                      │
-│  + description       JSON Array (paragraphs)         │
 │  + bibliography      MLA-structured JSON             │
 │  + body              WYSIWYG markdown content        │
 │  + picture_name      Filename                        │
@@ -322,7 +318,6 @@ Types: `record`, `context_essay`, `historiographical_essay`, `theological_essay`
 │  + created_at        ISO8601                         │
 │  + updated_at        ISO8601                         │
 │                                                      │
-│  + description       JSON Array (paragraphs)         │
 │  + bibliography      MLA-structured JSON             │
 │  + challenge_id      Foreign Key → records(id)       │
 │                       (the challenge being answered)  │
@@ -352,7 +347,6 @@ Types: `record`, `context_essay`, `historiographical_essay`, `theological_essay`
 │  + created_at        ISO8601                         │
 │  + updated_at        ISO8601                         │
 │                                                      │
-│  + description       JSON Array (paragraphs)         │
 │  + bibliography      MLA-structured JSON             │
 │  + body              WYSIWYG markdown content        │
 │  + picture_name      Filename                        │
@@ -601,7 +595,7 @@ discriminated by `type = "system_data"`.
 | created_at / updated_at | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | sub-type | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | MLA bibliography | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| description | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| description | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
 | WYSIWYG body | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
 | picture | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
 | external link (primary URL) | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✗ |

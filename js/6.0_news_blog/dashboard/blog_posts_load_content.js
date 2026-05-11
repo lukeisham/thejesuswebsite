@@ -108,6 +108,31 @@ async function loadBlogPostContent(recordId, title) {
       }
     }
 
+    // Populate external references
+    if (typeof window.setExternalRefValues === "function") {
+      try {
+        window.setExternalRefValues({
+          iaa: post.iaa || "",
+          pledius: post.pledius || "",
+          manuscript: post.manuscript || "",
+        });
+      } catch (err) {
+        console.warn(
+          "[blog_posts_load_content] Failed to set external refs:",
+          err,
+        );
+      }
+    }
+
+    // Populate URL array
+    if (typeof window.setUrlArrayData === "function") {
+      try {
+        window.setUrlArrayData(post.url || []);
+      } catch (err) {
+        console.warn("[blog_posts_load_content] Failed to set URL array:", err);
+      }
+    }
+
     // Update picture handler with the record ID
     if (typeof window.renderEditPicture === "function") {
       try {
@@ -139,10 +164,7 @@ async function loadBlogPostContent(recordId, title) {
     const deleteBtn = document.getElementById("btn-delete");
     if (deleteBtn) deleteBtn.hidden = false;
   } catch (err) {
-    console.error(
-      "[blog_posts_load_content] Failed to load blog post:",
-      err,
-    );
+    console.error("[blog_posts_load_content] Failed to load blog post:", err);
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
         "Error: Unable to load post '" +
