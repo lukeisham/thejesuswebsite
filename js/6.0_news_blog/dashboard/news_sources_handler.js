@@ -2,28 +2,29 @@
 //           on initial load and after Refresh/Publish operations.
 //           Also called by function bar Refresh/Publish buttons.
 // Main:    displayNewsSourcesList() — fetches all records from the API,
-//           filters to those with news_sources data, renders the sources
-//           table with row selection that updates the sidebar.
-//           publishNewsSources() — sets all listed news source records to
+//           filters to news_article main entries (sub_type IS NULL), renders
+//           the articles table with row selection that populates the sidebar
+//           with source config and search terms from matching sub-type rows.
+//           publishNewsArticles() — sets all listed main entry records to
 //           published status.
-// Output:  News sources table rendered in #news-sources-table-body with
-//          selection state tracked in _newsSourcesModuleState. Errors
-//          routed through window.surfaceError().
+// Output:  News articles table rendered in #news-articles-table-body with
+//           selection state tracked in _newsSourcesModuleState. Errors
+//           routed through window.surfaceError().
 
 "use strict";
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: displayNewsSourcesList
-   Fetches all records, filters for those with news_sources populated,
-   and renders them as rows in the sources table.
+   Fetches all records, filters for news_article main entries
+   (sub_type IS NULL), and renders them as rows in the articles table.
 
    Parameters: none (reads from global API)
 ----------------------------------------------------------------------------- */
 async function displayNewsSourcesList() {
-  const loadingEl = document.getElementById("news-sources-list-loading");
-  const tableBodyEl = document.getElementById("news-sources-table-body");
-  const emptyEl = document.getElementById("news-sources-list-empty");
-  const errorEl = document.getElementById("news-sources-list-error");
+  const loadingEl = document.getElementById("news-list-loading");
+  const tableBodyEl = document.getElementById("news-articles-table-body");
+  const emptyEl = document.getElementById("news-list-empty");
+  const errorEl = document.getElementById("news-list-error");
 
   // Show loading state
   if (loadingEl) loadingEl.style.display = "flex";
@@ -45,24 +46,32 @@ async function displayNewsSourcesList() {
     const data = await response.json();
     const allRecords = data.records || data;
 
-    // Filter: only records that have news_sources populated
-    const newsSourcesRecords = allRecords.filter(function (rec) {
+    // Filter: only news_article main entries (sub_type is null/empty/undefined)
+    const newsArticlesRecords = allRecords.filter(function (rec) {
       return (
-        rec.news_sources !== null &&
-        rec.news_sources !== undefined &&
-        rec.news_sources !== ""
+        rec.type === "news_article" &&
+        (rec.sub_type === null ||
+          rec.sub_type === "" ||
+          rec.sub_type === undefined)
       );
+    });
+
+    // Also store all news_article records (all sub-types) for cross-reference
+    const allNewsArticleRecords = allRecords.filter(function (rec) {
+      return rec.type === "news_article";
     });
 
     // Store in module state
     if (window._newsSourcesModuleState) {
-      window._newsSourcesModuleState.newsSourcesRecords = newsSourcesRecords;
+      window._newsSourcesModuleState.newsArticlesRecords = newsArticlesRecords;
+      window._newsSourcesModuleState._allNewsArticleRecords =
+        allNewsArticleRecords;
     }
 
     // Hide loading
     if (loadingEl) loadingEl.style.display = "none";
 
-    if (newsSourcesRecords.length === 0) {
+    if (newsArticlesRecords.length === 0) {
       // Show empty state
       if (emptyEl) emptyEl.removeAttribute("aria-hidden");
       return;
@@ -74,8 +83,8 @@ async function displayNewsSourcesList() {
     // Render each record as a row
     if (tableBodyEl) {
       tableBodyEl.innerHTML = "";
-      newsSourcesRecords.forEach(function (record) {
-        const rowEl = _buildNewsSourceRow(record);
+      newsArticlesRecords.forEach(function (record) {
+        const rowEl = _buildNewsArticleRow(record);
         tableBodyEl.appendChild(rowEl);
       });
     }
@@ -85,37 +94,52 @@ async function displayNewsSourcesList() {
     if (errorEl) errorEl.removeAttribute("aria-hidden");
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
-        "Error: Unable to retrieve news sources list. Please refresh.",
+        "Error: Unable to retrieve news articles list. Please refresh.",
       );
     }
   }
 }
 
 /* -----------------------------------------------------------------------------
-   MAIN FUNCTION: publishNewsSources
-   Sets all news source records in the module state to 'published' status
-   via PUT to /api/admin/records/{id}. After all are published, refreshes
-   the list display.
+   MAIN FUNCTION: publishNewsArticles
+   Sets all news article main entry records in the module state to 'published'
+   status via PUT to /api/admin/records/{id}. After all are published,
+   refreshes the list display.
 ----------------------------------------------------------------------------- */
-async function publishNewsSources() {
+async function publishNewsArticles() {
   const records =
     window._newsSourcesModuleState &&
-    window._newsSourcesModuleState.newsSourcesRecords;
+    window._newsSourcesModuleState.newsArticlesRecords;
 
   if (!records || records.length === 0) {
     if (typeof window.surfaceError === "function") {
-      window.surfaceError("No news sources to publish.");
+      window.surfaceError("No news articles to publish.");
     }
     return;
   }
 
-  // Note: We do NOT change each record's status to 'published' here.
-  // The record lifecycle status (draft/published) is independent of
-  // whether it appears in a published news source list.
-  // News source publication is managed by the dashboard display.
+  // Publish each main entry record
+  var publishCount = 0;
+  for (var i = 0; i < records.length; i++) {
+    try {
+      var response = await fetch("/api/admin/records/" + records[i].id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "published" }),
+      });
+      if (response.ok) publishCount++;
+    } catch (err) {
+      console.error(
+        "[news_sources_handler] Publish failed for record " + records[i].id,
+        err,
+      );
+    }
+  }
 
   if (typeof window.surfaceError === "function") {
-    window.surfaceError("News sources published.");
+    window.surfaceError(
+      publishCount + " of " + records.length + " articles published.",
+    );
   }
 
   // Refresh the list
@@ -125,185 +149,199 @@ async function publishNewsSources() {
 }
 
 /* -----------------------------------------------------------------------------
-   INTERNAL: _buildNewsSourceRow
-   Constructs a single news source table row DOM element.
+   INTERNAL: _buildNewsArticleRow
+   Constructs a single news article table row DOM element.
 
    Parameters:
-     record (object) — record object from the API
+     record (object) — record object from the API (main entry, sub_type IS NULL)
    Returns:
      HTMLTableRowElement — the table row element
 ----------------------------------------------------------------------------- */
-function _buildNewsSourceRow(record) {
+function _buildNewsArticleRow(record) {
   var rowEl = document.createElement("tr");
-  rowEl.className = "news-sources-row";
+  rowEl.className = "news-articles-row";
   rowEl.setAttribute("data-record-id", record.id || "");
-  rowEl.setAttribute("data-record-slug", record.slug || "");
 
-  var title = record.title || record.slug || "Untitled Source";
+  var title = record.news_item_title || "Untitled Article";
+  var link = record.news_item_link || "";
+  var lastCrawled = record.last_crawled || "";
   var status = record.status || "draft";
 
-  // Parse source URL from news_sources JSON
-  var sourceUrl = "";
-  var sourceLabel = title;
-  try {
-    if (record.news_sources) {
-      var sourceData =
-        typeof record.news_sources === "string"
-          ? JSON.parse(record.news_sources)
-          : record.news_sources;
-      sourceUrl = sourceData.url || sourceData.source_url || "";
-      sourceLabel = sourceData.name || sourceData.label || title;
-    }
-  } catch (e) {
-    // If not valid JSON, treat the raw value as the URL
-    sourceUrl = record.news_sources || "";
+  // --- Article Title cell ---
+  var titleCell = document.createElement("td");
+  titleCell.className =
+    "news-articles-row__cell news-articles-row__cell--title";
+  titleCell.textContent = title;
+  titleCell.setAttribute("title", title);
+  rowEl.appendChild(titleCell);
+
+  // --- Link cell (truncated) ---
+  var linkCell = document.createElement("td");
+  linkCell.className = "news-articles-row__cell news-articles-row__cell--link";
+  var displayLink = link;
+  if (link && link.length > 60) {
+    displayLink = link.substring(0, 57) + "...";
   }
+  linkCell.textContent = displayLink || "\u2014";
+  if (link) linkCell.setAttribute("title", link);
+  rowEl.appendChild(linkCell);
 
-  // Determine status display
-  var isActive = status === "published";
-
-  // --- Source Name cell ---
-  var nameCell = document.createElement("td");
-  nameCell.className = "news-sources-row__cell news-sources-row__cell--name";
-  nameCell.textContent = sourceLabel;
-  nameCell.setAttribute("title", sourceLabel);
-  rowEl.appendChild(nameCell);
-
-  // --- URL cell ---
-  var urlCell = document.createElement("td");
-  urlCell.className = "news-sources-row__cell news-sources-row__cell--url";
-  urlCell.textContent = sourceUrl || "—";
-  if (sourceUrl) urlCell.setAttribute("title", sourceUrl);
-  rowEl.appendChild(urlCell);
+  // --- Last Crawled cell ---
+  var crawledCell = document.createElement("td");
+  crawledCell.className =
+    "news-articles-row__cell news-articles-row__cell--crawled";
+  var displayCrawled = "\u2014";
+  if (lastCrawled) {
+    try {
+      var d = new Date(lastCrawled);
+      if (!isNaN(d.getTime())) {
+        displayCrawled = d.toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      } else {
+        displayCrawled = lastCrawled;
+      }
+    } catch (e) {
+      displayCrawled = lastCrawled;
+    }
+  }
+  crawledCell.textContent = displayCrawled;
+  if (lastCrawled) crawledCell.setAttribute("title", lastCrawled);
+  rowEl.appendChild(crawledCell);
 
   // --- Status cell ---
   var statusCell = document.createElement("td");
-  statusCell.className = "news-sources-row__cell";
+  statusCell.className = "news-articles-row__cell";
   var statusBadge = document.createElement("span");
-  statusBadge.className = "news-sources-row__status";
-  if (isActive) {
-    statusBadge.classList.add("news-sources-row__status--active");
-    statusBadge.textContent = "Active";
+  statusBadge.className = "news-articles-row__status";
+  if (status === "published") {
+    statusBadge.classList.add("news-articles-row__status--published");
+    statusBadge.textContent = "Published";
   } else {
-    statusBadge.classList.add("news-sources-row__status--inactive");
-    statusBadge.textContent = "Inactive";
+    statusBadge.classList.add("news-articles-row__status--draft");
+    statusBadge.textContent = "Draft";
   }
   statusCell.appendChild(statusBadge);
   rowEl.appendChild(statusCell);
 
   // --- Select button cell ---
   var selectCell = document.createElement("td");
-  selectCell.className = "news-sources-row__cell";
+  selectCell.className = "news-articles-row__cell";
   var selectBtn = document.createElement("button");
-  selectBtn.className = "news-sources-row__select-btn";
+  selectBtn.className = "news-articles-row__select-btn";
   selectBtn.textContent = "select";
   selectBtn.setAttribute("type", "button");
-  selectBtn.setAttribute("aria-label", "Select " + sourceLabel);
+  selectBtn.setAttribute("aria-label", "Select " + title);
   selectCell.appendChild(selectBtn);
   rowEl.appendChild(selectCell);
 
   // --- Click Handler: Select row and populate sidebar ---
   rowEl.addEventListener("click", function (e) {
-    // Don't trigger if clicking the select button itself
     if (e.target === selectBtn) return;
-
-    _selectNewsSourceRow(rowEl, record);
+    _selectNewsArticleRow(rowEl, record);
   });
 
-  // Select button also triggers selection
   selectBtn.addEventListener("click", function (e) {
     e.stopPropagation();
-    _selectNewsSourceRow(rowEl, record);
+    _selectNewsArticleRow(rowEl, record);
   });
 
   return rowEl;
 }
 
 /* -----------------------------------------------------------------------------
-   INTERNAL: _selectNewsSourceRow
-   Deselects all rows, selects the given row, and updates module state
-   and the sidebar with the selected record's data.
+   INTERNAL: _selectNewsArticleRow
+   Deselects all rows, selects the given row, finds matching source and
+   search term sub-type rows (same id), and populates the sidebar.
 
    Parameters:
      rowEl (HTMLElement)  — the row DOM element to select
-     record (object)      — the record data object
+     record (object)      — the main entry record data object
 ----------------------------------------------------------------------------- */
-function _selectNewsSourceRow(rowEl, record) {
+function _selectNewsArticleRow(rowEl, record) {
   // Deselect all rows
-  var allRows = document.querySelectorAll(".news-sources-row");
+  var allRows = document.querySelectorAll(".news-articles-row");
   allRows.forEach(function (r) {
-    r.classList.remove("news-sources-row--selected");
+    r.classList.remove("news-articles-row--selected");
   });
 
   // Select this row
-  rowEl.classList.add("news-sources-row--selected");
+  rowEl.classList.add("news-articles-row--selected");
 
-  // Parse source URL from news_sources JSON
-  var sourceUrl = "";
-  try {
-    if (record.news_sources) {
-      var sourceData =
-        typeof record.news_sources === "string"
-          ? JSON.parse(record.news_sources)
-          : record.news_sources;
-      sourceUrl = sourceData.url || sourceData.source_url || "";
+  var state = window._newsSourcesModuleState;
+  var allRecords = state._allNewsArticleRecords || [];
+
+  // Set the grouping key (shared id)
+  state.activeGroupId = record.id || "";
+
+  // Store main entry fields
+  state.activeArticleTitle = record.news_item_title || "";
+  state.activeArticleLink = record.news_item_link || "";
+  state.activeLastCrawled = record.last_crawled || "";
+
+  // --- Find matching source row (sub_type = "news_source", same id) ---
+  var sourceRow = null;
+  for (var i = 0; i < allRecords.length; i++) {
+    if (
+      allRecords[i].type === "news_article" &&
+      allRecords[i].sub_type === "news_source" &&
+      allRecords[i].id === record.id
+    ) {
+      sourceRow = allRecords[i];
+      break;
     }
-  } catch (e) {
-    sourceUrl = record.news_sources || "";
   }
 
-  // Parse search keywords from news_search_term JSON
-  var searchKeywords = [];
-  try {
-    if (record.news_search_term) {
-      var termsData =
-        typeof record.news_search_term === "string"
-          ? JSON.parse(record.news_search_term)
-          : record.news_search_term;
-      if (Array.isArray(termsData)) {
-        searchKeywords = termsData;
-      } else if (typeof termsData === "string") {
-        searchKeywords = termsData
+  if (sourceRow) {
+    state.activeSourceUrl = sourceRow.source_url || "";
+    // Parse keywords from the source row's keywords field
+    var keywords = [];
+    var kwField = sourceRow.keywords;
+    if (kwField) {
+      try {
+        if (typeof kwField === "string") {
+          var parsed = JSON.parse(kwField);
+          keywords = Array.isArray(parsed) ? parsed : [];
+        } else if (Array.isArray(kwField)) {
+          keywords = kwField;
+        }
+      } catch (e) {
+        // Try comma-separated
+        keywords = kwField
           .split(",")
           .map(function (t) {
             return t.trim();
           })
           .filter(Boolean);
-      } else if (termsData && typeof termsData === "object") {
-        searchKeywords = Object.values(termsData).filter(Boolean);
       }
     }
-  } catch (e) {
-    // If it's a plain comma-separated string
+    state.activeKeywords = keywords;
+  } else {
+    state.activeSourceUrl = "";
+    state.activeKeywords = [];
+  }
+
+  // --- Find matching search term rows (sub_type = "news_search_term", same id) ---
+  var searchTerms = [];
+  for (var j = 0; j < allRecords.length; j++) {
     if (
-      record.news_search_term &&
-      typeof record.news_search_term === "string"
+      allRecords[j].type === "news_article" &&
+      allRecords[j].sub_type === "news_search_term" &&
+      allRecords[j].id === record.id
     ) {
-      searchKeywords = record.news_search_term
-        .split(",")
-        .map(function (t) {
-          return t.trim();
-        })
-        .filter(Boolean);
+      var term = allRecords[j].news_search_term || "";
+      if (term) searchTerms.push(term);
     }
   }
+  state.activeSearchTerms = searchTerms;
 
-  // Update module state
-  if (window._newsSourcesModuleState) {
-    window._newsSourcesModuleState.activeRecordId = record.id || "";
-    window._newsSourcesModuleState.activeRecordTitle = record.title || "";
-    window._newsSourcesModuleState.activeRecordSlug = record.slug || "";
-    window._newsSourcesModuleState.activeSourceUrl = sourceUrl;
-    window._newsSourcesModuleState.activeSearchKeywords = searchKeywords;
-    window._newsSourcesModuleState.activeSnippet = record.snippet || "";
-    window._newsSourcesModuleState.activeMeta = record.metadata_json || "";
-    window._newsSourcesModuleState.activeCreatedAt = record.created_at || "";
-    window._newsSourcesModuleState.activeUpdatedAt = record.updated_at || "";
-  }
-
-  // Populate the sidebar with this record's data
-  if (typeof window.populateNewsSourcesSidebar === "function") {
-    window.populateNewsSourcesSidebar(record);
+  // Populate the sidebar with the collected data
+  if (typeof window.populateNewsSidebar === "function") {
+    window.populateNewsSidebar(record);
   }
 }
 
@@ -311,4 +349,4 @@ function _selectNewsSourceRow(rowEl, record) {
    GLOBAL EXPOSURE — Called by dashboard_news_sources.js
 ----------------------------------------------------------------------------- */
 window.displayNewsSourcesList = displayNewsSourcesList;
-window.publishNewsSources = publishNewsSources;
+window.publishNewsSources = publishNewsArticles;

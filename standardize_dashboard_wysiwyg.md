@@ -27,6 +27,11 @@ The plan merges two nearly-identical CSS codebases (the `essay-*` and `blog-*` c
 | 3 | **Blog Posts Editor** (6.0) | `admin/frontend/dashboard_blog_posts.html` | `blog_posts_dashboard.css` + `blog_WYSIWYG_editor.css` | `dashboard_blog_posts.js` | ❌ | ✅ | Blog feed (`blog.html`, `news_and_blog.html`) | `type = "blog_post"` — has picture fields; body = `blogposts` (markdown, NOT `body`) | Refactor HTML to unified `wysiwyg-*` classes; add sidebar search bar |
 | 4 | **Challenge Response Editor** (4.0) | **NONE** — only an inline `<dialog>` in challenge sidebar | N/A | `insert_challenge_response.js` (dialog-only) | ❌ | ❌ | Challenge list pages (`academic_challenge.html`, `popular_challenge.html`) | `type = "challenge_response"` — **NO picture fields**; has `challenge_id` FK; body = `body` (markdown) | **Create dedicated HTML dashboard** + orchestrator JS + data display + status handler; omit picture upload section |
 
+Context Essays Editor
+Historiography Editor
+Blog Posts Editor
+Challenge Response Editor
+
 ---
 
 ## Tasks

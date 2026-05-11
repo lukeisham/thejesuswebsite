@@ -1,119 +1,88 @@
-// Trigger:  Called by dashboard_news_sources.js → window.initNewsSourcesSidebar()
+// Trigger:  Called by dashboard_news_sources.js → window.initNewsSidebar()
 //           on module initialisation, and by news_sources_handler.js →
-//           window.populateNewsSourcesSidebar() when a source row is selected.
-// Main:    initNewsSourcesSidebar() — wires all sidebar interactive elements
-//           to their handlers. Delegates auto-gen and term-chip logic to
-//           shared window.* functions in js/admin_core/.
-//           populateNewsSourcesSidebar(record) — fills sidebar fields with
-//           the selected record's data.
-// Output:  Interactive sidebar with keyword chip management and metadata
-//          editing for the selected news source record. All modifications
-//          are auto-saved as draft. Errors routed through window.surfaceError().
+//           window.populateNewsSidebar() when an article row is selected.
+// Main:    initNewsSidebar() — wires all sidebar interactive elements
+//           to their handlers. Manages source URL, keywords, and search
+//           terms across the three sub-types sharing a common group id.
+//           populateNewsSidebar(record) — fills sidebar fields with
+//           the selected article's source config and search terms.
+// Output:  Interactive sidebar with keyword chip management, search term
+//          chip management, and source URL editing for the selected news
+//          article. All modifications are auto-saved as draft. Errors
+//          routed through window.surfaceError().
 
 "use strict";
 
-var _nsTermChipConfig = {
+/* --- Keyword Chip Config --- */
+var _nsKeywordChipConfig = {
   prefix: "news-",
-  inputId: "news-search-term-input",
-  termColumn: "news_search_term",
-  stateTermsKey: "activeSearchKeywords",
-  renderFn: _renderSearchKeywords,
+  inputId: "news-keyword-input",
+  chipListId: "news-keywords-list",
+  chipClass: "news-keyword-chip",
+  stateTermsKey: "activeKeywords",
+  renderFn: _renderKeywords,
 };
 
-/* --- Metadata Save Callback --- */
-async function _saveMetadataFromWidget(data) {
-  var state = window._newsSourcesModuleState;
-  if (!state.activeRecordId) return;
-
-  try {
-    var response = await fetch("/api/admin/records/" + state.activeRecordId, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        slug: data.slug,
-        snippet: data.snippet,
-        metadata_json: data.metadata_json,
-        status: "draft",
-      }),
-    });
-
-    if (!response.ok) throw new Error("Save failed");
-
-    // Update local state
-    state.activeRecordSlug = data.slug;
-    state.activeSnippet = data.snippet;
-    state.activeMeta = data.metadata_json;
-
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError(
-        "Metadata saved for '" +
-          (state.activeRecordTitle || state.activeRecordSlug) +
-          "'.",
-      );
-    }
-  } catch (err) {
-    console.error("[news_sources_sidebar] Metadata save failed:", err);
-  }
-}
+/* --- Search Term Chip Config --- */
+var _nsSearchTermChipConfig = {
+  prefix: "news-",
+  inputId: "news-search-term-input",
+  chipListId: "news-search-terms-list",
+  chipClass: "news-search-term-chip",
+  stateTermsKey: "activeSearchTerms",
+  renderFn: _renderSearchTerms,
+};
 
 /* -----------------------------------------------------------------------------
-   MAIN FUNCTION: initNewsSourcesSidebar
+   MAIN FUNCTION: initNewsSidebar
 ----------------------------------------------------------------------------- */
-function initNewsSourcesSidebar() {
+function initNewsSidebar() {
   // --- Source URL Save ---
   var saveUrlBtn = document.getElementById("btn-news-save-url");
   if (saveUrlBtn) {
     saveUrlBtn.addEventListener("click", _handleSaveUrl);
   }
 
-  // --- Search Keywords (add button → shared) ---
+  // --- Keywords (add button) ---
+  var addKeywordBtn = document.getElementById("btn-news-add-keyword");
+  var addKeywordInput = document.getElementById("news-keyword-input");
+  if (addKeywordBtn) {
+    addKeywordBtn.addEventListener("click", function () {
+      _addChipFromInput(window._newsSourcesModuleState, _nsKeywordChipConfig);
+    });
+  }
+  if (addKeywordInput) {
+    addKeywordInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        _addChipFromInput(window._newsSourcesModuleState, _nsKeywordChipConfig);
+      }
+    });
+  }
+
+  // --- Search Terms (add button) ---
   var addTermBtn = document.getElementById("btn-news-add-term");
   var addTermInput = document.getElementById("news-search-term-input");
   if (addTermBtn) {
     addTermBtn.addEventListener("click", function () {
-      window.addSidebarTerm(window._newsSourcesModuleState, _nsTermChipConfig);
+      _addChipFromInput(
+        window._newsSourcesModuleState,
+        _nsSearchTermChipConfig,
+      );
     });
   }
   if (addTermInput) {
     addTermInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
-        window.addSidebarTerm(
+        _addChipFromInput(
           window._newsSourcesModuleState,
-          _nsTermChipConfig,
+          _nsSearchTermChipConfig,
         );
       }
     });
   }
 
-  // --- Standardized Metadata Widget ---
-  if (typeof window.renderMetadataWidget === "function") {
-    window.renderMetadataWidget("metadata-widget-container", {
-      onAutoSaveDraft: _saveMetadataFromWidget,
-      getRecordTitle: function () {
-        return (
-          window._newsSourcesModuleState.activeRecordTitle ||
-          window._newsSourcesModuleState.activeRecordSlug
-        );
-      },
-      getRecordId: function () {
-        return window._newsSourcesModuleState.activeRecordSlug;
-      },
-    });
-
-    // Wire manual blur save for the widget's inputs
-    var container = document.getElementById("metadata-widget-container");
-    if (container) {
-      container.addEventListener("focusout", function (e) {
-        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
-          var data = window.collectMetadataWidget("metadata-widget-container");
-          _saveMetadataFromWidget(data);
-        }
-      });
-    }
-  }
-
   // --- Source URL input (auto-save on blur) ---
-  var urlInput = document.getElementById("news-sources-url-input");
+  var urlInput = document.getElementById("news-source-url-input");
   if (urlInput) urlInput.addEventListener("blur", _handleSaveUrl);
 
   // Sidebar starts disabled — no record selected yet
@@ -121,94 +90,50 @@ function initNewsSourcesSidebar() {
 }
 
 /* -----------------------------------------------------------------------------
-   MAIN FUNCTION: populateNewsSourcesSidebar
+   MAIN FUNCTION: populateNewsSidebar
+   Fills sidebar fields from the module state (already populated by
+   _selectNewsArticleRow in news_sources_handler.js).
 ----------------------------------------------------------------------------- */
-function populateNewsSourcesSidebar(record) {
+function populateNewsSidebar(record) {
   var state = window._newsSourcesModuleState;
   if (!state) return;
 
   _setSidebarDisabled(false);
 
-  var titleEl = document.getElementById("news-sources-record-title");
+  // Article title display
+  var titleEl = document.getElementById("news-record-title");
   if (titleEl) {
-    titleEl.textContent = record.title || record.slug || "Untitled Source";
+    titleEl.textContent = state.activeArticleTitle || "Untitled Article";
   }
 
-  var urlInput = document.getElementById("news-sources-url-input");
+  // Source URL input
+  var urlInput = document.getElementById("news-source-url-input");
   if (urlInput) urlInput.value = state.activeSourceUrl || "";
 
-  _renderSearchKeywords();
+  // Render keyword chips
+  _renderKeywords();
 
-  var snippetInput = document.getElementById("news-sources-snippet-input");
-  if (snippetInput) snippetInput.value = state.activeSnippet || "";
-
-  var slugInput = document.getElementById("news-sources-slug-input");
-  if (slugInput) slugInput.value = state.activeRecordSlug || "";
-
-  var metaInput = document.getElementById("news-sources-meta-input");
-  if (metaInput) metaInput.value = state.activeMeta || "";
-
-  // --- Shared tool: update metadata footer display ---
-  var metadataFooter = document.getElementById("news-sources-metadata-footer");
-  if (
-    metadataFooter &&
-    typeof metadataFooter._setMetadataDisplay === "function"
-  ) {
-    metadataFooter._setMetadataDisplay({
-      metadata_json: record.metadata_json || "",
-      created_at: record.created_at || "",
-      updated_at: record.updated_at || "",
-    });
-  }
+  // Render search term chips
+  _renderSearchTerms();
 
   // Populate the shared metadata widget
   if (typeof window.populateMetadataWidget === "function") {
     window.populateMetadataWidget("metadata-widget-container", record);
   }
-
-  var sharedSlugInput = document.getElementById("record-slug");
-  if (sharedSlugInput) sharedSlugInput.value = state.activeRecordSlug || "";
-
-  var sharedMetadataJson = document.getElementById("record-metadata-json");
-  if (sharedMetadataJson) sharedMetadataJson.value = record.metadata_json || "";
-
-  var sharedCreatedAt = document.getElementById("record-created-at");
-  if (sharedCreatedAt) sharedCreatedAt.value = record.created_at || "";
-
-  var sharedUpdatedAt = document.getElementById("record-updated-at");
-  if (sharedUpdatedAt) sharedUpdatedAt.value = record.updated_at || "";
 }
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _clearSidebar
 ----------------------------------------------------------------------------- */
 function _clearSidebar() {
-  var titleEl = document.getElementById("news-sources-record-title");
+  var titleEl = document.getElementById("news-record-title");
   if (titleEl) titleEl.textContent = "\u2014";
 
-  var urlInput = document.getElementById("news-sources-url-input");
+  var urlInput = document.getElementById("news-source-url-input");
   if (urlInput) urlInput.value = "";
 
-  var snippetInput = document.getElementById("news-sources-snippet-input");
-  if (snippetInput) snippetInput.value = "";
-
-  var slugInput = document.getElementById("news-sources-slug-input");
-  if (slugInput) slugInput.value = "";
-
-  var metaInput = document.getElementById("news-sources-meta-input");
-  if (metaInput) metaInput.value = "";
-
-  var sharedSlugInput = document.getElementById("record-slug");
-  if (sharedSlugInput) sharedSlugInput.value = "";
-
-  var sharedMetadataJson = document.getElementById("record-metadata-json");
-  if (sharedMetadataJson) sharedMetadataJson.value = "";
-
-  var sharedCreatedAt = document.getElementById("record-created-at");
-  if (sharedCreatedAt) sharedCreatedAt.value = "";
-
-  var sharedUpdatedAt = document.getElementById("record-updated-at");
-  if (sharedUpdatedAt) sharedUpdatedAt.value = "";
+  var keywordsList = document.getElementById("news-keywords-list");
+  if (keywordsList) keywordsList.innerHTML = "";
 
   var termsList = document.getElementById("news-search-terms-list");
   if (termsList) termsList.innerHTML = "";
@@ -221,22 +146,17 @@ function _clearSidebar() {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _setSidebarDisabled
-   Disables/enables all sidebar interactive elements and dims the sidebar
-   sections when no record row is selected. Called on init (disabled state)
-   and when populateNewsSourcesSidebar activates a record (enabled state).
+   Disables/enables all sidebar interactive elements and dims sidebar
+   sections when no record row is selected.
 ----------------------------------------------------------------------------- */
 function _setSidebarDisabled(disabled) {
   var ids = [
-    "news-sources-url-input",
+    "news-source-url-input",
     "btn-news-save-url",
+    "news-keyword-input",
+    "btn-news-add-keyword",
     "news-search-term-input",
     "btn-news-add-term",
-    "news-sources-snippet-input",
-    "btn-news-auto-snippet",
-    "news-sources-slug-input",
-    "btn-news-auto-slug",
-    "news-sources-meta-input",
-    "btn-news-auto-meta",
   ];
 
   ids.forEach(function (id) {
@@ -250,10 +170,11 @@ function _setSidebarDisabled(disabled) {
     }
   });
 
-  // Dim sidebar sections via inline style (opacity for visual feedback)
+  // Dim sidebar sections
   var sectionIds = [
-    "news-sources-url-section",
-    "news-sources-search-terms",
+    "news-source-section",
+    "news-keywords-section",
+    "news-search-terms-section",
     "metadata-widget-container",
   ];
 
@@ -266,91 +187,318 @@ function _setSidebarDisabled(disabled) {
 }
 
 /* -----------------------------------------------------------------------------
-   INTERNAL: _renderSearchKeywords
-   Remove buttons call window.removeSidebarTerm (shared).
+   INTERNAL: _addChipFromInput
+   Reads the input value, adds it to the state array, re-renders chips,
+   and triggers auto-save.
 ----------------------------------------------------------------------------- */
-function _renderSearchKeywords() {
+function _addChipFromInput(state, config) {
+  if (!state || !state.activeGroupId) return;
+
+  var inputEl = document.getElementById(config.inputId);
+  if (!inputEl) return;
+
+  var value = inputEl.value.trim();
+  if (!value) return;
+
+  var terms = state[config.stateTermsKey] || [];
+  if (terms.indexOf(value) !== -1) {
+    inputEl.value = "";
+    return; // Already exists
+  }
+
+  terms.push(value);
+  state[config.stateTermsKey] = terms;
+  inputEl.value = "";
+
+  // Re-render
+  if (typeof config.renderFn === "function") {
+    config.renderFn();
+  }
+
+  // Auto-save
+  _scheduleKeywordSave();
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _removeChip
+   Removes a chip at the given index, re-renders, and triggers auto-save.
+----------------------------------------------------------------------------- */
+function _removeChip(state, config, index) {
+  var terms = state[config.stateTermsKey] || [];
+  if (index < 0 || index >= terms.length) return;
+
+  terms.splice(index, 1);
+  state[config.stateTermsKey] = terms;
+
+  if (typeof config.renderFn === "function") {
+    config.renderFn();
+  }
+
+  _scheduleKeywordSave();
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _renderKeywords
+   Renders keyword chips in #news-keywords-list.
+----------------------------------------------------------------------------- */
+function _renderKeywords() {
   var state = window._newsSourcesModuleState;
-  var termsList = document.getElementById("news-search-terms-list");
-  if (!termsList) return;
+  var listEl = document.getElementById("news-keywords-list");
+  if (!listEl) return;
 
-  termsList.innerHTML = "";
+  listEl.innerHTML = "";
 
-  var keywords = state ? state.activeSearchKeywords : [];
+  var keywords = state ? state.activeKeywords : [];
   if (!keywords || keywords.length === 0) return;
 
   keywords.forEach(function (term, index) {
     var chipEl = document.createElement("li");
-    chipEl.className = "news-sources-search-term-chip";
+    chipEl.className = "news-keyword-chip";
 
     var textEl = document.createElement("span");
-    textEl.className = "news-sources-search-term-chip__text";
+    textEl.className = "news-keyword-chip__text";
     textEl.textContent = term;
     chipEl.appendChild(textEl);
 
     var removeBtn = document.createElement("button");
-    removeBtn.className = "news-sources-search-term-chip__remove";
+    removeBtn.className = "news-keyword-chip__remove";
     removeBtn.textContent = "\u00d7";
     removeBtn.setAttribute("type", "button");
     removeBtn.setAttribute("aria-label", "Remove keyword: " + term);
     removeBtn.setAttribute("title", "Remove keyword");
     removeBtn.addEventListener("click", function () {
-      window.removeSidebarTerm(
+      _removeChip(window._newsSourcesModuleState, _nsKeywordChipConfig, index);
+    });
+    chipEl.appendChild(removeBtn);
+
+    listEl.appendChild(chipEl);
+  });
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _renderSearchTerms
+   Renders search term chips in #news-search-terms-list.
+----------------------------------------------------------------------------- */
+function _renderSearchTerms() {
+  var state = window._newsSourcesModuleState;
+  var listEl = document.getElementById("news-search-terms-list");
+  if (!listEl) return;
+
+  listEl.innerHTML = "";
+
+  var terms = state ? state.activeSearchTerms : [];
+  if (!terms || terms.length === 0) return;
+
+  terms.forEach(function (term, index) {
+    var chipEl = document.createElement("li");
+    chipEl.className = "news-search-term-chip";
+
+    var textEl = document.createElement("span");
+    textEl.className = "news-search-term-chip__text";
+    textEl.textContent = term;
+    chipEl.appendChild(textEl);
+
+    var removeBtn = document.createElement("button");
+    removeBtn.className = "news-search-term-chip__remove";
+    removeBtn.textContent = "\u00d7";
+    removeBtn.setAttribute("type", "button");
+    removeBtn.setAttribute("aria-label", "Remove search term: " + term);
+    removeBtn.setAttribute("title", "Remove search term");
+    removeBtn.addEventListener("click", function () {
+      _removeChip(
         window._newsSourcesModuleState,
-        _nsTermChipConfig,
+        _nsSearchTermChipConfig,
         index,
       );
     });
     chipEl.appendChild(removeBtn);
 
-    termsList.appendChild(chipEl);
+    listEl.appendChild(chipEl);
   });
 }
 
 /* -----------------------------------------------------------------------------
-   HANDLER: _handleSaveUrl (unique to News)
+   INTERNAL: _scheduleKeywordSave
+   Debounced save for keywords and search terms.
+----------------------------------------------------------------------------- */
+var _nsKeywordSaveTimer = null;
+function _scheduleKeywordSave() {
+  if (_nsKeywordSaveTimer) clearTimeout(_nsKeywordSaveTimer);
+  _nsKeywordSaveTimer = setTimeout(_saveKeywordsAndTerms, 800);
+}
+
+/* -----------------------------------------------------------------------------
+   HANDLER: _saveKeywordsAndTerms
+   Saves keywords to the source row and search terms to search term rows.
+----------------------------------------------------------------------------- */
+async function _saveKeywordsAndTerms() {
+  var state = window._newsSourcesModuleState;
+  if (!state || !state.activeGroupId) return;
+
+  var groupId = state.activeGroupId;
+  var allRecords = state._allNewsArticleRecords || [];
+
+  // --- Save keywords to the source row ---
+  var sourceRow = null;
+  for (var i = 0; i < allRecords.length; i++) {
+    if (
+      allRecords[i].type === "news_article" &&
+      allRecords[i].sub_type === "news_source" &&
+      allRecords[i].id === groupId
+    ) {
+      sourceRow = allRecords[i];
+      break;
+    }
+  }
+
+  var keywords = state.activeKeywords || [];
+  if (keywords.length > 0) {
+    if (sourceRow) {
+      // Update existing source row
+      try {
+        await fetch("/api/admin/records/" + sourceRow._row_id, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            keywords: JSON.stringify(keywords),
+            status: "draft",
+          }),
+        });
+      } catch (err) {
+        console.error("[news_sources_sidebar] Save keywords failed:", err);
+      }
+    }
+  }
+
+  // --- Save search terms: delete all existing, then POST new ones ---
+  // First, collect existing search term row IDs
+  var existingTermRowIds = [];
+  for (var j = 0; j < allRecords.length; j++) {
+    if (
+      allRecords[j].type === "news_article" &&
+      allRecords[j].sub_type === "news_search_term" &&
+      allRecords[j].id === groupId
+    ) {
+      if (allRecords[j]._row_id) {
+        existingTermRowIds.push(allRecords[j]._row_id);
+      }
+    }
+  }
+
+  // Delete all existing search term rows for this group
+  for (var k = 0; k < existingTermRowIds.length; k++) {
+    try {
+      await fetch("/api/admin/records/" + existingTermRowIds[k], {
+        method: "DELETE",
+      });
+    } catch (err) {
+      console.error(
+        "[news_sources_sidebar] Delete search term row failed:",
+        err,
+      );
+    }
+  }
+
+  // POST new search term rows
+  var searchTerms = state.activeSearchTerms || [];
+  for (var t = 0; t < searchTerms.length; t++) {
+    try {
+      await fetch("/api/admin/records", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: groupId,
+          type: "news_article",
+          sub_type: "news_search_term",
+          news_search_term: searchTerms[t],
+          status: "draft",
+        }),
+      });
+    } catch (err) {
+      console.error("[news_sources_sidebar] POST search term row failed:", err);
+    }
+  }
+
+  // Refresh the all-records cache
+  if (typeof window.displayNewsSourcesList === "function") {
+    // We'll let the user refresh manually to avoid loop
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   HANDLER: _handleSaveUrl
+   Saves the source URL to the source sub-type row (same group id).
+   Finds or creates a source row for the active group.
 ----------------------------------------------------------------------------- */
 async function _handleSaveUrl() {
   var state = window._newsSourcesModuleState;
-  if (!state || !state.activeRecordId) return;
+  if (!state || !state.activeGroupId) return;
 
-  var urlInput = document.getElementById("news-sources-url-input");
+  var urlInput = document.getElementById("news-source-url-input");
   if (!urlInput) return;
 
-  var rawUrl = urlInput.value.trim();
-  if (!rawUrl) return;
+  var url = urlInput.value.trim();
+  if (!url) return;
 
-  let url, name;
-  try {
-    var parsed = JSON.parse(rawUrl);
-    url = parsed.url || rawUrl;
-    name = parsed.name || "";
-  } catch (e) {
-    // Input is a plain URL string, not JSON
-    url = rawUrl;
-    name = "";
+  var groupId = state.activeGroupId;
+  var allRecords = state._allNewsArticleRecords || [];
+
+  // Find existing source row
+  var sourceRow = null;
+  for (var i = 0; i < allRecords.length; i++) {
+    if (
+      allRecords[i].type === "news_article" &&
+      allRecords[i].sub_type === "news_source" &&
+      allRecords[i].id === groupId
+    ) {
+      sourceRow = allRecords[i];
+      break;
+    }
   }
 
   try {
-    var payload = {
-      news_sources: JSON.stringify({ url: url, name: name }),
-      status: "draft",
-    };
+    if (sourceRow && sourceRow._row_id) {
+      // Update existing source row
+      var response = await fetch("/api/admin/records/" + sourceRow._row_id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source_url: url,
+          status: "draft",
+        }),
+      });
 
-    var response = await fetch("/api/admin/records/" + state.activeRecordId, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      if (!response.ok) {
+        throw new Error("API responded with status " + response.status);
+      }
+    } else {
+      // Create new source row
+      var response = await fetch("/api/admin/records", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: groupId,
+          type: "news_article",
+          sub_type: "news_source",
+          source_url: url,
+          status: "draft",
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error("API responded with status " + response.status);
+      if (!response.ok) {
+        throw new Error("API responded with status " + response.status);
+      }
     }
 
-    state.activeSourceUrl = urlInput.value;
+    state.activeSourceUrl = url;
 
     if (typeof window.surfaceError === "function") {
       window.surfaceError("Source URL saved. Record set to draft.");
+    }
+
+    // Refresh list to update cached records
+    if (typeof window.displayNewsSourcesList === "function") {
+      await window.displayNewsSourcesList();
     }
   } catch (err) {
     console.error("[news_sources_sidebar] Save URL failed:", err);
@@ -362,9 +510,8 @@ async function _handleSaveUrl() {
 
 /* -----------------------------------------------------------------------------
    FUNCTION: scheduleAutoSave
-   Debounced auto-save (1500ms) that collects editor data and PUTs with
-   status: 'draft'. Wired to input/change events on URL input, search term
-   input, and other editable fields.
+   Debounced auto-save (1500ms) that collects editor data and saves
+   source URL, keywords, and search terms to appropriate sub-type rows.
 ----------------------------------------------------------------------------- */
 function scheduleAutoSave() {
   if (window._newsAutoSaveTimer) {
@@ -373,59 +520,16 @@ function scheduleAutoSave() {
 
   window._newsAutoSaveTimer = setTimeout(async function () {
     var state = window._newsSourcesModuleState;
-    if (!state || !state.activeRecordId) return;
+    if (!state || !state.activeGroupId) return;
 
-    // Collect URL input
-    var urlInput = document.getElementById("news-sources-url-input");
-    var rawUrl = urlInput ? urlInput.value.trim() : "";
+    // Save source URL
+    await _handleSaveUrl();
 
-    // Collect search terms
-    var searchTerms = state.activeSearchKeywords || [];
-
-    var payload = {
-      status: "draft",
-    };
-
-    if (rawUrl) {
-      var parsedUrl, parsedName;
-      try {
-        var parsed = JSON.parse(rawUrl);
-        parsedUrl = parsed.url || rawUrl;
-        parsedName = parsed.name || "";
-      } catch (e) {
-        parsedUrl = rawUrl;
-        parsedName = "";
-      }
-      payload.news_sources = JSON.stringify({
-        url: parsedUrl,
-        name: parsedName,
-      });
-    }
-
-    if (searchTerms.length > 0) {
-      payload.news_search_term = JSON.stringify(searchTerms);
-    }
-
-    try {
-      var response = await fetch("/api/admin/records/" + state.activeRecordId, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("API responded with status " + response.status);
-      }
-
-      if (typeof window.surfaceError === "function") {
-        window.surfaceError("News source saved as draft.");
-      }
-    } catch (err) {
-      console.error("[news_sources_sidebar] Auto-save failed:", err);
-    }
+    // Save keywords and search terms
+    await _saveKeywordsAndTerms();
   }, 1500);
 }
 
-window.initNewsSourcesSidebar = initNewsSourcesSidebar;
-window.populateNewsSourcesSidebar = populateNewsSourcesSidebar;
+window.initNewsSidebar = initNewsSidebar;
+window.populateNewsSidebar = populateNewsSidebar;
 window.scheduleAutoSave = scheduleAutoSave;

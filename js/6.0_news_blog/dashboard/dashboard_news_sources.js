@@ -13,20 +13,19 @@
    MODULE STATE — tracked globally so sub-modules can reference active state
 ----------------------------------------------------------------------------- */
 window._newsSourcesModuleState = {
-  activeRecordId: null, // currently selected record ID
-  activeRecordTitle: "", // currently selected record title
-  activeRecordSlug: "", // currently selected record slug
-  activeSourceUrl: "", // current record's news source URL
-  activeSearchKeywords: [], // current record's search keywords (array)
-  activeSnippet: "", // current record's snippet
-  activeMeta: "", // current record's metadata JSON
-  activeCreatedAt: "", // current record's created_at
-  activeUpdatedAt: "", // current record's updated_at
-  newsSourcesRecords: [], // full list of news source records
+  activeGroupId: null, // shared grouping key (id)
+  activeArticleTitle: "", // article title from main entry
+  activeArticleLink: "", // article link from main entry
+  activeSourceUrl: "", // source URL from news_source sub-type
+  activeKeywords: [], // keywords from news_source sub-type (array)
+  activeSearchTerms: [], // search terms from news_search_term sub-type (array)
+  activeLastCrawled: "", // last crawled timestamp
+  newsArticlesRecords: [], // full list of news article main entries
+  _allNewsArticleRecords: [], // all news_article records (all sub-types)
 };
 
 // Set _recordSlug for shared tool compatibility
-window._recordSlug = window._newsSourcesModuleState.activeRecordSlug;
+window._recordSlug = window._newsSourcesModuleState.activeGroupId;
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: renderNewsSources
@@ -65,9 +64,9 @@ async function renderNewsSources() {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");
 
-      const functionBar = doc.getElementById("news-sources-function-bar");
-      const sidebar = doc.getElementById("news-sources-sidebar");
-      const listArea = doc.getElementById("news-sources-list-area");
+      const functionBar = doc.getElementById("news-function-bar");
+      const sidebar = doc.getElementById("news-sidebar");
+      const listArea = doc.getElementById("news-list-area");
 
       if (sidebar) {
         window._setColumn("sidebar", sidebar.outerHTML);
@@ -99,11 +98,11 @@ async function renderNewsSources() {
   _resetState();
 
   // Set _recordTitle for shared tool compatibility
-  window._recordTitle = window._newsSourcesModuleState.activeRecordTitle;
+  window._recordTitle = window._newsSourcesModuleState.activeArticleTitle;
 
-  // 3b. Initialise the sidebar handler (wires keyword chips, URL save, metadata)
-  if (typeof window.initNewsSourcesSidebar === "function") {
-    window.initNewsSourcesSidebar();
+  // 3b. Initialise the sidebar handler (wires keyword chips, URL save, search terms)
+  if (typeof window.initNewsSidebar === "function") {
+    window.initNewsSidebar();
   }
 
   // 3c. Initialise the crawler trigger (wires Crawl button)
@@ -111,28 +110,14 @@ async function renderNewsSources() {
     window.initNewsCrawler();
   }
 
-  // 3d. Load the initial news sources list
-  if (typeof window.displayNewsSourcesList === "function") {
-    await window.displayNewsSourcesList();
-  }
-
-  /* -------------------------------------------------------------------------
-       4. WIRE FUNCTION BAR BUTTONS — Save Draft, Publish, Delete, Gather
-    ------------------------------------------------------------------------- */
-  _wireActionButtons();
-
-  /* -------------------------------------------------------------------------
-       5. INITIALISE SHARED TOOLS — Metadata widget
-       The metadata_widget.js is loaded globally via dashboard.html.
-    ------------------------------------------------------------------------- */
+  // 3d. Initialise the metadata widget (slug, snippet, metadata_json)
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {
       onAutoSaveDraft: async function (recordData) {
-        // News Sources has its own save-on-blur pattern — auto-save via PUT
         const state = window._newsSourcesModuleState;
-        if (state && state.activeRecordId) {
+        if (state && state.activeGroupId) {
           try {
-            await fetch("/api/admin/records/" + state.activeRecordId, {
+            await fetch("/api/admin/records/" + state.activeGroupId, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -151,15 +136,25 @@ async function renderNewsSources() {
         }
       },
       getRecordTitle: function () {
-        const titleEl = document.getElementById("news-sources-record-title");
+        const titleEl = document.getElementById("news-record-title");
         return titleEl ? titleEl.textContent.replace(/\u2014/, "").trim() : "";
       },
       getRecordId: function () {
         const state = window._newsSourcesModuleState;
-        return state ? state.activeRecordId || "" : "";
+        return state ? state.activeGroupId || "" : "";
       },
     });
   }
+
+  // 3e. Load the initial news articles list
+  if (typeof window.displayNewsSourcesList === "function") {
+    await window.displayNewsSourcesList();
+  }
+
+  /* -------------------------------------------------------------------------
+       4. WIRE FUNCTION BAR BUTTONS — Save Draft, Publish, Delete, Gather
+    ------------------------------------------------------------------------- */
+  _wireActionButtons();
 }
 
 /* -----------------------------------------------------------------------------
@@ -167,16 +162,15 @@ async function renderNewsSources() {
    Resets the module state to defaults.
 ----------------------------------------------------------------------------- */
 function _resetState() {
-  window._newsSourcesModuleState.activeRecordId = null;
-  window._newsSourcesModuleState.activeRecordTitle = "";
-  window._newsSourcesModuleState.activeRecordSlug = "";
+  window._newsSourcesModuleState.activeGroupId = null;
+  window._newsSourcesModuleState.activeArticleTitle = "";
+  window._newsSourcesModuleState.activeArticleLink = "";
   window._newsSourcesModuleState.activeSourceUrl = "";
-  window._newsSourcesModuleState.activeSearchKeywords = [];
-  window._newsSourcesModuleState.activeSnippet = "";
-  window._newsSourcesModuleState.activeMeta = "";
-  window._newsSourcesModuleState.activeCreatedAt = "";
-  window._newsSourcesModuleState.activeUpdatedAt = "";
-  window._newsSourcesModuleState.newsSourcesRecords = [];
+  window._newsSourcesModuleState.activeKeywords = [];
+  window._newsSourcesModuleState.activeSearchTerms = [];
+  window._newsSourcesModuleState.activeLastCrawled = "";
+  window._newsSourcesModuleState.newsArticlesRecords = [];
+  window._newsSourcesModuleState._allNewsArticleRecords = [];
 }
 
 /* -----------------------------------------------------------------------------
@@ -215,31 +209,42 @@ function _wireActionButtons() {
     });
   }
 
-  // Delete — prompt and delete the selected record
+  // Delete — prompt and delete the selected record and all its sub-type rows
   const btnDelete = document.getElementById("btn-delete");
   if (btnDelete) {
     btnDelete.addEventListener("click", async function () {
       const state = window._newsSourcesModuleState;
-      if (!state.activeRecordId) {
+      if (!state.activeGroupId) {
         if (typeof window.surfaceError === "function") {
-          window.surfaceError("No record selected. Select a record to delete.");
+          window.surfaceError(
+            "No article selected. Select an article to delete.",
+          );
         }
         return;
       }
       const confirmed = confirm(
-        'Are you sure you want to delete "' + state.activeRecordTitle + '"?',
+        'Are you sure you want to delete "' +
+          state.activeArticleTitle +
+          '" and all its source/search-term rows?',
       );
       if (!confirmed) return;
       btnDelete.disabled = true;
       btnDelete.textContent = "Deleting…";
       try {
-        const response = await fetch(
-          "/api/admin/records/" + encodeURIComponent(state.activeRecordId),
-          { method: "DELETE" },
-        );
-        if (!response.ok) throw new Error("HTTP " + response.status);
+        // Delete all sub-type rows first, then main entry
+        const allRecords = state._allNewsArticleRecords || [];
+        for (var i = 0; i < allRecords.length; i++) {
+          if (
+            allRecords[i].id === state.activeGroupId &&
+            allRecords[i]._row_id
+          ) {
+            await fetch("/api/admin/records/" + allRecords[i]._row_id, {
+              method: "DELETE",
+            });
+          }
+        }
         if (typeof window.surfaceError === "function") {
-          window.surfaceError('Deleted: "' + state.activeRecordTitle + '"');
+          window.surfaceError('Deleted: "' + state.activeArticleTitle + '"');
         }
         if (typeof window.displayNewsSourcesList === "function") {
           await window.displayNewsSourcesList();
@@ -288,53 +293,113 @@ function _wireActionButtons() {
 ----------------------------------------------------------------------------- */
 async function _handleSaveDraft() {
   const state = window._newsSourcesModuleState;
-  if (!state.activeRecordId) {
+  if (!state.activeGroupId) {
     if (typeof window.surfaceError === "function") {
-      window.surfaceError("No record selected. Select a record to save.");
+      window.surfaceError("No article selected. Select an article to save.");
     }
     return;
   }
 
-  const payload = { status: "draft" };
+  const groupId = state.activeGroupId;
+  const allRecords = state._allNewsArticleRecords || [];
 
-  // Collect slug and snippet from metadata widget
-  if (typeof window.collectMetadataWidget === "function") {
-    const metaData = window.collectMetadataWidget("metadata-widget-container");
-    payload.slug = metaData.slug || state.activeRecordSlug;
-    payload.snippet = metaData.snippet || state.activeSnippet;
-    payload.metadata_json = metaData.metadata_json || state.activeMeta;
-  }
+  // --- Save main entry (title & link) ---
+  // Main entry is saved as-is; no editable fields in sidebar for it currently
 
-  // Collect current source URL
-  const urlInput = document.getElementById("news-sources-url-input");
+  // --- Save source URL to source sub-type row ---
+  const urlInput = document.getElementById("news-source-url-input");
   if (urlInput && urlInput.value.trim()) {
-    payload.news_sources = JSON.stringify({ url: urlInput.value.trim() });
+    var sourceRow = null;
+    for (var i = 0; i < allRecords.length; i++) {
+      if (
+        allRecords[i].type === "news_article" &&
+        allRecords[i].sub_type === "news_source" &&
+        allRecords[i].id === groupId
+      ) {
+        sourceRow = allRecords[i];
+        break;
+      }
+    }
+
+    try {
+      if (sourceRow && sourceRow._row_id) {
+        await fetch("/api/admin/records/" + sourceRow._row_id, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source_url: urlInput.value.trim(),
+            keywords: JSON.stringify(state.activeKeywords || []),
+            status: "draft",
+          }),
+        });
+      } else {
+        await fetch("/api/admin/records", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: groupId,
+            type: "news_article",
+            sub_type: "news_source",
+            source_url: urlInput.value.trim(),
+            keywords: JSON.stringify(state.activeKeywords || []),
+            status: "draft",
+          }),
+        });
+      }
+    } catch (err) {
+      console.error("[dashboard_news_sources] Save source URL failed:", err);
+    }
   }
 
-  // Collect search keywords from state
-  if (state.activeSearchKeywords && state.activeSearchKeywords.length > 0) {
-    payload.news_search_term = JSON.stringify(state.activeSearchKeywords);
+  // --- Save search terms: delete existing, POST new ---
+  var existingTermRowIds = [];
+  for (var j = 0; j < allRecords.length; j++) {
+    if (
+      allRecords[j].type === "news_article" &&
+      allRecords[j].sub_type === "news_search_term" &&
+      allRecords[j].id === groupId &&
+      allRecords[j]._row_id
+    ) {
+      existingTermRowIds.push(allRecords[j]._row_id);
+    }
   }
 
-  try {
-    const response = await fetch(
-      "/api/admin/records/" + encodeURIComponent(state.activeRecordId),
-      {
-        method: "PUT",
+  for (var k = 0; k < existingTermRowIds.length; k++) {
+    try {
+      await fetch("/api/admin/records/" + existingTermRowIds[k], {
+        method: "DELETE",
+      });
+    } catch (err) {
+      console.error("[dashboard_news_sources] Delete term row failed:", err);
+    }
+  }
+
+  var searchTerms = state.activeSearchTerms || [];
+  for (var t = 0; t < searchTerms.length; t++) {
+    try {
+      await fetch("/api/admin/records", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      },
-    );
-    if (!response.ok) throw new Error("HTTP " + response.status);
+        body: JSON.stringify({
+          id: groupId,
+          type: "news_article",
+          sub_type: "news_search_term",
+          news_search_term: searchTerms[t],
+          status: "draft",
+        }),
+      });
+    } catch (err) {
+      console.error("[dashboard_news_sources] POST term row failed:", err);
+    }
+  }
 
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError('Draft saved: "' + state.activeRecordTitle + '"');
-    }
-  } catch (err) {
-    console.error("[dashboard_news_sources] Save draft failed:", err);
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError("Error: Failed to save draft.");
-    }
+  if (typeof window.surfaceError === "function") {
+    window.surfaceError('Draft saved: "' + state.activeArticleTitle + '"');
+  }
+
+  // Refresh the list to update cached records
+  if (typeof window.displayNewsSourcesList === "function") {
+    await window.displayNewsSourcesList();
   }
 }
 
