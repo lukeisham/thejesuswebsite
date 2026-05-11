@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.7.1
+version: 1.8.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -415,4 +415,45 @@ Posts, Challenge, News Sources, and Wikipedia.
 - **Grid alignment:** All spacing uses `--space-N` multiples of 8px.
 - **Transition subtlety:** Buttons use `--transition-fast` (150ms).
 - **CSS variable purity:** No hardcoded colors, font sizes, or spacing values.
+
+---
+
+## 23. Unified WYSIWYG Editor — `.wysiwyg-*` BEM Namespace
+
+> **Plan:** `plan_standardize_dashboard_wysiwyg.md`
+>
+> The `wysiwyg_dashboard_layout.css` and `wysiwyg_editor.css` stylesheets define the canonical unified WYSIWYG editor layout, replacing the legacy `essay-*` and `blog-*` namespaces. All four markdown-authoring dashboards (Essays, Historiography, Blog Posts, Challenge Response) consume this shared namespace.
+
+### Core Layout Classes
+
+| BEM Class | Purpose | CSS Variable References |
+|-----------|---------|------------------------|
+| `.wysiwyg-function-bar` | Sticky top function bar | `--color-bg-primary`, `--color-border` |
+| `.wysiwyg-editor-layout` | Split-pane grid (sidebar \| editor) | CSS Grid: `260px 1px 1fr` |
+| `.wysiwyg-sidebar` | Left sidebar (search + lists) | `--color-bg-secondary` |
+| `.wysiwyg-sidebar-search` | Search input bar | `--font-mono`, `--text-xs` |
+| `.wysiwyg-sidebar-group` | Published/Drafts list groups | `--color-text-secondary` |
+| `.wysiwyg-sidebar-list` | Scrollable item list | `--color-bg-primary` |
+| `.wysiwyg-sidebar-list__item` | Individual list item | `--color-border`, hover states |
+| `.wysiwyg-editor-area` | Right editor pane | `--color-bg-primary`, `overflow-y: auto` |
+| `.wysiwyg-editor-field` | Form field wrapper | `--space-2` gap |
+| `.wysiwyg-editor-section` | Editor subsection container | `--color-border` top rule |
+| `.wysiwyg-editor-section__heading` | Section heading | `--font-heading`, `--weight-semibold`, `--text-md` |
+
+### Markdown Editor Classes
+
+| BEM Class | Purpose | CSS Variable References |
+|-----------|---------|------------------------|
+| `.markdown-toolbar` | Formatting toolbar | `--color-bg-secondary`, `--radius-sm` |
+| `.markdown-editor-panes` | Split input/preview | CSS Grid: `1fr 1fr` |
+| `.markdown-editor-textarea` | Markdown input | `--font-mono`, `--text-sm` |
+| `.markdown-editor-preview` | Live HTML preview | `--font-body`, `--text-sm` |
+
+### Picture Upload Classes
+
+| BEM Class | Purpose | CSS Variable References |
+|-----------|---------|------------------------|
+| `.picture-preview-row` | Full + thumbnail previews | Flexbox row |
+
+> **Namespace Migration:** These `.wysiwyg-*` classes replace the legacy `essay-*` and `blog-*` namespaces from the pre-standardization era. All four dashboards now use the unified namespace.
 

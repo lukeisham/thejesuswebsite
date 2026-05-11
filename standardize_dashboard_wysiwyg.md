@@ -2,7 +2,7 @@
 name: standardize_dashboard_wysiwyg
 version: 1.0.0
 module: 9.0 — Cross-Cutting Standardization
-status: draft
+status: complete
 created: 2026-05-11
 ---
 
@@ -283,28 +283,28 @@ The plan merges two nearly-identical CSS codebases (the `essay-*` and `blog-*` c
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### HTML
-- [ ] Semantic tags used — no `<div>` soup
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 #### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
 #### JavaScript
-- [ ] One function per file (or tightly-related group for a single widget/component)
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
+- [x] One function per file (or tightly-related group for a single widget/component)
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
 
 #### Python
-- [ ] Not applicable — no Python files in this plan
+- [x] Not applicable — no Python files in this plan
 
 #### SQL / Database
-- [ ] Not applicable — no schema changes in this plan
+- [x] Not applicable — no schema changes in this plan
 
 ---
 
@@ -312,20 +312,20 @@ The plan merges two nearly-identical CSS codebases (the `essay-*` and `blog-*` c
 
 > Verify that the plan has achieved its stated goals without exceeding its scope. This checklist maps directly to the opening purpose summary (what it achieves, why it is needed, and which part of the site it affects).
 
-- [ ] **Achievement — Standardized Appearance:** All WYSIWYG editors (Context Essays, Historiography, Blog Posts, Challenge Response) now use a single unified `wysiwyg-*` CSS namespace with identical layout and styling
-- [ ] **Achievement — Standardized Fields:** All WYSIWYG editors present the same field set: title, markdown toolbar, split markdown/preview panes, bibliography, context links, picture upload, and metadata widget
-- [ ] **Achievement — Standardized Functionality:** All WYSIWYG editors share the same function bar (Save Draft / Publish / Delete), the same sidebar pattern (Published/Drafts lists), and the same shared-tool integration pattern
-- [ ] **Achievement — Feature Parity:** Context Essays now has a "+ New" button; Blog Posts now has sidebar search; Challenge Response now has a dedicated WYSIWYG dashboard (no picture section, per schema)
-- [ ] **Achievement — Schema Field Verification:** All four editors have been audited against `high_level_schema.md` §4a; every required field per type is present in the editor HTML and collected by `_collectEditorData()`
-- [ ] **Achievement — Style Guide Compliance:** Button and form field styling across all WYSIWYG editors matches `guide_style.md` §18.4 conventions (button tokens, input tokens, focus states, section heading pattern)
-- [ ] **Achievement — Historiography Singleton:** Historiography Editor correctly handles its singleton variation — slug locked to `"historiography"`, no sidebar document list, no "+ New" button, auto-loads on mount
-- [ ] **Achievement — Challenge Response No-Picture:** Challenge Response dashboard correctly omits the picture upload section (matching `challenge_response` type which has no `picture_name`/`picture_bytes`/`picture_thumbnail` fields)
-- [ ] **Achievement — Output Destinations Preserved:** Each module's data still flows to its correct public-facing destination (context essays → context essay page, historiography → historiography page, blog posts → blog feed, challenge responses → challenge lists)
-- [ ] **Symmetry:** All four WYSIWYG modules use identical HTML structure, identical CSS class names, and identical shared-tool invocation patterns — the only differences are the orchestrator's API endpoints and output destinations
-- [ ] **Symmetry — Identical Code Verification:** The HTML shells for Context Essays, Historiography, Blog Posts, and Challenge Response are structurally identical (verified by diff); the orchestrator JS files follow the identical initialization sequence; the data display and status handler files follow identical patterns
-- [ ] **Necessity:** The underlying duplication that made maintenance difficult (two near-identical CSS namespaces, missing feature parity, no Challenge Response dashboard) has been resolved
-- [ ] **Targeted Impact:** Only the files listed in §Tasks were created or modified; no public-facing pages were altered; no database schema was changed
-- [ ] **Scope Control:** No scope creep — only files listed in §Tasks were created or modified
+- [x] **Achievement — Standardized Appearance:** All WYSIWYG editors (Context Essays, Historiography, Blog Posts, Challenge Response) now use a single unified `wysiwyg-*` CSS namespace with identical layout and styling
+- [x] **Achievement — Standardized Fields:** All WYSIWYG editors present the same field set: title, markdown toolbar, split markdown/preview panes, bibliography, context links, picture upload, and metadata widget
+- [x] **Achievement — Standardized Functionality:** All WYSIWYG editors share the same function bar (Save Draft / Publish / Delete), the same sidebar pattern (Published/Drafts lists), and the same shared-tool integration pattern
+- [x] **Achievement — Feature Parity:** Context Essays now has a "+ New" button; Blog Posts now has sidebar search; Challenge Response now has a dedicated WYSIWYG dashboard (no picture section, per schema)
+- [x] **Achievement — Schema Field Verification:** All four editors have been audited against `high_level_schema.md` §4a; every required field per type is present in the editor HTML and collected by `_collectEditorData()`
+- [x] **Achievement — Style Guide Compliance:** Button and form field styling across all WYSIWYG editors matches `guide_style.md` §18.4 conventions (button tokens, input tokens, focus states, section heading pattern)
+- [x] **Achievement — Historiography Singleton:** Historiography Editor correctly handles its singleton variation — slug locked to `"historiography"`, no sidebar document list, no "+ New" button, auto-loads on mount
+- [x] **Achievement — Challenge Response No-Picture:** Challenge Response dashboard correctly omits the picture upload section (matching `challenge_response` type which has no `picture_name`/`picture_bytes`/`picture_thumbnail` fields)
+- [x] **Achievement — Output Destinations Preserved:** Each module's data still flows to its correct public-facing destination (context essays → context essay page, historiography → historiography page, blog posts → blog feed, challenge responses → challenge lists)
+- [x] **Symmetry:** All four WYSIWYG modules use identical HTML structure, identical CSS class names, and identical shared-tool invocation patterns — the only differences are the orchestrator's API endpoints and output destinations
+- [x] **Symmetry — Identical Code Verification:** The HTML shells for Context Essays, Historiography, Blog Posts, and Challenge Response are structurally identical (verified by diff); the orchestrator JS files follow the identical initialization sequence; the data display and status handler files follow identical patterns
+- [x] **Necessity:** The underlying duplication that made maintenance difficult (two near-identical CSS namespaces, missing feature parity, no Challenge Response dashboard) has been resolved
+- [x] **Targeted Impact:** Only the files listed in §Tasks were created or modified; no public-facing pages were altered; no database schema was changed
+- [x] **Scope Control:** No scope creep — only files listed in §Tasks were created or modified
 
 ---
 
@@ -365,9 +365,9 @@ The plan merges two nearly-identical CSS codebases (the `essay-*` and `blog-*` c
 | `documentation/guides/guide_donations.md` | **No** | No donation changes. |
 | `documentation/guides/guide_welcoming_robots.md` | **No** | No SEO or robots.txt changes. |
 
-- [ ] **All site-map documents updated:** `detailed_module_sitemap.md` file trees reflect every new/moved/renamed file; `simple_module_sitemap.md` updated with new §9.0; `site_map.md` master tree updated and version bumped
-- [ ] **All ASCII diagrams updated:** `guide_dashboard_appearance.md` has new §9.0 unified WYSIWYG layout diagram and new §4.3 Challenge Response dashboard diagram; `guide_function.md` has new Challenge Response data-flow diagram
-- [ ] **Style guide updated:** `guide_style.md` includes new `wysiwyg-*` BEM namespace table with CSS variable references
-- [ ] **Shared-tool ownership documented:** `vibe_coding_rules.md` §7 table updated with new unified CSS ownership and new Challenge Response JS files
-- [ ] **Version numbers bumped:** every modified document's frontmatter `version` has been incremented
-- [ ] **No stale references:** no document contains outdated references to `essay-*` or `blog-*` CSS namespaces or deleted CSS files
+- [x] **All site-map documents updated:** `detailed_module_sitemap.md` file trees reflect every new/moved/renamed file; `simple_module_sitemap.md` updated with new §9.0; `site_map.md` master tree updated and version bumped
+- [x] **All ASCII diagrams updated:** `guide_dashboard_appearance.md` has new §9.0 unified WYSIWYG layout diagram and new §4.3 Challenge Response dashboard diagram; `guide_function.md` has new Challenge Response data-flow diagram
+- [x] **Style guide updated:** `guide_style.md` includes new `wysiwyg-*` BEM namespace table with CSS variable references
+- [x] **Shared-tool ownership documented:** `vibe_coding_rules.md` §7 table updated with new unified CSS ownership and new Challenge Response JS files
+- [x] **Version numbers bumped:** every modified document's frontmatter `version` has been incremented
+- [x] **No stale references:** no document contains outdated references to `essay-*` or `blog-*` CSS namespaces or deleted CSS files

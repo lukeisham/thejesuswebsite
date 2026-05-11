@@ -1,7 +1,7 @@
 ---
 name: simple_module_sitemap.md
 purpose: High-level ASCII map of the project's modular architecture (1.0 - 8.0)
-version: 1.4.0
+version: 1.5.0
 dependencies: [detailed_module_sitemap.md]
 ---
 
@@ -55,4 +55,9 @@ dependencies: [detailed_module_sitemap.md]
 ├── 8.1 Local Environment Initialization
 ├── 8.2 Core Unit & Integration Testing
 └── 8.3 Architectural Documentation & Guides
+
+9.0 Cross-Cutting Standardization
+├── 9.1 Unified WYSIWYG Editor CSS
+├── 9.2 Unified WYSIWYG Dashboard Layout CSS
+└── 9.3 Challenge Response Dashboard Module
 ```
