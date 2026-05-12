@@ -993,7 +993,7 @@ async def public_diagram_tree():
         conn = get_public_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, title, slug, parent_id, snippet FROM records "
+            "SELECT id, title, slug, parent_id, snippet, primary_verse FROM records "
             "WHERE status = 'published' ORDER BY title"
         )
         nodes = [dict(row) for row in cursor.fetchall()]

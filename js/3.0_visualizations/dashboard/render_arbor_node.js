@@ -69,13 +69,27 @@ function renderArborNode(nodeData, containerEl, isOrphan) {
     label.textContent = title;
     row.appendChild(label);
 
-    // --- ID display ---
-    const idSpan = document.createElement("span");
-    idSpan.className = "arbor-node-row__id";
-    idSpan.textContent = nodeData.id.length > 10
-        ? nodeData.id.substring(0, 10) + "\u2026"
-        : nodeData.id;
-    row.appendChild(idSpan);
+    // --- Primary verse meta ---
+    var verseText = '';
+    if (nodeData.primary_verse) {
+        try {
+            var parsed = typeof nodeData.primary_verse === 'string'
+                ? JSON.parse(nodeData.primary_verse)
+                : nodeData.primary_verse;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                var v = parsed[0];
+                verseText = (v.book || '') + ' ' + (v.chapter || '') + ':' + (v.verse || '');
+            }
+        } catch (e) {
+            verseText = nodeData.primary_verse;
+        }
+    }
+    if (verseText) {
+        var verseSpan = document.createElement("span");
+        verseSpan.className = "arbor-node-row__verse";
+        verseSpan.textContent = verseText;
+        row.appendChild(verseSpan);
+    }
 
     // --- Action buttons ---
     const actions = document.createElement("span");

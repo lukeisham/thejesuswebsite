@@ -213,13 +213,29 @@ function buildTreeSVG(rootNodes, nodesMap) {
       '" text-anchor="middle" dominant-baseline="middle">' +
       title +
       "</text>";
-    if (pos.depth === 0) {
+    var metaLabel = '';
+    if (node.primary_verse) {
+      try {
+        var parsed = typeof node.primary_verse === 'string'
+            ? JSON.parse(node.primary_verse)
+            : node.primary_verse;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          var v = parsed[0];
+          metaLabel = (v.book || '') + ' ' + (v.chapter || '') + ':' + (v.verse || '');
+        }
+      } catch (e) {
+        metaLabel = node.primary_verse;
+      }
+    }
+    if (metaLabel) {
       svg +=
         '<text class="meta" x="' +
         nodeWidth / 2 +
         '" y="' +
         (nodeHeight - 5) +
-        '" text-anchor="middle">ROOT</text>';
+        '" text-anchor="middle">' +
+        escapeHtmlAttr(metaLabel) +
+        '</text>';
     }
     svg += "</g>";
   });
