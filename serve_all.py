@@ -980,7 +980,33 @@ async def public_responses(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+
+@app.get("/api/public/diagram/tree")
+async def public_diagram_tree():
+    """
+    Returns all published records as a flat node list for the evidence
+    diagram tree. The frontend assembles this into a recursive tree by
+    grouping on parent_id. parent_id may be null (root nodes).
+    """
+    try:
+        conn = get_public_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, title, slug, parent_id, snippet FROM records "
+            "WHERE status = 'published' ORDER BY title"
+        )
+        nodes = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return {"nodes": nodes}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # --- STATIC FILES SECTION ---
+
 
 # 6. Static File Mounting (PREVIOUS FUNCTIONALITY)
 # Mounted LAST so that specific API routes, clean slug handlers, and

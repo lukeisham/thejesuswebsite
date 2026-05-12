@@ -98,6 +98,27 @@ This is now a **mandatory checkbox task** (not a passive appendix). The task inc
 
 **Every "No" row must still be listed** so the executor knows it was considered and ruled out.
 
+#### Markdown Editing Methodology (for plan executors)
+
+When the executor reaches T[Final+2] (Documentation Update) and needs to edit markdown files:
+
+1. **Read first** — Always read the exact text block you intend to replace (use `grep` with line numbers to find it, then `read_file` with precise start/end lines).
+2. **Skip `edit_file` for anything with box-drawing characters** — ASCII art (`┌ ─ ┐ │ └ ┘`), Unicode symbols (`• → · ⚠ ✗ ✓`), or extended Unicode characters cannot be reliably matched by `edit_file`'s fuzzy matcher.
+3. **Use a Python script via `terminal` instead** — Read the file, do a `str.replace()`, and write it back:
+
+   ```python
+   with open('path/to/file.md', 'r') as f:
+       content = f.read()
+   content = content.replace('old exact text', 'new exact text')
+   with open('path/to/file.md', 'w') as f:
+       f.write(content)
+   ```
+
+   Break long replacements across multi-line strings for readability. Use `grep -n` to find line numbers if you need to verify the anchor first.
+4. **For files with only short ASCII text changes** — `edit_file` is fine if there are no box-drawing or Unicode characters involved. Use judgment.
+
+**Also apply this methodology to task T8 (frontend display updates) or any other task that involves editing markdown documentation — not just T[Final+2].**
+
 **Decision criteria** for whether a document is affected (same as before):
 
 | Document | Affects it if… |
