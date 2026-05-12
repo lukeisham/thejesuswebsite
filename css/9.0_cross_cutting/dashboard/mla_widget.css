@@ -3,31 +3,107 @@
    This is the authoritative copy — consumed by all dashboard editor modules
    that support MLA bibliography editing.
    File:    css/9.0_cross_cutting/dashboard/mla_widget.css
-   Version: 1.0.0
+   Version: 1.1.0
    Owner:   plan_relocate_shared_widgets_to_cross_cutting (9.0 Cross-Cutting)
    Purpose: Shared stylesheet for the `.bibliography-editor` BEM namespace,
-            providing type-toggled form layout for MLA citation entries.
-            WYSIWYG overlay styles live in wysiwyg_dashboard_layout.css §5
-            (already in 9.0). All colours, fonts, and spacing reference
+            providing three editable tables (Books, Articles, Websites) for
+            MLA citation entry. All colours, fonts, and spacing reference
             CSS variables from typography.css.
 ============================================================================= */
 
 /* =============================================================================
-   1. BIBLIOGRAPHY EDITOR — type-toggled forms
+   1. BIBLIOGRAPHY EDITOR — container
 ============================================================================= */
 
 .bibliography-editor {
     margin-bottom: var(--space-3);
 }
 
-.bibliography-editor__entry {
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2);
-    margin-bottom: var(--space-2);
+/* =============================================================================
+   2. SECTION — per-type table block (Books / Articles / Websites)
+============================================================================= */
+
+.bibliography-editor__section {
+    margin-bottom: var(--space-4);
 }
 
-.bibliography-editor__type-select {
+.bibliography-editor__subheading {
+    font-family: var(--font-heading);
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-2) 0;
+    padding-bottom: var(--space-1);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+/* =============================================================================
+   3. TABLE — full-width editable grid
+============================================================================= */
+
+.bibliography-editor__table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--space-1);
+    table-layout: auto;
+}
+
+.bibliography-editor__thead {
+    /* contained within the table */
+}
+
+.bibliography-editor__th {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    text-align: left;
+    padding: var(--space-1) var(--space-2);
+    border-bottom: var(--border-width-thin) solid var(--color-border-strong);
+    background-color: var(--color-bg-tertiary);
+}
+
+.bibliography-editor__th--remove {
+    width: 40px;
+    text-align: center;
+}
+
+/* =============================================================================
+   4. TABLE BODY — data rows
+============================================================================= */
+
+.bibliography-editor__tbody {
+    /* contained within the table */
+}
+
+.bibliography-editor__row {
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    transition: background-color var(--transition-fast);
+}
+
+.bibliography-editor__row:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+.bibliography-editor__td {
+    padding: var(--space-1) var(--space-2);
+    vertical-align: middle;
+}
+
+.bibliography-editor__td--remove {
+    text-align: center;
+    width: 40px;
+}
+
+/* =============================================================================
+   5. INPUT — inline text inputs within table cells
+============================================================================= */
+
+.bibliography-editor__input {
+    width: 100%;
+    box-sizing: border-box;
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     color: var(--color-text-primary);
@@ -35,46 +111,94 @@
     border: var(--border-width-thin) solid var(--color-border);
     padding: var(--space-1) var(--space-2);
     border-radius: var(--radius-sm);
-    margin-bottom: var(--space-2);
-    cursor: pointer;
+    transition: border-color var(--transition-fast);
 }
 
-.bibliography-editor__fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-1) var(--space-2);
+.bibliography-editor__input:focus {
+    border-color: var(--color-accent-primary);
+    outline: none;
 }
 
-.bibliography-editor__field-full {
-    grid-column: 1 / -1;
-}
+/* =============================================================================
+   6. REMOVE BUTTON — per-row deletion
+============================================================================= */
 
-.bibliography-editor__remove {
-    margin-top: var(--space-1);
+.bibliography-editor__remove-btn {
     font-family: var(--font-heading);
-    font-size: var(--text-xs);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
     color: var(--color-accent-primary);
     background: none;
     border: var(--border-width-thin) solid var(--color-border-accent);
     cursor: pointer;
-    padding: 2px var(--space-2);
+    width: 28px;
+    height: 28px;
+    line-height: 1;
+    padding: 0;
     border-radius: var(--radius-sm);
     transition:
         background-color var(--transition-fast),
         color var(--transition-fast);
 }
 
-.bibliography-editor__remove:hover {
+.bibliography-editor__remove-btn:hover {
     background-color: var(--color-accent-primary);
     color: var(--color-white);
 }
 
 /* =============================================================================
-   2. RESPONSIVE — single-column fields on narrow viewports
+   7. ADD ROW — button area below each table
+============================================================================= */
+
+.bibliography-editor__add-row {
+    display: flex;
+    justify-content: flex-start;
+    padding-top: var(--space-1);
+}
+
+.bibliography-editor__add-btn {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    cursor: pointer;
+}
+
+/* =============================================================================
+   8. RESPONSIVE — single-column layout on narrow viewports
 ============================================================================= */
 
 @media (max-width: 640px) {
-    .bibliography-editor__fields {
-        grid-template-columns: 1fr;
+    .bibliography-editor__table,
+    .bibliography-editor__thead,
+    .bibliography-editor__tbody,
+    .bibliography-editor__th,
+    .bibliography-editor__td,
+    .bibliography-editor__row {
+        display: block;
+    }
+
+    .bibliography-editor__thead {
+        display: none;
+    }
+
+    .bibliography-editor__row {
+        margin-bottom: var(--space-2);
+        padding: var(--space-1) var(--space-2);
+        border: var(--border-width-thin) solid var(--color-border);
+        border-radius: var(--radius-sm);
+    }
+
+    .bibliography-editor__td {
+        display: flex;
+        align-items: center;
+        padding: var(--space-1) 0;
+        border-bottom: var(--border-width-thin) solid var(--color-border);
+    }
+
+    .bibliography-editor__td:last-of-type {
+        border-bottom: none;
+    }
+
+    .bibliography-editor__td--remove {
+        justify-content: center;
     }
 }

@@ -137,15 +137,6 @@ function renderSingleRecord() {
   if (record.geo_id) {
     metadataItems.push({ label: "Geo ID", value: record.geo_id });
   }
-  if (record.iaa) {
-    metadataItems.push({ label: "IAA", value: record.iaa });
-  }
-  if (record.pledius) {
-    metadataItems.push({ label: "Pledius", value: record.pledius });
-  }
-  if (record.manuscript) {
-    metadataItems.push({ label: "Manuscript", value: record.manuscript });
-  }
   if (record.page_views) {
     metadataItems.push({ label: "Page Views", value: record.page_views });
   }
@@ -262,6 +253,39 @@ function renderSingleRecord() {
         urlSection.appendChild(urlLink);
         urlContainer.appendChild(urlSection);
       }
+    }
+  }
+
+  // --- unique identifiers — render as a formal <ul> list section ---
+  var refsListEl = document.getElementById("record-references-list");
+  var refsSectionEl = document.getElementById("record-section-references");
+  if (refsListEl && refsSectionEl) {
+    var refItems = [];
+    if (record.iaa) {
+      refItems.push(
+        '<li><span class="ref-label">IAA Reference:</span> <span class="ref-value">' +
+          record.iaa +
+          "</span></li>",
+      );
+    }
+    if (record.pledius) {
+      refItems.push(
+        '<li><span class="ref-label">Pledius:</span> <span class="ref-value">' +
+          record.pledius +
+          "</span></li>",
+      );
+    }
+    if (record.manuscript) {
+      refItems.push(
+        '<li><span class="ref-label">Manuscript:</span> <span class="ref-value">' +
+          record.manuscript +
+          "</span></li>",
+      );
+    }
+    if (refItems.length > 0) {
+      refsListEl.innerHTML = refItems.join("");
+      refsSectionEl.classList.add("is-visible-block");
+      refsSectionEl.classList.remove("is-hidden");
     }
   }
 

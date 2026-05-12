@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.10.0
+version: 1.11.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -432,26 +432,62 @@ The `.picture-preview` BEM namespace lives in `css/9.0_cross_cutting/dashboard/p
 
 ### 22b. Shared-Component Styling — `.bibliography-editor` BEM Namespace
 
-The `.bibliography-editor` BEM namespace lives in `css/9.0_cross_cutting/dashboard/mla_widget.css` and provides shared styling for the MLA bibliography editor used across dashboard modules.
+The `.bibliography-editor` BEM namespace lives in `css/9.0_cross_cutting/dashboard/mla_widget.css` and provides shared styling for the MLA bibliography table editor (Books, Articles, Websites) used across dashboard modules.
 
 | BEM Class | Purpose | Key Variables Used |
 |:---|:---|:---|
 | `.bibliography-editor` | Block container | `--space-3` margin |
-| `.bibliography-editor__entry` | Per-source card | `--border-width-thin`, `--radius-sm`, `--space-2` |
-| `.bibliography-editor__type-select` | Type dropdown (book/article/website) | `--font-mono`, `--text-sm` |
-| `.bibliography-editor__fields` | 2-column field grid | CSS Grid, `--space-1` / `--space-2` |
-| `.bibliography-editor__field-full` | Full-width field span | `grid-column: 1 / -1` |
-| `.bibliography-editor__remove` | Remove button (Oxblood) | `--color-accent-primary`, `--font-heading`, `--text-xs` |
+| `.bibliography-editor__section` | Per-type table block wrapper | `--space-4` margin |
+| `.bibliography-editor__subheading` | Section heading (Books / Articles / Websites) | `--font-heading`, `--text-md`, `--weight-semibold` |
+| `.bibliography-editor__table` | Full-width editable table | `width: 100%`, `border-collapse: collapse` |
+| `.bibliography-editor__thead` | Table header wrapper | (structural) |
+| `.bibliography-editor__th` | Column header cell | `--font-mono`, `--text-xs`, `--color-bg-tertiary` |
+| `.bibliography-editor__th--remove` | Remove column header (40px) | (structural) |
+| `.bibliography-editor__tbody` | Table body wrapper | (structural) |
+| `.bibliography-editor__row` | Data row with hover state | `--color-bg-secondary` hover |
+| `.bibliography-editor__td` | Data cell | `--space-1` / `--space-2` padding |
+| `.bibliography-editor__td--remove` | Remove cell (40px, centered) | (structural) |
+| `.bibliography-editor__input` | Inline text input in cells | `--font-mono`, `--text-sm`, `--radius-sm` |
+| `.bibliography-editor__remove-btn` | Per-row × remove button | `--color-accent-primary`, `--font-heading`, `--text-lg` |
+| `.bibliography-editor__add-row` | Add button row below table | Flexbox, `--space-1` |
+| `.bibliography-editor__add-btn` | Add button per table section | `--font-heading`, `--text-sm` |
 
 ### 22c. Shared-Component Styling — `.context-links-editor` BEM Namespace
 
-The `.context-links-editor` BEM namespace lives in `css/9.0_cross_cutting/dashboard/context_links_widget.css` and provides shared styling for the context links editor used across dashboard modules.
+The `.context-links-editor` BEM namespace lives in `css/9.0_cross_cutting/dashboard/context_links_widget.css` and provides shared styling for the context links table editor used across dashboard modules.
 
 | BEM Class | Purpose | Key Variables Used |
 |:---|:---|:---|
 | `.context-links-editor` | Block container | `--space-3` margin |
-| `.context-links-editor__inputs` | 3-column input row (slug + type + button) | CSS Grid, `--space-1` gap |
-| `.context-links-editor__chips` | Chip collection area | Flexbox, `--color-bg-tertiary`, `--radius-sm` |
+| `.context-links-editor__table` | Full-width editable table | `width: 100%`, `border-collapse: collapse` |
+| `.context-links-editor__thead` | Table header wrapper | (structural) |
+| `.context-links-editor__th` | Column header cell | `--font-mono`, `--text-xs`, `--color-bg-tertiary` |
+| `.context-links-editor__th--remove` | Remove column header (40px) | (structural) |
+| `.context-links-editor__tbody` | Table body wrapper | (structural) |
+| `.context-links-editor__row` | Data row with hover state | `--color-bg-secondary` hover |
+| `.context-links-editor__row--empty` | Empty-state row | (structural) |
+| `.context-links-editor__td` | Data cell (mono font) | `--font-mono`, `--text-sm` |
+| `.context-links-editor__td--remove` | Remove cell (40px, centered) | (structural) |
+| `.context-links-editor__empty-text` | "No context links" placeholder | `--font-body`, `--text-muted`, italic |
+| `.context-links-editor__remove-btn` | Per-row × remove button | `--color-accent-primary`, `--font-heading`, `--text-lg` |
+| `.context-links-editor__add-row` | 3-column inline add form | CSS Grid: `2fr 1fr auto`, `--space-1` gap |
+
+### 22d. Shared-Component Styling — `.external-refs-editor` BEM Namespace
+
+The `.external-refs-editor` BEM namespace lives in `css/9.0_cross_cutting/dashboard/external_refs_widget.css` and provides shared styling for the unique identifiers table editor used across dashboard modules.
+
+| BEM Class | Purpose | Key Variables Used |
+|:---|:---|:---|
+| `.external-refs-editor` | Block container | `--space-3` margin |
+| `.external-refs-editor__table` | Full-width two-column table | `width: 100%`, `border-collapse: collapse` |
+| `.external-refs-editor__thead` | Table header wrapper | (structural) |
+| `.external-refs-editor__th` | Column header cell | `--font-mono`, `--text-xs`, `--color-bg-tertiary` |
+| `.external-refs-editor__tbody` | Table body wrapper | (structural) |
+| `.external-refs-editor__row` | Data row with hover state | `--color-bg-secondary` hover |
+| `.external-refs-editor__td` | Data cell | `--space-1` / `--space-2` padding |
+| `.external-refs-editor__td--label` | Label cell (220px fixed width) | (structural) |
+| `.external-refs-editor__label` | Identifier type label text | `--font-mono`, `--text-sm`, `--weight-medium` |
+| `.external-refs-editor__value-input` | Inline editable value input | `--font-mono`, `--text-sm`, `--radius-sm` |
 
 ---
 

@@ -162,7 +162,7 @@ async function _handleRecalculateRecord() {
   if (!state.activeRecordId) {
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
-        "No record selected. Select a record to recalculate.",
+        "No article selected. Select an article to recalculate.",
       );
     }
     return;
@@ -218,7 +218,7 @@ async function _handleRecalculateRecord() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "Recalculate This Record";
+      btn.textContent = "Recalculate This Article";
     }
   }
 }

@@ -117,7 +117,7 @@ function _buildWikipediaRow(record, index) {
   rowEl.setAttribute("data-record-id", record.id || "");
   rowEl.setAttribute("data-record-slug", record.slug || "");
 
-  const title = record.title || record.slug || "Untitled Record";
+  const title = record.title || record.slug || "Untitled Article";
   const rank = parseInt(record.wikipedia_rank, 10) || 0;
   const status = record.status || "draft";
 

@@ -3,24 +3,131 @@
    This is the authoritative copy — consumed by all dashboard editor modules
    that support context-links editing.
    File:    css/9.0_cross_cutting/dashboard/context_links_widget.css
-   Version: 1.0.0
+   Version: 1.1.0
    Owner:   plan_relocate_shared_widgets_to_cross_cutting (9.0 Cross-Cutting)
    Purpose: Shared stylesheet for the `.context-links-editor` BEM namespace,
-            providing slug + type chip management layout. WYSIWYG overlay
-            styles live in wysiwyg_dashboard_layout.css §6 (already in 9.0).
-            All colours, fonts, and spacing reference CSS variables from
-            typography.css.
+            providing slug + type editable table management. All colours,
+            fonts, and spacing reference CSS variables from typography.css.
 ============================================================================= */
 
 /* =============================================================================
-   1. CONTEXT LINKS EDITOR — slug + type chip management
+   1. CONTEXT LINKS EDITOR — container
 ============================================================================= */
 
 .context-links-editor {
     margin-bottom: var(--space-3);
 }
 
-.context-links-editor__inputs {
+/* =============================================================================
+   2. TABLE — full-width editable grid
+============================================================================= */
+
+.context-links-editor__table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--space-2);
+    table-layout: auto;
+}
+
+/* =============================================================================
+   3. THEAD — column headers
+============================================================================= */
+
+.context-links-editor__thead {
+    /* contained within the table */
+}
+
+.context-links-editor__th {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    text-align: left;
+    padding: var(--space-1) var(--space-2);
+    border-bottom: var(--border-width-thin) solid var(--color-border-strong);
+    background-color: var(--color-bg-tertiary);
+}
+
+.context-links-editor__th--remove {
+    width: 40px;
+    text-align: center;
+}
+
+/* =============================================================================
+   4. TBODY — data rows
+============================================================================= */
+
+.context-links-editor__tbody {
+    /* contained within the table */
+}
+
+.context-links-editor__row {
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+    transition: background-color var(--transition-fast);
+}
+
+.context-links-editor__row:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+.context-links-editor__row--empty {
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.context-links-editor__td {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    padding: var(--space-1) var(--space-2);
+    vertical-align: middle;
+}
+
+.context-links-editor__td--remove {
+    text-align: center;
+    width: 40px;
+}
+
+.context-links-editor__empty-text {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+/* =============================================================================
+   5. REMOVE BUTTON — per-row deletion
+============================================================================= */
+
+.context-links-editor__remove-btn {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    color: var(--color-accent-primary);
+    background: none;
+    border: var(--border-width-thin) solid var(--color-border-accent);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    line-height: 1;
+    padding: 0;
+    border-radius: var(--radius-sm);
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.context-links-editor__remove-btn:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+}
+
+/* =============================================================================
+   6. ADD ROW — inline form at the bottom of the table
+============================================================================= */
+
+.context-links-editor__add-row {
     display: grid;
     grid-template-columns: 2fr 1fr auto;
     gap: var(--space-1);
@@ -28,23 +135,42 @@
     margin-bottom: var(--space-2);
 }
 
-.context-links-editor__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
-    min-height: 32px;
-    padding: var(--space-1);
-    background-color: var(--color-bg-tertiary);
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
-}
-
 /* =============================================================================
-   2. RESPONSIVE — single-column inputs on narrow viewports
+   7. RESPONSIVE — single-column inputs on narrow viewports
 ============================================================================= */
 
 @media (max-width: 640px) {
-    .context-links-editor__inputs {
+    .context-links-editor__add-row {
         grid-template-columns: 1fr;
+    }
+
+    .context-links-editor__table,
+    .context-links-editor__thead,
+    .context-links-editor__tbody,
+    .context-links-editor__th,
+    .context-links-editor__td,
+    .context-links-editor__row {
+        display: block;
+    }
+
+    .context-links-editor__thead {
+        display: none;
+    }
+
+    .context-links-editor__row {
+        margin-bottom: var(--space-1);
+        padding: var(--space-1);
+        border: var(--border-width-thin) solid var(--color-border);
+        border-radius: var(--radius-sm);
+    }
+
+    .context-links-editor__td {
+        display: flex;
+        align-items: center;
+        padding: var(--space-1) 0;
+    }
+
+    .context-links-editor__td--remove {
+        justify-content: center;
     }
 }

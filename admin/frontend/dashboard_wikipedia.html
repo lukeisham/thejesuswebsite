@@ -4,7 +4,7 @@
    Version: 1.0.0
    Module:  4.0 — Ranked Lists
    Purpose: Wikipedia list management container — dual-pane layout with a
-            contextual record-detail sidebar (title, slug, weighting criteria
+            contextual article-detail sidebar (title, slug, weighting criteria
             list matching Challenge styling, search terms textarea matching
             Challenge styling, snippet/slug/meta editing with auto-gen
             buttons, and per-record recalculate) alongside a main scrollable
@@ -46,7 +46,7 @@
             id="btn-delete"
             class="btn btn--delete"
             type="button"
-            title="Delete the selected record"
+            title="Delete the selected article"
         >
             Delete
         </button>
@@ -70,8 +70,8 @@
 </section>
 
 <!-- =============================================================================
-   SPLIT-PANE LAYOUT — Record-detail sidebar + Wikipedia list main area
-   Two columns: sidebar (record detail: info, weight, search terms, metadata,
+   SPLIT-PANE LAYOUT — Article-detail sidebar + Wikipedia list main area
+   Two columns: sidebar (article detail: info, weight, search terms, metadata,
    actions) | main (ranked Wikipedia article list).
    CSS Grid for macro layout; Flexbox for micro alignment within columns.
 ============================================================================= -->
@@ -80,24 +80,24 @@
     class="wikipedia-editor-layout"
     aria-label="Wikipedia editor"
 >
-    <!-- Sidebar Column: Record Detail -->
+    <!-- Sidebar Column: Article Detail -->
     <aside
         id="wikipedia-sidebar"
         class="wikipedia-sidebar"
-        aria-label="Record detail"
+        aria-label="Article detail"
     >
         <header class="wikipedia-sidebar__header">
-            <h2 class="wikipedia-sidebar__heading">RECORD DETAIL</h2>
+            <h2 class="wikipedia-sidebar__heading">ARTICLE DETAIL</h2>
         </header>
 
-        <!-- Section 1: Record Info (read-only) -->
+        <!-- Section 1: Article Info (read-only) -->
         <section
             id="wikipedia-record-info"
             class="wikipedia-sidebar__section"
-            aria-label="Record information"
+            aria-label="Article information"
         >
             <header class="wikipedia-sidebar__subheader">
-                <h3 class="wikipedia-sidebar__subheading">Record</h3>
+                <h3 class="wikipedia-sidebar__subheading">Article</h3>
             </header>
             <div class="wikipedia-record-info__content">
                 <p
@@ -227,15 +227,15 @@
         <section
             id="wikipedia-actions"
             class="wikipedia-sidebar__section"
-            aria-label="Record actions"
+            aria-label="Article actions"
         >
             <button
                 id="btn-wikipedia-recalculate-record"
                 class="btn btn--secondary btn--full"
                 type="button"
-                title="Recalculate Wikipedia data for this record"
+                title="Recalculate Wikipedia data for this article"
             >
-                Recalculate This Record
+                Recalculate This Article
             </button>
         </section>
     </aside>

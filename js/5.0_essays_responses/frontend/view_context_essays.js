@@ -121,14 +121,11 @@ function buildEssayHTML(essay) {
     }
   }
 
-  // Metadata line: date, iaa, pledius, manuscript
+  // Metadata line: date only — unique identifiers moved to dedicated list section
   var metaParts = [];
   if (essay.updated_at || essay.created_at) {
     metaParts.push(formatEssayDate(essay.updated_at || essay.created_at));
   }
-  if (essay.iaa) metaParts.push("IAA: " + escapeHtml(essay.iaa));
-  if (essay.pledius) metaParts.push("Pledius: " + escapeHtml(essay.pledius));
-  if (essay.manuscript) metaParts.push("MS: " + escapeHtml(essay.manuscript));
 
   if (metaParts.length > 0) {
     html +=
@@ -136,6 +133,33 @@ function buildEssayHTML(essay) {
   }
 
   html += "</header>";
+
+  // --- Unique Identifiers — render as a formal <ul> list section ---
+  var refItems = [];
+  if (essay.iaa)
+    refItems.push(
+      '<li><span class="ref-label">IAA Reference:</span> <span class="ref-value">' +
+        escapeHtml(essay.iaa) +
+        "</span></li>",
+    );
+  if (essay.pledius)
+    refItems.push(
+      '<li><span class="ref-label">Pledius:</span> <span class="ref-value">' +
+        escapeHtml(essay.pledius) +
+        "</span></li>",
+    );
+  if (essay.manuscript)
+    refItems.push(
+      '<li><span class="ref-label">Manuscript:</span> <span class="ref-value">' +
+        escapeHtml(essay.manuscript) +
+        "</span></li>",
+    );
+  if (refItems.length > 0) {
+    html += '<section class="essay-references">';
+    html += '<h2 class="essay-body h2">Unique Identifiers</h2>';
+    html += '<ul class="essay-references__list">' + refItems.join("") + "</ul>";
+    html += "</section>";
+  }
 
   // --- Abstract / Snippet highlight ---
   if (essay.snippet) {

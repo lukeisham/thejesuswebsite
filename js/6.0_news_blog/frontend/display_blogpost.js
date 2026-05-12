@@ -129,44 +129,60 @@ function renderBlogPost() {
         html += "</div>";
       }
 
-      // --- Metadata section: render missing schema fields ---
-      html +=
-        '<section class="blog-metadata" style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--color-border);">';
-      html += '<h2 class="blog-metadata__heading">Article Details</h2>';
-      html += '<dl class="blog-metadata__grid">';
+      // --- Unique Identifiers — render as a formal <ul> list section ---
+      var refItems = [];
+      if (post.iaa)
+        refItems.push(
+          '<li><span class="ref-label">IAA Reference:</span> <span class="ref-value">' +
+            escapeHtml(post.iaa) +
+            "</span></li>",
+        );
+      if (post.pledius)
+        refItems.push(
+          '<li><span class="ref-label">Pledius:</span> <span class="ref-value">' +
+            escapeHtml(post.pledius) +
+            "</span></li>",
+        );
+      if (post.manuscript)
+        refItems.push(
+          '<li><span class="ref-label">Manuscript:</span> <span class="ref-value">' +
+            escapeHtml(post.manuscript) +
+            "</span></li>",
+        );
 
-      if (post.iaa) {
+      if (refItems.length > 0) {
         html +=
-          '<div class="blog-metadata__item"><dt>IAA Reference</dt><dd>' +
-          escapeHtml(post.iaa) +
-          "</dd></div>";
-      }
-      if (post.pledius) {
+          '<section class="blog-references" style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--color-border);">';
+        html += '<h2 class="blog-metadata__heading">Unique Identifiers</h2>';
         html +=
-          '<div class="blog-metadata__item"><dt>Pledius</dt><dd>' +
-          escapeHtml(post.pledius) +
-          "</dd></div>";
-      }
-      if (post.manuscript) {
-        html +=
-          '<div class="blog-metadata__item"><dt>Manuscript</dt><dd>' +
-          escapeHtml(post.manuscript) +
-          "</dd></div>";
-      }
-      if (post.url) {
-        html +=
-          '<div class="blog-metadata__item"><dt>URL</dt><dd>' +
-          renderUrlField(post.url) +
-          "</dd></div>";
-      }
-      if (post.page_views !== undefined && post.page_views !== null) {
-        html +=
-          '<div class="blog-metadata__item"><dt>Page Views</dt><dd>' +
-          escapeHtml(String(post.page_views)) +
-          "</dd></div>";
+          '<ul class="blog-references__list">' + refItems.join("") + "</ul>";
+        html += "</section>";
       }
 
-      html += "</dl></section>";
+      // --- Metadata section: URL and page views ---
+      var hasMeta =
+        post.url || (post.page_views !== undefined && post.page_views !== null);
+      if (hasMeta) {
+        html +=
+          '<section class="blog-metadata" style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--color-border);">';
+        html += '<h2 class="blog-metadata__heading">Article Details</h2>';
+        html += '<dl class="blog-metadata__grid">';
+
+        if (post.url) {
+          html +=
+            '<div class="blog-metadata__item"><dt>URL</dt><dd>' +
+            renderUrlField(post.url) +
+            "</dd></div>";
+        }
+        if (post.page_views !== undefined && post.page_views !== null) {
+          html +=
+            '<div class="blog-metadata__item"><dt>Page Views</dt><dd>' +
+            escapeHtml(String(post.page_views)) +
+            "</dd></div>";
+        }
+
+        html += "</dl></section>";
+      }
 
       // --- Bibliography section ---
       html += '<section id="record-section-bibliography" class="is-hidden">';
