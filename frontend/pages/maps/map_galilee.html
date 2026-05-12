@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<!-- =============================================================================
+    <!-- =============================================================================
      THE JESUS WEBSITE — GALILEE MAP
      File:    frontend/pages/maps/map_galilee.html
      Version: 1.0.0
@@ -9,56 +8,64 @@
      Source:  guide_maps.md
 ============================================================================= -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <base href="/frontend/pages/maps/">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="/frontend/pages/maps/" />
 
-    <title>Galilee | The Jesus Website</title>
+        <title>Galilee | The Jesus Website</title>
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="../../css/1.0_foundation/typography.css">
-    <link rel="stylesheet" href="../../css/1.0_foundation/grid.css">
-    <link rel="stylesheet" href="../../css/3.0_visualizations/frontend/maps.css">
+        <!-- Stylesheets -->
+        <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
+        <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
+        <link
+            rel="stylesheet"
+            href="../../css/3.0_visualizations/frontend/maps.css"
+        />
 
-    <!-- UI Logic Components -->
-    <script src="../../../js/1.0_foundation/frontend/header.js"></script>
-    <script src="../../../js/1.0_foundation/frontend/search_header.js"></script>
-    <script src="../../../js/1.0_foundation/frontend/sidebar.js"></script>
-    <script src="../../../js/1.0_foundation/frontend/footer.js"></script>
+        <!-- UI Logic Components -->
+        <script src="../../../js/1.0_foundation/frontend/header.js"></script>
+        <script src="../../../js/1.0_foundation/frontend/search_header.js"></script>
+        <script src="../../../js/1.0_foundation/frontend/sidebar.js"></script>
+        <script src="../../../js/1.0_foundation/frontend/footer.js"></script>
 
-    <!-- Core DB access -->
-    <script src="../core/sql-wasm.js"></script>
-    <script src="../../../js/2.0_records/frontend/setup_db.js"></script>
+        <!-- Core DB access -->
+        <script src="../../../js/2.0_records/frontend/sql-wasm.js"></script>
+        <script src="../../../js/2.0_records/frontend/setup_db.js"></script>
 
-    <!-- Component Logic -->
-    <script src="../../../js/3.0_visualizations/frontend/maps_display.js"></script>
+        <!-- Component Logic -->
+        <script src="../../../js/3.0_visualizations/frontend/maps_display.js"></script>
 
-    <!-- Central Initializer -->
-    <script src="../../../js/1.0_foundation/frontend/initializer.js"></script>
-</head>
+        <!-- Central Initializer -->
+        <script src="../../../js/1.0_foundation/frontend/initializer.js"></script>
+    </head>
 
-<body data-page-title="Galilee"
-      data-page-description="Interactive map of Galilee."
-      data-sidebar-active-nav="maps"
-      data-search-header-active-nav="maps"
-      data-footer-target="page-shell">
-
-    <div class="page-shell" id="page-shell">
-        <header id="invisible-header" aria-hidden="true"></header>
-        <main class="site-main" id="site-main" role="main">
-            <div class="content-wrap grid-single">
-                <header class="map-header">
-                    <h1 class="record-title">Galilee</h1>
-                    <p class="record-primary-verse">Interactive map of Galilee.</p>
-                </header>
-                <div class="map-interface-container" id="map-interface">
-                    <div class="map-canvas-wrapper" id="map-canvas-wrapper">
-                        <p class="text-sm text-muted">Galilee content coming soon.</p>
+    <body
+        data-page-title="Galilee"
+        data-page-description="Interactive map of Galilee."
+        data-sidebar-active-nav="maps"
+        data-search-header-active-nav="maps"
+        data-footer-target="page-shell"
+    >
+        <div class="page-shell" id="page-shell">
+            <header id="invisible-header" aria-hidden="true"></header>
+            <main class="site-main" id="site-main" role="main">
+                <div class="content-wrap grid-single">
+                    <header class="map-header">
+                        <h1 class="record-title">Galilee</h1>
+                        <p class="record-primary-verse">
+                            Interactive map of Galilee.
+                        </p>
+                    </header>
+                    <div class="map-interface-container" id="map-interface">
+                        <div class="map-canvas-wrapper" id="map-canvas-wrapper">
+                            <p class="text-sm text-muted">
+                                Galilee content coming soon.
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </main>
-    </div>
-</body>
+            </main>
+        </div>
+    </body>
 </html>
