@@ -1,0 +1,80 @@
+/* =============================================================================
+   THE JESUS WEBSITE — MLA WIDGET (Shared Tool)
+   This is the authoritative copy — consumed by all dashboard editor modules
+   that support MLA bibliography editing.
+   File:    css/9.0_cross_cutting/dashboard/mla_widget.css
+   Version: 1.0.0
+   Owner:   plan_relocate_shared_widgets_to_cross_cutting (9.0 Cross-Cutting)
+   Purpose: Shared stylesheet for the `.bibliography-editor` BEM namespace,
+            providing type-toggled form layout for MLA citation entries.
+            WYSIWYG overlay styles live in wysiwyg_dashboard_layout.css §5
+            (already in 9.0). All colours, fonts, and spacing reference
+            CSS variables from typography.css.
+============================================================================= */
+
+/* =============================================================================
+   1. BIBLIOGRAPHY EDITOR — type-toggled forms
+============================================================================= */
+
+.bibliography-editor {
+    margin-bottom: var(--space-3);
+}
+
+.bibliography-editor__entry {
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.bibliography-editor__type-select {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+    cursor: pointer;
+}
+
+.bibliography-editor__fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-1) var(--space-2);
+}
+
+.bibliography-editor__field-full {
+    grid-column: 1 / -1;
+}
+
+.bibliography-editor__remove {
+    margin-top: var(--space-1);
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    color: var(--color-accent-primary);
+    background: none;
+    border: var(--border-width-thin) solid var(--color-border-accent);
+    cursor: pointer;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.bibliography-editor__remove:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+}
+
+/* =============================================================================
+   2. RESPONSIVE — single-column fields on narrow viewports
+============================================================================= */
+
+@media (max-width: 640px) {
+    .bibliography-editor__fields {
+        grid-template-columns: 1fr;
+    }
+}

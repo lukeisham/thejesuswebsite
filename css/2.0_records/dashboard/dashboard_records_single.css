@@ -1,13 +1,14 @@
 /* =============================================================================
    THE JESUS WEBSITE — SINGLE RECORD DASHBOARD CSS
    File:    css/2.0_records/dashboard/dashboard_records_single.css
-   Version: 1.2.0
+   Version: 1.3.0
    Module:  2.0 — Records
    Purpose: Multi-section form layout for the single record editor. Sticky
             section navigator, grouped section blocks, dense form field styling,
-            image preview containers, chip/tag styling for verse references
-            and context links. All colours, fonts, and spacing reference
-            Providence CSS custom properties from typography.css.
+            chip/tag styling for verse references. All colours, fonts, and
+            spacing reference Providence CSS custom properties from typography.css.
+            Picture preview, bibliography, and context links styles have been
+            relocated to css/9.0_cross_cutting/dashboard/.
    Trigger: Loaded alongside dashboard_records_single.html when the Single
             Record module is activated.
 ============================================================================= */
@@ -305,53 +306,10 @@
     cursor: pointer;
 }
 
-/* =============================================================================
-   5. PICTURE PREVIEW — full + thumbnail side-by-side
-============================================================================= */
-.picture-preview-row {
-    display: grid;
-    grid-template-columns: 1fr 200px;
-    gap: var(--space-3);
-    margin-bottom: var(--space-2);
-}
-
-.picture-preview {
-    background-color: var(--color-bg-tertiary);
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 150px;
-    overflow: hidden;
-}
-
-.picture-preview--full {
-    max-width: 800px;
-}
-
-.picture-preview--thumb {
-    max-width: 200px;
-    min-height: 100px;
-}
-
-.picture-preview__placeholder {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    text-align: center;
-    padding: var(--space-2);
-}
-
-.picture-preview img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    display: block;
-}
+/* Moved to css/9.0_cross_cutting/dashboard/picture_widget.css */
 
 /* =============================================================================
-   6. PARAGRAPH EDITOR — dynamic textarea rows
+   5. PARAGRAPH EDITOR — dynamic textarea rows
 ============================================================================= */
 .paragraph-editor {
     margin-bottom: var(--space-2);
@@ -410,7 +368,7 @@
 }
 
 /* =============================================================================
-   7. VERSE BUILDER — Bible book/chapter/verse chip UI
+   6. VERSE BUILDER — Bible book/chapter/verse chip UI
 ============================================================================= */
 .verse-builder {
     margin-bottom: var(--space-3);
@@ -462,7 +420,7 @@
 }
 
 /* =============================================================================
-   8. CHIPS / TAGS — verse references, context links, URL pairs
+   7. CHIPS / TAGS — verse references, URL pairs
 ============================================================================= */
 .chip {
     display: inline-flex;
@@ -494,90 +452,12 @@
     color: var(--color-accent-primary);
 }
 
-/* =============================================================================
-   9. MLA BIBLIOGRAPHY EDITOR — type-toggled forms
-============================================================================= */
-.bibliography-editor {
-    margin-bottom: var(--space-3);
-}
+/* Moved to css/9.0_cross_cutting/dashboard/mla_widget.css */
 
-.bibliography-editor__entry {
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2);
-    margin-bottom: var(--space-2);
-}
-
-.bibliography-editor__type-select {
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    color: var(--color-text-primary);
-    background-color: var(--color-bg-primary);
-    border: var(--border-width-thin) solid var(--color-border);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
-    margin-bottom: var(--space-2);
-    cursor: pointer;
-}
-
-.bibliography-editor__fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-1) var(--space-2);
-}
-
-.bibliography-editor__field-full {
-    grid-column: 1 / -1;
-}
-
-.bibliography-editor__remove {
-    margin-top: var(--space-1);
-    font-family: var(--font-heading);
-    font-size: var(--text-xs);
-    color: var(--color-accent-primary);
-    background: none;
-    border: var(--border-width-thin) solid var(--color-border-accent);
-    cursor: pointer;
-    padding: 2px var(--space-2);
-    border-radius: var(--radius-sm);
-    transition:
-        background-color var(--transition-fast),
-        color var(--transition-fast);
-}
-
-.bibliography-editor__remove:hover {
-    background-color: var(--color-accent-primary);
-    color: var(--color-white);
-}
+/* Moved to css/9.0_cross_cutting/dashboard/context_links_widget.css */
 
 /* =============================================================================
-   10. CONTEXT LINKS EDITOR — slug + type chip management
-============================================================================= */
-.context-links-editor {
-    margin-bottom: var(--space-3);
-}
-
-.context-links-editor__inputs {
-    display: grid;
-    grid-template-columns: 2fr 1fr auto;
-    gap: var(--space-1);
-    align-items: end;
-    margin-bottom: var(--space-2);
-}
-
-.context-links-editor__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
-    min-height: 32px;
-    padding: var(--space-1);
-    background-color: var(--color-bg-tertiary);
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-sm);
-}
-
-/* =============================================================================
-   11. URL ARRAY EDITOR — label/URL pair editor
+   8. URL ARRAY EDITOR — label/URL pair editor
 ============================================================================= */
 .url-array-editor {
     margin-top: var(--space-3);
@@ -599,26 +479,10 @@
 }
 
 /* =============================================================================
-   12. RESPONSIVE — collapse picture preview row on narrow viewports
+   9. RESPONSIVE — single-column collapse on narrow viewports
 ============================================================================= */
 @media (max-width: 640px) {
-    .picture-preview-row {
-        grid-template-columns: 1fr;
-    }
-
-    .picture-preview--thumb {
-        max-width: 100%;
-    }
-
-    .bibliography-editor__fields {
-        grid-template-columns: 1fr;
-    }
-
     .verse-builder__inputs {
-        grid-template-columns: 1fr;
-    }
-
-    .context-links-editor__inputs {
         grid-template-columns: 1fr;
     }
 

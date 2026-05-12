@@ -1,0 +1,72 @@
+/* =============================================================================
+   THE JESUS WEBSITE — PICTURE WIDGET (Shared Tool)
+   This is the authoritative copy — consumed by all dashboard editor modules
+   that support picture uploads.
+   File:    css/9.0_cross_cutting/dashboard/picture_widget.css
+   Version: 1.0.0
+   Owner:   plan_relocate_shared_widgets_to_cross_cutting (9.0 Cross-Cutting)
+   Purpose: Shared stylesheet for the `.picture-preview` BEM namespace,
+            including full-size and thumbnail preview containers, placeholder
+            text, and responsive collapse rules. All colours, fonts, and
+            spacing reference CSS variables from typography.css.
+============================================================================= */
+
+/* =============================================================================
+   1. PICTURE PREVIEW — full + thumbnail side-by-side
+============================================================================= */
+
+.picture-preview-row {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+}
+
+.picture-preview {
+    background-color: var(--color-bg-tertiary);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    overflow: hidden;
+}
+
+.picture-preview--full {
+    max-width: 800px;
+}
+
+.picture-preview--thumb {
+    max-width: 200px;
+    min-height: 100px;
+}
+
+.picture-preview__placeholder {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    text-align: center;
+    padding: var(--space-2);
+}
+
+.picture-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* =============================================================================
+   2. RESPONSIVE — collapse picture preview row on narrow viewports
+============================================================================= */
+
+@media (max-width: 640px) {
+    .picture-preview-row {
+        grid-template-columns: 1fr;
+    }
+
+    .picture-preview--thumb {
+        max-width: 100%;
+    }
+}

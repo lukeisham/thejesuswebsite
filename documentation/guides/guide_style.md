@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.9.0
+version: 1.10.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -258,11 +258,11 @@ Visual treatment: Inter semibold, `--text-md`, `--tracking-tight`, 1px
 | **Function Bar** | Sticky Save Draft / Publish / Delete buttons | `.function-bar`, `.btn--draft`, `.btn--publish`, `.btn--delete` |
 | **Form Fields** | Monospaced inputs and selects (`--text-sm`), `--radius-sm`, 1pt Clay border, `--color-bg-primary` fill. Focus: `--color-accent-primary` border | `.form-field__input`, `.form-field__select`, `.form-field__textarea` |
 | **Verse Builder** | 3-dropdown + input row (book / chapter / verse); rendered as chips in a flex-wrap container | `.verse-builder__select`, `.verse-builder__chips`, `.chip` |
-| **Bibliography Editor** | Per-source cards with type-select + 2-column field grid + remove button (Oxblood) | `.bibliography-editor__entry` |
+| **Bibliography Editor** | Per-source cards with type-select + 2-column field grid + remove button (Oxblood) | `.bibliography-editor__entry` (js/9.0_cross_cutting/dashboard/mla_source_handler.js, css/9.0_cross_cutting/dashboard/mla_widget.css) |
 | **Paragraph Editor** | Dynamic textarea array with add/remove controls | `.paragraph-editor__textarea` |
-| **Picture Preview** | Full (400×300) and thumbnail (200×150) preview boxes, `--radius-sm`, `--color-bg-tertiary` fill | `.picture-preview`, `.picture-preview--full`, `--thumb` |
-| **Context Links** | Chip-based link list with add/remove | `.context-links-editor__chips` |
-| **Slug/Snippet/Metadata** | Rendered via shared `metadata_widget.js` (see §21) | `.metadata-widget` |
+| **Picture Preview** | Full (400×300) and thumbnail (200×150) preview boxes, `--radius-sm`, `--color-bg-tertiary` fill | `.picture-preview`, `.picture-preview--full`, `--thumb` (js/9.0_cross_cutting/dashboard/picture_handler.js, css/9.0_cross_cutting/dashboard/picture_widget.css) |
+| **Context Links** | Chip-based link list with add/remove | `.context-links-editor__chips` (js/9.0_cross_cutting/dashboard/context_link_handler.js, css/9.0_cross_cutting/dashboard/context_links_widget.css) |
+| **Slug/Snippet/Metadata** | Rendered via shared `metadata_widget.js` (js/9.0_cross_cutting/dashboard/metadata_widget.js) (see §21) | `.metadata-widget` |
 
 ### 19.3 Challenge Dashboard (4.0 — `dashboard_challenge.*`)
 
@@ -381,7 +381,7 @@ elements must pass:
 
 ## 22. Shared-Component Styling — `.metadata-widget` BEM Namespace
 
-The `metadata_widget.css` stylesheet defines the canonical shared dashboard
+The `metadata_widget.css` stylesheet (in `css/9.0_cross_cutting/dashboard/`) defines the canonical shared dashboard
 component. It uses BEM (Block Element Modifier) naming and is consumed by all
 six dashboard editor modules: Records Single, Essay & Historiography, Blog
 Posts, Challenge, News Sources, and Wikipedia.
@@ -415,6 +415,43 @@ Posts, Challenge, News Sources, and Wikipedia.
 - **Grid alignment:** All spacing uses `--space-N` multiples of 8px.
 - **Transition subtlety:** Buttons use `--transition-fast` (150ms).
 - **CSS variable purity:** No hardcoded colors, font sizes, or spacing values.
+
+---
+
+### 22a. Shared-Component Styling — `.picture-preview` BEM Namespace
+
+The `.picture-preview` BEM namespace lives in `css/9.0_cross_cutting/dashboard/picture_widget.css` and provides shared styling for the picture preview component used across dashboard modules.
+
+| BEM Class | Purpose | Key Variables Used |
+|:---|:---|:---|
+| `.picture-preview-row` | Grid container for full + thumbnail side-by-side | `--space-3` gap |
+| `.picture-preview` | Preview box container | `--color-bg-tertiary`, `--border-width-thin`, `--radius-sm` |
+| `.picture-preview--full` | Full-size modifier (max 800px) | -- |
+| `.picture-preview--thumb` | Thumbnail modifier (max 200px) | -- |
+| `.picture-preview__placeholder` | Placeholder text | `--font-mono`, `--text-xs`, `--color-text-muted` |
+
+### 22b. Shared-Component Styling — `.bibliography-editor` BEM Namespace
+
+The `.bibliography-editor` BEM namespace lives in `css/9.0_cross_cutting/dashboard/mla_widget.css` and provides shared styling for the MLA bibliography editor used across dashboard modules.
+
+| BEM Class | Purpose | Key Variables Used |
+|:---|:---|:---|
+| `.bibliography-editor` | Block container | `--space-3` margin |
+| `.bibliography-editor__entry` | Per-source card | `--border-width-thin`, `--radius-sm`, `--space-2` |
+| `.bibliography-editor__type-select` | Type dropdown (book/article/website) | `--font-mono`, `--text-sm` |
+| `.bibliography-editor__fields` | 2-column field grid | CSS Grid, `--space-1` / `--space-2` |
+| `.bibliography-editor__field-full` | Full-width field span | `grid-column: 1 / -1` |
+| `.bibliography-editor__remove` | Remove button (Oxblood) | `--color-accent-primary`, `--font-heading`, `--text-xs` |
+
+### 22c. Shared-Component Styling — `.context-links-editor` BEM Namespace
+
+The `.context-links-editor` BEM namespace lives in `css/9.0_cross_cutting/dashboard/context_links_widget.css` and provides shared styling for the context links editor used across dashboard modules.
+
+| BEM Class | Purpose | Key Variables Used |
+|:---|:---|:---|
+| `.context-links-editor` | Block container | `--space-3` margin |
+| `.context-links-editor__inputs` | 3-column input row (slug + type + button) | CSS Grid, `--space-1` gap |
+| `.context-links-editor__chips` | Chip collection area | Flexbox, `--color-bg-tertiary`, `--radius-sm` |
 
 ---
 

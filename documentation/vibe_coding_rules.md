@@ -1,6 +1,6 @@
 ---
 name: vibe_coding_rules.md
-version: 1.2.0
+version: 1.3.0
 purpose: Foundational coding philosophies and aesthetic mandates for the project
 dependencies: []
 ---
@@ -47,7 +47,12 @@ This document outlines the core coding philosophies ("vibe coding rules") for ma
 - **Identical Code Verification:** When a plan involves splitting or duplicating functionality into parallel modes (e.g., Academic vs. Popular), the agent must verify that both code paths remain functionally identical. No feature or code path may exist in one mode but not the other.
 - **Stuck in a Loop:** If you find yourself stuck in a loop or repeating the same error, STOP. Do not keep guessing. Explain the situation and ask the user for help.
 - **Cross-Plan Shared-Tool Ownership:** Several dashboard modules consume shared JS tools (`picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `markdown_editor.js`). Each shared tool is OWNED by exactly one plan and lives in ONE directory. Consumer plans MUST NOT create local copies. They MUST include the owner's file via a `<script>` tag in their HTML and call the exposed `window.*` function. The ownership table:
-  - `plan_dashboard_records_single` owns: `picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `snippet_generator.js`, `metadata_widget.js`, `metadata_widget.css` — all in `js/2.0_records/dashboard/` (CSS in `css/2.0_records/dashboard/`)
+  - `plan_relocate_shared_widgets_to_cross_cutting` owns: `picture_handler.js`, `mla_source_handler.js`, `context_link_handler.js`, `external_refs_handler.js`, `metadata_widget.js` — all in `js/9.0_cross_cutting/dashboard/`
+  - `plan_relocate_shared_widgets_to_cross_cutting` owns: `metadata_widget.css`, `picture_widget.css`, `mla_widget.css`, `context_links_widget.css` — all in `css/9.0_cross_cutting/dashboard/`
+    - Consumed by all dashboard editor modules: Records Single (2.0), Challenge Response (4.0), Context Essays (5.0), Historiography (5.0), Blog Posts (6.0), News Sources (6.0), Wikipedia (4.0)
+    - Consumer plans MUST include these via `<link>` and `<script>` tags in `dashboard.html`
+  - `plan_dashboard_records_single` owns: `snippet_generator.js` — in `js/2.0_records/dashboard/`
+    - Consumed by: 5.0 Essays, 6.0 Blog Posts, 6.0 News Sources
   - `plan_dashboard_essay_historiography` owns: `markdown_editor.js` — in `js/5.0_essays_responses/dashboard/`
   - `plan_standardize_dashboard_buttons` owns: `gather_trigger.js`, `field_persistence.js` — both in `js/7.0_system/dashboard/`
     - `gather_trigger.js` is consumed by: Wikipedia, Challenge Academic, Challenge Popular, News Sources dashboards

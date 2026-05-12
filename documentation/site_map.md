@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.66
+version: 1.0.67
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -73,8 +73,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   └── typography.css         <-- 🔑 Canonical Design Tokens: colors, fonts, spacing, shadows, radii
 ├── css/2.0_records/dashboard/
 │   ├── dashboard_records_all.css <-- High-density table, sorting aesthetics, bulk review panel
-│   ├── dashboard_records_single.css <-- Multi-section form layout, sticky section navigator
-│   └── metadata_widget.css    <-- 🔑 Shared Tool: unified slug/snippet/metadata widget styles (BEM)
+│   └── dashboard_records_single.css <-- Multi-section form layout, sticky section navigator
 ├── css/2.0_records/frontend/
 │   └── *.css                  <-- Public-facing record display styles
 ├── css/3.0_visualizations/dashboard/
@@ -98,7 +97,11 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ├── css/6.0_news_blog/frontend/
 │   └── blog.css                <-- Public blog feed and single post styles (blog-* BEM)
 ├── css/9.0_cross_cutting/dashboard/
-│   ├── wysiwyg_editor.css     <-- Unified markdown toolbar, split panes, and live preview (wysiwyg-* BEM)
+│   ├── metadata_widget.css      <-- 🔑 Shared Tool: unified slug/snippet/metadata widget styles (BEM)
+│   ├── picture_widget.css       <-- 🔑 Shared Tool: picture preview and thumbnail styles (BEM)
+│   ├── mla_widget.css           <-- 🔑 Shared Tool: MLA bibliography editor styles (BEM)
+│   ├── context_links_widget.css <-- 🔑 Shared Tool: context links editor styles (BEM)
+│   ├── wysiwyg_editor.css       <-- Unified markdown toolbar, split panes, and live preview (wysiwyg-* BEM)
 │   └── wysiwyg_dashboard_layout.css <-- Unified function bar, sidebar, and editor area layout (wysiwyg-* BEM)
 ├── css/7.0_system/
 │   ├── admin.css              <-- Login page 'providence' styling
@@ -183,30 +186,30 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │       ├── initializer.js     <-- Central bootstrapper on DOMContentLoaded
 │       ├── search_header.js   <-- Visible search bar injection
 │       └── sidebar.js         <-- Left nav tree + admin entry
+├── js/9.0_cross_cutting/dashboard/
+│   ├── context_link_handler.js <-- 🔑 Shared Tool: Database relationship links
+│   ├── external_refs_handler.js <-- 🔑 Shared Tool: Text inputs for iaa, pledius, manuscript
+│   ├── metadata_widget.js      <-- 🔑 Shared Tool: unified slug/snippet/metadata widget with Generate All
+│   ├── mla_source_handler.js   <-- 🔑 Shared Tool: Structured MLA bibliography management
+│   └── picture_handler.js      <-- 🔑 Shared Tool: Image upload, preview & thumbnail
 ├── js/2.0_records/dashboard/
 │   ├── bulk_csv_upload_handler.js <-- Phase 1: CSV parsing & client-side validation
 │   ├── bulk_upload_review_handler.js <-- Phase 2: Ephemeral review, Save as Draft / Discard
-│   ├── context_link_handler.js <-- Database relationship links
 │   ├── dashboard_records_all.js <-- Module orchestration & view switching
 │   ├── dashboard_records_single.js <-- Module orchestration & initialization
 │   ├── data_populate_table.js <-- API integration & row hydration
 │   ├── description_editor.js  <-- Dynamic paragraph array editor (description + snippet)
 │   ├── display_single_record_data.js <-- Record fetching & full form hydration (all fields)
 │   ├── endless_scroll.js      <-- Performance-optimized overflow handling
-│   ├── external_refs_handler.js <-- Text inputs for iaa, pledius, manuscript
 │   ├── map_fields_handler.js  <-- Selector for map_label + integer input for geo_id
-│   ├── metadata_widget.js     <-- 🔑 Shared Tool: unified slug/snippet/metadata widget with Generate All
-│   ├── mla_source_handler.js  <-- Structured MLA bibliography management
 │   ├── parent_selector.js     <-- ULID input for parent_id with validation
-│   ├── picture_handler.js     <-- Image upload, preview & thumbnail
 │   ├── record_status_handler.js <-- Save Draft, Publish & Delete status management
 │   ├── search_records.js      <-- Real-time client-side search (title, verse, snippet)
-│   ├── snippet_generator.js   <-- Automated snippet trigger (calls API → DeepSeek)
+│   ├── snippet_generator.js   <-- 🔑 Shared Tool: Automated snippet trigger (calls API → DeepSeek)
 │   ├── table_toggle_display.js <-- Sort/Filter logic; Bulk toggle isolates view
 │   ├── taxonomy_selector.js   <-- Selectors for era, timeline, gospel_category fields
 │   ├── url_array_editor.js    <-- Label/URL pair array editor
-│   ├── verse_builder.js       <-- Structured book/chapter/verse chip UI
-│   └── 🔑 Shared Tools (owned here, consumed by other dashboard modules) ──
+│   └── verse_builder.js       <-- Structured book/chapter/verse chip UI
 ├── js/2.0_records/frontend/
 │   ├── display_snippet.js     <-- JSON Array paragraph snippet renderer
 │   ├── json_ld_builder.js     <-- Structured SEO data builder

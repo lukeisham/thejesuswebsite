@@ -64,5 +64,10 @@ dependencies: [detailed_module_sitemap.md]
 
 9.0 Cross-Cutting Standardization
 ├── 9.1 Unified WYSIWYG Editor CSS
-└── 9.2 Unified WYSIWYG Dashboard Layout CSS
+├── 9.2 Unified WYSIWYG Dashboard Layout CSS
+├── 9.3 Metadata Widget
+├── 9.4 MLA Widget
+├── 9.5 Unique Identifiers Widget
+├── 9.6 Context Links Widget 
+└── 9.7 Picture Widget
 ```

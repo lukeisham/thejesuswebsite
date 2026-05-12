@@ -13,7 +13,7 @@
 /* =============================================================================
    THE JESUS WEBSITE — SINGLE RECORD DASHBOARD ORCHESTRATOR
    File:    js/2.0_records/dashboard/dashboard_records_single.js
-   Version: 1.2.0
+   Version: 1.3.0
    Module:  2.0 — Records
    Purpose: Initialises the single record edit module and manages the full
             form lifecycle: layout setup, HTML injection, record fetching,
@@ -29,13 +29,13 @@
 const RECORDS_SINGLE_SCRIPTS = [
   "../../js/2.0_records/dashboard/taxonomy_selector.js",
   "../../js/2.0_records/dashboard/map_fields_handler.js",
-  "../../js/2.0_records/dashboard/external_refs_handler.js",
+  "../../js/9.0_cross_cutting/dashboard/external_refs_handler.js",
   "../../js/2.0_records/dashboard/parent_selector.js",
   "../../js/2.0_records/dashboard/url_array_editor.js",
-  "../../js/2.0_records/dashboard/mla_source_handler.js",
-  "../../js/2.0_records/dashboard/context_link_handler.js",
-  "../../js/2.0_records/dashboard/picture_handler.js",
-  "../../js/2.0_records/dashboard/metadata_widget.js",
+  "../../js/9.0_cross_cutting/dashboard/mla_source_handler.js",
+  "../../js/9.0_cross_cutting/dashboard/context_link_handler.js",
+  "../../js/9.0_cross_cutting/dashboard/picture_handler.js",
+  "../../js/9.0_cross_cutting/dashboard/metadata_widget.js",
   "../../js/2.0_records/dashboard/description_editor.js",
   "../../js/2.0_records/dashboard/verse_builder.js",
   "../../js/2.0_records/dashboard/snippet_generator.js",

@@ -2,6 +2,7 @@ import json
 import os
 import sqlite3
 import sys
+from typing import Optional
 
 import uvicorn
 from dotenv import load_dotenv
@@ -312,8 +313,8 @@ async def resources_world_events_page():
 async def public_blogposts(
     limit: int = 50,
     offset: int = 0,
-    type: str = None,
-    status: str = None,
+    type: Optional[str] = None,
+    status: Optional[str] = None,
 ):
     """
     Returns paginated, published records with blogposts column NOT NULL.
@@ -432,7 +433,8 @@ async def public_blogpost_by_slug(slug: str):
             "iaa, pledius, manuscript, url, page_views, metadata_json, "
             "created_at, updated_at, picture_name, picture_bytes, "
             "picture_thumbnail, bibliography, context_links "
-            "FROM records WHERE slug = ? AND (type = 'blog_post' OR blogposts IS NOT NULL) "
+            "FROM records WHERE slug = ? "
+            "AND (type = 'blog_post' OR blogposts IS NOT NULL) "
             "AND status = 'published'",
             (slug,),
         )
@@ -491,8 +493,8 @@ async def public_blogpost_by_slug(slug: str):
 async def public_news_items(
     limit: int = 50,
     offset: int = 0,
-    type: str = None,
-    status: str = None,
+    type: Optional[str] = None,
+    status: Optional[str] = None,
 ):
     """
     Returns paginated, published news articles using type discriminator.
@@ -531,7 +533,8 @@ async def public_news_items(
         safe_limit = max(1, min(limit, 200))
         safe_offset = max(0, offset)
 
-        # Use structured columns when querying by type; include legacy columns as fallback
+        # Use structured columns when querying by type;
+        # include legacy columns as fallback
         if type:
             select_cols = (
                 "SELECT id, title, slug, snippet, news_item_title, "
@@ -688,8 +691,8 @@ async def public_essays():
 async def public_challenges(
     limit: int = 50,
     offset: int = 0,
-    type: str = None,
-    status: str = None,
+    type: Optional[str] = None,
+    status: Optional[str] = None,
 ):
     """
     Returns paginated challenge records using type discriminator.
@@ -715,7 +718,10 @@ async def public_challenges(
                 where_clause += " AND status = 'published'"
         else:
             # Fallback: any challenge type
-            where_clause = "(type = 'challenge_academic' OR type = 'challenge_popular') AND status = 'published'"
+            where_clause = (
+                "(type = 'challenge_academic' OR type = 'challenge_popular') "
+                "AND status = 'published'"
+            )
             count_params = []
 
         cursor.execute(
@@ -800,7 +806,7 @@ async def public_challenges(
 async def public_wikipedia(
     limit: int = 50,
     offset: int = 0,
-    status: str = None,
+    status: Optional[str] = None,
 ):
     """
     Returns paginated wikipedia_entry records.
@@ -882,8 +888,8 @@ async def public_wikipedia(
 async def public_responses(
     limit: int = 50,
     offset: int = 0,
-    type: str = None,
-    status: str = None,
+    type: Optional[str] = None,
+    status: Optional[str] = None,
 ):
     """
     Returns paginated response records (type = 'challenge_response').

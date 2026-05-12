@@ -1,0 +1,50 @@
+/* =============================================================================
+   THE JESUS WEBSITE — CONTEXT LINKS WIDGET (Shared Tool)
+   This is the authoritative copy — consumed by all dashboard editor modules
+   that support context-links editing.
+   File:    css/9.0_cross_cutting/dashboard/context_links_widget.css
+   Version: 1.0.0
+   Owner:   plan_relocate_shared_widgets_to_cross_cutting (9.0 Cross-Cutting)
+   Purpose: Shared stylesheet for the `.context-links-editor` BEM namespace,
+            providing slug + type chip management layout. WYSIWYG overlay
+            styles live in wysiwyg_dashboard_layout.css §6 (already in 9.0).
+            All colours, fonts, and spacing reference CSS variables from
+            typography.css.
+============================================================================= */
+
+/* =============================================================================
+   1. CONTEXT LINKS EDITOR — slug + type chip management
+============================================================================= */
+
+.context-links-editor {
+    margin-bottom: var(--space-3);
+}
+
+.context-links-editor__inputs {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: var(--space-1);
+    align-items: end;
+    margin-bottom: var(--space-2);
+}
+
+.context-links-editor__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    min-height: 32px;
+    padding: var(--space-1);
+    background-color: var(--color-bg-tertiary);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+}
+
+/* =============================================================================
+   2. RESPONSIVE — single-column inputs on narrow viewports
+============================================================================= */
+
+@media (max-width: 640px) {
+    .context-links-editor__inputs {
+        grid-template-columns: 1fr;
+    }
+}
