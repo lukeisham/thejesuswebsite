@@ -2,7 +2,7 @@
 name: redesign_cross_cutting_widgets_as_tables
 version: 1.0.0
 module: 9.0 — Cross-Cutting Standardization
-status: draft
+status: complete
 created: 2026-05-12
 ---
 

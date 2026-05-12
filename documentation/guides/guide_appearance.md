@@ -1,7 +1,7 @@
 ---
 name: guide_appearance.md
 purpose: Visual ASCII representations of the public-facing pages for "The Jesus Website"
-version: 1.3.0
+version: 1.4.0
 dependencies: [guide_dashboard_appearance.md, detailed_module_sitemap.md]
 ---
 
@@ -369,8 +369,9 @@ This document maintains visual ASCII blueprints for the various page templates d
 |                     |                                                   |
 |                     |   [DESCRIPTION]                                   |
 |                     |                                                   |
-|                     |   [BIBLIOGRAPHY]                                  |
-|                     |   [CONTEXT LINKS]                                 |
+|                     |   [BIBLIOGRAPHY — combined MLA list]              |
+|                     |   [CONTEXT LINKS — linked list]                   |
+|                     |   [UNIQUE IDENTIFIERS — label:value list]         |
 |                     |                                                   |
 |                     |   [OTHER DATA eg ERA, MAP AND CATEGORY etc]       |
 |-------------------------------------------------------------------------|
