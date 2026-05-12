@@ -34,7 +34,7 @@ let _isFetching = false;
    Fetches a batch of records from the API with the given sort key and offset.
    If offset is 0, clears the table first (full reload for new sort).
 ----------------------------------------------------------------------------- */
-async function fetchRecordsBatch(sortKey, offset) {
+async function fetchRecordsBatch(sortKey, offset, statusFilter) {
   if (_isFetching) return;
   _isFetching = true;
 
@@ -44,13 +44,17 @@ async function fetchRecordsBatch(sortKey, offset) {
   }
 
   try {
+    const statusParam = statusFilter && statusFilter !== "all"
+        ? "&status=" + encodeURIComponent(statusFilter)
+        : "";
     const response = await fetch(
       "/api/admin/records?sort=" +
         encodeURIComponent(sortKey) +
         "&offset=" +
         (offset || 0) +
         "&limit=" +
-        BATCH_SIZE,
+        BATCH_SIZE +
+        statusParam,
       {
         method: "GET",
         credentials: "same-origin",

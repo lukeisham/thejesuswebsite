@@ -9,7 +9,7 @@
 import pathlib
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Optional, Any, Dict, List
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
@@ -35,6 +35,7 @@ async def get_all_records(
     sort: str = "created_at",
     offset: int = 0,
     limit: int = 50,
+    status: Optional[str] = None,
 ):
     """
     Fetches paginated, sortable record list for the Dashboard.
@@ -45,6 +46,7 @@ async def get_all_records(
                if the requested column doesn't exist.
       offset — Row offset for pagination (default 0).
       limit  — Max rows to return (default 50, clamped to 1-500).
+      status — Optional status filter: "published", "draft", or None (all).
     """
     try:
         conn = get_db_connection()
@@ -61,10 +63,15 @@ async def get_all_records(
         select_clause = ", ".join(cols_to_select)
 
         cursor = conn.cursor()
+        where_clause = ""
+        params = []
+        if status in ("published", "draft"):
+            where_clause = "WHERE status = ?"
+            params.append(status)
         cursor.execute(
-            f"SELECT {select_clause} FROM records "
+            f"SELECT {select_clause} FROM records {where_clause} "
             f"ORDER BY {sort_col} ASC LIMIT ? OFFSET ?",
-            (safe_limit, safe_offset),
+            params + [safe_limit, safe_offset],
         )
         records = [dict(row) for row in cursor.fetchall()]
         conn.close()

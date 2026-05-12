@@ -39,6 +39,7 @@ const RECORDS_ALL_SCRIPTS = [
 let _activeSort = "created_at";
 
 /* Track whether the bulk panel is currently visible */
+let _activeStatus = "all";
 let _bulkPanelVisible = false;
 
 /* -----------------------------------------------------------------------------
@@ -106,7 +107,10 @@ async function renderRecordsAll() {
     _wireTogglesFallback();
   }
 
-  // --- 7. Initialise search ---
+  // --- 7a. Initialise status filter toggles ---
+  _wireStatusToggles();
+
+  // --- 8. Initialise search ---
   if (typeof window.initRecordsSearch === "function") {
     window.initRecordsSearch();
   }
@@ -161,6 +165,10 @@ function getActiveSort() {
    Hides the main records table and reveals the bulk review panel.
    Called by table_toggle_display.js when "Bulk" toggle is selected.
 ----------------------------------------------------------------------------- */
+function getActiveStatus() {
+  return _activeStatus;
+}
+
 function showBulkReviewPanel() {
   _bulkPanelVisible = true;
 
@@ -256,6 +264,35 @@ function _updateStatusBar(message, cssClass) {
 /* -----------------------------------------------------------------------------
    INTERNAL: _injectScripts — inject multiple JS scripts sequentially
 ----------------------------------------------------------------------------- */
+function _wireStatusToggles() {
+  var statusBtns = document.querySelectorAll("[data-status]");
+  statusBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var status = btn.getAttribute("data-status");
+      if (status === _activeStatus) return;
+
+      // Update active state
+      statusBtns.forEach(function (b) {
+        b.classList.remove("toggle-btn--active");
+        b.setAttribute("aria-pressed", "false");
+      });
+      btn.classList.add("toggle-btn--active");
+      btn.setAttribute("aria-pressed", "true");
+
+      _activeStatus = status;
+
+      // Re-fetch records with new status filter
+      var sortKey =
+        typeof window.getActiveSort === "function"
+          ? window.getActiveSort()
+          : "created_at";
+      if (typeof window.fetchRecordsBatch === "function") {
+        window.fetchRecordsBatch(sortKey, 0, status);
+      }
+    });
+  });
+}
+
 function _injectScripts(scriptPaths) {
   return Promise.all(
     scriptPaths.map(function (src) {

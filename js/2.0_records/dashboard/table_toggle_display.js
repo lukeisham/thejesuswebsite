@@ -108,9 +108,15 @@ function initTableToggles() {
       // Clear search input when toggle changes
       _clearSearch();
 
+      // Get current status filter and fetch with it
+      var statusFilter =
+        typeof window.getActiveStatus === "function"
+          ? window.getActiveStatus()
+          : "all";
+
       // Fetched records with the new sort order
       if (typeof window.fetchRecordsBatch === "function") {
-        window.fetchRecordsBatch(sortKey, 0).catch(function (err) {
+        window.fetchRecordsBatch(sortKey, 0, statusFilter).catch(function (err) {
           console.error("[table_toggle_display] Fetch failed:", err);
           if (typeof window.surfaceError === "function") {
             window.surfaceError(

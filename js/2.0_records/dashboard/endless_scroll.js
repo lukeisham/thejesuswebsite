@@ -73,9 +73,13 @@ function initEndlessScroll() {
                     typeof window.getCurrentOffset === "function"
                         ? window.getCurrentOffset()
                         : 0;
+                const statusFilter =
+                    typeof window.getActiveStatus === "function"
+                        ? window.getActiveStatus()
+                        : "all";
 
                 if (typeof window.fetchRecordsBatch === "function") {
-                    window.fetchRecordsBatch(sortKey, offset).catch(function (
+                    window.fetchRecordsBatch(sortKey, offset, statusFilter).catch(function (
                         err
                     ) {
                         console.error(
