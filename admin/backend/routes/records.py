@@ -9,7 +9,7 @@
 import pathlib
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
@@ -226,6 +226,9 @@ async def update_record(
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # Always update updated_at on modification
+        safe_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+
         set_clause = ", ".join([f"{k} = ?" for k in safe_data.keys()])
         values = tuple(safe_data.values()) + (record_id,)
 
@@ -278,6 +281,7 @@ async def upload_record_picture(
         # Sanitise filename
         picture_name = pathlib.Path(file.filename or "upload.png").name
 
+        now_iso = datetime.now(timezone.utc).isoformat()
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -285,13 +289,15 @@ async def upload_record_picture(
             UPDATE records
             SET picture_name = ?,
                 picture_bytes = ?,
-                picture_thumbnail = ?
+                picture_thumbnail = ?,
+                updated_at = ?
             WHERE id = ?
         """,
             (
                 picture_name,
                 processed["picture_bytes"],
                 processed["picture_thumbnail"],
+                now_iso,
                 record_id,
             ),
         )
@@ -324,6 +330,7 @@ async def delete_record_picture(
     without deleting the record itself.
     """
     try:
+        now_iso = datetime.now(timezone.utc).isoformat()
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -331,10 +338,11 @@ async def delete_record_picture(
             UPDATE records
             SET picture_name = NULL,
                 picture_bytes = NULL,
-                picture_thumbnail = NULL
+                picture_thumbnail = NULL,
+                updated_at = ?
             WHERE id = ?
         """,
-            (record_id,),
+            (now_iso, record_id),
         )
 
         if cursor.rowcount == 0:

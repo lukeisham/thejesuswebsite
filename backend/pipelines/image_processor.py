@@ -63,15 +63,16 @@ def _resize_to_max_width(image: Image.Image, max_width: int) -> Image.Image:
 
 def _compress_to_limit(image: Image.Image, max_kb: int) -> bytes:
     """
-    Save `image` as PNG, then iteratively re-save as JPEG with decreasing
-    quality until the output fits within `max_kb` kilobytes.
+    Save `image` as PNG, then try colour reduction, then fall back
+    to JPEG compression to hit the size target.
 
     Strategy:
       1. Try lossless PNG first — PNG is always preferred for quality.
       2. If PNG already fits, return it immediately.
-      3. If PNG is too large, fall back to JPEG compression with a quality
-         loop (85 → 10 in steps of 5).  JPEG is stored as PNG-wrapped bytes
-         (re-opened and re-saved) so the caller always receives PNG bytes.
+      3. If PNG is too large, try reducing colours via quantize (256 → 8).
+      4. If still too large, convert to RGB and use JPEG quality loop
+         (85 → 10 in steps of 5). The JPEG result is re-wrapped as PNG
+         so the caller always receives PNG bytes.
 
     Note: For most admin record images (≤ 800px wide), lossless PNG will
     typically fit within 250 KB.  The JPEG fallback handles edge cases such
@@ -88,7 +89,7 @@ def _compress_to_limit(image: Image.Image, max_kb: int) -> bytes:
     # --- Attempt 2: Quantize loop for PNG ---
     colors = 256
     while colors >= 8:
-        # Convert to P mode with reduced colors
+        # Convert to P mode with reduced colours
         q_img = image.quantize(colors=colors)
         buffer = BytesIO()
         q_img.save(buffer, format="PNG", optimize=True)
@@ -98,8 +99,37 @@ def _compress_to_limit(image: Image.Image, max_kb: int) -> bytes:
 
         colors = colors // 2
 
-    # Floor reached - return the smallest we managed
-    return buffer.getvalue()
+    # --- Attempt 3: JPEG quality loop fallback ---
+    # Convert to RGB (JPEG doesn't support alpha). If the image had
+    # transparency, composite onto a white background first.
+    if image.mode == "RGBA":
+        background = Image.new("RGB", image.size, (255, 255, 255))
+        background.paste(image, mask=image.split()[3])  # use alpha channel as mask
+        rgb_image = background
+    elif image.mode != "RGB":
+        rgb_image = image.convert("RGB")
+    else:
+        rgb_image = image
+
+    quality = INITIAL_QUALITY
+    while quality >= QUALITY_FLOOR:
+        jpeg_buffer = BytesIO()
+        rgb_image.save(jpeg_buffer, format="JPEG", quality=quality, optimize=True)
+
+        if jpeg_buffer.tell() <= max_bytes:
+            # Re-wrap as PNG so the caller always receives PNG bytes
+            jpeg_image = Image.open(jpeg_buffer)
+            png_buffer = BytesIO()
+            jpeg_image.save(png_buffer, format="PNG", optimize=True)
+            return png_buffer.getvalue()
+
+        quality -= QUALITY_STEP
+
+    # Floor reached — return the smallest we managed from the JPEG loop
+    jpeg_image = Image.open(jpeg_buffer)
+    png_buffer = BytesIO()
+    jpeg_image.save(png_buffer, format="PNG", optimize=True)
+    return png_buffer.getvalue()
 
 
 # ---------------------------------------------------------------------------
