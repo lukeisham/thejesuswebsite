@@ -1,25 +1,29 @@
 # =============================================================================
 #   THE JESUS WEBSITE — NEWS PIPELINE
 #   File:    backend/pipelines/pipeline_news.py
-#   Version: 1.2.0
+#   Version: 2.0.0
 #   Purpose: Crawls, ranks, and inserts current archaeological or
-#            historical news events. Reads search keywords and source URLs
-#            from the database, fetches each source, extracts matching items,
-#            and saves results to the anchor record (slug='global-news-feed').
+#            historical news events as structured per-article records.
+#            Reads search keywords and source URLs from the database,
+#            fetches each source, extracts matching items, and inserts
+#            each genuinely new article as its own row in the records table.
 #
 #   TRIGGER:
 #     - Run directly via CLI: python -m backend.pipelines.pipeline_news
 #     - Triggered by POST /api/admin/news/crawl (admin_api.py)
 #
 #   DATA MAPPING:
-#     Input   →  records with news_sources populated (source URLs)
+#     Input   →  records with news_sources or source_url populated (source URLs)
 #                records with news_search_term populated (search keywords)
 #                system_config key 'news_keywords' (global fallback keywords)
-#     Output  →  records.news_items (JSON blob) on the record
-#                WHERE slug = 'global-news-feed'.
-#
-#     The news_items blob is a JSON array of objects with shape:
-#       [{"title": str, "timestamp": ISO-8601 str, "url": str}]
+#     Output  →  One records row per crawled article with these columns:
+#                type              = 'news_article'
+#                sub_type          = NULL
+#                news_item_title   = article title
+#                news_item_link    = article URL
+#                last_crawled      = ISO-8601 timestamp
+#                snippet           = JSON array (single-element with title text)
+#                status            = 'published'
 #
 #   ERROR HANDLING (T9):
 #     - Source Unreachable: ConnectionError/Timeout → "Unable to connect"
@@ -29,7 +33,8 @@
 #     - Database Write Failed: SQLite exception → "Failed to save"
 #
 #   IDEMPOTENCY:
-#     Safe to run repeatedly. Each run replaces the news_items blob with fresh data.
+#     Safe to run repeatedly. Dedup by news_item_link ensures no duplicate
+#     articles are inserted across runs.
 #
 #   QUIRKS:
 #     - RSS/Atom feeds vary in format. This pipeline attempts to parse common
@@ -41,11 +46,14 @@
 
 import json
 import os
+import re
 import sqlite3
 import sys
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+
+from ulid import ULID
 
 # Ensure package context is recognized when running directly from CLI
 sys.path.append(
@@ -65,7 +73,8 @@ DB_PATH = os.path.join(
     os.path.dirname(__file__), "..", "..", "database", "database.sqlite"
 )
 
-ANCHOR_SLUG = "global-news-feed"
+# DEPRECATED: ANCHOR_SLUG = "global-news-feed"
+# v2.0.0 uses per-article records instead.
 PIPELINE_TIMEOUT_SECONDS = 240  # 4 minutes total allowed runtime
 DEFAULT_USER_AGENT = "TheJesusWebsite/1.0.0 (https://github.com/thejesuswebsite; bot)"
 
@@ -79,9 +88,9 @@ def run_pipeline():
     """
     Trigger:  Run directly via CLI or via admin_api.py background thread.
     Function: Gathers search keywords and source URLs from the database,
-              crawls each source, extracts matching news items, and writes
-              the combined results to the anchor record.
-    Output:   Updated records.news_items for slug='global-news-feed'.
+              crawls each source, extracts matching news items, and inserts
+              each genuinely new article as its own structured record row.
+    Output:   New records rows (type='news_article') per crawled article.
               Errors are logged and surfaced via structured return value.
     """
     start_time = time.time()
@@ -175,28 +184,20 @@ def run_pipeline():
                 "failed_sources": failed_sources,
             }
 
-        # ---- Step 4a: Dedup against existing news items ----
-        # Read existing news_items to build a set of known URLs
+        # ---- Step 4a: Dedup against existing news articles ----
+        # Query all existing news_item_link values from the records table
         existing_urls = set()
-        all_existing_items = []
         try:
             dedup_cursor = conn.cursor()
             dedup_cursor.execute(
-                "SELECT news_items FROM records WHERE slug = ?", (ANCHOR_SLUG,)
+                "SELECT news_item_link FROM records "
+                "WHERE type = 'news_article' AND news_item_link IS NOT NULL"
             )
-            existing_row = dedup_cursor.fetchone()
+            for row in dedup_cursor.fetchall():
+                link = row["news_item_link"] or ""
+                if link:
+                    existing_urls.add(link)
             dedup_cursor.close()
-            if existing_row and existing_row["news_items"]:
-                try:
-                    existing_items = json.loads(existing_row["news_items"])
-                    if isinstance(existing_items, list):
-                        all_existing_items = existing_items
-                        for item in existing_items:
-                            item_url = item.get("url", "") or ""
-                            if item_url:
-                                existing_urls.add(item_url)
-                except (json.JSONDecodeError, TypeError):
-                    pass
         except Exception:
             pass
 
@@ -218,61 +219,60 @@ def run_pipeline():
             f"{total_candidates - new_items_count} duplicates skipped."
         )
 
-        # ---- Step 5: Append new items to existing items and save ----
+        # ---- Step 5: Insert each new article as its own record row ----
         try:
-            merged_items = all_existing_items + genuinely_new
-            news_blob = json.dumps(merged_items, ensure_ascii=False)
+            inserted_count = 0
             cursor = conn.cursor()
+            now_iso = datetime.now(timezone.utc).isoformat()
 
-            # Upsert: create the record if it doesn't exist
-            cursor.execute("SELECT id FROM records WHERE slug = ?", (ANCHOR_SLUG,))
-            existing = cursor.fetchone()
-
-            if existing:
-                cursor.execute(
-                    """
-                    UPDATE records
-                    SET news_items = ?, updated_at = ?
-                    WHERE slug = ?
-                    """,
-                    (news_blob, datetime.now(timezone.utc).isoformat(), ANCHOR_SLUG),
-                )
-            else:
-                # Create the anchor record if missing
-                from ulid import ULID
-
+            for item in genuinely_new:
                 record_id = str(ULID())
+                article_title = item.get("title", "Untitled")
+                article_url = item.get("url", "")
+                article_timestamp = item.get("timestamp", now_iso)
+
+                # Generate a URL-safe slug from the title
+                slug_base = re.sub(
+                    r"[^a-z0-9]+", "-", article_title.lower().strip()
+                ).strip("-")[:80]
+                slug = slug_base + "-" + record_id[:8]
+
+                # Build snippet as JSON array of paragraph strings
+                snippet_text = article_title
+                snippet_json = json.dumps([snippet_text], ensure_ascii=False)
+
                 cursor.execute(
                     """
                     INSERT INTO records (
-                        id, title, slug, news_items,
-                        created_at, updated_at, status
+                        id, type, sub_type, status, title, slug, snippet,
+                        news_item_title, news_item_link, last_crawled,
+                        created_at, updated_at, users
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, 'news_article', NULL, 'published', ?, ?, ?,
+                            ?, ?, ?,
+                            ?, ?, 'Public')
                     """,
                     (
                         record_id,
-                        "Global News Feed",
-                        ANCHOR_SLUG,
-                        news_blob,
-                        datetime.now(timezone.utc).isoformat(),
-                        datetime.now(timezone.utc).isoformat(),
-                        "draft",
+                        article_title,
+                        slug,
+                        snippet_json,
+                        article_title,
+                        article_url,
+                        article_timestamp,
+                        now_iso,
+                        now_iso,
                     ),
                 )
+                inserted_count += 1
 
             conn.commit()
-            logger.info(
-                f"Saved {new_items_count} new news items to "
-                f"anchor record '{ANCHOR_SLUG}' "
-                f"(merged with {len(all_existing_items)} existing)."
-            )
+            logger.info(f"Inserted {inserted_count} new news article records.")
 
             result = {
                 "status": "success",
-                "items_collected": len(genuinely_new),
-                "new_items": new_items_count,
-                "total_candidates": total_candidates,
+                "items_collected": total_candidates,
+                "inserted_count": inserted_count,
                 "duplicates_skipped": total_candidates - new_items_count,
                 "sources_crawled": len(sources) - len(failed_sources),
                 "sources_failed": len(failed_sources),
@@ -286,11 +286,10 @@ def run_pipeline():
             logger.error(f"Database write failed: {db_err}")
             return {
                 "error": (
-                    "Error: Failed to save news items to the "
-                    "database. Write error on 'global-news-feed'."
+                    "Error: Failed to save news articles to the "
+                    "database. Write error on records table."
                 ),
-                "items_collected": len(genuinely_new),
-                "new_items": new_items_count,
+                "items_collected": total_candidates,
             }
 
     except Exception as exc:
@@ -384,12 +383,23 @@ def _collect_source_urls(conn):
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT id, title, slug, news_sources FROM records "
-        "WHERE news_sources IS NOT NULL AND news_sources != ''"
+        "SELECT id, title, slug, news_sources, source_url FROM records "
+        "WHERE (news_sources IS NOT NULL AND news_sources != '') "
+        "OR (source_url IS NOT NULL AND source_url != '')"
     )
     rows = cursor.fetchall()
 
     for row in rows:
+        # Check source_url column first (new schema), fall back to news_sources
+        if row["source_url"]:
+            sources.append(
+                {
+                    "url": row["source_url"],
+                    "name": row["title"] or row["slug"] or row["source_url"],
+                }
+            )
+            continue
+
         try:
             source_data = json.loads(row["news_sources"])
             url = source_data.get("url") or source_data.get("source_url") or ""

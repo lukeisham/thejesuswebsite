@@ -1,7 +1,7 @@
 ---
 name: simple_module_sitemap.md
-purpose: High-level ASCII map of the project's modular architecture (1.0 - 8.0)
-version: 1.5.0
+purpose: High-level ASCII map of the project's modular architecture (1.0 - 9.0)
+version: 1.7.0
 dependencies: [detailed_module_sitemap.md]
 ---
 
@@ -32,12 +32,18 @@ dependencies: [detailed_module_sitemap.md]
 └── 3.3 Visual Interactive Geographic Maps
 
 4.0 Ranked Lists Module
-├── 4.1 Ranked Wikipedia Views
-└── 4.2 Ranked Challenge Views
+├── 4.1 Ranked Wikipedia 
+└── 4.2 Ranked Challenges 
+  ├── 4.2.1 Academic Challenges
+  └── 4.2.2 Popular Challenges 
 
 5.0 Essays & Responses Module
-├── 5.1 Context Essay & Historiography Layouts
-└── 5.2 Challenge Response Layouts
+├── 5.1 Essays
+|  ├── 5.1.1 Context Essays
+|  ├── 5.1.2 Historiography Essay
+|  ├── 5.1.3 Theological Essays
+|  └── 5.1.4 Spiritual Articles
+└── 5.2 Challenge Responses 
 
 6.0 News & Blog Module
 ├── 6.1 Combined News & Blog Landing Page
@@ -58,6 +64,5 @@ dependencies: [detailed_module_sitemap.md]
 
 9.0 Cross-Cutting Standardization
 ├── 9.1 Unified WYSIWYG Editor CSS
-├── 9.2 Unified WYSIWYG Dashboard Layout CSS
-└── 9.3 Challenge Response Dashboard Module
+└── 9.2 Unified WYSIWYG Dashboard Layout CSS
 ```

@@ -4,7 +4,7 @@
 
      THE JESUS WEBSITE — POPULAR CHALLENGES RANKED LIST
      File:    frontend/pages/debate/popular_challenge.html
-     Version: 1.0.0
+     Version: 1.1.0
      Purpose: Ranked listing of Popular Challenges with inserted responses.
      Source:  guide_appearance.md §4.2
 
@@ -31,23 +31,23 @@
             rel="stylesheet"
             href="../../../css/1.0_foundation/elements/buttons.css"
         />
-        <link rel="stylesheet" href="../../../css/1.0_foundation/thumbnails.css" />
+        <link
+            rel="stylesheet"
+            href="../../../css/1.0_foundation/thumbnails.css"
+        />
 
         <!-- SEO / Metadata API Header -->
         <script src="../../../js/1.0_foundation/frontend/header.js"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                injectPageMetadata({
-                    title: "Popular Challenges",
-                    description:
-                        "Ranked list of common historical challenges with verified responses.",
-                    canonical:
-                        window.location.origin + "/debate/popular-challenges",
-                });
-            });
-        </script>
+        <script src="../../../js/1.0_foundation/frontend/initializer.js"></script>
     </head>
-    <body>
+    <body
+        data-page-title="Popular Challenges"
+        data-page-description="Ranked list of common historical challenges with verified responses."
+        data-page-canonical="/debate/popular-challenges"
+        data-sidebar-active-nav="debate"
+        data-search-header-active-nav="debate"
+        data-footer-target="page-shell"
+    >
         <!-- Main Page Shell Container -->
         <div class="page-shell" id="page-shell">
             <!-- Invisible Metadata Anchor -->
@@ -55,68 +55,26 @@
 
             <!-- Main Content Column -->
             <main class="site-main" id="site-main" role="main">
-                <!-- 2-col sidebar + content layout for lists -->
-                <div class="layout-two-col">
-                    <!-- Left internal sidebar (Filters) -->
-                    <aside
-                        class="list-filters"
-                        style="
-                            padding-right: var(--space-4);
-                            border-right: var(--border-width-thin) solid
-                                var(--color-border);
-                            margin-right: var(--space-4);
-                        "
+                <div class="content-wrap">
+                    <header class="landing-page__header">
+                        <h1 class="landing-page__heading">
+                            Popular Challenges
+                        </h1>
+                        <p class="text-sm text-muted">
+                            Addressing common historical claims with
+                            evidence-based responses.
+                        </p>
+                    </header>
+
+                    <!-- Target container for list_view_popular_challenges.js -->
+                    <div id="popular-challenge-list-container"></div>
+
+                    <!-- Pagination Placeholder -->
+                    <div
+                        class="pagination mt-6 text-sm"
+                        style="display: flex; gap: var(--space-2)"
                     >
-                        <h3 class="text-sm font-semibold mb-2">Filters</h3>
-                        <ul
-                            style="list-style: none; padding: 0; line-height: 2"
-                        >
-                            <li>
-                                <a
-                                    href="#"
-                                    class="text-sm text-secondary hover:text-primary"
-                                    >By Date</a
-                                >
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    class="text-sm text-secondary hover:text-primary"
-                                    >By Location</a
-                                >
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    class="text-sm text-secondary hover:text-primary"
-                                    >By Source</a
-                                >
-                            </li>
-                        </ul>
-                    </aside>
-
-                    <!-- Right list content area -->
-                    <div class="layout-two-col__content" style="padding-top: 0">
-                        <header class="mb-6">
-                            <h1 class="text-2xl font-bold">
-                                Popular Challenges
-                            </h1>
-                            <p class="text-sm text-muted">
-                                Addressing common historical claims with
-                                evidence-based responses.
-                            </p>
-                        </header>
-
-                        <!-- Target container for list_view_popular_challenges.js -->
-                        <div id="popular-challenge-list-container"></div>
-
-                        <!-- Pagination Placeholder -->
-                        <div
-                            class="pagination mt-6 text-sm"
-                            style="display: flex; gap: var(--space-2)"
-                        >
-                            <span>[1]</span> <span>[2]</span> <span>[3]</span>
-                        </div>
+                        <span>[1]</span> <span>[2]</span> <span>[3]</span>
                     </div>
                 </div>
             </main>
@@ -131,14 +89,5 @@
 
         <!-- Display Logic -->
         <script src="../../../js/4.0_ranked_lists/frontend/list_view_popular_challenges_with_response.js"></script>
-
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                // Build Universal Layout Elements
-                injectSidebar("site-main", "debate");
-                injectSearchHeader("site-sidebar", "debate");
-                injectFooter("page-shell");
-            });
-        </script>
     </body>
 </html>

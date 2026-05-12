@@ -2,7 +2,7 @@
 name: fix_frontend_schema_compliance
 version: 1.0.0
 module: 9.0 — Cross-Cutting Standardization
-status: draft
+status: complete
 created: 2026-07-01
 ---
 
@@ -53,7 +53,7 @@ created: 2026-07-01
 - **Action:** Replace the legacy `news_items` blob-based logic with proper schema queries: fetch from `/api/public/news` with `type=news_article&sub_type=null&status=published` parameters (or filter client-side), read `news_item_title` and `news_item_link` instead of `item.title` and `item.news_items.*`, use `last_crawled` for the date display instead of `updated_at`, and render `news_item_link` as a clickable hyperlink wrapping the title.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Component injection
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -63,7 +63,7 @@ created: 2026-07-01
 - **Action:** Apply the same schema compliance changes as T1: read `news_item_title`, `news_item_link`, and `last_crawled` instead of `item.title` and `item.news_items.*`, and filter by `type=news_article&status=published`.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Component injection
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -73,7 +73,7 @@ created: 2026-07-01
 - **Action:** Add `source_url TEXT` and `keywords TEXT` columns to the `records` table schema so that `news_source` sub-type rows can store their required fields per `high_level_schema.md`. Remove the legacy `news_sources` column if it exists (superseded by the structured `source_url` + `keywords` design).
 - **Vibe Rule(s):** `snake_case` fields · Explicit queries
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -83,7 +83,7 @@ created: 2026-07-01
 - **Action:** Update the `/api/public/news` and `/api/admin/news/...` endpoints to query using `type = 'news_article'` and `sub_type IS NULL` (or `sub_type = 'news_source'` / `sub_type = 'news_search_term'` as needed), replacing legacy queries against `news_items` and `news_sources` columns. Update the news pipeline to write into the structured `news_item_title`/`news_item_link`/`last_crawled` fields and `source_url`/`keywords` on sub-type rows.
 - **Vibe Rule(s):** Readability first · Explicit queries · Stateless/repeatable scripts
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -95,7 +95,7 @@ created: 2026-07-01
 - **Action:** Add `type=blog_post&status=published` query parameters to all three API calls (`/api/public/blogposts` endpoints). Add client-side `status` gating as a defense-in-depth measure. Remove the spurious `post.description` fallback in `display_blogpost.js` (description was removed from the `blog_post` schema).
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -105,7 +105,7 @@ created: 2026-07-01
 - **Action:** Render the 10 currently missing schema fields on the blog post detail page: bibliography, context_links, picture (picture_name/picture_bytes), iaa, pledius, manuscript, url, metadata_json, page_views. Add DOM containers for each in the rendered HTML. Wire `pictures_display.js` to render the blog post picture. Wire `sources_biblio_display.js` for bibliography.
 - **Vibe Rule(s):** 1 function/file · Vanilla ES6+ · Component injection · Descriptive `id` hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -115,7 +115,7 @@ created: 2026-07-01
 - **Action:** Replace all `essay-*` CSS class references (`essay-container`, `essay-header`, `essay-body`, `essay-content-main`) with `blog-*` equivalents. Remove the `<link>` to `responses.css` and `essays.css` from Blog HTML pages — create or reference a dedicated `blog.css` frontend stylesheet. Fix `blog_post.html` comment that says `?id=` query param when JS actually uses `?slug=`.
 - **Vibe Rule(s):** Semantic HTML5 tags · No stale references · Descriptive `class` names
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -127,7 +127,7 @@ created: 2026-07-01
 - **Action:** Replace static mock data with a live API call to `/api/public/challenges?type=challenge_academic&status=published`. Use correct column names: `academic_challenge_title`, `academic_challenge_link`, `academic_challenge_rank`. Parse `academic_challenge_weight` from sub-type rows for score display. Filter out drafts. Render each challenge row with its rank, title (as clickable link), and score.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Component injection
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -137,7 +137,7 @@ created: 2026-07-01
 - **Action:** Same as T8, using `type=challenge_popular` and column names `popular_challenge_title`, `popular_challenge_link`, `popular_challenge_rank`, `popular_challenge_weight`.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Component injection
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -147,7 +147,7 @@ created: 2026-07-01
 - **Action:** Replace mock data with live API call. Handle responses using `challenge_id` FK (not `slug`). Display the response sub-card for each challenge that has a published response. Use correct challenge column names as in T8.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Component injection
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -157,7 +157,7 @@ created: 2026-07-01
 - **Action:** Same as T10 for Popular challenges, with correct `popular_challenge_*` column names.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Component injection
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -167,7 +167,7 @@ created: 2026-07-01
 - **Action:** Change `resp.description` → `resp.body` for the markdown content field. Render `bibliography` via `sources_biblio_display.js`. Render `context_links`. Make `challenge_id` a navigable link back to the parent challenge page. Add markdown-to-HTML rendering if not already present.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -177,7 +177,7 @@ created: 2026-07-01
 - **Action:** Replace the empty placeholder comment with a working response list renderer. Fetch responses from the API, filter by `type=challenge_response&status=published`, and render each with title, linked challenge_id, date, and snippet.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Component injection
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -187,7 +187,7 @@ created: 2026-07-01
 - **Action:** Replace static mock data with live API call to `/api/public/wikipedia?status=published`. Use correct column names: `wikipedia_title`, `wikipedia_link`, `wikipedia_rank`. Parse `wikipedia_weight` from sub-type rows for score display. Filter out drafts. Render each entry as a ranked row with title (as clickable link) and score.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Component injection
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -199,7 +199,7 @@ created: 2026-07-01
 - **Action:** Add `AND type = 'record'` and `AND status = 'published'` to the `SELECT` query in the `getRecordList` / timeline data query. This prevents non-record types and draft records from leaking into the public timeline visualization.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Explicit queries
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -209,7 +209,7 @@ created: 2026-07-01
 - **Action:** Remove the `r.timeline.includes("Prophecy")` condition from the lane assignment logic — "Prophecy" is not a value in the 38-value `timeline` enum. Adjust lane assignment for `PreIncarnation` and `OldTestament` eras so they map to the correct timeline lane.
 - **Vibe Rule(s):** 1 function/file · Vanilla ES6+ · No dead code
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -221,7 +221,7 @@ created: 2026-07-01
 - **Action:** Add `AND type = 'record'` and `AND status = 'published'` to the WHERE clauses in `getRecordList()`, `getRecord()`, and `searchRecords()`. This ensures the public record list and single record views only return published records of the correct type.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+ · Explicit queries
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -231,7 +231,7 @@ created: 2026-07-01
 - **Action:** Remove `wikipedia_rank`, `popular_challenge_rank`, and `academic_challenge_rank` from the SELECT clause in `getRecordList()`. These columns belong to other types (wikipedia_entry, challenge_academic, challenge_popular) and are never rendered by the records list view.
 - **Vibe Rule(s):** 1 function/file · Explicit queries · No stale references
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -241,7 +241,7 @@ created: 2026-07-01
 - **Action:** Add rendering logic for the 10 currently unrendered schema fields in the single record view: `bibliography` (wire `sources_biblio_display.js`), `timeline`, `secondary_verse`, `geo_id`, `parent_id` (as navigable link), `context_links`, `iaa`, `pledius`, `manuscript`, `url`. Add DOM containers for each in the metadata grid or as new sections.
 - **Vibe Rule(s):** 1 function/file · Vanilla ES6+ · Component injection · Descriptive `id` hooks
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -251,7 +251,7 @@ created: 2026-07-01
 - **Action:** Update `renderSnippet()` to call `JSON.parse()` on its input and handle the array-of-paragraph-strings format defined in the schema. If the input is already a string (not JSON), fall back to the current plain-text truncation behavior.
 - **Vibe Rule(s):** 1 function/file · 3-line header comment · Vanilla ES6+
 
-- [ ] Task complete
+- [x] Task complete
 
 ---
 
@@ -324,31 +324,31 @@ created: 2026-07-01
 > Verify every file created or modified in this plan against `documentation/vibe_coding_rules.md`.
 
 #### HTML
-- [ ] Semantic tags used — no `<div>` soup
-- [ ] No inline `style="..."` attributes
-- [ ] No inline `<script>` blocks
-- [ ] Descriptive `id` hooks for JS, modular `class` names for CSS
+- [x] Semantic tags used — no `<div>` soup
+- [x] No inline `style="..."` attributes
+- [x] No inline `<script>` blocks
+- [x] Descriptive `id` hooks for JS, modular `class` names for CSS
 
 #### CSS
-- [ ] CSS Grid used for macro layout; Flexbox for micro alignment
-- [ ] All colours, fonts, and spacing reference CSS variables from `typography.css`
-- [ ] Section headings and subheadings present as comments
-- [ ] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
+- [x] CSS Grid used for macro layout; Flexbox for micro alignment
+- [x] All colours, fonts, and spacing reference CSS variables from `typography.css`
+- [x] Section headings and subheadings present as comments
+- [x] No third-party utility frameworks (Tailwind, Bootstrap, etc.)
 
 #### JavaScript
-- [ ] One function per file (or tightly-related group for a single widget/component)
-- [ ] File opens with three comment lines: trigger, main function, output
-- [ ] Vanilla ES6+ only — no React, Vue, or heavy frameworks
-- [ ] Repeating UI elements injected via component injection pattern
+- [x] One function per file (or tightly-related group for a single widget/component)
+- [x] File opens with three comment lines: trigger, main function, output
+- [x] Vanilla ES6+ only — no React, Vue, or heavy frameworks
+- [x] Repeating UI elements injected via component injection pattern
 
 #### Python
-- [ ] Logic is explicit and self-documenting — no overly clever tricks
-- [ ] Scripts are stateless and safe to run repeatedly
-- [ ] API quirks or data anomalies documented inline
+- [x] Logic is explicit and self-documenting — no overly clever tricks
+- [x] Scripts are stateless and safe to run repeatedly
+- [x] API quirks or data anomalies documented inline
 
 #### SQL / Database
-- [ ] All field names in `snake_case`
-- [ ] Queries are explicit — no deeply nested frontend WASM logic
+- [x] All field names in `snake_case`
+- [x] Queries are explicit — no deeply nested frontend WASM logic
 
 ---
 
@@ -409,10 +409,10 @@ created: 2026-07-01
 | `documentation/guides/guide_donations.md` | **No** | No donation changes. |
 | `documentation/guides/guide_welcoming_robots.md` | **No** | No SEO, sitemap, or robots.txt changes. |
 
-- [ ] **All site-map documents updated:** `detailed_module_sitemap.md` file descriptions updated for rewritten files; `site_map.md` updated if new files created; versions bumped
-- [ ] **All ASCII diagrams updated:** `guide_function.md` logic-flow diagrams document the new News, Challenge, and Records frontend data flows
-- [ ] **Style guide updated:** `guide_style.md` includes new `blog-*` BEM namespace section
-- [ ] **Data schema updated:** `data_schema.md` includes `source_url` and `keywords` columns
-- [ ] **Timeline guide updated:** `guide_timeline.md` reflects removed Prophecy logic and new type/status filters
-- [ ] **Version numbers bumped:** every modified document's frontmatter `version` has been incremented
-- [ ] **No stale references:** no document contains outdated references to pre-polymorphic `news_items`/`news_sources` columns or removed mock data patterns
+- [x] **All site-map documents updated:** `detailed_module_sitemap.md` file descriptions updated for rewritten files; `site_map.md` updated if new files created; versions bumped
+- [x] **All ASCII diagrams updated:** `guide_function.md` logic-flow diagrams document the new News, Challenge, and Records frontend data flows
+- [x] **Style guide updated:** `guide_style.md` includes new `blog-*` BEM namespace section
+- [x] **Data schema updated:** `data_schema.md` includes `source_url` and `keywords` columns
+- [x] **Timeline guide updated:** `guide_timeline.md` reflects removed Prophecy logic and new type/status filters
+- [x] **Version numbers bumped:** every modified document's frontmatter `version` has been incremented
+- [x] **No stale references:** no document contains outdated references to pre-polymorphic `news_items`/`news_sources` columns or removed mock data patterns
