@@ -202,12 +202,20 @@ async function _initialiseAllEditors(recordId) {
 
   // Taxonomy selectors
   if (typeof window.renderTaxonomySelectors === "function") {
-    window.renderTaxonomySelectors("section-taxonomy");
+    try {
+      window.renderTaxonomySelectors("section-taxonomy");
+    } catch (err) {
+      console.error("[dashboard_records_single] Taxonomy init failed:", err);
+    }
   }
 
   // Map fields
   if (typeof window.renderMapFields === "function") {
-    window.renderMapFields("section-taxonomy");
+    try {
+      window.renderMapFields("section-taxonomy");
+    } catch (err) {
+      console.error("[dashboard_records_single] Map fields init failed:", err);
+    }
   }
 
   // External refs
