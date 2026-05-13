@@ -14,7 +14,7 @@
             and window.renderPictureName() via <script> tag inclusion.
    Main:    renderEditPicture(containerId, recordId) — wires file input change
             handler, renders full-size and thumbnail previews, enforces
-            client-side PNG-only + ≤250 KB validation, and uploads to
+            client-side PNG-only + ≤5 MB validation, and uploads to
             POST /api/admin/records/{recordId}/picture.
             renderPictureName(containerId, pictureName) — renders/updates
             the picture_name text field display.
@@ -35,7 +35,7 @@ const API_BASE = "/api/admin";
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: renderEditPicture
    Wires the file input, full-size preview, thumbnail preview, and upload
-   button for a record's picture. Enforces PNG-only + ≤250 KB client-side
+   button for a record's picture. Enforces PNG-only + ≤5 MB client-side
    before allowing upload to POST /api/admin/records/{recordId}/picture.
 ----------------------------------------------------------------------------- */
 function renderEditPicture(containerId, recordId) {
@@ -88,12 +88,110 @@ function renderEditPicture(containerId, recordId) {
     uploadArea.appendChild(uploadBtn);
   }
 
+  // Inject a delete picture button if one doesn't already exist
+  let deletePicBtn = document.getElementById("btn-picture-delete");
+  if (!deletePicBtn) {
+    const uploadArea =
+      document.getElementById("picture-upload-area") || container;
+    deletePicBtn = document.createElement("button");
+    deletePicBtn.id = "btn-picture-delete";
+    deletePicBtn.className = "btn btn--danger";
+    deletePicBtn.type = "button";
+    deletePicBtn.textContent = "Delete Picture";
+    deletePicBtn.style.marginTop = "var(--space-1)";
+    deletePicBtn.style.marginLeft = "var(--space-1)";
+    deletePicBtn.hidden = true;
+    uploadArea.appendChild(deletePicBtn);
+  }
+
+  // Wire delete picture button
+  if (deletePicBtn) {
+    // If record has a saved picture_name, show the delete button
+    var existingPicName = document.getElementById("record-picture-name");
+    if (
+      existingPicName &&
+      existingPicName.value &&
+      existingPicName.value.trim().length > 0
+    ) {
+      deletePicBtn.hidden = false;
+    }
+
+    if (!recordId) {
+      deletePicBtn.disabled = true;
+      deletePicBtn.title = "You must save the record before deleting a picture";
+    }
+
+    deletePicBtn.addEventListener("click", async function () {
+      if (!recordId) {
+        _surfaceError(
+          "Error: Please save the record first before deleting a picture.",
+        );
+        return;
+      }
+
+      if (
+        !confirm(
+          "Are you sure you want to delete this picture? This cannot be undone.",
+        )
+      ) {
+        return;
+      }
+
+      deletePicBtn.disabled = true;
+      deletePicBtn.textContent = "Deleting…";
+
+      try {
+        const response = await fetch(
+          API_BASE + "/records/" + encodeURIComponent(recordId) + "/picture",
+          {
+            method: "DELETE",
+          },
+        );
+
+        if (!response.ok) {
+          const errorBody = await response.json().catch(function () {
+            return {};
+          });
+          var detail = errorBody.detail || "HTTP " + response.status;
+          throw new Error(detail);
+        }
+
+        // Clear previews
+        _clearPreview(fullPreview);
+        _clearPreview(thumbPreview);
+
+        // Clear picture name field
+        _setPictureNameField("");
+
+        // Reset file input
+        fileInput.value = "";
+        selectedFile = null;
+
+        // Hide delete button, disable upload until new file selected
+        deletePicBtn.hidden = true;
+        if (uploadBtn) {
+          uploadBtn.disabled = true;
+          uploadBtn.textContent = "Upload Picture";
+        }
+
+        if (typeof window.surfaceError === "function") {
+          window.surfaceError("Picture deleted successfully.");
+        }
+      } catch (error) {
+        _surfaceError("Error: Failed to delete picture. " + error.message);
+        deletePicBtn.disabled = false;
+        deletePicBtn.textContent = "Delete Picture";
+        console.error("[picture_handler] Delete failed:", error);
+      }
+    });
+  }
+
   let selectedFile = null;
 
   /* -------------------------------------------------------------------------
        FILE INPUT CHANGE HANDLER
-       Validates PNG type and ≤250 KB, then renders previews in both
-       full-size and thumbnail containers.
+       Validates PNG type and ≤5 MB (server compresses to ≤250 KB), then
+       renders previews in both full-size and thumbnail containers.
     ------------------------------------------------------------------------- */
   fileInput.addEventListener("change", function () {
     // Reset state
@@ -122,12 +220,12 @@ function renderEditPicture(containerId, recordId) {
       return;
     }
 
-    // --- Client-side validation: ≤ 250 KB ---
+    // --- Client-side validation: ≤ 5 MB (server compresses to ≤250 KB) ---
     if (file.size > MAX_PICTURE_SIZE_BYTES) {
       _surfaceError(
         "Error: Image upload failed for '" +
           _getRecordTitle() +
-          "'. Max 250 KB PNG only.",
+          "'. Max 5 MB PNG only.",
       );
       fileInput.value = "";
       return;
@@ -237,7 +335,7 @@ function renderEditPicture(containerId, recordId) {
         _surfaceError(
           "Error: Image upload failed for '" +
             _getRecordTitle() +
-            "'. Max 250 KB PNG only.",
+            "'. Max 5 MB PNG only.",
         );
 
         // Restore button state
