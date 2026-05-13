@@ -249,7 +249,7 @@ function initDatabase() {
     .then(function onSqlJsReady(SQL) {
       // --- 2. Fetch the compiled SQLite database file ----------------------
 
-      return fetch(DB_CONFIG.databasePath)
+      return fetch(DB_CONFIG.databasePath, { cache: "no-cache" })
         .then(function onFetchResponse(response) {
           if (!response.ok) {
             throw new Error(
