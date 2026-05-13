@@ -385,11 +385,6 @@ async def public_blogposts(
                     post["snippet"] = json.loads(post["snippet"])
                 except (json.JSONDecodeError, TypeError):
                     pass
-            if post.get("url"):
-                try:
-                    post["url"] = json.loads(post["url"])
-                except (json.JSONDecodeError, TypeError):
-                    pass
             if post.get("metadata_json"):
                 try:
                     post["metadata_json"] = json.loads(post["metadata_json"])
@@ -460,11 +455,6 @@ async def public_blogpost_by_slug(slug: str):
         if post.get("description"):
             try:
                 post["description"] = json.loads(post["description"])
-            except (json.JSONDecodeError, TypeError):
-                pass
-        if post.get("url"):
-            try:
-                post["url"] = json.loads(post["url"])
             except (json.JSONDecodeError, TypeError):
                 pass
         if post.get("metadata_json"):
@@ -978,8 +968,6 @@ async def public_responses(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
 
 
 @app.get("/api/public/diagram/tree")

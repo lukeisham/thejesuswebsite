@@ -332,6 +332,16 @@ function _buildChallengeRow(challenge, index, mode) {
     if (typeof window.populateMetadataWidget === "function") {
       window.populateMetadataWidget("metadata-widget-container", challenge);
     }
+
+    // Populate the challenge link input with the record's link field
+    const linkCol =
+      mode === "academic"
+        ? "academic_challenge_link"
+        : "popular_challenge_link";
+    const linkInput = document.getElementById("challenge-link-input");
+    if (linkInput) {
+      linkInput.value = challenge[linkCol] || "";
+    }
   });
 
   return rowEl;

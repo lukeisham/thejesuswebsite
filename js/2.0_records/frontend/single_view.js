@@ -198,64 +198,6 @@ function renderSingleRecord() {
     }
   }
 
-  // --- url — render as linked reference -----------------------------------
-  if (record.url) {
-    try {
-      var urlData = JSON.parse(record.url);
-      var urlContainer = document.getElementById("record-container");
-      if (urlData && urlContainer) {
-        var urlSection = document.createElement("section");
-        urlSection.className = "record-section";
-        urlSection.id = "record-section-url";
-        var urlHeading = document.createElement("h2");
-        urlHeading.className = "record-section-title";
-        urlHeading.textContent = "External Reference";
-        urlSection.appendChild(urlHeading);
-
-        var urls = Array.isArray(urlData) ? urlData : [urlData];
-        var urlList = document.createElement("ul");
-        urlList.className = "record-url-list";
-        urlList.innerHTML = urls
-          .map(function (u) {
-            var href = typeof u === "string" ? u : u.url;
-            return (
-              '<li><a href="' +
-              href +
-              '" target="_blank" rel="noopener">' +
-              href +
-              "</a></li>"
-            );
-          })
-          .join("");
-        urlSection.appendChild(urlList);
-        urlContainer.appendChild(urlSection);
-      }
-    } catch (e) {
-      // Fallback: treat as plain string URL
-      var urlContainer = document.getElementById("record-container");
-      if (
-        urlContainer &&
-        typeof record.url === "string" &&
-        record.url.length > 0
-      ) {
-        var urlSection = document.createElement("section");
-        urlSection.className = "record-section";
-        urlSection.id = "record-section-url";
-        var urlHeading = document.createElement("h2");
-        urlHeading.className = "record-section-title";
-        urlHeading.textContent = "External Reference";
-        urlSection.appendChild(urlHeading);
-        var urlLink = document.createElement("a");
-        urlLink.href = record.url;
-        urlLink.target = "_blank";
-        urlLink.rel = "noopener";
-        urlLink.textContent = record.url;
-        urlSection.appendChild(urlLink);
-        urlContainer.appendChild(urlSection);
-      }
-    }
-  }
-
   // --- unique identifiers — render as a formal <ul> list section ---
   var refsListEl = document.getElementById("record-references-list");
   var refsSectionEl = document.getElementById("record-section-references");

@@ -124,15 +124,6 @@ async function loadBlogPostContent(recordId, title) {
       }
     }
 
-    // Populate URL array
-    if (typeof window.setUrlArrayData === "function") {
-      try {
-        window.setUrlArrayData(post.url || []);
-      } catch (err) {
-        console.warn("[blog_posts_load_content] Failed to set URL array:", err);
-      }
-    }
-
     // Update picture handler with the record ID
     if (typeof window.renderEditPicture === "function") {
       try {

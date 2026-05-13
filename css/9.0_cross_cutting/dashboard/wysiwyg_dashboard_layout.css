@@ -434,7 +434,7 @@
 
 /* --- Picture Preview Row --- */
 
-/* --- Form Fields (used by external_refs_handler, url_array_editor) --- */
+/* --- Form Fields (used by external_refs_handler) --- */
 
 .form-field {
     display: flex;
@@ -622,40 +622,5 @@
 }
 
 #wysiwyg-context-links-container .chip__remove:hover {
-    color: var(--color-accent-primary);
-}
-
-/* =============================================================================
-   7. URL ARRAY EDITOR — label/URL pair editor (shared tool)
-============================================================================= */
-
-#wysiwyg-url-array-container .url-array-editor {
-    margin-top: var(--space-2);
-}
-
-#wysiwyg-url-array-container .url-array-editor__row {
-    display: grid;
-    grid-template-columns: 1fr 2fr auto;
-    gap: var(--space-1);
-    align-items: end;
-    margin-bottom: var(--space-1);
-}
-
-#wysiwyg-url-array-container .url-array-editor__add {
-    margin-top: var(--space-2);
-}
-
-#wysiwyg-url-array-container .url-array-editor__remove {
-    font-family: var(--font-heading);
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    line-height: 1;
-    padding: var(--space-1);
-}
-
-#wysiwyg-url-array-container .url-array-editor__remove:hover {
     color: var(--color-accent-primary);
 }

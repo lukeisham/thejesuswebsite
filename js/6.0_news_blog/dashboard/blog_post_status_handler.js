@@ -405,19 +405,6 @@ function _collectEditorData() {
     }
   }
 
-  // Collect URL array
-  if (typeof window.collectUrlArray === "function") {
-    try {
-      payload.url = window.collectUrlArray();
-    } catch (err) {
-      console.warn(
-        "[blog_post_status_handler] Failed to collect URL array:",
-        err,
-      );
-      payload.url = [];
-    }
-  }
-
   return payload;
 }
 

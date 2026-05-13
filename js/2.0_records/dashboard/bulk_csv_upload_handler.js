@@ -111,7 +111,6 @@ const CSV_FIELD_MAP = {
   iaa: "iaa",
   pledius: "pledius",
   manuscript: "manuscript",
-  url: "url",
 };
 
 /* -----------------------------------------------------------------------------

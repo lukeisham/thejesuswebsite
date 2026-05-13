@@ -207,7 +207,6 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── snippet_generator.js   <-- 🔑 Shared Tool: Automated snippet trigger (calls API → DeepSeek)
 │   ├── table_toggle_display.js <-- Sort/Filter logic; Bulk toggle isolates view
 │   ├── taxonomy_selector.js   <-- Selectors for era, timeline, gospel_category fields
-│   ├── url_array_editor.js    <-- Label/URL pair array editor
 │   └── verse_builder.js       <-- Structured book/chapter/verse chip UI
 ├── js/2.0_records/frontend/
 │   ├── display_snippet.js     <-- JSON Array paragraph snippet renderer (handles schema JSON format)

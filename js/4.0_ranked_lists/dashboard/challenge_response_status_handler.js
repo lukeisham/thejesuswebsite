@@ -405,19 +405,7 @@ function _collectEditorData() {
     }
   }
 
-  // Collect URL array
-  if (typeof window.collectUrlArray === "function") {
-    try {
-      payload.url = window.collectUrlArray();
-    } catch (err) {
-      console.warn(
-        "[challenge_response_status_handler] Failed to collect URL array:",
-        err,
-      );
-      payload.url = [];
-    }
-  }
-
+  // Collect context links from shared tool
   return payload;
 }
 

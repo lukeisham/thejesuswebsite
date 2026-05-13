@@ -31,7 +31,6 @@ const RECORDS_SINGLE_SCRIPTS = [
   "../../js/2.0_records/dashboard/map_fields_handler.js",
   "../../js/9.0_cross_cutting/dashboard/external_refs_handler.js",
   "../../js/2.0_records/dashboard/parent_selector.js",
-  "../../js/2.0_records/dashboard/url_array_editor.js",
   "../../js/9.0_cross_cutting/dashboard/mla_source_handler.js",
   "../../js/9.0_cross_cutting/dashboard/context_link_handler.js",
   "../../js/9.0_cross_cutting/dashboard/picture_handler.js",
@@ -221,12 +220,7 @@ async function _initialiseAllEditors(recordId) {
     window.renderParentSelector("section-taxonomy");
   }
 
-  // URL array editor
-  if (typeof window.renderUrlArrayEditor === "function") {
-    window.renderUrlArrayEditor("url-array-editor-container");
-  }
-
-  // Bibliography editor
+  // MLA bibliography editor
   if (typeof window.renderEditBibliography === "function") {
     window.renderEditBibliography("bibliography-editor-container");
   }

@@ -214,6 +214,10 @@ async function _savePopularChallengeRecord(data) {
     data = window.collectMetadataWidget("metadata-widget-container");
   }
 
+  // Collect challenge link if available
+  const linkInput = document.getElementById("challenge-link-input");
+  const popularChallengeLink = linkInput ? linkInput.value.trim() : "";
+
   try {
     const response = await fetch("/api/admin/records/" + state.activeRecordId, {
       method: "PUT",
@@ -222,6 +226,7 @@ async function _savePopularChallengeRecord(data) {
         slug: data.slug,
         snippet: data.snippet,
         metadata_json: data.metadata_json,
+        popular_challenge_link: popularChallengeLink,
         status: "draft",
       }),
     });
@@ -412,6 +417,12 @@ async function _handleSaveDraft() {
     payload.slug = metaData.slug || state.activeRecordSlug;
     payload.snippet = metaData.snippet || "";
     payload.metadata_json = metaData.metadata_json || "";
+  }
+
+  // Collect challenge link
+  const linkInput = document.getElementById("challenge-link-input");
+  if (linkInput) {
+    payload.popular_challenge_link = linkInput.value.trim();
   }
 
   // Collect search terms from the textarea

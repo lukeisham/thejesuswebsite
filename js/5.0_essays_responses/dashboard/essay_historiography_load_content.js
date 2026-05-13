@@ -122,18 +122,6 @@ async function loadDocumentContent(recordId, title) {
       }
     }
 
-    // Populate URL array
-    if (typeof window.setUrlArrayData === "function") {
-      try {
-        window.setUrlArrayData(doc.url || []);
-      } catch (err) {
-        console.warn(
-          "[essay_historiography_load_content] Failed to set URL array:",
-          err,
-        );
-      }
-    }
-
     // Update picture handler with the record ID
     if (typeof window.renderEditPicture === "function") {
       try {

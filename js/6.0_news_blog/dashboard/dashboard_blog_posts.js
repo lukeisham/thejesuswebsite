@@ -133,11 +133,6 @@ async function renderBlogPosts() {
     window.renderExternalRefs("wysiwyg-external-refs-container");
   }
 
-  // 4c3. URL array editor
-  if (typeof window.renderUrlArrayEditor === "function") {
-    window.renderUrlArrayEditor("wysiwyg-url-array-container");
-  }
-
   // 4d. Metadata widget — shared unified slug/snippet/metadata UI
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {
@@ -249,10 +244,6 @@ async function _handleNewBlogPost() {
     // Reset external refs
     if (typeof window.setExternalRefValues === "function") {
       window.setExternalRefValues({ iaa: "", pledius: "", manuscript: "" });
-    }
-    // Reset URL array
-    if (typeof window.setUrlArrayData === "function") {
-      window.setUrlArrayData([]);
     }
 
     // Refresh the sidebar to show the new draft

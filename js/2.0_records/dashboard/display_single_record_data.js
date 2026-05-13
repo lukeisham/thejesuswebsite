@@ -112,10 +112,6 @@ async function fetchAndDisplaySingleRecord(recordId) {
       });
     }
 
-    if (typeof window.setUrlArrayData === "function") {
-      window.setUrlArrayData(record.url);
-    }
-
     // Section 7: Metadata & Status — populate the shared widget
     if (typeof window.populateMetadataWidget === "function") {
       window.populateMetadataWidget("metadata-widget-container", record);
@@ -335,9 +331,6 @@ function _initialiseBlankForm() {
   _setFieldValue("record-parent-id", "");
   if (typeof window.setExternalRefValues === "function") {
     window.setExternalRefValues({ iaa: "", pledius: "", manuscript: "" });
-  }
-  if (typeof window.setUrlArrayData === "function") {
-    window.setUrlArrayData(null);
   }
 
   // Section 7: Metadata & Status — clear the shared widget

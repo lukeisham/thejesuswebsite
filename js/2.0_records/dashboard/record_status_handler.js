@@ -93,10 +93,7 @@ function collectAllFormData() {
     payload.manuscript = refs.manuscript || "";
   }
 
-  if (typeof window.collectUrlArray === "function") {
-    payload.url = JSON.stringify(window.collectUrlArray());
-  }
-
+  // External refs (IAA, Pledius, Manuscript)
   // Section 7: Metadata
   const metadataJson = _getValue("record-metadata-json");
   if (metadataJson) {

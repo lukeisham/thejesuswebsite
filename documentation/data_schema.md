@@ -35,13 +35,13 @@ dependencies: [site_map.md, module_sitemap.md]
 `picture_thumbnail` | BLOB | Raw PNG Data (max 200px width derivative)
 `description` | TEXT | JSON Array (Paragraphs) 
 `snippet` | TEXT | JSON Array (Paragraphs) 
-`bibliography` | TEXT | JSON Blob 
-    `mla_book`
-    `mla_book_inline`
-    `mla_article`
-    `mla_article_inline`
-    `mla_website`
-    `mla_website_inline`
+`bibliography` | TEXT | JSON Blob — MLA citation entries (managed by MLA Widget / `mla_source_handler.js`)
+    ```json
+    {"type": "book", "author": "Sanders, E. P.", "title": "The Historical Figure of Jesus", "publisher": "Penguin", "year": "1993", "pages": ""}
+    {"type": "article", "author": "Dunn, James D. G.", "title": "Jesus Tradition", "journal": "NTS", "volume": "36", "year": "1990", "pages": "37-59"}
+    {"type": "website", "author": "Ehrman, Bart", "title": "Did Jesus Exist?", "website": "The Bart Ehrman Blog", "publisher": "", "url": "https://...", "date": "2024"}
+    ```
+    Each entry has a `type` field (`book`, `article`, or `website`) plus type-specific fields. Stored as a JSON array of these objects in the `bibliography` column.
 `era` | TEXT | Flat Indexable
     `PreIncarnation`,
     `OldTestament`,
@@ -279,7 +279,7 @@ dependencies: [site_map.md, module_sitemap.md]
 `blogposts` | TEXT | JSON Blob 
 `historiography` | TEXT | JSON Blob
 `news_sources` | TEXT | Label-Value Pair (metadata about the news source associated with this record)
-`news_items` | TEXT | JSON Blob (individual news stories or items linked to this record)
+`news_items` | TEXT | JSON Blob [DEPRECATED] — Replaced by `news_item_title` and `news_item_link` columns. Do not use in new code.
 `source_url` | TEXT | Flat Indexable (canonical URL for `news_source` sub-type rows)
 `keywords` | TEXT | JSON Array (search keywords for `news_source` sub-type rows)
 `news_item_title` | TEXT | Flat Indexable  
@@ -294,7 +294,8 @@ dependencies: [site_map.md, module_sitemap.md]
 `iaa` | TEXT | Flat Indexable 
 `pledius` | TEXT | Flat Indexable 
 `manuscript` | TEXT | Flat Indexable 
-`url` | TEXT | JSON Blob 
+`url` | TEXT | JSON Blob [DEPRECATED — editor deleted as redundant after URL array editor removal]
+    Distinct from `bibliography` — use this for generic external links, not scholarly citations. The MLA widget's website type stores URLs with full citation metadata in the `bibliography` column.
 `trace_reasoning` | TEXT | Flat Indexable (64-bit int) 
 
 

@@ -63,25 +63,6 @@ function injectNewsSnippets(containerId) {
             }
           }
 
-          // Fallback: legacy news_items blob
-          if (
-            !snippet &&
-            item.news_items &&
-            typeof item.news_items === "object"
-          ) {
-            snippet = item.news_items.summary || item.news_items.excerpt || "";
-            if (!snippet) {
-              var content =
-                item.news_items.content || item.news_items.body || "";
-              if (typeof content === "string") {
-                snippet = content.replace(/\n{2,}/g, " ").substring(0, 150);
-              }
-            }
-          }
-          if (typeof snippet === "object") {
-            snippet = snippet.text || "";
-          }
-
           var titleHtml = displayLink
             ? '<a href="' +
               escapeHtml(displayLink) +

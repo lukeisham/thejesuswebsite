@@ -509,36 +509,10 @@
 /* Moved to css/9.0_cross_cutting/dashboard/context_links_widget.css */
 
 /* =============================================================================
-   8. URL ARRAY EDITOR — label/URL pair editor
-============================================================================= */
-.url-array-editor {
-    margin-top: var(--space-3);
-}
-
-.url-array-editor__row {
-    display: grid;
-    grid-template-columns: 1fr 2fr auto;
-    gap: var(--space-1);
-    align-items: end;
-    margin-bottom: var(--space-1);
-}
-
-.url-array-editor__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
-    margin-top: var(--space-1);
-}
-
-/* =============================================================================
-   9. RESPONSIVE — single-column collapse on narrow viewports
+   8. RESPONSIVE — single-column collapse on narrow viewports
 ============================================================================= */
 @media (max-width: 640px) {
     .verse-builder__inputs {
-        grid-template-columns: 1fr;
-    }
-
-    .url-array-editor__row {
         grid-template-columns: 1fr;
     }
 
