@@ -1,6 +1,6 @@
 ---
 title: guide_maps.md
-version: 1.1.1
+version: 1.1.2
 purpose: Visual ASCII representations of the interactive map layouts, mapped to front-end components (source of truth)
 ---
 
@@ -152,7 +152,7 @@ Each map is composed of three primary functional layers rendered sequentially.
 
 **Source Registry:**
 - **Primary Source:** [The Global Archaeological Geo-Index] — a project-specific mapping table that ensures consistency between historical maps and modern GPS coordinates.
-- **Local Mirror:** `assets/geo_index.json` contains a cached mapping of common locations used in the initial seed data.## 3.3.7 Creation & Assembly of Map Layers
+## 3.3.7 Creation & Assembly of Map Layers
 
 **Purpose:** Actionable workflow for generating visual layers and integrating them into the visual system.
 

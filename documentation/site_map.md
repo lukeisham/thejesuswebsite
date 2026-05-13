@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version: 1.0.69
+version 1.0.70
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -327,10 +327,7 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── reports/               <-- Output directory for UI/UX audit logs
 │   └── security_audit.py      <-- Runs automated vulnerability scans
 └── tools/
-    ├── db_seeder.py           <-- Logic to populate the SQLite database
     ├── generate_sitemap.py    <-- Dynamic XML sitemap builder
     ├── migrate_schema.py      <-- Database schema migration utility
-    ├── minify_admin.py        <-- Automates admin code obfuscation
-    ├── seed_data.sql          <-- Initial data payload for first build
-    └── test_records.sql       <-- Small sample dataset for test runs
+    └── minify_admin.py        <-- Automates admin code obfuscation
 ```
