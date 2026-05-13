@@ -23,7 +23,9 @@ button:not(.admin-editor-toolbar-btn):not(.btn):not(.wysiwyg-new-btn):not(
         .markdown-toolbar__btn
     ):not(.metadata-widget__btn):not(.metadata-widget__generate-all):not(
         .metadata-widget__tag-add-btn
-    ):not(.btn--secondary) {
+    ):not(.btn--secondary):not(.context-links-editor__remove-btn):not(
+        .paragraph-editor__remove
+    ):not(.url-array-editor__remove):not(.chip__remove) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
