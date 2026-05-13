@@ -119,14 +119,14 @@ async def health_check_admin(admin_data: dict = Depends(verify_token)):
         health["status"] = "degraded"
 
     # --- DeepSeek API check ---
-    deepseek_key = os.getenv("DEEPSEEK_API_KEY", "")
+    deepseek_key = os.getenv("DEEPSEEK_KEY", "")
     if deepseek_key:
         health["deepseek_api"] = {"status": "configured"}
     else:
         health["status"] = "degraded"  # mark overall health as degraded
         health["deepseek_api"] = {
             "status": "unavailable",
-            "error": "DEEPSEEK_API_KEY not set in .env",
+            "error": "DEEPSEEK_KEY not set in .env",
         }
 
     # --- VPS resource usage (best-effort, available on Linux/macOS) ---
@@ -158,6 +158,16 @@ async def health_check_admin(admin_data: dict = Depends(verify_token)):
         }
     except Exception as e:
         health["resources"] = {"status": "error", "error": str(e)}
+
+    # --- ESV API check ---
+    esv_key = os.getenv("ESV_KEY", "")
+    if esv_key:
+        health["esv_api"] = {"status": "configured"}
+    else:
+        health["esv_api"] = {
+            "status": "unavailable",
+            "error": "ESV_KEY not set in .env",
+        }
 
     return health
 

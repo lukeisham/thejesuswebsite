@@ -12,8 +12,9 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from dotenv import load_dotenv
 
-# Load env variables from the local .env file
-load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+# Load env variables from the project-root .env file (single source of truth)
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+load_dotenv(os.path.join(ROOT_DIR, ".env"))
 
 SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
 ALGORITHM = "HS256"

@@ -69,5 +69,6 @@ dependencies: [detailed_module_sitemap.md]
 ├── 9.4 MLA Widget
 ├── 9.5 Unique Identifiers Widget
 ├── 9.6 Context Links Widget 
-└── 9.7 Picture Widget
+├── 9.7 Picture Widget 
+└── 9.8 ESV Widget
 ```

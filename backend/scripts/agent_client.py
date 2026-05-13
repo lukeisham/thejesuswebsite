@@ -19,7 +19,7 @@
 #       enabled in the request body. Non-search calls use the same model
 #       without the web_search option.
 #     - On 429 (rate limit), we retry with exponential backoff up to 3 times.
-#     - The DEEPSEEK_API_KEY is read from .env at the project root.
+#     - The DEEPSEEK_KEY is read from .env at the project root.
 # =============================================================================
 
 import json
@@ -45,7 +45,7 @@ load_dotenv(os.path.join(ROOT_DIR, ".env"))
 # Constants
 # ---------------------------------------------------------------------------
 
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+DEEPSEEK_KEY = os.getenv("DEEPSEEK_KEY", "")
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1"
 DEEPSEEK_CHAT_URL = f"{DEEPSEEK_BASE_URL}/chat/completions"
 DEFAULT_MODEL = "deepseek-chat"
@@ -170,13 +170,13 @@ def _call_deepseek(
     Raises:
         RuntimeError: If all retries are exhausted or the API key is missing.
     """
-    if not DEEPSEEK_API_KEY:
+    if not DEEPSEEK_KEY:
         raise RuntimeError(
-            "DEEPSEEK_API_KEY is not set in .env — cannot call DeepSeek API."
+            "DEEPSEEK_KEY is not set in .env — cannot call DeepSeek API."
         )
 
     headers = {
-        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Authorization": f"Bearer {DEEPSEEK_KEY}",
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
