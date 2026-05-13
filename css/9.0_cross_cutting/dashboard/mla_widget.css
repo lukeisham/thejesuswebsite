@@ -48,10 +48,6 @@
     table-layout: auto;
 }
 
-.bibliography-editor__thead {
-    /* contained within the table */
-}
-
 .bibliography-editor__th {
     font-family: var(--font-mono);
     font-size: var(--text-xs);
@@ -73,10 +69,6 @@
 /* =============================================================================
    4. TABLE BODY — data rows
 ============================================================================= */
-
-.bibliography-editor__tbody {
-    /* contained within the table */
-}
 
 .bibliography-editor__row {
     border-bottom: var(--border-width-thin) solid var(--color-border);

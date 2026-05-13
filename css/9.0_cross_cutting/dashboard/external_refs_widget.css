@@ -33,10 +33,6 @@
    3. THEAD — column headers
 ============================================================================= */
 
-.external-refs-editor__thead {
-    /* contained within the table */
-}
-
 .external-refs-editor__th {
     font-family: var(--font-mono);
     font-size: var(--text-xs);
@@ -53,10 +49,6 @@
 /* =============================================================================
    4. TBODY — data rows
 ============================================================================= */
-
-.external-refs-editor__tbody {
-    /* contained within the table */
-}
 
 .external-refs-editor__row {
     border-bottom: var(--border-width-thin) solid var(--color-border);

@@ -26,7 +26,9 @@ async def get_diagram_tree(admin_data: dict = Depends(verify_token)):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, title, parent_id, primary_verse FROM records ORDER BY title")
+        cursor.execute(
+            "SELECT id, title, parent_id, primary_verse FROM records ORDER BY title"
+        )
         nodes = [dict(row) for row in cursor.fetchall()]
         conn.close()
         return {"nodes": nodes}

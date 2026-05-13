@@ -112,6 +112,7 @@ def _compress_to_limit(image: Image.Image, max_kb: int) -> bytes:
         rgb_image = image
 
     quality = INITIAL_QUALITY
+    jpeg_buffer = BytesIO()  # initialise so it's always bound
     while quality >= QUALITY_FLOOR:
         jpeg_buffer = BytesIO()
         rgb_image.save(jpeg_buffer, format="JPEG", quality=quality, optimize=True)
