@@ -1,14 +1,13 @@
 /* =============================================================================
    THE JESUS WEBSITE — ARDOR DIAGRAM CSS
    File:    css/3.0_visualizations/ardor.css
-   Version: 1.2.0
+   Version: 1.2.1
    Purpose: Specific styles for the interactive Evidence (Ardor) Tree Graph.
             Provides the layout and node styles for the massive canvas area.
+            CSS variables are provided by typography.css (loaded in evidence.html).
    Source:  guide_appearance.md §3.1
             §18-compliance audit: all colours, fonts, spacing use CSS variables.
 ============================================================================= */
-
-@import url("./typography_colors.css");
 
 /* =============================================================================
    1. MAIN STRUCTURE — diagram pages (Map, Timeline, Ardor)

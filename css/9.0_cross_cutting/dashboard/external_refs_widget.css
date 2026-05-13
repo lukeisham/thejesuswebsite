@@ -65,10 +65,6 @@
     background-color: var(--color-bg-secondary);
 }
 
-.external-refs-editor__row--empty {
-    /* structural — no hover */
-}
-
 .external-refs-editor__td {
     padding: var(--space-1) var(--space-2);
     vertical-align: middle;

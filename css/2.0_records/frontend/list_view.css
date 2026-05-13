@@ -1,14 +1,11 @@
 /* =============================================================================
    THE JESUS WEBSITE — LIST LAYOUT
    File:    css/2.0_records/list_view.css
-   Version: 1.1.0
+   Version: 1.1.1
    Purpose: CSS specific to aggregate list views (e.g., records.html).
+            CSS variables are provided by typography.css (loaded in records.html).
    Source:  guide_appearance.md §2.3, §2.4, §4.1, §4.2
 ============================================================================= */
-
-/* Import global tokens */
-@import url('../../elements/typography_colors.css');
-@import url('../../elements/grid.css');
 
 /* =============================================================================
    1. LIST HEADER & TITLE
@@ -52,7 +49,9 @@
     padding: var(--space-3) var(--space-3);
     border-bottom: var(--border-width-thin) solid var(--color-border);
     gap: var(--space-3);
-    transition: background-color var(--transition-fast), border-left-color var(--transition-fast);
+    transition:
+        background-color var(--transition-fast),
+        border-left-color var(--transition-fast);
     border-left: 2px solid transparent;
 }
 
@@ -162,7 +161,9 @@
     border: var(--border-width-thin) solid var(--color-border);
     padding: var(--space-3);
     text-decoration: none;
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
 }
 
 .list-card-item:hover {

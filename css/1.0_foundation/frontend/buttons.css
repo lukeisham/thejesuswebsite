@@ -2,13 +2,12 @@
 
    THE JESUS WEBSITE — LIST CARD & INTERACTIVE BUTTONS
    File:    css/1.0_foundation/elements/buttons.css
-   Version: 1.2.0
+   Version: 1.2.1
    Purpose: Specific styles for interactive UI components used in lists and cards.
+            CSS variables are provided by typography.css (loaded in page HTML).
    Source:  guide_style.md §10, §11
 
 ============================================================================= */
-
-@import url("./typography_colors.css");
 
 /* =============================================================================
    1. GENERIC BUTTON STYLE ("Technical Instruction" Node)

@@ -2,13 +2,12 @@
 
    THE JESUS WEBSITE — ESSAY LAYOUT
    File:    css/5.0_essays_responses/essays.css
-   Version: 1.1.0
+   Version: 1.1.1
    Purpose: High-readability typography for long-form essays and About page.
+            CSS variables are provided by typography.css (loaded in page HTML).
    Source:  guide_style.md §12, guide_appearance.md §5.1, §5.2
 
 ============================================================================= */
-
-@import url("../../elements/typography_colors.css");
 
 /* Main central column for essays */
 .essay-container {

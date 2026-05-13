@@ -1,12 +1,11 @@
 /* =============================================================================
    THE JESUS WEBSITE — FORM ELEMENTS (SLIDERS, CHECKBOXES, RADIOS, DROPDOWNS)
    File:    css/1.0_foundation/elements/forms.css
-   Version: 1.0.0
+   Version: 1.0.1
    Purpose: Implements the Technical Blueprint aesthetic for interactive inputs.
+            CSS variables are provided by typography.css (loaded in page HTML).
    Source:  guide_style.md §15
 ============================================================================= */
-
-@import url('./typography_colors.css');
 
 /* =============================================================================
    1. RANGE SLIDERS (Blueprint Vectors)
@@ -97,7 +96,9 @@ input[type="radio"] {
     place-content: center;
     margin-right: var(--space-1);
     vertical-align: middle;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
 }
 
 input[type="checkbox"]:focus-visible,
@@ -192,10 +193,15 @@ select {
     font-size: var(--text-sm);
     color: var(--color-text-primary);
     background-color: var(--color-bg-primary);
-    background-image: linear-gradient(45deg, transparent 50%, var(--color-text-primary) 50%),
-                      linear-gradient(135deg, var(--color-text-primary) 50%, transparent 50%);
-    background-position: calc(100% - 15px) center, calc(100% - 10px) center;
-    background-size: 5px 5px, 5px 5px;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--color-text-primary) 50%),
+        linear-gradient(135deg, var(--color-text-primary) 50%, transparent 50%);
+    background-position:
+        calc(100% - 15px) center,
+        calc(100% - 10px) center;
+    background-size:
+        5px 5px,
+        5px 5px;
     background-repeat: no-repeat;
     cursor: pointer;
 }

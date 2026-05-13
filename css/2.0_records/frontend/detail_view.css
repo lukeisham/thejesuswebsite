@@ -2,13 +2,12 @@
 
    THE JESUS WEBSITE — SINGLE RECORD LAYOUT
    File:    css/2.0_records/detail_view.css
-   Version: 1.1.0
+   Version: 1.1.1
    Purpose: CSS specific to the individual record view (record.html).
+            CSS variables are provided by typography.css (loaded in record.html).
    Source:  guide_appearance.md §2.2
 
 ============================================================================= */
-
-@import url("../../elements/typography_colors.css");
 
 /* Back link to previous list */
 .record-back-link {

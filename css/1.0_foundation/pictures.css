@@ -1,12 +1,11 @@
 /* =============================================================================
    THE JESUS WEBSITE — PICTURES CSS
    File:    css/1.0_foundation/pictures.css
-   Version: 1.1.0
+   Version: 1.1.1
    Purpose: Styles for the framed pictures displayed on record views.
+            CSS variables are provided by typography.css (loaded in page HTML).
    Source:  guide_appearance.md §1.7, vibe_coding_rules.md
 ============================================================================= */
-
-@import url('./typography_colors.css');
 
 /* =============================================================================
    1. MAIN CONTAINER (PICTURE AREA)
@@ -18,7 +17,7 @@
     flex-direction: column;
     margin: var(--space-4) 0;
     width: 100%;
-    
+
     /* "Every picture is displaed with a lightweight thin line around
        that is longer at the base to include the caption aka 'picture label'." */
     border: var(--border-width-thin) solid var(--color-border);
