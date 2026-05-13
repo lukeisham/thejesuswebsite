@@ -73,6 +73,7 @@ async function renderRecordsSingle(recordId) {
   try {
     const htmlResponse = await fetch(
       "../../admin/frontend/dashboard_records_single.html",
+      { cache: "no-cache" },
     );
     if (!htmlResponse.ok) {
       throw new Error(`Failed to load HTML template: ${htmlResponse.status}`);
@@ -424,14 +425,36 @@ function _setupScrollSpy(navLinks) {
    INTERNAL: Dynamically inject a CSS stylesheet if not already present
 ----------------------------------------------------------------------------- */
 function _injectStylesheet(href) {
-  // Avoid duplicate injection
-  const existing = document.querySelector('link[href="' + href + '"]');
-  if (existing) return;
+  // Fetch the CSS fresh (conditional revalidation) and inject it into a
+  // single <style> element. This replaces any previous injection so edits
+  // to the CSS file are always visible without a full page reload.
+  const styleId = "records-single-dynamic-styles";
 
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = href;
-  document.head.appendChild(link);
+  fetch(href, { cache: "no-cache" })
+    .then(function (res) {
+      if (!res.ok) {
+        console.warn(
+          "[dashboard_records_single] Failed to load CSS:",
+          href,
+          res.status,
+        );
+        return;
+      }
+      return res.text();
+    })
+    .then(function (css) {
+      if (!css) return;
+      var el = document.getElementById(styleId);
+      if (!el) {
+        el = document.createElement("style");
+        el.id = styleId;
+        document.head.appendChild(el);
+      }
+      el.textContent = css;
+    })
+    .catch(function (err) {
+      console.warn("[dashboard_records_single] CSS fetch failed:", href, err);
+    });
 }
 
 /* -----------------------------------------------------------------------------

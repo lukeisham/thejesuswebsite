@@ -320,16 +320,36 @@ function _injectScripts(scriptPaths) {
 }
 
 /* -----------------------------------------------------------------------------
-   INTERNAL: _injectStylesheet — dynamically inject a CSS file
+   INTERNAL: _injectStylesheet — fetch CSS fresh and inject into a <style> tag
 ----------------------------------------------------------------------------- */
 function _injectStylesheet(href) {
-  const existing = document.querySelector('link[href="' + href + '"]');
-  if (existing) return;
+  const styleId = "records-all-dynamic-styles";
 
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = href;
-  document.head.appendChild(link);
+  fetch(href, { cache: "no-cache" })
+    .then(function (res) {
+      if (!res.ok) {
+        console.warn(
+          "[dashboard_records_all] Failed to load CSS:",
+          href,
+          res.status,
+        );
+        return;
+      }
+      return res.text();
+    })
+    .then(function (css) {
+      if (!css) return;
+      var el = document.getElementById(styleId);
+      if (!el) {
+        el = document.createElement("style");
+        el.id = styleId;
+        document.head.appendChild(el);
+      }
+      el.textContent = css;
+    })
+    .catch(function (err) {
+      console.warn("[dashboard_records_all] CSS fetch failed:", href, err);
+    });
 }
 
 /* -----------------------------------------------------------------------------
