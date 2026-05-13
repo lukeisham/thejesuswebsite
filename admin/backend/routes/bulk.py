@@ -197,6 +197,13 @@ async def bulk_upload_records(
             if col in row and row[col].strip():
                 insert_data[col] = row[col].strip()
 
+        # --- Server-side defaults: ensure records are visible on the public site ---
+        if "type" not in insert_data:
+            insert_data["type"] = "record"
+        if "users" not in insert_data:
+            insert_data["users"] = "Public"
+        insert_data["status"] = "draft"
+
         # Generate ID and timestamps
         if "id" not in insert_data:
             insert_data["id"] = str(uuid.uuid4())
@@ -334,6 +341,12 @@ async def bulk_upload_commit(
 
         # Force status to draft
         insert_data["status"] = "draft"
+
+        # --- Server-side defaults: ensure records are visible on the public site ---
+        if "type" not in insert_data:
+            insert_data["type"] = "record"
+        if "users" not in insert_data:
+            insert_data["users"] = "Public"
 
         # Generate ID and timestamps
         if "id" not in insert_data:

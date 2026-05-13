@@ -26,6 +26,10 @@
 function collectAllFormData() {
   const payload = {};
 
+  // Section 0: Record identity defaults (always set so records appear on the public site)
+  payload.type = "record";
+  payload.users = "Public";
+
   // Section 1: Core Identifiers
   // Only include id if it has a value (backend auto-generates for new records)
   const rawId = _getValue("record-id");
@@ -86,6 +90,19 @@ function collectAllFormData() {
 
   payload.parent_id = _getValue("record-parent-id") || null;
 
+  // Section 7: Metadata — read hidden field first so external refs merge can
+  // layer custom identifier entries on top without being overwritten.
+  const metadataJson = _getValue("record-metadata-json");
+  if (metadataJson) {
+    try {
+      payload.metadata_json = JSON.stringify(JSON.parse(metadataJson));
+    } catch (e) {
+      payload.metadata_json = metadataJson;
+    }
+  }
+
+  // External refs (IAA, Pledius, Manuscript) — MUST come after metadata_json
+  // is populated so custom identifier entries merge on top of existing metadata.
   if (typeof window.collectExternalRefs === "function") {
     const refs = window.collectExternalRefs();
     payload.iaa = refs.iaa || "";
@@ -94,21 +111,14 @@ function collectAllFormData() {
     // Merge custom identifier entries into metadata_json
     if (refs.entries && refs.entries.length > 0) {
       try {
-        let meta = payload.metadata_json ? JSON.parse(payload.metadata_json) : {};
+        let meta = payload.metadata_json
+          ? JSON.parse(payload.metadata_json)
+          : {};
         meta.identifiers = refs.entries;
         payload.metadata_json = JSON.stringify(meta);
-      } catch (e) { /* keep existing metadata_json */ }
-    }
-  }
-
-  // External refs (IAA, Pledius, Manuscript)
-  // Section 7: Metadata
-  const metadataJson = _getValue("record-metadata-json");
-  if (metadataJson) {
-    try {
-      payload.metadata_json = JSON.stringify(JSON.parse(metadataJson));
-    } catch (e) {
-      payload.metadata_json = metadataJson;
+      } catch (e) {
+        /* keep existing metadata_json */
+      }
     }
   }
 
