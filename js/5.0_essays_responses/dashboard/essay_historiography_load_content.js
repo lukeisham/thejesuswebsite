@@ -109,10 +109,20 @@ async function loadDocumentContent(recordId, title) {
     // Populate external references
     if (typeof window.setExternalRefValues === "function") {
       try {
+        let extEntries = null;
+        try {
+          if (doc.metadata_json) {
+            const meta = JSON.parse(doc.metadata_json);
+            if (Array.isArray(meta.identifiers) && meta.identifiers.length > 0) {
+              extEntries = meta.identifiers;
+            }
+          }
+        } catch (e) { /* ignore parse errors */ }
         window.setExternalRefValues({
           iaa: doc.iaa || "",
           pledius: doc.pledius || "",
           manuscript: doc.manuscript || "",
+          entries: extEntries,
         });
       } catch (err) {
         console.warn(

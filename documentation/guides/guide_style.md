@@ -476,20 +476,28 @@ The `.context-links-editor` BEM namespace lives in `css/9.0_cross_cutting/dashbo
 
 ### 22d. Shared-Component Styling — `.external-refs-editor` BEM Namespace
 
-The `.external-refs-editor` BEM namespace lives in `css/9.0_cross_cutting/dashboard/external_refs_widget.css` and provides shared styling for the unique identifiers table editor used across dashboard modules.
+The `.external-refs-editor` BEM namespace lives in `css/9.0_cross_cutting/dashboard/external_refs_widget.css` and provides shared styling for the unique identifiers table editor used across dashboard modules. Supports dynamic add/delete of identifier rows.
 
 | BEM Class | Purpose | Key Variables Used |
 |:---|:---|:---|
 | `.external-refs-editor` | Block container | `--space-3` margin |
-| `.external-refs-editor__table` | Full-width two-column table | `width: 100%`, `border-collapse: collapse` |
+| `.external-refs-editor__table` | Full-width three-column table | `width: 100%`, `border-collapse: collapse` |
 | `.external-refs-editor__thead` | Table header wrapper | (structural) |
 | `.external-refs-editor__th` | Column header cell | `--font-mono`, `--text-xs`, `--color-bg-tertiary` |
+| `.external-refs-editor__th--remove` | Remove column header (40px) | (structural) |
 | `.external-refs-editor__tbody` | Table body wrapper | (structural) |
 | `.external-refs-editor__row` | Data row with hover state | `--color-bg-secondary` hover |
+| `.external-refs-editor__row--empty` | Empty-state row | (structural) |
 | `.external-refs-editor__td` | Data cell | `--space-1` / `--space-2` padding |
-| `.external-refs-editor__td--label` | Label cell (220px fixed width) | (structural) |
-| `.external-refs-editor__label` | Identifier type label text | `--font-mono`, `--text-sm`, `--weight-medium` |
-| `.external-refs-editor__value-input` | Inline editable value input | `--font-mono`, `--text-sm`, `--radius-sm` |
+| `.external-refs-editor__td--remove` | Remove button cell (40px, centered) | (structural) |
+| `.external-refs-editor__empty-text` | "No identifiers" placeholder | `--font-body`, `--color-text-muted`, italic |
+| `.external-refs-editor__type-input` | Inline editable identifier type | `--font-mono`, `--text-sm`, `--radius-sm` |
+| `.external-refs-editor__value-input` | Inline editable identifier value | `--font-mono`, `--text-sm`, `--radius-sm` |
+| `.external-refs-editor__remove-btn` | Per-row × remove button | `--color-accent-primary`, `--font-heading`, `--text-lg` |
+| `.external-refs-editor__add-row` | Add-row form (type + value + button) | Flexbox, `--space-2` gap |
+| `.external-refs-editor__add-type` | New identifier type input | `--font-mono`, `--text-sm`, `--radius-sm` |
+| `.external-refs-editor__add-value` | New identifier value input | `--font-mono`, `--text-sm`, `--radius-sm` |
+| `.external-refs-editor__add-btn` | Add button | `--font-heading`, `--text-sm` |
 
 ---
 

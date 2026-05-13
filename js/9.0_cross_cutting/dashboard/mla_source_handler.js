@@ -241,7 +241,7 @@
 
   /**
    * Render the bibliography editor into the given container element ID.
-   * If no entries exist yet, a single blank "Book" entry is seeded.
+   * If no entries exist yet, one blank entry per type (book/article/website) is seeded.
    *
    * @param {string} containerId — DOM id of the wrapper element
    */
@@ -260,7 +260,9 @@
     }
 
     if (_entries.length === 0) {
-      _entries.push(createEmptyEntry("book"));
+      TABLE_SECTIONS.forEach(function (section) {
+        _entries.push(createEmptyEntry(section.type));
+      });
     }
 
     renderEditor();
@@ -293,7 +295,9 @@
     }
 
     if (_entries.length === 0) {
-      _entries.push(createEmptyEntry("book"));
+      TABLE_SECTIONS.forEach(function (section) {
+        _entries.push(createEmptyEntry(section.type));
+      });
     }
 
     if (_container) {

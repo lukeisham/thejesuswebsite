@@ -359,6 +359,14 @@ function _collectEditorData() {
       payload.iaa = refs.iaa || "";
       payload.pledius = refs.pledius || "";
       payload.manuscript = refs.manuscript || "";
+      // Merge custom identifier entries into metadata_json
+      if (refs.entries && refs.entries.length > 0) {
+        try {
+          let meta = payload.metadata_json ? JSON.parse(payload.metadata_json) : {};
+          meta.identifiers = refs.entries;
+          payload.metadata_json = JSON.stringify(meta);
+        } catch (e) { /* keep existing metadata_json */ }
+      }
     } catch (err) {
       console.warn(
         "[document_status_handler] Failed to collect external refs:",

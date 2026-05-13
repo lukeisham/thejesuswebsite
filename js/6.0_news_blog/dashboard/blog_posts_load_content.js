@@ -111,10 +111,20 @@ async function loadBlogPostContent(recordId, title) {
     // Populate external references
     if (typeof window.setExternalRefValues === "function") {
       try {
+        let extEntries = null;
+        try {
+          if (post.metadata_json) {
+            const meta = JSON.parse(post.metadata_json);
+            if (Array.isArray(meta.identifiers) && meta.identifiers.length > 0) {
+              extEntries = meta.identifiers;
+            }
+          }
+        } catch (e) { /* ignore parse errors */ }
         window.setExternalRefValues({
           iaa: post.iaa || "",
           pledius: post.pledius || "",
           manuscript: post.manuscript || "",
+          entries: extEntries,
         });
       } catch (err) {
         console.warn(

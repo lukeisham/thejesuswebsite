@@ -3,12 +3,13 @@
    This is the authoritative copy — consumed by all dashboard editor modules
    that support unique identifier editing.
    File:    css/9.0_cross_cutting/dashboard/external_refs_widget.css
-   Version: 1.0.0
+   Version: 2.0.0
    Owner:   plan_relocate_shared_widgets_to_cross_cutting (9.0 Cross-Cutting)
    Purpose: Shared stylesheet for the `.external-refs-editor` BEM namespace,
-            providing a two-column editable table (Identifier Type | Value)
-            for IAA, Pledius, and Manuscript references. All colours, fonts,
-            and spacing reference CSS variables from typography.css.
+            providing a three-column editable table (Identifier Type | Value |
+            Remove) with an add-row form for dynamic unique identifier
+            management. All colours, fonts, and spacing reference CSS
+            variables from typography.css.
 ============================================================================= */
 
 /* =============================================================================
@@ -20,7 +21,7 @@
 }
 
 /* =============================================================================
-   2. TABLE — full-width two-column grid
+   2. TABLE — full-width three-column grid
 ============================================================================= */
 
 .external-refs-editor__table {
@@ -46,6 +47,11 @@
     background-color: var(--color-bg-tertiary);
 }
 
+.external-refs-editor__th--remove {
+    width: 40px;
+    text-align: center;
+}
+
 /* =============================================================================
    4. TBODY — data rows
 ============================================================================= */
@@ -59,28 +65,54 @@
     background-color: var(--color-bg-secondary);
 }
 
+.external-refs-editor__row--empty {
+    /* structural — no hover */
+}
+
 .external-refs-editor__td {
     padding: var(--space-1) var(--space-2);
     vertical-align: middle;
 }
 
-.external-refs-editor__td--label {
-    width: 220px;
+.external-refs-editor__td--remove {
+    text-align: center;
+    width: 40px;
 }
 
 /* =============================================================================
-   5. LABEL — identifier type text
+   5. EMPTY-STATE TEXT
 ============================================================================= */
 
-.external-refs-editor__label {
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
-    color: var(--color-text-primary);
+.external-refs-editor__empty-text {
+    font-family: var(--font-body);
+    color: var(--color-text-muted);
+    font-style: italic;
 }
 
 /* =============================================================================
-   6. VALUE INPUT — inline editable text input
+   6. TYPE INPUT — inline editable identifier type
+============================================================================= */
+
+.external-refs-editor__type-input {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast);
+}
+
+.external-refs-editor__type-input:focus {
+    border-color: var(--color-accent-primary);
+    outline: none;
+}
+
+/* =============================================================================
+   7. VALUE INPUT — inline editable identifier value
 ============================================================================= */
 
 .external-refs-editor__value-input {
@@ -102,7 +134,86 @@
 }
 
 /* =============================================================================
-   7. RESPONSIVE — stack on narrow viewports
+   8. REMOVE BUTTON — per-row deletion
+============================================================================= */
+
+.external-refs-editor__remove-btn {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    color: var(--color-accent-primary);
+    background: none;
+    border: var(--border-width-thin) solid var(--color-border-accent);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    line-height: 1;
+    padding: 0;
+    border-radius: var(--radius-sm);
+    transition:
+        background-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.external-refs-editor__remove-btn:hover {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+}
+
+/* =============================================================================
+   9. ADD ROW — inline form below table
+============================================================================= */
+
+.external-refs-editor__add-row {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    padding-top: var(--space-2);
+}
+
+.external-refs-editor__add-type {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast);
+}
+
+.external-refs-editor__add-type:focus {
+    border-color: var(--color-accent-primary);
+    outline: none;
+}
+
+.external-refs-editor__add-value {
+    flex: 2;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast);
+}
+
+.external-refs-editor__add-value:focus {
+    border-color: var(--color-accent-primary);
+    outline: none;
+}
+
+.external-refs-editor__add-btn {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* =============================================================================
+   10. RESPONSIVE — stack on narrow viewports
 ============================================================================= */
 
 @media (max-width: 640px) {
@@ -132,7 +243,12 @@
         padding: var(--space-1) 0;
     }
 
-    .external-refs-editor__td--label {
-        width: 100%;
+    .external-refs-editor__td--remove {
+        justify-content: center;
+    }
+
+    .external-refs-editor__add-row {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

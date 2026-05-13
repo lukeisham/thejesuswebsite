@@ -224,6 +224,26 @@ function renderSingleRecord() {
           "</span></li>",
       );
     }
+    // Custom identifiers from metadata_json.identifiers
+    try {
+      if (record.metadata_json) {
+        var meta = JSON.parse(record.metadata_json);
+        if (Array.isArray(meta.identifiers)) {
+          meta.identifiers.forEach(function (ident) {
+            if (ident.type && ident.value) {
+              refItems.push(
+                '<li><span class="ref-label">' +
+                  ident.type +
+                  ':</span> <span class="ref-value">' +
+                  ident.value +
+                  "</span></li>"
+              );
+            }
+          });
+        }
+      }
+    } catch (e) { /* ignore parse errors */ }
+
     if (refItems.length > 0) {
       refsListEl.innerHTML = refItems.join("");
       refsSectionEl.classList.add("is-visible-block");

@@ -154,6 +154,26 @@ function buildEssayHTML(essay) {
         escapeHtml(essay.manuscript) +
         "</span></li>",
     );
+  // Custom identifiers from metadata_json.identifiers
+  try {
+    if (essay.metadata_json) {
+      var meta = JSON.parse(essay.metadata_json);
+      if (Array.isArray(meta.identifiers)) {
+        meta.identifiers.forEach(function (ident) {
+          if (ident.type && ident.value) {
+            refItems.push(
+              '<li><span class="ref-label">' +
+                ident.type +
+                ':</span> <span class="ref-value">' +
+                ident.value +
+                "</span></li>"
+            );
+          }
+        });
+      }
+    }
+  } catch (e) { /* ignore parse errors */ }
+
   if (refItems.length > 0) {
     html += '<section class="essay-references">';
     html += '<h2 class="essay-body h2">Unique Identifiers</h2>';

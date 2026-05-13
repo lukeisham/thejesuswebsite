@@ -247,7 +247,7 @@ async function _handleNewEssay() {
     }
     // Reset external refs
     if (typeof window.setExternalRefValues === "function") {
-      window.setExternalRefValues({ iaa: "", pledius: "", manuscript: "" });
+      window.setExternalRefValues({ iaa: "", pledius: "", manuscript: "", entries: null });
     }
 
     // Refresh sidebar

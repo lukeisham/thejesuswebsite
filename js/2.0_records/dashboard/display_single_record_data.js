@@ -105,10 +105,21 @@ async function fetchAndDisplaySingleRecord(recordId) {
     _setFieldValue("record-parent-id", record.parent_id || "");
 
     if (typeof window.setExternalRefValues === "function") {
+      // Build entries array including any stored in metadata_json.identifiers
+      let extEntries = null;
+      try {
+        if (record.metadata_json) {
+          const meta = JSON.parse(record.metadata_json);
+          if (Array.isArray(meta.identifiers) && meta.identifiers.length > 0) {
+            extEntries = meta.identifiers;
+          }
+        }
+      } catch (e) { /* ignore parse errors */ }
       window.setExternalRefValues({
         iaa: record.iaa || "",
         pledius: record.pledius || "",
         manuscript: record.manuscript || "",
+        entries: extEntries,
       });
     }
 
@@ -330,7 +341,7 @@ function _initialiseBlankForm() {
   }
   _setFieldValue("record-parent-id", "");
   if (typeof window.setExternalRefValues === "function") {
-    window.setExternalRefValues({ iaa: "", pledius: "", manuscript: "" });
+    window.setExternalRefValues({ iaa: "", pledius: "", manuscript: "", entries: null });
   }
 
   // Section 7: Metadata & Status — clear the shared widget
