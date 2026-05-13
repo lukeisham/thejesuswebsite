@@ -420,7 +420,7 @@ function scheduleAutoSave() {
     if (!recordId) return;
 
     var payload = _collectEditorData();
-    payload.status = "draft";
+    // Auto-save preserves existing status — never force draft
 
     try {
       var response = await fetch(

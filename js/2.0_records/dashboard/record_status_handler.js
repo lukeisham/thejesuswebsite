@@ -344,6 +344,10 @@ function scheduleAutoSave() {
     const recordId = _getValue("record-id");
     if (!recordId) return;
 
+    // Respect the current status radio — never auto-override a published record
+    const currentStatus = _getStatusValue();
+    if (currentStatus === "published") return;
+
     const payload = collectAllFormData();
     payload.status = "draft";
 

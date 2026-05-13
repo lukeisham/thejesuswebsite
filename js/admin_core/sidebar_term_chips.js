@@ -28,62 +28,64 @@
               }
 ----------------------------------------------------------------------------- */
 async function addSidebarTerm(state, config) {
-    var recordId = state.activeRecordId;
-    if (!recordId) {
-        if (typeof window.surfaceError === "function") {
-            window.surfaceError("No record selected. Select a record first.");
-        }
-        return;
+  var recordId = state.activeRecordId;
+  if (!recordId) {
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("No record selected. Select a record first.");
+    }
+    return;
+  }
+
+  var termInput = document.getElementById(config.inputId);
+  if (!termInput) return;
+
+  var newTerm = termInput.value.trim();
+  if (!newTerm) return;
+
+  var terms = state[config.stateTermsKey] || [];
+  if (terms.indexOf(newTerm) !== -1) {
+    termInput.value = "";
+    return;
+  }
+
+  terms.push(newTerm);
+  var termsJson = JSON.stringify(terms);
+
+  try {
+    var payload = {};
+    payload[config.termColumn] = termsJson;
+    // Preserve existing status — sidebar term changes should not alter publication state
+
+    var response = await fetch("/api/admin/records/" + recordId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("API responded with status " + response.status);
     }
 
-    var termInput = document.getElementById(config.inputId);
-    if (!termInput) return;
+    state[config.stateTermsKey] = terms;
+    termInput.value = "";
 
-    var newTerm = termInput.value.trim();
-    if (!newTerm) return;
-
-    var terms = state[config.stateTermsKey] || [];
-    if (terms.indexOf(newTerm) !== -1) {
-        termInput.value = "";
-        return;
+    if (typeof config.renderFn === "function") {
+      config.renderFn();
     }
 
-    terms.push(newTerm);
-    var termsJson = JSON.stringify(terms);
-
-    try {
-        var payload = {};
-        payload[config.termColumn] = termsJson;
-        payload.status = "draft";
-
-        var response = await fetch("/api/admin/records/" + recordId, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            throw new Error("API responded with status " + response.status);
-        }
-
-        state[config.stateTermsKey] = terms;
-        termInput.value = "";
-
-        if (typeof config.renderFn === "function") {
-            config.renderFn();
-        }
-
-        if (typeof window.surfaceError === "function") {
-            window.surfaceError("Keyword '" + newTerm + "' added. Saved as draft.");
-        }
-    } catch (err) {
-        console.error("[sidebar_term_chips] Add term failed:", err);
-        // Revert local state on failure
-        terms.pop();
-        if (typeof window.surfaceError === "function") {
-            window.surfaceError("Error: Failed to save search keywords. Please try again.");
-        }
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError("Keyword '" + newTerm + "' added.");
     }
+  } catch (err) {
+    console.error("[sidebar_term_chips] Add term failed:", err);
+    // Revert local state on failure
+    terms.pop();
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to save search keywords. Please try again.",
+      );
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -95,47 +97,51 @@ async function addSidebarTerm(state, config) {
      index  — the index of the term to remove from the array.
 ----------------------------------------------------------------------------- */
 async function removeSidebarTerm(state, config, index) {
-    var recordId = state.activeRecordId;
-    if (!recordId) return;
+  var recordId = state.activeRecordId;
+  if (!recordId) return;
 
-    var terms = (state[config.stateTermsKey] || []).slice();
-    if (index < 0 || index >= terms.length) return;
+  var terms = (state[config.stateTermsKey] || []).slice();
+  if (index < 0 || index >= terms.length) return;
 
-    var removedTerm = terms[index];
-    terms.splice(index, 1);
+  var removedTerm = terms[index];
+  terms.splice(index, 1);
 
-    var termsJson = JSON.stringify(terms);
+  var termsJson = JSON.stringify(terms);
 
-    try {
-        var payload = {};
-        payload[config.termColumn] = termsJson;
-        payload.status = "draft";
+  try {
+    var payload = {};
+    payload[config.termColumn] = termsJson;
+    // Preserve existing status — sidebar term changes should not alter publication state
 
-        var response = await fetch("/api/admin/records/" + recordId, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
+    var response = await fetch("/api/admin/records/" + recordId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-        if (!response.ok) {
-            throw new Error("API responded with status " + response.status);
-        }
-
-        state[config.stateTermsKey] = terms;
-
-        if (typeof config.renderFn === "function") {
-            config.renderFn();
-        }
-
-        if (typeof window.surfaceError === "function") {
-            window.surfaceError("Keyword '" + removedTerm + "' removed. Saved as draft.");
-        }
-    } catch (err) {
-        console.error("[sidebar_term_chips] Remove term failed:", err);
-        if (typeof window.surfaceError === "function") {
-            window.surfaceError("Error: Failed to save search keywords. Please try again.");
-        }
+    if (!response.ok) {
+      throw new Error("API responded with status " + response.status);
     }
+
+    state[config.stateTermsKey] = terms;
+
+    if (typeof config.renderFn === "function") {
+      config.renderFn();
+    }
+
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Keyword '" + removedTerm + "' removed. Saved as draft.",
+      );
+    }
+  } catch (err) {
+    console.error("[sidebar_term_chips] Remove term failed:", err);
+    if (typeof window.surfaceError === "function") {
+      window.surfaceError(
+        "Error: Failed to save search keywords. Please try again.",
+      );
+    }
+  }
 }
 
 window.addSidebarTerm = addSidebarTerm;
