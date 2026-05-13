@@ -415,15 +415,15 @@ def _save_wikipedia_data(
 ) -> bool:
     """
     Writes Wikipedia data to the record's row in SQLite.
-    Sets status to 'draft' since ingested data must be reviewed.
+    Does NOT change status — preserves existing publication state.
 
     Args:
         record_id (str): The record ID to update.
         wiki_title (str): The matched Wikipedia article title.
         wiki_link (str): JSON string with url and title for the article.
         wiki_rank (int): The base importance score.
-        error_message (Optional[str]): If set, writes this error but still
-            sets the record to draft for review.
+        error_message (Optional[str]): If set, writes this error into
+            wikipedia_search_term for admin review. Does NOT alter status.
 
     Returns:
         bool: True on success, False on failure.
@@ -445,7 +445,6 @@ def _save_wikipedia_data(
                     wikipedia_link = ?,
                     wikipedia_rank = ?,
                     wikipedia_search_term = ?,
-                    status = 'draft',
                     updated_at = ?
                 WHERE id = ?
                 """,
@@ -458,7 +457,6 @@ def _save_wikipedia_data(
                 SET wikipedia_title = ?,
                     wikipedia_link = ?,
                     wikipedia_rank = ?,
-                    status = 'draft',
                     updated_at = ?
                 WHERE id = ?
                 """,

@@ -630,6 +630,128 @@ async def public_response_by_slug(slug: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/public/essays/historiography")
+async def public_essay_historiography(
+    type: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    """
+    Returns the singleton historiography record (slug = 'historiography').
+
+    Query parameters:
+      type   — Type discriminator (e.g. 'historiography').
+      status — Optional status filter (defaults to 'published').
+    """
+    try:
+        conn = get_public_db_connection()
+        cursor = conn.cursor()
+
+        target_status = status if status else "published"
+
+        cursor.execute(
+            "SELECT id, title, slug, snippet, body, context_essays, description, "
+            "iaa, pledius, manuscript, url, metadata_json, "
+            "created_at, updated_at, picture_name, bibliography, context_links "
+            "FROM records WHERE slug = 'historiography' "
+            "AND status = ?",
+            (target_status,),
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            raise HTTPException(
+                status_code=404, detail="Historiography record not found."
+            )
+
+        essay = dict(row)
+        # Parse JSON fields for structured consumption
+        for json_field in [
+            "snippet",
+            "description",
+            "body",
+            "context_essays",
+            "metadata_json",
+            "bibliography",
+            "context_links",
+            "url",
+        ]:
+            if essay.get(json_field):
+                try:
+                    essay[json_field] = json.loads(essay[json_field])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+        return {"essay": essay}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/public/essays/{slug}")
+async def public_essay_by_slug(
+    slug: str,
+    type: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    """
+    Returns a single published essay by slug.
+
+    Path parameters:
+      slug   — The URL-safe slug of the essay.
+
+    Query parameters:
+      type   — Type discriminator (e.g. 'context_essay').
+      status — Optional status filter (defaults to 'published').
+    """
+    try:
+        conn = get_public_db_connection()
+        cursor = conn.cursor()
+
+        target_status = status if status else "published"
+
+        cursor.execute(
+            "SELECT id, title, slug, snippet, body, context_essays, description, "
+            "iaa, pledius, manuscript, url, metadata_json, "
+            "created_at, updated_at, picture_name, bibliography, context_links "
+            "FROM records WHERE slug = ? "
+            "AND status = ?",
+            (slug, target_status),
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="Essay not found")
+
+        essay = dict(row)
+        # Parse JSON fields for structured consumption
+        for json_field in [
+            "snippet",
+            "description",
+            "body",
+            "context_essays",
+            "metadata_json",
+            "bibliography",
+            "context_links",
+            "url",
+        ]:
+            if essay.get(json_field):
+                try:
+                    essay[json_field] = json.loads(essay[json_field])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+        return {"essay": essay}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/api/public/essays")
 async def public_essays():
     """
