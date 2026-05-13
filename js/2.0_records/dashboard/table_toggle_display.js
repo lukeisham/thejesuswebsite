@@ -47,14 +47,17 @@ function initTableToggles() {
   const toggleButtons = document.querySelectorAll(".toggle-btn");
   if (!toggleButtons.length) return;
 
-  // Find the initially active toggle (created_at by default)
+  // Find the initially active sort toggle (created_at by default)
   toggleButtons.forEach(function (btn) {
-    if (btn.classList.contains("toggle-btn--active")) {
+    if (
+      btn.hasAttribute("data-sort") &&
+      btn.classList.contains("toggle-btn--active")
+    ) {
       _activeToggle = btn;
     }
   });
 
-  // If none is active, default to created_at
+  // If no sort toggle is active, default to created_at
   if (!_activeToggle) {
     const defaultBtn = document.getElementById("toggle-created-at");
     if (defaultBtn) {
@@ -116,20 +119,22 @@ function initTableToggles() {
 
       // Fetched records with the new sort order
       if (typeof window.fetchRecordsBatch === "function") {
-        window.fetchRecordsBatch(sortKey, 0, statusFilter).catch(function (err) {
-          console.error("[table_toggle_display] Fetch failed:", err);
-          if (typeof window.surfaceError === "function") {
-            window.surfaceError(
-              "Error: Failed to re-sort records. Please try again.",
-            );
-          }
-          if (typeof window.updateRecordsAllStatusBar === "function") {
-            window.updateRecordsAllStatusBar(
-              "Error: Failed to re-sort records. Please try again.",
-              "is-error",
-            );
-          }
-        });
+        window
+          .fetchRecordsBatch(sortKey, 0, statusFilter)
+          .catch(function (err) {
+            console.error("[table_toggle_display] Fetch failed:", err);
+            if (typeof window.surfaceError === "function") {
+              window.surfaceError(
+                "Error: Failed to re-sort records. Please try again.",
+              );
+            }
+            if (typeof window.updateRecordsAllStatusBar === "function") {
+              window.updateRecordsAllStatusBar(
+                "Error: Failed to re-sort records. Please try again.",
+                "is-error",
+              );
+            }
+          });
       }
     });
   });
@@ -153,10 +158,12 @@ function _handleBulkToggle(btn) {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _setActiveToggle
-   Updates the UI to mark the given button as the active toggle.
+   Updates the UI to mark the given sort button as the active toggle.
+   Only operates on buttons with a data-sort attribute (sort toggles),
+   so status filter toggles (data-status) keep their active state.
 ----------------------------------------------------------------------------- */
 function _setActiveToggle(activeBtn) {
-  const allButtons = document.querySelectorAll(".toggle-btn");
+  const allButtons = document.querySelectorAll(".toggle-btn[data-sort]");
   allButtons.forEach(function (btn) {
     btn.classList.remove("toggle-btn--active");
     btn.setAttribute("aria-pressed", "false");
