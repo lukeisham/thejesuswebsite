@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS records (
 
     map_label                   TEXT,
     -- Flat Indexable. Map zoom level. Enum values:
-    --   Overview | Empire | Levant | Judea | Galilee | Jerusalem
+    --   Overview | Empire | Levant | Judea | Galilee | Jerusalem | Supernatural | Spiritual
 
     geo_id                      INTEGER,
     -- Flat Indexable: 64-bit integer S2CellId representing a geographic point
@@ -290,7 +290,10 @@ CREATE TABLE IF NOT EXISTS records (
     -- =========================================================================
 
     news_sources                TEXT,
-    -- JSON Blob: metadata about the news source associated with this record
+    -- Label-Value Pair: metadata about the news source associated with this record
+
+    news_items                  TEXT,
+    -- JSON Blob: individual news stories or items linked to this record
 
     source_url                  TEXT,
     -- Flat Indexable: canonical URL for news_source sub-type rows

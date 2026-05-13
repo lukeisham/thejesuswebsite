@@ -97,6 +97,8 @@ dependencies: [site_map.md, module_sitemap.md]
     `Judea`
     `Galilee`
     `Jerusalem`
+    `Supernatural`
+    `Spiritual`
 `geo_id` | INTEGER | Flat Indexable (64-bit int)
 `gospel_category` | TEXT | Flat Indexable
     `event`
@@ -276,11 +278,13 @@ dependencies: [site_map.md, module_sitemap.md]
 `responses` | TEXT | JSON Blob 
 `blogposts` | TEXT | JSON Blob 
 `historiography` | TEXT | JSON Blob
-`news_sources` | TEXT | JASON Blob
+`news_sources` | TEXT | Label-Value Pair (metadata about the news source associated with this record)
+`news_items` | TEXT | JSON Blob (individual news stories or items linked to this record)
 `source_url` | TEXT | Flat Indexable (canonical URL for `news_source` sub-type rows)
 `keywords` | TEXT | JSON Array (search keywords for `news_source` sub-type rows)
 `news_item_title` | TEXT | Flat Indexable  
 `news_item_link` | TEXT | Flat Indexable   
+`last_crawled` | TEXT | ISO8601 String (timestamp of last crawl for this news article/source)
 `news_search_term` | TEXT | JSON Blob 
 `users` | TEXT | JSON Blob (SPA Routing)
     `Admin`
