@@ -135,6 +135,7 @@ function _buildEditorMarkup() {
     '<option value="record">record</option>' +
     '<option value="essay">essay</option>' +
     '<option value="blog">blog</option>' +
+    '<option value="response">response</option>' +
     "</select>" +
     '<button type="button" class="btn--secondary js-add-link">Add Link</button>' +
     "</div>" +
@@ -167,7 +168,7 @@ function _handleAddLink() {
   }
 
   // Validate: type must be one of the allowed values
-  const validTypes = ["record", "essay", "blog"];
+  const validTypes = ["record", "essay", "blog", "response"];
   if (!validTypes.includes(type)) {
     console.warn(`[context_link_handler] Invalid link type "${type}".`);
     return;

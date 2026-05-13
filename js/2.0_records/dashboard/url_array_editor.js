@@ -39,7 +39,7 @@ function renderUrlArrayEditor(containerId) {
         <div class="url-array-editor" data-url-array-editor>
             <div class="url-array-editor__rows" data-url-array-rows></div>
             <div class="url-array-editor__add">
-                <button type="button" class="btn--secondary" data-url-array-add>
+                <button type="button" class="btn--secondary" data-url-array-add title="Add a label/URL pair to the record's url column">
                     + Add URL
                 </button>
             </div>

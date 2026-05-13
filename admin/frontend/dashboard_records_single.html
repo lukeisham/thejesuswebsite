@@ -259,6 +259,19 @@
             placeholder="64-bit integer"
         />
     </div>
+
+    <div class="form-field">
+        <label for="record-parent-id" class="form-field__label"
+            >Parent ID</label
+        >
+        <input
+            id="record-parent-id"
+            class="form-field__input"
+            type="text"
+            placeholder="ULID of parent record"
+        />
+        <span id="parent-title-display" class="form-field__hint"></span>
+    </div>
 </section>
 
 <!-- =============================================================================
@@ -308,25 +321,14 @@
         <!-- Populated by mla_source_handler.js -->
     </div>
 
+    <h3 class="form-section__subheading">CONTEXT LINKS</h3>
+
     <div
         id="context-links-container"
         class="context-links-editor"
         aria-label="Context links editor"
     >
         <!-- Populated by context_link_handler.js -->
-    </div>
-
-    <div class="form-field">
-        <label for="record-parent-id" class="form-field__label"
-            >Parent ID</label
-        >
-        <input
-            id="record-parent-id"
-            class="form-field__input"
-            type="text"
-            placeholder="ULID of parent record"
-        />
-        <span id="parent-title-display" class="form-field__hint"></span>
     </div>
 
     <div id="external-refs-container" aria-label="External reference fields">
@@ -374,6 +376,11 @@
     >
         <!-- Populated by url_array_editor.js -->
     </div>
+    <span class="form-field__hint"
+        >Add external URL references with a label (e.g. "Wikipedia" →
+        https://...). Stored in the record's <code>url</code> column as a JSON
+        array of <code>{"label": "...", "url": "..."}</code> pairs.</span
+    >
 </section>
 
 <!-- =============================================================================

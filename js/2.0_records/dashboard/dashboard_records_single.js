@@ -215,9 +215,9 @@ async function _initialiseAllEditors(recordId) {
     window.renderExternalRefs("external-refs-container");
   }
 
-  // Parent selector
+  // Parent selector — placed with taxonomy fields
   if (typeof window.renderParentSelector === "function") {
-    window.renderParentSelector("section-external-refs");
+    window.renderParentSelector("section-taxonomy");
   }
 
   // URL array editor
