@@ -164,6 +164,16 @@
     border-bottom: var(--border-width-base) solid var(--color-border-accent);
 }
 
+.form-section__subheading {
+    font-family: var(--font-heading);
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+    margin: var(--space-3) 0 var(--space-2) 0;
+    padding-bottom: var(--space-1);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
 /* =============================================================================
    4. FORM FIELDS — dense text inputs, selects, textareas
 ============================================================================= */
