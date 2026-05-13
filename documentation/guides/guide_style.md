@@ -255,7 +255,7 @@ Visual treatment: Inter semibold, `--text-md`, `--tracking-tight`, 1px
 | :--- | :--- | :--- |
 | **Layout** | Multi-section form in main column; sticky section navigator in sidebar | Providence grid with sidebar |
 | **Section Navigator** | Vertical link list, Inter xs, `--radius-sm`, active: left-border Oxblood highlight | `.section-nav__link` |
-| **Function Bar** | Sticky Save Draft / Publish / Delete buttons | `.function-bar`, `.btn--draft`, `.btn--publish`, `.btn--delete` |
+| **Function Bar / Buttons** | Sticky Save Draft / Publish / Delete buttons; bare `.btn` baseline for widget buttons (Upload, Delete Picture); `.btn--secondary` for add-link actions; `.btn--primary` Oxblood fill; `.btn--danger` destructive style | `.function-bar`, `.btn`, `.btn--draft`, `.btn--publish`, `.btn--delete`, `.btn--secondary`, `.btn--primary`, `.btn--danger` |
 | **Form Fields** | Monospaced inputs and selects (`--text-sm`), `--radius-sm`, 1pt Clay border, `--color-bg-primary` fill. Focus: `--color-accent-primary` border | `.form-field__input`, `.form-field__select`, `.form-field__textarea` |
 | **Verse Builder** | 3-dropdown + input row (book / chapter / verse); rendered as chips in a flex-wrap container | `.verse-builder__select`, `.verse-builder__chips`, `.chip` |
 | **Bibliography Editor** | Per-source cards with type-select + 2-column field grid + remove button (Oxblood) | `.bibliography-editor__entry` (js/9.0_cross_cutting/dashboard/mla_source_handler.js, css/9.0_cross_cutting/dashboard/mla_widget.css) |

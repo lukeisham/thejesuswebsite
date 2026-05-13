@@ -91,6 +91,45 @@
     background-color: var(--color-border);
 }
 
+/* Bare .btn baseline — applies to buttons outside .function-bar
+   Overrides WYSIWYG/system .btn rules since this loads dynamically last. */
+.btn {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-tight);
+    padding: var(--space-1) var(--space-3);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.btn--primary {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+    border-color: var(--color-accent-primary);
+}
+.btn--primary:hover,
+.btn--primary:focus-visible {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+.btn--danger {
+    background-color: var(--color-bg-primary);
+    color: var(--color-accent-primary);
+    border-color: var(--color-border-accent);
+}
+.btn--danger:hover,
+.btn--danger:focus-visible {
+    background-color: var(--color-accent-primary);
+    color: var(--color-white);
+}
+
 /* =============================================================================
    2. SECTION NAVIGATOR — sticky horizontal link row
 ============================================================================= */
