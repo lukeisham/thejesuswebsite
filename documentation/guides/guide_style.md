@@ -261,7 +261,9 @@ Visual treatment: Inter semibold, `--text-md`, `--tracking-tight`, 1px
 | **Bibliography Editor** | Per-source cards with type-select + 2-column field grid + remove button (Oxblood) | `.bibliography-editor__entry` (js/9.0_cross_cutting/dashboard/mla_source_handler.js, css/9.0_cross_cutting/dashboard/mla_widget.css) |
 | **Paragraph Editor** | Dynamic textarea array with add/remove controls | `.paragraph-editor__textarea` |
 | **Picture Preview** | Full (400×300) and thumbnail (200×150) preview boxes, `--radius-sm`, `--color-bg-tertiary` fill | `.picture-preview`, `.picture-preview--full`, `--thumb` (js/9.0_cross_cutting/dashboard/picture_handler.js, css/9.0_cross_cutting/dashboard/picture_widget.css) |
-| **Context Links** | Chip-based link list with add/remove | `.context-links-editor__chips` (js/9.0_cross_cutting/dashboard/context_link_handler.js, css/9.0_cross_cutting/dashboard/context_links_widget.css) |
+| **Context Links** | Table-based slug/type editor with add/remove rows | `.context-links-editor`, `__table`, `__row`, `__td`, `__remove-btn`, `__add-row` (js/9.0_cross_cutting/dashboard/context_link_handler.js, css/9.0_cross_cutting/dashboard/context_links_widget.css) |
+| **Unique Identifiers** | Two-column table (Identifier Type \| Value) for IAA, Pledius, Manuscript | `.external-refs-editor`, `__table`, `__row`, `__td`, `__label`, `__value-input` (js/9.0_cross_cutting/dashboard/external_refs_handler.js, css/9.0_cross_cutting/dashboard/external_refs_widget.css) |
+| **Section Subheading** | Sub-section heading within a form section | `.form-section__subheading` |
 | **Slug/Snippet/Metadata** | Rendered via shared `metadata_widget.js` (js/9.0_cross_cutting/dashboard/metadata_widget.js) (see §21) | `.metadata-widget` |
 
 ### 19.3 Challenge Dashboard (4.0 — `dashboard_challenge.*`)
