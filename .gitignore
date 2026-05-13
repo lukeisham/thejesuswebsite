@@ -5,6 +5,10 @@
 *.pem
 *.key
 
+# --- Database (local only — NEVER commit live data) ---
+*.sqlite
+database.sqlite
+
 # --- Python Core ---
 __pycache__/
 *.py[cod]
