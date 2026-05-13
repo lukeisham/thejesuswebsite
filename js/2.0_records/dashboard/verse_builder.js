@@ -85,7 +85,8 @@ const BIBLE_BOOKS = [
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: renderVerseBuilder
    Injects the full verse-builder UI into the given container. Pre-populates
-   chips when an initial `verses` JSON array is provided.
+   chips when an initial `verses` value is provided.
+   Accepts either a JSON string (from the API) or an already-parsed array.
 ----------------------------------------------------------------------------- */
 function renderVerseBuilder(containerId, verses) {
   const container = document.getElementById(containerId);
@@ -198,10 +199,20 @@ function renderVerseBuilder(containerId, verses) {
   });
 
   /* -------------------------------------------------------------------------
-       PRE-POPULATE: If an initial verses array was provided, render chips
+       PRE-POPULATE: If an initial verses value was provided, render chips.
+       Accepts either a JSON string (from the API) or an already-parsed array.
     ------------------------------------------------------------------------- */
-  if (verses && Array.isArray(verses) && verses.length > 0) {
-    verses.forEach(function (v) {
+  var verseArray = verses;
+  if (typeof verses === "string" && verses.trim().length > 0) {
+    try {
+      verseArray = JSON.parse(verses);
+    } catch (e) {
+      verseArray = null;
+    }
+  }
+
+  if (verseArray && Array.isArray(verseArray) && verseArray.length > 0) {
+    verseArray.forEach(function (v) {
       if (
         v &&
         typeof v.book === "string" &&

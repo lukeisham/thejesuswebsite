@@ -48,7 +48,8 @@ function renderArdorDiagram(containerId) {
 
       // Find root nodes (parent_id is null or parent not in the set)
       var rootNodes = [];
-      nodesMap.forEach(function (node, id) {
+      Object.keys(nodesMap).forEach(function (id) {
+        var node = nodesMap[id];
         if (!node.parent_id || !nodesMap[node.parent_id]) {
           rootNodes.push(node);
         }
@@ -213,15 +214,17 @@ function buildTreeSVG(rootNodes, nodesMap) {
       '" text-anchor="middle" dominant-baseline="middle">' +
       title +
       "</text>";
-    var metaLabel = '';
+    var metaLabel = "";
     if (node.primary_verse) {
       try {
-        var parsed = typeof node.primary_verse === 'string'
+        var parsed =
+          typeof node.primary_verse === "string"
             ? JSON.parse(node.primary_verse)
             : node.primary_verse;
         if (Array.isArray(parsed) && parsed.length > 0) {
           var v = parsed[0];
-          metaLabel = (v.book || '') + ' ' + (v.chapter || '') + ':' + (v.verse || '');
+          metaLabel =
+            (v.book || "") + " " + (v.chapter || "") + ":" + (v.verse || "");
         }
       } catch (e) {
         metaLabel = node.primary_verse;
@@ -235,7 +238,7 @@ function buildTreeSVG(rootNodes, nodesMap) {
         (nodeHeight - 5) +
         '" text-anchor="middle">' +
         escapeHtmlAttr(metaLabel) +
-        '</text>';
+        "</text>";
     }
     svg += "</g>";
   });
@@ -253,7 +256,8 @@ function buildTreeSVG(rootNodes, nodesMap) {
 
 function getChildren(parentId, nodesMap) {
   var children = [];
-  nodesMap.forEach(function (node, id) {
+  Object.keys(nodesMap).forEach(function (id) {
+    var node = nodesMap[id];
     if (node.parent_id === parentId) {
       children.push(node);
     }
