@@ -564,6 +564,8 @@ The `.external-refs-editor` BEM namespace lives in `css/9.0_cross_cutting/dashbo
 | `.blog-metadata__grid` | Two-column definition list grid | CSS Grid, `--space-2` gap |
 | `.blog-metadata__item` | Individual metadata row (dt + dd) | `--color-secondary` |
 | `.blog-context-links` | Related resources section | `--space-6` |
+| `.blog-context-links__list` | Flex row of context link items | `--space-4` gap, `flex-wrap` |
+| `.blog-link` | Individual context link anchor | `--color-accent`, hover `underline` |
 
 ### Design Principles
 
