@@ -180,7 +180,9 @@ function _setMeterColor(fillEl, percent) {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _renderSecurity
-   Updates the Security card based on overall health status.
+   Updates the Security card based on overall health status. Inspects each
+   subsystem (database, DeepSeek, resources) and surfaces specific issues
+   so the operator knows exactly what needs attention.
 ----------------------------------------------------------------------------- */
 function _renderSecurity(data) {
   const statusEl = document.getElementById("security-status");
@@ -195,24 +197,49 @@ function _renderSecurity(data) {
     "health-card__value--error",
   );
 
-  const overallStatus = data.status || "unknown";
+  // --- Collect specific issues from each subsystem ---
+  var issues = [];
+
+  if (data.database && data.database.status === "error") {
+    issues.push("Database: " + (data.database.error || "connection failed"));
+  }
+
+  if (data.deepseek_api && data.deepseek_api.status === "unavailable") {
+    issues.push(
+      "DeepSeek AI: " + (data.deepseek_api.error || "not configured"),
+    );
+  }
+
+  if (data.resources && data.resources.status === "error") {
+    issues.push(
+      "VPS resources: " + (data.resources.error || "monitoring error"),
+    );
+  }
+
+  var overallStatus = data.status || "unknown";
 
   if (overallStatus === "ok") {
-    statusEl.textContent = "JWT Valid";
+    statusEl.textContent = "OK";
     statusEl.classList.add("health-card__value--ok");
+    if (detailEl) {
+      detailEl.textContent = "All systems healthy";
+    }
   } else if (overallStatus === "degraded") {
     statusEl.textContent = "Warning";
     statusEl.classList.add("health-card__value--degraded");
+    if (detailEl) {
+      detailEl.textContent =
+        issues.length > 0
+          ? issues.join(" — ")
+          : "One or more subsystems not operating normally";
+    }
   } else {
     statusEl.textContent = "Alert";
     statusEl.classList.add("health-card__value--error");
-  }
-
-  if (detailEl) {
-    detailEl.textContent =
-      overallStatus === "ok"
-        ? "No active alerts"
-        : "Check system status for details";
+    if (detailEl) {
+      detailEl.textContent =
+        issues.length > 0 ? issues.join(" — ") : "System health check failed";
+    }
   }
 }
 
