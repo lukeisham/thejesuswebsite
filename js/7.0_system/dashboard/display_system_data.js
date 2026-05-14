@@ -94,9 +94,14 @@ function _renderApiHealth(data) {
     const db = data.database || {};
     const dbStatus = db.status || "unknown";
     const recordCount = db.record_count !== undefined ? db.record_count : "--";
-    detailEl.textContent =
+    let detail =
       `Service: ${data.service || "API"} | DB: ${dbStatus} | ` +
       `Records: ${recordCount} | ${_formatTimestamp(timestamp)}`;
+    // Append database error message when DB check failed
+    if (db.error) {
+      detail += ` | DB error: ${db.error}`;
+    }
+    detailEl.textContent = detail;
   }
 }
 
