@@ -2,9 +2,9 @@
 //
 //   THE JESUS WEBSITE — BLOG FEED DISPLAY
 //   File:    js/6.0_news_blog/frontend/list_blogpost.js
-//   Version: 1.3.0
+//   Version: 1.4.0
 //   Purpose: Fetches and renders blog posts for the blog feed from the
-//            public API with rolling pagination ("Load More" button).
+//            public API with rolling pagination ("Load More" button) and thumbnail support.
 //   Source:  guide_appearance.md §5.3
 //
 // =============================================================================
@@ -12,6 +12,7 @@
 // Trigger: DOMContentLoaded -> renderBlogFeed()
 // Function: Queries the public API for published blog posts and renders them
 //           as a chronological feed with a "Load More" button for pagination.
+//           Includes optional left-aligned thumbnail image when picture_thumbnail is present.
 // Output: Injects <article> elements + Load More button into #blog-feed-content
 
 var _blogFeedState = {
@@ -162,12 +163,25 @@ function _buildPostHtml(item, snippet) {
   var date = item.updated_at || item.created_at || "";
   var title = item.title || "Untitled";
   var slug = item.slug || "";
+  var thumbUrl = item.picture_thumbnail || null;
+
+  var thumbHtml = thumbUrl
+    ? '<div class="feed-item__thumb-wrap">' +
+      '<img class="feed-item__thumbnail" src="' +
+      thumbUrl +
+      '" alt="' +
+      escapeHtml(title) +
+      '" loading="lazy" />' +
+      "</div>"
+    : "";
 
   return (
-    '<article class="blog-item" style="' +
+    '<article class="feed-item" style="' +
     "padding-bottom: var(--space-6); " +
     "border-bottom: 1px solid var(--color-border); " +
     'margin-bottom: var(--space-6);">' +
+    thumbHtml +
+    '<div class="feed-item__body">' +
     '<h2 class="blog-item__title">' +
     (slug
       ? '<a href="/blog/' +
@@ -192,6 +206,7 @@ function _buildPostHtml(item, snippet) {
         encodeURIComponent(slug) +
         '" class="blog-item__read-more">Read more →</a></div>'
       : "") +
+    "</div>" +
     "</article>"
   );
 }

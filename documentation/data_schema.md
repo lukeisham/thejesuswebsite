@@ -1,6 +1,6 @@
 ---
 name: data_schema.md
-version: 1.0.4
+version: 1.0.5
 purpose: data schema for the jesus website (source of truth)
 dependencies: [site_map.md, module_sitemap.md]
 ---
@@ -33,6 +33,7 @@ dependencies: [site_map.md, module_sitemap.md]
 `picture_name` | TEXT | Flat Indexable 
 `picture_bytes` | BLOB | Raw PNG Data (max 800px width, ≤ 250 KB)
 `picture_thumbnail` | BLOB | Raw PNG Data (max 200px width derivative)
+    > **API Exposure:** This column is now exposed via `/api/public/news` and `/api/public/blogposts` endpoints as a ready-to-use `data:image/png;base64,...` string. The frontend renders it directly in an `<img>` tag.
 `description` | TEXT | JSON Array (Paragraphs) 
 `snippet` | TEXT | JSON Array (Paragraphs) 
 `bibliography` | TEXT | JSON Blob — MLA citation entries (managed by MLA Widget / `mla_source_handler.js`)

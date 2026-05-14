@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.11.0
+version: 1.12.0
 dependencies: [guide_dashboard_appearance.md, guide_appearance.md, typography.css, shell.css]
 ---
 
@@ -583,3 +583,43 @@ The `.external-refs-editor` BEM namespace lives in `css/9.0_cross_cutting/dashbo
 - **Variable-Only:** No hardcoded colors, font sizes, or spacing — all values sourced from `typography_colors.css`.
 - **Reading Comfort:** Body content constrained to `65ch` with `--line-height-relaxed` for long-form readability.
 - **Separation from Dashboard:** These public-facing classes are entirely independent of the `.wysiwyg-*` dashboard namespace used in the admin editor.
+
+
+## 25. News & Blog Landing -- ".news-blog-landing-*" BEM Namespace
+
+> **Plan:** `refactor_news_blog_landing_feeds.md`
+>
+> The `news_blog_landing.css` stylesheet (`css/6.0_news_blog/frontend/news_blog_landing.css`) defines the canonical two-column side-by-side landing page styles for `news_and_blog.html`, plus shared thumbnail styles used by the full feed pages (`news.html`, `blog.html`).
+
+### Landing Page Classes (news_snippet_display.js, blog_snippet_display.js)
+
+| BEM Class | Purpose | CSS Variable References |
+|:---|:---|:---|
+| `.news-blog-landing` | Two-column CSS Grid container | `grid-template-columns: 1fr 1fr`, `--space-8` |
+| `.news-blog-landing__column` | Single column wrapper | `min-width: 0` |
+| `.news-blog-landing__heading` | Column heading `<h2>` with linked `<a>` | `--font-serif`, `--color-primary`, `--color-border` |
+| `.news-blog-landing__snippet` | Individual snippet card (flex row) | `--space-3` gap, `--color-border` |
+| `.news-blog-landing__thumb-wrap` | 80x80 thumbnail wrapper | `--color-bg-secondary` |
+| `.news-blog-landing__thumbnail` | `<img>` inside thumb-wrap | `object-fit: cover` |
+| `.news-blog-landing__snippet-body` | Text content beside thumbnail | `flex: 1` |
+| `.news-blog-landing__date` | Publication date in monospace | `--font-mono`, `--color-muted` |
+| `.news-blog-landing__title` | Snippet title in serif | `--font-serif`, `--color-primary` |
+| `.news-blog-landing__link` | Title link, accent on hover | `--color-primary`, `--color-accent` |
+| `.news-blog-landing__text` | Truncated snippet paragraph | `--color-secondary`, `--line-height-relaxed` |
+| `.news-blog-landing__view-all` | "View all" link below snippet list | `--font-mono`, `--color-accent` |
+
+### Full Feed Thumbnail Classes (list_newsitem.js, list_blogpost.js)
+
+| BEM Class | Purpose | CSS Variable References |
+|:---|:---|:---|
+| `.feed-item` | Flex row container for full feed items | `--space-4` gap |
+| `.feed-item__thumb-wrap` | 120x90 thumbnail wrapper | `--color-bg-secondary` |
+| `.feed-item__thumbnail` | `<img>` inside feed thumb-wrap | `object-fit: cover` |
+| `.feed-item__body` | Text content beside thumbnail | `flex: 1` |
+
+### Design Principles
+
+- **BEM Purity:** All classes use strict BEM naming -- `news-blog-landing-*` block, `__` element, no utility modifiers.
+- **Feed Item Consistency:** The shared `.feed-item` classes keep thumbnails consistently sized across both news and blog full feeds.
+- **Variable-Only:** No hardcoded colors, font sizes, or spacing -- all values sourced from `typography_colors.css`.
+- **Responsive by Default:** The grid collapses to single-column at 800px via `@media (max-width: 800px)`.

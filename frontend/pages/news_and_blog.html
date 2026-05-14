@@ -4,8 +4,9 @@
 
      THE JESUS WEBSITE — NEWS & BLOG FEED
      File:    frontend/pages/news_and_blog.html
-     Version: 1.1.0
+     Version: 1.2.0
      Purpose: Entry point for site updates and blog posts.
+              Two-column side-by-side layout with 5 news + 5 blog snippets.
      Source:  guide_appearance.md §1.3
 
 ============================================================================= -->
@@ -17,7 +18,7 @@
 
         <title>News & Blog | The Jesus Website</title>
 
-        <!-- Stylesheets -->
+</title>        <!-- Stylesheets -->
         <link
             rel="stylesheet"
             href="../../css/1.0_foundation/typography.css"
@@ -25,7 +26,7 @@
         <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
         <link
             rel="stylesheet"
-            href="../../css/5.0_essays_responses/frontend/responses.css"
+            href="../../css/6.0_news_blog/frontend/news_blog_landing.css"
         />
 
         <!-- UI Logic Components -->
@@ -61,18 +62,15 @@
                         <h1 class="landing-page__heading">News &amp; Blog</h1>
                     </header>
 
-                    <div class="grid-two-col">
-                        <!-- Latest News Section -->
+                    <div class="news-blog-landing">
+                        <!-- Latest News Column -->
                         <section
-                            class="news-list"
-                            id="news-list"
+                            class="news-blog-landing__column"
+                            id="news-column"
                             aria-labelledby="news-heading"
                         >
-                            <h2
-                                id="news-heading"
-                                class="text-lg font-bold border-bottom pb-2 mb-4"
-                            >
-                                Latest News
+                            <h2 class="news-blog-landing__heading">
+                                <a href="/news" id="news-heading">Latest News</a>
                             </h2>
                             <div id="latest-news-content">
                                 <!-- Injected by news_snippet_display.js -->
@@ -80,19 +78,22 @@
                                     Loading latest news...
                                 </p>
                             </div>
+                            <a
+                                class="news-blog-landing__view-all"
+                                href="/news"
+                            >
+                                View all news →
+                            </a>
                         </section>
 
-                        <!-- Latest Blog Section -->
+                        <!-- Latest Blog Column -->
                         <section
-                            class="blog-list"
-                            id="blog-list"
+                            class="news-blog-landing__column"
+                            id="blog-column"
                             aria-labelledby="blog-heading"
                         >
-                            <h2
-                                id="blog-heading"
-                                class="text-lg font-bold border-bottom pb-2 mb-4"
-                            >
-                                Latest Blogposts
+                            <h2 class="news-blog-landing__heading">
+                                <a href="/blog" id="blog-heading">Latest Blogposts</a>
                             </h2>
                             <div id="latest-blog-content">
                                 <!-- Injected by blog_snippet_display.js -->
@@ -100,6 +101,12 @@
                                     Loading latest blogposts...
                                 </p>
                             </div>
+                            <a
+                                class="news-blog-landing__view-all"
+                                href="/blog"
+                            >
+                                View all posts →
+                            </a>
                         </section>
                     </div>
                 </div>

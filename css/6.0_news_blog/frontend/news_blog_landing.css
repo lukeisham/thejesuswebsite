@@ -1,0 +1,188 @@
+/* =============================================================================
+   THE JESUS WEBSITE — NEWS & BLOG LANDING STYLESHEET
+   File:    css/6.0_news_blog/frontend/news_blog_landing.css
+   Version: 1.0.0
+   Purpose: Side-by-side two-column landing page layout for news_and_blog.html
+            and shared thumbnail styles for news.html and blog.html feeds.
+   Source:  guide_style.md §News & Blog BEM Namespace
+============================================================================= */
+
+/* =============================================================================
+   CSS VARIABLE REFERENCES (from typography.css)
+   --color-primary          Main text colour
+   --color-secondary        Muted text colour
+   --color-muted            Subtle text colour
+   --color-accent           Link/accent colour
+   --color-border           Border colour
+   --color-bg-secondary     Secondary background
+   --font-serif             Serif font stack
+   --font-mono              Monospace font stack
+   --space-2, --space-3, --space-4, --space-6, --space-8   Spacing scale
+   --line-height-relaxed    Relaxed line height for reading
+   --border-width-thin      Thin border width
+============================================================================= */
+
+/* -------------------------------------------------------------------------
+   Landing Page Grid — Two-column side-by-side layout
+------------------------------------------------------------------------- */
+
+.news-blog-landing {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-8);
+    margin-top: var(--space-6);
+}
+
+.news-blog-landing__column {
+    min-width: 0;
+}
+
+.news-blog-landing__heading {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.news-blog-landing__heading a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.news-blog-landing__heading a:hover {
+    color: var(--color-accent);
+}
+
+/* -------------------------------------------------------------------------
+   Snippet Cards — Shared for both news and blog snippets
+------------------------------------------------------------------------- */
+
+.news-blog-landing__snippet {
+    display: flex;
+    gap: var(--space-3);
+    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px dotted var(--color-border);
+}
+
+.news-blog-landing__snippet:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.news-blog-landing__thumb-wrap {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--color-bg-secondary);
+}
+
+.news-blog-landing__thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.news-blog-landing__snippet-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.news-blog-landing__date {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    margin-bottom: var(--space-1);
+}
+
+.news-blog-landing__title {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--space-1);
+}
+
+.news-blog-landing__link {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.news-blog-landing__link:hover {
+    color: var(--color-accent);
+}
+
+.news-blog-landing__text {
+    font-size: 0.875rem;
+    color: var(--color-secondary);
+    line-height: var(--line-height-relaxed);
+}
+
+/* -------------------------------------------------------------------------
+   View All Link
+------------------------------------------------------------------------- */
+
+.news-blog-landing__view-all {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    margin-top: var(--space-3);
+    transition: color 0.2s ease;
+}
+
+.news-blog-landing__view-all:hover {
+    text-decoration: underline;
+}
+
+/* -------------------------------------------------------------------------
+   Full Feed Thumbnails — Shared for news.html and blog.html
+------------------------------------------------------------------------- */
+
+.feed-item__thumb-wrap {
+    flex-shrink: 0;
+    width: 120px;
+    height: 90px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--color-bg-secondary);
+    margin-right: var(--space-4);
+}
+
+.feed-item__thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.feed-item {
+    display: flex;
+    gap: var(--space-4);
+}
+
+.feed-item__body {
+    flex: 1;
+    min-width: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive — Stack columns vertically on smaller screens
+------------------------------------------------------------------------- */
+
+@media (max-width: 800px) {
+    .news-blog-landing {
+        grid-template-columns: 1fr;
+    }
+}

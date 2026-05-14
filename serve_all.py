@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import sqlite3
@@ -355,7 +356,8 @@ async def public_blogposts(
             select_cols = (
                 "SELECT id, title, slug, snippet, blogposts, body, iaa, "
                 "pledius, manuscript, url, page_views, metadata_json, "
-                "created_at, updated_at, picture_name, bibliography, context_links "
+                "created_at, updated_at, picture_name, picture_thumbnail, "
+                "bibliography, context_links "
                 "FROM records WHERE " + where_clause + " ORDER BY created_at DESC "
                 "LIMIT ? OFFSET ?"
             )
@@ -363,7 +365,8 @@ async def public_blogposts(
         else:
             select_cols = (
                 "SELECT id, title, slug, snippet, blogposts, "
-                "created_at, updated_at, picture_name, bibliography, context_links "
+                "created_at, updated_at, picture_name, picture_thumbnail, "
+                "bibliography, context_links "
                 "FROM records WHERE " + where_clause + " ORDER BY created_at DESC "
                 "LIMIT ? OFFSET ?"
             )
@@ -400,6 +403,14 @@ async def public_blogposts(
                     post["context_links"] = json.loads(post["context_links"])
                 except (json.JSONDecodeError, TypeError):
                     pass
+            # Decode picture_thumbnail BLOB to base64 data URI for frontend
+            thumb_blob = post.get("picture_thumbnail")
+            if thumb_blob:
+                try:
+                    b64_str = base64.b64encode(thumb_blob).decode("ascii")
+                    post["picture_thumbnail"] = "data:image/png;base64," + b64_str
+                except Exception:
+                    post["picture_thumbnail"] = None
             posts.append(post)
         has_more = (safe_offset + len(posts)) < total
         return {
@@ -529,7 +540,8 @@ async def public_news_items(
             select_cols = (
                 "SELECT id, title, slug, snippet, news_item_title, "
                 "news_item_link, last_crawled, news_items, created_at, "
-                "updated_at, status, type, sub_type "
+                "updated_at, status, type, sub_type, picture_name, "
+                "picture_thumbnail "
                 "FROM records WHERE "
                 + where_clause
                 + " ORDER BY last_crawled DESC, created_at DESC "
@@ -562,6 +574,14 @@ async def public_news_items(
                     item["snippet"] = json.loads(item["snippet"])
                 except (json.JSONDecodeError, TypeError):
                     pass
+            # Decode picture_thumbnail BLOB to base64 data URI for frontend
+            thumb_blob = item.get("picture_thumbnail")
+            if thumb_blob:
+                try:
+                    b64_str = base64.b64encode(thumb_blob).decode("ascii")
+                    item["picture_thumbnail"] = "data:image/png;base64," + b64_str
+                except Exception:
+                    item["picture_thumbnail"] = None
             items.append(item)
         has_more = (safe_offset + len(items)) < total
         return {

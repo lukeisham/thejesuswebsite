@@ -2,7 +2,7 @@
 //
 //   THE JESUS WEBSITE — BLOG SNIPPET DISPLAY
 //   File:    js/6.0_news_blog/frontend/blog_snippet_display.js
-//   Version: 1.2.0
+//   Version: 1.3.0
 //   Purpose: Renders a small list of latest blog post snippets fetched from
 //            the public API.
 //   Source:  guide_appearance.md §1.3
@@ -11,7 +11,8 @@
 
 // Trigger: DOMContentLoaded -> injectBlogSnippets('latest-blog-content')
 // Function: Fetches the latest published blog posts from the public API and
-//           renders headline/summary cards into the specified container.
+//           renders exactly 5 headline/summary cards with optional thumbnail
+//           into the specified container.
 // Output: Renders blog snippet list or empty state inside container.
 
 function injectBlogSnippets(containerId) {
@@ -49,28 +50,44 @@ function injectBlogSnippets(containerId) {
           var title = item.title || "Untitled";
           var slug = item.slug || "";
           var snippet = _extractSnippet(item);
+          var thumbUrl = item.picture_thumbnail || null;
 
           var link = slug ? "/blog/" + encodeURIComponent(slug) : null;
 
+          var thumbHtml = thumbUrl
+            ? '<img class="news-blog-landing__thumbnail" src="' +
+              thumbUrl +
+              '" alt="' +
+              escapeHtml(title) +
+              '" loading="lazy" />'
+            : "";
+
           return (
-            '<div class="news-snippet mb-4" style="border-bottom: 1px dotted var(--color-border); padding-bottom: var(--space-2);">' +
-            '<p class="text-xs text-muted font-mono mb-1">' +
+            '<div class="news-blog-landing__snippet">' +
+            (thumbHtml
+              ? '<div class="news-blog-landing__thumb-wrap">' +
+                thumbHtml +
+                "</div>"
+              : "") +
+            '<div class="news-blog-landing__snippet-body">' +
+            '<p class="news-blog-landing__date">' +
             escapeHtml(formatDate(date)) +
             "</p>" +
-            '<h3 class="text-base font-semibold mb-1">' +
+            '<h3 class="news-blog-landing__title">' +
             (link
               ? '<a href="' +
                 link +
-                '" class="text-primary hover:text-accent">' +
+                '" class="news-blog-landing__link">' +
                 escapeHtml(title) +
                 "</a>"
               : escapeHtml(title)) +
             "</h3>" +
             (snippet
-              ? '<p class="text-sm">' +
+              ? '<p class="news-blog-landing__text">' +
                 escapeHtml(String(snippet).substring(0, 150)) +
                 "</p>"
               : "") +
+            "</div>" +
             "</div>"
           );
         })

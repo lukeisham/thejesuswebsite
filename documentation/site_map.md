@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version 1.0.70
+version 1.0.71
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -98,7 +98,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ├── css/6.0_news_blog/dashboard/
 │   └── news_sources_dashboard.css <-- Pipeline control aesthetics & keyword sidebar
 ├── css/6.0_news_blog/frontend/
-│   └── blog.css               <-- Public blog feed and single post styles (blog-* BEM namespace, replaces legacy essay-* cross-references)
+│   ├── blog.css               <-- Public blog feed and single post styles (blog-* BEM namespace, replaces legacy essay-* cross-references)
+│   └── news_blog_landing.css  <-- Side-by-side landing page layout & shared thumbnail styles
 ├── css/7.0_system/
 │   ├── admin.css              <-- Login page 'providence' styling
 │   └── dashboard/

@@ -1,7 +1,7 @@
 ---
 name: guide_appearance.md
 purpose: Visual ASCII representations of the public-facing pages for "The Jesus Website"
-version: 1.4.0
+version: 1.5.0
 dependencies: [guide_dashboard_appearance.md, detailed_module_sitemap.md]
 ---
 
@@ -835,7 +835,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/news_and_blog.html`
-- **CSS:** `css/1.0_foundation/grid.css`
+- **CSS:** `css/6.0_news_blog/frontend/news_blog_landing.css`, `css/1.0_foundation/grid.css`
 - **JS:** `js/6.0_news_blog/frontend/news_snippet_display.js`, `js/6.0_news_blog/frontend/blog_snippet_display.js`
 
 ```text
@@ -847,13 +847,18 @@ This document maintains visual ASCII blueprints for the various page templates d
 |                     |                                                   |
 |  [Sidebar Nav]      |   The Jesus Website: News & Blog                  |
 |                     |                                                   |
-|  - Records          |   +-------------------+  +--------------------+   |
-|  - Context          |   | [LATEST NEWS]     |  | [LATEST BLOGPOSTS] |   |
-|  - Resources        |   | - Snippet 1       |  | - Snippet 1        |   |
-|  - Debate           |   | - Snippet 2       |  | - Snippet 2        |   |
-|  - About            |   | - Snippet 3       |  | - Snippet 3        |   |
-|                     |   | View all news →   |  | View all posts →   |   |
-|                     |   +-------------------+  +--------------------+   |
+|  - Records          |   ┌─────────────────────┐  ┌──────────────────┐   |
+|  - Context          |   │ [NEWS]              │  │ [BLOG]           │   |
+|  - Resources        |   │ ┌─────┬──────────┐  │  │ ┌─────┬────────┐ │   |
+|  - Debate           |   │ │ img │ Snippet 1 │  │  │ │ img │Post 1  │ │   |
+|  - About            |   │ └─────┴──────────┘  │  │ └─────┴────────┘ │   |
+|                     |   │ ┌─────┬──────────┐  │  │ ┌─────┬────────┐ │   |
+|                     |   │ │ img │ Snippet 2 │  │  │ │ img │Post 2  │ │   |
+|                     |   │ └─────┴──────────┘  │  │ └─────┴────────┘ │   |
+|                     |   │   (… 5 total)       │  │   (… 5 total)    │   |
+|                     |   │                     │  │                   │   |
+|                     |   │ View all news →     │  │ View all posts → │   |
+|                     |   └─────────────────────┘  └──────────────────┘   |
 |                     |                                                   |
 |-------------------------------------------------------------------------|
 |  [Universal Footer]                                                     |
@@ -866,7 +871,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 **Relevant Technical Files:**
 - **Structure:** `frontend/pages/news_and_blog.html`
 - **Logic:** `js/6.0_news_blog/frontend/news_snippet_display.js`, `js/6.0_news_blog/frontend/blog_snippet_display.js`
-- **Styles:** `css/1.0_foundation/grid.css`
+- **Styles:** `css/6.0_news_blog/frontend/news_blog_landing.css`, `css/1.0_foundation/grid.css`
 
 **HTML DOM Structure:**
 ```text
@@ -877,10 +882,11 @@ This document maintains visual ASCII blueprints for the various page templates d
     │   ├── <h2>Latest News</h2>
     │   ├── <ul class="news-snippet-list">        ← rendered by news_snippet_display.js
     │   │   ├── <li class="news-snippet-item">    ← one per news_items entry
+    │   │   │   ├── <img class="snippet-thumb" src="…" alt="…">
     │   │   │   ├── <span class="snippet-date">   ← Publish Date
     │   │   │   ├── <h3 class="snippet-headline"> ← Headline
     │   │   │   └── <p class="snippet-body">      ← Snippet body
-    │   │   └── (repeats…)
+    │   │   └── (repeats… up to 5)
     │   └── <a class="news-blog-landing__view-all" href="/frontend/pages/news.html">
     │           View all news →
     │
@@ -888,10 +894,11 @@ This document maintains visual ASCII blueprints for the various page templates d
         ├── <h2>Latest Blog Posts</h2>
         ├── <ul class="blog-snippet-list">        ← rendered by blog_snippet_display.js
         │   ├── <li class="blog-snippet-item">    ← one per blogposts entry
+        │   │   ├── <img class="snippet-thumb" src="…" alt="…">
         │   │   ├── <span class="snippet-date">   ← Publish Date
         │   │   ├── <h3 class="snippet-title">    ← Title
         │   │   └── <p class="snippet-body">      ← Body excerpt
-        │   └── (repeats…)
+        │   └── (repeats… up to 5)
         └── <a class="news-blog-landing__view-all" href="/frontend/pages/blog.html">
                 View all posts →
 ```
@@ -908,7 +915,7 @@ This document maintains visual ASCII blueprints for the various page templates d
 
 **Relevant Files:**
 - **HTML:** `frontend/pages/news.html`
-- **CSS:** `css/5.0_essays_responses/frontend/responses.css`, `css/1.0_foundation/grid.css`
+- **CSS:** `css/6.0_news_blog/frontend/news_blog_landing.css`, `css/1.0_foundation/grid.css`
 - **JS:** `js/6.0_news_blog/frontend/list_newsitem.js`
 
 ```text
@@ -920,17 +927,17 @@ This document maintains visual ASCII blueprints for the various page templates d
 |                     |                                                   |
 |  [Sidebar Nav]      |   The Jesus Website: News                         |
 |                     |                                                   |
-|  - Records          |   +-------------------------------------------+   |
-|  - Context          |   | [Headline]        [Publish Date]          |   |
-|  - Resources        |   | [Snippet body]                            |   |
-|  - Debate           |   | [External link →]                         |   |
-|  - About            |   +-------------------------------------------+   |
+|  - Records          |   ┌──────┬────────────────────────────────────+   |
+|  - Context          |   │ img  │ [Headline]        [Publish Date]  |   |
+|  - Resources        |   │      │ [Snippet body]                     |   |
+|  - Debate           |   │      │ [External link →]                  |   |
+|  - About            |   └──────┴────────────────────────────────────+   |
 |                     |                                                   |
-|                     |   +-------------------------------------------+   |
-|                     |   | [Headline]        [Publish Date]          |   |
-|                     |   | [Snippet body]                            |   |
-|                     |   | [External link →]                         |   |
-|                     |   +-------------------------------------------+   |
+|                     |   ┌──────┬────────────────────────────────────+   |
+|                     |   │ img  │ [Headline]        [Publish Date]  |   |
+|                     |   │      │ [Snippet body]                     |   |
+|                     |   │      │ [External link →]                  |   |
+|                     |   └──────┴────────────────────────────────────+   |
 |                     |                                                   |
 |-------------------------------------------------------------------------|
 |  [Universal Footer]                                                     |
@@ -956,17 +963,17 @@ This document maintains visual ASCII blueprints for the various page templates d
 |                     |                                                   |
 |  [Sidebar Nav]      |   The Jesus Website: Blog                         |
 |                     |                                                   |
-|  - Records          |   +-------------------------------------------+   |
-|  - Context          |   | [Title]           [Publish Date]          |   |
-|  - Resources        |   | By [Author]                               |   |
-|  - Debate           |   | [Body excerpt]                            |   |
-|  - About            |   +-------------------------------------------+   |
+|  - Records          |   ┌──────┬────────────────────────────────────+   |
+|  - Context          |   │ img  │ [Title]           [Publish Date]  |   |
+|  - Resources        |   │      │ [Body excerpt]                      |   |
+|  - Debate           |   │      │ [Read more →]                      |   |
+|  - About            |   └──────┴────────────────────────────────────+   |
 |                     |                                                   |
-|                     |   +-------------------------------------------+   |
-|                     |   | [Title]           [Publish Date]          |   |
-|                     |   | By [Author]                               |   |
-|                     |   | [Body excerpt]                            |   |
-|                     |   +-------------------------------------------+   |
+|                     |   ┌──────┬────────────────────────────────────+   |
+|                     |   │ img  │ [Title]           [Publish Date]  |   |
+|                     |   │      │ [Body excerpt]                      |   |
+|                     |   │      │ [Read more →]                      |   |
+|                     |   └──────┴────────────────────────────────────+   |
 |                     |                                                   |
 |-------------------------------------------------------------------------|
 |  [Universal Footer]                                                     |

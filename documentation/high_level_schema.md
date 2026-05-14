@@ -1,6 +1,6 @@
 ---
 name: high_level_schema.md
-version: 2.1.0
+version: 2.1.1
 purpose: High-level polymorphic data model — unified single-table design with type discriminator, sub-type variants, and shared base fields
 dependencies: [data_schema.md, detailed_module_sitemap.md]
 ---
@@ -523,6 +523,9 @@ Each conceptual alias is split across multiple rows linked by a shared `id`
 │  + news_item_title   TEXT | Flat Indexable              │
 │  + news_item_link    TEXT | Flat Indexable              │
 │  + last_crawled      ISO8601                            │
+│  + picture_name      Filename                           │
+│  + picture_bytes     Raw PNG (max 800px width)          │
+│  + picture_thumbnail Base64 PNG (max 200px derivative)  │
 └───────────────────────────────────────────────────────┘
 ┌───────────────────────────────────────────────────────┐
 │  NEWS SOURCE                                          │

@@ -2,12 +2,18 @@
 //
 //   THE JESUS WEBSITE — NEWS FEED DISPLAY
 //   File:    js/6.0_news_blog/frontend/list_newsitem.js
-//   Version: 1.2.0
+//   Version: 1.3.0
 //   Purpose: Fetches and renders news items from the public API with
-//            rolling pagination ("Load More" button).
+//            rolling pagination ("Load More" button) and thumbnail support.
 //   Source:  guide_appearance.md §5.3
 //
 // =============================================================================
+
+// Trigger: DOMContentLoaded -> renderNewsFeed()
+// Function: Queries the public API for published news items and renders them
+//           as a chronological feed with a "Load More" button for pagination.
+//           Includes optional left-aligned thumbnail image when picture_thumbnail is present.
+// Output: Injects <article> elements + Load More button into #news-feed-content
 
 var _newsFeedState = {
   offset: 0,
@@ -137,6 +143,7 @@ function _buildNewsHtml(item, snippet) {
   var displayTitle = item.news_item_title || item.title || "Untitled";
   var displayLink = item.news_item_link || "";
   var date = item.last_crawled || item.updated_at || item.created_at || "";
+  var thumbUrl = item.picture_thumbnail || null;
 
   var titleHtml = displayLink
     ? '<a href="' +
@@ -146,12 +153,24 @@ function _buildNewsHtml(item, snippet) {
       ' <span class="news-item__external-icon">↗</span></a>'
     : escapeHtml(displayTitle);
 
+  var thumbHtml = thumbUrl
+    ? '<div class="feed-item__thumb-wrap">' +
+      '<img class="feed-item__thumbnail" src="' +
+      thumbUrl +
+      '" alt="' +
+      escapeHtml(displayTitle) +
+      '" loading="lazy" />' +
+      "</div>"
+    : "";
+
   return (
-    '<article class="news-item" style="' +
+    '<article class="feed-item" style="' +
     "padding-bottom: var(--space-6); " +
     "border-bottom: 1px solid var(--color-border); " +
     "margin-bottom: var(--space-6);" +
     '">' +
+    thumbHtml +
+    '<div class="feed-item__body">' +
     '<h2 class="news-item__title">' +
     titleHtml +
     "</h2>" +
@@ -165,6 +184,7 @@ function _buildNewsHtml(item, snippet) {
         "</p>" +
         "</div>"
       : "") +
+    "</div>" +
     "</article>"
   );
 }
