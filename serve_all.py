@@ -56,6 +56,8 @@ async def add_csp_header(request, call_next):
         "script-src-elem 'self' https://static.cloudflareinsights.com; "
         "connect-src 'self' https://static.cloudflareinsights.com; "
         "style-src 'self' 'unsafe-inline'; "
+        "style-src-elem 'self' 'unsafe-inline'; "
+        "style-src-attr 'self' 'unsafe-inline'; "
         "img-src 'self' data:; "
         "font-src 'self'; "
         "frame-src 'self'"
