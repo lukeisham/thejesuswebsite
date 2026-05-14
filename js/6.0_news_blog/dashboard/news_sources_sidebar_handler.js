@@ -64,19 +64,14 @@ function initNewsSidebar() {
   var addTermInput = document.getElementById("news-search-term-input");
   if (addTermBtn) {
     addTermBtn.addEventListener("click", function () {
-      _addChipFromInput(
-        window._newsSourcesModuleState,
-        _nsSearchTermChipConfig,
-      );
+      _addTermsFromInput();
     });
   }
   if (addTermInput) {
     addTermInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
-        _addChipFromInput(
-          window._newsSourcesModuleState,
-          _nsSearchTermChipConfig,
-        );
+        e.preventDefault();
+        _addTermsFromInput();
       }
     });
   }
@@ -148,6 +143,8 @@ function _clearSidebar() {
    INTERNAL: _setSidebarDisabled
    Disables/enables all sidebar interactive elements and dims sidebar
    sections when no record row is selected.
+   Uses a CSS class (.is-disabled) instead of inline styles so that
+   the disabled state is consistently applied and removed.
 ----------------------------------------------------------------------------- */
 function _setSidebarDisabled(disabled) {
   var ids = [
@@ -170,7 +167,7 @@ function _setSidebarDisabled(disabled) {
     }
   });
 
-  // Dim sidebar sections
+  // Dim sidebar sections via CSS class
   var sectionIds = [
     "news-source-section",
     "news-keywords-section",
@@ -181,15 +178,72 @@ function _setSidebarDisabled(disabled) {
   sectionIds.forEach(function (id) {
     var section = document.getElementById(id);
     if (section) {
-      section.style.opacity = disabled ? "0.45" : "";
+      if (disabled) {
+        section.classList.add("is-disabled");
+      } else {
+        section.classList.remove("is-disabled");
+      }
     }
   });
 }
 
 /* -----------------------------------------------------------------------------
+   INTERNAL: _addTermsFromInput
+   Reads the search term input, splits by commas, adds each unique term
+   as an individual chip, re-renders, and saves immediately.
+   Supports both single terms and comma-separated lists.
+----------------------------------------------------------------------------- */
+function _addTermsFromInput() {
+  var state = window._newsSourcesModuleState;
+  if (!state || !state.activeGroupId) return;
+
+  var inputEl = document.getElementById("news-search-term-input");
+  if (!inputEl) return;
+
+  var rawValue = inputEl.value.trim();
+  if (!rawValue) return;
+
+  // Split by commas and filter empty
+  var newTerms = rawValue
+    .split(",")
+    .map(function (t) {
+      return t.trim();
+    })
+    .filter(function (t) {
+      return t.length > 0;
+    });
+
+  if (newTerms.length === 0) return;
+
+  var existingTerms = state.activeSearchTerms || [];
+  var added = false;
+
+  newTerms.forEach(function (term) {
+    if (existingTerms.indexOf(term) === -1) {
+      existingTerms.push(term);
+      added = true;
+    }
+  });
+
+  if (!added) {
+    inputEl.value = "";
+    return; // All already exist
+  }
+
+  state.activeSearchTerms = existingTerms;
+  inputEl.value = "";
+
+  // Re-render chips
+  _renderSearchTerms();
+
+  // Save immediately (skip debounce)
+  _saveKeywordsAndTerms();
+}
+
+/* -----------------------------------------------------------------------------
    INTERNAL: _addChipFromInput
    Reads the input value, adds it to the state array, re-renders chips,
-   and triggers auto-save.
+   and triggers auto-save (debounced). Used for Keywords (single-term input).
 ----------------------------------------------------------------------------- */
 function _addChipFromInput(state, config) {
   if (!state || !state.activeGroupId) return;
@@ -215,7 +269,7 @@ function _addChipFromInput(state, config) {
     config.renderFn();
   }
 
-  // Auto-save
+  // Auto-save (debounced)
   _scheduleKeywordSave();
 }
 

@@ -145,6 +145,13 @@
     padding-bottom: var(--space-4);
 }
 
+/* --- Sidebar Disabled State --- */
+/* Toggled by _setSidebarDisabled() in news_sources_sidebar_handler.js */
+.news-sidebar__section.is-disabled {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
 .news-sidebar__subheader {
     margin-bottom: var(--space-2);
 }
