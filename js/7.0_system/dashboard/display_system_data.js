@@ -102,7 +102,7 @@ function _renderApiHealth(data) {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _renderVpsResources
-   Updates the VPS Resources card with CPU and memory gauges.
+   Updates the VPS Resources card with CPU, memory, and disk gauges.
 ----------------------------------------------------------------------------- */
 function _renderVpsResources(data) {
   const cpuFillEl = document.getElementById("vps-cpu-fill");
@@ -111,6 +111,9 @@ function _renderVpsResources(data) {
   const memFillEl = document.getElementById("vps-mem-fill");
   const memTextEl = document.getElementById("vps-mem-text");
   const memBarEl = document.getElementById("vps-mem-bar");
+  const diskFillEl = document.getElementById("vps-disk-fill");
+  const diskTextEl = document.getElementById("vps-disk-text");
+  const diskBarEl = document.getElementById("vps-disk-bar");
   const detailEl = document.getElementById("vps-detail");
 
   const resources = data.resources || {};
@@ -118,6 +121,7 @@ function _renderVpsResources(data) {
   if (resources.status === "unavailable" || resources.status === "error") {
     if (cpuTextEl) cpuTextEl.textContent = "N/A";
     if (memTextEl) memTextEl.textContent = "N/A";
+    if (diskTextEl) diskTextEl.textContent = "N/A";
     if (detailEl)
       detailEl.textContent = resources.error || "Resource data unavailable";
     return;
@@ -148,6 +152,18 @@ function _renderVpsResources(data) {
   }
   if (memTextEl && memPercent !== undefined) {
     memTextEl.textContent = `${Math.round(memPercent)}%`;
+  }
+
+  // Disk gauge
+  const diskPercent = disk.percent;
+  if (diskFillEl && diskPercent !== undefined) {
+    diskFillEl.style.width = `${diskPercent}%`;
+    _setMeterColor(diskFillEl, diskPercent);
+    if (diskBarEl)
+      diskBarEl.setAttribute("aria-valuenow", String(Math.round(diskPercent)));
+  }
+  if (diskTextEl && diskPercent !== undefined) {
+    diskTextEl.textContent = `${Math.round(diskPercent)}%`;
   }
 
   // Detail line

@@ -24,18 +24,10 @@
     class="function-bar function-bar--system"
     aria-label="System actions"
 >
-    <button
-        id="btn-system-save-config"
-        class="btn btn--primary"
-        type="button"
-    >
+    <button id="btn-system-save-config" class="btn btn--primary" type="button">
         Save Configuration
     </button>
-    <button
-        id="btn-system-restart"
-        class="btn btn--secondary"
-        type="button"
-    >
+    <button id="btn-system-restart" class="btn btn--secondary" type="button">
         Restart Services
     </button>
 </section>
@@ -63,7 +55,10 @@
             aria-label="API health status"
         >
             <h3 class="health-card__label">API Health</h3>
-            <p id="api-health-status" class="health-card__value health-card__value--loading">
+            <p
+                id="api-health-status"
+                class="health-card__value health-card__value--loading"
+            >
                 Checking...
             </p>
             <p id="api-health-detail" class="health-card__detail"></p>
@@ -77,18 +72,58 @@
         >
             <h3 class="health-card__label">VPS Resources</h3>
             <div id="vps-cpu-meter" class="health-card__meter">
-                <label for="vps-cpu-fill" class="health-card__meter-label">CPU</label>
-                <div id="vps-cpu-bar" class="meter-bar" role="meter" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <label for="vps-cpu-fill" class="health-card__meter-label"
+                    >CPU</label
+                >
+                <div
+                    id="vps-cpu-bar"
+                    class="meter-bar"
+                    role="meter"
+                    aria-valuenow="0"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                >
                     <div id="vps-cpu-fill" class="meter-bar__fill"></div>
                 </div>
-                <span id="vps-cpu-text" class="health-card__meter-value">--</span>
+                <span id="vps-cpu-text" class="health-card__meter-value"
+                    >--</span
+                >
             </div>
             <div id="vps-mem-meter" class="health-card__meter">
-                <label for="vps-mem-fill" class="health-card__meter-label">MEM</label>
-                <div id="vps-mem-bar" class="meter-bar" role="meter" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <label for="vps-mem-fill" class="health-card__meter-label"
+                    >MEM</label
+                >
+                <div
+                    id="vps-mem-bar"
+                    class="meter-bar"
+                    role="meter"
+                    aria-valuenow="0"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                >
                     <div id="vps-mem-fill" class="meter-bar__fill"></div>
                 </div>
-                <span id="vps-mem-text" class="health-card__meter-value">--</span>
+                <span id="vps-mem-text" class="health-card__meter-value"
+                    >--</span
+                >
+            </div>
+            <div id="vps-disk-meter" class="health-card__meter">
+                <label for="vps-disk-fill" class="health-card__meter-label"
+                    >DISK</label
+                >
+                <div
+                    id="vps-disk-bar"
+                    class="meter-bar"
+                    role="meter"
+                    aria-valuenow="0"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                >
+                    <div id="vps-disk-fill" class="meter-bar__fill"></div>
+                </div>
+                <span id="vps-disk-text" class="health-card__meter-value"
+                    >--</span
+                >
             </div>
             <p id="vps-detail" class="health-card__detail"></p>
         </article>
@@ -100,7 +135,10 @@
             aria-label="Security status"
         >
             <h3 class="health-card__label">Security</h3>
-            <p id="security-status" class="health-card__value health-card__value--loading">
+            <p
+                id="security-status"
+                class="health-card__value health-card__value--loading"
+            >
                 Checking...
             </p>
             <p id="security-detail" class="health-card__detail"></p>
@@ -113,7 +151,10 @@
             aria-label="DeepSeek API status"
         >
             <h3 class="health-card__label">DeepSeek API</h3>
-            <p id="deepseek-status" class="health-card__value health-card__value--loading">
+            <p
+                id="deepseek-status"
+                class="health-card__value health-card__value--loading"
+            >
                 Checking...
             </p>
             <p id="deepseek-detail" class="health-card__detail"></p>
@@ -126,7 +167,10 @@
             aria-label="MCP server status"
         >
             <h3 class="health-card__label">MCP Server</h3>
-            <p id="mcp-status" class="health-card__value health-card__value--loading">
+            <p
+                id="mcp-status"
+                class="health-card__value health-card__value--loading"
+            >
                 Checking...
             </p>
             <p id="mcp-detail" class="health-card__detail"></p>
@@ -151,9 +195,15 @@
         class="agent-summary-bar"
         aria-label="Agent run summary"
     >
-        <span id="agent-summary-runs" class="agent-summary__stat">Runs Today: --</span>
-        <span id="agent-summary-tokens" class="agent-summary__stat">Tokens Today: --</span>
-        <span id="agent-summary-rate" class="agent-summary__stat">Success Rate: --</span>
+        <span id="agent-summary-runs" class="agent-summary__stat"
+            >Runs Today: --</span
+        >
+        <span id="agent-summary-tokens" class="agent-summary__stat"
+            >Tokens Today: --</span
+        >
+        <span id="agent-summary-rate" class="agent-summary__stat"
+            >Success Rate: --</span
+        >
     </div>
 
     <!-- Activity Table -->
@@ -177,7 +227,8 @@
             </tbody>
         </table>
         <p id="agent-table-empty" class="agent-table-empty">
-            No agent runs recorded yet. Trigger a search from the Challenge dashboard.
+            No agent runs recorded yet. Trigger a search from the Challenge
+            dashboard.
         </p>
     </div>
 
@@ -211,19 +262,16 @@ Select an agent run above to view its chain-of-thought reasoning.
 >
     <h2 class="system-section-heading">Core Unit &amp; Integration Testing</h2>
 
-    <div id="test-controls" class="test-controls" role="group" aria-label="Test execution buttons">
-        <button
-            id="btn-run-all-tests"
-            class="btn btn--primary"
-            type="button"
-        >
+    <div
+        id="test-controls"
+        class="test-controls"
+        role="group"
+        aria-label="Test execution buttons"
+    >
+        <button id="btn-run-all-tests" class="btn btn--primary" type="button">
             Run All Tests
         </button>
-        <button
-            id="btn-run-api-tests"
-            class="btn btn--secondary"
-            type="button"
-        >
+        <button id="btn-run-api-tests" class="btn btn--secondary" type="button">
             Run API Tests
         </button>
         <button
@@ -236,7 +284,11 @@ Select an agent run above to view its chain-of-thought reasoning.
     </div>
 
     <!-- Test Output Console -->
-    <div id="test-output-console" class="test-output-console" aria-label="Test output console">
+    <div
+        id="test-output-console"
+        class="test-output-console"
+        aria-label="Test output console"
+    >
         <pre id="test-output-content" class="test-output-console__content">
 Test output will appear here...
         </pre>
@@ -254,7 +306,12 @@ Test output will appear here...
 >
     <h2 class="system-section-heading">Architectural Docs</h2>
 
-    <div id="docs-controls" class="docs-controls" role="group" aria-label="Documentation actions">
+    <div
+        id="docs-controls"
+        class="docs-controls"
+        role="group"
+        aria-label="Documentation actions"
+    >
         <button
             id="btn-view-edit-docs"
             class="btn btn--secondary"
@@ -262,11 +319,7 @@ Test output will appear here...
         >
             View / Edit Docs
         </button>
-        <button
-            id="btn-generate-agents"
-            class="btn btn--primary"
-            type="button"
-        >
+        <button id="btn-generate-agents" class="btn btn--primary" type="button">
             Generate Agents
         </button>
     </div>
