@@ -320,13 +320,38 @@ function _wireNewWeightForm() {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _wireSearchTerms
-   Binds the search terms textarea to auto-save on blur after changes.
+   Binds the search terms textarea to auto-save on blur or after changes.
+   Pressing Enter saves immediately — useful for comma-separated entries.
 ----------------------------------------------------------------------------- */
 function _wireSearchTerms() {
   var termsInput = document.getElementById("challenge-search-terms-input");
-  if (!termsInput) return;
+  if (!termsInput || termsInput.dataset.searchTermsWired) return;
 
   var saveTimeout = null;
+
+  /**
+   * Saves immediately — clears debounce and persists to DB.
+   * Then refreshes the appropriate overview list.
+   */
+  function _saveNow() {
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+      saveTimeout = null;
+    }
+    _autoSaveSearchTerms().then(function () {
+      // Refresh the overview list after saving
+      var mode = window._challengeModuleState.mode;
+      if (mode === "academic") {
+        if (typeof window.renderAcademicSearchTermsOverview === "function") {
+          window.renderAcademicSearchTermsOverview();
+        }
+      } else {
+        if (typeof window.renderPopularSearchTermsOverview === "function") {
+          window.renderPopularSearchTermsOverview();
+        }
+      }
+    });
+  }
 
   termsInput.addEventListener("input", function () {
     // Debounce: auto-save 1 second after the user stops typing
@@ -338,9 +363,18 @@ function _wireSearchTerms() {
 
   // Also save on blur (when the user clicks away)
   termsInput.addEventListener("blur", function () {
-    if (saveTimeout) clearTimeout(saveTimeout);
-    _autoSaveSearchTerms();
+    _saveNow();
   });
+
+  // Enter key saves immediately — commas separate multiple terms
+  termsInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Don't insert a newline — commas are the separator
+      _saveNow();
+    }
+  });
+
+  termsInput.dataset.searchTermsWired = "true";
 }
 
 /* -----------------------------------------------------------------------------

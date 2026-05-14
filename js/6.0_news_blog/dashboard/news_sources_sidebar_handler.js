@@ -473,9 +473,14 @@ async function _saveKeywordsAndTerms() {
     }
   }
 
-  // Refresh the all-records cache
-  if (typeof window.displayNewsSourcesList === "function") {
-    // We'll let the user refresh manually to avoid loop
+  // Re-render chips to reflect the saved state in the sidebar
+  _renderKeywords();
+  _renderSearchTerms();
+
+  if (typeof window.surfaceError === "function") {
+    window.surfaceError(
+      "Search terms saved for '" + state.activeArticleTitle + "'.",
+    );
   }
 }
 
