@@ -150,6 +150,7 @@ async function handleSaveDraft() {
         body: JSON.stringify(payload),
       });
 
+      _checkAuth(response);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -162,6 +163,7 @@ async function handleSaveDraft() {
         body: JSON.stringify(payload),
       });
 
+      _checkAuth(response);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -199,7 +201,10 @@ async function handleSaveDraft() {
     return true;
   } catch (err) {
     console.error("[record_status_handler] Save draft failed:", err);
-    _surfaceError(`Error: Failed to set record '${title}' to Draft.`);
+    // _checkAuth redirects on 401 — only surface non-auth errors here
+    if (!err.message.startsWith("AUTH_REDIRECT")) {
+      _surfaceError(`Error: Failed to save draft for '${title}' (${err.message}).`);
+    }
     return false;
   }
 }
@@ -227,6 +232,7 @@ async function handlePublish() {
         body: JSON.stringify(payload),
       });
 
+      _checkAuth(response);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -239,6 +245,7 @@ async function handlePublish() {
         body: JSON.stringify(payload),
       });
 
+      _checkAuth(response);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -273,9 +280,12 @@ async function handlePublish() {
     return true;
   } catch (err) {
     console.error("[record_status_handler] Publish failed:", err);
-    _surfaceError(
-      `Error: Failed to publish record '${title}'. Check required fields.`,
-    );
+    // _checkAuth redirects on 401 — only surface non-auth errors here
+    if (!err.message.startsWith("AUTH_REDIRECT")) {
+      _surfaceError(
+        `Error: Failed to publish '${title}' (${err.message}). Check the server logs.`,
+      );
+    }
     return false;
   }
 }
@@ -307,6 +317,7 @@ async function handleDelete() {
       credentials: "same-origin",
     });
 
+    _checkAuth(response);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
@@ -323,9 +334,12 @@ async function handleDelete() {
     return true;
   } catch (err) {
     console.error("[record_status_handler] Delete failed:", err);
-    _surfaceError(
-      `Error: Failed to delete record '${title}'. Please try again.`,
-    );
+    // _checkAuth redirects on 401 — only surface non-auth errors here
+    if (!err.message.startsWith("AUTH_REDIRECT")) {
+      _surfaceError(
+        `Error: Failed to delete '${title}' (${err.message}). Please try again.`,
+      );
+    }
     return false;
   }
 }
@@ -427,6 +441,22 @@ function _surfaceError(message) {
 }
 
 /* -----------------------------------------------------------------------------
+   INTERNAL: Check for 401 Unauthorized and redirect to login.
+   Call immediately after every fetch() to handle expired sessions gracefully.
+   Throws a sentinel error so the caller's catch block skips its own message.
+----------------------------------------------------------------------------- */
+function _checkAuth(response) {
+  if (response.status === 401) {
+    _surfaceError("Session expired — redirecting to login…");
+    // Brief delay so the user can read the toast before the redirect
+    setTimeout(function () {
+      window.location.href = "/admin/frontend/login.html";
+    }, 1200);
+    throw new Error("AUTH_REDIRECT");
+  }
+}
+
+/* -----------------------------------------------------------------------------
    PUBLIC: Wire save/draft/publish/delete buttons
    Attaches click handlers to the function bar buttons.
 ----------------------------------------------------------------------------- */
@@ -487,3 +517,4 @@ window.handlePublish = handlePublish;
 window.handleDelete = handleDelete;
 window.scheduleAutoSave = scheduleAutoSave;
 window.wireStatusButtons = wireStatusButtons;
+window.checkAuth = _checkAuth;
