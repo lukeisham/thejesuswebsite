@@ -8,6 +8,7 @@
 
 import threading
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -71,6 +72,59 @@ async def delete_blogpost(record_id: str, admin_data: dict = Depends(verify_toke
         raise HTTPException(
             status_code=500, detail="Failed to remove blog post: " + str(e)
         )
+
+
+@router.post("/api/admin/wikipedia/run", status_code=202)
+async def trigger_wikipedia_pipeline(
+    body: Optional[dict] = None,
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Triggers pipeline_wikipedia.py asynchronously.
+    Accepts optional JSON body with "slug" field for single-record processing.
+    If no slug provided, processes ALL records with wikipedia_search_term set.
+    Returns 202 Accepted with status and started_at timestamp.
+    """
+    started_at = datetime.now(timezone.utc).isoformat()
+    record_slug = (body or {}).get("slug", "") or ""
+
+    def _run_wikipedia_pipeline():
+        """Run the Wikipedia pipeline in a background thread."""
+        try:
+            from backend.pipelines.pipeline_wikipedia import run_pipeline
+
+            if record_slug:
+                # Look up the record by slug to get its ULID
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT id FROM records WHERE slug = ?", (record_slug,))
+                row = cursor.fetchone()
+                conn.close()
+
+                if row:
+                    result = run_pipeline(record_id=row["id"])
+                    logger.info(
+                        f"Wikipedia pipeline completed for slug '{record_slug}': {result}"
+                    )
+                else:
+                    logger.error(
+                        f"Wikipedia pipeline: record with slug '{record_slug}' not found."
+                    )
+            else:
+                result = run_pipeline()
+                logger.info(f"Wikipedia pipeline completed (all records): {result}")
+        except Exception as exc:
+            logger.error(f"Wikipedia pipeline background task failed: {exc}")
+
+    thread = threading.Thread(target=_run_wikipedia_pipeline, daemon=True)
+    thread.start()
+
+    return {
+        "status": "accepted",
+        "message": "Wikipedia pipeline triggered successfully.",
+        "started_at": started_at,
+        "record_slug": record_slug or None,
+    }
 
 
 @router.get("/api/admin/news/items")

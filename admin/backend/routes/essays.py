@@ -9,6 +9,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from backend.scripts.metadata_generator import generate_metadata
+from backend.scripts.slug_generator import generate_slug
 from backend.scripts.snippet_generator import generate_snippet
 
 from .shared import (
@@ -108,6 +109,32 @@ async def trigger_snippet_generation(
     except Exception as e:
         raise HTTPException(
             status_code=500, detail="Failed to generate snippet: " + str(e)
+        )
+
+
+@router.post("/api/admin/slug/generate")
+async def trigger_slug_generation(
+    body: SnippetGenerateRequest,
+    admin_data: dict = Depends(verify_token),
+):
+    """
+    Triggers slug_generator.py for a record.
+    Accepts JSON body with slug and content (title). Returns the generated slug string.
+    Consumed by the shared metadata_widget.js dashboard tool.
+    """
+    if not body.content or not body.content.strip():
+        raise HTTPException(status_code=400, detail="Title must not be empty.")
+
+    try:
+        slug = generate_slug(title=body.content, slug=body.slug)
+        return {"slug": slug, "original_slug": body.slug}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail="DeepSeek API error: " + str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Failed to generate slug: " + str(e)
         )
 
 

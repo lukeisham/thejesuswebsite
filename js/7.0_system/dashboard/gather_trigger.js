@@ -30,12 +30,16 @@ function _sleep(ms) {
 /* -----------------------------------------------------------------------------
    INTERNAL: _getPipelineEndpoint
    Returns the correct backend endpoint for a given pipeline name.
-   Wikipedia/Challenge pipelines use /api/admin/agent/run.
-   News crawl uses /api/admin/news/crawl.
+   Wikipedia pipeline runs its own dedicated pipeline script.
+   News crawl runs its own dedicated pipeline script.
+   Challenge pipelines use /api/admin/agent/run (DeepSeek-powered).
 ----------------------------------------------------------------------------- */
 function _getPipelineEndpoint(pipelineName) {
   if (pipelineName === "news_crawl") {
     return "/api/admin/news/crawl";
+  }
+  if (pipelineName === "wikipedia_pipeline") {
+    return "/api/admin/wikipedia/run";
   }
   return "/api/admin/agent/run";
 }
@@ -47,6 +51,9 @@ function _getPipelineEndpoint(pipelineName) {
 function _getPipelineBody(pipelineName, recordSlug) {
   if (pipelineName === "news_crawl") {
     return JSON.stringify({});
+  }
+  if (pipelineName === "wikipedia_pipeline") {
+    return JSON.stringify({ slug: recordSlug || "" });
   }
   return JSON.stringify({
     pipeline: pipelineName,
@@ -62,10 +69,11 @@ function _getPipelineBody(pipelineName, recordSlug) {
 async function _pollForCompletion(pipelineName, runId) {
   var startTime = Date.now();
 
-  // For news crawl, use a simple delay (no agent log polling available)
-  if (pipelineName === "news_crawl") {
+  // For news crawl and wikipedia pipeline, use a simple delay
+  // (no agent log polling available — they run their own pipeline scripts)
+  if (pipelineName === "news_crawl" || pipelineName === "wikipedia_pipeline") {
     await _sleep(5000);
-    return null; // Count returned from the crawl response
+    return null;
   }
 
   while (Date.now() - startTime < GATHER_POLL_TIMEOUT_MS) {
@@ -146,7 +154,8 @@ async function triggerGather(pipelineName, recordSlug) {
         return {};
       });
       throw new Error(
-        errData.error || "Pipeline trigger failed with status " + triggerResponse.status,
+        errData.error ||
+          "Pipeline trigger failed with status " + triggerResponse.status,
       );
     }
 
@@ -169,7 +178,9 @@ async function triggerGather(pipelineName, recordSlug) {
     if (!runId) {
       // No run_id means no polling possible — assume success
       if (typeof window.surfaceError === "function") {
-        window.surfaceError("Pipeline triggered. Check results after processing.");
+        window.surfaceError(
+          "Pipeline triggered. Check results after processing.",
+        );
       }
       return { new_items: null };
     }
@@ -191,7 +202,6 @@ async function triggerGather(pipelineName, recordSlug) {
     // 4. Surface the result
     _surfaceGatherResult(result.new_items, pipelineName);
     return result;
-
   } catch (err) {
     console.error("[gather_trigger] Gather failed:", err);
     if (typeof window.surfaceError === "function") {

@@ -38,7 +38,6 @@ async def trigger_agent_run(
     valid_pipelines = {
         "academic_challenges",
         "popular_challenges",
-        "wikipedia_pipeline",
     }
 
     if body.pipeline not in valid_pipelines:
