@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-    <!-- =============================================================================
+<!-- =============================================================================
 
      THE JESUS WEBSITE — NEWS & BLOG FEED
      File:    frontend/pages/news_and_blog.html
@@ -11,108 +11,83 @@
 
 ============================================================================= -->
 
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <base href="/frontend/pages/" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/frontend/pages/" />
 
-        <title>News & Blog | The Jesus Website</title>
+    <title>News & Blog | The Jesus Website</title>
 
-        <!-- Stylesheets -->
-        <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
-        <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
-        <link
-            rel="stylesheet"
-            href="../../css/6.0_news_blog/frontend/news_blog_landing.css"
-        />
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
+    <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
+    <link rel="stylesheet" href="../../css/6.0_news_blog/frontend/news_blog_landing.css" />
 
-        <!-- UI Logic Components -->
-        <script src="../../js/1.0_foundation/frontend/header.js"></script>
-        <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
-        <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
-        <script src="../../js/1.0_foundation/frontend/footer.js"></script>
+    <!-- UI Logic Components -->
+    <script src="../../js/1.0_foundation/frontend/header.js"></script>
+    <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
+    <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
+    <script src="../../js/1.0_foundation/frontend/footer.js"></script>
 
-        <!-- Snippet Display JS -->
-        <script src="../../js/6.0_news_blog/frontend/news_snippet_display.js"></script>
-        <script src="../../js/6.0_news_blog/frontend/blog_snippet_display.js"></script>
+    <!-- Snippet Display JS -->
+    <script src="../../js/6.0_news_blog/frontend/news_snippet_display.js"></script>
+    <script src="../../js/6.0_news_blog/frontend/blog_snippet_display.js"></script>
 
-        <!-- Central Initializer -->
-        <script src="../../js/1.0_foundation/frontend/initializer.js"></script>
-    </head>
+    <!-- Central Initializer -->
+    <script src="../../js/1.0_foundation/frontend/initializer.js"></script>
+</head>
 
-    <body
-        data-page-title="News & Blog"
-        data-page-description="Latest updates and articles from the The Jesus Website archive."
-        data-page-canonical="/news"
-        data-sidebar-active-nav="news"
-        data-search-header-active-nav="news"
-        data-footer-target="page-shell"
-    >
-        <!-- Main Page Shell Container -->
-        <div class="page-shell" id="page-shell">
-            <!-- Invisible Metadata Anchor -->
-            <header id="invisible-header" aria-hidden="true"></header>
+<body data-page-title="News & Blog"
+    data-page-description="Latest updates and articles from the The Jesus Website archive." data-page-canonical="/news"
+    data-sidebar-active-nav="news" data-search-header-active-nav="news" data-footer-target="page-shell">
+    <!-- Main Page Shell Container -->
+    <div class="page-shell" id="page-shell">
+        <!-- Invisible Metadata Anchor -->
+        <header id="invisible-header" aria-hidden="true"></header>
 
-            <!-- Main Content Column -->
-            <main class="site-main" id="site-main" role="main">
-                <div class="content-wrap">
-                    <header class="landing-page__header">
-                        <h1 class="landing-page__heading">News &amp; Blog</h1>
-                    </header>
+        <!-- Main Content Column -->
+        <main class="site-main" id="site-main" role="main">
+            <div class="content-wrap">
+                <header class="landing-page__header">
+                    <h1 class="landing-page__heading">News &amp; Blog</h1>
+                </header>
 
-                    <div class="news-blog-landing">
-                        <!-- Latest News Column -->
-                        <section
-                            class="news-blog-landing__column"
-                            id="news-column"
-                            aria-labelledby="news-heading"
-                        >
-                            <h2 class="news-blog-landing__heading">
-                                <a href="/news.html" id="news-heading"
-                                    >Latest News</a
-                                >
-                            </h2>
-                            <div id="latest-news-content">
-                                <!-- Injected by news_snippet_display.js -->
-                                <p class="text-sm text-muted">
-                                    Loading latest news...
-                                </p>
-                            </div>
-                            <a
-                                class="news-blog-landing__view-all"
-                                href="/news.html"
-                            >
-                                View all news
-                            </a>
-                        </section>
+                <div class="news-blog-landing">
+                    <!-- Latest News Column -->
+                    <section class="news-blog-landing__column" id="news-column" aria-labelledby="news-heading">
+                        <h2 class="news-blog-landing__heading">
+                            <a href="/news.html" id="news-heading">Latest News</a>
+                        </h2>
+                        <div id="latest-news-content">
+                            <!-- Injected by news_snippet_display.js -->
+                            <p class="text-sm text-muted">
+                                Loading latest news...
+                            </p>
+                        </div>
+                        <a class="news-blog-landing__view-all" href="/news.html">
+                            View all news
+                        </a>
+                    </section>
 
-                        <!-- Latest Blog Column -->
-                        <section
-                            class="news-blog-landing__column"
-                            id="blog-column"
-                            aria-labelledby="blog-heading"
-                        >
-                            <h2 class="news-blog-landing__heading">
-                                <a href="/blog.html" id="blog-heading"
-                                    >Latest Blogposts</a
-                                >
-                            </h2>
-                            <div id="latest-blog-content">
-                                <!-- Injected by blog_snippet_display.js -->
-                                <p class="text-sm text-muted">
-                                    Loading latest blogposts...
-                                </p>
-                            </div>
-                            <a
-                                class="news-blog-landing__view-all"
-                                href="/blog.html"
-                            >
-                                View all posts
-                            </a>
-                        </section>
-                    </div>
+                    <!-- Latest Blog Column -->
+                    <section class="news-blog-landing__column" id="blog-column" aria-labelledby="blog-heading">
+                        <h2 class="news-blog-landing__heading">
+                            <a href="/blog.html" id="blog-heading">Latest Blogposts</a>
+                        </h2>
+                        <div id="latest-blog-content">
+                            <!-- Injected by blog_snippet_display.js -->
+                            <p class="text-sm text-muted">
+                                Loading latest blogposts...
+                            </p>
+                        </div>
+                        <a class="news-blog-landing__view-all" href="/blog.html">
+                            View all posts
+                        </a>
+                    </section>
                 </div>
-            </main>
-        </div>
-    </body>
+            </div>
+        </main>
+    </div>
+</body>
+
 </html>
