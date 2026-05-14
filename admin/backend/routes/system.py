@@ -169,6 +169,70 @@ async def health_check_admin(admin_data: dict = Depends(verify_token)):
             "error": "ESV_KEY not set in .env",
         }
 
+    # --- Security audit ---
+    from admin.backend.auth_utils import login_attempts
+    from backend.middleware.rate_limiter import request_counts as rate_requests
+
+    now_ts = time_module.time()
+
+    # Failed login attempts
+    failed_logins = 0
+    locked_ips = 0
+    top_offenders = []
+    for ip, record in login_attempts.items():
+        count = record.get("count", 0)
+        locked_until = record.get("lockout_until", 0)
+        if locked_until > now_ts:
+            locked_ips += 1
+            top_offenders.append(
+                {
+                    "ip": ip,
+                    "attempts": count,
+                    "locked_remaining_s": round(locked_until - now_ts),
+                }
+            )
+        elif count > 0:
+            failed_logins += count
+
+    # Rate limiter stats
+    rate_limited_ips = 0
+    total_tracked_ips = len(rate_requests)
+    now_limit = time_module.time()
+    for ip, (count, first_ts) in rate_requests.items():
+        if count >= 30 and (now_limit - first_ts) < 60:
+            rate_limited_ips += 1
+
+    # Admin's own JWT expiry
+    jwt_exp = admin_data.get("exp", 0)
+    jwt_remaining_s = max(0, jwt_exp - int(now_ts))
+    jwt_status = (
+        "active"
+        if jwt_remaining_s > 3600
+        else "expiring"
+        if jwt_remaining_s > 0
+        else "expired"
+    )
+
+    health["security"] = {
+        "session": {
+            "status": jwt_status,
+            "expires_in_s": jwt_remaining_s,
+        },
+        "authentication": {
+            "failed_login_attempts": failed_logins,
+            "locked_ips": locked_ips,
+            "top_offenders": top_offenders[:5],
+        },
+        "rate_limiter": {
+            "tracked_ips": total_tracked_ips,
+            "currently_throttled": rate_limited_ips,
+        },
+        "api_keys": {
+            "deepseek": bool(os.getenv("DEEPSEEK_KEY", "")),
+            "esv": bool(os.getenv("ESV_KEY", "")),
+        },
+    }
+
     return health
 
 

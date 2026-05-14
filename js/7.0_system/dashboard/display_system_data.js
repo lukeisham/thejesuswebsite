@@ -201,9 +201,9 @@ function _setMeterColor(fillEl, percent) {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _renderSecurity
-   Updates the Security card based on overall health status. Inspects each
-   subsystem (database, DeepSeek, resources) and surfaces specific issues
-   so the operator knows exactly what needs attention.
+   Displays real security-relevant data from the backend: admin session
+   expiry, failed login attempts, locked IPs, rate limiter status, and
+   API key configuration.
 ----------------------------------------------------------------------------- */
 function _renderSecurity(data) {
   const statusEl = document.getElementById("security-status");
@@ -218,48 +218,74 @@ function _renderSecurity(data) {
     "health-card__value--error",
   );
 
-  // --- Collect specific issues from each subsystem ---
-  var issues = [];
+  var sec = data.security || {};
+  var session = sec.session || {};
+  var auth = sec.authentication || {};
+  var limiter = sec.rate_limiter || {};
+  var keys = sec.api_keys || {};
 
-  if (data.database && data.database.status === "error") {
-    issues.push("Database: " + (data.database.error || "connection failed"));
+  // --- Determine overall security posture ---
+  var warnings = [];
+
+  var sessionStatus = session.status || "unknown";
+  if (sessionStatus === "expiring") {
+    warnings.push("Session expiring soon");
+  } else if (sessionStatus === "expired") {
+    warnings.push("Session expired — re-login required");
   }
 
-  if (data.deepseek_api && data.deepseek_api.status === "unavailable") {
-    issues.push(
-      "DeepSeek AI: " + (data.deepseek_api.error || "not configured"),
-    );
+  var failedLogins = auth.failed_login_attempts || 0;
+  var lockedIps = auth.locked_ips || 0;
+  if (lockedIps > 0) {
+    warnings.push(lockedIps + " IP(s) locked out");
+  } else if (failedLogins > 0) {
+    warnings.push(failedLogins + " failed login(s)");
   }
 
-  if (data.resources && data.resources.status === "error") {
-    issues.push(
-      "VPS resources: " + (data.resources.error || "monitoring error"),
-    );
+  var throttled = limiter.currently_throttled || 0;
+  if (throttled > 0) {
+    warnings.push(throttled + " IP(s) rate-limited");
   }
 
-  var overallStatus = data.status || "unknown";
+  var keysMissing = [];
+  if (!keys.deepseek) keysMissing.push("DeepSeek");
+  if (!keys.esv) keysMissing.push("ESV");
+  if (keysMissing.length > 0) {
+    warnings.push("Missing keys: " + keysMissing.join(", "));
+  }
 
-  if (overallStatus === "ok") {
-    statusEl.textContent = "OK";
+  // --- Render status label ---
+  if (warnings.length === 0) {
+    statusEl.textContent = "Secure";
     statusEl.classList.add("health-card__value--ok");
-    if (detailEl) {
-      detailEl.textContent = "All systems healthy";
-    }
-  } else if (overallStatus === "degraded") {
-    statusEl.textContent = "Warning";
+  } else if (warnings.length <= 2) {
+    statusEl.textContent = "Attention";
     statusEl.classList.add("health-card__value--degraded");
-    if (detailEl) {
-      detailEl.textContent =
-        issues.length > 0
-          ? issues.join(" — ")
-          : "One or more subsystems not operating normally";
-    }
   } else {
-    statusEl.textContent = "Alert";
+    statusEl.textContent = "Review";
     statusEl.classList.add("health-card__value--error");
-    if (detailEl) {
+  }
+
+  // --- Render detail line ---
+  if (detailEl) {
+    if (warnings.length > 0) {
+      detailEl.textContent = warnings.join(" | ");
+    } else {
+      // Build a concise status summary
+      var sessionRemaining = session.expires_in_s || 0;
+      var hoursLeft = Math.floor(sessionRemaining / 3600);
+      var trackedIps = limiter.tracked_ips || 0;
       detailEl.textContent =
-        issues.length > 0 ? issues.join(" — ") : "System health check failed";
+        "Session: " +
+        hoursLeft +
+        "h | Logins: " +
+        failedLogins +
+        " | Tracked IPs: " +
+        trackedIps +
+        " | Keys: " +
+        (keys.deepseek ? "DK" : "--") +
+        "/" +
+        (keys.esv ? "ESV" : "--");
     }
   }
 }
