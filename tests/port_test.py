@@ -48,9 +48,12 @@ def run_suite():
 
     if all_ok:
         logger.info("Core infrastructure connectivity verified.")
+        return True
     else:
-        logger.warning("Incomplete infrastructure response detected.")
+        logger.error("FAILURE: One or more critical services are not responding.")
+        return False
 
 
 if __name__ == "__main__":
-    run_suite()
+    ok = run_suite()
+    sys.exit(0 if ok else 1)

@@ -348,30 +348,31 @@ async def run_test_suite(
             if passed:
                 passed_count += 1
 
-            # Collect the last few meaningful lines of output for the message
+            # Separate output lines by result type for a clear structured message
             output_lines = [
                 line.strip()
                 for line in (proc.stdout + proc.stderr).splitlines()
                 if line.strip()
             ]
-            keyword_lines = [
-                line
-                for line in output_lines
-                if any(
-                    kw in line.upper()
-                    for kw in (
-                        "SUCCESS",
-                        "FAILURE",
-                        "ERROR",
-                        "PASSED",
-                        "FAIL",
-                        "STABLE",
-                        "VULNERABILITIES",
-                    )
-                )
-            ]
-            message_lines = keyword_lines if keyword_lines else output_lines[-5:]
-            message = "; ".join(message_lines) if message_lines else "(no output)"
+            passes = []
+            failures = []
+            for line in output_lines:
+                upper = line.upper()
+                if any(kw in upper for kw in ("FAILURE", "ERROR", "FAIL")):
+                    failures.append(line)
+                elif any(kw in upper for kw in ("SUCCESS", "PASSED", "STABLE")):
+                    passes.append(line)
+
+            # Build a readable message — failures first so they're noticed
+            parts = []
+            if failures:
+                parts.append("FAILURES:")
+                parts.extend("  " + f for f in failures)
+            if passes:
+                parts.append("PASSES:")
+                parts.extend("  " + p for p in passes)
+
+            message = "\n".join(parts) if parts else "\n".join(output_lines[-5:])
 
             results.append(
                 {
