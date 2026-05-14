@@ -130,8 +130,8 @@ function _buildEditorMarkup() {
     "</tbody>" +
     "</table>" +
     '<div class="context-links-editor__add-row">' +
-    '<input type="text" class="form-field__input js-slug-input" placeholder="Enter a slug (e.g. jesus-baptism)" aria-label="Context link slug" />' +
-    '<select class="form-field__select js-type-select" aria-label="Context link type">' +
+    '<input type="text" class="form-field__input js-slug-input" name="context-link-slug" placeholder="Enter a slug (e.g. jesus-baptism)" aria-label="Context link slug" />' +
+    '<select class="form-field__select js-type-select" name="context-link-type" aria-label="Context link type">' +
     '<option value="record">record</option>' +
     '<option value="essay">essay</option>' +
     '<option value="blog">blog</option>' +

@@ -160,6 +160,7 @@ function _addParagraphRow(rowsContainer, text) {
   const textarea = document.createElement("textarea");
   textarea.className = "paragraph-editor__textarea";
   textarea.rows = 3;
+  textarea.name = "description-paragraph-" + rowsContainer.children.length;
   textarea.setAttribute("aria-label", "Description paragraph");
   textarea.value = typeof text === "string" ? text : "";
 

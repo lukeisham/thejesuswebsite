@@ -133,7 +133,13 @@
         const value = entry[f.key] || "";
         html += '<td class="bibliography-editor__td">';
         html +=
-          '<input class="form-field__input bibliography-editor__input" data-entry="' +
+          '<input class="form-field__input bibliography-editor__input" name="bibliography-' +
+          escapeHtml(type) +
+          "-" +
+          escapeHtml(f.key) +
+          "-" +
+          globalIndex +
+          '" data-entry="' +
           globalIndex +
           '" data-field="' +
           escapeHtml(f.key) +
