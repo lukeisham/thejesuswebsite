@@ -19,7 +19,8 @@ function loadWikipediaSearchTerms(record) {
   let termsArray = [];
 
   try {
-    const parsed = typeof rawTerms === "string" ? JSON.parse(rawTerms) : rawTerms;
+    const parsed =
+      typeof rawTerms === "string" ? JSON.parse(rawTerms) : rawTerms;
     if (Array.isArray(parsed)) {
       termsArray = parsed;
     } else if (typeof parsed === "object" && parsed !== null) {
@@ -32,7 +33,7 @@ function loadWikipediaSearchTerms(record) {
   }
 
   termsInput.value = termsArray.join("\n");
-  
+
   // Store in module state
   window._wikipediaModuleState.activeRecordSearchTerms = termsArray;
 
@@ -45,7 +46,9 @@ function loadWikipediaSearchTerms(record) {
  * @private
  */
 function _renderWikipediaSearchTermsOverview() {
-  const listEl = document.getElementById("wikipedia-search-terms-overview-list");
+  const listEl = document.getElementById(
+    "wikipedia-search-terms-overview-list",
+  );
   if (!listEl) return;
 
   const terms = window._wikipediaModuleState.activeRecordSearchTerms || [];
@@ -53,13 +56,14 @@ function _renderWikipediaSearchTermsOverview() {
 
   if (terms.length === 0) {
     const emptyItem = document.createElement("li");
-    emptyItem.className = "wikipedia-search-terms-overview-item wikipedia-search-terms-overview-item--empty";
+    emptyItem.className =
+      "wikipedia-search-terms-overview-item wikipedia-search-terms-overview-item--empty";
     emptyItem.textContent = "No search terms saved.";
     listEl.appendChild(emptyItem);
     return;
   }
 
-  terms.forEach(term => {
+  terms.forEach((term) => {
     const itemEl = document.createElement("li");
     itemEl.className = "wikipedia-search-terms-overview-item";
     itemEl.textContent = term;
@@ -69,6 +73,7 @@ function _renderWikipediaSearchTermsOverview() {
 
 /**
  * Wires up auto-save for the search terms textarea.
+ * Pressing Enter saves immediately (bypasses the 1s debounce).
  * @private
  */
 function _wireWikipediaSearchTermsAutoSave() {
@@ -76,6 +81,18 @@ function _wireWikipediaSearchTermsAutoSave() {
   if (!termsInput || termsInput.dataset.wired) return;
 
   let saveTimeout = null;
+
+  /**
+   * Triggers an immediate save — clears any pending debounce timeout
+   * and persists the current terms to the database.
+   */
+  function _saveNow() {
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+      saveTimeout = null;
+    }
+    _autoSaveWikipediaSearchTerms();
+  }
 
   termsInput.addEventListener("input", () => {
     if (saveTimeout) clearTimeout(saveTimeout);
@@ -85,8 +102,15 @@ function _wireWikipediaSearchTermsAutoSave() {
   });
 
   termsInput.addEventListener("blur", () => {
-    if (saveTimeout) clearTimeout(saveTimeout);
-    _autoSaveWikipediaSearchTerms();
+    _saveNow();
+  });
+
+  // Enter key saves immediately — useful for comma-separated entries
+  termsInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Don't insert a newline — commas are the separator
+      _saveNow();
+    }
   });
 
   termsInput.dataset.wired = "true";
@@ -103,11 +127,11 @@ async function _autoSaveWikipediaSearchTerms() {
 
   const termsInput = document.getElementById("wikipedia-search-terms-input");
   const rawValue = termsInput ? termsInput.value.trim() : "";
-  
+
   const termsArray = rawValue
     .split(/[\n,]+/)
-    .map(t => t.trim())
-    .filter(t => t.length > 0);
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0);
 
   try {
     const response = await fetch(`/api/admin/records/${state.activeRecordId}`, {
@@ -115,7 +139,7 @@ async function _autoSaveWikipediaSearchTerms() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         wikipedia_search_term: JSON.stringify(termsArray),
-        status: "draft"
+        status: "draft",
       }),
     });
 
@@ -126,7 +150,9 @@ async function _autoSaveWikipediaSearchTerms() {
     _renderWikipediaSearchTermsOverview();
 
     if (window.surfaceError) {
-      window.surfaceError(`Search terms saved for '${state.activeRecordTitle}'.`);
+      window.surfaceError(
+        `Search terms saved for '${state.activeRecordTitle}'.`,
+      );
     }
   } catch (err) {
     console.error("[wikipedia_search_terms] Auto-save failed:", err);
