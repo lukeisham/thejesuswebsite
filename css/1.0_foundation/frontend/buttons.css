@@ -17,7 +17,6 @@
 
 .btn-primary,
 .btn-outline,
-.footer-btn,
 button:not(.admin-editor-toolbar-btn):not(.btn):not(.wysiwyg-new-btn):not(
         .markdown-toolbar__btn
     ):not(.metadata-widget__btn):not(.metadata-widget__generate-all):not(
@@ -44,8 +43,7 @@ button:not(.admin-editor-toolbar-btn):not(.btn):not(.wysiwyg-new-btn):not(
 
 /* Default state: 1px solid border with charcoal text */
 .btn-primary,
-.btn-outline,
-.footer-btn {
+.btn-outline {
     background-color: transparent;
     color: var(--color-text-primary);
     border: var(--border-width-thin) solid var(--color-text-primary);
@@ -53,8 +51,7 @@ button:not(.admin-editor-toolbar-btn):not(.btn):not(.wysiwyg-new-btn):not(
 
 /* Hover state: solid Oxblood fill with white text */
 .btn-primary:hover,
-.btn-outline:hover,
-.footer-btn:hover {
+.btn-outline:hover {
     background-color: var(--color-accent-primary);
     border-color: var(--color-accent-primary);
     color: var(--color-white);
