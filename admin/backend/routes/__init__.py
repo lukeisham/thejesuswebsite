@@ -9,6 +9,8 @@
 import os
 import sys
 
+from fastapi import FastAPI
+
 # Ensure project root is on sys.path so that backend.* imports resolve
 # from inside the admin/backend/routes/ package, especially when uvicorn
 # spawns worker subprocesses.
@@ -17,9 +19,7 @@ _project_root = os.path.abspath(_project_root)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-from fastapi import FastAPI
-
-from backend.middleware.rate_limiter import RateLimiterMiddleware
+from backend.middleware.rate_limiter import RateLimiterMiddleware  # noqa: E402
 
 
 def create_app() -> FastAPI:
