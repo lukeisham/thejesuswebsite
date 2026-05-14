@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-    <!-- =============================================================================
+<!-- =============================================================================
 
      THE JESUS WEBSITE — BLOG FEED
      File:    frontend/pages/blog.html
@@ -10,63 +10,54 @@
 
 ============================================================================= -->
 
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <base href="/frontend/pages/" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/frontend/pages/" />
 
-        <title>Blog | The Jesus Website</title>
+    <title>Blog | The Jesus Website</title>
 
-        <!-- Stylesheets -->
-        <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
-        <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
-        <link
-            rel="stylesheet"
-            href="../../css/6.0_news_blog/frontend/blog.css"
-        />
-        <link
-            rel="stylesheet"
-            href="../../css/6.0_news_blog/frontend/news_blog_landing.css"
-        />
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
+    <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
+    <link rel="stylesheet" href="../../css/6.0_news_blog/frontend/blog.css" />
+    <link rel="stylesheet" href="../../css/6.0_news_blog/frontend/news_blog_landing.css" />
 
-        <!-- SEO / Metadata API Header -->
-        <script src="../../js/1.0_foundation/frontend/header.js"></script>
-        <script src="../../js/1.0_foundation/frontend/initializer.js"></script>
-    </head>
-    <body
-        data-page-title="Blog"
-        data-page-description="Latest blog posts and articles from The Jesus Website."
-        data-page-canonical="/blog"
-        data-sidebar-active-nav="news"
-        data-search-header-active-nav="news"
-        data-footer-target="page-shell"
-    >
-        <!-- Main Page Shell Container -->
-        <div class="page-shell" id="page-shell">
-            <!-- Invisible Metadata Anchor -->
-            <header id="invisible-header" aria-hidden="true"></header>
+    <!-- SEO / Metadata API Header -->
+    <script src="../../js/1.0_foundation/frontend/header.js"></script>
+    <script src="../../js/1.0_foundation/frontend/initializer.js"></script>
+</head>
 
-            <!-- Main Content Column -->
-            <main class="site-main" id="site-main" role="main">
-                <div class="content-wrap">
-                    <header class="landing-page__header">
-                        <h1 class="landing-page__heading">Latest Blogposts</h1>
-                    </header>
+<body data-page-title="Blog" data-page-description="Latest blog posts and articles from The Jesus Website."
+    data-page-canonical="/blog" data-sidebar-active-nav="news" data-search-header-active-nav="news"
+    data-footer-target="page-shell">
+    <!-- Main Page Shell Container -->
+    <div class="page-shell" id="page-shell">
+        <!-- Invisible Metadata Anchor -->
+        <header id="invisible-header" aria-hidden="true"></header>
 
-                    <div id="blog-feed-content">
-                        <!-- Injected by list_blogpost.js -->
-                        <p class="text-sm text-muted">Loading blog posts...</p>
-                    </div>
+        <!-- Main Content Column -->
+        <main class="site-main" id="site-main" role="main">
+            <div class="content-wrap">
+                <header class="landing-page__header">
+                    <h1 class="landing-page__heading">Admin Blog | The Jesus Website</h1>
+                </header>
+
+                <div id="blog-feed-content">
+                    <!-- Injected by list_blogpost.js -->
+                    <p class="text-sm text-muted">Loading blog posts...</p>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
+    </div>
 
-        <!-- UI Components -->
-        <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
-        <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
-        <script src="../../js/1.0_foundation/frontend/footer.js"></script>
+    <!-- UI Components -->
+    <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
+    <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
+    <script src="../../js/1.0_foundation/frontend/footer.js"></script>
 
-        <!-- Display Logic -->
-        <script src="../../js/6.0_news_blog/frontend/list_blogpost.js"></script>
-    </body>
+    <!-- Display Logic -->
+    <script src="../../js/6.0_news_blog/frontend/list_blogpost.js"></script>
+</body>
+
 </html>
