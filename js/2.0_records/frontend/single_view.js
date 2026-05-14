@@ -236,19 +236,51 @@ function renderSingleRecord() {
                   ident.type +
                   ':</span> <span class="ref-value">' +
                   ident.value +
-                  "</span></li>"
+                  "</span></li>",
               );
             }
           });
         }
       }
-    } catch (e) { /* ignore parse errors */ }
+    } catch (e) {
+      /* ignore parse errors */
+    }
 
     if (refItems.length > 0) {
       refsListEl.innerHTML = refItems.join("");
       refsSectionEl.classList.add("is-visible-block");
       refsSectionEl.classList.remove("is-hidden");
     }
+  }
+
+  // --- Inject SEO keywords into <meta name="keywords"> ---
+  try {
+    if (record.metadata_json) {
+      var meta = JSON.parse(record.metadata_json);
+      var keywords = meta.keywords || meta.seo_keywords || "";
+      if (typeof keywords === "string" && keywords.trim()) {
+        // Also accept comma-separated strings or arrays from the metadata widget
+        var kwStr = keywords;
+        var existingTag = document.querySelector('meta[name="keywords"]');
+        if (!existingTag) {
+          existingTag = document.createElement("meta");
+          existingTag.setAttribute("name", "keywords");
+          document.head.appendChild(existingTag);
+        }
+        existingTag.setAttribute("content", kwStr);
+      } else if (Array.isArray(keywords) && keywords.length > 0) {
+        var kwStr = keywords.join(", ");
+        var existingTag = document.querySelector('meta[name="keywords"]');
+        if (!existingTag) {
+          existingTag = document.createElement("meta");
+          existingTag.setAttribute("name", "keywords");
+          document.head.appendChild(existingTag);
+        }
+        existingTag.setAttribute("content", kwStr);
+      }
+    }
+  } catch (e) {
+    /* ignore parse errors */
   }
 
   // 6. Trigger custom event for other displays (pictures, bibliography, context) to run
