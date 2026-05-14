@@ -1,7 +1,7 @@
 # =============================================================================
 #   THE JESUS WEBSITE — SEO SITEMAP GENERATOR
 #   File:    tools/generate_sitemap.py
-#   Version: 1.2.0
+#   Version: 1.3.0
 #   Purpose: Queries SQLite to dynamically build an XML sitemap for search engines.
 #            Updated for URL slug restructure — uses clean paths instead of
 #            raw .html filenames, and path-based record slugs.
@@ -21,16 +21,16 @@ logger = setup_logger(__file__)
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(ROOT_DIR, "database", "database.sqlite")
-SITEMAP_OUTPUT_PATH = os.path.join(ROOT_DIR, "frontend", "pages", "sitemap.xml")
-BASE_URL = "https://www.thejesuswebsite.com"
+SITEMAP_OUTPUT_PATH = os.path.join(ROOT_DIR, "sitemap.xml")
+BASE_URL = "https://www.thejesuswebsite.org"
 
 
 def generate_sitemap():
     """
     Trigger:  Run directly via CLI or via build.py.
     Function: Reads all records slugs from SQLite and writes a standards-compliant
-              XML sitemap to frontend/pages/sitemap.xml.
-    Output:   sitemap.xml at SITEMAP_OUTPUT_PATH, combining static routes,
+              XML sitemap to the project root.
+    Output:   sitemap.xml at project root, combining static routes,
               record deep-dive URLs, and blog post URLs.
     """
     logger.info("Starting internal XML Sitemap Generator...")
@@ -136,7 +136,7 @@ def generate_sitemap():
         xml_content += f"    <loc>{BASE_URL}/record/{slug}</loc>\n"
         xml_content += f"    <lastmod>{last_mod}</lastmod>\n"
         xml_content += "    <changefreq>monthly</changefreq>\n"
-        xml_content += f"    <priority>0.7</priority>\n"
+        xml_content += "    <priority>0.7</priority>\n"
         xml_content += "  </url>\n"
 
     # 3. Blog post pages — uses ?id= query param (same convention as /context/essay)
@@ -161,7 +161,7 @@ def generate_sitemap():
     with open(SITEMAP_OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write(xml_content)
 
-    logger.info(f"Sitemap explicitly generated to: {SITEMAP_OUTPUT_PATH}")
+    logger.info(f"Sitemap generated to: {SITEMAP_OUTPUT_PATH}")
 
 
 if __name__ == "__main__":

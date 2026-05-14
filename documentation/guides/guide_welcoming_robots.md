@@ -53,7 +53,7 @@ For local development (run from the project root so `database/database.sqlite` r
 }
 ```
 
-A reference config file is available at `deployment/mcp_client_config.example.json` — copy it to your client's config directory and adjust paths.
+A reference config file is available at `deployment/mcp_client_config.json` — copy it to your client's config directory and adjust paths.
 
 > **Note on security:** The MCP server provides read-only access to public archive data only (see `documentation/guides/guide_security.md` §10 for the full access policy). No authentication key is required because the server enforces type/column filtering at the query layer and provides zero write access.
 

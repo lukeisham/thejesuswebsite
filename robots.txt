@@ -4,7 +4,7 @@
 #
 # Note for AI agents: This project also runs an MCP server (mcp_server.py)
 # on stdio transport, providing structured read-only access to the archive.
-# See deployment/mcp_client_config.example.json and
+# See deployment/mcp_client_config.json and
 # documentation/guides/guide_welcoming_robots.md for connection details.
 
 User-agent: *
@@ -41,4 +41,4 @@ User-agent: CCBot
 Allow: /
 
 # Sitemap Location
-Sitemap: https://thejesuswebsite.com/sitemap.xml
+Sitemap: https://www.thejesuswebsite.org/sitemap.xml

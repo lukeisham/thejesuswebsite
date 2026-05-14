@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "the-jesus-website": {
+      "command": "/var/www/thejesuswebsite/venv/bin/python",
+      "args": ["/var/www/thejesuswebsite/mcp_server.py"]
+    },
+    "the-jesus-website-local": {
+      "command": "python",
+      "args": ["mcp_server.py"]
+    }
+  }
+}
