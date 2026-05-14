@@ -1,6 +1,11 @@
 # The Jesus Website - AI-Welcoming robots.txt
-# Version: 1.1.0
+# Version: 1.2.0
 # Purpose: Guide crawlers to content while protecting sensitive areas and prioritizing LLM discovery.
+#
+# Note for AI agents: This project also runs an MCP server (mcp_server.py)
+# on stdio transport, providing structured read-only access to the archive.
+# See deployment/mcp_client_config.example.json and
+# documentation/guides/guide_welcoming_robots.md for connection details.
 
 User-agent: *
 Allow: /
