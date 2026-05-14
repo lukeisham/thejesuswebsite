@@ -17,7 +17,6 @@ window._newsSourcesModuleState = {
   activeArticleTitle: "", // article title from main entry
   activeArticleLink: "", // article link from main entry
   activeSourceUrl: "", // source URL from news_source sub-type
-  activeKeywords: [], // keywords from news_source sub-type (array)
   activeSearchTerms: [], // search terms from news_search_term sub-type (array)
   activeLastCrawled: "", // last crawled timestamp
   newsArticlesRecords: [], // full list of news article main entries
@@ -166,7 +165,6 @@ function _resetState() {
   window._newsSourcesModuleState.activeArticleTitle = "";
   window._newsSourcesModuleState.activeArticleLink = "";
   window._newsSourcesModuleState.activeSourceUrl = "";
-  window._newsSourcesModuleState.activeKeywords = [];
   window._newsSourcesModuleState.activeSearchTerms = [];
   window._newsSourcesModuleState.activeLastCrawled = "";
   window._newsSourcesModuleState.newsArticlesRecords = [];
@@ -328,7 +326,6 @@ async function _handleSaveDraft() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             source_url: urlInput.value.trim(),
-            keywords: JSON.stringify(state.activeKeywords || []),
             status: "draft",
           }),
         });
@@ -341,7 +338,6 @@ async function _handleSaveDraft() {
             type: "news_article",
             sub_type: "news_source",
             source_url: urlInput.value.trim(),
-            keywords: JSON.stringify(state.activeKeywords || []),
             status: "draft",
           }),
         });

@@ -13,16 +13,6 @@
 
 "use strict";
 
-/* --- Keyword Chip Config --- */
-var _nsKeywordChipConfig = {
-  prefix: "news-",
-  inputId: "news-keyword-input",
-  chipListId: "news-keywords-list",
-  chipClass: "news-keyword-chip",
-  stateTermsKey: "activeKeywords",
-  renderFn: _renderKeywords,
-};
-
 /* --- Search Term Chip Config --- */
 var _nsSearchTermChipConfig = {
   prefix: "news-",
@@ -41,22 +31,6 @@ function initNewsSidebar() {
   var saveUrlBtn = document.getElementById("btn-news-save-url");
   if (saveUrlBtn) {
     saveUrlBtn.addEventListener("click", _handleSaveUrl);
-  }
-
-  // --- Keywords (add button) ---
-  var addKeywordBtn = document.getElementById("btn-news-add-keyword");
-  var addKeywordInput = document.getElementById("news-keyword-input");
-  if (addKeywordBtn) {
-    addKeywordBtn.addEventListener("click", function () {
-      _addChipFromInput(window._newsSourcesModuleState, _nsKeywordChipConfig);
-    });
-  }
-  if (addKeywordInput) {
-    addKeywordInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        _addChipFromInput(window._newsSourcesModuleState, _nsKeywordChipConfig);
-      }
-    });
   }
 
   // --- Search Terms (add button) ---
@@ -105,9 +79,6 @@ function populateNewsSidebar(record) {
   var urlInput = document.getElementById("news-source-url-input");
   if (urlInput) urlInput.value = state.activeSourceUrl || "";
 
-  // Render keyword chips
-  _renderKeywords();
-
   // Render search term chips
   _renderSearchTerms();
 
@@ -126,9 +97,6 @@ function _clearSidebar() {
 
   var urlInput = document.getElementById("news-source-url-input");
   if (urlInput) urlInput.value = "";
-
-  var keywordsList = document.getElementById("news-keywords-list");
-  if (keywordsList) keywordsList.innerHTML = "";
 
   var termsList = document.getElementById("news-search-terms-list");
   if (termsList) termsList.innerHTML = "";
@@ -150,8 +118,6 @@ function _setSidebarDisabled(disabled) {
   var ids = [
     "news-source-url-input",
     "btn-news-save-url",
-    "news-keyword-input",
-    "btn-news-add-keyword",
     "news-search-term-input",
     "btn-news-add-term",
   ];
@@ -170,7 +136,6 @@ function _setSidebarDisabled(disabled) {
   // Dim sidebar sections via CSS class
   var sectionIds = [
     "news-source-section",
-    "news-keywords-section",
     "news-search-terms-section",
     "metadata-widget-container",
   ];
@@ -241,39 +206,6 @@ function _addTermsFromInput() {
 }
 
 /* -----------------------------------------------------------------------------
-   INTERNAL: _addChipFromInput
-   Reads the input value, adds it to the state array, re-renders chips,
-   and triggers auto-save (debounced). Used for Keywords (single-term input).
------------------------------------------------------------------------------ */
-function _addChipFromInput(state, config) {
-  if (!state || !state.activeGroupId) return;
-
-  var inputEl = document.getElementById(config.inputId);
-  if (!inputEl) return;
-
-  var value = inputEl.value.trim();
-  if (!value) return;
-
-  var terms = state[config.stateTermsKey] || [];
-  if (terms.indexOf(value) !== -1) {
-    inputEl.value = "";
-    return; // Already exists
-  }
-
-  terms.push(value);
-  state[config.stateTermsKey] = terms;
-  inputEl.value = "";
-
-  // Re-render
-  if (typeof config.renderFn === "function") {
-    config.renderFn();
-  }
-
-  // Auto-save (debounced)
-  _scheduleKeywordSave();
-}
-
-/* -----------------------------------------------------------------------------
    INTERNAL: _removeChip
    Removes a chip at the given index, re-renders, and triggers auto-save.
 ----------------------------------------------------------------------------- */
@@ -289,44 +221,6 @@ function _removeChip(state, config, index) {
   }
 
   _scheduleKeywordSave();
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _renderKeywords
-   Renders keyword chips in #news-keywords-list.
------------------------------------------------------------------------------ */
-function _renderKeywords() {
-  var state = window._newsSourcesModuleState;
-  var listEl = document.getElementById("news-keywords-list");
-  if (!listEl) return;
-
-  listEl.innerHTML = "";
-
-  var keywords = state ? state.activeKeywords : [];
-  if (!keywords || keywords.length === 0) return;
-
-  keywords.forEach(function (term, index) {
-    var chipEl = document.createElement("li");
-    chipEl.className = "news-keyword-chip";
-
-    var textEl = document.createElement("span");
-    textEl.className = "news-keyword-chip__text";
-    textEl.textContent = term;
-    chipEl.appendChild(textEl);
-
-    var removeBtn = document.createElement("button");
-    removeBtn.className = "news-keyword-chip__remove";
-    removeBtn.textContent = "\u00d7";
-    removeBtn.setAttribute("type", "button");
-    removeBtn.setAttribute("aria-label", "Remove keyword: " + term);
-    removeBtn.setAttribute("title", "Remove keyword");
-    removeBtn.addEventListener("click", function () {
-      _removeChip(window._newsSourcesModuleState, _nsKeywordChipConfig, index);
-    });
-    chipEl.appendChild(removeBtn);
-
-    listEl.appendChild(chipEl);
-  });
 }
 
 /* -----------------------------------------------------------------------------
@@ -392,38 +286,6 @@ async function _saveKeywordsAndTerms() {
   var groupId = state.activeGroupId;
   var allRecords = state._allNewsArticleRecords || [];
 
-  // --- Save keywords to the source row ---
-  var sourceRow = null;
-  for (var i = 0; i < allRecords.length; i++) {
-    if (
-      allRecords[i].type === "news_article" &&
-      allRecords[i].sub_type === "news_source" &&
-      allRecords[i].id === groupId
-    ) {
-      sourceRow = allRecords[i];
-      break;
-    }
-  }
-
-  var keywords = state.activeKeywords || [];
-  if (keywords.length > 0) {
-    if (sourceRow) {
-      // Update existing source row
-      try {
-        await fetch("/api/admin/records/" + sourceRow._row_id, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            keywords: JSON.stringify(keywords),
-            status: "draft",
-          }),
-        });
-      } catch (err) {
-        console.error("[news_sources_sidebar] Save keywords failed:", err);
-      }
-    }
-  }
-
   // --- Save search terms: delete all existing, then POST new ones ---
   // First, collect existing search term row IDs
   var existingTermRowIds = [];
@@ -474,7 +336,6 @@ async function _saveKeywordsAndTerms() {
   }
 
   // Re-render chips to reflect the saved state in the sidebar
-  _renderKeywords();
   _renderSearchTerms();
 
   if (typeof window.surfaceError === "function") {

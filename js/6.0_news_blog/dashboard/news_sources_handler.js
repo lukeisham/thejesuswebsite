@@ -328,31 +328,8 @@ function _selectNewsArticleRow(rowEl, record) {
 
   if (sourceRow) {
     state.activeSourceUrl = sourceRow.source_url || "";
-    // Parse keywords from the source row's keywords field
-    var keywords = [];
-    var kwField = sourceRow.keywords;
-    if (kwField) {
-      try {
-        if (typeof kwField === "string") {
-          var parsed = JSON.parse(kwField);
-          keywords = Array.isArray(parsed) ? parsed : [];
-        } else if (Array.isArray(kwField)) {
-          keywords = kwField;
-        }
-      } catch (e) {
-        // Try comma-separated
-        keywords = kwField
-          .split(",")
-          .map(function (t) {
-            return t.trim();
-          })
-          .filter(Boolean);
-      }
-    }
-    state.activeKeywords = keywords;
   } else {
     state.activeSourceUrl = "";
-    state.activeKeywords = [];
   }
 
   // --- Find matching search term rows (sub_type = "news_search_term", same id) ---

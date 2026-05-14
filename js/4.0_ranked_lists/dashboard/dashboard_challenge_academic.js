@@ -214,10 +214,6 @@ async function _saveAcademicChallengeRecord(data) {
     data = window.collectMetadataWidget("metadata-widget-container");
   }
 
-  // Collect challenge link if available
-  const linkInput = document.getElementById("challenge-link-input");
-  const academicChallengeLink = linkInput ? linkInput.value.trim() : "";
-
   try {
     const response = await fetch("/api/admin/records/" + state.activeRecordId, {
       method: "PUT",
@@ -226,7 +222,6 @@ async function _saveAcademicChallengeRecord(data) {
         slug: data.slug,
         snippet: data.snippet,
         metadata_json: data.metadata_json,
-        academic_challenge_link: academicChallengeLink,
         status: "draft",
       }),
     });
@@ -417,12 +412,6 @@ async function _handleSaveDraft() {
     payload.slug = metaData.slug || state.activeRecordSlug;
     payload.snippet = metaData.snippet || "";
     payload.metadata_json = metaData.metadata_json || "";
-  }
-
-  // Collect challenge link
-  const linkInput = document.getElementById("challenge-link-input");
-  if (linkInput) {
-    payload.academic_challenge_link = linkInput.value.trim();
   }
 
   // Collect search terms from the textarea
