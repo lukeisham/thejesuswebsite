@@ -1,7 +1,7 @@
 ---
 name: simple_module_sitemap.md
 purpose: High-level ASCII map of the project's modular architecture (1.0 - 9.0)
-version: 1.7.0
+version: 1.8.0
 dependencies: [detailed_module_sitemap.md]
 ---
 
@@ -54,8 +54,9 @@ dependencies: [detailed_module_sitemap.md]
 7.0 System Module
 ├── 7.1 Admin Portal (Login → Dashboard Shell → Module Grid)
 ├── 7.2 Agent Logic & Instructional Prompts
-├── 7.3 Backend API, MCP Server & VPS Config
-└── 7.4 Security Protocols & JWT Management
+├── 7.3 Backend API & VPS Config
+├── 7.4 Security Protocols & JWT Management
+└── 7.5 MCP Server 
 
 8.0 Setup & Testing Module
 ├── 8.1 Local Environment Initialization
