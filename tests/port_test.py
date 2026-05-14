@@ -1,13 +1,19 @@
 # =============================================================================
-#   THE JESUS WEBSITE — PORT AVAILABILITY TEST
+#   THE JESUS WEBSITE — INFRASTRUCTURE AVAILABILITY TEST
 #   File:    tests/port_test.py
-#   Version: 1.1.0
-#   Purpose: Verifies all local ports (Admin API, MCP Server) are responding.
+#   Version: 2.0.0
+#   Purpose: Verifies Admin API responding on port and MCP Server process
+#            presence. The MCP server uses stdio transport (no port binding)
+#            per deployment/mcp.service, so process presence is checked
+#            instead of a TCP socket. MCP failure is non-fatal — it is an
+#            external-agent-facing service not always running during dev.
 # =============================================================================
 
 import os
 import socket
 import sys
+
+import psutil
 
 # Ensure package context recognized when running directly from CLI
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -32,19 +38,41 @@ def check_port(host, port, service_name):
             return False
 
 
-def run_suite():
-    logger.info("Starting Infrastructure Port Health Audit...")
+def check_mcp_process(process_name="mcp_server.py"):
+    """
+    Checks if the MCP server process is running.
+    The MCP server uses stdio transport (no port binding), so we verify
+    its availability by looking for the running process instead.
 
-    # Infrastructure targets defined in nginx.conf / deployment systemd files
-    targets = [
-        ("127.0.0.1", 8000, "Admin FastAPI Backend"),
-        ("127.0.0.1", 8001, "MCP Read-Only Server"),
-    ]
+    This is non-fatal — the MCP server is launched on-demand by AI agent
+    clients and may not be running during local development or CI.
+    """
+    for proc in psutil.process_iter(["pid", "name", "cmdline"]):
+        try:
+            cmdline = proc.info.get("cmdline") or []
+            if any(process_name in part for part in cmdline):
+                logger.info(
+                    f"SUCCESS: MCP Read-Only Server process running (PID {proc.info['pid']})"
+                )
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    logger.warning("MCP Read-Only Server process NOT found (non-fatal — stdio service)")
+    return False
+
+
+def run_suite():
+    logger.info("Starting Infrastructure Availability Audit...")
 
     all_ok = True
-    for host, port, name in targets:
-        if not check_port(host, port, name):
-            all_ok = False
+
+    # 1. Port check: Admin FastAPI Backend on 8000 (hard requirement)
+    if not check_port("127.0.0.1", 8000, "Admin FastAPI Backend"):
+        all_ok = False
+
+    # 2. Process check: MCP Read-Only Server (stdio transport, no port)
+    #    Non-fatal — launched on-demand by MCP clients (Claude Desktop, etc.)
+    check_mcp_process()
 
     if all_ok:
         logger.info("Core infrastructure connectivity verified.")
