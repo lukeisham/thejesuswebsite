@@ -8,8 +8,6 @@
 
 ============================================================================= */
 
-@import url('./essay_layout.css');
-
 /* Response wrapper for challenge views (Response Insert) */
 .response-container {
     max-width: var(--content-max-width);
