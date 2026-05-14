@@ -41,7 +41,7 @@ function injectSidebar(anchorId, activePage, tocItems) {
     { label: "Context", href: "/context", id: "context" },
     { label: "Debate & Discussion", href: "/debate", id: "debate" },
     { label: "Resource Lists", href: "/resources", id: "resources" },
-    { label: "News", href: "/news", id: "news" },
+    { label: "News", href: "/news_and_blog.html", id: "news" },
     { label: "About", href: "/about", id: "about" },
   ];
 

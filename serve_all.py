@@ -128,18 +128,18 @@ async def resources_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/resources.html"))
 
 
-@app.get("/news")
-async def news_landing_page():
+@app.get("/news_and_blog.html")
+async def news_and_blog_landing_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/news_and_blog.html"))
 
 
-@app.get("/news/feed")
-async def news_feed_page():
+@app.get("/news.html")
+async def news_html_feed_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/news.html"))
 
 
-@app.get("/blog")
-async def blog_page():
+@app.get("/blog.html")
+async def blog_html_feed_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/blog.html"))
 
 
