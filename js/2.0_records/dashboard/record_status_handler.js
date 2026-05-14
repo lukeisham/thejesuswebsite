@@ -37,7 +37,7 @@ function collectAllFormData() {
     payload.id = rawId;
   }
   payload.title = _getValue("record-title");
-  payload.slug = _getValue("record-slug");
+  payload.slug = _getValue("record-slug") || null;
 
   // Section 2: Images
   payload.picture_name = _getValue("record-picture-name");

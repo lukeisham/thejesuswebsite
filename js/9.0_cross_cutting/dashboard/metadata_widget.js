@@ -46,6 +46,10 @@ function renderMetadataWidget(containerId, options) {
   const opts = Object.assign(
     {
       onAutoSaveDraft: null,
+      // The DOM ID of the description paragraph editor on the host page.
+      // Override this when embedding the widget in a module that uses a
+      // different container ID (e.g. blog posts, essays, challenge responses).
+      descriptionContainerId: "description-editor-container",
       getRecordTitle: function () {
         return typeof window._recordTitle !== "undefined"
           ? window._recordTitle
@@ -307,7 +311,7 @@ function renderMetadataWidget(containerId, options) {
     let content = "";
     if (typeof window.collectDescription === "function") {
       try {
-        const paragraphs = window.collectDescription();
+        const paragraphs = window.collectDescription(opts.descriptionContainerId);
         if (Array.isArray(paragraphs)) content = paragraphs.join("\n\n");
       } catch (_) {}
     }
@@ -353,7 +357,7 @@ function renderMetadataWidget(containerId, options) {
     let content = "";
     if (typeof window.collectDescription === "function") {
       try {
-        const paragraphs = window.collectDescription();
+        const paragraphs = window.collectDescription(opts.descriptionContainerId);
         if (Array.isArray(paragraphs)) content = paragraphs.join("\n\n");
       } catch (_) {}
     }
@@ -411,7 +415,7 @@ function renderMetadataWidget(containerId, options) {
     let content = "";
     if (typeof window.collectDescription === "function") {
       try {
-        const paragraphs = window.collectDescription();
+        const paragraphs = window.collectDescription(opts.descriptionContainerId);
         if (Array.isArray(paragraphs)) content = paragraphs.join("\n\n");
       } catch (_) {}
     }
