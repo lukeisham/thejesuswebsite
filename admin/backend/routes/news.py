@@ -103,13 +103,11 @@ async def trigger_wikipedia_pipeline(
 
                 if row:
                     result = run_pipeline(record_id=row["id"])
-                    logger.info(
-                        f"Wikipedia pipeline completed for slug '{record_slug}': {result}"
-                    )
+                    msg = f"Wikipedia pipeline done for slug '{record_slug}': {result}"
+                    logger.info(msg)
                 else:
-                    logger.error(
-                        f"Wikipedia pipeline: record with slug '{record_slug}' not found."
-                    )
+                    msg = f"Wikipedia pipeline: slug '{record_slug}' not found."
+                    logger.error(msg)
             else:
                 result = run_pipeline()
                 logger.info(f"Wikipedia pipeline completed (all records): {result}")

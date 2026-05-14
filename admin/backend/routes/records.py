@@ -149,7 +149,7 @@ async def get_single_record(record_id: str, admin_data: dict = Depends(verify_to
         cursor.execute("SELECT * FROM records WHERE id = ?", (record_id,))
         row = cursor.fetchone()
 
-        # Second try: fall back to slug lookup (for singleton modules like historiography)
+        # Fallback: slug lookup (for singleton modules like historiography)
         if not row:
             cursor.execute("SELECT * FROM records WHERE slug = ?", (record_id,))
             row = cursor.fetchone()
