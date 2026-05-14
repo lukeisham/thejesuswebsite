@@ -144,9 +144,18 @@ async def get_single_record(record_id: str, admin_data: dict = Depends(verify_to
 
         conn = get_db_connection()
         cursor = conn.cursor()
+
+        # First try: look up by id (ULID primary key)
         cursor.execute("SELECT * FROM records WHERE id = ?", (record_id,))
         row = cursor.fetchone()
+
+        # Second try: fall back to slug lookup (for singleton modules like historiography)
+        if not row:
+            cursor.execute("SELECT * FROM records WHERE slug = ?", (record_id,))
+            row = cursor.fetchone()
+
         conn.close()
+
         if row:
             record_dict = dict(row)
             if record_dict.get("picture_bytes"):

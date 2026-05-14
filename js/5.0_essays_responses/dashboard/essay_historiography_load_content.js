@@ -27,16 +27,23 @@ const EH_LOAD_API_BASE_URL = "/api/admin";
 async function loadDocumentContent(recordId, title) {
   if (!recordId) return;
 
+  let doc;
+
   try {
     const response = await fetch(
       EH_LOAD_API_BASE_URL + "/records/" + encodeURIComponent(recordId),
     );
 
     if (!response.ok) {
-      throw new Error("API responded with status " + response.status);
+      // If the historiography singleton doesn't exist yet, auto-create it
+      if (response.status === 404 && recordId === "historiography") {
+        doc = await _createHistoriographyRecord();
+      } else {
+        throw new Error("API responded with status " + response.status);
+      }
+    } else {
+      doc = await response.json();
     }
-
-    const doc = await response.json();
 
     // Update module state
     window._essayModuleState.activeRecordId = recordId;
@@ -113,11 +120,16 @@ async function loadDocumentContent(recordId, title) {
         try {
           if (doc.metadata_json) {
             const meta = JSON.parse(doc.metadata_json);
-            if (Array.isArray(meta.identifiers) && meta.identifiers.length > 0) {
+            if (
+              Array.isArray(meta.identifiers) &&
+              meta.identifiers.length > 0
+            ) {
               extEntries = meta.identifiers;
             }
           }
-        } catch (e) { /* ignore parse errors */ }
+        } catch (e) {
+          /* ignore parse errors */
+        }
         window.setExternalRefValues({
           iaa: doc.iaa || "",
           pledius: doc.pledius || "",
@@ -170,6 +182,60 @@ async function loadDocumentContent(recordId, title) {
           "'. Please try again.",
       );
     }
+    return;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _createHistoriographyRecord
+   Creates the singleton historiography record with slug locked to
+   "historiography". Called when the auto-load finds no existing record.
+   Returns the created document object for immediate population.
+----------------------------------------------------------------------------- */
+async function _createHistoriographyRecord() {
+  try {
+    const response = await fetch(EH_LOAD_API_BASE_URL + "/records", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "Historiography",
+        slug: "historiography",
+        type: "historiographical_essay",
+        body: "",
+        snippet: "",
+        status: "draft",
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        "Failed to create historiography record (HTTP " + response.status + ")",
+      );
+    }
+
+    const result = await response.json();
+    console.log(
+      "[essay_historiography_load_content] Created historiography record:",
+      result.id,
+    );
+
+    // Now fetch the full record by the newly created ID
+    const fetchResponse = await fetch(
+      EH_LOAD_API_BASE_URL + "/records/" + encodeURIComponent(result.id),
+    );
+
+    if (!fetchResponse.ok) {
+      throw new Error("Failed to fetch newly created historiography record");
+    }
+
+    return await fetchResponse.json();
+  } catch (err) {
+    console.error(
+      "[essay_historiography_load_content] Failed to create historiography record:",
+      err,
+    );
+    throw err;
   }
 }
 
