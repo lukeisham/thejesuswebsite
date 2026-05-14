@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-    <!-- =============================================================================
+<!-- =============================================================================
 
      THE JESUS WEBSITE — RESOURCES LANDING PAGE
      File:    frontend/pages/resources.html
@@ -10,153 +10,116 @@
 
 ============================================================================= -->
 
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <base href="/frontend/pages/" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/frontend/pages/" />
 
-        <title>Resource Lists | The Jesus Website</title>
+    <title>Resource Lists | The Jesus Website</title>
 
-        <!-- Stylesheets -->
-        <link
-            rel="stylesheet"
-            href="../../css/1.0_foundation/typography.css"
-        />
-        <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
-        <link
-            rel="stylesheet"
-            href="../../css/1.0_foundation/landing.css"
-        />
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/1.0_foundation/typography.css" />
+    <link rel="stylesheet" href="../../css/1.0_foundation/grid.css" />
+    <link rel="stylesheet" href="../../css/1.0_foundation/landing.css" />
 
-        <!-- UI Logic Components -->
-        <script src="../../js/1.0_foundation/frontend/header.js"></script>
-        <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
-        <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
-        <script src="../../js/1.0_foundation/frontend/footer.js"></script>
+    <!-- UI Logic Components -->
+    <script src="../../js/1.0_foundation/frontend/header.js"></script>
+    <script src="../../js/1.0_foundation/frontend/search_header.js"></script>
+    <script src="../../js/1.0_foundation/frontend/sidebar.js"></script>
+    <script src="../../js/1.0_foundation/frontend/footer.js"></script>
 
-        <!-- Central Initializer -->
-        <script src="../../js/1.0_foundation/frontend/initializer.js"></script>
-    </head>
-    <body
-        data-page-title="Resource Lists"
-        data-page-description="Navigable lists of biblical, archaeological, and historical source data about Jesus."
-        data-sidebar-active-nav="resources"
-        data-search-header-active-nav="resources"
-        data-footer-target="page-shell"
-    >
-        <!-- Main Page Shell Container -->
-        <div class="page-shell" id="page-shell">
-            <!-- Invisible Metadata Anchor -->
-            <header id="invisible-header" aria-hidden="true"></header>
+    <!-- Central Initializer -->
+    <script src="../../js/1.0_foundation/frontend/initializer.js"></script>
+</head>
 
-            <!-- Main Content Column -->
-            <main class="site-main" id="site-main" role="main">
-                <div class="content-wrap">
-                    <header class="landing-page__header">
-                        <h1 class="landing-page__heading">Resource Lists</h1>
-                        <p class="text-sm text-secondary">
-                            The complete archive of categorized primary
-                            evidence.
+<body data-page-title="Resource Lists"
+    data-page-description="Navigable lists of biblical, archaeological, and historical source data about Jesus."
+    data-sidebar-active-nav="resources" data-search-header-active-nav="resources" data-footer-target="page-shell">
+    <!-- Main Page Shell Container -->
+    <div class="page-shell" id="page-shell">
+        <!-- Invisible Metadata Anchor -->
+        <header id="invisible-header" aria-hidden="true"></header>
+
+        <!-- Main Content Column -->
+        <main class="site-main" id="site-main" role="main">
+            <div class="content-wrap">
+                <header class="landing-page__header">
+                    <h1 class="landing-page__heading">Resource Lists</h1>
+                    <p class="text-sm text-secondary">
+                        Records and selected data organised by topical lists.
+                    </p>
+                </header>
+
+                <div class="landing-page__grid">
+                    <!-- Old Testament Verses -->
+                    <a href="records.html?category=OT%20Verses" class="landing-card" id="card-ot">
+                        <h2 class="landing-card__title">
+                            Old Testament Prophecies
+                        </h2>
+                        <p class="landing-card__desc">
+                            A list of verses from the Hebrew Bible
+                            that predict Jesus' life and ministry.
                         </p>
-                    </header>
+                        <div class="landing-card__meta">RECORDS</div>
+                    </a>
 
-                    <div class="landing-page__grid">
-                        <!-- Old Testament Verses -->
-                        <a
-                            href="records.html?category=OT%20Verses"
-                            class="landing-card"
-                            id="card-ot"
-                        >
-                            <h2 class="landing-card__title">
-                                Old Testament Prophecies
-                            </h2>
-                            <p class="landing-card__desc">
-                                A detailed list of verses from the Hebrew Bible
-                                that correspond to Jesus' life and ministry.
-                            </p>
-                            <div class="landing-card__meta">CATEGORY-001</div>
-                        </a>
+                    <!-- Manuscripts -->
+                    <a href="records.html?category=Manuscripts" class="landing-card" id="card-manuscripts">
+                        <h2 class="landing-card__title">NT Manuscripts</h2>
+                        <p class="landing-card__desc">
+                            List of New Testament fragments and manuscripts.
+                        </p>
+                        <div class="landing-card__meta">MANUSCRIPTS</div>
+                    </a>
 
-                        <!-- Manuscripts -->
-                        <a
-                            href="records.html?category=Manuscripts"
-                            class="landing-card"
-                            id="card-manuscripts"
-                        >
-                            <h2 class="landing-card__title">NT Manuscripts</h2>
-                            <p class="landing-card__desc">
-                                The thousands of Greek manuscripts confirming
-                                the transmission of the New Testament.
-                            </p>
-                            <div class="landing-card__meta">CATEGORY-002</div>
-                        </a>
+                    <!-- Internal Witnesses -->
+                    <a href="records.html?category=Internal%20witnesses" class="landing-card" id="card-internal">
+                        <h2 class="landing-card__title">
+                            Internal Testimony
+                        </h2>
+                        <p class="landing-card__desc">
+                            Internal testimony from believers until the 3rd century.
+                        </p>
+                        <div class="landing-card__meta">PRIMARY SOURCES</div>
+                    </a>
 
-                        <!-- Internal Witnesses -->
-                        <a
-                            href="records.html?category=Internal%20witnesses"
-                            class="landing-card"
-                            id="card-internal"
-                        >
-                            <h2 class="landing-card__title">
-                                Internal Witnesses
-                            </h2>
-                            <p class="landing-card__desc">
-                                Confirmations from the early church fathers and
-                                direct followers of Jesus.
-                            </p>
-                            <div class="landing-card__meta">CATEGORY-003</div>
-                        </a>
+                    <!-- External Witnesses -->
+                    <a href="records.html?category=External%20witnesses" class="landing-card" id="card-external">
+                        <h2 class="landing-card__title">
+                            External Witnesses
+                        </h2>
+                        <p class="landing-card__desc">
+                            External testimony from non-bleivers until the 3rd century.
+                        </p>
+                        <div class="landing-card__meta">PRIMARY SOURCES</div>
+                    </a>
 
-                        <!-- External Witnesses -->
-                        <a
-                            href="records.html?category=External%20witnesses"
-                            class="landing-card"
-                            id="card-external"
-                        >
-                            <h2 class="landing-card__title">
-                                External Witnesses
-                            </h2>
-                            <p class="landing-card__desc">
-                                Secular Roman, Greek, and Jewish historical
-                                mentions of Jesus and his movement.
-                            </p>
-                            <div class="landing-card__meta">CATEGORY-004</div>
-                        </a>
+                    <!-- Archaeological Sites -->
+                    <a href="records.html?category=Sites" class="landing-card" id="card-sites">
+                        <h2 class="landing-card__title">
+                            Archaeological Sites
+                        </h2>
+                        <p class="landing-card__desc">
+                            A list of current and previous arachological sites associated with
+                            the Jesus and the Gospels.
+                        </p>
+                        <div class="landing-card__meta">ARCHAEOLOGICAL SITES</div>
+                    </a>
 
-                        <!-- Archaeological Sites -->
-                        <a
-                            href="records.html?category=Sites"
-                            class="landing-card"
-                            id="card-sites"
-                        >
-                            <h2 class="landing-card__title">
-                                Archaeological Sites
-                            </h2>
-                            <p class="landing-card__desc">
-                                Key locations such as Capernaum, the Pool of
-                                Siloam, and the Sea of Galilee.
-                            </p>
-                            <div class="landing-card__meta">CATEGORY-005</div>
-                        </a>
-
-                        <!-- Historical Objects -->
-                        <a
-                            href="records.html?category=Objects"
-                            class="landing-card"
-                            id="card-objects"
-                        >
-                            <h2 class="landing-card__title">
-                                Objects and Artifacts
-                            </h2>
-                            <p class="landing-card__desc">
-                                Ossuaries, coins, and physical relics related to
-                                the 1st-century landscape.
-                            </p>
-                            <div class="landing-card__meta">CATEGORY-006</div>
-                        </a>
-                    </div>
+                    <!-- Historical Objects -->
+                    <a href="records.html?category=Objects" class="landing-card" id="card-objects">
+                        <h2 class="landing-card__title">
+                            Objects
+                        </h2>
+                        <p class="landing-card__desc">
+                            List of objects of mentioned in the Gospels.
+                        </p>
+                        <div class="landing-card__meta">RECORDS</div>
+                    </a>
                 </div>
-            </main>
-        </div>
-    </body>
+            </div>
+        </main>
+    </div>
+</body>
+
 </html>
