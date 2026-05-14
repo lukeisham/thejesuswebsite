@@ -76,6 +76,7 @@ DB_PATH = os.path.join(
 # DEPRECATED: ANCHOR_SLUG = "global-news-feed"
 # v2.0.0 uses per-article records instead.
 PIPELINE_TIMEOUT_SECONDS = 240  # 4 minutes total allowed runtime
+MAX_ARTICLES_PER_CRAWL = 25  # Max articles to collect per crawl run
 DEFAULT_USER_AGENT = "TheJesusWebsite/1.0.0 (https://github.com/thejesuswebsite; bot)"
 
 
@@ -169,6 +170,28 @@ def run_pipeline():
                     logger.info(f"  [{source_name}] Found {len(items)} matching items.")
                 else:
                     logger.info(f"  [{source_name}] No matching items found.")
+
+                # Enforce max articles limit (inside the if-items block so it
+                # only triggers after items were actually added)
+                if len(all_items) >= MAX_ARTICLES_PER_CRAWL:
+                    all_items = all_items[:MAX_ARTICLES_PER_CRAWL]
+                    logger.info(
+                        f"Reached max articles limit ({MAX_ARTICLES_PER_CRAWL}). "
+                        f"Stopping crawl early."
+                    )
+                    # Insert a notice item so the admin knows it was truncated
+                    all_items.append(
+                        {
+                            "title": (
+                                f"[Crawl Truncated] Maximum {MAX_ARTICLES_PER_CRAWL} "
+                                f"articles reached. Some sources may not have "
+                                f"been fully crawled."
+                            ),
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "url": "",
+                        }
+                    )
+                    break
             except Exception as exc:
                 logger.error(f"  [{source_name}] Crawl failed: {exc}")
                 failed_sources.append(source_name)

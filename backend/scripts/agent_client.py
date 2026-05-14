@@ -300,7 +300,7 @@ def search_web(
             f"Return your findings as a JSON array of objects, each with keys: "
             f'"title" (article title), "url" (full URL), and '
             f'"relevance_score" (integer 1-100, where 100 is most relevant). '
-            f"Provide at least 5 and at most 15 results. "
+            f"Provide at most 10 results. "
             f"Also include a brief scholarly assessment (2-3 sentences) of the "
             f"overall quality and relevance of the search results."
         )

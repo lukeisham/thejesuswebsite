@@ -116,7 +116,7 @@ def search_wikipedia(term: str) -> Optional[Dict[str, Any]]:
         "list": "search",
         "srsearch": term,
         "format": "json",
-        "srlimit": 15,  # Fetch more results for better filtering
+        "srlimit": 100,  # Fetch up to 100 articles for better filtering
         "srprop": "snippet|wordcount|size",
         "srnamespace": "0",  # Only main namespace (articles)
     }
