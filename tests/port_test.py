@@ -52,7 +52,8 @@ def check_mcp_process(process_name="mcp_server.py"):
             cmdline = proc.info.get("cmdline") or []
             if any(process_name in part for part in cmdline):
                 logger.info(
-                    f"SUCCESS: MCP Read-Only Server process running (PID {proc.info['pid']})"
+                    "SUCCESS: MCP Read-Only Server process running"
+                    f" (PID {proc.info['pid']})"
                 )
                 return True
         except (psutil.NoSuchProcess, psutil.AccessDenied):
