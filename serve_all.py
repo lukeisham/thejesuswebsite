@@ -77,7 +77,8 @@ def get_public_db_connection():
     """Get a read-only database connection with Row factory."""
     if not os.path.exists(DB_PATH):
         raise HTTPException(status_code=500, detail="Database file not found.")
-    conn = sqlite3.connect(DB_PATH)
+    db_uri = f"file:{DB_PATH}?mode=ro"
+    conn = sqlite3.connect(db_uri, uri=True)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -734,13 +735,28 @@ async def public_essay_by_slug(
 
         target_status = status if status else "published"
 
+        # Restrict to essay types so non-essay records can't be fetched here
+        essay_types = (
+            "context_essay",
+            "historiographical_essay",
+            "theological_essay",
+        )
+
+        if type and type in essay_types:
+            type_clause = "type = ?"
+            params = [slug, type, target_status]
+        else:
+            placeholders = ", ".join("?" for _ in essay_types)
+            type_clause = f"type IN ({placeholders})"
+            params = [slug] + list(essay_types) + [target_status]
+
         cursor.execute(
             "SELECT id, title, slug, snippet, body, context_essays, description, "
             "iaa, pledius, manuscript, url, metadata_json, "
             "created_at, updated_at, picture_name, bibliography, context_links "
-            "FROM records WHERE slug = ? "
+            f"FROM records WHERE slug = ? AND {type_clause} "
             "AND status = ?",
-            (slug, target_status),
+            params,
         )
         row = cursor.fetchone()
         conn.close()

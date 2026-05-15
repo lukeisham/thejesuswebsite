@@ -168,6 +168,8 @@ async def get_single_record(record_id: str, admin_data: dict = Depends(verify_to
                 ).decode("utf-8")
             return record_dict
         raise HTTPException(status_code=404, detail="Record not found")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -297,11 +299,32 @@ async def delete_record(record_id: str, admin_data: dict = Depends(verify_token)
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+
+        # Look up the slug before deleting so we can clean up resource_lists
+        cursor.execute("SELECT slug FROM records WHERE id = ?", (record_id,))
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Record not found")
+
+        record_slug = row["slug"]
+
         cursor.execute("DELETE FROM records WHERE id = ?", (record_id,))
+
+        # Clean up orphaned resource_list entries
+        if record_slug:
+            cursor.execute(
+                "DELETE FROM resource_lists WHERE record_slug = ?",
+                (record_slug,),
+            )
+
         conn.commit()
         conn.close()
         return {"message": "Record deleted successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error("Failed to delete record %s: %s", record_id, e)
         raise HTTPException(
             status_code=500, detail="Failed to delete record: " + str(e)
         )
