@@ -88,28 +88,26 @@
             <header class="news-sidebar__subheader">
                 <h3 class="news-sidebar__subheading">Search Terms</h3>
             </header>
-            <div class="news-search-terms__editor">
+
+            <!-- Saved Search Terms Overview — read-only list -->
+            <div class="news-search-terms-overview">
                 <ul
-                    id="news-search-terms-list"
-                    class="news-search-terms__list"
-                    aria-label="Active search terms"
-                ></ul>
-                <div class="news-search-terms__add-row">
-                    <input
-                        id="news-search-term-input"
-                        class="news-search-terms__add-input"
-                        type="text"
-                        placeholder="Add search term..."
-                        aria-label="New search term"
-                    />
-                    <button
-                        id="btn-news-add-term"
-                        class="btn btn--draft"
-                        type="button"
-                    >
-                        Add
-                    </button>
-                </div>
+                    id="news-search-terms-overview-list"
+                    class="news-search-terms-overview-list"
+                    aria-label="Saved search terms"
+                >
+                    <!-- Dynamically populated -->
+                </ul>
+            </div>
+
+            <div class="news-search-terms__editor">
+                <textarea
+                    id="news-search-terms-input"
+                    class="news-search-terms__textarea"
+                    rows="4"
+                    placeholder="Enter search terms (one per line or comma-separated)."
+                    aria-label="Search terms editor"
+                ></textarea>
             </div>
         </section>
 

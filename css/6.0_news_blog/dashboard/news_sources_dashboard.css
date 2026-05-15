@@ -209,117 +209,82 @@
 
 /* =============================================================================
    5. SEARCH TERMS EDITOR (separate sub-type rows)
-   Chip-based search term list with an add input row below.
+   Textarea-based editor matching Wikipedia/Challenge pattern.
+   Auto-saves on input debounce, blur, and Enter key.
 ============================================================================= */
 
 .news-search-terms__editor {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
-}
-
-/* --- Search Term Chips List --- */
-
-.news-search-terms__list {
-    list-style: none;
-
-    display: flex;
-    flex-wrap: wrap;
     gap: var(--space-1);
 
-    margin: 0;
-    padding: 0;
-
-    min-height: var(--space-4);
+    padding: var(--space-2);
 }
 
-/* --- Search Term Chip --- */
-
-.news-search-term-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-
-    background-color: var(--color-bg-primary);
-    border: var(--border-width-thin) solid var(--color-border);
-    border-radius: var(--radius-full);
-
-    padding: 2px var(--space-1) 2px var(--space-2);
+.news-search-terms__textarea {
+    padding: var(--space-1) var(--space-2);
 
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     color: var(--color-text-primary);
+    line-height: var(--line-height-snug);
 
-    transition: background-color var(--transition-fast);
-}
+    background-color: var(--color-white);
+    border: var(--border-width-thin) solid var(--color-border);
+    border-radius: var(--radius-sm);
 
-.news-search-term-chip:hover {
-    background-color: var(--color-bg-tertiary);
-}
-
-.news-search-term-chip__text {
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.news-search-term-chip__remove {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 16px;
-    height: 16px;
-
-    background: none;
-    border: none;
-    border-radius: var(--radius-full);
-
-    font-family: var(--font-heading);
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    line-height: 1;
-
-    cursor: pointer;
-    padding: 0;
+    outline: none;
+    resize: vertical;
+    min-height: 56px;
 
     transition:
-        color var(--transition-fast),
-        background-color var(--transition-fast);
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
 }
 
-.news-search-term-chip__remove:hover {
-    color: var(--color-accent-primary);
-    background-color: var(--color-bg-tertiary);
+.news-search-terms__textarea:focus {
+    border-color: var(--color-dash-accent);
 }
 
-/* --- Add Search Term Row --- */
-
-.news-search-terms__add-row {
-    display: flex;
-    gap: var(--space-1);
-}
-
-.news-search-terms__add-input {
-    flex: 1;
-
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    color: var(--color-text-primary);
-    background-color: var(--color-bg-primary);
-
-    border: var(--border-width-thin) solid var(--color-border);
-    padding: var(--space-1) var(--space-2);
-}
-
-.news-search-terms__add-input:focus {
-    outline: none;
-    border-color: var(--color-accent-primary);
-}
-
-.news-search-terms__add-input::placeholder {
+.news-search-terms__textarea::placeholder {
     color: var(--color-text-muted);
+}
+
+/* =============================================================================
+   5b. SAVED SEARCH TERMS OVERVIEW
+   Read-only list of saved search terms, matching Wikipedia/Challenge pattern.
+============================================================================= */
+
+.news-search-terms-overview {
+    padding: var(--space-1) var(--space-2) 0 var(--space-2);
+}
+
+.news-search-terms-overview-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.news-search-terms-overview-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-05) var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-snug);
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.news-search-terms-overview-item--empty {
+    color: var(--color-text-muted);
+    font-style: italic;
+    background-color: transparent;
 }
 
 /* =============================================================================

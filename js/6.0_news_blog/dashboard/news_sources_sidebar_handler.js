@@ -1,27 +1,17 @@
-// Trigger:  Called by dashboard_news_sources.js → window.initNewsSidebar()
-//           on module initialisation, and by news_sources_handler.js →
+// Trigger:  Called by dashboard_news_sources.js -> window.initNewsSidebar()
+//           on module initialisation, and by news_sources_handler.js ->
 //           window.populateNewsSidebar() when an article row is selected.
-// Main:    initNewsSidebar() — wires all sidebar interactive elements
-//           to their handlers. Manages source URL, keywords, and search
-//           terms across the three sub-types sharing a common group id.
-//           populateNewsSidebar(record) — fills sidebar fields with
+// Main:    initNewsSidebar() -- wires all sidebar interactive elements
+//           to their handlers. Manages source URL and search terms across
+//           the three sub-types sharing a common group id.
+//           populateNewsSidebar(record) -- fills sidebar fields with
 //           the selected article's source config and search terms.
-// Output:  Interactive sidebar with keyword chip management, search term
-//          chip management, and source URL editing for the selected news
-//          article. All modifications are auto-saved as draft. Errors
-//          routed through window.surfaceError().
+// Output:  Interactive sidebar with source URL editing and search term
+//          textarea (matching Wikipedia/Challenge pattern). All
+//          modifications are auto-saved as draft. Errors routed through
+//          window.surfaceError().
 
 "use strict";
-
-/* --- Search Term Chip Config --- */
-var _nsSearchTermChipConfig = {
-  prefix: "news-",
-  inputId: "news-search-term-input",
-  chipListId: "news-search-terms-list",
-  chipClass: "news-search-term-chip",
-  stateTermsKey: "activeSearchTerms",
-  renderFn: _renderSearchTerms,
-};
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: initNewsSidebar
@@ -33,28 +23,14 @@ function initNewsSidebar() {
     saveUrlBtn.addEventListener("click", _handleSaveUrl);
   }
 
-  // --- Search Terms (add button) ---
-  var addTermBtn = document.getElementById("btn-news-add-term");
-  var addTermInput = document.getElementById("news-search-term-input");
-  if (addTermBtn) {
-    addTermBtn.addEventListener("click", function () {
-      _addTermsFromInput();
-    });
-  }
-  if (addTermInput) {
-    addTermInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        _addTermsFromInput();
-      }
-    });
-  }
-
   // --- Source URL input (auto-save on blur) ---
   var urlInput = document.getElementById("news-source-url-input");
   if (urlInput) urlInput.addEventListener("blur", _handleSaveUrl);
 
-  // Sidebar starts disabled — no record selected yet
+  // --- Search Terms textarea (auto-save) ---
+  _wireSearchTermsAutoSave();
+
+  // Sidebar starts disabled -- no record selected yet
   _setSidebarDisabled(true);
 }
 
@@ -79,8 +55,9 @@ function populateNewsSidebar(record) {
   var urlInput = document.getElementById("news-source-url-input");
   if (urlInput) urlInput.value = state.activeSourceUrl || "";
 
-  // Render search term chips
-  _renderSearchTerms();
+  // Populate search terms textarea and overview
+  _renderSearchTermsInTextarea();
+  _renderSearchTermsOverview();
 
   // Populate the shared metadata widget
   if (typeof window.populateMetadataWidget === "function") {
@@ -98,8 +75,11 @@ function _clearSidebar() {
   var urlInput = document.getElementById("news-source-url-input");
   if (urlInput) urlInput.value = "";
 
-  var termsList = document.getElementById("news-search-terms-list");
-  if (termsList) termsList.innerHTML = "";
+  var termsInput = document.getElementById("news-search-terms-input");
+  if (termsInput) termsInput.value = "";
+
+  var overviewList = document.getElementById("news-search-terms-overview-list");
+  if (overviewList) overviewList.innerHTML = "";
 
   // Clear the shared metadata widget
   if (typeof window.populateMetadataWidget === "function") {
@@ -118,8 +98,7 @@ function _setSidebarDisabled(disabled) {
   var ids = [
     "news-source-url-input",
     "btn-news-save-url",
-    "news-search-term-input",
-    "btn-news-add-term",
+    "news-search-terms-input",
   ];
 
   ids.forEach(function (id) {
@@ -153,24 +132,109 @@ function _setSidebarDisabled(disabled) {
 }
 
 /* -----------------------------------------------------------------------------
-   INTERNAL: _addTermsFromInput
-   Reads the search term input, splits by commas, adds each unique term
-   as an individual chip, re-renders, and saves immediately.
-   Supports both single terms and comma-separated lists.
+   INTERNAL: _renderSearchTermsInTextarea
+   Populates the search terms textarea from module state (one term per line).
 ----------------------------------------------------------------------------- */
-function _addTermsFromInput() {
+function _renderSearchTermsInTextarea() {
+  var state = window._newsSourcesModuleState;
+  var termsInput = document.getElementById("news-search-terms-input");
+  if (!termsInput) return;
+
+  var terms = state ? state.activeSearchTerms : [];
+  termsInput.value = (terms || []).join("\n");
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _renderSearchTermsOverview
+   Renders a read-only overview list of saved search terms.
+----------------------------------------------------------------------------- */
+function _renderSearchTermsOverview() {
+  var listEl = document.getElementById("news-search-terms-overview-list");
+  if (!listEl) return;
+
+  var state = window._newsSourcesModuleState;
+  var terms = state ? state.activeSearchTerms : [];
+
+  listEl.innerHTML = "";
+
+  if (!terms || terms.length === 0) {
+    var emptyItem = document.createElement("li");
+    emptyItem.className =
+      "news-search-terms-overview-item news-search-terms-overview-item--empty";
+    emptyItem.textContent = "No search terms saved.";
+    listEl.appendChild(emptyItem);
+    return;
+  }
+
+  terms.forEach(function (term) {
+    var itemEl = document.createElement("li");
+    itemEl.className = "news-search-terms-overview-item";
+    itemEl.textContent = term;
+    listEl.appendChild(itemEl);
+  });
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: _wireSearchTermsAutoSave
+   Wires auto-save on the search terms textarea:
+     - input event (debounced 1s)
+     - blur event (save immediately)
+     - Enter key (save immediately, no newline)
+----------------------------------------------------------------------------- */
+function _wireSearchTermsAutoSave() {
+  var termsInput = document.getElementById("news-search-terms-input");
+  if (!termsInput || termsInput.dataset.wired) return;
+
+  var saveTimeout = null;
+
+  function _saveNow() {
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+      saveTimeout = null;
+    }
+    _saveSearchTerms();
+  }
+
+  termsInput.addEventListener("input", function () {
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(function () {
+      _saveSearchTerms();
+    }, 1000);
+  });
+
+  termsInput.addEventListener("blur", function () {
+    _saveNow();
+  });
+
+  // Enter saves immediately (no newline insertion)
+  termsInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      _saveNow();
+    }
+  });
+
+  termsInput.dataset.wired = "true";
+}
+
+/* -----------------------------------------------------------------------------
+   HANDLER: _saveSearchTerms
+   Reads the textarea, parses terms (split by newlines or commas), and saves
+   to search term sub-type rows. Re-renders the overview list on success.
+----------------------------------------------------------------------------- */
+async function _saveSearchTerms() {
   var state = window._newsSourcesModuleState;
   if (!state || !state.activeGroupId) return;
 
-  var inputEl = document.getElementById("news-search-term-input");
-  if (!inputEl) return;
+  var groupId = state.activeGroupId;
+  var allRecords = state._allNewsArticleRecords || [];
 
-  var rawValue = inputEl.value.trim();
-  if (!rawValue) return;
+  // Parse terms from textarea
+  var termsInput = document.getElementById("news-search-terms-input");
+  var rawValue = termsInput ? termsInput.value.trim() : "";
 
-  // Split by commas and filter empty
-  var newTerms = rawValue
-    .split(",")
+  var searchTerms = rawValue
+    .split(/[\n,]+/)
     .map(function (t) {
       return t.trim();
     })
@@ -178,145 +242,31 @@ function _addTermsFromInput() {
       return t.length > 0;
     });
 
-  if (newTerms.length === 0) return;
+  // Update module state
+  state.activeSearchTerms = searchTerms;
 
-  var existingTerms = state.activeSearchTerms || [];
-  var added = false;
-
-  newTerms.forEach(function (term) {
-    if (existingTerms.indexOf(term) === -1) {
-      existingTerms.push(term);
-      added = true;
-    }
-  });
-
-  if (!added) {
-    inputEl.value = "";
-    return; // All already exist
-  }
-
-  state.activeSearchTerms = existingTerms;
-  inputEl.value = "";
-
-  // Re-render chips
-  _renderSearchTerms();
-
-  // Save immediately (skip debounce)
-  _saveKeywordsAndTerms();
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _removeChip
-   Removes a chip at the given index, re-renders, and triggers auto-save.
------------------------------------------------------------------------------ */
-function _removeChip(state, config, index) {
-  var terms = state[config.stateTermsKey] || [];
-  if (index < 0 || index >= terms.length) return;
-
-  terms.splice(index, 1);
-  state[config.stateTermsKey] = terms;
-
-  if (typeof config.renderFn === "function") {
-    config.renderFn();
-  }
-
-  _scheduleKeywordSave();
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _renderSearchTerms
-   Renders search term chips in #news-search-terms-list.
------------------------------------------------------------------------------ */
-function _renderSearchTerms() {
-  var state = window._newsSourcesModuleState;
-  var listEl = document.getElementById("news-search-terms-list");
-  if (!listEl) return;
-
-  listEl.innerHTML = "";
-
-  var terms = state ? state.activeSearchTerms : [];
-  if (!terms || terms.length === 0) return;
-
-  terms.forEach(function (term, index) {
-    var chipEl = document.createElement("li");
-    chipEl.className = "news-search-term-chip";
-
-    var textEl = document.createElement("span");
-    textEl.className = "news-search-term-chip__text";
-    textEl.textContent = term;
-    chipEl.appendChild(textEl);
-
-    var removeBtn = document.createElement("button");
-    removeBtn.className = "news-search-term-chip__remove";
-    removeBtn.textContent = "\u00d7";
-    removeBtn.setAttribute("type", "button");
-    removeBtn.setAttribute("aria-label", "Remove search term: " + term);
-    removeBtn.setAttribute("title", "Remove search term");
-    removeBtn.addEventListener("click", function () {
-      _removeChip(
-        window._newsSourcesModuleState,
-        _nsSearchTermChipConfig,
-        index,
-      );
-    });
-    chipEl.appendChild(removeBtn);
-
-    listEl.appendChild(chipEl);
-  });
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _scheduleKeywordSave
-   Debounced save for keywords and search terms.
------------------------------------------------------------------------------ */
-var _nsKeywordSaveTimer = null;
-function _scheduleKeywordSave() {
-  if (_nsKeywordSaveTimer) clearTimeout(_nsKeywordSaveTimer);
-  _nsKeywordSaveTimer = setTimeout(_saveKeywordsAndTerms, 800);
-}
-
-/* -----------------------------------------------------------------------------
-   HANDLER: _saveKeywordsAndTerms
-   Saves keywords to the source row and search terms to search term rows.
------------------------------------------------------------------------------ */
-async function _saveKeywordsAndTerms() {
-  var state = window._newsSourcesModuleState;
-  if (!state || !state.activeGroupId) return;
-
-  var groupId = state.activeGroupId;
-  var allRecords = state._allNewsArticleRecords || [];
-
-  // --- Save search terms: delete all existing, then POST new ones ---
-  // First, collect existing search term row IDs
-  var existingTermRowIds = [];
+  // Delete all existing search term rows for this group
   for (var j = 0; j < allRecords.length; j++) {
     if (
       allRecords[j].type === "news_article" &&
       allRecords[j].sub_type === "news_search_term" &&
-      allRecords[j].id === groupId
+      allRecords[j].id === groupId &&
+      allRecords[j]._row_id
     ) {
-      if (allRecords[j]._row_id) {
-        existingTermRowIds.push(allRecords[j]._row_id);
+      try {
+        await fetch("/api/admin/records/" + allRecords[j]._row_id, {
+          method: "DELETE",
+        });
+      } catch (err) {
+        console.error(
+          "[news_sources_sidebar] Delete search term row failed:",
+          err,
+        );
       }
     }
   }
 
-  // Delete all existing search term rows for this group
-  for (var k = 0; k < existingTermRowIds.length; k++) {
-    try {
-      await fetch("/api/admin/records/" + existingTermRowIds[k], {
-        method: "DELETE",
-      });
-    } catch (err) {
-      console.error(
-        "[news_sources_sidebar] Delete search term row failed:",
-        err,
-      );
-    }
-  }
-
   // POST new search term rows
-  var searchTerms = state.activeSearchTerms || [];
   for (var t = 0; t < searchTerms.length; t++) {
     try {
       await fetch("/api/admin/records", {
@@ -335,8 +285,8 @@ async function _saveKeywordsAndTerms() {
     }
   }
 
-  // Re-render chips to reflect the saved state in the sidebar
-  _renderSearchTerms();
+  // Re-render the overview list
+  _renderSearchTermsOverview();
 
   if (typeof window.surfaceError === "function") {
     window.surfaceError(
@@ -431,7 +381,7 @@ async function _handleSaveUrl() {
 /* -----------------------------------------------------------------------------
    FUNCTION: scheduleAutoSave
    Debounced auto-save (1500ms) that collects editor data and saves
-   source URL, keywords, and search terms to appropriate sub-type rows.
+   source URL and search terms to appropriate sub-type rows.
 ----------------------------------------------------------------------------- */
 function scheduleAutoSave() {
   if (window._newsAutoSaveTimer) {
@@ -445,8 +395,8 @@ function scheduleAutoSave() {
     // Save source URL
     await _handleSaveUrl();
 
-    // Save keywords and search terms
-    await _saveKeywordsAndTerms();
+    // Save search terms
+    await _saveSearchTerms();
   }, 1500);
 }
 
