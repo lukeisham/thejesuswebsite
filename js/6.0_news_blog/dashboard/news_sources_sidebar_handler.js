@@ -250,11 +250,10 @@ async function _saveSearchTerms() {
     if (
       allRecords[j].type === "news_article" &&
       allRecords[j].sub_type === "news_search_term" &&
-      allRecords[j].id === groupId &&
-      allRecords[j]._row_id
+      allRecords[j].parent_id === groupId
     ) {
       try {
-        await fetch("/api/admin/records/" + allRecords[j]._row_id, {
+        await fetch("/api/admin/records/" + allRecords[j].id, {
           method: "DELETE",
         });
       } catch (err) {
@@ -266,14 +265,14 @@ async function _saveSearchTerms() {
     }
   }
 
-  // POST new search term rows
+  // POST new search term rows (each gets its own unique id, linked by parent_id)
   for (var t = 0; t < searchTerms.length; t++) {
     try {
       await fetch("/api/admin/records", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: groupId,
+          parent_id: groupId,
           type: "news_article",
           sub_type: "news_search_term",
           news_search_term: searchTerms[t],
@@ -313,13 +312,13 @@ async function _handleSaveUrl() {
   var groupId = state.activeGroupId;
   var allRecords = state._allNewsArticleRecords || [];
 
-  // Find existing source row
+  // Find existing source row (linked by parent_id)
   var sourceRow = null;
   for (var i = 0; i < allRecords.length; i++) {
     if (
       allRecords[i].type === "news_article" &&
       allRecords[i].sub_type === "news_source" &&
-      allRecords[i].id === groupId
+      allRecords[i].parent_id === groupId
     ) {
       sourceRow = allRecords[i];
       break;
@@ -327,9 +326,9 @@ async function _handleSaveUrl() {
   }
 
   try {
-    if (sourceRow && sourceRow._row_id) {
+    if (sourceRow && sourceRow.id) {
       // Update existing source row
-      var response = await fetch("/api/admin/records/" + sourceRow._row_id, {
+      var response = await fetch("/api/admin/records/" + sourceRow.id, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -342,12 +341,12 @@ async function _handleSaveUrl() {
         throw new Error("API responded with status " + response.status);
       }
     } else {
-      // Create new source row
+      // Create new source row (unique id auto-generated, linked by parent_id)
       var response = await fetch("/api/admin/records", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: groupId,
+          parent_id: groupId,
           type: "news_article",
           sub_type: "news_source",
           source_url: url,

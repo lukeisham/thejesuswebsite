@@ -229,18 +229,22 @@ function _wireActionButtons() {
       btnDelete.disabled = true;
       btnDelete.textContent = "Deleting…";
       try {
-        // Delete all sub-type rows first, then main entry
+        // Delete all sub-type rows first (linked by parent_id), then main entry
         const allRecords = state._allNewsArticleRecords || [];
         for (var i = 0; i < allRecords.length; i++) {
           if (
-            allRecords[i].id === state.activeGroupId &&
-            allRecords[i]._row_id
+            allRecords[i].parent_id === state.activeGroupId &&
+            allRecords[i].id
           ) {
-            await fetch("/api/admin/records/" + allRecords[i]._row_id, {
+            await fetch("/api/admin/records/" + allRecords[i].id, {
               method: "DELETE",
             });
           }
         }
+        // Delete the main entry itself
+        await fetch("/api/admin/records/" + state.activeGroupId, {
+          method: "DELETE",
+        });
         if (typeof window.surfaceError === "function") {
           window.surfaceError('Deleted: "' + state.activeArticleTitle + '"');
         }
@@ -259,29 +263,7 @@ function _wireActionButtons() {
     });
   }
 
-  // Gather — trigger the news crawler pipeline (shared gather tool)
-  const btnGather = document.getElementById("btn-gather");
-  if (btnGather) {
-    btnGather.addEventListener("click", async function () {
-      btnGather.disabled = true;
-      btnGather.textContent = "Gathering…";
-      try {
-        if (typeof window.triggerGather === "function") {
-          await window.triggerGather("news_crawl", "");
-        } else if (typeof window.startNewsCrawl === "function") {
-          await window.startNewsCrawl();
-        }
-      } finally {
-        btnGather.disabled = false;
-        btnGather.textContent = "Gather";
-      }
-    });
-  }
-
-  // Re-fetch the sources list
-  if (typeof window.displayNewsSourcesList === "function") {
-    // Ensure list is displayed
-  }
+  // Gather button is wired by initNewsCrawler() — no duplicate wiring here
 }
 
 /* -----------------------------------------------------------------------------
@@ -312,7 +294,7 @@ async function _handleSaveDraft() {
       if (
         allRecords[i].type === "news_article" &&
         allRecords[i].sub_type === "news_source" &&
-        allRecords[i].id === groupId
+        allRecords[i].parent_id === groupId
       ) {
         sourceRow = allRecords[i];
         break;
@@ -320,8 +302,8 @@ async function _handleSaveDraft() {
     }
 
     try {
-      if (sourceRow && sourceRow._row_id) {
-        await fetch("/api/admin/records/" + sourceRow._row_id, {
+      if (sourceRow && sourceRow.id) {
+        await fetch("/api/admin/records/" + sourceRow.id, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -334,7 +316,7 @@ async function _handleSaveDraft() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: groupId,
+            parent_id: groupId,
             type: "news_article",
             sub_type: "news_source",
             source_url: urlInput.value.trim(),
@@ -353,10 +335,9 @@ async function _handleSaveDraft() {
     if (
       allRecords[j].type === "news_article" &&
       allRecords[j].sub_type === "news_search_term" &&
-      allRecords[j].id === groupId &&
-      allRecords[j]._row_id
+      allRecords[j].parent_id === groupId
     ) {
-      existingTermRowIds.push(allRecords[j]._row_id);
+      existingTermRowIds.push(allRecords[j].id);
     }
   }
 
@@ -377,7 +358,7 @@ async function _handleSaveDraft() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: groupId,
+          parent_id: groupId,
           type: "news_article",
           sub_type: "news_search_term",
           news_search_term: searchTerms[t],

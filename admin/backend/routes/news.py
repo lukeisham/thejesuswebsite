@@ -140,7 +140,7 @@ async def get_news_items(admin_data: dict = Depends(verify_token)):
             """
             SELECT id, title, slug, snippet, news_items, news_item_title,
                    news_item_link, news_sources, news_search_term,
-                   last_crawled, source_url, keywords,
+                   last_crawled, source_url, keywords, parent_id,
                    created_at, updated_at, status, type, sub_type
             FROM records
             WHERE (type = 'news_article' OR news_items IS NOT NULL)

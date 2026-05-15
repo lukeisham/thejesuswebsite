@@ -23,7 +23,7 @@
 #                news_item_link    = article URL
 #                last_crawled      = ISO-8601 timestamp
 #                snippet           = JSON array (single-element with title text)
-#                status            = 'published'
+#                status            = 'draft'
 #
 #   ERROR HANDLING (T9):
 #     - Source Unreachable: ConnectionError/Timeout → "Unable to connect"
@@ -271,7 +271,7 @@ def run_pipeline():
                         news_item_title, news_item_link, last_crawled,
                         created_at, updated_at, users
                     )
-                    VALUES (?, 'news_article', NULL, 'published', ?, ?, ?,
+                    VALUES (?, 'news_article', NULL, 'draft', ?, ?, ?,
                             ?, ?, ?,
                             ?, ?, 'Public')
                     """,
@@ -407,8 +407,9 @@ def _collect_source_urls(conn):
 
     cursor.execute(
         "SELECT id, title, slug, news_sources, source_url FROM records "
-        "WHERE (news_sources IS NOT NULL AND news_sources != '') "
-        "OR (source_url IS NOT NULL AND source_url != '')"
+        "WHERE type = 'news_article' "
+        "AND ((news_sources IS NOT NULL AND news_sources != '') "
+        "OR (source_url IS NOT NULL AND source_url != ''))"
     )
     rows = cursor.fetchall()
 

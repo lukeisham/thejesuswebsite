@@ -21,7 +21,7 @@ function injectNewsSnippets(containerId) {
   // Show loading state
   container.innerHTML = '<p class="text-sm text-muted">Loading news...</p>';
 
-  fetch("/api/public/news?type=news_article&status=published")
+  fetch("/api/public/news?type=news_article&status=published&limit=5")
     .then(function (response) {
       if (!response.ok) {
         throw new Error(

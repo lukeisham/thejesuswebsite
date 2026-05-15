@@ -33,8 +33,8 @@ async function displayNewsSourcesList() {
   if (errorEl) errorEl.setAttribute("aria-hidden", "true");
 
   try {
-    // Fetch all records — the API returns the full records table
-    const response = await fetch("/api/admin/records", {
+    // Fetch only news article records from the dedicated endpoint
+    const response = await fetch("/api/admin/news/items", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -313,13 +313,13 @@ function _selectNewsArticleRow(rowEl, record) {
   state.activeArticleLink = record.news_item_link || "";
   state.activeLastCrawled = record.last_crawled || "";
 
-  // --- Find matching source row (sub_type = "news_source", same id) ---
+  // --- Find matching source row (sub_type = "news_source", linked by parent_id) ---
   var sourceRow = null;
   for (var i = 0; i < allRecords.length; i++) {
     if (
       allRecords[i].type === "news_article" &&
       allRecords[i].sub_type === "news_source" &&
-      allRecords[i].id === record.id
+      allRecords[i].parent_id === record.id
     ) {
       sourceRow = allRecords[i];
       break;
@@ -332,13 +332,13 @@ function _selectNewsArticleRow(rowEl, record) {
     state.activeSourceUrl = "";
   }
 
-  // --- Find matching search term rows (sub_type = "news_search_term", same id) ---
+  // --- Find matching search term rows (sub_type = "news_search_term", linked by parent_id) ---
   var searchTerms = [];
   for (var j = 0; j < allRecords.length; j++) {
     if (
       allRecords[j].type === "news_article" &&
       allRecords[j].sub_type === "news_search_term" &&
-      allRecords[j].id === record.id
+      allRecords[j].parent_id === record.id
     ) {
       var term = allRecords[j].news_search_term || "";
       if (term) searchTerms.push(term);
