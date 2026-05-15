@@ -1,6 +1,6 @@
 ---
 name: high_level_schema.md
-version: 2.1.1
+version: 2.1.2
 purpose: High-level polymorphic data model — unified single-table design with type discriminator, sub-type variants, and shared base fields
 dependencies: [data_schema.md, detailed_module_sitemap.md]
 ---
@@ -64,7 +64,6 @@ title           TEXT    Flat Indexable — display title
 slug            TEXT    URL-safe identifier
 snippet         TEXT    JSON Array (paragraphs) — archival abstract
 metadata_json   TEXT    JSON Blob — SEO keywords, search metadata
-users           TEXT    JSON Blob — "Admin" | "Public" | "Agent" (SPA routing)
 context_links   TEXT    JSON Blob — internal website links
 iaa             TEXT    Text identifier
 pledius         TEXT    Text identifier
@@ -95,8 +94,7 @@ updated_at      TEXT    ISO8601
                            │  slug                        │
                            │  snippet                     │
                            │  metadata_json               │
-                           │  users                       │
-                           │  context_links               │
+                                                      │  context_links               │
                            │  iaa / pledius / manuscript  │
                            │  url                         │
                            │  page_views                  │
@@ -594,7 +592,7 @@ discriminated by `type = "system_data"`.
 | Field Group | record | context_essay | historiographical_essay | theological_essay | spiritual_article | challenge_response | blog_post | wikipedia_entry | challenge_academic | challenge_popular | news_article | system_data |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | id + type + status | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| title + slug + snippet + metadata_json + users | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| title + slug + snippet + metadata_json | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | created_at / updated_at | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | sub-type | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | MLA bibliography | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |

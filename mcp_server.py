@@ -3,10 +3,11 @@
 #   File:    mcp_server.py
 #   Version: 1.2.0
 #   Purpose: Read-only external agent access to the SQLite archive.
-#            Provides filtered, type-safe, column-excluded access to the
-#            `records` table. Explicitly excludes `system_data` type,
-#            the `users` column, and the `system_config`/`agent_run_log`
-#            tables (no tools reference them).
+#            Provides filtered, type-safe access to the `records` table.
+#            Explicitly excludes `system_data` type, and the
+#            `system_config`/`agent_run_log` tables (no tools reference
+#            them). The `users` column was removed from the schema in
+#            Plan `remove_users_column`.
 # =============================================================================
 
 import json
@@ -35,7 +36,8 @@ def get_db_connection():
     return conn
 
 
-# Public-safe column list for list_records — excludes `users` column.
+# Public-safe column list for list_records.
+# The `users` column was removed from the schema in Plan `remove_users_column`.
 # system_config and agent_run_log tables are never queried by any tool.
 _LIST_RECORDS_COLUMNS = [
     "id",
@@ -54,7 +56,8 @@ def list_records() -> str:
     """
     List historically archived records currently validated on The Jesus Website.
     Returns core foundational JSON metadata mapped securely via Read-Only selection.
-    Filters out system_data type records and excludes the users column.
+    Filters out system_data type records. The `users` column was removed from the
+    schema in Plan `remove_users_column`.
     """
     try:
         if not os.path.exists(DB_PATH):
@@ -63,7 +66,7 @@ def list_records() -> str:
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Read-only explicit constraint — exclude system_data type and users column
+        # Read-only explicit constraint — exclude system_data type
         columns = ", ".join(_LIST_RECORDS_COLUMNS)
         cursor.execute(
             f"SELECT {columns} FROM records WHERE type NOT IN ('system_data') LIMIT 100"
@@ -76,7 +79,8 @@ def list_records() -> str:
         return json.dumps({"error": f"Database indexing failure: {str(e)}"})
 
 
-# Public-safe column list for get_record — excludes `users` column.
+# Public-safe column list for get_record.
+# The `users` column was removed from the schema in Plan `remove_users_column`.
 # Includes all public content columns needed for deep-dive display.
 _GET_RECORD_COLUMNS = [
     "id",
@@ -115,7 +119,8 @@ def get_record(slug: str) -> str:
         slug: The precise url-friendly title
             (e.g. 'jesus-myth-theory')
     Notes:
-        - Uses explicit column list (no SELECT *) to exclude `users` column.
+        - Uses explicit column list (no SELECT *) for safety.
+        - The `users` column was removed from the schema in Plan `remove_users_column`.
         - Filters out system_data type even if slug somehow matches.
         - system_config and agent_run_log tables are never queried.
     """
@@ -172,7 +177,8 @@ def search_records(query: str) -> str:
         query: Free-text keyword to search for in title and snippet fields.
     Returns:
         Up to 20 results with id, title, slug, type, snippet (first 200 chars),
-        and created_at. Filters out system_data type and excludes users column.
+        and created_at. Filters out system_data type. The `users` column was removed
+        from the schema in Plan `remove_users_column`.
     Notes:
         Uses parameterised LIKE queries to prevent SQL injection.
     """

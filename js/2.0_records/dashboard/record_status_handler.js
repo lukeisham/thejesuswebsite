@@ -26,9 +26,8 @@
 function collectAllFormData() {
   const payload = {};
 
-  // Section 0: Record identity defaults (always set so records appear on the public site)
+  // Section 0: Record identity default
   payload.type = "record";
-  payload.users = "Public";
 
   // Section 1: Core Identifiers
   // Only include id if it has a value (backend auto-generates for new records)
@@ -203,7 +202,9 @@ async function handleSaveDraft() {
     console.error("[record_status_handler] Save draft failed:", err);
     // _checkAuth redirects on 401 — only surface non-auth errors here
     if (!err.message.startsWith("AUTH_REDIRECT")) {
-      _surfaceError(`Error: Failed to save draft for '${title}' (${err.message}).`);
+      _surfaceError(
+        `Error: Failed to save draft for '${title}' (${err.message}).`,
+      );
     }
     return false;
   }

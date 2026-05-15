@@ -188,8 +188,6 @@ async def create_record(
         # --- Server-side defaults: ensure records are visible on the public site ---
         if "type" not in safe_data:
             safe_data["type"] = "record"
-        if "users" not in safe_data:
-            safe_data["users"] = "Public"
 
         if "id" not in safe_data:
             safe_data["id"] = str(uuid.uuid4())

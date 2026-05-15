@@ -1,6 +1,6 @@
 ---
 name: data_schema.md
-version: 1.0.5
+version: 1.0.6
 purpose: data schema for the jesus website (source of truth)
 dependencies: [site_map.md, module_sitemap.md]
 ---
@@ -287,10 +287,6 @@ dependencies: [site_map.md, module_sitemap.md]
 `news_item_link` | TEXT | Flat Indexable   
 `last_crawled` | TEXT | ISO8601 String (timestamp of last crawl for this news article/source)
 `news_search_term` | TEXT | JSON Blob 
-`users` | TEXT | JSON Blob (SPA Routing)
-    `Admin`
-    `Public`
-    `Agent`
 `page_views` | INTEGER | Flat Indexable (64-bit int)
 `iaa` | TEXT | Flat Indexable 
 `pledius` | TEXT | Flat Indexable 
