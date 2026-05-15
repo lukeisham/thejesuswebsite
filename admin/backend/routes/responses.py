@@ -57,9 +57,9 @@ async def create_response(
         # Insert the new response record
         cursor.execute(
             """
-            INSERT INTO records (id, title, slug, challenge_id, status,
+            INSERT INTO records (id, title, slug, challenge_id, type, status,
                                  created_at, updated_at, responses)
-            VALUES (?, ?, ?, ?, 'draft', ?, ?, ?)
+            VALUES (?, ?, ?, ?, 'challenge_response', 'draft', ?, ?, ?)
             """,
             (
                 new_id,
@@ -120,7 +120,7 @@ async def get_responses(admin_data: dict = Depends(verify_token)):
             SELECT id, title, slug, challenge_id, snippet, responses,
                    created_at, updated_at, status
             FROM records
-            WHERE challenge_id IS NOT NULL
+            WHERE (type = 'challenge_response' OR challenge_id IS NOT NULL)
             ORDER BY created_at DESC
             """
         )

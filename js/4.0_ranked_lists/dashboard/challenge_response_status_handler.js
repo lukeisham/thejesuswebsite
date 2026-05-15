@@ -188,7 +188,7 @@ async function _handlePublish() {
     return;
   }
 
-  if (!payload.markdown_content || !payload.markdown_content.trim()) {
+  if (!payload.body || !payload.body.trim()) {
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
         "Error: Failed to publish '" + title + "'. Check required fields.",
@@ -353,7 +353,7 @@ function _collectEditorData() {
 
   const payload = {
     title: titleInput ? titleInput.value : "",
-    markdown_content: textarea ? textarea.value : "",
+    body: textarea ? textarea.value : "",
   };
 
   // Collect from metadata widget

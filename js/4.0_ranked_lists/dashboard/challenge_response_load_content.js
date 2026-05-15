@@ -54,7 +54,7 @@ async function loadChallengeResponseContent(recordId, title) {
 
     // Populate markdown content (body field for challenge_response type)
     if (typeof window.setMarkdownContent === "function") {
-      window.setMarkdownContent(doc.markdown_content || doc.content || "");
+      window.setMarkdownContent(doc.body || doc.content || "");
     }
 
     // Populate slug

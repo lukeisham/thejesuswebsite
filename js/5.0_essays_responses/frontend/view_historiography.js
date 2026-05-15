@@ -17,7 +17,7 @@ function renderHistoriography(containerId) {
 
   // --- Singleton fetch: there is exactly one historiography record ---
   fetch(
-    "/api/public/essays/historiography?type=historiography&status=published",
+    "/api/public/essays/historiography?type=historiographical_essay&status=published",
   )
     .then(function (response) {
       if (!response.ok) {

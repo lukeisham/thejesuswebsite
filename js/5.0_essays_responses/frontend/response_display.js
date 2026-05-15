@@ -62,11 +62,12 @@ function renderResponse(containerId) {
       // Update sidebar with linked parent challenge info
       if (targetEl) {
         if (resp.challenge_id) {
+          var challengeLabel = resp.challenge_title || resp.challenge_id;
           targetEl.innerHTML =
             '<a href="../debate/challenge.html?id=' +
             encodeURIComponent(resp.challenge_id) +
             '" class="text-accent hover:underline">Challenge: ' +
-            escapeHtml(resp.challenge_id) +
+            escapeHtml(challengeLabel) +
             "</a>";
         } else {
           targetEl.textContent = "Standalone response";
@@ -123,13 +124,14 @@ function renderResponse(containerId) {
 
       // --- CHALLENGE LINK ---
       if (resp.challenge_id) {
+        var bottomLabel = resp.challenge_title || resp.challenge_id;
         html +=
           '<div class="mt-8 pt-4" style="border-top: 1px solid var(--color-border);">' +
           '<p class="text-sm text-secondary">In response to: ' +
           '<a href="../debate/challenge.html?id=' +
           encodeURIComponent(resp.challenge_id) +
           '" class="text-accent hover:underline">' +
-          escapeHtml(resp.challenge_id) +
+          escapeHtml(bottomLabel) +
           " \u2192</a></p>" +
           "</div>";
       }

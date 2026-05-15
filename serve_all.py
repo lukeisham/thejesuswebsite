@@ -621,6 +621,27 @@ async def public_response_by_slug(slug: str):
         if not row:
             raise HTTPException(status_code=404, detail="Response not found")
         resp = dict(row)
+        # Resolve parent challenge title
+        if resp.get("challenge_id"):
+            conn2 = get_public_db_connection()
+            c2 = conn2.cursor()
+            c2.execute(
+                "SELECT title, academic_challenge_title, popular_challenge_title "
+                "FROM records WHERE id = ?",
+                (resp["challenge_id"],),
+            )
+            parent = c2.fetchone()
+            conn2.close()
+            if parent:
+                parent = dict(parent)
+                resp["challenge_title"] = (
+                    parent.get("title")
+                    or parent.get("academic_challenge_title")
+                    or parent.get("popular_challenge_title")
+                    or resp["challenge_id"]
+                )
+            else:
+                resp["challenge_title"] = resp["challenge_id"]
         if resp.get("snippet"):
             try:
                 resp["snippet"] = json.loads(resp["snippet"])
@@ -1088,10 +1109,37 @@ async def public_responses(
 
         cursor.execute(select_cols, query_params)
         rows = cursor.fetchall()
+
+        # Batch-resolve parent challenge titles
+        challenge_ids = set()
+        for row in rows:
+            cid = row["challenge_id"] if row["challenge_id"] else None
+            if cid:
+                challenge_ids.add(cid)
+        challenge_titles = {}
+        if challenge_ids:
+            placeholders = ",".join("?" for _ in challenge_ids)
+            cursor2 = conn.cursor()
+            cursor2.execute(
+                "SELECT id, title, academic_challenge_title, popular_challenge_title "
+                f"FROM records WHERE id IN ({placeholders})",
+                list(challenge_ids),
+            )
+            for prow in cursor2.fetchall():
+                p = dict(prow)
+                challenge_titles[p["id"]] = (
+                    p.get("title")
+                    or p.get("academic_challenge_title")
+                    or p.get("popular_challenge_title")
+                    or p["id"]
+                )
+
         conn.close()
         items = []
         for row in rows:
             item = dict(row)
+            if item.get("challenge_id") and item["challenge_id"] in challenge_titles:
+                item["challenge_title"] = challenge_titles[item["challenge_id"]]
             if item.get("snippet"):
                 try:
                     item["snippet"] = json.loads(item["snippet"])

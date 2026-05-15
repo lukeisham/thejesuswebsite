@@ -73,12 +73,13 @@ function renderResponseList(containerId) {
           // Challenge link
           var challengeHtml = "";
           if (challengeId) {
+            var challengeLabel = resp.challenge_title || challengeId;
             challengeHtml =
               '<span class="badge badge--muted">Challenge: ' +
               '<a href="../debate/challenge.html?id=' +
               encodeURIComponent(challengeId) +
               '" class="text-accent hover:underline">' +
-              escapeHtml(challengeId) +
+              escapeHtml(challengeLabel) +
               "</a></span>";
           }
 
