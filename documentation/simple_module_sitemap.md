@@ -56,7 +56,8 @@ dependencies: [detailed_module_sitemap.md]
 ├── 7.2 Agent Logic & Instructional Prompts
 ├── 7.3 Backend API & VPS Config
 ├── 7.4 Security Protocols & JWT Management
-└── 7.5 MCP Server 
+├── 7.5 MCP Server 
+└── 7.6 Donations 
 
 8.0 Setup & Testing Module
 ├── 8.1 Local Environment Initialization
