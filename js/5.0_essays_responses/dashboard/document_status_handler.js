@@ -148,7 +148,7 @@ async function _handlePublish() {
     return;
   }
 
-  if (!payload.markdown_content || !payload.markdown_content.trim()) {
+  if (!payload.body || !payload.body.trim()) {
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
         "Error: Failed to publish '" + title + "'. Check required fields.",
@@ -313,9 +313,16 @@ function _collectEditorData() {
   const titleInput = document.getElementById("wysiwyg-title-input");
   const textarea = document.getElementById("markdown-textarea");
 
+  var mode = window._essayModuleState ? window._essayModuleState.mode : "essay";
+  var typeMap = {
+    essay: "context_essay",
+    historiography: "historiographical_essay",
+  };
+
   const payload = {
     title: titleInput ? titleInput.value : "",
-    markdown_content: textarea ? textarea.value : "",
+    type: typeMap[mode] || "context_essay",
+    body: textarea ? textarea.value : "",
   };
 
   // Collect from metadata widget
@@ -387,7 +394,6 @@ async function _saveEssayDocument() {
   if (!recordId) return;
 
   const payload = _collectEditorData();
-  payload.status = "draft";
 
   try {
     const response = await fetch(

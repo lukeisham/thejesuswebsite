@@ -793,7 +793,8 @@ async def public_essay_by_slug(
 @app.get("/api/public/essays")
 async def public_essays():
     """
-    Returns all published records with context_essays column NOT NULL.
+    Returns all published essay records.
+    Uses type discriminator with legacy fallback for pre-migration data.
     """
     try:
         conn = get_public_db_connection()
@@ -801,7 +802,8 @@ async def public_essays():
         cursor.execute(
             "SELECT id, title, slug, snippet, context_essays, description, "
             "created_at, updated_at, picture_name, bibliography, context_links "
-            "FROM records WHERE context_essays IS NOT NULL "
+            "FROM records WHERE (type IN ('context_essay', 'theological_essay') "
+            "OR context_essays IS NOT NULL) "
             "AND status = 'published' ORDER BY created_at DESC"
         )
         rows = cursor.fetchall()

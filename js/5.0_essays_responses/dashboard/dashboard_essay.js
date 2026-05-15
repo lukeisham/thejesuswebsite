@@ -205,6 +205,7 @@ async function _handleNewEssay() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: newTitle,
+        type: "context_essay",
         body: "",
         snippet: "",
         status: "draft",

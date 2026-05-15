@@ -27,28 +27,22 @@ async def get_essays(
     admin_data: dict = Depends(verify_token),
 ):
     """
-    Returns all records where type column contains 'essay', ordered by title.
+    Returns all essay records, ordered by title.
+    Uses type discriminator with legacy fallback for pre-migration data.
     Consumed by plan_dashboard_essay_historiography.
-
-    Note: The 'type' field is not a dedicated column in the current schema.
-    Essay records are identified by having non-NULL context_essays or
-    theological_essays columns, or by the slug pattern.
-    For forward compatibility, this endpoint checks for records whose slug
-    matches known essay patterns or has essay content populated.
     """
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        # Essay records are those with essay content or essay-related slugs
         cursor.execute(
             """
             SELECT id, title, slug, snippet, created_at, updated_at, status,
                    context_essays, theological_essays, spiritual_articles
             FROM records
-            WHERE context_essays IS NOT NULL
+            WHERE type IN ('context_essay', 'theological_essay')
+               OR context_essays IS NOT NULL
                OR theological_essays IS NOT NULL
                OR spiritual_articles IS NOT NULL
-               OR slug LIKE '%essay%'
             ORDER BY title ASC
             """
         )
