@@ -2,6 +2,7 @@
 // Main:    renderExternalRefs(containerId) — builds a dynamic unique identifiers table.
 // Output:  Interactive table with add/delete rows; setExternalRefValues(data) / collectExternalRefs() for read/write.
 
+(function () {
 "use strict";
 
 /* =============================================================================
@@ -346,7 +347,7 @@ function _externalRefsError(context) {
     return;
   }
   const title =
-    typeof window._recordTitle !== "undefined" ? window._recordTitle : "";
+    typeof window.getRecordTitle === "function" ? window.getRecordTitle() : "";
   window.surfaceError(
     "Error: Failed to save external references for '" + title + "'."
   );
@@ -358,3 +359,5 @@ function _externalRefsError(context) {
 window.renderExternalRefs = renderExternalRefs;
 window.setExternalRefValues = setExternalRefValues;
 window.collectExternalRefs = collectExternalRefs;
+
+})();

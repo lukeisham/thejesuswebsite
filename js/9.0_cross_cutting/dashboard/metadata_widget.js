@@ -287,7 +287,7 @@ function renderMetadataWidget(containerId, options) {
     try {
       const response = await fetch("/api/admin/slug/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
         body: JSON.stringify({ slug: _getRecordId(), content: title.trim() }),
       });
       if (!response.ok) throw new Error("API Error");
@@ -333,7 +333,7 @@ function renderMetadataWidget(containerId, options) {
     try {
       const response = await fetch("/api/admin/snippet/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
         body: JSON.stringify({ slug: _getRecordId(), content: content }),
       });
       if (!response.ok) throw new Error("API Error");
@@ -379,7 +379,7 @@ function renderMetadataWidget(containerId, options) {
     try {
       const response = await fetch("/api/admin/metadata/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
         body: JSON.stringify({ slug: _getRecordId(), content: content }),
       });
       if (!response.ok) throw new Error("API Error");
@@ -432,7 +432,7 @@ function renderMetadataWidget(containerId, options) {
       promises.push(
         fetch("/api/admin/slug/generate", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
           body: JSON.stringify({ slug: recordId, content: title.trim() }),
         })
           .then((r) => r.json())
@@ -445,7 +445,7 @@ function renderMetadataWidget(containerId, options) {
       promises.push(
         fetch("/api/admin/snippet/generate", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
           body: JSON.stringify({ slug: recordId, content: content }),
         })
           .then((r) => r.json())
@@ -456,7 +456,7 @@ function renderMetadataWidget(containerId, options) {
       promises.push(
         fetch("/api/admin/metadata/generate", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
           body: JSON.stringify({ slug: recordId, content: content }),
         })
           .then((r) => r.json())

@@ -59,7 +59,7 @@ async function saveSidebarMetadata(state, config) {
     try {
         var response = await fetch("/api/admin/records/" + recordId, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
             body: JSON.stringify(payload),
         });
 

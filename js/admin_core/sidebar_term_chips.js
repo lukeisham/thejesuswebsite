@@ -58,7 +58,7 @@ async function addSidebarTerm(state, config) {
 
     var response = await fetch("/api/admin/records/" + recordId, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
       body: JSON.stringify(payload),
     });
 
@@ -115,7 +115,7 @@ async function removeSidebarTerm(state, config, index) {
 
     var response = await fetch("/api/admin/records/" + recordId, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
       body: JSON.stringify(payload),
     });
 

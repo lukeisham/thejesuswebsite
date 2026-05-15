@@ -4,6 +4,9 @@
 
 // This is the authoritative copy — consumed by plan_dashboard_blog_posts, plan_dashboard_essay_historiography
 
+(function () {
+"use strict";
+
 /* -----------------------------------------------------------------------------
    INTERNAL STATE — links array tracked in memory for collectEditLinks()
 ----------------------------------------------------------------------------- */
@@ -308,3 +311,5 @@ window.CONTEXT_LINK_SAVE_ERROR =
 ============================================================================= */
 window.renderEditLinks = renderEditLinks;
 window.collectEditLinks = collectEditLinks;
+
+})();

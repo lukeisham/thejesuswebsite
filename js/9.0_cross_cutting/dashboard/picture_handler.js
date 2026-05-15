@@ -145,6 +145,7 @@ function renderEditPicture(containerId, recordId) {
           API_BASE + "/records/" + encodeURIComponent(recordId) + "/picture",
           {
             method: "DELETE",
+            headers: { "X-CSRF-Token": window.getCSRFToken() },
           },
         );
 
@@ -303,6 +304,7 @@ function renderEditPicture(containerId, recordId) {
           `${API_BASE}/records/${encodeURIComponent(recordId)}/picture`,
           {
             method: "POST",
+            headers: { "X-CSRF-Token": window.getCSRFToken() },
             body: formData,
           },
         );

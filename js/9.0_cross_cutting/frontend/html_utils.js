@@ -51,3 +51,6 @@ function formatDateLong(isoString) {
     return isoString;
   }
 }
+
+window.escapeHtml = escapeHtml;
+window.formatDateLong = formatDateLong;

@@ -40,7 +40,7 @@ async function triggerAutoGenMeta(state, config) {
     try {
         var response = await fetch("/api/admin/metadata/generate", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
             body: JSON.stringify({ slug: slug, content: title }),
         });
 
