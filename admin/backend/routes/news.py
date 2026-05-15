@@ -20,8 +20,9 @@ router = APIRouter()
 @router.get("/api/admin/blogposts")
 async def get_blogposts(admin_data: dict = Depends(verify_token)):
     """
-    Returns all records where blogposts column is NOT NULL,
-    ordered by created_at DESC. Consumed by plan_dashboard_blog_posts.
+    Returns all blog post records, ordered by created_at DESC.
+    Uses type discriminator with legacy fallback for pre-migration data.
+    Consumed by plan_dashboard_blog_posts.
     """
     try:
         conn = get_db_connection()
@@ -30,7 +31,7 @@ async def get_blogposts(admin_data: dict = Depends(verify_token)):
             """
             SELECT id, title, slug, snippet, blogposts, created_at, updated_at, status
             FROM records
-            WHERE blogposts IS NOT NULL
+            WHERE type = 'blog_post' OR blogposts IS NOT NULL
             ORDER BY created_at DESC
             """
         )

@@ -76,16 +76,20 @@ function renderBlogPost() {
         titleEl.textContent = post.title + " | The Jesus Website";
       }
 
-      // Extract blog post body content from the body markdown field (schema column)
-      var bodyContent = post.body || "";
+      // Extract blog post body content — prefer blogposts column (where the editor saves)
+      var bodyContent = "";
 
-      // Fallback: blogposts blob (legacy)
-      if (
-        !bodyContent &&
-        post.blogposts &&
-        typeof post.blogposts === "object"
-      ) {
-        bodyContent = post.blogposts.content || post.blogposts.body || "";
+      if (post.blogposts) {
+        if (typeof post.blogposts === "string") {
+          bodyContent = post.blogposts;
+        } else if (typeof post.blogposts === "object") {
+          bodyContent = post.blogposts.content || post.blogposts.body || "";
+        }
+      }
+
+      // Fallback: body column
+      if (!bodyContent && post.body) {
+        bodyContent = post.body;
       }
 
       // Fallback: description field

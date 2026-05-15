@@ -200,6 +200,7 @@ async function _handleNewBlogPost() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: newTitle,
+        type: "blog_post",
         blogposts: "",
         snippet: "",
         status: "draft",

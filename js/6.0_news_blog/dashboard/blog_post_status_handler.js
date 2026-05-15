@@ -353,6 +353,7 @@ function _collectEditorData() {
 
   const payload = {
     title: titleInput ? titleInput.value : "",
+    type: "blog_post",
     blogposts: textarea ? textarea.value : "",
   };
 
@@ -425,7 +426,6 @@ async function _saveBlogPost() {
   if (!recordId) return;
 
   const payload = _collectEditorData();
-  payload.status = "draft";
 
   try {
     const response = await fetch(
