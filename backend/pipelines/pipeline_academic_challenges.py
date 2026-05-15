@@ -65,7 +65,7 @@ def run_pipeline():
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT id, slug, academic_challenge_weight FROM records WHERE slug IS NOT NULL"
+        "SELECT id, slug, academic_challenge_weight FROM records WHERE slug IS NOT NULL AND type = 'challenge_academic'"
     )
     records = cursor.fetchall()
 

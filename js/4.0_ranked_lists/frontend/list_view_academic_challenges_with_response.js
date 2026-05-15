@@ -73,6 +73,14 @@ function renderAcademicChallengesWithResponses(containerId) {
         }
       }
 
+      // Only keep responses whose challenge_id matches an id in our groups
+      for (var cid in responsesByChallengeId) {
+        if (!responsesByChallengeId.hasOwnProperty(cid)) continue;
+        if (!groups[cid]) {
+          delete responsesByChallengeId[cid];
+        }
+      }
+
       // Build clean challenge list with merged weights and matched responses
       var challenges = [];
       for (var id in groups) {

@@ -452,7 +452,7 @@ async function _saveChallengeResponse() {
    _collectEditorData() and PUTs with status: 'draft'. Wired to input/change
    events on title and markdown textarea. Clears the isDirty flag on success.
 ----------------------------------------------------------------------------- */
-function scheduleAutoSave() {
+function scheduleChallengeResponseAutoSave() {
   if (window._autoSaveTimer) {
     clearTimeout(window._autoSaveTimer);
   }
@@ -497,4 +497,4 @@ function scheduleAutoSave() {
 ----------------------------------------------------------------------------- */
 window.initChallengeResponseStatusHandler = initChallengeResponseStatusHandler;
 window._saveChallengeResponse = _saveChallengeResponse;
-window.scheduleAutoSave = scheduleAutoSave;
+window.scheduleChallengeResponseAutoSave = scheduleChallengeResponseAutoSave;

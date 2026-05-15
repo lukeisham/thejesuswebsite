@@ -495,7 +495,7 @@ async function _autoSaveSearchTerms() {
    Triggers the existing auto-save functions for weights and search terms.
    Called by the standardized auto-save orchestrator.
 ----------------------------------------------------------------------------- */
-function scheduleAutoSave() {
+function scheduleChallengeWeightingAutoSave() {
   // Trigger the existing auto-save for weights if a record is selected
   if (
     window._challengeModuleState &&
@@ -516,4 +516,4 @@ window.reloadChallengeWeighting = reloadChallengeWeighting;
 window.loadChallengeSearchTerms = loadChallengeSearchTerms;
 // Exposed so dashboard_challenge.js can re-render after restoring per-mode cache
 window._renderWeightingListExposed = _renderWeightingList;
-window.scheduleAutoSave = scheduleAutoSave;
+window.scheduleChallengeWeightingAutoSave = scheduleChallengeWeightingAutoSave;

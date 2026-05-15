@@ -73,6 +73,14 @@ function renderPopularChallengesWithResponses(containerId) {
         }
       }
 
+      // Only keep responses whose challenge_id matches an id in our groups
+      for (var cid in responsesByChallengeId) {
+        if (!responsesByChallengeId.hasOwnProperty(cid)) continue;
+        if (!groups[cid]) {
+          delete responsesByChallengeId[cid];
+        }
+      }
+
       // Build clean challenge list with merged weights and matched responses
       var challenges = [];
       for (var id in groups) {
@@ -196,7 +204,7 @@ function renderPopularChallengesWithResponses(containerId) {
               '<div class="mt-2 text-xs">' +
               '<a href="' +
               escapeHtml(respLink) +
-              '" class="btn-primary">Read Full Response \u2192</a>' +
+              '" class="btn-primary">Read Full Popular Response \u2192</a>' +
               "</div>" +
               "</div>" +
               "</div>";

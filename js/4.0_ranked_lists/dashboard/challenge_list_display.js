@@ -81,6 +81,7 @@ async function displayChallengeList(mode) {
     });
 
     // Store in module state
+    window._challengeModuleState.challenges = challenges;
     if (mode === "academic") {
       window._challengeModuleState.academicChallenges = challenges;
     } else {

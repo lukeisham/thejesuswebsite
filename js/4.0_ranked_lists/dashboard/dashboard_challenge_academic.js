@@ -207,7 +207,7 @@ async function renderChallengeAcademic() {
 ----------------------------------------------------------------------------- */
 async function _saveAcademicChallengeRecord(data) {
   const state = window._challengeModuleState;
-  if (!state.activeRecordId) return;
+  if (!state.activeRecordSlug) return;
 
   // If no data provided, collect it from the widget
   if (!data) {
@@ -215,7 +215,7 @@ async function _saveAcademicChallengeRecord(data) {
   }
 
   try {
-    const response = await fetch("/api/admin/records/" + state.activeRecordId, {
+    const response = await fetch("/api/admin/records/" + encodeURIComponent(state.activeRecordSlug), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

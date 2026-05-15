@@ -66,7 +66,7 @@ def run_pipeline():
 
     # 1. Fetch records designed as popular challenges
     cursor.execute(
-        "SELECT id, slug, popular_challenge_weight FROM records WHERE slug IS NOT NULL"
+        "SELECT id, slug, popular_challenge_weight FROM records WHERE slug IS NOT NULL AND type = 'challenge_popular'"
     )
     records = cursor.fetchall()
 
