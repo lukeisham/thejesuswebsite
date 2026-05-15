@@ -20,7 +20,7 @@ window.injectJsonLd = function (recordData, schemaType = "HistoricalEvent") {
     existingScript.remove();
   }
 
-  const baseUrl = "https://www.thejesuswebsite.com";
+  const baseUrl = window.location.origin;
   const currentUrl = `${baseUrl}/record/${recordData.slug || ""}`;
 
   // Map internal SQLite structure to standard Schema.org protocols

@@ -29,8 +29,8 @@ function renderDescriptionEditor(containerId, paragraphs) {
   if (!container) {
     if (typeof window.surfaceError === "function") {
       const title =
-        typeof window._recordTitle !== "undefined"
-          ? window._recordTitle
+        typeof window.getRecordTitle === "function"
+          ? window.getRecordTitle()
           : containerId;
       window.surfaceError(
         `Error: Unable to parse description data for '${title}'.`,
@@ -52,8 +52,8 @@ function renderDescriptionEditor(containerId, paragraphs) {
       } catch (e) {
         if (typeof window.surfaceError === "function") {
           const title =
-            typeof window._recordTitle !== "undefined"
-              ? window._recordTitle
+            typeof window.getRecordTitle === "function"
+              ? window.getRecordTitle()
               : containerId;
           window.surfaceError(
             `Error: Unable to parse description data for '${title}'.`,
@@ -117,8 +117,8 @@ function collectDescription(containerId) {
   if (!container) {
     if (typeof window.surfaceError === "function") {
       const title =
-        typeof window._recordTitle !== "undefined"
-          ? window._recordTitle
+        typeof window.getRecordTitle === "function"
+          ? window.getRecordTitle()
           : containerId;
       window.surfaceError(
         `Error: Unable to parse description data for '${title}'.`,

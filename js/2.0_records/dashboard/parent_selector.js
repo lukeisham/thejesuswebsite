@@ -151,8 +151,8 @@ function _handleParentInput(rawValue, inputEl, displayEl) {
     if (!ULID_REGEX.test(rawValue)) {
         if (displayEl) { displayEl.textContent = ''; }
 
-        const title = (typeof window._recordTitle !== 'undefined')
-            ? window._recordTitle
+        const title = (typeof window.getRecordTitle === 'function')
+            ? window.getRecordTitle()
             : '';
 
         if (typeof window.surfaceError === 'function') {
@@ -177,6 +177,11 @@ function _handleParentInput(rawValue, inputEl, displayEl) {
      displayEl (HTMLElement) — the title display span element (may be null)
 ----------------------------------------------------------------------------- */
 async function _fetchParentTitle(parentId, displayEl) {
+    if (!ULID_REGEX.test(parentId)) {
+        if (displayEl) { displayEl.textContent = '(invalid ID format)'; }
+        return;
+    }
+
     try {
         const response = await fetch(`/api/admin/records/${encodeURIComponent(parentId)}`, {
             method: 'GET',

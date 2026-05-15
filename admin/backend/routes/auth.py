@@ -6,6 +6,7 @@
 # =============================================================================
 
 import os
+import secrets
 
 from fastapi import APIRouter, Depends, Request, Response
 
@@ -46,6 +47,16 @@ async def login(req: LoginRequest, request: Request, response: Response):
             samesite="lax",
             secure=cookie_secure,
             max_age=43200,  # 12 hours
+        )
+
+        csrf_token = secrets.token_hex(32)
+        response.set_cookie(
+            key="csrf_token",
+            value=csrf_token,
+            httponly=False,
+            samesite="lax",
+            secure=cookie_secure,
+            max_age=43200,
         )
         return {"message": "Login successful"}
     else:

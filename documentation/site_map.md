@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version 1.0.72
+version 1.1.0
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -193,7 +193,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │       ├── search_header.js   <-- Visible search bar injection
 │       └── sidebar.js         <-- Left nav tree + admin entry
 ├── js/2.0_records/dashboard/
-│   ├── bulk_csv_upload_handler.js <-- Phase 1: CSV parsing & client-side validation
+│   ├── papaparse.min.js          <-- Papa Parse v5.4.1 — vendored RFC 4180 CSV parser
+│   ├── bulk_csv_upload_handler.js <-- Phase 1: CSV parsing & client-side validation (uses Papa Parse)
 │   ├── bulk_upload_review_handler.js <-- Phase 2: Ephemeral review, Save as Draft / Discard
 │   ├── dashboard_records_all.js <-- Module orchestration & view switching
 │   ├── dashboard_records_single.js <-- Module orchestration & initialization

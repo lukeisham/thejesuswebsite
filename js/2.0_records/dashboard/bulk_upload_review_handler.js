@@ -229,6 +229,7 @@ async function commitBulkReview() {
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
+                "X-CSRF-Token": window.getCSRFToken(),
             },
             body: JSON.stringify(payload),
         });
@@ -308,25 +309,25 @@ async function commitBulkReview() {
 
             if (typeof window.surfaceError === "function") {
                 window.surfaceError(
-                    "Error: " +
+                    "Warning: " +
                         saved +
                         " of " +
                         total +
                         " records saved. " +
                         rejected +
-                        " were rejected by the server."
+                        " rejected by server validation."
                 );
             }
             if (typeof window.updateRecordsAllStatusBar === "function") {
                 window.updateRecordsAllStatusBar(
-                    "Error: " +
+                    "Warning: " +
                         saved +
                         " of " +
                         total +
                         " records saved. " +
                         rejected +
-                        " were rejected.",
-                    "is-error"
+                        " rejected by server validation.",
+                    "is-warn"
                 );
             }
 

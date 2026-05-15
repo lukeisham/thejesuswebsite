@@ -93,8 +93,8 @@ function renderVerseBuilder(containerId, verses) {
   if (!container) {
     if (typeof window.surfaceError === "function") {
       const title =
-        typeof window._recordTitle !== "undefined"
-          ? window._recordTitle
+        typeof window.getRecordTitle === "function"
+          ? window.getRecordTitle()
           : containerId;
       window.surfaceError(
         `Error: Unable to parse verse references for '${title}'.`,
@@ -154,6 +154,7 @@ function renderVerseBuilder(containerId, verses) {
                     Add Verse Reference
                 </button>
             </div>
+            <div class="verse-builder__hint" data-verse-hint aria-live="polite"></div>
             <div class="verse-builder__chips" data-verse-chips></div>
         </div>
     `;
@@ -166,6 +167,7 @@ function renderVerseBuilder(containerId, verses) {
   const verseInput = container.querySelector("[data-verse-verse]");
   const addButton = container.querySelector("[data-verse-add]");
   const chipsContainer = container.querySelector("[data-verse-chips]");
+  const hintEl = container.querySelector("[data-verse-hint]");
 
   addButton.addEventListener("click", function () {
     const book = bookSelect.value.trim();
@@ -173,22 +175,31 @@ function renderVerseBuilder(containerId, verses) {
     const verseRaw = verseInput.value.trim();
 
     if (!book) {
+      _showHint(hintEl, "Select a book first.");
       return;
     }
     if (chapterRaw === "" || isNaN(parseInt(chapterRaw, 10))) {
+      _showHint(hintEl, "Enter a valid chapter number.");
       return;
     }
     if (verseRaw === "" || isNaN(parseInt(verseRaw, 10))) {
+      _showHint(hintEl, "Enter a valid verse number.");
       return;
     }
 
     const chapter = parseInt(chapterRaw, 10);
     const verse = parseInt(verseRaw, 10);
 
-    if (chapter < 1 || verse < 1) {
+    if (chapter < 1) {
+      _showHint(hintEl, "Chapter must be 1 or greater.");
+      return;
+    }
+    if (verse < 1) {
+      _showHint(hintEl, "Verse must be 1 or greater.");
       return;
     }
 
+    _clearHint(hintEl);
     _addChip(chipsContainer, book, chapter, verse);
 
     // Reset inputs for next entry
@@ -235,8 +246,8 @@ function collectVerses(containerId) {
   if (!container) {
     if (typeof window.surfaceError === "function") {
       const title =
-        typeof window._recordTitle !== "undefined"
-          ? window._recordTitle
+        typeof window.getRecordTitle === "function"
+          ? window.getRecordTitle()
           : containerId;
       window.surfaceError(
         `Error: Unable to parse verse references for '${title}'.`,
@@ -308,6 +319,21 @@ function _escapeAttr(text) {
     .replace(/'/g, "&#39;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+/* -----------------------------------------------------------------------------
+   INTERNAL: Show/clear inline validation hint
+----------------------------------------------------------------------------- */
+function _showHint(hintEl, message) {
+  if (!hintEl) return;
+  hintEl.textContent = message;
+  hintEl.classList.add("state-error");
+}
+
+function _clearHint(hintEl) {
+  if (!hintEl) return;
+  hintEl.textContent = "";
+  hintEl.classList.remove("state-error");
 }
 
 /* -----------------------------------------------------------------------------

@@ -26,6 +26,28 @@
    These are injected dynamically when the module loads. Consumer plans that
    include individual tools via <script> tag will find them already loaded.
 ----------------------------------------------------------------------------- */
+/* -----------------------------------------------------------------------------
+   MODULE-SCOPED STATE — replaced direct window._ global access
+----------------------------------------------------------------------------- */
+let _selectedRecordId = "";
+let _recordTitle = "";
+let _recordSlug = "";
+let _loadedRecordData = null;
+
+function getSelectedRecordId() { return _selectedRecordId; }
+function setSelectedRecordId(id) { _selectedRecordId = id; }
+function getRecordTitle() { return _recordTitle; }
+function setRecordTitle(title) { _recordTitle = title; }
+function getRecordSlug() { return _recordSlug; }
+function setRecordSlug(slug) { _recordSlug = slug; }
+function getLoadedRecordData() { return _loadedRecordData; }
+function setLoadedRecordData(data) { _loadedRecordData = data; }
+
+/* -----------------------------------------------------------------------------
+   SCRIPT DEPENDENCIES — all JS files that must be loaded before editors init
+   These are injected dynamically when the module loads. Consumer plans that
+   include individual tools via <script> tag will find them already loaded.
+----------------------------------------------------------------------------- */
 const RECORDS_SINGLE_SCRIPTS = [
   "../../js/2.0_records/dashboard/taxonomy_selector.js",
   "../../js/2.0_records/dashboard/map_fields_handler.js",
@@ -130,12 +152,9 @@ function _resolveRecordId(recordId) {
     return recordId;
   }
 
-  // Check for a global set by All Records or context links
-  if (
-    typeof window._selectedRecordId === "string" &&
-    window._selectedRecordId
-  ) {
-    return window._selectedRecordId;
+  // Check module-scoped state set by All Records or context links
+  if (_selectedRecordId) {
+    return _selectedRecordId;
   }
 
   // Try parsing from URL: /admin/records/{id}
@@ -160,33 +179,42 @@ function _resolveRecordId(recordId) {
    INTERNAL: Inject multiple JS scripts sequentially
 ----------------------------------------------------------------------------- */
 function _injectScripts(scriptPaths) {
+  var failedScripts = [];
   return Promise.all(
     scriptPaths.map(function (src) {
-      return new Promise(function (resolve, reject) {
-        // Skip if already loaded
-        const existing = document.querySelector('script[src="' + src + '"]');
+      return new Promise(function (resolve) {
+        var existing = document.querySelector('script[src="' + src + '"]');
         if (existing) {
           resolve();
           return;
         }
 
-        const script = document.createElement("script");
+        var script = document.createElement("script");
         script.src = src;
         script.async = false;
         script.onload = function () {
           resolve();
         };
         script.onerror = function () {
+          var name = src.split("/").pop().replace(".js", "");
+          failedScripts.push(name);
           console.warn(
             "[dashboard_records_single] Failed to load script:",
             src,
           );
-          resolve(); // Continue even if one fails
+          resolve();
         };
         document.head.appendChild(script);
       });
     }),
-  );
+  ).then(function () {
+    if (failedScripts.length > 0) {
+      var msg = "Warning: Failed to load module(s): " + failedScripts.join(", ") + ". Some features may be unavailable.";
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError(msg);
+      }
+    }
+  });
 }
 
 /* -----------------------------------------------------------------------------
@@ -299,7 +327,7 @@ async function _initialiseAllEditors(recordId) {
       },
       getRecordId: function () {
         const slugInput = document.getElementById("record-slug");
-        return slugInput ? slugInput.value : window._recordSlug || "";
+        return slugInput ? slugInput.value : _recordSlug || "";
       },
     });
   }
@@ -312,17 +340,16 @@ async function _initialiseAllEditors(recordId) {
     record = await window.fetchAndDisplaySingleRecord(recordId);
   }
 
-  // Store the record title globally for error messages in all sub-components
+  // Store record state for error messages and dirty-checking
   if (record && record.title) {
-    window._recordTitle = record.title;
-    window._recordSlug = record.slug || recordId;
+    _recordTitle = record.title;
+    _recordSlug = record.slug || recordId;
   } else {
-    window._recordTitle = "";
-    window._recordSlug = recordId;
+    _recordTitle = "";
+    _recordSlug = recordId;
   }
 
-  // Store the loaded record for dirty-checking
-  window._loadedRecordData = record;
+  _loadedRecordData = record;
 
   // ---- Bidirectional slug sync between Section 1 and Metadata widget ----
   _wireSlugSync();
@@ -465,13 +492,22 @@ function _injectStylesheet(href) {
    current record ID before calling renderRecordsSingle().
 ----------------------------------------------------------------------------- */
 function setRecordId(recordId) {
-  window._selectedRecordId = recordId;
+  _selectedRecordId = recordId;
 }
 
 /* -----------------------------------------------------------------------------
    GLOBAL EXPOSURE
    renderRecordsSingle is the canonical entry point registered in
    dashboard_app.js MODULE_RENDERERS as 'records-single'.
+   Getter/setter API replaces direct window._ global access.
 ----------------------------------------------------------------------------- */
 window.renderRecordsSingle = renderRecordsSingle;
 window.setRecordId = setRecordId;
+window.getSelectedRecordId = getSelectedRecordId;
+window.setSelectedRecordId = setSelectedRecordId;
+window.getRecordTitle = getRecordTitle;
+window.setRecordTitle = setRecordTitle;
+window.getRecordSlug = getRecordSlug;
+window.setRecordSlug = setRecordSlug;
+window.getLoadedRecordData = getLoadedRecordData;
+window.setLoadedRecordData = setLoadedRecordData;

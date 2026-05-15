@@ -125,8 +125,8 @@ function initBulkCsvUpload() {
     const file = fileInput.files[0];
     if (!file) return;
 
-    // Validate file extension
-    if (!file.name.endsWith(".csv")) {
+    // Validate file extension — reject double extensions like .csv.exe
+    if (!/^[^.]+\.csv$/i.test(file.name)) {
       if (typeof window.surfaceError === "function") {
         window.surfaceError(
           "Error: Only CSV files are accepted. Please select a .csv file.",
@@ -135,6 +135,35 @@ function initBulkCsvUpload() {
       if (typeof window.updateRecordsAllStatusBar === "function") {
         window.updateRecordsAllStatusBar(
           "Error: Only CSV files are accepted.",
+          "is-error",
+        );
+      }
+      fileInput.value = "";
+      return;
+    }
+
+    // Validate MIME type
+    var validMimeTypes = ["text/csv", "application/vnd.ms-excel", "text/plain"];
+    if (file.type && validMimeTypes.indexOf(file.type) === -1) {
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError(
+          "Error: File type '" + file.type + "' is not a valid CSV MIME type.",
+        );
+      }
+      fileInput.value = "";
+      return;
+    }
+
+    // Validate file size (5 MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError(
+          "Error: File size exceeds 5 MB limit. Please split into smaller files.",
+        );
+      }
+      if (typeof window.updateRecordsAllStatusBar === "function") {
+        window.updateRecordsAllStatusBar(
+          "Error: File size exceeds 5 MB limit.",
           "is-error",
         );
       }
@@ -153,44 +182,33 @@ function initBulkCsvUpload() {
    quote handling, maps headers, and validates each row.
 ----------------------------------------------------------------------------- */
 function _parseCsvFile(file) {
-  const reader = new FileReader();
+  var fileInput = document.getElementById("records-all-csv-input");
 
-  reader.onload = function (e) {
-    const text = e.target.result;
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: function (results) {
+      try {
+        if (!results.data || results.data.length === 0) {
+          throw new Error("CSV file is empty or missing data rows.");
+        }
 
-    try {
-      const lines = _splitCsvLines(text);
-      if (lines.length < 2) {
-        throw new Error("CSV file is empty or missing data rows.");
-      }
+        var parsedRows = [];
 
-      // Extract headers from first line
-      const headers = _parseCsvLine(lines[0]);
-      const dataLines = lines.slice(1);
+        results.data.forEach(function (row, index) {
+          var rowData = {};
+          var rowErrors = [];
 
-      // Parse and validate each row
-      const parsedRows = [];
-
-      dataLines.forEach(function (line, index) {
-        if (!line.trim()) return; // Skip empty lines
-
-        const values = _parseCsvLine(line);
-        const rowData = {};
-        const rowErrors = [];
-
-        // Map CSV columns to schema fields
-        headers.forEach(function (header, colIdx) {
-          const normalizedHeader = header
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-z0-9_]/g, "_");
-          const schemaField =
-            CSV_FIELD_MAP[normalizedHeader] || normalizedHeader;
-
-          if (colIdx < values.length) {
-            rowData[schemaField] = values[colIdx].trim();
-          }
-        });
+          // Map CSV columns to schema fields
+          Object.keys(row).forEach(function (header) {
+            var normalizedHeader = header
+              .trim()
+              .toLowerCase()
+              .replace(/[^a-z0-9_]/g, "_");
+            var schemaField =
+              CSV_FIELD_MAP[normalizedHeader] || normalizedHeader;
+            rowData[schemaField] = (row[header] || "").trim();
+          });
 
         // Validate required fields
         if (!rowData.title) {
@@ -200,13 +218,30 @@ function _parseCsvFile(file) {
           rowErrors.push("Missing slug");
         }
 
-        // Validate primary_verse is valid JSON (if present)
+        // Validate primary_verse JSON structure (if present)
         if (rowData.primary_verse && rowData.primary_verse.trim()) {
           try {
-            JSON.parse(rowData.primary_verse.trim());
+            var pv = JSON.parse(rowData.primary_verse.trim());
+            if (!_isValidVerseArray(pv)) {
+              rowErrors.push("primary_verse must be an array of {book, chapter, verse} objects");
+            }
           } catch (jsonErr) {
             rowErrors.push(
               'Invalid primary_verse JSON: "' + rowData.primary_verse + '"',
+            );
+          }
+        }
+
+        // Validate secondary_verse JSON structure (if present)
+        if (rowData.secondary_verse && rowData.secondary_verse.trim()) {
+          try {
+            var sv = JSON.parse(rowData.secondary_verse.trim());
+            if (!_isValidVerseArray(sv)) {
+              rowErrors.push("secondary_verse must be an array of {book, chapter, verse} objects");
+            }
+          } catch (jsonErr) {
+            rowErrors.push(
+              'Invalid secondary_verse JSON: "' + rowData.secondary_verse + '"',
             );
           }
         }
@@ -279,9 +314,9 @@ function _parseCsvFile(file) {
       if (invalidCount > 0) {
         if (typeof window.surfaceError === "function") {
           window.surfaceError(
-            "Error: CSV validation failed. " +
+            "Warning: " +
               invalidCount +
-              " row(s) contain missing or invalid fields.",
+              " row(s) have missing or invalid fields. Review before saving.",
           );
         }
       }
@@ -311,77 +346,41 @@ function _parseCsvFile(file) {
         );
       }
     } finally {
-      // Reset file input so the same file can be re-uploaded
-      fileInput.value = "";
+      if (fileInput) fileInput.value = "";
     }
-  };
-
-  reader.onerror = function () {
-    console.error("[bulk_csv_upload] File read error");
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError(
-        "Error: Could not read the CSV file. Please try again.",
-      );
-    }
-    if (typeof window.updateRecordsAllStatusBar === "function") {
-      window.updateRecordsAllStatusBar(
-        "Error: Could not read the CSV file.",
-        "is-error",
-      );
-    }
-  };
-
-  reader.readAsText(file);
+    },
+    error: function (err) {
+      console.error("[bulk_csv_upload] Papa Parse error:", err);
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError(
+          "Error: Could not read the CSV file. Please try again.",
+        );
+      }
+      if (typeof window.updateRecordsAllStatusBar === "function") {
+        window.updateRecordsAllStatusBar(
+          "Error: Could not read the CSV file.",
+          "is-error",
+        );
+      }
+      if (fileInput) fileInput.value = "";
+    },
+  });
 }
 
 /* -----------------------------------------------------------------------------
-   INTERNAL: _splitCsvLines
-   Splits text into lines, handling both \n and \r\n line endings.
+   INTERNAL: _isValidVerseArray
+   Validates that a parsed JSON value is an array of {book, chapter, verse}.
 ----------------------------------------------------------------------------- */
-function _splitCsvLines(text) {
-  return text.split(/\r?\n/);
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _parseCsvLine
-   Parses a single CSV line into an array of values. Handles quoted fields
-   that may contain commas and escaped double-quotes.
------------------------------------------------------------------------------ */
-function _parseCsvLine(line) {
-  const result = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-
-    if (inQuotes) {
-      if (ch === '"') {
-        // Check for escaped quote (double-double-quote)
-        if (i + 1 < line.length && line[i + 1] === '"') {
-          current += '"';
-          i++; // Skip the next quote
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        current += ch;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ",") {
-        result.push(current);
-        current = "";
-      } else {
-        current += ch;
-      }
-    }
-  }
-
-  // Push the last value
-  result.push(current);
-  return result;
+function _isValidVerseArray(arr) {
+  if (!Array.isArray(arr)) return false;
+  return arr.every(function (v) {
+    return (
+      v &&
+      typeof v.book === "string" && v.book.length > 0 &&
+      typeof v.chapter === "number" && Number.isInteger(v.chapter) && v.chapter >= 1 &&
+      typeof v.verse === "number" && Number.isInteger(v.verse) && v.verse >= 1
+    );
+  });
 }
 
 /* -----------------------------------------------------------------------------

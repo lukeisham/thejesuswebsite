@@ -75,7 +75,9 @@ window.TheJesusDB = {
       return [];
     }
 
-    // Sanitize input before execution (sanitize_query.js must be loaded)
+    if (typeof sanitizeQuery !== "function") {
+      console.warn("[setup_db.js] sanitizeQuery not loaded — query will run unsanitized.");
+    }
     var cleanSql =
       typeof sanitizeQuery === "function" ? sanitizeQuery(sql) : sql;
 

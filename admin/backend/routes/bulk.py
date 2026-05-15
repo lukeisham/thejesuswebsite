@@ -9,8 +9,9 @@
 import csv
 import io
 import json
-import uuid
 from datetime import datetime, timezone
+
+import ulid
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
@@ -204,7 +205,7 @@ async def bulk_upload_records(
 
         # Generate ID and timestamps
         if "id" not in insert_data:
-            insert_data["id"] = str(uuid.uuid4())
+            insert_data["id"] = str(ulid.new())
 
         now_iso = datetime.now(timezone.utc).isoformat()
         if "created_at" not in insert_data:
@@ -268,6 +269,12 @@ async def bulk_upload_commit(
     records = payload.records
     if not records:
         raise HTTPException(status_code=400, detail="No records provided")
+
+    if len(records) > 500:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Batch too large: {len(records)} records exceeds the 500-record limit",
+        )
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -346,7 +353,7 @@ async def bulk_upload_commit(
 
         # Generate ID and timestamps
         if "id" not in insert_data:
-            insert_data["id"] = str(uuid.uuid4())
+            insert_data["id"] = str(ulid.new())
 
         now_iso = datetime.now(timezone.utc).isoformat()
         if "created_at" not in insert_data:

@@ -1,7 +1,7 @@
 ---
 name: guide_security.md
 purpose: description of security measures taken to protect the backend section 
-version: 1.5.1
+version: 1.6.0
 dependencies: [detailed_module_sitemap.md]
 ---
 
@@ -83,6 +83,33 @@ Administrative logic is protected by minification and structural obscurity.
 - **Code Splitting:** Crucial admin logic is split into multiple modules as defined in the `module_sitemap.md`, preventing reverse-engineering from a single file.
 - **Directory Exclusion:** Nginx config explicitly forbids directory listing in the `/admin/` folder structure.
 - **Agent Restriction:** `mcp_server.py` (project root) exposes only a read-only API via SELECT queries with parameterized placeholders, ensuring external automated agents cannot access admin editing tools.
+
+## 4a. CSRF Protection (plan_records_module_hardening)
+
+All state-changing admin API calls are protected by CSRF double-submit cookie validation:
+
+- **Token Issuance:** On successful login (`POST /api/admin/login`), the backend generates a random 64-character hex token via `secrets.token_hex(32)` and sets it as a non-HttpOnly cookie (`csrf_token`, `samesite=lax`, 12-hour expiry).
+- **Client-Side Transmission:** `getCSRFToken()` in `record_status_handler.js` reads the `csrf_token` cookie and includes it as an `X-CSRF-Token` header on every `fetch()` call using POST, PUT, or DELETE methods. All dashboard modules reference `window.getCSRFToken()`.
+- **Server-Side Validation:** `CSRFMiddleware` in `admin/backend/routes/__init__.py` intercepts all mutating requests to `/api/admin/*` paths (excluding login, logout, and health check). It compares the `csrf_token` cookie value against the `X-CSRF-Token` header; mismatches return HTTP 403.
+- **Safe Methods Exempt:** GET, HEAD, and OPTIONS requests bypass CSRF validation.
+
+## 4b. XSS Prevention (plan_records_module_hardening)
+
+The public frontend enforces a strict policy against unsanitized HTML injection:
+
+- **No innerHTML with Record Data:** All DOM rendering in `single_view.js` and `display_single_record_data.js` uses `createElement()`/`textContent` instead of `innerHTML` for any field derived from database records.
+- **URL Validation:** Context link `href` values are validated to start with `/` or `https://` before creating anchor elements, preventing `javascript:` protocol injection.
+- **Data URL Validation:** Picture preview data URLs are validated to start with `data:image/png;base64,` before rendering.
+
+## 4c. Request Size Limits (plan_records_module_hardening)
+
+- **10 MB Body Limit:** `BodySizeLimitMiddleware` in `admin/backend/routes/__init__.py` rejects any request with `Content-Length` exceeding 10 MB (HTTP 413).
+- **500 Record Batch Cap:** `POST /api/admin/bulk-upload/commit` returns HTTP 400 if the payload contains more than 500 records.
+- **5 MB CSV File Limit:** Client-side validation in `bulk_csv_upload_handler.js` rejects files larger than 5 MB before upload.
+
+## 4d. ULID Validation Guards (plan_records_module_hardening)
+
+- **Parent ID Validation:** `_fetchParentTitle()` in `parent_selector.js` validates the parent ID against `ULID_REGEX` (`/^[0-9A-HJKMNP-TV-Z]{26}$/`) before making API calls, preventing unvalidated input from reaching the server.
 
 ## 5. Bulk CSV Upload Security
 

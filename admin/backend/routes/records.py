@@ -7,10 +7,10 @@
 # =============================================================================
 
 import pathlib
-import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+import ulid
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from backend.pipelines.image_processor import process_uploaded_png
@@ -24,6 +24,12 @@ from .shared import (
 )
 
 router = APIRouter()
+
+ALLOWED_SORT_COLUMNS = frozenset({
+    "created_at", "updated_at", "id", "title", "slug",
+    "primary_verse", "era", "timeline", "gospel_category",
+    "map_label", "status", "page_views",
+})
 
 
 # -----------------------------------------------------------------------------
@@ -52,8 +58,8 @@ async def get_all_records(
         conn = get_db_connection()
         valid_cols = get_valid_columns(conn)
 
-        # Validate and sanitise sort column
-        sort_col = sort if sort in valid_cols else "created_at"
+        # Validate sort column against constant whitelist
+        sort_col = sort if sort in ALLOWED_SORT_COLUMNS else "created_at"
         # Clamp limit to a safe range
         safe_limit = max(1, min(limit, 500))
         safe_offset = max(0, offset)
@@ -193,7 +199,7 @@ async def create_record(
             safe_data["type"] = "record"
 
         if "id" not in safe_data:
-            safe_data["id"] = str(uuid.uuid4())
+            safe_data["id"] = str(ulid.new())
 
         now_iso = datetime.now(timezone.utc).isoformat()
         if "created_at" not in safe_data:

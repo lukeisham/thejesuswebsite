@@ -27,7 +27,7 @@
      (string|null) — The generated snippet string on success; null on failure.
 
    Expected globals:
-     window._recordTitle          — Set by the orchestrator; used in error messages.
+     window.getRecordTitle()          — Set by the orchestrator; used in error messages.
      window.surfaceError()        — Shared error display (js/admin_core/error_handler.js).
      window.renderDescriptionEditor() — Populates the snippet paragraph editor
                                         (js/2.0_records/dashboard/description_editor.js).
@@ -50,8 +50,8 @@ async function generateSnippet(recordId, description) {
   if (typeof description !== "string" || !description.trim()) {
     if (typeof window.surfaceError === "function") {
       const title =
-        typeof window._recordTitle !== "undefined"
-          ? window._recordTitle
+        typeof window.getRecordTitle === "function" && window.getRecordTitle()
+          ? window.getRecordTitle()
           : recordId;
       window.surfaceError(
         `Error: Snippet generation failed for '${title}'. Please provide description content to generate from.`,
@@ -62,11 +62,11 @@ async function generateSnippet(recordId, description) {
 
   /* -------------------------------------------------------------------------
        2. RESOLVE TITLE FOR ERROR MESSAGES
-       Prefer window._recordTitle (set by the orchestrator). Fall back to the
+       Prefer window.getRecordTitle() (set by the orchestrator). Fall back to the
        recordId slug so error messages are always meaningful.
     ------------------------------------------------------------------------- */
   const title =
-    typeof window._recordTitle !== "undefined" ? window._recordTitle : recordId;
+    typeof window.getRecordTitle === "function" && window.getRecordTitle() ? window.getRecordTitle() : recordId;
 
   /* -------------------------------------------------------------------------
        3. CALL THE SNIPPET GENERATION API
@@ -77,7 +77,7 @@ async function generateSnippet(recordId, description) {
   try {
     const response = await fetch("/api/admin/snippet/generate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
       body: JSON.stringify({
         slug: recordId,
         content: description,

@@ -19,6 +19,15 @@
 ============================================================================= */
 
 /* -----------------------------------------------------------------------------
+   PUBLIC: getCSRFToken
+   Reads the CSRF token from the csrf_token cookie for use in fetch headers.
+----------------------------------------------------------------------------- */
+function getCSRFToken() {
+  var match = document.cookie.match(/(^|;\s*)csrf_token=([^;]*)/);
+  return match ? match[2] : "";
+}
+
+/* -----------------------------------------------------------------------------
    PUBLIC: collectAllFormData
    Gathers every field from all 7 form sections into a single payload object
    ready for PUT /api/admin/records/{id}.
@@ -121,8 +130,6 @@ function collectAllFormData() {
     }
   }
 
-  payload.status = _getStatusValue();
-
   return payload;
 }
 
@@ -145,7 +152,7 @@ async function handleSaveDraft() {
       const response = await fetch(`/api/admin/records/${recordId}`, {
         method: "PUT",
         credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": getCSRFToken() },
         body: JSON.stringify(payload),
       });
 
@@ -159,7 +166,7 @@ async function handleSaveDraft() {
       const response = await fetch("/api/admin/records", {
         method: "POST",
         credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": getCSRFToken() },
         body: JSON.stringify(payload),
       });
 
@@ -175,7 +182,7 @@ async function handleSaveDraft() {
       // saves use PUT (update) instead of POST (create).
       if (result.id) {
         _setFieldValue("record-id", result.id);
-        window._recordSlug = result.id;
+        if (typeof window.setRecordSlug === "function") { window.setRecordSlug(result.id); }
 
         // Re-initialise picture handler with the new ID so uploads work
         if (typeof window.renderEditPicture === "function") {
@@ -231,7 +238,7 @@ async function handlePublish() {
       const response = await fetch(`/api/admin/records/${recordId}`, {
         method: "PUT",
         credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": getCSRFToken() },
         body: JSON.stringify(payload),
       });
 
@@ -245,7 +252,7 @@ async function handlePublish() {
       const response = await fetch("/api/admin/records", {
         method: "POST",
         credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": getCSRFToken() },
         body: JSON.stringify(payload),
       });
 
@@ -259,7 +266,7 @@ async function handlePublish() {
 
       if (result.id) {
         _setFieldValue("record-id", result.id);
-        window._recordSlug = result.id;
+        if (typeof window.setRecordSlug === "function") { window.setRecordSlug(result.id); }
 
         if (typeof window.renderEditPicture === "function") {
           window.renderEditPicture("picture-preview-container", result.id);
@@ -320,6 +327,7 @@ async function handleDelete() {
     const response = await fetch(`/api/admin/records/${recordId}`, {
       method: "DELETE",
       credentials: "same-origin",
+      headers: { "X-CSRF-Token": getCSRFToken() },
     });
 
     _checkAuth(response);
@@ -374,7 +382,7 @@ function scheduleRecordStatusAutoSave() {
       await fetch(`/api/admin/records/${recordId}`, {
         method: "PUT",
         credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": getCSRFToken() },
         body: JSON.stringify(payload),
       });
       _refreshUpdatedAt();
@@ -418,8 +426,8 @@ function _getStatusValue() {
    INTERNAL: Get the record title for error messages
 ----------------------------------------------------------------------------- */
 function _getRecordTitle() {
-  if (typeof window._recordTitle === "string" && window._recordTitle) {
-    return window._recordTitle;
+  if (typeof window.getRecordTitle === "function" && window.getRecordTitle()) {
+    return window.getRecordTitle();
   }
   return _getValue("record-title") || "this record";
 }
@@ -516,6 +524,7 @@ function _wireAutoSave() {
 /* -----------------------------------------------------------------------------
    GLOBAL EXPOSURE
 ----------------------------------------------------------------------------- */
+window.getCSRFToken = getCSRFToken;
 window.collectAllFormData = collectAllFormData;
 window.handleSaveDraft = handleSaveDraft;
 window.handlePublish = handlePublish;

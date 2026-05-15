@@ -206,7 +206,7 @@
     }
 
     const title =
-      typeof window._recordTitle !== "undefined" ? window._recordTitle : "";
+      typeof window.getRecordTitle === "function" ? window.getRecordTitle() : "";
 
     window.surfaceError(
       `Error: Failed to save taxonomy fields for '${title}'.`,

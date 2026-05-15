@@ -19,7 +19,48 @@ _project_root = os.path.abspath(_project_root)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+from starlette.responses import JSONResponse
+
 from backend.middleware.rate_limiter import RateLimiterMiddleware  # noqa: E402
+
+MAX_REQUEST_BODY_BYTES = 10 * 1024 * 1024  # 10 MB
+
+CSRF_SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+CSRF_EXEMPT_PATHS = frozenset({"/api/admin/login", "/api/admin/logout", "/api/health"})
+
+
+class BodySizeLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > MAX_REQUEST_BODY_BYTES:
+            return JSONResponse(
+                status_code=413,
+                content={"detail": "Request body too large (max 10 MB)"},
+            )
+        return await call_next(request)
+
+
+class CSRFMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        if request.method in CSRF_SAFE_METHODS:
+            return await call_next(request)
+        if request.url.path in CSRF_EXEMPT_PATHS:
+            return await call_next(request)
+        if not request.url.path.startswith("/api/admin/"):
+            return await call_next(request)
+
+        cookie_token = request.cookies.get("csrf_token", "")
+        header_token = request.headers.get("x-csrf-token", "")
+
+        if not cookie_token or not header_token or cookie_token != header_token:
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "CSRF token missing or invalid"},
+            )
+
+        return await call_next(request)
 
 
 def create_app() -> FastAPI:
@@ -33,6 +74,10 @@ def create_app() -> FastAPI:
     app = FastAPI(title="The Jesus Website API - Admin")
 
     # --- Middleware ---
+    # Body size: reject payloads over 10 MB before they hit route handlers
+    app.add_middleware(BodySizeLimitMiddleware)
+    # CSRF: validates X-CSRF-Token header matches csrf_token cookie on mutating requests
+    app.add_middleware(CSRFMiddleware)
     # Rate limiter: 30 requests per minute for admin actions
     app.add_middleware(RateLimiterMiddleware, requests_per_minute=30)
 

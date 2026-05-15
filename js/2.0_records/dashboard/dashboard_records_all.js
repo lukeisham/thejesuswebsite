@@ -31,6 +31,7 @@ const RECORDS_ALL_SCRIPTS = [
   "../../js/2.0_records/dashboard/endless_scroll.js",
   "../../js/2.0_records/dashboard/table_toggle_display.js",
   "../../js/2.0_records/dashboard/search_records.js",
+  "../../js/2.0_records/dashboard/papaparse.min.js",
   "../../js/2.0_records/dashboard/bulk_csv_upload_handler.js",
   "../../js/2.0_records/dashboard/bulk_upload_review_handler.js",
 ];
@@ -294,29 +295,40 @@ function _wireStatusToggles() {
 }
 
 function _injectScripts(scriptPaths) {
+  var failedScripts = [];
   return Promise.all(
     scriptPaths.map(function (src) {
       return new Promise(function (resolve) {
-        const existing = document.querySelector('script[src="' + src + '"]');
+        var existing = document.querySelector('script[src="' + src + '"]');
         if (existing) {
           resolve();
           return;
         }
 
-        const script = document.createElement("script");
+        var script = document.createElement("script");
         script.src = src;
         script.async = false;
         script.onload = function () {
           resolve();
         };
         script.onerror = function () {
+          var name = src.split("/").pop().replace(".js", "");
+          failedScripts.push(name);
           console.warn("[dashboard_records_all] Failed to load script:", src);
           resolve();
         };
         document.head.appendChild(script);
       });
     }),
-  );
+  ).then(function () {
+    if (failedScripts.length > 0) {
+      var msg = "Warning: Failed to load module(s): " + failedScripts.join(", ") + ". Some features may be unavailable.";
+      _updateStatusBar(msg, "is-warn");
+      if (typeof window.surfaceError === "function") {
+        window.surfaceError(msg);
+      }
+    }
+  });
 }
 
 /* -----------------------------------------------------------------------------

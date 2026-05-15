@@ -38,8 +38,9 @@ function renderSingleRecord() {
 
   if (!slug) {
     titleEl.textContent = "Error: No record specified";
-    descEl.innerHTML =
-      "<p>A valid record identifier (slug) is required in the URL.</p>";
+    var errP = document.createElement("p");
+    errP.textContent = "A valid record identifier (slug) is required in the URL.";
+    descEl.appendChild(errP);
     return;
   }
 
@@ -48,8 +49,9 @@ function renderSingleRecord() {
 
   if (!record) {
     titleEl.textContent = "Record Not Found";
-    descEl.innerHTML =
-      "<p>We could not find a record matching this identifier.</p>";
+    var notFoundP = document.createElement("p");
+    notFoundP.textContent = "We could not find a record matching this identifier.";
+    descEl.appendChild(notFoundP);
     return;
   }
 
@@ -93,10 +95,17 @@ function renderSingleRecord() {
   if (record.description) {
     try {
       const paragraphs = JSON.parse(record.description);
-      descEl.innerHTML = paragraphs.map((p) => `<p>${p}</p>`).join("");
+      descEl.textContent = "";
+      paragraphs.forEach(function (p) {
+        var pEl = document.createElement("p");
+        pEl.textContent = p;
+        descEl.appendChild(pEl);
+      });
     } catch (e) {
-      // Fallback if not valid JSON
-      descEl.innerHTML = `<p>${record.description}</p>`;
+      descEl.textContent = "";
+      var fallbackP = document.createElement("p");
+      fallbackP.textContent = record.description;
+      descEl.appendChild(fallbackP);
     }
   }
 
@@ -142,16 +151,20 @@ function renderSingleRecord() {
   }
 
   if (metadataItems.length > 0) {
-    metaGrid.innerHTML = metadataItems
-      .map(
-        (item) => `
-            <div class="metadata-item">
-                <span class="metadata-label">${item.label}</span>
-                <span class="metadata-value">${item.value}</span>
-            </div>
-        `,
-      )
-      .join("");
+    metaGrid.textContent = "";
+    metadataItems.forEach(function (item) {
+      var div = document.createElement("div");
+      div.className = "metadata-item";
+      var labelSpan = document.createElement("span");
+      labelSpan.className = "metadata-label";
+      labelSpan.textContent = item.label;
+      var valueSpan = document.createElement("span");
+      valueSpan.className = "metadata-value";
+      valueSpan.textContent = item.value;
+      div.appendChild(labelSpan);
+      div.appendChild(valueSpan);
+      metaGrid.appendChild(div);
+    });
     metaSection.classList.add("is-visible-block");
     metaSection.classList.remove("is-hidden");
   }
@@ -179,17 +192,20 @@ function renderSingleRecord() {
     try {
       var contextLinks = JSON.parse(record.context_links);
       if (contextLinks && contextLinks.length > 0) {
-        contextListEl.innerHTML = contextLinks
-          .map(function (link) {
-            return (
-              '<li><a href="' +
-              link.url +
-              '">' +
-              (link.label || link.url) +
-              "</a></li>"
-            );
-          })
-          .join("");
+        contextListEl.textContent = "";
+        contextLinks.forEach(function (link) {
+          var li = document.createElement("li");
+          var a = document.createElement("a");
+          var href = String(link.url || "");
+          if (href.startsWith("/") || href.startsWith("https://")) {
+            a.href = href;
+          } else {
+            a.removeAttribute("href");
+          }
+          a.textContent = link.label || link.url || "";
+          li.appendChild(a);
+          contextListEl.appendChild(li);
+        });
         contextSectionEl.classList.add("is-visible-block");
         contextSectionEl.classList.remove("is-hidden");
       }
@@ -202,42 +218,35 @@ function renderSingleRecord() {
   var refsListEl = document.getElementById("record-references-list");
   var refsSectionEl = document.getElementById("record-section-references");
   if (refsListEl && refsSectionEl) {
-    var refItems = [];
-    if (record.iaa) {
-      refItems.push(
-        '<li><span class="ref-label">IAA Reference:</span> <span class="ref-value">' +
-          record.iaa +
-          "</span></li>",
-      );
+    var hasRefs = false;
+
+    function _appendRefItem(label, value) {
+      var li = document.createElement("li");
+      var labelSpan = document.createElement("span");
+      labelSpan.className = "ref-label";
+      labelSpan.textContent = label + ":";
+      var valueSpan = document.createElement("span");
+      valueSpan.className = "ref-value";
+      valueSpan.textContent = " " + value;
+      li.appendChild(labelSpan);
+      li.appendChild(valueSpan);
+      refsListEl.appendChild(li);
+      hasRefs = true;
     }
-    if (record.pledius) {
-      refItems.push(
-        '<li><span class="ref-label">Pledius:</span> <span class="ref-value">' +
-          record.pledius +
-          "</span></li>",
-      );
-    }
-    if (record.manuscript) {
-      refItems.push(
-        '<li><span class="ref-label">Manuscript:</span> <span class="ref-value">' +
-          record.manuscript +
-          "</span></li>",
-      );
-    }
-    // Custom identifiers from metadata_json.identifiers
+
+    refsListEl.textContent = "";
+
+    if (record.iaa) _appendRefItem("IAA Reference", record.iaa);
+    if (record.pledius) _appendRefItem("Pledius", record.pledius);
+    if (record.manuscript) _appendRefItem("Manuscript", record.manuscript);
+
     try {
       if (record.metadata_json) {
         var meta = JSON.parse(record.metadata_json);
         if (Array.isArray(meta.identifiers)) {
           meta.identifiers.forEach(function (ident) {
             if (ident.type && ident.value) {
-              refItems.push(
-                '<li><span class="ref-label">' +
-                  ident.type +
-                  ':</span> <span class="ref-value">' +
-                  ident.value +
-                  "</span></li>",
-              );
+              _appendRefItem(ident.type, ident.value);
             }
           });
         }
@@ -246,8 +255,7 @@ function renderSingleRecord() {
       /* ignore parse errors */
     }
 
-    if (refItems.length > 0) {
-      refsListEl.innerHTML = refItems.join("");
+    if (hasRefs) {
       refsSectionEl.classList.add("is-visible-block");
       refsSectionEl.classList.remove("is-hidden");
     }

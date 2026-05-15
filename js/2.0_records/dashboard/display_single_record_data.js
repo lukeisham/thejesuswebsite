@@ -131,8 +131,8 @@ async function fetchAndDisplaySingleRecord(recordId) {
     _setStatusRadio(record.status || "draft");
 
     // Store the loaded record data for dirty-checking
-    if (typeof window._loadedRecordData !== "undefined") {
-      window._loadedRecordData = record;
+    if (typeof window.setLoadedRecordData === "function") {
+      window.setLoadedRecordData(record);
     }
 
     return record;
@@ -168,8 +168,13 @@ function _hydratePicturePreviews(pictureBytes, pictureThumbnail) {
     const fullEl = document.getElementById("picture-preview-full");
     if (fullEl) {
       const dataUrl = _bytesToDataUrl(pictureBytes);
-      if (dataUrl) {
-        fullEl.innerHTML = `<img src="${_escapeAttr(dataUrl)}" alt="Record picture preview" style="max-width:100%;max-height:100%;object-fit:contain;" />`;
+      if (dataUrl && dataUrl.startsWith("data:image/png;base64,")) {
+        fullEl.textContent = "";
+        var fullImg = document.createElement("img");
+        fullImg.setAttribute("src", dataUrl);
+        fullImg.setAttribute("alt", "Record picture preview");
+        fullImg.className = "picture-preview__img";
+        fullEl.appendChild(fullImg);
       }
     }
   }
@@ -179,8 +184,13 @@ function _hydratePicturePreviews(pictureBytes, pictureThumbnail) {
     const thumbEl = document.getElementById("picture-preview-thumb");
     if (thumbEl) {
       const dataUrl = _bytesToDataUrl(pictureThumbnail);
-      if (dataUrl) {
-        thumbEl.innerHTML = `<img src="${_escapeAttr(dataUrl)}" alt="Thumbnail preview" style="max-width:100%;max-height:100%;object-fit:contain;" />`;
+      if (dataUrl && dataUrl.startsWith("data:image/png;base64,")) {
+        thumbEl.textContent = "";
+        var thumbImg = document.createElement("img");
+        thumbImg.setAttribute("src", dataUrl);
+        thumbImg.setAttribute("alt", "Thumbnail preview");
+        thumbImg.className = "picture-preview__img";
+        thumbEl.appendChild(thumbImg);
       }
     }
   }
@@ -351,8 +361,8 @@ function _initialiseBlankForm() {
   _setStatusRadio("draft");
 
   // Clear loaded record reference for dirty-checking
-  if (typeof window._loadedRecordData !== "undefined") {
-    window._loadedRecordData = null;
+  if (typeof window.setLoadedRecordData === "function") {
+    window.setLoadedRecordData(null);
   }
 }
 
