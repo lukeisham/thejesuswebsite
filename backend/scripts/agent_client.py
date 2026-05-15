@@ -78,22 +78,24 @@ def _insert_log_run(
     Insert a new agent_run_log row with status='running' and return its id.
     """
     conn = _get_db()
-    cursor = conn.cursor()
-    now = _now_iso()
-    cursor.execute(
-        """
-        INSERT INTO agent_run_log
-            (pipeline, record_slug, status, started_at)
-        VALUES (?, ?, 'running', ?)
-        """,
-        (pipeline, record_slug, now),
-    )
-    conn.commit()
-    run_id = cursor.lastrowid
-    conn.close()
-    if run_id is None:
-        raise RuntimeError("Failed to insert agent_run_log row.")
-    return run_id
+    try:
+        cursor = conn.cursor()
+        now = _now_iso()
+        cursor.execute(
+            """
+            INSERT INTO agent_run_log
+                (pipeline, record_slug, status, started_at)
+            VALUES (?, ?, 'running', ?)
+            """,
+            (pipeline, record_slug, now),
+        )
+        conn.commit()
+        run_id = cursor.lastrowid
+        if run_id is None:
+            raise RuntimeError("Failed to insert agent_run_log row.")
+        return run_id
+    finally:
+        conn.close()
 
 
 def _update_log_completed(
@@ -109,22 +111,24 @@ def _update_log_completed(
     The database column retains the name 'articles_found' for schema compatibility.
     """
     conn = _get_db()
-    cursor = conn.cursor()
-    now = _now_iso()
-    cursor.execute(
-        """
-        UPDATE agent_run_log
-        SET status = 'completed',
-            trace_reasoning = ?,
-            tokens_used = ?,
-            articles_found = ?,
-            completed_at = ?
-        WHERE id = ?
-        """,
-        (trace_reasoning, tokens_used, articles_found, now, run_id),
-    )
-    conn.commit()
-    conn.close()
+    try:
+        cursor = conn.cursor()
+        now = _now_iso()
+        cursor.execute(
+            """
+            UPDATE agent_run_log
+            SET status = 'completed',
+                trace_reasoning = ?,
+                tokens_used = ?,
+                articles_found = ?,
+                completed_at = ?
+            WHERE id = ?
+            """,
+            (trace_reasoning, tokens_used, articles_found, now, run_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def _update_log_failed(run_id: int, error_message: str) -> None:
@@ -132,20 +136,22 @@ def _update_log_failed(run_id: int, error_message: str) -> None:
     Update an agent_run_log row to status='failed' with the error message.
     """
     conn = _get_db()
-    cursor = conn.cursor()
-    now = _now_iso()
-    cursor.execute(
-        """
-        UPDATE agent_run_log
-        SET status = 'failed',
-            error_message = ?,
-            completed_at = ?
-        WHERE id = ?
-        """,
-        (error_message, now, run_id),
-    )
-    conn.commit()
-    conn.close()
+    try:
+        cursor = conn.cursor()
+        now = _now_iso()
+        cursor.execute(
+            """
+            UPDATE agent_run_log
+            SET status = 'failed',
+                error_message = ?,
+                completed_at = ?
+            WHERE id = ?
+            """,
+            (error_message, now, run_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def _call_deepseek(

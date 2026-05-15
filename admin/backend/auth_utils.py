@@ -68,9 +68,7 @@ class AuthUtils:
         else:
             record["count"] += 1
             if record["count"] >= 5:
-                # Lockout for 5 minutes (300 seconds)
                 record["lockout_until"] = now + 300
-                record["count"] = 0
             login_attempts[ip_address] = record
 
             # Inject a small artificial delay to deter rapid automated brute forcing

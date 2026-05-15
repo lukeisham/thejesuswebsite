@@ -85,12 +85,12 @@ function getEssaySlugFromURL() {
   var querySlug = params.get("slug");
   if (querySlug) return querySlug.trim();
 
-  // Try clean path: /context/essay/{slug}
+  // Try clean path: /context/{slug}
   var path = window.location.pathname;
-  var essayPrefix = "/context/essay/";
-  if (path.indexOf(essayPrefix) === 0) {
-    var pathSlug = path.substring(essayPrefix.length);
-    if (pathSlug && pathSlug !== "/" && pathSlug.indexOf("/") === -1) {
+  var contextPrefix = "/context/";
+  if (path.indexOf(contextPrefix) === 0) {
+    var pathSlug = path.substring(contextPrefix.length);
+    if (pathSlug && pathSlug !== "/" && pathSlug !== "essay" && pathSlug.indexOf("/") === -1) {
       return decodeURIComponent(pathSlug).trim();
     }
   }

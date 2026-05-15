@@ -1,41 +1,147 @@
 ---
 name: guide_frontend_appearance.md
-purpose: Visual ASCII representations of the System Module URL slug architecture and clean URL scheme
-version: 1.0.0
-dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_style.md, guide_dashboard_appearance.md, guide_donations.md, guide_function.md, guide_security.md, guide_welcoming_robots.md, system_nomenclature.md]
+purpose: Complete URL routing table and clean-slug architecture for all public-facing pages
+version: 2.0.0
+dependencies: [simple_module_sitemap.md, guide_function.md, system_nomenclature.md]
 ---
 
-# Guide to Page Appearance & Structural Layouts
+# Frontend URL Routing — 7.0 System Module
 
-This document maintains visual ASCII blueprints for the various page templates defined in the CSS Architecture (`Module 4`). These diagrams dictate the HTML structural constraints (`div` / `grid` flow), ensuring consistent visual identity across the public-facing site. It is the source of truth for the appearance of the public facing pages.
+## Clean Slug URL Scheme
 
-**Note:** The Admin Portal appearance will be documented separately in `guide_dashboard_appearance.md`.
+All public-facing URLs use clean, human-readable slugs. The URL rewriting layer (nginx rewrite rules, with FastAPI `serve_all.py` as a development fallback) handles translation to internal filesystem paths transparently.
 
----
+### Top-Level Pages
 
-## 7.0 System Module
-**Scope:** Clean-slug URL rewriting layer that maps human-readable paths to internal filesystem locations.
+| Clean URL | Internal file |
+|-----------|---------------|
+| `/` | `index.html` (root, served by nginx `index` directive) |
+| `/records` | `frontend/pages/records.html` |
+| `/evidence` | `frontend/pages/evidence.html` |
+| `/timeline` | `frontend/pages/timeline.html` |
+| `/maps` | `frontend/pages/maps.html` |
+| `/context` | `frontend/pages/context.html` |
+| `/context/essay` | `frontend/pages/context_essay.html` |
+| `/debate` | `frontend/pages/debate.html` |
+| `/resources` | `frontend/pages/resources.html` |
+| `/news` | `frontend/pages/news_and_blog.html` |
+| `/news/feed` | `frontend/pages/news.html` |
+| `/blog` | `frontend/pages/blog.html` |
+| `/blog/post` | `frontend/pages/blog_post.html` |
+| `/about` | `frontend/pages/about.html` |
 
-### 7.1 Clean Slug URL Scheme
-**Purpose:** All public-facing URLs use clean, human-readable slugs instead of raw filesystem paths. The URL rewriting layer (nginx → FastAPI) handles the translation transparently.
+### Dynamic Slug Pages
 
-**Relevant Documentation:** `url_slug_restructure.md` (full plan), `guide_function.md §7.3.1` (architecture diagram)
+| Clean URL | Internal file | JS slug reader |
+|-----------|---------------|----------------|
+| `/record/{slug}` | `frontend/pages/record.html?slug={slug}` | `sanitize_query.js` reads `?slug=` |
+| `/context/{slug}` | `frontend/pages/context_essay.html?slug={slug}` | `view_context_essays.js` reads `?slug=` or path `/context/{slug}` |
+| `/debate/{slug}` | `frontend/pages/debate/response.html?slug={slug}` | `response_display.js` reads `?id=`, `?slug=`, or path `/debate/{slug}` |
+| `/blog/{slug}` | `frontend/pages/blog_post.html?slug={slug}` | `display_blogpost.js` reads `?slug=` or path `/blog/{slug}` |
 
-**Path Convention:**
-| Pattern | Example | Serves |
-|---------|---------|--------|
-| `/` | `/` | `index.html` |
-| `/about` | `/about` | `frontend/pages/about.html` |
-| `/records` | `/records` | `frontend/pages/records.html` |
-| `/record/{slug}` | `/record/jesus-baptism` | `frontend/pages/record.html?slug=jesus-baptism` |
-| `/context/essay?id=` | `/context/essay?id=1` | `frontend/pages/context_essay.html?id=1` |
-| `/blog/post?id=` | `/blog/post?id=my-post` | `frontend/pages/blog_post.html?id=my-post` |
-| `/debate/academic-challenges` | `/debate/academic-challenges` | `frontend/pages/debate/academic_challenge.html` |
-| `/resources/events` | `/resources/events` | `frontend/pages/resources/Events.html` |
-| `/maps/roman-empire` | `/maps/roman-empire` | `frontend/pages/maps/map_empire.html` |
+### Debate Subdirectory
 
-**Key Design Decisions:**
-1. **Path-based record slugs** — Records use `/record/{slug}` (e.g. `/record/jesus-baptism`) not query params. Nginx named-capture rewrite maps the slug to `?slug=` internally so `single_view.js` reads it unchanged.
-2. **`<base>` tag strategy** — Every HTML page has `<base href="/frontend/pages/">` (or `/frontend/pages/debate/`, `/frontend/pages/maps/`, `/frontend/pages/resources/` for subdirectories) so relative CSS/JS asset references resolve from the original directory even though the browser address bar shows a clean slug.
-3. **Two-layer fallback** — Clean slugs are resolved first by nginx rewrite rules, then by FastAPI route handlers as a fallback for development environments.
-4. **301 redirects** — Old `/frontend/pages/...` paths permanently redirect to the new clean slugs. Legacy query-param record URLs (`/record.html?slug=...` or `?id=...`) also 301 to `/record/{slug}`.
+| Clean URL | Internal file |
+|-----------|---------------|
+| `/debate/academic-challenges` | `frontend/pages/debate/academic_challenge.html` |
+| `/debate/popular-challenges` | `frontend/pages/debate/popular_challenge.html` |
+| `/debate/wikipedia-articles` | `frontend/pages/debate/wikipedia.html` |
+| `/debate/historiography` | `frontend/pages/debate/historiography.html` |
+| `/debate/response` | `frontend/pages/debate/response.html` |
+
+### Resources Subdirectory
+
+| Clean URL | Internal file |
+|-----------|---------------|
+| `/resources/events` | `frontend/pages/resources/Events.html` |
+| `/resources/external-witnesses` | `frontend/pages/resources/External witnesses.html` |
+| `/resources/internal-witnesses` | `frontend/pages/resources/Internal witnesses.html` |
+| `/resources/manuscripts` | `frontend/pages/resources/Manuscripts.html` |
+| `/resources/miracles` | `frontend/pages/resources/Miracles.html` |
+| `/resources/ot-verses` | `frontend/pages/resources/OT Verses.html` |
+| `/resources/objects` | `frontend/pages/resources/Objects.html` |
+| `/resources/people` | `frontend/pages/resources/People.html` |
+| `/resources/places` | `frontend/pages/resources/Places.html` |
+| `/resources/sermons-and-sayings` | `frontend/pages/resources/Sermons and Sayings.html` |
+| `/resources/sites` | `frontend/pages/resources/Sites.html` |
+| `/resources/sources` | `frontend/pages/resources/Sources.html` |
+| `/resources/world-events` | `frontend/pages/resources/World Events.html` |
+
+### Public JSON API Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/public/blogposts` | Paginated published blog posts (`limit`, `offset`, `type`, `status`) |
+| `GET /api/public/blogposts/{slug}` | Single blog post by slug |
+| `GET /api/public/news` | Paginated news items |
+| `GET /api/public/essays` | All published essays |
+| `GET /api/public/essays/{slug}` | Single essay by slug |
+| `GET /api/public/essays/historiography` | Historiography essay |
+| `GET /api/public/challenges` | Paginated challenge records |
+| `GET /api/public/wikipedia` | Paginated Wikipedia article rankings |
+| `GET /api/public/responses` | Paginated scholarly responses |
+| `GET /api/public/responses/{slug}` | Single response by slug |
+| `GET /api/public/diagram/tree` | Arbor evidence tree data |
+
+### Legacy Redirects (301 Permanent)
+
+All old filesystem paths 301-redirect to their clean-slug equivalents. These are defined in both nginx.conf (rewrite rules with `permanent` flag) and serve_all.py (`RedirectResponse`).
+
+| Legacy URL | Redirects to |
+|------------|-------------|
+| `/frontend/pages/records.html` | `/records` |
+| `/frontend/pages/evidence.html` | `/evidence` |
+| `/frontend/pages/debate/academic_challenge.html` | `/debate/academic-challenges` |
+| `/frontend/pages/resources/Events.html` | `/resources/events` |
+| `/record.html?slug={slug}` | `/record/{slug}` |
+| `/record.html?id={id}` | `/record/{id}` |
+| *(37+ additional legacy rewrites — see `nginx.conf` lines 66–99)* | |
+
+## URL Resolution Architecture
+
+```text
+ [ Browser requests /record/jesus-baptism ]
+              |
+              v
+ +--------------------------------------+
+ | nginx.conf                           |
+ |                                      |
+ | 1. Check legacy redirects (301)      |
+ |    /frontend/pages/*.html -> /slug   |
+ |    ?slug=X or ?id=X -> /record/X     |
+ |                                      |
+ | 2. Rewrite clean slug (break)        |
+ |    /record/(.+) ->                   |
+ |    /frontend/pages/record.html       |
+ |    ?slug=$1                          |
+ |                                      |
+ | 3. try_files $uri @proxy             |
+ +--------------------------------------+
+         |                |
+   rewrite hit      rewrite miss
+         |                |
+         v                v
+ +----------------+ +-------------------+
+ | Static file    | | @proxy -> FastAPI  |
+ | served by      | | serve_all.py       |
+ | nginx directly | |                    |
+ +----------------+ | @app.get(          |
+                     |  "/record/{slug}")|
+                     | FileResponse(     |
+                     |  record.html)     |
+                     +-------------------+
+```
+
+## Design Decisions
+
+**Path-based record slugs** — Records use `/record/{slug}` not query params. nginx named-capture rewrite maps the slug to `?slug=` internally so `single_view.js` reads it via `URLSearchParams` unchanged.
+
+**`<base>` tag strategy** — Every HTML page includes a `<base href>` so relative CSS/JS/font references resolve from the original directory even though the browser address bar shows a clean slug:
+- Root pages: `<base href="/frontend/pages/">`
+- Debate pages: `<base href="/frontend/pages/debate/">`
+- Resources pages: `<base href="/frontend/pages/resources/">`
+- Maps pages: `<base href="/frontend/pages/maps/">`
+
+**Two-layer fallback** — Clean slugs are resolved first by nginx rewrite rules (`break` flag prevents re-scanning into legacy 301s), then by FastAPI route handlers for development environments where nginx is not running.
+
+**Rate limiting** — `limit_req_zone` at 30 req/s per IP with burst=20 on all `/api/` routes. Excess requests receive 429.

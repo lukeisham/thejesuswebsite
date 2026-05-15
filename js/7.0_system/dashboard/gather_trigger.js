@@ -86,6 +86,7 @@ async function _pollForCompletion(pipelineName, runId) {
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
         },
       );
 
@@ -143,9 +144,16 @@ async function triggerGather(pipelineName, recordSlug) {
     var endpoint = _getPipelineEndpoint(pipelineName);
     var body = _getPipelineBody(pipelineName, recordSlug);
 
+    var csrfToken = (typeof window.getCSRFToken === "function")
+      ? window.getCSRFToken()
+      : "";
     var triggerResponse = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+      credentials: "same-origin",
       body: body,
     });
 

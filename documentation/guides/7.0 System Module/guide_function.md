@@ -1,667 +1,484 @@
 ---
 name: guide_function.md
-purpose: Visual ASCII representations of System Module data flows — admin portal auth, module router, agent logic, backend API/MCP, URL slugs, security, DeepSeek clients
-version: 1.0.0
-dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, guide_dashboard_appearance.md, guide_donations.md, guide_frontend_appearance.md, guide_security.md, guide_welcoming_robots.md, system_nomenclature.md]
+purpose: ASCII lifecycle diagrams and technical descriptions for the 7.0 System Module — auth, module routing, URL rewriting, agent pipelines, health polling, sidebar resize
+version: 2.0.0
+dependencies: [simple_module_sitemap.md, guide_dashboard_appearance.md, system_nomenclature.md]
 ---
 
-# Purpose of this document.
+# Function — 7.0 System Module
 
-# Purpose of this document. 
-
-This document provides visual ASCII representations detailing how data physically flows through the 8 interconnected modules of the application.
-
----
-
----
-
-## 7.0 System Module
+## 7.1 Authentication Lifecycle
 
 ```text
-    [ External Web Traffic ]               [ Automated AI Agents ]
-               |                                      |
-               +-------------------+------------------+
-                                   |
-                                   v
- +-------------------------------------------------------------+
- |                   Nginx Reverse Proxy                       |
- |          (Rate Limit, robots.txt, sitemap.xml)              |
- +-------------------------------------------------------------+
-          |                        |                       |
-          v                        v                       v
- +----------------+      +----------------+      +------------------+
- | Static Assets  |      | Admin Auth API |      | MCP Server Agent |
- |     Files      |      |   (Backend)    |      |    (API Tool)    |
- |                |      |                |      |                  |
- | HTML, JS, CSS, |      |   Auth & JWT   |      | rate_limiter.py  |
- | SQLite WASM    |      |   Utilities    |      |                  |
- +----------------+      +----------------+      +------------------+
-                                   |                       |
-                                   v                       v
-                         +----------------+      +------------------+
-                         | SQLite DB File |      |  SQLite DB File  |
-                         |  (Read/Write)  |      |   (Read-Only)    |
-                         +----------------+      +------------------+
+ [ User visits login.html ]
+              |
+              v
+ +----------------------------------+
+ | admin.js :: handleLogin()        |
+ | POST /api/admin/login            |
+ | Body: { password }               |
+ +----------------------------------+
+              |
+              v
+ +----------------------------------+
+ | auth_utils.py                    |
+ | check_brute_force(ip)            |
+ |   5 failures -> 300s lockout     |
+ |   1s artificial delay on fail    |
+ | verify_password(password)        |
+ |   strict match vs ADMIN_PASSWORD |
+ +----------------------------------+
+              |
+     +--------+--------+
+     |                  |
+  SUCCESS            FAILURE
+     |                  |
+     v                  v
+ +-----------------+ +------------------+
+ | create JWT      | | record_attempt() |
+ |  (HS256, 12h)   | | Return 401       |
+ | Set cookies:    | +------------------+
+ |  admin_token    |
+ |   (HttpOnly)    |
+ |  csrf_token     |
+ |   (non-HttpOnly)|
+ | Return 200      |
+ +-----------------+
+         |
+         v
+ +----------------------------------+
+ | admin.js redirects browser to    |
+ | /admin/frontend/dashboard.html   |
+ +----------------------------------+
+              |
+              v
+ +----------------------------------+
+ | dashboard_orchestrator.js        |
+ | verifyAdminSession()             |
+ |  GET /api/admin/verify           |
+ +----------------------------------+
+              |
+     +--------+--------+
+     |                  |
+  200 OK             401
+     |                  |
+     v                  v
+ +-----------------+ +------------------+
+ | initDashboard() | | Redirect back to |
+ |  1. injectUniv- | | login.html       |
+ |     ersalHeader | +------------------+
+ |  2. renderDash- |
+ |     boardCards  |
+ |  3. injectError |
+ |     Footer      |
+ +-----------------+
 ```
 
-### 7.1 Admin Portal
+The System Module uses a two-page architecture. `login.html` contains only the password form and `admin.js`; no dashboard markup or scripts are loaded until authentication succeeds. On successful login, `auth.py` sets an HttpOnly JWT cookie (`admin_token`, 12 h expiry, HS256-signed with `SECRET_KEY`) and a non-HttpOnly `csrf_token`. The browser redirects to `dashboard.html`, where `dashboard_orchestrator.js` calls `verifyAdminSession()` before initialising the shell. If the JWT is missing or expired, the user is redirected back to `login.html`.
+
+Brute-force protection is implemented per IP in `AuthUtils`: 5 consecutive failures lock the IP for 300 s, and every failed attempt incurs a 1 s artificial delay. The lockout state is stored in-memory (resets on server restart).
+
+## 7.2 Module Routing Lifecycle
 
 ```text
- +-------------------------------------------------------------+
- |   Browser loads dashboard.html                              |
- +-------------------------------------------------------------+
-                                |
-                                v
- +-------------------------------------------------------------+
- |  JS: dashboard_auth.js                                      |
- |  -> Calls window.verifyAdminSession() from load_middleware  |
- |     (GET /api/admin/verify)                                 |
- +-------------------------------------------------------------+
-                                |
-                                v
- +-------------------------------------------------------------+
- |                API: verify_token dependency                 |
- |                                                             |
- |  -> Read 'admin_token' string from HttpOnly Cookie          |
- |  -> Decode JWT payload via auth_utils.py                    |
- |  -> Validate expiration time & Role ('admin' required)      |
- +-------------------------------------------------------------+
-                                |
-             +------------------+------------------+
-             |                                     |
-       [ VALID TOKEN ]                      [ INVALID / NULL ]
-       (Returns 200 OK)                   (Returns 401 Unauth)
-             |                                     |
-             v                                     v
- +------------------------+              +------------------------------+
- | dashboard_init.js runs |              | window.location.href =       |
- | -> renders module tab  |              | '/admin/frontend/admin.html' |
- |    bar & loads default |              | (redirect — no DOM wipe)     |
- |    module (records-all)|              +------------------------------+
- +------------------------+
+ [ User clicks a module card in #admin-cards ]
+ [ OR clicks a tab in #module-tab-bar       ]
+              |
+              v
+ +--------------------------------------+
+ | dashboard_app.js :: loadModule(name)  |
+ |                                       |
+ | 1. _clearColumns()                    |
+ |    - wipes sidebar + main content     |
+ |    - resets grid widths               |
+ |    - cleans up drag handle state      |
+ |                                       |
+ | 2. _setActiveTab(name)                |
+ |    - updates .is-active on tab bar    |
+ |                                       |
+ | 3. Lookup MODULE_RENDERERS[name]      |
+ |    - resolves render function name    |
+ |    - calls window[renderFn]()         |
+ +--------------------------------------+
+              |
+              v
+ +--------------------------------------+
+ | MODULE_RENDERERS map:                |
+ |                                      |
+ | records-all       -> renderRecordsAll       |
+ | records-single    -> renderRecordsSingle    |
+ | arbor             -> renderArbor            |
+ | wikipedia         -> renderWikipedia        |
+ | challenge-academic-> renderChallengeAcademic|
+ | challenge-popular -> renderChallengePopular |
+ | challenge-response-> renderChallengeResponse|
+ | essay             -> renderEssay            |
+ | historiography    -> renderHistoriography   |
+ | news-sources      -> renderNewsSources      |
+ | blog-posts        -> renderBlogPosts        |
+ | system            -> renderSystem           |
+ +--------------------------------------+
+              |
+              v
+ +--------------------------------------+
+ | Render function populates            |
+ | #admin-canvas via Providence columns |
+ |                                      |
+ | _setLayoutColumns(sidebar, main)     |
+ |  - sidebar='280px' -> 2-column mode  |
+ |  - sidebar=false   -> full-width     |
+ |    (hides drag handle, adds          |
+ |     .no-sidebar to #admin-canvas)    |
+ +--------------------------------------+
 ```
 
-#### Authentication Handshake (Login)
+Module routing is a static dispatch. `dashboard_app.js` maintains two maps — `MODULE_RENDERERS` (module name to render function name) and `MODULE_LABELS` (module name to display text). When `loadModule(name)` is called, it clears the Providence canvas, updates the tab bar, looks up the render function by name from `MODULE_RENDERERS`, and calls `window[renderFn]()`. There is no default module auto-loaded on init — the user must click a card to begin.
+
+Each render function decides its own layout by calling `_setLayoutColumns(sidebarWidth, mainWidth)`. Modules that use a sidebar pass `('280px', '1fr')`; modules that don't pass `(false, '1fr')`, which adds the `.no-sidebar` class and hides the drag handle.
+
+## 7.3 URL Routing
+
+| Clean URL | nginx rewrite target | FastAPI fallback (`serve_all.py`) |
+|-----------|---------------------|----------------------------------|
+| `/` | `index.html` (nginx `index` directive) | Static mount fallback |
+| `/records` | `frontend/pages/records.html` | `@app.get("/records")` |
+| `/record/{slug}` | `frontend/pages/record.html?slug={slug}` | `@app.get("/record/{slug}")` |
+| `/context` | `frontend/pages/context.html` | `@app.get("/context")` |
+| `/context/essay` | `frontend/pages/context_essay.html` | `@app.get("/context/essay")` |
+| `/context/{slug}` | `frontend/pages/context_essay.html?slug={slug}` | `@app.get("/context/{slug}")` |
+| `/debate` | `frontend/pages/debate.html` | `@app.get("/debate")` |
+| `/debate/{slug}` | `frontend/pages/debate/response.html?slug={slug}` | `@app.get("/debate/{slug}")` |
+| `/blog` | `frontend/pages/blog.html` | `@app.get("/blog")` |
+| `/blog/{slug}` | `frontend/pages/blog_post.html?slug={slug}` | `@app.get("/blog/{slug}")` |
+| `/news` | `frontend/pages/news_and_blog.html` | `@app.get("/news")` |
+| `/resources` | `frontend/pages/resources.html` | `@app.get("/resources")` |
+| `/frontend/pages/*.html` | 301 redirect to clean slug | 301 redirect to clean slug |
+| `/debate/response/{slug}` | 301 redirect to `/debate/{slug}` | 301 redirect to `/debate/{slug}` |
+
 ```text
- +-------------------------------------------------------------+
- |   Browser: admin.html   -- (POST /api/admin/login) --+      |
- |   (User submits password)                            |      |
- +------------------------------------------------------|------+
-                                                        v
- +-------------------------------------------------------------+
- |                Utils: auth_utils.py                         |
- |                                                             |
- |  -> Check Brute Force table (Verify IP is not locked out)   |
- |  -> Verify Admin Password strictly matches .env variable    |
- +-------------------------------------------------------------+
-                                |
-             +------------------+------------------+
-             |                                     |
-       [ SUCCESS (Match) ]                  [ FAIL (No Match) ]
-             |                                     |
-             v                                     v
- +------------------------+              +---------------------+
- | -> Generate new JWT    |              | Return 401 Response |
- | -> Set HttpOnly Cookie |              | (Unauthorized)      |
- | -> Return 200 OK       |              +---------------------+
- +------------------------+
-             |
-             v
- +-------------------------------------------------------------+
- |   JS: admin_login.js                                        |
- |   window.location.href = '/admin/frontend/dashboard.html'   |
- +-------------------------------------------------------------+
+ [ Browser requests /record/jesus-baptism ]
+              |
+              v
+ +--------------------------------------+
+ | nginx.conf                           |
+ | location ~ ^/record/(.+)$ {          |
+ |   rewrite ^/record/(.+)$             |
+ |   /frontend/pages/record.html        |
+ |   ?slug=$1 break;                    |
+ | }                                    |
+ +--------------------------------------+
+         |                |
+   rewrite hit      rewrite miss
+         |                |
+         v                v
+ +----------------+ +-------------------+
+ | Static file    | | FastAPI           |
+ | served by      | | serve_all.py      |
+ | nginx directly | | @app.get(         |
+ |                | |  "/record/{slug}")|
+ | <base href=    | | FileResponse(     |
+ | "/frontend/    | |  "frontend/pages/ |
+ |  pages/">      | |   record.html")   |
+ +----------------+ +-------------------+
+
+ [ Legacy URL: /frontend/pages/record.html?slug=jesus-baptism ]
+              |
+              v
+ +--------------------------------------+
+ | nginx 301 redirect                   |
+ | -> /record/jesus-baptism             |
+ | (backward compat, retained 6 months) |
+ +--------------------------------------+
 ```
 
-### 7.1.1 Dashboard Module Router (loadModule)
+URL routing uses a two-tier strategy. nginx handles all clean-slug rewrites first: `/record/{slug}` is internally rewritten to `/frontend/pages/record.html?slug={slug}` without a redirect. If nginx doesn't match (e.g. the app is running without nginx during development), FastAPI's `serve_all.py` provides identical route handlers that return `FileResponse` to the same HTML files.
+
+Legacy URLs (`/frontend/pages/*.html`, `/record.html?slug=...`, `/record.html?id=...`) are caught by nginx and 301-redirected to their clean-slug equivalents. All HTML pages use `<base href="/frontend/pages/">` so relative CSS/JS/font references resolve correctly regardless of the clean URL in the address bar.
+
+Rate limiting is configured in the nginx `limit_req_zone` directive at 30 req/s per IP. API routes are proxied to the FastAPI Unix socket.
+
+## 7.4 System Health Polling Lifecycle
 
 ```text
- +-------------------------------------------------------------+
- |   Tab clicked in #module-tab-bar                            |
- |   (render_tab_bar.js fires -> window.loadModule(module))    |
- |   OR: dashboard_init.js calls loadModule("records-all")     |
- |       on DOMContentLoaded (default view)                    |
- |   OR: active tab clicked again (refresh — re-renders fresh) |
- +-------------------------------------------------------------+
-                          |
-                          v
- +-------------------------------------------------------------+
- |   dashboard_app.js :: loadModule(module)                    |
- |                                                             |
- |   -> Updates is-active on #module-tab-bar buttons           |
- |   -> Routes module name to the correct editor function      |
- |   (No session check here — done once at page load           |
- |    by dashboard_auth.js)                                    |
- +-------------------------------------------------------------+
-                          |
-                          v
- +-------------------------------------------------------------+
- |   Router Branches (if/else chain)                           |
- |                                                             |
- |   records-all    -> inline record list + pagination +       |
- |                      search                                 |
- |   records-edit   -> window.renderEditRecord("admin-canvas"  |
- |                       , recordId)                           |
- |   lists-ordinary -> window.renderEditLists("admin-canvas",  |
- |                       selectedListName)                     |
- |   records-bulk   -> window.renderBulkUpload("admin-canvas") |
- |   config-arbor   -> window.renderEditDiagram("admin-canvas")|
- |   ranks-wikipedia-> window.renderEditWikiWeights(           |
- |                       "admin-canvas")                       |
- |   challenge-academic -> renderChallengeAcademic()         |
- |                      (single-mode, hardcoded academic)      |
- |   challenge-popular  -> renderChallengePopular()            |
- |                      (single-mode, hardcoded popular)       |
- |   ranks-responses-> 2-tab container injected into canvas    |
- |                      (Academic tab default /                |
- |                       Popular tab lazy-loaded)              |
- |   text-essays    -> 2-tab container injected into canvas    |
- |                      (Context Essay tab default /           |
- |                       Historiography tab lazy-loaded)       |
- |   text-responses -> window.renderEditResponse("admin-canvas")|
- |   text-news      -> 2-tab container injected into canvas    |
- |                      (News Snippet tab default /            |
- |                       News Sources tab lazy-loaded)         |
- |   text-blog      -> window.renderEditBlogpost(              |
- |                       "admin-canvas")                       |
- |   system-admin   -> system status view                      |
- |   *fallback*     -> generic placeholder                     |
- +-------------------------------------------------------------+
-                          |
-                          v
- +-------------------------------------------------------------+
- |   Editor renders into #admin-canvas                         |
- +-------------------------------------------------------------+
+ [ renderSystem() called ]
+              |
+              v
+ +--------------------------------------+
+ | _setLayoutColumns(false, '1fr')      |
+ | Fetch dashboard_system.html template |
+ | Inject into #providence-col-main     |
+ +--------------------------------------+
+              |
+              v
+ +--------------------------------------+
+ | Start 3 polling loops:               |
+ |                                      |
+ | startSystemDataPolling()  (10s)      |
+ |   GET /api/admin/health_check        |
+ |   -> _renderApiHealth(data)          |
+ |   -> _renderVpsResources(data)       |
+ |   -> _renderSecurity(data)           |
+ |   -> _renderDeepSeek(data)           |
+ |                                      |
+ | startAgentMonitorPolling() (5s)      |
+ |   GET /api/admin/agent/logs?limit=50 |
+ |   -> _renderSummaryBar(runs)         |
+ |   -> _renderTable(runs)              |
+ |                                      |
+ | startMcpMonitorPolling()             |
+ |   -> renderMcpStdioStatus() (static) |
+ +--------------------------------------+
+              |
+              v
+ +--------------------------------------+
+ | health_check returns:                |
+ | {                                    |
+ |   status: "ok"|"degraded"|"error",   |
+ |   database: { status, record_count },|
+ |   resources: {                       |
+ |     cpu_percent, memory: {           |
+ |       total_gb, used_gb, percent },  |
+ |     disk: { total_gb, used_gb,       |
+ |       percent }, uptime_seconds      |
+ |   },                                 |
+ |   deepseek_api: { status },          |
+ |   esv_api: { status },               |
+ |   security: {                        |
+ |     session: { status, expires_in }, |
+ |     authentication: {                |
+ |       failed_login_attempts,         |
+ |       locked_ips, top_offenders      |
+ |     },                               |
+ |     rate_limiter: {                   |
+ |       tracked_ips,                    |
+ |       currently_throttled            |
+ |     },                               |
+ |     api_keys: { deepseek, esv }      |
+ |   }                                  |
+ | }                                    |
+ +--------------------------------------+
+              |
+              v
+ [ Health cards update with colour-coded status ]
+ [ .health-card__value--ok | --degraded | --error | --offline ]
+              |
+              v
+ [ On module unload: stopSystemDataPolling(),  ]
+ [ stopAgentMonitorPolling(), stopMcpMonitor() ]
 ```
 
-### 7.2 Agent Logic & Instructional Prompts
+The system dashboard launches three independent polling loops when `renderSystem()` is called. `startSystemDataPolling()` hits `GET /api/admin/health_check` every 10 s and updates four health cards: API health, VPS resources (CPU/memory/disk meter bars), security status, and DeepSeek API reachability. `startAgentMonitorPolling()` hits `GET /api/admin/agent/logs?limit=50` every 5 s and renders the agent activity table plus the summary stats bar. `startMcpMonitorPolling()` renders a static MCP stdio status card (no live polling). All intervals are cleared when the user navigates away from the system module.
+
+The `health_check` endpoint (`system.py`) probes the SQLite database, pings the DeepSeek and ESV APIs, reads VPS resource metrics via `psutil`, and inspects the brute-force lockout table and rate-limiter state.
+
+## 7.5 DeepSeek Agent Pipeline Lifecycle
 
 ```text
-               [ AI Agent / LLM Crawler ]
-                           |
-                           v
+ +----------+    +----------+    +----------+    +----------+
+ |  Slug    |    | Snippet  |    | SEO Kwds |    | Challenge|
+ | GENERATE |    | GENERATE |    | GENERATE |    | Run Agent|
+ | button   |    | button   |    | button   |    | button   |
+ +----+-----+    +----+-----+    +----+-----+    +----+-----+
+      |               |               |               |
+      v               v               v               v
+ POST /api/      POST /api/      POST /api/      POST /api/
+ admin/slug/     admin/snippet/  admin/metadata/  admin/agent/
+ generate        generate        generate         run
+      |               |               |               |
+      v               v               v               v
  +-------------------------------------------------------------+
- |               .agent/  Workflows & Skills                  |
- |                                                             |
- |  -> Defines task-specific routines (plan generation,       |
- |     code review, browser testing)                          |
- |  -> Templates for structured output (.md plans)            |
- +-------------------------------------------------------------+
-                           |
-                           v
- +-------------------------------------------------------------+
- |              assets/ai-instructions.txt                     |
- |                                                             |
- |  -> Targeted guidance for LLM crawlers on content           |
- |     interpretation and expected response behavior           |
- +-------------------------------------------------------------+
-                           |
-                           v
- +-------------------------------------------------------------+
- |                    README.md                                |
- |                                                             |
- |  -> Project overview and setup instructions                 |
- |  -> Architectural context and module map reference          |
- +-------------------------------------------------------------+
-```
-
-### 7.3 Backend API, MCP Server & VPS Config
-
-```text
-                 [ External AI Agent ]
-                  (Claude, DeepSeek, etc.)
-                           |
-                    stdin/stdout
-                           |
-                           v
- +-------------------------------------------------------------+
- |          MCP Server Service — stdio transport               |
- |                     (mcp_server.py)                         |
- |                                                             |
- |  1. Agent sends tool request via stdin                       |
- |  2. FastMCP dispatches to the requested tool                |
- |     - list_records()  → filtered columns + type exclusion   |
- |     - get_record()    → explicit column list + type filter  |
- |     - query_encyclopedia_by_era() → filtered by era + type  |
- |     - search_records() → LIKE search + type filter          |
- |  3. Each tool applies filters at the SQL query level:       |
- |     - WHERE type NOT IN ('system_data')                     |
- |     - No queries touch system_config or agent_run_log       |
- |  4. Parameterised (? placeholders) SQL queries execute      |
- +-------------------------------------------------------------+
-                           |
-                           v
- +-------------------------------------------------------------+
- |            SQLite Database (database/database.sqlite)       |
- |                                                             |
- |  Allowed:  records table (content types only)               |
- |  Blocked:  system_config table (no tools reference it)      |
- |  Blocked:  agent_run_log table (no tools reference it)      |
- |  Excluded: system-managed columns never selected                      |
- |  Excluded: system_data type filtered out at query level     |
- +-------------------------------------------------------------+
-                           |
-                           v
-             [ JSON Formatted Payload Response ]
-                           |
-                           v
-                [ Agent Context Window ]
-```
-
-> **Client wiring:** The agent does not discover this server magically — its MCP client must be configured to spawn `mcp_server.py` as a subprocess. See `documentation/guides/guide_welcoming_robots.md` §1a for the config JSON, or copy `deployment/mcp_client_config.example.json` to your client's config directory.
-
-### 7.3.1 URL Slug Rewriting Architecture
-
-```text
-               [ Browser Address Bar ]
-               /records or /record/jesus-baptism
-                           |
-                           v
- +-------------------------------------------------------------+
- |                    nginx.conf (First)                       |
- |                                                             |
- |  GET /records  -->  rewrite to /frontend/pages/records.html |
- |  GET /record/jesus-baptism                                 |
- |    --> named-capture: rewrite to record.html?slug=jesus-bap |
- |  GET /frontend/pages/... (old paths) --> 301 to new slug   |
- |  GET /record.html?slug=... (legacy) --> 301 to /record/... |
- |  GET /record.html?id=...  (legacy) --> 301 to /record/...  |
- +-------------------------------------------------------------+
-                      |                    |
-                      v                    v
-          (rewrite hit)            (rewrite miss)
-                |                        |
-                v                        v
- +---------------------------+  +----------------------------+
- |  Static file served from  |  | FastAPI route handler     |
- |  /frontend/pages/...      |  | serve_all.py (fallback)   |
- |                           |  |                            |
- |  <base href="/frontend/   |  | @app.get("/records")      |
- |           pages/">         |  | @app.get("/record/{slug}")|
- |                           |  | @app.get("/context") ...  |
- |  All relative CSS/JS/font |  |                            |
- |  references resolve from  |  | Each returns FileResponse( |
- |  /frontend/pages/ dir     |  |   "frontend/pages/...")   |
- +---------------------------+  +----------------------------+
-                                           |
-                                           v
-                              [ Backward Compat 301s ]
-                              Old /frontend/pages/*.html
-                              --> 301 redirect to /clean-slug
-                              (retained for 6 months)
-```
-
-### 7.4 Security Protocols & JWT Management
-
-```text
-                 [ Incoming Requests ]
-                           |
-                           v
- +-------------------------------------------------------------+
- |          Nginx Reverse Proxy (rate_limiter.py)              |
- |                                                             |
- |  -> Rate limiting per IP (DDoS protection)                  |
- |  -> SSL termination via nginx.conf                          |
- +-------------------------------------------------------------+
-                           |
-                           v
- +-------------------------------------------------------------+
- |                .env Credential Vault                        |
- |                                                             |
- |  -> ADMIN_PASSWORD (sha256 hashed for admin login)          |
- |  -> ESV_API_KEY (external Bible API access)                 |
- |  -> DEEPSEEK_API_KEY (AI provider integration)              |
- +-------------------------------------------------------------+
-                           |
-                           v
- +-------------------------------------------------------------+
- |              auth_utils.py (JWT & Brute Force)             |
- |                                                             |
- |  -> JWT generation with expiration and role claims          |
- |  -> Brute force lockout table (per IP tracking)            |
- |  -> Password verification against .env hash                |
- +-------------------------------------------------------------+
-```
-
-
-
-### 7.6 DeepSeek Agent Client & Generator Scripts
-
-Wrapping every AI feature in the admin dashboard is a three-layer pipeline:
-the frontend JS sends HTTP requests to FastAPI routes, which delegate to thin
-Python generator scripts, which all funnel through a single shared
-`agent_client.py` that talks to the DeepSeek API and logs every run to the
-`agent_run_log` table. There are four distinct pipelines — slug generation,
-snippet generation, SEO keywords generation, and web-search-enabled challenge
-agent runs — each hitting a different route but sharing the same authentication,
-retry logic, and logging infrastructure.
-
-```text
-+----------+     +----------+     +----------+     +----------+
-|  Slug    |     | Snippet  |     | SEO Kwds |     | Challenge|
-| GENERATE |     | GENERATE |     | GENERATE |     | Run Agent|
-| button   |     | button   |     | button   |     | button   |
-+----+-----+     +----+-----+     +----+-----+     +----+-----+
-     |                |                |                |
-     v                v                v                v
-+-----------+  +-----------+  +-------------+  +-------------------+
-| POST /api/|  | POST /api/|  | POST /api/ |  | POST /api/admin/  |
-| admin/slug|  | admin/snip|  | admin/meta |  | agent/run         |
-| /generate |  | /generate |  | /generate  |  | (web_search=True) |
-+-----+-----+  +-----+-----+  +------+-----+  +---------+---------+
-      |              |               |                   |
-      v              v               v                   v
-+-------------------------------------------------------------+
-|              backend/scripts/agent_client.py                 |
-|                                                             |
-|  generate_slug()  generate_snippet()  generate_metadata()   |
-|  search_web()  ←────── all four pipelines converge here     |
-|                                                             |
-|  -> Constructs system + user prompts from templates         |
-|  -> Calls _call_deepseek(web_search=True|False)             |
-|  -> Writes agent_run_log row (running → completed/failed)   |
-|  -> Retries on 429 with exponential backoff (up to 3x)     |
-|  -> Reads API key from DEEPSEEK_API_KEY in .env             |
-+----+------------------------+-------------------+-----------+
-     |                        |                   |
-     v                        v                   v
-+----------+          +-------------+      +---------------+
-| DeepSeek |          | agent_run_  |      | records table |
-| Chat     |          | log table   |      | (written when|
-| API      |          | (SQLite)    |      | user saves)  |
-+----------+          +-------------+      +---------------+
-```
-
-Each sub-section below documents one pipeline in detail, following request from
-the frontend button click through to the returned API response.
-
-### 7.6.1 Shared Generators: Slug, Snippet & SEO Keywords
-
-The metadata widget (`metadata_widget.js`) is a shared DOM component registered
-on `window.renderMetadataWidget()` that provides a unified interface for
-auto-generating three record fields — `slug`, `snippet`, and
-`metadata_json` (keywords) — across all six consumer dashboard modules
-(Records, Visualizations, Challenge Academic, Challenge Popular, News Sources,
-and Blog Posts). At injection, the orchestrator calls
-`renderMetadataWidget(containerId, options)`, passing an
-`onAutoSaveDraft(recordData)` callback, `getRecordTitle()`, and
-`getRecordId()` overrides. The widget builds its own DOM: a slug text input with
-GENERATE button, a snippet textarea with GENERATE button, a keyword tag editor
-with GENERATE button, created_at/updated_at displays, and a GENERATE ALL button.
-On load, `populateMetadataWidget(containerId, data)` hydrates all fields from
-the record object. On save, `collectMetadataWidget(containerId)` returns
-`{ slug, snippet, metadata_json }`. Individual GENERATE buttons POST to their
-respective API endpoint and populate the widget field only; they do not persist.
-GENERATE ALL fires all three POSTs in parallel via `Promise.allSettled`,
-then invokes `onAutoSaveDraft(recordData)` which syncs generated values into
-the canonical form fields (Section 1 slug, Section 3 snippet editor, and the
-hidden `#record-metadata-json` input) and programmatically clicks
-`#btn-save-draft`. The status handler gathers all seven sections via
-`collectAllFormData()`, stringifies array-typed fields to JSON, and sends
-PUT `/api/admin/records/{id}` (or POST for new records), whose route handler
-filters the payload against `get_valid_columns()` and commits the SQLite
-transaction. Each generation pipeline is logged to the `agent_run_log` table
-with its pipeline name, token count, and completion status.
-
-```text
-+-------------------------------------------------------------+
-| SLUG GENERATION PIPELINE                                    |
-|                                                             |
-|  User clicks GENERATE (slug) or GENERATE ALL                 |
-|       |                                                     |
-|       v                                                     |
-|  metadata_widget.js                                         |
-|  -> POST /api/admin/slug/generate                           |
-|     Body: { slug, content: record_title }                   |
-|       |                                                     |
-|       v                                                     |
-|  admin_api route -> slug_generator.py                       |
-|  -> validates title >= 3 chars                              |
-|  -> delegates to agent_client.generate_slug()               |
-|       |                                                     |
-|       v                                                     |
-|  agent_client.py                                            |
-|  -> prompts DeepSeek for lowercase, hyphenated slug         |
-|     without stop words                                      |
-|  -> agent_run_log: pipeline=slug_generation                 |
-|       |                                                     |
-|       v                                                     |
-|  Response: { slug: "jesus-baptism" }                        |
-|  -> populates #metadata-widget-slug                         |
-|  -> syncs to #record-slug via _wireSlugSync()               |
-+-------------------------------------------------------------+
+ |           backend/scripts/agent_client.py                    |
+ |                                                              |
+ | generate_slug()     -> pipeline: slug_generation             |
+ | generate_snippet()  -> pipeline: snippet_generation          |
+ | generate_metadata() -> pipeline: metadata_generation         |
+ | search_web()        -> pipeline: academic_challenges |       |
+ |                                  popular_challenges          |
+ |                                                              |
+ | Shared infrastructure:                                       |
+ |  _call_deepseek(web_search=True|False)                       |
+ |  _insert_log_run() -> agent_run_log (status: running)        |
+ |  _update_log_completed() | _update_log_failed()              |
+ |  Retry on 429 with exponential backoff (up to 3x)            |
+ |  API key from DEEPSEEK_KEY env var                            |
+ +-----+-------------------+--------------------+--------------+
+       |                   |                    |
+       v                   v                    v
+ +----------+       +-------------+      +---------------+
+ | DeepSeek |       | agent_run_  |      | records table |
+ | Chat API |       | log table   |      | (updated on   |
+ |          |       | (audit log) |      |  user save)   |
+ +----------+       +-------------+      +---------------+
 ```
 
 ```text
-+-------------------------------------------------------------+
-| SNIPPET GENERATION PIPELINE                                  |
-|                                                             |
-|  User clicks GENERATE (snippet) or GENERATE ALL              |
-|       |                                                     |
-|       v                                                     |
-|  metadata_widget.js (or snippet_generator.js via API)        |
-|  -> POST /api/admin/snippet/generate                        |
-|     Body: { slug, content: description_paragraphs }         |
-|       |                                                     |
-|       v                                                     |
-|  admin_api route -> snippet_generator.py                    |
-|  -> validates content >= 50 chars                           |
-|  -> delegates to agent_client.generate_snippet()            |
-|       |                                                     |
-|       v                                                     |
-|  agent_client.py                                            |
-|  -> prompts DeepSeek for 2-3 sentence scholarly summary     |
-|     in archival tone                                        |
-|  -> agent_run_log: pipeline=snippet_generation              |
-|       |                                                     |
-|       v                                                     |
-|  Response: { snippet: "...", slug: "..." }                 |
-|  -> populates #metadata-widget-snippet textarea             |
-|  -> (on GENERATE ALL) syncs into #snippet-editor-container  |
-+-------------------------------------------------------------+
+ CHALLENGE AGENT ASYNC FLOW:
+
+ [ User clicks "Run Agent" ]
+              |
+              v
+ +--------------------------------------+
+ | POST /api/admin/agent/run            |
+ | Body: { pipeline, slug }             |
+ |                                      |
+ | 1. Validate pipeline name            |
+ | 2. Look up search terms from record  |
+ | 3. Insert agent_run_log (running)    |
+ | 4. Return 202 Accepted + run_id      |
+ | 5. Spawn background thread:          |
+ |    agent_client.search_web()         |
+ +--------------------------------------+
+              |
+     +--------+--------+
+     |                  |
+  202 to client    Background thread
+     |                  |
+     v                  v
+ +-----------------+ +---------------------+
+ | gather_trigger  | | search_web()        |
+ | .js polls       | | _call_deepseek(     |
+ | GET /api/admin/ | |   web_search=True)  |
+ | agent/logs      | | Parse JSON articles |
+ | every 2s        | | Update agent_run_log|
+ | timeout: 120s   | |  (completed/failed) |
+ +-----------------+ +---------------------+
+         |
+         v
+ [ Poll detects status != 'running' ]
+ [ Auto-refreshes module view       ]
 ```
 
+All AI generation features funnel through `agent_client.py`, which provides four pipeline functions. The three metadata generators (slug, snippet, SEO keywords) are synchronous — the FastAPI route calls the generator, waits for the DeepSeek response, and returns the result directly.
+
+The challenge agent pipeline is asynchronous. `POST /api/admin/agent/run` inserts an `agent_run_log` row with status `running`, returns 202 immediately, and spawns a background thread that calls `search_web()` with `web_search=True`. The frontend uses `triggerGather()` to poll `GET /api/admin/agent/logs` every 2 s (120 s timeout) until the run status changes from `running`, then auto-refreshes the view.
+
+The metadata widget (`metadata_widget.js`) is a shared DOM component used by six consumer modules (Records, Arbor, Challenge Academic, Challenge Popular, News Sources, Blog Posts). It provides GENERATE buttons for slug, snippet, and keywords individually, plus a GENERATE ALL button that fires all three in parallel via `Promise.allSettled` and auto-saves the draft.
+
+## 7.6 Sidebar Drag Resize Lifecycle
+
 ```text
-+-------------------------------------------------------------+
-| SEO KEYWORDS GENERATION PIPELINE                             |
-|                                                             |
-|  User clicks GENERATE (keywords) or GENERATE ALL             |
-|       |                                                     |
-|       v                                                     |
-|  metadata_widget.js                                         |
-|  -> POST /api/admin/metadata/generate                       |
-|     Body: { slug, content: description_paragraphs }         |
-|       |                                                     |
-|       v                                                     |
-|  admin_api route -> metadata_generator.py                   |
-|  -> validates content >= 100 chars                          |
-|  -> delegates to agent_client.generate_metadata()           |
-|       |                                                     |
-|       v                                                     |
-|  agent_client.py                                            |
-|  -> prompts DeepSeek for 5-10 SEO keywords and             |
-|     meta_description (max 160 chars)                        |
-|  -> agent_run_log: pipeline=metadata_generation             |
-|       |                                                     |
-|       v                                                     |
-|  Response: { keywords: "tag1, tag2, ...",                   |
-|              meta_description: "..." }                      |
-|  -> populates #metadata-widget-tags (keyword chips)         |
-|  -> stored as metadata_json: {"keywords": "..."}           |
-+-------------------------------------------------------------+
+ [ Module renders with sidebar: _setLayoutColumns('280px', '1fr') ]
+              |
+              v
+ +--------------------------------------+
+ | initSidebarResize(canvasEl, opts)     |
+ |  1. Read 'dashboard-sidebar-width'   |
+ |     cookie (if set)                   |
+ |  2. Apply --sidebar-width inline      |
+ |  3. Attach mousedown/touchstart       |
+ |     to #providence-drag-handle        |
+ +--------------------------------------+
+              |
+              v
+ [ User drags handle ]
+              |
+ +--------------------------------------+
+ | onDragStart:                          |
+ |  Record startX, startWidth            |
+ |  Add .is-dragging to handle           |
+ |  Set body cursor: col-resize          |
+ |  Attach global move/end listeners     |
+ +--------------------------------------+
+              |
+              v
+ +--------------------------------------+
+ | onDragMove (per frame):               |
+ |  deltaX = clientX - startX            |
+ |  newWidth = startWidth + deltaX        |
+ |  Clamp: min 180px, max 40vw           |
+ |  Set --sidebar-width on container      |
+ |  CSS Grid reflows immediately          |
+ +--------------------------------------+
+              |
+              v
+ +--------------------------------------+
+ | onDragEnd:                            |
+ |  Remove .is-dragging                   |
+ |  Restore cursor, userSelect            |
+ |  Remove global listeners               |
+ |  Save final width to cookie            |
+ |   name: 'dashboard-sidebar-width'      |
+ |   expiry: 90 days, path: /             |
+ +--------------------------------------+
+
+ [ Module renders without sidebar: _setLayoutColumns(false, '1fr') ]
+              |
+              v
+ +--------------------------------------+
+ | .no-sidebar added to #admin-canvas    |
+ | Handle hidden via CSS display:none    |
+ | Handle pointer-events set to none     |
+ +--------------------------------------+
 ```
 
- ### 7.6.3 Agent Run Flow (Challenge Pipeline)
+The Providence sidebar is drag-resizable via `dashboard_sidebar_resize.js`. When a module calls `_setLayoutColumns('280px', '1fr')`, the wrapper function detects that `.no-sidebar` is absent and calls `initSidebarResize()`, which reads any previously saved width from the `dashboard-sidebar-width` cookie and applies it as a `--sidebar-width` CSS custom property. The drag handle responds to both mouse and touch events, clamping the sidebar between 180 px (minimum readable width) and 40 vw (prevents obscuring the main column). On drag end, the final width is persisted to a 90-day cookie.
+
+Modules that call `_setLayoutColumns(false, '1fr')` (all 12 modules currently use full-width mode) add `.no-sidebar` to `#admin-canvas`, which hides the drag handle and disables pointer events.
+
+## 7.7 MCP Server Lifecycle
 
 ```text
- [ Dashboard: User clicks "Run Agent" on a challenge record ]
-                           |
-                           v
- +-------------------------------------------------------------+
- |  admin_api.py: trigger_agent_run()                          |
- |  -> Validates pipeline (academic_challenges |                |
- |     popular_challenges)                                     |
- |  -> Looks up record's search terms from                     |
- |     academic_challenge_search_term or                       |
- |     popular_challenge_search_term                           |
- |  -> Inserts agent_run_log row (status: running)             |
- |  -> Returns 202 Accepted with run_id                        |
- |  -> Spawns background thread:                               |
- |     agent_client.search_web(search_terms, slug, pipeline)   |
- +-------------------------------------------------------------+
-                           |
-                           v
- +-------------------------------------------------------------+
- |  backend/scripts/agent_client.py :: search_web()            |
- |  -> Updates agent_run_log row (now managed in-function)     |
- |  -> Constructs system + user prompts for article discovery  |
- |  -> Calls _call_deepseek() with web_search=True             |
- |  -> Parses JSON response for articles array                 |
- |  -> Updates agent_run_log row (status: completed,           |
- |     articles_found, tokens_used)                            |
- +-------------------------------------------------------------+
-                           |
-                           v
- +-------------------------------------------------------------+
- |  GET /api/admin/agent/logs                                  |
- |  -> Dashboard polls for run completion + results            |
- +-------------------------------------------------------------+
+ [ External AI Agent (Claude, DeepSeek, etc.) ]
+              |
+         stdin/stdout
+              |
+              v
+ +--------------------------------------+
+ | mcp_server.py (FastMCP, stdio)       |
+ |                                      |
+ | Tools:                                |
+ |  list_records()                       |
+ |    SELECT filtered columns            |
+ |    WHERE type NOT IN ('system_data')  |
+ |                                      |
+ |  get_record(slug)                     |
+ |    SELECT explicit column list        |
+ |    WHERE slug=? AND type!=system_data |
+ |                                      |
+ |  query_encyclopedia_by_era(era)       |
+ |    WHERE era=? AND type!=system_data  |
+ |                                      |
+ |  search_records(query)                |
+ |    LIKE search + type filter          |
+ |                                      |
+ | All queries use ? placeholders        |
+ | No tools access system_config or      |
+ |  agent_run_log tables                 |
+ +--------------------------------------+
+              |
+              v
+ +--------------------------------------+
+ | SQLite (database/database.sqlite)    |
+ | Read-only connection                  |
+ +--------------------------------------+
+              |
+              v
+ [ JSON response via stdout -> Agent context window ]
 ```
 
-### 7.6.4 System Config Flow
+The MCP server (`mcp_server.py`) exposes four read-only tools over stdio transport using the FastMCP framework. Each tool queries the `records` table with parameterised SQL and filters out `system_data`-type rows at the query level. The `system_config` and `agent_run_log` tables are never referenced by any tool. The agent's MCP client must be configured to spawn `mcp_server.py` as a subprocess — see `deployment/mcp_client_config.example.json` for the configuration template.
 
-The `system_config` table provides a key/value store for global site-wide
-configuration that is not tied to any single record. The admin dashboard
-reads and writes config values through the system config API endpoints.
+## 7.8 System Config Lifecycle
 
 ```text
- [ Dashboard: System Health module loads ]
-                           |
-                           v
- +-------------------------------------------------------------+
- |  GET /api/admin/system/config                               |
- |  -> Returns all system_config rows as JSON key/value pairs  |
- +-------------------------------------------------------------+
-                           |
-                           v
- [ Dashboard displays current configuration ]
-                           |
-                           v
- [ Admin edits a config value ]
-                           |
-                           v
- +-------------------------------------------------------------+
- |  PUT /api/admin/system/config                               |
- |  -> Accepts JSON body: { "key": "value", ... }              |
- |  -> Upserts each key/value pair into system_config table    |
- |  -> Uses INSERT ... ON CONFLICT DO UPDATE (SQLite upsert)   |
- +-------------------------------------------------------------+
-
-### 7.7 Dashboard Sidebar Drag Resize Flow
-
-Introduced by `plan_draggable_sidebar_width.md`. A draggable resize handle in
-the Providence divider track lets admin users adjust the sidebar width in real
-time. The width is persisted across page reloads via a cookie.
-
-**Files involved:**
-- `js/7.0_system/dashboard/dashboard_sidebar_resize.js` — core utility
-- `js/7.0_system/dashboard/dashboard_sidebar_resize_init.js` — init wrapper
-- `css/1.0_foundation/dashboard/admin_components.css` — handle CSS (section 7)
-- `admin/frontend/dashboard.html` — handle element + script tags
-
-```text
- [ Dashboard module loads → loadModule(moduleName) called ]
-                           |
-                           v
- +-------------------------------------------------------------+
- |  loadModule() calls _clearColumns() (wrapped version)       |
- |  → Original clears columns, resets grid widths              |
- |  → Wrapper cleans up handle's is-dragging class,            |
- |    restores pointer-events                                  |
- +-------------------------------------------------------------+
-                           |
-                           v
- +-------------------------------------------------------------+
- |  Module render function calls _setLayoutColumns()           |
- |  (wrapped version)                                          |
- |                                                             |
- |  CASE A: _setLayoutColumns(false, '1fr')                    |
- |  → Original collapses grid to full-width                    |
- |  → Original adds .no-sidebar class to #admin-canvas         |
- |  → Wrapper checks canvas.classList.contains('no-sidebar')   |
- |  → Sets handle.style.pointerEvents = 'none'                 |
- |  → CSS hides handle (#admin-canvas.no-sidebar               |
- |    #providence-drag-handle { display: none })               |
- |                                                             |
- |  CASE B: _setLayoutColumns('280px', '1fr')                  |
- |  → Original restores sidebar + main columns                 |
- |  → Original removes .no-sidebar class                       |
- |  → Wrapper detects .no-sidebar is absent                    |
- |  → Calls initSidebarResize(canvasEl, { handleEl, ... })     |
- |  → Utility reads saved width from cookie (if any)           |
- |  → Attaches mousedown/touchstart listeners to handle        |
- +-------------------------------------------------------------+
-                           |
-                           v
- [ Admin user clicks & drags the handle ]
-                           |
-                           v
- +-------------------------------------------------------------+
- |  onDragStart(e):                                             |
- |  → Records startX (clientX) and startWidth (computed        |
- |    --sidebar-width from getComputedStyle)                    |
- |  → Adds .is-dragging class to handle (accent colour)        |
- |  → Sets body cursor to col-resize, userSelect to none       |
- |  → Attaches global mousemove/mouseup/touchmove/touchend     |
- |    listeners to document (tracks even outside handle)        |
- +-------------------------------------------------------------+
-                           |
-                           v
- +-------------------------------------------------------------+
- |  onDragMove(e):                                              |
- |  → Calculates deltaX = clientX - startX                     |
- |  → newWidth = startWidth + deltaX                           |
- |  → Clamps: Math.max(180px, Math.min(40vw, newWidth))        |
- |    180px = minimum readable sidebar                         |
- |    40vw  = maximum to prevent main area being obscured       |
- |  → Sets containerEl.style.setProperty('--sidebar-width',    |
- |    newWidth + 'px')                                          |
- |  → CSS Grid reflows both columns immediately                |
- +-------------------------------------------------------------+
-                           |
-                           v
- [ Admin releases mouse / lifts finger ]
-                           |
-                           v
- +-------------------------------------------------------------+
- |  onDragEnd(e):                                               |
- |  → Removes .is-dragging class                                |
- |  → Restores body cursor and userSelect                      |
- |  → Removes all global listeners                              |
- |  → Reads final --sidebar-width inline style                  |
- |  → Saves to cookie: setCookie('dashboard-sidebar-width',     |
- |    finalWidth, 90)                                           |
- |  → Cookie path=/ — applies across entire dashboard           |
- +-------------------------------------------------------------+
+ [ System dashboard loads ]
+              |
+              v
+ +--------------------------------------+
+ | GET /api/admin/system/config          |
+ | Returns all key/value pairs as JSON   |
+ +--------------------------------------+
+              |
+              v
+ [ Admin edits config values ]
+              |
+              v
+ +--------------------------------------+
+ | PUT /api/admin/system/config          |
+ | Body: { "key": "value", ... }         |
+ | INSERT ... ON CONFLICT DO UPDATE      |
+ | (SQLite upsert per key)               |
+ +--------------------------------------+
 ```
 
-**Backstop limits:**
-- Minimum: `180px` — narrow enough for compact nav but wide enough to read
-- Maximum: `40vw` — prevents sidebar from consuming more than 40% of viewport
-
-**Cookie persistence:**
-- Cookie name: `dashboard-sidebar-width`
-- Expiry: 90 days
-- Path: `/` (applies across entire dashboard)
-- On init: read cookie → parse → apply `--sidebar-width` immediately
-- Fallback: `getComputedStyle(containerEl).getPropertyValue('--sidebar-width')`
-  (respects whatever `:root` value is set in `shell.css` — currently `280px`)
-
-**No-sidebar modules unaffected:** Modules that call `_setLayoutColumns(false)`
-(All Records, Single Record, Arbor, Wikipedia, Challenge, Essay & Hist.,
-News Sources, Blog Posts, System) hide the handle via CSS and
-`pointer-events: none`. No existing JS files were modified.
-
-
----
-
+The `system_config` table is a simple key/value store for site-wide settings. The GET endpoint returns all rows; the PUT endpoint accepts a JSON object and upserts each key/value pair using SQLite's `INSERT ... ON CONFLICT DO UPDATE` syntax. Both endpoints require a valid admin session.

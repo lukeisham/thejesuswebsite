@@ -15,6 +15,8 @@
    MAIN FUNCTION: verifyAdminSession
    Calls the verify endpoint. Redirects to login on failure.
 ----------------------------------------------------------------------------- */
+window.verifyAdminSession = verifyAdminSession;
+
 async function verifyAdminSession() {
   try {
     const response = await fetch("/api/admin/verify", {

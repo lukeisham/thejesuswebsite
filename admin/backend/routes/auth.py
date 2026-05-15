@@ -68,6 +68,7 @@ async def login(req: LoginRequest, request: Request, response: Response):
 async def logout(response: Response):
     # Overwrite cookie to invalidate it
     response.delete_cookie("admin_token")
+    response.delete_cookie("csrf_token")
     return {"message": "Logged out successfully"}
 
 

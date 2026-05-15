@@ -8,9 +8,16 @@ function renderResponse(containerId) {
   var container = document.getElementById(containerId);
   if (!container) return;
 
-  // Determine target from URL parameter
+  // Determine target from URL query param or clean path /debate/{slug}
   var urlParams = new URLSearchParams(window.location.search);
-  var slug = urlParams.get("id");
+  var slug = urlParams.get("id") || urlParams.get("slug");
+
+  if (!slug) {
+    var pathMatch = window.location.pathname.match(/\/debate\/([a-z0-9_-]+)/i);
+    if (pathMatch) {
+      slug = pathMatch[1];
+    }
+  }
 
   if (!slug) {
     container.innerHTML =

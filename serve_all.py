@@ -31,13 +31,26 @@ app = create_app()
 
 # 3. Trusted Host Middleware (FIX FOR 400 ERROR)
 # This allows the app to recognize requests coming from your domain and Cloudflare
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        "thejesuswebsite.com",
+        "www.thejesuswebsite.com",
+        "localhost",
+        "127.0.0.1",
+    ],
+)
 
 # 4. CORS Middleware (PREVIOUS FUNCTIONALITY)
 # Remains exactly as you had it for local testing and cross-origin access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://thejesuswebsite.com",
+        "https://www.thejesuswebsite.com",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -119,6 +132,11 @@ async def context_essay_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/context_essay.html"))
 
 
+@app.get("/context/{slug}")
+async def context_essay_by_slug(slug: str):
+    return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/context_essay.html"))
+
+
 @app.get("/debate")
 async def debate_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/debate.html"))
@@ -129,19 +147,34 @@ async def resources_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/resources.html"))
 
 
-@app.get("/news_and_blog.html")
-async def news_and_blog_landing_page():
+@app.get("/news")
+async def news_landing_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/news_and_blog.html"))
 
 
-@app.get("/news.html")
-async def news_html_feed_page():
+@app.get("/news/feed")
+async def news_feed_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/news.html"))
 
 
-@app.get("/blog.html")
-async def blog_html_feed_page():
+@app.get("/blog")
+async def blog_landing_page():
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/blog.html"))
+
+
+@app.get("/news_and_blog.html")
+async def news_and_blog_legacy_page():
+    return RedirectResponse(url="/news")
+
+
+@app.get("/news.html")
+async def news_html_legacy_page():
+    return RedirectResponse(url="/news/feed")
+
+
+@app.get("/blog.html")
+async def blog_html_legacy_page():
+    return RedirectResponse(url="/blog")
 
 
 @app.get("/blog/post")
@@ -201,6 +234,11 @@ async def debate_response_page():
 
 @app.get("/debate/response/{slug}")
 async def debate_response_page_with_slug(slug: str):
+    return RedirectResponse(url=f"/debate/{slug}")
+
+
+@app.get("/debate/{slug}")
+async def debate_slug_page(slug: str):
     return FileResponse(os.path.join(ROOT_DIR, "frontend/pages/debate/response.html"))
 
 

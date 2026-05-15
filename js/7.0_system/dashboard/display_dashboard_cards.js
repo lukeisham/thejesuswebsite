@@ -3,8 +3,8 @@
    File:    js/7.0_system/dashboard/display_dashboard_cards.js
    Version: 1.0.0
    Trigger: Called by dashboard_orchestrator.js on initial page load.
-   Main:    renderDashboardCards() — component-injects 11 module navigation
-            cards into #admin-cards in a 3×3 + 1 centered grid layout.
+   Main:    renderDashboardCards() — component-injects 12 module navigation
+            cards into #admin-cards in a 4×3 grid layout (last card centred).
             Each card has an icon, title, and description. Clicks route to
             the module via window.loadModule().
    Output:  Populated #admin-cards container with interactive module cards.

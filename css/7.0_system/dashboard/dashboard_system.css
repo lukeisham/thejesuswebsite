@@ -387,7 +387,7 @@
 
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    line-height: var(--leading-relaxed);
+    line-height: var(--line-height-relaxed);
     color: var(--color-text-primary);
     white-space: pre-wrap;
     word-break: break-word;
@@ -426,7 +426,7 @@
 
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    line-height: var(--leading-relaxed);
+    line-height: var(--line-height-relaxed);
     color: var(--color-text-primary);
     white-space: pre-wrap;
     word-break: break-word;
@@ -545,7 +545,7 @@
 
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    line-height: var(--leading-relaxed);
+    line-height: var(--line-height-relaxed);
     color: var(--color-text-primary);
     white-space: pre-wrap;
     word-break: break-word;
