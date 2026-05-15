@@ -151,7 +151,8 @@ async function handleSaveDraft() {
 
       _checkAuth(response);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${response.status}`);
       }
     } else {
       // --- CREATE new record ---
@@ -164,7 +165,8 @@ async function handleSaveDraft() {
 
       _checkAuth(response);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${response.status}`);
       }
 
       const result = await response.json();
@@ -235,7 +237,8 @@ async function handlePublish() {
 
       _checkAuth(response);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${response.status}`);
       }
     } else {
       // --- CREATE new record ---
@@ -248,7 +251,8 @@ async function handlePublish() {
 
       _checkAuth(response);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${response.status}`);
       }
 
       const result = await response.json();

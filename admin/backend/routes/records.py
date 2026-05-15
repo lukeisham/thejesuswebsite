@@ -181,7 +181,8 @@ async def create_record(
     Creates a new record. Dynamically maps the valid JSON payload to columns.
     """
     try:
-        valid_cols = get_valid_columns()
+        conn = get_db_connection()
+        valid_cols = get_valid_columns(conn)
         # Only keep fields that map to existing columns
         safe_data = {k: v for k, v in record_data.items() if k in valid_cols}
 
@@ -198,7 +199,18 @@ async def create_record(
         if "updated_at" not in safe_data:
             safe_data["updated_at"] = now_iso
 
-        conn = get_db_connection()
+        # Check for duplicate slug before INSERT
+        slug = safe_data.get("slug")
+        if slug:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM records WHERE slug = ?", (slug,))
+            if cursor.fetchone():
+                conn.close()
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"A record with slug '{slug}' already exists",
+                )
+
         cursor = conn.cursor()
 
         columns = ", ".join(safe_data.keys())
@@ -211,7 +223,10 @@ async def create_record(
         conn.commit()
         conn.close()
         return {"message": "Record created successfully", "id": safe_data["id"]}
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error("Failed to create record: %s", e)
         raise HTTPException(
             status_code=500, detail="Failed to create record: " + str(e)
         )
@@ -227,16 +242,32 @@ async def update_record(
     Dynamically updates a record mapping arbitrary JSON payload to the SQLite columns.
     """
     try:
-        valid_cols = get_valid_columns()
+        conn = get_db_connection()
+        valid_cols = get_valid_columns(conn)
         # Filter and validate columns
         safe_data = {k: v for k, v in record_data.items() if k in valid_cols}
 
         if not safe_data:
+            conn.close()
             raise HTTPException(
                 status_code=400, detail="No valid columns to update provided"
             )
 
-        conn = get_db_connection()
+        # Check for duplicate slug before UPDATE
+        slug = safe_data.get("slug")
+        if slug:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id FROM records WHERE slug = ? AND id != ?",
+                (slug, record_id),
+            )
+            if cursor.fetchone():
+                conn.close()
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"A record with slug '{slug}' already exists",
+                )
+
         cursor = conn.cursor()
 
         # Always update updated_at on modification
@@ -249,9 +280,10 @@ async def update_record(
         conn.commit()
         conn.close()
         return {"message": "Record updated successfully"}
-    except HTTPException as he:
-        raise he
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error("Failed to update record %s: %s", record_id, e)
         raise HTTPException(
             status_code=500, detail="Failed to update record: " + str(e)
         )
