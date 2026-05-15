@@ -369,10 +369,14 @@ function _collectEditorData() {
       // Merge custom identifier entries into metadata_json
       if (refs.entries && refs.entries.length > 0) {
         try {
-          let meta = payload.metadata_json ? JSON.parse(payload.metadata_json) : {};
+          let meta = payload.metadata_json
+            ? JSON.parse(payload.metadata_json)
+            : {};
           meta.identifiers = refs.entries;
           payload.metadata_json = JSON.stringify(meta);
-        } catch (e) { /* keep existing metadata_json */ }
+        } catch (e) {
+          /* keep existing metadata_json */
+        }
       }
     } catch (err) {
       console.warn(
@@ -411,12 +415,12 @@ async function _saveEssayDocument() {
 }
 
 /* -----------------------------------------------------------------------------
-   FUNCTION: scheduleAutoSave
+   FUNCTION: scheduleEssayDocumentAutoSave
    Debounced auto-save (1500ms) that collects editor data and PUTs with
    status: 'draft'. Wired to input/change events on title and markdown
    textarea. Clears the isDirty flag on success.
 ----------------------------------------------------------------------------- */
-function scheduleAutoSave() {
+function scheduleEssayDocumentAutoSave() {
   if (window._autoSaveTimer) {
     clearTimeout(window._autoSaveTimer);
   }
@@ -458,4 +462,4 @@ function scheduleAutoSave() {
 ----------------------------------------------------------------------------- */
 window.initDocumentStatusHandler = initDocumentStatusHandler;
 window._saveEssayDocument = _saveEssayDocument;
-window.scheduleAutoSave = scheduleAutoSave;
+window.scheduleEssayDocumentAutoSave = scheduleEssayDocumentAutoSave;

@@ -57,7 +57,7 @@ function renderResponseList(containerId) {
           var challengeId = resp.challenge_id || "";
 
           // Format date
-          var formattedDate = formatDate(dateStr);
+          var formattedDate = formatDateLong(dateStr);
 
           // Title as link to response detail page
           var titleLink = slug
@@ -143,29 +143,6 @@ function renderResponseList(containerId) {
         '<p class="text-sm text-secondary mt-2">Please try again later.</p>' +
         "</div>";
     });
-}
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function formatDate(isoString) {
-  if (!isoString) return "";
-  try {
-    var d = new Date(isoString);
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch (e) {
-    return isoString;
-  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {

@@ -223,12 +223,12 @@ async function _handleRecalculateRecord() {
 }
 
 /* -----------------------------------------------------------------------------
-   FUNCTION: scheduleAutoSave
+   FUNCTION: scheduleWikipediaAutoSave
    Debounced auto-save (1500ms) that collects editor data and PUTs with
    status: 'draft'. Wired to input/change events on the search terms
    textarea and weight inputs.
 ----------------------------------------------------------------------------- */
-function scheduleAutoSave() {
+function scheduleWikipediaAutoSave() {
   if (window._wikipediaAutoSaveTimer) {
     clearTimeout(window._wikipediaAutoSaveTimer);
   }
@@ -285,4 +285,4 @@ function scheduleAutoSave() {
 
 window.initWikipediaSidebar = initWikipediaSidebar;
 window.populateWikipediaSidebar = populateWikipediaSidebar;
-window.scheduleAutoSave = scheduleAutoSave;
+window.scheduleWikipediaAutoSave = scheduleWikipediaAutoSave;

@@ -109,7 +109,7 @@ function renderResponse(containerId) {
         "</h1>" +
         (date
           ? '<div class="text-sm font-mono text-muted">' +
-            escapeHtml(formatDate(date)) +
+            escapeHtml(formatDateLong(date)) +
             "</div>"
           : "") +
         "</header>";
@@ -373,29 +373,6 @@ function parseInlineMarkdown(text) {
   );
 
   return escaped;
-}
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function formatDate(isoString) {
-  if (!isoString) return "";
-  try {
-    var d = new Date(isoString);
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch (e) {
-    return isoString;
-  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {

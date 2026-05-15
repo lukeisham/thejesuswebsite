@@ -1,6 +1,6 @@
 ---
 name: site_map.md
-version 1.0.71
+version 1.0.72
 purpose: A consolidated master site map of all folders and files for the codebase
 dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 ---
@@ -314,6 +314,8 @@ dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
 │   ├── metadata_widget.js     <-- 🔑 Shared Tool: unified slug/snippet/metadata widget with Generate All
 │   ├── mla_source_handler.js  <-- 🔑 Shared Tool: Three table editor (Books, Articles, Websites) for MLA bibliography
 │   └── picture_handler.js     <-- 🔑 Shared Tool: Image upload, preview & thumbnail
+├── js/9.0_cross_cutting/frontend/
+│   └── html_utils.js          <-- 🔑 Shared Tool: escapeHtml, formatDateLong
 ├── js/admin_core/
 │   └── error_handler.js       <-- Shared error routing API consumed by ALL dashboard modules
 ├── logs/                      <-- Storage for pipeline and API error logs

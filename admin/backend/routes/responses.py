@@ -131,36 +131,3 @@ async def get_responses(admin_data: dict = Depends(verify_token)):
         raise HTTPException(
             status_code=500, detail="Failed to fetch responses: " + str(e)
         )
-
-
-@router.get("/api/admin/responses/{response_id}")
-async def get_single_response(
-    response_id: str, admin_data: dict = Depends(verify_token)
-):
-    """
-    Returns a single response record by ID.
-    404 if not found or if it's not a response type (challenge_id is NULL).
-    """
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM records WHERE id = ? AND challenge_id IS NOT NULL",
-            (response_id,),
-        )
-        row = cursor.fetchone()
-        conn.close()
-
-        if not row:
-            raise HTTPException(
-                status_code=404,
-                detail="Response not found or is not a response record.",
-            )
-
-        return dict(row)
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail="Failed to fetch response: " + str(e)
-        )

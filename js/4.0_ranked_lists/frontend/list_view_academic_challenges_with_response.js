@@ -225,15 +225,6 @@ function renderAcademicChallengesWithResponses(containerId) {
     });
 }
 
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 document.addEventListener("DOMContentLoaded", function () {
   renderAcademicChallengesWithResponses("academic-challenge-list-container");
 });

@@ -350,12 +350,12 @@ async function handleDelete() {
 }
 
 /* -----------------------------------------------------------------------------
-   PUBLIC: handleAutoSave
+   FUNCTION: scheduleRecordStatusAutoSave
    Called on any field change. Saves with status='draft' automatically.
    Debounced to avoid flooding the API on rapid typing.
 ----------------------------------------------------------------------------- */
 let _autoSaveTimeout = null;
-function scheduleAutoSave() {
+function scheduleRecordStatusAutoSave() {
   if (_autoSaveTimeout) {
     clearTimeout(_autoSaveTimeout);
   }
@@ -508,8 +508,8 @@ function _wireAutoSave() {
   );
 
   formElements.forEach((el) => {
-    el.addEventListener("input", scheduleAutoSave);
-    el.addEventListener("change", scheduleAutoSave);
+    el.addEventListener("input", scheduleRecordStatusAutoSave);
+    el.addEventListener("change", scheduleRecordStatusAutoSave);
   });
 }
 
@@ -520,6 +520,6 @@ window.collectAllFormData = collectAllFormData;
 window.handleSaveDraft = handleSaveDraft;
 window.handlePublish = handlePublish;
 window.handleDelete = handleDelete;
-window.scheduleAutoSave = scheduleAutoSave;
+window.scheduleRecordStatusAutoSave = scheduleRecordStatusAutoSave;
 window.wireStatusButtons = wireStatusButtons;
 window.checkAuth = _checkAuth;

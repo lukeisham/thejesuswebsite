@@ -378,11 +378,11 @@ async function _handleSaveUrl() {
 }
 
 /* -----------------------------------------------------------------------------
-   FUNCTION: scheduleAutoSave
+   FUNCTION: scheduleNewsSourcesAutoSave
    Debounced auto-save (1500ms) that collects editor data and saves
    source URL and search terms to appropriate sub-type rows.
 ----------------------------------------------------------------------------- */
-function scheduleAutoSave() {
+function scheduleNewsSourcesAutoSave() {
   if (window._newsAutoSaveTimer) {
     clearTimeout(window._newsAutoSaveTimer);
   }
@@ -401,4 +401,4 @@ function scheduleAutoSave() {
 
 window.initNewsSidebar = initNewsSidebar;
 window.populateNewsSidebar = populateNewsSidebar;
-window.scheduleAutoSave = scheduleAutoSave;
+window.scheduleNewsSourcesAutoSave = scheduleNewsSourcesAutoSave;

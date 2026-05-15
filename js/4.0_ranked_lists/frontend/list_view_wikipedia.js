@@ -55,7 +55,10 @@ function renderWikipediaList(containerId) {
 
         var linkUrl = "";
         if (row.wikipedia_link) {
-          if (typeof row.wikipedia_link === "object" && row.wikipedia_link.url) {
+          if (
+            typeof row.wikipedia_link === "object" &&
+            row.wikipedia_link.url
+          ) {
             linkUrl = row.wikipedia_link.url;
           } else if (typeof row.wikipedia_link === "string") {
             try {
@@ -146,15 +149,6 @@ function renderWikipediaList(containerId) {
         '<p class="text-sm text-secondary mt-2">Please try again later.</p>' +
         "</div>";
     });
-}
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
 
 document.addEventListener("DOMContentLoaded", function () {

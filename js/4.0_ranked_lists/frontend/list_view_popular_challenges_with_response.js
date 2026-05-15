@@ -225,15 +225,6 @@ function renderPopularChallengesWithResponses(containerId) {
     });
 }
 
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 document.addEventListener("DOMContentLoaded", function () {
   renderPopularChallengesWithResponses("popular-challenge-list-container");
 });

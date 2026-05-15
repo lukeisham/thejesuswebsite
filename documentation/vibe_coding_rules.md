@@ -1,6 +1,6 @@
 ---
 name: vibe_coding_rules.md
-version: 1.3.1
+version: 1.3.2
 purpose: Foundational coding philosophies and aesthetic mandates for the project
 dependencies: []
 ---
@@ -63,4 +63,7 @@ This document outlines the core coding philosophies ("vibe coding rules") for ma
   - `plan_standardize_dashboard_wysiwyg` owns: `dashboard_challenge_response.js`, `challenge_response_list_display.js`, `challenge_response_load_content.js`, `challenge_response_status_handler.js` — all in `js/4.0_ranked_lists/dashboard/`
     - Consumed by the Challenge Response WYSIWYG dashboard module (4.0)
   - `plan_dashboard_essay_historiography` owns: `markdown_editor.js` — in `js/5.0_essays_responses/dashboard/` (unchanged, ownership retained)
+  - `plan_resolve_outstanding_issues` owns: `html_utils.js` — in `js/9.0_cross_cutting/frontend/`
+    - Consumed by: 4.0 Ranked Lists frontend, 5.0 Essays & Responses frontend, 6.0 News & Blog frontend
+    - Consumer plans MUST include via `<script>` tag in the HTML page before the display script
   If a consumer needs module-specific behavior, add a parameter to the shared function signature on the OWNER's copy — do not fork the file.
