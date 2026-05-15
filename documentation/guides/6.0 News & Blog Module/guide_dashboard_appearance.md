@@ -2,7 +2,7 @@
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens for 6.0 News & Blog Module
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, data_schema.md, high_level_schema.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, high_level_schema.md, guide_frontend_appearance.md, guide_function.md, news_blog_nomenclature.md]
 ---
 
 ## 6.0 News & Blog Module

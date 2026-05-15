@@ -2,6 +2,7 @@
 title: guide_timeline.md
 version: 1.2.0
 purpose: Visual ASCII representations of the interactive timeline layout, mapped to front-end components (source of truth)
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, guide_function.md, guide_maps.md, visualizations_nomenclature.md]
 ---
 
 ## 3.2 Visual Interactive Timeline Display Overview

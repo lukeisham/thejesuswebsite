@@ -2,7 +2,7 @@
 name: guide_function.md
 purpose: Visual ASCII representations of Ranked Lists Module data flows — Wikipedia weights, challenge weights, responses, public frontend
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, data_schema.md, guide_dashboard_appearance.md, guide_frontend_appearance.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, ranked_lists_nomenclature.md]
 ---
 
 # Purpose of this document.

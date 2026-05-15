@@ -92,9 +92,7 @@
 
     /* --- Dashboard Tokens (used site-wide) --- */
     --color-dash-accent: #8e3b46;
-    /* Deep Oxblood  — admin active elements     */
-    --color-dash-border-strong: #c8c4ba;
-    /* Dark Clay     — emphasis borders           */
+    /* Deep Oxblood  — admin active elements (aliases --color-accent-primary) */
 
     /* ===========================================================================
        3. TYPOGRAPHY: FONT FAMILIES

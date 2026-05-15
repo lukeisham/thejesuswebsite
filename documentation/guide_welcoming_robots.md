@@ -2,7 +2,7 @@
 name: guide_welcoming_robots.md
 purpose: description of how to make the data (excluding backend functions) welcoming to AI
 version: 1.2.0
-dependencies: [detailed_module_sitemap.md]
+dependencies: [simple_module_sitemap.md, guide_security.md]
 ---
 
 # Guide to Making Data Welcoming to AI

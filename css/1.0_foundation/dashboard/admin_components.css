@@ -187,7 +187,8 @@
 
     flex-shrink: 0;
     padding: 0 var(--space-3);
-    height: 40px;
+    --tab-bar-height: 40px;
+    height: var(--tab-bar-height);
 
     background-color: var(--color-bg-secondary);
     border-bottom: var(--border-width-thin) solid var(--color-border);
@@ -234,6 +235,12 @@
     border-bottom-color: var(--color-dash-accent);
 }
 
+.module-tab:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
 /* Close button on tabs */
 .module-tab__close {
     margin-left: var(--space-1);
@@ -251,7 +258,7 @@
    6. CARD GRID RESPONSIVE — narrow viewports stack to 2 then 1 column
 ============================================================================= */
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
     #admin-cards {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -261,7 +268,7 @@
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     #admin-cards {
         grid-template-columns: 1fr;
     }

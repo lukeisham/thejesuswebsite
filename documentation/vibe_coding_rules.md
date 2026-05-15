@@ -2,7 +2,7 @@
 name: vibe_coding_rules.md
 version: 1.3.2
 purpose: Foundational coding philosophies and aesthetic mandates for the project
-dependencies: []
+dependencies: [guide_style.md]
 ---
 
 # Vibe Coding Rules

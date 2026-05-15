@@ -2,7 +2,7 @@
 name: guide_function.md
 purpose: Visual ASCII representations of Visualizations Module data flows — ardor diagram, timeline, geographic maps
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, data_schema.md, guide_dashboard_appearance.md, guide_frontend_appearance.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, guide_maps.md, guide_timeline.md, visualizations_nomenclature.md]
 ---
 
 # Purpose of this document.

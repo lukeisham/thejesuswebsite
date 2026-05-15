@@ -2,7 +2,7 @@
 name: records_nomenclature.md
 purpose: Glossary of terms used throughout the Records Module and the broader codebase
 version: 1.1.0
-dependencies: [detailed_module_sitemap.md, guide_dashboard_appearance, guide_frontend_appearance.md, guide_function.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, guide_function.md]
 ---
 
 # Records Nomenclature — 2.0 Records Module

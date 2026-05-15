@@ -2,7 +2,7 @@
 name: guide_style.md
 purpose: description of visual appearance of the website 
 version: 1.13.0
-dependencies: [detailed_module_sitemap.md]
+dependencies: [simple_module_sitemap.md]
 ---
 
 # Guide to Visual Appearance

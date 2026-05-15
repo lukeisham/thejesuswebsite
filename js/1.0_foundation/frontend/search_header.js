@@ -47,7 +47,12 @@ function injectSearchHeader(anchorId) {
 </header>
 `;
 
-  // --- 4. Insert before the anchor element --------------------------------
+  // --- 2. Re-injection guard — remove existing search header ----------------
+
+  var existingHeader = document.getElementById('site-header');
+  if (existingHeader) existingHeader.remove();
+
+  // --- 3. Insert before the anchor element --------------------------------
 
   const anchorEl = document.getElementById(anchorId);
 
@@ -58,11 +63,7 @@ function injectSearchHeader(anchorId) {
 
   anchorEl.insertAdjacentHTML("beforebegin", headerHTML);
 
-  // --- 2. Wire up search input events -------------------------------------
-  //   Enter  → URL redirect to /records?search=<term>
-  //            list_view.js reads the 'search' URL param on load and runs
-  //            db.searchRecords() automatically — no event listener needed.
-  //   Escape → clear the input field only (no navigation).
+  // --- 4. Wire up search input events -------------------------------------
 
   const searchInput = document.getElementById("global-search-input");
 
@@ -71,17 +72,9 @@ function injectSearchHeader(anchorId) {
       event.preventDefault();
       const query = event.target.value.trim();
       if (query.length === 0) return;
-
-      // Redirect to the records list page with the search term as a URL param.
-      // list_view.js picks this up via URLSearchParams on 'thejesusdb:ready'.
       const encoded = encodeURIComponent(query);
       window.location.href = "/records?search=" + encoded;
-    }
-  });
-
-  // Escape — clear the input only, no navigation
-  searchInput.addEventListener("keydown", function handleSearchEscape(event) {
-    if (event.key === "Escape") {
+    } else if (event.key === "Escape") {
       searchInput.value = "";
     }
   });

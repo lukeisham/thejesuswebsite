@@ -2,7 +2,7 @@
 name: guide_function.md
 purpose: Record lifecycle diagram and functional summary for the 2.0 Records Module
 version: 2.1.0
-dependencies: [detailed_module_sitemap.md, guide_dashboard_appearance, guide_frontend_appearance.md, records_nomenclature.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, records_nomenclature.md]
 ---
 
 # 2.0 Records Module — Function

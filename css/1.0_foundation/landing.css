@@ -135,10 +135,16 @@
     transition: color var(--transition-fast);
 }
 
-.hero__links li a:hover {
+.hero__links li a:hover,
+.hero__links li a:focus-visible {
     color: var(--color-accent-hover);
     text-decoration: underline;
     text-underline-offset: 3px;
+}
+
+.hero__links li a:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
 }
 
 /* Separator dot between links */

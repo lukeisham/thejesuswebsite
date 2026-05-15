@@ -2,7 +2,7 @@
 name: guide_function.md
 purpose: Visual ASCII representations of System Module data flows — admin portal auth, module router, agent logic, backend API/MCP, URL slugs, security, DeepSeek clients
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, data_schema.md, guide_dashboard_appearance.md, guide_frontend_appearance.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, guide_dashboard_appearance.md, guide_donations.md, guide_frontend_appearance.md, guide_security.md, guide_welcoming_robots.md, system_nomenclature.md]
 ---
 
 # Purpose of this document.

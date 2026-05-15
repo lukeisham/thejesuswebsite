@@ -2,7 +2,7 @@
 name: ranked_lists_nomenclature.md
 purpose: Glossary of terms used throughout the Ranked Lists Module and the broader codebase
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, guide_function.md]
 ---
 
 # Ranked Lists Nomenclature — 4.0 Ranked Lists Module

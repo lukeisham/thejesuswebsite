@@ -63,7 +63,7 @@
     background: transparent;
     border: var(--border-width-thin) solid var(--color-border);
     border-radius: var(--radius-none); /* Sharp blueprint edges */
-    padding: 4px var(--space-2);
+    padding: var(--space-1) var(--space-2);
     cursor: pointer;
 
     transition:
@@ -136,7 +136,7 @@
    Collapse to vertical stack on mobile/tablet if needed.
 ============================================================================= */
 
-@media (max-width: 800px) {
+@media (max-width: 1024px) {
     .site-footer {
         flex-direction: column;
         padding-block: var(--space-2);

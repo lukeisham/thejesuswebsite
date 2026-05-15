@@ -2,7 +2,7 @@
 name: data_schema.md
 version: 1.0.6
 purpose: data schema for the jesus website (source of truth)
-dependencies: [site_map.md, module_sitemap.md]
+dependencies: [site_map.md, simple_module_sitemap.md]
 ---
 
 # data schema 

@@ -1,8 +1,8 @@
 ---
 name: foundation_nomenclature.md
 purpose: Glossary of terms used throughout the Foundation Module and the broader codebase
-version: 1.0.0
-dependencies: [detailed_module_sitemap.md]
+version: 1.1.0
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_frontend_appearance.md, guide_function.md]
 ---
 
 # Foundation Nomenclature — 1.0 Foundation Module
@@ -39,7 +39,7 @@ dependencies: [detailed_module_sitemap.md]
 | Term | Type | Definition |
 |------|------|------------|
 | **`initializer.js`** | JS File | Central bootstrapper — fires on `DOMContentLoaded`, reads `data-*` attributes from `<body>`, and calls injectors in sequence: `injectPageMetadata`, `injectSidebar`, `injectSearchHeader`, `injectFooter` |
-| **`header.js` — `injectPageMetadata(config)`** | JS Function | Injects `<title>`, `<meta>` (including Open Graph, Twitter Card, and AI directives), and `<link rel="canonical">` into `<head>` |
+| **`header.js` — `injectPageMetadata(config)`** | JS Function | Injects `<title>`, `<meta>` (including Open Graph, Twitter Card, and AI directives), and `<link rel="canonical">` into `<head>`. Accepts `config.aiSubject` for per-page AI crawler hints |
 | **`footer.js` — `injectFooter(anchorId)`** | JS Function | Builds and inserts `<footer class="site-footer">` with print, copy URL, and copy contents action buttons |
 | **`footer.js` — `flashSuccess()`** | JS Helper | Temporarily sets `.is-success` state on a footer button for 1.8s as visual confirmation feedback |
 | **`sidebar.js` — `injectSidebar(anchorId, activePage, tocItems)`** | JS Function | Builds and inserts `<aside class="site-sidebar">` with brand, nav links, optional table of contents, and admin portal link |
@@ -115,3 +115,116 @@ dependencies: [detailed_module_sitemap.md]
 | **`Fig. 1 — [Label]`** | Caption Pattern | Archival caption convention for framed images ("Fig. 1 — Jesus of Nazareth (c. 4 BC – c. AD 30)") |
 | **The Legal Ledger** | Footer Concept | Footer design — aged paper background, monospace metadata, ledger-like legal strip |
 | **Aleph + Omega** | Branding | Favicon branding concept — Alpha and Omega symbols representing Jesus as the beginning and the end |
+| **`footer.js` — `handlePrint()`** | JS Handler | Click handler for the print button — calls `window.print()` |
+| **`footer.js` — `handleCopyUrl()`** | JS Handler | Click handler for copy URL button — uses `navigator.clipboard.writeText(location.href)` |
+| **`footer.js` — `handleCopyContents()`** | JS Handler | Click handler for copy contents button — copies text content from `#site-main` or `<main>` |
+| **`header.js` — `setMeta(name, content, attr)`** | JS Helper | Internal helper that creates or updates a `<meta>` tag in `<head>` |
+| **`header.js` — `setLink(rel, href)`** | JS Helper | Internal helper that creates or updates a `<link>` tag in `<head>` |
+| **`search_header.js` — `handleSearchKeydown(event)`** | JS Handler | Keydown handler on global search input — Enter submits search, Escape blurs |
+| **`search_header.js` — `handleSearchEscape(event)`** | JS Handler | Escape-key handler that blurs the search input to dismiss focus |
+| **`sidebar.js` — `handleSidebarEscape(event)`** | JS Handler | Keyboard handler that closes the off-canvas sidebar when Escape is pressed |
+| **`data-sidebar-target`** | HTML Attribute | Body attribute specifying the DOM anchor ID where sidebar is injected (read by `initializer.js`) |
+| **`data-search-header-target`** | HTML Attribute | Body attribute specifying the DOM anchor ID where search header is injected (read by `initializer.js`) |
+| **`data-footer-target`** | HTML Attribute | Body attribute specifying the DOM anchor ID where footer is injected (read by `initializer.js`) |
+| **`#site-main`** | DOM ID | Main content area container — fallback target for `handleCopyContents()` |
+| **`#admin-canvas`** | DOM ID | Providence Grid container — CSS Grid with 4 explicit column tracks (sidebar / divider / gap / main) |
+| **`#providence-col-main`** | DOM ID | Main content column inside Providence Grid |
+| **`#providence-divider`** | DOM ID | Structural 1px vertical divider between Providence sidebar and main |
+| **`#providence-drag-handle`** | DOM ID | Draggable resize handle embedded in the Providence divider |
+| **`.site-main`** | CSS Class | Main content area grid-area identifier in the Page Shell |
+| **`.site-header__search`** | CSS Class | Wrapper element around the search input in the header |
+| **`.site-footer__legal-text`** | CSS Class | Text span inside footer legal group containing copyright text |
+| **`.site-footer__mark`** | CSS Class | Favicon/branding mark element in the footer legal group |
+| **`.landing-page__heading`** | CSS Class | Heading element on internal landing pages |
+| **`.layout-landing__title`** | CSS Class | Landing page title within the `layout-landing` flex container |
+| **`.layout-landing__subtitle`** | CSS Class | Landing page subtitle within the `layout-landing` flex container |
+| **`.layout-landing__picture-block`** | CSS Class | Framed image block within the `layout-landing` flex container |
+| **`.layout-landing__links`** | CSS Class | Navigation links row within the `layout-landing` flex container |
+| **`.layout-two-col__content`** | CSS Class | Content area within the two-column sub-layout |
+| **`.content-wrap--center`** | CSS Modifier | Centered variant of `.content-wrap` (auto left/right margins) |
+| **`.grid-list-rows`** | CSS Class | Row-based list layout grid for stacked content items |
+| **`.list-row`** | CSS Class | Single row in a list grid — hover transition with inset Oxblood box-shadow accent |
+| **`.providence-col`** | CSS Class | Column element inside the Providence Grid |
+| **`.providence-divider`** | CSS Class | Structural vertical divider class inside Providence Grid |
+| **`.admin-card--centered`** | CSS Modifier | Centered text variant of the dashboard navigation card |
+| **`.module-tab__close`** | CSS Class | Close button element inside a dashboard module tab |
+| **`.record-picture`** | CSS Class | Image element inside `.record-picture-container` |
+| **`.btn-outline`** | CSS Class | Outline-style button — transparent background, 1px border, Oxblood text |
+| **`.lead`** | CSS Class | Lead paragraph style — larger size (`--text-lg`), relaxed line-height |
+| **`.meta`** | CSS Class | Monospace metadata label — uses `--font-mono`, uppercase, `--tracking-wide` |
+| **`.date`** | CSS Class | Monospace date display — `--font-mono`, secondary text colour |
+| **`.reference`** | CSS Class | Monospace reference label — `--font-mono`, small text |
+| **`.sr-only`** | CSS Class | Screen-reader-only utility — visually hidden but accessible to assistive technology |
+| **`.is-success`** | CSS Class | Temporary visual success state applied to buttons (e.g. footer copy confirmation) |
+| **`.is-full-bleed`** | CSS Class | Layout modifier that breaks content out of `content-wrap` to span full width |
+| **`.text-muted`** | CSS Utility | Text colour utility applying `--color-text-muted` (Warm Ash) |
+| **`.text-accent`** | CSS Utility | Text colour utility applying `--color-accent-primary` (Deep Oxblood) |
+| **`.text-sm`** | CSS Utility | Font size utility applying `--text-sm` |
+| **`.text-mono`** | CSS Utility | Font family utility applying `--font-mono` |
+| **`.text-center` / `.text-left` / `.text-right`** | CSS Utilities | Text alignment utility classes |
+| **`.font-body`** | CSS Utility | Font family utility applying `--font-body` (EB Garamond) |
+| **`.font-serif`** | CSS Utility | Alias for `.font-body` |
+| **`.font-essay`** | CSS Utility | Font family utility applying `--font-essay` (Crimson Pro) |
+| **`.font-heading`** | CSS Utility | Font family utility applying `--font-heading` (Inter) |
+| **`.font-mono`** | CSS Utility | Font family utility applying `--font-mono` (Roboto Mono) |
+| **`.font-medium`** | CSS Utility | Font weight utility applying `--weight-medium` (500) |
+| **`.font-semibold`** | CSS Utility | Font weight utility applying `--weight-semibold` (600) |
+| **`.font-bold`** | CSS Utility | Font weight utility applying `--weight-bold` (700) |
+| **`.slider-value`** | CSS Class | Numeric value display adjacent to a toggle or range input |
+| **`.toggle-switch__input`** | CSS Class | Hidden checkbox `<input>` inside the toggle switch component |
+| **`.state-loading__label`** | CSS Class | Text label inside a `.state-loading` feedback block |
+| **`.state-success__label`** | CSS Class | Text label inside a `.state-success` feedback block |
+| **`.state-error__label`** | CSS Class | Text label inside a `.state-error` feedback block |
+| **`.error-footer__message`** | CSS Class | Status message text container inside `#admin-error-footer` — `overflow: hidden` for text-overflow ellipsis |
+| **`--sidebar-width`** | CSS Token | Sidebar fixed width: `280px` |
+| **`--content-max-width`** | CSS Token | Content column maximum width: `720px` |
+| **`--header-height`** | CSS Token | Header height: `64px` (8 × 8px grid units) |
+| **`--footer-height`** | CSS Token | Footer height: `80px` (10 × 8px grid units) |
+| **`--reg-mark-size`** | CSS Token | Registration mark L-shape arm length: `8px` |
+| **`--reg-mark-gap`** | CSS Token | Gap between element corner and registration mark: `4px` |
+| **`--line-height-tight`** | CSS Token | Tight line height for headings: `1.2` |
+| **`--line-height-snug`** | CSS Token | Snug line height for sub-headings: `1.4` |
+| **`--line-height-base`** | CSS Token | Base line height for body copy: `1.7` |
+| **`--line-height-relaxed`** | CSS Token | Relaxed line height for essay/long-form: `1.9` |
+| **`--tracking-tight`** | CSS Token | Letter spacing for Inter headings: `-0.02em` |
+| **`--tracking-normal`** | CSS Token | Default letter spacing: `0em` |
+| **`--tracking-wide`** | CSS Token | Letter spacing for monospace metadata: `0.04em` |
+| **`--tracking-widest`** | CSS Token | Letter spacing for small-caps labels: `0.1em` |
+| **`--weight-light`** | CSS Token | Light font weight: `300` |
+| **`--weight-regular`** | CSS Token | Regular font weight: `400` |
+| **`--weight-medium`** | CSS Token | Medium font weight: `500` |
+| **`--weight-semibold`** | CSS Token | Semibold font weight: `600` |
+| **`--weight-bold`** | CSS Token | Bold font weight: `700` |
+| **`--border-width-thin`** | CSS Token | Thin border: `1px` |
+| **`--border-width-base`** | CSS Token | Base border: `1.5px` |
+| **`--border-width-thick`** | CSS Token | Thick border: `2px` |
+| **`--transition-fast`** | CSS Token | Fast transition: `150ms ease` |
+| **`--transition-base`** | CSS Token | Base transition: `200ms ease` |
+| **`--transition-slow`** | CSS Token | Slow transition: `350ms ease` |
+| **`--radius-none`** | CSS Token | No border radius: `0px` |
+| **`--radius-sm`** | CSS Token | Subtle rounding: `2px` |
+| **`--radius-md`** | CSS Token | Medium rounding: `3px` |
+| **`--radius-base`** | CSS Token | Base rounding: `4px` |
+| **`--radius-full`** | CSS Token | Pill shape: `9999px` |
+| **`--shadow-none`** | CSS Token | No shadow |
+| **`--shadow-sm`** | CSS Token | Small shadow: `0 1px 3px rgba(36,36,35,0.08)` |
+| **`--shadow-base`** | CSS Token | Base shadow: `0 2px 8px rgba(36,36,35,0.1)` |
+| **`--shadow-md`** | CSS Token | Medium shadow: `0 4px 16px rgba(36,36,35,0.12)` |
+| **`--shadow-lg`** | CSS Token | Large shadow: `0 8px 24px rgba(36,36,35,0.12)` |
+| **`--color-bg-secondary`** | CSS Token | Aged Paper background: `#f4f2ed` |
+| **`--color-bg-tertiary`** | CSS Token | Warm Stone background: `#eceae3` |
+| **`--color-text-secondary`** | CSS Token | Lead Grey text: `#5b5b5b` |
+| **`--color-text-muted`** | CSS Token | Warm Ash text: `#8a8a88` |
+| **`--color-text-inverse`** | CSS Token | Parchment-on-dark text: `#f4f2ed` |
+| **`--color-accent-hover`** | CSS Token | Dark Oxblood (pressed/active): `#6e2a34` |
+| **`--color-accent-muted`** | CSS Token | Rose Stone secondary highlight: `#c19098` |
+| **`--color-border-strong`** | CSS Token | Dark Clay border: `#c8c4ba` |
+| **`--color-border-accent`** | CSS Token | Oxblood accent border: `#8e3b46` |
+| **`--color-border-inverse`** | CSS Token | Night Clay border on dark: `#3a3a38` |
+| **`--color-status-success`** | CSS Token | Blueprint Green status colour |
+| **`--color-black`** | CSS Token | Pure black: `#000000` |
+| **`--color-white`** | CSS Token | Pure white: `#ffffff` |
+| **`--color-transparent`** | CSS Token | Fully transparent |
+| **`--color-dash-accent`** | CSS Token | Dashboard accent (alias for Deep Oxblood): `#8e3b46` |
+| ~~`--color-dash-border-strong`~~ | CSS Token | **Removed** — unused dashboard border token, deleted in plan_foundation_module_hardening |
+| **Foundation Bootstrapper** | Concept | The `initializer.js` startup sequence — reads `data-*` body attributes, then calls injectors in order: metadata → sidebar → search header → footer |

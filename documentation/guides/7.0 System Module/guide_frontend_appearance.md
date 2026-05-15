@@ -2,7 +2,7 @@
 name: guide_frontend_appearance.md
 purpose: Visual ASCII representations of the System Module URL slug architecture and clean URL scheme
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, guide_style.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_style.md, guide_dashboard_appearance.md, guide_donations.md, guide_function.md, guide_security.md, guide_welcoming_robots.md, system_nomenclature.md]
 ---
 
 # Guide to Page Appearance & Structural Layouts

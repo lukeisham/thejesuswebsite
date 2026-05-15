@@ -2,7 +2,7 @@
 name: guide_dashboard_appearance.md
 purpose: ASCII visual representations of each shared cross-cutting widget and layout as they appear in the dashboard UI
 version: 2.0.0
-dependencies: [detailed_module_sitemap.md, cross_cutting_nomenclature.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, cross_cutting_nomenclature.md, guide_function.md]
 ---
 
 # 9.0 Cross-Cutting Standardization — Dashboard Appearance

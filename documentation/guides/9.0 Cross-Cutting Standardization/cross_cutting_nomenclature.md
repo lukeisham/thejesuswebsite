@@ -2,7 +2,7 @@
 name: cross_cutting_nomenclature.md
 purpose: Glossary of terms used throughout the Cross-Cutting Standardization Module and the broader codebase
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashboard_appearance.md, guide_function.md]
 ---
 
 # Cross-Cutting Nomenclature — 9.0 Cross-Cutting Standardization

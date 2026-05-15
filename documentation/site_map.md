@@ -2,7 +2,7 @@
 name: site_map.md
 version 1.1.0
 purpose: A consolidated master site map of all folders and files for the codebase
-dependencies: [detailed_module_sitemap.md, data_schema.md, guides/]
+dependencies: [data_schema.md]
 ---
 
 # Master Site Map

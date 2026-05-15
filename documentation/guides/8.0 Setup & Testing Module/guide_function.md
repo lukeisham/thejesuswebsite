@@ -2,7 +2,7 @@
 name: guide_function.md
 purpose: Visual ASCII representations of Setup & Testing Module data flows — local environment initialization, testing, architectural documentation
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, data_schema.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, setup_testing_nomenclature.md]
 ---
 
 # Purpose of this document.

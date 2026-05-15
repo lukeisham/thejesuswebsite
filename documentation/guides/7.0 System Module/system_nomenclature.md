@@ -2,7 +2,7 @@
 name: system_nomenclature.md
 purpose: Glossary of terms used throughout the System Module and the broader codebase
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashboard_appearance.md, guide_donations.md, guide_frontend_appearance.md, guide_function.md, guide_security.md, guide_welcoming_robots.md]
 ---
 
 # System Nomenclature — 7.0 System Module

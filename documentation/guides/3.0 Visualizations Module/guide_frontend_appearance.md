@@ -2,7 +2,7 @@
 name: guide_frontend_appearance.md
 purpose: Visual ASCII representations of the public-facing Visualizations Module pages (ardor diagram, timeline, geographic maps)
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, guide_style.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_style.md, guide_dashboard_appearance.md, guide_function.md, guide_maps.md, guide_timeline.md, visualizations_nomenclature.md]
 ---
 
 # Guide to Page Appearance & Structural Layouts

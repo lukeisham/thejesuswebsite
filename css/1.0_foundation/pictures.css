@@ -35,7 +35,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border: var(--border-width-thin) solid var(--color-black);
+    border: var(--border-width-thin) solid var(--color-text-primary);
     padding: var(--space-1);
     background-color: var(--color-bg-secondary);
 }

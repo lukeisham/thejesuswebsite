@@ -2,7 +2,7 @@
 name: guide_dashboard_appearance.md
 purpose: ASCII wireframes of the two admin dashboard views for the 2.0 Records Module — All Records table and Single Record editor
 version: 2.0.0
-dependencies: [detailed_module_sitemap.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_frontend_appearance.md, guide_function.md, records_nomenclature.md]
 ---
 
 # 2.0 Records Module — Dashboard Appearance

@@ -2,7 +2,7 @@
 name: guide_frontend_appearance.md
 purpose: Visual ASCII representations of the public-facing News & Blog Module pages (landing, news feed, blog feed, individual posts)
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, guide_style.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_style.md, guide_dashboard_appearance.md, guide_function.md, news_blog_nomenclature.md]
 ---
 
 # Guide to Page Appearance & Structural Layouts

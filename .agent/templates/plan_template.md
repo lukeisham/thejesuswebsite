@@ -153,3 +153,38 @@ created: {{date}}
 - [ ] **Shared-tool ownership documented:** `vibe_coding_rules.md` §7 table updated if a new shared tool was created or an existing tool's ownership or consumer list changed
 - [ ] **Version numbers bumped:** every modified document's frontmatter `version` has been incremented
 - [ ] **No stale references:** no document contains outdated references to files or logic that were changed or removed by this plan
+
+---
+
+### T[Final+3] — Module Guide Update
+
+> Update the per-module guide files in `documentation/guides/` to reflect all changes made by this plan.
+> This is a **mandatory task** — the module guides must stay in sync with the source code.
+
+- **File(s):** All guide files in the relevant `documentation/guides/{{module_number}} {{module_name}}/` subfolder.
+- **Action:** For each guide file in the module subfolder:
+  - **`guide_frontend_appearance.md`**: Update or add ASCII diagrams for any changed page layouts, component structures, or technical anatomy tables. Verify all diagrams match the current source code.
+  - **`guide_function.md`**: Update or add lifecycle/flow diagrams and the technical description paragraph to reflect any changed bootstrapping logic, event wiring, or data flow.
+  - **`*_nomenclature.md`**: Add any new terms (CSS classes, IDs, JS functions, tokens, concepts) introduced by this plan. Remove any terms that no longer exist. Update definitions that changed.
+  - **Version bump**: Increment `version` in every modified guide's YAML frontmatter.
+- **Vibe Rule(s):** Source-of-Truth Discipline · Cross-reference source files against guide content
+
+- [ ] All ASCII diagrams in module guides match current source code
+- [ ] All lifecycle/flow diagrams reflect current bootstrapping and event logic
+- [ ] Nomenclature file covers all terms used in module source files
+- [ ] Version numbers bumped on all modified guide files
+
+---
+
+### T[Final+4] — Push to GitHub
+
+> Commit all changes and push to `main`.
+
+- **Action:** Stage all modified files, create a descriptive commit message summarising the plan's changes, and push to `main`.
+- **Pre-push checks:**
+  - Verify no untracked files are being left behind
+  - Verify no sensitive files (.env, credentials) are staged
+  - Verify the commit message accurately describes the scope of changes
+
+- [ ] All changes committed with descriptive message
+- [ ] Pushed to `main` successfully

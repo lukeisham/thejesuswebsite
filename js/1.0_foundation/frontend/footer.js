@@ -30,6 +30,10 @@
  */
 function injectFooter(anchorId) {
 
+    // --- 0. Re-injection guard — remove existing footer --------------------
+    var existingFooter = document.getElementById('site-footer');
+    if (existingFooter) existingFooter.remove();
+
     const currentYear = new Date().getFullYear();
 
     // --- 1. Compose footer HTML -----------------------------------------------
@@ -122,7 +126,7 @@ function injectFooter(anchorId) {
     document.getElementById('footer-btn-copy-contents').addEventListener('click', function handleCopyContents() {
         const btn       = document.getElementById('footer-btn-copy-contents');
         const mainEl    = document.getElementById('site-main') || document.querySelector('main');
-        const textToCopy = mainEl ? mainEl.innerText.trim() : document.body.innerText.trim();
+        const textToCopy = mainEl ? mainEl.textContent.trim() : document.body.textContent.trim();
 
         navigator.clipboard.writeText(textToCopy)
             .then(function onCopyContentsSuccess() {

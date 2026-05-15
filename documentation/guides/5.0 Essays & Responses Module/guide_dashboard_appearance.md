@@ -2,7 +2,7 @@
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens for 5.0 Essays & Responses Module
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, data_schema.md, high_level_schema.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, high_level_schema.md, essays_responses_nomenclature.md, guide_frontend_appearance.md, guide_function.md]
 ---
 
 ## 5.0 Essays & Responses Module

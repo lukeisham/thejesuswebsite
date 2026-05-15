@@ -2,7 +2,7 @@
 name: guide_frontend_appearance.md
 purpose: Visual ASCII representations of the public-facing Essays & Responses Module pages (essays, historiography, challenge responses)
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md, guide_style.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_style.md, essays_responses_nomenclature.md, guide_dashboard_appearance.md, guide_function.md]
 ---
 
 # Guide to Page Appearance & Structural Layouts

@@ -2,7 +2,7 @@
 name: setup_testing_nomenclature.md
 purpose: Glossary of terms used throughout the Setup & Testing Module and the broader codebase
 version: 1.0.0
-dependencies: [detailed_module_sitemap.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_function.md]
 ---
 
 # Setup & Testing Nomenclature — 8.0 Setup & Testing Module

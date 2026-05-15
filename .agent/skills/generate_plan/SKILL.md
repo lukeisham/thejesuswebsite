@@ -50,7 +50,7 @@ Replace every `{{placeholder}}` with concrete values:
   - `Action` — a single, imperative sentence describing the work
   - `Vibe Rule(s)` — the specific rules from `vibe_coding_rules.md` that apply to that file type
   - A single `- [ ] Task complete` checkbox
-- **Final Tasks**: Update `T[Final]`, `T[Final+1]`, and `T[Final+2]` to the correct sequential task numbers (e.g., T4, T5, T6) following the generated tasks.
+- **Final Tasks**: Update `T[Final]`, `T[Final+1]`, `T[Final+2]`, `T[Final+3]`, and `T[Final+4]` to the correct sequential task numbers (e.g., T4, T5, T6, T7, T8) following the generated tasks.
   - **T[Final] (Vibe-Coding Audit)**: Copy the audit checklist from the template — it is identical for every plan.
   - **T[Final+1] (Purpose Check)**: Populate the checklist by extracting concrete achievements from the `purpose_summary`. If the plan involves parallel modes or duplicated logic (e.g., "split into two containers", "Academic/Popular modes"), you MUST include the **Symmetry** check.
   - **T[Final+2] (Documentation Update)**: This is a **mandatory task** — not a passive section. Populate the table with all 16 documents. For every "Yes" row, write a specific, actionable Change Description that tells the executor exactly what to add or update — including whether to add/update ASCII layout diagrams, ASCII logic-flow diagrams, file-tree entries, BEM namespace tables, or shared-tool ownership tables. The task includes its own checkbox sub-checklist for site maps, ASCII diagrams, style guide, shared-tool ownership, version bumps, and stale-reference checks.

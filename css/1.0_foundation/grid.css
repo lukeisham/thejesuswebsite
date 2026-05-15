@@ -253,20 +253,6 @@
     /* Scrollbar appearance — governed globally by typography_colors.css §13 */
 }
 
-/* Sidebar brand label — "The Jesus Website" or page-specific heading */
-.site-sidebar__brand {
-    font-family: var(--font-heading);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
-    letter-spacing: var(--tracking-widest);
-    text-transform: uppercase;
-    color: var(--color-text-secondary);
-    padding-bottom: var(--space-2);
-    margin-bottom: var(--space-3);
-    border-bottom: 1px dashed var(--color-border);
-    /* Blueprint divider */
-}
-
 /* Sidebar nav list */
 .site-sidebar__nav {
     list-style: none;
@@ -372,14 +358,6 @@
     align-items: center;
     gap: var(--space-3);
     padding-block: var(--space-2);
-}
-
-.site-footer__legal-text,
-.site-footer__licence-link {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-wide);
-    color: var(--color-text-secondary);
 }
 
 /* =============================================================================

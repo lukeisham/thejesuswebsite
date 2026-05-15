@@ -2,6 +2,7 @@
 title: guide_maps.md
 version: 1.1.2
 purpose: Visual ASCII representations of the interactive map layouts, mapped to front-end components (source of truth)
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, guide_function.md, guide_timeline.md, visualizations_nomenclature.md]
 ---
 
 ## 3.3 Visual Interactive Map Display Overview

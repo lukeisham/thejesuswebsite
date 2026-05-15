@@ -2,7 +2,7 @@
 name: guide_frontend_appearance.md
 purpose: ASCII wireframes of the two public-facing page layouts for the 2.0 Records Module — list view and single record detail view
 version: 2.0.0
-dependencies: [detailed_module_sitemap.md, guide_function.md, records_nomenclature.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashboard_appearance.md, guide_function.md, records_nomenclature.md]
 ---
 
 # 2.0 Records Module — Frontend Appearance

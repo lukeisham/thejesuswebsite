@@ -2,7 +2,7 @@
 name: guide_function.md
 purpose: Simplified ASCII pipeline diagrams and technical summary for all 9.0 Cross-Cutting Standardization sub-modules
 version: 2.0.0
-dependencies: [detailed_module_sitemap.md, cross_cutting_nomenclature.md, guide_dashboard_appearance.md]
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, cross_cutting_nomenclature.md, guide_dashboard_appearance.md]
 ---
 
 # 9.0 Cross-Cutting Standardization — Function

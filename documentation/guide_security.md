@@ -1,8 +1,8 @@
 ---
 name: guide_security.md
 purpose: description of security measures taken to protect the backend section 
-version: 1.6.0
-dependencies: [detailed_module_sitemap.md]
+version: 1.7.0
+dependencies: [simple_module_sitemap.md, guide_welcoming_robots.md]
 ---
 
 # Guide to Security
@@ -93,12 +93,14 @@ All state-changing admin API calls are protected by CSRF double-submit cookie va
 - **Server-Side Validation:** `CSRFMiddleware` in `admin/backend/routes/__init__.py` intercepts all mutating requests to `/api/admin/*` paths (excluding login, logout, and health check). It compares the `csrf_token` cookie value against the `X-CSRF-Token` header; mismatches return HTTP 403.
 - **Safe Methods Exempt:** GET, HEAD, and OPTIONS requests bypass CSRF validation.
 
-## 4b. XSS Prevention (plan_records_module_hardening)
+## 4b. XSS Prevention (plan_records_module_hardening, plan_foundation_module_hardening)
 
 The public frontend enforces a strict policy against unsanitized HTML injection:
 
 - **No innerHTML with Record Data:** All DOM rendering in `single_view.js` and `display_single_record_data.js` uses `createElement()`/`textContent` instead of `innerHTML` for any field derived from database records.
-- **URL Validation:** Context link `href` values are validated to start with `/` or `https://` before creating anchor elements, preventing `javascript:` protocol injection.
+- **Sidebar ToC Injection:** `sidebar.js` builds Table of Contents items using `createElement()`/`textContent` instead of template literal interpolation, preventing XSS if `tocItems` data is ever user-supplied.
+- **querySelector Escaping:** `header.js` `setMeta()` strips quote characters from the `name` parameter before interpolating into `querySelector()` selectors, preventing selector injection.
+- **URL Validation:** Context link `href` values are validated to start with `/` or `https://` before creating anchor elements, preventing `javascript:` protocol injection. `header.js` validates `canonical` and `ogImage` URLs to start with `/`, `http://`, or `https://` before injecting into meta tags.
 - **Data URL Validation:** Picture preview data URLs are validated to start with `data:image/png;base64,` before rendering.
 
 ## 4c. Request Size Limits (plan_records_module_hardening)

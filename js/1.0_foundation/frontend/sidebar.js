@@ -2,7 +2,7 @@
 //
 //   THE JESUS WEBSITE — UNIVERSAL STICKY SIDEBAR
 //   File:    js/1.0_foundation/frontend/sidebar.js
-//   Version: 1.0.0
+//   Version: 1.1.0
 //   Purpose: Injects the Universal Sticky Sidebar into all interior pages.
 //            Provides contextual navigation, section links, and table-of-
 //            contents support. Also handles the mobile off-canvas toggle.
@@ -29,11 +29,16 @@
  *                                   the current page: [{ label, href }]
  */
 function injectSidebar(anchorId, activePage, tocItems) {
-  // --- 1. Navigation link definitions --------------------------------------
-  //   Source: guide_appearance.md §1.5 sidebar diagram.
-  //   Each entry: { label, href, id }
+  // --- 0. Re-injection guard — remove existing sidebar + listeners ----------
+  var existingSidebar = document.getElementById('site-sidebar');
+  if (existingSidebar) existingSidebar.remove();
+  var existingBackdrop = document.getElementById('sidebar-backdrop');
+  if (existingBackdrop) existingBackdrop.remove();
+  document.removeEventListener('toggleSidebar', _sidebarToggleHandler);
+  document.removeEventListener('keydown', _sidebarEscapeHandler);
 
-  const navLinks = [
+  // --- 1. Navigation link definitions --------------------------------------
+  var navLinks = [
     { label: "Records", href: "/records", id: "records" },
     { label: "Evidence", href: "/evidence", id: "evidence" },
     { label: "Timeline", href: "/timeline", id: "timeline" },
@@ -46,67 +51,62 @@ function injectSidebar(anchorId, activePage, tocItems) {
   ];
 
   // --- 2. Build main nav HTML ----------------------------------------------
-
-  const navItemsHTML = navLinks
-    .map((link) => {
-      const isActive = link.id === activePage ? "is-active" : "";
-      const ariaCurrent = link.id === activePage ? 'aria-current="page"' : "";
-      return `<li><a href="${link.href}" id="sidebar-nav-${link.id}" class="${isActive}" ${ariaCurrent}>${link.label}</a></li>`;
+  var navItemsHTML = navLinks
+    .map(function(link) {
+      var isActive = link.id === activePage ? "is-active" : "";
+      var ariaCurrent = link.id === activePage ? 'aria-current="page"' : "";
+      return '<li><a href="' + link.href + '" id="sidebar-nav-' + link.id + '" class="' + isActive + '" ' + ariaCurrent + '>' + link.label + '</a></li>';
     })
     .join("");
 
-  // --- 3. Optionally build Table of Contents section ----------------------
-
-  let tocHTML = "";
+  // --- 3. Build Table of Contents safely using createElement ----------------
+  var tocHTML = "";
 
   if (tocItems && tocItems.length > 0) {
-    const tocLinksHTML = tocItems
-      .map(
-        (item) =>
-          `<li><a href="${item.href}" class="sidebar-toc-link">${item.label}</a></li>`,
-      )
-      .join("");
+    var tocList = document.createElement('ul');
+    tocList.className = 'site-sidebar__nav';
+    tocList.id = 'sidebar-toc';
+    tocList.setAttribute('aria-label', 'Table of Contents');
 
-    tocHTML = `
-        <hr class="site-sidebar__divider" aria-hidden="true" />
-        <p class="site-sidebar__nav-category">On this page</p>
-        <ul class="site-sidebar__nav" id="sidebar-toc" aria-label="Table of Contents">
-            ${tocLinksHTML}
-        </ul>`;
+    tocItems.forEach(function(item) {
+      var li = document.createElement('li');
+      var a = document.createElement('a');
+      a.href = item.href;
+      a.className = 'sidebar-toc-link';
+      a.textContent = item.label;
+      li.appendChild(a);
+      tocList.appendChild(li);
+    });
+
+    var tocContainer = document.createElement('div');
+    tocContainer.innerHTML = '<hr class="site-sidebar__divider" aria-hidden="true" /><p class="site-sidebar__nav-category">On this page</p>';
+    tocContainer.appendChild(tocList);
+    tocHTML = tocContainer.innerHTML;
   }
 
   // --- 4. Compose full sidebar HTML ----------------------------------------
-
-  const sidebarHTML = `
-<aside class="site-sidebar" id="site-sidebar" aria-label="Site navigation">
-
-    <a href="/index.html" class="site-sidebar__brand" id="sidebar-brand" aria-label="The Jesus Website — Home">
-        The Jesus Website
-    </a>
-
-    <nav aria-label="Main navigation">
-        <ul class="site-sidebar__nav" id="sidebar-main-nav">
-            ${navItemsHTML}
-        </ul>
-    </nav>
-
-    ${tocHTML}
-
-    <div class="site-sidebar__footer">
-        <hr class="site-sidebar__divider" aria-hidden="true" />
-        <a href="/admin/frontend/login.html" id="sidebar-admin-link" class="site-sidebar__admin-link">
-            Admin Portal
-        </a>
-    </div>
-
-</aside>
-
-<div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
-`;
+  var sidebarHTML = '\
+<aside class="site-sidebar" id="site-sidebar" aria-label="Site navigation">\
+    <a href="/index.html" class="site-sidebar__brand" id="sidebar-brand" aria-label="The Jesus Website — Home">\
+        The Jesus Website\
+    </a>\
+    <nav aria-label="Main navigation">\
+        <ul class="site-sidebar__nav" id="sidebar-main-nav">\
+            ' + navItemsHTML + '\
+        </ul>\
+    </nav>\
+    ' + tocHTML + '\
+    <div class="site-sidebar__footer">\
+        <hr class="site-sidebar__divider" aria-hidden="true" />\
+        <a href="/admin/frontend/login.html" id="sidebar-admin-link" class="site-sidebar__admin-link">\
+            Admin Portal\
+        </a>\
+    </div>\
+</aside>\
+<div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>';
 
   // --- 5. Insert before the anchor element ---------------------------------
-
-  const anchorEl = document.getElementById(anchorId);
+  var anchorEl = document.getElementById(anchorId);
 
   if (!anchorEl) {
     console.warn("[sidebar.js] Anchor element not found: #" + anchorId);
@@ -116,37 +116,39 @@ function injectSidebar(anchorId, activePage, tocItems) {
   anchorEl.insertAdjacentHTML("beforebegin", sidebarHTML);
 
   // --- 6. Wire up mobile off-canvas toggle ---------------------------------
-  //   The toggle button lives in the search header (injected by search_header.js).
-  //   sidebar.js listens for a 'toggleSidebar' custom event as well as
-  //   clicking the backdrop to close.
-
-  const sidebar = document.getElementById("site-sidebar");
-  const backdrop = document.getElementById("sidebar-backdrop");
+  var sidebar = document.getElementById("site-sidebar");
+  var backdrop = document.getElementById("sidebar-backdrop");
+  var triggerElement = null;
 
   function openSidebar() {
+    triggerElement = document.activeElement;
     sidebar.classList.add("is-open");
     backdrop.classList.add("is-visible");
     sidebar.setAttribute("aria-expanded", "true");
+    var firstLink = sidebar.querySelector('.site-sidebar__nav a');
+    if (firstLink) firstLink.focus();
   }
 
   function closeSidebar() {
     sidebar.classList.remove("is-open");
     backdrop.classList.remove("is-visible");
     sidebar.setAttribute("aria-expanded", "false");
+    if (triggerElement && triggerElement.focus) triggerElement.focus();
   }
 
   function toggleSidebar() {
     sidebar.classList.contains("is-open") ? closeSidebar() : openSidebar();
   }
 
-  // Listen for toggle events dispatched by the mobile menu button
-  document.addEventListener("toggleSidebar", toggleSidebar);
-
-  // Click the backdrop to dismiss
-  backdrop.addEventListener("click", closeSidebar);
-
-  // Escape key to dismiss
-  document.addEventListener("keydown", function handleSidebarEscape(event) {
+  _sidebarToggleHandler = toggleSidebar;
+  _sidebarEscapeHandler = function(event) {
     if (event.key === "Escape") closeSidebar();
-  });
+  };
+
+  document.addEventListener("toggleSidebar", _sidebarToggleHandler);
+  backdrop.addEventListener("click", closeSidebar);
+  document.addEventListener("keydown", _sidebarEscapeHandler);
 }
+
+var _sidebarToggleHandler = function() {};
+var _sidebarEscapeHandler = function() {};

@@ -34,11 +34,15 @@ function injectPageMetadata(config) {
 
     // --- 1. Resolve defaults ---------------------------------------------------
 
+    function isValidUrl(str) {
+        return typeof str === 'string' && (str.startsWith('/') || str.startsWith('http://') || str.startsWith('https://'));
+    }
+
     const title       = config.title       || 'The Jesus Website';
     const description = config.description || 'A detailed, evidence-based presentation of the life, teaching, death, and resurrection of Jesus of Nazareth.';
-    const canonical   = config.canonical   || window.location.href;
+    const canonical   = isValidUrl(config.canonical) ? config.canonical : window.location.href;
     const robots      = config.robots      || 'index, follow';
-    const ogImage     = config.ogImage     || '/assets/jesus_portrait.png';
+    const ogImage     = isValidUrl(config.ogImage) ? config.ogImage : '/assets/jesus_portrait.png';
     const ogType      = config.ogType      || 'website';
     const siteName    = 'The Jesus Website';
 
@@ -49,7 +53,8 @@ function injectPageMetadata(config) {
     // --- 3. Helper: create/update a <meta> tag --------------------------------
 
     function setMeta(name, content, attr = 'name') {
-        let el = document.querySelector(`meta[${attr}="${name}"]`);
+        var safeName = name.replace(/["\\]/g, '');
+        let el = document.querySelector('meta[' + attr + '="' + safeName + '"]');
         if (!el) {
             el = document.createElement('meta');
             el.setAttribute(attr, name);
@@ -101,7 +106,7 @@ function injectPageMetadata(config) {
     //   Uses informal but understood conventions (cf. ai-instructions.txt).
 
     setMeta('ai:purpose',         'historical-evidence-archive');
-    setMeta('ai:subject',         'Jesus of Nazareth — biography, theology, archaeology');
+    setMeta('ai:subject',         config.aiSubject || 'Jesus of Nazareth — biography, theology, archaeology');
     setMeta('ai:reading-level',   'academic');
 
     // --- 10. Favicon (ensure it is linked) ------------------------------------
