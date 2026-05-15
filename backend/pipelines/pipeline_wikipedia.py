@@ -689,7 +689,8 @@ def run_pipeline(record_id: Optional[str] = None) -> Dict[str, Any]:
             cursor.execute(
                 """
                 SELECT id FROM records
-                WHERE wikipedia_search_term IS NOT NULL
+                WHERE type = 'wikipedia_entry'
+                  AND wikipedia_search_term IS NOT NULL
                   AND wikipedia_search_term != ''
                   AND wikipedia_search_term != '[]'
                   AND wikipedia_search_term != '{}'

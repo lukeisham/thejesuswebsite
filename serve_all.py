@@ -991,11 +991,11 @@ async def public_wikipedia(
 
         select_cols = (
             "SELECT id, title, slug, snippet, status, created_at, updated_at, "
-            "sub_type, wikipedia_title, wikipedia_link, "
+            "wikipedia_title, wikipedia_link, "
             "wikipedia_rank, wikipedia_weight "
             "FROM records WHERE "
             + where_clause
-            + " GROUP BY id ORDER BY created_at DESC "
+            + " ORDER BY wikipedia_rank ASC "
             "LIMIT ? OFFSET ?"
         )
         query_params = count_params + [safe_limit, safe_offset]

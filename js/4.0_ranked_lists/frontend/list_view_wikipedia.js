@@ -25,64 +25,52 @@ function renderWikipediaList(containerId) {
         throw new Error("Unexpected API response format");
       }
 
-      // Group rows by id so we can merge main entries with their weight sub-type rows
-      var groups = {};
+      var entries = [];
       for (var i = 0; i < rows.length; i++) {
         var row = rows[i];
-        var rowId = row.id;
-        if (!rowId) continue;
-        if (!groups[rowId]) {
-          groups[rowId] = { main: null, weight: null };
-        }
-        var sub = row.sub_type;
-        if (sub === "ranked_weight") {
-          groups[rowId].weight = row;
-        } else if (!sub || sub === null || sub === "ranked_search_term") {
-          // Main entry or search-term row — prefer the null sub_type as main
-          if (!sub || sub === null) {
-            groups[rowId].main = row;
-          } else if (!groups[rowId].main) {
-            groups[rowId].main = row;
-          }
-        }
-      }
-
-      // Build a clean list of entries with merged weight scores
-      var entries = [];
-      for (var id in groups) {
-        if (!groups.hasOwnProperty(id)) continue;
-        var grp = groups[id];
-        var main = grp.main;
-        if (!main) continue;
-        // Skip if not published (defense-in-depth beyond API filter)
-        if (main.status && main.status !== "published") continue;
-        // Skip if missing required fields
-        if (!main.wikipedia_title) continue;
+        if (row.status && row.status !== "published") continue;
+        if (!row.wikipedia_title) continue;
 
         var score = null;
-        if (grp.weight && grp.weight.wikipedia_weight) {
-          var rawWeight = grp.weight.wikipedia_weight;
+        if (row.wikipedia_weight) {
+          var rawWeight = row.wikipedia_weight;
           try {
             var parsed =
               typeof rawWeight === "string" ? JSON.parse(rawWeight) : rawWeight;
-            // Weight may be a single number, an array, or an object with score/weight/value keys
             if (typeof parsed === "number") {
               score = parsed;
-            } else if (Array.isArray(parsed) && parsed.length > 0) {
-              score = Number(parsed[0]) || null;
             } else if (typeof parsed === "object" && parsed !== null) {
-              score =
-                Number(parsed.weight || parsed.score || parsed.value) || null;
+              var vals = Object.values(parsed);
+              if (vals.length > 0) {
+                score = vals.reduce(function (acc, v) {
+                  var n = parseFloat(v);
+                  return isNaN(n) ? acc : acc * n;
+                }, 1.0);
+              }
             }
           } catch (e) {
-            // Weight parse failed — skip score display
+            // Weight parse failed
+          }
+        }
+
+        var linkUrl = "";
+        if (row.wikipedia_link) {
+          if (typeof row.wikipedia_link === "object" && row.wikipedia_link.url) {
+            linkUrl = row.wikipedia_link.url;
+          } else if (typeof row.wikipedia_link === "string") {
+            try {
+              var linkParsed = JSON.parse(row.wikipedia_link);
+              linkUrl = linkParsed.url || row.wikipedia_link;
+            } catch (e) {
+              linkUrl = row.wikipedia_link;
+            }
           }
         }
 
         entries.push({
-          title: main.wikipedia_title,
-          link: main.wikipedia_link || "",
-          rank: main.wikipedia_rank,
+          title: row.wikipedia_title,
+          link: linkUrl,
+          rank: row.wikipedia_rank,
           score: score,
         });
       }

@@ -25,7 +25,6 @@ async function _saveMetadataFromWidget(data) {
         slug: data.slug,
         snippet: data.snippet,
         metadata_json: data.metadata_json,
-        status: "draft",
       }),
     });
 
@@ -246,9 +245,7 @@ function scheduleAutoSave() {
     var weightInput = document.getElementById("wikipedia-weight-input");
     var weightValue = weightInput ? weightInput.value : "";
 
-    var payload = {
-      status: "draft",
-    };
+    var payload = {};
 
     if (searchTerms) {
       var termsArray = searchTerms

@@ -139,7 +139,6 @@ async function _autoSaveWikipediaSearchTerms() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         wikipedia_search_term: JSON.stringify(termsArray),
-        status: "draft",
       }),
     });
 

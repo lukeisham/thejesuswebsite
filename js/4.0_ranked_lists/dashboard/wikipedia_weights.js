@@ -213,7 +213,6 @@ async function _autoSaveWikipediaWeights() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         wikipedia_weight: JSON.stringify(weightObj),
-        status: "draft",
       }),
     });
 
