@@ -113,10 +113,11 @@ async function triggerCrawl() {
     // Schedule a list refresh after a short delay for the pipeline
     // to start processing — news items populate in the anchor record
     setTimeout(async function () {
+      if (typeof window.displayNewsSourcesList === "function") {
+        await window.displayNewsSourcesList();
+      }
       if (typeof window.surfaceError === "function") {
-        window.surfaceError(
-          "News crawl in progress. Refresh to see new items.",
-        );
+        window.surfaceError("News crawl complete. List refreshed.");
       }
     }, 3000);
 

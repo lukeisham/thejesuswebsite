@@ -421,7 +421,7 @@
 
 .news-articles-row__status--active {
     color: var(--color-status-success);
-    background-color: rgba(46, 125, 50, 0.1);
+    background-color: var(--color-status-success-bg);
 }
 
 .news-articles-row__status--inactive {

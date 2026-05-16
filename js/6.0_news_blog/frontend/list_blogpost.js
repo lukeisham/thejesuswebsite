@@ -27,7 +27,8 @@ function renderBlogFeed() {
   if (!listEl) return;
 
   // Show loading state
-  listEl.innerHTML = '<p class="text-sm text-muted">Loading blog posts...</p>';
+  listEl.innerHTML =
+    '<p class="text-sm text-muted" role="status" aria-live="polite">Loading blog posts...</p>';
 
   // Reset pagination state
   _blogFeedState.offset = 0;
@@ -168,7 +169,7 @@ function _buildPostHtml(item, snippet) {
   var thumbHtml = thumbUrl
     ? '<div class="feed-item__thumb-wrap">' +
       '<img class="feed-item__thumbnail" src="' +
-      thumbUrl +
+      escapeHtml(thumbUrl) +
       '" alt="' +
       escapeHtml(title) +
       '" loading="lazy" />' +
@@ -176,10 +177,7 @@ function _buildPostHtml(item, snippet) {
     : "";
 
   return (
-    '<article class="feed-item" style="' +
-    "padding-bottom: var(--space-6); " +
-    "border-bottom: 1px solid var(--color-border); " +
-    'margin-bottom: var(--space-6);">' +
+    '<article class="feed-item feed-item--separated">' +
     thumbHtml +
     '<div class="feed-item__body">' +
     '<h2 class="blog-item__title">' +

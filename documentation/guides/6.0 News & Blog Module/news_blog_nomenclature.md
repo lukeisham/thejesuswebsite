@@ -1,7 +1,7 @@
 ---
 name: news_blog_nomenclature.md
 purpose: Glossary of terms used throughout the News & Blog Module and the broader codebase
-version: 1.1.0
+version: 1.2.0
 dependencies: [simple_module_sitemap.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, guide_function.md]
 ---
 
@@ -95,6 +95,7 @@ dependencies: [simple_module_sitemap.md, guide_dashboard_appearance.md, guide_fr
 | **blog-metadata** | CSS Component | Frontend CSS component for metadata grid at bottom of single blog post. Grid layout `1fr 2fr` with `__heading`, `__grid`, `__item`, `__label`, `__value`. |
 | **news-blog-landing** | CSS Component | Frontend CSS component for landing page (`news_and_blog.html`). Two-column grid `1fr 1fr`, stacks vertically under 800px. Snippet cards with thumbnail, date, title, text. |
 | **feed-item** | CSS Component | Frontend CSS component for full feed pages (`news.html`, `blog.html`). Flexbox row with thumbnail wrap (120x90px). |
+| **feed-item--separated** | CSS Modifier | BEM modifier on `.feed-item` adding bottom padding, border separator, and margin between feed items. Replaces previously inline styles. Uses `--space-6`, `--color-border`, `--border-width-thin`. |
 | **news_snippet_display.js** | JS File | Fetches top 5 published `news_article` records and renders landing-page snippet cards. |
 | **blog_snippet_display.js** | JS File | Fetches top 5 published `blog_post` records and renders landing-page snippet cards. |
 | **list_newsitem.js** | JS File | Fetches all published `news_article` records for `news.html`. Uses schema-prefixed columns. |

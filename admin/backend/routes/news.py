@@ -96,11 +96,17 @@ async def trigger_wikipedia_pipeline(
 
             if record_slug:
                 # Look up the record by slug to get its ULID
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("SELECT id FROM records WHERE slug = ?", (record_slug,))
-                row = cursor.fetchone()
-                conn.close()
+                conn = None
+                try:
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "SELECT id FROM records WHERE slug = ?", (record_slug,)
+                    )
+                    row = cursor.fetchone()
+                finally:
+                    if conn:
+                        conn.close()
 
                 if row:
                     result = run_pipeline(record_id=row["id"])
@@ -157,7 +163,7 @@ async def get_news_items(admin_data: dict = Depends(verify_token)):
         )
 
 
-@router.post("/api/admin/news/crawl")
+@router.post("/api/admin/news/crawl", status_code=202)
 async def trigger_news_crawl(
     body: NewsCrawlRequest | None = None,
     admin_data: dict = Depends(verify_token),

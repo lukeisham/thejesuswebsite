@@ -46,7 +46,7 @@ def get_db_connection():
     """Open a new SQLite connection with row_factory set to sqlite3.Row."""
     if not os.path.exists(DB_PATH):
         raise HTTPException(status_code=500, detail="Database file not found.")
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=5)
     conn.row_factory = sqlite3.Row
     return conn
 

@@ -21,7 +21,7 @@ function injectBlogSnippets(containerId) {
 
   // Show loading state
   container.innerHTML =
-    '<p class="text-sm text-muted">Loading blog posts...</p>';
+    '<p class="text-sm text-muted" role="status" aria-live="polite">Loading blog posts...</p>';
 
   fetch("/api/public/blogposts?type=blog_post&status=published&limit=5")
     .then(function (response) {
@@ -56,7 +56,7 @@ function injectBlogSnippets(containerId) {
 
           var thumbHtml = thumbUrl
             ? '<img class="news-blog-landing__thumbnail" src="' +
-              thumbUrl +
+              escapeHtml(thumbUrl) +
               '" alt="' +
               escapeHtml(title) +
               '" loading="lazy" />'

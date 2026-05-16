@@ -86,6 +86,8 @@
     /* --- Utility / Status --- */
     --color-status-success: #2e7d32;
     /* Blueprint Green — success highlights     */
+    --color-status-success-bg: rgba(46, 125, 50, 0.1);
+    /* Success background — badge/bg highlights  */
     --color-white: #ffffff;
     --color-black: #000000;
     --color-transparent: transparent;

@@ -26,7 +26,8 @@ function renderNewsFeed() {
   var listEl = document.getElementById("news-feed-content");
   if (!listEl) return;
 
-  listEl.innerHTML = '<p class="text-sm text-muted">Loading news feed...</p>';
+  listEl.innerHTML =
+    '<p class="text-sm text-muted" role="status" aria-live="polite">Loading news feed...</p>';
 
   _newsFeedState.offset = 0;
   _newsFeedState.hasMore = true;
@@ -156,7 +157,7 @@ function _buildNewsHtml(item, snippet) {
   var thumbHtml = thumbUrl
     ? '<div class="feed-item__thumb-wrap">' +
       '<img class="feed-item__thumbnail" src="' +
-      thumbUrl +
+      escapeHtml(thumbUrl) +
       '" alt="' +
       escapeHtml(displayTitle) +
       '" loading="lazy" />' +
@@ -164,11 +165,7 @@ function _buildNewsHtml(item, snippet) {
     : "";
 
   return (
-    '<article class="feed-item" style="' +
-    "padding-bottom: var(--space-6); " +
-    "border-bottom: 1px solid var(--color-border); " +
-    "margin-bottom: var(--space-6);" +
-    '">' +
+    '<article class="feed-item feed-item--separated">' +
     thumbHtml +
     '<div class="feed-item__body">' +
     '<h2 class="news-item__title">' +

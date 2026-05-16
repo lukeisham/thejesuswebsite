@@ -244,23 +244,27 @@ async function _handleNewBlogPost() {
 
     // Reset external refs
     if (typeof window.setExternalRefValues === "function") {
-      window.setExternalRefValues({ iaa: "", pledius: "", manuscript: "", entries: null });
+      window.setExternalRefValues({
+        iaa: "",
+        pledius: "",
+        manuscript: "",
+        entries: null,
+      });
     }
 
     // Refresh the sidebar to show the new draft
     if (typeof window.displayBlogPostsList === "function") {
       await window.displayBlogPostsList();
 
-      setTimeout(function () {
-        const newItem = document.querySelector(
-          '.wysiwyg-sidebar-list__item[data-record-id="' +
-            CSS.escape(newId) +
-            '"]',
-        );
-        if (newItem) {
-          newItem.classList.add("wysiwyg-sidebar-list__item--active");
-        }
-      }, 100);
+      // Highlight the new item after list render completes
+      const newItem = document.querySelector(
+        '.wysiwyg-sidebar-list__item[data-record-id="' +
+          CSS.escape(newId) +
+          '"]',
+      );
+      if (newItem) {
+        newItem.classList.add("wysiwyg-sidebar-list__item--active");
+      }
     }
 
     // Show the Delete button

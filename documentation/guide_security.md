@@ -1,7 +1,7 @@
 ---
 name: guide_security.md
 purpose: description of security measures taken to protect the backend section 
-version: 1.7.0
+version: 1.8.0
 dependencies: [simple_module_sitemap.md, guide_welcoming_robots.md]
 ---
 
@@ -102,6 +102,12 @@ The public frontend enforces a strict policy against unsanitized HTML injection:
 - **querySelector Escaping:** `header.js` `setMeta()` strips quote characters from the `name` parameter before interpolating into `querySelector()` selectors, preventing selector injection.
 - **URL Validation:** Context link `href` values are validated to start with `/` or `https://` before creating anchor elements, preventing `javascript:` protocol injection. `header.js` validates `canonical` and `ogImage` URLs to start with `/`, `http://`, or `https://` before injecting into meta tags.
 - **Data URL Validation:** Picture preview data URLs are validated to start with `data:image/png;base64,` before rendering.
+- **Module 6 Image URL Escaping (plan_fix_module6_audit_bugs):** All public-facing frontend files in Module 6 (News & Blog) now escape image `src` URLs via `escapeHtml()` before interpolating into HTML. Affected files:
+  - `js/6.0_news_blog/frontend/list_blogpost.js` (feed thumbnail)
+  - `js/6.0_news_blog/frontend/list_newsitem.js` (feed thumbnail)
+  - `js/6.0_news_blog/frontend/blog_snippet_display.js` (snippet thumbnail)
+  - `js/6.0_news_blog/frontend/news_snippet_display.js` (snippet thumbnail)
+- **Module 6 Markdown Link Sanitization (plan_fix_module6_audit_bugs):** The `convertMarkdownToHTML()` function in `display_blogpost.js` now validates markdown link URLs through a `replace` callback that rejects `javascript:`, `data:`, and `vbscript:` protocols. Only URLs starting with `http://`, `https://`, `/`, or `#` are allowed. URLs are also run through `escapeHtml()` before insertion into the `href` attribute.
 
 ## 4c. Request Size Limits (plan_records_module_hardening)
 

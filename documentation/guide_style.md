@@ -1,7 +1,7 @@
 ---
 name: guide_style.md
 purpose: description of visual appearance of the website 
-version: 1.13.0
+version: 1.14.0
 dependencies: [simple_module_sitemap.md]
 ---
 
@@ -613,6 +613,7 @@ The `.external-refs-editor` BEM namespace lives in `css/9.0_cross_cutting/dashbo
 | BEM Class | Purpose | CSS Variable References |
 |:---|:---|:---|
 | `.feed-item` | Flex row container for full feed items | `--space-4` gap |
+| `.feed-item--separated` | Feed item with bottom spacing and border separator | `--space-6`, `--color-border`, `--border-width-thin` |
 | `.feed-item__thumb-wrap` | 120x90 thumbnail wrapper | `--color-bg-secondary` |
 | `.feed-item__thumbnail` | `<img>` inside feed thumb-wrap | `object-fit: cover` |
 | `.feed-item__body` | Text content beside thumbnail | `flex: 1` |

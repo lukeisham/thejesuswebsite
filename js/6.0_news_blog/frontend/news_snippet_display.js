@@ -19,7 +19,8 @@ function injectNewsSnippets(containerId) {
   if (!container) return;
 
   // Show loading state
-  container.innerHTML = '<p class="text-sm text-muted">Loading news...</p>';
+  container.innerHTML =
+    '<p class="text-sm text-muted" role="status" aria-live="polite">Loading news...</p>';
 
   fetch("/api/public/news?type=news_article&status=published&limit=5")
     .then(function (response) {
@@ -75,7 +76,7 @@ function injectNewsSnippets(containerId) {
 
           var thumbHtml = thumbUrl
             ? '<img class="news-blog-landing__thumbnail" src="' +
-              thumbUrl +
+              escapeHtml(thumbUrl) +
               '" alt="' +
               escapeHtml(displayTitle) +
               '" loading="lazy" />'

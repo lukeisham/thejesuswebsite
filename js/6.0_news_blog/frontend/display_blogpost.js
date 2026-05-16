@@ -275,11 +275,22 @@ function convertMarkdownToHTML(md) {
   // Inline code
   html = html.replace(/`(.+?)`/g, "<code>$1</code>");
 
-  // Links
-  html = html.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener">$1</a>',
-  );
+  // Links — validate and sanitize URL, reject javascript:/data:/vbscript: protocols
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (match, text, url) {
+    var allowed =
+      /^https?:\/\//.test(url) || url.startsWith("/") || url.startsWith("#");
+    if (!allowed) {
+      // Return just the text if the URL is unsafe
+      return text;
+    }
+    return (
+      '<a href="' +
+      escapeHtml(url) +
+      '" target="_blank" rel="noopener">' +
+      text +
+      "</a>"
+    );
+  });
 
   // Paragraphs (double newlines)
   var blocks = html.split(/\n\n+/);
