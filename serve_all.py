@@ -36,6 +36,8 @@ app.add_middleware(
     allowed_hosts=[
         "thejesuswebsite.com",
         "www.thejesuswebsite.com",
+        "thejesuswebsite.org",
+        "www.thejesuswebsite.org",
         "localhost",
         "127.0.0.1",
     ],
@@ -48,6 +50,8 @@ app.add_middleware(
     allow_origins=[
         "https://thejesuswebsite.com",
         "https://www.thejesuswebsite.com",
+        "https://thejesuswebsite.org",
+        "https://www.thejesuswebsite.org",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
     ],
