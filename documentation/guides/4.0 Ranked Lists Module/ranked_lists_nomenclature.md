@@ -38,4 +38,29 @@ dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashb
 
 | Term | Type | Definition |
 |------|------|------------|
-|      |      |            |
+| **Wikipedia Weights** | Feature (§4.1) | Dashboard sub-module for managing Wikipedia article rankings via configurable multipliers — dual-pane layout with sidebar weights and main ranked list |
+| **Challenge Weights** | Feature (§4.2) | Dashboard sub-module for managing challenge rankings — split into two independent single-mode pages (Academic and Popular) with no toggle |
+| **Academic Challenge** | Record Type | A scholarly/historical challenge to Christianity ranked by Difficulty, Scholarly Interest, and Historical Significance — type discriminator `challenge_academic` |
+| **Popular Challenge** | Record Type | A mainstream/viral challenge to Christianity ranked by Popularity, Virality, and Search Volume — type discriminator `challenge_popular` |
+| **Weighting Criteria** | Data Concept | Named label/multiplier pairs (e.g. "Difficulty: 8") stored as JSON Object in `*_weight` columns — used to compute final ranked score |
+| **DEFAULT_WEIGHTS** | Code Constant | Starting criteria for a fresh mode with no saved weights — defined in `challenge_weighting_handler.js` with preset arrays for `academic` and `popular` |
+| **Base Rank** | Algorithm Term | Raw score computed from external data (Wikipedia wordcount log-scale 1–100, or pipeline output) before weight multipliers are applied |
+| **Final Rank** | Algorithm Term | Computed score: Base Rank × Product of all active Multipliers — determines list sort order |
+| **Draft/Publish Cycle** | Workflow | All edits auto-save as `status: 'draft'`; "Calculate" re-sorts and reverts all records to draft; only "Publish" commits the final ranked order to the live frontend |
+| **Refresh / Calculate** | Action Button | Re-sorts the ranked list using saved weights and sets ALL affected records to `status: 'draft'` (the "default-to-draft" rule) |
+| **Gather** | Action Button | Triggers the external data pipeline (Wikipedia API or DeepSeek agent) to discover new articles/challenges |
+| **Agent Search** | Action Button | Triggers a DeepSeek agent pipeline run for the selected challenge — discovers external sources using saved search terms |
+| **Insert Response** | Action Button | Creates a new draft response record linked to the selected challenge via `challenge_id` FK, then navigates to the §5.2 Response Editor |
+| **Search Terms** | Data Concept | JSON Array of query strings stored per record (`*_search_term` columns) — fed to Wikipedia REST API or DeepSeek agent for external data retrieval |
+| **`_challengeModuleState`** | JS State Object | Global state singleton for challenge dashboards — caches mode, active record, per-mode weighting criteria, search terms, and challenge lists |
+| **`_wikipediaModuleState`** | JS State Object | Global state singleton for the Wikipedia dashboard — caches active record, weights, search terms, and ranked list |
+| **`wikipedia_rank`** | DB Column | 64-bit integer storing the computed rank position for a Wikipedia record |
+| **`wikipedia_weight`** | DB Column | JSON Object storing label/multiplier pairs for the Wikipedia ranking algorithm |
+| **`wikipedia_search_term`** | DB Column | JSON Array of search terms fed to `pipeline_wikipedia.py` for Wikipedia API queries |
+| **`sub_type = 'ranked_weight'`** | Record Variant | Secondary row in the records table that stores weight JSON for a parent record — grouped by `id` on the frontend to merge main entry with its weight data |
+| **Endless Scroll** | UI Pattern | Paginated ranked list in the dashboard main area that loads additional records on scroll rather than using page navigation |
+| **Status Legend** | UI Element | Dashboard legend mapping `○D` (Draft) and `●P` (Published) symbols shown in ranked list rows |
+| **Saved Search Terms Overview** | UI Element | Read-only list section between the Add Weight form and the Search Terms textarea — displays active search terms for the selected record |
+| **pipeline_wikipedia.py** | Backend Pipeline | Python script that queries Wikipedia REST API with saved search terms, filters non-article pages, computes base score from wordcount, and writes results as draft |
+| **pipeline_academic_challenges.py** | Backend Pipeline | Python pipeline for Academic challenges — filters by `WHERE type = 'challenge_academic'` and computes rankings |
+| **pipeline_popular_challenges.py** | Backend Pipeline | Python pipeline for Popular challenges — filters by `WHERE type = 'challenge_popular'` and computes rankings |
