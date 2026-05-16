@@ -19,7 +19,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(ROOT_DIR)
 sys.path.append(os.path.join(ROOT_DIR, "admin", "backend"))
 
-load_dotenv()  # noqa: E402 — must run after sys.path
+load_dotenv(os.path.join(ROOT_DIR, ".env"))  # noqa: E402 — must run after sys.path
 
 # 2. Import the Admin API from the modular routes package
 from admin.backend.routes import create_app  # noqa: E402 — sys.path must be set first
