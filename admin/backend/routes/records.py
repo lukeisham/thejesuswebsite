@@ -306,14 +306,21 @@ async def delete_record(record_id: str, admin_data: dict = Depends(verify_token)
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Look up the slug before deleting so we can clean up resource_lists
-        cursor.execute("SELECT slug FROM records WHERE id = ?", (record_id,))
+        # Look up the slug and type before deleting so we can cascade and clean up
+        cursor.execute("SELECT slug, type FROM records WHERE id = ?", (record_id,))
         row = cursor.fetchone()
         if not row:
             conn.close()
             raise HTTPException(status_code=404, detail="Record not found")
 
         record_slug = row["slug"]
+        record_type = row["type"]
+
+        # Cascade delete child challenge responses
+        if record_type in ("challenge_academic", "challenge_popular"):
+            cursor.execute(
+                "DELETE FROM records WHERE challenge_id = ?", (record_id,)
+            )
 
         cursor.execute("DELETE FROM records WHERE id = ?", (record_id,))
 

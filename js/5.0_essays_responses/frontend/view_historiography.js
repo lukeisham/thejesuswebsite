@@ -57,7 +57,7 @@ function renderHistoriography(containerId) {
         '<article class="essay-container">' +
         '<div class="essay-empty">' +
         '<p class="essay-empty__text">' +
-        escapeHtmlHist(err.message || "Unable to load historiography.") +
+        escapeHtml(err.message || "Unable to load historiography.") +
         "</p>" +
         "</div>" +
         "</article>";
@@ -79,21 +79,21 @@ function buildHistoriographyHTML(essay) {
   html += '<header class="essay-header">';
   html +=
     '<h1 class="essay-title">' +
-    escapeHtmlHist(essay.title || "Untitled") +
+    escapeHtml(essay.title || "Untitled") +
     "</h1>";
 
   if (essay.snippet) {
     var snippetText = getSnippetTextHist(essay.snippet);
     if (snippetText) {
       html +=
-        '<p class="essay-subtitle">' + escapeHtmlHist(snippetText) + "</p>";
+        '<p class="essay-subtitle">' + escapeHtml(snippetText) + "</p>";
     }
   }
 
   // Metadata line: date only — unique identifiers moved to dedicated list section
   var metaParts = [];
   if (essay.updated_at || essay.created_at) {
-    metaParts.push(formatDateHist(essay.updated_at || essay.created_at));
+    metaParts.push(formatDateLong(essay.updated_at || essay.created_at));
   }
 
   if (metaParts.length > 0) {
@@ -108,19 +108,19 @@ function buildHistoriographyHTML(essay) {
   if (essay.iaa)
     refItems.push(
       '<li><span class="ref-label">IAA Reference:</span> <span class="ref-value">' +
-        escapeHtmlHist(essay.iaa) +
+        escapeHtml(essay.iaa) +
         "</span></li>",
     );
   if (essay.pledius)
     refItems.push(
       '<li><span class="ref-label">Pledius:</span> <span class="ref-value">' +
-        escapeHtmlHist(essay.pledius) +
+        escapeHtml(essay.pledius) +
         "</span></li>",
     );
   if (essay.manuscript)
     refItems.push(
       '<li><span class="ref-label">Manuscript:</span> <span class="ref-value">' +
-        escapeHtmlHist(essay.manuscript) +
+        escapeHtml(essay.manuscript) +
         "</span></li>",
     );
   // Custom identifiers from metadata_json.identifiers
@@ -157,7 +157,7 @@ function buildHistoriographyHTML(essay) {
       html +=
         '<aside class="essay-abstract">' +
         "<strong>Abstract:</strong> " +
-        escapeHtmlHist(abstractText) +
+        escapeHtml(abstractText) +
         "</aside>";
     }
   }
@@ -199,9 +199,9 @@ function buildHistoriographyHTML(essay) {
         var val = urls[key];
         html +=
           '<li class="essay-urls__item"><a href="' +
-          escapeAttrHist(val) +
+          escapeAttr(val) +
           '" class="essay-urls__link" rel="external nofollow">' +
-          escapeHtmlHist(key) +
+          escapeHtml(key) +
           "</a></li>";
       });
       html += "</ul></section>";
@@ -232,9 +232,9 @@ function buildHistoriographyHTML(essay) {
           "/" +
           encodeURIComponent(label) +
           '" class="essay-context-links__link">' +
-          escapeHtmlHist(label) +
+          escapeHtml(label) +
           ' <span class="essay-context-links__type">(' +
-          escapeHtmlHist(type) +
+          escapeHtml(type) +
           ")</span>" +
           "</a></li>";
       });
@@ -288,7 +288,7 @@ function generateHistoriographyTOC(essay) {
         '"><a href="#' +
         id +
         '" class="essay-toc-list__link">' +
-        escapeHtmlHist(h.textContent || "") +
+        escapeHtml(h.textContent || "") +
         "</a></li>",
     );
   });
@@ -436,49 +436,6 @@ function slugifyHist(str) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
-}
-
-// ---------------------------------------------------------------------------
-//  formatDateHist
-//  Formats an ISO date string into readable "Month Day, Year" format.
-// ---------------------------------------------------------------------------
-
-function formatDateHist(isoString) {
-  if (!isoString) return "";
-  try {
-    var d = new Date(isoString);
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch (e) {
-    return isoString;
-  }
-}
-
-// ---------------------------------------------------------------------------
-//  escapeHtmlHist / escapeAttrHist
-//  Minimal HTML and attribute escaping utilities.
-// ---------------------------------------------------------------------------
-
-function escapeHtmlHist(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function escapeAttrHist(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 }
 
 // --- Bootstrap ---

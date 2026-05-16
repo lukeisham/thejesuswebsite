@@ -124,7 +124,7 @@ function buildEssayHTML(essay) {
   // Metadata line: date only — unique identifiers moved to dedicated list section
   var metaParts = [];
   if (essay.updated_at || essay.created_at) {
-    metaParts.push(formatEssayDate(essay.updated_at || essay.created_at));
+    metaParts.push(formatDateLong(essay.updated_at || essay.created_at));
   }
 
   if (metaParts.length > 0) {
@@ -467,49 +467,6 @@ function slugify(str) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
-}
-
-// ---------------------------------------------------------------------------
-//  formatEssayDate
-//  Formats an ISO date string into a readable "Month Day, Year" format.
-// ---------------------------------------------------------------------------
-
-function formatEssayDate(isoString) {
-  if (!isoString) return "";
-  try {
-    var d = new Date(isoString);
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch (e) {
-    return isoString;
-  }
-}
-
-// ---------------------------------------------------------------------------
-//  escapeHtml / escapeAttr
-//  Minimal HTML and attribute escaping utilities.
-// ---------------------------------------------------------------------------
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function escapeAttr(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 }
 
 // --- Bootstrap ---

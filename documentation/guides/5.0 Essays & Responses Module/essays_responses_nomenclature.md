@@ -1,7 +1,7 @@
 ---
 name: essays_responses_nomenclature.md
 purpose: Glossary of terms used throughout the Essays & Responses Module and the broader codebase
-version: 1.0.0
+version: 1.1.0
 dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, guide_function.md]
 ---
 
@@ -66,3 +66,7 @@ dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_dashb
 | **`ordo_salutis`** | Data | Order-of-salvation classification enum on theological essays with 8 values: Predestination, Regeneration, Faith, Repentance, Justification, Sanctification, Perseverance, Glorification |
 | **`getEssaySlugFromURL`** | Utility | URL parser in `view_context_essays.js` that extracts the essay slug from `?slug=` query parameter or the clean path `/context/{slug}` |
 | **Markdown Editor 🔑** | Shared Tool | Core WYSIWYG markdown editing tool (`markdown_editor.js`) — owned by the Essays & Responses Module, consumed by Blog Posts and Challenge Response dashboards via `<script>` tag. Exposes `window.initMarkdownEditor()`, `window.getMarkdownContent()`, `window.setMarkdownContent()` |
+| **`.biblio-entry`** | CSS Class | MLA hanging-indent bibliography entry — `padding-left` + negative `text-indent` for standard citation formatting. Defined in `essays.css` and `responses.css` |
+| **`.essay-body__link`** | CSS Class | Styled hyperlink within essay body content — Oxblood accent colour with underline, hover darkening. Defined in `essays.css` |
+| **`escapeAttr`** | Shared Utility | HTML attribute escaping function from `html_utils.js` — escapes `&`, `"`, `'`, `<`, `>` for safe use inside quoted HTML attributes. Consumed by `view_context_essays.js` and `view_historiography.js` |
+| **`_escapeBiblioHtml`** | Utility | File-local HTML escaping in `sources_biblio_display.js` — prevents XSS when rendering bibliography entries via `innerHTML` |

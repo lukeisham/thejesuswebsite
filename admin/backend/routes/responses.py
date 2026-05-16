@@ -6,8 +6,11 @@
 # =============================================================================
 
 import json
+import logging
 import uuid
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -76,7 +79,8 @@ async def create_response(
         existing_responses = parent["responses"]
         try:
             response_list = json.loads(existing_responses) if existing_responses else []
-        except (json.JSONDecodeError, TypeError):
+        except (json.JSONDecodeError, TypeError) as exc:
+            logger.warning("Corrupted responses JSON on parent %s: %s", parent["id"], exc)
             response_list = []
 
         response_list.append(

@@ -1,58 +1,41 @@
 ---
 name: guide_dashboard_appearance.md
 purpose: Visual ASCII representations of the Admin Portal and editing screens for 5.0 Essays & Responses Module
-version: 1.0.0
+version: 2.0.0
 dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, high_level_schema.md, essays_responses_nomenclature.md, guide_frontend_appearance.md, guide_function.md]
 ---
 
 ## 5.0 Essays & Responses Module
 **Scope:** Context-Essays & Historiography (§5.1), Challenge Responses (§5.2).
 
-### 5.1a Backend for Essay Layouts (`dashboard_essay.js`)
+### 5.1a Backend for Essay Layout (dashboard_essay.js)
 **Corresponds to Public Sections:** 5.1 (Context Essay & Historiography Layouts)
-**Purpose:** Split-pane markdown editor for authoring context essays, theological essays, and spiritual articles. Features a sidebar with search-filterable document list grouped by Published/Drafts, and a WYSIWYG editor with live preview. Loads the `dashboard_essay.html` template (no toggle — fixed to essay mode).
-
 **Plan:** `plan_dashboard_essay_historiography.md`
-
-**DB Fields:**
-```
-── Written by dashboard_essay_historiography.js ─────────────────────────
-body                TEXT (WYSIWYG Markdown) — full essay content
-context_essays      TEXT (JSON Array)  — slugs of context essays linked
-                                         to this record
-theological_essays  TEXT (JSON Array)  — slugs of theological essays linked
-spiritual_articles  TEXT (JSON Array)  — slugs of spiritual articles linked
-historiography      TEXT (JSON Blob)   — historiographical content
-ordo_salutis        TEXT (Enum)        — order-of-salvation classification
-                                         8 values: Predestination,
-                                         Regeneration, Faith, Repentance,
-                                         Justification, Sanctification,
-                                         Perseverance, Glorification
-```
 
 ```text
 +---------------------------------------------------------------------------------+
-| [✦✦] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >      |
+| [Jesus Website Dashboard] | < Return to Frontpage | Dashboard | Logout >        |
 +---------------------------------------------------------------------------------+
-| Function Bar:        [ Save Draft | Publish | Delete ]                       |
+| Function Bar: [+ New Context Essay] | [ Save Draft ] [ Publish ] [ Delete ]     |
 +---------------------------------------------------------------------------------+
-| Editor Sidebar            | WYSIWYG Editor                                      |
+| Editor Sidebar            | WYSIWYG Editor                                     |
 |---------------------------+-----------------------------------------------------|
-| Search: [_______________] | Title: [___________________________________]        |
+| Search: [_______________] | Title: [___________________________________]       |
 | *Published*               |                                                     |
 | - Context Essay 1         | [B] [I] [U] [Link] [Image] [Code]                   |
 |                           | +-----------------------------------------------+   |
-| *Drafts*                  | |                                               |   |
-| - Draft Essay A           | |  Markdown essay content goes here...           |   |
-|                           | |                                               |   |
+| *Drafts*                  | | Markdown    | Preview                         |   |
+| - Draft Essay A           | | textarea... | (live HTML preview)             |   |
 |                           | +-----------------------------------------------+   |
-| (Endless Scroll)          |                                                     |
-|                           | Snippet: [_______________________] [Generate]       |
-|                           | MLA Sources: [_________] Context Links: [_____]     |
-|                           | ordo_salutis: [Dropdown — 8 values ▼]               |
-|                           | context_essays: [slug ×] [+ Link]                    |
-|                           | theological_essays: [slug ×] [+ Link]                |
-|                           | spiritual_articles: [slug ×] [+ Link]               |
+| (scrollable list)         |                                                     |
+|                           | MLA Sources: [_________]                             |
+| ─ Metadata Widget ──────  | Context Links: [_____]                               |
+| [slug] [snippet]          |                                                     |
+| [keywords] [timestamps]   | Picture: [Full Preview 800px] [Thumb 200px]          |
+| [Generate All]            |          [Upload PNG ▼]                              |
+|                           |                                                     |
+|                           | External References:                                 |
+|                           | IAA: [___] Pledius: [___] Manuscript: [___]          |
 +---------------------------------------------------------------------------------+
 | [ Status Bar: System running normally / Error logs appear here ]                |
 +---------------------------------------------------------------------------------+
@@ -61,56 +44,62 @@ ordo_salutis        TEXT (Enum)        — order-of-salvation classification
 **File Inventory:**
 | File | Purpose |
 |------|---------|
-| `admin/frontend/dashboard_essay.html` | Essay editor container (no toggle) |
-| `css/5.0_essays_responses/dashboard/dashboard_essay_historiography.css` | Dual-state layout & toolbar (shared) |
-| `css/5.0_essays_responses/dashboard/essay_WYSIWYG_editor.css` | Markdown input & live preview (shared) |
+| `admin/frontend/dashboard_essay.html` | Essay editor container (unified wysiwyg-* BEM) |
 | `js/5.0_essays_responses/dashboard/dashboard_essay.js` | Essay orchestrator (fixed mode) |
-| `js/5.0_essays_responses/dashboard/essay_historiography_data_display.js` | Content fetching & population (shared) |
+| `js/5.0_essays_responses/dashboard/essay_historiography_list_display.js` | Sidebar Published/Drafts population (shared) |
+| `js/5.0_essays_responses/dashboard/essay_historiography_load_content.js` | Editor content loading (shared) |
 | `js/5.0_essays_responses/dashboard/search_essays.js` | Sidebar search & filtering (shared) |
-| `js/5.0_essays_responses/dashboard/markdown_editor.js` | 🔑 Shared tool: WYSIWYG & live preview |
+| `js/5.0_essays_responses/dashboard/markdown_editor.js` | Shared tool: WYSIWYG & live preview |
 | `js/5.0_essays_responses/dashboard/document_status_handler.js` | Save/Publish/Delete logic (shared) |
 
 **Shared tools consumed via `<script>` tag:**
-- `js/2.0_records/dashboard/picture_handler.js` — Image upload
-- `js/2.0_records/dashboard/mla_source_handler.js` — MLA citations
-- `js/2.0_records/dashboard/context_link_handler.js` — Context links
-- `js/2.0_records/dashboard/snippet_generator.js` — Snippet generation
-- `js/2.0_records/dashboard/metadata_handler.js` — Metadata footer
+- `js/9.0_cross_cutting/dashboard/picture_handler.js` — Image upload
+- `js/9.0_cross_cutting/dashboard/mla_source_handler.js` — MLA citations
+- `js/9.0_cross_cutting/dashboard/context_link_handler.js` — Context links
+- `js/9.0_cross_cutting/dashboard/external_refs_handler.js` — External references
+- `js/9.0_cross_cutting/dashboard/metadata_widget.js` — Metadata widget
+
+**Shared CSS consumed via `<link>` tag:**
+- `css/9.0_cross_cutting/dashboard/wysiwyg_dashboard_layout.css` — Split-pane layout
+- `css/9.0_cross_cutting/dashboard/wysiwyg_editor.css` — Editor & toolbar styling
+- `css/9.0_cross_cutting/dashboard/picture_widget.css` — Picture upload styling
+- `css/9.0_cross_cutting/dashboard/mla_widget.css` — MLA sources styling
+- `css/9.0_cross_cutting/dashboard/context_links_widget.css` — Context links styling
+- `css/9.0_cross_cutting/dashboard/external_refs_widget.css` — External references styling
+- `css/9.0_cross_cutting/dashboard/metadata_widget.css` — Metadata widget styling
 
 ---
 
-### 5.1b Backend for Historiography Layout (`dashboard_historiography.js`)
+### 5.1b Backend for Historiography Layout (dashboard_historiography.js)
 **Corresponds to Public Sections:** 5.1 (Historiography)
-**Purpose:** Split-pane markdown editor for authoring the central historiography essay. Features a sidebar with search-filterable document list grouped by Published/Drafts, and a WYSIWYG editor with live preview. Loads the `dashboard_historiography.html` template (no toggle — fixed to historiography mode). Functionally identical to the Essay editor but uses `type = 'historiographical_essay'` and fetches from `GET /api/admin/historiography`.
-
 **Plan:** `plan_dashboard_essay_historiography.md`
-
-**DB Fields:**
-```
-── Written by dashboard_historiography.js ──────────────────────────────
-body                TEXT (WYSIWYG Markdown) — full essay content
-historiography      TEXT (JSON Blob)   — historiographical content
-```
+**Singleton:** No sidebar document list, no "+ New" button, slug locked to "historiography", auto-loads on mount.
 
 ```text
 +---------------------------------------------------------------------------------+
-| [✦✦] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >      |
+| [Jesus Website Dashboard] | < Return to Frontpage | Dashboard | Logout >        |
 +---------------------------------------------------------------------------------+
-| Function Bar:        [ Save Draft | Publish | Delete ]                       |
+| Function Bar:          [ Save Draft ]   [ Publish ]   [ Delete ]                |
 +---------------------------------------------------------------------------------+
-| Editor Sidebar            | WYSIWYG Editor                                      |
+| Editor Sidebar            | WYSIWYG Editor                                     |
+| (metadata only)           |                                                     |
 |---------------------------+-----------------------------------------------------|
-| Search: [_______________] | Title: [___________________________________]        |
-| *Published*               |                                                     |
-| - Historiography Essay    | [B] [I] [U] [Link] [Image] [Code]                   |
+|                           | Title: [___________________________________]       |
+| ─ Metadata Widget ──────  |                                                     |
+| [slug: "historiography"]  | [B] [I] [U] [Link] [Image] [Code]                   |
+| [snippet] [keywords]      | +-----------------------------------------------+   |
+| [timestamps]              | | Markdown    | Preview                         |   |
+| [Generate All]            | | textarea... | (live HTML preview)             |   |
 |                           | +-----------------------------------------------+   |
-| *Drafts*                  | |                                               |   |
-| - Draft Essay             | |  Markdown historiography content goes here...  |   |
-|                           | |                                               |   |
-|                           | +-----------------------------------------------+   |
-| (Endless Scroll)          |                                                     |
-|                           | Snippet: [_______________________] [Generate]       |
-|                           | MLA Sources: [_________] Context Links: [_____]     |
+|                           |                                                     |
+|                           | MLA Sources: [_________]                             |
+|                           | Context Links: [_____]                               |
+|                           |                                                     |
+|                           | Picture: [Full Preview 800px] [Thumb 200px]          |
+|                           |          [Upload PNG ▼]                              |
+|                           |                                                     |
+|                           | External References:                                 |
+|                           | IAA: [___] Pledius: [___] Manuscript: [___]          |
 +---------------------------------------------------------------------------------+
 | [ Status Bar: System running normally / Error logs appear here ]                |
 +---------------------------------------------------------------------------------+
@@ -120,62 +109,58 @@ historiography      TEXT (JSON Blob)   — historiographical content
 | File | Purpose |
 |------|---------|
 | `admin/frontend/dashboard_historiography.html` | Historiography editor container (no toggle) |
-| `css/5.0_essays_responses/dashboard/dashboard_essay_historiography.css` | Dual-state layout & toolbar (shared) |
-| `css/5.0_essays_responses/dashboard/essay_WYSIWYG_editor.css` | Markdown input & live preview (shared) |
 | `js/5.0_essays_responses/dashboard/dashboard_historiography.js` | Historiography orchestrator (fixed mode) |
-| `js/5.0_essays_responses/dashboard/essay_historiography_data_display.js` | Content fetching & population (shared) |
-| `js/5.0_essays_responses/dashboard/search_essays.js` | Sidebar search & filtering (shared) |
-| `js/5.0_essays_responses/dashboard/markdown_editor.js` | 🔑 Shared tool: WYSIWYG & live preview |
+| `js/5.0_essays_responses/dashboard/essay_historiography_list_display.js` | (not used — singleton) |
+| `js/5.0_essays_responses/dashboard/essay_historiography_load_content.js` | Content loading (shared) |
+| `js/5.0_essays_responses/dashboard/markdown_editor.js` | Shared tool: WYSIWYG & live preview |
 | `js/5.0_essays_responses/dashboard/document_status_handler.js` | Save/Publish/Delete logic (shared) |
 
 **Shared tools consumed via `<script>` tag:**
-- `js/2.0_records/dashboard/picture_handler.js` — Image upload
-- `js/2.0_records/dashboard/mla_source_handler.js` — MLA citations
-- `js/2.0_records/dashboard/context_link_handler.js` — Context links
-- `js/2.0_records/dashboard/snippet_generator.js` — Snippet generation
-- `js/2.0_records/dashboard/metadata_handler.js` — Metadata footer
+- `js/9.0_cross_cutting/dashboard/picture_handler.js` — Image upload
+- `js/9.0_cross_cutting/dashboard/mla_source_handler.js` — MLA citations
+- `js/9.0_cross_cutting/dashboard/context_link_handler.js` — Context links
+- `js/9.0_cross_cutting/dashboard/external_refs_handler.js` — External references
+- `js/9.0_cross_cutting/dashboard/metadata_widget.js` — Metadata widget
 
-> **Singleton Variant Note:** The Historiography module follows the unified WYSIWYG split-pane layout (§9.0) but operates as a singleton: there is no sidebar document list, the slug is locked to `"historiography"` and is not user-editable, and the record auto-loads on module mount via `GET /api/admin/records/historiography`.
+**Shared CSS consumed via `<link>` tag:**
+- `css/9.0_cross_cutting/dashboard/wysiwyg_dashboard_layout.css` — Split-pane layout
+- `css/9.0_cross_cutting/dashboard/wysiwyg_editor.css` — Editor & toolbar styling
+- `css/9.0_cross_cutting/dashboard/picture_widget.css` — Picture upload styling
+- `css/9.0_cross_cutting/dashboard/mla_widget.css` — MLA sources styling
+- `css/9.0_cross_cutting/dashboard/context_links_widget.css` — Context links styling
+- `css/9.0_cross_cutting/dashboard/external_refs_widget.css` — External references styling
+- `css/9.0_cross_cutting/dashboard/metadata_widget.css` — Metadata widget styling
 
 ---
 
-### 5.2 Backend for Challenge Response Layout (`dashboard_challenge_response.js`)
+### 5.2 Backend for Challenge Response Layout (dashboard_challenge_response.js)
 **Corresponds to Public Sections:** 5.2 (Challenge Response Layouts)
-**Purpose:** Split-pane markdown editor for authoring challenge responses. Features a sidebar with search-filterable response list grouped by Academic/Popular, and a WYSIWYG editor with live preview. Response records can be linked to parent challenges via the Challenge Link Handler.
-
 **Plan:** `plan_dashboard_challenge_response.md`
-
-**DB Fields:**
-```
-── Written by dashboard_challenge_response.js ────────────────────────────
-body                TEXT (WYSIWYG Markdown) — full response content
-responses           TEXT (JSON Blob)   — full response content + metadata
-                                         (also linked from §4.3)
-
-── challenge_link_handler.js ────────────────────────────────────────────
-challenge_id        TEXT (FK → records.id) — parent challenge association
-```
+**Note:** JS files live in `js/4.0_ranked_lists/dashboard/`, not `js/5.0_essays_responses/dashboard/`. No picture upload (schema has no picture fields). No "+ New" button (responses created from challenge list insert dialog).
 
 ```text
 +---------------------------------------------------------------------------------+
-| [✦✦] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >      |
+| [Jesus Website Dashboard] | < Return to Frontpage | Dashboard | Logout >        |
 +---------------------------------------------------------------------------------+
-| Function Bar:          [ Save Draft ]   [ Publish ]   [ Delete ]             |
+| Function Bar:          [ Save Draft ]   [ Publish ]   [ Delete ]                |
 +---------------------------------------------------------------------------------+
 | Response Sidebar          | Response WYSIWYG Editor                             |
 |---------------------------+-----------------------------------------------------|
-| Search: [_______________] | Title: [___________________________________]        |
-| *Academic*                |                                                     |
-| - Response 1 (Draft)      |                                                     |
-| - Response 2 (Pub)        | [B] [I] [U] [Link] [Image] [Code]                   |
-|                           | +-----------------------------------------------+   |
-| *Popular*                 | |                                               |   |
-| - Response A (Pub)        | |  Markdown response content goes here...       |   |
-|                           | |                                               |   |
-|                           | +-----------------------------------------------+   |
+| Search: [_______________] | Title: [___________________________________]       |
+| *Published*               |                                                     |
+| - Response 1              | [B] [I] [U] [Link] [Image] [Code]                   |
+| - Response 2              | +-----------------------------------------------+   |
+|                           | | Markdown    | Preview                         |   |
+| *Drafts*                  | | textarea... | (live HTML preview)             |   |
+| - Draft Response A        | +-----------------------------------------------+   |
 |                           |                                                     |
-|                           | Challenge Link: [challenge-slug ▼]  (or "None")     |
-|                           | Snippet: [_______________________] [Generate]       |
+| (scrollable list)         | MLA Sources: [_________]                             |
+|                           | Context Links: [_____]                               |
+| ─ Metadata Widget ──────  |                                                     |
+| [slug] [snippet]          | External References:                                 |
+| [keywords] [timestamps]   | IAA: [___] Pledius: [___] Manuscript: [___]          |
+| [Generate All]            |                                                     |
+|                           | (No Picture Upload — schema has no picture fields)   |
 +---------------------------------------------------------------------------------+
 | [ Status Bar: System running normally / Error logs appear here ]                |
 +---------------------------------------------------------------------------------+
@@ -185,22 +170,25 @@ challenge_id        TEXT (FK → records.id) — parent challenge association
 | File | Purpose |
 |------|---------|
 | `admin/frontend/dashboard_challenge_response.html` | Split-pane response editor container |
-| `css/5.0_essays_responses/dashboard/dashboard_challenge_response.css` | Response editor layout |
-| `css/5.0_essays_responses/dashboard/response_markdown.css` | Markdown editor & preview styling |
-| `js/5.0_essays_responses/dashboard/dashboard_challenge_response.js` | Module orchestration |
-| `js/5.0_essays_responses/dashboard/display_challenge_response_data.js` | Response fetching & population |
-| `js/5.0_essays_responses/dashboard/search_responses.js` | Sidebar search & filtering |
-| `js/5.0_essays_responses/dashboard/response_status_handler.js` | Save/Publish/Delete logic |
-| `js/5.0_essays_responses/dashboard/challenge_link_handler.js` | Parent challenge association |
+| `js/4.0_ranked_lists/dashboard/dashboard_challenge_response.js` | Module orchestration |
+| `js/4.0_ranked_lists/dashboard/challenge_response_list_display.js` | Sidebar Published/Drafts population |
+| `js/4.0_ranked_lists/dashboard/challenge_response_load_content.js` | Editor content loading |
+| `js/4.0_ranked_lists/dashboard/challenge_response_status_handler.js` | Save/Publish/Delete logic |
+| `js/4.0_ranked_lists/dashboard/insert_challenge_response.js` | Create response from challenge list |
 
 **Shared tools consumed via `<script>` tag:**
-- `js/5.0_essays_responses/dashboard/markdown_editor.js` — 🔑 Shared tool: WYSIWYG editor (owned by §5.1)
-- `js/2.0_records/dashboard/picture_handler.js` — Image upload
-- `js/2.0_records/dashboard/mla_source_handler.js` — MLA citations
-- `js/2.0_records/dashboard/snippet_generator.js` — Snippet generation
-- `js/2.0_records/dashboard/metadata_handler.js` — Metadata footer
+- `js/5.0_essays_responses/dashboard/markdown_editor.js` — WYSIWYG editor (owned by 5.0)
+- `js/9.0_cross_cutting/dashboard/mla_source_handler.js` — MLA citations
+- `js/9.0_cross_cutting/dashboard/context_link_handler.js` — Context links
+- `js/9.0_cross_cutting/dashboard/external_refs_handler.js` — External references
+- `js/9.0_cross_cutting/dashboard/metadata_widget.js` — Metadata widget
 
-> **Picture Upload Omitted:** Per the `challenge_response` record type schema, the Challenge Response dashboard does not include the Picture Upload section. The `challenge_response` type has no picture fields in the polymorphic `records` table.
+**Shared CSS consumed via `<link>` tag:**
+- `css/9.0_cross_cutting/dashboard/wysiwyg_dashboard_layout.css` — Split-pane layout
+- `css/9.0_cross_cutting/dashboard/wysiwyg_editor.css` — Editor & toolbar styling
+- `css/9.0_cross_cutting/dashboard/mla_widget.css` — MLA sources styling
+- `css/9.0_cross_cutting/dashboard/context_links_widget.css` — Context links styling
+- `css/9.0_cross_cutting/dashboard/external_refs_widget.css` — External references styling
+- `css/9.0_cross_cutting/dashboard/metadata_widget.css` — Metadata widget styling
 
 ---
-

@@ -188,3 +188,26 @@
 .essay-content-main {
     padding-top: 0;
 }
+
+/* --- Bibliography entries --- */
+
+.biblio-entry {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-snug);
+    margin-bottom: var(--space-3);
+    padding-left: var(--space-5);
+    text-indent: calc(-1 * var(--space-5));
+}
+
+/* --- Essay body link --- */
+
+.essay-body__link {
+    color: var(--color-accent-primary);
+    text-decoration: underline;
+}
+
+.essay-body__link:hover {
+    color: var(--color-accent-hover);
+}

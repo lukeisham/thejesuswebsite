@@ -255,16 +255,18 @@ async function _handleNewEssay() {
     if (typeof window.displayEssayHistoriographyList === "function") {
       await window.displayEssayHistoriographyList("essay");
 
-      setTimeout(function () {
-        const newItem = document.querySelector(
-          '.wysiwyg-sidebar-list__item[data-record-id="' +
-            CSS.escape(newId) +
-            '"]',
-        );
-        if (newItem) {
-          newItem.classList.add("wysiwyg-sidebar-list__item--active");
-        }
-      }, 100);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          const newItem = document.querySelector(
+            '.wysiwyg-sidebar-list__item[data-record-id="' +
+              CSS.escape(newId) +
+              '"]',
+          );
+          if (newItem) {
+            newItem.classList.add("wysiwyg-sidebar-list__item--active");
+          }
+        });
+      });
     }
 
     if (typeof window.surfaceError === "function") {

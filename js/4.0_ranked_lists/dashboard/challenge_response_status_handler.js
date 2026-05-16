@@ -354,6 +354,7 @@ function _collectEditorData() {
   const payload = {
     title: titleInput ? titleInput.value : "",
     body: textarea ? textarea.value : "",
+    type: "challenge_response",
   };
 
   // Collect from metadata widget
@@ -413,7 +414,6 @@ function _collectEditorData() {
     }
   }
 
-  // Collect context links from shared tool
   return payload;
 }
 

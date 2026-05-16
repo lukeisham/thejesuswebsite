@@ -52,5 +52,20 @@ function formatDateLong(isoString) {
   }
 }
 
+// Trigger: Called by display modules to escape strings for use in HTML attributes.
+// Function: escapeAttr — escapes &, ", ', <, > for safe attribute injection.
+// Output:   Returns escaped string safe for use inside quoted HTML attributes.
+
+function escapeAttr(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 window.escapeHtml = escapeHtml;
+window.escapeAttr = escapeAttr;
 window.formatDateLong = formatDateLong;

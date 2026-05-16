@@ -107,76 +107,34 @@ created: {{date}}
 
 ---
 
-### T[Final+2] — Documentation Update
+### T[Final+2] — Module Guide Update
 
-> Update every document in `documentation/` whose scope overlaps with the work done in this plan.
-> This is a **mandatory task** — it must be completed and checked off like any other task.
-> Only update documents that are genuinely affected — do not touch unrelated files.
+> Refactor the per-module guide files in `documentation/guides/{{module_number}} {{module_name}}/` to match all changes made by this plan.
+> This is a **mandatory task** — the module guides must stay in sync with the source code.
 
-- **File(s):** All documents in `documentation/` (root + `guides/` subfolder) marked "Yes" in the table below.
-- **Action:** For every "Yes" row, open the document and make the required change:
+- **File(s):** All guide files in `documentation/guides/{{module_number}} {{module_name}}/`.
+- **Action:** For each guide file present in the module subfolder, cross-reference it against the source code and update to reflect this plan's changes (skip any that don't exist for this module):
+  - **`guide_dashboard_appearance.md`** (if present): Update or add ASCII diagrams for any changed dashboard layouts, component structures, or file inventories. Verify all diagrams match the current HTML templates.
+  - **`guide_frontend_appearance.md`** (if present): Update or add ASCII diagrams for any changed public page layouts. Verify all diagrams match the current HTML templates.
+  - **`guide_function.md`** (if present): Update or add lifecycle/flow diagrams and the technical description paragraphs to reflect any changed bootstrapping logic, event wiring, API endpoints, or data flow.
+  - **`*_nomenclature.md`** (if present): Add any new terms (CSS classes, IDs, JS functions, tokens, concepts) introduced by this plan. Remove any terms that no longer exist. Update definitions that changed.
+  - **Version bump**: Increment `version` in every modified guide's YAML frontmatter.
+
   > **Markdown editing note:** When modifying documentation that contains ASCII box-drawing characters (e.g. ─ ┐ └ ┘) or Unicode symbols, skip `edit_file` and use a Python script via `terminal` instead. `edit_file` cannot reliably match these characters. One-liner pattern:
   > python3 -c "with open('path/file.md','r') as f: c=f.read(); c=c.replace('old','new'); open('path/file.md','w').write(c)"
   > But break it across multiple lines with variables for readability.
 
-  - **Site maps** (`detailed_module_sitemap.md`, `simple_module_sitemap.md`, `site_map.md`): Add every new file with its exact path and a brief description comment. Update file-tree diagrams. Bump the `version` in frontmatter.
-  - **ASCII layout diagrams** (`guide_dashboard_appearance.md`, `guide_appearance.md`): Add or update ASCII box-drawing diagrams to reflect new component placement, sidebar layout changes, or work-area structure.
-  - **Logic-flow diagrams** (`guide_function.md`): Add or update ASCII pipeline/flow diagrams for any new data flow, JS lifecycle, or Python script introduced by this plan.
-  - **Style guide** (`guide_style.md`): Add any new BEM namespace or CSS pattern as a canonical example in its own subsection, with a table of classes and their CSS variable references.
-  - **Shared-tool ownership** (`vibe_coding_rules.md`): Update §7 table if a new shared tool was created or an existing tool's ownership or consumer list changed.
-  - **All other "Yes" rows**: Apply the change described in the row's Change Description column.
-  - **Version bump**: Increment `version` in every modified document's YAML frontmatter.
-- **Vibe Rule(s):** Source-of-Truth Discipline · Inventory Check · Cross-reference `detailed_module_sitemap.md` · Version frontmatter on every doc
-
-| Document | Update Required | Change Description |
-|----------|-----------------|--------------------|
-| `documentation/detailed_module_sitemap.md` | Yes / No | {{e.g. Add new file entries under Module X.X; update file tree diagrams}} |
-| `documentation/simple_module_sitemap.md` | Yes / No | {{e.g. Reflect new module scope or high-level structure change}} |
-| `documentation/site_map.md` | Yes / No | {{e.g. Add new files to master file tree; bump version}} |
-| `documentation/data_schema.md` | Yes / No | {{e.g. Document new table, column, or relationship}} |
-| `documentation/vibe_coding_rules.md` | Yes / No | {{e.g. Update §7 shared-tool ownership table; clarify ambiguous rule}} |
-| `documentation/style_mockup.html` | Yes / No | {{e.g. Add new page layout mockup}} |
-| `documentation/git_vps.md` | Yes / No | {{e.g. Note deployment, branching, or VPS config changes}} |
-| `documentation/guides/guide_appearance.md` | Yes / No | {{e.g. Add/update ASCII diagram for new public page or component}} |
-| `documentation/guides/guide_dashboard_appearance.md` | Yes / No | {{e.g. Add/update ASCII layout diagram; update Shared Tool Ownership table}} |
-| `documentation/guides/guide_function.md` | Yes / No | {{e.g. Add/update ASCII logic-flow diagram for new pipeline or JS lifecycle}} |
-| `documentation/guides/guide_security.md` | Yes / No | {{e.g. Note auth, session, rate-limiting, or input validation changes}} |
-| `documentation/guides/guide_style.md` | Yes / No | {{e.g. Add new BEM namespace table with CSS variable references}} |
-| `documentation/guides/guide_maps.md` | Yes / No | {{e.g. Update map display or data logic documentation}} |
-| `documentation/guides/guide_timeline.md` | Yes / No | {{e.g. Update timeline display or data logic documentation}} |
-| `documentation/guides/guide_donations.md` | Yes / No | {{e.g. Update donation or support integration docs}} |
-| `documentation/guides/guide_welcoming_robots.md` | Yes / No | {{e.g. Update SEO, sitemap, robots.txt, or AI-accessibility docs}} |
-
-- [ ] **All site-map documents updated:** `detailed_module_sitemap.md` file trees reflect every new/moved/renamed file; `simple_module_sitemap.md` updated if module scope changed; `site_map.md` master tree updated and version bumped
-- [ ] **All ASCII diagrams updated:** any `guide_dashboard_appearance.md` or `guide_appearance.md` layout diagrams reflect the new component placement; any `guide_function.md` logic-flow diagrams document the new pipeline or data flow
-- [ ] **Style guide updated:** `guide_style.md` includes any new BEM namespace, CSS pattern, or design token introduced by this plan
-- [ ] **Shared-tool ownership documented:** `vibe_coding_rules.md` §7 table updated if a new shared tool was created or an existing tool's ownership or consumer list changed
-- [ ] **Version numbers bumped:** every modified document's frontmatter `version` has been incremented
-- [ ] **No stale references:** no document contains outdated references to files or logic that were changed or removed by this plan
-
----
-
-### T[Final+3] — Module Guide Update
-
-> Update the per-module guide files in `documentation/guides/` to reflect all changes made by this plan.
-> This is a **mandatory task** — the module guides must stay in sync with the source code.
-
-- **File(s):** All guide files in the relevant `documentation/guides/{{module_number}} {{module_name}}/` subfolder.
-- **Action:** For each guide file in the module subfolder:
-  - **`guide_frontend_appearance.md`**: Update or add ASCII diagrams for any changed page layouts, component structures, or technical anatomy tables. Verify all diagrams match the current source code.
-  - **`guide_function.md`**: Update or add lifecycle/flow diagrams and the technical description paragraph to reflect any changed bootstrapping logic, event wiring, or data flow.
-  - **`*_nomenclature.md`**: Add any new terms (CSS classes, IDs, JS functions, tokens, concepts) introduced by this plan. Remove any terms that no longer exist. Update definitions that changed.
-  - **Version bump**: Increment `version` in every modified guide's YAML frontmatter.
 - **Vibe Rule(s):** Source-of-Truth Discipline · Cross-reference source files against guide content
 
 - [ ] All ASCII diagrams in module guides match current source code
 - [ ] All lifecycle/flow diagrams reflect current bootstrapping and event logic
 - [ ] Nomenclature file covers all terms used in module source files
 - [ ] Version numbers bumped on all modified guide files
+- [ ] No stale references to files or logic changed by this plan
 
 ---
 
-### T[Final+4] — Push to GitHub
+### T[Final+3] — Push to GitHub
 
 > Commit all changes and push to `main`.
 

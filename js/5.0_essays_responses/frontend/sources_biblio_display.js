@@ -2,11 +2,20 @@
 //
 //   THE JESUS WEBSITE — BIBLIOGRAPHY DISPLAY
 //   File:    js/5.0_essays_responses/frontend/sources_biblio_display.js
-//   Version: 1.1.0
+//   Version: 1.2.0
 //   Purpose: Parses the bibliography JSON blob and renders it in MLA format.
 //   Source:  guide_appearance.md §2.2, vibe_coding_rules.md §2
 //
 // =============================================================================
+
+function _escapeBiblioHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
 
 function renderBibliography(record) {
     var biblioContainer = document.getElementById('record-section-bibliography');
@@ -16,7 +25,7 @@ function renderBibliography(record) {
 
     if (!record.bibliography) {
         biblioContainer.classList.add('is-hidden');
-        biblioContainer.classList.remove('is-visible-block');
+        biblioContainer.classList.remove('is-visible');
         return;
     }
 
@@ -37,10 +46,10 @@ function renderBibliography(record) {
         mlaFields.forEach(function(field) {
             if (biblioData[field]) {
                 if (typeof biblioData[field] === 'string') {
-                    entriesHtml.push('<div class="biblio-entry">' + biblioData[field] + '</div>');
+                    entriesHtml.push('<div class="biblio-entry">' + _escapeBiblioHtml(biblioData[field]) + '</div>');
                 } else if (Array.isArray(biblioData[field])) {
                     for (var i = 0; i < biblioData[field].length; i++) {
-                        entriesHtml.push('<div class="biblio-entry">' + biblioData[field][i] + '</div>');
+                        entriesHtml.push('<div class="biblio-entry">' + _escapeBiblioHtml(biblioData[field][i]) + '</div>');
                     }
                 }
             }
@@ -50,24 +59,24 @@ function renderBibliography(record) {
         if (Array.isArray(biblioData)) {
              for (var j = 0; j < biblioData.length; j++) {
                   if (typeof biblioData[j] === 'string') {
-                      entriesHtml.push('<div class="biblio-entry">' + biblioData[j] + '</div>');
+                      entriesHtml.push('<div class="biblio-entry">' + _escapeBiblioHtml(biblioData[j]) + '</div>');
                   }
              }
         }
 
         if (entriesHtml.length > 0) {
             biblioContent.innerHTML = entriesHtml.join('\n');
-            biblioContainer.classList.add('is-visible-block');
+            biblioContainer.classList.add('is-visible');
             biblioContainer.classList.remove('is-hidden');
         } else {
             biblioContainer.classList.add('is-hidden');
-            biblioContainer.classList.remove('is-visible-block');
+            biblioContainer.classList.remove('is-visible');
         }
 
     } catch (e) {
         console.error('[sources_biblio_display.js] Failed to parse bibliography:', e);
         biblioContainer.classList.add('is-hidden');
-        biblioContainer.classList.remove('is-visible-block');
+        biblioContainer.classList.remove('is-visible');
     }
 }
 
