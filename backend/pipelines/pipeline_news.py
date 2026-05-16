@@ -85,12 +85,20 @@ DEFAULT_USER_AGENT = "TheJesusWebsite/1.0.0 (https://github.com/thejesuswebsite;
 # =============================================================================
 
 
-def run_pipeline():
+def run_pipeline(source_url: str | None = None, search_terms: list[str] | None = None):
     """
-    Trigger:  Run directly via CLI or via admin_api.py background thread.
-    Function: Gathers search keywords and source URLs from the database,
-              crawls each source, extracts matching news items, and inserts
-              each genuinely new article as its own structured record row.
+    Trigger:  Run directly via CLI or via POST /api/admin/news/crawl.
+    Function: Gathers search keywords and source URLs (from parameters or
+              database), crawls each source, extracts matching news items,
+              and inserts each genuinely new article as its own structured
+              record row. Accepts optional parameters from the admin sidebar
+              so search terms and source URL can be provided directly without
+              pre-saving them to the database.
+    Parameters:
+      source_url (str | None): RSS/feed URL to crawl. If provided, overrides
+                                database source lookup.
+      search_terms (list[str] | None): Keywords to search for. If provided,
+                                       overrides database keyword lookup.
     Output:   New records rows (type='news_article') per crawled article.
               Errors are logged and surfaced via structured return value.
     """
@@ -106,7 +114,9 @@ def run_pipeline():
 
     try:
         # ---- Step 1: Collect search keywords ----
-        keywords = _collect_search_keywords(conn)
+        keywords = (
+            search_terms if search_terms is not None else _collect_search_keywords(conn)
+        )
         if not keywords:
             logger.warning("No search keywords found in any source or global config.")
             return {
@@ -119,7 +129,11 @@ def run_pipeline():
         logger.info(f"Search keywords collected: {len(keywords)} keywords")
 
         # ---- Step 2: Collect source URLs ----
-        sources = _collect_source_urls(conn)
+        if source_url is not None:
+            # Single source URL from sidebar — wrap in list for uniform processing
+            sources = [{"url": source_url, "name": source_url}]
+        else:
+            sources = _collect_source_urls(conn)
         if not sources:
             logger.warning("No news sources configured in the database.")
             return {

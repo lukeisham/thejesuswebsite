@@ -50,6 +50,11 @@ function renderMetadataWidget(containerId, options) {
       // Override this when embedding the widget in a module that uses a
       // different container ID (e.g. blog posts, essays, challenge responses).
       descriptionContainerId: "description-editor-container",
+      disableSlugAndSeo: false,
+      // When true, the slug input, slug GENERATE button, snippet GENERATE
+      // button, and "Generate all" button are hidden. The snippet textarea
+      // remains editable for manual entry. Used by the News Sources module
+      // where auto-generated SEO metadata is not applicable.
       getRecordTitle: function () {
         return typeof window._recordTitle !== "undefined"
           ? window._recordTitle
@@ -199,6 +204,16 @@ function renderMetadataWidget(containerId, options) {
   container.innerHTML = "";
   container.className = "metadata-widget";
   container.appendChild(heading);
+
+  if (opts.disableSlugAndSeo) {
+    // Slug, SEO generate buttons, and "Generate all" are disabled for
+    // modules where auto-generated metadata is not applicable (e.g. News
+    // Sources). The snippet textarea and keywords field remain editable.
+    slugField.style.display = "none";
+    snippetBtn.style.display = "none";
+    generateAllBtn.style.display = "none";
+  }
+
   container.appendChild(slugField);
   container.appendChild(snippetField);
   container.appendChild(keywordsField);
@@ -287,7 +302,10 @@ function renderMetadataWidget(containerId, options) {
     try {
       const response = await fetch("/api/admin/slug/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": window.getCSRFToken(),
+        },
         body: JSON.stringify({ slug: _getRecordId(), content: title.trim() }),
       });
       if (!response.ok) throw new Error("API Error");
@@ -311,7 +329,9 @@ function renderMetadataWidget(containerId, options) {
     let content = "";
     if (typeof window.collectDescription === "function") {
       try {
-        const paragraphs = window.collectDescription(opts.descriptionContainerId);
+        const paragraphs = window.collectDescription(
+          opts.descriptionContainerId,
+        );
         if (Array.isArray(paragraphs)) content = paragraphs.join("\n\n");
       } catch (_) {}
     }
@@ -333,7 +353,10 @@ function renderMetadataWidget(containerId, options) {
     try {
       const response = await fetch("/api/admin/snippet/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": window.getCSRFToken(),
+        },
         body: JSON.stringify({ slug: _getRecordId(), content: content }),
       });
       if (!response.ok) throw new Error("API Error");
@@ -357,7 +380,9 @@ function renderMetadataWidget(containerId, options) {
     let content = "";
     if (typeof window.collectDescription === "function") {
       try {
-        const paragraphs = window.collectDescription(opts.descriptionContainerId);
+        const paragraphs = window.collectDescription(
+          opts.descriptionContainerId,
+        );
         if (Array.isArray(paragraphs)) content = paragraphs.join("\n\n");
       } catch (_) {}
     }
@@ -379,7 +404,10 @@ function renderMetadataWidget(containerId, options) {
     try {
       const response = await fetch("/api/admin/metadata/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": window.getCSRFToken(),
+        },
         body: JSON.stringify({ slug: _getRecordId(), content: content }),
       });
       if (!response.ok) throw new Error("API Error");
@@ -415,7 +443,9 @@ function renderMetadataWidget(containerId, options) {
     let content = "";
     if (typeof window.collectDescription === "function") {
       try {
-        const paragraphs = window.collectDescription(opts.descriptionContainerId);
+        const paragraphs = window.collectDescription(
+          opts.descriptionContainerId,
+        );
         if (Array.isArray(paragraphs)) content = paragraphs.join("\n\n");
       } catch (_) {}
     }
@@ -432,7 +462,10 @@ function renderMetadataWidget(containerId, options) {
       promises.push(
         fetch("/api/admin/slug/generate", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": window.getCSRFToken(),
+          },
           body: JSON.stringify({ slug: recordId, content: title.trim() }),
         })
           .then((r) => r.json())
@@ -445,7 +478,10 @@ function renderMetadataWidget(containerId, options) {
       promises.push(
         fetch("/api/admin/snippet/generate", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": window.getCSRFToken(),
+          },
           body: JSON.stringify({ slug: recordId, content: content }),
         })
           .then((r) => r.json())
@@ -456,7 +492,10 @@ function renderMetadataWidget(containerId, options) {
       promises.push(
         fetch("/api/admin/metadata/generate", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "X-CSRF-Token": window.getCSRFToken() },
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": window.getCSRFToken(),
+          },
           body: JSON.stringify({ slug: recordId, content: content }),
         })
           .then((r) => r.json())

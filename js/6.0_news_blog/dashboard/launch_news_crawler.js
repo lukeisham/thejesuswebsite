@@ -2,7 +2,8 @@
 //           News Articles function bar, or a consumer module calls
 //           window.triggerCrawl() directly.
 // Main:    initNewsCrawler() — wires the Gather button to POST
-//           /api/admin/news/crawl and displays process status.
+//           /api/admin/news/crawl with source_url and search_terms
+//           from the sidebar, and displays process status.
 //           triggerCrawl() — programmatic API to start the crawler pipeline.
 // Output:  News crawler pipeline triggered asynchronously. Status messages
 //          routed through window.surfaceError(). On success, shows a
@@ -35,8 +36,11 @@ function initNewsCrawler() {
 
 /* -----------------------------------------------------------------------------
    MAIN FUNCTION: triggerCrawl
-   Sends POST /api/admin/news/crawl to launch the backend news crawler
-   pipeline. Displays the result via window.surfaceError().
+   Reads source URL and search terms from the sidebar inputs, then sends
+   POST /api/admin/news/crawl with the sidebar data to launch the backend
+   news crawler pipeline. Displays the result via window.surfaceError().
+   The sidebar is independent of article selection, so the Gather function
+   always reads directly from the DOM inputs.
 
    Returns:
      Promise<boolean> — true if the crawl was triggered successfully, false
@@ -44,14 +48,41 @@ function initNewsCrawler() {
 ----------------------------------------------------------------------------- */
 async function triggerCrawl() {
   try {
+    // Read sidebar data directly from the DOM inputs
+    var urlInput = document.getElementById("news-source-url-input");
+    var termsInput = document.getElementById("news-search-terms-input");
+
+    var sourceUrl = urlInput ? urlInput.value.trim() : "";
+    var rawTerms = termsInput ? termsInput.value.trim() : "";
+
+    // Parse search terms (split by newlines or commas)
+    var searchTerms = rawTerms
+      .split(/[\n,]+/)
+      .map(function (t) {
+        return t.trim();
+      })
+      .filter(function (t) {
+        return t.length > 0;
+      });
+
     // Surface that we are starting
     if (typeof window.surfaceError === "function") {
       window.surfaceError("News crawler starting...");
     }
 
+    // Build request body with sidebar data
+    var requestBody = {};
+    if (sourceUrl) {
+      requestBody.source_url = sourceUrl;
+    }
+    if (searchTerms.length > 0) {
+      requestBody.search_terms = searchTerms;
+    }
+
     var response = await fetch("/api/admin/news/crawl", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {

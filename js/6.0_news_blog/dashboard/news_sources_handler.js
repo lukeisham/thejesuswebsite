@@ -269,7 +269,7 @@ function _buildNewsArticleRow(record) {
   selectCell.appendChild(selectBtn);
   rowEl.appendChild(selectCell);
 
-  // --- Click Handler: Select row and populate sidebar ---
+  // --- Click Handler: Select row (visual only) ---
   rowEl.addEventListener("click", function (e) {
     if (e.target === selectBtn) return;
     _selectNewsArticleRow(rowEl, record);
@@ -285,8 +285,10 @@ function _buildNewsArticleRow(record) {
 
 /* -----------------------------------------------------------------------------
    INTERNAL: _selectNewsArticleRow
-   Deselects all rows, selects the given row, finds matching source and
-   search term sub-type rows (same id), and populates the sidebar.
+   Deselects all rows and selects the given row. Purely visual — does NOT
+   populate the sidebar (sidebar is now independent of article selection).
+   Still stores the active group id and article title for backward
+   compatibility with auto-save functions.
 
    Parameters:
      rowEl (HTMLElement)  — the row DOM element to select
@@ -303,53 +305,10 @@ function _selectNewsArticleRow(rowEl, record) {
   rowEl.classList.add("news-articles-row--selected");
 
   var state = window._newsSourcesModuleState;
-  var allRecords = state._allNewsArticleRecords || [];
 
-  // Set the grouping key (shared id)
+  // Set the grouping key (shared id) and title for auto-save compatibility
   state.activeGroupId = record.id || "";
-
-  // Store main entry fields
   state.activeArticleTitle = record.news_item_title || "";
-  state.activeArticleLink = record.news_item_link || "";
-  state.activeLastCrawled = record.last_crawled || "";
-
-  // --- Find matching source row (sub_type = "news_source", linked by parent_id) ---
-  var sourceRow = null;
-  for (var i = 0; i < allRecords.length; i++) {
-    if (
-      allRecords[i].type === "news_article" &&
-      allRecords[i].sub_type === "news_source" &&
-      allRecords[i].parent_id === record.id
-    ) {
-      sourceRow = allRecords[i];
-      break;
-    }
-  }
-
-  if (sourceRow) {
-    state.activeSourceUrl = sourceRow.source_url || "";
-  } else {
-    state.activeSourceUrl = "";
-  }
-
-  // --- Find matching search term rows (sub_type = "news_search_term", linked by parent_id) ---
-  var searchTerms = [];
-  for (var j = 0; j < allRecords.length; j++) {
-    if (
-      allRecords[j].type === "news_article" &&
-      allRecords[j].sub_type === "news_search_term" &&
-      allRecords[j].parent_id === record.id
-    ) {
-      var term = allRecords[j].news_search_term || "";
-      if (term) searchTerms.push(term);
-    }
-  }
-  state.activeSearchTerms = searchTerms;
-
-  // Populate the sidebar with the collected data
-  if (typeof window.populateNewsSidebar === "function") {
-    window.populateNewsSidebar(record);
-  }
 }
 
 /* -----------------------------------------------------------------------------

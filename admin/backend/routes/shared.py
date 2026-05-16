@@ -132,6 +132,13 @@ class AgentRunRequest(BaseModel):
     slug: str
 
 
+class NewsCrawlRequest(BaseModel):
+    """Request body for triggering a news crawl with sidebar data."""
+
+    source_url: str | None = None
+    search_terms: list[str] | None = None
+
+
 # -----------------------------------------------------------------------------
 # Auth Dependency — used by every protected route
 # -----------------------------------------------------------------------------

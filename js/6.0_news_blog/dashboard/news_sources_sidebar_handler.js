@@ -1,15 +1,11 @@
 // Trigger:  Called by dashboard_news_sources.js -> window.initNewsSidebar()
-//           on module initialisation, and by news_sources_handler.js ->
-//           window.populateNewsSidebar() when an article row is selected.
+//           on module initialisation.
 // Main:    initNewsSidebar() -- wires all sidebar interactive elements
-//           to their handlers. Manages source URL and search terms across
-//           the three sub-types sharing a common group id.
-//           populateNewsSidebar(record) -- fills sidebar fields with
-//           the selected article's source config and search terms.
-// Output:  Interactive sidebar with source URL editing and search term
-//          textarea (matching Wikipedia/Challenge pattern). All
-//          modifications are auto-saved as draft. Errors routed through
-//          window.surfaceError().
+//           (source URL save, search terms auto-save) to their handlers.
+//           The sidebar is always enabled — no longer tied to row selection.
+// Output:  Always-interactive sidebar with source URL editing and search
+//          term textarea. All modifications are auto-saved as draft.
+//          Errors routed through window.surfaceError().
 
 "use strict";
 
@@ -29,106 +25,6 @@ function initNewsSidebar() {
 
   // --- Search Terms textarea (auto-save) ---
   _wireSearchTermsAutoSave();
-
-  // Sidebar starts disabled -- no record selected yet
-  _setSidebarDisabled(true);
-}
-
-/* -----------------------------------------------------------------------------
-   MAIN FUNCTION: populateNewsSidebar
-   Fills sidebar fields from the module state (already populated by
-   _selectNewsArticleRow in news_sources_handler.js).
------------------------------------------------------------------------------ */
-function populateNewsSidebar(record) {
-  var state = window._newsSourcesModuleState;
-  if (!state) return;
-
-  _setSidebarDisabled(false);
-
-  // Article title display
-  var titleEl = document.getElementById("news-record-title");
-  if (titleEl) {
-    titleEl.textContent = state.activeArticleTitle || "Untitled Article";
-  }
-
-  // Source URL input
-  var urlInput = document.getElementById("news-source-url-input");
-  if (urlInput) urlInput.value = state.activeSourceUrl || "";
-
-  // Populate search terms textarea and overview
-  _renderSearchTermsInTextarea();
-  _renderSearchTermsOverview();
-
-  // Populate the shared metadata widget
-  if (typeof window.populateMetadataWidget === "function") {
-    window.populateMetadataWidget("metadata-widget-container", record);
-  }
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _clearSidebar
------------------------------------------------------------------------------ */
-function _clearSidebar() {
-  var titleEl = document.getElementById("news-record-title");
-  if (titleEl) titleEl.textContent = "\u2014";
-
-  var urlInput = document.getElementById("news-source-url-input");
-  if (urlInput) urlInput.value = "";
-
-  var termsInput = document.getElementById("news-search-terms-input");
-  if (termsInput) termsInput.value = "";
-
-  var overviewList = document.getElementById("news-search-terms-overview-list");
-  if (overviewList) overviewList.innerHTML = "";
-
-  // Clear the shared metadata widget
-  if (typeof window.populateMetadataWidget === "function") {
-    window.populateMetadataWidget("metadata-widget-container", null);
-  }
-}
-
-/* -----------------------------------------------------------------------------
-   INTERNAL: _setSidebarDisabled
-   Disables/enables all sidebar interactive elements and dims sidebar
-   sections when no record row is selected.
-   Uses a CSS class (.is-disabled) instead of inline styles so that
-   the disabled state is consistently applied and removed.
------------------------------------------------------------------------------ */
-function _setSidebarDisabled(disabled) {
-  var ids = [
-    "news-source-url-input",
-    "btn-news-save-url",
-    "news-search-terms-input",
-  ];
-
-  ids.forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) {
-      if (disabled) {
-        el.setAttribute("disabled", "");
-      } else {
-        el.removeAttribute("disabled");
-      }
-    }
-  });
-
-  // Dim sidebar sections via CSS class
-  var sectionIds = [
-    "news-source-section",
-    "news-search-terms-section",
-    "metadata-widget-container",
-  ];
-
-  sectionIds.forEach(function (id) {
-    var section = document.getElementById(id);
-    if (section) {
-      if (disabled) {
-        section.classList.add("is-disabled");
-      } else {
-        section.classList.remove("is-disabled");
-      }
-    }
-  });
 }
 
 /* -----------------------------------------------------------------------------
@@ -400,5 +296,4 @@ function scheduleNewsSourcesAutoSave() {
 }
 
 window.initNewsSidebar = initNewsSidebar;
-window.populateNewsSidebar = populateNewsSidebar;
 window.scheduleNewsSourcesAutoSave = scheduleNewsSourcesAutoSave;

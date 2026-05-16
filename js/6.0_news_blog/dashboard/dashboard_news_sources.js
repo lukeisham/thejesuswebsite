@@ -112,6 +112,7 @@ async function renderNewsSources() {
   // 3d. Initialise the metadata widget (slug, snippet, metadata_json)
   if (typeof window.renderMetadataWidget === "function") {
     window.renderMetadataWidget("metadata-widget-container", {
+      disableSlugAndSeo: true,
       onAutoSaveDraft: async function (recordData) {
         const state = window._newsSourcesModuleState;
         if (state && state.activeGroupId) {
