@@ -11,7 +11,7 @@ import io
 import json
 from datetime import datetime, timezone
 
-import ulid
+from ulid import ULID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
@@ -205,7 +205,7 @@ async def bulk_upload_records(
 
         # Generate ID and timestamps
         if "id" not in insert_data:
-            insert_data["id"] = str(ulid.new())
+            insert_data["id"] = str(ULID())
 
         now_iso = datetime.now(timezone.utc).isoformat()
         if "created_at" not in insert_data:
@@ -353,7 +353,7 @@ async def bulk_upload_commit(
 
         # Generate ID and timestamps
         if "id" not in insert_data:
-            insert_data["id"] = str(ulid.new())
+            insert_data["id"] = str(ULID())
 
         now_iso = datetime.now(timezone.utc).isoformat()
         if "created_at" not in insert_data:

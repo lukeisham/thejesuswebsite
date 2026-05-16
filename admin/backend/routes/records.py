@@ -10,7 +10,7 @@ import pathlib
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-import ulid
+from ulid import ULID
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from backend.pipelines.image_processor import process_uploaded_png
@@ -199,7 +199,7 @@ async def create_record(
             safe_data["type"] = "record"
 
         if "id" not in safe_data:
-            safe_data["id"] = str(ulid.new())
+            safe_data["id"] = str(ULID())
 
         now_iso = datetime.now(timezone.utc).isoformat()
         if "created_at" not in safe_data:
