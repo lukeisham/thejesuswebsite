@@ -462,7 +462,7 @@ function scheduleChallengeResponseAutoSave() {
     if (!recordId) return;
 
     var payload = _collectEditorData();
-    // Auto-save preserves existing status — never force draft
+    payload.status = window._challengeResponseModuleState.currentStatus || "draft";
 
     try {
       var response = await fetch(

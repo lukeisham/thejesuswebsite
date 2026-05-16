@@ -180,12 +180,10 @@ function _buildChallengeRow(challenge, index, mode) {
           totalScore += num;
         }
       });
-      // Multiply by rank position — lower rank (higher position) = higher score
-      totalScore = Math.round(totalScore * (index + 1));
+      totalScore = Math.round(totalScore);
     }
   } catch (e) {
-    // If weight parsing fails, use rank as score
-    totalScore = (index + 1) * 10;
+    totalScore = 0;
   }
 
   // --- Header ---

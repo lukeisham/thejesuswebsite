@@ -313,7 +313,7 @@ async function publishChallengeRankings() {
   var listItems = challenges.map(function (challenge, index) {
     return {
       record_slug: challenge.slug,
-      position: index,
+      position: index + 1,
     };
   });
 

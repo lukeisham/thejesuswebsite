@@ -14,7 +14,7 @@
 /* -----------------------------------------------------------------------------
    MODULE STATE — flat, single-mode state with no toggle logic
 ----------------------------------------------------------------------------- */
-window._challengeModuleState = {
+window._challengeModuleState = window._challengeModuleState || {
   mode: "academic",
 
   // Active record tracking

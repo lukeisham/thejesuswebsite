@@ -323,15 +323,14 @@ async function _recalculateAllRecords() {
     }
 
     if (typeof window.surfaceError === "function") {
-      window.surfaceError("Wikipedia pipeline started. Reloading list...");
+      window.surfaceError("Wikipedia pipeline running — list will refresh automatically...");
     }
 
-    // Reload the list after a short delay for the pipeline to process
     setTimeout(async function () {
       if (typeof window.displayWikipediaList === "function") {
         await window.displayWikipediaList();
       }
-    }, 3000);
+    }, 10000);
   } catch (err) {
     console.error("[dashboard_wikipedia] Gather failed:", err);
     if (typeof window.surfaceError === "function") {

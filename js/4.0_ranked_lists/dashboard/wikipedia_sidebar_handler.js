@@ -18,7 +18,7 @@ async function _saveMetadataFromWidget(data) {
   if (!state.activeRecordId) return;
 
   try {
-    var response = await fetch("/api/admin/records/" + state.activeRecordId, {
+    var response = await fetch("/api/admin/records/" + encodeURIComponent(state.activeRecordId), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -194,9 +194,9 @@ async function _handleRecalculateRecord() {
 
     if (typeof window.surfaceError === "function") {
       window.surfaceError(
-        "Recalculate triggered for '" +
+        "Recalculating '" +
           state.activeRecordTitle +
-          "'. Reloading...",
+          "' — will refresh shortly...",
       );
     }
 
@@ -204,7 +204,7 @@ async function _handleRecalculateRecord() {
       if (typeof window.displayWikipediaList === "function") {
         await window.displayWikipediaList();
       }
-    }, 3000);
+    }, 10000);
   } catch (err) {
     console.error("[wikipedia_sidebar] Recalculate failed:", err);
     if (typeof window.surfaceError === "function") {
@@ -264,7 +264,7 @@ function scheduleWikipediaAutoSave() {
     }
 
     try {
-      var response = await fetch("/api/admin/records/" + state.activeRecordId, {
+      var response = await fetch("/api/admin/records/" + encodeURIComponent(state.activeRecordId), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

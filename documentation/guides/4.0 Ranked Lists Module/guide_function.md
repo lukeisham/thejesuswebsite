@@ -1,7 +1,7 @@
 ---
 name: guide_function.md
 purpose: Visual ASCII representations of Ranked Lists Module data flows — Wikipedia ranking pipeline, challenge ranking pipeline (academic + popular), response insertion, public frontend
-version: 1.1.0
+version: 1.1.1
 dependencies: [simple_module_sitemap.md, data_schema.md, guide_dashboard_appearance.md, guide_frontend_appearance.md, ranked_lists_nomenclature.md]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: module_sitemap.md
-version: 2.12.0
+version: 2.13.0
 purpose: visual and list taxonomy of codebase — canonical source of truth for all files
 dependencies: [site_map.md, high_level_schema.md]
 ---
@@ -50,6 +50,15 @@ The purpose of this codebase is to build an archival style website organising an
 
 ## 1.0 Foundation Module
 The Foundation module defines the global visual identity and structural grid of the site while establishing the core navigational framework through shared UI components like the sidebar, header, and footer. Its scope encompasses the website's landing page, essential crawler configuration files, primary informational pages, and the shared dashboard shell grid system — ensuring a consistent and responsive user experience across the entire multi-page application.
+
+### Cross-Module Connections
+
+**Exposes to other modules:**
+- `css/1.0_foundation/*.css` — typography (design tokens), grid, shell, sidebar, footer, landing, pictures, thumbnails (consumed by ALL frontend pages)
+- `css/1.0_foundation/dashboard/*.css` — admin shell (consumed by ALL dashboard pages)
+- `js/1.0_foundation/frontend/*.js` — SEO, sidebar, footer, search bar, bootstrapper (consumed by ALL frontend pages)
+
+**Depends on:** None (foundation layer)
 
 ### HTML Files
 ```text
@@ -106,7 +115,19 @@ assets/favicon.png             <-- Website Favicon Branding (Aleph + Omega)
 ---
 
 ## 2.0 Records Module
-The Records module manages the core data lifecycle, from SQLite schema definition (polymorphic single-table design with `type`/`sub_type` discriminators — see `high_level_schema.md`) and Python-based ingestion pipelines to the dynamic rendering of individual records and aggregate lists. Its scope includes the primary database files, secure external API connection utilities, a comprehensive suite of front-end pages for deep-dive exploration, and the admin dashboard interfaces for single-record editing and bulk record management. This module also publishes seven shared dashboard JS tools consumed by other dashboard modules.
+Records are the core of this codebase, making this the most important module. The Records module manages the core data lifecycle, from SQLite schema definition (polymorphic single-table design with `type`/`sub_type` discriminators — see `high_level_schema.md`) and Python-based ingestion pipelines to the dynamic rendering of individual records and aggregate lists. Its scope includes the primary database files, secure external API connection utilities, a comprehensive suite of front-end pages for deep-dive exploration, and the admin dashboard interfaces for single-record editing and bulk record management. This module also publishes seven shared dashboard JS tools consumed by other dashboard modules.
+
+### Cross-Module Connections
+
+**Exposes to other modules:**
+- `js/2.0_records/dashboard/snippet_generator.js` — → §5.0 Essays & Responses, §6.0 Blog Posts, §6.0 News Sources
+- `js/2.0_records/dashboard/description_editor.js` — → §5.0 Essays & Responses, §6.0 Blog Posts
+- `js/2.0_records/dashboard/verse_builder.js` — → (available for future plans)
+
+**Depends on:**
+- §1.0 Foundation: dashboard CSS (`admin_components.css`, `admin_shell.css`), frontend CSS/JS (universal page shell)
+- §7.0 System: dashboard JS infra (`dashboard_orchestrator`, `load_middleware`, `dashboard_app`, `dashboard_sidebar_resize*`, `dashboard_universal_header`, `display_error_footer`), `js/admin_core/error_handler.js`, API routes (`/api/admin/records/**`, `/api/admin/bulk-upload/**`)
+- §9.0 Cross-Cutting: `external_refs_handler.js`, `picture_handler.js` (dashboard widgets), `picture_widget.css`, `mla_widget.css`, `context_links_widget.css`, `external_refs_widget.css`
 
 ### Dashboard HTML Files
 ```text
@@ -206,6 +227,14 @@ frontend/pages/resources/      <-- Resource List Views
 ## 3.0 Visualizations Module
 The Visualizations module provides interactive, visual-first navigation through recursive Arbor diagrams, chronological timelines, and multi-layered geographic maps. Its scope covers the specialized HTML templates required for these immersive displays and the admin dashboard Arbor editor for drag-and-drop tree management — transforming relational database records into spatial and temporal narratives.
 
+### Cross-Module Connections
+
+**Exposes to other modules:** None
+
+**Depends on:**
+- §1.0 Foundation: dashboard CSS + frontend CSS/JS (universal shell)
+- §7.0 System: dashboard JS infra + `js/admin_core/error_handler.js` + API routes (`/api/admin/diagram/**`)
+
 ### Dashboard HTML Files
 ```text
 admin/frontend/
@@ -262,6 +291,17 @@ frontend/pages/
 
 ## 4.0 Ranked Lists Module
 The Ranked Lists module processes and prioritizes external Wikipedia data and historical challenges using discrete weighting multipliers to surface high-value evidence. Its scope includes the backend Python pipelines for automated ranking, the public-facing debate pages, and the admin dashboard interfaces for Wikipedia list management and Challenge ranking with integrated response insertion (Version 2.6.0).
+
+### Cross-Module Connections
+
+**Exposes to other modules:** None
+
+**Depends on:**
+- §1.0 Foundation: dashboard CSS + frontend CSS/JS (universal shell)
+- §7.0 System: dashboard JS infra + `js/admin_core/error_handler.js` + API routes (`/api/admin/lists/**`)
+- §9.0 Cross-Cutting: `metadata_widget.js` + `metadata_widget.css`, `picture_widget.css`, `mla_widget.css`, `external_refs_widget.css`, `external_refs_handler.js`, `html_utils.js` (frontend)
+- §2.0 Records: `snippet_generator.js`, `description_editor.js` (used by Challenge Response)
+- §5.0 Essays & Responses: `markdown_editor.js` (used by Challenge Response)
 
 ### Dashboard HTML Files
 ```text
@@ -339,6 +379,17 @@ frontend/pages/debate/
 ## 5.0 Essays & Responses Module
 The Essays & Responses module handles long-form editorial content, covering thematic context essays, historiography, theological essays, spiritual articles, and scholarly challenge responses. Its scope includes specialized HTML views for in-depth reading, a shared bibliography system, and the admin dashboard WYSIWYG editors for essays, historiography, and challenge response creation. This module publishes the shared `markdown_editor.js` tool consumed by Blog Posts and Challenge Response dashboards.
 
+### Cross-Module Connections
+
+**Exposes to other modules:**
+- `js/5.0_essays_responses/dashboard/markdown_editor.js` — → §4.0 Challenge Response, §6.0 Blog Posts
+
+**Depends on:**
+- §1.0 Foundation: dashboard CSS + frontend CSS/JS (universal shell)
+- §7.0 System: dashboard JS infra + `js/admin_core/error_handler.js` + API routes (`/api/admin/essays/**`, `/api/admin/responses/**`)
+- §9.0 Cross-Cutting: ALL shared dashboard CSS + JS widgets + `html_utils.js`
+- §2.0 Records: `snippet_generator.js`, `description_editor.js`
+
 ### Dashboard HTML Files
 ```text
 admin/frontend/
@@ -400,6 +451,17 @@ frontend/pages/debate/
 ## 6.0 News & Blog Module
 The News & Blog module manages the end-to-end lifecycle of time-sensitive content, from automated news ingestion pipelines to public-facing feed pages. Its scope encompasses the Python crawling scripts, dedicated landing pages for news and blog updates, individual post views, and the admin dashboard interfaces for news source management and blog post WYSIWYG editing.
 
+### Cross-Module Connections
+
+**Exposes to other modules:** None
+
+**Depends on:**
+- §1.0 Foundation: dashboard CSS + frontend CSS/JS (universal shell)
+- §7.0 System: dashboard JS infra + `js/admin_core/error_handler.js` + API routes (`/api/admin/news/**`, `/api/admin/blogposts/**`)
+- §9.0 Cross-Cutting: ALL shared dashboard CSS + JS widgets + `html_utils.js`
+- §2.0 Records: `snippet_generator.js`, `description_editor.js`
+- §5.0 Essays & Responses: `markdown_editor.js`
+
 ### Dashboard HTML Files
 ```text
 admin/frontend/
@@ -459,6 +521,20 @@ frontend/pages/
 
 ## 7.0 System Module
 The System module serves as the operational backbone of the site, encompassing AI-agent instructions, secure backend API management, the admin authentication gateway and dashboard shell, the system health monitoring dashboard, and production deployment automation. Its scope includes the secure two-page Admin Portal (login → dashboard shell with module card grid), Python-based authentication and security utilities, shared backend scripts (snippet generator, metadata generator, DeepSeek agent client), global configuration files, and the infrastructure required for VPS hosting and MCP server exposure.
+
+### Cross-Module Connections
+
+**Exposes to other modules:**
+- ALL admin API routes (`/api/admin/*`) — consumed by every dashboard module
+- `js/7.0_system/dashboard/*.js` — dashboard shell infra (orchestrator, middleware, app router, sidebar resize, header, error footer) — consumed by ALL dashboard modules
+- `js/admin_core/error_handler.js` — consumed by ALL dashboard modules
+- `js/admin_core/autogen_meta.js`, `autogen_slug.js`, `autogen_snippet.js` — auto-generation triggers (consumed by content dashboard modules)
+- `js/admin_core/sidebar_save_metadata.js`, `sidebar_term_chips.js` — shared sidebar utilities
+- `backend/scripts/snippet_generator.py`, `metadata_generator.py`, `slug_generator.py`, `agent_client.py` — shared backend utilities
+- MCP server (`mcp_server.py`) — exposed to external agents
+
+**Depends on:**
+- §1.0 Foundation: dashboard CSS (`admin_components.css`, `admin_shell.css`), frontend CSS/JS (for login page)
 
 ### Dashboard HTML Files
 ```text
@@ -593,6 +669,13 @@ js/7.0_system/dashboard/
 ## 8.0 Setup & Testing Module
 The Setup & Testing Module supports the development lifecycle through automated test suites, database seeding tools, and comprehensive architectural documentation. Its scope covers root-level build scripts, local environment initialization tools, security audit utilities, and the complete library of guides and sitemaps that define the project's logic and aesthetics.
 
+### Cross-Module Connections
+
+**Exposes to other modules:** None
+
+**Depends on:**
+- §7.0 System: `backend/scripts/agent_client.py` (used by agent_readability_test.py), API routes (tested by port_test.py, security_audit.py)
+
 ### Supporting Files
 ```text
 build.py                   <-- Root script to trigger backend pipelines
@@ -652,6 +735,18 @@ plan_system_api_endpoints.md          <-- Plan: API endpoint design
 
 ## 9.0 Cross-Cutting Standardization
 The Cross-Cutting Standardization module houses shared dashboard assets that span multiple content modules. Its scope covers unified WYSIWYG editor styles, standardized dashboard layout CSS that replaces module-specific layout files across §4.0–§6.0, and the Challenge Response dashboard module that bridges Ranked Lists (§4.0) and Essays & Responses (§5.0).
+
+### Cross-Module Connections
+
+**Exposes to other modules:**
+- ALL files listed below — see Shared-Tool Ownership Registry for full consumer mapping
+- `css/9.0_cross_cutting/dashboard/*.css` — 6 widget stylesheets → §2.0, §4.0, §5.0, §6.0
+- `js/9.0_cross_cutting/dashboard/*.js` — 5 shared JS tools → §2.0, §4.0, §5.0, §6.0
+- `js/9.0_cross_cutting/frontend/html_utils.js` — → §4.0, §5.0, §6.0 frontend pages
+
+**Depends on:**
+- §1.0 Foundation: dashboard CSS (base styling context for widgets)
+- §7.0 System: dashboard JS infra + API routes
 
 ### Dashboard CSS Files
 ```text

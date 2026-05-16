@@ -44,6 +44,7 @@ async function loadChallengeResponseContent(recordId, title) {
     window._challengeResponseModuleState.activeRecordId = recordId;
     window._challengeResponseModuleState.activeRecordTitle =
       doc.title || title || "";
+    window._challengeResponseModuleState.currentStatus = doc.status || "draft";
     window._challengeResponseModuleState.isDirty = false;
 
     // Populate title

@@ -134,7 +134,7 @@ async function _autoSaveWikipediaSearchTerms() {
     .filter((t) => t.length > 0);
 
   try {
-    const response = await fetch(`/api/admin/records/${state.activeRecordId}`, {
+    const response = await fetch(`/api/admin/records/${encodeURIComponent(slug)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

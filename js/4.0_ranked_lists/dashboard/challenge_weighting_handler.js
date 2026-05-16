@@ -366,10 +366,8 @@ function _wireSearchTerms() {
     _saveNow();
   });
 
-  // Enter key saves immediately — commas separate multiple terms
   termsInput.addEventListener("keydown", function (e) {
     if (e.key === "Enter") {
-      e.preventDefault(); // Don't insert a newline — commas are the separator
       _saveNow();
     }
   });
