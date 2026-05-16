@@ -1,86 +1,90 @@
 ---
 name: guide_dashboard_appearance.md
-purpose: Visual ASCII representations of the Admin Portal and editing screens for 3.0 Visualizations Module
-version: 1.0.0
-dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, high_level_schema.md, guide_frontend_appearance.md, guide_function.md, guide_maps.md, guide_timeline.md, visualizations_nomenclature.md]
+purpose: Visual ASCII representations of the Admin Portal screens for the 3.0 Visualizations Module — Arbor editor
+version: 2.0.0
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, data_schema.md, guide_frontend_appearance.md, guide_function.md, visualizations_nomenclature.md]
 ---
 
-## 3.0 Visualizations Module
-**Scope:** Arbor diagram, Timeline chronological dots/progression, Map Geo-spatial layers.
+## 3.0 Visualizations Module — Admin Dashboard
 
-### 3.1 Backend for Visual Interactive Displays (`dashboard_arbor.js`)
-**Corresponds to Public Section:** 3.1 (Evidence Graph / Arbor Diagrams)
-*(Note: Maps (3.3) and Timelines (3.2) are driven by `era`, `timeline`, and `map_label` set in §2.2 — they have no separate editor.)*
-**Purpose:** Interactive drag-and-drop tool for building the recursive parent-child 'Arbor' evidence tree. Features a canvas-based node editor that mimics the frontend visualization.
-
-**Plan:** `plan_dashboard_arbor.md`
-
-**DB Fields:**
-```
-── WRITE ─────────────────────────────────────────────────────────────────
-parent_id         TEXT (Foreign Key)  — sets the recursive parent-child
-                                        relationship between records
-
-── READ ONLY (node display) ──────────────────────────────────────────────
-id                TEXT               — node identifier
-title             TEXT               — node label
-```
+### 3.1 Arbor Diagram Editor
 
 ```text
 +---------------------------------------------------------------------------------+
-| [✦✦] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >      |
+| [Logo] Jesus Website Dashboard | < Return to Frontpage | Dashboard | Logout >    |
 +---------------------------------------------------------------------------------+
-| Function Bar: [ Save Draft ]   [ Publish ]   [ Refresh ]                      |
+| Function Bar: [ Save Draft ]   [ Publish ]   [ Refresh ]                        |
 +---------------------------------------------------------------------------------+
 |                                                                                 |
-|  (Root Node) --+-- (Child 1) --+-- (Sub 1)                                      |
+|  (Root Node) --+-- (Child 1) --+-- (Sub 1)                                     |
 |                |               |                                                |
 |                |               +-- (Sub 2)                                      |
 |                |                                                                |
 |                +-- (Child 2) ----- (Sub 3)                                      |
 |                                                                                 |
-|  [Drag & Drop UI matching Frontend Arbor]                                       |
+|  [Full-width canvas: drag-and-drop recursive tree editor]                       |
+|  Each .arbor-node-row: [grip] [label] [+Child] [Remove]                         |
 |                                                                                 |
-|  Orphan Nodes (no parent_id):                                                   |
-|  [Ascension ▼]  [Last Supper ▼]  [Transfiguration ▼]                            |
+|  Orphan Nodes (parent_id = null):                                               |
+|  [Ascension ▼]  [Last Supper ▼]  [Transfiguration ▼]                           |
 |                                                                                 |
-|  Each node: [+Child] dropdown adds a child from orphan pool                      |
-|  Each node: [Remove] promotes node to root (parent_id = null)                    |
+|  Drop zone: drag node here to detach (set parent_id = null)                     |
 |                                                                                 |
 +---------------------------------------------------------------------------------+
-| [ Status Bar: System running normally / Error logs appear here ]                 |
+| [ Status Bar: "Saved as draft" / Error messages ]                               |
 +---------------------------------------------------------------------------------+
 
-── API ROUND-TRIP: dashboard_arbor.js → admin_api.py → SQLite ────────────────────────
-
-  LOAD:  GET /api/admin/diagram/tree
-         → SELECT id, title, parent_id FROM records ORDER BY title
-         → Returns {"nodes": [{"id":"…","title":"…","parent_id":…}]}
-
-  EDIT:  DnD updates window.__diagramNodes in memory
-         Changes tracked in window.__changedNodes Map
-         Every drag-and-drop re-parenting auto-saves as draft
-
-  SAVE:  PUT /api/admin/diagram/tree
-         Body: {"updates": [{"id":"…","parent_id":"…"},…]}
-         → Validates IDs exist (422 if missing)
-         → Detects direct circular refs (422 if found)
-         → BEGIN TRANSACTION / UPDATE batch / COMMIT or ROLLBACK
-
-  PUBLISH: Commit all draft parent_id changes to live
+NOTE: Timelines (3.2) and Maps (3.3) have no separate admin editor.
+Timeline and map positions are driven by the 'era', 'timeline', and
+'map_label' fields set in the §2.2 Records editing interface.
 ```
 
-**File Inventory:**
-| File | Purpose |
-|------|---------|
-| `admin/frontend/dashboard_arbor.html` | Interactive diagram container |
-| `css/3.0_visualizations/dashboard/dashboard_arbor.css` | Canvas & node aesthetics |
-| `js/3.0_visualizations/dashboard/dashboard_arbor.js` | Module orchestration |
-| `js/3.0_visualizations/dashboard/fetch_arbor_data.js` | API interface for tree fetching |
-| `js/3.0_visualizations/dashboard/render_arbor_node.js` | Individual node creation |
-| `js/3.0_visualizations/dashboard/draw_arbor_connections.js` | SVG/Canvas connection lines |
-| `js/3.0_visualizations/dashboard/handle_node_drag.js` | Drag-and-drop interaction |
-| `js/3.0_visualizations/dashboard/update_node_parent.js` | Parent-child re-assignment |
+#### 3.1.1 Arbor Editor — DOM Structure
 
----
+```text
+<div id="providence-col-main" style="grid-template-columns: 1fr">
+└── [dashboard_arbor.html template injected here]
+    ├── <div class="arbor-function-bar">
+    │   ├── <button id="arbor-save">Save Draft</button>
+    │   ├── <button id="arbor-publish">Publish</button>
+    │   └── <button id="arbor-refresh">Refresh</button>
+    │
+    ├── <div class="arbor-canvas" id="arbor-canvas">
+    │   └── <ul class="arbor-tree-root">
+    │       └── <li class="arbor-node-row" data-id="{id}" draggable="true">
+    │           ├── <span class="arbor-grip">⋮⋮</span>
+    │           ├── <span class="arbor-label">{title}</span>
+    │           ├── <button class="arbor-add-child">+Child</button>
+    │           ├── <button class="arbor-remove">Remove</button>
+    │           └── <ul>  ← Recursive children
+    │
+    ├── <svg class="arbor-connections-svg">
+    │   └── <path>  ← Cubic bezier lines between parent/child rows
+    │
+    └── <div class="arbor-orphan-pool" id="arbor-orphan-pool">
+        └── <div class="arbor-orphan-item" data-id="{id}" draggable="true">
+            └── {title} ▼
+```
+
+#### 3.1.2 Arbor Editor — API Round-Trip
+
+```text
+LOAD:   GET /api/admin/diagram/tree
+        → SELECT id, title, parent_id FROM records ORDER BY title
+        → Returns {"nodes": [{id, title, parent_id}, ...]}
+
+EDIT:   DnD updates window.__diagramNodes in memory
+        Changes tracked in window.__changedNodes Map
+        Every drag re-parenting auto-saves as draft via PUT
+
+SAVE:   PUT /api/admin/diagram/tree
+        Body: {"updates": [{id, parent_id}, ...]}
+        → Validates IDs exist (422 if missing)
+        → Detects direct circular refs (422 if found)
+        → BEGIN TRANSACTION / UPDATE batch / COMMIT or ROLLBACK
+
+PUBLISH: Commits all draft parent_id changes to live
+REFRESH: Re-fetches tree from backend, discards un-persisted state
+```
+
 

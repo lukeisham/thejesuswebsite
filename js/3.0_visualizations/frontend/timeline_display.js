@@ -1,10 +1,10 @@
 /* =============================================================================
    THE JESUS WEBSITE
    File:    js/3.0_visualizations/frontend/timeline_display.js
-   Version: 1.1.0
+   Version: 2.0.0
    Trigger: DOMContentLoaded on timeline.html
-   Function: Renders timeline chronological dots and progression loops
-   Output: Interactive SVG Timeline Nodes filtered by layer
+   Function: Renders timeline chronological dots with zone-based placement
+   Output: Interactive SVG Timeline Nodes with zoom-responsive stacking
 ============================================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -64,24 +64,19 @@ function initTimelineSystem() {
 
   let currentScale = 1;
   let records = [];
-  let currentEraIndex = 10; // Default to Galilee Ministry (approx index)
+  let currentEraIndex = 10;
 
-  // Zoom setup
   if (zoomInBtn && zoomOutBtn && timelineSvg) {
     zoomInBtn.addEventListener("click", () => {
       currentScale = Math.min(currentScale + 0.2, 3);
-      timelineSvg.style.transform = `scale(${currentScale})`;
-      timelineSvg.style.transformOrigin = "left center";
-      // Update wrapper scroll to keep view stable if needed
+      renderTimelineNodes(records, currentScale);
     });
     zoomOutBtn.addEventListener("click", () => {
       currentScale = Math.max(currentScale - 0.2, 0.5);
-      timelineSvg.style.transform = `scale(${currentScale})`;
-      timelineSvg.style.transformOrigin = "left center";
+      renderTimelineNodes(records, currentScale);
     });
   }
 
-  // Era Navigation
   if (prevEraBtn && nextEraBtn && eraDisplay) {
     prevEraBtn.addEventListener("click", () => {
       currentEraIndex = Math.max(0, currentEraIndex - 1);
@@ -96,11 +91,10 @@ function initTimelineSystem() {
     });
   }
 
-  // Load Database Records
   if (window.dbReadyPromise) {
     window.dbReadyPromise.then((db) => {
       const query =
-        "SELECT id, title, timeline, era, gospel_category, description, primary_verse, slug FROM records WHERE timeline IS NOT NULL AND type = 'record' AND status = 'published' LIMIT 200";
+        "SELECT id, title, timeline, era, gospel_category, description, primary_verse, slug, map_label FROM records WHERE timeline IS NOT NULL AND type = 'record' AND status = 'published' LIMIT 200";
       try {
         const res = db.exec(query);
         if (res.length > 0 && res[0].values) {
@@ -114,21 +108,11 @@ function initTimelineSystem() {
               description: row[5],
               primaryVerse: row[6],
               slug: row[7],
+              mapLabel: row[8] || null,
             };
           });
 
-          // Simple categorization for layers
-          records.forEach((r, i) => {
-            if (r.era === "PreIncarnation" || r.era === "OldTestament") {
-              r.lane = "prophecy";
-            } else if (i % 5 === 0) {
-              r.lane = "secular";
-            } else {
-              r.lane = "biblical";
-            }
-          });
-
-          renderTimelineNodes(records);
+          renderTimelineNodes(records, currentScale);
         }
       } catch (err) {
         console.error("Timeline Query Error: ", err);
@@ -141,21 +125,23 @@ function getXForTimelineStage(timelineStage) {
   const startX = 100;
   const spacing = 80;
   const index = TIMELINE_STAGES.indexOf(timelineStage);
-  if (index === -1) return startX + Math.random() * 1000; // fallback
+  if (index === -1) {
+    let hash = 0;
+    for (let i = 0; i < timelineStage.length; i++) {
+      hash = (hash * 31 + timelineStage.charCodeAt(i)) % 2000;
+    }
+    return startX + hash;
+  }
   return startX + index * spacing;
 }
 
-function getYForLane(lane) {
-  switch (lane) {
-    case "prophecy":
-      return 150; // Top lane
-    case "biblical":
-      return 300; // Middle lane (Main Axis)
-    case "secular":
-      return 450; // Bottom lane
-    default:
-      return 300;
+function deterministicScatter(id, axis, min, max) {
+  let hash = 0;
+  const str = String(id) + axis;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 37 + str.charCodeAt(i)) % 10007;
   }
+  return min + (hash % (max - min));
 }
 
 function scrollToEra(index) {
@@ -166,109 +152,144 @@ function scrollToEra(index) {
   const stage = TIMELINE_STAGES[index];
   const x = getXForTimelineStage(stage);
 
-  // Smooth scroll the container
   wrapper.scrollTo({
     left: x - wrapper.clientWidth / 2,
     behavior: "smooth",
   });
 
-  // Update label
   eraDisplay.textContent = stage.replace(/([A-Z])/g, " $1").trim();
 }
 
-function renderTimelineNodes(records) {
+function renderTimelineNodes(records, scale) {
   const nodeLayer = document.getElementById("node-layer");
   const axisLayer = document.getElementById("axis-markers-layer");
-  const linkLayer = document.getElementById("link-layer");
 
   if (!nodeLayer || !axisLayer) return;
 
   nodeLayer.innerHTML = "";
   axisLayer.innerHTML = "";
-  linkLayer.innerHTML = "";
 
-  // Draw nodes
+  const baseSpacing = 14;
+  const nodeSpacing = baseSpacing + (scale - 1) * 7;
+
+  // Group regular nodes by timeline stage for stacking
+  const stageGroups = {};
+  const supernaturalNodes = [];
+  const spiritualNodes = [];
+  const regularNodes = [];
+
   records.forEach((record) => {
-    const x = getXForTimelineStage(record.timeline);
-    const y = getYForLane(record.lane);
+    if (record.mapLabel === "supernatural") {
+      supernaturalNodes.push(record);
+    } else if (record.mapLabel === "spiritual") {
+      spiritualNodes.push(record);
+    } else {
+      regularNodes.push(record);
+      const stage = record.timeline;
+      if (!stageGroups[stage]) stageGroups[stage] = [];
+      stageGroups[stage].push(record);
+    }
+  });
 
-    // Add axis marker for timeline stage
-    if (record.lane === "biblical") {
+  const renderedLabels = new Set();
+
+  // Render regular nodes stacked centered on axis (Y=300)
+  Object.keys(stageGroups).forEach((stage) => {
+    const group = stageGroups[stage];
+    const x = getXForTimelineStage(stage);
+    const count = group.length;
+
+    group.forEach((record, i) => {
+      const offset = (i - (count - 1) / 2) * nodeSpacing;
+      const y = 300 + offset;
+
+      _createNode(nodeLayer, x, y, record, "default");
+    });
+
+    // Render axis label once per stage
+    if (!renderedLabels.has(stage)) {
+      renderedLabels.add(stage);
       const text = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "text",
       );
       text.setAttribute("x", x);
-      text.setAttribute("y", 330);
+      text.setAttribute("y", 340 + (count - 1) / 2 * nodeSpacing);
       text.setAttribute("class", "timeline-label");
       text.setAttribute("text-anchor", "middle");
-      text.textContent = record.timeline
+      text.textContent = stage
         .replace(/([A-Z])/g, " $1")
         .trim()
         .substring(0, 15);
       axisLayer.appendChild(text);
     }
-
-    // Draw vertical link
-    if (record.lane !== "biblical") {
-      const line = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line",
-      );
-      line.setAttribute("x1", x);
-      line.setAttribute("y1", y);
-      line.setAttribute("x2", x);
-      line.setAttribute("y2", 300);
-      line.setAttribute("class", "timeline-link");
-      linkLayer.appendChild(line);
-    }
-
-    const circle = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle",
-    );
-    circle.setAttribute("cx", x);
-    circle.setAttribute("cy", y);
-    circle.setAttribute("r", "6");
-    circle.setAttribute(
-      "class",
-      `timeline-node timeline-node-item lane-${record.lane}`,
-    );
-    circle.setAttribute("data-category", record.lane);
-
-    const titleTooltip = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "title",
-    );
-    titleTooltip.textContent = record.title;
-    circle.appendChild(titleTooltip);
-
-    circle.addEventListener("click", () => {
-      document
-        .querySelectorAll(".timeline-node")
-        .forEach((n) => n.classList.remove("selected"));
-      circle.classList.add("selected");
-      showMetadata(record);
-    });
-
-    nodeLayer.appendChild(circle);
   });
 
-  const maxIndex = Math.max(
-    ...records.map((r) => TIMELINE_STAGES.indexOf(r.timeline)),
-  );
-  if (maxIndex > 0) {
-    const targetWidth = getXForTimelineStage(TIMELINE_STAGES[maxIndex]) + 300;
-    document
-      .getElementById("interactive-timeline")
-      .setAttribute("viewBox", `0 0 ${Math.max(2000, targetWidth)} 600`);
-    document
-      .querySelector("#grid-layer rect")
-      .setAttribute("width", Math.max(2000, targetWidth));
-    document
-      .querySelector(".timeline-axis-line")
-      .setAttribute("x2", Math.max(2000, targetWidth));
+  // Render supernatural nodes in loose cloud at top (Y=50-150), spread by era
+  supernaturalNodes.forEach((record) => {
+    const x = getXForTimelineStage(record.timeline);
+    const y = deterministicScatter(record.id, "y", 50, 150);
+    _createNode(nodeLayer, x, y, record, "supernatural");
+  });
+
+  // Render spiritual nodes scattered below axis (Y=350-500), detached from X
+  spiritualNodes.forEach((record) => {
+    const x = deterministicScatter(record.id, "x", 100, 2000);
+    const y = deterministicScatter(record.id, "y", 360, 500);
+    _createNode(nodeLayer, x, y, record, "spiritual");
+  });
+
+  // Adjust SVG viewBox to fit content
+  const allX = records.map((r) => {
+    if (r.mapLabel === "spiritual") {
+      return deterministicScatter(r.id, "x", 100, 2000);
+    }
+    return getXForTimelineStage(r.timeline);
+  });
+  const maxX = Math.max(...allX, 2000);
+  const targetWidth = maxX + 300;
+
+  const svgEl = document.getElementById("interactive-timeline");
+  if (svgEl) {
+    svgEl.setAttribute("viewBox", `0 0 ${Math.max(2000, targetWidth)} 600`);
   }
+  const gridRect = document.querySelector("#grid-layer rect");
+  if (gridRect) {
+    gridRect.setAttribute("width", Math.max(2000, targetWidth));
+  }
+  const axisLine = document.querySelector(".timeline-axis-line");
+  if (axisLine) {
+    axisLine.setAttribute("x2", Math.max(2000, targetWidth));
+  }
+}
+
+function _createNode(container, x, y, record, zone) {
+  const circle = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "circle",
+  );
+  circle.setAttribute("cx", x);
+  circle.setAttribute("cy", y);
+  circle.setAttribute("r", "6");
+  circle.setAttribute("class", "timeline-node timeline-node-item");
+  circle.setAttribute("data-zone", zone);
+
+  const titleTooltip = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "title",
+  );
+  titleTooltip.textContent = record.title;
+  circle.appendChild(titleTooltip);
+
+  circle.addEventListener("click", () => {
+    document
+      .querySelectorAll(".timeline-node")
+      .forEach((n) => n.classList.remove("selected"));
+    circle.classList.add("selected");
+    showMetadata(record);
+  });
+
+  container.appendChild(circle);
 }
 
 function showMetadata(record) {
@@ -283,9 +304,8 @@ function showMetadata(record) {
   if (panel && rTitle && rDate && rCategory && rVerse && rDesc && rLink) {
     rTitle.textContent = record.title || "Unidentified Event";
     rDate.textContent = `Era/Timeline: ${record.era} > ${record.timeline}`;
-    rCategory.textContent = `Lane: ${record.lane.toUpperCase()} | Type: ${record.category}`;
+    rCategory.textContent = `Category: ${record.category}`;
 
-    // Populate Verse
     rVerse.textContent = formatVerseText(record.primaryVerse);
 
     let descText = "No description provided.";
@@ -298,7 +318,9 @@ function showMetadata(record) {
       descText = record.description;
     }
 
-    rDesc.textContent = descText ? descText.substring(0, 200) + "..." : "";
+    rDesc.textContent = descText && descText.length > 200
+      ? descText.substring(0, 200) + "..."
+      : descText || "";
     rLink.href = `/record/${record.slug}`;
 
     panel.classList.remove("is-hidden");

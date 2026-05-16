@@ -95,5 +95,7 @@ if (document.readyState === "interactive" || document.readyState === "complete")
 
 /* -----------------------------------------------------------------------------
    GLOBAL EXPOSURE — all dashboard modules call window.surfaceError()
+   window.surfaceStatus is an alias for non-error informational messages.
 ----------------------------------------------------------------------------- */
 window.surfaceError = surfaceError;
+window.surfaceStatus = surfaceError;

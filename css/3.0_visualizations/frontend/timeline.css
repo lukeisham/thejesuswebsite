@@ -110,16 +110,9 @@
     stroke-width: 4px;
 }
 
-.timeline-node[data-category="event"] { fill: var(--color-accent-primary); } /* Oxblood */
-.timeline-node[data-category="biblical"] { fill: var(--color-accent-primary); } /* Oxblood (shared with event) */
-.timeline-node[data-category="prophecy"] { fill: var(--color-dash-accent); } /* Golden */
-.timeline-node[data-category="secular"] { fill: var(--color-text-primary); } /* Charcoal */
-
-.timeline-link {
-    stroke: var(--color-text-secondary);
-    stroke-width: 1px;
-    opacity: 0.6;
-}
+.timeline-node[data-zone="default"] { fill: var(--color-accent-primary); } /* Oxblood */
+.timeline-node[data-zone="supernatural"] { fill: var(--color-dash-accent); } /* Antique Gold */
+.timeline-node[data-zone="spiritual"] { fill: var(--color-text-secondary); opacity: 0.7; } /* Muted charcoal */
 
 /* Metadata Panel */
 .timeline-metadata-panel {

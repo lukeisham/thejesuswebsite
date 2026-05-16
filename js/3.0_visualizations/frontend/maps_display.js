@@ -84,8 +84,19 @@ function initMapSystem() {
 
 function parseEraYear(eraString) {
   if (!eraString) return 30;
-  if (eraString.includes("Life")) return 30;
-  if (eraString.includes("Early")) return 50;
+  if (eraString.includes("PreIncarnation")) return -50;
+  if (eraString.includes("OldTestament")) return -100;
+  if (eraString.includes("EarlyLife")) return 5;
+  if (eraString.includes("LifeTradie")) return 26;
+  if (eraString.includes("LifeBaptism")) return 27;
+  if (eraString.includes("LifeTemptation")) return 27;
+  if (eraString.includes("Galilee")) return 29;
+  if (eraString.includes("Judean")) return 31;
+  if (eraString.includes("Passion")) return 33;
+  if (eraString.includes("PostResurrection")) return 33;
+  if (eraString.includes("Ascension")) return 33;
+  if (eraString.includes("OurResponse")) return 60;
+  if (eraString.includes("ReturnOfJesus")) return 100;
   return 30;
 }
 
@@ -159,12 +170,20 @@ function showMetadata(record) {
     rDate.textContent = `Era: ${record.era || "Unknown"}`;
     rCategory.textContent = `Category: ${record.category || "Historic Event"}`;
 
-    // Populate Verse
     rVerse.textContent = formatVerseText(record.primaryVerse);
 
-    rDesc.textContent = record.description
-      ? record.description.substring(0, 160) + "..."
-      : "No substantive description documented.";
+    let descText = "No substantive description documented.";
+    try {
+      if (record.description) {
+        const parsed = JSON.parse(record.description);
+        descText = Array.isArray(parsed) ? parsed[0] : parsed;
+      }
+    } catch (e) {
+      descText = record.description;
+    }
+    rDesc.textContent = descText && descText.length > 160
+      ? descText.substring(0, 160) + "..."
+      : descText || "No substantive description documented.";
     rLink.href = `/record/${record.slug}`;
 
     panel.classList.remove("is-hidden");

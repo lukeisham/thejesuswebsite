@@ -81,52 +81,54 @@ function buildTreeSVG(rootNodes, nodesMap) {
   var startX = 50;
   var startY = 40;
 
-  // First pass: assign positions bottom-up
+  // Global X cursor prevents subtree overlap across siblings
+  var nextAvailableX = startX;
+
+  // First pass: assign positions with global X tracking
   var positions = {};
 
-  function layoutTree(nodes, depth) {
+  function layoutSubtree(node, depth) {
     var yPos = startY + depth * (nodeHeight + verticalSpacing);
-    var xPos = startX;
+    var children = getChildren(node.id, nodesMap);
 
-    nodes.forEach(function (node) {
-      var children = getChildren(node.id, nodesMap);
-      if (children.length > 0) {
-        // Layout children first to center parent above them
-        layoutTree(children, depth + 1);
-        // Center parent above children
-        var childPositions = children.map(function (c) {
-          return positions[c.id];
-        });
-        var minX = Math.min.apply(
-          null,
-          childPositions.map(function (p) {
-            return p.x;
-          }),
-        );
-        var maxX = Math.max.apply(
-          null,
-          childPositions.map(function (p) {
-            return p.x + nodeWidth;
-          }),
-        );
-        xPos = minX + (maxX - minX) / 2 - nodeWidth / 2;
-      } else {
-        // Leaf node: simple horizontal layout
-        var siblings = nodes;
-        var idx = siblings.indexOf(node);
-        var totalWidth =
-          siblings.length * (nodeWidth + horizontalSpacing) - horizontalSpacing;
-        var startOffset = totalWidth < 800 ? (800 - totalWidth) / 2 : 0;
-        xPos = startX + startOffset + idx * (nodeWidth + horizontalSpacing);
-      }
+    if (children.length > 0) {
+      children.forEach(function (child) {
+        layoutSubtree(child, depth + 1);
+      });
+      var childPositions = children.map(function (c) {
+        return positions[c.id];
+      });
+      var minX = Math.min.apply(
+        null,
+        childPositions.map(function (p) {
+          return p.x;
+        }),
+      );
+      var maxX = Math.max.apply(
+        null,
+        childPositions.map(function (p) {
+          return p.x + nodeWidth;
+        }),
+      );
+      var xPos = minX + (maxX - minX) / 2 - nodeWidth / 2;
       positions[node.id] = { x: Math.max(xPos, startX), y: yPos, depth: depth };
-    });
+    } else {
+      positions[node.id] = { x: nextAvailableX, y: yPos, depth: depth };
+      nextAvailableX += nodeWidth + horizontalSpacing;
+    }
   }
 
-  layoutTree(rootNodes, 0);
+  rootNodes.forEach(function (root) {
+    layoutSubtree(root, 0);
+  });
 
-  // Second pass: render SVG
-  var svgWidth = 900;
+  // Second pass: compute dynamic SVG dimensions from actual positions
+  var maxX = startX;
+  Object.keys(positions).forEach(function (id) {
+    var right = positions[id].x + nodeWidth;
+    if (right > maxX) maxX = right;
+  });
+  var svgWidth = Math.max(900, maxX + startX);
   var svgHeight =
     (getMaxDepth(positions) + 2) * (nodeHeight + verticalSpacing) + startY;
 
@@ -201,11 +203,11 @@ function buildTreeSVG(rootNodes, nodesMap) {
       ')">';
     svg +=
       '<rect width="' + nodeWidth + '" height="' + nodeHeight + '"></rect>';
-    var title = escapeHtmlAttr(node.title || node.slug || "");
-    // Truncate long titles
-    if (title.length > 28) {
-      title = title.substring(0, 26) + "...";
+    var rawTitle = node.title || node.slug || "";
+    if (rawTitle.length > 26) {
+      rawTitle = rawTitle.substring(0, 26) + "...";
     }
+    var title = escapeHtmlAttr(rawTitle);
     svg +=
       '<text class="title" x="' +
       nodeWidth / 2 +

@@ -77,9 +77,8 @@ async function renderArbor() {
   // --- Fetch tree data and render ---
   await _loadAndRenderTree();
 
-  // --- Clear the error footer on successful load ---
-  if (typeof window.surfaceError === "function") {
-    window.surfaceError("Arbor diagram loaded successfully.");
+  if (typeof window.surfaceStatus === "function") {
+    window.surfaceStatus("Arbor diagram loaded successfully.");
   }
 }
 
@@ -118,8 +117,8 @@ async function _handleSaveDraft() {
 
   const changedNodes = window.__changedNodes;
   if (!changedNodes || changedNodes.size === 0) {
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError("No changes to save. The tree is up to date.");
+    if (typeof window.surfaceStatus === "function") {
+      window.surfaceStatus("No changes to save. The tree is up to date.");
     }
     if (saveDraftBtn) saveDraftBtn.disabled = false;
     return;
@@ -160,8 +159,10 @@ async function _handleSaveDraft() {
       return;
     }
 
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError(
+    window.__changedNodes = new Map();
+
+    if (typeof window.surfaceStatus === "function") {
+      window.surfaceStatus(
         "Arbor diagram saved as draft. Publish to make changes live.",
       );
     }
@@ -193,8 +194,8 @@ async function _handleRefresh() {
 
   try {
     await _loadAndRenderTree();
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError("Arbor diagram refreshed.");
+    if (typeof window.surfaceStatus === "function") {
+      window.surfaceStatus("Arbor diagram refreshed.");
     }
   } catch (err) {
     const message =
@@ -221,8 +222,8 @@ async function _handlePublish() {
 
   const changedNodes = window.__changedNodes;
   if (!changedNodes || changedNodes.size === 0) {
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError("No changes to publish. The tree is up to date.");
+    if (typeof window.surfaceStatus === "function") {
+      window.surfaceStatus("No changes to publish. The tree is up to date.");
     }
     if (publishBtn) publishBtn.disabled = false;
     return;
@@ -266,8 +267,8 @@ async function _handlePublish() {
     // --- Success — clear the changes map ---
     window.__changedNodes = new Map();
 
-    if (typeof window.surfaceError === "function") {
-      window.surfaceError("Arbor diagram published successfully.");
+    if (typeof window.surfaceStatus === "function") {
+      window.surfaceStatus("Arbor diagram published successfully.");
     }
     console.log(
       "[dashboard_arbor] Published",
@@ -331,14 +332,21 @@ async function _loadAndRenderTree() {
     });
   });
 
-  // --- Build children arrays and orphan list ---
-  const orphans = [];
+  // --- Build children arrays ---
   nodesMap.forEach((nodeData, nodeId) => {
     if (nodeData.parent_id && nodesMap.has(nodeData.parent_id)) {
       const parent = nodesMap.get(nodeData.parent_id);
       parent.children.push(nodeData);
-    } else {
-      orphans.push(nodeId);
+    }
+  });
+
+  // --- Orphan list: root nodes with no children (truly unattached) ---
+  const orphans = [];
+  nodesMap.forEach((nodeData, nodeId) => {
+    if (!nodeData.parent_id || !nodesMap.has(nodeData.parent_id)) {
+      if (nodeData.children.length === 0) {
+        orphans.push(nodeId);
+      }
     }
   });
 

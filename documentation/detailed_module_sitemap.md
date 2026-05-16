@@ -627,7 +627,6 @@ documentation/
     ├── guide_maps.md                       <-- Map module layout & interaction
     ├── guide_security.md                   <-- Security protocols and auth overview
     ├── guide_style.md                      <-- UI / UX visual design guide
-    ├── guide_timeline.md                   <-- Timeline module layout & interaction
     └── guide_welcoming_robots.md           <-- SEO and AI accessibility standards
 
 Implementation plans are stored at the **project root** as standalone `.md` files:

@@ -1,28 +1,13 @@
 ---
 name: guide_frontend_appearance.md
-purpose: Visual ASCII representations of the public-facing Visualizations Module pages (ardor diagram, timeline, geographic maps)
-version: 1.0.0
-dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_style.md, guide_dashboard_appearance.md, guide_function.md, guide_maps.md, guide_timeline.md, visualizations_nomenclature.md]
+purpose: Visual ASCII representations of the public-facing Visualizations Module pages — Arbor diagram, Timeline, Maps
+version: 2.0.0
+dependencies: [detailed_module_sitemap.md, simple_module_sitemap.md, guide_style.md, guide_dashboard_appearance.md, guide_function.md, visualizations_nomenclature.md]
 ---
 
-# Guide to Page Appearance & Structural Layouts
+## 3.0 Visualizations Module — Public Frontend
 
-This document maintains visual ASCII blueprints for the various page templates defined in the CSS Architecture (`Module 4`). These diagrams dictate the HTML structural constraints (`div` / `grid` flow), ensuring consistent visual identity across the public-facing site. It is the source of truth for the appearance of the public facing pages.
-
-**Note:** The Admin Portal appearance will be documented separately in `guide_dashboard_appearance.md`.
-
----
-
-## 3.0 Visualizations Module
-**Scope:** Ardor diagram, Timeline chronological dots/progression, Map Geo-spatial layers.
-
-### 3.1 Visual Interactive Ardor Diagram 
-**Purpose:** Full-screen or large-canvas layouts for interactive evidence graph ('Ardor diagram') layout. 
-
-**Relevant Files:**
-- **HTML:** `frontend/pages/evidence.html`
-- **CSS:** `css/3.0_visualizations/frontend/ardor.css`, `css/1.0_foundation/grid.css`
-- **JS:** `js/3.0_visualizations/frontend/ardor_display.js`
+### 3.1 Arbor (Evidence) Diagram Page
 
 ```text
 +-------------------------------------------------------------------------+
@@ -33,14 +18,14 @@ This document maintains visual ASCII blueprints for the various page templates d
 |                     |                                                   |
 |  [Sidebar Nav]      |   +-------------------------------------------+   |
 |                     |   |                                           |   |
-|  - Records          |   |          [ MASSIVE CANVAS AREA ]          |   |
-|  - Evidence         |   |              (Renders Ardor)              |   |
+|  - Records          |   |          [ FULL-BLEED CANVAS ]            |   |
+|  - Evidence         |   |          (ardor-canvas-area)              |   |
 |  - Timeline         |   |                                           |   |
-|  - Maps             |   |   [Node A] --+-> [Node]                   |   |
+|  - Maps             |   |   [Root A] --+-> [Child 1]                |   |
 |  - Context          |   |              |                            |   |
-|  - Resources        |   |              +-> [Node]                   |   |
+|  - Resources        |   |              +-> [Child 2] --> [Leaf]     |   |
 |  - Debate           |   |                                           |   |
-|  - About            |   |-------------------------------------------|   |
+|  - About            |   |   [Root B] -------> [Child 3]             |   |
 |                     |   |                                           |   |
 |                     |   +-------------------------------------------+   |
 |                     |                                                   |
@@ -49,35 +34,27 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------------------------------------------------------+
 ```
 
-#### 3.1.1 Visual Interactive Ardor Diagram — Component Anatomy
-**Purpose:** Documents the internal structure of the recursive evidence tree ('Ardor diagram'), which utilizes a vertically stacked layout within the main content area.
+#### 3.1.1 Arbor Diagram — DOM Structure
 
-**Relevant Technical Files:**
-- **Structure:** `frontend/pages/evidence.html`
-- **Logic:** `js/3.0_visualizations/frontend/ardor_display.js`
-- **Styles:** `css/3.0_visualizations/frontend/ardor.css`
-
-**HTML DOM Structure:**
 ```text
-<main class="site-main is-full-bleed" id="site-main">
-└── <div class="diagram-layout">
-    │
-    ├── <div class="diagram-canvas-container">
-    │   └── <svg class="ardor-svg">          ← Dynamic D3/SVG canvas area
-    │       ├── <path class="ardor-edge">     ← Relationship connectors
-    │       └── <g class="ardor-node">        ← Data containers
-    │           ├── <rect>                   ← Node boundary
-    │           ├── <text class="title">     ← Record title
-    │           └── <text class="meta">      ← Record type/era
+<body data-sidebar-active-nav="evidence">
+└── <div class="page-shell" id="page-shell">
+    └── <main class="site-main is-full-bleed" id="site-main">
+        └── <div class="diagram-layout">
+            └── <div id="ardor-canvas-area">
+                └── <svg class="ardor-svg" viewBox="0 0 {width} {height}">
+                    ├── <defs>
+                    │   └── <marker id="arrow">          ← Arrow marker
+                    ├── <g class="ardor-edges">
+                    │   └── <path class="ardor-edge">    ← Cubic bezier connectors
+                    └── <g class="ardor-nodes">
+                        └── <g class="ardor-node" transform="translate(x,y)">
+                            ├── <rect width="200" height="50">
+                            ├── <text class="title">     ← Record title (max 28 chars)
+                            └── <text class="meta">      ← Verse reference
 ```
 
-### 3.2 Visual Interactive Timeline Display 
-**Purpose:** Full-screen or large-canvas layouts for interactive timeline layout. 
-
-**Relevant Files:**
-- **HTML:** `frontend/pages/timeline.html`
-- **CSS:** `css/3.0_visualizations/frontend/timeline.css`, `css/1.0_foundation/grid.css`
-- **JS:** `js/3.0_visualizations/frontend/timeline_display.js`
+### 3.2 Timeline Page
 
 ```text
 +-------------------------------------------------------------------------+
@@ -86,26 +63,35 @@ This document maintains visual ASCII blueprints for the various page templates d
 | [ Search Bar ]                                                          |
 |-------------------------------------------------------------------------|
 |                     |                                                   |
-|  [Sidebar Nav]      |   Interactive Historical Timeline                 |
-|                     |   Explore the chronological intersection...       |
-|  - Records          |                                                   |
-|  - Evidence         |   +-------------------------------------------+   |
-|  - Timeline         |   |                                           |   |
-|  - Maps             |   |          [ MASSIVE CANVAS AREA ]          |   |
-|  - Context          |   |              (Renders SVG)                |   |
-|  - Resources        |   |                                           |   |
-|  - Debate           |   |          *             *             *    |   |
-|  - About            |   |   ====[*]==========[*]===========[*]====  |   |
-|                     |   |    [Year 30]   [Year 33]     [Year 70]    |   |
+|  [Sidebar Nav]      |   Timeline                                        |
+|                     |   Explore historical evidence of Jesus in a        |
+|  - Records          |   chronological arrangement.                       |
+|  - Evidence         |                                                   |
+|  - Timeline         |   +-------------------------------------------+   |
+|  - Maps             |   |                                           |   |
+|  - Context          |   |  (Supernatural Cloud Y=50-150)            |   |
+|  - Resources        |   |       *        *     *                    |   |
+|  - Debate           |   |                                           |   |
+|  - About            |   |  =====[*][*][*]==[*]==[*][*]==[*]======   |   |
+|                     |   |  (Main Axis Y=300 — stacked columns)      |   |
+|                     |   |       [*]                                  |   |
 |                     |   |                                           |   |
-|                     |   |-------------------------------------------|   |
-|                     |   | [Zoom +/-]                                |   |
-|                     |   | [<< Prev Era][ Galilee Ministry ][Next >>]|   |
+|                     |   |          o       o                        |   |
+|                     |   |     o        o          o                 |   |
+|                     |   |  (Spiritual Scatter Y=360-500)            |   |
+|                     |   |                                           |   |
+|                     |   |  [axis labels below stacked nodes]        |   |
 |                     |   +-------------------------------------------+   |
 |                     |                                                   |
 |                     |   +-------------------------------------------+   |
-|                     |   | [METADATA PANEL]                          |   |
-|                     |   | Event / Year / Category / Link            |   |
+|                     |   | [Zoom In] [Zoom Out]                      |   |
+|                     |   | [<< Prev Era] [Galilee Ministry] [Next >>]|   |
+|                     |   +-------------------------------------------+   |
+|                     |                                                   |
+|                     |   +-------------------------------------------+   |
+|                     |   | [METADATA PANEL] (hidden until node click) |   |
+|                     |   | Title / Era > Timeline / Category / Verse  |   |
+|                     |   | Description snippet / View Full Record →   |   |
 |                     |   +-------------------------------------------+   |
 |                     |                                                   |
 |-------------------------------------------------------------------------|
@@ -113,47 +99,45 @@ This document maintains visual ASCII blueprints for the various page templates d
 +-------------------------------------------------------------------------+
 ```
 
-#### 3.2.1 Visual Interactive Timeline — Component Anatomy
-**Purpose:** Breakdown of the chronological timeline visualization, documenting the controls and the horizontally-scrolling canvas.
+#### 3.2.1 Timeline — DOM Structure
 
-**Relevant Technical Files:**
-- **Structure:** `frontend/pages/timeline.html`
-- **Logic:** `js/3.0_visualizations/frontend/timeline_display.js`
-- **Styles:** `css/3.0_visualizations/frontend/timeline.css`
-
-**HTML DOM Structure:**
 ```text
-<div class="timeline-interface-container" id="timeline-interface">
-│
-├── <div class="timeline-canvas-wrapper" id="timeline-canvas-wrapper">
-│   └── <svg id="interactive-timeline">       ← Massive horizontally-scrolling canvas
-│       ├── <g id="grid-layer">               ← Time markers and background
-│       ├── <line class="timeline-axis-line"> ← The central horizontal spine
-│       └── <g id="node-layer">               ← Interactive event dots (.timeline-node)
-│
-└── <div class="timeline-controls">
-    ├── <div class="timeline-actions">       ← Buttons: #zoom-in, #zoom-out
-    └── <div class="timeline-era-navigation"> ← Buttons: #prev-era, #next-era
+<body data-sidebar-active-nav="timeline">
+└── <div class="page-shell" id="page-shell">
+    └── <main class="site-main" id="site-main">
+        └── <div class="content-wrap grid-single">
+            ├── <header class="timeline-header">
+            │   ├── <h1 class="record-title">Timeline</h1>
+            │   └── <p class="record-primary-verse">
+            │
+            ├── <div class="timeline-interface-container" id="timeline-interface">
+            │   ├── <div class="timeline-canvas-wrapper" id="timeline-canvas-wrapper">
+            │   │   └── <svg id="interactive-timeline" viewBox="0 0 {dynamic} 600">
+            │   │       ├── <g id="grid-layer">
+            │   │       │   ├── <rect width="{dynamic}" height="600"> ← Background
+            │   │       │   └── <line class="timeline-axis-line">     ← Dashed axis at Y=300
+            │   │       ├── <g id="axis-markers-layer">               ← Stage labels
+            │   │       └── <g id="node-layer">                       ← Zone-classified circles
+            │   │
+            │   └── <div class="timeline-controls">
+            │       ├── <div class="timeline-actions">
+            │       │   ├── <button id="zoom-in">
+            │       │   └── <button id="zoom-out">
+            │       └── <div class="timeline-era-navigation">
+            │           ├── <button id="prev-era">
+            │           ├── <span id="current-era-display">
+            │           └── <button id="next-era">
+            │
+            └── <aside class="timeline-metadata-panel is-hidden" id="timeline-metadata-panel">
+                ├── <h2 id="metadata-title">
+                ├── <p id="metadata-date">              ← "Era/Timeline: {era} > {timeline}"
+                ├── <p id="metadata-category">          ← "Category: {category}"
+                ├── <p id="metadata-verse">             ← "{Book} {Ch}:{Vs}"
+                ├── <div id="metadata-snippet">         ← Description (max 200 chars)
+                └── <a id="metadata-link" href="/record/{slug}">
 ```
 
-**Metadata Display (Post-Click):**
-```text
-<aside class="timeline-metadata-panel" id="timeline-metadata-panel">
-    <h2 id="metadata-title">           ← Event name
-    <p id="metadata-date">             ← Precise historical year/era
-    <p id="metadata-category">         ← Category (biblical, secular, etc)
-    <p id="metadata-verse">            ← Primary biblical reference
-    <div id="metadata-snippet">        ← Event description
-    <a id="metadata-link">             ← Deep-link to record.html
-```
-
-### 3.3 Visual Interactive Geographic Maps
-**Purpose:** Interactive map layouts. 
-
-**Relevant Files:**
-- **HTML:** `frontend/pages/maps.html`, `frontend/pages/maps/map_jerusalem.html`, `frontend/pages/maps/map_empire.html`, `frontend/pages/maps/map_levant.html`, `frontend/pages/maps/map_galilee.html`, `frontend/pages/maps/map_judea.html`
-- **CSS:** `css/3.0_visualizations/frontend/maps.css`, `css/1.0_foundation/grid.css`
-- **JS:** `js/3.0_visualizations/frontend/maps_display.js`
+### 3.3 Maps Page
 
 ```text
 +-------------------------------------------------------------------------+
@@ -162,67 +146,81 @@ This document maintains visual ASCII blueprints for the various page templates d
 | [ Search Bar ]                                                          |
 |-------------------------------------------------------------------------|
 |                     |                                                   |
-|  [Sidebar Nav]      |   Interactive Geospatial Maps                     |
-|                     |   Explore the geography of historical events...    |
+|  [Sidebar Nav]      |   Maps                                            |
+|                     |   Explore the geography of the evidence for Jesus. |
 |  - Records          |                                                   |
 |  - Evidence         |   +-------------------------------------------+   |
 |  - Timeline         |   |                                           |   |
-|  - Maps             |   |              [ MAP AREA ]                 |   |
-|  - Context          |   |            (Renders Maps)                 |   |
-|  - Resources        |   |                                           |   |
-|  - Debate           |   |                    * [Node A]             |   |
-|  - About            |   |                 /                         |   |
-|                     |   |   * [Node B] -------- * [Node C]          |   |
+|  - Maps             |   |  [base-layer: placeholder geographic path] |   |
+|  - Context          |   |                                           |   |
+|  - Resources        |   |           JUDEA  (foundation-layer label)  |   |
+|  - Debate           |   |                                           |   |
+|  - About            |   |        * [node]     * [node]              |   |
+|                     |   |                  * [node]                  |   |
+|                     |   |     * [node]              * [node]         |   |
 |                     |   |                                           |   |
-|                     |   |-------------------------------------------|   |
-|                     |   | [Views: Empire, Judea, Galilee...] [+] [-]|   |
-|                     |   | Temporal Slider: [========] [30 AD]       |   |
 |                     |   +-------------------------------------------+   |
 |                     |                                                   |
 |                     |   +-------------------------------------------+   |
-|                     |   | [METADATA PANEL]                          |   |
-|                     |   | Date / Category / Snippet / Link          |   |
+|                     |   | (o)Empire (o)Levant (*)Judea               |   |
+|                     |   |           (o)Galilee (o)Jerusalem          |   |
+|                     |   | [+] [-] [Layers]                          |   |
+|                     |   | Temporal Slider: [========] [30 AD]        |   |
+|                     |   +-------------------------------------------+   |
+|                     |                                                   |
+|                     |   +-------------------------------------------+   |
+|                     |   | [METADATA PANEL] (hidden until node click) |   |
+|                     |   | Title / Era / Category / Verse / Snippet   |   |
+|                     |   | View Full Record →                         |   |
 |                     |   +-------------------------------------------+   |
 |                     |                                                   |
 |-------------------------------------------------------------------------|
 |  [Universal Footer]                                                     |
 +-------------------------------------------------------------------------+
+
+NOTE: Maps is a basic placeholder implementation. Node positions are
+deterministic pseudo-random (derived from record ID), not real coordinates.
+Geographic layers are static SVG paths, not actual cartographic data.
 ```
 
-#### 3.3.1 Visual Interactive Map — Component Anatomy
-**Purpose:** Detailed breakdown of the interactive geospatial map interface, including controls, canvas, and metadata display.
+#### 3.3.1 Maps — DOM Structure
 
-**Relevant Technical Files:**
-- **Structure:** `frontend/pages/maps.html`
-- **Logic:** `js/3.0_visualizations/frontend/maps_display.js`
-- **Styles:** `css/3.0_visualizations/frontend/maps.css`
-
-**HTML DOM Structure:**
 ```text
-<div class="map-interface-container" id="map-interface">
-│
-├── <div class="map-canvas-wrapper">
-│   └── <svg id="interactive-map">      ← Map vector canvas
-│       ├── <g id="base-layer">         ← Geographic outlines
-│       ├── <g id="foundation-layer">   ← Region labels
-│       └── <g id="node-layer">         ← Interactive data circles (.map-node)
-│
-└── <div class="map-controls">
-    ├── <div class="map-views">         ← Radio buttons: Empire, Levant, Judea...
-    ├── <div class="map-actions">       ← Buttons: #zoom-in, #zoom-out, #toggle-layers
-    └── <div class="map-era-slider">    ← Input: #era-filter + #era-display
+<body data-sidebar-active-nav="maps">
+└── <div class="page-shell" id="page-shell">
+    └── <main class="site-main" id="site-main">
+        └── <div class="content-wrap grid-single">
+            ├── <header class="map-header">
+            │   ├── <h1 class="record-title">Maps</h1>
+            │   └── <p class="record-primary-verse">
+            │
+            ├── <div class="map-interface-container" id="map-interface">
+            │   ├── <div class="map-canvas-wrapper" id="map-canvas-wrapper">
+            │   │   └── <svg id="interactive-map" viewBox="0 0 1000 800">
+            │   │       ├── <g id="base-layer">
+            │   │       │   ├── <rect width="1000" height="800">  ← Background
+            │   │       │   ├── <path ... opacity="0.3">          ← Placeholder geography
+            │   │       │   └── <path ... stroke-dasharray>       ← Border outline
+            │   │       ├── <g id="foundation-layer">
+            │   │       │   └── <text>JUDEA</text>                ← Region label
+            │   │       └── <g id="node-layer">                   ← Dynamic circles
+            │   │
+            │   └── <div class="map-controls">
+            │       ├── <div class="map-views">                   ← Radio buttons
+            │       │   (Empire | Levant | Judea[checked] | Galilee | Jerusalem)
+            │       ├── <div class="map-actions">
+            │       │   ├── <button id="zoom-in">+</button>
+            │       │   ├── <button id="zoom-out">-</button>
+            │       │   └── <button id="toggle-layers">Layers</button>
+            │       └── <div class="map-era-slider">
+            │           ├── <input type="range" id="era-filter" min="-100" max="100" value="30">
+            │           └── <span id="era-display">30 AD</span>
+            │
+            └── <aside class="map-metadata-panel is-hidden" id="map-metadata-panel">
+                ├── <h2 id="metadata-title">
+                ├── <p id="metadata-date">              ← "Era: {era}"
+                ├── <p id="metadata-category">          ← "Category: {category}"
+                ├── <p id="metadata-verse">             ← "{Book} {Ch}:{Vs}"
+                ├── <p id="metadata-snippet">           ← Description (max 160 chars)
+                └── <a id="metadata-link" href="/record/{slug}">
 ```
-
-**Metadata Display (Post-Click):**
-```text
-<aside class="map-metadata-panel" id="map-metadata-panel">
-    <h2 id="metadata-title">            ← Connected record title
-    <p id="metadata-date">              ← Period or Era from database
-    <p id="metadata-category">          ← Record category (event, person, etc)
-    <p id="metadata-verse">             ← Primary biblical reference
-    <p id="metadata-snippet">           ← Summary from database
-    <a href="#" id="metadata-link">     ← Deep-link to record.html
-```
-
----
-

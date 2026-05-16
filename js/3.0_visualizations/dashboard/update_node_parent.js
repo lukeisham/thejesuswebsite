@@ -198,9 +198,7 @@ function _rebuildTreeFromMap(nodesMap) {
     nodeData.children = [];
   });
 
-  // Build children lists and identify orphans
-  const orphans = [];
-
+  // Build children lists
   nodesMap.forEach((nodeData, nodeId) => {
     if (nodeData.parent_id && nodesMap.has(nodeData.parent_id)) {
       const parent = nodesMap.get(nodeData.parent_id);
@@ -208,9 +206,16 @@ function _rebuildTreeFromMap(nodesMap) {
         parent.children = [];
       }
       parent.children.push(nodeData);
-    } else {
-      // Root node or orphan (parent_id is null or parent not in map)
-      orphans.push(nodeId);
+    }
+  });
+
+  // Orphan pool: only root nodes (no parent) that also have NO children
+  const orphans = [];
+  nodesMap.forEach((nodeData, nodeId) => {
+    if (!nodeData.parent_id || !nodesMap.has(nodeData.parent_id)) {
+      if (nodeData.children.length === 0) {
+        orphans.push(nodeId);
+      }
     }
   });
 
