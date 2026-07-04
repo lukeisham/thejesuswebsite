@@ -1,0 +1,60 @@
+/* ==========================================================================
+   Breadcrumbs
+   Trailing slash-separated navigation path.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Breadcrumb Container
+   ------------------------------------------------------------------------- */
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: var(--text-small);
+  padding: var(--space-md) 0;
+}
+
+/* -------------------------------------------------------------------------
+   Breadcrumb Items
+   ------------------------------------------------------------------------- */
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.breadcrumb-item a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+.breadcrumb-item.current {
+  color: var(--text-primary);
+}
+
+/* -------------------------------------------------------------------------
+   Separator
+   ------------------------------------------------------------------------- */
+
+.breadcrumb-separator {
+  margin: 0 var(--space-sm);
+  color: var(--text-muted);
+  user-select: none;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive — truncate middle segments on mobile
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .breadcrumbs {
+    font-size: var(--text-xs);
+  }
+}

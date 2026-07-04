@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Challenge Detail
+   Challenge detail page layout, responses section, and response cards.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Challenge Detail Page
+   ------------------------------------------------------------------------- */
+
+.challenge-detail {
+  max-width: var(--measure-reading);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 var(--space-md);
+}
+
+.challenge-detail h1 {
+  margin-bottom: var(--space-sm);
+}
+
+.challenge-detail .badge {
+  margin-bottom: var(--space-lg);
+}
+
+.challenge-detail-body {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  line-height: var(--leading-body);
+}
+
+/* -------------------------------------------------------------------------
+   Responses Section
+   ------------------------------------------------------------------------- */
+
+.challenge-responses {
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.challenge-responses h2 {
+  margin-bottom: var(--space-lg);
+}
+
+/* -------------------------------------------------------------------------
+   Response Card (compact)
+   ------------------------------------------------------------------------- */
+
+.response-card {
+  padding: var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-md);
+}
+
+.response-card-title {
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.response-card-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}

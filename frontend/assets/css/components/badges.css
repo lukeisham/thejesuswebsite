@@ -1,0 +1,38 @@
+/* ==========================================================================
+   Badges
+   Content badges (public-facing) and status badges (admin-only).
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Content Badge
+   Used on evidence cards and detail pages for category, period, location.
+   ------------------------------------------------------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------
+   Status Badge (Admin only)
+   ------------------------------------------------------------------------- */
+
+.badge-published {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+  border-color: var(--success);
+}
+
+.badge-draft {
+  background: var(--admin-border, #DDE1E7);
+  color: var(--admin-text-secondary, #5A6472);
+  border-color: var(--admin-border, #DDE1E7);
+}

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en" class="admin-app">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin · Dashboard</title>
+        <link rel="stylesheet" href="assets/css/admin.css" />
+        <script defer src="assets/js/auth.js"></script>
+        <script defer src="assets/js/admin.js"></script>
+    </head>
+    <body>
+        <div class="admin-shell">
+            <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+            <nav class="admin-sidebar">
+                <div class="admin-sidebar__brand">⚡ Admin</div>
+                <div class="admin-sidebar__nav">
+                    <a
+                        class="admin-sidebar__link admin-sidebar__link--active"
+                        href="index.html"
+                    >
+                        <span class="admin-sidebar__icon">📊</span> Dashboard
+                    </a>
+                    <a class="admin-sidebar__link" href="drafts/index.html">
+                        <span class="admin-sidebar__icon">📝</span> Drafts
+                    </a>
+                    <a class="admin-sidebar__link" href="evidence/index.html">
+                        <span class="admin-sidebar__icon">📋</span> Evidence
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="collections/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📁</span> Collections
+                    </a>
+                    <a class="admin-sidebar__link" href="resources/index.html">
+                        <span class="admin-sidebar__icon">📚</span> Resources
+                    </a>
+                    <a class="admin-sidebar__link" href="wikipedia/index.html">
+                        <span class="admin-sidebar__icon">📖</span> Wikipedia
+                    </a>
+                    <a class="admin-sidebar__link" href="essays/index.html">
+                        <span class="admin-sidebar__icon">✍️</span> Essays
+                    </a>
+                    <a class="admin-sidebar__link" href="debate/index.html">
+                        <span class="admin-sidebar__icon">🗣️</span> Debate
+                    </a>
+                    <a class="admin-sidebar__link" href="historiography/index.html">
+                        <span class="admin-sidebar__icon">🏛️</span> Historiography
+                    </a>
+                    <a class="admin-sidebar__link" href="blog/index.html">
+                        <span class="admin-sidebar__icon">📰</span> Blog
+                    </a>
+                    <a class="admin-sidebar__link" href="news/index.html">
+                        <span class="admin-sidebar__icon">📡</span> News
+                    </a>
+                    <a class="admin-sidebar__link" href="diagrams/maps.html">
+                        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+                    </a>
+                    <a class="admin-sidebar__link" href="diagrams/arbor.html">
+                        <span class="admin-sidebar__icon">🌳</span> Arbor Editor
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="diagrams/timeline.html"
+                    >
+                        <span class="admin-sidebar__icon">⏳</span> Timeline
+                        Editor
+                    </a>
+                    <a class="admin-sidebar__link" href="analytics.html">
+                        <span class="admin-sidebar__icon">📈</span> Analytics
+                    </a>
+                    <a class="admin-sidebar__link" href="settings/index.html">
+                        <span class="admin-sidebar__icon">⚙️</span> Settings
+                    </a>
+                </div>
+                <div class="admin-sidebar__bottom">
+                    <a class="admin-sidebar__link" href="auth/login.html">
+                        <span class="admin-sidebar__icon">🚪</span> Logout
+                    </a>
+                </div>
+            </nav>
+
+            <!-- ── Topbar ───────────────────────────────────────────────────────── -->
+            <header class="admin-topbar">
+                <h1 class="admin-topbar__title">Dashboard</h1>
+                <div class="admin-topbar__actions">
+                    <a
+                        class="admin-btn admin-btn--primary admin-btn--sm"
+                        href="drafts/new.html"
+                        >+ New Draft</a
+                    >
+                </div>
+            </header>
+
+            <!-- ── Main Content ─────────────────────────────────────────────────── -->
+            <main class="admin-main" id="dashboard-content">
+                <div class="admin-loading">Loading dashboard…</div>
+            </main>
+        </div>
+
+        <!-- ── Inline page script ────────────────────────────────────────────── -->
+        <script>
+            (async function () {
+                const main = document.getElementById("dashboard-content");
+
+                // Guard: redirect if not authenticated
+                const ok = await AdminAuth.requireSession();
+                if (!ok) {
+                    main.innerHTML =
+                        '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
+                    return;
+                }
+
+                try {
+                    // Fetch all dashboard data in parallel
+                    const [
+                        draftCounts,
+                        evidenceData,
+                        blogData,
+                        analyticsData,
+                        draftsData,
+                    ] = await Promise.all([
+                        Admin.api.get("/drafts/counts").catch(function () {
+                            return {};
+                        }),
+                        Admin.api.get("/evidence").catch(function () {
+                            return [];
+                        }),
+                        Admin.api.get("/blog-posts").catch(function () {
+                            return [];
+                        }),
+                        Admin.api.get("/analytics").catch(function () {
+                            return {};
+                        }),
+                        Admin.api.get("/drafts").catch(function () {
+                            return [];
+                        }),
+                    ]);
+
+                    main.innerHTML = "";
+
+                    // ── Stat cards ─────────────────────────────────────────────────
+
+                    // Published evidence count
+                    const evidenceCount = Array.isArray(evidenceData)
+                        ? evidenceData.length
+                        : 0;
+
+                    // Pending drafts: sum up all draft-type counts
+                    var pendingDrafts = 0;
+                    if (draftCounts && typeof draftCounts === "object") {
+                        Object.keys(draftCounts).forEach(function (key) {
+                            pendingDrafts += Number(draftCounts[key]) || 0;
+                        });
+                    }
+
+                    // Blog post count
+                    const blogCount = Array.isArray(blogData)
+                        ? blogData.length
+                        : 0;
+
+                    // 7-day page views from analytics
+                    var pageViews7d = 0;
+                    if (analyticsData && analyticsData.stats) {
+                        var pvStat = analyticsData.stats.find(function (s) {
+                            return (
+                                s.label &&
+                                s.label.toLowerCase().indexOf("page view") !==
+                                    -1
+                            );
+                        });
+                        if (pvStat) pageViews7d = pvStat.value;
+                        // Fallback: sum up pageViews if available
+                        if (!pageViews7d && analyticsData.pageViews) {
+                            analyticsData.pageViews.forEach(function (pv) {
+                                pageViews7d += Number(pv.views) || 0;
+                            });
+                        }
+                    }
+
+                    var stats = [
+                        { label: "Published Evidence", value: evidenceCount },
+                        { label: "Pending Drafts", value: pendingDrafts },
+                        { label: "Blog Posts", value: blogCount },
+                        { label: "7-Day Page Views", value: pageViews7d },
+                    ];
+
+                    var cardGrid = document.createElement("div");
+                    cardGrid.className = "admin-card-grid";
+
+                    stats.forEach(function (s) {
+                        var card = document.createElement("div");
+                        card.className = "admin-card admin-card--stat";
+
+                        var val = document.createElement("div");
+                        val.className = "admin-card__stat-value";
+                        val.textContent = Admin.formatNumber(s.value);
+
+                        var lbl = document.createElement("div");
+                        lbl.className = "admin-card__stat-label";
+                        lbl.textContent = s.label;
+
+                        card.appendChild(val);
+                        card.appendChild(lbl);
+                        cardGrid.appendChild(card);
+                    });
+
+                    main.appendChild(cardGrid);
+
+                    // ── Quick-action buttons ────────────────────────────────────────
+
+                    var actions = document.createElement("div");
+                    actions.style.cssText =
+                        "margin-top:var(--space-lg);display:flex;gap:var(--space-sm);flex-wrap:wrap;";
+
+                    var newEvidence = document.createElement("a");
+                    newEvidence.className = "admin-btn admin-btn--primary";
+                    newEvidence.href = "drafts/new.html";
+                    newEvidence.textContent = "New Evidence Draft";
+                    actions.appendChild(newEvidence);
+
+                    var newBlog = document.createElement("a");
+                    newBlog.className = "admin-btn admin-btn--secondary";
+                    newBlog.href = "blog/new.html";
+                    newBlog.textContent = "New Blog Post";
+                    actions.appendChild(newBlog);
+
+                    main.appendChild(actions);
+
+                    // ── Recent drafts table (top 10) ────────────────────────────────
+
+                    var recentSection = document.createElement("div");
+                    recentSection.style.marginTop = "var(--space-xl)";
+
+                    var recentTitle = document.createElement("h3");
+                    recentTitle.className = "analytics-section__title";
+                    recentTitle.textContent = "Recent Drafts";
+                    recentSection.appendChild(recentTitle);
+
+                    if (Array.isArray(draftsData) && draftsData.length > 0) {
+                        var wrapper = document.createElement("div");
+                        wrapper.className = "admin-table-wrapper";
+
+                        var table = document.createElement("table");
+                        table.className = "admin-table";
+
+                        // Header
+                        var thead = document.createElement("thead");
+                        var hRow = document.createElement("tr");
+                        ["Title", "Type", "Status", "Updated"].forEach(
+                            function (label) {
+                                var th = document.createElement("th");
+                                th.textContent = label;
+                                hRow.appendChild(th);
+                            },
+                        );
+                        thead.appendChild(hRow);
+                        table.appendChild(thead);
+
+                        // Body — show up to 10
+                        var tbody = document.createElement("tbody");
+                        var top10 = draftsData.slice(0, 10);
+                        top10.forEach(function (d) {
+                            var tr = document.createElement("tr");
+
+                            var tdTitle = document.createElement("td");
+                            tdTitle.textContent =
+                                d.title || d.heading || "(untitled)";
+                            tr.appendChild(tdTitle);
+
+                            var tdType = document.createElement("td");
+                            tdType.appendChild(
+                                Admin.typeBadge(d.type || "draft"),
+                            );
+                            tr.appendChild(tdType);
+
+                            var tdStatus = document.createElement("td");
+                            tdStatus.appendChild(
+                                Admin.statusBadge(d.published_draft),
+                            );
+                            tr.appendChild(tdStatus);
+
+                            var tdDate = document.createElement("td");
+                            tdDate.textContent = Admin.formatDate(
+                                d.updated_at || d.created_at,
+                            );
+                            tr.appendChild(tdDate);
+
+                            tbody.appendChild(tr);
+                        });
+
+                        table.appendChild(tbody);
+                        wrapper.appendChild(table);
+                        recentSection.appendChild(wrapper);
+                    } else {
+                        var empty = document.createElement("p");
+                        empty.className = "admin-text--muted";
+                        empty.textContent = "No drafts yet.";
+                        recentSection.appendChild(empty);
+                    }
+
+                    main.appendChild(recentSection);
+                } catch (err) {
+                    main.innerHTML =
+                        '<div class="admin-error" role="alert">' +
+                        err.message +
+                        "</div>";
+                }
+            })();
+        </script>
+    </body>
+</html>

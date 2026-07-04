@@ -1,0 +1,26 @@
+/* ==========================================================================
+   Journal Article — Two-Column Layout
+   Style_guide.md §9: at ≥1280px, journal articles flagged with .two-column
+   render the body in two CSS columns. The title block and abstract live
+   outside .journal-body so they stay single-column with no extra rule.
+   ========================================================================== */
+
+@media (min-width: 1280px) {
+    .journal-article.two-column .journal-body {
+        max-width: none;
+        column-count: 2;
+        column-gap: var(--space-2xl);
+        column-rule: 1px solid var(--border);
+    }
+
+    .journal-article.two-column .journal-body h2,
+    .journal-article.two-column .journal-body h3,
+    .journal-article.two-column .journal-body h4 {
+        column-span: none;
+    }
+
+    .journal-article.two-column .journal-body figure,
+    .journal-article.two-column .journal-body blockquote {
+        column-span: all;
+    }
+}

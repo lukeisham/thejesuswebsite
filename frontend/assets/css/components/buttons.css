@@ -1,0 +1,108 @@
+/* ==========================================================================
+   Buttons
+   Primary, secondary, ghost variants with size modifiers.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Base Button
+   ------------------------------------------------------------------------- */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-small);
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+        background-color var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+    min-height: 44px;
+    min-width: 44px;
+    text-decoration: none;
+    border: none;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* -------------------------------------------------------------------------
+   Primary
+   ------------------------------------------------------------------------- */
+
+.btn-primary {
+    background: var(--accent);
+    color: var(--color-white);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:hover {
+    background: var(--link-hover);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* -------------------------------------------------------------------------
+   Secondary (outline)
+   ------------------------------------------------------------------------- */
+
+.btn-secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-surface-alt);
+}
+
+/* -------------------------------------------------------------------------
+   Ghost (text only)
+   ------------------------------------------------------------------------- */
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+    color: var(--link-hover);
+    text-decoration: underline;
+    background: transparent;
+    transform: none;
+}
+
+/* -------------------------------------------------------------------------
+   Size Variants
+   ------------------------------------------------------------------------- */
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: var(--text-xs);
+    min-height: 36px;
+}
+
+.btn-lg {
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--text-body);
+}
+
+/* -------------------------------------------------------------------------
+   Disabled
+   ------------------------------------------------------------------------- */
+
+.btn:disabled,
+.btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}

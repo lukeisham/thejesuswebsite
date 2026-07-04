@@ -1,0 +1,144 @@
+/* ==========================================================================
+   Print Styles
+   Triggered by the "Print / Save as PDF" footer action.
+   Renders content in academic research paper format (§12).
+   ========================================================================== */
+
+@media print {
+    /* -----------------------------------------------------------------------
+     Reset to black-on-white academic style
+     ----------------------------------------------------------------------- */
+
+    body {
+        background: var(--color-white);
+        color: var(--color-black);
+        font-family: Georgia, serif;
+        font-size: 11pt;
+        line-height: 1.5;
+        margin: 2cm;
+    }
+
+    h1 {
+        font-size: 14pt;
+    }
+    h2,
+    h3 {
+        font-size: 12pt;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: var(--color-black);
+        font-weight: bold;
+    }
+
+    /* -----------------------------------------------------------------------
+     Hide non-content elements
+     ----------------------------------------------------------------------- */
+
+    .navigation,
+    .sidebar,
+    .site-footer,
+    .page-info-row,
+    .filters,
+    .related-items,
+    .metadata-panel,
+    .toasts,
+    .modal,
+    .drawer,
+    .skip-link,
+    .invisible-header,
+    button,
+    .search-bar,
+    nav {
+        display: none;
+    }
+
+    /* -----------------------------------------------------------------------
+     Links — plain text, no underlines, no URLs
+     ----------------------------------------------------------------------- */
+
+    a {
+        color: var(--color-black);
+        text-decoration: none;
+    }
+
+    a[href]::after {
+        content: none;
+    }
+
+    /* -----------------------------------------------------------------------
+     Images
+     ----------------------------------------------------------------------- */
+
+    img {
+        display: inline;
+        max-width: 100%;
+    }
+
+    /* -----------------------------------------------------------------------
+     Verse blocks
+     ----------------------------------------------------------------------- */
+
+    .verse-block {
+        margin-left: 1.5cm;
+        background: none;
+        border-left: 2px solid #888888;
+    }
+
+    /* -----------------------------------------------------------------------
+     Figures with captions
+     ----------------------------------------------------------------------- */
+
+    figure {
+        border: none;
+        border-radius: 0;
+    }
+
+    figcaption {
+        font-size: 9pt;
+        font-style: italic;
+        color: var(--color-black);
+    }
+
+    /* -----------------------------------------------------------------------
+     Breakout / side content — inline indented, no background
+     ----------------------------------------------------------------------- */
+
+    .breakout {
+        background: none;
+        border-left: 3px solid #888888;
+    }
+
+    /* -----------------------------------------------------------------------
+     Shadows, radius, backgrounds — all removed
+     ----------------------------------------------------------------------- */
+
+    * {
+        box-shadow: none;
+        border-radius: 0;
+        background-color: transparent;
+    }
+
+    /* -----------------------------------------------------------------------
+     Page breaks
+     ----------------------------------------------------------------------- */
+
+    .page-break-before {
+        page-break-before: always;
+    }
+
+    .page-break-inside-avoid {
+        page-break-inside: avoid;
+    }
+
+    .card,
+    .verse-block,
+    figure {
+        page-break-inside: avoid;
+    }
+}

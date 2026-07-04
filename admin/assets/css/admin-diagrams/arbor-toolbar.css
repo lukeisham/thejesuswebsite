@@ -1,0 +1,79 @@
+/* ==========================================================================
+   Arbor Toolbar (Admin)
+   Top bar + toolbar for the admin arbor diagram editor.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Top Bar
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-topbar {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-xl);
+    background: var(--admin-surface);
+    border-bottom: 1px solid var(--admin-border);
+    flex-wrap: wrap;
+}
+.admin-arbor-topbar h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    margin: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Toolbar
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-xl);
+    background: var(--admin-bg);
+    border-bottom: 1px solid var(--admin-border);
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+.admin-arbor-toolbar__left,
+.admin-arbor-toolbar__right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+.admin-arbor-toolbar__btn {
+    padding: var(--space-xs) var(--space-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    cursor: pointer;
+    min-height: 36px;
+    background: var(--admin-surface);
+    color: var(--admin-text-primary);
+    transition: background var(--admin-transition);
+}
+.admin-arbor-toolbar__btn--primary {
+    background: var(--admin-accent);
+    color: var(--admin-accent-text);
+    border-color: var(--admin-accent);
+}
+.admin-arbor-toolbar__btn--primary:hover {
+    background: var(--admin-accent-hover);
+}
+.admin-arbor-toolbar__btn--active {
+    background: var(--admin-accent-hover);
+    color: var(--admin-accent-text);
+    border-color: var(--admin-accent-hover);
+}
+.admin-arbor-toolbar__select {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.875rem;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    background: var(--admin-surface);
+    color: var(--admin-text-primary);
+    min-height: 36px;
+}

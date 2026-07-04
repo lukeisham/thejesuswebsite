@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" class="admin-app">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debate Responses — Admin</title>
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <script defer src="../assets/js/auth.js"></script>
+  <script defer src="../assets/js/admin.js"></script>
+  <style>
+    .admin-loading,
+    .admin-empty,
+    .admin-error {
+      padding: var(--space-xl);
+      text-align: center;
+      color: var(--admin-text-muted);
+      font-size: 14px;
+    }
+    .admin-error { color: var(--admin-danger); }
+  </style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <nav class="admin-sidebar" aria-label="Admin navigation">
+    <div class="admin-sidebar__brand">⚡ Admin</div>
+    <div class="admin-sidebar__nav">
+      <a class="admin-sidebar__link" href="../index.html">
+        <span class="admin-sidebar__icon">📊</span> Dashboard
+      </a>
+      <a class="admin-sidebar__link" href="../drafts/index.html">
+        <span class="admin-sidebar__icon">📝</span> Drafts
+      </a>
+      <a class="admin-sidebar__link" href="../evidence/index.html">
+        <span class="admin-sidebar__icon">📋</span> Evidence
+      </a>
+      <a class="admin-sidebar__link" href="../collections/index.html">
+        <span class="admin-sidebar__icon">📁</span> Collections
+      </a>
+      <a class="admin-sidebar__link" href="../resources/index.html">
+        <span class="admin-sidebar__icon">📚</span> Resources
+      </a>
+      <a class="admin-sidebar__link" href="../wikipedia/index.html">
+        <span class="admin-sidebar__icon">📖</span> Wikipedia
+      </a>
+      <a class="admin-sidebar__link" href="../essays/index.html">
+        <span class="admin-sidebar__icon">✍️</span> Essays
+      </a>
+      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
+        <span class="admin-sidebar__icon">🗣️</span> Debate
+      </a>
+      <a class="admin-sidebar__link" href="../historiography/index.html">
+        <span class="admin-sidebar__icon">🏛️</span> Historiography
+      </a>
+      <a class="admin-sidebar__link" href="../blog/index.html">
+        <span class="admin-sidebar__icon">📰</span> Blog
+      </a>
+      <a class="admin-sidebar__link" href="../news/index.html">
+        <span class="admin-sidebar__icon">📡</span> News
+      </a>
+      <a class="admin-sidebar__link" href="../diagrams/maps.html">
+        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+      </a>
+      <a class="admin-sidebar__link" href="../analytics.html">
+        <span class="admin-sidebar__icon">📈</span> Analytics
+      </a>
+      <a class="admin-sidebar__link" href="../settings/index.html">
+        <span class="admin-sidebar__icon">⚙️</span> Settings
+      </a>
+    </div>
+    <div class="admin-sidebar__bottom">
+      <a class="admin-sidebar__link" href="../auth/login.html">
+        <span class="admin-sidebar__icon">🚪</span> Logout
+      </a>
+    </div>
+  </nav>
+
+  <header class="admin-topbar">
+    <h1 class="admin-topbar__title">Debate Responses</h1>
+    <div class="admin-topbar__actions">
+      <a class="admin-btn admin-btn--primary admin-btn--sm" href="new.html">+ New Response</a>
+    </div>
+  </header>
+
+  <main class="admin-main" id="debate-content">
+    <div class="admin-loading" id="debate-loading" role="status">Loading responses…</div>
+  </main>
+
+</div>
+
+<script>
+  (async function () {
+    var main = document.getElementById('debate-content');
+    var loadingEl = document.getElementById('debate-loading');
+
+    var ok = await AdminAuth.requireSession();
+    if (!ok) {
+      main.innerHTML = '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
+      return;
+    }
+
+    try {
+      var responses = await Admin.api.get('/responses');
+      main.removeChild(loadingEl);
+
+      if (!Array.isArray(responses) || responses.length === 0) {
+        var emptyEl = document.createElement('div');
+        emptyEl.className = 'admin-empty';
+        emptyEl.setAttribute('role', 'status');
+        emptyEl.textContent = 'No debate responses yet.';
+        main.appendChild(emptyEl);
+        return;
+      }
+
+      responses.sort(function (a, b) {
+        return (b.created_at || '').localeCompare(a.created_at || '');
+      });
+
+      var wrapper = document.createElement('div');
+      wrapper.className = 'admin-table-wrapper';
+
+      var table = document.createElement('table');
+      table.className = 'admin-table';
+
+      var thead = document.createElement('thead');
+      var hRow = document.createElement('tr');
+      ['Title', 'Challenge', 'Created', 'Status', 'Edit'].forEach(function (label) {
+        var th = document.createElement('th');
+        th.textContent = label;
+        hRow.appendChild(th);
+      });
+      thead.appendChild(hRow);
+      table.appendChild(thead);
+
+      var tbody = document.createElement('tbody');
+
+      responses.forEach(function (r) {
+        var tr = document.createElement('tr');
+
+        var tdTitle = document.createElement('td');
+        var link = document.createElement('a');
+        link.href = 'edit-[id].html?id=' + r.id;
+        link.textContent = r.response_title || r.slug || '(untitled)';
+        link.style.cssText = 'color:var(--admin-accent);text-decoration:none;font-weight:500;';
+        tdTitle.appendChild(link);
+        tr.appendChild(tdTitle);
+
+        var tdChallenge = document.createElement('td');
+        tdChallenge.textContent = r.challenge_id ? 'Challenge #' + r.challenge_id : '\u2014';
+        tr.appendChild(tdChallenge);
+
+        var tdDate = document.createElement('td');
+        tdDate.textContent = Admin.formatDate(r.created_at);
+        tr.appendChild(tdDate);
+
+        var tdStatus = document.createElement('td');
+        tdStatus.appendChild(Admin.statusBadge(r.published_draft));
+        tr.appendChild(tdStatus);
+
+        var tdEdit = document.createElement('td');
+        var editBtn = document.createElement('a');
+        editBtn.className = 'admin-btn admin-btn--sm admin-btn--secondary';
+        editBtn.href = 'edit-[id].html?id=' + r.id;
+        editBtn.textContent = 'Edit';
+        tdEdit.appendChild(editBtn);
+        tr.appendChild(tdEdit);
+
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      wrapper.appendChild(table);
+      main.appendChild(wrapper);
+
+    } catch (err) {
+      if (loadingEl) loadingEl.remove();
+      var errorEl = document.createElement('div');
+      errorEl.className = 'admin-error';
+      errorEl.setAttribute('role', 'alert');
+      errorEl.textContent = 'Failed to load responses: ' + err.message;
+      main.appendChild(errorEl);
+    }
+  })();
+</script>
+</body>
+</html>

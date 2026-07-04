@@ -1,0 +1,132 @@
+/* ==========================================================================
+   Layout Grid & Container
+   12-column CSS Grid system and max-width container.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Container
+   ------------------------------------------------------------------------- */
+
+.container {
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    padding-left: var(--space-xl);
+    padding-right: var(--space-xl);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Grid (12-column)
+   ------------------------------------------------------------------------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--grid-gutter);
+}
+
+/* Columns */
+
+.col-1  { grid-column: span 1; }
+.col-2  { grid-column: span 2; }
+.col-3  { grid-column: span 3; }
+.col-4  { grid-column: span 4; }
+.col-5  { grid-column: span 5; }
+.col-6  { grid-column: span 6; }
+.col-7  { grid-column: span 7; }
+.col-8  { grid-column: span 8; }
+.col-9  { grid-column: span 9; }
+.col-10 { grid-column: span 10; }
+.col-11 { grid-column: span 11; }
+.col-12 { grid-column: span 12; }
+
+/* -------------------------------------------------------------------------
+   Card Grid (auto-fill, responsive)
+   ------------------------------------------------------------------------- */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--card-gap);
+}
+
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Reading Column (centred, capped for readability)
+   ------------------------------------------------------------------------- */
+
+.reading-column {
+  max-width: var(--measure-reading);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 var(--space-md);
+}
+
+.reading-column-wide {
+  max-width: var(--measure-reading-wide);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 var(--space-md);
+}
+
+@media (min-width: 1536px) {
+  .reading-column {
+    max-width: var(--measure-reading-wide);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   List Column (centred, wider than reading)
+   ------------------------------------------------------------------------- */
+
+.list-column {
+  max-width: var(--measure-list);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Full-Width Breakout
+   ------------------------------------------------------------------------- */
+
+.full-width {
+  width: 100%;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive Column Reset
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .col-1, .col-2, .col-3, .col-4,
+  .col-5, .col-6, .col-7, .col-8,
+  .col-9, .col-10, .col-11, .col-12 {
+    grid-column: span 12;
+  }
+}

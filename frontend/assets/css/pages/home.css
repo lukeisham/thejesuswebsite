@@ -1,0 +1,97 @@
+/* ==========================================================================
+   Home Page
+   Hero, site title / tagline, stacked content sections.
+   No footer. Sidebar closed by default.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Hero Image
+   ------------------------------------------------------------------------- */
+
+.home-hero {
+    width: 100%;
+}
+
+.home-hero img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* -------------------------------------------------------------------------
+   Title Block
+   ------------------------------------------------------------------------- */
+
+.home-title-block {
+    text-align: center;
+    padding: var(--space-3xl) var(--space-lg);
+}
+
+.home-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-h1);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.home-tagline {
+    font-family: var(--font-heading);
+    font-size: var(--text-h3);
+    color: var(--text-secondary);
+    margin-top: var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Content Sections
+   ------------------------------------------------------------------------- */
+
+.home-section {
+    padding: var(--space-3xl) var(--space-md);
+    text-align: center;
+}
+
+.home-section + .home-section {
+    border-top: 1px solid var(--border);
+}
+
+.home-section-title {
+    font-size: var(--text-h2);
+    margin-bottom: var(--space-lg);
+}
+
+.home-section-body {
+    max-width: var(--measure-reading);
+    margin-left: auto;
+    margin-right: auto;
+    font-size: var(--text-body);
+    color: var(--text-secondary);
+    line-height: var(--leading-body);
+}
+
+.home-section-body p + p {
+    margin-top: var(--space-lg);
+}
+
+/* -------------------------------------------------------------------------
+   CTA Banner
+   ------------------------------------------------------------------------- */
+
+.home-cta {
+    text-align: center;
+    padding: var(--space-3xl) var(--space-md);
+    background: var(--bg-surface-alt);
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .home-title {
+        font-size: var(--text-h2);
+    }
+
+    .home-section {
+        padding: var(--space-2xl) var(--space-md);
+    }
+}

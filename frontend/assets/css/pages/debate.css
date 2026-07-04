@@ -1,0 +1,31 @@
+/* ==========================================================================
+   Debate & Discussion
+   Landing page for debate section (challenge lists).
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Debate Page Header
+   ------------------------------------------------------------------------- */
+
+.debate-header {
+  margin-bottom: var(--space-xl);
+}
+
+.debate-header h1 {
+  margin-bottom: var(--space-sm);
+}
+
+.debate-header p {
+  color: var(--text-secondary);
+  max-width: var(--measure-reading);
+}
+
+/* -------------------------------------------------------------------------
+   Challenge List Links (section navigation cards)
+   ------------------------------------------------------------------------- */
+
+.debate-section-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--card-gap);
+}

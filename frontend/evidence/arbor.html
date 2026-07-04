@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Arbor Diagram — The Jesus Website</title>
+        <meta
+            name="description"
+            content="Explore the relationships between historical evidence through an interactive node-edge diagram."
+        />
+
+        <link
+            rel="icon"
+            href="/assets/images/favicon.png"
+            type="image/png
+        />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link
+            rel="apple-touch-icon"
+            href="/assets/images/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/assets/images/site.webmanifest" />
+
+        <!-- CSS (HTML-4: CSS in <head>) -->
+        <link rel="stylesheet" href="/assets/css/base/variables.css" />
+        <link rel="stylesheet" href="/assets/css/base/reset.css" />
+        <link rel="stylesheet" href="/assets/css/base/typography.css" />
+        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" />
+        <link rel="stylesheet" href="/assets/css/base/animations.css" />
+        <link rel="stylesheet" href="/assets/css/layout/grid.css" />
+        <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
+        <link rel="stylesheet" href="/assets/css/layout/footer.css" />
+        <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
+        <link rel="stylesheet" href="/assets/css/components/icons.css" />
+        <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+        <link rel="stylesheet" href="/assets/css/components/loading.css" />
+        <link rel="stylesheet" href="/assets/css/components/empty-states.css" />
+        <link rel="stylesheet" href="/assets/css/components/toasts.css" />
+        <link rel="stylesheet" href="/assets/css/pages/arbor.css" />
+
+        <link
+            rel="preload"
+            as="image"
+            href="/assets/images/feather-sprite.svg"
+            fetchpriority="high"
+        />
+    </head>
+    <body>
+        <header class="sr-only">
+            <a class="skip-link" href="#main-content">Skip to content</a>
+            <h1>Arbor Diagram — The Jesus Website</h1>
+        </header>
+
+        <div class="sidebar-backdrop" hidden></div>
+        <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+            <button
+                class="sidebar__toggle"
+                id="sidebar-toggle"
+                aria-expanded="true"
+                aria-label="Toggle navigation"
+            >
+                <svg width="20" height="20" aria-hidden="true">
+                    <use href="/assets/images/feather-sprite.svg#icon-menu" />
+                </svg>
+            </button>
+            <ul class="sidebar__nav">
+                <li class="nav-item"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+                <li class="nav-item">
+                    <a href="/evidence/search.html">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/arbor.html">Arbor Diagram</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/timeline/">Timeline</a>
+                </li>
+                <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+                <li class="nav-item">
+                    <a href="/contextual-essays/">Context</a>
+                </li>
+                <li class="nav-item"><a href="/debate/">Debate</a></li>
+                <li class="nav-item"><a href="/resources/">Resources</a></li>
+                <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+                <li class="nav-item"><a href="/about.html">About</a></li>
+            </ul>
+        </nav>
+
+        <main id="main-content">
+            <!-- Page header -->
+            <div class="arbor-header">
+                <h2>Arbor Diagram</h2>
+                <p class="arbor-description">
+                    See how the evidence connects — people, events, places, and
+                    texts mapped in relationship.
+                </p>
+            </div>
+
+            <!-- Loading spinner -->
+            <div class="loading" id="loading-state">
+                <svg
+                    class="loading__spinner"
+                    width="24"
+                    height="24"
+                    aria-hidden="true"
+                >
+                    <use href="/assets/images/feather-sprite.svg#icon-loader" />
+                </svg>
+                <span class="loading__text">Loading diagram&hellip;</span>
+            </div>
+
+            <!-- Empty state -->
+            <div class="empty-state" id="empty-state" hidden>
+                <p class="empty-state-message">No arbor nodes to display.</p>
+            </div>
+
+            <!-- Arbor canvas -->
+            <div class="arbor-canvas" id="arbor-canvas" hidden>
+                <div class="arbor-diagram" id="arbor-diagram">
+                    <svg class="arbor-edges" id="arbor-edges"></svg>
+                </div>
+
+                <!-- Zoom controls: zoom in and out only (per content guide) -->
+                <div
+                    class="arbor-controls"
+                    id="arbor-controls"
+                    role="toolbar"
+                    aria-label="Zoom controls"
+                >
+                    <button
+                        class="btn btn--secondary"
+                        id="zoom-out"
+                        aria-label="Zoom out"
+                    >
+                        <svg width="20" height="20" aria-hidden="true">
+                            <use
+                                href="/assets/images/feather-sprite.svg#icon-zoom-out"
+                            />
+                        </svg>
+                    </button>
+                    <button
+                        class="btn btn--secondary"
+                        id="zoom-in"
+                        aria-label="Zoom in"
+                    >
+                        <svg width="20" height="20" aria-hidden="true">
+                            <use
+                                href="/assets/images/feather-sprite.svg#icon-zoom-in"
+                            />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Arbor tooltip -->
+            <div
+                class="arbor-tooltip"
+                id="arbor-tooltip"
+                hidden
+                role="tooltip"
+            ></div>
+        </main>
+
+        <footer>
+            <div class="footer__left">
+                <p>
+                    &copy; The Jesus Website. Content available under licence.
+                </p>
+            </div>
+            <div class="footer__right">
+                <button
+                    class="btn btn--ghost"
+                    data-action="print"
+                    aria-label="Print page"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-printer"
+                        />
+                    </svg>
+                    Print
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-contents"
+                    aria-label="Copy page contents"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-copy"
+                        />
+                    </svg>
+                    Copy Contents
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-url"
+                    aria-label="Copy page URL"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-link"
+                        />
+                    </svg>
+                    Copy URL
+                </button>
+            </div>
+        </footer>
+
+        <!-- Scripts at bottom with defer (HTML-4) -->
+        <script
+            type="module"
+            src="/assets/js/arbor/arbor-data.js"
+            defer
+        ></script>
+        <script
+            type="module"
+            src="/assets/js/arbor/arbor-render.js"
+            defer
+        ></script>
+        <script
+            type="module"
+            src="/assets/js/arbor/arbor-interactions.js"
+            defer
+        ></script>
+        <script type="module" src="/assets/js/main.js" defer></script>
+    </body>
+</html>

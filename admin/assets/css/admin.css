@@ -1,0 +1,42 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin CSS Entry Point
+   CSS-12: @import cascade — mirroring frontend main.css pattern.
+   Order: tokens → reset → typography → layout → components → pages
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+@import "./admin-base/variables.css";
+@import "./admin-base/reset.css";
+@import "./admin-base/typography.css";
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+@import "./admin-layout/sidebar.css";
+@import "./admin-layout/grid.css";
+
+/* ── Components ───────────────────────────────────────────────────────────── */
+@import "./admin-components/buttons.css";
+@import "./admin-components/forms.css";
+@import "./admin-components/tables.css";
+@import "./admin-components/modals.css";
+@import "./admin-components/cards.css";
+
+/* ── Pages ────────────────────────────────────────────────────────────────── */
+@import "./analytics.css";
+
+/* ── Diagrams ─────────────────────────────────────────────────────────────── */
+@import "./admin-diagrams/arbor-toolbar.css";
+@import "./admin-diagrams/arbor-canvas.css";
+@import "./admin-diagrams/arbor-zoom.css";
+@import "./admin-diagrams/arbor-panel.css";
+@import "./admin-diagrams/arbor-panel-form.css";
+@import "./admin-diagrams/arbor-search.css";
+@import "./admin-diagrams/timeline-toolbar.css";
+@import "./admin-diagrams/timeline-canvas.css";
+@import "./admin-diagrams/timeline-controls.css";
+@import "./admin-diagrams/timeline-panel.css";
+@import "./admin-diagrams/timeline-panel-form.css";
+@import "./admin-diagrams/timeline-search.css";
+@import "./admin-diagrams/maps-toolbar.css";
+@import "./admin-diagrams/maps-canvas.css";
+@import "./admin-diagrams/maps-panel.css";
+@import "./admin-diagrams/maps-panel-form.css";

@@ -1,0 +1,118 @@
+/* ==========================================================================
+   News Articles
+   Curated external link metadata pages.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   News Page
+   ------------------------------------------------------------------------- */
+
+.news-article {
+  max-width: var(--measure-narrow);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Back Link
+   ------------------------------------------------------------------------- */
+
+.news-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  margin-bottom: var(--space-lg);
+}
+
+.news-back-link:hover {
+  color: var(--link-hover);
+}
+
+/* -------------------------------------------------------------------------
+   Header
+   ------------------------------------------------------------------------- */
+
+.news-header {
+  margin-bottom: var(--space-xl);
+}
+
+.news-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.news-meta {
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------------
+   External Link Row (main action)
+   ------------------------------------------------------------------------- */
+
+.news-source-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-xl);
+}
+
+.news-source-link-label {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+}
+
+.news-source-link a {
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--link);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.news-source-link a:hover {
+  color: var(--link-hover);
+}
+
+/* -------------------------------------------------------------------------
+   Summary
+   ------------------------------------------------------------------------- */
+
+.news-summary {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  line-height: var(--leading-body);
+}
+
+/* -------------------------------------------------------------------------
+   Keywords
+   ------------------------------------------------------------------------- */
+
+.news-keywords {
+  margin-top: var(--space-lg);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .news-title {
+    font-size: var(--text-h2);
+  }
+}

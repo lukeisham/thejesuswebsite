@@ -1,0 +1,23 @@
+/* ==========================================================================
+   Donation
+   Placeholder styles for the donation portal widget slot.
+   The widget itself provides its own styles — this file is a style hook
+   for the container and any surrounding layout only.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Donation Container
+   ------------------------------------------------------------------------- */
+
+.donation-container {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: var(--space-xl) var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   The widget itself is styled by the portal provider.
+   This empty file reserves the stylesheet for future widget-scoped
+   overrides if needed (e.g., spacing adjustments, theme integration).
+   ------------------------------------------------------------------------- */

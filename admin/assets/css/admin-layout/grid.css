@@ -1,0 +1,64 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Shell & Grid Layouts
+   CSS-5: Grid shell, topbar, main area, form grid
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shell ────────────────────────────────────────────────────────────────── */
+
+.admin-shell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+    background: var(--admin-bg);
+}
+
+/* ── Topbar ───────────────────────────────────────────────────────────────── */
+
+.admin-topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--admin-surface);
+    border-bottom: 1px solid var(--admin-border);
+    min-height: 56px;
+    gap: var(--space-md);
+}
+
+.admin-topbar__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--admin-text-primary);
+}
+
+.admin-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* ── Main Content ─────────────────────────────────────────────────────────── */
+
+.admin-main {
+    grid-column: 2;
+    padding: var(--space-lg);
+    overflow-y: auto;
+}
+
+/* ── Two-Column Form Grid (edit pages) ────────────────────────────────────── */
+
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: var(--space-lg);
+}
+
+.admin-form-grid__main {
+    min-width: 0;
+}
+
+.admin-form-grid__sidebar {
+    min-width: 0;
+}

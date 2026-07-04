@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Evidence Pages
+   Overview list and single evidence detail.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Evidence Overview / List
+   ------------------------------------------------------------------------- */
+
+.evidence-list-header {
+  margin-bottom: var(--space-xl);
+}
+
+.evidence-list-header h1 {
+  margin-bottom: var(--space-sm);
+}
+
+.evidence-list-header p {
+  color: var(--text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Evidence Detail Page
+   ------------------------------------------------------------------------- */
+
+.evidence-detail {
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Hero */
+.evidence-hero {
+  padding: var(--space-2xl) var(--space-md);
+  text-align: center;
+}
+
+.evidence-hero-title {
+  font-size: var(--text-h1);
+  margin-bottom: var(--space-md);
+}
+
+.evidence-hero-verse {
+  font-family: var(--font-mono);
+  font-size: var(--text-h4);
+  color: var(--text-secondary);
+}
+
+/* Content Sections */
+.evidence-section {
+  padding: var(--space-xl) var(--space-md);
+}
+
+.evidence-section + .evidence-section {
+  border-top: 1px solid var(--border);
+}
+
+.evidence-section h2 {
+  margin-bottom: var(--space-md);
+}
+
+/* Page Info Row (metadata panels below content) */
+.page-info-row {
+  background: var(--bg-surface-alt);
+  border-top: 1px solid var(--border);
+  padding: var(--space-xl) var(--space-lg);
+  margin-top: var(--space-2xl);
+}
+
+.page-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-lg);
+}
+
+.page-info-panel-title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-sm);
+}
+
+.page-info-panel-content {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .page-info-row {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .page-info-grid {
+    grid-template-columns: 1fr;
+  }
+}

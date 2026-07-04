@@ -1,0 +1,53 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Cards
+   CSS-10: Base card, stat card, card grid. Under 60 lines.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+
+.admin-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border-light);
+    border-radius: var(--admin-radius);
+    padding: var(--space-lg);
+    box-shadow: var(--admin-shadow);
+}
+
+/* ── Card Header/Title ────────────────────────────────────────────────────── */
+
+.admin-card__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--admin-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: var(--space-sm);
+}
+
+/* ── Stat Card ────────────────────────────────────────────────────────────── */
+
+.admin-card--stat {
+    text-align: center;
+    padding: var(--space-lg) var(--space-md);
+}
+
+.admin-card__stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--admin-accent);
+    line-height: 1.2;
+    margin-bottom: var(--space-xs);
+}
+
+.admin-card__stat-label {
+    font-size: 13px;
+    color: var(--admin-text-muted);
+}
+
+/* ── Card Grid ────────────────────────────────────────────────────────────── */
+
+.admin-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-md);
+}

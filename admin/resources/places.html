@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en" class="admin-app">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Places — Admin</title>
+        <link rel="stylesheet" href="../assets/css/admin.css" />
+        <script defer src="../assets/js/auth.js"></script>
+        <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-ranking.js"></script>
+        <style>
+            .admin-loading,
+            .admin-empty,
+            .admin-error {
+                padding: var(--space-xl);
+                text-align: center;
+                color: var(--admin-text-muted);
+                font-size: 14px;
+            }
+            .admin-error {
+                color: var(--admin-danger);
+            }
+            .admin-resources-header {
+                display: flex;
+                align-items: flex-end;
+                gap: var(--space-md);
+                margin-bottom: var(--space-lg);
+                flex-wrap: wrap;
+            }
+            .admin-resources-header .admin-form-group {
+                margin-bottom: 0;
+                min-width: 220px;
+            }
+            .draggable-row {
+                display: flex;
+                align-items: center;
+                gap: var(--space-sm);
+                padding: var(--space-sm) var(--space-md);
+                background: var(--admin-surface);
+                border: 1px solid var(--admin-border-light);
+                border-radius: var(--admin-radius);
+                margin-bottom: var(--space-xs);
+                transition:
+                    box-shadow var(--admin-transition),
+                    opacity var(--admin-transition);
+            }
+            .draggable-row.dragging {
+                opacity: 0.85;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            }
+            .draggable-row.drop-target {
+                box-shadow: 0 0 0 2px var(--admin-accent);
+            }
+            .drag-handle {
+                cursor: grab;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                color: var(--admin-text-muted);
+                font-size: 18px;
+                border-radius: var(--admin-radius-sm);
+                flex-shrink: 0;
+                user-select: none;
+                background: transparent;
+                border: none;
+                padding: 0;
+                touch-action: none;
+            }
+            .drag-handle:hover {
+                background: var(--admin-surface-hover);
+                color: var(--admin-text-primary);
+            }
+            .drag-handle:focus-visible {
+                outline: 2px solid var(--admin-accent);
+                outline-offset: 2px;
+            }
+            .draggable-row.dragging .drag-handle {
+                cursor: grabbing;
+            }
+            .resource-fields {
+                display: flex;
+                gap: var(--space-sm);
+                flex: 1;
+                min-width: 0;
+                flex-wrap: wrap;
+            }
+            .resource-fields input {
+                flex: 1;
+                min-width: 120px;
+            }
+            .resource-actions {
+                display: flex;
+                gap: var(--space-xs);
+                flex-shrink: 0;
+            }
+            .admin-save-bar {
+                display: flex;
+                gap: var(--space-sm);
+                margin-top: var(--space-md);
+                align-items: center;
+            }
+            #resource-status {
+                font-size: 13px;
+                color: var(--admin-text-secondary);
+            }
+        </style>
+    </head>
+    <body data-resource-category="places">
+        <div class="admin-shell">
+            <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+            <nav class="admin-sidebar" aria-label="Admin navigation">
+                <div class="admin-sidebar__brand">⚡ Admin</div>
+                <div class="admin-sidebar__nav">
+                    <a class="admin-sidebar__link" href="../index.html">
+                        <span class="admin-sidebar__icon">📊</span> Dashboard
+                    </a>
+                    <a class="admin-sidebar__link" href="../drafts/index.html">
+                        <span class="admin-sidebar__icon">📝</span> Drafts
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../evidence/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📋</span> Evidence
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../collections/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📁</span> Collections
+                    </a>
+                    <a
+                        class="admin-sidebar__link admin-sidebar__link--active"
+                        href="index.html"
+                    >
+                        <span class="admin-sidebar__icon">📚</span> Resources
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../wikipedia/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📖</span> Wikipedia
+                    </a>
+                    <a class="admin-sidebar__link" href="../essays/index.html">
+                        <span class="admin-sidebar__icon">✍️</span> Essays
+                    </a>
+                    <a class="admin-sidebar__link" href="../debate/index.html">
+                        <span class="admin-sidebar__icon">🗣️</span> Debate
+                    </a>
+      <a class="admin-sidebar__link" href="../historiography/index.html">
+        <span class="admin-sidebar__icon">🏛️</span> Historiography
+      </a>
+                    <a class="admin-sidebar__link" href="../blog/index.html">
+                        <span class="admin-sidebar__icon">📰</span> Blog
+                    </a>
+                    <a class="admin-sidebar__link" href="../news/index.html">
+                        <span class="admin-sidebar__icon">📡</span> News
+                    </a>
+                    <a class="admin-sidebar__link" href="../diagrams/maps.html">
+                        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+                    </a>
+                    <a class="admin-sidebar__link" href="../analytics.html">
+                        <span class="admin-sidebar__icon">📈</span> Analytics
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../settings/index.html"
+                    >
+                        <span class="admin-sidebar__icon">⚙️</span> Settings
+                    </a>
+                </div>
+                <div class="admin-sidebar__bottom">
+                    <a class="admin-sidebar__link" href="../auth/login.html">
+                        <span class="admin-sidebar__icon">🚪</span> Logout
+                    </a>
+                </div>
+            </nav>
+
+            <!-- ── Topbar ───────────────────────────────────────────────────────── -->
+            <header class="admin-topbar">
+                <h1 class="admin-topbar__title">Places</h1>
+            </header>
+
+            <!-- ── Main Content ─────────────────────────────────────────────────── -->
+            <main class="admin-main" id="resources-content">
+                <div class="admin-loading" role="status">Loading…</div>
+            </main>
+        </div>
+
+        <script>
+            (async function () {
+                const main = document.getElementById("resources-content");
+
+                const ok = await AdminAuth.requireSession();
+                if (!ok) {
+                    main.innerHTML =
+                        '<div class="admin-error" role="alert">Unable to verify session.</div>';
+                    return;
+                }
+
+                const VALID_LIST_KEYS = [
+                    "sermons-and-sayings",
+                    "parables",
+                    "objects",
+                    "people",
+                    "sites",
+                    "ot-verses",
+                    "internal-witnesses",
+                    "external-witnesses",
+                    "places",
+                    "world-events",
+                    "miracles",
+                    "events",
+                    "apologetics",
+                    "manuscripts",
+                    "sources",
+                ];
+
+                var currentListKey = null;
+                var resources = [];
+                var isDirty = false;
+
+                function showError(msg) {
+                    var el = document.getElementById("global-error");
+                    if (!el) {
+                        el = document.createElement("div");
+                        el.className = "admin-error";
+                        el.id = "global-error";
+                        el.setAttribute("role", "alert");
+                        el.setAttribute("aria-live", "assertive");
+                        el.style.marginBottom = "var(--space-md)";
+                        main.insertBefore(el, main.firstChild);
+                    }
+                    el.textContent = msg;
+                    el.style.display = "block";
+                }
+
+                function clearError() {
+                    var el = document.getElementById("global-error");
+                    if (el) {
+                        el.style.display = "none";
+                        el.textContent = "";
+                    }
+                }
+
+                function render() {
+                    main.innerHTML = "";
+
+                    // Header: list key selector + add button
+                    var header = document.createElement("div");
+                    header.className = "admin-resources-header";
+
+                    var keyGroup = document.createElement("div");
+                    keyGroup.className = "admin-form-group";
+                    keyGroup.innerHTML =
+                        '<label class="admin-form-group__label" for="list-key-select">Resource List</label>' +
+                        '<select class="admin-select" id="list-key-select">' +
+                        '<option value="">— Select a list —</option>' +
+                        VALID_LIST_KEYS.map(function (k) {
+                            return (
+                                '<option value="' +
+                                k +
+                                '.html"' +
+                                (currentListKey === k ? " selected" : "") +
+                                ">" +
+                                k +
+                                "</option>"
+                            );
+                        }).join("") +
+                        "</select>";
+                    header.appendChild(keyGroup);
+
+                    var addBtn = document.createElement("button");
+                    addBtn.type = "button";
+                    addBtn.className =
+                        "admin-btn admin-btn--sm admin-btn--primary";
+                    addBtn.textContent = "+ Add Item";
+                    addBtn.id = "btn-add-item";
+                    addBtn.disabled = !currentListKey;
+                    header.appendChild(addBtn);
+
+                    main.appendChild(header);
+
+                    if (!currentListKey) {
+                        var hint = document.createElement("p");
+                        hint.className = "admin-text--muted";
+                        hint.style.cssText =
+                            "font-size:13px;margin-top:var(--space-sm);";
+                        hint.textContent =
+                            "Select a resource list above to manage its items.";
+                        main.appendChild(hint);
+                        return;
+                    }
+
+                    // Status bar
+                    var statusBar = document.createElement("div");
+                    statusBar.className = "admin-save-bar";
+                    statusBar.style.marginBottom = "var(--space-md)";
+
+                    var saveBtn = document.createElement("button");
+                    saveBtn.type = "button";
+                    saveBtn.className =
+                        "admin-btn admin-btn--sm admin-btn--secondary";
+                    saveBtn.id = "btn-save-all";
+                    saveBtn.textContent = "Save All Changes";
+
+                    var statusEl = document.createElement("span");
+                    statusEl.id = "resource-status";
+                    statusEl.setAttribute("role", "status");
+                    statusEl.setAttribute("aria-live", "polite");
+
+                    statusBar.appendChild(saveBtn);
+                    statusBar.appendChild(statusEl);
+                    main.appendChild(statusBar);
+
+                    // Rankable container
+                    var listContainer = document.createElement("div");
+                    listContainer.id = "resource-list";
+                    listContainer.setAttribute("role", "list");
+                    listContainer.setAttribute(
+                        "aria-label",
+                        "Resources for " + currentListKey,
+                    );
+
+                    if (resources.length === 0) {
+                        var emptyEl = document.createElement("div");
+                        emptyEl.className = "admin-empty";
+                        emptyEl.setAttribute("role", "status");
+                        emptyEl.textContent =
+                            'No resources in this list. Click "+ Add Item" to create one.';
+                        listContainer.appendChild(emptyEl);
+                    } else {
+                        resources.forEach(function (r, idx) {
+                            var row = buildRow(r, idx);
+                            listContainer.appendChild(row);
+                        });
+                    }
+
+                    main.appendChild(listContainer);
+
+                    // Bind ranking
+                    AdminRanking.init("#resource-list", {
+                        itemSelector: ".draggable-row",
+                        handleSelector: ".drag-handle",
+                        save: async function (orders) {
+                            isDirty = true;
+                            // Update sort_order on each resource
+                            for (var i = 0; i < orders.length; i++) {
+                                var res = resources.find(function (r) {
+                                    return r.id === orders[i].id;
+                                });
+                                if (res) res.sort_order = orders[i].sort_order;
+                            }
+                            // Re-sort resources array to match DOM order
+                            resources.sort(function (a, b) {
+                                var aIdx = orders.findIndex(function (o) {
+                                    return o.id === a.id;
+                                });
+                                var bIdx = orders.findIndex(function (o) {
+                                    return o.id === b.id;
+                                });
+                                return aIdx - bIdx;
+                            });
+                            statusEl.textContent =
+                                "Order changed — click Save All to persist.";
+                            statusEl.style.color = "var(--admin-warning)";
+                        },
+                    });
+
+                    // ── Event handlers ───────────────────────────────────────────────
+                    document
+                        .getElementById("list-key-select")
+                        .addEventListener("change", function () {
+                            var val = this.value;
+                            if (val) {
+                                window.location.href = val;
+                            }
+                        });
+
+                    document
+                        .getElementById("btn-add-item")
+                        .addEventListener("click", function () {
+                            var newId = "new_" + Date.now();
+                            var newResource = {
+                                id: newId,
+                                list_key: currentListKey,
+                                resource_title: "",
+                                resource_url: "",
+                                resource_description: "",
+                                sort_order: resources.length,
+                                published_draft: 0,
+                                _isNew: true,
+                            };
+                            resources.push(newResource);
+                            isDirty = true;
+                            render();
+                        });
+
+                    document
+                        .getElementById("btn-save-all")
+                        .addEventListener("click", function () {
+                            saveAllChanges();
+                        });
+
+                    // Event delegation for row actions
+                    document
+                        .getElementById("resource-list")
+                        .addEventListener("click", function (e) {
+                            var delBtn = e.target.closest(
+                                ".btn-delete-resource",
+                            );
+                            if (!delBtn) return;
+                            e.preventDefault();
+                            var row = delBtn.closest(".draggable-row");
+                            if (!row) return;
+                            var id = row.dataset.id;
+
+                            // Find the resource
+                            var res = resources.find(function (r) {
+                                return String(r.id) === id;
+                            });
+                            if (!res) return;
+
+                            if (res._isNew) {
+                                // Just remove from array and DOM
+                                resources = resources.filter(function (r) {
+                                    return r.id !== id;
+                                });
+                                row.remove();
+                                isDirty = true;
+                            } else {
+                                // Confirm deletion via API
+                                if (
+                                    !confirm(
+                                        'Delete resource "' +
+                                            (res.resource_title || "untitled") +
+                                            '"?',
+                                    )
+                                )
+                                    return;
+                                deleteResource(res.id, row);
+                            }
+                        });
+
+                    // ── Save logic ───────────────────────────────────────────────────
+                    async function deleteResource(id, rowEl) {
+                        try {
+                            await Admin.api.del("/resources/" + id);
+                            resources = resources.filter(function (r) {
+                                return r.id !== id;
+                            });
+                            if (rowEl) rowEl.remove();
+                            statusEl.textContent = "Resource deleted.";
+                            statusEl.style.color = "var(--admin-success)";
+                        } catch (err) {
+                            showError("Failed to delete: " + err.message);
+                        }
+                    }
+
+                    async function saveAllChanges() {
+                        clearError();
+                        var saveBtn = document.getElementById("btn-save-all");
+                        saveBtn.disabled = true;
+                        statusEl.textContent = "Saving…";
+                        statusEl.style.color = "var(--admin-text-secondary)";
+
+                        var successCount = 0;
+                        var failCount = 0;
+
+                        // Read current values from DOM for each row
+                        var rows = document.querySelectorAll(".draggable-row");
+                        rows.forEach(function (row, idx) {
+                            var id = row.dataset.id;
+                            var res = resources.find(function (r) {
+                                return String(r.id) === id;
+                            });
+                            if (!res) return;
+
+                            // Read from inputs
+                            var titleInput = row.querySelector(".res-title");
+                            var urlInput = row.querySelector(".res-url");
+                            var descInput = row.querySelector(".res-desc");
+
+                            if (titleInput)
+                                res.resource_title = titleInput.value.trim();
+                            if (urlInput)
+                                res.resource_url = urlInput.value.trim();
+                            if (descInput)
+                                res.resource_description =
+                                    descInput.value.trim();
+                            res.sort_order = idx;
+                        });
+
+                        // Persist each resource
+                        var tempIdMap = {};
+                        for (var i = 0; i < resources.length; i++) {
+                            var r = resources[i];
+                            var payload = {
+                                list_key: r.list_key,
+                                resource_title: r.resource_title || "Untitled",
+                                resource_url: r.resource_url || undefined,
+                                resource_description:
+                                    r.resource_description || undefined,
+                                sort_order: r.sort_order,
+                                published_draft: r.published_draft,
+                            };
+
+                            try {
+                                if (r._isNew) {
+                                    var tempId = String(r.id);
+                                    var created = await Admin.api.post(
+                                        "/resources",
+                                        payload,
+                                    );
+                                    tempIdMap[tempId] = created.id;
+                                    r.id = created.id;
+                                    r._isNew = false;
+                                } else {
+                                    await Admin.api.put(
+                                        "/resources/" + r.id,
+                                        payload,
+                                    );
+                                }
+                                successCount++;
+                            } catch (err) {
+                                failCount++;
+                                console.error(
+                                    "Save failed for resource:",
+                                    r,
+                                    err,
+                                );
+                            }
+                        }
+
+                        // Update temp IDs in the DOM so rows keep their identity
+                        Object.keys(tempIdMap).forEach(function (tempId) {
+                            var rowEl = document.querySelector(
+                                '.draggable-row[data-id="' + tempId + '"]',
+                            );
+                            if (rowEl) rowEl.dataset.id = tempIdMap[tempId];
+                        });
+
+                        isDirty = false;
+                        saveBtn.disabled = false;
+                        statusEl.textContent =
+                            "Saved: " +
+                            successCount +
+                            " succeeded" +
+                            (failCount > 0
+                                ? ", " + failCount + " failed"
+                                : "") +
+                            ".";
+                        statusEl.style.color =
+                            failCount > 0
+                                ? "var(--admin-danger)"
+                                : "var(--admin-success)";
+                    }
+                }
+
+                function buildRow(r, idx) {
+                    var row = document.createElement("div");
+                    row.className = "draggable-row";
+                    row.dataset.id = r.id;
+                    row.setAttribute("role", "listitem");
+
+                    // Drag handle
+                    var handle = document.createElement("button");
+                    handle.type = "button";
+                    handle.className = "drag-handle";
+                    handle.setAttribute("aria-label", "Drag to reorder");
+                    handle.setAttribute("tabindex", "0");
+                    handle.textContent = "⠿";
+                    row.appendChild(handle);
+
+                    // Fields
+                    var fields = document.createElement("div");
+                    fields.className = "resource-fields";
+
+                    var titleInput = document.createElement("input");
+                    titleInput.type = "text";
+                    titleInput.className = "admin-input res-title";
+                    titleInput.value = r.resource_title || "";
+                    titleInput.placeholder = "Title";
+                    titleInput.setAttribute("aria-label", "Resource title");
+                    fields.appendChild(titleInput);
+
+                    var urlInput = document.createElement("input");
+                    urlInput.type = "url";
+                    urlInput.className = "admin-input res-url";
+                    urlInput.value = r.resource_url || "";
+                    urlInput.placeholder = "URL (optional)";
+                    urlInput.setAttribute("aria-label", "Resource URL");
+                    fields.appendChild(urlInput);
+
+                    var descInput = document.createElement("input");
+                    descInput.type = "text";
+                    descInput.className = "admin-input res-desc";
+                    descInput.value = r.resource_description || "";
+                    descInput.placeholder = "Description (optional)";
+                    descInput.setAttribute(
+                        "aria-label",
+                        "Resource description",
+                    );
+                    fields.appendChild(descInput);
+
+                    row.appendChild(fields);
+
+                    // Actions
+                    var actions = document.createElement("div");
+                    actions.className = "resource-actions";
+
+                    var delBtn = document.createElement("button");
+                    delBtn.type = "button";
+                    delBtn.className =
+                        "admin-btn admin-btn--sm admin-btn--danger btn-delete-resource";
+                    delBtn.textContent = "✕";
+                    delBtn.setAttribute("aria-label", "Delete resource");
+                    actions.appendChild(delBtn);
+
+                    row.appendChild(actions);
+
+                    // Mark dirty on input change
+                    [titleInput, urlInput, descInput].forEach(function (inp) {
+                        inp.addEventListener("input", function () {
+                            isDirty = true;
+                        });
+                    });
+
+                    return row;
+                }
+
+                async function loadResources(listKey) {
+                    try {
+                        resources = await Admin.api.get(
+                            "/resources?list_key=" +
+                                encodeURIComponent(listKey),
+                        );
+                        if (!Array.isArray(resources)) resources = [];
+                        resources.sort(function (a, b) {
+                            return (a.sort_order || 0) - (b.sort_order || 0);
+                        });
+                        return true;
+                    } catch (err) {
+                        showError("Failed to load resources: " + err.message);
+                        resources = [];
+                        return false;
+                    }
+                }
+
+                // ── Boot ──────────────────────────────────────────────────────────
+                currentListKey = document.body.dataset.resourceCategory || null;
+                if (currentListKey) {
+                    await loadResources(currentListKey);
+                }
+                render();
+
+                // Warn before leaving with unsaved changes
+                window.addEventListener("beforeunload", function (e) {
+                    if (isDirty) {
+                        e.preventDefault();
+                        e.returnValue = "You have unsaved changes.";
+                    }
+                });
+            })();
+        </script>
+    </body>
+</html>

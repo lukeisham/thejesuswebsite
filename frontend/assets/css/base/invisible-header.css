@@ -1,0 +1,44 @@
+/* ==========================================================================
+   Invisible Header — SEO & Accessibility
+   Provides a visually hidden <header> for document structure, a skip-link
+   for keyboard users, and breadcrumb JSON-LD injection point.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Skip Link
+   Appears on keyboard focus only — top-left of the viewport.
+   ------------------------------------------------------------------------- */
+
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: var(--space-md);
+    z-index: 1000;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--accent);
+    color: var(--color-white);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-small);
+    font-weight: 500;
+    text-decoration: none;
+    transition: top var(--duration-fast) var(--ease-out);
+}
+
+.skip-link:focus {
+    top: var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Visually Hidden Header
+   Zero visual footprint — contains the true <h1> for each page so visible
+   headings can begin at <h2> without duplicating the page title.
+   ------------------------------------------------------------------------- */
+
+.invisible-header {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}

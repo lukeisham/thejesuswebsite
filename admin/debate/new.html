@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en" class="admin-app">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Response — Admin</title>
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <script defer src="../assets/js/auth.js"></script>
+  <script defer src="../assets/js/admin.js"></script>
+  <style>
+    .admin-form-actions {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-lg);
+      padding-top: var(--space-md);
+      border-top: 1px solid var(--admin-border-light);
+    }
+    .admin-form-card {
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-border-light);
+      border-radius: var(--admin-radius);
+      padding: var(--space-lg);
+    }
+    .admin-form-card__title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--admin-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: var(--space-md);
+    }
+    .admin-checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .admin-checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--admin-accent);
+    }
+    .admin-checkbox-group label {
+      font-size: 14px;
+      color: var(--admin-text-primary);
+      cursor: pointer;
+    }
+    .admin-error {
+      padding: var(--space-md);
+      color: var(--admin-danger);
+      background: rgba(220,53,69,0.08);
+      border: 1px solid rgba(220,53,69,0.2);
+      border-radius: var(--admin-radius);
+      margin-bottom: var(--space-md);
+    }
+  </style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <nav class="admin-sidebar" aria-label="Admin navigation">
+    <div class="admin-sidebar__brand">⚡ Admin</div>
+    <div class="admin-sidebar__nav">
+      <a class="admin-sidebar__link" href="../index.html">
+        <span class="admin-sidebar__icon">📊</span> Dashboard
+      </a>
+      <a class="admin-sidebar__link" href="../drafts/index.html">
+        <span class="admin-sidebar__icon">📝</span> Drafts
+      </a>
+      <a class="admin-sidebar__link" href="../evidence/index.html">
+        <span class="admin-sidebar__icon">📋</span> Evidence
+      </a>
+      <a class="admin-sidebar__link" href="../collections/index.html">
+        <span class="admin-sidebar__icon">📁</span> Collections
+      </a>
+      <a class="admin-sidebar__link" href="../resources/index.html">
+        <span class="admin-sidebar__icon">📚</span> Resources
+      </a>
+      <a class="admin-sidebar__link" href="../wikipedia/index.html">
+        <span class="admin-sidebar__icon">📖</span> Wikipedia
+      </a>
+      <a class="admin-sidebar__link" href="../essays/index.html">
+        <span class="admin-sidebar__icon">✍️</span> Essays
+      </a>
+      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
+        <span class="admin-sidebar__icon">🗣️</span> Debate
+      </a>
+      <a class="admin-sidebar__link" href="../historiography/index.html">
+        <span class="admin-sidebar__icon">🏛️</span> Historiography
+      </a>
+      <a class="admin-sidebar__link" href="../blog/index.html">
+        <span class="admin-sidebar__icon">📰</span> Blog
+      </a>
+      <a class="admin-sidebar__link" href="../news/index.html">
+        <span class="admin-sidebar__icon">📡</span> News
+      </a>
+      <a class="admin-sidebar__link" href="../diagrams/maps.html">
+        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+      </a>
+      <a class="admin-sidebar__link" href="../analytics.html">
+        <span class="admin-sidebar__icon">📈</span> Analytics
+      </a>
+      <a class="admin-sidebar__link" href="../settings/index.html">
+        <span class="admin-sidebar__icon">⚙️</span> Settings
+      </a>
+    </div>
+    <div class="admin-sidebar__bottom">
+      <a class="admin-sidebar__link" href="../auth/login.html">
+        <span class="admin-sidebar__icon">🚪</span> Logout
+      </a>
+    </div>
+  </nav>
+
+  <header class="admin-topbar">
+    <h1 class="admin-topbar__title">New Response</h1>
+    <div class="admin-topbar__actions">
+      <a class="admin-btn admin-btn--sm admin-btn--ghost" href="index.html">← Back to Debate</a>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <div id="form-error" class="admin-error" style="display:none" role="alert" aria-live="assertive"></div>
+
+    <form id="new-response-form" class="admin-form-grid" novalidate>
+
+      <div class="admin-form-grid__main">
+        <div class="admin-form-card">
+          <div class="admin-form-card__title">Content</div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="response-title">Title <span aria-hidden="true">*</span></label>
+            <input class="admin-input" id="response-title" name="response_title" type="text" required
+                   aria-describedby="title-hint title-error"
+                   placeholder="e.g. Response to the Minimal Facts Argument">
+            <span class="admin-form-hint" id="title-hint">The response title shown in headings and search results.</span>
+            <span class="admin-form-hint" id="title-error" style="display:none;color:var(--admin-danger)" role="alert"></span>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="response-slug">Slug <span aria-hidden="true">*</span></label>
+            <input class="admin-input" id="response-slug" name="slug" type="text" required
+                   aria-describedby="slug-hint slug-error"
+                   placeholder="e.g. response-minimal-facts">
+            <span class="admin-form-hint" id="slug-hint">URL-friendly identifier. Auto-generated from title.</span>
+            <span class="admin-form-hint" id="slug-error" style="display:none;color:var(--admin-danger)" role="alert"></span>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="response-content">Response Content</label>
+            <textarea class="admin-textarea" id="response-content" name="response_content" rows="20"
+                      aria-describedby="content-hint"
+                      placeholder="Write your response here…"></textarea>
+            <span class="admin-form-hint" id="content-hint">The full response body. Supports plain text and HTML.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-form-grid__sidebar">
+        <div class="admin-form-card">
+          <div class="admin-form-card__title">Linking</div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="response-challenge">Challenge ID</label>
+            <input class="admin-input" id="response-challenge" name="challenge_id" type="text"
+                   aria-describedby="challenge-hint"
+                   placeholder="e.g. 1">
+            <span class="admin-form-hint" id="challenge-hint">The challenge this response addresses.</span>
+          </div>
+        </div>
+
+        <div class="admin-form-card" style="margin-top:var(--space-md)">
+          <div class="admin-form-card__title">Metadata</div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="response-keywords">Keywords</label>
+            <input class="admin-input" id="response-keywords" name="metadata_keywords" type="text"
+                   aria-describedby="kw-hint"
+                   placeholder="e.g. resurrection, minimal facts, habermas">
+            <span class="admin-form-hint" id="kw-hint">Comma-separated search keywords.</span>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="response-evidence">Linked Evidence IDs</label>
+            <input class="admin-input" id="response-evidence" name="evidence_ids" type="text"
+                   aria-describedby="ev-hint"
+                   placeholder="e.g. 1, 3, 7">
+            <span class="admin-form-hint" id="ev-hint">Comma-separated evidence IDs to link.</span>
+          </div>
+        </div>
+
+        <div class="admin-form-card" style="margin-top:var(--space-md)">
+          <div class="admin-form-group">
+            <div class="admin-checkbox-group">
+              <input type="checkbox" id="response-publish" name="published_draft" value="1">
+              <label for="response-publish">Publish immediately</label>
+            </div>
+            <span class="admin-form-hint" style="margin-top:var(--space-xs)">When checked, the response will be published on save.</span>
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+    <div class="admin-form-actions">
+      <button type="button" class="admin-btn admin-btn--primary" id="btn-save-draft">Save as Draft</button>
+      <button type="button" class="admin-btn admin-btn--secondary" id="btn-publish">Publish</button>
+      <a class="admin-btn admin-btn--ghost" href="index.html">Cancel</a>
+    </div>
+
+    <div id="submit-status" role="status" aria-live="polite" style="margin-top:var(--space-md);text-align:center;"></div>
+  </main>
+
+</div>
+
+<script>
+  (async function () {
+    var ok = await AdminAuth.requireSession();
+    if (!ok) return;
+
+    var titleInput = document.getElementById('response-title');
+    var slugInput = document.getElementById('response-slug');
+    var contentInput = document.getElementById('response-content');
+    var formError = document.getElementById('form-error');
+    var submitStatus = document.getElementById('submit-status');
+    var titleError = document.getElementById('title-error');
+    var slugError = document.getElementById('slug-error');
+
+    var slugAuto = true;
+    titleInput.addEventListener('input', function () {
+      if (slugAuto) {
+        slugInput.value = titleInput.value
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+    });
+    slugInput.addEventListener('input', function () { slugAuto = false; });
+
+    function clearErrors() {
+      formError.style.display = 'none';
+      formError.textContent = '';
+      titleError.style.display = 'none';
+      titleError.textContent = '';
+      slugError.style.display = 'none';
+      slugError.textContent = '';
+      titleInput.classList.remove('admin-input--error');
+      slugInput.classList.remove('admin-input--error');
+    }
+
+    function showFieldError(input, errorEl, message) {
+      input.classList.add('admin-input--error');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+
+    function validate() {
+      clearErrors();
+      var valid = true;
+      if (!titleInput.value.trim()) {
+        showFieldError(titleInput, titleError, 'Title is required.');
+        valid = false;
+      }
+      if (!slugInput.value.trim()) {
+        showFieldError(slugInput, slugError, 'Slug is required.');
+        valid = false;
+      } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slugInput.value.trim())) {
+        showFieldError(slugInput, slugError, 'Slug must be lowercase letters, numbers, and hyphens.');
+        valid = false;
+      }
+      return valid;
+    }
+
+    function buildPayload(publish) {
+      var challengeVal = document.getElementById('response-challenge').value.trim();
+      return {
+        response_title: titleInput.value.trim(),
+        slug: slugInput.value.trim(),
+        response_content: contentInput.value.trim() || undefined,
+        challenge_id: challengeVal ? parseInt(challengeVal, 10) : undefined,
+        metadata_keywords: document.getElementById('response-keywords').value.trim() || undefined,
+        published_draft: publish ? 1 : 0
+      };
+    }
+
+    async function submit(publish) {
+      clearErrors();
+      submitStatus.textContent = '';
+      if (!validate()) { titleInput.focus(); return; }
+
+      var payload = buildPayload(publish);
+      var btnSave = document.getElementById('btn-save-draft');
+      var btnPublish = document.getElementById('btn-publish');
+      btnSave.disabled = true;
+      btnPublish.disabled = true;
+      submitStatus.textContent = 'Saving…';
+
+      try {
+        var result = await Admin.api.post('/responses', payload);
+        submitStatus.innerHTML = '<span style="color:var(--admin-success)">Response created successfully!</span>';
+        setTimeout(function () {
+          window.location.href = 'edit-[id].html?id=' + result.id;
+        }, 800);
+      } catch (err) {
+        formError.textContent = 'Failed to save response: ' + err.message;
+        formError.style.display = 'block';
+        submitStatus.textContent = '';
+      } finally {
+        btnSave.disabled = false;
+        btnPublish.disabled = false;
+      }
+    }
+
+    document.getElementById('btn-save-draft').addEventListener('click', function () { submit(false); });
+    document.getElementById('btn-publish').addEventListener('click', function () { submit(true); });
+
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        submit(e.shiftKey);
+      }
+    });
+  })();
+</script>
+</body>
+</html>

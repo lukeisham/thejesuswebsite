@@ -1,0 +1,62 @@
+/* ==========================================================================
+   Arbor Panel — Form
+   Shared form, field, input, and error patterns.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Panel Form
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-panel__form {
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    flex: 1;
+    overflow-y: auto;
+}
+.admin-arbor-panel__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+.admin-arbor-panel__field label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--admin-text-secondary);
+}
+.admin-arbor-panel__input {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.9375rem;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    color: var(--admin-text-primary);
+    background: var(--admin-bg);
+    min-height: 36px;
+}
+.admin-arbor-panel__input:focus {
+    outline: none;
+    border-color: var(--admin-accent);
+    box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
+}
+.admin-arbor-panel__info {
+    font-size: 0.75rem;
+    color: var(--admin-text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Panel Error
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-panel__error {
+    font-size: 0.8125rem;
+    color: var(--admin-error-color);
+    min-height: 1.2em;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--admin-error-bg);
+    border: 1px solid var(--admin-error-border);
+    border-radius: 4px;
+}
+.admin-arbor-panel__error:empty {
+    display: none;
+}

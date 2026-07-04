@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find ~/.claude -name \"*.md\" -path \"*/skills/*\" 2>/dev/null | head -5 && echo \"---\" && ls ~/.claude/skills/ 2>/dev/null | head -10)",
+      "Bash(grep -E '\\\\.model\\\\.js$')",
+      "Bash(node --check /Users/lukeishammacbookair/Developer/websiteRedux/api/models/arbor.model.js)",
+      "Bash(node --check /Users/lukeishammacbookair/Developer/websiteRedux/api/models/collection.model.js)",
+      "Bash(node --check /Users/lukeishammacbookair/Developer/websiteRedux/api/models/resource.model.js)",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "Bash(npm install *)",
+      "Bash(npm -v)",
+      "Bash(npm view *)",
+      "Bash(ls -la database/)",
+      "Bash(ls -la database/thejesuswebsite.db)",
+      "Bash(node -e ' *)",
+      "Bash(npm start *)",
+      "Bash(echo \"started, pid $!\")",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(pgrep -f \"node server.js\")",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget"
+    ]
+  }
+}

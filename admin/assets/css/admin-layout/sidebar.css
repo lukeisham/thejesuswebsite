@@ -1,0 +1,96 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Sidebar — Fixed 220px
+   CSS-4: Under 100 lines. BEM naming, single selectors, no !important.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 220px;
+    background: var(--admin-sidebar-bg);
+    color: var(--admin-sidebar-text);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    z-index: 900;
+}
+
+/* ── Brand ────────────────────────────────────────────────────────────────── */
+
+.admin-sidebar__brand {
+    padding: var(--space-lg) var(--space-md);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--admin-accent);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+/* ── Navigation ───────────────────────────────────────────────────────────── */
+
+.admin-sidebar__nav {
+    flex: 1;
+    padding: var(--space-sm) 0;
+}
+
+.admin-sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    color: var(--admin-sidebar-text);
+    text-decoration: none;
+    font-size: 14px;
+    transition: background var(--admin-transition),
+                color var(--admin-transition);
+    border-left: 3px solid transparent;
+}
+
+.admin-sidebar__link:hover {
+    background: var(--admin-sidebar-hover);
+    color: var(--admin-accent-text);
+}
+
+.admin-sidebar__link--active {
+    background: var(--admin-sidebar-active);
+    color: var(--admin-accent-text);
+    border-left-color: var(--admin-accent);
+}
+
+/* ── Icon area ────────────────────────────────────────────────────────────── */
+
+.admin-sidebar__icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+}
+
+.admin-sidebar__link--active .admin-sidebar__icon,
+.admin-sidebar__link:hover .admin-sidebar__icon {
+    opacity: 1;
+}
+
+/* ── Muted text ───────────────────────────────────────────────────────────── */
+
+.admin-sidebar__section-title {
+    padding: var(--space-md) var(--space-md) var(--space-xs);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--admin-sidebar-text-muted);
+}
+
+/* ── Bottom (logout) ──────────────────────────────────────────────────────── */
+
+.admin-sidebar__bottom {
+    padding: var(--space-sm) 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}

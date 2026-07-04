@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Registration — The Jesus Website</title>
+  <link rel="stylesheet" href="register.css">
+  <script defer src="../assets/js/passkey.js"></script>
+</head>
+<body>
+  <main>
+    <div class="auth-card">
+      <h1>Admin Registration</h1>
+
+      <p class="auth-card__description">
+        Enrol your passkey to set up admin access. This is a one-time step —
+        after your first passkey is registered, this page will no longer be
+        available.
+      </p>
+
+      <button
+        type="button"
+        id="register-btn"
+        class="auth-card__button"
+      >
+        Register Passkey
+      </button>
+
+      <div
+        id="status"
+        class="auth-card__status"
+        role="status"
+        aria-live="polite"
+      ></div>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const button = document.getElementById("register-btn");
+      const status = document.getElementById("status");
+
+      // Grab the setup token from the URL so we don't have to paste it.
+      const params = new URLSearchParams(window.location.search);
+      const setupToken = params.get("setupToken") || "";
+
+      if (!setupToken) {
+        showMessage(
+          "No setup token provided. Add <code>?setupToken=…</code> to the URL.",
+          "error",
+        );
+        button.disabled = true;
+        return;
+      }
+
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        showMessage("Contacting your authenticator…", "loading");
+
+        try {
+          await Passkey.registerPasskey(setupToken);
+
+          showMessage(
+            '<p>Registration successful!</p><p><a href="login.html">Go to the login page</a> to sign in.</p>',
+            "success",
+          );
+          button.remove();
+        } catch (error) {
+          showMessage(error.message, "error");
+          button.disabled = false;
+        }
+      });
+
+      function showMessage(message, type) {
+        status.className = "auth-card__status auth-card__status--" + type;
+        // message may contain safe HTML (a link on success) — we control the source.
+        status.innerHTML = message;
+      }
+    })();
+  </script>
+</body>
+</html>

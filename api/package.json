@@ -1,0 +1,25 @@
+{
+  "name": "thejesuswebsite-api",
+  "version": "1.0.0",
+  "description": "Core API layer for thejesuswebsite — Express + better-sqlite3 over a single SQLite file.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test:auth": "node --test tests/auth*.test.js",
+    "test:relations": "node --test tests/relations.test.js",
+    "test:evidence": "node --test tests/evidence.test.js",
+    "test:journal": "node --test tests/journal-content.test.js",
+    "test:sources-about": "node --test tests/sources-about.test.js",
+    "sitemap": "node scripts/generate-sitemap.js",
+    "pages": "node scripts/regenerate-pages.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "express": "^4.19.2"
+  }
+}

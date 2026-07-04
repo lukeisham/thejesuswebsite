@@ -1,0 +1,56 @@
+/* ==========================================================================
+   Icons
+   Sizing, color, and alignment for Feather SVG icons.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Base Icon
+   ------------------------------------------------------------------------- */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.icon svg {
+  display: block;
+}
+
+/* -------------------------------------------------------------------------
+   Size Variants
+   ------------------------------------------------------------------------- */
+
+.icon-sm  { width: var(--icon-sm); height: var(--icon-sm); }
+.icon-md  { width: var(--icon-md); height: var(--icon-md); }
+.icon-lg  { width: var(--icon-lg); height: var(--icon-lg); }
+.icon-xl  { width: var(--icon-xl); height: var(--icon-xl); }
+
+/* -------------------------------------------------------------------------
+   Color Variants
+   ------------------------------------------------------------------------- */
+
+.icon-muted   { color: var(--text-muted); }
+.icon-accent  { color: var(--accent); }
+.icon-success { color: var(--success); }
+.icon-error   { color: var(--error); }
+
+/* -------------------------------------------------------------------------
+   Icon inside Button
+   ------------------------------------------------------------------------- */
+
+.btn .icon {
+  color: inherit;
+}
+
+/* -------------------------------------------------------------------------
+   Icon with Text Label
+   ------------------------------------------------------------------------- */
+
+.icon-with-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}

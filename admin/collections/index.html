@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" class="admin-app">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collections — Admin</title>
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <script defer src="../assets/js/auth.js"></script>
+  <script defer src="../assets/js/admin.js"></script>
+  <style>
+    .admin-loading,
+    .admin-empty,
+    .admin-error {
+      padding: var(--space-xl);
+      text-align: center;
+      color: var(--admin-text-muted);
+      font-size: 14px;
+    }
+    .admin-error {
+      color: var(--admin-danger);
+    }
+    .admin-section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--admin-text-primary);
+      margin-bottom: var(--space-md);
+    }
+  </style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+  <nav class="admin-sidebar" aria-label="Admin navigation">
+    <div class="admin-sidebar__brand">⚡ Admin</div>
+    <div class="admin-sidebar__nav">
+      <a class="admin-sidebar__link" href="../index.html">
+        <span class="admin-sidebar__icon">📊</span> Dashboard
+      </a>
+      <a class="admin-sidebar__link" href="../drafts/index.html">
+        <span class="admin-sidebar__icon">📝</span> Drafts
+      </a>
+      <a class="admin-sidebar__link" href="../evidence/index.html">
+        <span class="admin-sidebar__icon">📋</span> Evidence
+      </a>
+      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
+        <span class="admin-sidebar__icon">📁</span> Collections
+      </a>
+      <a class="admin-sidebar__link" href="../resources/index.html">
+        <span class="admin-sidebar__icon">📚</span> Resources
+      </a>
+      <a class="admin-sidebar__link" href="../wikipedia/index.html">
+        <span class="admin-sidebar__icon">📖</span> Wikipedia
+      </a>
+      <a class="admin-sidebar__link" href="../essays/index.html">
+        <span class="admin-sidebar__icon">✍️</span> Essays
+      </a>
+      <a class="admin-sidebar__link" href="../debate/index.html">
+        <span class="admin-sidebar__icon">🗣️</span> Debate
+      </a>
+      <a class="admin-sidebar__link" href="../historiography/index.html">
+        <span class="admin-sidebar__icon">🏛️</span> Historiography
+      </a>
+      <a class="admin-sidebar__link" href="../blog/index.html">
+        <span class="admin-sidebar__icon">📰</span> Blog
+      </a>
+      <a class="admin-sidebar__link" href="../news/index.html">
+        <span class="admin-sidebar__icon">📡</span> News
+      </a>
+      <a class="admin-sidebar__link" href="../diagrams/maps.html">
+        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+      </a>
+      <a class="admin-sidebar__link" href="../analytics.html">
+        <span class="admin-sidebar__icon">📈</span> Analytics
+      </a>
+      <a class="admin-sidebar__link" href="../settings/index.html">
+        <span class="admin-sidebar__icon">⚙️</span> Settings
+      </a>
+    </div>
+    <div class="admin-sidebar__bottom">
+      <a class="admin-sidebar__link" href="../auth/login.html">
+        <span class="admin-sidebar__icon">🚪</span> Logout
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── Topbar ───────────────────────────────────────────────────────── -->
+  <header class="admin-topbar">
+    <h1 class="admin-topbar__title">Collections</h1>
+    <div class="admin-topbar__actions">
+      <button class="admin-btn admin-btn--primary admin-btn--sm" id="btn-show-create">+ New Collection</button>
+    </div>
+  </header>
+
+  <!-- ── Main Content ─────────────────────────────────────────────────── -->
+  <main class="admin-main" id="collections-content">
+    <div class="admin-loading" id="collections-loading" role="status">Loading collections…</div>
+  </main>
+
+</div>
+
+<script>
+  (async function () {
+    const main = document.getElementById('collections-content');
+    const loadingEl = document.getElementById('collections-loading');
+
+    const ok = await AdminAuth.requireSession();
+    if (!ok) {
+      main.innerHTML = '<div class="admin-error" role="alert">Unable to verify session.</div>';
+      return;
+    }
+
+    var collections = [];
+
+    async function loadCollections() {
+      try {
+        collections = await Admin.api.get('/collections');
+        return true;
+      } catch (err) {
+        showError('Failed to load collections: ' + err.message);
+        return false;
+      }
+    }
+
+    function showError(msg) {
+      var el = document.getElementById('global-error');
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'admin-error';
+        el.id = 'global-error';
+        el.setAttribute('role', 'alert');
+        el.setAttribute('aria-live', 'assertive');
+        main.insertBefore(el, main.firstChild);
+      }
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function clearError() {
+      var el = document.getElementById('global-error');
+      if (el) { el.style.display = 'none'; el.textContent = ''; }
+    }
+
+    function renderAll() {
+      main.innerHTML = '';
+
+      // Create form section
+      var createSection = document.createElement('div');
+      createSection.className = 'admin-card';
+      createSection.style.marginBottom = 'var(--space-lg)';
+      createSection.id = 'create-section';
+      createSection.style.display = 'none';
+
+      var secTitle = document.createElement('div');
+      secTitle.className = 'admin-section-title';
+      secTitle.textContent = 'New Collection';
+      createSection.appendChild(secTitle);
+
+      // Title
+      var titleGroup = document.createElement('div');
+      titleGroup.className = 'admin-form-group';
+      titleGroup.innerHTML =
+        '<label class="admin-form-group__label" for="col-title">Title <span aria-hidden="true">*</span></label>' +
+        '<input class="admin-input" id="col-title" name="title" type="text" required placeholder="Collection title" aria-describedby="col-title-error">' +
+        '<span class="admin-form-hint" id="col-title-error" style="display:none;color:var(--admin-danger)" role="alert"></span>';
+      createSection.appendChild(titleGroup);
+
+      // Slug
+      var slugGroup = document.createElement('div');
+      slugGroup.className = 'admin-form-group';
+      slugGroup.innerHTML =
+        '<label class="admin-form-group__label" for="col-slug">Slug <span aria-hidden="true">*</span></label>' +
+        '<input class="admin-input" id="col-slug" name="slug" type="text" required placeholder="collection-slug" aria-describedby="col-slug-error">' +
+        '<span class="admin-form-hint" id="col-slug-error" style="display:none;color:var(--admin-danger)" role="alert"></span>';
+      createSection.appendChild(slugGroup);
+
+      // Description
+      var descGroup = document.createElement('div');
+      descGroup.className = 'admin-form-group';
+      descGroup.innerHTML =
+        '<label class="admin-form-group__label" for="col-desc">Description</label>' +
+        '<textarea class="admin-textarea" id="col-desc" name="description" rows="3" placeholder="Optional description"></textarea>';
+      createSection.appendChild(descGroup);
+
+      // Publish checkbox
+      var pubGroup = document.createElement('div');
+      pubGroup.className = 'admin-form-group';
+      pubGroup.innerHTML =
+        '<div style="display:flex;align-items:center;gap:var(--space-sm)">' +
+        '<input type="checkbox" id="col-publish" name="published_draft" value="1" style="width:18px;height:18px;accent-color:var(--admin-accent)">' +
+        '<label for="col-publish" style="font-size:14px;cursor:pointer">Publish immediately</label>' +
+        '</div>';
+      createSection.appendChild(pubGroup);
+
+      var createActions = document.createElement('div');
+      createActions.style.cssText = 'display:flex;gap:var(--space-sm);margin-top:var(--space-md);';
+
+      var createBtn = document.createElement('button');
+      createBtn.type = 'button';
+      createBtn.className = 'admin-btn admin-btn--primary';
+      createBtn.textContent = 'Create Collection';
+      createBtn.id = 'btn-create-collection';
+      createActions.appendChild(createBtn);
+
+      var cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'admin-btn admin-btn--ghost';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.addEventListener('click', function () {
+        createSection.style.display = 'none';
+      });
+      createActions.appendChild(cancelBtn);
+
+      createSection.appendChild(createActions);
+      main.appendChild(createSection);
+
+      // Table
+      if (!Array.isArray(collections) || collections.length === 0) {
+        var emptyEl = document.createElement('div');
+        emptyEl.className = 'admin-empty';
+        emptyEl.setAttribute('role', 'status');
+        emptyEl.textContent = 'No collections yet.';
+        main.appendChild(emptyEl);
+        return;
+      }
+
+      var wrapper = document.createElement('div');
+      wrapper.className = 'admin-table-wrapper';
+
+      var table = document.createElement('table');
+      table.className = 'admin-table';
+
+      var thead = document.createElement('thead');
+      var hRow = document.createElement('tr');
+      ['Title', 'Description', 'Evidence Count', 'Status', 'Actions'].forEach(function (label) {
+        var th = document.createElement('th');
+        th.textContent = label;
+        hRow.appendChild(th);
+      });
+      thead.appendChild(hRow);
+      table.appendChild(thead);
+
+      var tbody = document.createElement('tbody');
+
+      collections.forEach(function (c) {
+        var tr = document.createElement('tr');
+
+        var tdTitle = document.createElement('td');
+        var titleStrong = document.createElement('strong');
+        titleStrong.textContent = c.title || c.slug || '(untitled)';
+        tdTitle.appendChild(titleStrong);
+        tr.appendChild(tdTitle);
+
+        var tdDesc = document.createElement('td');
+        tdDesc.textContent = c.description ? (c.description.length > 80 ? c.description.substring(0, 80) + '…' : c.description) : '\u2014';
+        tr.appendChild(tdDesc);
+
+        var tdCount = document.createElement('td');
+        tdCount.textContent = c.evidence_count != null ? c.evidence_count : '\u2014';
+        tr.appendChild(tdCount);
+
+        var tdStatus = document.createElement('td');
+        tdStatus.appendChild(Admin.statusBadge(c.published_draft));
+        tr.appendChild(tdStatus);
+
+        var tdActions = document.createElement('td');
+        tdActions.style.cssText = 'display:flex;gap:var(--space-xs);';
+
+        var editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'admin-btn admin-btn--sm admin-btn--secondary';
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', function () { openEditModal(c); });
+        tdActions.appendChild(editBtn);
+
+        var pubBtn = document.createElement('button');
+        pubBtn.type = 'button';
+        pubBtn.className = 'admin-btn admin-btn--sm admin-btn--ghost';
+        pubBtn.textContent = c.published_draft ? 'Unpublish' : 'Publish';
+        pubBtn.addEventListener('click', async function () {
+          try {
+            if (c.published_draft) {
+              await Admin.unpublishItem('collections', c.id);
+              c.published_draft = 0;
+              pubBtn.textContent = 'Publish';
+            } else {
+              await Admin.publishItem('collections', c.id);
+              c.published_draft = 1;
+              pubBtn.textContent = 'Unpublish';
+            }
+            // Update status badge
+            tdStatus.innerHTML = '';
+            tdStatus.appendChild(Admin.statusBadge(c.published_draft));
+          } catch (err) {
+            showError('Publish action failed: ' + err.message);
+          }
+        });
+        tdActions.appendChild(pubBtn);
+
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'admin-btn admin-btn--sm admin-btn--danger';
+        delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', async function () {
+          if (!confirm('Delete collection "' + (c.title || c.slug) + '"? This cannot be undone.')) return;
+          try {
+            await Admin.api.del('/collections/' + c.id);
+            tr.remove();
+          } catch (err) {
+            showError('Failed to delete: ' + err.message);
+          }
+        });
+        tdActions.appendChild(delBtn);
+
+        tr.appendChild(tdActions);
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      wrapper.appendChild(table);
+      main.appendChild(wrapper);
+
+      // ── New collection form handlers ────────────────────────────────
+      var titleInput = document.getElementById('col-title');
+      var slugInput = document.getElementById('col-slug');
+      var slugAuto = true;
+
+      titleInput.addEventListener('input', function () {
+        if (slugAuto) {
+          slugInput.value = titleInput.value.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        }
+      });
+      slugInput.addEventListener('input', function () { slugAuto = false; });
+
+      document.getElementById('btn-create-collection').addEventListener('click', async function () {
+        clearError();
+        var titleErr = document.getElementById('col-title-error');
+        var slugErr = document.getElementById('col-slug-error');
+        titleErr.style.display = 'none';
+        slugErr.style.display = 'none';
+        titleInput.classList.remove('admin-input--error');
+        slugInput.classList.remove('admin-input--error');
+
+        var valid = true;
+        if (!titleInput.value.trim()) {
+          titleErr.textContent = 'Title is required.';
+          titleErr.style.display = 'block';
+          titleInput.classList.add('admin-input--error');
+          valid = false;
+        }
+        if (!slugInput.value.trim()) {
+          slugErr.textContent = 'Slug is required.';
+          slugErr.style.display = 'block';
+          slugInput.classList.add('admin-input--error');
+          valid = false;
+        }
+        if (!valid) return;
+
+        createBtn.disabled = true;
+        createBtn.textContent = 'Creating…';
+        try {
+          await Admin.api.post('/collections', {
+            title: titleInput.value.trim(),
+            slug: slugInput.value.trim(),
+            description: document.getElementById('col-desc').value.trim() || undefined,
+            published_draft: document.getElementById('col-publish').checked ? 1 : 0
+          });
+          await loadCollections();
+          renderAll();
+        } catch (err) {
+          showError('Failed to create collection: ' + err.message);
+          createBtn.disabled = false;
+          createBtn.textContent = 'Create Collection';
+        }
+      });
+    }
+
+    // ── Edit modal ────────────────────────────────────────────────────
+    function openEditModal(c) {
+      // Remove any existing modal
+      var existing = document.querySelector('.admin-modal-backdrop');
+      if (existing) existing.remove();
+
+      var backdrop = document.createElement('div');
+      backdrop.className = 'admin-modal-backdrop';
+      backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) backdrop.remove();
+      });
+
+      var modal = document.createElement('div');
+      modal.className = 'admin-modal';
+      modal.addEventListener('click', function (e) { e.stopPropagation(); });
+
+      modal.innerHTML =
+        '<h2 class="admin-modal__title">Edit Collection</h2>' +
+        '<div class="admin-modal__body">' +
+        '<div class="admin-form-group">' +
+        '<label class="admin-form-group__label" for="edit-col-title">Title</label>' +
+        '<input class="admin-input" id="edit-col-title" value="' + (c.title || '').replace(/"/g, '&quot;') + '">' +
+        '</div>' +
+        '<div class="admin-form-group">' +
+        '<label class="admin-form-group__label" for="edit-col-slug">Slug</label>' +
+        '<input class="admin-input" id="edit-col-slug" value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' +
+        '</div>' +
+        '<div class="admin-form-group">' +
+        '<label class="admin-form-group__label" for="edit-col-desc">Description</label>' +
+        '<textarea class="admin-textarea" id="edit-col-desc" rows="3">' + (c.description || '') + '</textarea>' +
+        '</div>' +
+        '<div class="admin-form-group">' +
+        '<div style="display:flex;align-items:center;gap:var(--space-sm)">' +
+        '<input type="checkbox" id="edit-col-publish" value="1" style="width:18px;height:18px;accent-color:var(--admin-accent)"' + (c.published_draft ? ' checked' : '') + '>' +
+        '<label for="edit-col-publish" style="font-size:14px;cursor:pointer">Published</label>' +
+        '</div>' +
+        '</div>' +
+        '<div id="edit-col-error" style="color:var(--admin-danger);font-size:13px;display:none;" role="alert"></div>' +
+        '</div>' +
+        '<div class="admin-modal__actions">' +
+        '<button class="admin-btn admin-btn--primary" id="btn-edit-save">Save</button>' +
+        '<button class="admin-btn admin-btn--ghost" id="btn-edit-cancel">Cancel</button>' +
+        '</div>';
+
+      backdrop.appendChild(modal);
+      document.body.appendChild(backdrop);
+
+      document.getElementById('btn-edit-cancel').addEventListener('click', function () { backdrop.remove(); });
+      document.getElementById('btn-edit-save').addEventListener('click', async function () {
+        var errEl = document.getElementById('edit-col-error');
+        errEl.style.display = 'none';
+        var saveBtn = document.getElementById('btn-edit-save');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving…';
+        try {
+          await Admin.api.put('/collections/' + c.id, {
+            title: document.getElementById('edit-col-title').value.trim(),
+            slug: document.getElementById('edit-col-slug').value.trim(),
+            description: document.getElementById('edit-col-desc').value.trim() || undefined,
+            published_draft: document.getElementById('edit-col-publish').checked ? 1 : 0
+          });
+          await loadCollections();
+          renderAll();
+          backdrop.remove();
+        } catch (err) {
+          errEl.textContent = 'Failed to save: ' + err.message;
+          errEl.style.display = 'block';
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        }
+      });
+    }
+
+    // ── Show/hide create section ──────────────────────────────────────
+    document.getElementById('btn-show-create').addEventListener('click', function () {
+      var section = document.getElementById('create-section');
+      if (section) {
+        section.style.display = 'block';
+        section.scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('col-title').focus();
+      }
+    });
+
+    // ── Boot ──────────────────────────────────────────────────────────
+    const loaded = await loadCollections();
+    if (loadingEl) loadingEl.remove();
+    if (loaded) renderAll();
+    else if (loadingEl) loadingEl.remove();
+  })();
+</script>
+</body>
+</html>

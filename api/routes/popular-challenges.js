@@ -1,0 +1,88 @@
+// Popular Challenges HTTP routes. This file only handles the request/response layer:
+// parse input, call the model, shape the response. All SQL lives in the model.
+
+const express = require("express");
+const challengeModel = require("../models/popular-challenges.model");
+const requireAuth = require("../middleware/auth");
+
+const router = express.Router();
+
+// GET /popular-challenges — public list of published popular challenges
+router.get("/", (req, res) => {
+  try {
+    const items = challengeModel.getAllPublished();
+    res.json({
+      items,
+      response_count: challengeModel.getPublishedCount(),
+    });
+  } catch (error) {
+    console.error("GET /popular-challenges failed:", error);
+    res.status(500).json({ error: "Failed to load popular challenges." });
+  }
+});
+
+// GET /popular-challenges/admin/:id — admin detail with citations (admin only)
+router.get("/admin/:id", requireAuth, (req, res) => {
+  try {
+    const item = challengeModel.getAdminById(Number(req.params.id));
+    if (!item) return res.status(404).json({ error: "Challenge not found." });
+    res.json(item);
+  } catch (error) {
+    console.error("GET /popular-challenges/admin/:id failed:", error);
+    res.status(500).json({ error: "Failed to load challenge detail." });
+  }
+});
+
+// GET /popular-challenges/:slug — public single challenge by slug
+router.get("/:slug", (req, res) => {
+  try {
+    const item = challengeModel.getDetailBySlug(req.params.slug);
+    if (!item) return res.status(404).json({ error: "Challenge not found." });
+    res.json(item);
+  } catch (error) {
+    console.error("GET /popular-challenges/:slug failed:", error);
+    res.status(500).json({ error: "Failed to load challenge." });
+  }
+});
+
+// POST /popular-challenges — create new popular challenge (admin only)
+router.post("/", requireAuth, (req, res) => {
+  try {
+    if (!req.body.slug) {
+      return res.status(400).json({ error: "slug is required." });
+    }
+    const created = challengeModel.create(req.body);
+    res.status(201).json(created);
+  } catch (error) {
+    console.error("POST /popular-challenges failed:", error);
+    res.status(500).json({ error: "Failed to create popular challenge." });
+  }
+});
+
+// PUT /popular-challenges/:id — update popular challenge (admin only)
+router.put("/:id", requireAuth, (req, res) => {
+  try {
+    const updated = challengeModel.update(Number(req.params.id), req.body);
+    if (!updated)
+      return res.status(404).json({ error: "Challenge not found." });
+    res.json(updated);
+  } catch (error) {
+    console.error("PUT /popular-challenges/:id failed:", error);
+    res.status(500).json({ error: "Failed to update popular challenge." });
+  }
+});
+
+// DELETE /popular-challenges/:id — remove popular challenge (admin only)
+router.delete("/:id", requireAuth, (req, res) => {
+  try {
+    const removed = challengeModel.remove(Number(req.params.id));
+    if (!removed)
+      return res.status(404).json({ error: "Challenge not found." });
+    res.status(204).end();
+  } catch (error) {
+    console.error("DELETE /popular-challenges/:id failed:", error);
+    res.status(500).json({ error: "Failed to delete popular challenge." });
+  }
+});
+
+module.exports = router;

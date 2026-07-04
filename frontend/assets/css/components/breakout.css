@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Breakout / Side Content
+   Supplementary panels within long-form content. Collapsible variant.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Breakout Panel
+   ------------------------------------------------------------------------- */
+
+.breakout {
+  background: var(--bg-surface-alt);
+  border-left: 3px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md) var(--space-lg);
+  margin: var(--space-lg) 0;
+}
+
+.breakout-title {
+  font-size: var(--text-h4);
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: var(--space-sm);
+}
+
+.breakout-body {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  line-height: var(--leading-body);
+}
+
+/* -------------------------------------------------------------------------
+   Collapsible Variant
+   ------------------------------------------------------------------------- */
+
+.breakout-collapsible .breakout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.breakout-collapsible .breakout-chevron {
+  transition: transform var(--duration-base) var(--ease-in-out);
+  color: var(--text-muted);
+}
+
+.breakout-collapsible.open .breakout-chevron {
+  transform: rotate(180deg);
+}
+
+.breakout-collapsible .breakout-body {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition:
+    max-height var(--duration-base) var(--ease-in-out),
+    opacity var(--duration-base) var(--ease-in-out);
+}
+
+.breakout-collapsible.open .breakout-body {
+  max-height: 2000px;
+  opacity: 1;
+}

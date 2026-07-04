@@ -1,0 +1,103 @@
+/* ==========================================================================
+   Wikipedia Ranked List
+   Single ranked list of Wikipedia articles about Jesus.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Page Header
+   ------------------------------------------------------------------------- */
+
+.wikipedia-header {
+  margin-bottom: var(--space-xl);
+}
+
+.wikipedia-header h1 {
+  margin-bottom: var(--space-sm);
+}
+
+.wikipedia-header p {
+  color: var(--text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Ranked List
+   ------------------------------------------------------------------------- */
+
+.wikipedia-list {
+  max-width: var(--measure-list);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* -------------------------------------------------------------------------
+   Rank Card
+   ------------------------------------------------------------------------- */
+
+.wikipedia-rank-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-lg);
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.wikipedia-rank-number {
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 2.5rem;
+  text-align: right;
+  line-height: 1;
+}
+
+.wikipedia-rank-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.wikipedia-rank-title {
+  font-size: var(--text-h3);
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.wikipedia-rank-title a {
+  color: var(--text-primary);
+}
+
+.wikipedia-rank-title a:hover {
+  color: var(--link-hover);
+}
+
+/* -------------------------------------------------------------------------
+   Meta Row
+   ------------------------------------------------------------------------- */
+
+.wikipedia-rank-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.wikipedia-rank-date {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.wikipedia-rank-indicators {
+  display: flex;
+  gap: var(--space-md);
+  font-size: var(--text-xs);
+}
+
+.wikipedia-rank-plus {
+  color: var(--success);
+}
+
+.wikipedia-rank-minus {
+  color: var(--error);
+}

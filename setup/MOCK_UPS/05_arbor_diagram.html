@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbor Diagram — The Jesus Website</title>
+    <style>
+        :root {
+            --bg-primary: #F8F5F0;
+            --bg-surface: #FFFFFF;
+            --bg-surface-alt: #F1EDE4;
+            --text-primary: #2C2522;
+            --text-secondary: #5C524A;
+            --text-muted: #7A7066;
+            --accent: #5C4033;
+            --accent-light: #8B5A2B;
+            --accent-gold: #B8976A;
+            --link: #5C4033;
+            --link-hover: #3D2B1F;
+            --border: #D4C9B8;
+            --border-strong: #B8A48A;
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: var(--space-2xl);
+        }
+
+        h1 {
+            font-family: Georgia, serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--text-primary);
+        }
+
+        .page-description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            max-width: 75ch;
+        }
+
+        /* Controls */
+        .diagram-controls {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+            margin-bottom: var(--space-lg);
+            flex-wrap: wrap;
+        }
+
+        .control-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        button {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background-color: var(--bg-surface);
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        button:hover {
+            background-color: var(--bg-surface-alt);
+            color: var(--accent);
+        }
+
+        /* Diagram Container */
+        .diagram-container {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: var(--space-2xl);
+            position: relative;
+            background-image:
+                radial-gradient(circle, var(--border) 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Diagram SVG */
+        svg {
+            width: 100%;
+            height: 100%;
+            min-height: 600px;
+        }
+
+        /* Node styles */
+        .node {
+            fill: var(--bg-surface);
+            stroke: var(--border);
+            stroke-width: 1px;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.08));
+            cursor: pointer;
+            transition: all 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .node:hover {
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.12));
+        }
+
+        .node.root {
+            stroke: var(--accent);
+            stroke-width: 2px;
+            fill: var(--bg-surface-alt);
+        }
+
+        .node.related {
+            stroke-dasharray: 5,3;
+            stroke: var(--border-strong);
+        }
+
+        /* Edge (line) styles */
+        .edge {
+            stroke: var(--border-strong);
+            stroke-width: 1.5px;
+            fill: none;
+        }
+
+        /* Node text */
+        .node-title {
+            font-family: Georgia, serif;
+            font-size: 14px;
+            font-weight: 600;
+            fill: var(--text-primary);
+        }
+
+        .node-verse {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas;
+            font-size: 11px;
+            fill: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Diagram Footer / Bottom Bar */
+        .diagram-footer {
+            background-color: var(--bg-surface);
+            border-top: 1px solid var(--border);
+            padding: var(--space-sm) var(--space-md);
+            display: flex;
+            justify-content: center;
+            gap: var(--space-md);
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+        }
+
+        .zoom-label {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .zoom-button {
+            padding: 4px 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        /* Info Panel */
+        .info-section {
+            background-color: var(--bg-surface-alt);
+            border-left: 3px solid var(--accent-gold);
+            padding: var(--space-lg);
+            border-radius: 4px;
+            margin-top: var(--space-2xl);
+        }
+
+        .info-section h3 {
+            font-family: Georgia, serif;
+            font-size: 1.125rem;
+            color: var(--accent);
+            margin-bottom: var(--space-md);
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+            margin-top: var(--space-lg);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+        }
+
+        .legend-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .legend-icon.root {
+            background-color: var(--bg-surface-alt);
+            border: 2px solid var(--accent);
+        }
+
+        .legend-icon.standard {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+        }
+
+        .legend-icon.related {
+            background-color: var(--bg-surface);
+            border: 1px dashed var(--border-strong);
+        }
+
+        .legend-text h4 {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            font-size: 0.95rem;
+        }
+
+        .legend-text p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Instructions */
+        .instructions {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
+        .instructions h4 {
+            font-family: Georgia, serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+        }
+
+        .instructions ul {
+            margin-left: var(--space-lg);
+        }
+
+        .instructions li {
+            margin-bottom: var(--space-sm);
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .diagram-container {
+                min-height: 400px;
+            }
+
+            .legend {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>Arbor Diagram</h1>
+            <p class="page-description">
+                Explore the relationships between historical evidence. The diagram shows how different pieces of evidence support, relate to, or lead to one another in the historical record.
+            </p>
+        </div>
+
+        <div class="instructions">
+            <h4>How to Use This Diagram</h4>
+            <ul>
+                <li><strong>Click any node</strong> to navigate to the full evidence detail page</li>
+                <li><strong>Hover over a node</strong> to see more details in a tooltip</li>
+                <li><strong>Drag to pan</strong> the diagram around the canvas</li>
+                <li><strong>Use the zoom controls</strong> at the bottom to focus on specific areas</li>
+                <li><strong>Node colors and styles</strong> indicate the type of relationship (see legend below)</li>
+            </ul>
+        </div>
+
+        <div class="diagram-controls">
+            <span class="control-label">Diagram Tools:</span>
+            <div class="control-buttons">
+                <button>Reset View</button>
+                <button>Fit to Screen</button>
+            </div>
+        </div>
+
+        <div class="diagram-container">
+            <svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+                <!-- Grid pattern background is handled by CSS -->
+
+                <!-- Edges (lines) -->
+                <line class="edge" x1="500" y1="80" x2="300" y2="180" />
+                <line class="edge" x1="500" y1="80" x2="500" y2="180" />
+                <line class="edge" x1="500" y1="80" x2="700" y2="180" />
+                <line class="edge" x1="300" y1="240" x2="200" y2="340" />
+                <line class="edge" x1="300" y1="240" x2="400" y2="340" />
+                <line class="edge" x1="500" y1="240" x2="500" y2="340" />
+                <line class="edge" x1="700" y1="240" x2="600" y2="340" />
+                <line class="edge" x1="700" y1="240" x2="800" y2="340" />
+
+                <!-- Root Node -->
+                <rect class="node root" x="450" y="40" width="100" height="80" rx="8" />
+                <text class="node-title" x="500" y="65" text-anchor="middle">The Crucifixion</text>
+                <text class="node-verse" x="500" y="85" text-anchor="middle" font-size="10">Matthew 27:32-66</text>
+
+                <!-- Level 2 Nodes -->
+                <rect class="node" x="250" y="180" width="100" height="80" rx="8" />
+                <text class="node-title" x="300" y="205" text-anchor="middle">Empty Tomb</text>
+                <text class="node-verse" x="300" y="225" text-anchor="middle" font-size="10">Matthew 28:1-10</text>
+
+                <rect class="node" x="450" y="180" width="100" height="80" rx="8" />
+                <text class="node-title" x="500" y="205" text-anchor="middle">Post-Resurrection</text>
+                <text class="node-verse" x="500" y="225" text-anchor="middle" font-size="10">1 Corinthians 15</text>
+
+                <rect class="node related" x="650" y="180" width="100" height="80" rx="8" />
+                <text class="node-title" x="700" y="205" text-anchor="middle">Disciples' Faith</text>
+                <text class="node-verse" x="700" y="225" text-anchor="middle" font-size="10">John 20:19-31</text>
+
+                <!-- Level 3 Nodes -->
+                <rect class="node" x="150" y="340" width="100" height="80" rx="8" />
+                <text class="node-title" x="200" y="365" text-anchor="middle">Gospel Accounts</text>
+                <text class="node-verse" x="200" y="385" text-anchor="middle" font-size="10">4 Gospels</text>
+
+                <rect class="node" x="350" y="340" width="100" height="80" rx="8" />
+                <text class="node-title" x="400" y="365" text-anchor="middle">Historical Context</text>
+                <text class="node-verse" x="400" y="385" text-anchor="middle" font-size="10">Roman Customs</text>
+
+                <rect class="node" x="450" y="340" width="100" height="80" rx="8" />
+                <text class="node-title" x="500" y="365" text-anchor="middle">Paul's Testimony</text>
+                <text class="node-verse" x="500" y="385" text-anchor="middle" font-size="10">1 Corinthians 15</text>
+
+                <rect class="node" x="550" y="340" width="100" height="80" rx="8" />
+                <text class="node-title" x="600" y="365" text-anchor="middle">Early Community</text>
+                <text class="node-verse" x="600" y="385" text-anchor="middle" font-size="10">Acts 1-2</text>
+
+                <rect class="node" x="750" y="340" width="100" height="80" rx="8" />
+                <text class="node-title" x="800" y="365" text-anchor="middle">Transformation</text>
+                <text class="node-verse" x="800" y="385" text-anchor="middle" font-size="10">Matthew 28:16-20</text>
+            </svg>
+        </div>
+
+        <div class="diagram-footer">
+            <div class="zoom-controls">
+                <span class="control-label">Zoom:</span>
+                <button class="zoom-button">−</button>
+                <span class="zoom-label">100%</span>
+                <button class="zoom-button">+</button>
+                <button class="zoom-button">Reset</button>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="info-section">
+            <h3>Node Types & Relationships</h3>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-icon root"></div>
+                    <div class="legend-text">
+                        <h4>Root Evidence</h4>
+                        <p>Central or primary evidence from which other evidence branches</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon standard"></div>
+                    <div class="legend-text">
+                        <h4>Supporting / Related</h4>
+                        <p>Evidence that supports or leads to the root evidence or other nodes</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon related"></div>
+                    <div class="legend-text">
+                        <h4>Tangentially Related</h4>
+                        <p>Evidence with loose or indirect relationships to the main narrative</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="info-section" style="margin-top: var(--space-lg); border-left-color: var(--accent);">
+            <h3>About This Visualization</h3>
+            <p style="margin: 0; color: var(--text-secondary); line-height: 1.65;">
+                The Arbor Diagram provides a visual representation of how different pieces of historical evidence connect and relate to one another. The position and layout of nodes reflect their relationships in the historical record. Root nodes represent central or pivotal evidence, while branching nodes show supporting, derived, or related evidence. This structure helps researchers understand the interconnected nature of historical testimony about Jesus and the early Christian movement.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,100 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Forms
+   CSS-7: Labels, inputs, selects, textareas, error/disabled states
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Form Group ───────────────────────────────────────────────────────────── */
+
+.admin-form-group {
+    margin-bottom: var(--space-md);
+}
+
+/* ── Label ────────────────────────────────────────────────────────────────── */
+
+.admin-form-group__label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+    color: var(--admin-text-secondary);
+}
+
+/* ── Shared Input Styles ──────────────────────────────────────────────────── */
+
+.admin-input,
+.admin-select,
+.admin-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: var(--admin-font-sans);
+    color: var(--admin-text-primary);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-sm);
+    transition: border-color var(--admin-transition),
+                box-shadow var(--admin-transition);
+}
+
+.admin-input:focus,
+.admin-select:focus,
+.admin-textarea:focus {
+    outline: none;
+    border-color: var(--admin-accent);
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
+}
+
+.admin-input::placeholder,
+.admin-textarea::placeholder {
+    color: var(--admin-text-muted);
+}
+
+.admin-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* ── Select ───────────────────────────────────────────────────────────────── */
+
+.admin-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888898' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+}
+
+/* ── Error State ──────────────────────────────────────────────────────────── */
+
+.admin-input--error,
+.admin-select--error,
+.admin-textarea--error {
+    border-color: var(--admin-danger);
+}
+
+.admin-input--error:focus,
+.admin-select--error:focus,
+.admin-textarea--error:focus {
+    border-color: var(--admin-danger);
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+}
+
+/* ── Disabled State ───────────────────────────────────────────────────────── */
+
+.admin-input:disabled,
+.admin-select:disabled,
+.admin-textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--admin-bg);
+}
+
+/* ── Hint ─────────────────────────────────────────────────────────────────── */
+
+.admin-form-hint {
+    display: block;
+    margin-top: var(--space-xs);
+    font-size: 11px;
+    color: var(--admin-text-muted);
+}

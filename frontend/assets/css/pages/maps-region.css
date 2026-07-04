@@ -1,0 +1,38 @@
+/* ==========================================================================
+   Maps — Region Header & Navigation
+   Region title and prev/next navigation links for map browsing.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Map Region Header
+   ------------------------------------------------------------------------- */
+
+.maps-region-header {
+    margin-bottom: var(--space-md);
+}
+
+.maps-region-title {
+    font-size: var(--text-h2);
+}
+
+/* -------------------------------------------------------------------------
+   Region Navigation
+   ------------------------------------------------------------------------- */
+
+.maps-region-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-lg);
+    gap: var(--space-sm);
+}
+
+.maps-nav-link {
+    font-size: var(--text-small);
+}
+
+.maps-nav-current {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: var(--text-small);
+}

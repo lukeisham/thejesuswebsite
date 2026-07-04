@@ -1,0 +1,88 @@
+/* ==========================================================================
+   Search
+   Search bar and results display.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Search Container
+   ------------------------------------------------------------------------- */
+
+.search-container {
+  max-width: var(--measure-narrow);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* -------------------------------------------------------------------------
+   Search Input
+   ------------------------------------------------------------------------- */
+
+.search-input {
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--text-h3);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-fast) var(--ease-out);
+  min-height: 56px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------------
+   Filter Chips (search scope)
+   ------------------------------------------------------------------------- */
+
+.search-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+  flex-wrap: wrap;
+}
+
+/* -------------------------------------------------------------------------
+   Highlighted Matches
+   ------------------------------------------------------------------------- */
+
+mark {
+  background: var(--accent-gold);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* -------------------------------------------------------------------------
+   Search Results
+   ------------------------------------------------------------------------- */
+
+.search-results {
+  margin-top: var(--space-xl);
+}
+
+.search-result-item {
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.search-result-title {
+  font-size: var(--text-body);
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.search-result-excerpt {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+}

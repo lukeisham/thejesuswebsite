@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historiography — Debate — The Jesus Website</title>
+  <meta name="description" content="Historiography articles examining how historians have studied Jesus of Nazareth — the history of the history.">
+
+  <!-- Favicon & PWA -->
+  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
+  <link rel="manifest" href="/assets/images/site.webmanifest">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/base/variables.css">
+  <link rel="stylesheet" href="/assets/css/base/reset.css">
+  <link rel="stylesheet" href="/assets/css/base/typography.css">
+  <link rel="stylesheet" href="/assets/css/base/invisible-header.css">
+  <link rel="stylesheet" href="/assets/css/base/animations.css">
+  <link rel="stylesheet" href="/assets/css/layout/grid.css">
+  <link rel="stylesheet" href="/assets/css/layout/navigation.css">
+  <link rel="stylesheet" href="/assets/css/components/sidebar.css">
+  <link rel="stylesheet" href="/assets/css/components/icons.css">
+  <link rel="stylesheet" href="/assets/css/components/buttons.css">
+  <link rel="stylesheet" href="/assets/css/components/cards.css">
+  <link rel="stylesheet" href="/assets/css/components/badges.css">
+  <link rel="stylesheet" href="/assets/css/components/loading.css">
+  <link rel="stylesheet" href="/assets/css/components/empty-states.css">
+  <link rel="stylesheet" href="/assets/css/components/infinite-scroll.css">
+  <link rel="stylesheet" href="/assets/css/pages/debate.css">
+</head>
+<body>
+  <!-- Visually-hidden header for SEO & a11y (HTML-3) -->
+  <header class="sr-only">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <h1>Historiography</h1>
+  </header>
+
+  <!-- Off-canvas navigation sidebar -->
+  <div class="sidebar-backdrop" hidden></div>
+  <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+    <button class="sidebar__toggle" id="sidebar-toggle" aria-expanded="false" aria-label="Toggle navigation">
+      <svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-menu"/></svg>
+    </button>
+    <ul class="sidebar__nav">
+      <li class="nav-item"><a href="/">The Jesus Website</a></li>
+      <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+      <li class="nav-item"><a href="/evidence/search.html">Search</a></li>
+      <li class="nav-item"><a href="/evidence/arbor.html">Arbor Diagram</a></li>
+      <li class="nav-item"><a href="/evidence/timeline/">Timeline</a></li>
+      <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+      <li class="nav-item"><a href="/contextual-essays/">Context</a></li>
+      <li class="nav-item"><a href="/debate/">Debate</a></li>
+      <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+      <li class="nav-item"><a href="/about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <main id="main-content">
+    <!-- Page header -->
+    <header class="debate-header">
+      <h2>Historiography</h2>
+      <p>Articles examining how historians have studied Jesus over the centuries — the history of the history.</p>
+</h2></p>    </header>
+
+    <!-- Card grid for historiography articles -->
+    <div class="card-grid" id="card-grid" role="list">
+      <!-- Populated by historiography-list.js -->
+    </div>
+
+    <!-- Infinite scroll sentinel -->
+    <div id="scroll-sentinel" hidden></div>
+
+    <!-- Loading state -->
+    <div class="loading-state" id="loading-state" hidden>
+      <div class="loading-state__spinner" aria-label="Loading articles"></div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state" hidden>
+      <p class="empty-state__message">No historiography articles published yet.</p>
+    </div>
+
+    <!-- Error state -->
+    <div class="error-state" id="error-state" hidden>
+      <p class="error-state__message">Failed to load historiography articles.</p>
+      <button id="retry-load" class="btn btn--secondary">Retry</button>
+    </div>
+
+    <!-- End of list -->
+    <div class="end-of-list" id="end-of-list" hidden></div>
+  </main>
+
+  <!-- Scripts at bottom with defer (HTML-4) -->
+  <script type="module" src="/assets/js/main.js" defer></script>
+  <script type="module" src="/assets/js/historiography-list.js" defer></script>
+</body>
+</html>

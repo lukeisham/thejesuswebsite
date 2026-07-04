@@ -1,0 +1,21 @@
+{
+  "name": "The Jesus Website",
+  "short_name": "Jesus Website",
+  "description": "Archival website organising and presenting historical information about Jesus.",
+  "start_url": "/",
+  "display": "browser",
+  "theme_color": "#F8F5F0",
+  "background_color": "#F8F5F0",
+  "icons": [
+    {
+      "src": "/assets/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/images/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

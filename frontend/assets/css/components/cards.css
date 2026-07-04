@@ -1,0 +1,109 @@
+/* ==========================================================================
+   Cards
+   Evidence, essay, and general content cards.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Base Card
+   ------------------------------------------------------------------------- */
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-lg);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* -------------------------------------------------------------------------
+   Card with Image Top
+   ------------------------------------------------------------------------- */
+
+.card-image-top {
+  padding: 0;
+  overflow: hidden;
+}
+
+.card-image-top .card-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.card-image-top .card-body {
+  padding: var(--space-lg);
+}
+
+/* -------------------------------------------------------------------------
+   Card Content
+   ------------------------------------------------------------------------- */
+
+.card-title {
+  font-size: var(--text-h3);
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.card-description {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  line-height: var(--leading-small);
+  margin-bottom: var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Card Footer (badges, actions row)
+   ------------------------------------------------------------------------- */
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-md);
+}
+
+.card-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+/* -------------------------------------------------------------------------
+   Compact Card (for lists)
+   ------------------------------------------------------------------------- */
+
+.card-compact {
+  padding: var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Hero Card (promoted item)
+   ------------------------------------------------------------------------- */
+
+.card-hero {
+  padding: var(--space-xl);
+}
+
+.card-hero .card-title {
+  font-size: var(--text-h2);
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .card {
+    padding: var(--space-md);
+  }
+}

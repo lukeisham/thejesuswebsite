@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Timeline — The Jesus Website</title>
+        <meta
+            name="description"
+            content="Explore the life of Jesus chronologically with an interactive timeline of historical events."
+        />
+
+        <link
+            rel="icon"
+            href="/assets/images/favicon.png"
+            type="image/png
+        />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link
+            rel="apple-touch-icon"
+            href="/assets/images/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/assets/images/site.webmanifest" />
+
+        <link rel="stylesheet" href="/assets/css/base/variables.css" />
+        <link rel="stylesheet" href="/assets/css/base/reset.css" />
+        <link rel="stylesheet" href="/assets/css/base/typography.css" />
+        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" />
+        <link rel="stylesheet" href="/assets/css/base/animations.css" />
+        <link rel="stylesheet" href="/assets/css/layout/grid.css" />
+        <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
+        <link rel="stylesheet" href="/assets/css/layout/footer.css" />
+        <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
+        <link rel="stylesheet" href="/assets/css/components/icons.css" />
+        <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+        <link rel="stylesheet" href="/assets/css/components/badges.css" />
+        <link rel="stylesheet" href="/assets/css/components/filters.css" />
+        <link rel="stylesheet" href="/assets/css/components/loading.css" />
+        <link rel="stylesheet" href="/assets/css/components/empty-states.css" />
+        <link rel="stylesheet" href="/assets/css/components/toasts.css" />
+        <link rel="stylesheet" href="/assets/css/pages/timeline.css" />
+
+        <link
+            rel="preload"
+            as="image"
+            href="/assets/images/feather-sprite.svg"
+            fetchpriority="high"
+        />
+    </head>
+    <body>
+        <header class="sr-only">
+            <a class="skip-link" href="#main-content">Skip to content</a>
+            <h1>Timeline — The Jesus Website</h1>
+        </header>
+
+        <div class="sidebar-backdrop" hidden></div>
+        <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+            <button
+                class="sidebar__toggle"
+                id="sidebar-toggle"
+                aria-expanded="true"
+                aria-label="Toggle navigation"
+            >
+                <svg width="20" height="20" aria-hidden="true">
+                    <use href="/assets/images/feather-sprite.svg#icon-menu" />
+                </svg>
+            </button>
+            <ul class="sidebar__nav">
+                <li class="nav-item"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+                <li class="nav-item">
+                    <a href="/evidence/search.html">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/arbor.html">Arbor Diagram</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/timeline/">Timeline</a>
+                </li>
+                <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+                <li class="nav-item">
+                    <a href="/contextual-essays/">Context</a>
+                </li>
+                <li class="nav-item"><a href="/debate/">Debate</a></li>
+                <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+                <li class="nav-item"><a href="/about.html">About</a></li>
+            </ul>
+        </nav>
+
+        <main id="main-content">
+            <!-- Page header -->
+            <div class="timeline-header">
+                <h2>Timeline</h2>
+                <p class="timeline-description">
+                    Walk through the life and context of Jesus chronologically,
+                    from first-century Galilee to the early church.
+                </p>
+            </div>
+
+            <!-- Era filter chips -->
+            <nav
+                class="timeline-era-filters"
+                id="era-filters"
+                aria-label="Filter by era"
+            >
+                <button class="filter-chip active" data-era="all">
+                    All Eras
+                </button>
+                <button class="filter-chip" data-era="beginning">
+                    Birth &amp; Early Life
+                </button>
+                <button class="filter-chip" data-era="middle">Ministry</button>
+                <button class="filter-chip" data-era="end">
+                    Passion &amp; Resurrection
+                </button>
+            </nav>
+
+            <!-- Loading spinner -->
+            <div class="loading" id="loading-state">
+                <svg
+                    class="loading__spinner"
+                    width="24"
+                    height="24"
+                    aria-hidden="true"
+                >
+                    <use href="/assets/images/feather-sprite.svg#icon-loader" />
+                </svg>
+                <span class="loading__text">Loading timeline…</span>
+            </div>
+
+            <!-- Empty state -->
+            <div class="empty-state" id="empty-state" hidden>
+                <p class="empty-state-message">No events in this period.</p>
+            </div>
+
+            <!-- Timeline scroll container -->
+            <div class="timeline-container" id="timeline-container" hidden>
+                <div class="timeline-spine" id="timeline-spine"></div>
+            </div>
+
+            <!-- Timeline tooltip -->
+            <div
+                class="timeline-tooltip"
+                id="timeline-tooltip"
+                hidden
+                role="tooltip"
+            ></div>
+
+            <!-- Detail panel -->
+            <div class="timeline-detail-panel" id="detail-panel" hidden>
+                <button
+                    class="timeline-detail-panel__close"
+                    id="detail-panel-close"
+                    aria-label="Close detail panel"
+                >
+                    <svg width="20" height="20" aria-hidden="true">
+                        <use href="/assets/images/feather-sprite.svg#icon-x" />
+                    </svg>
+                </button>
+                <h3 class="timeline-detail-panel__title" id="detail-title"></h3>
+                <div class="timeline-detail-panel__meta" id="detail-meta"></div>
+                <p class="timeline-detail-panel__verse" id="detail-verse"></p>
+                <a
+                    class="btn btn--secondary timeline-detail-panel__link"
+                    id="detail-link"
+                    href="#"
+                    >View Details</a
+                >
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer__left">
+                <p>
+                    &copy; The Jesus Website. Content available under licence.
+                </p>
+            </div>
+            <div class="footer__right">
+                <button
+                    class="btn btn--ghost"
+                    data-action="print"
+                    aria-label="Print page"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-printer"
+                        />
+                    </svg>
+                    Print
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-contents"
+                    aria-label="Copy page contents"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-copy"
+                        />
+                    </svg>
+                    Copy Contents
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-url"
+                    aria-label="Copy page URL"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-link"
+                        />
+                    </svg>
+                    Copy URL
+                </button>
+            </div>
+        </footer>
+
+        <script
+            type="module"
+            src="/assets/js/timeline/timeline-data.js"
+            defer
+        ></script>
+        <script
+            type="module"
+            src="/assets/js/timeline/timeline-render.js"
+            defer
+        ></script>
+        <script
+            type="module"
+            src="/assets/js/timeline/timeline-interactions.js"
+            defer
+        ></script>
+        <script type="module" src="/assets/js/main.js" defer></script>
+    </body>
+</html>

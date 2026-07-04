@@ -1,0 +1,17 @@
+{
+  "name": "thejesuswebsite-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server exposing thejesuswebsite's published scholarly content to AI assistants via read-only tools.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}

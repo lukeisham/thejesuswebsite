@@ -1,0 +1,75 @@
+/* ==========================================================================
+   Figures
+   Picture / figure captions, borders, numbering.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Figure Container
+   ------------------------------------------------------------------------- */
+
+figure {
+  margin: var(--space-lg) 0;
+}
+
+figure img,
+figure picture {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* -------------------------------------------------------------------------
+   Caption
+   ------------------------------------------------------------------------- */
+
+figcaption {
+  margin-top: var(--space-sm);
+  font-size: var(--text-small);
+  font-style: italic;
+  color: var(--text-secondary);
+  line-height: var(--leading-small);
+}
+
+/* -------------------------------------------------------------------------
+   Figure Numbering
+   Injected by JS — "Fig. 1", "Fig. 2", etc. per page.
+   ------------------------------------------------------------------------- */
+
+figcaption .fig-number {
+  font-weight: 600;
+  font-style: normal;
+}
+
+/* -------------------------------------------------------------------------
+   Full-width figure (hero image style)
+   ------------------------------------------------------------------------- */
+
+figure.figure-full img {
+  width: 100%;
+  border: none;
+  border-radius: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Side-floating figures (≥1024px)
+   ------------------------------------------------------------------------- */
+
+@media (min-width: 1024px) {
+  .figure-breakout-left {
+    float: left;
+    max-width: 320px;
+    margin-left: calc(-1 * (320px + var(--space-lg)));
+    margin-right: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+
+  .figure-breakout-right {
+    float: right;
+    max-width: 320px;
+    margin-right: calc(-1 * (320px + var(--space-lg)));
+    margin-left: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+}

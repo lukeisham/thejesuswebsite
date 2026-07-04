@@ -1,0 +1,41 @@
+/* ==========================================================================
+   Infinite Scroll
+   Loading spinner and end-of-list message for long list pages.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Scroll Sentinel
+   A hidden element 300px before the list end that triggers loading.
+   ------------------------------------------------------------------------- */
+
+.scroll-sentinel {
+  height: 1px;
+  width: 100%;
+}
+
+/* -------------------------------------------------------------------------
+   Loading Spinner
+   ------------------------------------------------------------------------- */
+
+.infinite-scroll-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  color: var(--text-muted);
+}
+
+.infinite-scroll-spinner .icon {
+  animation: spin 1s linear infinite;
+}
+
+/* -------------------------------------------------------------------------
+   End-of-List Message
+   ------------------------------------------------------------------------- */
+
+.infinite-scroll-end {
+  text-align: center;
+  padding: var(--space-xl);
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Advisory crawl delay — honored by Bing/Yandex/others, ignored by Google.
+# This is a polite-bot hint only. Real flood protection lives in
+# the nginx rate-limiting layer (see setup/nginx-hardening.md) and the
+# API-level per-IP limiters in server.js + routes/search.js.
+Crawl-delay: 5
+
+Sitemap: https://www.thejesuswebsite.org/sitemap.xml

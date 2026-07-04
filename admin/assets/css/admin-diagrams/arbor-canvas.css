@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Arbor Canvas (Admin)
+   SVG canvas, nodes, edges, and responsive.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Canvas
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-canvas {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: var(--admin-canvas-bg);
+    border-top: 1px solid var(--admin-border);
+}
+.admin-arbor-canvas--edging {
+    cursor: crosshair;
+}
+.admin-arbor-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* -------------------------------------------------------------------------
+   Nodes
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-node {
+    fill: var(--admin-surface);
+    stroke: var(--admin-accent);
+    stroke-width: 2.5;
+    cursor: pointer;
+    transition:
+        r var(--admin-transition),
+        stroke-width var(--admin-transition);
+}
+.admin-arbor-node:hover {
+    stroke-width: 3.5;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+.admin-arbor-node--selected {
+    fill: var(--admin-selected-color);
+    stroke: var(--admin-selected-stroke);
+    stroke-width: 3.5;
+}
+.admin-arbor-node-label {
+    font-size: 11px;
+    font-family: var(--admin-font-sans);
+    fill: var(--admin-text-primary);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* -------------------------------------------------------------------------
+   Edges
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-edge {
+    stroke: var(--admin-border);
+    stroke-width: 2;
+    fill: none;
+    cursor: pointer;
+    transition: stroke var(--admin-transition);
+}
+.admin-arbor-edge:hover {
+    stroke: var(--admin-accent);
+}
+.admin-arbor-edge-label {
+    font-size: 9px;
+    font-family: var(--admin-font-sans);
+    fill: var(--admin-text-secondary);
+    pointer-events: none;
+    user-select: none;
+    text-transform: capitalize;
+}
+.admin-arbor-edge-temp {
+    stroke: var(--admin-accent);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+    fill: none;
+    pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+    .admin-arbor-toolbar {
+        padding: var(--space-sm) var(--space-md);
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .admin-arbor-panel {
+        width: 100vw;
+    }
+    .admin-arbor-search {
+        position: fixed;
+    }
+}

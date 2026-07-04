@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arbor Editor — Admin</title>
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/admin-diagrams/arbor.css">
+  <script defer src="../assets/js/admin.js"></script>
+  <script defer src="../assets/js/auth.js"></script>
+  <script defer src="../assets/js/update-record.js"></script>
+  <script defer src="../assets/js/admin-arbor/arbor-canvas.js"></script>
+  <script defer src="../assets/js/admin-arbor/arbor-nodes.js"></script>
+  <script defer src="../assets/js/admin-arbor/arbor-edges.js"></script>
+</head>
+<body>
+
+<!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
+<header class="admin-arbor-topbar">
+  <h1>Arbor Editor</h1>
+</header>
+
+<!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
+<nav class="admin-arbor-toolbar" aria-label="Arbor editor tools">
+  <div class="admin-arbor-toolbar__left">
+    <button type="button" id="add-arbor-node-btn" class="admin-arbor-toolbar__btn admin-arbor-toolbar__btn--primary">
+      Add Node
+    </button>
+    <button type="button" id="add-arbor-edge-btn" class="admin-arbor-toolbar__btn">
+      Add Edge
+    </button>
+    <label for="arbor-edge-type-select" class="admin-arbor-visually-hidden">Edge relationship type</label>
+    <select id="arbor-edge-type-select" class="admin-arbor-toolbar__select" aria-label="Edge relationship type">
+    </select>
+  </div>
+  <div class="admin-arbor-toolbar__right">
+    <span id="arbor-edge-error" class="admin-arbor-edge-error" role="alert" aria-live="assertive"></span>
+  </div>
+</nav>
+
+<!-- ── Arbor Editor Canvas ────────────────────────────────────────────────── -->
+<main>
+  <div id="arbor-canvas" class="admin-arbor-canvas">
+    <div
+      id="arbor-search-dialog"
+      class="admin-arbor-search"
+      role="dialog"
+      aria-label="Search evidence to add as node"
+      hidden
+    >
+      <div class="admin-arbor-search__header">
+        <label for="arbor-node-search" class="admin-arbor-visually-hidden">Search evidence</label>
+        <input
+          type="search"
+          id="arbor-node-search"
+          class="admin-arbor-search__input"
+          placeholder="Search evidence to add as node…"
+          autocomplete="off"
+        >
+        <button type="button" id="arbor-search-close" class="admin-arbor-search__close" aria-label="Close search">✕</button>
+      </div>
+      <div id="arbor-search-results" class="admin-arbor-search__results"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Node Edit Panel ─────────────────────────────────────────────────────── -->
+<aside
+  id="arbor-node-panel"
+  class="admin-arbor-panel"
+  role="dialog"
+  aria-label="Edit node"
+  aria-hidden="true"
+>
+  <div class="admin-arbor-panel__header">
+    <h2 class="admin-arbor-panel__title">Edit Node</h2>
+    <button
+      type="button"
+      id="arbor-node-panel-close"
+      class="admin-arbor-panel__close"
+      aria-label="Close node editor"
+    >✕</button>
+  </div>
+
+  <form id="arbor-node-edit-form" class="admin-arbor-panel__form" novalidate>
+    <div class="admin-arbor-panel__field">
+      <label for="arbor-node-title-input">Title</label>
+      <input
+        type="text"
+        id="arbor-node-title-input"
+        class="admin-arbor-panel__input"
+        maxlength="200"
+        placeholder="e.g. The Baptism of Jesus"
+      >
+    </div>
+
+    <div class="admin-arbor-panel__field">
+      <label for="arbor-node-verse-input">Primary Verse</label>
+      <input
+        type="text"
+        id="arbor-node-verse-input"
+        class="admin-arbor-panel__input"
+        placeholder="e.g. Matthew 3:13-17"
+        readonly
+      >
+    </div>
+
+    <div class="admin-arbor-panel__field">
+      <span class="admin-arbor-panel__info">
+        Slug: <span id="arbor-node-slug-display"></span>
+      </span>
+    </div>
+
+    <div
+      id="arbor-node-error"
+      class="admin-arbor-panel__error"
+      role="alert"
+      aria-live="assertive"
+    ></div>
+
+    <div class="admin-arbor-panel__actions">
+      <button type="button" id="arbor-node-save-btn" class="admin-arbor-panel__btn admin-arbor-panel__btn--primary">
+        Save
+      </button>
+      <button type="button" id="arbor-node-cancel-btn" class="admin-arbor-panel__btn admin-arbor-panel__btn--secondary">
+        Cancel
+      </button>
+    </div>
+
+    <div class="admin-arbor-panel__danger">
+      <button type="button" id="arbor-node-delete-btn" class="admin-arbor-panel__btn admin-arbor-panel__btn--danger">
+        Remove from Canvas
+      </button>
+    </div>
+  </form>
+</aside>
+
+<!-- ── Backdrop ────────────────────────────────────────────────────────────── -->
+<div id="arbor-panel-backdrop" class="admin-arbor-panel-backdrop" hidden></div>
+
+<!-- ── Zoom Controls ───────────────────────────────────────────────────────── -->
+<footer class="admin-arbor-zoom-bar">
+  <button type="button" id="arbor-zoom-out" class="admin-arbor-zoom-btn" aria-label="Zoom out">−</button>
+  <button type="button" id="arbor-zoom-reset" class="admin-arbor-zoom-btn" aria-label="Reset zoom">Reset</button>
+  <button type="button" id="arbor-zoom-in" class="admin-arbor-zoom-btn" aria-label="Zoom in">+</button>
+</footer>
+
+<!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
+<script>
+  (function () {
+    // Once all deferred scripts have loaded, init each module.
+    var canvas = document.getElementById("arbor-canvas");
+    AdminArborCanvas.init(canvas);
+    AdminArborNodes.init();
+    AdminArborEdges.init();
+
+    // Wire zoom buttons
+    var zoomIn = document.getElementById("arbor-zoom-in");
+    var zoomOut = document.getElementById("arbor-zoom-out");
+    var zoomReset = document.getElementById("arbor-zoom-reset");
+    if (zoomIn) zoomIn.addEventListener("click", AdminArborCanvas.zoomIn);
+    if (zoomOut) zoomOut.addEventListener("click", AdminArborCanvas.zoomOut);
+    if (zoomReset) zoomReset.addEventListener("click", AdminArborCanvas.resetZoom);
+
+    // Wire backdrop to close the panel
+    var backdrop = document.getElementById("arbor-panel-backdrop");
+    if (backdrop) {
+      backdrop.addEventListener("click", function () {
+        AdminArborNodes.closeEditPanel();
+      });
+    }
+
+    // Override node mousedown to support edge-mode drag
+    var origAddEventListener = document.addEventListener.bind(document);
+    // Intercept mousedown on node groups for edge creation
+    var transformGroup = AdminArborCanvas.getTransformGroup();
+    if (transformGroup) {
+      transformGroup.addEventListener("mousedown", function (e) {
+        var nodeGroup = e.target.closest(".admin-arbor-node-group");
+        if (nodeGroup) {
+          var nodeId = Number(nodeGroup.getAttribute("data-node-id"));
+          var node = AdminArborNodes.getNodeById(nodeId);
+          if (node && window.AdminArborEdges) {
+            // Let arbor-edges.js intercept if in edge mode
+            // The nodes module handles its own mousedown separately
+          }
+        }
+      });
+    }
+
+    // Auth guard
+    AdminAuth.requireSession().then(function (ok) {
+      if (!ok) {
+        var c = document.getElementById("arbor-canvas");
+        if (c) c.textContent = "Session required. Please sign in.";
+        return;
+      }
+      // Load the arbor graph
+      AdminArborNodes.loadNodes();
+    });
+
+    // Sync backdrop visibility with panel state
+    var observer = new MutationObserver(function () {
+      var panel = document.getElementById("arbor-node-panel");
+      var bd = document.getElementById("arbor-panel-backdrop");
+      if (panel && bd) {
+        var open = panel.classList.contains("admin-arbor-panel--open");
+        bd.hidden = !open;
+        panel.setAttribute("aria-hidden", open ? "false" : "true");
+      }
+    });
+
+    var panel = document.getElementById("arbor-node-panel");
+    if (panel) {
+      observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
+    }
+  })();
+</script>
+
+</body>
+</html>

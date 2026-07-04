@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" class="admin-app">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin · Analytics</title>
+  <link rel="stylesheet" href="assets/css/admin.css">
+  <script defer src="assets/js/auth.js"></script>
+  <script defer src="assets/js/admin.js"></script>
+  <script defer src="assets/js/analytics.js"></script>
+</head>
+<body>
+  <div class="admin-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+    <nav class="admin-sidebar">
+      <div class="admin-sidebar__brand">⚡ Admin</div>
+      <div class="admin-sidebar__nav">
+        <a class="admin-sidebar__link" href="index.html">
+          <span class="admin-sidebar__icon">📊</span> Dashboard
+        </a>
+        <a class="admin-sidebar__link" href="drafts/index.html">
+          <span class="admin-sidebar__icon">📝</span> Drafts
+        </a>
+        <a class="admin-sidebar__link" href="evidence/index.html">
+          <span class="admin-sidebar__icon">📋</span> Evidence
+        </a>
+        <a class="admin-sidebar__link" href="collections/index.html">
+          <span class="admin-sidebar__icon">📁</span> Collections
+        </a>
+        <a class="admin-sidebar__link" href="resources/index.html">
+          <span class="admin-sidebar__icon">📚</span> Resources
+        </a>
+        <a class="admin-sidebar__link" href="wikipedia/index.html">
+          <span class="admin-sidebar__icon">📖</span> Wikipedia
+        </a>
+        <a class="admin-sidebar__link" href="essays/index.html">
+          <span class="admin-sidebar__icon">✍️</span> Essays
+        </a>
+        <a class="admin-sidebar__link" href="debate/index.html">
+          <span class="admin-sidebar__icon">🗣️</span> Debate
+        </a>
+                    <a class="admin-sidebar__link" href="historiography/index.html">
+                        <span class="admin-sidebar__icon">🏛️</span> Historiography
+                    </a>
+        <a class="admin-sidebar__link" href="blog/index.html">
+          <span class="admin-sidebar__icon">📰</span> Blog
+        </a>
+        <a class="admin-sidebar__link" href="news/index.html">
+          <span class="admin-sidebar__icon">📡</span> News
+        </a>
+        <a class="admin-sidebar__link" href="diagrams/maps.html">
+          <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+        </a>
+        <a class="admin-sidebar__link admin-sidebar__link--active" href="analytics.html">
+          <span class="admin-sidebar__icon">📈</span> Analytics
+        </a>
+        <a class="admin-sidebar__link" href="settings/index.html">
+          <span class="admin-sidebar__icon">⚙️</span> Settings
+        </a>
+      </div>
+      <div class="admin-sidebar__bottom">
+        <a class="admin-sidebar__link" href="auth/login.html">
+          <span class="admin-sidebar__icon">🚪</span> Logout
+        </a>
+      </div>
+    </nav>
+
+    <!-- ── Topbar ───────────────────────────────────────────────────────── -->
+    <header class="admin-topbar">
+      <h1 class="admin-topbar__title">Analytics</h1>
+    </header>
+
+    <!-- ── Main Content ─────────────────────────────────────────────────── -->
+    <main class="admin-main">
+      <!-- Date-range chip row -->
+      <div class="analytics-chip-row">
+        <button class="analytics-chip" type="button" data-days="7">Last 7 days</button>
+        <button class="analytics-chip analytics-chip--active" type="button" data-days="30">Last 30 days</button>
+        <button class="analytics-chip" type="button" data-days="90">Last 90 days</button>
+      </div>
+
+      <div id="analytics-content">
+        <div class="admin-loading">Loading analytics…</div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ── Inline page script ────────────────────────────────────────────── -->
+  <script>
+    (async function () {
+      // Guard: redirect if not authenticated
+      const ok = await AdminAuth.requireSession();
+      if (!ok) {
+        document.getElementById('analytics-content').innerHTML =
+          '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
+        return;
+      }
+
+      // Delegate to the analytics module
+      AdminAnalytics.render();
+    })();
+  </script>
+</body>
+</html>

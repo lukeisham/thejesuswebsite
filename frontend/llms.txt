@@ -1,0 +1,136 @@
+# llms.txt — The Jesus Website
+
+> This site is built as a static frontend hydrated by client-side JavaScript
+> against a JSON API. Non-JS agents (crawlers, LLM tools, link-unfurlers)
+> should consume the public JSON API directly rather than scraping rendered
+> HTML. The API returns clean, machine-readable JSON for every content type.
+
+## Site purpose
+
+The Jesus Website provides scholarly, evidence-based analysis of the
+historical Jesus of Nazareth. Content is organised into:
+
+- **Evidence** — Primary historical evidence items with timeline context,
+  pictures, sources, and related-item links.
+- **Contextual Essays** — Journal-format scholarly essays with abstracts,
+  keywords, footnotes, and bibliographies.
+- **Debate** — Popular and academic challenges to the historical Jesus,
+  plus scholarly responses with strength indicators.
+- **Historiography** — Historiography articles in journal format.
+- **News & Blog** — Curated news articles with external links, plus
+  in-house blog posts with figures and pull-quotes.
+- **Maps** — Interactive map regions and detail pages.
+- **Timeline** — Chronological timeline of evidence.
+- **Resources** — Topic-grouped curated resource lists.
+- **Arbor Diagram** — Interactive evidence relationship diagram.
+- **About** — Site purpose and contributor information.
+
+## Public read-only JSON API
+
+All endpoints are GET-only public reads. Append the path to
+`https://www.thejesuswebsite.org/api`. All responses are JSON.
+
+### Evidence
+
+- `GET /api/evidence` — List all published evidence items (supports
+  `?gospel_category=event|parable|...` filter).
+- `GET /api/evidence/:slug` — Full detail for one evidence item,
+  including pictures, sources, related links, and identifiers.
+  Example: `GET /api/evidence/pilate-stone`
+
+### Contextual Essays
+
+- `GET /api/essays` — List all published essays.
+- `GET /api/essays/:slug` — Full essay with abstract, keywords,
+  body, footnotes, and bibliography.
+  Example: `GET /api/essays/minimal-facts`
+
+### Responses
+
+- `GET /api/responses` — List all published responses.
+- `GET /api/responses/:slug` — Full response with challenge reference,
+  strength indicator, body, footnotes, and bibliography.
+  Example: `GET /api/responses/case-for-empty-tomb`
+
+### Challenges (Popular)
+
+- `GET /api/popular-challenges` — List published popular challenges.
+- `GET /api/popular-challenges/:slug` — Challenge detail with linked
+  response cards.
+  Example: `GET /api/popular-challenges/jesus-never-existed`
+
+### Challenges (Academic)
+
+- `GET /api/academic-challenges` — List published academic challenges.
+- `GET /api/academic-challenges/:slug` — Challenge detail with linked
+  response cards.
+  Example: `GET /api/academic-challenges/messianic-secret`
+
+### Historiography
+
+- `GET /api/historiography` — List published historiography articles.
+- `GET /api/historiography/:slug` — Full article in journal format.
+  Example: `GET /api/historiography/quest-for-historical-jesus`
+
+### Blog Posts
+
+- `GET /api/blog-posts` — List published blog posts.
+- `GET /api/blog-posts/:slug` — Full blog post with hero image,
+  body (with figures/pull-quotes), further reading, and tags.
+  Example: `GET /api/blog-posts/easter-apologetics`
+
+### News Articles
+
+- `GET /api/news-articles` — List published news articles.
+- `GET /api/news-articles/:slug` — Full news article with external
+  source link, summary, and keywords.
+  Example: `GET /api/news-articles/new-dead-sea-scroll-fragments`
+
+### Search (Full-Text)
+
+- `GET /api/search?q=term` — Search across evidence, essays,
+  responses, and blog posts via FTS5. Returns ranked results with
+  `<mark>`-highlighted snippets.
+- `GET /api/search?q=term&type=evidence` — Limit search to one type.
+  Valid types: `evidence`, `essays`, `responses`, `blog`.
+- `GET /api/search?q=term&limit=50` — Override result count (max 100).
+
+### Timeline
+
+- `GET /api/timeline` — Full timeline JSON with era groupings.
+
+### Maps
+
+- `GET /api/maps` — List all map regions with image paths.
+- `GET /api/maps/:key` — Single map detail.
+  Example: `GET /api/maps/jerusalem`
+
+### Resources
+
+- `GET /api/resources` — List curated resource items by topic.
+
+### About
+
+- `GET /api/about` — Published about sections (site purpose,
+  contributors, methodology).
+
+### Identifiers
+
+- `GET /api/identifiers` — List all identifiers (ISBNs, DOIs, etc.).
+
+### Wikipedia
+
+- `GET /api/wikipedia` — List Wikipedia-sourced entries.
+
+### Collections
+
+- `GET /api/collections` — List published content collections.
+
+### Sources (MLA)
+
+- `GET /api/sources` — List published MLA-cited sources.
+
+### Arbor Diagram
+
+- `GET /api/arbor` — Evidence relationship graph for the
+  interactive arbor diagram.

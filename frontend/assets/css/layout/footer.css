@@ -1,0 +1,66 @@
+/* ==========================================================================
+   Site Footer
+   Universal footer (not on index.html).
+   Left: copyright + licence + last updated.
+   Right: Print, Copy Contents, Copy URL buttons.
+   ========================================================================== */
+
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  min-height: 48px;
+}
+
+/* -------------------------------------------------------------------------
+   Footer Left
+   ------------------------------------------------------------------------- */
+
+.footer-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+/* -------------------------------------------------------------------------
+   Footer Actions (right)
+   ------------------------------------------------------------------------- */
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.footer-actions .btn-ghost {
+  font-size: var(--text-small);
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .site-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+  }
+
+  .footer-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

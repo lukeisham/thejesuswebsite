@@ -1,0 +1,118 @@
+/* ==========================================================================
+   Journal Article — Body
+   Reading column, numbered headings, block quotes, and responsive adjustments.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Reading Column
+   ------------------------------------------------------------------------- */
+
+.journal-body {
+    max-width: var(--measure-reading);
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 var(--space-md);
+    font-size: var(--text-body);
+    line-height: var(--leading-long);
+    color: var(--text-primary);
+}
+
+.journal-body p {
+    margin-bottom: var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Numbered Section Headings (CSS counters)
+   ------------------------------------------------------------------------- */
+
+.journal-body h2 {
+    counter-increment: h2-counter;
+    counter-reset: h3-counter;
+    font-family: var(--font-heading);
+    font-size: var(--text-h2);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-md);
+}
+
+.journal-body h2::before {
+    content: counter(h2-counter) "\00A0\00A0";
+    color: var(--accent);
+}
+
+.journal-body h2.unnumbered {
+    counter-increment: none;
+}
+
+.journal-body h2.unnumbered::before {
+    content: none;
+}
+
+.journal-body h3 {
+    counter-increment: h3-counter;
+    counter-reset: h4-counter;
+    font-family: var(--font-heading);
+    font-size: var(--text-h3);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-sm);
+}
+
+.journal-body h3::before {
+    content: counter(h2-counter) "." counter(h3-counter) "\00A0\00A0";
+    color: var(--accent);
+}
+
+.journal-body h4 {
+    counter-increment: h4-counter;
+    font-family: var(--font-heading);
+    font-size: var(--text-h4);
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-xs);
+}
+
+.journal-body h4::before {
+    content: counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter)
+        "\00A0\00A0";
+    color: var(--accent);
+}
+
+/* -------------------------------------------------------------------------
+   Block Quotes
+   ------------------------------------------------------------------------- */
+
+.journal-body blockquote {
+    border-left: 3px solid var(--accent-light);
+    padding: var(--space-md) var(--space-lg);
+    margin: var(--space-lg) 0;
+    font-style: italic;
+    color: var(--text-secondary);
+    background: transparent;
+}
+
+.journal-body blockquote footer,
+.journal-body blockquote cite {
+    display: block;
+    margin-top: var(--space-sm);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    font-style: normal;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .journal-title {
+        font-size: var(--text-h2);
+    }
+
+    .journal-body {
+        font-size: 0.9375rem;
+    }
+}

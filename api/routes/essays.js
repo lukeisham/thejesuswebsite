@@ -1,0 +1,84 @@
+// Essays HTTP routes. This file only handles the request/response layer:
+// parse input, call the model, shape the response. All SQL lives in the model.
+
+const express = require("express");
+const essayModel = require("../models/essay.model");
+const requireAuth = require("../middleware/auth");
+
+const router = express.Router();
+
+// GET /essays — public list of published essays, with optional filter for draft status
+// e.g. /essays?published_draft=1
+router.get("/", (req, res) => {
+  try {
+    const items = essayModel.getAllPublished(req.query);
+    res.json(items);
+  } catch (error) {
+    console.error("GET /essays failed:", error);
+    res.status(500).json({ error: "Failed to load essays." });
+  }
+});
+
+// GET /essays/admin/:id — admin detail by id (must come before /:slug)
+router.get("/admin/:id", requireAuth, (req, res) => {
+  try {
+    const item = essayModel.getAdminById(Number(req.params.id));
+    if (!item) return res.status(404).json({ error: "Essay not found." });
+    res.json(item);
+  } catch (error) {
+    console.error("GET /essays/admin/:id failed:", error);
+    res.status(500).json({ error: "Failed to load essay." });
+  }
+});
+
+// GET /essays/:slug — public single essay by slug
+router.get("/:slug", (req, res) => {
+  try {
+    const item = essayModel.getDetailBySlug(req.params.slug);
+    if (!item) return res.status(404).json({ error: "Essay not found." });
+    res.json(item);
+  } catch (error) {
+    console.error("GET /essays/:slug failed:", error);
+    res.status(500).json({ error: "Failed to load essay." });
+  }
+});
+
+// POST /essays — create new essay (admin only)
+router.post("/", requireAuth, (req, res) => {
+  try {
+    if (!req.body.slug) {
+      return res.status(400).json({ error: "slug is required." });
+    }
+    const created = essayModel.createComposite(req.body);
+    res.status(201).json(created);
+  } catch (error) {
+    console.error("POST /essays failed:", error);
+    res.status(500).json({ error: "Failed to create essay." });
+  }
+});
+
+// PUT /essays/:id — update essay (admin only)
+router.put("/:id", requireAuth, (req, res) => {
+  try {
+    const updated = essayModel.updateComposite(Number(req.params.id), req.body);
+    if (!updated) return res.status(404).json({ error: "Essay not found." });
+    res.json(updated);
+  } catch (error) {
+    console.error("PUT /essays/:id failed:", error);
+    res.status(500).json({ error: "Failed to update essay." });
+  }
+});
+
+// DELETE /essays/:id — remove essay (admin only)
+router.delete("/:id", requireAuth, (req, res) => {
+  try {
+    const removed = essayModel.remove(Number(req.params.id));
+    if (!removed) return res.status(404).json({ error: "Essay not found." });
+    res.status(204).end();
+  } catch (error) {
+    console.error("DELETE /essays/:id failed:", error);
+    res.status(500).json({ error: "Failed to delete essay." });
+  }
+});
+
+module.exports = router;

@@ -1,0 +1,92 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Analytics Page
+   CSS-11: Chip row, stat grid, table, sparkline. Under 80 lines.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Date-Range Chip Row ──────────────────────────────────────────────────── */
+
+.analytics-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+}
+
+.analytics-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--admin-text-secondary);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background var(--admin-transition),
+                color var(--admin-transition),
+                border-color var(--admin-transition);
+}
+
+.analytics-chip:hover {
+    background: var(--admin-surface-hover);
+    color: var(--admin-text-primary);
+}
+
+.analytics-chip--active {
+    background: var(--admin-accent);
+    color: var(--admin-accent-text);
+    border-color: var(--admin-accent);
+}
+
+/* ── Stat Grid ────────────────────────────────────────────────────────────── */
+
+.analytics-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+/* ── Analytics Table ──────────────────────────────────────────────────────── */
+
+.analytics-table .admin-table thead th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.analytics-table__cell--numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Sparkline ────────────────────────────────────────────────────────────── */
+
+.analytics-sparkline {
+    display: block;
+    width: 120px;
+    height: 32px;
+    overflow: visible;
+}
+
+.analytics-sparkline path {
+    fill: none;
+    stroke: var(--admin-accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ── Section ──────────────────────────────────────────────────────────────── */
+
+.analytics-section {
+    margin-bottom: var(--space-xl);
+}
+
+.analytics-section__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    margin-bottom: var(--space-md);
+}

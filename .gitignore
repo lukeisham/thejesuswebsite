@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+
+# Database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# User uploads (keep the directory, ignore contents)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Generated detail pages (rebuilt on deploy via npm run pages)
+frontend/evidence/single/*.html
+!frontend/evidence/single/[slug].html
+frontend/contextual-essays/*.html
+!frontend/contextual-essays/[slug].html
+frontend/debate/responses/*.html
+!frontend/debate/responses/[slug].html
+frontend/debate/historiography/*.html
+!frontend/debate/historiography/[slug].html
+frontend/news-and-blog/blog/*.html
+!frontend/news-and-blog/blog/[slug].html
+frontend/news-and-blog/news/*.html
+!frontend/news-and-blog/news/[slug].html
+frontend/debate/popular-challenges/*.html
+!frontend/debate/popular-challenges/[slug].html
+frontend/debate/academic-challenges/*.html
+!frontend/debate/academic-challenges/[slug].html

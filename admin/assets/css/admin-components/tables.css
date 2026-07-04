@@ -1,0 +1,78 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Tables & Badges
+   CSS-8: Table styles, sticky header, status badges, under 100 lines
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Table ────────────────────────────────────────────────────────────────── */
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: var(--admin-surface);
+    border-radius: var(--admin-radius);
+    overflow: hidden;
+    box-shadow: var(--admin-shadow);
+}
+
+.admin-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--admin-text-secondary);
+    background: var(--admin-surface);
+    border-bottom: 2px solid var(--admin-border);
+}
+
+.admin-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--admin-border-light);
+    color: var(--admin-text-primary);
+}
+
+.admin-table tbody tr:hover td {
+    background: var(--admin-surface-hover);
+}
+
+/* ── Badge ────────────────────────────────────────────────────────────────── */
+
+.admin-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.6;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.admin-badge--published {
+    background: rgba(40, 167, 69, 0.12);
+    color: var(--admin-success);
+}
+
+.admin-badge--draft {
+    background: var(--admin-draft-bg);
+    color: var(--admin-draft-color);
+}
+
+.admin-badge--type {
+    background: rgba(136, 136, 152, 0.12);
+    color: var(--admin-text-muted);
+    font-family: var(--admin-font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ── Table Wrapper (for horizontal scroll) ────────────────────────────────── */
+
+.admin-table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--admin-radius);
+    box-shadow: var(--admin-shadow);
+}

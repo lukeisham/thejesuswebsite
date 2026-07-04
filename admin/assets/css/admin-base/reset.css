@@ -1,0 +1,37 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Reset — Scoped to .admin-app / bare elements
+   CSS-2: Minimal reset, ~20 lines
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.admin-app,
+.admin-app *,
+.admin-app *::before,
+.admin-app *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-app {
+    font-family: var(--admin-font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.admin-app img,
+.admin-app svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.admin-app ul,
+.admin-app ol {
+    list-style: none;
+}
+
+.admin-app button {
+    font: inherit;
+    color: inherit;
+}

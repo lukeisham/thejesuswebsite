@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en" class="admin-app">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Drafts — Admin</title>
+        <link rel="stylesheet" href="../assets/css/admin.css" />
+        <script defer src="../assets/js/auth.js"></script>
+        <script defer src="../assets/js/admin.js"></script>
+        <style>
+            .admin-drafts-actions {
+                display: flex;
+                align-items: center;
+                gap: var(--space-sm);
+                flex-wrap: wrap;
+            }
+            .admin-drafts-actions .admin-btn {
+                white-space: nowrap;
+            }
+            .admin-loading,
+            .admin-empty,
+            .admin-error {
+                padding: var(--space-xl);
+                text-align: center;
+                color: var(--admin-text-muted);
+                font-size: 14px;
+            }
+            .admin-error {
+                color: var(--admin-danger);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="admin-shell">
+            <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+            <nav class="admin-sidebar" aria-label="Admin navigation">
+                <div class="admin-sidebar__brand">⚡ Admin</div>
+                <div class="admin-sidebar__nav">
+                    <a class="admin-sidebar__link" href="../index.html">
+                        <span class="admin-sidebar__icon">📊</span> Dashboard
+                    </a>
+                    <a
+                        class="admin-sidebar__link admin-sidebar__link--active"
+                        href="index.html"
+                    >
+                        <span class="admin-sidebar__icon">📝</span> Drafts
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../evidence/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📋</span> Evidence
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../collections/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📁</span> Collections
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../resources/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📚</span> Resources
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../wikipedia/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📖</span> Wikipedia
+                    </a>
+                    <a class="admin-sidebar__link" href="../essays/index.html">
+                        <span class="admin-sidebar__icon">✍️</span> Essays
+                    </a>
+                    <a class="admin-sidebar__link" href="../debate/index.html">
+                        <span class="admin-sidebar__icon">🗣️</span> Debate
+                    </a>
+      <a class="admin-sidebar__link" href="../historiography/index.html">
+        <span class="admin-sidebar__icon">🏛️</span> Historiography
+      </a>
+                    <a class="admin-sidebar__link" href="../blog/index.html">
+                        <span class="admin-sidebar__icon">📰</span> Blog
+                    </a>
+                    <a class="admin-sidebar__link" href="../news/index.html">
+                        <span class="admin-sidebar__icon">📡</span> News
+                    </a>
+                    <a class="admin-sidebar__link" href="../diagrams/maps.html">
+                        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+                    </a>
+                    <a class="admin-sidebar__link" href="../analytics.html">
+                        <span class="admin-sidebar__icon">📈</span> Analytics
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../settings/index.html"
+                    >
+                        <span class="admin-sidebar__icon">⚙️</span> Settings
+                    </a>
+                </div>
+                <div class="admin-sidebar__bottom">
+                    <a class="admin-sidebar__link" href="../auth/login.html">
+                        <span class="admin-sidebar__icon">🚪</span> Logout
+                    </a>
+                </div>
+            </nav>
+
+            <!-- ── Topbar ───────────────────────────────────────────────────────── -->
+            <header class="admin-topbar">
+                <h1 class="admin-topbar__title">Drafts</h1>
+                <div class="admin-topbar__actions">
+                    <a
+                        class="admin-btn admin-btn--primary admin-btn--sm"
+                        href="new.html"
+                        >+ New Draft</a
+                    >
+                </div>
+            </header>
+
+            <!-- ── Main Content ─────────────────────────────────────────────────── -->
+            <main class="admin-main" id="drafts-content">
+                <div class="admin-loading" id="drafts-loading" role="status">
+                    Loading drafts…
+                </div>
+            </main>
+        </div>
+
+        <script>
+            (async function () {
+                const main = document.getElementById("drafts-content");
+                const loadingEl = document.getElementById("drafts-loading");
+
+                // Guard: redirect if not authenticated
+                const ok = await AdminAuth.requireSession();
+                if (!ok) {
+                    main.innerHTML =
+                        '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
+                    return;
+                }
+
+                try {
+                    const drafts = await Admin.api.get("/drafts");
+                    main.removeChild(loadingEl);
+
+                    if (!Array.isArray(drafts) || drafts.length === 0) {
+                        const emptyEl = document.createElement("div");
+                        emptyEl.className = "admin-empty";
+                        emptyEl.setAttribute("role", "status");
+                        emptyEl.textContent = "No drafts pending.";
+                        main.appendChild(emptyEl);
+                        return;
+                    }
+
+                    // Build table
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "admin-table-wrapper";
+
+                    const table = document.createElement("table");
+                    table.className = "admin-table";
+
+                    // Header
+                    const thead = document.createElement("thead");
+                    const hRow = document.createElement("tr");
+                    [
+                        "Type",
+                        "Title",
+                        "Created",
+                        "Updated",
+                        "Status",
+                        "Edit",
+                    ].forEach(function (label) {
+                        const th = document.createElement("th");
+                        th.textContent = label;
+                        hRow.appendChild(th);
+                    });
+                    thead.appendChild(hRow);
+                    table.appendChild(thead);
+
+                    // Body
+                    const tbody = document.createElement("tbody");
+
+                    // Map types to edit URL paths
+                    function draftEditUrl(draft) {
+                        var id = draft.id;
+                        var type = draft.type;
+                        switch (type) {
+                            case "evidence":
+                                return "../evidence/edit-[id].html?id=" + id;
+                            case "essays":
+                                return "../essays/edit-[id].html?id=" + id;
+                            case "responses":
+                                return "../debate/edit-[id].html?id=" + id;
+                            case "historiography":
+                                return (
+                                    "../historiography/edit-[id].html?id=" + id
+                                );
+                            case "blog-posts":
+                                return "../blog/edit-[id].html?id=" + id;
+                            case "news-articles":
+                                return "../news/index.html";
+                            case "wikipedia":
+                                return "../wikipedia/index.html";
+                            case "collections":
+                                return "../collections/index.html";
+                            case "challenges":
+                                return "../debate/index.html";
+                            default:
+                                return (
+                                    "edit-[id].html?id=" +
+                                    id +
+                                    "&type=" +
+                                    encodeURIComponent(type)
+                                );
+                        }
+                    }
+
+                    drafts.forEach(function (d) {
+                        const tr = document.createElement("tr");
+
+                        // Type badge
+                        const tdType = document.createElement("td");
+                        tdType.appendChild(Admin.typeBadge(d.type || "draft"));
+                        tr.appendChild(tdType);
+
+                        // Title — link to edit page
+                        const tdTitle = document.createElement("td");
+                        const titleLink = document.createElement("a");
+                        titleLink.href = draftEditUrl(d);
+                        titleLink.textContent =
+                            d.title || d.slug || "(untitled)";
+                        titleLink.style.cssText =
+                            "color:var(--admin-accent);text-decoration:none;font-weight:500;";
+                        tdTitle.appendChild(titleLink);
+                        tr.appendChild(tdTitle);
+
+                        // Created
+                        const tdCreated = document.createElement("td");
+                        tdCreated.textContent = Admin.formatDate(d.created_at);
+                        tr.appendChild(tdCreated);
+
+                        // Updated
+                        const tdUpdated = document.createElement("td");
+                        tdUpdated.textContent = Admin.formatDate(d.updated_at);
+                        tr.appendChild(tdUpdated);
+
+                        // Status
+                        const tdStatus = document.createElement("td");
+                        tdStatus.appendChild(
+                            Admin.statusBadge(d.published_draft),
+                        );
+                        tr.appendChild(tdStatus);
+
+                        // Edit button
+                        const tdEdit = document.createElement("td");
+                        const editBtn = document.createElement("a");
+                        editBtn.className =
+                            "admin-btn admin-btn--sm admin-btn--secondary";
+                        editBtn.href = draftEditUrl(d);
+                        editBtn.textContent = "Edit";
+                        tdEdit.appendChild(editBtn);
+                        tr.appendChild(tdEdit);
+
+                        tbody.appendChild(tr);
+                    });
+
+                    table.appendChild(tbody);
+                    wrapper.appendChild(table);
+                    main.appendChild(wrapper);
+                } catch (err) {
+                    if (loadingEl) loadingEl.remove();
+                    const errorEl = document.createElement("div");
+                    errorEl.className = "admin-error";
+                    errorEl.setAttribute("role", "alert");
+                    errorEl.textContent =
+                        "Failed to load drafts: " + err.message;
+                    main.appendChild(errorEl);
+                }
+            })();
+        </script>
+    </body>
+</html>

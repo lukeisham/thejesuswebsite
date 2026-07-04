@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            The Jesus Website — Historical Evidence for Jesus of Nazareth
+        </title>
+        <meta
+            name="description"
+            content="A comprehensive survey of the historical evidence for Jesus the Messiah, presenting about 300 historical data points from the four gospels."
+        />
+
+        <!-- Favicon & PWA -->
+        <link
+            rel="icon"
+            href="/assets/images/favicon.png"
+            type="image/png
+        />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link
+            rel="apple-touch-icon"
+            href="/assets/images/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/assets/images/site.webmanifest" />
+
+        <!-- CSS (HTML-4: CSS in <head>) -->
+        <link rel="stylesheet" href="/assets/css/base/variables.css" />
+        <link rel="stylesheet" href="/assets/css/base/reset.css" />
+        <link rel="stylesheet" href="/assets/css/base/typography.css" />
+        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" />
+        <link rel="stylesheet" href="/assets/css/base/animations.css" />
+        <link rel="stylesheet" href="/assets/css/layout/grid.css" />
+        <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
+        <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
+        <link rel="stylesheet" href="/assets/css/components/icons.css" />
+        <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+        <link rel="stylesheet" href="/assets/css/pages/home.css" />
+
+        <!-- Preload hero image -->
+        <link rel="preload" as="image" href="/assets/images/jesus_walking_on_water.jpg" />
+    </head>
+    <body>
+        <!-- Visually-hidden header for SEO & a11y (HTML-3: exactly one <h1>) -->
+        <header class="sr-only">
+            <a class="skip-link" href="#main-content">Skip to content</a>
+            <h1>
+                The Jesus Website — Historical Evidence for Jesus of Nazareth
+            </h1>
+        </header>
+
+        <!-- Off-canvas navigation sidebar — closed by default on home -->
+        <div class="sidebar-backdrop" hidden></div>
+        <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+            <button
+                class="sidebar__toggle"
+                id="sidebar-toggle"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <svg width="20" height="20" aria-hidden="true">
+                    <use href="/assets/images/feather-sprite.svg#icon-menu" />
+                </svg>
+            </button>
+            <ul class="sidebar__nav">
+                <li class="nav-item"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+                <li class="nav-item">
+                    <a href="/evidence/search.html">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/arbor.html">Arbor Diagram</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/timeline/">Timeline</a>
+                </li>
+                <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+                <li class="nav-item">
+                    <a href="/contextual-essays/">Context</a>
+                </li>
+                <li class="nav-item"><a href="/debate/">Debate</a></li>
+                <li class="nav-item"><a href="/resources/">Resources</a></li>
+                <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+                <li class="nav-item"><a href="/about.html">About</a></li>
+            </ul>
+        </nav>
+
+        <main id="main-content">
+            <!-- Hero image: full-width -->
+            <section class="home-hero">
+                <img
+                    src="/assets/images/jesus_walking_on_water.jpg"
+                    alt=""
+                    width="1280"
+                    height="600"
+                />
+            </section>
+
+            <!-- Site title + tagline -->
+            <section class="home-title-block">
+                <h2 class="home-title">The Jesus Website</h2>
+                <p class="home-tagline">
+                    Structured historical evidence for Jesus of Nazareth —
+                    openly accessible, carefully organised.
+                </p>
+            </section>
+
+            <!-- Main content: comprehensive survey introduction -->
+            <section class="home-section">
+                <div class="home-section-body">
+                    <p>
+                        This website aims to be a comprehensive survey of the
+                        historical evidence for Jesus the Messiah. It presents
+                        about 300 historical data points related to Jesus from
+                        the four gospels (Matthew, Mark, Luke &amp; John). These
+                        are organised by a visual sequence diagram, a timeline,
+                        and then plotted onto maps of first century Galilee,
+                        Judea, Jerusalem and the wider Roman world.
+                    </p>
+                    <p>
+                        The plan is to slowly build out the context section with
+                        essays about various historical aspects to provide
+                        background and context for the core record of historical
+                        information.
+                    </p>
+                    <p>
+                        History is about reconstructing a narrative of the past
+                        from available evidence. The debate and discussion
+                        section includes a historiography of how the historical
+                        Jesus has been studied, this section also provides
+                        responses to popular and academic challenges to the
+                        historical Jesus. Additionally lists of all of
+                        Jesus&rsquo; parables, key Old Testament prophecies,
+                        Jesus&rsquo; sermons and sayings, etc are in the
+                        resources section. And you can find out more about the
+                        project in the about section.
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <!-- No footer on home page -->
+
+        <!-- Scripts at bottom with defer (HTML-4) -->
+        <script type="module" src="/assets/js/main.js" defer></script>
+    </body>
+</html>

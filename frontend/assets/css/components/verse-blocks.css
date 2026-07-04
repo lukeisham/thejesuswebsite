@@ -1,0 +1,53 @@
+/* ==========================================================================
+   Verse Blocks & Code Blocks
+   Monospace-styled verse references and code snippets.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Verse Block
+   ------------------------------------------------------------------------- */
+
+.verse-block {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--text-primary);
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-gold);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin: var(--space-lg) 0;
+  line-height: var(--leading-small);
+  overflow-x: auto;
+}
+
+/* -------------------------------------------------------------------------
+   Code Block
+   Same treatment as verse, with distinct color.
+   ------------------------------------------------------------------------- */
+
+.code-block {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-gold);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin: var(--space-lg) 0;
+  line-height: var(--leading-small);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+/* -------------------------------------------------------------------------
+   Verse Reference (inline)
+   ------------------------------------------------------------------------- */
+
+.verse-ref {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: 600;
+  font-variant: small-caps;
+}

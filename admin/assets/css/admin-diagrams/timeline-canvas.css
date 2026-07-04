@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Timeline Canvas (Admin)
+   Canvas, axis, era bands, tick marks, event markers, and responsive.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Canvas
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-canvas {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: var(--admin-canvas-bg);
+    position: relative;
+    border-top: 1px solid var(--admin-border);
+    cursor: grab;
+    -webkit-overflow-scrolling: touch;
+}
+.admin-timeline-canvas--adding {
+    cursor: crosshair;
+}
+
+/* -------------------------------------------------------------------------
+   Axis
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-axis-line {
+    background: var(--admin-border);
+}
+
+/* -------------------------------------------------------------------------
+   Era Bands
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-era-band {
+    background: var(--admin-era-band-bg);
+    border-right: 1px dashed var(--admin-border-light);
+}
+.admin-timeline-era-band:nth-child(2) {
+    background: var(--admin-era-band-bg-alt);
+}
+.admin-timeline-era-band:nth-child(3) {
+    background: var(--admin-era-band-bg-third);
+}
+.admin-timeline-era-label {
+    position: absolute;
+    top: 6px;
+    left: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--admin-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* -------------------------------------------------------------------------
+   Tick Marks
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-tick {
+    width: 1px;
+    height: 12px;
+    background: var(--admin-border);
+    transform: translateY(-6px);
+}
+.admin-timeline-tick-label {
+    position: absolute;
+    top: 10px;
+    left: 4px;
+    font-size: 0.625rem;
+    color: var(--admin-text-muted);
+    white-space: nowrap;
+    transform: rotate(-45deg);
+    transform-origin: left top;
+}
+
+/* -------------------------------------------------------------------------
+   Event Markers
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-event {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--admin-accent);
+    border: 2px solid var(--admin-surface);
+    cursor: pointer;
+    z-index: 2;
+    padding: 0;
+    margin-left: -8px;
+    margin-top: -8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    transition:
+        transform var(--admin-transition),
+        box-shadow var(--admin-transition);
+}
+.admin-timeline-event:hover {
+    transform: scale(1.5);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    z-index: 3;
+}
+.admin-timeline-event--selected {
+    background: var(--admin-selected-color);
+    transform: scale(1.5);
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.3);
+    z-index: 3;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+    .admin-timeline-toolbar {
+        padding: var(--space-sm) var(--space-md);
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .admin-timeline-panel {
+        width: 100vw;
+    }
+    .admin-timeline-search {
+        position: fixed;
+    }
+}

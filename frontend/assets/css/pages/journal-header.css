@@ -1,0 +1,127 @@
+/* ==========================================================================
+   Journal Article — Header
+   Shared by: Contextual Essays, Responses, Historiography.
+   Article root, title block, abstract, and keywords.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Article Root
+   ------------------------------------------------------------------------- */
+
+.journal-article {
+  counter-reset: h2-counter;
+}
+
+/* -------------------------------------------------------------------------
+   Title Block (centred, no hero)
+   ------------------------------------------------------------------------- */
+
+.journal-title-block {
+  text-align: center;
+  padding: var(--space-2xl) 0 var(--space-xl);
+}
+
+.journal-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+
+/* Byline */
+.journal-byline {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: var(--leading-tight);
+}
+
+.journal-byline-name {
+  display: block;
+}
+
+.journal-byline-bio {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: var(--leading-small);
+}
+
+/* Publication Date */
+.journal-date {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* DOI / Citation */
+.journal-doi {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* -------------------------------------------------------------------------
+   Abstract
+   ------------------------------------------------------------------------- */
+
+.journal-abstract {
+  max-width: var(--measure-reading);
+  margin: 0 auto var(--space-xl);
+  padding: var(--space-lg);
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.journal-abstract-label {
+  font-size: var(--text-h4);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.journal-abstract-body {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: var(--leading-body);
+}
+
+/* -------------------------------------------------------------------------
+   Keywords
+   ------------------------------------------------------------------------- */
+
+.journal-keywords {
+  max-width: var(--measure-reading);
+  margin: 0 auto var(--space-xl);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.journal-keywords-label {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Listing-Page Header
+   ------------------------------------------------------------------------- */
+
+.journal-header {
+  margin-bottom: var(--space-2xl);
+}
+
+.journal-header h2 {
+  margin-bottom: var(--space-sm);
+}
+
+.journal-header p {
+  color: var(--text-secondary);
+}

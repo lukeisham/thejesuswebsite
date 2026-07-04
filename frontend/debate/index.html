@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debate &amp; Discussion — The Jesus Website</title>
+  <meta name="description" content="Explore popular and academic challenges to the historical Jesus, scholarly responses, historiography, and Wikipedia rankings.">
+
+  <!-- Favicon & PWA -->
+  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
+  <link rel="manifest" href="/assets/images/site.webmanifest">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/base/variables.css">
+  <link rel="stylesheet" href="/assets/css/base/reset.css">
+  <link rel="stylesheet" href="/assets/css/base/typography.css">
+  <link rel="stylesheet" href="/assets/css/base/invisible-header.css">
+  <link rel="stylesheet" href="/assets/css/base/animations.css">
+  <link rel="stylesheet" href="/assets/css/layout/grid.css">
+  <link rel="stylesheet" href="/assets/css/layout/navigation.css">
+  <link rel="stylesheet" href="/assets/css/components/sidebar.css">
+  <link rel="stylesheet" href="/assets/css/components/icons.css">
+  <link rel="stylesheet" href="/assets/css/components/buttons.css">
+  <link rel="stylesheet" href="/assets/css/components/cards.css">
+  <link rel="stylesheet" href="/assets/css/components/badges.css">
+  <link rel="stylesheet" href="/assets/css/pages/debate.css">
+</head>
+<body>
+  <!-- Visually-hidden header for SEO & a11y (HTML-3) -->
+  <header class="sr-only">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <h1>Debate &amp; Discussion</h1>
+  </header>
+
+  <!-- Off-canvas navigation sidebar -->
+  <div class="sidebar-backdrop" hidden></div>
+  <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+    <button class="sidebar__toggle" id="sidebar-toggle" aria-expanded="false" aria-label="Toggle navigation">
+      <svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-menu"/></svg>
+    </button>
+    <ul class="sidebar__nav">
+      <li class="nav-item"><a href="/">The Jesus Website</a></li>
+      <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+      <li class="nav-item"><a href="/evidence/search.html">Search</a></li>
+      <li class="nav-item"><a href="/evidence/arbor.html">Arbor Diagram</a></li>
+      <li class="nav-item"><a href="/evidence/timeline/">Timeline</a></li>
+      <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+      <li class="nav-item"><a href="/contextual-essays/">Context</a></li>
+      <li class="nav-item"><a href="/debate/">Debate</a></li>
+      <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+      <li class="nav-item"><a href="/about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <main id="main-content">
+    <!-- Page header -->
+    <header class="debate-header">
+      <h2>Debate &amp; Discussion</h2>
+      <p>Explore popular and academic challenges to the historical Jesus, scholarly responses, and the historiography that frames the debate.</p>
+    </header>
+
+    <!-- Section navigation cards -->
+    <nav class="debate-section-cards" aria-label="Debate sections">
+      <a href="/debate/popular-challenges.html" class="card">
+        <h3 class="card-title">Popular Challenges</h3>
+        <p class="card-description">Common objections and questions about the historical Jesus, ranked by frequency and engagement.</p>
+        <div class="card-badges"><span class="badge">Popular</span></div>
+      </a>
+
+      <a href="/debate/academic-challenges.html" class="card">
+        <h3 class="card-title">Academic Challenges</h3>
+        <p class="card-description">Scholarly arguments and critical challenges from academic literature, with ranked responses.</p>
+        <div class="card-badges"><span class="badge">Academic</span></div>
+      </a>
+
+      <a href="/debate/historiography/" class="card">
+        <h3 class="card-title">Historiography</h3>
+        <p class="card-description">Articles examining how historians have studied Jesus over the centuries — the history of the history.</p>
+        <div class="card-badges"><span class="badge">Journal</span></div>
+      </a>
+
+      <a href="/debate/wikipedia.html" class="card">
+        <h3 class="card-title">Wikipedia</h3>
+        <p class="card-description">A ranked list of Wikipedia articles about the historical Jesus, with quality assessments and revision data.</p>
+        <div class="card-badges"><span class="badge">Ranked</span></div>
+      </a>
+    </nav>
+  </main>
+
+  <!-- Scripts at bottom with defer (HTML-4) -->
+  <script type="module" src="/assets/js/main.js" defer></script>
+</body>
+</html>

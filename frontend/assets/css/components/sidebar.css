@@ -1,0 +1,27 @@
+/* ==========================================================================
+   Sidebar Panel
+   Toggle and active state for sidebar visibility.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Sidebar Wrapper
+   Duplicate of navigation sidebar styles for toggle behaviour
+   (separated for single-responsibility per CSS-1).
+   Only the toggle-related styles live here.
+   ------------------------------------------------------------------------- */
+
+.sidebar-panel {
+  transition: transform var(--duration-base) var(--ease-in-out);
+}
+
+.sidebar-panel.collapsed {
+  transform: translateX(-100%);
+}
+
+/* -------------------------------------------------------------------------
+   Active Section Highlight
+   ------------------------------------------------------------------------- */
+
+.sidebar-panel .active-section {
+  font-weight: 500;
+}

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" class="admin-app">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Evidence — Admin</title>
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <script defer src="../assets/js/auth.js"></script>
+  <script defer src="../assets/js/admin.js"></script>
+  <style>
+    .admin-bulk-actions {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-md);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .admin-bulk-actions .admin-btn--danger {
+      margin-left: auto;
+    }
+    .admin-loading,
+    .admin-empty,
+    .admin-error {
+      padding: var(--space-xl);
+      text-align: center;
+      color: var(--admin-text-muted);
+      font-size: 14px;
+    }
+    .admin-error {
+      color: var(--admin-danger);
+    }
+    .admin-check-cell {
+      width: 40px;
+      text-align: center;
+    }
+    .admin-check-cell input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--admin-accent);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+  <nav class="admin-sidebar" aria-label="Admin navigation">
+    <div class="admin-sidebar__brand">⚡ Admin</div>
+    <div class="admin-sidebar__nav">
+      <a class="admin-sidebar__link" href="../index.html">
+        <span class="admin-sidebar__icon">📊</span> Dashboard
+      </a>
+      <a class="admin-sidebar__link" href="../drafts/index.html">
+        <span class="admin-sidebar__icon">📝</span> Drafts
+      </a>
+      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
+        <span class="admin-sidebar__icon">📋</span> Evidence
+      </a>
+      <a class="admin-sidebar__link" href="../collections/index.html">
+        <span class="admin-sidebar__icon">📁</span> Collections
+      </a>
+      <a class="admin-sidebar__link" href="../resources/index.html">
+        <span class="admin-sidebar__icon">📚</span> Resources
+      </a>
+      <a class="admin-sidebar__link" href="../wikipedia/index.html">
+        <span class="admin-sidebar__icon">📖</span> Wikipedia
+      </a>
+      <a class="admin-sidebar__link" href="../essays/index.html">
+        <span class="admin-sidebar__icon">✍️</span> Essays
+      </a>
+      <a class="admin-sidebar__link" href="../debate/index.html">
+        <span class="admin-sidebar__icon">🗣️</span> Debate
+      </a>
+      <a class="admin-sidebar__link" href="../historiography/index.html">
+        <span class="admin-sidebar__icon">🏛️</span> Historiography
+      </a>
+      <a class="admin-sidebar__link" href="../blog/index.html">
+        <span class="admin-sidebar__icon">📰</span> Blog
+      </a>
+      <a class="admin-sidebar__link" href="../news/index.html">
+        <span class="admin-sidebar__icon">📡</span> News
+      </a>
+      <a class="admin-sidebar__link" href="../diagrams/maps.html">
+        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+      </a>
+      <a class="admin-sidebar__link" href="../analytics.html">
+        <span class="admin-sidebar__icon">📈</span> Analytics
+      </a>
+      <a class="admin-sidebar__link" href="../settings/index.html">
+        <span class="admin-sidebar__icon">⚙️</span> Settings
+      </a>
+    </div>
+    <div class="admin-sidebar__bottom">
+      <a class="admin-sidebar__link" href="../auth/login.html">
+        <span class="admin-sidebar__icon">🚪</span> Logout
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── Topbar ───────────────────────────────────────────────────────── -->
+  <header class="admin-topbar">
+    <h1 class="admin-topbar__title">Bulk Evidence Operations</h1>
+    <div class="admin-topbar__actions">
+      <a class="admin-btn admin-btn--sm admin-btn--ghost" href="index.html">← Back to Evidence</a>
+    </div>
+  </header>
+
+  <!-- ── Main Content ─────────────────────────────────────────────────── -->
+  <main class="admin-main" id="bulk-content">
+    <div class="admin-loading" id="bulk-loading" role="status">Loading evidence…</div>
+  </main>
+
+</div>
+
+<script>
+  (async function () {
+    const main = document.getElementById('bulk-content');
+    const loadingEl = document.getElementById('bulk-loading');
+
+    const ok = await AdminAuth.requireSession();
+    if (!ok) {
+      main.innerHTML = '<div class="admin-error" role="alert">Unable to verify session.</div>';
+      return;
+    }
+
+    var evidenceData = [];
+
+    try {
+      evidenceData = await Admin.api.get('/evidence');
+      main.removeChild(loadingEl);
+    } catch (err) {
+      if (loadingEl) loadingEl.remove();
+      main.innerHTML = '<div class="admin-error" role="alert">Failed to load evidence: ' + err.message + '</div>';
+      return;
+    }
+
+    if (!Array.isArray(evidenceData) || evidenceData.length === 0) {
+      main.innerHTML = '<div class="admin-empty" role="status">No evidence to manage.</div>';
+      return;
+    }
+
+    evidenceData.sort(function (a, b) { return (a.title || '').localeCompare(b.title || ''); });
+
+    // Bulk action bar
+    var actionBar = document.createElement('div');
+    actionBar.className = 'admin-bulk-actions';
+
+    var selectAllCheckbox = document.createElement('input');
+    selectAllCheckbox.type = 'checkbox';
+    selectAllCheckbox.id = 'select-all';
+    selectAllCheckbox.style.cssText = 'width:16px;height:16px;accent-color:var(--admin-accent);cursor:pointer;';
+
+    var selectAllLabel = document.createElement('label');
+    selectAllLabel.setAttribute('for', 'select-all');
+    selectAllLabel.textContent = 'Select All';
+    selectAllLabel.style.cssText = 'font-size:13px;cursor:pointer;';
+
+    var publishBtn = document.createElement('button');
+    publishBtn.type = 'button';
+    publishBtn.className = 'admin-btn admin-btn--sm admin-btn--secondary';
+    publishBtn.textContent = 'Publish Selected';
+
+    var unpublishBtn = document.createElement('button');
+    unpublishBtn.type = 'button';
+    unpublishBtn.className = 'admin-btn admin-btn--sm admin-btn--secondary';
+    unpublishBtn.textContent = 'Unpublish Selected';
+
+    var deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'admin-btn admin-btn--sm admin-btn--danger';
+    deleteBtn.textContent = 'Delete Selected';
+
+    var statusEl = document.createElement('span');
+    statusEl.id = 'bulk-status';
+    statusEl.setAttribute('role', 'status');
+    statusEl.setAttribute('aria-live', 'polite');
+    statusEl.style.cssText = 'font-size:13px;color:var(--admin-text-secondary);';
+
+    actionBar.appendChild(selectAllCheckbox);
+    actionBar.appendChild(selectAllLabel);
+    actionBar.appendChild(publishBtn);
+    actionBar.appendChild(unpublishBtn);
+    actionBar.appendChild(deleteBtn);
+    actionBar.appendChild(statusEl);
+    main.appendChild(actionBar);
+
+    // Table
+    var wrapper = document.createElement('div');
+    wrapper.className = 'admin-table-wrapper';
+
+    var table = document.createElement('table');
+    table.className = 'admin-table';
+
+    var thead = document.createElement('thead');
+    var hRow = document.createElement('tr');
+    ['', 'Title', 'Category', 'Era', 'Status'].forEach(function (label) {
+      var th = document.createElement('th');
+      if (!label) { th.className = 'admin-check-cell'; }
+      th.textContent = label;
+      hRow.appendChild(th);
+    });
+    thead.appendChild(hRow);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+
+    evidenceData.forEach(function (e) {
+      var tr = document.createElement('tr');
+      tr.dataset.id = e.id;
+
+      var tdCheck = document.createElement('td');
+      tdCheck.className = 'admin-check-cell';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'bulk-checkbox';
+      cb.dataset.id = e.id;
+      cb.dataset.published = e.published_draft ? '1' : '0';
+      cb.addEventListener('change', updateSelectionCount);
+      tdCheck.appendChild(cb);
+      tr.appendChild(tdCheck);
+
+      var tdTitle = document.createElement('td');
+      tdTitle.textContent = e.title || e.slug || '(untitled)';
+      tr.appendChild(tdTitle);
+
+      var tdCat = document.createElement('td');
+      tdCat.textContent = e.gospel_category || '\u2014';
+      tr.appendChild(tdCat);
+
+      var tdEra = document.createElement('td');
+      tdEra.textContent = e.timeline_era || '\u2014';
+      tr.appendChild(tdEra);
+
+      var tdStatus = document.createElement('td');
+      tdStatus.appendChild(Admin.statusBadge(e.published_draft));
+      tr.appendChild(tdStatus);
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+    main.appendChild(wrapper);
+
+    // Select all
+    selectAllCheckbox.addEventListener('change', function () {
+      var cbs = document.querySelectorAll('.bulk-checkbox');
+      cbs.forEach(function (cb) { cb.checked = selectAllCheckbox.checked; });
+      updateSelectionCount();
+    });
+
+    function getSelectedIds() {
+      return Array.from(document.querySelectorAll('.bulk-checkbox:checked')).map(function (cb) {
+        return { id: cb.dataset.id, published: cb.dataset.published === '1' };
+      });
+    }
+
+    function updateSelectionCount() {
+      var count = document.querySelectorAll('.bulk-checkbox:checked').length;
+      statusEl.textContent = count + ' selected';
+    }
+
+    async function bulkAction(actionFn, actionName, confirmMsg) {
+      var selected = getSelectedIds();
+      if (selected.length === 0) {
+        statusEl.textContent = 'No items selected.';
+        statusEl.style.color = 'var(--admin-danger)';
+        return;
+      }
+
+      if (confirmMsg && !confirm(confirmMsg.replace('{n}', selected.length))) return;
+
+      publishBtn.disabled = true;
+      unpublishBtn.disabled = true;
+      deleteBtn.disabled = true;
+      statusEl.textContent = actionName + '…';
+      statusEl.style.color = 'var(--admin-text-secondary)';
+
+      var successCount = 0;
+      var failCount = 0;
+
+      for (var i = 0; i < selected.length; i++) {
+        try {
+          await actionFn(selected[i].id);
+          successCount++;
+        } catch (err) {
+          failCount++;
+          console.error(actionName + ' failed for id ' + selected[i].id + ':', err);
+        }
+        statusEl.textContent = actionName + '… (' + (i + 1) + '/' + selected.length + ')';
+      }
+
+      statusEl.textContent = 'Done: ' + successCount + ' succeeded' + (failCount > 0 ? ', ' + failCount + ' failed' : '') + '. Reloading…';
+      statusEl.style.color = failCount > 0 ? 'var(--admin-warning)' : 'var(--admin-success)';
+
+      // Reload after a short delay
+      setTimeout(function () { window.location.reload(); }, 1500);
+    }
+
+    publishBtn.addEventListener('click', function () {
+      bulkAction(
+        function (id) { return Admin.publishItem('evidence', id); },
+        'Publishing',
+        'Publish {n} selected evidence items?'
+      );
+    });
+
+    unpublishBtn.addEventListener('click', function () {
+      bulkAction(
+        function (id) { return Admin.unpublishItem('evidence', id); },
+        'Unpublishing',
+        'Unpublish {n} selected evidence items?'
+      );
+    });
+
+    deleteBtn.addEventListener('click', function () {
+      bulkAction(
+        function (id) { return Admin.api.del('/evidence/' + id); },
+        'Deleting',
+        'PERMANENTLY DELETE {n} evidence items? This cannot be undone!'
+      );
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+/* ==========================================================================
+   About Page
+   Warm informational page — no academic formatting.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   About Page Layout
+   ------------------------------------------------------------------------- */
+
+.about-page {
+    max-width: var(--measure-list);
+    margin-left: auto;
+    margin-right: auto;
+    padding: var(--space-2xl) var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Title (centred)
+   ------------------------------------------------------------------------- */
+
+.about-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-h1);
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: var(--space-lg);
+}
+
+/* -------------------------------------------------------------------------
+   Portrait / Image (optional, centred circle)
+   ------------------------------------------------------------------------- */
+
+.about-portrait {
+    display: block;
+    width: 200px;
+    height: 200px;
+    border-radius: var(--radius-round);
+    border: 2px solid var(--border);
+    margin: 0 auto var(--space-lg);
+    object-fit: cover;
+}
+
+/* -------------------------------------------------------------------------
+   Prose Sections
+   ------------------------------------------------------------------------- */
+
+.about-section {
+    margin-bottom: var(--space-2xl);
+}
+
+.about-section h2 {
+    font-family: var(--font-body);
+    font-size: var(--text-h2);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.about-section p {
+    font-size: var(--text-body);
+    color: var(--text-secondary);
+    line-height: var(--leading-body);
+}
+
+.about-section p + p {
+    margin-top: var(--space-lg);
+}
+
+.about-section h3 {
+    font-size: var(--text-h3);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-sm);
+}
+
+/* -------------------------------------------------------------------------
+   Contact Row
+   ------------------------------------------------------------------------- */
+
+.about-contact {
+    text-align: center;
+    margin-top: var(--space-2xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+/* -------------------------------------------------------------------------
+   Donation Portal Slot
+   Placeholder div for separately-provided donation widget.
+   ------------------------------------------------------------------------- */
+
+.donation-portal-slot {
+    margin-top: var(--space-3xl);
+    min-height: 200px;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .about-title {
+        font-size: var(--text-h2);
+    }
+
+    .about-portrait {
+        width: 160px;
+        height: 160px;
+    }
+}

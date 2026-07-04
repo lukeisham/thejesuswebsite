@@ -1,0 +1,62 @@
+/* ==========================================================================
+   Maps Panel — Form
+   Shared form, field, input, hint, and error patterns.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Panel Form
+   ------------------------------------------------------------------------- */
+
+.admin-pin-panel__form {
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    flex: 1;
+    overflow-y: auto;
+}
+.admin-pin-panel__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+.admin-pin-panel__field label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--admin-text-secondary);
+}
+.admin-pin-panel__input {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.9375rem;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    color: var(--admin-text-primary);
+    background: var(--admin-bg);
+    min-height: 36px;
+}
+.admin-pin-panel__input:focus {
+    outline: none;
+    border-color: var(--admin-accent);
+    box-shadow: 0 0 0 2px rgba(61, 90, 120, 0.2);
+}
+.admin-pin-panel__hint {
+    font-size: 0.75rem;
+    color: var(--admin-text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Panel Error
+   ------------------------------------------------------------------------- */
+
+.admin-pin-panel__error {
+    font-size: 0.8125rem;
+    color: var(--admin-error-color);
+    min-height: 1.2em;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--admin-error-bg);
+    border: 1px solid var(--admin-error-border);
+    border-radius: 4px;
+}
+.admin-pin-panel__error:empty {
+    display: none;
+}

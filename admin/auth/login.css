@@ -1,0 +1,137 @@
+/* ── Admin Login Page ────────────────────────────────────────────────────────
+   Centred card layout — sibling to register.css. Uses admin design tokens
+   from admin-base/variables.css (imported via admin.css). */
+
+@import "../assets/css/admin-base/variables.css";
+
+/* ── Reset & Base ─────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--admin-text-primary);
+    background: var(--admin-bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+
+.auth-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-left: 4px solid var(--admin-accent);
+    border-radius: 16px;
+    padding: var(--space-2xl);
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.auth-card h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+}
+
+.auth-card__description {
+    color: var(--admin-text-secondary);
+    margin-bottom: var(--space-xl);
+    line-height: 1.6;
+}
+
+/* ── Button ───────────────────────────────────────────────────────────────── */
+
+.auth-card__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-xl);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--admin-accent-text);
+    background: var(--admin-accent);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    min-height: 44px;
+    width: 100%;
+    transition: background var(--duration-fast) var(--ease-out);
+}
+
+.auth-card__button:hover {
+    background: var(--admin-accent-hover);
+}
+
+.auth-card__button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ── Status ───────────────────────────────────────────────────────────────── */
+
+.auth-card__status {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    display: none;
+}
+
+.auth-card__status--loading,
+.auth-card__status--success,
+.auth-card__status--error {
+    display: block;
+}
+
+.auth-card__status--loading {
+    background: var(--admin-loading-bg);
+    color: var(--admin-text-secondary);
+    border: 1px solid var(--admin-border);
+}
+
+.auth-card__status--success {
+    background: var(--admin-success-bg);
+    color: var(--admin-success-color);
+    border: 1px solid var(--admin-success-border);
+}
+
+.auth-card__status--error {
+    background: var(--admin-error-bg);
+    color: var(--admin-error-color);
+    border: 1px solid var(--admin-error-border);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: var(--space-lg);
+        border-radius: 0;
+        border: none;
+        border-top: 4px solid var(--admin-accent);
+        border-left: none;
+        box-shadow: none;
+    }
+}

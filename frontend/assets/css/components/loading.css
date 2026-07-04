@@ -1,0 +1,77 @@
+/* ==========================================================================
+   Loading States
+   Skeleton screens and content spinners for async data loading.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Skeleton Screen
+   Placeholder shimmer for cards / lists while content loads.
+   ------------------------------------------------------------------------- */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface-alt) 25%,
+    var(--bg-surface) 50%,
+    var(--bg-surface-alt) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* -------------------------------------------------------------------------
+   Skeleton Variants
+   ------------------------------------------------------------------------- */
+
+.skeleton-text {
+  height: 1rem;
+  width: 100%;
+  margin-bottom: var(--space-sm);
+}
+
+.skeleton-text:last-child {
+  width: 70%;
+}
+
+.skeleton-title {
+  height: 1.5rem;
+  width: 60%;
+  margin-bottom: var(--space-md);
+}
+
+.skeleton-card {
+  height: 200px;
+  border-radius: var(--radius-md);
+}
+
+/* -------------------------------------------------------------------------
+   Content Spinner
+   Centred loading indicator for maps / heavy data.
+   ------------------------------------------------------------------------- */
+
+.content-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3xl);
+  color: var(--text-muted);
+}
+
+.content-spinner .icon {
+  animation: spin 1s linear infinite;
+}
+
+/* -------------------------------------------------------------------------
+   Skeleton → Content Transition
+   ------------------------------------------------------------------------- */
+
+.skeleton-content {
+  opacity: 0;
+  animation: fade-in var(--duration-slow) var(--ease-out) forwards;
+}

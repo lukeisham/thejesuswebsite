@@ -1,0 +1,92 @@
+/* ==========================================================================
+   Toasts / Notifications
+   Bottom-centre stacking notifications with auto-dismiss.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Toast Container (fixed position anchor)
+   ------------------------------------------------------------------------- */
+
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-sm);
+}
+
+/* -------------------------------------------------------------------------
+   Toast Item
+   ------------------------------------------------------------------------- */
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  width: min(360px, calc(100vw - 2rem));
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-toast);
+  font-size: var(--text-small);
+  color: var(--text-primary);
+  border-left: 4px solid var(--info);
+  animation: slide-up-fade var(--duration-base) var(--ease-out);
+}
+
+/* -------------------------------------------------------------------------
+   Toast Variants
+   ------------------------------------------------------------------------- */
+
+.toast-success {
+  border-left-color: var(--success);
+}
+
+.toast-error {
+  border-left-color: var(--error);
+}
+
+.toast-warning {
+  border-left-color: var(--warning);
+}
+
+.toast-info {
+  border-left-color: var(--info);
+}
+
+/* -------------------------------------------------------------------------
+   Toast Content
+   ------------------------------------------------------------------------- */
+
+.toast-message {
+  flex: 1;
+  line-height: var(--leading-small);
+}
+
+.toast-dismiss {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.toast-dismiss:hover {
+  background: var(--bg-surface-alt);
+}
+
+/* -------------------------------------------------------------------------
+   Toast Exit Animation
+   ------------------------------------------------------------------------- */
+
+.toast.removing {
+  animation: fade-in var(--duration-fast) var(--ease-out) reverse forwards;
+}

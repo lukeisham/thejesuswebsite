@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popular Challenges — Debate — The Jesus Website</title>
+  <meta name="description" content="Common objections and questions about the historical Jesus, ranked by frequency and engagement.">
+
+  <!-- Favicon & PWA -->
+  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
+  <link rel="manifest" href="/assets/images/site.webmanifest">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/base/variables.css">
+  <link rel="stylesheet" href="/assets/css/base/reset.css">
+  <link rel="stylesheet" href="/assets/css/base/typography.css">
+  <link rel="stylesheet" href="/assets/css/base/invisible-header.css">
+  <link rel="stylesheet" href="/assets/css/base/animations.css">
+  <link rel="stylesheet" href="/assets/css/layout/grid.css">
+  <link rel="stylesheet" href="/assets/css/layout/navigation.css">
+  <link rel="stylesheet" href="/assets/css/components/sidebar.css">
+  <link rel="stylesheet" href="/assets/css/components/icons.css">
+  <link rel="stylesheet" href="/assets/css/components/buttons.css">
+  <link rel="stylesheet" href="/assets/css/components/badges.css">
+  <link rel="stylesheet" href="/assets/css/components/filters.css">
+  <link rel="stylesheet" href="/assets/css/components/loading.css">
+  <link rel="stylesheet" href="/assets/css/components/empty-states.css">
+  <link rel="stylesheet" href="/assets/css/components/infinite-scroll.css">
+  <link rel="stylesheet" href="/assets/css/pages/challenge-list.css">
+</head>
+<body>
+  <!-- Visually-hidden header for SEO & a11y (HTML-3) -->
+  <header class="sr-only">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <h1>Popular Challenges</h1>
+  </header>
+
+  <!--</h1> Off-canvas navigation sidebar -->
+  <div class="sidebar-backdrop" hidden></div>
+  <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+    <button class="sidebar__toggle" id="sidebar-toggle" aria-expanded="false" aria-label="Toggle navigation">
+      <svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-menu"/></svg>
+    </button>
+    <ul class="sidebar__nav">
+      <li class="nav-item"><a href="/">The Jesus Website</a></li>
+      <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+      <li class="nav-item"><a href="/evidence/search.html">Search</a></li>
+      <li class="nav-item"><a href="/evidence/arbor.html">Arbor Diagram</a></li>
+      <li class="nav-item"><a href="/evidence/timeline/">Timeline</a></li>
+      <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+      <li class="nav-item"><a href="/contextual-essays/">Context</a></li>
+      <li class="nav-item"><a href="/debate/">Debate</a></li>
+      <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+      <li class="nav-item"><a href="/about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <main id="main-content" data-type="popular">
+    <!-- Page header -->
+    <header class="challenge-header">
+      <h2>Popular Challenges</h2>
+      <p>Common objections and questions about the historical Jesus, ranked by frequency and engagement.</p>
+    </header>
+
+    <!-- Filter bar -->
+    <div class="filter-bar" id="filter-chips">
+      <button class="filter-chip filter-chip--active" data-filter="all">All</button>
+      <!-- Additional filter chips injected by debate.js -->
+    </div>
+
+    <!-- Ranked challenge list -->
+    <div class="challenge-list" id="challenge-list" role="list">
+      <!-- Populated by debate.js -->
+    </div>
+
+    <!-- Infinite scroll sentinel -->
+    <div id="scroll-sentinel" hidden></div>
+
+    <!-- Loading state -->
+    <div class="loading-state" id="loading-state" hidden>
+      <div class="loading-state__spinner" aria-label="Loading challenges"></div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state" hidden>
+      <p class="empty-state__message">No challenges found matching your filters.</p>
+      <button id="clear-filters" class="btn btn--secondary">Clear Filters</button>
+    </div>
+
+    <!-- Error state -->
+    <div class="error-state" id="error-state" hidden>
+      <p class="error-state__message">Failed to load challenges.</p>
+      <button id="retry-load" class="btn btn--secondary">Retry</button>
+    </div>
+
+    <!-- End of list -->
+    <div class="end-of-list" id="end-of-list" hidden></div>
+  </main>
+
+  <!-- Scripts at bottom with defer (HTML-4) -->
+  <script type="module" src="/assets/js/main.js" defer></script>
+  <script type="module" src="/assets/js/debate.js" defer></script>
+</body>
+</html>

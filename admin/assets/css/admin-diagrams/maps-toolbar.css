@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Maps Toolbar (Admin)
+   Top bar + toolbar for the admin maps editor.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Top Bar
+   ------------------------------------------------------------------------- */
+
+.admin-topbar {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-xl);
+    background: var(--admin-surface);
+    border-bottom: 1px solid var(--admin-border);
+    flex-wrap: wrap;
+}
+.admin-topbar h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    margin: 0;
+}
+.admin-topbar__subtitle {
+    font-size: 0.875rem;
+    color: var(--admin-text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Toolbar
+   ------------------------------------------------------------------------- */
+
+.admin-maps-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-xl);
+    background: var(--admin-bg);
+    border-bottom: 1px solid var(--admin-border);
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+.admin-maps-toolbar__left,
+.admin-maps-toolbar__right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+.admin-maps-toolbar__select {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.875rem;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    background: var(--admin-surface);
+    color: var(--admin-text-primary);
+    min-height: 36px;
+}
+.admin-maps-toolbar__nav-btn {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.875rem;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    background: var(--admin-surface);
+    color: var(--admin-text-primary);
+    cursor: pointer;
+    min-height: 36px;
+    min-width: 36px;
+}
+.admin-maps-toolbar__nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.admin-maps-toolbar__nav-btn:hover:not(:disabled) {
+    background: var(--admin-bg);
+}
+
+/* Shared button base for toolbar + panel */
+.admin-maps-toolbar__btn,
+.admin-pin-panel__btn {
+    padding: var(--space-xs) var(--space-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    min-height: 36px;
+    transition: background var(--duration-fast) var(--ease-out);
+}
+.admin-maps-toolbar__btn--primary,
+.admin-pin-panel__btn--primary {
+    background: var(--admin-accent);
+    color: var(--admin-accent-text);
+}
+.admin-maps-toolbar__btn--primary:hover,
+.admin-pin-panel__btn--primary:hover {
+    background: var(--admin-accent-hover);
+}
+.admin-maps-toolbar__btn--active {
+    background: var(--admin-accent-hover);
+    color: var(--admin-accent-text);
+}

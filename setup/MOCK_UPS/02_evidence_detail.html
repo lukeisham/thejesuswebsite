@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evidence Detail — The Crucifixion | The Jesus Website</title>
+    <style>
+        :root {
+            --bg-primary: #F8F5F0;
+            --bg-surface: #FFFFFF;
+            --bg-surface-alt: #F1EDE4;
+            --text-primary: #2C2522;
+            --text-secondary: #5C524A;
+            --text-muted: #7A7066;
+            --accent: #5C4033;
+            --accent-light: #8B5A2B;
+            --accent-gold: #B8976A;
+            --link: #5C4033;
+            --link-hover: #3D2B1F;
+            --success: #3D5A3D;
+            --border: #D4C9B8;
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Breadcrumbs */
+        .breadcrumbs {
+            font-size: 0.875rem;
+            margin-bottom: var(--space-lg);
+            color: var(--text-muted);
+        }
+
+        .breadcrumbs a {
+            color: var(--link);
+            text-decoration: none;
+        }
+
+        .breadcrumbs a:hover {
+            color: var(--link-hover);
+            text-decoration: underline;
+        }
+
+        .breadcrumbs span {
+            margin: 0 0.5rem;
+            color: var(--text-muted);
+        }
+
+        /* Hero / Header */
+        .hero-section {
+            background: linear-gradient(135deg, #8B6F4E 0%, #5C4033 100%);
+            color: white;
+            padding: var(--space-3xl) var(--space-lg);
+            border-radius: 8px;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .hero-section h1 {
+            font-family: Georgia, serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: var(--space-lg);
+            line-height: 1.3;
+        }
+
+        .primary-verse {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas;
+            font-style: italic;
+            opacity: 0.95;
+            font-size: 0.95rem;
+        }
+
+        /* Badges */
+        .badges {
+            display: flex;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+            margin-top: var(--space-lg);
+        }
+
+        .badge {
+            background-color: var(--bg-surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            line-height: 1.65;
+        }
+
+        h2 {
+            font-family: Georgia, serif;
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: var(--space-2xl) 0 var(--space-lg);
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-family: Georgia, serif;
+            font-size: 1.375rem;
+            font-weight: 600;
+            margin: var(--space-xl) 0 var(--space-md);
+            color: var(--text-primary);
+        }
+
+        p {
+            margin-bottom: var(--space-lg);
+            color: var(--text-secondary);
+            max-width: 75ch;
+            line-height: 1.65;
+        }
+
+        /* Verse Block */
+        .verse-block {
+            background-color: var(--bg-surface-alt);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent-gold);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: var(--space-lg) 0;
+            max-width: 75ch;
+        }
+
+        .verse-ref {
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: var(--accent);
+            display: block;
+            margin-bottom: var(--space-xs);
+        }
+
+        /* Breakout / Side Content */
+        .breakout {
+            background-color: var(--bg-surface-alt);
+            border-left: 3px solid var(--accent-gold);
+            border-radius: 4px;
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-lg) 0;
+            max-width: 75ch;
+        }
+
+        .breakout h4 {
+            font-family: Georgia, serif;
+            color: var(--accent);
+            margin-bottom: var(--space-md);
+            font-size: 1.125rem;
+        }
+
+        .breakout p {
+            margin-bottom: var(--space-md);
+            font-size: 0.95rem;
+        }
+
+        .breakout p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Figure */
+        .figure {
+            margin: var(--space-2xl) 0;
+            max-width: 75ch;
+        }
+
+        .figure img {
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            display: block;
+        }
+
+        .figcaption {
+            margin-top: var(--space-sm);
+            font-size: 0.875rem;
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+
+        /* Info Row */
+        .info-row {
+            background-color: var(--bg-surface-alt);
+            border-top: 1px solid var(--border);
+            padding: var(--space-xl) var(--space-lg);
+            margin-top: var(--space-2xl);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .info-panel {
+            background-color: var(--bg-surface);
+            padding: var(--space-lg);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .info-panel h4 {
+            font-family: Georgia, serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.8125rem;
+        }
+
+        .info-panel p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Footer Actions */
+        .footer-actions {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: space-between;
+            padding-top: var(--space-xl);
+            border-top: 1px solid var(--border);
+            margin-top: var(--space-2xl);
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: var(--space-sm) var(--space-md);
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-light);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-surface-alt);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            h2 {
+                font-size: 1.375rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .info-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="breadcrumbs">
+            <a href="#/">Home</a>
+            <span>/</span>
+            <a href="#/evidence">Evidence</a>
+            <span>/</span>
+            <span>The Crucifixion</span>
+        </div>
+
+        <div class="hero-section">
+            <h1>The Crucifixion of Jesus</h1>
+            <div class="primary-verse">Matthew 27:32-66 · Mark 15:21-47 · Luke 23:26-56 · John 19:17-42</div>
+            <div class="badges">
+                <span class="badge">Death & Resurrection</span>
+                <span class="badge">Judea</span>
+                <span class="badge">30-33 CE</span>
+                <span class="badge">Roman Custom</span>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <h2>Description</h2>
+            <p>The crucifixion of Jesus Christ stands as one of the most historically significant events in human history. This section presents the available historical evidence from both biblical and extra-biblical sources regarding the circumstances, participants, and theological implications of this central Christian event.</p>
+
+            <p>The Roman custom of crucifixion was an ancient method of capital punishment reserved for the most serious criminals and enemies of the state. Archaeological and historical evidence confirms its widespread use throughout the Roman Empire during the first century CE.</p>
+
+            <h2>Timeline Context</h2>
+            <p>The crucifixion occurred during the Roman governorship of Pontius Pilate (26-36 CE). The timing of this event places it squarely within the early first century CE, during the reign of Tiberius Caesar and the high priesthood of Caiaphas in Jerusalem.</p>
+
+            <h3>Historical Setting</h3>
+            <p>Jerusalem under Roman occupation experienced frequent tensions between the local Jewish authority and Roman rulers. The movement led by Jesus of Nazareth had attracted significant attention from both religious and political authorities.</p>
+
+            <div class="breakout">
+                <h4>Key Historical Detail</h4>
+                <p>Multiple independent historical sources attest to the general fact of Jesus' crucifixion under Pontius Pilate. This marks one of the most solidly established facts about Jesus in historical scholarship.</p>
+            </div>
+
+            <h2>Primary Sources</h2>
+
+            <h3>Gospel Accounts</h3>
+            <p>The four canonical gospels provide the most detailed accounts of the crucifixion narrative. While they share a common core narrative, they differ in certain details and emphasis:</p>
+
+            <div class="verse-block">
+                <span class="verse-ref">Matthew 27:35-44</span>
+                And when they came to the place called The Skull, they crucified him there with the criminals, one on his right and one on his left. And Jesus said, "Father, forgive them, for they know not what they do." And they cast lots to divide his garments.
+            </div>
+
+            <h3>Extra-Biblical Sources</h3>
+            <p>Historical documentation beyond the Christian scriptures provides crucial corroboration for key facts about the crucifixion:</p>
+
+            <div class="figure">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Crect fill='%23E8DCD0' width='600' height='400'/%3E%3Ctext x='50' y='190' font-family='Georgia' font-size='20' fill='%235C4033'%3EHistorical Document [Illustration Placeholder]%3C/text%3E%3C/svg%3E" alt="Archaeological evidence related to crucifixion practices">
+                <figcaption>Figure 1: Archaeological evidence demonstrating Roman crucifixion techniques and their prevalence in first-century Judea</figcaption>
+            </div>
+
+            <p>Tacitus, the Roman historian writing in the early second century, mentioned the execution of Jesus under Pontius Pilate, providing independent confirmation of the crucifixion event by a non-Christian source.</p>
+
+            <div class="verse-block">
+                <span class="verse-ref">Tacitus, Annals 15.44</span>
+                Christus, from whom the name had its origin, suffered the extreme penalty during the reign of Tiberius at the hands of one of our procurators, Pontius Pilate...
+            </div>
+
+            <h2>Physical Evidence</h2>
+            <p>Archaeological investigations have uncovered significant evidence regarding Roman crucifixion practices. The remains of Yohanan ben Hagkol, discovered in a Jerusalem ossuary in 1968, provide the only known archaeological evidence of an actual crucified individual.</p>
+
+            <p>Analysis of these remains revealed a nail through the heel bone, consistent with crucifixion methodology, and confirmed the physical mechanism of this execution method.</p>
+        </main>
+
+        <div class="info-row">
+            <div class="info-panel">
+                <h4>Time Period</h4>
+                <p>30-33 CE<br>Roman Period</p>
+            </div>
+            <div class="info-panel">
+                <h4>Location</h4>
+                <p>Golgotha<br>Jerusalem, Judea</p>
+            </div>
+            <div class="info-panel">
+                <h4>Category</h4>
+                <p>Death & Resurrection<br>Roman Customs</p>
+            </div>
+            <div class="info-panel">
+                <h4>Key Sources</h4>
+                <p>4 Gospels<br>Tacitus, Pliny</p>
+            </div>
+        </div>
+
+        <div class="footer-actions">
+            <div>
+                <button class="btn-secondary">← Previous Evidence</button>
+                <button class="btn-secondary">Next Evidence →</button>
+            </div>
+            <div>
+                <button class="btn-primary">Print / Save as PDF</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

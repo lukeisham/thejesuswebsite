@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" class="admin-app">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Articles — Admin</title>
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <script defer src="../assets/js/auth.js"></script>
+  <script defer src="../assets/js/admin.js"></script>
+  <style>
+    .admin-loading,
+    .admin-empty,
+    .admin-error {
+      padding: var(--space-xl);
+      text-align: center;
+      color: var(--admin-text-muted);
+      font-size: 14px;
+    }
+    .admin-error { color: var(--admin-danger); }
+    .admin-landing-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 10px;
+      background: var(--admin-accent);
+      color: #fff;
+      font-weight: 500;
+    }
+    .admin-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .admin-modal {
+      background: var(--admin-surface);
+      border-radius: var(--admin-radius);
+      padding: var(--space-xl);
+      max-width: 600px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .admin-modal__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-md);
+    }
+    .admin-modal__title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--admin-text-primary);
+    }
+    .admin-modal__close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--admin-text-muted);
+      padding: var(--space-xs);
+    }
+    .admin-modal__close:hover { color: var(--admin-text-primary); }
+    .admin-modal .admin-form-group {
+      margin-bottom: var(--space-md);
+    }
+    .admin-modal .admin-checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .admin-modal .admin-checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--admin-accent);
+    }
+    .admin-modal .admin-checkbox-group label {
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .admin-modal-actions {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
+    }
+  </style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <nav class="admin-sidebar" aria-label="Admin navigation">
+    <div class="admin-sidebar__brand">⚡ Admin</div>
+    <div class="admin-sidebar__nav">
+      <a class="admin-sidebar__link" href="../index.html">
+        <span class="admin-sidebar__icon">📊</span> Dashboard
+      </a>
+      <a class="admin-sidebar__link" href="../drafts/index.html">
+        <span class="admin-sidebar__icon">📝</span> Drafts
+      </a>
+      <a class="admin-sidebar__link" href="../evidence/index.html">
+        <span class="admin-sidebar__icon">📋</span> Evidence
+      </a>
+      <a class="admin-sidebar__link" href="../collections/index.html">
+        <span class="admin-sidebar__icon">📁</span> Collections
+      </a>
+      <a class="admin-sidebar__link" href="../resources/index.html">
+        <span class="admin-sidebar__icon">📚</span> Resources
+      </a>
+      <a class="admin-sidebar__link" href="../wikipedia/index.html">
+        <span class="admin-sidebar__icon">📖</span> Wikipedia
+      </a>
+      <a class="admin-sidebar__link" href="../essays/index.html">
+        <span class="admin-sidebar__icon">✍️</span> Essays
+      </a>
+      <a class="admin-sidebar__link" href="../debate/index.html">
+        <span class="admin-sidebar__icon">🗣️</span> Debate
+      </a>
+      <a class="admin-sidebar__link" href="../historiography/index.html">
+        <span class="admin-sidebar__icon">🏛️</span> Historiography
+      </a>
+      <a class="admin-sidebar__link" href="../blog/index.html">
+        <span class="admin-sidebar__icon">📰</span> Blog
+      </a>
+      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
+        <span class="admin-sidebar__icon">📡</span> News
+      </a>
+      <a class="admin-sidebar__link" href="../diagrams/maps.html">
+        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+      </a>
+      <a class="admin-sidebar__link" href="../analytics.html">
+        <span class="admin-sidebar__icon">📈</span> Analytics
+      </a>
+      <a class="admin-sidebar__link" href="../settings/index.html">
+        <span class="admin-sidebar__icon">⚙️</span> Settings
+      </a>
+    </div>
+    <div class="admin-sidebar__bottom">
+      <a class="admin-sidebar__link" href="../auth/login.html">
+        <span class="admin-sidebar__icon">🚪</span> Logout
+      </a>
+    </div>
+  </nav>
+
+  <header class="admin-topbar">
+    <h1 class="admin-topbar__title">News Articles</h1>
+    <div class="admin-topbar__actions">
+      <button type="button" class="admin-btn admin-btn--primary admin-btn--sm" id="btn-add-article">+ Add Article</button>
+    </div>
+  </header>
+
+  <main class="admin-main" id="news-content">
+    <div class="admin-loading" id="news-loading" role="status">Loading news articles…</div>
+  </main>
+
+</div>
+
+<script>
+  (async function () {
+    var main = document.getElementById('news-content');
+    var loadingEl = document.getElementById('news-loading');
+
+    var ok = await AdminAuth.requireSession();
+    if (!ok) {
+      main.innerHTML = '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
+      return;
+    }
+
+    var articles = [];
+
+    function renderError(msg) {
+      if (loadingEl) loadingEl.remove();
+      var el = document.createElement('div');
+      el.className = 'admin-error';
+      el.setAttribute('role', 'alert');
+      el.textContent = msg;
+      main.appendChild(el);
+    }
+
+    try {
+      articles = await Admin.api.get('/news-articles');
+      main.removeChild(loadingEl);
+
+      if (!Array.isArray(articles) || articles.length === 0) {
+        var emptyEl = document.createElement('div');
+        emptyEl.className = 'admin-empty';
+        emptyEl.setAttribute('role', 'status');
+        emptyEl.textContent = 'No news articles yet.';
+        main.appendChild(emptyEl);
+      }
+    } catch (err) {
+      renderError('Failed to load news articles: ' + err.message);
+      return;
+    }
+
+    articles.sort(function (a, b) {
+      return (b.news_article_date || b.created_at || '').localeCompare(a.news_article_date || a.created_at || '');
+    });
+
+    var listWrapper = document.createElement('div');
+    listWrapper.className = 'admin-table-wrapper';
+    listWrapper.id = 'news-table-wrapper';
+    main.appendChild(listWrapper);
+
+    function renderTable(filteredArticles) {
+      listWrapper.innerHTML = '';
+
+      var table = document.createElement('table');
+      table.className = 'admin-table';
+
+      var thead = document.createElement('thead');
+      var hRow = document.createElement('tr');
+      ['Title', 'URL', 'Publisher', 'Date', 'Landing', 'Status', 'Actions'].forEach(function (label) {
+        var th = document.createElement('th');
+        th.textContent = label;
+        hRow.appendChild(th);
+      });
+      thead.appendChild(hRow);
+      table.appendChild(thead);
+
+      var tbody = document.createElement('tbody');
+
+      filteredArticles.forEach(function (a) {
+        var tr = document.createElement('tr');
+        tr.dataset.id = a.id;
+
+        var tdTitle = document.createElement('td');
+        var titleText = document.createElement('span');
+        titleText.textContent = a.news_article_title || '(untitled)';
+        titleText.style.fontWeight = '500';
+        tdTitle.appendChild(titleText);
+        tr.appendChild(tdTitle);
+
+        var tdUrl = document.createElement('td');
+        if (a.news_article_url) {
+          var urlLink = document.createElement('a');
+          urlLink.href = a.news_article_url;
+          urlLink.target = '_blank';
+          urlLink.rel = 'noopener';
+          urlLink.textContent = a.news_article_url;
+          urlLink.style.cssText = 'color:var(--admin-accent);text-decoration:none;font-size:12px;word-break:break-all;';
+          tdUrl.appendChild(urlLink);
+        } else {
+          tdUrl.textContent = '\u2014';
+        }
+        tr.appendChild(tdUrl);
+
+        var tdPub = document.createElement('td');
+        tdPub.textContent = a.news_article_publisher || '\u2014';
+        tr.appendChild(tdPub);
+
+        var tdDate = document.createElement('td');
+        tdDate.textContent = Admin.formatDate(a.news_article_date) || '\u2014';
+        tr.appendChild(tdDate);
+
+        var tdLanding = document.createElement('td');
+        if (a.landing_page_display) {
+          var badge = document.createElement('span');
+          badge.className = 'admin-landing-badge';
+          badge.textContent = 'Landing';
+          tdLanding.appendChild(badge);
+        } else {
+          tdLanding.textContent = '\u2014';
+        }
+        tr.appendChild(tdLanding);
+
+        var tdStatus = document.createElement('td');
+        tdStatus.appendChild(Admin.statusBadge(a.published_draft));
+        tr.appendChild(tdStatus);
+
+        var tdActions = document.createElement('td');
+        var editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'admin-btn admin-btn--sm admin-btn--secondary';
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', function () { openEditModal(a); });
+        tdActions.appendChild(editBtn);
+
+        var deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'admin-btn admin-btn--sm admin-btn--danger';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.style.marginLeft = 'var(--space-sm)';
+        deleteBtn.addEventListener('click', async function () {
+          if (!confirm('Delete "' + (a.news_article_title || 'this article') + '"? This cannot be undone.')) return;
+          try {
+            await Admin.api.del('/news-articles/' + a.id);
+            articles = articles.filter(function (x) { return x.id !== a.id; });
+            renderTable(articles);
+          } catch (err) {
+            alert('Failed to delete: ' + err.message);
+          }
+        });
+        tdActions.appendChild(deleteBtn);
+
+        tr.appendChild(tdActions);
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      listWrapper.appendChild(table);
+    }
+
+    renderTable(articles);
+
+    // ── Modal for Add / Edit ─────────────────────────────────────────────
+
+    var modalOverlay = document.createElement('div');
+    modalOverlay.className = 'admin-modal-overlay';
+    modalOverlay.id = 'news-modal';
+    modalOverlay.style.display = 'none';
+    document.body.appendChild(modalOverlay);
+
+    function buildModal(title, articleData, onSave) {
+      modalOverlay.innerHTML = '';
+
+      var modal = document.createElement('div');
+      modal.className = 'admin-modal';
+
+      var header = document.createElement('div');
+      header.className = 'admin-modal__header';
+
+      var modalTitle = document.createElement('h2');
+      modalTitle.className = 'admin-modal__title';
+      modalTitle.textContent = title;
+      header.appendChild(modalTitle);
+
+      var closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'admin-modal__close';
+      closeBtn.textContent = '✕';
+      closeBtn.setAttribute('aria-label', 'Close modal');
+      closeBtn.addEventListener('click', function () { modalOverlay.style.display = 'none'; });
+      header.appendChild(closeBtn);
+
+      modal.appendChild(header);
+
+      function field(label, id, type, placeholder, value) {
+        var div = document.createElement('div');
+        div.className = 'admin-form-group';
+        var lbl = document.createElement('label');
+        lbl.className = 'admin-form-group__label';
+        lbl.setAttribute('for', id);
+        lbl.textContent = label;
+        div.appendChild(lbl);
+        var input = document.createElement('input');
+        input.className = 'admin-input';
+        input.id = id;
+        input.type = type || 'text';
+        input.placeholder = placeholder || '';
+        if (value != null) input.value = value;
+        div.appendChild(input);
+        return div;
+      }
+
+      function checkbox(label, id, checked) {
+        var div = document.createElement('div');
+        div.className = 'admin-form-group';
+        var wrap = document.createElement('div');
+        wrap.className = 'admin-checkbox-group';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.id = id;
+        cb.checked = !!checked;
+        wrap.appendChild(cb);
+        var lbl = document.createElement('label');
+        lbl.setAttribute('for', id);
+        lbl.textContent = label;
+        wrap.appendChild(lbl);
+        div.appendChild(wrap);
+        return div;
+      }
+
+      modal.appendChild(field('Title', 'modal-title', 'text', 'e.g. New Discovery in Jerusalem', articleData ? articleData.news_article_title : ''));
+      modal.appendChild(field('Slug', 'modal-slug', 'text', 'e.g. new-discovery-jerusalem', articleData ? articleData.slug : ''));
+      modal.appendChild(field('Article URL', 'modal-url', 'url', 'https://example.com/article', articleData ? articleData.news_article_url : ''));
+      modal.appendChild(field('Publisher', 'modal-publisher', 'text', 'e.g. The Times of Israel', articleData ? articleData.news_article_publisher : ''));
+      modal.appendChild(field('Author', 'modal-author', 'text', 'e.g. John Smith', articleData ? articleData.news_article_author : ''));
+      modal.appendChild(field('Date', 'modal-date', 'date', '', articleData ? (articleData.news_article_date ? articleData.news_article_date.slice(0, 10) : '') : ''));
+      modal.appendChild(field('Keywords', 'modal-keywords', 'text', 'e.g. archaeology, jerusalem', articleData ? articleData.metadata_keywords : ''));
+      modal.appendChild(checkbox('Show on Landing Page', 'modal-landing', articleData ? articleData.landing_page_display : false));
+      modal.appendChild(checkbox('Published', 'modal-publish', articleData ? articleData.published_draft : false));
+
+      var errorEl = document.createElement('div');
+      errorEl.className = 'admin-error';
+      errorEl.style.display = 'none';
+      errorEl.setAttribute('role', 'alert');
+      modal.appendChild(errorEl);
+
+      var actions = document.createElement('div');
+      actions.className = 'admin-modal-actions';
+
+      var saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'admin-btn admin-btn--primary';
+      saveBtn.textContent = articleData ? 'Save Changes' : 'Create Article';
+
+      var cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'admin-btn admin-btn--ghost';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.addEventListener('click', function () { modalOverlay.style.display = 'none'; });
+
+      actions.appendChild(saveBtn);
+      actions.appendChild(cancelBtn);
+      modal.appendChild(actions);
+
+      // Auto slug from title
+      var titleInput = modal.querySelector('#modal-title');
+      var slugInput = modal.querySelector('#modal-slug');
+      var slugAuto = !articleData;
+      titleInput.addEventListener('input', function () {
+        if (slugAuto) {
+          slugInput.value = titleInput.value
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+        }
+      });
+      slugInput.addEventListener('input', function () { slugAuto = false; });
+
+      saveBtn.addEventListener('click', async function () {
+        var titleVal = titleInput.value.trim();
+        var slugVal = slugInput.value.trim();
+        if (!titleVal) { errorEl.textContent = 'Title is required.'; errorEl.style.display = 'block'; return; }
+        if (!slugVal) { errorEl.textContent = 'Slug is required.'; errorEl.style.display = 'block'; return; }
+
+        var payload = {
+          slug: slugVal,
+          news_article_title: titleVal,
+          news_article_url: document.getElementById('modal-url').value.trim() || undefined,
+          news_article_publisher: document.getElementById('modal-publisher').value.trim() || undefined,
+          news_article_author: document.getElementById('modal-author').value.trim() || undefined,
+          news_article_date: document.getElementById('modal-date').value || undefined,
+          metadata_keywords: document.getElementById('modal-keywords').value.trim() || undefined,
+          landing_page_display: document.getElementById('modal-landing').checked ? 1 : 0,
+          published_draft: document.getElementById('modal-publish').checked ? 1 : 0
+        };
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving…';
+        try {
+          await onSave(payload);
+          modalOverlay.style.display = 'none';
+        } catch (err) {
+          errorEl.textContent = 'Failed to save: ' + err.message;
+          errorEl.style.display = 'block';
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = articleData ? 'Save Changes' : 'Create Article';
+        }
+      });
+
+      modalOverlay.appendChild(modal);
+      modalOverlay.style.display = 'flex';
+    }
+
+    function openAddModal() {
+      buildModal('Add Article', null, async function (payload) {
+        var result = await Admin.api.post('/news-articles', payload);
+        articles.push(result);
+        articles.sort(function (a, b) {
+          return (b.news_article_date || b.created_at || '').localeCompare(a.news_article_date || a.created_at || '');
+        });
+        renderTable(articles);
+      });
+    }
+
+    function openEditModal(article) {
+      buildModal('Edit Article', article, async function (payload) {
+        var result = await Admin.api.put('/news-articles/' + article.id, payload);
+        var idx = articles.findIndex(function (a) { return a.id === article.id; });
+        if (idx >= 0) {
+          Object.assign(articles[idx], result);
+        }
+        articles.sort(function (a, b) {
+          return (b.news_article_date || b.created_at || '').localeCompare(a.news_article_date || a.created_at || '');
+        });
+        renderTable(articles);
+      });
+    }
+
+    document.getElementById('btn-add-article').addEventListener('click', openAddModal);
+
+    modalOverlay.addEventListener('click', function (e) {
+      if (e.target === modalOverlay) modalOverlay.style.display = 'none';
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Buttons
+   CSS-6: Base + variants + sizes, under 80 lines
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+
+.admin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    border: 1px solid transparent;
+    border-radius: var(--admin-radius);
+    cursor: pointer;
+    transition:
+        background var(--admin-transition),
+        color var(--admin-transition),
+        border-color var(--admin-transition),
+        box-shadow var(--admin-transition);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.admin-btn:disabled,
+.admin-btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ── Variants ─────────────────────────────────────────────────────────────── */
+
+.admin-btn--primary {
+    background: var(--admin-accent);
+    color: var(--admin-accent-text);
+    border-color: var(--admin-accent);
+}
+
+.admin-btn--primary:hover:not(:disabled) {
+    background: var(--admin-accent-hover);
+    border-color: var(--admin-accent-hover);
+}
+
+.admin-btn--secondary {
+    background: transparent;
+    color: var(--admin-text-primary);
+    border-color: var(--admin-border);
+}
+
+.admin-btn--secondary:hover:not(:disabled) {
+    background: var(--admin-surface-hover);
+    border-color: var(--admin-text-muted);
+}
+
+.admin-btn--danger {
+    background: var(--admin-danger);
+    color: var(--admin-accent-text);
+    border-color: var(--admin-danger);
+}
+
+.admin-btn--danger:hover:not(:disabled) {
+    background: var(--admin-danger-hover);
+    border-color: var(--admin-danger-hover);
+}
+
+.admin-btn--ghost {
+    background: transparent;
+    color: var(--admin-text-secondary);
+}
+
+.admin-btn--ghost:hover:not(:disabled) {
+    background: var(--admin-surface-hover);
+    color: var(--admin-text-primary);
+}
+
+/* ── Sizes ────────────────────────────────────────────────────────────────── */
+
+.admin-btn--sm {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: var(--admin-radius-sm);
+}
+
+.admin-btn--lg {
+    padding: 12px 24px;
+    font-size: 16px;
+}

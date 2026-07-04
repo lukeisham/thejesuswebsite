@@ -1,0 +1,107 @@
+/* ==========================================================================
+   Challenge Ranked Lists
+   Popular Challenges & Academic Challenges — ranked list pages.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Page Header
+   ------------------------------------------------------------------------- */
+
+.challenge-header {
+    margin-bottom: var(--space-xl);
+}
+
+.challenge-header h1 {
+    margin-bottom: var(--space-sm);
+}
+
+.challenge-header p {
+    color: var(--text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Ranked List
+   ------------------------------------------------------------------------- */
+
+.challenge-list {
+    max-width: var(--measure-list);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* -------------------------------------------------------------------------
+   Challenge Rank Card
+   ------------------------------------------------------------------------- */
+
+.challenge-rank-card {
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.challenge-rank-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-lg);
+}
+
+.challenge-rank-number {
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    width: 2.5rem;
+    text-align: right;
+    line-height: 1;
+}
+
+.challenge-rank-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.challenge-rank-title {
+    font-size: var(--text-h3);
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+}
+
+.challenge-rank-summary {
+    font-size: var(--text-small);
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* -------------------------------------------------------------------------
+   Card Footer
+   ------------------------------------------------------------------------- */
+
+.challenge-rank-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}
+
+.challenge-rank-response-count {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.challenge-rank-indicators {
+    display: flex;
+    gap: var(--space-md);
+    font-size: var(--text-xs);
+}
+
+.challenge-rank-plus {
+    color: var(--success);
+}
+
+.challenge-rank-minus {
+    color: var(--error);
+}

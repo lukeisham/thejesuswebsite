@@ -1,0 +1,74 @@
+/* ==========================================================================
+   Animation Tokens & Reduced-Motion Override
+   Defines transition helpers and respects user motion preferences.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Transition Helpers
+   ------------------------------------------------------------------------- */
+
+.transition-fast {
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-out);
+}
+
+.transition-base {
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-out);
+}
+
+.transition-slow {
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-out);
+}
+
+/* -------------------------------------------------------------------------
+   Fade & Slide Keyframes (reusable)
+   ------------------------------------------------------------------------- */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* -------------------------------------------------------------------------
+   Reduced Motion
+   Wraps all transitions — serves instant states when user prefers
+   reduced motion (accessibility, §11).
+   ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,113 @@
+/* ==========================================================================
+   Modals / Drawers
+   Centred modal for desktop; slide-in drawer for mobile.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Backdrop
+   ------------------------------------------------------------------------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in var(--duration-base) var(--ease-out);
+}
+
+/* -------------------------------------------------------------------------
+   Modal Dialog
+   ------------------------------------------------------------------------- */
+
+.modal {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-toast);
+  max-width: 640px;
+  width: calc(100vw - 2rem);
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: fade-in-scale var(--duration-base) var(--ease-out);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+  font-size: var(--text-h3);
+  font-weight: 600;
+}
+
+.modal-close {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.modal-close:hover {
+  background: var(--bg-surface-alt);
+}
+
+.modal-body {
+  padding: var(--space-lg);
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+/* -------------------------------------------------------------------------
+   Drawer (slide-in from right, mobile)
+   ------------------------------------------------------------------------- */
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(400px, 85vw);
+  background: var(--bg-surface);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+  z-index: 300;
+  transform: translateX(100%);
+  transition: transform var(--duration-base) var(--ease-in-out);
+  overflow-y: auto;
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+/* -------------------------------------------------------------------------
+   Responsive: modal becomes drawer on small screens
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .modal {
+    width: 100vw;
+    max-width: none;
+    height: 85vh;
+    max-height: 85vh;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    margin-top: auto;
+    align-self: flex-end;
+  }
+}

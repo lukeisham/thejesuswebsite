@@ -1,0 +1,141 @@
+/* ==========================================================================
+   Blog Posts
+   Warmer, magazine-style layout — less formal than journal articles.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Blog Article
+   ------------------------------------------------------------------------- */
+
+.blog-article {
+    max-width: var(--measure-reading-wide);
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Header (left-aligned)
+   ------------------------------------------------------------------------- */
+
+.blog-header {
+    margin-bottom: var(--space-xl);
+}
+
+.blog-category {
+    margin-bottom: var(--space-sm);
+}
+
+.blog-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-h1);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+/* Byline Row */
+.blog-byline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-small);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+}
+
+.blog-byline-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-round);
+    border: 1px solid var(--border);
+}
+
+.blog-byline-separator {
+    color: var(--text-muted);
+}
+
+/* Hero Image */
+.blog-hero-image {
+    width: 100%;
+    max-height: 480px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-xl);
+}
+
+/* -------------------------------------------------------------------------
+   Body
+   ------------------------------------------------------------------------- */
+
+.blog-body {
+    font-size: var(--text-body);
+    line-height: var(--leading-long);
+    color: var(--text-primary);
+}
+
+.blog-body p {
+    margin-bottom: var(--space-md);
+}
+
+.blog-body h2 {
+    font-family: var(--font-heading);
+    font-size: var(--text-h2);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-md);
+}
+
+.blog-body h3 {
+    font-family: var(--font-heading);
+    font-size: var(--text-h3);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-sm);
+}
+
+/* -------------------------------------------------------------------------
+   Pull Quotes (distinct from block quotes)
+   ------------------------------------------------------------------------- */
+
+.pull-quote {
+    text-align: center;
+    font-size: 1.25rem;
+    font-style: italic;
+    color: var(--accent);
+    margin: var(--space-xl) var(--space-md);
+    border: none;
+    background: transparent;
+}
+
+/* -------------------------------------------------------------------------
+   Tags Row
+   ------------------------------------------------------------------------- */
+
+.blog-tags {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border);
+}
+
+.blog-tags-label {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .blog-title {
+        font-size: var(--text-h2);
+    }
+}
