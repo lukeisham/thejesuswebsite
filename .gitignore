@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# Local notes / planning (not for GitHub)
+/setup/
+/scratchpad.md
+
 # Environment
 .env
 
