@@ -1,27 +1,55 @@
 /* ==========================================================================
-   Sidebar Panel
-   Toggle and active state for sidebar visibility.
+   Sidebar Toggle & Backdrop
+   Toggle handle that stays visible when the sidebar is closed, and the
+   mobile backdrop behind the open sidebar.
+   (Sidebar container/nav styles live in layout/navigation.css per CSS-1.)
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
-   Sidebar Wrapper
-   Duplicate of navigation sidebar styles for toggle behaviour
-   (separated for single-responsibility per CSS-1).
-   Only the toggle-related styles live here.
+   Toggle Handle
+   Sticks out past the sidebar's right edge so it remains clickable when
+   the sidebar is translated off-canvas.
    ------------------------------------------------------------------------- */
 
-.sidebar-panel {
-  transition: transform var(--duration-base) var(--ease-in-out);
+.sidebar__toggle {
+    position: absolute;
+    top: var(--space-md);
+    left: calc(100% + var(--space-sm));
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.sidebar-panel.collapsed {
-  transform: translateX(-100%);
+.sidebar__toggle:hover {
+    background: var(--bg-surface-alt);
 }
 
 /* -------------------------------------------------------------------------
-   Active Section Highlight
+   Backdrop (mobile only)
+   Created dynamically by sidebar_hamburger.js while the sidebar is open.
    ------------------------------------------------------------------------- */
 
-.sidebar-panel .active-section {
-  font-weight: 500;
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-backdrop);
+    z-index: 99;
+}
+
+.sidebar-backdrop[hidden] {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .sidebar-backdrop {
+        display: none;
+    }
 }

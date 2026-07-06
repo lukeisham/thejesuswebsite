@@ -144,6 +144,7 @@
     --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
     --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
     --shadow-toast: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --overlay-backdrop: rgba(0, 0, 0, 0.3);
 
     /* -------------------------------------------------------------------------
         Utility Colors
