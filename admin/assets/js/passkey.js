@@ -70,6 +70,83 @@ Passkey.extractSignCount = function (authenticatorData) {
   );
 };
 
+/**
+ * Translate a WebAuthn ceremony failure into a specific, human-readable message.
+ * navigator.credentials.create()/get() reject with DOMExceptions whose default
+ * messages are opaque ("The operation either timed out or was not allowed…"),
+ * so map the error name to what actually went wrong and what to do about it.
+ *
+ * @param {Error} error — the rejection from navigator.credentials.create/get
+ * @param {"registration"|"login"} ceremony
+ * @returns {string}
+ */
+Passkey.describeCredentialError = function (error, ceremony) {
+  const name = error && error.name;
+  switch (name) {
+    case "NotAllowedError":
+      return (
+        "The passkey prompt was cancelled or timed out. Try again and " +
+        "approve the prompt on your device."
+      );
+    case "InvalidStateError":
+      return ceremony === "registration"
+        ? "This device already has a passkey registered for this site."
+        : "The authenticator is in an unexpected state. Try again.";
+    case "SecurityError":
+      return (
+        "The browser blocked the passkey request: this page's domain does " +
+        "not match the server's expected domain (RP ID)."
+      );
+    case "AbortError":
+      return "The passkey request was interrupted. Try again.";
+    case "NotSupportedError":
+      return "Your browser or device does not support the requested passkey type.";
+    default:
+      return (
+        (ceremony === "registration" ? "Registration" : "Sign-in") +
+        " failed: " +
+        ((error && error.message) || "unknown error.")
+      );
+  }
+};
+
+/**
+ * POST a JSON body and return the Response. A network-level failure (server
+ * down, offline) rejects from fetch with an unhelpful "Failed to fetch" —
+ * rethrow it as something the status line can display meaningfully.
+ *
+ * @param {string} url
+ * @param {object} body
+ * @param {object} [extraHeaders]
+ * @returns {Promise<Response>}
+ */
+Passkey.postJson = async function (url, body, extraHeaders) {
+  try {
+    return await fetch(url, {
+      method: "POST",
+      headers: Object.assign({ "Content-Type": "application/json" }, extraHeaders),
+      body: JSON.stringify(body),
+    });
+  } catch (_networkError) {
+    throw new Error(
+      "Could not reach the server. Check your connection and try again.",
+    );
+  }
+};
+
+/**
+ * Read the error message from a failed API response, falling back to a
+ * message that at least names the failed step and HTTP status.
+ *
+ * @param {Response} res — a non-ok Response
+ * @param {string} step — e.g. "Sign-in verification"
+ * @returns {Promise<string>}
+ */
+Passkey.readErrorMessage = async function (res, step) {
+  const body = await res.json().catch(() => ({}));
+  return body.error || step + " failed (HTTP " + res.status + ").";
+};
+
 /* ── Ceremony flows ──────────────────────────────────────────────────────── */
 
 /**
@@ -84,42 +161,54 @@ Passkey.extractSignCount = function (authenticatorData) {
  * @returns {Promise<{success: true}>}  Resolves on success, rejects on failure.
  */
 Passkey.registerPasskey = async function (setupToken) {
+  if (!navigator.credentials || !window.PublicKeyCredential) {
+    throw new Error(
+      "This browser does not support passkeys. Use a recent browser over HTTPS (or localhost).",
+    );
+  }
+
   // 1 — Request registration challenge from the server.
-  const optionsRes = await fetch("/passkey/register/options", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-setup-token": setupToken,
-    },
-    body: JSON.stringify({ handle: "admin" }),
-  });
+  const optionsRes = await Passkey.postJson(
+    "/passkey/register/options",
+    { handle: "admin" },
+    { "x-setup-token": setupToken },
+  );
 
   if (!optionsRes.ok) {
-    const body = await optionsRes.json().catch(() => ({}));
-    throw new Error(body.error || "Registration is not available.");
+    throw new Error(
+      await Passkey.readErrorMessage(optionsRes, "Starting registration"),
+    );
   }
 
   const serverOptions = await optionsRes.json();
 
   // 2 — Ask the platform authenticator to create a credential.
-  const credential = await navigator.credentials.create({
-    publicKey: {
-      challenge: Passkey.base64urlToBuffer(serverOptions.challenge),
-      rp: { id: serverOptions.rp.id, name: serverOptions.rp.name },
-      user: {
-        id: Passkey.base64urlToBuffer(serverOptions.user.id),
-        name: serverOptions.user.name,
-        displayName: serverOptions.user.displayName,
+  let credential;
+  try {
+    credential = await navigator.credentials.create({
+      publicKey: {
+        challenge: Passkey.base64urlToBuffer(serverOptions.challenge),
+        rp: { id: serverOptions.rp.id, name: serverOptions.rp.name },
+        user: {
+          id: Passkey.base64urlToBuffer(serverOptions.user.id),
+          name: serverOptions.user.name,
+          displayName: serverOptions.user.displayName,
+        },
+        pubKeyCredParams: serverOptions.pubKeyCredParams,
+        timeout: serverOptions.timeout,
+        attestation: "none",
+        authenticatorSelection: {
+          authenticatorAttachment: "platform",
+          userVerification: "preferred",
+        },
       },
-      pubKeyCredParams: serverOptions.pubKeyCredParams,
-      timeout: serverOptions.timeout,
-      attestation: "none",
-      authenticatorSelection: {
-        authenticatorAttachment: "platform",
-        userVerification: "preferred",
-      },
-    },
-  });
+    });
+  } catch (error) {
+    throw new Error(Passkey.describeCredentialError(error, "registration"));
+  }
+  if (!credential) {
+    throw new Error("The authenticator did not return a credential. Try again.");
+  }
 
   const response = credential.response;
   if (
@@ -137,23 +226,21 @@ Passkey.registerPasskey = async function (setupToken) {
   const publicKeyPem = Passkey.arrayBufferToPem(publicKeyBuffer);
 
   // 4 — Send the registration payload to the server for verification.
-  const verifyRes = await fetch("/passkey/register/verify", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-setup-token": setupToken,
-    },
-    body: JSON.stringify({
+  const verifyRes = await Passkey.postJson(
+    "/passkey/register/verify",
+    {
       handle: "admin",
       id: credential.id,
       clientDataJSON: Passkey.bufferToBase64url(response.clientDataJSON),
       publicKeyPem,
-    }),
-  });
+    },
+    { "x-setup-token": setupToken },
+  );
 
   if (!verifyRes.ok) {
-    const body = await verifyRes.json().catch(() => ({}));
-    throw new Error(body.error || "Registration verification failed.");
+    throw new Error(
+      await Passkey.readErrorMessage(verifyRes, "Registration verification"),
+    );
   }
 
   return { success: true };
@@ -169,49 +256,59 @@ Passkey.registerPasskey = async function (setupToken) {
  * @returns {Promise<{success: true}>}  Resolves on success, rejects on failure.
  */
 Passkey.loginWithPasskey = async function () {
+  if (!navigator.credentials || !window.PublicKeyCredential) {
+    throw new Error(
+      "This browser does not support passkeys. Use a recent browser over HTTPS (or localhost).",
+    );
+  }
+
   // 1 — Request an assertion challenge.
-  const optionsRes = await fetch("/passkey/login/options", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ handle: "admin" }),
+  const optionsRes = await Passkey.postJson("/passkey/login/options", {
+    handle: "admin",
   });
 
   if (!optionsRes.ok) {
-    const body = await optionsRes.json().catch(() => ({}));
-    throw new Error(body.error || "Failed to start login.");
+    throw new Error(
+      await Passkey.readErrorMessage(optionsRes, "Starting sign-in"),
+    );
   }
 
   const serverOptions = await optionsRes.json();
 
   // 2 — Ask the platform authenticator for an assertion.
-  const credential = await navigator.credentials.get({
-    publicKey: {
-      challenge: Passkey.base64urlToBuffer(serverOptions.challenge),
-      rpId: serverOptions.rpId,
-      timeout: serverOptions.timeout,
-      userVerification: serverOptions.userVerification || "preferred",
-    },
-  });
+  let credential;
+  try {
+    credential = await navigator.credentials.get({
+      publicKey: {
+        challenge: Passkey.base64urlToBuffer(serverOptions.challenge),
+        rpId: serverOptions.rpId,
+        timeout: serverOptions.timeout,
+        userVerification: serverOptions.userVerification || "preferred",
+      },
+    });
+  } catch (error) {
+    throw new Error(Passkey.describeCredentialError(error, "login"));
+  }
+  if (!credential) {
+    throw new Error("The authenticator did not return a credential. Try again.");
+  }
 
   const response = credential.response;
 
   // 3 — Send the assertion to the server.
-  const verifyRes = await fetch("/passkey/login/verify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      handle: "admin",
-      id: credential.id,
-      clientDataJSON: Passkey.bufferToBase64url(response.clientDataJSON),
-      authenticatorData: Passkey.bufferToBase64url(response.authenticatorData),
-      signature: Passkey.bufferToBase64url(response.signature),
-      signCount: Passkey.extractSignCount(response.authenticatorData),
-    }),
+  const verifyRes = await Passkey.postJson("/passkey/login/verify", {
+    handle: "admin",
+    id: credential.id,
+    clientDataJSON: Passkey.bufferToBase64url(response.clientDataJSON),
+    authenticatorData: Passkey.bufferToBase64url(response.authenticatorData),
+    signature: Passkey.bufferToBase64url(response.signature),
+    signCount: Passkey.extractSignCount(response.authenticatorData),
   });
 
   if (!verifyRes.ok) {
-    const body = await verifyRes.json().catch(() => ({}));
-    throw new Error(body.error || "Login verification failed.");
+    throw new Error(
+      await Passkey.readErrorMessage(verifyRes, "Sign-in verification"),
+    );
   }
 
   return { success: true };

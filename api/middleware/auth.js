@@ -74,9 +74,13 @@ function readToken(req) {
 function requireAuth(req, res, next) {
   res.setHeader("Cache-Control", "no-store");
   const token = readToken(req);
-  const session = token && getSession(token);
-  if (!session)
+  if (!token)
     return res.status(401).json({ error: "Authentication required." });
+  const session = getSession(token);
+  if (!session)
+    return res
+      .status(401)
+      .json({ error: "Session expired or invalid — please sign in again." });
   req.user = { handle: session.userHandle };
   next();
 }
