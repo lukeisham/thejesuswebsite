@@ -44,6 +44,8 @@ const {
   bufferToBase64url,
   arrayBufferToPem,
   extractSignCount,
+  describeCredentialError,
+  readErrorMessage,
 } = sandbox.window.Passkey;
 
 // ── base64urlToBuffer + bufferToBase64url round-trip ────────────────────────
@@ -170,5 +172,86 @@ describe("extractSignCount", () => {
     data[35] = 0x00;
     data[36] = 0x2a;
     assert.equal(extractSignCount(data), 42);
+  });
+});
+
+// ── describeCredentialError ─────────────────────────────────────────────────
+
+describe("describeCredentialError", () => {
+  /** Build an error with a DOMException-style name. */
+  function domError(name, message = "opaque browser message") {
+    const error = new Error(message);
+    error.name = name;
+    return error;
+  }
+
+  test("NotAllowedError explains the prompt was cancelled or timed out", () => {
+    const message = describeCredentialError(domError("NotAllowedError"), "login");
+    assert.match(message, /cancelled or timed out/);
+  });
+
+  test("InvalidStateError during registration reports an existing passkey", () => {
+    const message = describeCredentialError(
+      domError("InvalidStateError"),
+      "registration",
+    );
+    assert.match(message, /already has a passkey/);
+  });
+
+  test("InvalidStateError during login does not claim an existing passkey", () => {
+    const message = describeCredentialError(
+      domError("InvalidStateError"),
+      "login",
+    );
+    assert.doesNotMatch(message, /already has a passkey/);
+  });
+
+  test("SecurityError points at an RP ID / domain mismatch", () => {
+    const message = describeCredentialError(domError("SecurityError"), "login");
+    assert.match(message, /domain/);
+    assert.match(message, /RP ID/);
+  });
+
+  test("unknown errors fall back to the ceremony name plus the raw message", () => {
+    const message = describeCredentialError(
+      domError("SomethingElse", "boom"),
+      "registration",
+    );
+    assert.match(message, /^Registration failed: boom/);
+  });
+
+  test("handles a missing error object without throwing", () => {
+    const message = describeCredentialError(null, "login");
+    assert.match(message, /^Sign-in failed:/);
+  });
+});
+
+// ── readErrorMessage ────────────────────────────────────────────────────────
+
+describe("readErrorMessage", () => {
+  test("prefers the server-provided error field", async () => {
+    const res = {
+      status: 401,
+      json: async () => ({ error: "Signature verification failed." }),
+    };
+    const message = await readErrorMessage(res, "Sign-in verification");
+    assert.equal(message, "Signature verification failed.");
+  });
+
+  test("falls back to the step name and HTTP status when the body has no error", async () => {
+    const res = { status: 502, json: async () => ({}) };
+    const message = await readErrorMessage(res, "Sign-in verification");
+    assert.equal(message, "Sign-in verification failed (HTTP 502).");
+  });
+
+  test("falls back when the body is not JSON at all", async () => {
+    const res = {
+      status: 500,
+      json: async () => {
+        throw new SyntaxError("Unexpected token");
+      },
+    };
+    const message = await readErrorMessage(res, "Starting registration");
+    assert.equal(message, "Starting registration failed (HTTP 500).");
   });
 });

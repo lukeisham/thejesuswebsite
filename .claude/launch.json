@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "4173", "--directory", "frontend"],
       "port": 4173
+    },
+    {
+      "name": "admin",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4174", "--directory", "admin"],
+      "port": 4174
     }
   ]
 }
