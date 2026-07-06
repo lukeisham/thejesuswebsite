@@ -13,9 +13,16 @@ let isOpen = false;
 let backdrop = null;
 
 /**
+ * Whether the viewport is mobile-sized (sidebar overlays content).
+ */
+function isMobile() {
+  return window.matchMedia('(max-width: 767px)').matches;
+}
+
+/**
  * Initialise the hamburger toggle for the off-canvas sidebar.
  *
- * Default state: closed on index.html, open elsewhere.
+ * Default state: closed on index.html and on mobile, open elsewhere.
  */
 export function initHamburger() {
   const sidebar = document.getElementById(SIDEBAR_ID);
@@ -27,7 +34,7 @@ export function initHamburger() {
     window.location.pathname === '/index.html';
 
   // Set initial state
-  if (isHome) {
+  if (isHome || isMobile()) {
     closeSidebar(sidebar, toggle);
   } else {
     openSidebar(sidebar, toggle);
@@ -57,8 +64,13 @@ function openSidebar(sidebar, toggle) {
   sidebar.classList.add(OPEN_CLASS);
   toggle.setAttribute('aria-expanded', 'true');
   isOpen = true;
-  showBackdrop(sidebar, toggle);
-  trapFocus(sidebar);
+
+  // Backdrop and focus trap only make sense when the sidebar overlays
+  // content (mobile). On desktop the content shifts aside instead.
+  if (isMobile()) {
+    showBackdrop(sidebar, toggle);
+    trapFocus(sidebar);
+  }
 }
 
 /**

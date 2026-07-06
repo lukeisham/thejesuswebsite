@@ -34,7 +34,7 @@
    headings can begin at <h2> without duplicating the page title.
    ------------------------------------------------------------------------- */
 
-.invisible-header {
+.sr-only {
     position: absolute;
     width: 1px;
     height: 1px;

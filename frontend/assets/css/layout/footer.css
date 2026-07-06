@@ -1,11 +1,13 @@
 /* ==========================================================================
    Site Footer
    Universal footer (not on index.html).
-   Left: copyright + licence + last updated.
+   Left: copyright + licence.
    Right: Print, Copy Contents, Copy URL buttons.
    ========================================================================== */
 
-.site-footer {
+/* Scoped to the direct-child site footer; article footnote <footer>
+   elements (e.g. essay pages) are nested inside <main> and unaffected. */
+body > footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -15,13 +17,14 @@
   font-size: var(--text-small);
   color: var(--text-muted);
   min-height: 48px;
+  transition: margin-left var(--duration-base) var(--ease-in-out);
 }
 
 /* -------------------------------------------------------------------------
    Footer Left
    ------------------------------------------------------------------------- */
 
-.footer-info {
+.footer__left {
   display: flex;
   align-items: center;
   gap: var(--space-md);
@@ -32,13 +35,13 @@
    Footer Actions (right)
    ------------------------------------------------------------------------- */
 
-.footer-actions {
+.footer__right {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
 }
 
-.footer-actions .btn-ghost {
+.footer__right .btn--ghost {
   font-size: var(--text-small);
   min-height: 44px;
   min-width: 44px;
@@ -52,14 +55,14 @@
    ------------------------------------------------------------------------- */
 
 @media (max-width: 767px) {
-  .site-footer {
+  body > footer {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-sm);
     padding: var(--space-md);
   }
 
-  .footer-actions {
+  .footer__right {
     width: 100%;
     justify-content: flex-start;
   }

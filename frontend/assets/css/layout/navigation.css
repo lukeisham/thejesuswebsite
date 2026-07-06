@@ -1,6 +1,9 @@
 /* ==========================================================================
    Navigation — Sidebar
-   260px sidebar with expandable sections. Off-canvas on mobile.
+   260px off-canvas sidebar. Closed by default (home + mobile); open on
+   other pages via .sidebar--open (added by sidebar_hamburger.js). On
+   desktop, open sidebar shifts <main> and <footer> right; on mobile it
+   overlays content with a backdrop.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -9,57 +12,62 @@
 
 .sidebar {
     width: var(--sidebar-width);
-    min-height: 100vh;
+    height: 100vh;
     background: var(--bg-surface);
     border-right: 1px solid var(--border);
     position: fixed;
     top: 0;
     left: 0;
     z-index: 100;
-    overflow-y: auto;
     padding: var(--space-lg) 0;
+    transform: translateX(-100%);
     transition: transform var(--duration-base) var(--ease-in-out);
 }
 
+.sidebar--open {
+    transform: translateX(0);
+}
+
 /* -------------------------------------------------------------------------
-   Sidebar Sections
+   Nav List
    ------------------------------------------------------------------------- */
 
-.sidebar-nav {
+.sidebar__nav {
     display: flex;
     flex-direction: column;
-}
-
-.sidebar-section {
-    padding: var(--space-xs) 0;
+    height: 100%;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 /* -------------------------------------------------------------------------
-   Sidebar Items
+   Nav Items
    ------------------------------------------------------------------------- */
 
-.sidebar-item {
+.nav-item a {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
     padding: var(--space-sm) var(--space-lg);
     font-size: var(--text-small);
     color: var(--text-secondary);
+    text-decoration: none;
     transition: background-color var(--duration-fast) var(--ease-out);
     min-height: 44px;
-    cursor: pointer;
 }
 
-.sidebar-item:hover {
+.nav-item a:hover {
     background: var(--bg-surface-alt);
     color: var(--text-primary);
 }
 
 /* -------------------------------------------------------------------------
-   Active State
+   Active State (class applied to the <a> by sidebar.js)
    ------------------------------------------------------------------------- */
 
-.sidebar-item.active {
+.nav-item a.nav-item--active {
     color: var(--accent);
     background: var(--bg-surface-alt);
     border-left: 3px solid var(--accent);
@@ -68,72 +76,18 @@
 }
 
 /* -------------------------------------------------------------------------
-   Sub-navigation (expandable sections)
-   ------------------------------------------------------------------------- */
-
-.sidebar-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: var(--space-sm) var(--space-lg);
-    font-size: var(--text-small);
-    color: var(--text-secondary);
-    min-height: 44px;
-    cursor: pointer;
-    transition: background-color var(--duration-fast) var(--ease-out);
-}
-
-.sidebar-toggle:hover {
-    background: var(--bg-surface-alt);
-}
-
-.sidebar-toggle-icon {
-    transition: transform var(--duration-base) var(--ease-in-out);
-}
-
-.sidebar-toggle-icon.open {
-    transform: rotate(90deg);
-}
-
-.sidebar-subnav {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height var(--duration-base) var(--ease-in-out);
-}
-
-.sidebar-subnav.open {
-    max-height: 600px;
-}
-
-.sidebar-subnav .sidebar-item {
-    padding-left: calc(var(--space-lg) + var(--space-lg));
-}
-
-/* -------------------------------------------------------------------------
    Content Area (next to sidebar)
    ------------------------------------------------------------------------- */
 
-.content-area {
-    margin-left: var(--sidebar-width);
+main {
     min-height: 100vh;
+    transition: margin-left var(--duration-base) var(--ease-in-out);
 }
 
-/* -------------------------------------------------------------------------
-   Responsive
-   ------------------------------------------------------------------------- */
-
-/* Mobile (< 768px): off-canvas sidebar */
-@media (max-width: 767px) {
-    .sidebar {
-        transform: translateX(-100%);
-    }
-
-    .sidebar.open {
-        transform: translateX(0);
-    }
-
-    .content-area {
-        margin-left: 0;
+/* Desktop (≥ 768px): open sidebar pushes content right */
+@media (min-width: 768px) {
+    .sidebar--open ~ main,
+    .sidebar--open ~ footer {
+        margin-left: var(--sidebar-width);
     }
 }

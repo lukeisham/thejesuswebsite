@@ -42,7 +42,7 @@
 
     .navigation,
     .sidebar,
-    .site-footer,
+    body > footer,
     .page-info-row,
     .filters,
     .related-items,
@@ -51,7 +51,7 @@
     .modal,
     .drawer,
     .skip-link,
-    .invisible-header,
+    .sr-only,
     button,
     .search-bar,
     nav {
