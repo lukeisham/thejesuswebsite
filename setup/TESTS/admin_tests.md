@@ -261,3 +261,27 @@
 - [ ] JS-1 / JS-3 — pages mirror `admin/essays/` structure with `essay-*`→`historiography-*` and `/essays`→`/historiography`; no divergent pattern introduced.
 - [ ] HTML-3 — exactly one `<h1>` per new page; HTML-5 — every form control has a label.
 - [ ] The create/edit payload sends only the historiography model's writable columns (`two_column`, `doi`, `author_bio`, etc.) — no stray fields.
+
+## Validation: Challenge Admin Page
+**Plan:** challenge-admin-page.md
+**Date:** 2026-07-06
+
+### Manual checks
+- [ ] `admin/debate/popular-challenges/index.html` lists only popular challenges (Title, Rank, Status badge, Edit link); loading/empty/error states behave like the Debate Responses list.
+- [ ] `admin/debate/academic-challenges/index.html` lists only academic challenges, same layout as the popular list, independently of it.
+- [ ] "+ New Popular Challenge" / "+ New Academic Challenge" open each section's own `new.html`; saving posts to `POST /api/popular-challenges` or `POST /api/academic-challenges` respectively (check the Network tab) and redirects to that section's `edit-[id].html?id=<id>`.
+- [ ] Publish on either edit page flips `published_draft` and generates the static page at `/debate/popular-challenges/<slug>` or `/debate/academic-challenges/<slug>` accordingly (confirm the file exists / the URL loads). Unpublish removes it.
+- [ ] Delete on either edit page removes the challenge (`DELETE /api/popular-challenges/:id` or `/api/academic-challenges/:id`) and returns to that section's own list — not the other section's.
+- [ ] Every challenge admin request requires a session — visiting any of the six pages while logged out redirects to `auth/login.html`.
+- [ ] The admin sidebar shows both a "Popular Challenges" link and an "Academic Challenges" link on every page that has a sidebar, immediately after "Debate", each going to its own section.
+- [ ] On the Debate Responses list (`admin/debate/index.html`), the Challenge column shows the linked challenge's title (not a bare `Challenge #12`) and clicking it opens the correct section's edit page (popular vs. academic) for that challenge.
+- [ ] On both `admin/debate/new.html` and `edit-[id].html`, the "Challenge" field is a dropdown listing every challenge from **both** sections as `"{title} ({type})"`, and on the edit page the current challenge is pre-selected.
+- [ ] Creating/editing a popular challenge never appears in the academic list (and vice versa) — the two collections stay fully separate.
+
+### Code-review checks
+- [x] JS-2 — the Responses picker/list link is the only place that resolves a challenge's `type`, and it does so from API data, never guessed or inferred; the two challenge sections never guess a type since each talks to only one endpoint.
+- [x] JS-5 — every request goes through `Admin.api.*`; no raw `fetch` in any of the six new pages or the three modified Debate pages.
+- [x] JS-6 — the challenge list/form DOM is built with `createElement`/`textContent`, no `innerHTML` of fetched data.
+- [x] SR-1 — `mergeChallenges` / `Admin.getAllChallenges` is the only new logic added to `admin/assets/js/admin.js`; no unrelated changes bundled into that file. The popular and academic trios are independent files, not a shared component with a type parameter.
+- [x] HTML-3 / HTML-5 — each new page has exactly one `<h1>` (the topbar title) and every form control has a `<label>`.
+- [x] The create/edit payloads only ever include each model's `WRITABLE_COLUMNS` (slug, challenge_title, challenge_summary, challenge_picture, challenge_url_a–d, challenge_rank_number, challenge_rank_pluses, challenge_rank_minuses, published_draft, metadata_keywords) — no stray fields, and `academic_popular` is never sent as a writable field from either section's form (it's set server-side at creation only, per which endpoint is called).

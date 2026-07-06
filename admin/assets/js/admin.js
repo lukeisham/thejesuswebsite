@@ -185,3 +185,48 @@ Admin.publishItem = async function (type, id) {
 Admin.unpublishItem = async function (type, id) {
   return Admin.api.del("/publish/" + type + "/" + id);
 };
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Cross-type challenge helpers (used by Response forms/list to resolve
+   challenge_id → title + type when a response can reference either kind)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Merge two challenge arrays, tagging each item with its type.
+ * Pure function — no side effects, returns a new array.
+ * @param {Array} popularItems
+ * @param {Array} academicItems
+ * @returns {Array} merged array with `type` property added to each item
+ */
+function mergeChallenges(popularItems, academicItems) {
+  var merged = [];
+  if (Array.isArray(popularItems)) {
+    for (var i = 0; i < popularItems.length; i++) {
+      var item = popularItems[i];
+      item.type = "popular";
+      merged.push(item);
+    }
+  }
+  if (Array.isArray(academicItems)) {
+    for (var j = 0; j < academicItems.length; j++) {
+      var aItem = academicItems[j];
+      aItem.type = "academic";
+      merged.push(aItem);
+    }
+  }
+  return merged;
+}
+
+/**
+ * Fetch all challenges from both kinds and return a merged array.
+ * Each item has `type: 'popular'` or `type: 'academic'`.
+ * @returns {Promise<Array>}
+ */
+Admin.getAllChallenges = async function () {
+  var popularData = await Admin.api.get("/popular-challenges");
+  var academicData = await Admin.api.get("/academic-challenges");
+  var popularItems = popularData && popularData.items ? popularData.items : [];
+  var academicItems =
+    academicData && academicData.items ? academicData.items : [];
+  return mergeChallenges(popularItems, academicItems);
+};
