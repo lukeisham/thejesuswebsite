@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Blog Post — Admin</title>
-  <link rel="stylesheet" href="../assets/css/admin.css">
-  <script defer src="../assets/js/auth.js"></script>
-  <script defer src="../assets/js/admin.js"></script>
+  <title>Edit Popular Challenge — Admin</title>
+  <link rel="stylesheet" href="../../assets/css/admin.css">
+  <script defer src="../../assets/js/auth.js"></script>
+  <script defer src="../../assets/js/admin.js"></script>
   <style>
     .admin-form-actions {
       display: flex;
@@ -71,71 +71,71 @@
   <nav class="admin-sidebar" aria-label="Admin navigation">
     <div class="admin-sidebar__brand">⚡ Admin</div>
     <div class="admin-sidebar__nav">
-      <a class="admin-sidebar__link" href="../index.html">
+      <a class="admin-sidebar__link" href="../../index.html">
         <span class="admin-sidebar__icon">📊</span> Dashboard
       </a>
-      <a class="admin-sidebar__link" href="../drafts/index.html">
+      <a class="admin-sidebar__link" href="../../drafts/index.html">
         <span class="admin-sidebar__icon">📝</span> Drafts
       </a>
-      <a class="admin-sidebar__link" href="../evidence/index.html">
+      <a class="admin-sidebar__link" href="../../evidence/index.html">
         <span class="admin-sidebar__icon">📋</span> Evidence
       </a>
-      <a class="admin-sidebar__link" href="../collections/index.html">
+      <a class="admin-sidebar__link" href="../../collections/index.html">
         <span class="admin-sidebar__icon">📁</span> Collections
       </a>
-      <a class="admin-sidebar__link" href="../resources/index.html">
+      <a class="admin-sidebar__link" href="../../resources/index.html">
         <span class="admin-sidebar__icon">📚</span> Resources
       </a>
-      <a class="admin-sidebar__link" href="../wikipedia/index.html">
+      <a class="admin-sidebar__link" href="../../wikipedia/index.html">
         <span class="admin-sidebar__icon">📖</span> Wikipedia
       </a>
-      <a class="admin-sidebar__link" href="../essays/index.html">
+      <a class="admin-sidebar__link" href="../../essays/index.html">
         <span class="admin-sidebar__icon">✍️</span> Essays
       </a>
-      <a class="admin-sidebar__link" href="../debate/index.html">
+      <a class="admin-sidebar__link" href="../index.html">
         <span class="admin-sidebar__icon">🗣️</span> Debate
       </a>
-      <a class="admin-sidebar__link" href="../debate/popular-challenges/index.html">
+      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
         <span class="admin-sidebar__icon">📢</span> Popular Challenges
       </a>
-      <a class="admin-sidebar__link" href="../debate/academic-challenges/index.html">
+      <a class="admin-sidebar__link" href="../academic-challenges/index.html">
         <span class="admin-sidebar__icon">🎓</span> Academic Challenges
       </a>
-      <a class="admin-sidebar__link" href="../historiography/index.html">
+      <a class="admin-sidebar__link" href="../../historiography/index.html">
         <span class="admin-sidebar__icon">🏛️</span> Historiography
       </a>
-      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
+      <a class="admin-sidebar__link" href="../../blog/index.html">
         <span class="admin-sidebar__icon">📰</span> Blog
       </a>
-      <a class="admin-sidebar__link" href="../news/index.html">
+      <a class="admin-sidebar__link" href="../../news/index.html">
         <span class="admin-sidebar__icon">📡</span> News
       </a>
-      <a class="admin-sidebar__link" href="../diagrams/maps.html">
+      <a class="admin-sidebar__link" href="../../diagrams/maps.html">
         <span class="admin-sidebar__icon">🗺️</span> Maps Editor
       </a>
-      <a class="admin-sidebar__link" href="../analytics.html">
+      <a class="admin-sidebar__link" href="../../analytics.html">
         <span class="admin-sidebar__icon">📈</span> Analytics
       </a>
-      <a class="admin-sidebar__link" href="../settings/index.html">
+      <a class="admin-sidebar__link" href="../../settings/index.html">
         <span class="admin-sidebar__icon">⚙️</span> Settings
       </a>
     </div>
     <div class="admin-sidebar__bottom">
-      <a class="admin-sidebar__link" href="../auth/login.html">
+      <a class="admin-sidebar__link" href="../../auth/login.html">
         <span class="admin-sidebar__icon">🚪</span> Logout
       </a>
     </div>
   </nav>
 
   <header class="admin-topbar">
-    <h1 class="admin-topbar__title">Edit Blog Post</h1>
+    <h1 class="admin-topbar__title">Edit Popular Challenge</h1>
     <div class="admin-topbar__actions">
-      <a class="admin-btn admin-btn--sm admin-btn--ghost" href="index.html">← Back to Blog</a>
+      <a class="admin-btn admin-btn--sm admin-btn--ghost" href="index.html">← Back to Popular Challenges</a>
     </div>
   </header>
 
   <main class="admin-main" id="edit-content">
-    <div class="admin-loading" role="status">Loading blog post…</div>
+    <div class="admin-loading" role="status">Loading popular challenge…</div>
   </main>
 
 </div>
@@ -151,23 +151,23 @@
     }
 
     var params = new URLSearchParams(window.location.search);
-    var postId = params.get('id');
+    var challengeId = params.get('id');
 
-    if (!postId) {
-      main.innerHTML = '<div class="admin-error" role="alert">No blog post ID specified. <a href="index.html">Go back</a>.</div>';
+    if (!challengeId) {
+      main.innerHTML = '<div class="admin-error" role="alert">No challenge ID specified. <a href="index.html">Go back</a>.</div>';
       return;
     }
 
     var data;
     try {
-      data = await Admin.api.get('/blog-posts/admin/' + postId);
+      data = await Admin.api.get('/popular-challenges/admin/' + challengeId);
     } catch (err) {
-      main.innerHTML = '<div class="admin-error" role="alert">Failed to load blog post: ' + err.message + '</div>';
+      main.innerHTML = '<div class="admin-error" role="alert">Failed to load popular challenge: ' + err.message + '</div>';
       return;
     }
 
     if (!data) {
-      main.innerHTML = '<div class="admin-error" role="alert">Blog post not found. <a href="index.html">Go back</a>.</div>';
+      main.innerHTML = '<div class="admin-error" role="alert">Popular challenge not found. <a href="index.html">Go back</a>.</div>';
       return;
     }
 
@@ -216,11 +216,11 @@
       if (isTextarea) {
         input = document.createElement('textarea');
         input.className = 'admin-textarea';
-        input.rows = 20;
+        input.rows = 8;
       } else {
         input = document.createElement('input');
         input.className = 'admin-input';
-        input.type = 'text';
+        input.type = type || 'text';
       }
       input.id = id;
       input.placeholder = placeholder || '';
@@ -247,47 +247,40 @@
       return div;
     }
 
-    contentCard.appendChild(formGroup('Title *', 'blog-title', 'required', 'e.g. Why I Believe in the Resurrection', 'The blog post title shown in headings and search results.', false, data.blog_title || ''));
-    contentCard.appendChild(formGroup('Slug *', 'blog-slug', 'required', 'e.g. why-i-believe-in-the-resurrection', 'URL-friendly identifier.', false, data.slug || ''));
-    contentCard.appendChild(formGroup('Blog Content', 'blog-content', '', 'Write your blog post here…', 'The full blog post body.', true, data.blog_content || ''));
+    contentCard.appendChild(formGroup('Title *', 'challenge-title', 'required', 'e.g. The Minimal Facts Argument', 'The challenge title shown in headings and search results.', false, data.challenge_title || ''));
+    contentCard.appendChild(formGroup('Slug *', 'challenge-slug', 'required', 'e.g. minimal-facts-argument', 'URL-friendly identifier.', false, data.slug || ''));
+    contentCard.appendChild(formGroup('Summary', 'challenge-summary', '', 'Write a brief summary…', 'A short overview of the challenge.', true, data.challenge_summary || ''));
+    contentCard.appendChild(formGroup('Picture URL', 'challenge-picture', '', '/debate/popular-challenges/images/example.jpg', 'Optional image for this challenge.', false, data.challenge_picture || ''));
 
     var sidebar = document.createElement('div');
     sidebar.className = 'admin-form-grid__sidebar';
     form.appendChild(sidebar);
 
-    var settingsCard = document.createElement('div');
-    settingsCard.className = 'admin-form-card';
-    sidebar.appendChild(settingsCard);
+    var urlCard = document.createElement('div');
+    urlCard.className = 'admin-form-card';
+    sidebar.appendChild(urlCard);
 
-    var setTitle = document.createElement('div');
-    setTitle.className = 'admin-form-card__title';
-    setTitle.textContent = 'Settings';
-    settingsCard.appendChild(setTitle);
+    var urlTitle = document.createElement('div');
+    urlTitle.className = 'admin-form-card__title';
+    urlTitle.textContent = 'Source URLs';
+    urlCard.appendChild(urlTitle);
 
-    var landGroup = document.createElement('div');
-    landGroup.className = 'admin-form-group';
-    settingsCard.appendChild(landGroup);
+    urlCard.appendChild(formGroup('Source URL A', 'challenge-url-a', '', 'https://…', 'Primary source link.', false, data.challenge_url_a || ''));
+    urlCard.appendChild(formGroup('Source URL B', 'challenge-url-b', '', 'https://…', '', false, data.challenge_url_b || ''));
+    urlCard.appendChild(formGroup('Source URL C', 'challenge-url-c', '', 'https://…', '', false, data.challenge_url_c || ''));
+    urlCard.appendChild(formGroup('Source URL D', 'challenge-url-d', '', 'https://…', '', false, data.challenge_url_d || ''));
 
-    var landWrap = document.createElement('div');
-    landWrap.className = 'admin-checkbox-group';
+    var rankCard = document.createElement('div');
+    rankCard.className = 'admin-form-card';
+    rankCard.style.marginTop = 'var(--space-md)';
+    sidebar.appendChild(rankCard);
 
-    var landCheck = document.createElement('input');
-    landCheck.type = 'checkbox';
-    landCheck.id = 'blog-landing';
-    landCheck.checked = !!data.landing_page_display;
-    landWrap.appendChild(landCheck);
+    var rankTitle = document.createElement('div');
+    rankTitle.className = 'admin-form-card__title';
+    rankTitle.textContent = 'Ranking';
+    rankCard.appendChild(rankTitle);
 
-    var landLabel = document.createElement('label');
-    landLabel.setAttribute('for', 'blog-landing');
-    landLabel.textContent = 'Show on Landing Page';
-    landWrap.appendChild(landLabel);
-
-    landGroup.appendChild(landWrap);
-    var landHint = document.createElement('span');
-    landHint.className = 'admin-form-hint';
-    landHint.style.marginTop = 'var(--space-xs)';
-    landHint.textContent = 'When checked, this post will appear on the homepage.';
-    landGroup.appendChild(landHint);
+    rankCard.appendChild(formGroup('Rank Number', 'challenge-rank', 'number', 'e.g. 1', 'Numeric rank for ordering (lower = higher priority).', false, data.challenge_rank_number != null ? String(data.challenge_rank_number) : ''));
 
     var metaCard = document.createElement('div');
     metaCard.className = 'admin-form-card';
@@ -299,8 +292,7 @@
     metaTitle.textContent = 'Metadata';
     metaCard.appendChild(metaTitle);
 
-    metaCard.appendChild(formGroup('Keywords', 'blog-keywords', '', 'e.g. resurrection, faith, evidence', 'Comma-separated search keywords.', false, data.metadata_keywords || ''));
-    metaCard.appendChild(formGroup('Linked Evidence IDs', 'blog-evidence', '', 'e.g. 1, 3, 7', 'Comma-separated evidence IDs.', false, ''));
+    metaCard.appendChild(formGroup('Keywords', 'challenge-keywords', '', 'e.g. resurrection, minimal facts', 'Comma-separated search keywords.', false, data.metadata_keywords || ''));
 
     var pubCard = document.createElement('div');
     pubCard.className = 'admin-form-card';
@@ -311,21 +303,21 @@
     pubGroup.className = 'admin-form-group';
     pubCard.appendChild(pubGroup);
 
-    var pubWrap = document.createElement('div');
-    pubWrap.className = 'admin-checkbox-group';
+    var pubCheckboxWrap = document.createElement('div');
+    pubCheckboxWrap.className = 'admin-checkbox-group';
 
     var pubCheckbox = document.createElement('input');
     pubCheckbox.type = 'checkbox';
-    pubCheckbox.id = 'blog-publish';
+    pubCheckbox.id = 'challenge-publish';
     pubCheckbox.checked = !!data.published_draft;
-    pubWrap.appendChild(pubCheckbox);
+    pubCheckboxWrap.appendChild(pubCheckbox);
 
     var pubLabel = document.createElement('label');
-    pubLabel.setAttribute('for', 'blog-publish');
+    pubLabel.setAttribute('for', 'challenge-publish');
     pubLabel.textContent = 'Published';
-    pubWrap.appendChild(pubLabel);
+    pubCheckboxWrap.appendChild(pubLabel);
 
-    pubGroup.appendChild(pubWrap);
+    pubGroup.appendChild(pubCheckboxWrap);
     var pubHint = document.createElement('span');
     pubHint.className = 'admin-form-hint';
     pubHint.style.marginTop = 'var(--space-xs)';
@@ -366,28 +358,28 @@
     var deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'admin-btn admin-btn--danger';
-    deleteBtn.textContent = 'Delete Blog Post';
+    deleteBtn.textContent = 'Delete Popular Challenge';
     deleteBtn.addEventListener('click', async function () {
-      if (!confirm('Are you sure you want to permanently delete this blog post? This cannot be undone.')) return;
+      if (!confirm('Are you sure you want to permanently delete this popular challenge? This cannot be undone.')) return;
       deleteBtn.disabled = true;
       deleteBtn.textContent = 'Deleting…';
       try {
-        await Admin.api.del('/blog-posts/' + postId);
+        await Admin.api.del('/popular-challenges/' + challengeId);
         window.location.href = 'index.html';
       } catch (err) {
         formError.textContent = 'Failed to delete: ' + err.message;
         formError.style.display = 'block';
         deleteBtn.disabled = false;
-        deleteBtn.textContent = 'Delete Blog Post';
+        deleteBtn.textContent = 'Delete Popular Challenge';
       }
     });
     deleteSection.appendChild(deleteBtn);
     main.appendChild(deleteSection);
 
-    var titleInput = document.getElementById('blog-title');
-    var slugInput = document.getElementById('blog-slug');
-    var titleErr = document.getElementById('blog-title-error');
-    var slugErr = document.getElementById('blog-slug-error');
+    var titleInput = document.getElementById('challenge-title');
+    var slugInput = document.getElementById('challenge-slug');
+    var titleErr = document.getElementById('challenge-title-error');
+    var slugErr = document.getElementById('challenge-slug-error');
 
     var slugAuto = true;
     titleInput.addEventListener('input', function () {
@@ -430,13 +422,19 @@
     }
 
     function buildPayload() {
+      var rankVal = document.getElementById('challenge-rank').value.trim();
       return {
-        blog_title: titleInput.value.trim(),
+        challenge_title: titleInput.value.trim(),
         slug: slugInput.value.trim(),
-        blog_content: document.getElementById('blog-content').value.trim() || undefined,
-        landing_page_display: document.getElementById('blog-landing').checked ? 1 : 0,
-        metadata_keywords: document.getElementById('blog-keywords').value.trim() || undefined,
-        published_draft: document.getElementById('blog-publish').checked ? 1 : 0
+        challenge_summary: document.getElementById('challenge-summary').value.trim() || undefined,
+        challenge_picture: document.getElementById('challenge-picture').value.trim() || undefined,
+        challenge_url_a: document.getElementById('challenge-url-a').value.trim() || undefined,
+        challenge_url_b: document.getElementById('challenge-url-b').value.trim() || undefined,
+        challenge_url_c: document.getElementById('challenge-url-c').value.trim() || undefined,
+        challenge_url_d: document.getElementById('challenge-url-d').value.trim() || undefined,
+        challenge_rank_number: rankVal ? parseInt(rankVal, 10) : undefined,
+        metadata_keywords: document.getElementById('challenge-keywords').value.trim() || undefined,
+        published_draft: document.getElementById('challenge-publish').checked ? 1 : 0
       };
     }
 
@@ -448,7 +446,7 @@
       publishBtn.disabled = true;
       submitStatus.textContent = 'Saving…';
       try {
-        await Admin.api.put('/blog-posts/' + postId, buildPayload());
+        await Admin.api.put('/popular-challenges/' + challengeId, buildPayload());
         submitStatus.innerHTML = '<span style="color:var(--admin-success)">Saved successfully.</span>';
       } catch (err) {
         formError.textContent = 'Failed to save: ' + err.message;
@@ -466,7 +464,7 @@
       saveBtn.disabled = true;
 
       try {
-        await Admin.api.put('/blog-posts/' + postId, buildPayload());
+        await Admin.api.put('/popular-challenges/' + challengeId, buildPayload());
       } catch (err) {
         formError.textContent = 'Failed to save before publish: ' + err.message;
         formError.style.display = 'block';
@@ -477,15 +475,15 @@
 
       try {
         if (data.published_draft) {
-          await Admin.unpublishItem('blog-posts', postId);
+          await Admin.unpublishItem('popular-challenges', challengeId);
           data.published_draft = 0;
           publishBtn.textContent = 'Publish';
         } else {
-          await Admin.publishItem('blog-posts', postId);
+          await Admin.publishItem('popular-challenges', challengeId);
           data.published_draft = 1;
           publishBtn.textContent = 'Unpublish';
         }
-        document.getElementById('blog-publish').checked = !!data.published_draft;
+        document.getElementById('challenge-publish').checked = !!data.published_draft;
         submitStatus.innerHTML = '<span style="color:var(--admin-success)">' + (data.published_draft ? 'Published!' : 'Unpublished.') + '</span>';
       } catch (err) {
         formError.textContent = 'Publish action failed: ' + err.message;

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Essay — Admin</title>
-  <link rel="stylesheet" href="../assets/css/admin.css">
-  <script defer src="../assets/js/auth.js"></script>
-  <script defer src="../assets/js/admin.js"></script>
+  <title>New Academic Challenge — Admin</title>
+  <link rel="stylesheet" href="../../assets/css/admin.css">
+  <script defer src="../../assets/js/auth.js"></script>
+  <script defer src="../../assets/js/admin.js"></script>
   <style>
     .admin-form-actions {
       display: flex;
@@ -60,134 +60,176 @@
   <nav class="admin-sidebar" aria-label="Admin navigation">
     <div class="admin-sidebar__brand">⚡ Admin</div>
     <div class="admin-sidebar__nav">
-      <a class="admin-sidebar__link" href="../index.html">
+      <a class="admin-sidebar__link" href="../../index.html">
         <span class="admin-sidebar__icon">📊</span> Dashboard
       </a>
-      <a class="admin-sidebar__link" href="../drafts/index.html">
+      <a class="admin-sidebar__link" href="../../drafts/index.html">
         <span class="admin-sidebar__icon">📝</span> Drafts
       </a>
-      <a class="admin-sidebar__link" href="../evidence/index.html">
+      <a class="admin-sidebar__link" href="../../evidence/index.html">
         <span class="admin-sidebar__icon">📋</span> Evidence
       </a>
-      <a class="admin-sidebar__link" href="../collections/index.html">
+      <a class="admin-sidebar__link" href="../../collections/index.html">
         <span class="admin-sidebar__icon">📁</span> Collections
       </a>
-      <a class="admin-sidebar__link" href="../resources/index.html">
+      <a class="admin-sidebar__link" href="../../resources/index.html">
         <span class="admin-sidebar__icon">📚</span> Resources
       </a>
-      <a class="admin-sidebar__link" href="../wikipedia/index.html">
+      <a class="admin-sidebar__link" href="../../wikipedia/index.html">
         <span class="admin-sidebar__icon">📖</span> Wikipedia
       </a>
-      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
+      <a class="admin-sidebar__link" href="../../essays/index.html">
         <span class="admin-sidebar__icon">✍️</span> Essays
       </a>
-      <a class="admin-sidebar__link" href="../debate/index.html">
+      <a class="admin-sidebar__link" href="../index.html">
         <span class="admin-sidebar__icon">🗣️</span> Debate
       </a>
-      <a class="admin-sidebar__link" href="../debate/popular-challenges/index.html">
+      <a class="admin-sidebar__link" href="../popular-challenges/index.html">
         <span class="admin-sidebar__icon">📢</span> Popular Challenges
       </a>
-      <a class="admin-sidebar__link" href="../debate/academic-challenges/index.html">
+      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
         <span class="admin-sidebar__icon">🎓</span> Academic Challenges
       </a>
-      <a class="admin-sidebar__link" href="../historiography/index.html">
+      <a class="admin-sidebar__link" href="../../historiography/index.html">
         <span class="admin-sidebar__icon">🏛️</span> Historiography
       </a>
-      <a class="admin-sidebar__link" href="../blog/index.html">
+      <a class="admin-sidebar__link" href="../../blog/index.html">
         <span class="admin-sidebar__icon">📰</span> Blog
       </a>
-      <a class="admin-sidebar__link" href="../news/index.html">
+      <a class="admin-sidebar__link" href="../../news/index.html">
         <span class="admin-sidebar__icon">📡</span> News
       </a>
-      <a class="admin-sidebar__link" href="../diagrams/maps.html">
+      <a class="admin-sidebar__link" href="../../diagrams/maps.html">
         <span class="admin-sidebar__icon">🗺️</span> Maps Editor
       </a>
-      <a class="admin-sidebar__link" href="../analytics.html">
+      <a class="admin-sidebar__link" href="../../analytics.html">
         <span class="admin-sidebar__icon">📈</span> Analytics
       </a>
-      <a class="admin-sidebar__link" href="../settings/index.html">
+      <a class="admin-sidebar__link" href="../../settings/index.html">
         <span class="admin-sidebar__icon">⚙️</span> Settings
       </a>
     </div>
     <div class="admin-sidebar__bottom">
-      <a class="admin-sidebar__link" href="../auth/login.html">
+      <a class="admin-sidebar__link" href="../../auth/login.html">
         <span class="admin-sidebar__icon">🚪</span> Logout
       </a>
     </div>
   </nav>
 
   <header class="admin-topbar">
-    <h1 class="admin-topbar__title">New Essay</h1>
+    <h1 class="admin-topbar__title">New Academic Challenge</h1>
     <div class="admin-topbar__actions">
-      <a class="admin-btn admin-btn--sm admin-btn--ghost" href="index.html">← Back to Essays</a>
+      <a class="admin-btn admin-btn--sm admin-btn--ghost" href="index.html">← Back to Academic Challenges</a>
     </div>
   </header>
 
   <main class="admin-main">
     <div id="form-error" class="admin-error" style="display:none" role="alert" aria-live="assertive"></div>
 
-    <form id="new-essay-form" class="admin-form-grid" novalidate>
+    <form id="new-challenge-form" class="admin-form-grid" novalidate>
 
       <div class="admin-form-grid__main">
         <div class="admin-form-card">
           <div class="admin-form-card__title">Content</div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="essay-title">Title <span aria-hidden="true">*</span></label>
-            <input class="admin-input" id="essay-title" name="essay_title" type="text" required
+            <label class="admin-form-group__label" for="challenge-title">Title <span aria-hidden="true">*</span></label>
+            <input class="admin-input" id="challenge-title" name="challenge_title" type="text" required
                    aria-describedby="title-hint title-error"
-                   placeholder="e.g. The Historical Jesus">
-            <span class="admin-form-hint" id="title-hint">The essay title shown in headings and search results.</span>
+                   placeholder="e.g. The Criterion of Embarrassment">
+            <span class="admin-form-hint" id="title-hint">The challenge title shown in headings and search results.</span>
             <span class="admin-form-hint" id="title-error" style="display:none;color:var(--admin-danger)" role="alert"></span>
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="essay-slug">Slug <span aria-hidden="true">*</span></label>
-            <input class="admin-input" id="essay-slug" name="slug" type="text" required
+            <label class="admin-form-group__label" for="challenge-slug">Slug <span aria-hidden="true">*</span></label>
+            <input class="admin-input" id="challenge-slug" name="slug" type="text" required
                    aria-describedby="slug-hint slug-error"
-                   placeholder="e.g. the-historical-jesus">
+                   placeholder="e.g. criterion-of-embarrassment">
             <span class="admin-form-hint" id="slug-hint">URL-friendly identifier. Auto-generated from title.</span>
             <span class="admin-form-hint" id="slug-error" style="display:none;color:var(--admin-danger)" role="alert"></span>
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="essay-content">Essay Content</label>
-            <textarea class="admin-textarea" id="essay-content" name="essay_content" rows="20"
-                      aria-describedby="content-hint"
-                      placeholder="Write your essay here…"></textarea>
-            <span class="admin-form-hint" id="content-hint">The full essay body. Supports plain text and HTML.</span>
+            <label class="admin-form-group__label" for="challenge-summary">Summary</label>
+            <textarea class="admin-textarea" id="challenge-summary" name="challenge_summary" rows="8"
+                      aria-describedby="summary-hint"
+                      placeholder="Write a brief summary of this challenge…"></textarea>
+            <span class="admin-form-hint" id="summary-hint">A short overview of the challenge.</span>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="challenge-picture">Picture URL</label>
+            <input class="admin-input" id="challenge-picture" name="challenge_picture" type="text"
+                   aria-describedby="picture-hint"
+                   placeholder="e.g. /debate/academic-challenges/images/embarrassment.jpg">
+            <span class="admin-form-hint" id="picture-hint">Optional image for this challenge.</span>
           </div>
         </div>
       </div>
 
       <div class="admin-form-grid__sidebar">
         <div class="admin-form-card">
-          <div class="admin-form-card__title">Metadata</div>
+          <div class="admin-form-card__title">Source URLs</div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="essay-keywords">Keywords</label>
-            <input class="admin-input" id="essay-keywords" name="metadata_keywords" type="text"
-                   aria-describedby="kw-hint"
-                   placeholder="e.g. historical jesus, resurrection, scholarship">
-            <span class="admin-form-hint" id="kw-hint">Comma-separated search keywords.</span>
+            <label class="admin-form-group__label" for="challenge-url-a">Source URL A</label>
+            <input class="admin-input" id="challenge-url-a" name="challenge_url_a" type="text"
+                   placeholder="https://…"
+                   aria-describedby="url-a-hint">
+            <span class="admin-form-hint" id="url-a-hint">Primary source link.</span>
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="essay-evidence">Linked Evidence IDs</label>
-            <input class="admin-input" id="essay-evidence" name="evidence_ids" type="text"
-                   aria-describedby="ev-hint"
-                   placeholder="e.g. 1, 3, 7">
-            <span class="admin-form-hint" id="ev-hint">Comma-separated evidence IDs to link.</span>
+            <label class="admin-form-group__label" for="challenge-url-b">Source URL B</label>
+            <input class="admin-input" id="challenge-url-b" name="challenge_url_b" type="text"
+                   placeholder="https://…">
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="challenge-url-c">Source URL C</label>
+            <input class="admin-input" id="challenge-url-c" name="challenge_url_c" type="text"
+                   placeholder="https://…">
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="challenge-url-d">Source URL D</label>
+            <input class="admin-input" id="challenge-url-d" name="challenge_url_d" type="text"
+                   placeholder="https://…">
+          </div>
+        </div>
+
+        <div class="admin-form-card" style="margin-top:var(--space-md)">
+          <div class="admin-form-card__title">Ranking</div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="challenge-rank">Rank Number</label>
+            <input class="admin-input" id="challenge-rank" name="challenge_rank_number" type="number"
+                   aria-describedby="rank-hint"
+                   placeholder="e.g. 1">
+            <span class="admin-form-hint" id="rank-hint">Numeric rank for ordering (lower = higher priority).</span>
+          </div>
+        </div>
+
+        <div class="admin-form-card" style="margin-top:var(--space-md)">
+          <div class="admin-form-card__title">Metadata</div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-group__label" for="challenge-keywords">Keywords</label>
+            <input class="admin-input" id="challenge-keywords" name="metadata_keywords" type="text"
+                   aria-describedby="kw-hint"
+                   placeholder="e.g. criterion, embarrassment, historical jesus">
+            <span class="admin-form-hint" id="kw-hint">Comma-separated search keywords.</span>
           </div>
         </div>
 
         <div class="admin-form-card" style="margin-top:var(--space-md)">
           <div class="admin-form-group">
             <div class="admin-checkbox-group">
-              <input type="checkbox" id="essay-publish" name="published_draft" value="1">
-              <label for="essay-publish">Publish immediately</label>
+              <input type="checkbox" id="challenge-publish" name="published_draft" value="1">
+              <label for="challenge-publish">Publish immediately</label>
             </div>
-            <span class="admin-form-hint" style="margin-top:var(--space-xs)">When checked, the essay will be published on save.</span>
+            <span class="admin-form-hint" style="margin-top:var(--space-xs)">When checked, the challenge will be published on save.</span>
           </div>
         </div>
       </div>
@@ -207,16 +249,15 @@
 
 <script>
   (async function () {
-    const ok = await AdminAuth.requireSession();
+    var ok = await AdminAuth.requireSession();
     if (!ok) return;
 
-    const titleInput = document.getElementById('essay-title');
-    const slugInput = document.getElementById('essay-slug');
-    const contentInput = document.getElementById('essay-content');
-    const formError = document.getElementById('form-error');
-    const submitStatus = document.getElementById('submit-status');
-    const titleError = document.getElementById('title-error');
-    const slugError = document.getElementById('slug-error');
+    var titleInput = document.getElementById('challenge-title');
+    var slugInput = document.getElementById('challenge-slug');
+    var formError = document.getElementById('form-error');
+    var submitStatus = document.getElementById('submit-status');
+    var titleError = document.getElementById('title-error');
+    var slugError = document.getElementById('slug-error');
 
     var slugAuto = true;
     titleInput.addEventListener('input', function () {
@@ -266,11 +307,18 @@
     }
 
     function buildPayload(publish) {
+      var rankVal = document.getElementById('challenge-rank').value.trim();
       return {
-        essay_title: titleInput.value.trim(),
+        challenge_title: titleInput.value.trim(),
         slug: slugInput.value.trim(),
-        essay_content: contentInput.value.trim() || undefined,
-        metadata_keywords: document.getElementById('essay-keywords').value.trim() || undefined,
+        challenge_summary: document.getElementById('challenge-summary').value.trim() || undefined,
+        challenge_picture: document.getElementById('challenge-picture').value.trim() || undefined,
+        challenge_url_a: document.getElementById('challenge-url-a').value.trim() || undefined,
+        challenge_url_b: document.getElementById('challenge-url-b').value.trim() || undefined,
+        challenge_url_c: document.getElementById('challenge-url-c').value.trim() || undefined,
+        challenge_url_d: document.getElementById('challenge-url-d').value.trim() || undefined,
+        challenge_rank_number: rankVal ? parseInt(rankVal, 10) : undefined,
+        metadata_keywords: document.getElementById('challenge-keywords').value.trim() || undefined,
         published_draft: publish ? 1 : 0
       };
     }
@@ -288,13 +336,13 @@
       submitStatus.textContent = 'Saving…';
 
       try {
-        var result = await Admin.api.post('/essays', payload);
-        submitStatus.innerHTML = '<span style="color:var(--admin-success)">Essay created successfully!</span>';
+        var result = await Admin.api.post('/academic-challenges', payload);
+        submitStatus.innerHTML = '<span style="color:var(--admin-success)">Academic challenge created successfully!</span>';
         setTimeout(function () {
           window.location.href = 'edit-[id].html?id=' + result.id;
         }, 800);
       } catch (err) {
-        formError.textContent = 'Failed to save essay: ' + err.message;
+        formError.textContent = 'Failed to save academic challenge: ' + err.message;
         formError.style.display = 'block';
         submitStatus.textContent = '';
       } finally {

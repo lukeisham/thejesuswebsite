@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blog Posts — Admin</title>
-  <link rel="stylesheet" href="../assets/css/admin.css">
-  <script defer src="../assets/js/auth.js"></script>
-  <script defer src="../assets/js/admin.js"></script>
+  <title>Popular Challenges — Admin</title>
+  <link rel="stylesheet" href="../../assets/css/admin.css">
+  <script defer src="../../assets/js/auth.js"></script>
+  <script defer src="../../assets/js/admin.js"></script>
   <style>
     .admin-loading,
     .admin-empty,
@@ -17,15 +17,6 @@
       font-size: 14px;
     }
     .admin-error { color: var(--admin-danger); }
-    .admin-landing-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      font-size: 11px;
-      border-radius: 10px;
-      background: var(--admin-accent);
-      color: #fff;
-      font-weight: 500;
-    }
   </style>
 </head>
 <body>
@@ -34,79 +25,79 @@
   <nav class="admin-sidebar" aria-label="Admin navigation">
     <div class="admin-sidebar__brand">⚡ Admin</div>
     <div class="admin-sidebar__nav">
-      <a class="admin-sidebar__link" href="../index.html">
+      <a class="admin-sidebar__link" href="../../index.html">
         <span class="admin-sidebar__icon">📊</span> Dashboard
       </a>
-      <a class="admin-sidebar__link" href="../drafts/index.html">
+      <a class="admin-sidebar__link" href="../../drafts/index.html">
         <span class="admin-sidebar__icon">📝</span> Drafts
       </a>
-      <a class="admin-sidebar__link" href="../evidence/index.html">
+      <a class="admin-sidebar__link" href="../../evidence/index.html">
         <span class="admin-sidebar__icon">📋</span> Evidence
       </a>
-      <a class="admin-sidebar__link" href="../collections/index.html">
+      <a class="admin-sidebar__link" href="../../collections/index.html">
         <span class="admin-sidebar__icon">📁</span> Collections
       </a>
-      <a class="admin-sidebar__link" href="../resources/index.html">
+      <a class="admin-sidebar__link" href="../../resources/index.html">
         <span class="admin-sidebar__icon">📚</span> Resources
       </a>
-      <a class="admin-sidebar__link" href="../wikipedia/index.html">
+      <a class="admin-sidebar__link" href="../../wikipedia/index.html">
         <span class="admin-sidebar__icon">📖</span> Wikipedia
       </a>
-      <a class="admin-sidebar__link" href="../essays/index.html">
+      <a class="admin-sidebar__link" href="../../essays/index.html">
         <span class="admin-sidebar__icon">✍️</span> Essays
       </a>
-      <a class="admin-sidebar__link" href="../debate/index.html">
+      <a class="admin-sidebar__link" href="../index.html">
         <span class="admin-sidebar__icon">🗣️</span> Debate
       </a>
-      <a class="admin-sidebar__link" href="../debate/popular-challenges/index.html">
+      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
         <span class="admin-sidebar__icon">📢</span> Popular Challenges
       </a>
-      <a class="admin-sidebar__link" href="../debate/academic-challenges/index.html">
+      <a class="admin-sidebar__link" href="../academic-challenges/index.html">
         <span class="admin-sidebar__icon">🎓</span> Academic Challenges
       </a>
-      <a class="admin-sidebar__link" href="../historiography/index.html">
+      <a class="admin-sidebar__link" href="../../historiography/index.html">
         <span class="admin-sidebar__icon">🏛️</span> Historiography
       </a>
-      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
+      <a class="admin-sidebar__link" href="../../blog/index.html">
         <span class="admin-sidebar__icon">📰</span> Blog
       </a>
-      <a class="admin-sidebar__link" href="../news/index.html">
+      <a class="admin-sidebar__link" href="../../news/index.html">
         <span class="admin-sidebar__icon">📡</span> News
       </a>
-      <a class="admin-sidebar__link" href="../diagrams/maps.html">
+      <a class="admin-sidebar__link" href="../../diagrams/maps.html">
         <span class="admin-sidebar__icon">🗺️</span> Maps Editor
       </a>
-      <a class="admin-sidebar__link" href="../analytics.html">
+      <a class="admin-sidebar__link" href="../../analytics.html">
         <span class="admin-sidebar__icon">📈</span> Analytics
       </a>
-      <a class="admin-sidebar__link" href="../settings/index.html">
+      <a class="admin-sidebar__link" href="../../settings/index.html">
         <span class="admin-sidebar__icon">⚙️</span> Settings
       </a>
     </div>
     <div class="admin-sidebar__bottom">
-      <a class="admin-sidebar__link" href="../auth/login.html">
+      <a class="admin-sidebar__link" href="../../auth/login.html">
         <span class="admin-sidebar__icon">🚪</span> Logout
       </a>
     </div>
   </nav>
 
   <header class="admin-topbar">
-    <h1 class="admin-topbar__title">Blog Posts</h1>
+    <h1 class="admin-topbar__title">Popular Challenges</h1>
     <div class="admin-topbar__actions">
-      <a class="admin-btn admin-btn--primary admin-btn--sm" href="new.html">+ New Post</a>
+      <a class="admin-btn admin-btn--primary admin-btn--sm" href="new.html">+ New Popular Challenge</a>
     </div>
   </header>
 
-  <main class="admin-main" id="blog-content">
-    <div class="admin-loading" id="blog-loading" role="status">Loading blog posts…</div>
+  <main class="admin-main" id="challenge-content">
+    <div class="admin-loading" id="challenge-loading" role="status">Loading popular challenges…</div>
   </main>
 
 </div>
 
 <script>
   (async function () {
-    var main = document.getElementById('blog-content');
-    var loadingEl = document.getElementById('blog-loading');
+    var main = document.getElementById('challenge-content');
+    var loadingEl = document.getElementById('challenge-loading');
 
     var ok = await AdminAuth.requireSession();
     if (!ok) {
@@ -115,20 +106,22 @@
     }
 
     try {
-      var posts = await Admin.api.get('/blog-posts');
+      var data = await Admin.api.get('/popular-challenges');
       main.removeChild(loadingEl);
 
-      if (!Array.isArray(posts) || posts.length === 0) {
+      var items = data.items || [];
+
+      if (items.length === 0) {
         var emptyEl = document.createElement('div');
         emptyEl.className = 'admin-empty';
         emptyEl.setAttribute('role', 'status');
-        emptyEl.textContent = 'No blog posts yet.';
+        emptyEl.textContent = 'No popular challenges yet.';
         main.appendChild(emptyEl);
         return;
       }
 
-      posts.sort(function (a, b) {
-        return (b.created_at || '').localeCompare(a.created_at || '');
+      items.sort(function (a, b) {
+        return (a.challenge_rank_number || 0) - (b.challenge_rank_number || 0);
       });
 
       var wrapper = document.createElement('div');
@@ -139,7 +132,7 @@
 
       var thead = document.createElement('thead');
       var hRow = document.createElement('tr');
-      ['Title', 'Landing Page', 'Created', 'Status', 'Edit'].forEach(function (label) {
+      ['Title', 'Rank', 'Status', 'Edit'].forEach(function (label) {
         var th = document.createElement('th');
         th.textContent = label;
         hRow.appendChild(th);
@@ -149,40 +142,29 @@
 
       var tbody = document.createElement('tbody');
 
-      posts.forEach(function (p) {
+      items.forEach(function (c) {
         var tr = document.createElement('tr');
 
         var tdTitle = document.createElement('td');
         var link = document.createElement('a');
-        link.href = 'edit-[id].html?id=' + p.id;
-        link.textContent = p.blog_title || p.slug || '(untitled)';
+        link.href = 'edit-[id].html?id=' + c.id;
+        link.textContent = c.challenge_title || c.slug || '(untitled)';
         link.style.cssText = 'color:var(--admin-accent);text-decoration:none;font-weight:500;';
         tdTitle.appendChild(link);
         tr.appendChild(tdTitle);
 
-        var tdLanding = document.createElement('td');
-        if (p.landing_page_display) {
-          var badge = document.createElement('span');
-          badge.className = 'admin-landing-badge';
-          badge.textContent = 'Landing';
-          tdLanding.appendChild(badge);
-        } else {
-          tdLanding.textContent = '\u2014';
-        }
-        tr.appendChild(tdLanding);
-
-        var tdDate = document.createElement('td');
-        tdDate.textContent = Admin.formatDate(p.created_at);
-        tr.appendChild(tdDate);
+        var tdRank = document.createElement('td');
+        tdRank.textContent = c.challenge_rank_number != null ? String(c.challenge_rank_number) : '\u2014';
+        tr.appendChild(tdRank);
 
         var tdStatus = document.createElement('td');
-        tdStatus.appendChild(Admin.statusBadge(p.published_draft));
+        tdStatus.appendChild(Admin.statusBadge(c.published_draft));
         tr.appendChild(tdStatus);
 
         var tdEdit = document.createElement('td');
         var editBtn = document.createElement('a');
         editBtn.className = 'admin-btn admin-btn--sm admin-btn--secondary';
-        editBtn.href = 'edit-[id].html?id=' + p.id;
+        editBtn.href = 'edit-[id].html?id=' + c.id;
         editBtn.textContent = 'Edit';
         tdEdit.appendChild(editBtn);
         tr.appendChild(tdEdit);
@@ -199,7 +181,7 @@
       var errorEl = document.createElement('div');
       errorEl.className = 'admin-error';
       errorEl.setAttribute('role', 'alert');
-      errorEl.textContent = 'Failed to load blog posts: ' + err.message;
+      errorEl.textContent = 'Failed to load popular challenges: ' + err.message;
       main.appendChild(errorEl);
     }
   })();
