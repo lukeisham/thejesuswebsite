@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- SEO -->
+
+        <link rel="icon" href="/assets/images/favicon.png" type="image/png" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link
+            rel="apple-touch-icon"
+            href="/assets/images/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/assets/images/site.webmanifest" />
+
+        <link rel="stylesheet" href="/assets/css/base/variables.css" />
+        <link rel="stylesheet" href="/assets/css/base/reset.css" />
+        <link rel="stylesheet" href="/assets/css/base/typography.css" />
+        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" />
+        <link rel="stylesheet" href="/assets/css/base/animations.css" />
+        <link rel="stylesheet" href="/assets/css/base/print.css" />
+        <link rel="stylesheet" href="/assets/css/layout/grid.css" />
+        <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
+        <link rel="stylesheet" href="/assets/css/layout/footer.css" />
+        <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
+        <link rel="stylesheet" href="/assets/css/components/icons.css" />
+        <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+        <link rel="stylesheet" href="/assets/css/components/badges.css" />
+        <link rel="stylesheet" href="/assets/css/components/breadcrumbs.css" />
+        <link rel="stylesheet" href="/assets/css/components/figures.css" />
+        <link rel="stylesheet" href="/assets/css/components/verse-blocks.css" />
+        <link rel="stylesheet" href="/assets/css/components/tables.css" />
+        <link rel="stylesheet" href="/assets/css/components/loading.css" />
+        <link rel="stylesheet" href="/assets/css/components/toasts.css" />
+        <link rel="stylesheet" href="/assets/css/pages/evidence.css" />
+
+        <link
+            rel="preload"
+            as="image"
+            href="/assets/images/feather-sprite.svg"
+            fetchpriority="high"
+        />
+    </head>
+    <body>
+        <header class="sr-only">
+            <a class="skip-link" href="#main-content">Skip to content</a>
+            <h1 id="page-h1">Evidence Detail</h1>
+        </header>
+
+        <noscript>
+            <div class="noscript-notice" role="status">
+                <p>
+                    This page loads its content dynamically with JavaScript. You
+                    can access the raw data through the
+                    <a href="/api/evidence">JSON API</a>, or see
+                    <a href="/llms.txt">/llms.txt</a> for all available
+                    machine-readable endpoints.
+                </p>
+            </div>
+        </noscript>
+
+        <div class="sidebar-backdrop" hidden></div>
+        <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+            <button
+                class="sidebar__toggle"
+                id="sidebar-toggle"
+                aria-expanded="true"
+                aria-label="Toggle navigation"
+            >
+                <svg width="20" height="20" aria-hidden="true">
+                    <use href="/assets/images/feather-sprite.svg#icon-menu" />
+                </svg>
+            </button>
+            <ul class="sidebar__nav">
+                <li class="nav-item"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+                <li class="nav-item">
+                    <a href="/evidence/search.html">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/arbor.html">Arbor Diagram</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/timeline/">Timeline</a>
+                </li>
+                <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+                <li class="nav-item">
+                    <a href="/contextual-essays/">Context</a>
+                </li>
+                <li class="nav-item"><a href="/debate/">Debate</a></li>
+                <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+                <li class="nav-item"><a href="/about.html">About</a></li>
+            </ul>
+        </nav>
+
+        <main id="main-content">
+            <!-- Breadcrumbs -->
+            <nav
+                class="breadcrumbs"
+                id="breadcrumbs"
+                aria-label="Breadcrumb"
+            ></nav>
+
+            <!-- Loading / skeleton state -->
+            <div class="skeleton" id="skeleton-state">
+                <div class="skeleton__title"></div>
+                <div class="skeleton__verse"></div>
+                <div class="skeleton__line skeleton__line--short"></div>
+                <div class="skeleton__line"></div>
+                <div class="skeleton__line"></div>
+                <div class="skeleton__line skeleton__line--short"></div>
+            </div>
+
+            <!-- Error state -->
+            <div class="error-state" id="error-state" hidden>
+                <p class="error-state__message">
+                    Failed to load this evidence item.
+                </p>
+                <a href="/evidence/" class="btn btn--secondary"
+                    >Back to Evidence</a
+                >
+            </div>
+
+            <!-- Evidence content (populated by evidence-detail.js) -->
+            <article class="evidence-detail" id="evidence-content" hidden>
+                <!-- Hero: title + primary verse -->
+                <header class="evidence-hero">
+                    <h2 class="evidence-hero__title" id="evidence-title"></h2>
+                    <blockquote
+                        class="verse-block"
+                        id="evidence-verse"
+                    ></blockquote>
+                </header>
+
+                <!-- Description section -->
+                <section
+                    class="evidence-section"
+                    id="evidence-description-section"
+                >
+                    <h3 class="evidence-section__heading">Description</h3>
+                    <div
+                        class="evidence-section__body"
+                        id="evidence-description"
+                    ></div>
+                </section>
+
+                <!-- Timeline context section -->
+                <section
+                    class="evidence-section"
+                    id="evidence-timeline-section"
+                    hidden
+                >
+                    <h3 class="evidence-section__heading">Timeline Context</h3>
+                    <div
+                        class="evidence-section__body"
+                        id="evidence-timeline-context"
+                    ></div>
+                </section>
+
+                <!-- Pictures section -->
+                <section
+                    class="evidence-section"
+                    id="evidence-pictures-section"
+                    hidden
+                >
+                    <h3 class="evidence-section__heading">Pictures</h3>
+                    <div
+                        class="evidence-section__figures"
+                        id="evidence-pictures"
+                    ></div>
+                </section>
+
+                <!-- Sources section -->
+                <section
+                    class="evidence-section"
+                    id="evidence-sources-section"
+                    hidden
+                >
+                    <h3 class="evidence-section__heading">Sources</h3>
+                    <ul class="source-list" id="evidence-sources"></ul>
+                </section>
+
+                <!-- Page info row: metadata panels above footer -->
+                <aside class="page-info-row" id="page-info-row" hidden>
+                    <div class="page-info-row__panel" id="info-related" hidden>
+                        <h4 class="page-info-row__panel-heading">
+                            Related Evidence
+                        </h4>
+                        <ul
+                            class="page-info-row__list"
+                            id="info-related-list"
+                        ></ul>
+                    </div>
+                    <div
+                        class="page-info-row__panel"
+                        id="info-identifiers"
+                        hidden
+                    >
+                        <h4 class="page-info-row__panel-heading">
+                            Identifiers
+                        </h4>
+                        <ul
+                            class="page-info-row__list"
+                            id="info-identifiers-list"
+                        ></ul>
+                    </div>
+                    <div class="page-info-row__panel" id="info-meta">
+                        <h4 class="page-info-row__panel-heading">Details</h4>
+                        <dl class="page-info-row__dl">
+                            <dt>Era</dt>
+                            <dd id="info-era"></dd>
+                            <dt>Period</dt>
+                            <dd id="info-period"></dd>
+                            <dt>Location</dt>
+                            <dd id="info-location"></dd>
+                            <dt>Category</dt>
+                            <dd id="info-category"></dd>
+                        </dl>
+                    </div>
+                </aside>
+            </article>
+        </main>
+
+        <footer>
+            <div class="footer__left">
+                <img
+                    src="/assets/images/favicon-64.png"
+                    alt=""
+                    width="20"
+                    height="20"
+                />
+                <p>
+                    &copy; The Jesus Website. Content available under
+                    <a
+                        href="https://github.com/lukeisham/thejesuswebsite/blob/main/LICENSE"
+                        >MIT licence</a
+                    >.
+                </p>
+            </div>
+            <div class="footer__right">
+                <button
+                    class="btn btn--ghost"
+                    data-action="print"
+                    aria-label="Print page"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-printer"
+                        />
+                    </svg>
+                    Print
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-contents"
+                    aria-label="Copy page contents"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-copy"
+                        />
+                    </svg>
+                    Copy Contents
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-url"
+                    aria-label="Copy page URL"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-link"
+                        />
+                    </svg>
+                    Copy URL
+                </button>
+            </div>
+        </footer>
+
+        <script
+            type="module"
+            src="/assets/js/evidence-detail.js"
+            defer
+        ></script>
+        <script type="module" src="/assets/js/main.js" defer></script>
+    </body>
+</html>

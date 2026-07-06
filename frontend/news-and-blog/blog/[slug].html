@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- SEO -->
+
+  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
+  <link rel="manifest" href="/assets/images/site.webmanifest">
+
+  <link rel="stylesheet" href="/assets/css/base/variables.css">
+  <link rel="stylesheet" href="/assets/css/base/reset.css">
+  <link rel="stylesheet" href="/assets/css/base/typography.css">
+  <link rel="stylesheet" href="/assets/css/base/invisible-header.css">
+  <link rel="stylesheet" href="/assets/css/base/animations.css">
+  <link rel="stylesheet" href="/assets/css/layout/grid.css">
+  <link rel="stylesheet" href="/assets/css/layout/navigation.css">
+  <link rel="stylesheet" href="/assets/css/layout/footer.css">
+  <link rel="stylesheet" href="/assets/css/components/sidebar.css">
+  <link rel="stylesheet" href="/assets/css/components/icons.css">
+  <link rel="stylesheet" href="/assets/css/components/buttons.css">
+  <link rel="stylesheet" href="/assets/css/components/badges.css">
+  <link rel="stylesheet" href="/assets/css/components/figures.css">
+  <link rel="stylesheet" href="/assets/css/components/loading.css">
+  <link rel="stylesheet" href="/assets/css/components/toasts.css">
+  <link rel="stylesheet" href="/assets/css/pages/blog.css">
+
+  <link rel="preload" as="image" href="/assets/images/feather-sprite.svg" fetchpriority="high">
+</head>
+<body>
+  <header class="sr-only">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <h1 id="page-h1">Blog Post</h1>
+  </header>
+
+  <noscript>
+    <div class="noscript-notice" role="status">
+      <p>This page loads its content dynamically with JavaScript. You can access the raw data through the <a href="/api/blog-posts">JSON API</a>, or see <a href="/llms.txt">/llms.txt</a> for all available machine-readable endpoints.</p>
+    </div>
+  </noscript>
+
+  <div class="sidebar-backdrop" hidden></div>
+  <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+    <button class="sidebar__toggle" id="sidebar-toggle" aria-expanded="true" aria-label="Toggle navigation">
+      <svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-menu"/></svg>
+    </button>
+    <ul class="sidebar__nav">
+      <li class="nav-item"><a href="/">The Jesus Website</a></li>
+      <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+      <li class="nav-item"><a href="/evidence/search.html">Search</a></li>
+      <li class="nav-item"><a href="/evidence/arbor.html">Arbor Diagram</a></li>
+      <li class="nav-item"><a href="/evidence/timeline/">Timeline</a></li>
+      <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+      <li class="nav-item"><a href="/contextual-essays/">Context</a></li>
+      <li class="nav-item"><a href="/debate/">Debate</a></li>
+      <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+      <li class="nav-item"><a href="/about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <main id="main-content">
+    <!-- Loading / skeleton state -->
+    <div class="skeleton" id="skeleton-state">
+      <div class="skeleton-title"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text" style="width: 70%"></div>
+    </div>
+
+    <!-- Error state -->
+    <div class="error-state" id="error-state" hidden>
+      <p class="error-state__message">Failed to load this blog post.</p>
+      <a href="/news-and-blog/" class="btn btn--secondary">Back to News &amp; Blog</a>
+    </div>
+
+    <!-- Empty state (post coming soon) -->
+    <div class="empty-state" id="empty-state" hidden>
+      <p class="empty-state__message">This post is coming soon.</p>
+      <a href="/news-and-blog/" class="btn btn--secondary">Back to News &amp; Blog</a>
+    </div>
+
+    <!-- Blog post content (populated by blog-detail.js) -->
+    <article class="blog-article" id="blog-content" hidden>
+      <!-- Header: left-aligned -->
+      <header class="blog-header">
+        <div class="blog-category" id="blog-category"></div>
+        <h1 class="blog-title" id="blog-title"></h1>
+        <div class="blog-byline" id="blog-byline">
+          <img class="blog-byline-avatar" id="blog-avatar" src="" alt="" width="24" height="24">
+          <span id="blog-author"></span>
+          <span class="blog-byline-separator">·</span>
+          <time id="blog-date"></time>
+        </div>
+        <img
+          class="blog-hero-image"
+          id="blog-hero"
+          src=""
+          alt=""
+          loading="lazy"
+        >
+      </header>
+
+      <!-- Body: reading column -->
+      <div class="blog-body" id="blog-body"></div>
+
+      <!-- Further Reading (sources linked block) -->
+      <section class="blog-further-reading" id="blog-further-reading" hidden>
+        <h3>Further Reading</h3>
+       </h3> <ul id="blog-sources-list"></ul>
+      </section>
+
+      <!-- Tags row -->
+      <div class="blog-tags" id="blog-tags">
+        <span class="blog-tags-label">Tags</span>
+        <div class="blog-tags-items" id="blog-tags-items"></div>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <div class="footer__left">
+      <img
+          src="/assets/images/favicon-64.png"
+          alt=""
+          width="20"
+          height="20"
+      />
+      <p>
+          &copy; The Jesus Website. Content available under
+          <a
+              href="https://github.com/lukeisham/thejesuswebsite/blob/main/LICENSE"
+              >MIT licence</a
+          >.
+      </p>
+    </div>
+    <div class="footer__right">
+      <button class="btn btn--ghost" data-action="print" aria-label="Print page">
+        <svg width="16" height="16" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-printer"/></svg>
+        Print
+      </button>
+      <button class="btn btn--ghost" data-action="copy-contents" aria-label="Copy page contents">
+        <svg width="16" height="16" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-copy"/></svg>
+        Copy Contents
+      </button>
+      <button class="btn btn--ghost" data-action="copy-url" aria-label="Copy page URL">
+        <svg width="16" height="16" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-link"/></svg>
+        Copy URL
+      </button>
+    </div>
+  </footer>
+
+  <script type="module" src="/assets/js/blog-detail.js" defer></script>
+  <script type="module" src="/assets/js/main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- SEO -->
+
+  <!-- Favicon & PWA -->
+  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
+  <link rel="manifest" href="/assets/images/site.webmanifest">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/base/variables.css">
+  <link rel="stylesheet" href="/assets/css/base/reset.css">
+  <link rel="stylesheet" href="/assets/css/base/typography.css">
+  <link rel="stylesheet" href="/assets/css/base/invisible-header.css">
+  <link rel="stylesheet" href="/assets/css/base/animations.css">
+  <link rel="stylesheet" href="/assets/css/layout/grid.css">
+  <link rel="stylesheet" href="/assets/css/layout/navigation.css">
+  <link rel="stylesheet" href="/assets/css/components/sidebar.css">
+  <link rel="stylesheet" href="/assets/css/components/icons.css">
+  <link rel="stylesheet" href="/assets/css/components/badges.css">
+  <link rel="stylesheet" href="/assets/css/components/loading.css">
+  <link rel="stylesheet" href="/assets/css/components/empty-states.css">
+  <link rel="stylesheet" href="/assets/css/pages/challenge-list.css">
+</head>
+<body>
+  <!-- Visually-hidden header for SEO & a11y (HTML-3) -->
+  <header class="sr-only">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <h1 id="page-h1">Challenge</h1>
+  </header>
+
+  <noscript>
+    <div class="noscript-notice" role="status">
+      <p>This page loads its content dynamically with JavaScript. You can access the raw data through the <a href="/api/popular-challenges">JSON API</a>, or see <a href="/llms.txt">/llms.txt</a> for all available machine-readable endpoints.</p>
+    </div>
+  </noscript>
+
+  <!-- Off-canvas navigation sidebar -->
+  <div class="sidebar-backdrop" hidden></div>
+  <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+    <button class="sidebar__toggle" id="sidebar-toggle" aria-expanded="false" aria-label="Toggle navigation">
+      <svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-menu"/></svg>
+    </button>
+    <ul class="sidebar__nav">
+      <li class="nav-item"><a href="/">The Jesus Website</a></li>
+      <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+      <li class="nav-item"><a href="/evidence/search.html">Search</a></li>
+      <li class="nav-item"><a href="/evidence/arbor.html">Arbor Diagram</a></li>
+      <li class="nav-item"><a href="/evidence/timeline/">Timeline</a></li>
+      <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+      <li class="nav-item"><a href="/contextual-essays/">Context</a></li>
+      <li class="nav-item"><a href="/debate/">Debate</a></li>
+      <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+      <li class="nav-item"><a href="/about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <!-- Skeleton state (shown before data arrives — JS-5) -->
+  <section id="skeleton-state" class="skeleton-state" aria-busy="true">
+    <div class="skeleton challenge-detail">
+      <div class="skeleton__line skeleton__line--large"></div>
+      <div class="skeleton__line skeleton__line--medium"></div>
+      <div class="skeleton__line"></div>
+      <div class="skeleton__line"></div>
+      <div class="skeleton__line skeleton__line--short"></div>
+    </div>
+  </section>
+
+  <!-- Error state -->
+  <section id="error-state" class="error-state" hidden>
+    <p class="error-state__message"></p>
+  </section>
+
+  <!-- Empty / forthcoming state -->
+  <section id="empty-state" class="empty-state" hidden>
+    <p class="empty-state__message">This challenge is forthcoming.</p>
+  </section>
+
+  <!-- Challenge detail content (hidden until loaded) -->
+  <main id="challenge-content" class="challenge-detail" hidden>
+    <h2 id="challenge-title"></h2>
+    <span class="badge" id="challenge-category"></span>
+    <div class="challenge-detail-body" id="challenge-body">
+      <!-- Populated by challenge-detail.js -->
+    </div>
+
+    <!-- Responses section -->
+    <section class="challenge-responses" id="challenge-responses" hidden>
+      <h2>Responses</h2>
+      <div id</h2>="challenge-responses-list">
+        <!-- Populated by challenge-detail.js — compact response cards -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Scripts at bottom with defer (HTML-4) -->
+  <script type="module" src="/assets/js/main.js" defer></script>
+  <script type="module" src="/assets/js/challenge-detail.js" defer></script>
+</body>
+</html>

@@ -35,20 +35,26 @@ Desktop.ini
 *.swo
 *~
 
-# Generated detail pages (rebuilt on deploy via npm run pages)
+# Generated detail pages (rebuilt on deploy via npm run pages).
+# Brackets are escaped: unescaped [slug] is a glob character class,
+# so the un-ignore patterns silently never matched the template files.
 frontend/evidence/single/*.html
-!frontend/evidence/single/[slug].html
+!frontend/evidence/single/\[slug\].html
 frontend/contextual-essays/*.html
-!frontend/contextual-essays/[slug].html
+!frontend/contextual-essays/\[slug\].html
+!frontend/contextual-essays/index.html
 frontend/debate/responses/*.html
-!frontend/debate/responses/[slug].html
+!frontend/debate/responses/\[slug\].html
 frontend/debate/historiography/*.html
-!frontend/debate/historiography/[slug].html
+!frontend/debate/historiography/\[slug\].html
+!frontend/debate/historiography/index.html
 frontend/news-and-blog/blog/*.html
-!frontend/news-and-blog/blog/[slug].html
+!frontend/news-and-blog/blog/\[slug\].html
+!frontend/news-and-blog/blog/index.html
 frontend/news-and-blog/news/*.html
-!frontend/news-and-blog/news/[slug].html
+!frontend/news-and-blog/news/\[slug\].html
+!frontend/news-and-blog/news/index.html
 frontend/debate/popular-challenges/*.html
-!frontend/debate/popular-challenges/[slug].html
+!frontend/debate/popular-challenges/\[slug\].html
 frontend/debate/academic-challenges/*.html
-!frontend/debate/academic-challenges/[slug].html
+!frontend/debate/academic-challenges/\[slug\].html
