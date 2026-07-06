@@ -9,8 +9,8 @@
     },
     {
       "name": "admin",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4174", "--directory", "admin"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["dev-proxy.js"],
       "port": 4174
     }
   ]
