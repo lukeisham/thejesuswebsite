@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- SEO -->
+
+        <meta
+            name="description"
+            content="A contextual essay from The Jesus Website."
+        />
+
+        <!-- Favicon & PWA -->
+        <link rel="icon" href="/assets/images/favicon.png" type="image/png" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link
+            rel="apple-touch-icon"
+            href="/assets/images/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/assets/images/site.webmanifest" />
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="/assets/css/base/variables.css" />
+        <link rel="stylesheet" href="/assets/css/base/reset.css" />
+        <link rel="stylesheet" href="/assets/css/base/typography.css" />
+        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" />
+        <link rel="stylesheet" href="/assets/css/base/animations.css" />
+        <link rel="stylesheet" href="/assets/css/layout/grid.css" />
+        <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
+        <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
+        <link rel="stylesheet" href="/assets/css/components/icons.css" />
+        <link rel="stylesheet" href="/assets/css/components/badges.css" />
+        <link rel="stylesheet" href="/assets/css/components/loading.css" />
+        <link rel="stylesheet" href="/assets/css/components/empty-states.css" />
+        <link rel="stylesheet" href="/assets/css/components/figures.css" />
+        <link rel="stylesheet" href="/assets/css/pages/journal-header.css" />
+        <link rel="stylesheet" href="/assets/css/pages/journal-body.css" />
+        <link
+            rel="stylesheet"
+            href="/assets/css/pages/journal-two-column.css"
+        />
+        <link rel="stylesheet" href="/assets/css/pages/journal-footer.css" />
+    </head>
+    <body>
+        <!-- Visually-hidden header for SEO and a11y (HTML-3) -->
+        <header class="sr-only">
+            <a class="skip-link" href="#main-content">Skip to content</a>
+            <h1 id="page-h1">Essay</h1>
+        </header>
+
+        <noscript>
+            <div class="noscript-notice" role="status">
+                <p>
+                    This page loads its content dynamically with JavaScript. You
+                    can access the raw data through the
+                    <a href="/api/essays">JSON API</a>, or see
+                    <a href="/llms.txt">/llms.txt</a> for all available
+                    machine-readable endpoints.
+                </p>
+            </div>
+        </noscript>
+
+        <!-- Off-canvas navigation sidebar -->
+        <div class="sidebar-backdrop" hidden></div>
+        <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+            <button
+                class="sidebar__toggle"
+                id="sidebar-toggle"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <svg width="20" height="20" aria-hidden="true">
+                    <use href="/assets/images/feather-sprite.svg#icon-menu" />
+                </svg>
+            </button>
+            <ul class="sidebar__nav">
+                <li class="nav-item"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+                <li class="nav-item">
+                    <a href="/evidence/search.html">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/arbor.html">Arbor Diagram</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/timeline/">Timeline</a>
+                </li>
+                <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+                <li class="nav-item">
+                    <a href="/contextual-essays/">Context</a>
+                </li>
+                <li class="nav-item"><a href="/debate/">Debate</a></li>
+                <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+                <li class="nav-item"><a href="/about.html">About</a></li>
+            </ul>
+        </nav>
+
+        <!-- Skeleton state (shown before data arrives - JS-5) -->
+        <section id="skeleton-state" class="skeleton-state" aria-busy="true">
+            <div class="skeleton journal-title-block">
+                <div class="skeleton__line skeleton__line--large"></div>
+                <div class="skeleton__line skeleton__line--medium"></div>
+            </div>
+            <div class="skeleton journal-body">
+                <div class="skeleton__line"></div>
+                <div class="skeleton__line"></div>
+                <div class="skeleton__line skeleton__line--short"></div>
+                <div class="skeleton__line"></div>
+                <div class="skeleton__line"></div>
+            </div>
+        </section>
+
+        <!-- Error state -->
+        <section id="error-state" class="error-state" hidden>
+            <p class="error-state__message"></p>
+        </section>
+
+        <!-- Empty / forthcoming state -->
+        <section id="empty-state" class="empty-state" hidden>
+            <p class="empty-state__message">This essay is forthcoming.</p>
+        </section>
+
+        <!-- Essay content (hidden until loaded) -->
+        <article id="essay-content" class="journal-article" hidden>
+            <!-- Title block -->
+            <header class="journal-title-block" id="essay-title-block">
+                <h2 class="journal-title" id="essay-title"></h2>
+                <div class="journal-byline">
+                    <span class="journal-byline-name" id="essay-author"></span>
+                    <span
+                        class="journal-byline-bio"
+                        id="essay-author-bio"
+                        hidden
+                    ></span>
+                </div>
+                <div class="journal-date" id="essay-date"></div>
+                <div class="journal-doi" id="essay-doi" hidden></div>
+            </header>
+
+            <!-- Abstract -->
+            <section class="journal-abstract" id="essay-abstract" hidden>
+                <h3 class="journal-abstract-label">Abstract</h3>
+                <p class="journal-abstract-body" id="essay-abstract-body"></p>
+            </section>
+
+            <!-- Keywords -->
+            <div class="journal-keywords" id="essay-keywords" hidden>
+                <span class="journal-keywords-label">Keywords:</span>
+                <div id="essay-keywords-list"></div>
+            </div>
+
+            <!-- Reading column body -->
+            <div class="journal-body" id="essay-body">
+                <!-- Populated by essay-detail.js -->
+            </div>
+
+            <!-- Footnotes -->
+            <footer class="journal-body" id="essay-footnotes" hidden>
+                <hr class="journal-footnote-divider" />
+                <ol class="journal-footnotes" id="essay-footnotes-list">
+                    <!-- Populated by essay-detail.js -->
+                </ol>
+            </footer>
+
+            <!-- Bibliography -->
+            <section class="journal-body" id="essay-references" hidden>
+                <h2 class="unnumbered">References</h2>
+                <ul class="journal-references" id="essay-references-list">
+                    <!-- Populated by essay-detail.js -->
+                </ul>
+            </section>
+        </article>
+
+        <!-- Scripts at bottom with defer (HTML-4) -->
+        <script type="module" src="/assets/js/main.js" defer></script>
+        <script type="module" src="/assets/js/essay-detail.js" defer></script>
+    </body>
+</html>
