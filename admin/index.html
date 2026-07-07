@@ -20,9 +20,6 @@
                     >
                         <span class="admin-sidebar__icon">📊</span> Dashboard
                     </a>
-                    <a class="admin-sidebar__link" href="drafts/index.html">
-                        <span class="admin-sidebar__icon">📝</span> Drafts
-                    </a>
                     <a class="admin-sidebar__link" href="evidence/index.html">
                         <span class="admin-sidebar__icon">📋</span> Evidence
                     </a>
@@ -89,13 +86,6 @@
             <!-- ── Topbar ───────────────────────────────────────────────────────── -->
             <header class="admin-topbar">
                 <h1 class="admin-topbar__title">Dashboard</h1>
-                <div class="admin-topbar__actions">
-                    <a
-                        class="admin-btn admin-btn--primary admin-btn--sm"
-                        href="drafts/new.html"
-                        >+ New Draft</a
-                    >
-                </div>
             </header>
 
             <!-- ── Main Content ─────────────────────────────────────────────────── -->
@@ -123,8 +113,9 @@
                         draftCounts,
                         evidenceData,
                         blogData,
+                        collectionsData,
+                        resourcesData,
                         analyticsData,
-                        draftsData,
                     ] = await Promise.all([
                         Admin.api.get("/drafts/counts").catch(function () {
                             return {};
@@ -135,19 +126,21 @@
                         Admin.api.get("/blog-posts").catch(function () {
                             return [];
                         }),
+                        Admin.api.get("/collections").catch(function () {
+                            return [];
+                        }),
+                        Admin.api.get("/resources").catch(function () {
+                            return [];
+                        }),
                         Admin.api.get("/analytics").catch(function () {
                             return {};
-                        }),
-                        Admin.api.get("/drafts").catch(function () {
-                            return [];
                         }),
                     ]);
 
                     main.innerHTML = "";
 
-                    // ── Stat cards ─────────────────────────────────────────────────
+                    // ── Record counts ────────────────────────────────────────────────
 
-                    // Published evidence count
                     const evidenceCount = Array.isArray(evidenceData)
                         ? evidenceData.length
                         : 0;
@@ -160,9 +153,14 @@
                         });
                     }
 
-                    // Blog post count
                     const blogCount = Array.isArray(blogData)
                         ? blogData.length
+                        : 0;
+                    const collectionsCount = Array.isArray(collectionsData)
+                        ? collectionsData.length
+                        : 0;
+                    const resourcesCount = Array.isArray(resourcesData)
+                        ? resourcesData.length
                         : 0;
 
                     // 7-day page views from analytics
@@ -185,127 +183,85 @@
                     }
 
                     var stats = [
-                        { label: "Published Evidence", value: evidenceCount },
-                        { label: "Pending Drafts", value: pendingDrafts },
-                        { label: "Blog Posts", value: blogCount },
-                        { label: "7-Day Page Views", value: pageViews7d },
+                        evidenceCount + " evidence records",
+                        blogCount + " blog posts",
+                        collectionsCount + " collections",
+                        resourcesCount + " resource entries",
+                        pendingDrafts + " unpublished records across all content types",
+                        Admin.formatNumber(pageViews7d) + " page views in the last 7 days",
                     ];
 
-                    var cardGrid = document.createElement("div");
-                    cardGrid.className = "admin-card-grid";
+                    var overview = document.createElement("section");
+                    overview.style.marginBottom = "var(--space-xl)";
 
-                    stats.forEach(function (s) {
-                        var card = document.createElement("div");
-                        card.className = "admin-card admin-card--stat";
+                    var overviewTitle = document.createElement("h3");
+                    overviewTitle.className = "analytics-section__title";
+                    overviewTitle.textContent = "Site Overview";
+                    overview.appendChild(overviewTitle);
 
-                        var val = document.createElement("div");
-                        val.className = "admin-card__stat-value";
-                        val.textContent = Admin.formatNumber(s.value);
-
-                        var lbl = document.createElement("div");
-                        lbl.className = "admin-card__stat-label";
-                        lbl.textContent = s.label;
-
-                        card.appendChild(val);
-                        card.appendChild(lbl);
-                        cardGrid.appendChild(card);
+                    var list = document.createElement("ul");
+                    list.style.cssText =
+                        "margin:var(--space-sm) 0 0;padding-left:1.25em;line-height:1.8;";
+                    stats.forEach(function (line) {
+                        var li = document.createElement("li");
+                        li.textContent = line;
+                        list.appendChild(li);
                     });
+                    overview.appendChild(list);
 
-                    main.appendChild(cardGrid);
+                    main.appendChild(overview);
 
-                    // ── Quick-action buttons ────────────────────────────────────────
+                    // ── Instructions ─────────────────────────────────────────────────
 
-                    var actions = document.createElement("div");
-                    actions.style.cssText =
-                        "margin-top:var(--space-lg);display:flex;gap:var(--space-sm);flex-wrap:wrap;";
+                    var help = document.createElement("section");
 
-                    var newEvidence = document.createElement("a");
-                    newEvidence.className = "admin-btn admin-btn--primary";
-                    newEvidence.href = "drafts/new.html";
-                    newEvidence.textContent = "New Evidence Draft";
-                    actions.appendChild(newEvidence);
+                    var helpTitle = document.createElement("h3");
+                    helpTitle.className = "analytics-section__title";
+                    helpTitle.textContent = "How This Works";
+                    help.appendChild(helpTitle);
 
-                    var newBlog = document.createElement("a");
-                    newBlog.className = "admin-btn admin-btn--secondary";
-                    newBlog.href = "blog/new.html";
-                    newBlog.textContent = "New Blog Post";
-                    actions.appendChild(newBlog);
+                    var siteHeading = document.createElement("h4");
+                    siteHeading.textContent = "The website";
+                    help.appendChild(siteHeading);
 
-                    main.appendChild(actions);
+                    var siteList = document.createElement("ul");
+                    siteList.style.cssText =
+                        "margin:var(--space-xs) 0 var(--space-md);padding-left:1.25em;line-height:1.8;";
+                    [
+                        "Evidence is the core content type: a sourced claim or artifact, tagged with a gospel category, timeline era and (optionally) a map location.",
+                        "Collections group related Evidence records together under a shared theme.",
+                        "Resources hold supporting reference material — people, places, manuscripts, sermons and sayings, external/internal witnesses, and more.",
+                        "Essays, Debate (popular and academic challenges) and Historiography hold longer-form argumentative and analytical writing.",
+                        "Blog and News are informal, dated updates shown separately from the archival content above.",
+                        "Maps, Arbor and Timeline are visual diagrams built from Evidence records.",
+                    ].forEach(function (line) {
+                        var li = document.createElement("li");
+                        li.textContent = line;
+                        siteList.appendChild(li);
+                    });
+                    help.appendChild(siteList);
 
-                    // ── Recent drafts table (top 10) ────────────────────────────────
+                    var adminHeading = document.createElement("h4");
+                    adminHeading.textContent = "The admin section";
+                    help.appendChild(adminHeading);
 
-                    var recentSection = document.createElement("div");
-                    recentSection.style.marginTop = "var(--space-xl)";
+                    var adminList = document.createElement("ul");
+                    adminList.style.cssText =
+                        "margin:var(--space-xs) 0;padding-left:1.25em;line-height:1.8;";
+                    [
+                        "Use the sidebar to go to a content type's list page, where you can search, filter and open existing records.",
+                        "Each list page has a button to create a new record of that type.",
+                        "Every Evidence record has a \"published\" flag — leave it off to keep working on a record privately, and toggle it on from the Evidence edit page when it's ready to go live.",
+                        "Changes saved here update the database immediately, but the public site is only rebuilt from that data on the next deploy.",
+                        "Analytics shows traffic to the live site; Settings holds site-wide configuration.",
+                    ].forEach(function (line) {
+                        var li = document.createElement("li");
+                        li.textContent = line;
+                        adminList.appendChild(li);
+                    });
+                    help.appendChild(adminList);
 
-                    var recentTitle = document.createElement("h3");
-                    recentTitle.className = "analytics-section__title";
-                    recentTitle.textContent = "Recent Drafts";
-                    recentSection.appendChild(recentTitle);
-
-                    if (Array.isArray(draftsData) && draftsData.length > 0) {
-                        var wrapper = document.createElement("div");
-                        wrapper.className = "admin-table-wrapper";
-
-                        var table = document.createElement("table");
-                        table.className = "admin-table";
-
-                        // Header
-                        var thead = document.createElement("thead");
-                        var hRow = document.createElement("tr");
-                        ["Title", "Type", "Status", "Updated"].forEach(
-                            function (label) {
-                                var th = document.createElement("th");
-                                th.textContent = label;
-                                hRow.appendChild(th);
-                            },
-                        );
-                        thead.appendChild(hRow);
-                        table.appendChild(thead);
-
-                        // Body — show up to 10
-                        var tbody = document.createElement("tbody");
-                        var top10 = draftsData.slice(0, 10);
-                        top10.forEach(function (d) {
-                            var tr = document.createElement("tr");
-
-                            var tdTitle = document.createElement("td");
-                            tdTitle.textContent =
-                                d.title || d.heading || "(untitled)";
-                            tr.appendChild(tdTitle);
-
-                            var tdType = document.createElement("td");
-                            tdType.appendChild(
-                                Admin.typeBadge(d.type || "draft"),
-                            );
-                            tr.appendChild(tdType);
-
-                            var tdStatus = document.createElement("td");
-                            tdStatus.appendChild(
-                                Admin.statusBadge(d.published_draft),
-                            );
-                            tr.appendChild(tdStatus);
-
-                            var tdDate = document.createElement("td");
-                            tdDate.textContent = Admin.formatDate(
-                                d.updated_at || d.created_at,
-                            );
-                            tr.appendChild(tdDate);
-
-                            tbody.appendChild(tr);
-                        });
-
-                        table.appendChild(tbody);
-                        wrapper.appendChild(table);
-                        recentSection.appendChild(wrapper);
-                    } else {
-                        var empty = document.createElement("p");
-                        empty.className = "admin-text--muted";
-                        empty.textContent = "No drafts yet.";
-                        recentSection.appendChild(empty);
-                    }
-
-                    main.appendChild(recentSection);
+                    main.appendChild(help);
                 } catch (err) {
                     main.innerHTML =
                         '<div class="admin-error" role="alert">' +
