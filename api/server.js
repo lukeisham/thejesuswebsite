@@ -57,6 +57,7 @@ app.use("/esv", publicReadLimit, require("./routes/esv"));
 
 // --- Admin operations (already carry their own limiters or auth gates) ---
 app.use("/drafts", require("./routes/drafts"));
+app.use("/content", require("./routes/content"));
 app.use("/publish", require("./routes/publish"));
 app.use("/analytics", require("./routes/analytics"));
 app.use("/auth", require("./routes/auth"));

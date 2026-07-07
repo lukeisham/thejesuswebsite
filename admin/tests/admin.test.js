@@ -230,6 +230,16 @@ function mergeChallenges(popularItems, academicItems) {
   return merged;
 }
 
+function slugify(text) {
+  if (!text) return "";
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 test("mergeChallenges tags popular items with type popular", function () {
   var popular = [{ id: 1, challenge_title: "Test" }];
   var result = mergeChallenges(popular, []);
@@ -267,4 +277,48 @@ test("mergeChallenges handles non-array inputs", function () {
   var result = mergeChallenges(null, undefined);
   assert.strictEqual(Array.isArray(result), true);
   assert.strictEqual(result.length, 0);
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Admin.slugify
+   ───────────────────────────────────────────────────────────────────────────── */
+
+test("Admin.slugify returns empty string for empty/falsy input", function () {
+  assert.strictEqual(slugify(""), "");
+  assert.strictEqual(slugify(null), "");
+  assert.strictEqual(slugify(undefined), "");
+});
+
+test("Admin.slugify lowercases text", function () {
+  assert.strictEqual(slugify("Hello World"), "hello-world");
+  assert.strictEqual(slugify("UPPERCASE"), "uppercase");
+});
+
+test("Admin.slugify strips punctuation", function () {
+  assert.strictEqual(slugify("Hello, World!"), "hello-world");
+  assert.strictEqual(slugify("What's up?"), "whats-up");
+  assert.strictEqual(slugify('"Quoted"'), "quoted");
+});
+
+test("Admin.slugify collapses whitespace to single hyphens", function () {
+  assert.strictEqual(slugify("hello   world"), "hello-world");
+  assert.strictEqual(slugify("  spaced  out  "), "spaced-out");
+});
+
+test("Admin.slugify deduplicates hyphens", function () {
+  assert.strictEqual(slugify("hello---world"), "hello-world");
+  assert.strictEqual(slugify("a -- b"), "a-b");
+});
+
+test("Admin.slugify strips leading and trailing hyphens", function () {
+  assert.strictEqual(slugify("-hello-world-"), "hello-world");
+  assert.strictEqual(slugify("---hello---"), "hello");
+});
+
+test("Admin.slugify handles realistic Wikipedia titles", function () {
+  assert.strictEqual(
+    slugify("Historical Jesus — Scholar Overview"),
+    "historical-jesus-scholar-overview",
+  );
+  assert.strictEqual(slugify("Resurrection of Jesus"), "resurrection-of-jesus");
 });
