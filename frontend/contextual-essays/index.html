@@ -61,38 +61,40 @@
   </nav>
 
   <main id="main-content">
-    <!-- Page header -->
-    <header class="journal-header">
+    <div class="container">
+      <!-- Page header -->
+      <header class="journal-header">
       <h2>Contextual Essays</h2>
       <p>Scholarly essays that provide the academic framework for understanding the historical evidence for Jesus of Nazareth.</p>
-    </header>
+      </header>
 
-    <!-- Card grid for essay list -->
-    <div class="card-grid" id="card-grid" role="list">
+      <!-- Card grid for essay list -->
+      <div class="card-grid" id="card-grid" role="list">
       <!-- Populated by essays-list.js -->
-    </div>
+      </div>
 
-    <!-- Infinite scroll sentinel -->
-    <div id="scroll-sentinel" hidden></div>
+      <!-- Infinite scroll sentinel -->
+      <div id="scroll-sentinel" hidden></div>
 
-    <!-- Loading state -->
-    <div class="loading-state" id="loading-state" hidden>
+      <!-- Loading state -->
+      <div class="loading-state" id="loading-state" hidden>
       <div class="loading-state__spinner" aria-label="Loading essays"></div>
-    </div>
+      </div>
 
-    <!-- Empty state -->
-    <div class="empty-state" id="empty-state" hidden>
+      <!-- Empty state -->
+      <div class="empty-state" id="empty-state" hidden>
       <p class="empty-state__message">No essays published yet.</p>
-    </div>
+      </div>
 
-    <!-- Error state -->
-    <div class="error-state" id="error-state" hidden>
+      <!-- Error state -->
+      <div class="error-state" id="error-state" hidden>
       <p class="error-state__message">Failed to load essays.</p>
       <button id="retry-load" class="btn btn--secondary">Retry</button>
-    </div>
+      </div>
 
-    <!-- End of list -->
-    <div class="end-of-list" id="end-of-list" hidden></div>
+      <!-- End of list -->
+      <div class="end-of-list" id="end-of-list" hidden></div>
+    </div>
   </main>
 
   <!-- Scripts at bottom with defer (HTML-4) -->

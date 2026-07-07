@@ -59,46 +59,48 @@
   </nav>
 
   <main id="main-content">
-    <!-- Page header -->
-    <section class="resources-header">
+    <div class="container">
+      <!-- Page header -->
+      <section class="resources-header">
       <h2 id="resources-title">Resources</h2>
       <p id="resources-description" hidden></p>
-    </section>
+      </section>
 
-    <!-- Category navigation chips -->
-    <nav class="resources-categories" id="category-nav" aria-label="Resource categories">
+      <!-- Category navigation chips -->
+      <nav class="resources-categories" id="category-nav" aria-label="Resource categories">
       <!-- Chips rendered by resources.js -->
-    </nav>
+      </nav>
 
-    <!-- Ordered resource list -->
-    <ol class="resources-list" id="resources-list" aria-label="Resource items">
+      <!-- Ordered resource list -->
+      <ol class="resources-list" id="resources-list" aria-label="Resource items">
       <!-- Items rendered by resources.js -->
-    </ol>
+      </ol>
 
-    <!-- Loading state -->
-    <div class="loading" id="loading-state" hidden>
+      <!-- Loading state -->
+      <div class="loading" id="loading-state" hidden>
       <svg class="loading__spinner" width="24" height="24" aria-hidden="true">
-        <use href="/assets/images/feather-sprite.svg#icon-loader"/>
+      <use href="/assets/images/feather-sprite.svg#icon-loader"/>
       </svg>
       <span class="loading__text">Loading resources…</span>
-    </div>
+      </div>
 
-    <!-- Empty state -->
-    <div class="empty-state" id="empty-state" hidden>
+      <!-- Empty state -->
+      <div class="empty-state" id="empty-state" hidden>
       <p class="empty-state__message">Select a category above to browse resources.</p>
-    </div>
+      </div>
 
-    <!-- Error state -->
-    <div class="error-state" id="error-state" hidden>
+      <!-- Error state -->
+      <div class="error-state" id="error-state" hidden>
       <p class="error-state__message">Failed to load resources.</p>
       <button class="btn btn--secondary" id="retry-load">Try again</button>
+      </div>
+
+      <!-- Infinite-scroll sentinel -->
+      <div class="scroll-sentinel" id="scroll-sentinel" hidden></div>
+
+      <!-- End-of-list message -->
+      <p class="end-of-list" id="end-of-list" hidden></p>
     </div>
-
-    <!-- Infinite-scroll sentinel -->
-    <div class="scroll-sentinel" id="scroll-sentinel" hidden></div>
-
-    <!-- End-of-list message -->
-    <p class="end-of-list" id="end-of-list" hidden></p>
   </main>
 
   <footer>
