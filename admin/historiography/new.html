@@ -352,7 +352,7 @@
         </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', async function () {
+            document.addEventListener("DOMContentLoaded", async function () {
                 const ok = await AdminAuth.requireSession();
                 if (!ok) return;
 
@@ -435,6 +435,18 @@
                     return valid;
                 }
 
+                function parseIdList(str) {
+                    if (!str || !str.trim()) return undefined;
+                    return str
+                        .split(",")
+                        .map(function (s) {
+                            return parseInt(s.trim(), 10);
+                        })
+                        .filter(function (n) {
+                            return !isNaN(n);
+                        });
+                }
+
                 function buildPayload(publish) {
                     return {
                         essay_title: titleInput.value.trim(),
@@ -445,6 +457,10 @@
                                 .getElementById("historiography-keywords")
                                 .value.trim() || undefined,
                         published_draft: publish ? 1 : 0,
+                        link_evidence_ids: parseIdList(
+                            document.getElementById("historiography-evidence")
+                                .value,
+                        ),
                     };
                 }
 
@@ -503,6 +519,6 @@
                     }
                 });
             });
-</script>
+        </script>
     </body>
 </html>
