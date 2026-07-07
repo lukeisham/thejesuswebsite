@@ -16,29 +16,13 @@ CREATE TABLE evidence (
     secondary_verse     TEXT,
 
     -- Categorization
-    gospel_category     TEXT CHECK (gospel_category IN ('theme', 'person', 'object', 'location', 'event', 'message', 'parable')),
+    gospel_category     TEXT CHECK (gospel_category IN ('birth', 'baptism', 'temptation', 'ministry', 'miracles', 'parables', 'passion', 'crucifixion', 'resurrection', 'ascension')),
 
-    timeline_era        TEXT CHECK (timeline_era IN ('beginning', 'middle', 'end')),
+    timeline_era        TEXT CHECK (timeline_era IN ('beginning', 'patriarchs', 'exodus', 'conquest', 'judges', 'kingdom', 'exile', 'return', 'intertestamental', 'jesus-life', 'early-church')),
 
-    timeline_period     TEXT CHECK (timeline_period IN (
-                            'PreIncarnation', 'OldTestament',
-                            'EarlyLifeUnborn', 'EarlyLifeBirth', 'EarlyLifeInfancy', 'EarlyLifeChildhood',
-                            'LifeTradie', 'LifeBaptism', 'LifeTemptation',
-                            'GalileeCallingTwelve', 'GalileeSermonMount', 'GalileeMiraclesSea',
-                            'GalileeTransfiguration',
-                            'JudeanOutsideJudea', 'JudeanMissionSeventy', 'JudeanTeachingTemple',
-                            'JudeanRaisingLazarus', 'JudeanFinalJourney',
-                            'PassionPalmSunday', 'PassionMondayCleansing', 'PassionTuesdayTeaching',
-                            'PassionWednesdaySilent', 'PassionMaundyThursday', 'PassionMaundyLastSupper',
-                            'PassionMaundyGethsemane', 'PassionMaundyBetrayal',
-                            'PassionFridaySanhedrin', 'PassionFridayCivilTrials',
-                            'PassionFridayCrucifixionBegins', 'PassionFridayDarkness',
-                            'PassionFridayDeath', 'PassionFridayBurial', 'PassionSaturdayWatch',
-                            'PassionSundayResurrection', 'PostResurrectionAppearances',
-                            'Ascension', 'OurResponse', 'ReturnOfJesus'
-                        )),
+    timeline_period     TEXT,
 
-    map_location        TEXT CHECK (map_location IN ('theme', 'Roman Empire', 'Levant', 'Judea', 'Galilee', 'Jerusalem')),
+    map_location        TEXT,
 
     map_x               REAL,
     map_y               REAL,
