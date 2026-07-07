@@ -19,7 +19,6 @@ const AdminAuth = window.AdminAuth;
  * @returns {Promise<boolean>}
  */
 AdminAuth.requireSession = async function () {
-  return true; // TEMP-TEST-STUB
   try {
     const res = await fetch('/drafts');
     if (res.status === 401) {

@@ -24,6 +24,18 @@ const SEARCHABLE = {
     table: "blog_posts",
     titleColumn: "blog_title",
   },
+  news: {
+    fts: "news_articles_fts",
+    table: "news_articles",
+    titleColumn: "news_article_title",
+  },
+  "bible-verses": {
+    fts: "resources_fts",
+    table: "resources",
+    titleColumn: "resource_title",
+    slugColumn: "list_key",
+    extraWhere: "source.list_key = 'ot-verses'",
+  },
 };
 
 /**
@@ -48,13 +60,17 @@ function searchOne(type, rawQuery, limit = 25) {
   const match = toMatchExpression(rawQuery);
   if (!match) return [];
 
+  const slugColumn = config.slugColumn || "slug";
+  const extraWhere = config.extraWhere ? `AND ${config.extraWhere}` : "";
+
   const sql = `
-        SELECT source.id, source.slug, source.${config.titleColumn} AS title, '${type}' AS result_type,
+        SELECT source.id, source.${slugColumn} AS slug, source.${config.titleColumn} AS title, '${type}' AS result_type,
                snippet(${config.fts}, -1, '<mark>', '</mark>', '…', 12) AS snippet
         FROM ${config.fts}
         JOIN ${config.table} AS source ON source.id = ${config.fts}.rowid
         WHERE ${config.fts} MATCH ?
           AND source.published_draft = 1
+          ${extraWhere}
         ORDER BY rank
         LIMIT ?
     `;
