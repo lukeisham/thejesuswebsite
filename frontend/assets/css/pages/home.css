@@ -21,6 +21,11 @@
     margin-inline: auto;
 }
 
+.home-hero figcaption {
+    max-width: var(--measure-reading);
+    margin-inline: auto;
+}
+
 /* -------------------------------------------------------------------------
    Title Block
    ------------------------------------------------------------------------- */
