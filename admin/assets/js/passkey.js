@@ -218,11 +218,18 @@ Passkey.registerPasskey = async function (setupToken) {
     throw new Error("Unexpected credential response type.");
   }
 
-  // 3 — Export the credential's public key as SPKI PEM.
-  const publicKeyBuffer = await crypto.subtle.exportKey(
-    "spki",
-    response.getPublicKey(),
-  );
+  // 3 — Wrap the credential's public key as SPKI PEM. getPublicKey() returns
+  // the SPKI DER bytes directly (an ArrayBuffer, not a CryptoKey), so no
+  // SubtleCrypto conversion is needed — or possible.
+  const publicKeyBuffer =
+    typeof response.getPublicKey === "function"
+      ? response.getPublicKey()
+      : null;
+  if (!publicKeyBuffer) {
+    throw new Error(
+      "This browser did not expose the credential's public key. Try a recent Chrome, Safari, or Edge.",
+    );
+  }
   const publicKeyPem = Passkey.arrayBufferToPem(publicKeyBuffer);
 
   // 4 — Send the registration payload to the server for verification.
