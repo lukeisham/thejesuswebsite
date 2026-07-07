@@ -13,17 +13,15 @@
     padding: 0 var(--space-md);
 }
 
-.home-hero img {
-    width: 100%;
+.home-hero figure {
     max-width: var(--measure-reading);
-    height: auto;
-    display: block;
     margin-inline: auto;
 }
 
-.home-hero figcaption {
-    max-width: var(--measure-reading);
-    margin-inline: auto;
+.home-hero img {
+    width: 100%;
+    height: auto;
+    display: block;
 }
 
 /* -------------------------------------------------------------------------
