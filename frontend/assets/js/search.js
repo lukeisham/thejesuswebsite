@@ -91,6 +91,8 @@ function renderResults(items) {
     essays: "Essays",
     responses: "Responses",
     blog: "Blog Posts",
+    news: "News",
+    "bible-verses": "Bible Verses",
   };
 
   const sectionsHTML = Object.entries(grouped).map(([type, groupItems]) => {
@@ -140,6 +142,10 @@ function getResultUrl(item, type) {
       return `/debate/responses/${encodeURIComponent(slug)}`;
     case "blog":
       return `/news-and-blog/blog/${encodeURIComponent(slug)}`;
+    case "news":
+      return `/news-and-blog/news/${encodeURIComponent(slug)}`;
+    case "bible-verses":
+      return "/resources/list.html?key=ot-verses";
     default:
       return "#";
   }
@@ -150,6 +156,8 @@ const typeLabels = {
   essays: "Essays",
   responses: "Responses",
   blog: "Blog",
+  news: "News",
+  "bible-verses": "Bible Verses",
 };
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
