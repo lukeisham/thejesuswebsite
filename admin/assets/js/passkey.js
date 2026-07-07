@@ -284,6 +284,12 @@ Passkey.loginWithPasskey = async function () {
         rpId: serverOptions.rpId,
         timeout: serverOptions.timeout,
         userVerification: serverOptions.userVerification || "preferred",
+        allowCredentials: (serverOptions.allowCredentials || []).map(
+          (credential) => ({
+            type: credential.type,
+            id: Passkey.base64urlToBuffer(credential.id),
+          }),
+        ),
       },
     });
   } catch (error) {

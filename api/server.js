@@ -53,6 +53,7 @@ app.use("/timeline", publicReadLimit, require("./routes/timeline"));
 app.use("/search", publicReadLimit, require("./routes/search"));
 app.use("/sources", publicReadLimit, require("./routes/sources"));
 app.use("/about", publicReadLimit, require("./routes/about"));
+app.use("/esv", publicReadLimit, require("./routes/esv"));
 
 // --- Admin operations (already carry their own limiters or auth gates) ---
 app.use("/drafts", require("./routes/drafts"));

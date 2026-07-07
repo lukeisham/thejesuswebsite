@@ -196,6 +196,14 @@ export async function getWikipediaArticles(params) {
   return request(`/wikipedia${qs}`);
 }
 
+// ─── ESV passages ─────────────────────────────────────────────────────────────
+
+/** @param {string} reference - Bible reference, e.g. "Luke 1:1-3". */
+export async function getEsvPassage(reference) {
+  if (!reference) return { data: null, error: "Reference is required" };
+  return request(`/esv/passage?q=${encodeURIComponent(reference)}`);
+}
+
 // ─── Analytics (record only — admin reads handled in admin JS) ────────────────
 
 /**
