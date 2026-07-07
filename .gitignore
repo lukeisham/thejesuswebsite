@@ -5,6 +5,7 @@ node_modules/
 /setup/
 /scratchpad.md
 /sitemap.md
+/CLAUDE.local.md
 
 # Environment
 .env

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Draft — Admin</title>
+  <title>New Evidence — Admin</title>
   <link rel="stylesheet" href="../assets/css/admin.css">
   <script defer src="../assets/js/auth.js"></script>
   <script defer src="../assets/js/admin.js"></script>
@@ -65,9 +65,6 @@
         <span class="admin-sidebar__icon">📊</span> Dashboard
       </a>
       <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
-        <span class="admin-sidebar__icon">📝</span> Drafts
-      </a>
-      <a class="admin-sidebar__link" href="../evidence/index.html">
         <span class="admin-sidebar__icon">📋</span> Evidence
       </a>
       <a class="admin-sidebar__link" href="../collections/index.html">
@@ -119,9 +116,9 @@
 
   <!-- ── Topbar ───────────────────────────────────────────────────────── -->
   <header class="admin-topbar">
-    <h1 class="admin-topbar__title">New Evidence Draft</h1>
+    <h1 class="admin-topbar__title">New Evidence</h1>
     <div class="admin-topbar__actions">
-      <a class="admin-btn admin-btn--sm admin-btn--ghost" href="index.html">← Back to Drafts</a>
+      <a class="admin-btn admin-btn--sm admin-btn--ghost" href="index.html">← Back to Evidence</a>
     </div>
   </header>
 
@@ -129,7 +126,7 @@
   <main class="admin-main">
     <div id="form-error" class="admin-error" style="display:none" role="alert" aria-live="assertive"></div>
 
-    <form id="new-draft-form" class="admin-form-grid" novalidate>
+    <form id="new-evidence-form" class="admin-form-grid" novalidate>
 
       <!-- Left column: core fields -->
       <div class="admin-form-grid__main">
@@ -137,8 +134,8 @@
           <div class="admin-form-card__title">Content</div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-title">Title <span aria-hidden="true">*</span></label>
-            <input class="admin-input" id="draft-title" name="title" type="text" required
+            <label class="admin-form-group__label" for="evidence-title">Title <span aria-hidden="true">*</span></label>
+            <input class="admin-input" id="evidence-title" name="title" type="text" required
                    aria-describedby="title-hint title-error"
                    placeholder="e.g. The Baptism of Jesus">
             <span class="admin-form-hint" id="title-hint">The title is shown in search results and page headings.</span>
@@ -146,8 +143,8 @@
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-slug">Slug <span aria-hidden="true">*</span></label>
-            <input class="admin-input" id="draft-slug" name="slug" type="text" required
+            <label class="admin-form-group__label" for="evidence-slug">Slug <span aria-hidden="true">*</span></label>
+            <input class="admin-input" id="evidence-slug" name="slug" type="text" required
                    aria-describedby="slug-hint slug-error"
                    placeholder="e.g. baptism-of-jesus">
             <span class="admin-form-hint" id="slug-hint">URL-friendly identifier. Auto-generated from title if left empty while typing.</span>
@@ -155,22 +152,22 @@
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-description">Description</label>
-            <textarea class="admin-textarea" id="draft-description" name="description" rows="10"
+            <label class="admin-form-group__label" for="evidence-description">Description</label>
+            <textarea class="admin-textarea" id="evidence-description" name="description" rows="10"
                       aria-describedby="desc-hint"
                       placeholder="Evidence body content…"></textarea>
             <span class="admin-form-hint" id="desc-hint">The main body text for this evidence item. Supports plain text.</span>
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-primary-verse">Primary Verse</label>
-            <input class="admin-input" id="draft-primary-verse" name="primary_verse" type="text"
+            <label class="admin-form-group__label" for="evidence-primary-verse">Primary Verse</label>
+            <input class="admin-input" id="evidence-primary-verse" name="primary_verse" type="text"
                    placeholder="e.g. Matthew 3:13-17">
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-secondary-verse">Secondary Verse</label>
-            <input class="admin-input" id="draft-secondary-verse" name="secondary_verse" type="text"
+            <label class="admin-form-group__label" for="evidence-secondary-verse">Secondary Verse</label>
+            <input class="admin-input" id="evidence-secondary-verse" name="secondary_verse" type="text"
                    placeholder="e.g. Mark 1:9-11">
           </div>
         </div>
@@ -182,8 +179,8 @@
           <div class="admin-form-card__title">Classification</div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-gospel-category">Gospel Category</label>
-            <select class="admin-select" id="draft-gospel-category" name="gospel_category"
+            <label class="admin-form-group__label" for="evidence-gospel-category">Gospel Category</label>
+            <select class="admin-select" id="evidence-gospel-category" name="gospel_category"
                     aria-describedby="gospel-hint">
               <option value="">— None —</option>
               <option value="birth">Birth / Nativity</option>
@@ -201,8 +198,8 @@
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-timeline-era">Timeline Era</label>
-            <select class="admin-select" id="draft-timeline-era" name="timeline_era"
+            <label class="admin-form-group__label" for="evidence-timeline-era">Timeline Era</label>
+            <select class="admin-select" id="evidence-timeline-era" name="timeline_era"
                     aria-describedby="era-hint">
               <option value="">— None —</option>
               <option value="beginning">Beginning</option>
@@ -221,8 +218,8 @@
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-timeline-period">Timeline Period</label>
-            <input class="admin-input" id="draft-timeline-period" name="timeline_period" type="text"
+            <label class="admin-form-group__label" for="evidence-timeline-period">Timeline Period</label>
+            <input class="admin-input" id="evidence-timeline-period" name="timeline_period" type="text"
                    aria-describedby="period-hint"
                    placeholder="e.g. c. 27–30 AD">
             <span class="admin-form-hint" id="period-hint">Specific date range or historical period.</span>
@@ -233,8 +230,8 @@
           <div class="admin-form-card__title">Map &amp; Metadata</div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-map-location">Map Location</label>
-            <input class="admin-input" id="draft-map-location" name="map_location" type="text"
+            <label class="admin-form-group__label" for="evidence-map-location">Map Location</label>
+            <input class="admin-input" id="evidence-map-location" name="map_location" type="text"
                    aria-describedby="map-hint"
                    placeholder="e.g. Jordan River">
             <span class="admin-form-hint" id="map-hint">Place name shown on the interactive map.</span>
@@ -242,20 +239,20 @@
 
           <div class="admin-form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm)">
             <div>
-              <label class="admin-form-group__label" for="draft-map-x">Map X</label>
-              <input class="admin-input" id="draft-map-x" name="map_x" type="number" step="any"
+              <label class="admin-form-group__label" for="evidence-map-x">Map X</label>
+              <input class="admin-input" id="evidence-map-x" name="map_x" type="number" step="any"
                      placeholder="0.0">
             </div>
             <div>
-              <label class="admin-form-group__label" for="draft-map-y">Map Y</label>
-              <input class="admin-input" id="draft-map-y" name="map_y" type="number" step="any"
+              <label class="admin-form-group__label" for="evidence-map-y">Map Y</label>
+              <input class="admin-input" id="evidence-map-y" name="map_y" type="number" step="any"
                      placeholder="0.0">
             </div>
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="draft-keywords">Keywords</label>
-            <input class="admin-input" id="draft-keywords" name="metadata_keywords" type="text"
+            <label class="admin-form-group__label" for="evidence-keywords">Keywords</label>
+            <input class="admin-input" id="evidence-keywords" name="metadata_keywords" type="text"
                    aria-describedby="kw-hint"
                    placeholder="e.g. baptism, John the Baptist, Jordan">
             <span class="admin-form-hint" id="kw-hint">Comma-separated search keywords.</span>
@@ -265,8 +262,8 @@
         <div class="admin-form-card" style="margin-top:var(--space-md)">
           <div class="admin-form-group">
             <div class="admin-checkbox-group">
-              <input type="checkbox" id="draft-publish" name="published_draft" value="1">
-              <label for="draft-publish">Publish immediately</label>
+              <input type="checkbox" id="evidence-publish" name="published_draft" value="1">
+              <label for="evidence-publish">Publish immediately</label>
             </div>
             <span class="admin-form-hint" style="margin-top:var(--space-xs)">When checked, this draft will be published on save.</span>
           </div>
@@ -292,14 +289,14 @@
     const ok = await AdminAuth.requireSession();
     if (!ok) return;
 
-    const titleInput = document.getElementById('draft-title');
-    const slugInput = document.getElementById('draft-slug');
-    const descInput = document.getElementById('draft-description');
+    const titleInput = document.getElementById('evidence-title');
+    const slugInput = document.getElementById('evidence-slug');
+    const descInput = document.getElementById('evidence-description');
     const formError = document.getElementById('form-error');
     const submitStatus = document.getElementById('submit-status');
     const titleError = document.getElementById('title-error');
     const slugError = document.getElementById('slug-error');
-    const publishCheckbox = document.getElementById('draft-publish');
+    const publishCheckbox = document.getElementById('evidence-publish');
 
     // Auto-generate slug from title
     let slugAuto = true;
@@ -357,15 +354,15 @@
         title: titleInput.value.trim(),
         slug: slugInput.value.trim(),
         description: descInput.value.trim() || undefined,
-        primary_verse: document.getElementById('draft-primary-verse').value.trim() || undefined,
-        secondary_verse: document.getElementById('draft-secondary-verse').value.trim() || undefined,
-        gospel_category: document.getElementById('draft-gospel-category').value || undefined,
-        timeline_era: document.getElementById('draft-timeline-era').value || undefined,
-        timeline_period: document.getElementById('draft-timeline-period').value.trim() || undefined,
-        map_location: document.getElementById('draft-map-location').value.trim() || undefined,
-        map_x: document.getElementById('draft-map-x').value ? parseFloat(document.getElementById('draft-map-x').value) : undefined,
-        map_y: document.getElementById('draft-map-y').value ? parseFloat(document.getElementById('draft-map-y').value) : undefined,
-        metadata_keywords: document.getElementById('draft-keywords').value.trim() || undefined,
+        primary_verse: document.getElementById('evidence-primary-verse').value.trim() || undefined,
+        secondary_verse: document.getElementById('evidence-secondary-verse').value.trim() || undefined,
+        gospel_category: document.getElementById('evidence-gospel-category').value || undefined,
+        timeline_era: document.getElementById('evidence-timeline-era').value || undefined,
+        timeline_period: document.getElementById('evidence-timeline-period').value.trim() || undefined,
+        map_location: document.getElementById('evidence-map-location').value.trim() || undefined,
+        map_x: document.getElementById('evidence-map-x').value ? parseFloat(document.getElementById('evidence-map-x').value) : undefined,
+        map_y: document.getElementById('evidence-map-y').value ? parseFloat(document.getElementById('evidence-map-y').value) : undefined,
+        metadata_keywords: document.getElementById('evidence-keywords').value.trim() || undefined,
         published_draft: publish ? 1 : 0
       };
     }
@@ -387,13 +384,13 @@
 
       try {
         const result = await Admin.api.post('/evidence', payload);
-        submitStatus.innerHTML = '<span style="color:var(--admin-success)">Draft created successfully!</span>';
+        submitStatus.innerHTML = '<span style="color:var(--admin-success)">Evidence saved successfully!</span>';
         // Redirect to edit page
         setTimeout(function () {
-          window.location.href = '../evidence/edit-[id].html?id=' + result.id;
+          window.location.href = 'edit-[id].html?id=' + result.id;
         }, 800);
       } catch (err) {
-        formError.textContent = 'Failed to save draft: ' + err.message;
+        formError.textContent = 'Failed to save evidence: ' + err.message;
         formError.style.display = 'block';
         submitStatus.textContent = '';
       } finally {
