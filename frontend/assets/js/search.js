@@ -86,7 +86,7 @@ function renderResults(items) {
   // Group by result_type
   const grouped = groupBy(items, "result_type");
 
-  const typeLabels = {
+  const groupLabels = {
     evidence: "Evidence",
     essays: "Essays",
     responses: "Responses",
@@ -94,7 +94,7 @@ function renderResults(items) {
   };
 
   const sectionsHTML = Object.entries(grouped).map(([type, groupItems]) => {
-    const label = typeLabels[type] || type;
+    const label = groupLabels[type] || type;
     const cardsHTML = safeJoin(
       groupItems.map((item) => renderResultCard(item, type)),
     );

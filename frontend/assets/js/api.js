@@ -98,10 +98,13 @@ export async function getArbor(params) {
 
 // ─── Search ───────────────────────────────────────────────────────────────────
 
-/** @param {string} query */
-export async function search(query) {
+/** @param {string} query
+ * @param {string} [type] - Optional type filter (evidence, essays, responses, blog) */
+export async function search(query, type) {
   if (!query) return { data: [], error: null };
-  return request(`/search?q=${encodeURIComponent(query)}`);
+  let url = `/search?q=${encodeURIComponent(query)}`;
+  if (type) url += `&type=${encodeURIComponent(type)}`;
+  return request(url);
 }
 
 // ─── Debate ───────────────────────────────────────────────────────────────────
