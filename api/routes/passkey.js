@@ -26,27 +26,40 @@ const RP_ID = process.env.RP_ID || "localhost";
 const RP_NAME = "The Jesus Website";
 const CHALLENGE_TTL_MS = 1000 * 60 * 5; // 5 minutes to complete a ceremony
 
-// Short-lived challenges keyed by user handle. In-memory is fine for a single
-// admin on one VPS and clears any half-finished ceremony on restart.
+// Short-lived challenges keyed by a random per-attempt ID — NOT by handle.
+// Keying by handle alone meant a second ceremony for the same handle (a
+// second tab, a second browser, a retry) silently overwrote the first
+// ceremony's pending challenge, failing it with a confusing "Client data did
+// not match the challenge." This lets any number of concurrent attempts for
+// the same handle coexist. In-memory is fine for a single admin on one VPS
+// and clears any half-finished ceremony on restart.
 const challenges = new Map();
 
 const base64url = (buffer) => buffer.toString("base64url");
 
-/** Issue a fresh challenge for a handle and remember it until consumed. */
+/** Issue a fresh challenge for a handle and remember it under a fresh attempt ID. */
 function issueChallenge(handle) {
+  const attemptId = base64url(crypto.randomBytes(16));
   const challenge = base64url(crypto.randomBytes(32));
-  challenges.set(handle, {
+  challenges.set(attemptId, {
+    handle,
     challenge,
     expiresAt: Date.now() + CHALLENGE_TTL_MS,
   });
-  return challenge;
+  return { attemptId, challenge };
 }
 
-/** Single-use read: returns the live challenge for a handle, then forgets it. */
-function consumeChallenge(handle) {
-  const record = challenges.get(handle);
-  challenges.delete(handle);
+/**
+ * Single-use read: returns the live challenge for an attempt, then forgets it.
+ * Also checks the attempt was issued for this same handle (defense in depth —
+ * attemptId is an unguessable random token, so this mismatch shouldn't
+ * normally be reachable, but costs nothing to assert).
+ */
+function consumeChallenge(attemptId, handle) {
+  const record = challenges.get(attemptId);
+  challenges.delete(attemptId);
   if (!record || record.expiresAt < Date.now()) return null;
+  if (record.handle !== handle) return null;
   return record.challenge;
 }
 
@@ -130,9 +143,11 @@ router.post(
   (req, res) => {
     try {
       const handle = validateHandle(req.body.handle || "");
+      const { attemptId, challenge } = issueChallenge(handle);
 
       res.json({
-        challenge: issueChallenge(handle),
+        attemptId,
+        challenge,
         rp: { id: RP_ID, name: RP_NAME },
         user: {
           id: base64url(Buffer.from(handle)),
@@ -164,14 +179,14 @@ router.post(
   (req, res) => {
     try {
       const handle = validateHandle(req.body.handle || "");
-      const { id, clientDataJSON, publicKeyPem } = req.body;
-      if (!id || !clientDataJSON || !publicKeyPem) {
-        return res
-          .status(400)
-          .json({ error: "id, clientDataJSON and publicKeyPem are required." });
+      const { id, clientDataJSON, publicKeyPem, attemptId } = req.body;
+      if (!id || !clientDataJSON || !publicKeyPem || !attemptId) {
+        return res.status(400).json({
+          error: "id, clientDataJSON, publicKeyPem and attemptId are required.",
+        });
       }
 
-      const expectedChallenge = consumeChallenge(handle);
+      const expectedChallenge = consumeChallenge(attemptId, handle);
       if (!expectedChallenge)
         return res.status(400).json({ error: "Challenge expired or missing." });
       if (
@@ -218,8 +233,10 @@ router.post("/login/options", loginOptionsLimit, (req, res) => {
         type: "public-key",
         id: credential.credential_id,
       }));
+    const { attemptId, challenge } = issueChallenge(handle);
     res.json({
-      challenge: issueChallenge(handle),
+      attemptId,
+      challenge,
       rpId: RP_ID,
       timeout: CHALLENGE_TTL_MS,
       userVerification: "preferred",
@@ -234,16 +251,15 @@ router.post("/login/options", loginOptionsLimit, (req, res) => {
 });
 
 // POST /passkey/login/verify — verify the authenticator's assertion, start a session.
-// Expects: { handle, id, clientDataJSON, authenticatorData, signature, signCount }
+// Expects: { attemptId, id, clientDataJSON, authenticatorData, signature, signCount }
 router.post("/login/verify", loginVerifyLimit, (req, res) => {
   try {
-    const handle = validateHandle(req.body.handle || "admin");
-    const { id, clientDataJSON, authenticatorData, signature, signCount } =
+    const { id, clientDataJSON, authenticatorData, signature, signCount, attemptId } =
       req.body;
-    if (!id || !clientDataJSON || !authenticatorData || !signature) {
+    if (!id || !clientDataJSON || !authenticatorData || !signature || !attemptId) {
       return res.status(400).json({
         error:
-          "id, clientDataJSON, authenticatorData and signature are required.",
+          "id, clientDataJSON, authenticatorData, signature and attemptId are required.",
       });
     }
 
@@ -254,7 +270,7 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     if (!credential)
       return res.status(404).json({ error: "Unknown credential." });
 
-    const expectedChallenge = consumeChallenge(credential.user_handle);
+    const expectedChallenge = consumeChallenge(attemptId, credential.user_handle);
     if (!expectedChallenge)
       return res.status(400).json({ error: "Challenge expired or missing." });
     if (!verifyClientData(clientDataJSON, "webauthn.get", expectedChallenge, process.env.ORIGIN || null)) {

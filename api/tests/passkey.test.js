@@ -58,49 +58,67 @@ describe("validateHandle", () => {
 // ── Challenge store ─────────────────────────────────────────────────────────
 
 describe("challenge store", () => {
-  test("issueChallenge returns a base64url string", () => {
-    const challenge = issueChallenge("testuser");
-    assert.ok(typeof challenge === "string");
-    assert.ok(challenge.length > 0);
+  test("issueChallenge returns an attemptId and a base64url challenge", () => {
+    const { attemptId, challenge } = issueChallenge("testuser");
+    assert.ok(typeof attemptId === "string" && attemptId.length > 0);
+    assert.ok(typeof challenge === "string" && challenge.length > 0);
     // base64url should only contain valid characters.
+    assert.ok(/^[A-Za-z0-9_-]+$/.test(attemptId));
     assert.ok(/^[A-Za-z0-9_-]+$/.test(challenge));
   });
 
   test("consumeChallenge returns the same challenge that was issued", () => {
-    const challenge = issueChallenge("testuser");
-    const consumed = consumeChallenge("testuser");
+    const { attemptId, challenge } = issueChallenge("testuser");
+    const consumed = consumeChallenge(attemptId, "testuser");
     assert.equal(consumed, challenge);
   });
 
   test("consumeChallenge is single-use — second call returns null", () => {
-    issueChallenge("testuser");
-    consumeChallenge("testuser");
-    assert.equal(consumeChallenge("testuser"), null);
+    const { attemptId } = issueChallenge("testuser");
+    consumeChallenge(attemptId, "testuser");
+    assert.equal(consumeChallenge(attemptId, "testuser"), null);
   });
 
-  test("consumeChallenge returns null when no challenge was issued", () => {
-    assert.equal(consumeChallenge("never-issued"), null);
+  test("consumeChallenge returns null for an unknown attemptId", () => {
+    assert.equal(consumeChallenge("never-issued", "testuser"), null);
+  });
+
+  test("consumeChallenge returns null when the handle does not match", () => {
+    const { attemptId } = issueChallenge("testuser");
+    assert.equal(consumeChallenge(attemptId, "someone-else"), null);
   });
 
   test("consumeChallenge returns null after the TTL expires", async () => {
     // The challenge TTL is 5 minutes — too long for a test. We can simulate
     // expiry by waiting a short time and testing that a fresh challenge still
-    // works (proving single-use), and an un-issued handle returns null.
+    // works (proving single-use), and an un-issued attempt returns null.
     // The actual expiry is tested via the 5-minute constant; we trust
     // Date.now() comparison.
-    issueChallenge("ttltest");
-    const consumed = consumeChallenge("ttltest");
+    const { attemptId } = issueChallenge("ttltest");
+    const consumed = consumeChallenge(attemptId, "ttltest");
     assert.ok(consumed);
-    // After consumption, the handle is cleared — next attempt returns null.
-    assert.equal(consumeChallenge("ttltest"), null);
+    // After consumption, the attempt is cleared — next read returns null.
+    assert.equal(consumeChallenge(attemptId, "ttltest"), null);
+  });
+
+  test("concurrent attempts for the same handle are independent", () => {
+    // This is the exact scenario that used to break: two tabs/browsers
+    // starting a ceremony for the same handle before either finishes.
+    const a1 = issueChallenge("alice");
+    const a2 = issueChallenge("alice");
+    assert.notEqual(a1.attemptId, a2.attemptId);
+    assert.notEqual(a1.challenge, a2.challenge);
+    // Each attempt still resolves to its own challenge, in any order.
+    assert.equal(consumeChallenge(a2.attemptId, "alice"), a2.challenge);
+    assert.equal(consumeChallenge(a1.attemptId, "alice"), a1.challenge);
   });
 
   test("challenges for different handles are independent", () => {
     const c1 = issueChallenge("alice");
     const c2 = issueChallenge("bob");
-    assert.notEqual(c1, c2);
-    assert.equal(consumeChallenge("alice"), c1);
-    assert.equal(consumeChallenge("bob"), c2);
+    assert.notEqual(c1.challenge, c2.challenge);
+    assert.equal(consumeChallenge(c1.attemptId, "alice"), c1.challenge);
+    assert.equal(consumeChallenge(c2.attemptId, "bob"), c2.challenge);
   });
 });
 
