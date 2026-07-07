@@ -237,6 +237,7 @@ Passkey.registerPasskey = async function (setupToken) {
     "/passkey/register/verify",
     {
       handle: "admin",
+      attemptId: serverOptions.attemptId,
       id: credential.id,
       clientDataJSON: Passkey.bufferToBase64url(response.clientDataJSON),
       publicKeyPem,
@@ -311,6 +312,7 @@ Passkey.loginWithPasskey = async function () {
   // 3 — Send the assertion to the server.
   const verifyRes = await Passkey.postJson("/passkey/login/verify", {
     handle: "admin",
+    attemptId: serverOptions.attemptId,
     id: credential.id,
     clientDataJSON: Passkey.bufferToBase64url(response.clientDataJSON),
     authenticatorData: Passkey.bufferToBase64url(response.authenticatorData),
