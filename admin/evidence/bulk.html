@@ -117,7 +117,7 @@
 </div>
 
 <script>
-  (async function () {
+  document.addEventListener('DOMContentLoaded', async function () {
     const main = document.getElementById('bulk-content');
     const loadingEl = document.getElementById('bulk-loading');
 
@@ -324,7 +324,7 @@
         'PERMANENTLY DELETE {n} evidence items? This cannot be undone!'
       );
     });
-  })();
+  });
 </script>
 </body>
 </html>

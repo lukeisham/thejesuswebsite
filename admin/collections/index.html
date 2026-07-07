@@ -103,7 +103,7 @@
 </div>
 
 <script>
-  (async function () {
+  document.addEventListener('DOMContentLoaded', async function () {
     const main = document.getElementById('collections-content');
     const loadingEl = document.getElementById('collections-loading');
 
@@ -466,7 +466,7 @@
     if (loadingEl) loadingEl.remove();
     if (loaded) renderAll();
     else if (loadingEl) loadingEl.remove();
-  })();
+  });
 </script>
 </body>
 </html>
