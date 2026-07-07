@@ -39,17 +39,57 @@ const SEARCHABLE = {
 };
 
 /**
- * FTS5 treats bare punctuation as query operators, so unsanitised input can throw
- * a syntax error. Wrapping each term in double quotes makes it a literal phrase
- * and neutralises that risk (JS-2: never let user input break the query).
+ * Build a safe FTS5 MATCH expression from raw user input.
+ *
+ * FTS5 treats bare punctuation and words like AND/OR/NOT/* as query operators,
+ * so unsanitised input can throw a syntax error (JS-2: never let user input
+ * break the query). All output tokens are wrapped in double quotes to neutralise
+ * that risk.
+ *
+ * Parsing rules:
+ * - "double-quoted phrases" become exact FTS5 phrase tokens (adjacency and
+ *   order enforced) — e.g. `"jesus christ"`.
+ * - Unquoted whitespace-separated words become quoted prefix tokens so
+ *   partial words match — e.g. `"resur"*`.
+ * - Interior double quotes are stripped from all token content.
+ * - An unbalanced trailing quote is treated as if closed at end of input.
+ * - Returns an object `{ match, ftsTokens }`; `match` is `""` when the query
+ *   reduces to nothing.
  */
 function toMatchExpression(rawQuery) {
-  return String(rawQuery)
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((term) => `"${term.replace(/"/g, "")}"`)
-    .join(" ");
+  const input = String(rawQuery).trim();
+  if (!input) return { match: "", ftsTokens: [] };
+
+  // Unbalanced trailing quote — treat as if closed at end of input.
+  const quoteCount = (input.match(/(?<!\\)"/g) || []).length;
+  const adjusted = quoteCount % 2 !== 0 ? input + '"' : input;
+
+  const tokens = [];
+  // Extract quoted phrases first, then bare words — order matters (plan note).
+  const re = /"([^"]*)"|(\S+)/g;
+  let m;
+  while ((m = re.exec(adjusted)) !== null) {
+    if (m[1] !== undefined) {
+      // Quoted phrase — strip interior quotes, keep as exact phrase.
+      const phrase = m[1].replace(/"/g, "").trim();
+      if (phrase) tokens.push({ type: "phrase", text: phrase });
+    } else if (m[2] !== undefined) {
+      // Bare word — strip interior quotes, keep as prefix match.
+      const word = m[2].replace(/"/g, "").trim();
+      if (word) tokens.push({ type: "word", text: word });
+    }
+  }
+
+  if (tokens.length === 0) return { match: "", ftsTokens: [] };
+
+  const ftsTokens = tokens.map(
+    (t) =>
+      t.type === "phrase"
+        ? `"${t.text}"` // exact phrase: adjacency + order enforced
+        : `"${t.text}"*`, // prefix match: partial words match
+  );
+
+  return { match: ftsTokens.join(" "), ftsTokens };
 }
 
 /** Search one entity type. Returns published rows with a highlighted snippet. */
@@ -57,7 +97,7 @@ function searchOne(type, rawQuery, limit = 25) {
   if (!Object.hasOwn(SEARCHABLE, type)) return [];
   const config = SEARCHABLE[type];
 
-  const match = toMatchExpression(rawQuery);
+  const { match, ftsTokens } = toMatchExpression(rawQuery);
   if (!match) return [];
 
   const slugColumn = config.slugColumn || "slug";
@@ -74,7 +114,18 @@ function searchOne(type, rawQuery, limit = 25) {
         ORDER BY rank
         LIMIT ?
     `;
-  return db.prepare(sql).all(match, limit);
+
+  const stmt = db.prepare(sql);
+  let results = stmt.all(match, limit);
+
+  // OR fallback: when strict (AND) returns nothing and the query has 2+ tokens,
+  // re-run with OR so near-miss queries surface partial matches instead of
+  // "no results". Quoted phrase tokens stay intact — exact phrases stay exact.
+  if (results.length === 0 && ftsTokens.length >= 2) {
+    results = stmt.all(ftsTokens.join(" OR "), limit);
+  }
+
+  return results;
 }
 
 /**
