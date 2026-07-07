@@ -161,6 +161,27 @@ Admin.formatDate = function (isoString) {
 };
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   String helpers
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Convert arbitrary text into a URL-safe slug.
+ * Lowercase, strip non-alphanumeric, collapse whitespace to hyphens,
+ * deduplicate hyphens, trim leading/trailing hyphens.
+ * @param {string} text
+ * @returns {string}
+ */
+Admin.slugify = function (text) {
+  if (!text) return "";
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+};
+
+/* ─────────────────────────────────────────────────────────────────────────────
    Publish / unpublish shortcuts
    ───────────────────────────────────────────────────────────────────────────── */
 

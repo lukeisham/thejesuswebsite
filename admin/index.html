@@ -7,6 +7,31 @@
         <link rel="stylesheet" href="assets/css/admin.css" />
         <script defer src="assets/js/auth.js"></script>
         <script defer src="assets/js/admin.js"></script>
+        <style>
+            .admin-dashboard-filters {
+                display: flex;
+                gap: var(--space-sm);
+                margin-bottom: var(--space-md);
+                flex-wrap: wrap;
+                align-items: flex-end;
+            }
+            .admin-dashboard-filters .admin-form-group {
+                margin-bottom: 0;
+                flex: 1;
+                min-width: 140px;
+            }
+            .admin-loading,
+            .admin-empty,
+            .admin-error {
+                padding: var(--space-xl);
+                text-align: center;
+                color: var(--admin-text-muted);
+                font-size: 14px;
+            }
+            .admin-error {
+                color: var(--admin-danger);
+            }
+        </style>
     </head>
     <body>
         <div class="admin-shell">
@@ -41,14 +66,26 @@
                     <a class="admin-sidebar__link" href="debate/index.html">
                         <span class="admin-sidebar__icon">🗣️</span> Debate
                     </a>
-      <a class="admin-sidebar__link" href="debate/popular-challenges/index.html">
-        <span class="admin-sidebar__icon">📢</span> Popular Challenges
-      </a>
-      <a class="admin-sidebar__link" href="debate/academic-challenges/index.html">
-        <span class="admin-sidebar__icon">🎓</span> Academic Challenges
-      </a>
-                    <a class="admin-sidebar__link" href="historiography/index.html">
-                        <span class="admin-sidebar__icon">🏛️</span> Historiography
+                    <a
+                        class="admin-sidebar__link"
+                        href="debate/popular-challenges/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📢</span> Popular
+                        Challenges
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="debate/academic-challenges/index.html"
+                    >
+                        <span class="admin-sidebar__icon">🎓</span> Academic
+                        Challenges
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="historiography/index.html"
+                    >
+                        <span class="admin-sidebar__icon">🏛️</span>
+                        Historiography
                     </a>
                     <a class="admin-sidebar__link" href="blog/index.html">
                         <span class="admin-sidebar__icon">📰</span> Blog
@@ -96,178 +133,290 @@
 
         <!-- ── Inline page script ────────────────────────────────────────────── -->
         <script>
-            (async function () {
-                const main = document.getElementById("dashboard-content");
+            (function () {
+                var TYPE_LABELS = {
+                    evidence: "Evidence",
+                    essays: "Essay",
+                    responses: "Response",
+                    historiography: "Historiography",
+                    "blog-posts": "Blog Post",
+                    collections: "Collection",
+                    resources: "Resource",
+                    "popular-challenges": "Popular Challenge",
+                    "academic-challenges": "Academic Challenge",
+                };
 
-                // Guard: redirect if not authenticated
-                const ok = await AdminAuth.requireSession();
-                if (!ok) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
-                    return;
-                }
-
-                try {
-                    // Fetch all dashboard data in parallel
-                    const [
-                        draftCounts,
-                        evidenceData,
-                        blogData,
-                        collectionsData,
-                        resourcesData,
-                        analyticsData,
-                    ] = await Promise.all([
-                        Admin.api.get("/drafts/counts").catch(function () {
-                            return {};
-                        }),
-                        Admin.api.get("/evidence").catch(function () {
-                            return [];
-                        }),
-                        Admin.api.get("/blog-posts").catch(function () {
-                            return [];
-                        }),
-                        Admin.api.get("/collections").catch(function () {
-                            return [];
-                        }),
-                        Admin.api.get("/resources").catch(function () {
-                            return [];
-                        }),
-                        Admin.api.get("/analytics").catch(function () {
-                            return {};
-                        }),
-                    ]);
-
-                    main.innerHTML = "";
-
-                    // ── Record counts ────────────────────────────────────────────────
-
-                    const evidenceCount = Array.isArray(evidenceData)
-                        ? evidenceData.length
-                        : 0;
-
-                    // Pending drafts: sum up all draft-type counts
-                    var pendingDrafts = 0;
-                    if (draftCounts && typeof draftCounts === "object") {
-                        Object.keys(draftCounts).forEach(function (key) {
-                            pendingDrafts += Number(draftCounts[key]) || 0;
-                        });
-                    }
-
-                    const blogCount = Array.isArray(blogData)
-                        ? blogData.length
-                        : 0;
-                    const collectionsCount = Array.isArray(collectionsData)
-                        ? collectionsData.length
-                        : 0;
-                    const resourcesCount = Array.isArray(resourcesData)
-                        ? resourcesData.length
-                        : 0;
-
-                    // 7-day page views from analytics
-                    var pageViews7d = 0;
-                    if (analyticsData && analyticsData.stats) {
-                        var pvStat = analyticsData.stats.find(function (s) {
+                function contentItemUrl(item) {
+                    switch (item.type) {
+                        case "evidence":
+                            return "evidence/edit-[id].html?id=" + item.id;
+                        case "essays":
+                            return "essays/edit-[id].html?id=" + item.id;
+                        case "responses":
+                            return "debate/edit-[id].html?id=" + item.id;
+                        case "historiography":
                             return (
-                                s.label &&
-                                s.label.toLowerCase().indexOf("page view") !==
-                                    -1
+                                "historiography/edit-[id].html?id=" + item.id
                             );
-                        });
-                        if (pvStat) pageViews7d = pvStat.value;
-                        // Fallback: sum up pageViews if available
-                        if (!pageViews7d && analyticsData.pageViews) {
-                            analyticsData.pageViews.forEach(function (pv) {
-                                pageViews7d += Number(pv.views) || 0;
-                            });
-                        }
+                        case "blog-posts":
+                            return "blog/edit-[id].html?id=" + item.id;
+                        case "popular-challenges":
+                            return (
+                                "debate/popular-challenges/edit-[id].html?id=" +
+                                item.id
+                            );
+                        case "academic-challenges":
+                            return (
+                                "debate/academic-challenges/edit-[id].html?id=" +
+                                item.id
+                            );
+                        case "collections":
+                            return "collections/index.html";
+                        case "resources":
+                            return (
+                                "resources/" + (item.list_key || "") + ".html"
+                            );
+                        default:
+                            return "#";
+                    }
+                }
+
+                var main = document.getElementById("dashboard-content");
+
+                AdminAuth.requireSession().then(function (ok) {
+                    if (!ok) {
+                        main.innerHTML =
+                            '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
+                        return;
                     }
 
-                    var stats = [
-                        evidenceCount + " evidence records",
-                        blogCount + " blog posts",
-                        collectionsCount + " collections",
-                        resourcesCount + " resource entries",
-                        pendingDrafts + " unpublished records across all content types",
-                        Admin.formatNumber(pageViews7d) + " page views in the last 7 days",
-                    ];
+                    Admin.api
+                        .get("/content")
+                        .then(function (data) {
+                            main.innerHTML = "";
 
-                    var overview = document.createElement("section");
-                    overview.style.marginBottom = "var(--space-xl)";
+                            if (!Array.isArray(data) || data.length === 0) {
+                                var emptyEl = document.createElement("div");
+                                emptyEl.className = "admin-empty";
+                                emptyEl.setAttribute("role", "status");
+                                emptyEl.textContent =
+                                    "No content records found.";
+                                main.appendChild(emptyEl);
+                                return;
+                            }
 
-                    var overviewTitle = document.createElement("h3");
-                    overviewTitle.className = "analytics-section__title";
-                    overviewTitle.textContent = "Site Overview";
-                    overview.appendChild(overviewTitle);
+                            // ── Filter bar ────────────────────────────────────────
 
-                    var list = document.createElement("ul");
-                    list.style.cssText =
-                        "margin:var(--space-sm) 0 0;padding-left:1.25em;line-height:1.8;";
-                    stats.forEach(function (line) {
-                        var li = document.createElement("li");
-                        li.textContent = line;
-                        list.appendChild(li);
-                    });
-                    overview.appendChild(list);
+                            var filterBar = document.createElement("div");
+                            filterBar.className = "admin-dashboard-filters";
 
-                    main.appendChild(overview);
+                            // Text search input
+                            var searchDiv = document.createElement("div");
+                            searchDiv.className = "admin-form-group";
+                            var searchLabel = document.createElement("label");
+                            searchLabel.className = "admin-form-group__label";
+                            searchLabel.setAttribute("for", "filter-search");
+                            searchLabel.textContent = "Search";
+                            var searchInput = document.createElement("input");
+                            searchInput.type = "text";
+                            searchInput.className = "admin-input";
+                            searchInput.id = "filter-search";
+                            searchInput.placeholder = "Search by title…";
+                            searchDiv.appendChild(searchLabel);
+                            searchDiv.appendChild(searchInput);
+                            filterBar.appendChild(searchDiv);
 
-                    // ── Instructions ─────────────────────────────────────────────────
+                            // Type select
+                            var types = [];
+                            var seenTypes = {};
+                            data.forEach(function (item) {
+                                if (!seenTypes[item.type]) {
+                                    seenTypes[item.type] = true;
+                                    types.push(item.type);
+                                }
+                            });
+                            types.sort();
 
-                    var help = document.createElement("section");
+                            var typeDiv = document.createElement("div");
+                            typeDiv.className = "admin-form-group";
+                            var typeLabel = document.createElement("label");
+                            typeLabel.className = "admin-form-group__label";
+                            typeLabel.setAttribute("for", "filter-type");
+                            typeLabel.textContent = "Type";
+                            var typeSelect = document.createElement("select");
+                            typeSelect.className = "admin-select";
+                            typeSelect.id = "filter-type";
+                            typeSelect.innerHTML =
+                                '<option value="">All Types</option>' +
+                                types
+                                    .map(function (t) {
+                                        return (
+                                            '<option value="' +
+                                            t +
+                                            '">' +
+                                            (TYPE_LABELS[t] || t) +
+                                            "</option>"
+                                        );
+                                    })
+                                    .join("");
+                            typeDiv.appendChild(typeLabel);
+                            typeDiv.appendChild(typeSelect);
+                            filterBar.appendChild(typeDiv);
 
-                    var helpTitle = document.createElement("h3");
-                    helpTitle.className = "analytics-section__title";
-                    helpTitle.textContent = "How This Works";
-                    help.appendChild(helpTitle);
+                            // Status select
+                            var statusDiv = document.createElement("div");
+                            statusDiv.className = "admin-form-group";
+                            var statusLabel = document.createElement("label");
+                            statusLabel.className = "admin-form-group__label";
+                            statusLabel.setAttribute("for", "filter-status");
+                            statusLabel.textContent = "Status";
+                            var statusSelect = document.createElement("select");
+                            statusSelect.className = "admin-select";
+                            statusSelect.id = "filter-status";
+                            statusSelect.innerHTML =
+                                '<option value="">All</option>' +
+                                '<option value="1">Published</option>' +
+                                '<option value="0">Draft</option>';
+                            statusDiv.appendChild(statusLabel);
+                            statusDiv.appendChild(statusSelect);
+                            filterBar.appendChild(statusDiv);
 
-                    var siteHeading = document.createElement("h4");
-                    siteHeading.textContent = "The website";
-                    help.appendChild(siteHeading);
+                            main.appendChild(filterBar);
 
-                    var siteList = document.createElement("ul");
-                    siteList.style.cssText =
-                        "margin:var(--space-xs) 0 var(--space-md);padding-left:1.25em;line-height:1.8;";
-                    [
-                        "Evidence is the core content type: a sourced claim or artifact, tagged with a gospel category, timeline era and (optionally) a map location.",
-                        "Collections group related Evidence records together under a shared theme.",
-                        "Resources hold supporting reference material — people, places, manuscripts, sermons and sayings, external/internal witnesses, and more.",
-                        "Essays, Debate (popular and academic challenges) and Historiography hold longer-form argumentative and analytical writing.",
-                        "Blog and News are informal, dated updates shown separately from the archival content above.",
-                        "Maps, Arbor and Timeline are visual diagrams built from Evidence records.",
-                    ].forEach(function (line) {
-                        var li = document.createElement("li");
-                        li.textContent = line;
-                        siteList.appendChild(li);
-                    });
-                    help.appendChild(siteList);
+                            // ── Table wrapper ────────────────────────────────────
 
-                    var adminHeading = document.createElement("h4");
-                    adminHeading.textContent = "The admin section";
-                    help.appendChild(adminHeading);
+                            var wrapper = document.createElement("div");
+                            wrapper.className = "admin-table-wrapper";
 
-                    var adminList = document.createElement("ul");
-                    adminList.style.cssText =
-                        "margin:var(--space-xs) 0;padding-left:1.25em;line-height:1.8;";
-                    [
-                        "Use the sidebar to go to a content type's list page, where you can search, filter and open existing records.",
-                        "Each list page has a button to create a new record of that type.",
-                        "Every Evidence record has a \"published\" flag — leave it off to keep working on a record privately, and toggle it on from the Evidence edit page when it's ready to go live.",
-                        "Changes saved here update the database immediately, but the public site is only rebuilt from that data on the next deploy.",
-                        "Analytics shows traffic to the live site; Settings holds site-wide configuration.",
-                    ].forEach(function (line) {
-                        var li = document.createElement("li");
-                        li.textContent = line;
-                        adminList.appendChild(li);
-                    });
-                    help.appendChild(adminList);
+                            function renderTable(filteredData) {
+                                wrapper.innerHTML = "";
 
-                    main.appendChild(help);
-                } catch (err) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">' +
-                        err.message +
-                        "</div>";
-                }
+                                if (filteredData.length === 0) {
+                                    var emptyMsg =
+                                        document.createElement("div");
+                                    emptyMsg.className = "admin-empty";
+                                    emptyMsg.setAttribute("role", "status");
+                                    emptyMsg.textContent =
+                                        "No records match the current filters.";
+                                    wrapper.appendChild(emptyMsg);
+                                    return;
+                                }
+
+                                var table = document.createElement("table");
+                                table.className = "admin-table";
+
+                                var thead = document.createElement("thead");
+                                var hRow = document.createElement("tr");
+                                ["Type", "Title", "Status", "Updated"].forEach(
+                                    function (label) {
+                                        var th = document.createElement("th");
+                                        th.textContent = label;
+                                        hRow.appendChild(th);
+                                    },
+                                );
+                                thead.appendChild(hRow);
+                                table.appendChild(thead);
+
+                                var tbody = document.createElement("tbody");
+
+                                filteredData.forEach(function (item) {
+                                    var tr = document.createElement("tr");
+
+                                    // Type badge
+                                    var tdType = document.createElement("td");
+                                    var label =
+                                        TYPE_LABELS[item.type] || item.type;
+                                    tdType.appendChild(Admin.typeBadge(label));
+                                    tr.appendChild(tdType);
+
+                                    // Title (link)
+                                    var tdTitle = document.createElement("td");
+                                    var link = document.createElement("a");
+                                    link.href = contentItemUrl(item);
+                                    link.textContent =
+                                        item.title || item.slug || "(untitled)";
+                                    link.style.cssText =
+                                        "color:var(--admin-accent);text-decoration:none;font-weight:500;";
+                                    tdTitle.appendChild(link);
+                                    tr.appendChild(tdTitle);
+
+                                    // Status badge
+                                    var tdStatus = document.createElement("td");
+                                    tdStatus.appendChild(
+                                        Admin.statusBadge(item.published_draft),
+                                    );
+                                    tr.appendChild(tdStatus);
+
+                                    // Updated date
+                                    var tdUpdated =
+                                        document.createElement("td");
+                                    tdUpdated.textContent = Admin.formatDate(
+                                        item.updated_at,
+                                    );
+                                    tr.appendChild(tdUpdated);
+
+                                    tbody.appendChild(tr);
+                                });
+
+                                table.appendChild(tbody);
+                                wrapper.appendChild(table);
+                            }
+
+                            renderTable(data);
+                            main.appendChild(wrapper);
+
+                            // ── Filter logic ──────────────────────────────────────
+
+                            function applyFilters() {
+                                var searchVal = searchInput.value
+                                    .toLowerCase()
+                                    .trim();
+                                var typeVal = typeSelect.value;
+                                var statusVal = statusSelect.value;
+
+                                var filtered = data.filter(function (item) {
+                                    // Text search on title
+                                    if (
+                                        searchVal &&
+                                        !(item.title || "")
+                                            .toLowerCase()
+                                            .includes(searchVal)
+                                    ) {
+                                        return false;
+                                    }
+                                    // Type filter
+                                    if (typeVal && item.type !== typeVal) {
+                                        return false;
+                                    }
+                                    // Status filter
+                                    if (statusVal !== "") {
+                                        if (
+                                            Number(item.published_draft) !==
+                                            Number(statusVal)
+                                        ) {
+                                            return false;
+                                        }
+                                    }
+                                    return true;
+                                });
+
+                                renderTable(filtered);
+                            }
+
+                            searchInput.addEventListener("input", applyFilters);
+                            typeSelect.addEventListener("change", applyFilters);
+                            statusSelect.addEventListener(
+                                "change",
+                                applyFilters,
+                            );
+                        })
+                        .catch(function (err) {
+                            main.innerHTML =
+                                '<div class="admin-error" role="alert">' +
+                                err.message +
+                                "</div>";
+                        });
+                });
             })();
         </script>
     </body>

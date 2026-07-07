@@ -1,309 +1,516 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="admin-app">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Evidence — Admin</title>
-  <link rel="stylesheet" href="../assets/css/admin.css">
-  <script defer src="../assets/js/auth.js"></script>
-  <script defer src="../assets/js/admin.js"></script>
-  <style>
-    .admin-evidence-filters {
-      display: flex;
-      gap: var(--space-sm);
-      margin-bottom: var(--space-md);
-      flex-wrap: wrap;
-      align-items: flex-end;
-    }
-    .admin-evidence-filters .admin-form-group {
-      margin-bottom: 0;
-      flex: 1;
-      min-width: 140px;
-    }
-    .admin-loading,
-    .admin-empty,
-    .admin-error {
-      padding: var(--space-xl);
-      text-align: center;
-      color: var(--admin-text-muted);
-      font-size: 14px;
-    }
-    .admin-error {
-      color: var(--admin-danger);
-    }
-    .admin-evidence-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-  </style>
-</head>
-<body>
-<div class="admin-shell">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Evidence — Admin</title>
+        <link rel="stylesheet" href="../assets/css/admin.css" />
+        <script defer src="../assets/js/auth.js"></script>
+        <script defer src="../assets/js/admin.js"></script>
+        <style>
+            .admin-evidence-filters {
+                display: flex;
+                gap: var(--space-sm);
+                margin-bottom: var(--space-md);
+                flex-wrap: wrap;
+                align-items: flex-end;
+            }
+            .admin-evidence-filters .admin-form-group {
+                margin-bottom: 0;
+                flex: 1;
+                min-width: 140px;
+            }
+            .admin-loading,
+            .admin-empty,
+            .admin-error {
+                padding: var(--space-xl);
+                text-align: center;
+                color: var(--admin-text-muted);
+                font-size: 14px;
+            }
+            .admin-error {
+                color: var(--admin-danger);
+            }
+            .admin-evidence-actions {
+                display: flex;
+                align-items: center;
+                gap: var(--space-sm);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="admin-shell">
+            <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+            <nav class="admin-sidebar" aria-label="Admin navigation">
+                <div class="admin-sidebar__brand">⚡ Admin</div>
+                <div class="admin-sidebar__nav">
+                    <a class="admin-sidebar__link" href="../index.html">
+                        <span class="admin-sidebar__icon">📊</span> Dashboard
+                    </a>
+                    <a
+                        class="admin-sidebar__link admin-sidebar__link--active"
+                        href="index.html"
+                    >
+                        <span class="admin-sidebar__icon">📋</span> Evidence
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../collections/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📁</span> Collections
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../resources/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📚</span> Resources
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../wikipedia/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📖</span> Wikipedia
+                    </a>
+                    <a class="admin-sidebar__link" href="../essays/index.html">
+                        <span class="admin-sidebar__icon">✍️</span> Essays
+                    </a>
+                    <a class="admin-sidebar__link" href="../debate/index.html">
+                        <span class="admin-sidebar__icon">🗣️</span> Debate
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../debate/popular-challenges/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📢</span> Popular
+                        Challenges
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../debate/academic-challenges/index.html"
+                    >
+                        <span class="admin-sidebar__icon">🎓</span> Academic
+                        Challenges
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../historiography/index.html"
+                    >
+                        <span class="admin-sidebar__icon">🏛️</span>
+                        Historiography
+                    </a>
+                    <a class="admin-sidebar__link" href="../blog/index.html">
+                        <span class="admin-sidebar__icon">📰</span> Blog
+                    </a>
+                    <a class="admin-sidebar__link" href="../news/index.html">
+                        <span class="admin-sidebar__icon">📡</span> News
+                    </a>
+                    <a class="admin-sidebar__link" href="../diagrams/maps.html">
+                        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+                    </a>
+                    <a class="admin-sidebar__link" href="../analytics.html">
+                        <span class="admin-sidebar__icon">📈</span> Analytics
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../settings/index.html"
+                    >
+                        <span class="admin-sidebar__icon">⚙️</span> Settings
+                    </a>
+                </div>
+                <div class="admin-sidebar__bottom">
+                    <a class="admin-sidebar__link" href="../auth/login.html">
+                        <span class="admin-sidebar__icon">🚪</span> Logout
+                    </a>
+                </div>
+            </nav>
 
-  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
-  <nav class="admin-sidebar" aria-label="Admin navigation">
-    <div class="admin-sidebar__brand">⚡ Admin</div>
-    <div class="admin-sidebar__nav">
-      <a class="admin-sidebar__link" href="../index.html">
-        <span class="admin-sidebar__icon">📊</span> Dashboard
-      </a>
-      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
-        <span class="admin-sidebar__icon">📋</span> Evidence
-      </a>
-      <a class="admin-sidebar__link" href="../collections/index.html">
-        <span class="admin-sidebar__icon">📁</span> Collections
-      </a>
-      <a class="admin-sidebar__link" href="../resources/index.html">
-        <span class="admin-sidebar__icon">📚</span> Resources
-      </a>
-      <a class="admin-sidebar__link" href="../wikipedia/index.html">
-        <span class="admin-sidebar__icon">📖</span> Wikipedia
-      </a>
-      <a class="admin-sidebar__link" href="../essays/index.html">
-        <span class="admin-sidebar__icon">✍️</span> Essays
-      </a>
-      <a class="admin-sidebar__link" href="../debate/index.html">
-        <span class="admin-sidebar__icon">🗣️</span> Debate
-      </a>
-      <a class="admin-sidebar__link" href="../debate/popular-challenges/index.html">
-        <span class="admin-sidebar__icon">📢</span> Popular Challenges
-      </a>
-      <a class="admin-sidebar__link" href="../debate/academic-challenges/index.html">
-        <span class="admin-sidebar__icon">🎓</span> Academic Challenges
-      </a>
-      <a class="admin-sidebar__link" href="../historiography/index.html">
-        <span class="admin-sidebar__icon">🏛️</span> Historiography
-      </a>
-      <a class="admin-sidebar__link" href="../blog/index.html">
-        <span class="admin-sidebar__icon">📰</span> Blog
-      </a>
-      <a class="admin-sidebar__link" href="../news/index.html">
-        <span class="admin-sidebar__icon">📡</span> News
-      </a>
-      <a class="admin-sidebar__link" href="../diagrams/maps.html">
-        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
-      </a>
-      <a class="admin-sidebar__link" href="../analytics.html">
-        <span class="admin-sidebar__icon">📈</span> Analytics
-      </a>
-      <a class="admin-sidebar__link" href="../settings/index.html">
-        <span class="admin-sidebar__icon">⚙️</span> Settings
-      </a>
-    </div>
-    <div class="admin-sidebar__bottom">
-      <a class="admin-sidebar__link" href="../auth/login.html">
-        <span class="admin-sidebar__icon">🚪</span> Logout
-      </a>
-    </div>
-  </nav>
+            <!-- ── Topbar ───────────────────────────────────────────────────────── -->
+            <header class="admin-topbar">
+                <h1 class="admin-topbar__title">Evidence</h1>
+                <div class="admin-topbar__actions admin-evidence-actions">
+                    <a
+                        class="admin-btn admin-btn--primary admin-btn--sm"
+                        href="new.html"
+                        >+ New Evidence</a
+                    >
+                    <a
+                        class="admin-btn admin-btn--sm admin-btn--ghost"
+                        href="bulk.html"
+                        >Bulk Ops</a
+                    >
+                </div>
+            </header>
 
-  <!-- ── Topbar ───────────────────────────────────────────────────────── -->
-  <header class="admin-topbar">
-    <h1 class="admin-topbar__title">Evidence</h1>
-    <div class="admin-topbar__actions admin-evidence-actions">
-      <a class="admin-btn admin-btn--primary admin-btn--sm" href="new.html">+ New Evidence</a>
-      <a class="admin-btn admin-btn--sm admin-btn--ghost" href="bulk.html">Bulk Ops</a>
-    </div>
-  </header>
+            <!-- ── Main Content ─────────────────────────────────────────────────── -->
+            <main class="admin-main" id="evidence-content">
+                <div class="admin-loading" id="evidence-loading" role="status">
+                    Loading evidence…
+                </div>
+            </main>
+        </div>
 
-  <!-- ── Main Content ─────────────────────────────────────────────────── -->
-  <main class="admin-main" id="evidence-content">
-    <div class="admin-loading" id="evidence-loading" role="status">Loading evidence…</div>
-  </main>
+        <script>
+            (async function () {
+                const main = document.getElementById("evidence-content");
+                const loadingEl = document.getElementById("evidence-loading");
 
-</div>
+                const ok = await AdminAuth.requireSession();
+                if (!ok) {
+                    main.innerHTML =
+                        '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
+                    return;
+                }
 
-<script>
-  (async function () {
-    const main = document.getElementById('evidence-content');
-    const loadingEl = document.getElementById('evidence-loading');
+                var evidenceData = [];
 
-    const ok = await AdminAuth.requireSession();
-    if (!ok) {
-      main.innerHTML = '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
-      return;
-    }
+                try {
+                    evidenceData = await Admin.api.get("/evidence");
+                    main.removeChild(loadingEl);
 
-    try {
-      const evidenceData = await Admin.api.get('/evidence');
-      main.removeChild(loadingEl);
+                    if (!Array.isArray(evidenceData)) evidenceData = [];
 
-      if (!Array.isArray(evidenceData) || evidenceData.length === 0) {
-        var emptyEl = document.createElement('div');
-        emptyEl.className = 'admin-empty';
-        emptyEl.setAttribute('role', 'status');
-        emptyEl.textContent = 'No evidence published yet.';
-        main.appendChild(emptyEl);
-        return;
-      }
+                    // Sort by title
+                    evidenceData.sort(function (a, b) {
+                        return (a.title || "").localeCompare(b.title || "");
+                    });
+                } catch (err) {
+                    if (loadingEl) loadingEl.remove();
+                    var errorEl = document.createElement("div");
+                    errorEl.className = "admin-error";
+                    errorEl.setAttribute("role", "alert");
+                    errorEl.textContent =
+                        "Failed to load evidence: " + err.message;
+                    main.appendChild(errorEl);
+                    return;
+                }
 
-      // Sort by title
-      evidenceData.sort(function (a, b) {
-        return (a.title || '').localeCompare(b.title || '');
-      });
+                // Filter bar
+                var filterBar = document.createElement("div");
+                filterBar.className = "admin-evidence-filters";
 
-      // Filter bar
-      var filterBar = document.createElement('div');
-      filterBar.className = 'admin-evidence-filters';
+                // Collect unique values for filters
+                var categories = new Set();
+                var eras = new Set();
+                var locations = new Set();
+                evidenceData.forEach(function (e) {
+                    if (e.gospel_category) categories.add(e.gospel_category);
+                    if (e.timeline_era) eras.add(e.timeline_era);
+                    if (e.map_location) locations.add(e.map_location);
+                });
 
-      // Collect unique values for filters
-      var categories = new Set();
-      var eras = new Set();
-      var locations = new Set();
-      evidenceData.forEach(function (e) {
-        if (e.gospel_category) categories.add(e.gospel_category);
-        if (e.timeline_era) eras.add(e.timeline_era);
-        if (e.map_location) locations.add(e.map_location);
-      });
+                function selectFilter(id, options, label) {
+                    var div = document.createElement("div");
+                    div.className = "admin-form-group";
+                    var lbl = document.createElement("label");
+                    lbl.className = "admin-form-group__label";
+                    lbl.setAttribute("for", id);
+                    lbl.textContent = label;
+                    var sel = document.createElement("select");
+                    sel.className = "admin-select";
+                    sel.id = id;
+                    sel.innerHTML =
+                        '<option value="">All ' +
+                        label +
+                        "</option>" +
+                        options
+                            .map(function (o) {
+                                return (
+                                    '<option value="' +
+                                    o +
+                                    '">' +
+                                    o +
+                                    "</option>"
+                                );
+                            })
+                            .join("");
+                    div.appendChild(lbl);
+                    div.appendChild(sel);
+                    return div;
+                }
 
-      function selectFilter(id, options, label) {
-        var div = document.createElement('div');
-        div.className = 'admin-form-group';
-        var lbl = document.createElement('label');
-        lbl.className = 'admin-form-group__label';
-        lbl.setAttribute('for', id);
-        lbl.textContent = label;
-        var sel = document.createElement('select');
-        sel.className = 'admin-select';
-        sel.id = id;
-        sel.innerHTML = '<option value="">All ' + label + '</option>' +
-          options.map(function (o) { return '<option value="' + o + '">' + o + '</option>'; }).join('');
-        div.appendChild(lbl);
-        div.appendChild(sel);
-        return div;
-      }
+                filterBar.appendChild(
+                    selectFilter(
+                        "filter-category",
+                        Array.from(categories).sort(),
+                        "Category",
+                    ),
+                );
+                filterBar.appendChild(
+                    selectFilter("filter-era", Array.from(eras).sort(), "Era"),
+                );
+                filterBar.appendChild(
+                    selectFilter(
+                        "filter-location",
+                        Array.from(locations).sort(),
+                        "Location",
+                    ),
+                );
+                main.appendChild(filterBar);
 
-      filterBar.appendChild(selectFilter('filter-category', Array.from(categories).sort(), 'Category'));
-      filterBar.appendChild(selectFilter('filter-era', Array.from(eras).sort(), 'Era'));
-      filterBar.appendChild(selectFilter('filter-location', Array.from(locations).sort(), 'Location'));
-      main.appendChild(filterBar);
+                // Clear filters button
+                var clearBtn = document.createElement("button");
+                clearBtn.type = "button";
+                clearBtn.className = "admin-btn admin-btn--sm admin-btn--ghost";
+                clearBtn.textContent = "Clear Filters";
+                clearBtn.style.marginBottom = "var(--space-md)";
+                main.appendChild(clearBtn);
 
-      // Clear filters button
-      var clearBtn = document.createElement('button');
-      clearBtn.type = 'button';
-      clearBtn.className = 'admin-btn admin-btn--sm admin-btn--ghost';
-      clearBtn.textContent = 'Clear Filters';
-      clearBtn.style.marginBottom = 'var(--space-md)';
-      main.appendChild(clearBtn);
+                // Build table wrapper
+                var wrapper = document.createElement("div");
+                wrapper.className = "admin-table-wrapper";
+                wrapper.id = "evidence-table-wrapper";
 
-      // Build table wrapper
-      var wrapper = document.createElement('div');
-      wrapper.className = 'admin-table-wrapper';
-      wrapper.id = 'evidence-table-wrapper';
+                function renderTable(filteredData) {
+                    wrapper.innerHTML = "";
 
-      function renderTable(filteredData) {
-        wrapper.innerHTML = '';
-        var table = document.createElement('table');
-        table.className = 'admin-table';
+                    if (filteredData.length === 0) {
+                        var emptyEl = document.createElement("div");
+                        emptyEl.className = "admin-empty";
+                        emptyEl.setAttribute("role", "status");
+                        emptyEl.textContent = "No evidence published yet.";
+                        wrapper.appendChild(emptyEl);
+                        return;
+                    }
 
-        var thead = document.createElement('thead');
-        var hRow = document.createElement('tr');
-        ['Title', 'Category', 'Era', 'Period', 'Map Location', 'Status', 'Edit'].forEach(function (label) {
-          var th = document.createElement('th');
-          th.textContent = label;
-          hRow.appendChild(th);
-        });
-        thead.appendChild(hRow);
-        table.appendChild(thead);
+                    var table = document.createElement("table");
+                    table.className = "admin-table";
 
-        var tbody = document.createElement('tbody');
+                    var thead = document.createElement("thead");
+                    var hRow = document.createElement("tr");
+                    [
+                        "Title",
+                        "Category",
+                        "Era",
+                        "Period",
+                        "Map Location",
+                        "Status",
+                        "Edit",
+                    ].forEach(function (label) {
+                        var th = document.createElement("th");
+                        th.textContent = label;
+                        hRow.appendChild(th);
+                    });
+                    thead.appendChild(hRow);
+                    table.appendChild(thead);
 
-        filteredData.forEach(function (e) {
-          var tr = document.createElement('tr');
+                    var tbody = document.createElement("tbody");
 
-          // Title (link to edit)
-          var tdTitle = document.createElement('td');
-          var link = document.createElement('a');
-          link.href = 'edit-[id].html?id=' + e.id;
-          link.textContent = e.title || e.slug || '(untitled)';
-          link.style.cssText = 'color:var(--admin-accent);text-decoration:none;font-weight:500;';
-          tdTitle.appendChild(link);
-          tr.appendChild(tdTitle);
+                    filteredData.forEach(function (e) {
+                        var tr = document.createElement("tr");
 
-          // Category badge
-          var tdCat = document.createElement('td');
-          if (e.gospel_category) {
-            tdCat.appendChild(Admin.typeBadge(e.gospel_category));
-          } else {
-            tdCat.textContent = '\u2014';
-          }
-          tr.appendChild(tdCat);
+                        // Title (link to edit)
+                        var tdTitle = document.createElement("td");
+                        var link = document.createElement("a");
+                        link.href = "edit-[id].html?id=" + e.id;
+                        link.textContent = e.title || e.slug || "(untitled)";
+                        link.style.cssText =
+                            "color:var(--admin-accent);text-decoration:none;font-weight:500;";
+                        tdTitle.appendChild(link);
+                        tr.appendChild(tdTitle);
 
-          // Timeline era
-          var tdEra = document.createElement('td');
-          tdEra.textContent = e.timeline_era || '\u2014';
-          tr.appendChild(tdEra);
+                        // Category badge
+                        var tdCat = document.createElement("td");
+                        if (e.gospel_category) {
+                            tdCat.appendChild(
+                                Admin.typeBadge(e.gospel_category),
+                            );
+                        } else {
+                            tdCat.textContent = "\u2014";
+                        }
+                        tr.appendChild(tdCat);
 
-          // Timeline period
-          var tdPeriod = document.createElement('td');
-          tdPeriod.textContent = e.timeline_period || '\u2014';
-          tr.appendChild(tdPeriod);
+                        // Timeline era
+                        var tdEra = document.createElement("td");
+                        tdEra.textContent = e.timeline_era || "\u2014";
+                        tr.appendChild(tdEra);
 
-          // Map location
-          var tdMap = document.createElement('td');
-          tdMap.textContent = e.map_location || '\u2014';
-          tr.appendChild(tdMap);
+                        // Timeline period
+                        var tdPeriod = document.createElement("td");
+                        tdPeriod.textContent = e.timeline_period || "\u2014";
+                        tr.appendChild(tdPeriod);
 
-          // Status
-          var tdStatus = document.createElement('td');
-          tdStatus.appendChild(Admin.statusBadge(e.published_draft));
-          tr.appendChild(tdStatus);
+                        // Map location
+                        var tdMap = document.createElement("td");
+                        tdMap.textContent = e.map_location || "\u2014";
+                        tr.appendChild(tdMap);
 
-          // Edit button
-          var tdEdit = document.createElement('td');
-          var editBtn = document.createElement('a');
-          editBtn.className = 'admin-btn admin-btn--sm admin-btn--secondary';
-          editBtn.href = 'edit-[id].html?id=' + e.id;
-          editBtn.textContent = 'Edit';
-          tdEdit.appendChild(editBtn);
-          tr.appendChild(tdEdit);
+                        // Status
+                        var tdStatus = document.createElement("td");
+                        tdStatus.appendChild(
+                            Admin.statusBadge(e.published_draft),
+                        );
+                        tr.appendChild(tdStatus);
 
-          tbody.appendChild(tr);
-        });
+                        // Edit button
+                        var tdEdit = document.createElement("td");
+                        var editBtn = document.createElement("a");
+                        editBtn.className =
+                            "admin-btn admin-btn--sm admin-btn--secondary";
+                        editBtn.href = "edit-[id].html?id=" + e.id;
+                        editBtn.textContent = "Edit";
+                        tdEdit.appendChild(editBtn);
+                        tr.appendChild(tdEdit);
 
-        table.appendChild(tbody);
-        wrapper.appendChild(table);
-      }
+                        tbody.appendChild(tr);
+                    });
 
-      renderTable(evidenceData);
-      main.appendChild(wrapper);
+                    table.appendChild(tbody);
+                    wrapper.appendChild(table);
+                }
 
-      // Filter logic
-      function applyFilters() {
-        var catVal = document.getElementById('filter-category').value;
-        var eraVal = document.getElementById('filter-era').value;
-        var locVal = document.getElementById('filter-location').value;
+                renderTable(evidenceData);
+                main.appendChild(wrapper);
 
-        var filtered = evidenceData.filter(function (e) {
-          return (!catVal || e.gospel_category === catVal) &&
-                 (!eraVal || e.timeline_era === eraVal) &&
-                 (!locVal || e.map_location === locVal);
-        });
+                // Filter logic
+                function applyFilters() {
+                    var catVal =
+                        document.getElementById("filter-category").value;
+                    var eraVal = document.getElementById("filter-era").value;
+                    var locVal =
+                        document.getElementById("filter-location").value;
 
-        renderTable(filtered);
-      }
+                    var filtered = evidenceData.filter(function (e) {
+                        return (
+                            (!catVal || e.gospel_category === catVal) &&
+                            (!eraVal || e.timeline_era === eraVal) &&
+                            (!locVal || e.map_location === locVal)
+                        );
+                    });
 
-      document.getElementById('filter-category').addEventListener('change', applyFilters);
-      document.getElementById('filter-era').addEventListener('change', applyFilters);
-      document.getElementById('filter-location').addEventListener('change', applyFilters);
+                    renderTable(filtered);
+                }
 
-      clearBtn.addEventListener('click', function () {
-        document.getElementById('filter-category').value = '';
-        document.getElementById('filter-era').value = '';
-        document.getElementById('filter-location').value = '';
-        renderTable(evidenceData);
-      });
+                document
+                    .getElementById("filter-category")
+                    .addEventListener("change", applyFilters);
+                document
+                    .getElementById("filter-era")
+                    .addEventListener("change", applyFilters);
+                document
+                    .getElementById("filter-location")
+                    .addEventListener("change", applyFilters);
 
-    } catch (err) {
-      if (loadingEl) loadingEl.remove();
-      var errorEl = document.createElement('div');
-      errorEl.className = 'admin-error';
-      errorEl.setAttribute('role', 'alert');
-      errorEl.textContent = 'Failed to load evidence: ' + err.message;
-      main.appendChild(errorEl);
-    }
-  })();
-</script>
-</body>
+                clearBtn.addEventListener("click", function () {
+                    document.getElementById("filter-category").value = "";
+                    document.getElementById("filter-era").value = "";
+                    document.getElementById("filter-location").value = "";
+                    renderTable(evidenceData);
+                });
+
+                // ── Bulk Upload section ──────────────────────────────────────────────
+
+                var bulkDetails = document.createElement("details");
+                bulkDetails.style.cssText =
+                    "margin-top:var(--space-lg);padding:var(--space-md) 0;";
+
+                var bulkSummary = document.createElement("summary");
+                bulkSummary.style.cssText =
+                    "cursor:pointer;font-weight:600;margin-bottom:var(--space-sm);";
+                bulkSummary.textContent = "Bulk Upload Evidence";
+                bulkDetails.appendChild(bulkSummary);
+
+                var caption = document.createElement("p");
+                caption.style.cssText =
+                    "font-size:0.8125rem;color:var(--admin-text-muted);margin:0 0 var(--space-sm);";
+                var code = document.createElement("code");
+                code.textContent = "Title, Primary Verse";
+                caption.appendChild(code);
+                caption.appendChild(
+                    document.createTextNode(" per line · saved as draft"),
+                );
+                bulkDetails.appendChild(caption);
+
+                var bulkLabel = document.createElement("label");
+                bulkLabel.className = "admin-form-group__label";
+                bulkLabel.setAttribute("for", "bulk-evidence-textarea");
+                bulkLabel.textContent = "Paste evidence";
+                bulkDetails.appendChild(bulkLabel);
+
+                var bulkTextarea = document.createElement("textarea");
+                bulkTextarea.className = "admin-input";
+                bulkTextarea.id = "bulk-evidence-textarea";
+                bulkTextarea.rows = 6;
+                bulkTextarea.style.cssText =
+                    "width:100%;font-family:monospace;resize:vertical;";
+                bulkDetails.appendChild(bulkTextarea);
+
+                var bulkActions = document.createElement("div");
+                bulkActions.style.cssText =
+                    "display:flex;align-items:center;gap:var(--space-sm);margin-top:var(--space-sm);";
+
+                var bulkBtn = document.createElement("button");
+                bulkBtn.type = "button";
+                bulkBtn.className =
+                    "admin-btn admin-btn--primary admin-btn--sm";
+                bulkBtn.textContent = "Upload";
+                bulkActions.appendChild(bulkBtn);
+
+                var bulkSummaryEl = document.createElement("span");
+                bulkSummaryEl.style.cssText =
+                    "font-size:0.8125rem;color:var(--admin-text-muted);";
+                bulkActions.appendChild(bulkSummaryEl);
+
+                bulkDetails.appendChild(bulkActions);
+                main.appendChild(bulkDetails);
+
+                bulkBtn.addEventListener("click", async function () {
+                    var lines = bulkTextarea.value.split("\n");
+                    if (lines.length === 0) return;
+
+                    bulkBtn.disabled = true;
+                    bulkBtn.textContent = "Uploading…";
+                    bulkSummaryEl.textContent = "";
+
+                    var added = 0;
+                    var skipped = 0;
+
+                    for (var i = 0; i < lines.length; i++) {
+                        var line = lines[i].trim();
+                        if (!line) continue;
+
+                        var parts = line.split(",");
+                        if (parts.length < 2) {
+                            skipped++;
+                            continue;
+                        }
+
+                        var title = parts[0].trim();
+                        var primaryVerse = parts[1].trim();
+
+                        if (!title || !primaryVerse) {
+                            skipped++;
+                            continue;
+                        }
+
+                        try {
+                            var result = await Admin.api.post("/evidence", {
+                                title: title,
+                                slug: Admin.slugify(title),
+                                primary_verse: primaryVerse,
+                                published_draft: 0,
+                            });
+                            evidenceData.push(result);
+                            added++;
+                        } catch (err) {
+                            skipped++;
+                        }
+                    }
+
+                    // Re-sort by title so new rows take their correct alphabetical position
+                    evidenceData.sort(function (a, b) {
+                        return (a.title || "").localeCompare(b.title || "");
+                    });
+
+                    // Re-render with current filter state
+                    applyFilters();
+
+                    bulkTextarea.value = "";
+                    bulkBtn.disabled = false;
+                    bulkBtn.textContent = "Upload";
+                    bulkSummaryEl.textContent =
+                        added + " added, " + skipped + " skipped";
+                });
+            })();
+        </script>
+    </body>
 </html>

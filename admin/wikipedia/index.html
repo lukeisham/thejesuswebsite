@@ -1,507 +1,732 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="admin-app">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wikipedia Ranking — Admin</title>
-  <link rel="stylesheet" href="../assets/css/admin.css">
-  <script defer src="../assets/js/auth.js"></script>
-  <script defer src="../assets/js/admin.js"></script>
-  <script defer src="../assets/js/admin-ranking.js"></script>
-  <style>
-    .admin-loading,
-    .admin-empty,
-    .admin-error {
-      padding: var(--space-xl);
-      text-align: center;
-      color: var(--admin-text-muted);
-      font-size: 14px;
-    }
-    .admin-error { color: var(--admin-danger); }
-    .rank-list { list-style: none; padding: 0; margin: 0; }
-    .rank-row {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-      padding: var(--space-sm) var(--space-md);
-      border-bottom: 1px solid var(--admin-border-light);
-      background: var(--admin-surface);
-      transition: background 0.15s;
-      user-select: none;
-    }
-    .rank-row.dragging {
-      opacity: 0.5;
-      background: var(--admin-surface-hover);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .rank-row.drop-target {
-      border-top: 2px solid var(--admin-accent);
-    }
-    .drag-handle {
-      cursor: grab;
-      padding: var(--space-xs);
-      color: var(--admin-text-muted);
-      font-size: 18px;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    .drag-handle:active { cursor: grabbing; }
-    .drag-handle:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 2px; }
-    .rank-position {
-      width: 32px;
-      font-weight: 600;
-      text-align: center;
-      flex-shrink: 0;
-      color: var(--admin-text-secondary);
-      font-size: 13px;
-    }
-    .rank-info {
-      flex: 1;
-      min-width: 0;
-    }
-    .rank-title {
-      font-weight: 500;
-      color: var(--admin-text-primary);
-    }
-    .rank-url {
-      font-size: 12px;
-      color: var(--admin-text-muted);
-      word-break: break-all;
-    }
-    .rank-url a { color: var(--admin-accent); text-decoration: none; }
-    .rank-url a:hover { text-decoration: underline; }
-    .rank-meta {
-      display: flex;
-      gap: var(--space-md);
-      align-items: center;
-      flex-shrink: 0;
-      font-size: 12px;
-      color: var(--admin-text-secondary);
-    }
-    .rank-meta span { white-space: nowrap; }
-    .rank-row .admin-btn { flex-shrink: 0; }
-    .rank-actions-bar {
-      display: flex;
-      gap: var(--space-sm);
-      margin-top: var(--space-md);
-      align-items: center;
-    }
-    .inline-edit-row {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-sm);
-      padding: var(--space-md);
-      border-bottom: 1px solid var(--admin-border-light);
-      background: var(--admin-surface-hover);
-    }
-    .inline-edit-row .inline-fields {
-      display: flex;
-      gap: var(--space-sm);
-      flex-wrap: wrap;
-    }
-    .inline-edit-row .inline-fields input {
-      flex: 1;
-      min-width: 150px;
-    }
-    .admin-topbar__actions {
-      display: flex;
-      gap: var(--space-sm);
-    }
-  </style>
-</head>
-<body>
-<div class="admin-shell">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Wikipedia Ranking — Admin</title>
+        <link rel="stylesheet" href="../assets/css/admin.css" />
+        <script defer src="../assets/js/auth.js"></script>
+        <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-ranking.js"></script>
+        <style>
+            .admin-loading,
+            .admin-empty,
+            .admin-error {
+                padding: var(--space-xl);
+                text-align: center;
+                color: var(--admin-text-muted);
+                font-size: 14px;
+            }
+            .admin-error {
+                color: var(--admin-danger);
+            }
+            .rank-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            .rank-row {
+                display: flex;
+                align-items: center;
+                gap: var(--space-sm);
+                padding: var(--space-sm) var(--space-md);
+                border-bottom: 1px solid var(--admin-border-light);
+                background: var(--admin-surface);
+                transition: background 0.15s;
+                user-select: none;
+            }
+            .rank-row.dragging {
+                opacity: 0.5;
+                background: var(--admin-surface-hover);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            .rank-row.drop-target {
+                border-top: 2px solid var(--admin-accent);
+            }
+            .drag-handle {
+                cursor: grab;
+                padding: var(--space-xs);
+                color: var(--admin-text-muted);
+                font-size: 18px;
+                line-height: 1;
+                flex-shrink: 0;
+            }
+            .drag-handle:active {
+                cursor: grabbing;
+            }
+            .drag-handle:focus-visible {
+                outline: 2px solid var(--admin-accent);
+                outline-offset: 2px;
+            }
+            .rank-position {
+                width: 32px;
+                font-weight: 600;
+                text-align: center;
+                flex-shrink: 0;
+                color: var(--admin-text-secondary);
+                font-size: 13px;
+            }
+            .rank-info {
+                flex: 1;
+                min-width: 0;
+            }
+            .rank-title {
+                font-weight: 500;
+                color: var(--admin-text-primary);
+            }
+            .rank-url {
+                font-size: 12px;
+                color: var(--admin-text-muted);
+                word-break: break-all;
+            }
+            .rank-url a {
+                color: var(--admin-accent);
+                text-decoration: none;
+            }
+            .rank-url a:hover {
+                text-decoration: underline;
+            }
+            .rank-meta {
+                display: flex;
+                gap: var(--space-md);
+                align-items: center;
+                flex-shrink: 0;
+                font-size: 12px;
+                color: var(--admin-text-secondary);
+            }
+            .rank-meta span {
+                white-space: nowrap;
+            }
+            .rank-row .admin-btn {
+                flex-shrink: 0;
+            }
+            .rank-actions-bar {
+                display: flex;
+                gap: var(--space-sm);
+                margin-top: var(--space-md);
+                align-items: center;
+            }
+            .inline-edit-row {
+                display: flex;
+                flex-direction: column;
+                gap: var(--space-sm);
+                padding: var(--space-md);
+                border-bottom: 1px solid var(--admin-border-light);
+                background: var(--admin-surface-hover);
+            }
+            .inline-edit-row .inline-fields {
+                display: flex;
+                gap: var(--space-sm);
+                flex-wrap: wrap;
+            }
+            .inline-edit-row .inline-fields input {
+                flex: 1;
+                min-width: 150px;
+            }
+            .admin-topbar__actions {
+                display: flex;
+                gap: var(--space-sm);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="admin-shell">
+            <nav class="admin-sidebar" aria-label="Admin navigation">
+                <div class="admin-sidebar__brand">⚡ Admin</div>
+                <div class="admin-sidebar__nav">
+                    <a class="admin-sidebar__link" href="../index.html">
+                        <span class="admin-sidebar__icon">📊</span> Dashboard
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../evidence/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📋</span> Evidence
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../collections/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📁</span> Collections
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../resources/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📚</span> Resources
+                    </a>
+                    <a
+                        class="admin-sidebar__link admin-sidebar__link--active"
+                        href="index.html"
+                    >
+                        <span class="admin-sidebar__icon">📖</span> Wikipedia
+                    </a>
+                    <a class="admin-sidebar__link" href="../essays/index.html">
+                        <span class="admin-sidebar__icon">✍️</span> Essays
+                    </a>
+                    <a class="admin-sidebar__link" href="../debate/index.html">
+                        <span class="admin-sidebar__icon">🗣️</span> Debate
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../debate/popular-challenges/index.html"
+                    >
+                        <span class="admin-sidebar__icon">📢</span> Popular
+                        Challenges
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../debate/academic-challenges/index.html"
+                    >
+                        <span class="admin-sidebar__icon">🎓</span> Academic
+                        Challenges
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../historiography/index.html"
+                    >
+                        <span class="admin-sidebar__icon">🏛️</span>
+                        Historiography
+                    </a>
+                    <a class="admin-sidebar__link" href="../blog/index.html">
+                        <span class="admin-sidebar__icon">📰</span> Blog
+                    </a>
+                    <a class="admin-sidebar__link" href="../news/index.html">
+                        <span class="admin-sidebar__icon">📡</span> News
+                    </a>
+                    <a class="admin-sidebar__link" href="../diagrams/maps.html">
+                        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+                    </a>
+                    <a class="admin-sidebar__link" href="../analytics.html">
+                        <span class="admin-sidebar__icon">📈</span> Analytics
+                    </a>
+                    <a
+                        class="admin-sidebar__link"
+                        href="../settings/index.html"
+                    >
+                        <span class="admin-sidebar__icon">⚙️</span> Settings
+                    </a>
+                </div>
+                <div class="admin-sidebar__bottom">
+                    <a class="admin-sidebar__link" href="../auth/login.html">
+                        <span class="admin-sidebar__icon">🚪</span> Logout
+                    </a>
+                </div>
+            </nav>
 
-  <nav class="admin-sidebar" aria-label="Admin navigation">
-    <div class="admin-sidebar__brand">⚡ Admin</div>
-    <div class="admin-sidebar__nav">
-      <a class="admin-sidebar__link" href="../index.html">
-        <span class="admin-sidebar__icon">📊</span> Dashboard
-      </a>
-      <a class="admin-sidebar__link" href="../evidence/index.html">
-        <span class="admin-sidebar__icon">📋</span> Evidence
-      </a>
-      <a class="admin-sidebar__link" href="../collections/index.html">
-        <span class="admin-sidebar__icon">📁</span> Collections
-      </a>
-      <a class="admin-sidebar__link" href="../resources/index.html">
-        <span class="admin-sidebar__icon">📚</span> Resources
-      </a>
-      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
-        <span class="admin-sidebar__icon">📖</span> Wikipedia
-      </a>
-      <a class="admin-sidebar__link" href="../essays/index.html">
-        <span class="admin-sidebar__icon">✍️</span> Essays
-      </a>
-      <a class="admin-sidebar__link" href="../debate/index.html">
-        <span class="admin-sidebar__icon">🗣️</span> Debate
-      </a>
-      <a class="admin-sidebar__link" href="../debate/popular-challenges/index.html">
-        <span class="admin-sidebar__icon">📢</span> Popular Challenges
-      </a>
-      <a class="admin-sidebar__link" href="../debate/academic-challenges/index.html">
-        <span class="admin-sidebar__icon">🎓</span> Academic Challenges
-      </a>
-      <a class="admin-sidebar__link" href="../historiography/index.html">
-        <span class="admin-sidebar__icon">🏛️</span> Historiography
-      </a>
-      <a class="admin-sidebar__link" href="../blog/index.html">
-        <span class="admin-sidebar__icon">📰</span> Blog
-      </a>
-      <a class="admin-sidebar__link" href="../news/index.html">
-        <span class="admin-sidebar__icon">📡</span> News
-      </a>
-      <a class="admin-sidebar__link" href="../diagrams/maps.html">
-        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
-      </a>
-      <a class="admin-sidebar__link" href="../analytics.html">
-        <span class="admin-sidebar__icon">📈</span> Analytics
-      </a>
-      <a class="admin-sidebar__link" href="../settings/index.html">
-        <span class="admin-sidebar__icon">⚙️</span> Settings
-      </a>
-    </div>
-    <div class="admin-sidebar__bottom">
-      <a class="admin-sidebar__link" href="../auth/login.html">
-        <span class="admin-sidebar__icon">🚪</span> Logout
-      </a>
-    </div>
-  </nav>
+            <header class="admin-topbar">
+                <h1 class="admin-topbar__title">Wikipedia Ranking</h1>
+                <div class="admin-topbar__actions">
+                    <button
+                        type="button"
+                        class="admin-btn admin-btn--primary admin-btn--sm"
+                        id="btn-save-order"
+                    >
+                        Save Order
+                    </button>
+                </div>
+            </header>
 
-  <header class="admin-topbar">
-    <h1 class="admin-topbar__title">Wikipedia Ranking</h1>
-    <div class="admin-topbar__actions">
-      <button type="button" class="admin-btn admin-btn--primary admin-btn--sm" id="btn-save-order">Save Order</button>
-    </div>
-  </header>
+            <main class="admin-main" id="wikipedia-content">
+                <div class="admin-loading" id="wiki-loading" role="status">
+                    Loading Wikipedia articles…
+                </div>
+            </main>
+        </div>
 
-  <main class="admin-main" id="wikipedia-content">
-    <div class="admin-loading" id="wiki-loading" role="status">Loading Wikipedia articles…</div>
-  </main>
+        <script>
+            (async function () {
+                const main = document.getElementById("wikipedia-content");
+                const loadingEl = document.getElementById("wiki-loading");
 
-</div>
+                const ok = await AdminAuth.requireSession();
+                if (!ok) {
+                    main.innerHTML =
+                        '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
+                    return;
+                }
 
-<script>
-  (async function () {
-    const main = document.getElementById('wikipedia-content');
-    const loadingEl = document.getElementById('wiki-loading');
+                var articles = [];
 
-    const ok = await AdminAuth.requireSession();
-    if (!ok) {
-      main.innerHTML = '<div class="admin-error" role="alert">Unable to verify session. Please check your connection and try again.</div>';
-      return;
-    }
+                function renderError(msg) {
+                    if (loadingEl) loadingEl.remove();
+                    var el = document.createElement("div");
+                    el.className = "admin-error";
+                    el.setAttribute("role", "alert");
+                    el.textContent = msg;
+                    main.appendChild(el);
+                }
 
-    var articles = [];
+                try {
+                    articles = await Admin.api.get("/wikipedia");
+                    main.removeChild(loadingEl);
 
-    function renderError(msg) {
-      if (loadingEl) loadingEl.remove();
-      var el = document.createElement('div');
-      el.className = 'admin-error';
-      el.setAttribute('role', 'alert');
-      el.textContent = msg;
-      main.appendChild(el);
-    }
+                    if (!Array.isArray(articles) || articles.length === 0) {
+                        var emptyEl = document.createElement("div");
+                        emptyEl.className = "admin-empty";
+                        emptyEl.setAttribute("role", "status");
+                        emptyEl.textContent = "No Wikipedia articles yet.";
+                        main.appendChild(emptyEl);
+                    }
+                } catch (err) {
+                    renderError(
+                        "Failed to load Wikipedia articles: " + err.message,
+                    );
+                    return;
+                }
 
-    try {
-      articles = await Admin.api.get('/wikipedia');
-      main.removeChild(loadingEl);
+                // Sort by rank number
+                articles.sort(function (a, b) {
+                    return (
+                        (a.wikipedia_article_rank_number || 0) -
+                        (b.wikipedia_article_rank_number || 0)
+                    );
+                });
 
-      if (!Array.isArray(articles) || articles.length === 0) {
-        var emptyEl = document.createElement('div');
-        emptyEl.className = 'admin-empty';
-        emptyEl.setAttribute('role', 'status');
-        emptyEl.textContent = 'No Wikipedia articles yet.';
-        main.appendChild(emptyEl);
-      }
-    } catch (err) {
-      renderError('Failed to load Wikipedia articles: ' + err.message);
-      return;
-    }
+                // Build rank list container
+                var listEl = document.createElement("ul");
+                listEl.className = "rank-list";
+                listEl.id = "rank-list";
+                main.appendChild(listEl);
 
-    // Sort by rank number
-    articles.sort(function (a, b) {
-      return (a.wikipedia_article_rank_number || 0) - (b.wikipedia_article_rank_number || 0);
-    });
+                function renderRows() {
+                    listEl.innerHTML = "";
+                    articles.forEach(function (article, idx) {
+                        var row = document.createElement("li");
+                        row.className = "rank-row draggable-row";
+                        row.dataset.id = article.id;
+                        row.setAttribute("draggable", "false");
 
-    // Build rank list container
-    var listEl = document.createElement('ul');
-    listEl.className = 'rank-list';
-    listEl.id = 'rank-list';
-    main.appendChild(listEl);
+                        // Drag handle
+                        var handle = document.createElement("span");
+                        handle.className = "drag-handle";
+                        handle.setAttribute("tabindex", "0");
+                        handle.setAttribute("role", "button");
+                        handle.setAttribute(
+                            "aria-label",
+                            "Drag to reorder row " + (idx + 1),
+                        );
+                        handle.textContent = "⠿";
+                        row.appendChild(handle);
 
-    function renderRows() {
-      listEl.innerHTML = '';
-      articles.forEach(function (article, idx) {
-        var row = document.createElement('li');
-        row.className = 'rank-row draggable-row';
-        row.dataset.id = article.id;
-        row.setAttribute('draggable', 'false');
+                        // Rank position
+                        var pos = document.createElement("span");
+                        pos.className = "rank-position";
+                        pos.textContent = idx + 1;
+                        row.appendChild(pos);
 
-        // Drag handle
-        var handle = document.createElement('span');
-        handle.className = 'drag-handle';
-        handle.setAttribute('tabindex', '0');
-        handle.setAttribute('role', 'button');
-        handle.setAttribute('aria-label', 'Drag to reorder row ' + (idx + 1));
-        handle.textContent = '⠿';
-        row.appendChild(handle);
+                        // Info: title + URL
+                        var info = document.createElement("div");
+                        info.className = "rank-info";
 
-        // Rank position
-        var pos = document.createElement('span');
-        pos.className = 'rank-position';
-        pos.textContent = idx + 1;
-        row.appendChild(pos);
+                        var titleEl = document.createElement("div");
+                        titleEl.className = "rank-title";
+                        titleEl.textContent =
+                            article.wikipedia_article_title || "(untitled)";
+                        info.appendChild(titleEl);
 
-        // Info: title + URL
-        var info = document.createElement('div');
-        info.className = 'rank-info';
+                        var urlEl = document.createElement("div");
+                        urlEl.className = "rank-url";
+                        if (article.wikipedia_article_url) {
+                            var a = document.createElement("a");
+                            a.href = article.wikipedia_article_url;
+                            a.target = "_blank";
+                            a.rel = "noopener";
+                            a.textContent = article.wikipedia_article_url;
+                            urlEl.appendChild(a);
+                        } else {
+                            urlEl.textContent = "\u2014";
+                        }
+                        info.appendChild(urlEl);
 
-        var titleEl = document.createElement('div');
-        titleEl.className = 'rank-title';
-        titleEl.textContent = article.wikipedia_article_title || '(untitled)';
-        info.appendChild(titleEl);
+                        row.appendChild(info);
 
-        var urlEl = document.createElement('div');
-        urlEl.className = 'rank-url';
-        if (article.wikipedia_article_url) {
-          var a = document.createElement('a');
-          a.href = article.wikipedia_article_url;
-          a.target = '_blank';
-          a.rel = 'noopener';
-          a.textContent = article.wikipedia_article_url;
-          urlEl.appendChild(a);
-        } else {
-          urlEl.textContent = '\u2014';
-        }
-        info.appendChild(urlEl);
+                        // Meta: date, pluses, minuses
+                        var meta = document.createElement("div");
+                        meta.className = "rank-meta";
 
-        row.appendChild(info);
+                        var dateSpan = document.createElement("span");
+                        dateSpan.textContent = Admin.formatDate(
+                            article.wikipedia_article_latest_revision_date,
+                        );
+                        meta.appendChild(dateSpan);
 
-        // Meta: date, pluses, minuses
-        var meta = document.createElement('div');
-        meta.className = 'rank-meta';
+                        var plusesSpan = document.createElement("span");
+                        plusesSpan.textContent =
+                            "+" +
+                            Admin.formatNumber(
+                                article.wikipedia_rank_pluses || 0,
+                            );
+                        plusesSpan.style.color = "var(--admin-success)";
+                        meta.appendChild(plusesSpan);
 
-        var dateSpan = document.createElement('span');
-        dateSpan.textContent = Admin.formatDate(article.wikipedia_article_latest_revision_date);
-        meta.appendChild(dateSpan);
+                        var minusesSpan = document.createElement("span");
+                        minusesSpan.textContent =
+                            "\u2212" +
+                            Admin.formatNumber(
+                                article.wikipedia_rank_minuses || 0,
+                            );
+                        minusesSpan.style.color = "var(--admin-danger)";
+                        meta.appendChild(minusesSpan);
 
-        var plusesSpan = document.createElement('span');
-        plusesSpan.textContent = '+' + Admin.formatNumber(article.wikipedia_rank_pluses || 0);
-        plusesSpan.style.color = 'var(--admin-success)';
-        meta.appendChild(plusesSpan);
+                        row.appendChild(meta);
 
-        var minusesSpan = document.createElement('span');
-        minusesSpan.textContent = '\u2212' + Admin.formatNumber(article.wikipedia_rank_minuses || 0);
-        minusesSpan.style.color = 'var(--admin-danger)';
-        meta.appendChild(minusesSpan);
+                        // Delete button
+                        var deleteBtn = document.createElement("button");
+                        deleteBtn.type = "button";
+                        deleteBtn.className =
+                            "admin-btn admin-btn--sm admin-btn--danger";
+                        deleteBtn.textContent = "Delete";
+                        deleteBtn.addEventListener("click", async function (e) {
+                            e.stopPropagation();
+                            if (
+                                !confirm(
+                                    'Delete "' +
+                                        (article.wikipedia_article_title ||
+                                            "this article") +
+                                        '"? This cannot be undone.',
+                                )
+                            )
+                                return;
+                            try {
+                                await Admin.api.del("/wikipedia/" + article.id);
+                                articles = articles.filter(function (a) {
+                                    return a.id !== article.id;
+                                });
+                                renderRows();
+                            } catch (err) {
+                                alert("Failed to delete: " + err.message);
+                            }
+                        });
+                        row.appendChild(deleteBtn);
 
-        row.appendChild(meta);
+                        listEl.appendChild(row);
+                    });
+                }
 
-        // Delete button
-        var deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'admin-btn admin-btn--sm admin-btn--danger';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', async function (e) {
-          e.stopPropagation();
-          if (!confirm('Delete "' + (article.wikipedia_article_title || 'this article') + '"? This cannot be undone.')) return;
-          try {
-            await Admin.api.del('/wikipedia/' + article.id);
-            articles = articles.filter(function (a) { return a.id !== article.id; });
-            renderRows();
-          } catch (err) {
-            alert('Failed to delete: ' + err.message);
-          }
-        });
-        row.appendChild(deleteBtn);
+                renderRows();
 
-        listEl.appendChild(row);
-      });
-    }
+                // Save order function — updates rank numbers
+                async function saveOrder() {
+                    var btnSave = document.getElementById("btn-save-order");
+                    btnSave.disabled = true;
+                    btnSave.textContent = "Saving…";
 
-    renderRows();
+                    try {
+                        var promises = articles.map(function (article, i) {
+                            return Admin.api.put("/wikipedia/" + article.id, {
+                                wikipedia_article_rank_number: i + 1,
+                            });
+                        });
+                        await Promise.all(promises);
+                        btnSave.textContent = "Order Saved ✓";
+                        setTimeout(function () {
+                            btnSave.textContent = "Save Order";
+                        }, 2000);
+                    } catch (err) {
+                        alert("Failed to save order: " + err.message);
+                        btnSave.textContent = "Save Order";
+                    } finally {
+                        btnSave.disabled = false;
+                    }
+                }
 
-    // Save order function — updates rank numbers
-    async function saveOrder() {
-      var btnSave = document.getElementById('btn-save-order');
-      btnSave.disabled = true;
-      btnSave.textContent = 'Saving…';
+                document
+                    .getElementById("btn-save-order")
+                    .addEventListener("click", saveOrder);
 
-      try {
-        var promises = articles.map(function (article, i) {
-          return Admin.api.put('/wikipedia/' + article.id, {
-            wikipedia_article_rank_number: i + 1
-          });
-        });
-        await Promise.all(promises);
-        btnSave.textContent = 'Order Saved ✓';
-        setTimeout(function () { btnSave.textContent = 'Save Order'; }, 2000);
-      } catch (err) {
-        alert('Failed to save order: ' + err.message);
-        btnSave.textContent = 'Save Order';
-      } finally {
-        btnSave.disabled = false;
-      }
-    }
+                // Initialize ranking drag module
+                AdminRanking.init("#rank-list", {
+                    itemSelector: ".draggable-row",
+                    handleSelector: ".drag-handle",
+                    save: async function (orders) {
+                        // Reorder articles array to match DOM order
+                        var idMap = {};
+                        articles.forEach(function (a) {
+                            idMap[a.id] = a;
+                        });
 
-    document.getElementById('btn-save-order').addEventListener('click', saveOrder);
+                        var reordered = [];
+                        var rows = listEl.querySelectorAll(".draggable-row");
+                        rows.forEach(function (row) {
+                            var id = Number(row.dataset.id);
+                            if (idMap[id]) reordered.push(idMap[id]);
+                        });
+                        articles = reordered;
 
-    // Initialize ranking drag module
-    AdminRanking.init('#rank-list', {
-      itemSelector: '.draggable-row',
-      handleSelector: '.drag-handle',
-      save: async function (orders) {
-        // Reorder articles array to match DOM order
-        var idMap = {};
-        articles.forEach(function (a) { idMap[a.id] = a; });
+                        // Re-render to update position numbers
+                        renderRows();
 
-        var reordered = [];
-        var rows = listEl.querySelectorAll('.draggable-row');
-        rows.forEach(function (row) {
-          var id = Number(row.dataset.id);
-          if (idMap[id]) reordered.push(idMap[id]);
-        });
-        articles = reordered;
+                        // Update rank numbers via API
+                        var promises = articles.map(function (article, i) {
+                            return Admin.api.put("/wikipedia/" + article.id, {
+                                wikipedia_article_rank_number: i + 1,
+                            });
+                        });
+                        await Promise.all(promises);
+                    },
+                });
 
-        // Re-render to update position numbers
-        renderRows();
+                // ── Add Article inline form ─────────────────────────────────────────
 
-        // Update rank numbers via API
-        var promises = articles.map(function (article, i) {
-          return Admin.api.put('/wikipedia/' + article.id, {
-            wikipedia_article_rank_number: i + 1
-          });
-        });
-        await Promise.all(promises);
-      }
-    });
+                var addBar = document.createElement("div");
+                addBar.className = "rank-actions-bar";
+                var btnAdd = document.createElement("button");
+                btnAdd.type = "button";
+                btnAdd.className = "admin-btn admin-btn--secondary";
+                btnAdd.id = "btn-add-article";
+                btnAdd.textContent = "+ Add Article";
+                addBar.appendChild(btnAdd);
+                main.appendChild(addBar);
 
-    // ── Add Article inline form ─────────────────────────────────────────
+                var inlineForm = document.createElement("div");
+                inlineForm.className = "inline-edit-row";
+                inlineForm.id = "inline-add-form";
+                inlineForm.style.display = "none";
+                main.appendChild(inlineForm);
 
-    var addBar = document.createElement('div');
-    addBar.className = 'rank-actions-bar';
-    var btnAdd = document.createElement('button');
-    btnAdd.type = 'button';
-    btnAdd.className = 'admin-btn admin-btn--secondary';
-    btnAdd.id = 'btn-add-article';
-    btnAdd.textContent = '+ Add Article';
-    addBar.appendChild(btnAdd);
-    main.appendChild(addBar);
+                btnAdd.addEventListener("click", function () {
+                    inlineForm.style.display =
+                        inlineForm.style.display === "none" ? "block" : "none";
+                });
 
-    var inlineForm = document.createElement('div');
-    inlineForm.className = 'inline-edit-row';
-    inlineForm.id = 'inline-add-form';
-    inlineForm.style.display = 'none';
-    main.appendChild(inlineForm);
+                function buildInlineForm() {
+                    inlineForm.innerHTML = "";
 
-    btnAdd.addEventListener('click', function () {
-      inlineForm.style.display = inlineForm.style.display === 'none' ? 'block' : 'none';
-    });
+                    var fields = document.createElement("div");
+                    fields.className = "inline-fields";
 
-    function buildInlineForm() {
-      inlineForm.innerHTML = '';
+                    var titleInput = document.createElement("input");
+                    titleInput.className = "admin-input";
+                    titleInput.placeholder = "Article Title";
+                    titleInput.id = "inline-title";
+                    titleInput.setAttribute("aria-label", "Article Title");
+                    fields.appendChild(titleInput);
 
-      var fields = document.createElement('div');
-      fields.className = 'inline-fields';
+                    var urlInput = document.createElement("input");
+                    urlInput.className = "admin-input";
+                    urlInput.type = "url";
+                    urlInput.placeholder = "Wikipedia URL";
+                    urlInput.id = "inline-url";
+                    urlInput.setAttribute("aria-label", "Wikipedia URL");
+                    fields.appendChild(urlInput);
 
-      var titleInput = document.createElement('input');
-      titleInput.className = 'admin-input';
-      titleInput.placeholder = 'Article Title';
-      titleInput.id = 'inline-title';
-      titleInput.setAttribute('aria-label', 'Article Title');
-      fields.appendChild(titleInput);
+                    var dateInput = document.createElement("input");
+                    dateInput.className = "admin-input";
+                    dateInput.type = "date";
+                    dateInput.id = "inline-date";
+                    dateInput.setAttribute(
+                        "aria-label",
+                        "Latest Revision Date",
+                    );
+                    fields.appendChild(dateInput);
 
-      var urlInput = document.createElement('input');
-      urlInput.className = 'admin-input';
-      urlInput.type = 'url';
-      urlInput.placeholder = 'Wikipedia URL';
-      urlInput.id = 'inline-url';
-      urlInput.setAttribute('aria-label', 'Wikipedia URL');
-      fields.appendChild(urlInput);
+                    var slugInput = document.createElement("input");
+                    slugInput.className = "admin-input";
+                    slugInput.placeholder = "slug";
+                    slugInput.id = "inline-slug";
+                    slugInput.setAttribute("aria-label", "Slug");
+                    fields.appendChild(slugInput);
 
-      var dateInput = document.createElement('input');
-      dateInput.className = 'admin-input';
-      dateInput.type = 'date';
-      dateInput.id = 'inline-date';
-      dateInput.setAttribute('aria-label', 'Latest Revision Date');
-      fields.appendChild(dateInput);
+                    inlineForm.appendChild(fields);
 
-      var slugInput = document.createElement('input');
-      slugInput.className = 'admin-input';
-      slugInput.placeholder = 'slug';
-      slugInput.id = 'inline-slug';
-      slugInput.setAttribute('aria-label', 'Slug');
-      fields.appendChild(slugInput);
+                    var actions = document.createElement("div");
+                    actions.style.cssText =
+                        "display:flex;gap:var(--space-sm);margin-top:var(--space-sm);";
 
-      inlineForm.appendChild(fields);
+                    var saveBtn = document.createElement("button");
+                    saveBtn.type = "button";
+                    saveBtn.className =
+                        "admin-btn admin-btn--primary admin-btn--sm";
+                    saveBtn.textContent = "Save";
 
-      var actions = document.createElement('div');
-      actions.style.cssText = 'display:flex;gap:var(--space-sm);margin-top:var(--space-sm);';
+                    var cancelBtn = document.createElement("button");
+                    cancelBtn.type = "button";
+                    cancelBtn.className =
+                        "admin-btn admin-btn--ghost admin-btn--sm";
+                    cancelBtn.textContent = "Cancel";
 
-      var saveBtn = document.createElement('button');
-      saveBtn.type = 'button';
-      saveBtn.className = 'admin-btn admin-btn--primary admin-btn--sm';
-      saveBtn.textContent = 'Save';
+                    actions.appendChild(saveBtn);
+                    actions.appendChild(cancelBtn);
+                    inlineForm.appendChild(actions);
 
-      var cancelBtn = document.createElement('button');
-      cancelBtn.type = 'button';
-      cancelBtn.className = 'admin-btn admin-btn--ghost admin-btn--sm';
-      cancelBtn.textContent = 'Cancel';
+                    // Auto slug from title
+                    var slugAuto = true;
+                    titleInput.addEventListener("input", function () {
+                        if (slugAuto) {
+                            slugInput.value = Admin.slugify(titleInput.value);
+                        }
+                    });
+                    slugInput.addEventListener("input", function () {
+                        slugAuto = false;
+                    });
 
-      actions.appendChild(saveBtn);
-      actions.appendChild(cancelBtn);
-      inlineForm.appendChild(actions);
+                    cancelBtn.addEventListener("click", function () {
+                        inlineForm.style.display = "none";
+                    });
 
-      // Auto slug from title
-      var slugAuto = true;
-      titleInput.addEventListener('input', function () {
-        if (slugAuto) {
-          slugInput.value = titleInput.value
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .replace(/^-|-$/g, '');
-        }
-      });
-      slugInput.addEventListener('input', function () { slugAuto = false; });
+                    saveBtn.addEventListener("click", async function () {
+                        var titleVal = titleInput.value.trim();
+                        var slugVal = slugInput.value.trim();
+                        if (!titleVal) {
+                            alert("Title is required.");
+                            return;
+                        }
+                        if (!slugVal) {
+                            alert("Slug is required.");
+                            return;
+                        }
 
-      cancelBtn.addEventListener('click', function () {
-        inlineForm.style.display = 'none';
-      });
+                        saveBtn.disabled = true;
+                        saveBtn.textContent = "Saving…";
+                        try {
+                            var result = await Admin.api.post("/wikipedia", {
+                                slug: slugVal,
+                                wikipedia_article_title: titleVal,
+                                wikipedia_article_url:
+                                    urlInput.value.trim() || undefined,
+                                wikipedia_article_latest_revision_date:
+                                    dateInput.value || undefined,
+                                wikipedia_article_rank_number:
+                                    articles.length + 1,
+                                published_draft: 0,
+                            });
+                            articles.push(result);
+                            renderRows();
+                            inlineForm.style.display = "none";
+                        } catch (err) {
+                            alert("Failed to create article: " + err.message);
+                        } finally {
+                            saveBtn.disabled = false;
+                            saveBtn.textContent = "Save";
+                        }
+                    });
+                }
 
-      saveBtn.addEventListener('click', async function () {
-        var titleVal = titleInput.value.trim();
-        var slugVal = slugInput.value.trim();
-        if (!titleVal) { alert('Title is required.'); return; }
-        if (!slugVal) { alert('Slug is required.'); return; }
+                buildInlineForm();
 
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving…';
-        try {
-          var result = await Admin.api.post('/wikipedia', {
-            slug: slugVal,
-            wikipedia_article_title: titleVal,
-            wikipedia_article_url: urlInput.value.trim() || undefined,
-            wikipedia_article_latest_revision_date: dateInput.value || undefined,
-            wikipedia_article_rank_number: articles.length + 1,
-            published_draft: 0
-          });
-          articles.push(result);
-          renderRows();
-          inlineForm.style.display = 'none';
-        } catch (err) {
-          alert('Failed to create article: ' + err.message);
-        } finally {
-          saveBtn.disabled = false;
-          saveBtn.textContent = 'Save';
-        }
-      });
-    }
+                // ── Bulk Upload section ──────────────────────────────────────────
 
-    buildInlineForm();
-  })();
-</script>
-</body>
+                var bulkDetails = document.createElement("details");
+                bulkDetails.style.cssText =
+                    "margin-top:var(--space-lg);padding:var(--space-md) 0;";
+
+                var bulkSummary = document.createElement("summary");
+                bulkSummary.style.cssText =
+                    "cursor:pointer;font-weight:600;margin-bottom:var(--space-sm);";
+                bulkSummary.textContent = "Bulk Upload Articles";
+                bulkDetails.appendChild(bulkSummary);
+
+                var caption = document.createElement("p");
+                caption.style.cssText =
+                    "font-size:0.8125rem;color:var(--admin-text-muted);margin:0 0 var(--space-sm);";
+                var code = document.createElement("code");
+                code.textContent = "Title, URL, Rank";
+                caption.appendChild(code);
+                caption.appendChild(
+                    document.createTextNode(" per line · saved as draft"),
+                );
+                bulkDetails.appendChild(caption);
+
+                var bulkLabel = document.createElement("label");
+                bulkLabel.className = "admin-form-group__label";
+                bulkLabel.setAttribute("for", "bulk-wiki-textarea");
+                bulkLabel.textContent = "Paste articles";
+                bulkDetails.appendChild(bulkLabel);
+
+                var bulkTextarea = document.createElement("textarea");
+                bulkTextarea.className = "admin-input";
+                bulkTextarea.id = "bulk-wiki-textarea";
+                bulkTextarea.rows = 6;
+                bulkTextarea.style.cssText =
+                    "width:100%;font-family:monospace;resize:vertical;";
+                bulkDetails.appendChild(bulkTextarea);
+
+                var bulkActions = document.createElement("div");
+                bulkActions.style.cssText =
+                    "display:flex;align-items:center;gap:var(--space-sm);margin-top:var(--space-sm);";
+
+                var bulkBtn = document.createElement("button");
+                bulkBtn.type = "button";
+                bulkBtn.className =
+                    "admin-btn admin-btn--primary admin-btn--sm";
+                bulkBtn.textContent = "Upload";
+                bulkActions.appendChild(bulkBtn);
+
+                var bulkSummaryEl = document.createElement("span");
+                bulkSummaryEl.style.cssText =
+                    "font-size:0.8125rem;color:var(--admin-text-muted);";
+                bulkActions.appendChild(bulkSummaryEl);
+
+                bulkDetails.appendChild(bulkActions);
+                main.appendChild(bulkDetails);
+
+                bulkBtn.addEventListener("click", async function () {
+                    var lines = bulkTextarea.value.split("\n");
+                    if (lines.length === 0) return;
+
+                    bulkBtn.disabled = true;
+                    bulkBtn.textContent = "Uploading…";
+                    bulkSummaryEl.textContent = "";
+
+                    var added = 0;
+                    var skipped = 0;
+
+                    for (var i = 0; i < lines.length; i++) {
+                        var line = lines[i].trim();
+                        if (!line) continue;
+
+                        var parts = line.split(",");
+                        if (parts.length < 3) {
+                            skipped++;
+                            continue;
+                        }
+
+                        var title = parts[0].trim();
+                        var url = parts[1].trim();
+                        var rankStr = parts[2].trim();
+
+                        if (!title || !url) {
+                            skipped++;
+                            continue;
+                        }
+
+                        var rank = Number(rankStr);
+                        if (isNaN(rank)) {
+                            skipped++;
+                            continue;
+                        }
+
+                        try {
+                            var result = await Admin.api.post("/wikipedia", {
+                                slug: Admin.slugify(title),
+                                wikipedia_article_title: title,
+                                wikipedia_article_url: url,
+                                wikipedia_article_rank_number: rank,
+                                published_draft: 0,
+                            });
+                            articles.push(result);
+                            added++;
+                        } catch (err) {
+                            skipped++;
+                        }
+                    }
+
+                    // Re-sort by rank so new rows take their correct positions
+                    articles.sort(function (a, b) {
+                        return (
+                            (a.wikipedia_article_rank_number || 0) -
+                            (b.wikipedia_article_rank_number || 0)
+                        );
+                    });
+                    renderRows();
+                    bulkTextarea.value = "";
+                    bulkBtn.disabled = false;
+                    bulkBtn.textContent = "Upload";
+                    bulkSummaryEl.textContent =
+                        added + " added, " + skipped + " skipped";
+                });
+            })();
+        </script>
+    </body>
 </html>
