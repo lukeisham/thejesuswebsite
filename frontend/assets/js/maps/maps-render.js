@@ -269,7 +269,7 @@ function showEmptyState(container) {
   container.innerHTML = "";
   container.appendChild(
     createElement("div", { className: "empty-state" }, [
-      createElement("p", { className: "empty-state-message" }, [
+      createElement("p", { className: "empty-state__message" }, [
         "No maps available yet.",
       ]),
     ]),

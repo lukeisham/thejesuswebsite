@@ -61,52 +61,54 @@
   </nav>
 
   <main id="main-content">
-    <!-- Filter bar -->
-    <section class="filter-bar" id="filter-bar" aria-label="Filter evidence">
+    <div class="container">
+      <!-- Filter bar -->
+      <section class="filter-bar" id="filter-bar" aria-label="Filter evidence">
       <div class="filter-bar__chips" id="filter-chips">
-        <button class="filter-chip filter-chip--active" data-filter="all">All</button>
-        <button class="filter-chip" data-filter="timeline_era" data-value="beginning">Beginning</button>
-        <button class="filter-chip" data-filter="timeline_era" data-value="middle">Middle</button>
-        <button class="filter-chip" data-filter="timeline_era" data-value="ending">Ending</button>
-        <button class="filter-chip" data-filter="gospel_category" data-value="event">Events</button>
-        <button class="filter-chip" data-filter="gospel_category" data-value="saying">Sayings</button>
-        <button class="filter-chip" data-filter="gospel_category" data-value="parable">Parables</button>
-        <button class="filter-chip" data-filter="map_location" data-value="Galilee">Galilee</button>
-        <button class="filter-chip" data-filter="map_location" data-value="Judea">Judea</button>
-        <button class="filter-chip" data-filter="map_location" data-value="Jerusalem">Jerusalem</button>
+      <button class="filter-chip filter-chip--active" data-filter="all">All</button>
+      <button class="filter-chip" data-filter="timeline_era" data-value="beginning">Beginning</button>
+      <button class="filter-chip" data-filter="timeline_era" data-value="middle">Middle</button>
+      <button class="filter-chip" data-filter="timeline_era" data-value="ending">Ending</button>
+      <button class="filter-chip" data-filter="gospel_category" data-value="event">Events</button>
+      <button class="filter-chip" data-filter="gospel_category" data-value="saying">Sayings</button>
+      <button class="filter-chip" data-filter="gospel_category" data-value="parable">Parables</button>
+      <button class="filter-chip" data-filter="map_location" data-value="Galilee">Galilee</button>
+      <button class="filter-chip" data-filter="map_location" data-value="Judea">Judea</button>
+      <button class="filter-chip" data-filter="map_location" data-value="Jerusalem">Jerusalem</button>
       </div>
-    </section>
+      </section>
 
-    <!-- Card grid region -->
-    <section class="card-grid" id="card-grid" aria-label="Evidence items">
+      <!-- Card grid region -->
+      <section class="card-grid" id="card-grid" aria-label="Evidence items">
       <!-- Cards are rendered here by evidence-list.js -->
-    </section>
+      </section>
 
-    <!-- Loading state -->
-    <div class="loading" id="loading-state" hidden>
+      <!-- Loading state -->
+      <div class="loading" id="loading-state" hidden>
       <svg class="loading__spinner" width="24" height="24" aria-hidden="true">
-        <use href="/assets/images/feather-sprite.svg#icon-loader"/>
+      <use href="/assets/images/feather-sprite.svg#icon-loader"/>
       </svg>
       <span class="loading__text">Loading evidence…</span>
-    </div>
+      </div>
 
-    <!-- Empty state -->
-    <div class="empty-state" id="empty-state" hidden>
+      <!-- Empty state -->
+      <div class="empty-state" id="empty-state" hidden>
       <p class="empty-state__message">No evidence items match the current filters.</p>
       <button class="btn btn--ghost" id="clear-filters">Clear filters</button>
-    </div>
+      </div>
 
-    <!-- Error state -->
-    <div class="error-state" id="error-state" hidden>
+      <!-- Error state -->
+      <div class="error-state" id="error-state" hidden>
       <p class="error-state__message">Failed to load evidence.</p>
       <button class="btn btn--secondary" id="retry-load">Try again</button>
+      </div>
+
+      <!-- Infinite-scroll sentinel -->
+      <div class="scroll-sentinel" id="scroll-sentinel" hidden></div>
+
+      <!-- End-of-list message -->
+      <p class="end-of-list" id="end-of-list" hidden></p>
     </div>
-
-    <!-- Infinite-scroll sentinel -->
-    <div class="scroll-sentinel" id="scroll-sentinel" hidden></div>
-
-    <!-- End-of-list message -->
-    <p class="end-of-list" id="end-of-list" hidden></p>
   </main>
 
   <footer>

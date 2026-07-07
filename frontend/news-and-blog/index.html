@@ -1,141 +1,228 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>News &amp; Blog — The Jesus Website</title>
-  <meta name="description" content="Latest blog posts and curated news articles about the historical Jesus.">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>News &amp; Blog — The Jesus Website</title>
+        <meta
+            name="description"
+            content="Latest blog posts and curated news articles about the historical Jesus."
+        />
 
-  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
-  <link rel="icon" href="/favicon.ico" sizes="32x32">
-  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
-  <link rel="manifest" href="/assets/images/site.webmanifest">
+        <link rel="icon" href="/assets/images/favicon.png" type="image/png" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link
+            rel="apple-touch-icon"
+            href="/assets/images/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/assets/images/site.webmanifest" />
 
-  <link rel="stylesheet" href="/assets/css/base/variables.css">
-  <link rel="stylesheet" href="/assets/css/base/reset.css">
-  <link rel="stylesheet" href="/assets/css/base/typography.css">
-  <link rel="stylesheet" href="/assets/css/base/invisible-header.css">
-  <link rel="stylesheet" href="/assets/css/base/animations.css">
-  <link rel="stylesheet" href="/assets/css/layout/grid.css">
-  <link rel="stylesheet" href="/assets/css/layout/navigation.css">
-  <link rel="stylesheet" href="/assets/css/layout/footer.css">
-  <link rel="stylesheet" href="/assets/css/components/sidebar.css">
-  <link rel="stylesheet" href="/assets/css/components/icons.css">
-  <link rel="stylesheet" href="/assets/css/components/buttons.css">
-  <link rel="stylesheet" href="/assets/css/components/cards.css">
-  <link rel="stylesheet" href="/assets/css/components/badges.css">
-  <link rel="stylesheet" href="/assets/css/components/filters.css">
-  <link rel="stylesheet" href="/assets/css/components/infinite-scroll.css">
-  <link rel="stylesheet" href="/assets/css/components/loading.css">
-  <link rel="stylesheet" href="/assets/css/components/toasts.css">
-  <link rel="stylesheet" href="/assets/css/pages/news-and-blog.css">
+        <link rel="stylesheet" href="/assets/css/base/variables.css" />
+        <link rel="stylesheet" href="/assets/css/base/reset.css" />
+        <link rel="stylesheet" href="/assets/css/base/typography.css" />
+        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" />
+        <link rel="stylesheet" href="/assets/css/base/animations.css" />
+        <link rel="stylesheet" href="/assets/css/layout/grid.css" />
+        <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
+        <link rel="stylesheet" href="/assets/css/layout/footer.css" />
+        <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
+        <link rel="stylesheet" href="/assets/css/components/icons.css" />
+        <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+        <link rel="stylesheet" href="/assets/css/components/cards.css" />
+        <link rel="stylesheet" href="/assets/css/components/badges.css" />
+        <link rel="stylesheet" href="/assets/css/components/filters.css" />
+        <link
+            rel="stylesheet"
+            href="/assets/css/components/infinite-scroll.css"
+        />
+        <link rel="stylesheet" href="/assets/css/components/loading.css" />
+        <link rel="stylesheet" href="/assets/css/components/toasts.css" />
+        <link rel="stylesheet" href="/assets/css/pages/news-and-blog.css" />
 
-  <link rel="preload" as="image" href="/assets/images/feather-sprite.svg" fetchpriority="high">
-</head>
-<body>
-  <header class="sr-only">
-    <a class="skip-link" href="#main-content">Skip to content</a>
-    <h1>News and Comments — The Jesus Website</h1>
-  </header>
+        <link
+            rel="preload"
+            as="image"
+            href="/assets/images/feather-sprite.svg"
+            fetchpriority="high"
+        />
+    </head>
+    <body>
+        <header class="sr-only">
+            <a class="skip-link" href="#main-content">Skip to content</a>
+            <h1>News and Comments — The Jesus Website</h1>
+        </header>
 
-  <div class="sidebar-backdrop" hidden></div>
-  <button class="sidebar__toggle" id="sidebar-toggle" aria-expanded="true" aria-label="Toggle navigation">
-    <svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-menu"/></svg>
-  </button>
-  <nav class="sidebar" id="sidebar" aria-label="Site navigation">
-    <ul class="sidebar__nav">
-      <li class="nav-item"><a href="/">The Jesus Website</a></li>
-      <li class="nav-item"><a href="/evidence/">Evidence</a></li>
-      <li class="nav-item"><a href="/evidence/search.html">Search</a></li>
-      <li class="nav-item"><a href="/evidence/arbor.html">Arbor Diagram</a></li>
-      <li class="nav-item"><a href="/evidence/timeline/">Timeline</a></li>
-      <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
-      <li class="nav-item"><a href="/contextual-essays/">Context</a></li>
-      <li class="nav-item"><a href="/debate/">Debate</a></li>
-      <li class="nav-item"><a href="/news-and-blog/">News</a></li>
-      <li class="nav-item"><a href="/about.html">About</a></li>
-      <li class="nav-item nav-item--admin">
-          <a href="/admin/">Admin</a>
-      </li>
-    </ul>
-  </nav>
+        <div class="sidebar-backdrop" hidden></div>
+        <button
+            class="sidebar__toggle"
+            id="sidebar-toggle"
+            aria-expanded="true"
+            aria-label="Toggle navigation"
+        >
+            <svg width="20" height="20" aria-hidden="true">
+                <use href="/assets/images/feather-sprite.svg#icon-menu" />
+            </svg>
+        </button>
+        <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+            <ul class="sidebar__nav">
+                <li class="nav-item"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+                <li class="nav-item">
+                    <a href="/evidence/search.html">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/arbor.html">Arbor Diagram</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/timeline/">Timeline</a>
+                </li>
+                <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+                <li class="nav-item">
+                    <a href="/contextual-essays/">Context</a>
+                </li>
+                <li class="nav-item"><a href="/debate/">Debate</a></li>
+                <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+                <li class="nav-item"><a href="/about.html">About</a></li>
+                <li class="nav-item nav-item--admin">
+                    <a href="/admin/">Admin</a>
+                </li>
+            </ul>
+        </nav>
 
-  <main id="main-content">
-    <!-- Page header -->
-    <section class="news-blog-header">
-      <h2>News &amp; Blog</h2>
-    </section>
+        <main id="main-content">
+            <div class="container">
+                <!-- Page header -->
+                <section class="news-blog-header">
+                    <h2>News &amp; Blog</h2>
+                </section>
 
-    <!-- T</h2>oggle chips: All / Blog / News -->
-    <div class="news-blog-toggles" id="toggle-chips" aria-label="Filter by type">
-      <button class="news-blog-toggle active" data-type="all">All</button>
-      <button class="news-blog-toggle" data-type="blog">Blog</button>
-      <button class="news-blog-toggle" data-type="news">News</button>
-    </div>
+                <!-- Toggle chips: All / Blog / News -->
+                <div
+                    class="news-blog-toggles"
+                    id="toggle-chips"
+                    aria-label="Filter by type"
+                >
+                    <button class="news-blog-toggle active" data-type="all">
+                        All
+                    </button>
+                    <button class="news-blog-toggle" data-type="blog">
+                        Blog
+                    </button>
+                    <button class="news-blog-toggle" data-type="news">
+                        News
+                    </button>
+                </div>
 
-    <!-- Hero promotion card slot (for landing_page_display = 1 items) -->
-    <section class="news-blog-hero" id="hero-promotion" aria-label="Featured" hidden></section>
+                <!-- Hero promotion card slot (for landing_page_display = 1 items) -->
+                <section
+                    class="news-blog-hero"
+                    id="hero-promotion"
+                    aria-label="Featured"
+                    hidden
+                ></section>
 
-    <!-- Mixed card list -->
-    <section class="news-blog-list" id="card-list" aria-label="Latest posts and articles">
-      <!-- Cards rendered by news-and-blog.js -->
-    </section>
+                <!-- Mixed card list -->
+                <section
+                    class="news-blog-list"
+                    id="card-list"
+                    aria-label="Latest posts and articles"
+                >
+                    <!-- Cards rendered by news-and-blog.js -->
+                </section>
 
-    <!-- Loading state -->
-    <div class="loading" id="loading-state" hidden>
-      <svg class="loading__spinner" width="24" height="24" aria-hidden="true">
-        <use href="/assets/images/feather-sprite.svg#icon-loader"/>
-      </svg>
-      <span class="loading__text">Loading posts…</span>
-    </div>
+                <!-- Loading state -->
+                <div class="loading" id="loading-state" hidden>
+                    <svg
+                        class="loading__spinner"
+                        width="24"
+                        height="24"
+                        aria-hidden="true"
+                    >
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-loader"
+                        />
+                    </svg>
+                    <span class="loading__text">Loading posts…</span>
+                </div>
 
-    <!-- Empty state -->
-    <div class="empty-state" id="empty-state" hidden>
-      <p class="empty-state__message">No posts or articles found.</p>
-    </div>
+                <!-- Empty state -->
+                <div class="empty-state" id="empty-state" hidden>
+                    <p class="empty-state__message">
+                        No posts or articles found.
+                    </p>
+                </div>
 
-    <!-- Error state -->
-    <div class="error-state" id="error-state" hidden>
-      <p class="error-state__message">Failed to load posts.</p>
-      <button class="btn btn--secondary" id="retry-load">Try again</button>
-    </div>
+                <!-- Error state -->
+                <div class="error-state" id="error-state" hidden>
+                    <p class="error-state__message">Failed to load posts.</p>
+                    <button class="btn btn--secondary" id="retry-load">
+                        Try again
+                    </button>
+                </div>
 
-    <!-- Infinite-scroll sentinel -->
-    <div class="scroll-sentinel" id="scroll-sentinel" hidden></div>
+                <!-- Infinite-scroll sentinel -->
+                <div class="scroll-sentinel" id="scroll-sentinel" hidden></div>
 
-    <!-- End-of-list message -->
-    <p class="end-of-list" id="end-of-list" hidden></p>
-  </main>
+                <!-- End-of-list message -->
+                <p class="end-of-list" id="end-of-list" hidden></p>
+            </div>
+        </main>
 
-  <footer>
-    <div class="footer__left">
-      <img
-          src="/assets/images/favicon-64.png"
-          alt=""
-          width="20"
-          height="20"
-      />
-      <p>
-          &copy; The Jesus Website. <a href="https://opensource.org/license/mit">MIT licence</a>.
-      </p>
-    </div>
-    <div class="footer__right">
-      <button class="btn btn--ghost" data-action="print" aria-label="Print page">
-        <svg width="16" height="16" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-printer"/></svg>
-        Print
-      </button>
-      <button class="btn btn--ghost" data-action="copy-contents" aria-label="Copy page contents">
-        <svg width="16" height="16" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-copy"/></svg>
-        Copy Contents
-      </button>
-      <button class="btn btn--ghost" data-action="copy-url" aria-label="Copy page URL">
-        <svg width="16" height="16" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-link"/></svg>
-        Copy URL
-      </button>
-    </div>
-  </footer>
+        <footer>
+            <div class="footer__left">
+                <img
+                    src="/assets/images/favicon-64.png"
+                    alt=""
+                    width="20"
+                    height="20"
+                />
+                <p>
+                    &copy; The Jesus Website.
+                    <a href="https://opensource.org/license/mit">MIT licence</a
+                    >.
+                </p>
+            </div>
+            <div class="footer__right">
+                <button
+                    class="btn btn--ghost"
+                    data-action="print"
+                    aria-label="Print page"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-printer"
+                        />
+                    </svg>
+                    Print
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-contents"
+                    aria-label="Copy page contents"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-copy"
+                        />
+                    </svg>
+                    Copy Contents
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-url"
+                    aria-label="Copy page URL"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-link"
+                        />
+                    </svg>
+                    Copy URL
+                </button>
+            </div>
+        </footer>
 
-  <script type="module" src="/assets/js/news-and-blog.js" defer></script>
-  <script type="module" src="/assets/js/main.js" defer></script>
-</body>
+        <script type="module" src="/assets/js/news-and-blog.js" defer></script>
+        <script type="module" src="/assets/js/main.js" defer></script>
+    </body>
 </html>
