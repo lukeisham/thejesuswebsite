@@ -82,7 +82,7 @@
 
   <!-- ── Inline page script ────────────────────────────────────────────── -->
   <script>
-    (async function () {
+    document.addEventListener('DOMContentLoaded', async function () {
       const main = document.getElementById('settings-content');
 
       // Guard
@@ -197,7 +197,7 @@
           msg.textContent = 'Error: ' + err.message;
         }
       }
-    })();
-  </script>
+    });
+</script>
 </body>
 </html>

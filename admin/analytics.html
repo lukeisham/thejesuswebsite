@@ -92,7 +92,7 @@
 
   <!-- ── Inline page script ────────────────────────────────────────────── -->
   <script>
-    (async function () {
+    document.addEventListener('DOMContentLoaded', async function () {
       // Guard: redirect if not authenticated
       const ok = await AdminAuth.requireSession();
       if (!ok) {
@@ -103,7 +103,7 @@
 
       // Delegate to the analytics module
       AdminAnalytics.render();
-    })();
-  </script>
+    });
+</script>
 </body>
 </html>

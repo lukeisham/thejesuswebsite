@@ -147,7 +147,7 @@
 
 <!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
 <script>
-  (function () {
+  document.addEventListener('DOMContentLoaded', function () {
     // Once all deferred scripts have loaded, init each module.
     var canvas = document.getElementById("arbor-canvas");
     AdminArborCanvas.init(canvas);
@@ -214,7 +214,7 @@
     if (panel) {
       observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
     }
-  })();
+  });
 </script>
 
 </body>

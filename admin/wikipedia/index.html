@@ -235,7 +235,7 @@
         </div>
 
         <script>
-            (async function () {
+            document.addEventListener('DOMContentLoaded', async function () {
                 const main = document.getElementById("wikipedia-content");
                 const loadingEl = document.getElementById("wiki-loading");
 
@@ -726,7 +726,7 @@
                     bulkSummaryEl.textContent =
                         added + " added, " + skipped + " skipped";
                 });
-            })();
-        </script>
+            });
+</script>
     </body>
 </html>

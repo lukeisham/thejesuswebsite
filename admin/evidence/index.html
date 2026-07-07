@@ -150,7 +150,7 @@
         </div>
 
         <script>
-            (async function () {
+            document.addEventListener('DOMContentLoaded', async function () {
                 const main = document.getElementById("evidence-content");
                 const loadingEl = document.getElementById("evidence-loading");
 
@@ -510,7 +510,7 @@
                     bulkSummaryEl.textContent =
                         added + " added, " + skipped + " skipped";
                 });
-            })();
-        </script>
+            });
+</script>
     </body>
 </html>

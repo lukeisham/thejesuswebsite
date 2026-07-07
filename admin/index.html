@@ -133,7 +133,7 @@
 
         <!-- ── Inline page script ────────────────────────────────────────────── -->
         <script>
-            (function () {
+            document.addEventListener('DOMContentLoaded', function () {
                 var TYPE_LABELS = {
                     evidence: "Evidence",
                     essays: "Essay",
@@ -417,7 +417,7 @@
                                 "</div>";
                         });
                 });
-            })();
-        </script>
+            });
+</script>
     </body>
 </html>

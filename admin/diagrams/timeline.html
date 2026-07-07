@@ -144,7 +144,7 @@
 
 <!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
 <script>
-  (function () {
+  document.addEventListener('DOMContentLoaded', function () {
     // Once all deferred scripts have loaded, init each module.
     var axisContainer = document.getElementById("timeline-axis");
     AdminTimelineAxis.init(axisContainer);
@@ -188,7 +188,7 @@
     if (panel) {
       observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
     }
-  })();
+  });
 </script>
 
 </body>
