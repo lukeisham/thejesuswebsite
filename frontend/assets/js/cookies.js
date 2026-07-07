@@ -22,12 +22,17 @@ export function showConsentBanner() {
 
   banner.innerHTML = `
     <p class="cookie-consent__text">
-      This website uses essential cookies only. No tracking or advertising.
-      By continuing, you accept our use of cookies.
+      Notice for European users as per
+      <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32002L0058" target="_blank" rel="noopener noreferrer">2002/58/EC</a>,
+      <a href="https://www.legislation.gov.uk/uksi/2003/2426/contents/made" target="_blank" rel="noopener noreferrer">UK PECR</a>
+      and
+      <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679" target="_blank" rel="noopener noreferrer">GDPR</a>;
+      this site uses local analytical cookies only, no external tracking or
+      advertising. By continuing, you accept our use of cookies.
     </p>
     <div class="cookie-consent__actions">
-      <button class="cookie-consent__accept">Accept</button>
-      <button class="cookie-consent__decline">Decline</button>
+      <button class="cookie-consent__accept btn btn--primary btn--sm">Accept</button>
+      <button class="cookie-consent__decline btn btn--secondary btn--sm">Decline</button>
     </div>
   `;
 

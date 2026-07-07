@@ -1,0 +1,34 @@
+/* ==========================================================================
+   Cookie Consent
+   Fixed bottom-centre banner, styled like a wide toast. Persists until the
+   user accepts or declines (see assets/js/cookies.js).
+   ========================================================================== */
+
+.cookie-consent {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  width: min(560px, calc(100vw - 2rem));
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-toast);
+  animation: slide-up-fade var(--duration-base) var(--ease-out);
+}
+
+.cookie-consent__text {
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  color: var(--text-primary);
+}
+
+.cookie-consent__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
