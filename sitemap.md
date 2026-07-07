@@ -176,7 +176,15 @@ thejesuswebsite/
 │   ├── debate/
 │   │   ├── index.html
 │   │   ├── new.html
-│   │   └── edit-[id].html
+│   │   ├── edit-[id].html
+│   │   ├── popular-challenges/         # Popular Challenge CRUD (separate from academic)
+│   │   │   ├── index.html
+│   │   │   ├── new.html
+│   │   │   └── edit-[id].html
+│   │   └── academic-challenges/        # Academic Challenge CRUD (separate from popular)
+│   │       ├── index.html
+│   │       ├── new.html
+│   │       └── edit-[id].html
 │   │
 │   ├── historiography/               # Historiography CMS (mirrors essays editor)
 │   │   ├── index.html

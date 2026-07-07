@@ -209,11 +209,21 @@ router.post(
 router.post("/login/options", loginOptionsLimit, (req, res) => {
   try {
     const handle = validateHandle(req.body.handle || "admin");
+    // Restrict the browser to credentials the server actually has enrolled for
+    // this handle, so a stale passkey left over from a credential reset is
+    // never offered (and can't produce a confusing "Unknown credential.").
+    const allowCredentials = credentialModel
+      .getByUserHandle(handle)
+      .map((credential) => ({
+        type: "public-key",
+        id: credential.credential_id,
+      }));
     res.json({
       challenge: issueChallenge(handle),
       rpId: RP_ID,
       timeout: CHALLENGE_TTL_MS,
       userVerification: "preferred",
+      allowCredentials,
     });
   } catch (error) {
     console.error("POST /passkey/login/options failed:", error);

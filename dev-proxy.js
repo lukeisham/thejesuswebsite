@@ -16,7 +16,7 @@ const API_PREFIXES = [
   "/identifiers", "/essays", "/popular-challenges", "/academic-challenges",
   "/historiography", "/responses", "/wikipedia", "/maps", "/blog-posts",
   "/news-articles", "/collections", "/resources", "/timeline", "/search",
-  "/sources", "/about",
+  "/sources", "/about", "/esv",
 ];
 
 const MIME = {

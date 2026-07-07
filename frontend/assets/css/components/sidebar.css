@@ -7,14 +7,16 @@
 
 /* -------------------------------------------------------------------------
    Toggle Handle
-   Sticks out past the sidebar's right edge so it remains clickable when
-   the sidebar is translated off-canvas.
+   Pinned to the viewport (sibling of .sidebar, not a child — the sidebar's
+   transform would otherwise become its containing block) so it stays put
+   above the sidebar whether open or closed.
    ------------------------------------------------------------------------- */
 
 .sidebar__toggle {
-    position: absolute;
+    position: fixed;
     top: var(--space-md);
-    left: calc(100% + var(--space-sm));
+    left: var(--space-md);
+    z-index: 101;
     width: 44px;
     height: 44px;
     display: flex;

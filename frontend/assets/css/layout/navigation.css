@@ -19,7 +19,8 @@
     top: 0;
     left: 0;
     z-index: 100;
-    padding: var(--space-lg) 0;
+    /* Top padding clears the viewport-pinned toggle button (44px tall) */
+    padding: calc(44px + 2 * var(--space-md)) 0 var(--space-lg);
     transform: translateX(-100%);
     transition: transform var(--duration-base) var(--ease-in-out);
 }
@@ -98,6 +99,6 @@ main {
 @media (min-width: 768px) {
     .sidebar--open ~ main,
     .sidebar--open ~ footer {
-        margin-left: var(--sidebar-width);
+        margin-left: calc(var(--sidebar-width) + var(--space-lg));
     }
 }

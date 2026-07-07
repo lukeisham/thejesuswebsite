@@ -28,7 +28,13 @@ body > footer {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+/* Kill the global paragraph bottom margin so the copyright text centres on
+   the same row as the favicon. */
+.footer__left p {
+  margin: 0;
 }
 
 /* -------------------------------------------------------------------------

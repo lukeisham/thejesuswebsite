@@ -53,17 +53,17 @@
         </header>
 
         <div class="sidebar-backdrop" hidden></div>
+        <button
+            class="sidebar__toggle"
+            id="sidebar-toggle"
+            aria-expanded="true"
+            aria-label="Toggle navigation"
+        >
+            <svg width="20" height="20" aria-hidden="true">
+                <use href="/assets/images/feather-sprite.svg#icon-menu" />
+            </svg>
+        </button>
         <nav class="sidebar" id="sidebar" aria-label="Site navigation">
-            <button
-                class="sidebar__toggle"
-                id="sidebar-toggle"
-                aria-expanded="true"
-                aria-label="Toggle navigation"
-            >
-                <svg width="20" height="20" aria-hidden="true">
-                    <use href="/assets/images/feather-sprite.svg#icon-menu" />
-                </svg>
-            </button>
             <ul class="sidebar__nav">
                 <li class="nav-item"><a href="/">The Jesus Website</a></li>
                 <li class="nav-item"><a href="/evidence/">Evidence</a></li>
@@ -115,11 +115,19 @@
                 <!-- Opening / mission paragraph -->
                 <section class="about-section">
                     <p>
-                        Many have undertaken to draw up an account of the things
-                        that have been fulfilled among us, just as they were
-                        handed down to us by those who from the first were
-                        eyewitnesses and servants of the word. (Luke
-                        1:1&ndash;3) This website is intended to be a useful
+                        <em
+                            ><a
+                                class="esv-verse"
+                                data-esv-ref="Luke 1:1-3"
+                                href="https://www.esv.org/Luke+1:1-3/"
+                                >Many have undertaken to draw up an account of
+                                the things that have been fulfilled among us,
+                                just as they were handed down to us by those
+                                who from the first were eyewitnesses and
+                                servants of the word.</a
+                            ></em
+                        >
+                        (Luke 1:1&ndash;3, ESV) This website is intended to be a useful
                         resource for thinking about the historical evidence for
                         Jesus. Each &lsquo;record&rsquo; is intended to
                         catalogue the available information about that
@@ -272,11 +280,7 @@
                     height="20"
                 />
                 <p>
-                    &copy; The Jesus Website. Content available under
-                    <a
-                        href="https://github.com/lukeisham/thejesuswebsite/blob/main/LICENSE"
-                        >MIT licence</a
-                    >.
+                    &copy; The Jesus Website. <a href="https://opensource.org/license/mit">MIT licence</a>.
                 </p>
             </div>
             <div class="footer__right">
@@ -321,6 +325,7 @@
 
         <!-- Scripts at bottom with defer (HTML-4) -->
         <script type="module" src="/assets/js/donation.js" defer></script>
+        <script type="module" src="/assets/js/esv_verse.js" defer></script>
         <script type="module" src="/assets/js/main.js" defer></script>
     </body>
 </html>
