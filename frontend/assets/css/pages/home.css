@@ -27,7 +27,7 @@
 
 .home-title-block {
     text-align: center;
-    padding: var(--space-3xl) var(--space-lg);
+    padding: var(--space-3xl) var(--space-lg) var(--space-lg);
 }
 
 .home-title {
@@ -51,6 +51,10 @@
 .home-section {
     padding: var(--space-3xl) var(--space-md);
     text-align: center;
+}
+
+.home-title-block + .home-section {
+    padding-top: var(--space-lg);
 }
 
 .home-section + .home-section {
