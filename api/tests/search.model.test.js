@@ -219,3 +219,151 @@ describe("searchOne rejects prototype-inherited keys", () => {
     assert.deepEqual(results, []);
   });
 });
+
+// ── Quoted phrase vs unquoted matching ────────────────────────────────────────
+
+describe("quoted phrases match adjacency and order", () => {
+  beforeEach(clearAll);
+
+  test("quoted phrase matches only rows with words adjacent and in order", () => {
+    seedEvidence({
+      slug: "pilate-ev",
+      title: "Pontius Pilate",
+      description: "Pontius Pilate was the governor.",
+    });
+    seedEvidence({
+      slug: "other-ev",
+      title: "Pilate and Pontius",
+      description: "Pontius appears later after Pilate in this text.",
+    });
+
+    const phraseResults = searchModel.searchOne("evidence", '"Pontius Pilate"');
+    // Only the first row has the words adjacent and in order.
+    assert.equal(phraseResults.length, 1);
+    assert.equal(phraseResults[0].title, "Pontius Pilate");
+  });
+
+  test("unquoted words match rows with the words anywhere", () => {
+    seedEvidence({
+      slug: "pilate-ev",
+      title: "Pontius Pilate",
+      description: "Pontius Pilate was the governor.",
+    });
+    seedEvidence({
+      slug: "other-ev",
+      title: "Pilate and Pontius",
+      description: "Pontius appears later after Pilate in this text.",
+    });
+
+    const unquotedResults = searchModel.searchOne("evidence", "Pontius Pilate");
+    // Both rows contain both words (unquoted = AND of prefix tokens).
+    assert.equal(unquotedResults.length, 2);
+  });
+});
+
+// ── Prefix matching ───────────────────────────────────────────────────────────
+
+describe("bare partial word prefix-matches", () => {
+  beforeEach(clearAll);
+
+  test("resur prefix-matches Resurrection", () => {
+    seedEvidence({
+      slug: "resurrection-ev",
+      title: "Resurrection Evidence",
+      description: "Evidence for the Resurrection of Jesus.",
+    });
+
+    const results = searchModel.searchOne("evidence", "resur");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Resurrection Evidence");
+  });
+
+  test("partial word matches across essays", () => {
+    seedEssay({
+      slug: "minimal-facts",
+      essay_title: "Minimal Facts Argument",
+      essay_content: "The minimal facts approach to the resurrection.",
+    });
+
+    const results = searchModel.searchOne("essays", "mini");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Minimal Facts Argument");
+  });
+});
+
+// ── OR fallback for near-miss queries ─────────────────────────────────────────
+
+describe("OR fallback returns partial matches", () => {
+  beforeEach(clearAll);
+
+  test("multi-word query where one word matches nothing still returns hits for the other", () => {
+    seedEvidence({
+      slug: "resurrection-ev",
+      title: "Resurrection Evidence",
+      description: "Historical evidence for the resurrection.",
+    });
+
+    // "Resurrection" matches; "xyzzy" matches nothing.
+    // The strict AND pass returns 0, then OR fallback finds the resurrection row.
+    const results = searchModel.searchOne("evidence", "Resurrection xyzzy");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Resurrection Evidence");
+  });
+
+  test("OR fallback preserves exact phrase tokens", () => {
+    seedEvidence({
+      slug: "pilate-ev",
+      title: "Pontius Pilate",
+      description: "Pontius Pilate was the governor.",
+    });
+    seedEvidence({
+      slug: "other-ev",
+      title: "Some Other Evidence",
+      description: "This has neither Pontius nor Pilate.",
+    });
+
+    // The phrase '"Pontius Pilate"' + nonsense word triggers OR fallback.
+    const results = searchModel.searchOne("evidence", '"Pontius Pilate" xyzzy');
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Pontius Pilate");
+  });
+});
+
+// ── Hostile input safety ──────────────────────────────────────────────────────
+
+describe("hostile input returns [] or results without throwing", () => {
+  test('" OR injection returns []', () => {
+    const results = searchModel.searchOne("evidence", '" OR ');
+    assert.deepEqual(results, []);
+  });
+
+  test("* wildcard returns []", () => {
+    const results = searchModel.searchOne("evidence", "*");
+    assert.deepEqual(results, []);
+  });
+
+  test("NOT ( parentheses returns []", () => {
+    const results = searchModel.searchOne("evidence", "NOT (");
+    assert.deepEqual(results, []);
+  });
+
+  test("unbalanced quotes returns []", () => {
+    const results = searchModel.searchOne("evidence", '"unbalanced');
+    assert.deepEqual(results, []);
+  });
+
+  test("empty string returns []", () => {
+    const results = searchModel.searchOne("evidence", "");
+    assert.deepEqual(results, []);
+  });
+
+  test("whitespace-only returns []", () => {
+    const results = searchModel.searchOne("evidence", "   ");
+    assert.deepEqual(results, []);
+  });
+
+  test("double-quote only returns []", () => {
+    const results = searchModel.searchOne("evidence", '"');
+    assert.deepEqual(results, []);
+  });
+});

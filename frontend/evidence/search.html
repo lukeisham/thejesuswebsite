@@ -27,7 +27,10 @@
         <link rel="stylesheet" href="/assets/css/layout/footer.css" />
         <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
         <link rel="stylesheet" href="/assets/css/components/icons.css" />
-        <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
+        <link
+            rel="stylesheet"
+            href="/assets/css/components/cookie-consent.css"
+        />
         <link rel="stylesheet" href="/assets/css/components/buttons.css" />
         <link rel="stylesheet" href="/assets/css/components/cards.css" />
         <link rel="stylesheet" href="/assets/css/components/badges.css" />
@@ -111,8 +114,14 @@
                             autofocus
                             autocomplete="off"
                             aria-label="Search"
+                            aria-describedby="search-hint"
                         />
                     </div>
+
+                    <p class="search-hint" id="search-hint">
+                        Tip: wrap words in &quot;quotation marks&quot; for an
+                        exact phrase — otherwise similar words match too.
+                    </p>
 
                     <!-- Filter chips for entity type -->
                     <div class="filter-bar__chips" id="type-chips">
@@ -137,10 +146,7 @@
                         <button class="filter-chip" data-type="news">
                             News
                         </button>
-                        <button
-                            class="filter-chip"
-                            data-type="bible-verses"
-                        >
+                        <button class="filter-chip" data-type="bible-verses">
                             Bible Verses
                         </button>
                     </div>
