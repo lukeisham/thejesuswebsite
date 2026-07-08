@@ -1,7 +1,7 @@
 /* ==========================================================================
    Navigation — Sidebar
-   260px off-canvas sidebar. Closed by default (home + mobile); open on
-   other pages via .sidebar--open (added by sidebar_hamburger.js). On
+   260px off-canvas sidebar. Closed by default on mobile; open elsewhere
+   (including home) via .sidebar--open (added by sidebar_hamburger.js). On
    desktop, open sidebar shifts <main> and <footer> right; on mobile it
    overlays content with a backdrop.
    ========================================================================== */
