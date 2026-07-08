@@ -8,12 +8,39 @@
 import { get, set } from './utils/storage.js';
 
 const CONSENT_KEY = 'cookie_consent';
+const SESSION_SEEN_KEY = 'cookie_consent_seen';
 
 /**
- * Show the cookie consent banner if the user hasn't made a choice yet.
+ * Whether the banner has already been shown once this tab session
+ * (set on the visitor's landing page, so it doesn't reappear on every
+ * subsequent page navigation).
+ */
+function hasSeenThisSession() {
+  try {
+    return sessionStorage.getItem(SESSION_SEEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markSeenThisSession() {
+  try {
+    sessionStorage.setItem(SESSION_SEEN_KEY, '1');
+  } catch {
+    // sessionStorage unavailable (e.g. private browsing) — banner will
+    // simply show again on the next page, which is an acceptable fallback.
+  }
+}
+
+/**
+ * Show the cookie consent banner if the user hasn't made a choice yet
+ * and hasn't already dismissed it (by navigating onward) this session.
  */
 export function showConsentBanner() {
   if (getConsent() !== null) return;
+  if (hasSeenThisSession()) return;
+
+  markSeenThisSession();
 
   const banner = document.createElement('div');
   banner.className = 'cookie-consent';
