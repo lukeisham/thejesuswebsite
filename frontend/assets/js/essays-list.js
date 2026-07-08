@@ -5,24 +5,24 @@
  * @module essays-list
  */
 
-import { getEssays } from './api.js';
-import { renderCard } from './utils/templates.js';
-import { showToast } from './utils/toasts.js';
-import { delegate } from './utils/dom.js';
+import { getEssays } from "./api.js";
+import { renderCard } from "./utils/templates.js";
+import { showToast } from "./utils/toasts.js";
+import { delegate } from "./utils/dom.js";
 
-const SENTINEL_ID = 'scroll-sentinel';
-const CARD_GRID_ID = 'card-grid';
-const LOADING_ID = 'loading-state';
-const EMPTY_ID = 'empty-state';
-const ERROR_ID = 'error-state';
-const END_ID = 'end-of-list';
-const RETRY_ID = 'retry-load';
+const SENTINEL_ID = "scroll-sentinel";
+const CARD_GRID_ID = "card-grid";
+const LOADING_ID = "loading-state";
+const EMPTY_ID = "empty-state";
+const ERROR_ID = "error-state";
+const END_ID = "end-of-list";
+const RETRY_ID = "retry-load";
 
 const PAGE_SIZE = 20;
 const SCROLL_THRESHOLD = 300;
 
-const STORAGE_KEY_ITEMS = 'essays_list_items';
-const STORAGE_KEY_SCROLL = 'essays_list_scroll';
+const STORAGE_KEY_ITEMS = "essays_list_items";
+const STORAGE_KEY_SCROLL = "essays_list_scroll";
 
 let currentPage = 1;
 let hasMore = true;
@@ -33,21 +33,23 @@ let retryTeardown = null;
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
-const $grid     = document.getElementById(CARD_GRID_ID);
+const $grid = document.getElementById(CARD_GRID_ID);
 const $sentinel = document.getElementById(SENTINEL_ID);
-const $loading  = document.getElementById(LOADING_ID);
-const $empty    = document.getElementById(EMPTY_ID);
-const $error    = document.getElementById(ERROR_ID);
-const $end      = document.getElementById(END_ID);
-const $retry    = document.getElementById(RETRY_ID);
+const $loading = document.getElementById(LOADING_ID);
+const $empty = document.getElementById(EMPTY_ID);
+const $error = document.getElementById(ERROR_ID);
+const $end = document.getElementById(END_ID);
+const $retry = document.getElementById(RETRY_ID);
 
 // ─── State management ────────────────────────────────────────────────────────
 
 function showState(name) {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
-  const target = { loading: $loading, empty: $empty, error: $error, end: $end }[name];
+  const target = { loading: $loading, empty: $empty, error: $error, end: $end }[
+    name
+  ];
   if (target) target.hidden = false;
-  if ($sentinel) $sentinel.hidden = name !== 'none';
+  if ($sentinel) $sentinel.hidden = name !== "none";
 }
 
 function hideAllStates() {
@@ -59,27 +61,25 @@ function hideAllStates() {
 async function loadPage() {
   if (isLoading || !hasMore) return;
   isLoading = true;
-  showState('loading');
+  showState("loading");
 
   const { data, error } = await getEssays();
 
   isLoading = false;
 
   if (error) {
-    showState('error');
-    showToast('Failed to load essays', 'error');
+    showState("error");
+    showToast("Failed to load essays", "error");
     return;
   }
 
   if (!data || data.length === 0) {
     if (allItems.length === 0) {
-      showState('empty');
+      showState("empty");
     } else {
       hasMore = false;
       $sentinel && ($sentinel.hidden = true);
-      showState('end');
-      const total = allItems.length;
-      if ($end) $end.textContent = `All ${total} essay${total !== 1 ? 's' : ''} loaded`;
+      showState("end");
     }
     return;
   }
@@ -91,9 +91,7 @@ async function loadPage() {
   if (pageItems.length === 0) {
     hasMore = false;
     $sentinel && ($sentinel.hidden = true);
-    showState('end');
-    const total = allItems.length;
-    if ($end) $end.textContent = `All ${total} essay${total !== 1 ? 's' : ''} loaded`;
+    showState("end");
     return;
   }
 
@@ -104,9 +102,7 @@ async function loadPage() {
   if (pageItems.length < PAGE_SIZE || start + pageItems.length >= data.length) {
     hasMore = false;
     $sentinel && ($sentinel.hidden = true);
-    showState('end');
-    const total = allItems.length;
-    if ($end) $end.textContent = `All ${total} essay${total !== 1 ? 's' : ''} loaded`;
+    showState("end");
   } else {
     currentPage++;
     hideAllStates();
@@ -123,28 +119,32 @@ function renderCards(items) {
   items.forEach((item) => {
     const date = item.published_at || item.created_at;
     const dateStr = date
-      ? new Date(date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
-      : '';
+      ? new Date(date).toLocaleDateString("en-GB", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "";
     const byline = item.author
-      ? `${item.author}${dateStr ? ` \u00B7 ${dateStr}` : ''}`
+      ? `${item.author}${dateStr ? ` \u00B7 ${dateStr}` : ""}`
       : dateStr;
 
     const cardHTML = renderCard({
-      title: item.title || 'Untitled',
-      description: byline || '',
-      url: `/contextual-essays/${encodeURIComponent(item.slug || '')}`,
+      title: item.title || "Untitled",
+      description: byline || "",
+      url: `/contextual-essays/${encodeURIComponent(item.slug || "")}`,
       badges: [],
     });
 
-    const temp = document.createElement('div');
+    const temp = document.createElement("div");
     temp.innerHTML = cardHTML;
     const cardEl = temp.firstElementChild;
     if (cardEl) {
-      const typeBadge = cardEl.querySelector('.card-badges');
+      const typeBadge = cardEl.querySelector(".card-badges");
       if (typeBadge) {
-        const essayBadge = document.createElement('span');
-        essayBadge.className = 'badge';
-        essayBadge.textContent = 'Essay';
+        const essayBadge = document.createElement("span");
+        essayBadge.className = "badge";
+        essayBadge.textContent = "Essay";
         typeBadge.appendChild(essayBadge);
       }
       $grid.appendChild(cardEl);
@@ -165,7 +165,7 @@ function initInfiniteScroll() {
         }
       });
     },
-    { rootMargin: `${SCROLL_THRESHOLD}px` }
+    { rootMargin: `${SCROLL_THRESHOLD}px` },
   );
 
   observer.observe($sentinel);
@@ -177,14 +177,18 @@ function cacheItems() {
   try {
     sessionStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(allItems));
     sessionStorage.setItem(STORAGE_KEY_SCROLL, String(window.scrollY));
-  } catch { /* quota exceeded — non-critical */ }
+  } catch {
+    /* quota exceeded — non-critical */
+  }
 }
 
 function clearCachedItems() {
   try {
     sessionStorage.removeItem(STORAGE_KEY_ITEMS);
     sessionStorage.removeItem(STORAGE_KEY_SCROLL);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function restoreFromCache() {
@@ -194,14 +198,14 @@ function restoreFromCache() {
       allItems = JSON.parse(cached);
       hasMore = false;
       $sentinel && ($sentinel.hidden = true);
-      if ($grid) $grid.innerHTML = '';
+      if ($grid) $grid.innerHTML = "";
       renderCards(allItems);
-      showState('end');
-      const total = allItems.length;
-      if ($end) $end.textContent = `All ${total} essay${total !== 1 ? 's' : ''} loaded`;
+      showState("end");
       return true;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return false;
 }
 
@@ -211,7 +215,9 @@ function restoreScrollPosition() {
     if (scrollY) {
       requestAnimationFrame(() => window.scrollTo(0, Number(scrollY)));
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 // ─── Event wiring ────────────────────────────────────────────────────────────
@@ -219,12 +225,12 @@ function restoreScrollPosition() {
 function bindRetry() {
   if (!$retry) return;
   if (retryTeardown) retryTeardown();
-  retryTeardown = delegate(document.body, `#${RETRY_ID}`, 'click', () => {
+  retryTeardown = delegate(document.body, `#${RETRY_ID}`, "click", () => {
     currentPage = 1;
     hasMore = true;
     allItems = [];
     clearCachedItems();
-    if ($grid) $grid.innerHTML = '';
+    if ($grid) $grid.innerHTML = "";
     hideAllStates();
     $sentinel && ($sentinel.hidden = false);
     loadPage();
@@ -246,8 +252,8 @@ function init() {
   loadPage();
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
 } else {
   init();
 }
