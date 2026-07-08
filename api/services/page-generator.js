@@ -11,7 +11,7 @@ const path = require("path");
 const db = require("../config");
 const { CONTENT_PAGES } = require("../config/content-pages");
 
-const BASE_URL = "https://www.thejesuswebsite.org";
+const BASE_URL = "https://thejesuswebsite.org";
 
 // ── HTML escaping ────────────────────────────────────────────────────────────
 
@@ -69,6 +69,7 @@ function renderSeoBlock(config, row) {
   if (description) {
     html += `  <meta name="description" content="${escapeHTML(truncate(description, 160))}">\n`;
   }
+  html += `  <meta name="robots" content="index, follow">\n`;
 
   // Open Graph
   html += `  <meta property="og:title" content="${escapeHTML(title)} — ${escapeHTML(config.sectionLabel)} — The Jesus Website">\n`;

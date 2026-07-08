@@ -3,23 +3,23 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>News &amp; Blog — The Jesus Website</title>
+        <title>News — The Jesus Website</title>
         <meta
             name="description"
-            content="Latest blog posts and curated news articles about the historical Jesus."
+            content="Curated news articles about the historical Jesus and related scholarship."
         />
         <meta name="robots" content="index, follow" />
 
         <!-- Open Graph / Twitter Card -->
-        <meta property="og:title" content="News &amp; Blog — The Jesus Website" />
+        <meta property="og:title" content="News — The Jesus Website" />
         <meta
             property="og:description"
-            content="Latest blog posts and curated news articles about the historical Jesus."
+            content="Curated news articles about the historical Jesus and related scholarship."
         />
         <meta property="og:type" content="website" />
         <meta
             property="og:url"
-            content="https://thejesuswebsite.org/news-and-blog/"
+            content="https://thejesuswebsite.org/news-and-blog/news/"
         />
         <meta property="og:site_name" content="The Jesus Website" />
         <meta
@@ -27,34 +27,15 @@
             content="https://thejesuswebsite.org/assets/images/favicon.png"
         />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta
-            name="twitter:title"
-            content="News &amp; Blog — The Jesus Website"
-        />
+        <meta name="twitter:title" content="News — The Jesus Website" />
         <meta
             name="twitter:description"
-            content="Latest blog posts and curated news articles about the historical Jesus."
+            content="Curated news articles about the historical Jesus and related scholarship."
         />
         <meta
             name="twitter:image"
             content="https://thejesuswebsite.org/assets/images/favicon.png"
         />
-
-        <!-- JSON-LD: CollectionPage -->
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "CollectionPage",
-                "name": "News & Blog — The Jesus Website",
-                "description": "Latest blog posts and curated news articles about the historical Jesus.",
-                "url": "https://thejesuswebsite.org/news-and-blog/",
-                "isPartOf": {
-                    "@type": "WebSite",
-                    "name": "The Jesus Website",
-                    "url": "https://thejesuswebsite.org/"
-                }
-            }
-        </script>
 
         <link rel="icon" href="/assets/images/favicon.png" type="image/png" />
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
@@ -78,14 +59,13 @@
         <link rel="stylesheet" href="/assets/css/components/buttons.css" />
         <link rel="stylesheet" href="/assets/css/components/cards.css" />
         <link rel="stylesheet" href="/assets/css/components/badges.css" />
-        <link rel="stylesheet" href="/assets/css/components/filters.css" />
         <link
             rel="stylesheet"
             href="/assets/css/components/infinite-scroll.css"
         />
         <link rel="stylesheet" href="/assets/css/components/loading.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
-        <link rel="stylesheet" href="/assets/css/pages/news-and-blog.css" />
+        <link rel="stylesheet" href="/assets/css/pages/news.css" />
 
         <link
             rel="preload"
@@ -97,7 +77,7 @@
     <body>
         <header class="sr-only">
             <a class="skip-link" href="#main-content">Skip to content</a>
-            <h1>News and Comments — The Jesus Website</h1>
+            <h1>News — The Jesus Website</h1>
         </header>
 
         <div class="sidebar-backdrop" hidden></div>
@@ -141,42 +121,17 @@
         <main id="main-content">
             <div class="container">
                 <!-- Page header -->
-                <section class="news-blog-header">
-                    <h2>News &amp; Blog</h2>
+                <section class="evidence-list-header">
+                    <h2>News</h2>
                 </section>
 
-                <!-- Toggle chips: All / Blog / News -->
-                <div
-                    class="news-blog-toggles"
-                    id="toggle-chips"
-                    aria-label="Filter by type"
-                >
-                    <button class="news-blog-toggle active" data-type="all">
-                        All
-                    </button>
-                    <button class="news-blog-toggle" data-type="blog">
-                        Blog
-                    </button>
-                    <button class="news-blog-toggle" data-type="news">
-                        News
-                    </button>
-                </div>
-
-                <!-- Hero promotion card slot (for landing_page_display = 1 items) -->
+                <!-- News card list -->
                 <section
-                    class="news-blog-hero"
-                    id="hero-promotion"
-                    aria-label="Featured"
-                    hidden
-                ></section>
-
-                <!-- Mixed card list -->
-                <section
-                    class="news-blog-list"
-                    id="card-list"
-                    aria-label="Latest posts and articles"
+                    class="card-grid"
+                    id="card-grid"
+                    aria-label="News articles"
                 >
-                    <!-- Cards rendered by news-and-blog.js -->
+                    <!-- Cards rendered by news-list.js -->
                 </section>
 
                 <!-- Loading state -->
@@ -191,19 +146,22 @@
                             href="/assets/images/feather-sprite.svg#icon-loader"
                         />
                     </svg>
-                    <span class="loading__text">Loading posts…</span>
+                    <span class="loading__text">Loading news articles…</span>
                 </div>
 
                 <!-- Empty state -->
                 <div class="empty-state" id="empty-state" hidden>
-                    <p class="empty-state__message">
-                        No posts or articles found.
-                    </p>
+                    <p class="empty-state__message">No news articles yet.</p>
+                    <a href="/news-and-blog/" class="btn btn--secondary"
+                        >Back to News &amp; Blog</a
+                    >
                 </div>
 
                 <!-- Error state -->
                 <div class="error-state" id="error-state" hidden>
-                    <p class="error-state__message">Failed to load posts.</p>
+                    <p class="error-state__message">
+                        Failed to load news articles.
+                    </p>
                     <button class="btn btn--secondary" id="retry-load">
                         Try again
                     </button>
@@ -271,7 +229,7 @@
             </div>
         </footer>
 
-        <script type="module" src="/assets/js/news-and-blog.js" defer></script>
+        <script type="module" src="/assets/js/news-list.js" defer></script>
         <script type="module" src="/assets/js/main.js" defer></script>
     </body>
 </html>

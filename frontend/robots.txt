@@ -7,4 +7,8 @@ Allow: /
 # API-level per-IP limiters in server.js + routes/search.js.
 Crawl-delay: 5
 
-Sitemap: https://www.thejesuswebsite.org/sitemap.xml
+Sitemap: https://thejesuswebsite.org/sitemap.xml
+
+# AI agent discovery:
+# llms.txt: https://thejesuswebsite.org/llms.txt
+# MCP server: https://thejesuswebsite.org/mcp
