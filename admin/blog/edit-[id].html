@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="../assets/css/admin.css">
   <script defer src="../assets/js/auth.js"></script>
   <script defer src="../assets/js/admin.js"></script>
+  <script defer src="../assets/js/admin-image-picker.js"></script>
+  <script defer src="../assets/js/admin-insert-image.js"></script>
+  <script defer src="../assets/js/admin-insert-image.js"></script>
   <style>
     .admin-form-actions {
       display: flex;
@@ -294,6 +297,27 @@
     var metaTitle = document.createElement('div');
     metaTitle.className = 'admin-form-card__title';
     metaTitle.textContent = 'Metadata';
+    // Hero image picker
+    var heroCard = document.createElement('div');
+    heroCard.className = 'admin-form-card';
+    heroCard.style.marginTop = 'var(--space-md)';
+    var heroTitle = document.createElement('div');
+    heroTitle.className = 'admin-form-card__title';
+    heroTitle.textContent = 'Hero Image';
+    heroCard.appendChild(heroTitle);
+    var heroContainer = document.createElement('div');
+    heroContainer.id = 'hero-image-picker';
+    heroCard.appendChild(heroContainer);
+    sidebar.insertBefore(heroCard, metaCard);
+    var heroPicker = null;
+    if (typeof AdminImagePicker !== 'undefined') {
+        heroPicker = AdminImagePicker.mount(heroContainer, {
+            initialPath: data.hero_image || '',
+            initialAlt: data.hero_image_alt || '',
+            onChange: function(val) { /* tracked via getValue */ },
+        });
+    }
+
     metaCard.appendChild(metaTitle);
 
     metaCard.appendChild(formGroup('Keywords', 'blog-keywords', '', 'e.g. resurrection, faith, evidence', 'Comma-separated search keywords.', false, data.metadata_keywords || ''));
@@ -332,6 +356,20 @@
     var actions = document.createElement('div');
     actions.className = 'admin-form-actions';
     main.appendChild(actions);
+    // Insert Image button
+    var insertBtn = document.createElement('button');
+    insertBtn.type = 'button';
+    insertBtn.className = 'admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn';
+    insertBtn.id = 'insert-image-btn';
+    insertBtn.textContent = 'Insert Image';
+    var contentField = document.getElementById('blog-content');
+    if (contentField && contentField.parentNode) {
+        contentField.parentNode.insertBefore(insertBtn, contentField.nextSibling);
+    }
+    if (typeof AdminInsertImage !== 'undefined') {
+        AdminInsertImage.wire('#insert-image-btn', '#blog-content');
+    }
+
 
     var saveBtn = document.createElement('button');
     saveBtn.type = 'button';
@@ -433,7 +471,7 @@
         blog_content: document.getElementById('blog-content').value.trim() || undefined,
         landing_page_display: document.getElementById('blog-landing').checked ? 1 : 0,
         metadata_keywords: document.getElementById('blog-keywords').value.trim() || undefined,
-        published_draft: document.getElementById('blog-publish').checked ? 1 : 0
+                    hero_image: heroPicker ? heroPicker.getValue().image_path || undefined : undefined,            hero_image_alt: heroPicker ? heroPicker.getValue().alt || undefined : undefined,            published_draft: document.getElementById('blog-publish').checked ? 1 : 0
       };
     }
 

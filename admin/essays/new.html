@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="../assets/css/admin.css" />
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-insert-image.js"></script>
         <style>
             .admin-form-actions {
                 display: flex;
@@ -247,7 +248,9 @@
                                     >The full essay body. Supports plain text
                                     and HTML.</span
                                 >
-                            </div>
+                            
+                            <button type="button" class="admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn" id="insert-image-btn">Insert Image</button>
+</div>
                         </div>
                     </div>
 
@@ -355,7 +358,10 @@
                 const ok = await AdminAuth.requireSession();
                 if (!ok) return;
 
-                const titleInput = document.getElementById("essay-title");
+                
+                // Wire Insert Image widget
+                AdminInsertImage.wire("#insert-image-btn", "#essay-content");
+const titleInput = document.getElementById("essay-title");
                 const slugInput = document.getElementById("essay-slug");
                 const contentInput = document.getElementById("essay-content");
                 const formError = document.getElementById("form-error");
@@ -474,7 +480,7 @@
                     try {
                         var result = await Admin.api.post("/essays", payload);
                         submitStatus.innerHTML =
-                            '<span style="color:var(--admin-success)">Essay created successfully!</span>';
+                            '<span style="color:var(--admin-success)">Essay created successfully!</span>';;
                         setTimeout(function () {
                             window.location.href =
                                 "edit-[id].html?id=" + result.id;

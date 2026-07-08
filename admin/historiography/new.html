@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="../assets/css/admin.css" />
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-insert-image.js"></script>
         <style>
             .admin-form-actions {
                 display: flex;
@@ -248,7 +249,9 @@
                                     >The full article body. Supports plain text
                                     and HTML.</span
                                 >
-                            </div>
+                            
+                            <button type="button" class="admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn" id="insert-image-btn">Insert Image</button>
+</div>
                         </div>
                     </div>
 
@@ -356,7 +359,10 @@
                 const ok = await AdminAuth.requireSession();
                 if (!ok) return;
 
-                const titleInput = document.getElementById(
+                
+                // Wire Insert Image widget
+                AdminInsertImage.wire("#insert-image-btn", "#historiography-content");
+const titleInput = document.getElementById(
                     "historiography-title",
                 );
                 const slugInput = document.getElementById(
@@ -485,7 +491,7 @@
                             payload,
                         );
                         submitStatus.innerHTML =
-                            '<span style="color:var(--admin-success)">Article created successfully!</span>';
+                            '<span style="color:var(--admin-success)">Article created successfully!</span>';;
                         setTimeout(function () {
                             window.location.href =
                                 "edit-[id].html?id=" + result.id;

@@ -81,6 +81,9 @@ export function initFooter() {
   const footer = document.querySelector('footer');
   if (!footer) return;
 
+  const yearEl = footer.querySelector('#footer-year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
   const handlers = {
     print: handlePrint,
     'copy-contents': handleCopyContents,

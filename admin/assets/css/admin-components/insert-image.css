@@ -1,0 +1,32 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Insert Image
+   CSS for the inline Insert Image widget (admin-insert-image.js).
+   Uses --admin-* tokens only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aimg-insert-btn {
+    margin-top: var(--space-sm);
+}
+
+.aimg-insert-prompt {
+    margin-top: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border-light);
+    border-radius: var(--admin-radius);
+}
+
+.aimg-insert-prompt__actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    justify-content: flex-end;
+}
+
+/* ── Mobile adjustments ─────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .aimg-insert-prompt__actions {
+        flex-direction: column;
+    }
+}

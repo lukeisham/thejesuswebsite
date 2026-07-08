@@ -27,8 +27,6 @@ const $desc = document.getElementById("evidence-description");
 const $descSection = document.getElementById("evidence-description-section");
 const $timeline = document.getElementById("evidence-timeline-context");
 const $timelineSection = document.getElementById("evidence-timeline-section");
-const $pictures = document.getElementById("evidence-pictures");
-const $picturesSection = document.getElementById("evidence-pictures-section");
 const $sources = document.getElementById("evidence-sources");
 const $sourcesSection = document.getElementById("evidence-sources-section");
 
@@ -121,7 +119,44 @@ function renderDescription(item) {
     return;
   }
   if ($descSection) $descSection.hidden = false;
-  if ($desc) $desc.innerHTML = escapeAndRender(item.description);
+  if ($desc) {
+    $desc.innerHTML = parseEvidenceBody(item.description);
+    numberFigures($desc);
+  }
+}
+
+/**
+ * Parse evidence description into HTML. Handles [figure src="..." caption="..."]
+ * shortcodes inline, then splits remaining prose on blank lines into paragraphs.
+ * Mirrors parseBlogBody() in blog-detail.js so all five content types use the
+ * same [figure] shortcode mechanism.
+ */
+function parseEvidenceBody(text) {
+  if (typeof text !== "string") return "";
+
+  // Extract [figure] shortcodes before escaping prose
+  let processed = text.replace(
+    /\[figure\s+src="([^"]*)"(?:\s+caption="([^"]*)")?\]/g,
+    (_, src, caption) => {
+      const cap = caption
+        ? `<figcaption>${escapeHTML(caption)}</figcaption>`
+        : "";
+      return `<figure><img src="${src}" alt="${escapeHTML(caption || "")}" loading="lazy">${cap}</figure>`;
+    },
+  );
+
+  // Split by double newlines into paragraphs
+  const paragraphs = processed.split(/\n\n+/).filter((p) => p.trim());
+
+  return paragraphs
+    .map((p) => {
+      const trimmed = p.trim();
+      if (trimmed.startsWith("<figure")) {
+        return trimmed;
+      }
+      return `<p>${escapeHTML(trimmed).replace(/\n/g, "<br>")}</p>`;
+    })
+    .join("");
 }
 
 function renderTimelineContext(item) {
@@ -145,37 +180,7 @@ function renderTimelineContext(item) {
   if ($timeline) $timeline.innerHTML = `<p>${parts.join(" · ")}</p>`;
 }
 
-function renderPictures(pictures) {
-  if (!pictures || pictures.length === 0) {
-    if ($picturesSection) $picturesSection.hidden = true;
-    return;
-  }
-
-  if ($picturesSection) $picturesSection.hidden = false;
-
-  const figuresHTML = pictures
-    .map(
-      (pic, i) => html`
-        <figure>
-          <img
-            src="${pic.image_path}"
-            alt="${pic.caption || ""}"
-            loading="lazy"
-          />
-          <figcaption>${pic.caption || ""}</figcaption>
-        </figure>
-      `,
-    )
-    .join("");
-
-  if ($pictures) $pictures.innerHTML = figuresHTML;
-
-  // Number figures after insertion
-  if ($pictures) numberFigures($pictures);
-}
-
 function renderSources(mlaSources) {
-  if (!mlaSources || mlaSources.length === 0) {
     if ($sourcesSection) $sourcesSection.hidden = true;
     return;
   }
@@ -287,14 +292,6 @@ function escapeHTML(str) {
   return str.replace(/[&<>"']/g, (c) => map[c]);
 }
 
-function escapeAndRender(text) {
-  // Simple line-break to paragraph conversion, already escaped
-  return text
-    .split(/\n\n+/)
-    .map((p) => `<p>${escapeHTML(p.trim()).replace(/\n/g, "<br>")}</p>`)
-    .join("");
-}
-
 function truncateText(text, maxLen) {
   if (text.length <= maxLen) return text;
   return text.slice(0, maxLen - 1).trimEnd() + "…";
@@ -333,7 +330,6 @@ async function init() {
   renderHero(data);
   renderDescription(data);
   renderTimelineContext(data);
-  renderPictures(data.pictures);
   renderSources(data.mla_sources);
   renderPageInfoRow(data);
 
