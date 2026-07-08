@@ -11,7 +11,7 @@ const path = require("path");
 const STATIC_ROOT = path.join(__dirname, "admin");
 const API_TARGET = {
   host: "127.0.0.1",
-  port: Number(process.env.API_PORT || 3199),
+  port: Number(process.env.API_PORT || 3000),
 };
 const PROXY_PORT = Number(process.env.PROXY_PORT || 4174);
 

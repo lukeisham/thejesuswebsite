@@ -3,7 +3,10 @@
 // are folded in), but migrations 002–004 add columns not yet present in
 // schema.sql, so they're applied after. Migrations 005 and 009 are skipped
 // because their columns (hero_image/hero_image_alt, historiography_period/
-// period_sort_order) are already in schema.sql.
+// period_sort_order) are already in schema.sql. Migration 003's
+// `historiography` statements are filtered out (not skipped wholesale) because
+// schema.sql also already defines two_column/doi/author_bio on that one table,
+// while context_essays and responses still rely on migration 003 for them.
 // Every test suite gets a fresh copy via createTestDb() (JS-2: no shared state).
 //
 // Usage:
@@ -62,7 +65,14 @@ function createTestDb() {
     .sort();
 
   for (const file of migrationFiles) {
-    const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
+    let sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
+    if (file.startsWith("003_")) {
+      // historiography already has two_column/doi/author_bio via schema.sql.
+      sql = sql
+        .split("\n")
+        .filter((line) => !line.startsWith("ALTER TABLE historiography"))
+        .join("\n");
+    }
     db.exec(sql);
   }
 

@@ -154,6 +154,9 @@ CREATE TABLE historiography (
     essay_headings        TEXT,
     published_draft       INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
     metadata_keywords     TEXT,
+    two_column            INTEGER DEFAULT 0 CHECK (two_column IN (0, 1)),
+    doi                   TEXT,
+    author_bio            TEXT,
     historiography_period TEXT CHECK (historiography_period IN (
                               'early-church',
                               'medieval',
