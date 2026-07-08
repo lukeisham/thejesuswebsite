@@ -249,9 +249,15 @@
                                     >The main body text for this evidence item.
                                     Supports plain text.</span
                                 >
-                            
-                            <button type="button" class="admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn" id="insert-image-btn">Insert Image</button>
-</div>
+
+                                <button
+                                    type="button"
+                                    class="admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn"
+                                    id="insert-image-btn"
+                                >
+                                    Insert Image
+                                </button>
+                            </div>
 
                             <div class="admin-form-group">
                                 <label
@@ -305,24 +311,16 @@
                                     aria-describedby="gospel-hint"
                                 >
                                     <option value="">— None —</option>
-                                    <option value="birth">
-                                        Birth / Nativity
-                                    </option>
-                                    <option value="baptism">Baptism</option>
-                                    <option value="temptation">
-                                        Temptation
-                                    </option>
-                                    <option value="ministry">Ministry</option>
-                                    <option value="miracles">Miracles</option>
+                                    <option value="theme">Theme</option>
+                                    <option value="events">Events</option>
                                     <option value="parables">Parables</option>
-                                    <option value="passion">Passion</option>
-                                    <option value="crucifixion">
-                                        Crucifixion
+                                    <option value="sayings-and-sermons">
+                                        Sayings &amp; Sermons
                                     </option>
-                                    <option value="resurrection">
-                                        Resurrection
-                                    </option>
-                                    <option value="ascension">Ascension</option>
+                                    <option value="people">People</option>
+                                    <option value="objects">Objects</option>
+                                    <option value="places">Places</option>
+                                    <option value="miracles">Miracles</option>
                                 </select>
                                 <span class="admin-form-hint" id="gospel-hint"
                                     >Which gospel event category this evidence
@@ -343,25 +341,35 @@
                                     aria-describedby="era-hint"
                                 >
                                     <option value="">— None —</option>
-                                    <option value="beginning">Beginning</option>
-                                    <option value="patriarchs">
-                                        Patriarchs
+                                    <option value="theme">Theme</option>
+                                    <option value="pre-incarnation">
+                                        Pre-Incarnation
                                     </option>
-                                    <option value="exodus">Exodus</option>
-                                    <option value="conquest">Conquest</option>
-                                    <option value="judges">Judges</option>
-                                    <option value="kingdom">Kingdom</option>
-                                    <option value="exile">Exile</option>
-                                    <option value="return">Return</option>
+                                    <option value="old-testament">
+                                        Old Testament
+                                    </option>
                                     <option value="intertestamental">
                                         Intertestamental
                                     </option>
-                                    <option value="jesus-life">
-                                        Life of Jesus
+                                    <option value="birth">Birth</option>
+                                    <option value="childhood">Childhood</option>
+                                    <option value="labourer">Labourer</option>
+                                    <option value="baptism">Baptism</option>
+                                    <option value="ministry-Galilee">
+                                        Ministry — Galilee
                                     </option>
+                                    <option value="ministry-Jerusalem">
+                                        Ministry — Jerusalem
+                                    </option>
+                                    <option value="passion">Passion</option>
+                                    <option value="resurrection">
+                                        Resurrection
+                                    </option>
+                                    <option value="ascension">Ascension</option>
                                     <option value="early-church">
                                         Early Church
                                     </option>
+                                    <option value="return">Return</option>
                                 </select>
                                 <span class="admin-form-hint" id="era-hint"
                                     >Broad biblical timeline
@@ -535,201 +543,203 @@
         </div>
 
         <script>
-                        document.addEventListener("DOMContentLoaded", async function () {
-                            // Guard: redirect if not authenticated
-                            const ok = await AdminAuth.requireSession();
-                            if (!ok) return;
+            document.addEventListener("DOMContentLoaded", async function () {
+                // Guard: redirect if not authenticated
+                const ok = await AdminAuth.requireSession();
+                if (!ok) return;
 
+                // Wire Insert Image widget
+                AdminInsertImage.wire(
+                    "#insert-image-btn",
+                    "#evidence-description",
+                );
+                const titleInput = document.getElementById("evidence-title");
+                const slugInput = document.getElementById("evidence-slug");
+                const descInput = document.getElementById(
+                    "evidence-description",
+                );
+                const formError = document.getElementById("form-error");
+                const submitStatus = document.getElementById("submit-status");
+                const titleError = document.getElementById("title-error");
+                const slugError = document.getElementById("slug-error");
+                const publishCheckbox =
+                    document.getElementById("evidence-publish");
 
-                            // Wire Insert Image widget
-                            AdminInsertImage.wire("#insert-image-btn", "#evidence-description");
-            const titleInput = document.getElementById("evidence-title");
-                            const slugInput = document.getElementById("evidence-slug");
-                            const descInput = document.getElementById(
-                                "evidence-description",
-                            );
-                            const formError = document.getElementById("form-error");
-                            const submitStatus = document.getElementById("submit-status");
-                            const titleError = document.getElementById("title-error");
-                            const slugError = document.getElementById("slug-error");
-                            const publishCheckbox =
-                                document.getElementById("evidence-publish");
+                // Auto-generate slug from title
+                let slugAuto = true;
+                titleInput.addEventListener("input", function () {
+                    if (slugAuto) {
+                        slugInput.value = titleInput.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9\s-]/g, "")
+                            .replace(/\s+/g, "-")
+                            .replace(/-+/g, "-")
+                            .replace(/^-|-$/g, "");
+                    }
+                });
+                slugInput.addEventListener("input", function () {
+                    // Once the user manually edits the slug, stop auto-generating
+                    slugAuto = false;
+                });
 
-                            // Auto-generate slug from title
-                            let slugAuto = true;
-                            titleInput.addEventListener("input", function () {
-                                if (slugAuto) {
-                                    slugInput.value = titleInput.value
-                                        .toLowerCase()
-                                        .replace(/[^a-z0-9\s-]/g, "")
-                                        .replace(/\s+/g, "-")
-                                        .replace(/-+/g, "-")
-                                        .replace(/^-|-$/g, "");
-                                }
-                            });
-                            slugInput.addEventListener("input", function () {
-                                // Once the user manually edits the slug, stop auto-generating
-                                slugAuto = false;
-                            });
+                function clearErrors() {
+                    formError.style.display = "none";
+                    formError.textContent = "";
+                    titleError.style.display = "none";
+                    titleError.textContent = "";
+                    slugError.style.display = "none";
+                    slugError.textContent = "";
+                    titleInput.classList.remove("admin-input--error");
+                    slugInput.classList.remove("admin-input--error");
+                }
 
-                            function clearErrors() {
-                                formError.style.display = "none";
-                                formError.textContent = "";
-                                titleError.style.display = "none";
-                                titleError.textContent = "";
-                                slugError.style.display = "none";
-                                slugError.textContent = "";
-                                titleInput.classList.remove("admin-input--error");
-                                slugInput.classList.remove("admin-input--error");
-                            }
+                function showFieldError(input, errorEl, message) {
+                    input.classList.add("admin-input--error");
+                    errorEl.textContent = message;
+                    errorEl.style.display = "block";
+                }
 
-                            function showFieldError(input, errorEl, message) {
-                                input.classList.add("admin-input--error");
-                                errorEl.textContent = message;
-                                errorEl.style.display = "block";
-                            }
+                function validate() {
+                    clearErrors();
+                    let valid = true;
+                    if (!titleInput.value.trim()) {
+                        showFieldError(
+                            titleInput,
+                            titleError,
+                            "Title is required.",
+                        );
+                        valid = false;
+                    }
+                    if (!slugInput.value.trim()) {
+                        showFieldError(
+                            slugInput,
+                            slugError,
+                            "Slug is required.",
+                        );
+                        valid = false;
+                    } else if (
+                        !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(
+                            slugInput.value.trim(),
+                        )
+                    ) {
+                        showFieldError(
+                            slugInput,
+                            slugError,
+                            "Slug must be lowercase letters, numbers, and hyphens.",
+                        );
+                        valid = false;
+                    }
+                    return valid;
+                }
 
-                            function validate() {
-                                clearErrors();
-                                let valid = true;
-                                if (!titleInput.value.trim()) {
-                                    showFieldError(
-                                        titleInput,
-                                        titleError,
-                                        "Title is required.",
-                                    );
-                                    valid = false;
-                                }
-                                if (!slugInput.value.trim()) {
-                                    showFieldError(
-                                        slugInput,
-                                        slugError,
-                                        "Slug is required.",
-                                    );
-                                    valid = false;
-                                } else if (
-                                    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(
-                                        slugInput.value.trim(),
-                                    )
-                                ) {
-                                    showFieldError(
-                                        slugInput,
-                                        slugError,
-                                        "Slug must be lowercase letters, numbers, and hyphens.",
-                                    );
-                                    valid = false;
-                                }
-                                return valid;
-                            }
-
-                            function buildPayload(publish) {
-                                return {
-                                    title: titleInput.value.trim(),
-                                    slug: slugInput.value.trim(),
-                                    description: descInput.value.trim() || undefined,
-                                    primary_verse:
-                                        document
-                                            .getElementById("evidence-primary-verse")
-                                            .value.trim() || undefined,
-                                    secondary_verse:
-                                        document
-                                            .getElementById("evidence-secondary-verse")
-                                            .value.trim() || undefined,
-                                    gospel_category:
-                                        document.getElementById("evidence-gospel-category")
-                                            .value || undefined,
-                                    timeline_era:
-                                        document.getElementById("evidence-timeline-era")
-                                            .value || undefined,
-                                    timeline_period:
-                                        document
-                                            .getElementById("evidence-timeline-period")
-                                            .value.trim() || undefined,
-                                    map_location:
-                                        document
-                                            .getElementById("evidence-map-location")
-                                            .value.trim() || undefined,
-                                    map_x: document.getElementById("evidence-map-x").value
-                                        ? parseFloat(
-                                              document.getElementById("evidence-map-x")
-                                                  .value,
-                                          )
-                                        : undefined,
-                                    map_y: document.getElementById("evidence-map-y").value
-                                        ? parseFloat(
-                                              document.getElementById("evidence-map-y")
-                                                  .value,
-                                          )
-                                        : undefined,
-                                    metadata_keywords:
-                                        document
-                                            .getElementById("evidence-keywords")
-                                            .value.trim() || undefined,
-                                    published_draft: publish ? 1 : 0,
-                                };
-                            }
-
-                            async function submit(publish) {
-                                clearErrors();
-                                submitStatus.textContent = "";
-                                if (!validate()) {
-                                    titleInput.focus();
-                                    return;
-                                }
-
-                                const payload = buildPayload(publish);
-                                const btnSave = document.getElementById("btn-save-draft");
-                                const btnPublish = document.getElementById("btn-publish");
-                                btnSave.disabled = true;
-                                btnPublish.disabled = true;
-                                submitStatus.textContent = "Saving…";
-
-                                try {
-                                    const result = await Admin.api.post(
-                                        "/evidence",
-                                        payload,
-                                    );
-                                    submitStatus.innerHTML =
-                                        '<span style="color:var(--admin-success)">Evidence saved successfully!</span>';;
-                                    // Redirect to edit page
-                                    setTimeout(function () {
-                                        window.location.href =
-                                            "edit-[id].html?id=" + result.id;
-                                    }, 800);
-                                } catch (err) {
-                                    formError.textContent =
-                                        "Failed to save evidence: " + err.message;
-                                    formError.style.display = "block";
-                                    submitStatus.textContent = "";
-                                } finally {
-                                    btnSave.disabled = false;
-                                    btnPublish.disabled = false;
-                                }
-                            }
-
+                function buildPayload(publish) {
+                    return {
+                        title: titleInput.value.trim(),
+                        slug: slugInput.value.trim(),
+                        description: descInput.value.trim() || undefined,
+                        primary_verse:
                             document
-                                .getElementById("btn-save-draft")
-                                .addEventListener("click", function () {
-                                    submit(false);
-                                });
+                                .getElementById("evidence-primary-verse")
+                                .value.trim() || undefined,
+                        secondary_verse:
                             document
-                                .getElementById("btn-publish")
-                                .addEventListener("click", function () {
-                                    submit(true);
-                                });
+                                .getElementById("evidence-secondary-verse")
+                                .value.trim() || undefined,
+                        gospel_category:
+                            document.getElementById("evidence-gospel-category")
+                                .value || undefined,
+                        timeline_era:
+                            document.getElementById("evidence-timeline-era")
+                                .value || undefined,
+                        timeline_period:
+                            document
+                                .getElementById("evidence-timeline-period")
+                                .value.trim() || undefined,
+                        map_location:
+                            document
+                                .getElementById("evidence-map-location")
+                                .value.trim() || undefined,
+                        map_x: document.getElementById("evidence-map-x").value
+                            ? parseFloat(
+                                  document.getElementById("evidence-map-x")
+                                      .value,
+                              )
+                            : undefined,
+                        map_y: document.getElementById("evidence-map-y").value
+                            ? parseFloat(
+                                  document.getElementById("evidence-map-y")
+                                      .value,
+                              )
+                            : undefined,
+                        metadata_keywords:
+                            document
+                                .getElementById("evidence-keywords")
+                                .value.trim() || undefined,
+                        published_draft: publish ? 1 : 0,
+                    };
+                }
 
-                            // Allow Ctrl+Enter to save draft, Ctrl+Shift+Enter to publish
-                            document.addEventListener("keydown", function (e) {
-                                if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-                                    e.preventDefault();
-                                    if (e.shiftKey) {
-                                        submit(true);
-                                    } else {
-                                        submit(false);
-                                    }
-                                }
-                            });
-                        });
+                async function submit(publish) {
+                    clearErrors();
+                    submitStatus.textContent = "";
+                    if (!validate()) {
+                        titleInput.focus();
+                        return;
+                    }
+
+                    const payload = buildPayload(publish);
+                    const btnSave = document.getElementById("btn-save-draft");
+                    const btnPublish = document.getElementById("btn-publish");
+                    btnSave.disabled = true;
+                    btnPublish.disabled = true;
+                    submitStatus.textContent = "Saving…";
+
+                    try {
+                        const result = await Admin.api.post(
+                            "/evidence",
+                            payload,
+                        );
+                        submitStatus.innerHTML =
+                            '<span style="color:var(--admin-success)">Evidence saved successfully!</span>';
+                        // Redirect to edit page
+                        setTimeout(function () {
+                            window.location.href =
+                                "edit-[id].html?id=" + result.id;
+                        }, 800);
+                    } catch (err) {
+                        formError.textContent =
+                            "Failed to save evidence: " + err.message;
+                        formError.style.display = "block";
+                        submitStatus.textContent = "";
+                    } finally {
+                        btnSave.disabled = false;
+                        btnPublish.disabled = false;
+                    }
+                }
+
+                document
+                    .getElementById("btn-save-draft")
+                    .addEventListener("click", function () {
+                        submit(false);
+                    });
+                document
+                    .getElementById("btn-publish")
+                    .addEventListener("click", function () {
+                        submit(true);
+                    });
+
+                // Allow Ctrl+Enter to save draft, Ctrl+Shift+Enter to publish
+                document.addEventListener("keydown", function (e) {
+                    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            submit(true);
+                        } else {
+                            submit(false);
+                        }
+                    }
+                });
+            });
         </script>
     </body>
 </html>
