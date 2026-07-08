@@ -5,6 +5,9 @@
 > should consume the public JSON API directly rather than scraping rendered
 > HTML. The API returns clean, machine-readable JSON for every content type.
 
+> A copy of this file is also served at `/.well-known/llms.txt` for
+> crawlers that check that location first. Keep both in sync on edits.
+
 ## Site purpose
 
 The Jesus Website provides scholarly, evidence-based analysis of the

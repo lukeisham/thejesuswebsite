@@ -162,7 +162,7 @@ describe("generatePage", () => {
 
     assert.ok(
       output.includes(
-        'href="https://www.thejesuswebsite.org/evidence/single/test-item"',
+        'href="https://thejesuswebsite.org/evidence/single/test-item"',
       ),
     );
   });
