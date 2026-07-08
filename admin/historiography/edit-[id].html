@@ -418,7 +418,11 @@
                         "e.g. 1, 3, 7",
                         "Comma-separated evidence IDs.",
                         false,
-                        "",
+                        (data.links_evidence || [])
+                            .map(function (link) {
+                                return link.target_evidence_id;
+                            })
+                            .join(", "),
                     ),
                 );
 
@@ -724,6 +728,18 @@
                     return valid;
                 }
 
+                function parseIdList(str) {
+                    if (!str || !str.trim()) return undefined;
+                    return str
+                        .split(",")
+                        .map(function (s) {
+                            return parseInt(s.trim(), 10);
+                        })
+                        .filter(function (n) {
+                            return !isNaN(n);
+                        });
+                }
+
                 function buildPayload() {
                     return {
                         essay_title: titleInput.value.trim(),
@@ -784,6 +800,10 @@
                         ).checked
                             ? 1
                             : 0,
+                        link_evidence_ids: parseIdList(
+                            document.getElementById("historiography-evidence")
+                                .value,
+                        ),
                         mla_source_ids: mlaSourcesPanel.getSelectedIds(),
                     };
                 }
