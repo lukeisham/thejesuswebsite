@@ -1,0 +1,104 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin MLA Sources Panel
+   CSS for the bibliography attach/create/edit widget (admin-mla-sources.js).
+   Uses --admin-* tokens only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.amla-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.amla-panel__hint {
+    display: block;
+}
+
+.amla-panel__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.amla-panel__item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border-light);
+    border-radius: var(--admin-radius-sm);
+}
+
+.amla-panel__item-text {
+    font-size: 13px;
+    color: var(--admin-text-primary);
+    line-height: 1.5;
+}
+
+.amla-panel__item-actions {
+    display: flex;
+    gap: var(--space-xs);
+    flex-shrink: 0;
+}
+
+.amla-panel__attach-row {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.amla-panel__attach-select {
+    flex: 1;
+    min-width: 0;
+}
+
+.amla-panel__add-toggle {
+    align-self: flex-start;
+}
+
+.amla-panel__form-host {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border-light);
+    border-radius: var(--admin-radius-sm);
+}
+
+.amla-panel__fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.amla-panel__form-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.amla-panel__status {
+    display: block;
+    font-size: 11px;
+    color: var(--admin-text-muted);
+}
+
+.amla-panel__status--error {
+    color: var(--admin-danger);
+}
+
+/* ── Mobile adjustments ─────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .amla-panel__item {
+        flex-direction: column;
+    }
+
+    .amla-panel__attach-row {
+        flex-direction: column;
+    }
+}

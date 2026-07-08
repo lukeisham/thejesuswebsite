@@ -7,7 +7,9 @@
         <link rel="stylesheet" href="../assets/css/admin.css" />
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-timeline-taxonomy.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
+        <script defer src="../assets/js/admin-mla-sources.js"></script>
         <style>
             .admin-form-actions {
                 display: flex;
@@ -341,35 +343,9 @@
                                     aria-describedby="era-hint"
                                 >
                                     <option value="">— None —</option>
-                                    <option value="theme">Theme</option>
-                                    <option value="pre-incarnation">
-                                        Pre-Incarnation
-                                    </option>
-                                    <option value="old-testament">
-                                        Old Testament
-                                    </option>
-                                    <option value="intertestamental">
-                                        Intertestamental
-                                    </option>
-                                    <option value="birth">Birth</option>
-                                    <option value="childhood">Childhood</option>
-                                    <option value="labourer">Labourer</option>
-                                    <option value="baptism">Baptism</option>
-                                    <option value="ministry-Galilee">
-                                        Ministry — Galilee
-                                    </option>
-                                    <option value="ministry-Jerusalem">
-                                        Ministry — Jerusalem
-                                    </option>
-                                    <option value="passion">Passion</option>
-                                    <option value="resurrection">
-                                        Resurrection
-                                    </option>
-                                    <option value="ascension">Ascension</option>
-                                    <option value="early-church">
-                                        Early Church
-                                    </option>
-                                    <option value="return">Return</option>
+                                    <option value="beginning">Beginning</option>
+                                    <option value="middle">Middle</option>
+                                    <option value="end">End</option>
                                 </select>
                                 <span class="admin-form-hint" id="era-hint"
                                     >Broad biblical timeline
@@ -383,19 +359,32 @@
                                     for="evidence-timeline-period"
                                     >Timeline Period</label
                                 >
-                                <input
-                                    class="admin-input"
+                                <select
+                                    class="admin-select"
                                     id="evidence-timeline-period"
                                     name="timeline_period"
-                                    type="text"
                                     aria-describedby="period-hint"
-                                    placeholder="e.g. c. 27–30 AD"
-                                />
+                                    disabled
+                                >
+                                    <option value="">
+                                        — Select an era first —
+                                    </option>
+                                </select>
                                 <span class="admin-form-hint" id="period-hint"
-                                    >Specific date range or historical
-                                    period.</span
+                                    >Specific chronological period within the
+                                    chosen era.</span
                                 >
                             </div>
+                        </div>
+
+                        <div
+                            class="admin-form-card"
+                            style="margin-top: var(--space-md)"
+                        >
+                            <div class="admin-form-card__title">
+                                Bibliography
+                            </div>
+                            <div id="mla-sources-mount"></div>
                         </div>
 
                         <div
@@ -565,6 +554,50 @@
                 const publishCheckbox =
                     document.getElementById("evidence-publish");
 
+                // Cascading timeline era → period dropdowns (JS-3: single
+                // taxonomy source in admin-timeline-taxonomy.js, no duplicated
+                // period lists in page markup or script).
+                const eraSelect = document.getElementById(
+                    "evidence-timeline-era",
+                );
+                const periodSelect = document.getElementById(
+                    "evidence-timeline-period",
+                );
+
+                function populatePeriods(era, selectedValue) {
+                    periodSelect.innerHTML = "";
+                    const placeholder = document.createElement("option");
+                    placeholder.value = "";
+                    placeholder.textContent = era
+                        ? "— None —"
+                        : "— Select an era first —";
+                    periodSelect.appendChild(placeholder);
+
+                    const periods = era
+                        ? Admin.timelineTaxonomy.getPeriodsForEra(era)
+                        : [];
+                    periods.forEach(function (period) {
+                        const option = document.createElement("option");
+                        option.value = period.value;
+                        option.textContent = period.label;
+                        periodSelect.appendChild(option);
+                    });
+
+                    periodSelect.disabled = !era;
+                    if (selectedValue) periodSelect.value = selectedValue;
+                }
+
+                eraSelect.addEventListener("change", function () {
+                    populatePeriods(eraSelect.value);
+                });
+                populatePeriods(eraSelect.value);
+
+                // MLA Bibliography panel (new record starts with no sources)
+                const mlaSourcesPanel = AdminMlaSources.mount(
+                    document.getElementById("mla-sources-mount"),
+                    { initialSourceIds: [] },
+                );
+
                 // Auto-generate slug from title
                 let slugAuto = true;
                 titleInput.addEventListener("input", function () {
@@ -676,6 +709,7 @@
                                 .getElementById("evidence-keywords")
                                 .value.trim() || undefined,
                         published_draft: publish ? 1 : 0,
+                        mla_source_ids: mlaSourcesPanel.getSelectedIds(),
                     };
                 }
 

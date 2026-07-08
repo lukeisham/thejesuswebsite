@@ -8,6 +8,7 @@
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
+        <script defer src="../assets/js/admin-mla-sources.js"></script>
         <style>
             .admin-form-actions {
                 display: flex;
@@ -330,6 +331,16 @@
                             class="admin-form-card"
                             style="margin-top: var(--space-md)"
                         >
+                            <div class="admin-form-card__title">
+                                Bibliography
+                            </div>
+                            <div id="mla-sources-mount"></div>
+                        </div>
+
+                        <div
+                            class="admin-form-card"
+                            style="margin-top: var(--space-md)"
+                        >
                             <div class="admin-form-group">
                                 <div class="admin-checkbox-group">
                                     <input
@@ -429,6 +440,12 @@
                     slugAuto = false;
                 });
 
+                // MLA Bibliography panel (new record starts with no sources)
+                var mlaSourcesPanel = AdminMlaSources.mount(
+                    document.getElementById("mla-sources-mount"),
+                    { initialSourceIds: [] },
+                );
+
                 function clearErrors() {
                     formError.style.display = "none";
                     formError.textContent = "";
@@ -496,6 +513,7 @@
                                 .getElementById("response-keywords")
                                 .value.trim() || undefined,
                         published_draft: publish ? 1 : 0,
+                        mla_source_ids: mlaSourcesPanel.getSelectedIds(),
                     };
                 }
 

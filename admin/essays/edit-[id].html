@@ -8,6 +8,7 @@
   <script defer src="../assets/js/auth.js"></script>
   <script defer src="../assets/js/admin.js"></script>
   <script defer src="../assets/js/admin-insert-image.js"></script>
+  <script defer src="../assets/js/admin-mla-sources.js"></script>
   <style>
     .admin-form-actions {
       display: flex;
@@ -289,6 +290,28 @@
     metaCard.appendChild(formGroup('DOI / Citation', 'essay-doi', '', 'e.g. 10.1234/example', 'Digital Object Identifier or formal citation string.', false, data.doi || ''));
     metaCard.appendChild(formGroup('Author Bio', 'essay-author-bio', '', 'Brief author biography…', 'A short author biography displayed below the article title.', true, data.author_bio || ''));
 
+    // Bibliography card
+    var mlaCard = document.createElement('div');
+    mlaCard.className = 'admin-form-card';
+    mlaCard.style.marginTop = 'var(--space-md)';
+    sidebar.appendChild(mlaCard);
+
+    var mlaTitle = document.createElement('div');
+    mlaTitle.className = 'admin-form-card__title';
+    mlaTitle.textContent = 'Bibliography';
+    mlaCard.appendChild(mlaTitle);
+
+    var mlaMount = document.createElement('div');
+    mlaMount.id = 'mla-sources-mount';
+    mlaCard.appendChild(mlaMount);
+
+    // MLA Bibliography panel, seeded with this record's existing sources
+    var mlaSourcesPanel = AdminMlaSources.mount(mlaMount, {
+      initialSourceIds: (data.mla_sources || []).map(function (link) {
+        return link.mla_source_id;
+      }),
+    });
+
     // Publish checkbox
     var pubCard = document.createElement('div');
     pubCard.className = 'admin-form-card';
@@ -443,7 +466,8 @@
         two_column: document.getElementById('essay-two-column').checked ? 1 : 0,
         doi: document.getElementById('essay-doi').value.trim() || undefined,
         author_bio: document.getElementById('essay-author-bio').value.trim() || undefined,
-        published_draft: document.getElementById('essay-publish').checked ? 1 : 0
+        published_draft: document.getElementById('essay-publish').checked ? 1 : 0,
+        mla_source_ids: mlaSourcesPanel.getSelectedIds()
       };
     }
 
