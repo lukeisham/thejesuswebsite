@@ -63,7 +63,18 @@ if [ -d "$MIGRATIONS_DIR" ]; then
   for migration in $(ls "$MIGRATIONS_DIR"/*.sql 2>/dev/null | sort); do
     fname=$(basename "$migration")
     # Skip 001_ — it is a byte-identical copy of schema.sql, not a migration.
+    # Skip 005_ — hero_image columns are already in the canonical schema.sql.
     [[ "$fname" == 001_* ]] && continue
+    [[ "$fname" == 005_* ]] && continue
+
+    # If this is a freshly created database (schema.sql just applied),
+    # mark all migrations as already-applied — schema.sql already contains
+    # their effects, and replaying them would cause duplicate-column errors.
+    if [ "$DB_IS_NEW" = true ]; then
+      echo "[deploy] Fresh DB: marking migration as already-applied: $fname"
+      sqlite3 "$DB_FILE" "INSERT OR IGNORE INTO schema_migrations(filename) VALUES ('$fname');"
+      continue
+    fi
 
     applied=$(sqlite3 "$DB_FILE" "SELECT 1 FROM schema_migrations WHERE filename = '$fname';" 2>/dev/null || true)
     if [ -n "$applied" ]; then

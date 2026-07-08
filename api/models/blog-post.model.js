@@ -140,7 +140,6 @@ function assembleDetail(post) {
   return {
     ...post,
     breakouts: getChildren("blog_breakouts", "blog_post_id", post.id),
-    pictures: getChildren("blog_pictures", "blog_post_id", post.id),
     mla_sources: getLinked(
       "blog_post_mla_sources",
       "blog_post_id",
@@ -175,7 +174,6 @@ function assembleDetail(post) {
  *
  * Accepts the same base fields as create() plus optional arrays:
  *   breakouts: [{ title, content }]
- *   pictures: [{ image_path, caption }]
  *   mla_source_ids: [id, ...]
  *   identifier_ids: [id, ...]
  *   link_evidence_ids: [id, ...]
@@ -185,7 +183,6 @@ function createComposite(data) {
   const writeRelated = db.transaction((data) => {
     // Extract related arrays before pickWritable strips them.
     const breakouts = data.breakouts;
-    const pictures = data.pictures;
     const mlaSourceIds = data.mla_source_ids;
     const identifierIds = data.identifier_ids;
     const linkEvidenceIds = data.link_evidence_ids;
@@ -197,10 +194,6 @@ function createComposite(data) {
     replaceChildren("blog_breakouts", "blog_post_id", postId, breakouts, [
       "title",
       "content",
-    ]);
-    replaceChildren("blog_pictures", "blog_post_id", postId, pictures, [
-      "image_path",
-      "caption",
     ]);
     replaceLinks(
       "blog_post_mla_sources",
@@ -253,7 +246,6 @@ function updateComposite(id, data) {
   const writeRelated = db.transaction((data) => {
     // Extract related arrays before pickWritable strips them.
     const breakouts = data.breakouts;
-    const pictures = data.pictures;
     const mlaSourceIds = data.mla_source_ids;
     const identifierIds = data.identifier_ids;
     const linkEvidenceIds = data.link_evidence_ids;
@@ -265,10 +257,6 @@ function updateComposite(id, data) {
     replaceChildren("blog_breakouts", "blog_post_id", id, breakouts, [
       "title",
       "content",
-    ]);
-    replaceChildren("blog_pictures", "blog_post_id", id, pictures, [
-      "image_path",
-      "caption",
     ]);
     replaceLinks(
       "blog_post_mla_sources",

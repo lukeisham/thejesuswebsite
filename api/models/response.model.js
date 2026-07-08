@@ -2,27 +2,31 @@
 // Functions are synchronous (better-sqlite3) and return plain objects/arrays.
 // No HTTP concerns in this file: no req, no res, no status codes.
 
-const db = require('../config');
-const { pickWritable, generateUniqueSlug, runUpdate } = require('./model-helpers');
-const { getChildren, replaceChildren } = require('./relations/child-rows');
-const { getLinked, replaceLinks } = require('./relations/junctions');
+const db = require("../config");
+const {
+  pickWritable,
+  generateUniqueSlug,
+  runUpdate,
+} = require("./model-helpers");
+const { getChildren, replaceChildren } = require("./relations/child-rows");
+const { getLinked, replaceLinks } = require("./relations/junctions");
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
 const WRITABLE_COLUMNS = [
-    'slug',
-    'challenge_id',
-    'response_title',
-    'response_content',
-    'response_author',
-    'response_date',
-    'response_publisher',
-    'response_headings',
-    'published_draft',
-    'metadata_keywords',
-    'two_column',
-    'doi',
-    'author_bio',
+  "slug",
+  "challenge_id",
+  "response_title",
+  "response_content",
+  "response_author",
+  "response_date",
+  "response_publisher",
+  "response_headings",
+  "published_draft",
+  "metadata_keywords",
+  "two_column",
+  "doi",
+  "author_bio",
 ];
 
 /**
@@ -31,20 +35,20 @@ const WRITABLE_COLUMNS = [
  * key can reach the SQL).
  */
 function getAllPublished(filters = {}) {
-    const conditions = ['published_draft = 1'];
-    const params = [];
+  const conditions = ["published_draft = 1"];
+  const params = [];
 
-    if (filters.challenge_id) {
-        conditions.push('challenge_id = ?');
-        params.push(filters.challenge_id);
-    }
+  if (filters.challenge_id) {
+    conditions.push("challenge_id = ?");
+    params.push(filters.challenge_id);
+  }
 
-    const sql = `
+  const sql = `
         SELECT * FROM responses
-        WHERE ${conditions.join(' AND ')}
+        WHERE ${conditions.join(" AND ")}
         ORDER BY created_at ASC
     `;
-    return db.prepare(sql).all(...params);
+  return db.prepare(sql).all(...params);
 }
 
 /**
@@ -52,23 +56,27 @@ function getAllPublished(filters = {}) {
  * Returns responses ordered by creation (oldest first, typically).
  */
 function getByChallenge(challengeId) {
-    return db
-        .prepare('SELECT * FROM responses WHERE challenge_id = ? AND published_draft = 1 ORDER BY created_at ASC')
-        .all(challengeId);
+  return db
+    .prepare(
+      "SELECT * FROM responses WHERE challenge_id = ? AND published_draft = 1 ORDER BY created_at ASC",
+    )
+    .all(challengeId);
 }
 
 /**
  * Single published response by its public slug, or undefined if not found.
  */
 function getBySlug(slug) {
-    return db.prepare('SELECT * FROM responses WHERE slug = ? AND published_draft = 1').get(slug);
+  return db
+    .prepare("SELECT * FROM responses WHERE slug = ? AND published_draft = 1")
+    .get(slug);
 }
 
 /**
  * Single response by id regardless of publish state — for admin.
  */
 function getById(id) {
-    return db.prepare('SELECT * FROM responses WHERE id = ?').get(id);
+  return db.prepare("SELECT * FROM responses WHERE id = ?").get(id);
 }
 
 /**
@@ -81,9 +89,9 @@ function getById(id) {
  * this in one function avoids N+1 query storms on the frontend.
  */
 function getDetailBySlug(slug) {
-    const response = getBySlug(slug);
-    if (!response) return undefined;
-    return assembleDetail(response);
+  const response = getBySlug(slug);
+  if (!response) return undefined;
+  return assembleDetail(response);
 }
 
 /**
@@ -95,9 +103,9 @@ function getDetailBySlug(slug) {
  * id-based read intentionally skips the publish filter so drafts are editable.
  */
 function getAdminById(id) {
-    const response = getById(id);
-    if (!response) return undefined;
-    return assembleDetail(response);
+  const response = getById(id);
+  if (!response) return undefined;
+  return assembleDetail(response);
 }
 
 /**
@@ -109,15 +117,34 @@ function getAdminById(id) {
  * query-plan recompilation on every request.
  */
 function assembleDetail(response) {
-    return {
-        ...response,
-        breakouts: getChildren('response_breakouts', 'response_id', response.id),
-        pictures: getChildren('response_pictures', 'response_id', response.id),
-        mla_sources: getLinked('response_mla_sources', 'response_id', 'citation_order', response.id),
-        identifiers: getLinked('response_identifiers', 'response_id', 'citation_order', response.id),
-        links_evidence: getLinked('response_links_evidence', 'source_response_id', 'sort_order', response.id),
-        links_context: getLinked('response_links_context', 'source_response_id', 'sort_order', response.id),
-    };
+  return {
+    ...response,
+    breakouts: getChildren("response_breakouts", "response_id", response.id),
+    mla_sources: getLinked(
+      "response_mla_sources",
+      "response_id",
+      "citation_order",
+      response.id,
+    ),
+    identifiers: getLinked(
+      "response_identifiers",
+      "response_id",
+      "citation_order",
+      response.id,
+    ),
+    links_evidence: getLinked(
+      "response_links_evidence",
+      "source_response_id",
+      "sort_order",
+      response.id,
+    ),
+    links_context: getLinked(
+      "response_links_context",
+      "source_response_id",
+      "sort_order",
+      response.id,
+    ),
+  };
 }
 
 /**
@@ -126,17 +153,19 @@ function assembleDetail(response) {
  * Returns the created row.
  */
 function create(data) {
-    const row = pickWritable(data, WRITABLE_COLUMNS);
-    row.slug = generateUniqueSlug(db, 'responses', row.slug);
+  const row = pickWritable(data, WRITABLE_COLUMNS);
+  row.slug = generateUniqueSlug(db, "responses", row.slug);
 
-    const columns = Object.keys(row);
-    const placeholders = columns.map((column) => `@${column}`);
+  const columns = Object.keys(row);
+  const placeholders = columns.map((column) => `@${column}`);
 
-    const result = db
-        .prepare(`INSERT INTO responses (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`)
-        .run(row);
+  const result = db
+    .prepare(
+      `INSERT INTO responses (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`,
+    )
+    .run(row);
 
-    return getById(result.lastInsertRowid);
+  return getById(result.lastInsertRowid);
 }
 
 /**
@@ -146,36 +175,67 @@ function create(data) {
  *
  * Accepts the same base fields as create() plus optional arrays:
  *   breakouts: [{ title, content }]
- *   pictures: [{ image_path, caption }]
  *   mla_source_ids: [id, ...]
  *   identifier_ids: [id, ...]
  *   link_evidence_ids: [id, ...]
  *   link_context_ids: [id, ...]
  */
 function createComposite(data) {
-    const writeRelated = db.transaction((data) => {
-        // Extract related arrays before pickWritable strips them.
-        const breakouts = data.breakouts;
-        const pictures = data.pictures;
-        const mlaSourceIds = data.mla_source_ids;
-        const identifierIds = data.identifier_ids;
-        const linkEvidenceIds = data.link_evidence_ids;
-        const linkContextIds = data.link_context_ids;
+  const writeRelated = db.transaction((data) => {
+    // Extract related arrays before pickWritable strips them.
+    const breakouts = data.breakouts;
+    const mlaSourceIds = data.mla_source_ids;
+    const identifierIds = data.identifier_ids;
+    const linkEvidenceIds = data.link_evidence_ids;
+    const linkContextIds = data.link_context_ids;
 
-        const response = create(data);
-        const responseId = response.id;
+    const response = create(data);
+    const responseId = response.id;
 
-        replaceChildren('response_breakouts', 'response_id', responseId, breakouts, ['title', 'content']);
-        replaceChildren('response_pictures', 'response_id', responseId, pictures, ['image_path', 'caption']);
-        replaceLinks('response_mla_sources', 'response_id', 'mla_source_id', 'citation_order', responseId, mlaSourceIds);
-        replaceLinks('response_identifiers', 'response_id', 'identifier_id', 'citation_order', responseId, identifierIds);
-        replaceLinks('response_links_evidence', 'source_response_id', 'target_evidence_id', 'sort_order', responseId, linkEvidenceIds);
-        replaceLinks('response_links_context', 'source_response_id', 'target_context_essay_id', 'sort_order', responseId, linkContextIds);
+    replaceChildren(
+      "response_breakouts",
+      "response_id",
+      responseId,
+      breakouts,
+      ["title", "content"],
+    );
+    replaceLinks(
+      "response_mla_sources",
+      "response_id",
+      "mla_source_id",
+      "citation_order",
+      responseId,
+      mlaSourceIds,
+    );
+    replaceLinks(
+      "response_identifiers",
+      "response_id",
+      "identifier_id",
+      "citation_order",
+      responseId,
+      identifierIds,
+    );
+    replaceLinks(
+      "response_links_evidence",
+      "source_response_id",
+      "target_evidence_id",
+      "sort_order",
+      responseId,
+      linkEvidenceIds,
+    );
+    replaceLinks(
+      "response_links_context",
+      "source_response_id",
+      "target_context_essay_id",
+      "sort_order",
+      responseId,
+      linkContextIds,
+    );
 
-        return getAdminById(responseId);
-    });
+    return getAdminById(responseId);
+  });
 
-    return writeRelated(data);
+  return writeRelated(data);
 }
 
 /**
@@ -184,15 +244,15 @@ function createComposite(data) {
  * or undefined if no row has that id.
  */
 function update(id, data) {
-    if (!getById(id)) return undefined;
+  if (!getById(id)) return undefined;
 
-    const row = pickWritable(data, WRITABLE_COLUMNS);
-    if (row.slug !== undefined) {
-        row.slug = generateUniqueSlug(db, 'responses', row.slug, id);
-    }
+  const row = pickWritable(data, WRITABLE_COLUMNS);
+  if (row.slug !== undefined) {
+    row.slug = generateUniqueSlug(db, "responses", row.slug, id);
+  }
 
-    if (!runUpdate(db, 'responses', row, id)) return getById(id);
-    return getById(id);
+  if (!runUpdate(db, "responses", row, id)) return getById(id);
+  return getById(id);
 }
 
 /**
@@ -204,40 +264,81 @@ function update(id, data) {
  * one of the replacements fails.
  */
 function updateComposite(id, data) {
-    const existing = getById(id);
-    if (!existing) return undefined;
+  const existing = getById(id);
+  if (!existing) return undefined;
 
-    const writeRelated = db.transaction((data) => {
-        // Extract related arrays before pickWritable strips them.
-        const breakouts = data.breakouts;
-        const pictures = data.pictures;
-        const mlaSourceIds = data.mla_source_ids;
-        const identifierIds = data.identifier_ids;
-        const linkEvidenceIds = data.link_evidence_ids;
-        const linkContextIds = data.link_context_ids;
+  const writeRelated = db.transaction((data) => {
+    // Extract related arrays before pickWritable strips them.
+    const breakouts = data.breakouts;
+    const mlaSourceIds = data.mla_source_ids;
+    const identifierIds = data.identifier_ids;
+    const linkEvidenceIds = data.link_evidence_ids;
+    const linkContextIds = data.link_context_ids;
 
-        const response = update(id, data);
-        if (!response) return undefined;
+    const response = update(id, data);
+    if (!response) return undefined;
 
-        replaceChildren('response_breakouts', 'response_id', id, breakouts, ['title', 'content']);
-        replaceChildren('response_pictures', 'response_id', id, pictures, ['image_path', 'caption']);
-        replaceLinks('response_mla_sources', 'response_id', 'mla_source_id', 'citation_order', id, mlaSourceIds);
-        replaceLinks('response_identifiers', 'response_id', 'identifier_id', 'citation_order', id, identifierIds);
-        replaceLinks('response_links_evidence', 'source_response_id', 'target_evidence_id', 'sort_order', id, linkEvidenceIds);
-        replaceLinks('response_links_context', 'source_response_id', 'target_context_essay_id', 'sort_order', id, linkContextIds);
+    replaceChildren("response_breakouts", "response_id", id, breakouts, [
+      "title",
+      "content",
+    ]);
+    replaceLinks(
+      "response_mla_sources",
+      "response_id",
+      "mla_source_id",
+      "citation_order",
+      id,
+      mlaSourceIds,
+    );
+    replaceLinks(
+      "response_identifiers",
+      "response_id",
+      "identifier_id",
+      "citation_order",
+      id,
+      identifierIds,
+    );
+    replaceLinks(
+      "response_links_evidence",
+      "source_response_id",
+      "target_evidence_id",
+      "sort_order",
+      id,
+      linkEvidenceIds,
+    );
+    replaceLinks(
+      "response_links_context",
+      "source_response_id",
+      "target_context_essay_id",
+      "sort_order",
+      id,
+      linkContextIds,
+    );
 
-        return getAdminById(id);
-    });
+    return getAdminById(id);
+  });
 
-    return writeRelated(data);
+  return writeRelated(data);
 }
 
 /**
  * Delete a response by id. Returns true if a row was removed.
  */
 function remove(id) {
-    const result = db.prepare('DELETE FROM responses WHERE id = ?').run(id);
-    return result.changes > 0;
+  const result = db.prepare("DELETE FROM responses WHERE id = ?").run(id);
+  return result.changes > 0;
 }
 
-module.exports = { getAllPublished, getByChallenge, getBySlug, getById, getDetailBySlug, getAdminById, create, createComposite, update, updateComposite, remove };
+module.exports = {
+  getAllPublished,
+  getByChallenge,
+  getBySlug,
+  getById,
+  getDetailBySlug,
+  getAdminById,
+  create,
+  createComposite,
+  update,
+  updateComposite,
+  remove,
+};

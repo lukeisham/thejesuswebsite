@@ -3,7 +3,11 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require("../config");
-const { pickWritable, generateUniqueSlug, runUpdate } = require("./model-helpers");
+const {
+  pickWritable,
+  generateUniqueSlug,
+  runUpdate,
+} = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const { getLinked, replaceLinks } = require("./relations/junctions");
 
@@ -94,7 +98,6 @@ function assembleDetail(essay) {
   return {
     ...essay,
     breakouts: getChildren("essay_breakouts", "context_essay_id", essay.id),
-    pictures: getChildren("essay_pictures", "context_essay_id", essay.id),
     mla_sources: getLinked(
       "context_essay_mla_sources",
       "context_essay_id",
@@ -166,7 +169,6 @@ function update(id, data) {
  *
  * Accepts the same base fields as create() plus optional arrays:
  *   breakouts: [{ title, content }]
- *   pictures: [{ image_path, caption }]
  *   mla_source_ids: [id, ...]
  *   identifier_ids: [id, ...]
  *   link_evidence_ids: [id, ...]
@@ -176,7 +178,6 @@ function createComposite(data) {
   const writeRelated = db.transaction((data) => {
     // Extract related arrays before pickWritable strips them.
     const breakouts = data.breakouts;
-    const pictures = data.pictures;
     const mlaSourceIds = data.mla_source_ids;
     const identifierIds = data.identifier_ids;
     const linkEvidenceIds = data.link_evidence_ids;
@@ -188,10 +189,6 @@ function createComposite(data) {
     replaceChildren("essay_breakouts", "context_essay_id", essayId, breakouts, [
       "title",
       "content",
-    ]);
-    replaceChildren("essay_pictures", "context_essay_id", essayId, pictures, [
-      "image_path",
-      "caption",
     ]);
     replaceLinks(
       "context_essay_mla_sources",
@@ -247,7 +244,6 @@ function updateComposite(id, data) {
   const writeRelated = db.transaction((data) => {
     // Extract related arrays before pickWritable strips them.
     const breakouts = data.breakouts;
-    const pictures = data.pictures;
     const mlaSourceIds = data.mla_source_ids;
     const identifierIds = data.identifier_ids;
     const linkEvidenceIds = data.link_evidence_ids;
@@ -259,10 +255,6 @@ function updateComposite(id, data) {
     replaceChildren("essay_breakouts", "context_essay_id", id, breakouts, [
       "title",
       "content",
-    ]);
-    replaceChildren("essay_pictures", "context_essay_id", id, pictures, [
-      "image_path",
-      "caption",
     ]);
     replaceLinks(
       "context_essay_mla_sources",
