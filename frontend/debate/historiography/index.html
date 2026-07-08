@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Historiography — The Jesus Website</title>
-  <meta name="description" content="Historiography essays examining the academic study of the historical Jesus and the development of historical Jesus research.">
+  <meta name="description" content="Eight historiography essays, one per period of historical-Jesus scholarship, tracing the development of historical Jesus research from the early church to today.">
 
   <!-- Favicon & PWA -->
   <link rel="icon" href="/assets/images/favicon.png" type="image/png">
@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="/assets/css/components/infinite-scroll.css">
   <link rel="stylesheet" href="/assets/css/pages/journal-header.css">
   <link rel="stylesheet" href="/assets/css/pages/essays-list.css">
+  <link rel="stylesheet" href="/assets/css/pages/historiography-list.css">
 </head>
 <body>
   <!-- Visually-hidden header for SEO & a11y (HTML-3) -->
@@ -68,11 +69,11 @@
       <!-- Page header -->
       <header class="journal-header">
       <h2>Historiography</h2>
-      <p>Essays examining the academic study of the historical Jesus and the development of historical Jesus research.</p>
+      <p>Eight essays, one per period of historical-Jesus scholarship, tracing how the academic study of the historical Jesus has developed from the early church to the present day.</p>
       </header>
 
-      <!-- Card grid for essay list -->
-      <div class="card-grid" id="card-grid" role="list">
+      <!-- Period-grouped sections, each with its own .card-grid, injected by historiography-list.js -->
+      <div id="card-grid">
       <!-- Populated by historiography-list.js -->
       </div>
 

@@ -26,17 +26,39 @@ const WRITABLE_COLUMNS = [
   "two_column",
   "doi",
   "author_bio",
+  "historiography_period",
+  "period_sort_order",
 ];
 
 /**
- * Published historiography essays for the public site, newest first.
+ * Map DB-native column names to the names the frontend JS expects. Admin
+ * reads (getAdminById) skip this so admin forms keep using the raw DB names.
+ */
+function normalizeForPublic(item) {
+  const { essay_title, essay_author, essay_content, metadata_keywords, mla_sources, ...rest } = item;
+  return {
+    ...rest,
+    title: essay_title,
+    author: essay_author,
+    body: essay_content,
+    keywords: metadata_keywords
+      ? metadata_keywords.split(",").map((k) => k.trim()).filter(Boolean)
+      : [],
+    ...(mla_sources !== undefined ? { bibliography: mla_sources } : {}),
+  };
+}
+
+/**
+ * Published historiography essays for the public site, grouped by period
+ * (period_sort_order ascending), newest first within a period.
  */
 function getAllPublished() {
   return db
     .prepare(
-      "SELECT * FROM historiography WHERE published_draft = 1 ORDER BY created_at DESC",
+      "SELECT * FROM historiography WHERE published_draft = 1 ORDER BY period_sort_order ASC, created_at DESC",
     )
-    .all();
+    .all()
+    .map(normalizeForPublic);
 }
 
 /**
@@ -58,6 +80,19 @@ function getById(id) {
 }
 
 /**
+ * Every historiography essay — published and draft alike — raw DB column
+ * names, for the admin list view. Requires auth at the route level; never
+ * exposed on the public list endpoint.
+ */
+function getAllAdmin() {
+  return db
+    .prepare(
+      "SELECT * FROM historiography ORDER BY period_sort_order ASC, created_at DESC",
+    )
+    .all();
+}
+
+/**
  * Full detail for public consumption — the base historiography row plus all related
  * breakouts, pictures, sources, identifiers, and internal links.
  * Filters to published_draft = 1 at the base level.
@@ -65,7 +100,7 @@ function getById(id) {
 function getDetailBySlug(slug) {
   const item = getBySlug(slug);
   if (!item) return undefined;
-  return assembleDetail(item);
+  return normalizeForPublic(assembleDetail(item));
 }
 
 /**
@@ -288,6 +323,7 @@ function remove(id) {
 
 module.exports = {
   getAllPublished,
+  getAllAdmin,
   getBySlug,
   getById,
   getDetailBySlug,

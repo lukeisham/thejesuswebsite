@@ -274,7 +274,9 @@
                                 ? "url"
                                 : type === "date"
                                   ? "date"
-                                  : "text";
+                                  : type === "number"
+                                    ? "number"
+                                    : "text";
                     }
                     input.id = id;
                     input.placeholder = placeholder || "";
@@ -417,6 +419,71 @@
                         "Comma-separated evidence IDs.",
                         false,
                         "",
+                    ),
+                );
+
+                // Period dropdown
+                var PERIOD_OPTIONS = [
+                    ["", "— Select a period —"],
+                    ["early-church", "Early Church (1st–5th c.)"],
+                    ["medieval", "Medieval (5th–15th c.)"],
+                    [
+                        "reformation-early-modern",
+                        "Reformation & Early Modern (16th–18th c.)",
+                    ],
+                    [
+                        "enlightenment-old-quest",
+                        "Enlightenment & Old Quest (1778–1906)",
+                    ],
+                    [
+                        "no-quest-period-of-silence",
+                        "No Quest / Period of Silence (1906–1953)",
+                    ],
+                    [
+                        "second-quest-new-quest",
+                        "Second Quest / New Quest (1953–1970s)",
+                    ],
+                    ["third-quest", "Third Quest (1980s–1990s)"],
+                    ["contemporary", "Contemporary (21st c.)"],
+                ];
+                var periodGroup = document.createElement("div");
+                periodGroup.className = "admin-form-group";
+                var periodLabel = document.createElement("label");
+                periodLabel.className = "admin-form-group__label";
+                periodLabel.setAttribute("for", "historiography-period");
+                periodLabel.textContent = "Period";
+                periodGroup.appendChild(periodLabel);
+                var periodSelect = document.createElement("select");
+                periodSelect.className = "admin-input";
+                periodSelect.id = "historiography-period";
+                PERIOD_OPTIONS.forEach(function (pair) {
+                    var opt = document.createElement("option");
+                    opt.value = pair[0];
+                    opt.textContent = pair[1];
+                    if (pair[0] === (data.historiography_period || "")) {
+                        opt.selected = true;
+                    }
+                    periodSelect.appendChild(opt);
+                });
+                periodGroup.appendChild(periodSelect);
+                var periodHint = document.createElement("span");
+                periodHint.className = "admin-form-hint";
+                periodHint.textContent =
+                    "The fixed historical period this essay belongs to. Groups essays into cards on the public index page.";
+                periodGroup.appendChild(periodHint);
+                metaCard.appendChild(periodGroup);
+
+                metaCard.appendChild(
+                    formGroup(
+                        "Period Sort Order",
+                        "historiography-sort-order",
+                        "number",
+                        "e.g. 1",
+                        "Controls display order among periods (chronological is 1–8).",
+                        false,
+                        data.period_sort_order != null
+                            ? data.period_sort_order
+                            : "",
                     ),
                 );
 
@@ -698,6 +765,20 @@
                             document
                                 .getElementById("historiography-author-bio")
                                 .value.trim() || undefined,
+                        historiography_period:
+                            document.getElementById("historiography-period")
+                                .value || undefined,
+                        period_sort_order:
+                            document.getElementById(
+                                "historiography-sort-order",
+                            ).value !== ""
+                                ? parseInt(
+                                      document.getElementById(
+                                          "historiography-sort-order",
+                                      ).value,
+                                      10,
+                                  )
+                                : undefined,
                         published_draft: document.getElementById(
                             "historiography-publish",
                         ).checked

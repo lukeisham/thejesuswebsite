@@ -297,6 +297,55 @@
                                     >Comma-separated evidence IDs to link.</span
                                 >
                             </div>
+
+                            <div class="admin-form-group">
+                                <label
+                                    class="admin-form-group__label"
+                                    for="historiography-period"
+                                    >Period</label
+                                >
+                                <select
+                                    class="admin-input"
+                                    id="historiography-period"
+                                    name="historiography_period"
+                                    aria-describedby="period-hint"
+                                >
+                                    <option value="">— Select a period —</option>
+                                    <option value="early-church">Early Church (1st–5th c.)</option>
+                                    <option value="medieval">Medieval (5th–15th c.)</option>
+                                    <option value="reformation-early-modern">Reformation & Early Modern (16th–18th c.)</option>
+                                    <option value="enlightenment-old-quest">Enlightenment & Old Quest (1778–1906)</option>
+                                    <option value="no-quest-period-of-silence">No Quest / Period of Silence (1906–1953)</option>
+                                    <option value="second-quest-new-quest">Second Quest / New Quest (1953–1970s)</option>
+                                    <option value="third-quest">Third Quest (1980s–1990s)</option>
+                                    <option value="contemporary">Contemporary (21st c.)</option>
+                                </select>
+                                <span class="admin-form-hint" id="period-hint"
+                                    >The fixed historical period this essay
+                                    belongs to. Groups essays into cards on the
+                                    public index page.</span
+                                >
+                            </div>
+
+                            <div class="admin-form-group">
+                                <label
+                                    class="admin-form-group__label"
+                                    for="historiography-sort-order"
+                                    >Period Sort Order</label
+                                >
+                                <input
+                                    class="admin-input"
+                                    id="historiography-sort-order"
+                                    name="period_sort_order"
+                                    type="number"
+                                    aria-describedby="sort-hint"
+                                    placeholder="e.g. 1"
+                                />
+                                <span class="admin-form-hint" id="sort-hint"
+                                    >Controls display order among periods
+                                    (chronological is 1–8).</span
+                                >
+                            </div>
                         </div>
 
                         <div
@@ -484,6 +533,20 @@ const titleInput = document.getElementById(
                             document.getElementById("historiography-evidence")
                                 .value,
                         ),
+                        historiography_period:
+                            document.getElementById("historiography-period")
+                                .value || undefined,
+                        period_sort_order:
+                            document.getElementById(
+                                "historiography-sort-order",
+                            ).value !== ""
+                                ? parseInt(
+                                      document.getElementById(
+                                          "historiography-sort-order",
+                                      ).value,
+                                      10,
+                                  )
+                                : undefined,
                         mla_source_ids: mlaSourcesPanel.getSelectedIds(),
                     };
                 }
