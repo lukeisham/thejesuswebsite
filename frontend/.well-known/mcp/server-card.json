@@ -1,0 +1,22 @@
+{
+  "serverInfo": {
+    "name": "thejesuswebsite-mcp-server",
+    "version": "1.0.0",
+    "description": "Read-only MCP server providing historical evidence, essays, blog posts, news articles, timeline events, and map data about Jesus of Nazareth."
+  },
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://thejesuswebsite.org/mcp"
+  },
+  "capabilities": {
+    "tools": [
+      "searchEvidence",
+      "getItemBySlug",
+      "getEssayBySlug",
+      "getBlogPostBySlug",
+      "getNewsArticleBySlug",
+      "getTimelineEvents",
+      "getMapData"
+    ]
+  }
+}
