@@ -1,0 +1,30 @@
+/* ==========================================================================
+   Resources — Landing Page
+   Static card grid linking to each resource category page.
+   ========================================================================== */
+
+.resources-header {
+  margin-bottom: var(--space-xl);
+}
+
+.resources-header h2 {
+  margin-bottom: var(--space-sm);
+}
+
+.resources-header p {
+  color: var(--text-secondary);
+}
+
+#resources-category-grid {
+  margin-bottom: var(--space-xl);
+}
+
+#resources-category-grid .card {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+#resources-category-grid .card-title {
+  color: var(--text-primary);
+}

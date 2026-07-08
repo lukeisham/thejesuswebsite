@@ -1,120 +1,252 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resources — The Jesus Website</title>
-  <meta name="description" content="Curated ranked lists of parables, manuscripts, people, sites, and more — organised for study.">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Resources — The Jesus Website</title>
+        <meta
+            name="description"
+            content="Curated ranked lists of parables, manuscripts, people, sites, and more — organised for study."
+        />
 
-  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
-  <link rel="icon" href="/favicon.ico" sizes="32x32">
-  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
-  <link rel="manifest" href="/assets/images/site.webmanifest">
+        <link rel="icon" href="/assets/images/favicon.png" type="image/png" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link
+            rel="apple-touch-icon"
+            href="/assets/images/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/assets/images/site.webmanifest" />
 
-  <link rel="stylesheet" href="/assets/css/base/variables.css">
-  <link rel="stylesheet" href="/assets/css/base/reset.css">
-  <link rel="stylesheet" href="/assets/css/base/typography.css">
-  <link rel="stylesheet" href="/assets/css/base/invisible-header.css">
-  <link rel="stylesheet" href="/assets/css/base/animations.css">
-  <link rel="stylesheet" href="/assets/css/layout/grid.css">
-  <link rel="stylesheet" href="/assets/css/layout/navigation.css">
-  <link rel="stylesheet" href="/assets/css/layout/footer.css">
-  <link rel="stylesheet" href="/assets/css/components/sidebar.css">
-  <link rel="stylesheet" href="/assets/css/components/icons.css">
-  <link rel="stylesheet" href="/assets/css/components/cookie-consent.css">
-  <link rel="stylesheet" href="/assets/css/components/buttons.css">
-  <link rel="stylesheet" href="/assets/css/pages/resources.css">
+        <link rel="stylesheet" href="/assets/css/base/variables.css" />
+        <link rel="stylesheet" href="/assets/css/base/reset.css" />
+        <link rel="stylesheet" href="/assets/css/base/typography.css" />
+        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" />
+        <link rel="stylesheet" href="/assets/css/base/animations.css" />
+        <link rel="stylesheet" href="/assets/css/layout/grid.css" />
+        <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
+        <link rel="stylesheet" href="/assets/css/layout/footer.css" />
+        <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
+        <link rel="stylesheet" href="/assets/css/components/icons.css" />
+        <link
+            rel="stylesheet"
+            href="/assets/css/components/cookie-consent.css"
+        />
+        <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+        <link rel="stylesheet" href="/assets/css/components/cards.css" />
+        <link rel="stylesheet" href="/assets/css/pages/resources-index.css" />
 
-  <link rel="preload" as="image" href="/assets/images/feather-sprite.svg" fetchpriority="high">
-</head>
-<body>
-  <header class="sr-only">
-    <a class="skip-link" href="#main-content">Skip to content</a>
-    <h1>Resources — The Jesus Website</h1>
-  </header>
+        <link
+            rel="preload"
+            as="image"
+            href="/assets/images/feather-sprite.svg"
+            fetchpriority="high"
+        />
+    </head>
+    <body>
+        <header class="sr-only">
+            <a class="skip-link" href="#main-content">Skip to content</a>
+            <h1>Resources — The Jesus Website</h1>
+        </header>
 
-  <div class="sidebar-backdrop" hidden></div>
-  <button class="sidebar__toggle" id="sidebar-toggle" aria-expanded="true" aria-label="Toggle navigation">
-    <svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-menu"/></svg>
-  </button>
-  <nav class="sidebar" id="sidebar" aria-label="Site navigation">
-    <ul class="sidebar__nav">
-      <li class="nav-item"><a href="/">The Jesus Website</a></li>
-      <li class="nav-item"><a href="/evidence/">Evidence</a></li>
-      <li class="nav-item"><a href="/evidence/search.html">Search</a></li>
-      <li class="nav-item"><a href="/evidence/arbor.html">Arbor Diagram</a></li>
-      <li class="nav-item"><a href="/evidence/timeline/">Timeline</a></li>
-      <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
-      <li class="nav-item"><a href="/contextual-essays/">Context</a></li>
-      <li class="nav-item"><a href="/debate/">Debate</a></li>
-      <li class="nav-item"><a href="/resources/">Resources</a></li>
-      <li class="nav-item"><a href="/news-and-blog/">News</a></li>
-      <li class="nav-item"><a href="/about.html">About</a></li>
-      <li class="nav-item nav-item--admin">
-          <a href="/admin/">Admin</a>
-      </li>
-    </ul>
-  </nav>
+        <div class="sidebar-backdrop" hidden></div>
+        <button
+            class="sidebar__toggle"
+            id="sidebar-toggle"
+            aria-expanded="true"
+            aria-label="Toggle navigation"
+        >
+            <svg width="20" height="20" aria-hidden="true">
+                <use href="/assets/images/feather-sprite.svg#icon-menu" />
+            </svg>
+        </button>
+        <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+            <ul class="sidebar__nav">
+                <li class="nav-item"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+                <li class="nav-item">
+                    <a href="/evidence/search.html">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/arbor.html">Arbor Diagram</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/timeline/">Timeline</a>
+                </li>
+                <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+                <li class="nav-item">
+                    <a href="/contextual-essays/">Context</a>
+                </li>
+                <li class="nav-item"><a href="/debate/">Debate</a></li>
+                <li class="nav-item"><a href="/resources/">Resources</a></li>
+                <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+                <li class="nav-item"><a href="/about.html">About</a></li>
+                <li class="nav-item nav-item--admin">
+                    <a href="/admin/">Admin</a>
+                </li>
+            </ul>
+        </nav>
 
-  <main id="main-content">
-    <!-- Page header -->
-    <section class="resources-header">
-      <h2>Resources</h2>
-      <p>Curated, ranked lists for study and reference — parables, manuscripts, people, sites, and more.</p>
-    </section>
+        <main id="main-content">
+            <!-- Page header -->
+            <section class="resources-header">
+                <h2>Resources</h2>
+                <p>
+                    Curated lists of Jesus' miracles and parables, plus
+                    manuscripts, people, sites, and objects mentioned in the
+                    Gospel narratives.
+                </p>
+            </section>
 
-    <!-- Category navigation (horizontal ghost-chip links) -->
-    <nav class="resources-categories" aria-label="Resource categories">
-      <a class="resources-category-link" href="/resources/list.html?key=sermons-and-sayings">Sermons &amp; Sayings</a>
-      <a class="resources-category-link" href="/resources/list.html?key=parables">Parables</a>
-      <a class="resources-category-link" href="/resources/list.html?key=objects">Objects</a>
-      <a class="resources-category-link" href="/resources/list.html?key=people">People</a>
-      <a class="resources-category-link" href="/resources/list.html?key=sites">Sites</a>
-      <a class="resources-category-link" href="/resources/list.html?key=ot-verses">OT Verses</a>
-      <a class="resources-category-link" href="/resources/list.html?key=internal-witnesses">Internal Witnesses</a>
-      <a class="resources-category-link" href="/resources/list.html?key=external-witnesses">External Witnesses</a>
-      <a class="resources-category-link" href="/resources/list.html?key=places">Places</a>
-      <a class="resources-category-link" href="/resources/list.html?key=world-events">World Events</a>
-      <a class="resources-category-link" href="/resources/list.html?key=miracles">Miracles</a>
-      <a class="resources-category-link" href="/resources/list.html?key=events">Events</a>
-      <a class="resources-category-link" href="/resources/list.html?key=apologetics">Apologetics</a>
-      <a class="resources-category-link" href="/resources/list.html?key=manuscripts">Manuscripts</a>
-      <a class="resources-category-link" href="/resources/list.html?key=sources">Sources</a>
-    </nav>
+            <!-- Category card grid -->
+            <div class="card-grid" id="resources-category-grid" role="list">
+                <a class="card" href="/resources/sermons-and-sayings.html">
+                    <h3 class="card-title">Sermons &amp; Sayings</h3>
+                    <p class="card-description">Jesus' sermons and sayings.</p>
+                </a>
+                <a class="card" href="/resources/parables.html">
+                    <h3 class="card-title">Parables</h3>
+                    <p class="card-description">
+                        Illustrative fictional stories used by Jesus.
+                    </p>
+                </a>
+                <a class="card" href="/resources/objects.html">
+                    <h3 class="card-title">Objects</h3>
+                    <p class="card-description">
+                        Objects mentioned in the Gospel narratives.
+                    </p>
+                </a>
+                <a class="card" href="/resources/people.html">
+                    <h3 class="card-title">People</h3>
+                    <p class="card-description">
+                        Figures who appear in or around the Gospel accounts.
+                    </p>
+                </a>
+                <a class="card" href="/resources/sites.html">
+                    <h3 class="card-title">Sites</h3>
+                    <p class="card-description">
+                        Archaeological locations connected to the Gospel
+                        accounts.
+                    </p>
+                </a>
+                <a class="card" href="/resources/ot-verses.html">
+                    <h3 class="card-title">OT Verses</h3>
+                    <p class="card-description">
+                        Old Testament prophecies about Jesus.
+                    </p>
+                </a>
+                <a class="card" href="/resources/internal-witnesses.html">
+                    <h3 class="card-title">Internal Witnesses</h3>
+                    <p class="card-description">
+                        The testimony of early Christians.
+                    </p>
+                </a>
+                <a class="card" href="/resources/external-witnesses.html">
+                    <h3 class="card-title">External Witnesses</h3>
+                    <p class="card-description">
+                        The testimony of hostile or external witnesses to
+                        Christianity.
+                    </p>
+                </a>
+                <a class="card" href="/resources/places.html">
+                    <h3 class="card-title">Places</h3>
+                    <p class="card-description">
+                        Places mentioned in the Gospel accounts.
+                    </p>
+                </a>
+                <a class="card" href="/resources/world-events.html">
+                    <h3 class="card-title">World Events</h3>
+                    <p class="card-description">
+                        Wider historical events in the first century.
+                    </p>
+                </a>
+                <a class="card" href="/resources/miracles.html">
+                    <h3 class="card-title">Miracles</h3>
+                    <p class="card-description">
+                        Miraculous events in the Gospel accounts.
+                    </p>
+                </a>
+                <a class="card" href="/resources/events.html">
+                    <h3 class="card-title">Events</h3>
+                    <p class="card-description">
+                        Key events in the Gospel narratives.
+                    </p>
+                </a>
+                <a class="card" href="/resources/apologetics.html">
+                    <h3 class="card-title">Apologetics</h3>
+                    <p class="card-description">
+                        Arguments and resources supporting the historicity of
+                        Jesus.
+                    </p>
+                </a>
+                <a class="card" href="/resources/manuscripts.html">
+                    <h3 class="card-title">Manuscripts</h3>
+                    <p class="card-description">List of manuscripts.</p>
+                </a>
+                <a class="card" href="/resources/sources.html">
+                    <h3 class="card-title">Sources</h3>
+                    <p class="card-description">
+                        Useful resources related to the study of the historical
+                        Jesus.
+                    </p>
+                </a>
+            </div>
+        </main>
 
-    <p class="home-section__text">
-      Select a category above to browse a ranked, ordered list of curated resources.
-    </p>
-  </main>
+        <footer>
+            <div class="footer__left">
+                <img
+                    src="/assets/images/favicon-64.png"
+                    alt=""
+                    width="20"
+                    height="20"
+                />
+                <p>
+                    &copy; <span id="footer-year"></span> The Jesus Website.
+                    <a href="https://creativecommons.org/licenses/by-nc/4.0/"
+                        >CC BY-NC</a
+                    >.
+                </p>
+            </div>
+            <div class="footer__right">
+                <button
+                    class="btn btn--ghost"
+                    data-action="print"
+                    aria-label="Print page"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-printer"
+                        />
+                    </svg>
+                    Print
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-contents"
+                    aria-label="Copy page contents"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-copy"
+                        />
+                    </svg>
+                    Copy Contents
+                </button>
+                <button
+                    class="btn btn--ghost"
+                    data-action="copy-url"
+                    aria-label="Copy page URL"
+                >
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use
+                            href="/assets/images/feather-sprite.svg#icon-link"
+                        />
+                    </svg>
+                    Copy URL
+                </button>
+            </div>
+        </footer>
 
-  <footer>
-    <div class="footer__left">
-      <img
-          src="/assets/images/favicon-64.png"
-          alt=""
-          width="20"
-          height="20"
-      />
-      <p>
-          &copy; <span id="footer-year"></span> The Jesus Website. <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC</a>.
-      </p>
-    </div>
-    <div class="footer__right">
-      <button class="btn btn--ghost" data-action="print" aria-label="Print page">
-        <svg width="16" height="16" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-printer"/></svg>
-        Print
-      </button>
-      <button class="btn btn--ghost" data-action="copy-contents" aria-label="Copy page contents">
-        <svg width="16" height="16" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-copy"/></svg>
-        Copy Contents
-      </button>
-      <button class="btn btn--ghost" data-action="copy-url" aria-label="Copy page URL">
-        <svg width="16" height="16" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-link"/></svg>
-        Copy URL
-      </button>
-    </div>
-  </footer>
-
-  <script type="module" src="/assets/js/main.js" defer></script>
-</body>
+        <script type="module" src="/assets/js/main.js" defer></script>
+    </body>
 </html>

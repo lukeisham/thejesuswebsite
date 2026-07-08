@@ -16,7 +16,7 @@ const fs = require("fs");
 const path = require("path");
 const db = require("../config");
 
-const BASE_URL = "https://www.thejesuswebsite.org";
+const BASE_URL = "https://thejesuswebsite.org";
 const OUTPUT_PATH = path.resolve(
   __dirname,
   "..",
@@ -64,6 +64,21 @@ const SECTION_PAGES = [
   { loc: "/news-and-blog/blog/", priority: "0.7", changefreq: "weekly" },
   { loc: "/news-and-blog/news/", priority: "0.7", changefreq: "weekly" },
   { loc: "/resources/", priority: "0.6", changefreq: "monthly" },
+  { loc: "/resources/sermons-and-sayings.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/parables.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/objects.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/people.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/sites.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/ot-verses.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/internal-witnesses.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/external-witnesses.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/places.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/world-events.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/miracles.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/events.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/apologetics.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/manuscripts.html", priority: "0.5", changefreq: "monthly" },
+  { loc: "/resources/sources.html", priority: "0.5", changefreq: "monthly" },
   { loc: "/about.html", priority: "0.6", changefreq: "monthly" },
 ];
 
