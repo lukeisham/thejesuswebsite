@@ -248,7 +248,7 @@ function renderCategoryNav(activeKey) {
   $categoryNav.innerHTML = VALID_LIST_KEYS.map((key) => {
     const label = LIST_KEY_LABELS[key] || key;
     const isActive = key === activeKey;
-    const href = `/resources/list.html?key=${encodeURIComponent(key)}`;
+    const href = `/resources/${key}.html`;
 
     return html`
       <a

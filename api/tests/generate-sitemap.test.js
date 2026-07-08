@@ -86,7 +86,7 @@ describe("sitemap XML output", () => {
   test("produces well-formed XML with XML declaration and urlset root", () => {
     const urls = [
       {
-        loc: "https://www.thejesuswebsite.org/",
+        loc: "https://thejesuswebsite.org/",
         lastmod: "2026-01-01",
         changefreq: "weekly",
         priority: "1.0",
@@ -99,7 +99,7 @@ describe("sitemap XML output", () => {
       xml.includes('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'),
     );
     assert.ok(xml.includes("</urlset>"));
-    assert.ok(xml.includes("<loc>https://www.thejesuswebsite.org/</loc>"));
+    assert.ok(xml.includes("<loc>https://thejesuswebsite.org/</loc>"));
   });
 
   test("escapes XML special characters in URLs", () => {
@@ -122,7 +122,7 @@ describe("sitemap includes section index pages", () => {
   test("includes the home page at priority 1.0", () => {
     const urls = buildSitemap();
     const home = urls.find(
-      (u) => u.loc === "https://www.thejesuswebsite.org/",
+      (u) => u.loc === "https://thejesuswebsite.org/",
     );
     assert.ok(home);
     assert.equal(home.priority, "1.0");
@@ -131,9 +131,43 @@ describe("sitemap includes section index pages", () => {
   test("includes evidence index", () => {
     const urls = buildSitemap();
     const evidence = urls.find(
-      (u) => u.loc === "https://www.thejesuswebsite.org/evidence/",
+      (u) => u.loc === "https://thejesuswebsite.org/evidence/",
     );
     assert.ok(evidence);
+  });
+
+  test("includes all 15 resource category pages", () => {
+    const urls = buildSitemap();
+    const keys = [
+      "sermons-and-sayings",
+      "parables",
+      "objects",
+      "people",
+      "sites",
+      "ot-verses",
+      "internal-witnesses",
+      "external-witnesses",
+      "places",
+      "world-events",
+      "miracles",
+      "events",
+      "apologetics",
+      "manuscripts",
+      "sources",
+    ];
+    for (const key of keys) {
+      assert.ok(
+        urls.some(
+          (u) => u.loc === `https://thejesuswebsite.org/resources/${key}.html`,
+        ),
+        `missing sitemap entry for /resources/${key}.html`,
+      );
+    }
+  });
+
+  test("uses the apex domain, not www", () => {
+    const urls = buildSitemap();
+    assert.ok(urls.every((u) => !u.loc.includes("www.")));
   });
 });
 
@@ -149,7 +183,7 @@ describe("sitemap includes published detail pages", () => {
     const urls = buildSitemap();
     const detailUrls = urls.filter((u) =>
       u.loc.startsWith(
-        "https://www.thejesuswebsite.org/evidence/single/",
+        "https://thejesuswebsite.org/evidence/single/",
       ),
     );
 
@@ -172,7 +206,7 @@ describe("sitemap includes published detail pages", () => {
     const urls = buildSitemap();
     const essayUrls = urls.filter((u) =>
       u.loc.startsWith(
-        "https://www.thejesuswebsite.org/contextual-essays/",
+        "https://thejesuswebsite.org/contextual-essays/",
       ),
     );
 
@@ -190,7 +224,7 @@ describe("sitemap includes published detail pages", () => {
     const urls = buildSitemap();
     const blogUrls = urls.filter((u) =>
       u.loc.startsWith(
-        "https://www.thejesuswebsite.org/news-and-blog/blog/",
+        "https://thejesuswebsite.org/news-and-blog/blog/",
       ),
     );
 
@@ -213,7 +247,7 @@ describe("sitemap excludes unpublished rows", () => {
     const urls = buildSitemap();
     const detailUrls = urls.filter((u) =>
       u.loc.startsWith(
-        "https://www.thejesuswebsite.org/evidence/single/",
+        "https://thejesuswebsite.org/evidence/single/",
       ),
     );
 
@@ -230,7 +264,7 @@ describe("sitemap excludes unpublished rows", () => {
     const detailUrls = urls.filter(
       (u) =>
         u.loc.startsWith(
-          "https://www.thejesuswebsite.org/contextual-essays/",
+          "https://thejesuswebsite.org/contextual-essays/",
         ) &&
         !u.loc.endsWith("/contextual-essays/"),
     );
@@ -249,8 +283,8 @@ describe("sitemap URL counts", () => {
 
   test("section pages are always present even with no content", () => {
     const urls = buildSitemap();
-    // Should have at least the 13 section pages.
-    assert.ok(urls.length >= 13);
+    // Should have at least the 28 section pages (13 top-level + 15 resource categories).
+    assert.ok(urls.length >= 28);
   });
 
   test("each published row generates one detail URL", () => {
@@ -260,7 +294,7 @@ describe("sitemap URL counts", () => {
     const urls1 = buildSitemap();
     const evidenceBefore = urls1.filter((u) =>
       u.loc.startsWith(
-        "https://www.thejesuswebsite.org/evidence/single/",
+        "https://thejesuswebsite.org/evidence/single/",
       ),
     );
     assert.equal(evidenceBefore.length, 2);
@@ -271,7 +305,7 @@ describe("sitemap URL counts", () => {
     const urls2 = buildSitemap();
     const evidenceAfter = urls2.filter((u) =>
       u.loc.startsWith(
-        "https://www.thejesuswebsite.org/evidence/single/",
+        "https://thejesuswebsite.org/evidence/single/",
       ),
     );
     assert.equal(evidenceAfter.length, 1);

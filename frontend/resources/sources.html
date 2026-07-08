@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resources — The Jesus Website</title>
-  <!-- Title and meta description set dynamically by resources.js via seo.js -->
+  <title>Sources — Resources — The Jesus Website</title>
+  <meta name="description" content="Browse the curated, ranked list of source resources.">
 
   <link rel="icon" href="/assets/images/favicon.png" type="image/png">
   <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -31,10 +31,10 @@
 
   <link rel="preload" as="image" href="/assets/images/feather-sprite.svg" fetchpriority="high">
 </head>
-<body>
+<body data-category="sources">
   <header class="sr-only">
     <a class="skip-link" href="#main-content">Skip to content</a>
-    <h1 id="page-h1">Resources</h1>
+    <h1 id="page-h1">Sources</h1>
   </header>
 
   <div class="sidebar-backdrop" hidden></div>
@@ -64,7 +64,7 @@
     <div class="container">
       <!-- Page header -->
       <section class="resources-header">
-      <h2 id="resources-title">Resources</h2>
+      <h2 id="resources-title">Sources</h2>
       <p id="resources-description" hidden></p>
       </section>
 
@@ -83,12 +83,12 @@
       <svg class="loading__spinner" width="24" height="24" aria-hidden="true">
       <use href="/assets/images/feather-sprite.svg#icon-loader"/>
       </svg>
-      <span class="loading__text">Loading resources…</span>
+      <span class="loading__text">Loading resources&hellip;</span>
       </div>
 
       <!-- Empty state -->
       <div class="empty-state" id="empty-state" hidden>
-      <p class="empty-state__message">Select a category above to browse resources.</p>
+      <p class="empty-state__message">No resources in this category yet.</p>
       </div>
 
       <!-- Error state -->
