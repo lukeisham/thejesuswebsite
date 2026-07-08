@@ -1,0 +1,58 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Image Picker
+   CSS for the single-image picker widget (admin-image-picker.js).
+   Uses --admin-* tokens only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aimg-picker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--space-sm);
+}
+
+.aimg-picker__input {
+    display: none; /* hidden file input — triggered by button */
+}
+
+.aimg-picker__upload-btn {
+    flex-shrink: 0;
+}
+
+.aimg-picker__thumbnail {
+    max-width: 120px;
+    max-height: 90px;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-light);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.aimg-picker__remove-btn {
+    flex-shrink: 0;
+}
+
+.aimg-picker__status {
+    display: block;
+    width: 100%;
+    font-size: 11px;
+    color: var(--admin-text-muted);
+    margin-top: var(--space-xs);
+}
+
+.aimg-picker__status--error {
+    color: var(--admin-danger);
+}
+
+/* ── Mobile adjustments ─────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .aimg-picker {
+        flex-direction: column;
+    }
+
+    .aimg-picker__thumbnail {
+        max-width: 100%;
+        max-height: none;
+    }
+}

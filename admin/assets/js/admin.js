@@ -251,3 +251,48 @@ Admin.getAllChallenges = async function () {
     academicData && academicData.items ? academicData.items : [];
   return mergeChallenges(popularItems, academicItems);
 };
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Image upload helper
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Upload an image file to the server. Client-side size guard (reject > 5 MB
+ * before encoding), reads the File via FileReader to base64, POSTs to /uploads.
+ * Returns { image_path }.
+ * @param {File} file
+ * @returns {Promise<{ image_path: string }>}
+ */
+Admin.uploadImage = async function (file) {
+  if (!(file instanceof File)) {
+    throw new Error("Expected a File object.");
+  }
+
+  var MAX_BYTES = 5 * 1024 * 1024;
+  if (file.size > MAX_BYTES) {
+    throw new Error(
+      "File is too large (" +
+        (file.size / (1024 * 1024)).toFixed(1) +
+        " MB). Maximum is 5 MB.",
+    );
+  }
+
+  var data = await new Promise(function (resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      // result is "data:image/png;base64,xxxxx" — strip the prefix
+      var base64 = reader.result;
+      if (typeof base64 === "string") {
+        var commaIdx = base64.indexOf(",");
+        if (commaIdx !== -1) base64 = base64.slice(commaIdx + 1);
+      }
+      resolve(base64);
+    };
+    reader.onerror = function () {
+      reject(new Error("Failed to read file."));
+    };
+    reader.readAsDataURL(file);
+  });
+
+  return Admin.api.post("/uploads", { filename: file.name, data: data });
+};

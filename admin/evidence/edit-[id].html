@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../assets/css/admin.css">
   <script defer src="../assets/js/auth.js"></script>
   <script defer src="../assets/js/admin.js"></script>
+  <script defer src="../assets/js/admin-insert-image.js"></script>
   <style>
     .admin-form-actions {
       display: flex;
@@ -382,6 +383,20 @@
     actions.appendChild(publishBtn);
     actions.appendChild(cancelLink);
     main.appendChild(actions);
+    // Insert Image button
+    var insertBtn = document.createElement('button');
+    insertBtn.type = 'button';
+    insertBtn.className = 'admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn';
+    insertBtn.id = 'insert-image-btn';
+    insertBtn.textContent = 'Insert Image';
+    var contentField = document.getElementById('ev-desc');
+    if (contentField && contentField.parentNode) {
+        contentField.parentNode.insertBefore(insertBtn, contentField.nextSibling);
+    }
+    if (typeof AdminInsertImage !== 'undefined') {
+        AdminInsertImage.wire('#insert-image-btn', '#ev-desc');
+    }
+
 
     var submitStatus = document.createElement('div');
     submitStatus.id = 'submit-status';

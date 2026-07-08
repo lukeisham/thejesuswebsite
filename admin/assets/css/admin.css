@@ -19,6 +19,8 @@
 @import "./admin-components/tables.css";
 @import "./admin-components/modals.css";
 @import "./admin-components/cards.css";
+@import "./admin-components/image-picker.css";
+@import "./admin-components/insert-image.css";
 
 /* ── Pages ────────────────────────────────────────────────────────────────── */
 @import "./analytics.css";

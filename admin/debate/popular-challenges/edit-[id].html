@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../../assets/css/admin.css">
   <script defer src="../../assets/js/auth.js"></script>
   <script defer src="../../assets/js/admin.js"></script>
+  <script defer src="../../assets/js/admin-image-picker.js"></script>
   <style>
     .admin-form-actions {
       display: flex;
@@ -182,6 +183,16 @@
     form.className = 'admin-form-grid';
     form.setAttribute('novalidate', '');
     main.appendChild(form);
+    // Image picker for challenge picture
+    var challengePickerContainer = document.getElementById('challenge-picker');
+    var challengePicker = null;
+    if (challengePickerContainer && typeof AdminImagePicker !== 'undefined') {
+        challengePicker = AdminImagePicker.mount(challengePickerContainer, {
+            initialPath: data.challenge_picture || '',
+            onChange: function(val) { /* tracked via getValue */ },
+        });
+    }
+
 
     var mainCol = document.createElement('div');
     mainCol.className = 'admin-form-grid__main';
@@ -247,7 +258,23 @@
     contentCard.appendChild(formGroup('Title *', 'challenge-title', 'required', 'e.g. The Minimal Facts Argument', 'The challenge title shown in headings and search results.', false, data.challenge_title || ''));
     contentCard.appendChild(formGroup('Slug *', 'challenge-slug', 'required', 'e.g. minimal-facts-argument', 'URL-friendly identifier.', false, data.slug || ''));
     contentCard.appendChild(formGroup('Summary', 'challenge-summary', '', 'Write a brief summary…', 'A short overview of the challenge.', true, data.challenge_summary || ''));
-    contentCard.appendChild(formGroup('Picture URL', 'challenge-picture', '', '/debate/popular-challenges/images/example.jpg', 'Optional image for this challenge.', false, data.challenge_picture || ''));
+    contentCard.appendChild((function() {
+        var picGroup = document.createElement('div');
+        picGroup.className = 'admin-form-group';
+        var picLabel = document.createElement('label');
+        picLabel.className = 'admin-form-group__label';
+        picLabel.textContent = 'Picture';
+        picGroup.appendChild(picLabel);
+        var picContainer = document.createElement('div');
+        picContainer.id = 'challenge-picker';
+        picGroup.appendChild(picContainer);
+        var picHint = document.createElement('span');
+        picHint.className = 'admin-form-hint';
+        picHint.id = 'picture-hint';
+        picHint.textContent = 'Upload an image for this challenge.';
+        picGroup.appendChild(picHint);
+        return picGroup;
+    })());
 
     var sidebar = document.createElement('div');
     sidebar.className = 'admin-form-grid__sidebar';
@@ -424,7 +451,7 @@
         challenge_title: titleInput.value.trim(),
         slug: slugInput.value.trim(),
         challenge_summary: document.getElementById('challenge-summary').value.trim() || undefined,
-        challenge_picture: document.getElementById('challenge-picture').value.trim() || undefined,
+        challenge_picture: challengePicker ? challengePicker.getValue().image_path || undefined : undefined,
         challenge_url_a: document.getElementById('challenge-url-a').value.trim() || undefined,
         challenge_url_b: document.getElementById('challenge-url-b').value.trim() || undefined,
         challenge_url_c: document.getElementById('challenge-url-c').value.trim() || undefined,

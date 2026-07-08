@@ -3,7 +3,11 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require("../config");
-const { pickWritable, generateUniqueSlug, runUpdate } = require("./model-helpers");
+const {
+  pickWritable,
+  generateUniqueSlug,
+  runUpdate,
+} = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const { getLinked, replaceLinks } = require("./relations/junctions");
 
@@ -14,6 +18,8 @@ const WRITABLE_COLUMNS = [
   "blog_title",
   "blog_date",
   "blog_content",
+  "hero_image",
+  "hero_image_alt",
   "landing_page_display",
   "published_draft",
   "metadata_keywords",

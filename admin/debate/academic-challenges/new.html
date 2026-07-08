@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="../../assets/css/admin.css">
   <script defer src="../../assets/js/auth.js"></script>
   <script defer src="../../assets/js/admin.js"></script>
+  <script defer src="../../assets/js/admin-image-picker.js"></script>
+  <script defer src="../../assets/js/admin-insert-image.js"></script>
   <style>
     .admin-form-actions {
       display: flex;
@@ -156,12 +158,10 @@
           </div>
 
           <div class="admin-form-group">
-            <label class="admin-form-group__label" for="challenge-picture">Picture URL</label>
-            <input class="admin-input" id="challenge-picture" name="challenge_picture" type="text"
-                   aria-describedby="picture-hint"
-                   placeholder="e.g. /debate/academic-challenges/images/embarrassment.jpg">
-            <span class="admin-form-hint" id="picture-hint">Optional image for this challenge.</span>
-          </div>
+                            <label class="admin-form-group__label">Picture</label>
+                            <div id="challenge-picker"></div>
+                            <span class="admin-form-hint" id="picture-hint">Upload an image for this challenge.</span>
+                        </div>
         </div>
       </div>
 
@@ -309,7 +309,7 @@
         challenge_title: titleInput.value.trim(),
         slug: slugInput.value.trim(),
         challenge_summary: document.getElementById('challenge-summary').value.trim() || undefined,
-        challenge_picture: document.getElementById('challenge-picture').value.trim() || undefined,
+                    challenge_picture: challengePicker ? challengePicker.getValue().image_path || undefined : undefined,
         challenge_url_a: document.getElementById('challenge-url-a').value.trim() || undefined,
         challenge_url_b: document.getElementById('challenge-url-b').value.trim() || undefined,
         challenge_url_c: document.getElementById('challenge-url-c').value.trim() || undefined,
