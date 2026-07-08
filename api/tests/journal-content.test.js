@@ -350,6 +350,65 @@ describe("essays: composite CRUD", () => {
     assert.equal(updated.doi, "10.1234/essay.2");
     assert.equal(updated.author_bio, "Dr. Test is a scholar.");
   });
+
+  test("getAllPublished normalizes DB column names for the frontend", () => {
+    essayModel.create({
+      slug: "normalized-essay",
+      essay_title: "The Title",
+      essay_author: "The Author",
+      essay_content: "The Body",
+      metadata_keywords: "one, two, three",
+      published_draft: 1,
+    });
+
+    const [item] = essayModel.getAllPublished();
+
+    assert.equal(item.title, "The Title");
+    assert.equal(item.author, "The Author");
+    assert.equal(item.body, "The Body");
+    assert.deepEqual(item.keywords, ["one", "two", "three"]);
+    assert.equal(item.essay_title, undefined);
+    assert.equal(item.essay_author, undefined);
+    assert.equal(item.essay_content, undefined);
+    assert.equal(item.metadata_keywords, undefined);
+  });
+
+  test("getDetailBySlug normalizes fields and exposes bibliography", () => {
+    const mlaId = seedMlaSource();
+    essayModel.createComposite({
+      slug: "normalized-detail-essay",
+      essay_title: "Detail Title",
+      essay_author: "Detail Author",
+      essay_content: "Detail Body",
+      published_draft: 1,
+      mla_source_ids: [mlaId],
+    });
+
+    const detail = essayModel.getDetailBySlug("normalized-detail-essay");
+
+    assert.equal(detail.title, "Detail Title");
+    assert.equal(detail.author, "Detail Author");
+    assert.equal(detail.body, "Detail Body");
+    assert.equal(detail.bibliography.length, 1);
+    assert.equal(detail.mla_sources, undefined);
+  });
+
+  test("getAdminById returns raw DB column names, not normalized", () => {
+    const created = essayModel.create({
+      slug: "admin-raw-essay",
+      essay_title: "Admin Title",
+      essay_author: "Admin Author",
+      essay_content: "Admin Body",
+      published_draft: 0,
+    });
+
+    const admin = essayModel.getAdminById(created.id);
+
+    assert.equal(admin.essay_title, "Admin Title");
+    assert.equal(admin.essay_author, "Admin Author");
+    assert.equal(admin.essay_content, "Admin Body");
+    assert.equal(admin.title, undefined);
+  });
 });
 
 // ── Blog Posts ──────────────────────────────────────────────────────────────

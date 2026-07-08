@@ -266,7 +266,7 @@
     metaCard.appendChild(metaTitle);
 
     metaCard.appendChild(formGroup('Keywords', 'essay-keywords', '', 'e.g. historical jesus, resurrection', 'Comma-separated search keywords.', false, data.metadata_keywords || ''));
-    metaCard.appendChild(formGroup('Linked Evidence IDs', 'essay-evidence', '', 'e.g. 1, 3, 7', 'Comma-separated evidence IDs.', false, ''));
+    metaCard.appendChild(formGroup('Linked Evidence IDs', 'essay-evidence', '', 'e.g. 1, 3, 7', 'Comma-separated evidence IDs.', false, (data.links_evidence || []).map(function (link) { return link.target_evidence_id; }).join(', ')));
 
     // Two-Column Layout checkbox
     var twoColWrap = document.createElement('div');
@@ -457,6 +457,14 @@
       return valid;
     }
 
+    function parseIdList(str) {
+      if (!str || !str.trim()) return undefined;
+      return str
+        .split(',')
+        .map(function (s) { return parseInt(s.trim(), 10); })
+        .filter(function (n) { return !isNaN(n); });
+    }
+
     function buildPayload() {
       return {
         essay_title: titleInput.value.trim(),
@@ -467,6 +475,7 @@
         doi: document.getElementById('essay-doi').value.trim() || undefined,
         author_bio: document.getElementById('essay-author-bio').value.trim() || undefined,
         published_draft: document.getElementById('essay-publish').checked ? 1 : 0,
+        link_evidence_ids: parseIdList(document.getElementById('essay-evidence').value),
         mla_source_ids: mlaSourcesPanel.getSelectedIds()
       };
     }

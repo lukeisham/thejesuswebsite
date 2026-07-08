@@ -496,6 +496,18 @@
                     return valid;
                 }
 
+                function parseIdList(str) {
+                    if (!str || !str.trim()) return undefined;
+                    return str
+                        .split(",")
+                        .map(function (s) {
+                            return parseInt(s.trim(), 10);
+                        })
+                        .filter(function (n) {
+                            return !isNaN(n);
+                        });
+                }
+
                 function buildPayload(publish) {
                     var challengeVal = document
                         .getElementById("response-challenge")
@@ -513,6 +525,10 @@
                                 .getElementById("response-keywords")
                                 .value.trim() || undefined,
                         published_draft: publish ? 1 : 0,
+                        link_evidence_ids: parseIdList(
+                            document.getElementById("response-evidence")
+                                .value,
+                        ),
                         mla_source_ids: mlaSourcesPanel.getSelectedIds(),
                     };
                 }

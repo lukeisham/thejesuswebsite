@@ -1,4 +1,8 @@
--- Migration 004: Reconcile evidence CHECK constraints with admin form
+-- Migration 004b: Reconcile evidence CHECK constraints with admin form
+--
+-- Renamed from 004_reconcile_evidence_checks.sql to 004b_ to disambiguate
+-- from the sibling 004_news_and_resource_search.sql (see Issues.md #11).
+-- Content unchanged — historical migrations are never edited, only relabeled.
 --
 -- Changes:
 --   gospel_category  — replaced CHECK values with form's event-based categories

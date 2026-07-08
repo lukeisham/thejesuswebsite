@@ -29,6 +29,24 @@ const WRITABLE_COLUMNS = [
 ];
 
 /**
+ * Map DB-native column names to the names the frontend JS expects. Admin
+ * reads (getAdminById) skip this so admin forms keep using the raw DB names.
+ */
+function normalizeForPublic(item) {
+  const { essay_title, essay_author, essay_content, metadata_keywords, mla_sources, ...rest } = item;
+  return {
+    ...rest,
+    title: essay_title,
+    author: essay_author,
+    body: essay_content,
+    keywords: metadata_keywords
+      ? metadata_keywords.split(",").map((k) => k.trim()).filter(Boolean)
+      : [],
+    ...(mla_sources !== undefined ? { bibliography: mla_sources } : {}),
+  };
+}
+
+/**
  * Published essays for the public site, newest first.
  */
 function getAllPublished() {
@@ -36,7 +54,8 @@ function getAllPublished() {
     .prepare(
       "SELECT * FROM context_essays WHERE published_draft = 1 ORDER BY created_at DESC",
     )
-    .all();
+    .all()
+    .map(normalizeForPublic);
 }
 
 /**
@@ -69,7 +88,7 @@ function getById(id) {
 function getDetailBySlug(slug) {
   const essay = getBySlug(slug);
   if (!essay) return undefined;
-  return assembleDetail(essay);
+  return normalizeForPublic(assembleDetail(essay));
 }
 
 /**
