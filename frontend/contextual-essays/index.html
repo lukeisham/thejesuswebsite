@@ -1,136 +1,190 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contextual Essays — The Jesus Website</title>
-  <meta name="description" content="Contextual essays providing the academic framework for understanding the historical evidence for Jesus of Nazareth.">
-  <meta name="robots" content="index, follow">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Contextual Essays — The Jesus Website</title>
+        <meta
+            name="description"
+            content="Contextual essays providing the academic framework for understanding the historical evidence for Jesus of Nazareth."
+        />
+        <meta name="robots" content="index, follow" />
 
-  <!-- Open Graph / Twitter Card -->
-  <meta property="og:title" content="Contextual Essays — The Jesus Website">
-  <meta property="og:description" content="Contextual essays providing the academic framework for understanding the historical evidence for Jesus of Nazareth.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://thejesuswebsite.org/contextual-essays/">
-  <meta property="og:site_name" content="The Jesus Website">
-  <meta property="og:image" content="https://thejesuswebsite.org/assets/images/favicon.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Contextual Essays — The Jesus Website">
-  <meta name="twitter:description" content="Contextual essays providing the academic framework for understanding the historical evidence for Jesus of Nazareth.">
-  <meta name="twitter:image" content="https://thejesuswebsite.org/assets/images/favicon.png">
+        <!-- Open Graph / Twitter Card -->
+        <meta
+            property="og:title"
+            content="Contextual Essays — The Jesus Website"
+        />
+        <meta
+            property="og:description"
+            content="Contextual essays providing the academic framework for understanding the historical evidence for Jesus of Nazareth."
+        />
+        <meta property="og:type" content="website" />
+        <meta
+            property="og:url"
+            content="https://thejesuswebsite.org/contextual-essays/"
+        />
+        <meta property="og:site_name" content="The Jesus Website" />
+        <meta
+            property="og:image"
+            content="https://thejesuswebsite.org/assets/images/favicon.png"
+        />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+            name="twitter:title"
+            content="Contextual Essays — The Jesus Website"
+        />
+        <meta
+            name="twitter:description"
+            content="Contextual essays providing the academic framework for understanding the historical evidence for Jesus of Nazareth."
+        />
+        <meta
+            name="twitter:image"
+            content="https://thejesuswebsite.org/assets/images/favicon.png"
+        />
 
-  <!-- JSON-LD: CollectionPage -->
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      "name": "Contextual Essays — The Jesus Website",
-      "description": "Contextual essays providing the academic framework for understanding the historical evidence for Jesus of Nazareth.",
-      "url": "https://thejesuswebsite.org/contextual-essays/",
-      "isPartOf": {
-        "@type": "WebSite",
-        "name": "The Jesus Website",
-        "url": "https://thejesuswebsite.org/"
-      }
-    }
-  </script>
+        <!-- JSON-LD: CollectionPage -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "CollectionPage",
+                "name": "Contextual Essays — The Jesus Website",
+                "description": "Contextual essays providing the academic framework for understanding the historical evidence for Jesus of Nazareth.",
+                "url": "https://thejesuswebsite.org/contextual-essays/",
+                "isPartOf": {
+                    "@type": "WebSite",
+                    "name": "The Jesus Website",
+                    "url": "https://thejesuswebsite.org/"
+                }
+            }
+        </script>
 
-  <!-- Favicon & PWA -->
-  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
-  <link rel="icon" href="/favicon.ico" sizes="32x32">
-  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
-  <link rel="manifest" href="/assets/images/site.webmanifest">
+        <!-- Favicon & PWA -->
+        <link rel="icon" href="/assets/images/favicon.png" type="image/png" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link
+            rel="apple-touch-icon"
+            href="/assets/images/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/assets/images/site.webmanifest" />
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="/assets/css/base/variables.css">
-  <link rel="stylesheet" href="/assets/css/base/reset.css">
-  <link rel="stylesheet" href="/assets/css/base/typography.css">
-  <link rel="stylesheet" href="/assets/css/base/invisible-header.css">
-  <link rel="stylesheet" href="/assets/css/base/animations.css">
-  <link rel="stylesheet" href="/assets/css/layout/grid.css">
-  <link rel="stylesheet" href="/assets/css/layout/navigation.css">
-  <link rel="stylesheet" href="/assets/css/components/sidebar.css">
-  <link rel="stylesheet" href="/assets/css/components/icons.css">
-  <link rel="stylesheet" href="/assets/css/components/cookie-consent.css">
-  <link rel="stylesheet" href="/assets/css/components/buttons.css">
-  <link rel="stylesheet" href="/assets/css/components/cards.css">
-  <link rel="stylesheet" href="/assets/css/components/badges.css">
-  <link rel="stylesheet" href="/assets/css/components/loading.css">
-  <link rel="stylesheet" href="/assets/css/components/empty-states.css">
-  <link rel="stylesheet" href="/assets/css/components/infinite-scroll.css">
-  <link rel="stylesheet" href="/assets/css/pages/journal-header.css">
-  <link rel="stylesheet" href="/assets/css/pages/essays-list.css">
-</head>
-<body>
-  <!-- Visually-hidden header for SEO & a11y (HTML-3) -->
-  <header class="sr-only">
-    <a class="skip-link" href="#main-content">Skip to content</a>
-    <h1>Contextual Essays</h1>
-  </header>
+        <!-- CSS -->
+        <link rel="stylesheet" href="/assets/css/base/variables.css" />
+        <link rel="stylesheet" href="/assets/css/base/reset.css" />
+        <link rel="stylesheet" href="/assets/css/base/typography.css" />
+        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" />
+        <link rel="stylesheet" href="/assets/css/base/animations.css" />
+        <link rel="stylesheet" href="/assets/css/layout/grid.css" />
+        <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
+        <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
+        <link rel="stylesheet" href="/assets/css/components/icons.css" />
+        <link
+            rel="stylesheet"
+            href="/assets/css/components/cookie-consent.css"
+        />
+        <link rel="stylesheet" href="/assets/css/components/buttons.css" />
+        <link rel="stylesheet" href="/assets/css/components/cards.css" />
+        <link rel="stylesheet" href="/assets/css/components/badges.css" />
+        <link rel="stylesheet" href="/assets/css/components/loading.css" />
+        <link rel="stylesheet" href="/assets/css/components/empty-states.css" />
+        <link
+            rel="stylesheet"
+            href="/assets/css/components/infinite-scroll.css"
+        />
+        <link rel="stylesheet" href="/assets/css/pages/journal-header.css" />
+        <link rel="stylesheet" href="/assets/css/pages/essays-list.css" />
+    </head>
+    <body>
+        <!-- Visually-hidden header for SEO & a11y (HTML-3) -->
+        <header class="sr-only">
+            <a class="skip-link" href="#main-content">Skip to content</a>
+            <h1>Contextual Essays</h1>
+        </header>
 
-  <!-- Off-canvas navigation sidebar -->
-  <div class="sidebar-backdrop" hidden></div>
-  <button class="sidebar__toggle" id="sidebar-toggle" aria-expanded="false" aria-label="Toggle navigation">
-    <svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-menu"/></svg>
-  </button>
-  <nav class="sidebar" id="sidebar" aria-label="Site navigation">
-    <ul class="sidebar__nav">
-      <li class="nav-item"><a href="/">The Jesus Website</a></li>
-      <li class="nav-item"><a href="/evidence/">Evidence</a></li>
-      <li class="nav-item"><a href="/evidence/search.html">Search</a></li>
-      <li class="nav-item"><a href="/evidence/arbor.html">Arbor Diagram</a></li>
-      <li class="nav-item"><a href="/evidence/timeline/">Timeline</a></li>
-      <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
-      <li class="nav-item"><a href="/contextual-essays/">Context</a></li>
-      <li class="nav-item"><a href="/debate/">Debate</a></li>
-      <li class="nav-item"><a href="/resources/">Resources</a></li>
-      <li class="nav-item"><a href="/news-and-blog/">News</a></li>
-      <li class="nav-item"><a href="/about.html">About</a></li>
-      <li class="nav-item nav-item--admin">
-          <a href="/admin/">Admin</a>
-      </li>
-    </ul>
-  </nav>
+        <!-- Off-canvas navigation sidebar -->
+        <div class="sidebar-backdrop" hidden></div>
+        <button
+            class="sidebar__toggle"
+            id="sidebar-toggle"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
+            <svg width="20" height="20" aria-hidden="true">
+                <use href="/assets/images/feather-sprite.svg#icon-menu" />
+            </svg>
+        </button>
+        <nav class="sidebar" id="sidebar" aria-label="Site navigation">
+            <ul class="sidebar__nav">
+                <li class="nav-item"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item"><a href="/evidence/">Evidence</a></li>
+                <li class="nav-item">
+                    <a href="/evidence/search.html">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/arbor.html">Arbor Diagram</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/evidence/timeline/">Timeline</a>
+                </li>
+                <li class="nav-item"><a href="/evidence/maps/">Maps</a></li>
+                <li class="nav-item">
+                    <a href="/contextual-essays/">Context</a>
+                </li>
+                <li class="nav-item"><a href="/debate/">Debate</a></li>
+                <li class="nav-item"><a href="/resources/">Resources</a></li>
+                <li class="nav-item"><a href="/news-and-blog/">News</a></li>
+                <li class="nav-item"><a href="/about.html">About</a></li>
+                <li class="nav-item nav-item--admin">
+                    <a href="/admin/">Admin</a>
+                </li>
+            </ul>
+        </nav>
 
-  <main id="main-content">
-    <div class="container">
-      <!-- Page header -->
-      <header class="journal-header">
-      <h2>Contextual Essays</h2>
-      <p>Scholarly essays that provide the academic framework for understanding the historical evidence for Jesus of Nazareth.</p>
-      </header>
+        <main id="main-content">
+            <div class="container">
+                <!-- Page header -->
+                <header class="journal-header">
+                    <h2>Contextual Essays</h2>
+                    Essays that provide a contextual framework for understanding
+                    the historical evidence for Jesus of Nazareth.
+                </header>
 
-      <!-- Card grid for essay list -->
-      <div class="card-grid" id="card-grid" role="list">
-      <!-- Populated by essays-list.js -->
-      </div>
+                <!-- Card grid for essay list -->
+                <div class="card-grid" id="card-grid" role="list">
+                    <!-- Populated by essays-list.js -->
+                </div>
 
-      <!-- Infinite scroll sentinel -->
-      <div id="scroll-sentinel" hidden></div>
+                <!-- Infinite scroll sentinel -->
+                <div id="scroll-sentinel" hidden></div>
 
-      <!-- Loading state -->
-      <div class="loading-state" id="loading-state" hidden>
-      <div class="loading-state__spinner" aria-label="Loading essays"></div>
-      </div>
+                <!-- Loading state -->
+                <div class="loading-state" id="loading-state" hidden>
+                    <div
+                        class="loading-state__spinner"
+                        aria-label="Loading essays"
+                    ></div>
+                </div>
 
-      <!-- Empty state -->
-      <div class="empty-state" id="empty-state" hidden>
-      <p class="empty-state__message">No essays published yet.</p>
-      </div>
+                <!-- Empty state -->
+                <div class="empty-state" id="empty-state" hidden>
+                    <p class="empty-state__message">No essays published yet.</p>
+                </div>
 
-      <!-- Error state -->
-      <div class="error-state" id="error-state" hidden>
-      <p class="error-state__message">Failed to load essays.</p>
-      <button id="retry-load" class="btn btn--secondary">Retry</button>
-      </div>
+                <!-- Error state -->
+                <div class="error-state" id="error-state" hidden>
+                    <p class="error-state__message">Failed to load essays.</p>
+                    <button id="retry-load" class="btn btn--secondary">
+                        Retry
+                    </button>
+                </div>
 
-      <!-- End of list -->
-      <div class="end-of-list" id="end-of-list" hidden></div>
-    </div>
-  </main>
+                <!-- End of list -->
+                <div class="end-of-list" id="end-of-list" hidden></div>
+            </div>
+        </main>
 
-  <!-- Scripts at bottom with defer (HTML-4) -->
-  <script type="module" src="/assets/js/main.js" defer></script>
-  <script type="module" src="/assets/js/essays-list.js" defer></script>
-</body>
+        <!-- Scripts at bottom with defer (HTML-4) -->
+        <script type="module" src="/assets/js/main.js" defer></script>
+        <script type="module" src="/assets/js/essays-list.js" defer></script>
+    </body>
 </html>
