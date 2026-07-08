@@ -4,7 +4,7 @@
  * @module footer
  */
 
-import { showToast } from './utils/toasts.js';
+import { showToast } from "./utils/toasts.js";
 
 /**
  * Strip navigation and footer from body text for "Copy Contents".
@@ -14,8 +14,12 @@ import { showToast } from './utils/toasts.js';
 function getStrippedBodyText() {
   const clone = document.body.cloneNode(true);
 
-  // Remove nav and footer
-  clone.querySelectorAll('nav, footer').forEach((el) => el.remove());
+  // Remove nav, footer, and sidebar
+  clone
+    .querySelectorAll(
+      "nav, footer, .sidebar, .sidebar__toggle, .sidebar-backdrop",
+    )
+    .forEach((el) => el.remove());
 
   return clone.innerText.trim();
 }
@@ -29,20 +33,20 @@ function getStrippedBodyText() {
 async function copyToClipboard(text, successLabel) {
   try {
     await navigator.clipboard.writeText(text);
-    showToast(successLabel, 'success');
+    showToast(successLabel, "success");
   } catch {
     // Fallback for older browsers
-    const textarea = document.createElement('textarea');
+    const textarea = document.createElement("textarea");
     textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
     document.body.appendChild(textarea);
     textarea.select();
     try {
-      document.execCommand('copy');
-      showToast(successLabel, 'success');
+      document.execCommand("copy");
+      showToast(successLabel, "success");
     } catch {
-      showToast('Failed to copy to clipboard', 'error');
+      showToast("Failed to copy to clipboard", "error");
     }
     textarea.remove();
   }
@@ -61,14 +65,14 @@ function handlePrint() {
  */
 function handleCopyContents() {
   const text = getStrippedBodyText();
-  copyToClipboard(text, 'Page contents copied');
+  copyToClipboard(text, "Page contents copied");
 }
 
 /**
  * Handler for the "Copy URL" button.
  */
 function handleCopyUrl() {
-  copyToClipboard(window.location.href, 'URL copied');
+  copyToClipboard(window.location.href, "URL copied");
 }
 
 /**
@@ -78,22 +82,22 @@ function handleCopyUrl() {
  * Expected values: `print`, `copy-contents`, `copy-url`.
  */
 export function initFooter() {
-  const footer = document.querySelector('footer');
+  const footer = document.querySelector("footer");
   if (!footer) return;
 
-  const yearEl = footer.querySelector('#footer-year');
+  const yearEl = footer.querySelector("#footer-year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   const handlers = {
     print: handlePrint,
-    'copy-contents': handleCopyContents,
-    'copy-url': handleCopyUrl,
+    "copy-contents": handleCopyContents,
+    "copy-url": handleCopyUrl,
   };
 
-  footer.querySelectorAll('[data-action]').forEach((btn) => {
-    const action = btn.getAttribute('data-action');
+  footer.querySelectorAll("[data-action]").forEach((btn) => {
+    const action = btn.getAttribute("data-action");
     if (handlers[action]) {
-      btn.addEventListener('click', handlers[action]);
+      btn.addEventListener("click", handlers[action]);
     }
   });
 }
