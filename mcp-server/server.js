@@ -1,18 +1,23 @@
 // MCP Server entry point — instantiates the MCP server, registers all seven
-// read-only tools, and connects via stdio transport. The API base URL is read
-// from the API_BASE_URL environment variable with a localhost default.
+// read-only tools, and serves via Streamable HTTP transport (the 2025 MCP spec
+// addition). The server can also run in stdio mode for local development — see
+// the --stdio flag below. The API base URL is read from the API_BASE_URL
+// environment variable with a localhost default.
 //
 // Each tool module exports { name, description, inputSchema, handler } so the
 // server registration loop is declarative and easy to extend.
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { createServer } from "node:http";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000/api";
+const PORT = parseInt(process.env.PORT || "3100", 10);
 
 // --- Tool registry -----------------------------------------------------------
 // Import one module per tool (SR-1). Add new tools by inserting another entry
@@ -117,5 +122,54 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // --- Transport ---------------------------------------------------------------
 
-const transport = new StdioServerTransport();
-await server.connect(transport);
+// stdio mode: run with --stdio for local development / IDE integration.
+// Streamable HTTP mode (default): listen on PORT for any MCP client to connect
+// via URL — no local install required.
+
+if (process.argv.includes("--stdio")) {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+} else {
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+  });
+
+  await server.connect(transport);
+
+  const httpServer = createServer(async (req, res) => {
+    // Health check — lightweight, no MCP negotiation needed.
+    if (req.method === "GET" && req.url === "/health") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ status: "ok" }));
+      return;
+    }
+
+    try {
+      if (req.method === "POST") {
+        // Read the request body for the JSON-RPC payload.
+        const chunks = [];
+        for await (const chunk of req) {
+          chunks.push(chunk);
+        }
+        const body = Buffer.concat(chunks).toString();
+        await transport.handleRequest(req, res, body);
+      } else if (req.method === "GET" || req.method === "DELETE") {
+        // GET: SSE stream or session lookup. DELETE: session teardown.
+        await transport.handleRequest(req, res);
+      } else {
+        res.writeHead(405, { "Content-Type": "text/plain" });
+        res.end("Method Not Allowed");
+      }
+    } catch (error) {
+      console.error("MCP request failed:", error);
+      if (!res.headersSent) {
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Internal Server Error");
+      }
+    }
+  });
+
+  httpServer.listen(PORT, () => {
+    console.log(`MCP server listening on http://localhost:${PORT}`);
+  });
+}
