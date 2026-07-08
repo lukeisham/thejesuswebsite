@@ -4,6 +4,10 @@
 // and form a single linear sequence during auth ceremonies (SR-1: related by
 // purpose / type). Pure vanilla JS — no external dependencies (SR-2).
 //
+// Every fetch-targeting URL MUST go through /api (the nginx proxy strips the
+// prefix before forwarding to the Express server). Bare paths like
+// /passkey/register/options will fail in production — never add one.
+//
 // Exported as a global "Passkey" namespace so both pages can call the same code.
 
 window.Passkey = {};
@@ -124,7 +128,10 @@ Passkey.postJson = async function (url, body, extraHeaders) {
   try {
     return await fetch(url, {
       method: "POST",
-      headers: Object.assign({ "Content-Type": "application/json" }, extraHeaders),
+      headers: Object.assign(
+        { "Content-Type": "application/json" },
+        extraHeaders,
+      ),
       body: JSON.stringify(body),
     });
   } catch (_networkError) {
@@ -152,10 +159,10 @@ Passkey.readErrorMessage = async function (res, step) {
 /**
  * Full passkey registration ceremony.
  *
- * 1. POST /passkey/register/options  (with x-setup-token)
+ * 1. POST /api/passkey/register/options  (with x-setup-token)
  * 2. navigator.credentials.create()
  * 3. Export public key as SPKI PEM
- * 4. POST /passkey/register/verify
+ * 4. POST /api/passkey/register/verify
  *
  * @param {string} setupToken — from ?setupToken= in the URL
  * @returns {Promise<{success: true}>}  Resolves on success, rejects on failure.
@@ -169,7 +176,7 @@ Passkey.registerPasskey = async function (setupToken) {
 
   // 1 — Request registration challenge from the server.
   const optionsRes = await Passkey.postJson(
-    "/passkey/register/options",
+    "/api/passkey/register/options",
     { handle: "admin" },
     { "x-setup-token": setupToken },
   );
@@ -207,7 +214,9 @@ Passkey.registerPasskey = async function (setupToken) {
     throw new Error(Passkey.describeCredentialError(error, "registration"));
   }
   if (!credential) {
-    throw new Error("The authenticator did not return a credential. Try again.");
+    throw new Error(
+      "The authenticator did not return a credential. Try again.",
+    );
   }
 
   const response = credential.response;
@@ -234,7 +243,7 @@ Passkey.registerPasskey = async function (setupToken) {
 
   // 4 — Send the registration payload to the server for verification.
   const verifyRes = await Passkey.postJson(
-    "/passkey/register/verify",
+    "/api/passkey/register/verify",
     {
       handle: "admin",
       attemptId: serverOptions.attemptId,
@@ -257,9 +266,9 @@ Passkey.registerPasskey = async function (setupToken) {
 /**
  * Full passkey login (assertion) ceremony.
  *
- * 1. POST /passkey/login/options
+ * 1. POST /api/passkey/login/options
  * 2. navigator.credentials.get()
- * 3. POST /passkey/login/verify
+ * 3. POST /api/passkey/login/verify
  *
  * @returns {Promise<{success: true}>}  Resolves on success, rejects on failure.
  */
@@ -271,7 +280,7 @@ Passkey.loginWithPasskey = async function () {
   }
 
   // 1 — Request an assertion challenge.
-  const optionsRes = await Passkey.postJson("/passkey/login/options", {
+  const optionsRes = await Passkey.postJson("/api/passkey/login/options", {
     handle: "admin",
   });
 
@@ -304,13 +313,15 @@ Passkey.loginWithPasskey = async function () {
     throw new Error(Passkey.describeCredentialError(error, "login"));
   }
   if (!credential) {
-    throw new Error("The authenticator did not return a credential. Try again.");
+    throw new Error(
+      "The authenticator did not return a credential. Try again.",
+    );
   }
 
   const response = credential.response;
 
   // 3 — Send the assertion to the server.
-  const verifyRes = await Passkey.postJson("/passkey/login/verify", {
+  const verifyRes = await Passkey.postJson("/api/passkey/login/verify", {
     handle: "admin",
     attemptId: serverOptions.attemptId,
     id: credential.id,

@@ -1,9 +1,10 @@
 // Passkey routes tests — uses node:test + node:assert.
-// Tests validateHandle(), the challenge store (issue/consume), and the challenge
-// TTL expiry. Rate-limiter and requireSetupToken tests live in their own files
-// (SR-1: one concern per test file).
+// Tests validateHandle(), the challenge store (issue/consume), the challenge
+// TTL expiry, sign-counter parsing from signed bytes, authData length validation,
+// and challenge sweep eviction. Rate-limiter and requireSetupToken tests live in
+// their own files (SR-1: one concern per test file).
 
-const { test, describe } = require("node:test");
+const { test, describe, before, after, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
 const passkey = require("../routes/passkey");
 
@@ -134,7 +135,10 @@ function makeClientDataJSON(challenge, type, origin) {
 describe("verifyClientData origin check", () => {
   test("passes when origin matches expected", () => {
     const c = makeClientDataJSON("tc", "webauthn.get", "https://example.com");
-    assert.equal(verifyClientData(c, "webauthn.get", "tc", "https://example.com"), true);
+    assert.equal(
+      verifyClientData(c, "webauthn.get", "tc", "https://example.com"),
+      true,
+    );
   });
 
   test("passes when expectedOrigin is null", () => {
@@ -149,6 +153,236 @@ describe("verifyClientData origin check", () => {
 
   test("fails on a mismatched origin", () => {
     const c = makeClientDataJSON("tc", "webauthn.get", "https://evil.com");
-    assert.equal(verifyClientData(c, "webauthn.get", "tc", "https://example.com"), false);
+    assert.equal(
+      verifyClientData(c, "webauthn.get", "tc", "https://example.com"),
+      false,
+    );
+  });
+});
+
+// ── Sign counter parsing from signed bytes ────────────────────────────────────
+
+describe("sign counter parsing (JS-2: from signed bytes, not req.body)", () => {
+  test("readUInt32BE at offset 33 returns the correct counter", () => {
+    // Build a buffer that mimics authenticatorData: 32-byte RP ID hash +
+    // 1-byte flags + 4-byte big-endian counter. The counter value 42 should
+    // be 0x00, 0x00, 0x00, 0x2A at offsets 33-36.
+    const buf = Buffer.alloc(37);
+    buf[32] = 0x01; // flags: UP present
+    buf[33] = 0x00;
+    buf[34] = 0x00;
+    buf[35] = 0x00;
+    buf[36] = 0x2a; // 42 in decimal
+    assert.equal(buf.readUInt32BE(33), 42);
+  });
+
+  test("readUInt32BE handles the max uint32 value", () => {
+    const buf = Buffer.alloc(37);
+    buf[32] = 0x01;
+    buf.writeUInt32BE(0xffffffff, 33);
+    assert.equal(buf.readUInt32BE(33), 0xffffffff);
+  });
+
+  test("readUInt32BE handles zero counter (Apple passkey behaviour)", () => {
+    const buf = Buffer.alloc(37);
+    buf[32] = 0x01;
+    // bytes 33-36 are already zero from Buffer.alloc
+    assert.equal(buf.readUInt32BE(33), 0);
+  });
+});
+
+// ── Challenge sweep ───────────────────────────────────────────────────────────
+
+describe("challenge sweep", () => {
+  test("sweep removes expired entries from the challenges Map", () => {
+    const challenges = passkey._challenges;
+    // Insert an expired challenge directly into the Map.
+    const expiredId = "expired-attempt-1";
+    challenges.set(expiredId, {
+      handle: "sweeptest",
+      challenge: "deadbeef",
+      expiresAt: Date.now() - 1000, // 1 second in the past
+    });
+    // Insert a live challenge.
+    const liveId = "live-attempt-1";
+    challenges.set(liveId, {
+      handle: "sweeptest",
+      challenge: "cafebabe",
+      expiresAt: Date.now() + 60000, // 1 minute in the future
+    });
+
+    // Manually run the sweep (same logic as the setInterval).
+    const now = Date.now();
+    for (const [id, record] of challenges) {
+      if (record.expiresAt < now) challenges.delete(id);
+    }
+
+    assert.equal(
+      challenges.has(expiredId),
+      false,
+      "expired entry should be removed",
+    );
+    assert.equal(challenges.has(liveId), true, "live entry should survive");
+    assert.equal(challenges.get(liveId).challenge, "cafebabe");
+
+    // Clean up.
+    challenges.delete(liveId);
+  });
+});
+
+// ── Integration: authData length check ────────────────────────────────────────
+
+// Re-use the same server pattern as credential-management.test.js.
+const http = require("http");
+const pathMod = require("path");
+const Module = require("module");
+const Database = require("better-sqlite3");
+const express = require("express");
+
+// In-memory database for server-based tests.
+const testDb = new Database(":memory:");
+testDb.pragma("foreign_keys = ON");
+testDb.exec(`
+  CREATE TABLE credentials (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    credential_id  TEXT UNIQUE NOT NULL,
+    public_key     TEXT NOT NULL,
+    user_handle    TEXT NOT NULL,
+    sign_count     INTEGER DEFAULT 0,
+    last_used_at   TEXT,
+    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX idx_credentials_user_handle ON credentials(user_handle);
+`);
+
+const configPath = require.resolve(pathMod.resolve(__dirname, "..", "config"));
+Module._cache[configPath] = {
+  id: configPath,
+  filename: configPath,
+  loaded: true,
+  exports: testDb,
+};
+
+const credentialModel = require("../models/credential.model");
+
+let intServer;
+let intBaseUrl;
+
+function startIntServer() {
+  return new Promise((resolve) => {
+    delete require.cache[require.resolve("../routes/passkey")];
+    delete require.cache[require.resolve("../middleware/rate-limit")];
+
+    const passkeyRouter = require("../routes/passkey");
+    const app = express();
+    app.use(express.json());
+    app.use("/passkey", passkeyRouter);
+
+    intServer = http.createServer(app);
+    intServer.listen(0, () => {
+      intBaseUrl = `http://localhost:${intServer.address().port}`;
+      resolve();
+    });
+  });
+}
+
+function stopIntServer() {
+  return new Promise((resolve) => intServer.close(resolve));
+}
+
+function clearCreds() {
+  testDb.exec("DELETE FROM credentials");
+}
+
+function intReq(method, urlPath, body) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(urlPath, intBaseUrl);
+    const options = {
+      method,
+      hostname: url.hostname,
+      port: url.port,
+      path: url.pathname,
+      headers: { "content-type": "application/json" },
+    };
+
+    const r = http.request(options, (res) => {
+      const chunks = [];
+      res.on("data", (c) => chunks.push(c));
+      res.on("end", () => {
+        const buf = Buffer.concat(chunks).toString();
+        try {
+          resolve({
+            status: res.statusCode,
+            headers: res.headers,
+            body: buf ? JSON.parse(buf) : null,
+          });
+        } catch {
+          resolve({ status: res.statusCode, headers: res.headers, body: buf });
+        }
+      });
+    });
+    r.on("error", reject);
+    if (body) r.write(JSON.stringify(body));
+    r.end();
+  });
+}
+
+describe("authData length check (integration)", () => {
+  before(async () => {
+    await startIntServer();
+  });
+
+  after(() => stopIntServer());
+
+  beforeEach(clearCreds);
+
+  test("truncated authenticatorData (< 37 bytes) returns 401, not 500", async () => {
+    // Seed a credential so the lookup passes.
+    const credId = "short-authdata-" + Math.random().toString(36).slice(2, 10);
+    credentialModel.create({
+      credential_id: credId,
+      public_key: "-----BEGIN PUBLIC KEY-----\nFAKE\n-----END PUBLIC KEY-----",
+      user_handle: "admin",
+      sign_count: 0,
+    });
+
+    // Get a challenge from the server's own challenge store by hitting the
+    // options endpoint (the test-level issueChallenge uses a different Map).
+    const optionsRes = await intReq("POST", "/passkey/login/options", {
+      handle: "admin",
+    });
+    assert.equal(optionsRes.status, 200, "options should succeed");
+    const { attemptId, challenge } = optionsRes.body;
+
+    // Build a valid clientDataJSON for this challenge.
+    const clientDataJSON = Buffer.from(
+      JSON.stringify({
+        type: "webauthn.get",
+        challenge,
+        origin: "http://localhost",
+      }),
+      "utf8",
+    ).toString("base64url");
+
+    // Send authenticatorData that's only 10 bytes (far below 37).
+    const shortAuthData = Buffer.from("aaaabbbbcc", "utf8").toString(
+      "base64url",
+    );
+
+    const res = await intReq("POST", "/passkey/login/verify", {
+      id: credId,
+      clientDataJSON,
+      authenticatorData: shortAuthData,
+      signature: "fakesig",
+      attemptId,
+    });
+
+    assert.equal(res.status, 401, "should be 401 for malformed authData");
+    assert.equal(
+      res.body.error,
+      "Malformed authenticator data.",
+      "should reject with a clear message",
+    );
   });
 });

@@ -88,6 +88,13 @@ app.get("/.well-known/apple-app-site-association", (req, res) => {
   );
 });
 
+// Post-startup production validation — warns about stale SETUP_TOKEN when
+// credentials already exist. Must run after models/routes are loaded because
+// it depends on credentialModel.countAll(). (JS-2: fail loudly at startup.)
+require("./config/load-env").validateProdEnv(
+  require("./models/credential.model").countAll,
+);
+
 // Health check for the VPS / uptime monitor.
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 

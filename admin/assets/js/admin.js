@@ -27,7 +27,7 @@ Admin.api = {
   async get(url) {
     const res = await fetch(this.BASE + url);
     if (res.status === 401) {
-      window.location.href = "auth/login.html";
+      window.location.href = "/admin/auth/login.html";
       throw new Error("Unauthorized");
     }
     if (!res.ok) {
@@ -50,7 +50,7 @@ Admin.api = {
       body: JSON.stringify(data),
     });
     if (res.status === 401) {
-      window.location.href = "auth/login.html";
+      window.location.href = "/admin/auth/login.html";
       throw new Error("Unauthorized");
     }
     if (!res.ok) {
@@ -73,7 +73,7 @@ Admin.api = {
       body: JSON.stringify(data),
     });
     if (res.status === 401) {
-      window.location.href = "auth/login.html";
+      window.location.href = "/admin/auth/login.html";
       throw new Error("Unauthorized");
     }
     if (!res.ok) {
@@ -91,7 +91,7 @@ Admin.api = {
   async del(url) {
     const res = await fetch(this.BASE + url, { method: "DELETE" });
     if (res.status === 401) {
-      window.location.href = "auth/login.html";
+      window.location.href = "/admin/auth/login.html";
       throw new Error("Unauthorized");
     }
     if (!res.ok && res.status !== 204) {
