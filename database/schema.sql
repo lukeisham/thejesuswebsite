@@ -16,9 +16,9 @@ CREATE TABLE evidence (
     secondary_verse     TEXT,
 
     -- Categorization
-    gospel_category     TEXT CHECK (gospel_category IN ('birth', 'baptism', 'temptation', 'ministry', 'miracles', 'parables', 'passion', 'crucifixion', 'resurrection', 'ascension')),
+    gospel_category     TEXT CHECK (gospel_category IN ('theme', 'events', 'parables', 'sayings-and-sermons', 'people', 'objects', 'places', 'miracles')),
 
-    timeline_era        TEXT CHECK (timeline_era IN ('beginning', 'patriarchs', 'exodus', 'conquest', 'judges', 'kingdom', 'exile', 'return', 'intertestamental', 'jesus-life', 'early-church')),
+    timeline_era        TEXT CHECK (timeline_era IN ('theme', 'pre-incarnation', 'old-testament', 'intertestamental', 'birth', 'childhood', 'labourer', 'baptism', 'ministry-Galilee','ministry-Jerusalem', 'passion', 'resurrection', 'ascension', 'early-church', 'return')),
 
     timeline_period     TEXT,
 
