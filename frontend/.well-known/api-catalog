@@ -1,0 +1,25 @@
+{
+  "linkset": [
+    { "anchor": "https://thejesuswebsite.org/api/evidence",           "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/arbor",              "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/identifiers",        "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/essays",             "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/popular-challenges", "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/academic-challenges","rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/historiography",     "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/responses",          "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/wikipedia",          "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/maps",               "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/blog-posts",         "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/news-articles",      "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/collections",        "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/resources",          "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/timeline",           "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/search",             "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/sources",            "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/about",              "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api/esv",                "rel": "service-desc" },
+    { "anchor": "https://thejesuswebsite.org/api",                    "rel": "service-doc"  },
+    { "anchor": "https://thejesuswebsite.org/health",                 "rel": "status"       }
+  ]
+}
