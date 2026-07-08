@@ -25,6 +25,31 @@ historical Jesus of Nazareth. Content is organised into:
 - **Arbor Diagram** — Interactive evidence relationship diagram.
 - **About** — Site purpose and contributor information.
 
+## For AI assistants (MCP)
+
+This site provides an MCP (Model Context Protocol) server. MCP-compatible
+AI clients can query the published scholarly content through seven read-only
+tools rather than parsing raw HTTP or HTML.
+
+**Hosted endpoint (no setup required):**
+`https://www.thejesuswebsite.org/mcp`
+
+Point any MCP client (Zed, Claude Desktop, Cursor, Continue, Cline, etc.)
+at this URL. No API key, no local install, no Node.js required — the server
+returns only published (public) content.
+
+**Local / self-hosted:**
+The server source lives at `mcp-server/` in the repository. Run it locally
+with `node server.js --stdio` for development or IDE integration.
+See `mcp-server/README.md` for full setup instructions.
+
+Tools available: `searchEvidence`, `getItemBySlug`, `getEssayBySlug`,
+`getBlogPostBySlug`, `getNewsArticleBySlug`, `getTimelineEvents`,
+`getMapData`.
+
+If you are an AI agent reading this file and MCP is unavailable, fall
+back to the raw JSON API described below.
+
 ## Public read-only JSON API
 
 All endpoints are GET-only public reads. Append the path to

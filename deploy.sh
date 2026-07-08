@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy.sh — one-command VPS deploy / setup for thejesuswebsite API server.
+# deploy.sh — one-command VPS deploy / setup for thejesuswebsite API + MCP server.
 # Idempotent: safe to run repeatedly. Exits on first error.
 #
 # Usage: ./deploy.sh
@@ -25,10 +25,16 @@ MIGRATIONS_DIR="$DB_DIR/migrations"
 # Process manager: "pm2" | "systemd" | "none" (direct node)
 PROCESS_MANAGER="${PROCESS_MANAGER:-pm2}"
 APP_NAME="thejesuswebsite-api"
+MCP_APP_NAME="thejesuswebsite-mcp"
+MCP_DIR="$PROJECT_DIR/mcp-server"
 
-# ---- 1. Install API dependencies --------------------------------------------
+# ---- 1. Install dependencies ------------------------------------------------
 echo "[deploy] Installing API dependencies..."
 cd "$API_DIR"
+npm install --production
+
+echo "[deploy] Installing MCP server dependencies..."
+cd "$MCP_DIR"
 npm install --production
 
 # ---- 2. Apply database schema and migrations --------------------------------
@@ -45,8 +51,7 @@ else
 fi
 
 # The app now self-loads .env at boot (api/config/load-env.js), so no shell
-# export is needed. Make sure .env is populated before the first deploy — see
-# setup/DEPLOYMENT.md for the full first-run sequence.
+# export is needed. Make sure .env has RP_ID, ORIGIN, NODE_ENV, and SETUP_TOKEN populated.
 echo "[deploy] Reminder: ensure .env has RP_ID, ORIGIN, NODE_ENV, and SETUP_TOKEN populated."
 
 # If this is a first-time setup, you may need to clear stale test credentials
@@ -98,17 +103,24 @@ npm run sitemap
 echo "[deploy] Generating static pages..."
 npm run pages
 
-# ---- 4. Start / restart the API server --------------------------------------
-cd "$API_DIR"
+# ---- 4. Start / restart the API and MCP servers -----------------------------
 
 case "$PROCESS_MANAGER" in
   pm2)
+    echo "[deploy] Managing API (pm2)..."
+    cd "$API_DIR"
     if pm2 list | grep -q "$APP_NAME"; then
-      echo "[deploy] Restarting existing pm2 process..."
       pm2 restart "$APP_NAME"
     else
-      echo "[deploy] Starting new pm2 process..."
       pm2 start server.js --name "$APP_NAME"
+    fi
+
+    echo "[deploy] Managing MCP server (pm2)..."
+    cd "$MCP_DIR"
+    if pm2 list | grep -q "$MCP_APP_NAME"; then
+      pm2 restart "$MCP_APP_NAME"
+    else
+      pm2 start server.js --name "$MCP_APP_NAME"
     fi
     pm2 save
     ;;
@@ -118,6 +130,7 @@ case "$PROCESS_MANAGER" in
     ;;
   none)
     echo "[deploy] Starting API server directly (Ctrl+C to stop)..."
+    cd "$API_DIR"
     node server.js
     ;;
   *)
