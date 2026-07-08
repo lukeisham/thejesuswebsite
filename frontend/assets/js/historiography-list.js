@@ -1,6 +1,6 @@
 /**
  * Historiography list page: fetch paginated historiography articles,
- * render cards, infinite scroll, and sessionStorage caching.
+ * render period-grouped cards, infinite scroll, and sessionStorage caching.
  *
  * @module historiography-list
  */
@@ -24,12 +24,28 @@ const SCROLL_THRESHOLD = 300;
 const STORAGE_KEY_ITEMS = 'historiography_list_items';
 const STORAGE_KEY_SCROLL = 'historiography_list_scroll';
 
+// The 8 fixed periods, in chronological display order (JS-2: predictable).
+const PERIOD_LABELS = {
+  'early-church': 'Early Church (1st–5th c.)',
+  medieval: 'Medieval (5th–15th c.)',
+  'reformation-early-modern': 'Reformation & Early Modern (16th–18th c.)',
+  'enlightenment-old-quest': 'Enlightenment & Old Quest (1778–1906)',
+  'no-quest-period-of-silence': 'No Quest / Period of Silence (1906–1953)',
+  'second-quest-new-quest': 'Second Quest / New Quest (1953–1970s)',
+  'third-quest': 'Third Quest (1980s–1990s)',
+  contemporary: 'Contemporary (21st c.)',
+};
+
 let currentPage = 1;
 let hasMore = true;
 let isLoading = false;
 let allItems = [];
 let observer = null;
 let retryTeardown = null;
+
+// Period slug -> its `.card-grid` element, so cards from later pages land in
+// the right group instead of duplicating section headers (JS-6).
+const periodGrids = new Map();
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -116,10 +132,43 @@ async function loadPage() {
 
 // ─── Rendering ───────────────────────────────────────────────────────────────
 
+/**
+ * Find or create the `.card-grid` for a period, creating its wrapping
+ * `<section>` and `<h3>` heading on first use (HTML-1, HTML-3).
+ */
+function getPeriodGrid(period) {
+  const key = period || 'other';
+  if (periodGrids.has(key)) return periodGrids.get(key);
+  if (!$grid) return null;
+
+  const headingId = `historiography-period-${key}`;
+  const section = document.createElement('section');
+  section.className = 'historiography-period';
+  section.setAttribute('aria-labelledby', headingId);
+
+  const heading = document.createElement('h3');
+  heading.className = 'historiography-period__heading';
+  heading.id = headingId;
+  heading.textContent = PERIOD_LABELS[key] || 'Other';
+  section.appendChild(heading);
+
+  const grid = document.createElement('div');
+  grid.className = 'card-grid';
+  grid.setAttribute('role', 'list');
+  section.appendChild(grid);
+
+  $grid.appendChild(section);
+  periodGrids.set(key, grid);
+  return grid;
+}
+
 function renderCards(items) {
   if (!$grid) return;
 
   items.forEach((item) => {
+    const periodGrid = getPeriodGrid(item.historiography_period);
+    if (!periodGrid) return;
+
     const date = item.published_at || item.created_at;
     const dateStr = date
       ? new Date(date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -146,7 +195,7 @@ function renderCards(items) {
         histBadge.textContent = 'Historiography';
         typeBadge.appendChild(histBadge);
       }
-      $grid.appendChild(cardEl);
+      periodGrid.appendChild(cardEl);
     }
   });
 }
@@ -194,6 +243,7 @@ function restoreFromCache() {
       hasMore = false;
       $sentinel && ($sentinel.hidden = true);
       if ($grid) $grid.innerHTML = '';
+      periodGrids.clear();
       renderCards(allItems);
       showState('end');
       const total = allItems.length;
@@ -224,6 +274,7 @@ function bindRetry() {
     allItems = [];
     clearCachedItems();
     if ($grid) $grid.innerHTML = '';
+    periodGrids.clear();
     hideAllStates();
     $sentinel && ($sentinel.hidden = false);
     loadPage();

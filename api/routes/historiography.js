@@ -18,6 +18,18 @@ router.get("/", (req, res) => {
   }
 });
 
+// GET /historiography/admin — full list (published + drafts) for the admin
+// table. Auth-gated so drafts never leak on the public /historiography route.
+router.get("/admin", requireAuth, (req, res) => {
+  try {
+    const items = historiographyModel.getAllAdmin();
+    res.json(items);
+  } catch (error) {
+    console.error("GET /historiography/admin failed:", error);
+    res.status(500).json({ error: "Failed to load historiography items." });
+  }
+});
+
 // GET /historiography/admin/:id — admin detail by id (must come before /:slug)
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {

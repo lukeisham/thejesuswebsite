@@ -129,6 +129,20 @@
         </div>
 
         <script>
+            var PERIOD_LABELS = {
+                "early-church": "Early Church (1st–5th c.)",
+                medieval: "Medieval (5th–15th c.)",
+                "reformation-early-modern":
+                    "Reformation & Early Modern (16th–18th c.)",
+                "enlightenment-old-quest":
+                    "Enlightenment & Old Quest (1778–1906)",
+                "no-quest-period-of-silence":
+                    "No Quest / Period of Silence (1906–1953)",
+                "second-quest-new-quest": "Second Quest / New Quest (1953–1970s)",
+                "third-quest": "Third Quest (1980s–1990s)",
+                contemporary: "Contemporary (21st c.)",
+            };
+
             document.addEventListener("DOMContentLoaded", async function () {
                 const main = document.getElementById("historiography-content");
                 const loadingEl = document.getElementById(
@@ -143,35 +157,11 @@
                 }
 
                 try {
-                    // Fetch both published and drafts in parallel
-                    var published = [];
-                    var drafts = [];
-                    try {
-                        published = await Admin.api.get("/historiography");
-                    } catch (e) {
-                        /* ignore */
-                    }
-                    try {
-                        drafts = await Admin.api.get(
-                            "/historiography?published_draft=0",
-                        );
-                    } catch (e) {
-                        /* ignore */
-                    }
+                    var allItems = await Admin.api.get("/historiography/admin");
 
                     main.removeChild(loadingEl);
 
-                    // Combine, preferring admin detail data when available
-                    var allItems = (published || []).concat(drafts || []);
-                    // Deduplicate by id
-                    var seen = {};
-                    allItems = allItems.filter(function (e) {
-                        if (seen[e.id]) return false;
-                        seen[e.id] = true;
-                        return true;
-                    });
-
-                    if (allItems.length === 0) {
+                    if (!allItems || allItems.length === 0) {
                         var emptyEl = document.createElement("div");
                         emptyEl.className = "admin-empty";
                         emptyEl.setAttribute("role", "status");
@@ -180,12 +170,8 @@
                         return;
                     }
 
-                    // Sort by date descending
-                    allItems.sort(function (a, b) {
-                        return (b.created_at || "").localeCompare(
-                            a.created_at || "",
-                        );
-                    });
+                    // Already sorted by period_sort_order, created_at DESC
+                    // server-side (historiographyModel.getAllAdmin).
 
                     var wrapper = document.createElement("div");
                     wrapper.className = "admin-table-wrapper";
@@ -195,7 +181,7 @@
 
                     var thead = document.createElement("thead");
                     var hRow = document.createElement("tr");
-                    ["Title", "Created", "Status", "Edit"].forEach(
+                    ["Title", "Period", "Created", "Status", "Edit"].forEach(
                         function (label) {
                             var th = document.createElement("th");
                             th.textContent = label;
@@ -219,6 +205,13 @@
                             "color:var(--admin-accent);text-decoration:none;font-weight:500;";
                         tdTitle.appendChild(link);
                         tr.appendChild(tdTitle);
+
+                        var tdPeriod = document.createElement("td");
+                        tdPeriod.textContent =
+                            PERIOD_LABELS[e.historiography_period] ||
+                            e.historiography_period ||
+                            "—";
+                        tr.appendChild(tdPeriod);
 
                         var tdDate = document.createElement("td");
                         tdDate.textContent = Admin.formatDate(e.created_at);

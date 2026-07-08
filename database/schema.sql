@@ -144,18 +144,29 @@ CREATE TABLE blog_posts (
 );
 
 CREATE TABLE historiography (
-    id                INTEGER PRIMARY KEY AUTOINCREMENT,
-    slug              TEXT UNIQUE NOT NULL,
-    essay_title       TEXT,
-    essay_content     TEXT,
-    essay_author      TEXT,
-    essay_date        TEXT,
-    essay_publisher   TEXT,
-    essay_headings    TEXT,
-    published_draft   INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
-    metadata_keywords TEXT,
-    created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at        DATETIME DEFAULT CURRENT_TIMESTAMP
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug                  TEXT UNIQUE NOT NULL,
+    essay_title           TEXT,
+    essay_content         TEXT,
+    essay_author          TEXT,
+    essay_date            TEXT,
+    essay_publisher       TEXT,
+    essay_headings        TEXT,
+    published_draft       INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
+    metadata_keywords     TEXT,
+    historiography_period TEXT CHECK (historiography_period IN (
+                              'early-church',
+                              'medieval',
+                              'reformation-early-modern',
+                              'enlightenment-old-quest',
+                              'no-quest-period-of-silence',
+                              'second-quest-new-quest',
+                              'third-quest',
+                              'contemporary'
+                          )),
+    period_sort_order     INTEGER DEFAULT 0,
+    created_at            DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at            DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE mla_sources (
@@ -590,6 +601,9 @@ CREATE INDEX idx_arbor_edges_target        ON arbor_edges (target_id);
 
 -- Responses per challenge
 CREATE INDEX idx_responses_challenge_id     ON responses (challenge_id);
+
+-- Historiography period grouping
+CREATE INDEX idx_historiography_period     ON historiography (historiography_period);
 
 -- Ranking queries
 CREATE INDEX idx_challenges_rank           ON challenges (challenge_rank_number);

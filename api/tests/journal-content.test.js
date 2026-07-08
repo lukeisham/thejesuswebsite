@@ -29,6 +29,7 @@ const MIGRATION_PATH = path.resolve(
 const db = require("../config");
 const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
 db.exec(schema);
+
 const migration = fs.readFileSync(MIGRATION_PATH, "utf8");
 db.exec(migration);
 
@@ -447,7 +448,7 @@ describe("historiography: composite CRUD", () => {
     const detail = historiographyModel.getDetailBySlug("detail-hist");
     assert.ok(detail);
     assert.equal(detail.breakouts.length, 1);
-    assert.equal(detail.mla_sources.length, 1);
+    assert.equal(detail.bibliography.length, 1);
   });
 
   test("updateComposite replaces all relations", () => {
@@ -506,5 +507,127 @@ describe("historiography: composite CRUD", () => {
     assert.equal(updated.two_column, 0);
     assert.equal(updated.doi, "10.1234/hist.2");
     assert.equal(updated.author_bio, "Prof. Smith researches historiography.");
+  });
+
+  test("historiography_period rejects values outside the fixed 8-period set", () => {
+    assert.throws(() => {
+      historiographyModel.create({
+        slug: "bad-period-hist",
+        published_draft: 0,
+        historiography_period: "not-a-real-period",
+      });
+    }, /CHECK constraint failed/);
+  });
+
+  test("historiography_period and period_sort_order round-trip through create", () => {
+    const created = historiographyModel.create({
+      slug: "period-hist",
+      published_draft: 0,
+      historiography_period: "medieval",
+      period_sort_order: 2,
+    });
+
+    assert.equal(created.historiography_period, "medieval");
+    assert.equal(created.period_sort_order, 2);
+  });
+
+  test("getAllPublished normalizes DB column names for the frontend", () => {
+    historiographyModel.create({
+      slug: "normalized-hist",
+      essay_title: "The Title",
+      essay_author: "The Author",
+      essay_content: "The Body",
+      metadata_keywords: "one, two, three",
+      published_draft: 1,
+      historiography_period: "third-quest",
+      period_sort_order: 7,
+    });
+
+    const [item] = historiographyModel.getAllPublished();
+
+    assert.equal(item.title, "The Title");
+    assert.equal(item.author, "The Author");
+    assert.equal(item.body, "The Body");
+    assert.deepEqual(item.keywords, ["one", "two", "three"]);
+    assert.equal(item.essay_title, undefined);
+    assert.equal(item.essay_author, undefined);
+    assert.equal(item.essay_content, undefined);
+    assert.equal(item.metadata_keywords, undefined);
+    // Non-renamed fields pass through untouched.
+    assert.equal(item.historiography_period, "third-quest");
+  });
+
+  test("getDetailBySlug normalizes fields and exposes bibliography", () => {
+    const mlaId = seedMlaSource();
+    historiographyModel.createComposite({
+      slug: "normalized-detail-hist",
+      essay_title: "Detail Title",
+      essay_author: "Detail Author",
+      essay_content: "Detail Body",
+      published_draft: 1,
+      mla_source_ids: [mlaId],
+    });
+
+    const detail = historiographyModel.getDetailBySlug("normalized-detail-hist");
+
+    assert.equal(detail.title, "Detail Title");
+    assert.equal(detail.author, "Detail Author");
+    assert.equal(detail.body, "Detail Body");
+    assert.equal(detail.bibliography.length, 1);
+    assert.equal(detail.mla_sources, undefined);
+  });
+
+  test("getAllPublished orders by period_sort_order ascending, then created_at descending", () => {
+    historiographyModel.create({
+      slug: "order-third",
+      essay_title: "Third",
+      published_draft: 1,
+      historiography_period: "third-quest",
+      period_sort_order: 3,
+    });
+    historiographyModel.create({
+      slug: "order-first",
+      essay_title: "First",
+      published_draft: 1,
+      historiography_period: "early-church",
+      period_sort_order: 1,
+    });
+    historiographyModel.create({
+      slug: "order-second",
+      essay_title: "Second",
+      published_draft: 1,
+      historiography_period: "medieval",
+      period_sort_order: 2,
+    });
+
+    const items = historiographyModel.getAllPublished();
+    assert.deepEqual(
+      items.map((i) => i.slug),
+      ["order-first", "order-second", "order-third"],
+    );
+  });
+
+  test("getAllAdmin returns drafts and published rows with raw column names", () => {
+    historiographyModel.create({
+      slug: "admin-draft-hist",
+      essay_title: "Admin Draft",
+      published_draft: 0,
+      historiography_period: "contemporary",
+      period_sort_order: 8,
+    });
+    historiographyModel.create({
+      slug: "admin-published-hist",
+      essay_title: "Admin Published",
+      published_draft: 1,
+      historiography_period: "early-church",
+      period_sort_order: 1,
+    });
+
+    const items = historiographyModel.getAllAdmin();
+
+    assert.equal(items.length, 2);
+    assert.ok(items.every((i) => i.essay_title !== undefined));
+    assert.ok(items.some((i) => i.published_draft === 0));
+    assert.ok(items.some((i) => i.published_draft === 1));
   });
 });
