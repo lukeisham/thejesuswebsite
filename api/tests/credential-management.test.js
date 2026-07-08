@@ -332,7 +332,10 @@ describe("route: DELETE /passkey/credentials/:id", () => {
     });
     assert.equal(res.status, 400);
     assert.equal(res.body.error, "Cannot delete the last credential.");
-    assert.ok(credentialModel.getById(editorCred.id), "editor's credential must still exist");
+    assert.ok(
+      credentialModel.getById(editorCred.id),
+      "editor's credential must still exist",
+    );
   });
 });
 
@@ -350,5 +353,154 @@ describe("last_used_at on login", () => {
     const updated = credentialModel.getById(cred.id);
     assert.ok(updated.last_used_at, "last_used_at should be set");
     assert.equal(updated.sign_count, 1);
+  });
+});
+
+// ── Route: POST /passkey/credentials/add/options ──────────────────────────────
+
+describe("route: POST /passkey/credentials/add/options", () => {
+  before(async () => {
+    await startServer();
+  });
+
+  after(() => stopServer());
+
+  beforeEach(clearTable);
+
+  test("returns 401 when unauthenticated", async () => {
+    const res = await req("POST", "/passkey/credentials/add/options");
+    assert.equal(res.status, 401);
+    assert.equal(res.body.error, "Authentication required.");
+  });
+
+  test("returns a challenge for an authenticated user", async () => {
+    const token = auth.createSession("addtest");
+    const cookie = `sid=${token}`;
+
+    const res = await req("POST", "/passkey/credentials/add/options", {
+      cookie,
+    });
+    assert.equal(res.status, 200);
+    assert.ok(res.body.challenge, "should include a challenge");
+    assert.ok(res.body.attemptId, "should include an attemptId");
+    assert.equal(res.body.rp.name, "The Jesus Website");
+    // The user.id should encode the session's handle.
+    assert.ok(res.body.user.id, "should include a user id");
+  });
+});
+
+// ── Route: POST /passkey/credentials/add/verify ───────────────────────────────
+
+describe("route: POST /passkey/credentials/add/verify", () => {
+  before(async () => {
+    await startServer();
+  });
+
+  after(() => stopServer());
+
+  beforeEach(clearTable);
+
+  test("returns 401 when unauthenticated", async () => {
+    const res = await req("POST", "/passkey/credentials/add/verify", {
+      body: {},
+    });
+    assert.equal(res.status, 401);
+    assert.equal(res.body.error, "Authentication required.");
+  });
+
+  test("returns 400 when required fields are missing", async () => {
+    const token = auth.createSession("addverify");
+    const cookie = `sid=${token}`;
+
+    const res = await req("POST", "/passkey/credentials/add/verify", {
+      cookie,
+      body: { id: "some-id" },
+    });
+    assert.equal(res.status, 400);
+    assert.ok(res.body.error.includes("required"));
+  });
+
+  test("returns 409 when credential already registered", async () => {
+    const token = auth.createSession("dupcred");
+    const cookie = `sid=${token}`;
+
+    // Seed an existing credential.
+    const existingId = "existing-credential-id";
+    credentialModel.create({
+      credential_id: existingId,
+      public_key: "-----BEGIN PUBLIC KEY-----\nFAKE\n-----END PUBLIC KEY-----",
+      user_handle: "dupcred",
+      sign_count: 0,
+    });
+
+    // Create a challenge.
+    const passkey = require("../routes/passkey");
+    const { attemptId, challenge } = passkey._issueChallenge("dupcred");
+
+    // Build a valid clientDataJSON.
+    const clientDataJSON = Buffer.from(
+      JSON.stringify({
+        type: "webauthn.create",
+        challenge,
+        origin: "http://localhost",
+      }),
+      "utf8",
+    ).toString("base64url");
+
+    const res = await req("POST", "/passkey/credentials/add/verify", {
+      cookie,
+      body: {
+        attemptId,
+        id: existingId,
+        clientDataJSON,
+        publicKeyPem:
+          "-----BEGIN PUBLIC KEY-----\nANOTHER\n-----END PUBLIC KEY-----",
+      },
+    });
+    assert.equal(res.status, 409);
+    assert.equal(res.body.error, "Credential already registered.");
+  });
+
+  test("successful round trip creates a credential", async () => {
+    const token = auth.createSession("roundtrip");
+    const cookie = `sid=${token}`;
+
+    const passkey = require("../routes/passkey");
+
+    // 1 — Get options.
+    const optionsRes = await req("POST", "/passkey/credentials/add/options", {
+      cookie,
+    });
+    assert.equal(optionsRes.status, 200);
+    const { attemptId, challenge } = optionsRes.body;
+
+    // 2 — Verify with a new credential id.
+    const newCredId = "new-cred-" + Math.random().toString(36).slice(2, 10);
+    const clientDataJSON = Buffer.from(
+      JSON.stringify({
+        type: "webauthn.create",
+        challenge,
+        origin: "http://localhost",
+      }),
+      "utf8",
+    ).toString("base64url");
+
+    const verifyRes = await req("POST", "/passkey/credentials/add/verify", {
+      cookie,
+      body: {
+        attemptId,
+        id: newCredId,
+        clientDataJSON,
+        publicKeyPem:
+          "-----BEGIN PUBLIC KEY-----\nROUNDTRIP\n-----END PUBLIC KEY-----",
+      },
+    });
+    assert.equal(verifyRes.status, 201, "should return 201 Created");
+    assert.equal(verifyRes.body.registered, true);
+
+    // 3 — The credential should now exist in the DB.
+    const stored = credentialModel.getByCredentialId(newCredId);
+    assert.ok(stored, "credential should be stored");
+    assert.equal(stored.user_handle, "roundtrip");
   });
 });

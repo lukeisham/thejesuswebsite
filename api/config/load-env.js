@@ -73,7 +73,44 @@ function loadEnv() {
     }
   }
 
+  // JS-2: In production, refuse to boot without RP_ID and ORIGIN — the origin
+  // and RP ID checks silently weaken without them, and a missing RP_ID also
+  // breaks WebAuthn ceremony generation (challenge endpoints use it as a const).
+  if (process.env.NODE_ENV === "production") {
+    if (!process.env.RP_ID) {
+      throw new Error(
+        "FATAL: RP_ID is required in production (NODE_ENV=production). " +
+          "Set it to the site's domain (e.g. thejesuswebsite.org) in .env.",
+      );
+    }
+    if (!process.env.ORIGIN) {
+      throw new Error(
+        "FATAL: ORIGIN is required in production (NODE_ENV=production). " +
+          "Set it to the site's full origin (e.g. https://thejesuswebsite.org) in .env.",
+      );
+    }
+  }
+
   return count;
 }
 
+/**
+ * Post-startup production check that runs after the credential model is loaded.
+ * Warns when SETUP_TOKEN is set but registration is already closed (credentials
+ * exist in the DB), which means the token is dead weight and should be removed.
+ *
+ * @param {() => number} countAll — credentialModel.countAll, injected to avoid a
+ *   circular dependency at load time (load-env is required first, before models).
+ */
+function validateProdEnv(countAll) {
+  if (!countAll || typeof countAll !== "function") return;
+  if (process.env.SETUP_TOKEN && countAll() > 0) {
+    console.warn(
+      "SETUP_TOKEN is set but at least one credential already exists — " +
+        "registration is closed. Consider removing SETUP_TOKEN from .env.",
+    );
+  }
+}
+
 module.exports = loadEnv;
+module.exports.validateProdEnv = validateProdEnv;

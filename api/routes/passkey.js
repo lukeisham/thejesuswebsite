@@ -134,6 +134,8 @@ const loginOptionsLimit = rateLimit({ maxAttempts: 10, windowMs: 60_000 });
 const loginVerifyLimit = rateLimit({ maxAttempts: 5, windowMs: 60_000 });
 const registerOptionsLimit = rateLimit({ maxAttempts: 3, windowMs: 60_000 });
 const registerVerifyLimit = rateLimit({ maxAttempts: 3, windowMs: 60_000 });
+const addOptionsLimit = rateLimit({ maxAttempts: 10, windowMs: 60_000 });
+const addVerifyLimit = rateLimit({ maxAttempts: 5, windowMs: 60_000 });
 
 // POST /passkey/register/options — begin enrolment for an admin credential
 router.post(
@@ -190,7 +192,12 @@ router.post(
       if (!expectedChallenge)
         return res.status(400).json({ error: "Challenge expired or missing." });
       if (
-        !verifyClientData(clientDataJSON, "webauthn.create", expectedChallenge, process.env.ORIGIN || null)
+        !verifyClientData(
+          clientDataJSON,
+          "webauthn.create",
+          expectedChallenge,
+          process.env.ORIGIN || null,
+        )
       ) {
         return res
           .status(400)
@@ -251,12 +258,20 @@ router.post("/login/options", loginOptionsLimit, (req, res) => {
 });
 
 // POST /passkey/login/verify — verify the authenticator's assertion, start a session.
-// Expects: { attemptId, id, clientDataJSON, authenticatorData, signature, signCount }
+// Expects: { attemptId, id, clientDataJSON, authenticatorData, signature }
+// Note: signCount may still be sent by older clients but the server parses it
+// from the signed authenticatorData bytes (JS-2: never trust client input).
 router.post("/login/verify", loginVerifyLimit, (req, res) => {
   try {
-    const { id, clientDataJSON, authenticatorData, signature, signCount, attemptId } =
+    const { id, clientDataJSON, authenticatorData, signature, attemptId } =
       req.body;
-    if (!id || !clientDataJSON || !authenticatorData || !signature || !attemptId) {
+    if (
+      !id ||
+      !clientDataJSON ||
+      !authenticatorData ||
+      !signature ||
+      !attemptId
+    ) {
       return res.status(400).json({
         error:
           "id, clientDataJSON, authenticatorData, signature and attemptId are required.",
@@ -270,10 +285,20 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     if (!credential)
       return res.status(404).json({ error: "Unknown credential." });
 
-    const expectedChallenge = consumeChallenge(attemptId, credential.user_handle);
+    const expectedChallenge = consumeChallenge(
+      attemptId,
+      credential.user_handle,
+    );
     if (!expectedChallenge)
       return res.status(400).json({ error: "Challenge expired or missing." });
-    if (!verifyClientData(clientDataJSON, "webauthn.get", expectedChallenge, process.env.ORIGIN || null)) {
+    if (
+      !verifyClientData(
+        clientDataJSON,
+        "webauthn.get",
+        expectedChallenge,
+        process.env.ORIGIN || null,
+      )
+    ) {
       return res
         .status(400)
         .json({ error: "Client data did not match the challenge." });
@@ -283,6 +308,14 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     // clientDataJSON. Rebuild that exact byte string and verify it against the
     // stored public key.
     const authData = Buffer.from(authenticatorData, "base64url");
+
+    // JS-2: Validate authenticatorData length before any indexed reads.
+    // Minimum: 32-byte RP ID hash + 1-byte flags + 4-byte sign counter = 37.
+    // Anything shorter is malformed and would cause timingSafeEqual or the
+    // counter read to throw a 500 on truncated input — reject with 401.
+    if (authData.length < 37) {
+      return res.status(401).json({ error: "Malformed authenticator data." });
+    }
 
     // Verify the relying-party ID hash baked into authenticatorData by the
     // authenticator. Without this check a credential registered for a different
@@ -316,20 +349,19 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     if (!isValid)
       return res.status(401).json({ error: "Signature verification failed." });
 
-    // A sign counter that fails to advance can mean a cloned authenticator.
-    // Only enforce when the authenticator actually uses counters (non-zero).
-    if (
-      typeof signCount === "number" &&
-      signCount > 0 &&
-      signCount <= credential.sign_count
-    ) {
+    // JS-2: Parse the sign counter from the signed authenticatorData bytes
+    // (offset 33, 4-byte big-endian uint32), not from the client-supplied
+    // req.body.signCount. The authenticator signed these bytes — a client
+    // cannot forge them — so this is the only trustworthy source of the counter.
+    // Apple passkeys and some platform authenticators return a zero counter
+    // (they don't implement the feature); only enforce when non-zero.
+    const parsedSignCount = authData.readUInt32BE(33);
+    if (parsedSignCount > 0 && parsedSignCount <= credential.sign_count) {
       return res
         .status(401)
         .json({ error: "Possible replay: sign counter did not advance." });
     }
-    if (typeof signCount === "number") {
-      credentialModel.updateSignCount(id, signCount);
-    }
+    credentialModel.updateSignCount(id, parsedSignCount);
 
     const token = auth.createSession(credential.user_handle);
     res.cookie(auth.SESSION_COOKIE, token, {
@@ -392,9 +424,92 @@ router.delete("/credentials/:id", auth, (req, res) => {
   }
 });
 
+// POST /passkey/credentials/add/options — begin adding a passkey for the
+// currently authenticated admin. Behind the auth middleware and a rate limiter;
+// reuses the same issueChallenge/ceremony pattern as registration, but gated
+// by the session cookie instead of the setup token.
+router.post("/credentials/add/options", auth, addOptionsLimit, (req, res) => {
+  try {
+    const { attemptId, challenge } = issueChallenge(req.user.handle);
+
+    res.json({
+      attemptId,
+      challenge,
+      rp: { id: RP_ID, name: RP_NAME },
+      user: {
+        id: base64url(Buffer.from(req.user.handle)),
+        name: req.user.handle,
+        displayName: req.user.handle,
+      },
+      pubKeyCredParams: [
+        { type: "public-key", alg: -7 }, // ES256
+        { type: "public-key", alg: -257 }, // RS256
+      ],
+      timeout: CHALLENGE_TTL_MS,
+    });
+  } catch (error) {
+    console.error("POST /passkey/credentials/add/options failed:", error);
+    res.status(error.status || 500).json({
+      error: error.status
+        ? error.message
+        : "Failed to start credential registration.",
+    });
+  }
+});
+
+// POST /passkey/credentials/add/verify — finish adding a passkey for the
+// currently authenticated admin. Reuses the same clientData/duplicate-credential
+// checks as the first-run registration endpoint, but gated by the session cookie
+// instead of the setup token.
+router.post("/credentials/add/verify", auth, addVerifyLimit, (req, res) => {
+  try {
+    const { id, clientDataJSON, publicKeyPem, attemptId } = req.body;
+    if (!id || !clientDataJSON || !publicKeyPem || !attemptId) {
+      return res.status(400).json({
+        error: "id, clientDataJSON, publicKeyPem and attemptId are required.",
+      });
+    }
+
+    const expectedChallenge = consumeChallenge(attemptId, req.user.handle);
+    if (!expectedChallenge)
+      return res.status(400).json({ error: "Challenge expired or missing." });
+    if (
+      !verifyClientData(
+        clientDataJSON,
+        "webauthn.create",
+        expectedChallenge,
+        process.env.ORIGIN || null,
+      )
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Client data did not match the challenge." });
+    }
+    if (credentialModel.getByCredentialId(id)) {
+      return res.status(409).json({ error: "Credential already registered." });
+    }
+
+    credentialModel.create({
+      credential_id: id,
+      public_key: publicKeyPem,
+      user_handle: req.user.handle,
+      sign_count: 0,
+    });
+    res.status(201).json({ registered: true });
+  } catch (error) {
+    console.error("POST /passkey/credentials/add/verify failed:", error);
+    res.status(error.status || 500).json({
+      error: error.status
+        ? error.message
+        : "Failed to complete credential registration.",
+    });
+  }
+});
+
 module.exports = router;
 // Exported for testing.
 module.exports.validateHandle = validateHandle;
 module.exports._issueChallenge = issueChallenge;
 module.exports._consumeChallenge = consumeChallenge;
 module.exports._verifyClientData = verifyClientData;
+module.exports._challenges = challenges;
