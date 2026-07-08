@@ -22,7 +22,8 @@ function isMobile() {
 /**
  * Initialise the hamburger toggle for the off-canvas sidebar.
  *
- * Default state: closed on index.html and on mobile, open elsewhere.
+ * Default state: closed on mobile (off-canvas overlay), open elsewhere —
+ * including the home page.
  */
 export function initHamburger() {
   const sidebar = document.getElementById(SIDEBAR_ID);
@@ -30,11 +31,8 @@ export function initHamburger() {
 
   if (!sidebar || !toggle) return;
 
-  const isHome = window.location.pathname === '/' ||
-    window.location.pathname === '/index.html';
-
   // Set initial state
-  if (isHome || isMobile()) {
+  if (isMobile()) {
     closeSidebar(sidebar, toggle);
   } else {
     openSidebar(sidebar, toggle);
