@@ -7,7 +7,9 @@
         <link rel="stylesheet" href="../assets/css/admin.css" />
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-timeline-taxonomy.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
+        <script defer src="../assets/js/admin-mla-sources.js"></script>
         <style>
             .admin-form-actions {
                 display: flex;
@@ -383,21 +385,9 @@
 
                 var eras = [
                     { v: "", l: "— None —" },
-                    { v: "theme", l: "Theme" },
-                    { v: "pre-incarnation", l: "Pre-Incarnation" },
-                    { v: "old-testament", l: "Old Testament" },
-                    { v: "intertestamental", l: "Intertestamental" },
-                    { v: "birth", l: "Birth" },
-                    { v: "childhood", l: "Childhood" },
-                    { v: "labourer", l: "Labourer" },
-                    { v: "baptism", l: "Baptism" },
-                    { v: "ministry-Galilee", l: "Ministry — Galilee" },
-                    { v: "ministry-Jerusalem", l: "Ministry — Jerusalem" },
-                    { v: "passion", l: "Passion" },
-                    { v: "resurrection", l: "Resurrection" },
-                    { v: "ascension", l: "Ascension" },
-                    { v: "early-church", l: "Early Church" },
-                    { v: "return", l: "Return" },
+                    { v: "beginning", l: "Beginning" },
+                    { v: "middle", l: "Middle" },
+                    { v: "end", l: "End" },
                 ];
                 var eOpts = eras
                     .map(function (e) {
@@ -429,13 +419,27 @@
                     formGroup(
                         "Timeline Period",
                         "ev-period",
-                        '<input class="admin-input" id="ev-period" name="timeline_period" type="text" value="' +
-                            esc(data.timeline_period) +
-                            '">',
+                        '<select class="admin-select" id="ev-period" name="timeline_period"><option value="">— Select an era first —</option></select>',
                     ),
                 );
 
                 rightCol.appendChild(classCard);
+
+                // Bibliography card
+                var mlaCard = document.createElement("div");
+                mlaCard.className = "admin-form-card";
+                mlaCard.style.marginTop = "var(--space-md)";
+
+                var mlaTitle = document.createElement("div");
+                mlaTitle.className = "admin-form-card__title";
+                mlaTitle.textContent = "Bibliography";
+                mlaCard.appendChild(mlaTitle);
+
+                var mlaMount = document.createElement("div");
+                mlaMount.id = "mla-sources-mount";
+                mlaCard.appendChild(mlaMount);
+
+                rightCol.appendChild(mlaCard);
 
                 // Map & metadata card
                 var mapCard = document.createElement("div");
@@ -503,6 +507,52 @@
 
                 form.appendChild(rightCol);
                 main.appendChild(form);
+
+                // Cascading timeline era → period dropdowns (JS-3: single
+                // taxonomy source in admin-timeline-taxonomy.js, no duplicated
+                // period lists in page markup or script).
+                var eraSelect = document.getElementById("ev-era");
+                var periodSelect = document.getElementById("ev-period");
+
+                function populatePeriods(era, selectedValue) {
+                    periodSelect.innerHTML = "";
+                    var placeholder = document.createElement("option");
+                    placeholder.value = "";
+                    placeholder.textContent = era
+                        ? "— None —"
+                        : "— Select an era first —";
+                    periodSelect.appendChild(placeholder);
+
+                    var periods = era
+                        ? Admin.timelineTaxonomy.getPeriodsForEra(era)
+                        : [];
+                    periods.forEach(function (period) {
+                        var option = document.createElement("option");
+                        option.value = period.value;
+                        option.textContent = period.label;
+                        periodSelect.appendChild(option);
+                    });
+
+                    periodSelect.disabled = !era;
+                    if (selectedValue) periodSelect.value = selectedValue;
+                }
+
+                eraSelect.addEventListener("change", function () {
+                    populatePeriods(eraSelect.value);
+                });
+                populatePeriods(data.timeline_era, data.timeline_period);
+
+                // MLA Bibliography panel, seeded with this record's existing sources
+                var mlaSourcesPanel = AdminMlaSources.mount(
+                    document.getElementById("mla-sources-mount"),
+                    {
+                        initialSourceIds: (data.mla_sources || []).map(
+                            function (link) {
+                                return link.mla_source_id;
+                            },
+                        ),
+                    },
+                );
 
                 // Action buttons
                 var actions = document.createElement("div");
@@ -683,6 +733,7 @@
                             .checked
                             ? 1
                             : 0,
+                        mla_source_ids: mlaSourcesPanel.getSelectedIds(),
                     };
                 }
 

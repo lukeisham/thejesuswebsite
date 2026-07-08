@@ -16,7 +16,7 @@
 /* ── Topbar ───────────────────────────────────────────────────────────────── */
 
 .admin-topbar {
-    grid-column: 1 / -1;
+    grid-column: 2;
     display: flex;
     align-items: center;
     justify-content: space-between;

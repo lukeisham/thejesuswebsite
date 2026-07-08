@@ -18,9 +18,25 @@ CREATE TABLE evidence (
     -- Categorization
     gospel_category     TEXT CHECK (gospel_category IN ('theme', 'events', 'parables', 'sayings-and-sermons', 'people', 'objects', 'places', 'miracles')),
 
-    timeline_era        TEXT CHECK (timeline_era IN ('theme', 'pre-incarnation', 'old-testament', 'intertestamental', 'birth', 'childhood', 'labourer', 'baptism', 'ministry-Galilee','ministry-Jerusalem', 'passion', 'resurrection', 'ascension', 'early-church', 'return')),
+    timeline_era        TEXT CHECK (timeline_era IN ('beginning', 'middle', 'end')),
 
-    timeline_period     TEXT,
+    timeline_period     TEXT CHECK (timeline_period IN (
+                            'PreIncarnation', 'OldTestament',
+                            'EarlyLifeUnborn', 'EarlyLifeBirth', 'EarlyLifeInfancy', 'EarlyLifeChildhood',
+                            'LifeTradie', 'LifeBaptism', 'LifeTemptation',
+                            'GalileeCallingTwelve', 'GalileeSermonMount', 'GalileeMiraclesSea',
+                            'GalileeTransfiguration',
+                            'JudeanOutsideJudea', 'JudeanMissionSeventy', 'JudeanTeachingTemple',
+                            'JudeanRaisingLazarus', 'JudeanFinalJourney',
+                            'PassionPalmSunday', 'PassionMondayCleansing', 'PassionTuesdayTeaching',
+                            'PassionWednesdaySilent', 'PassionMaundyThursday', 'PassionMaundyLastSupper',
+                            'PassionMaundyGethsemane', 'PassionMaundyBetrayal',
+                            'PassionFridaySanhedrin', 'PassionFridayCivilTrials',
+                            'PassionFridayCrucifixionBegins', 'PassionFridayDarkness',
+                            'PassionFridayDeath', 'PassionFridayBurial', 'PassionSaturdayWatch',
+                            'PassionSundayResurrection', 'PostResurrectionAppearances',
+                            'Ascension', 'OurResponse', 'ReturnOfJesus'
+                        )),
 
     map_location        TEXT,
 
@@ -645,7 +661,12 @@ CREATE TRIGGER evidence_fts_ad AFTER DELETE ON evidence BEGIN
     INSERT INTO evidence_fts(evidence_fts, rowid, title, description, primary_verse, metadata_keywords)
     VALUES ('delete', old.id, old.title, old.description, old.primary_verse, old.metadata_keywords);
 END;
-CREATE TRIGGER evidence_fts_au AFTER UPDATE ON evidence BEGIN
+CREATE TRIGGER evidence_fts_au AFTER UPDATE ON evidence
+WHEN NEW.title IS NOT OLD.title
+   OR NEW.description IS NOT OLD.description
+   OR NEW.primary_verse IS NOT OLD.primary_verse
+   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
+BEGIN
     INSERT INTO evidence_fts(evidence_fts, rowid, title, description, primary_verse, metadata_keywords)
     VALUES ('delete', old.id, old.title, old.description, old.primary_verse, old.metadata_keywords);
     INSERT INTO evidence_fts(rowid, title, description, primary_verse, metadata_keywords)
@@ -665,7 +686,11 @@ CREATE TRIGGER responses_fts_ad AFTER DELETE ON responses BEGIN
     INSERT INTO responses_fts(responses_fts, rowid, response_title, response_content, metadata_keywords)
     VALUES ('delete', old.id, old.response_title, old.response_content, old.metadata_keywords);
 END;
-CREATE TRIGGER responses_fts_au AFTER UPDATE ON responses BEGIN
+CREATE TRIGGER responses_fts_au AFTER UPDATE ON responses
+WHEN NEW.response_title IS NOT OLD.response_title
+   OR NEW.response_content IS NOT OLD.response_content
+   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
+BEGIN
     INSERT INTO responses_fts(responses_fts, rowid, response_title, response_content, metadata_keywords)
     VALUES ('delete', old.id, old.response_title, old.response_content, old.metadata_keywords);
     INSERT INTO responses_fts(rowid, response_title, response_content, metadata_keywords)
@@ -685,7 +710,11 @@ CREATE TRIGGER context_essays_fts_ad AFTER DELETE ON context_essays BEGIN
     INSERT INTO context_essays_fts(context_essays_fts, rowid, essay_title, essay_content, metadata_keywords)
     VALUES ('delete', old.id, old.essay_title, old.essay_content, old.metadata_keywords);
 END;
-CREATE TRIGGER context_essays_fts_au AFTER UPDATE ON context_essays BEGIN
+CREATE TRIGGER context_essays_fts_au AFTER UPDATE ON context_essays
+WHEN NEW.essay_title IS NOT OLD.essay_title
+   OR NEW.essay_content IS NOT OLD.essay_content
+   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
+BEGIN
     INSERT INTO context_essays_fts(context_essays_fts, rowid, essay_title, essay_content, metadata_keywords)
     VALUES ('delete', old.id, old.essay_title, old.essay_content, old.metadata_keywords);
     INSERT INTO context_essays_fts(rowid, essay_title, essay_content, metadata_keywords)
@@ -705,7 +734,11 @@ CREATE TRIGGER blog_posts_fts_ad AFTER DELETE ON blog_posts BEGIN
     INSERT INTO blog_posts_fts(blog_posts_fts, rowid, blog_title, blog_content, metadata_keywords)
     VALUES ('delete', old.id, old.blog_title, old.blog_content, old.metadata_keywords);
 END;
-CREATE TRIGGER blog_posts_fts_au AFTER UPDATE ON blog_posts BEGIN
+CREATE TRIGGER blog_posts_fts_au AFTER UPDATE ON blog_posts
+WHEN NEW.blog_title IS NOT OLD.blog_title
+   OR NEW.blog_content IS NOT OLD.blog_content
+   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
+BEGIN
     INSERT INTO blog_posts_fts(blog_posts_fts, rowid, blog_title, blog_content, metadata_keywords)
     VALUES ('delete', old.id, old.blog_title, old.blog_content, old.metadata_keywords);
     INSERT INTO blog_posts_fts(rowid, blog_title, blog_content, metadata_keywords)

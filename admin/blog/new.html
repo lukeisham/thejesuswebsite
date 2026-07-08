@@ -9,6 +9,7 @@
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-image-picker.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
+        <script defer src="../assets/js/admin-mla-sources.js"></script>
         <style>
             .admin-form-actions {
                 display: flex;
@@ -334,6 +335,16 @@
                             class="admin-form-card"
                             style="margin-top: var(--space-md)"
                         >
+                            <div class="admin-form-card__title">
+                                Bibliography
+                            </div>
+                            <div id="mla-sources-mount"></div>
+                        </div>
+
+                        <div
+                            class="admin-form-card"
+                            style="margin-top: var(--space-md)"
+                        >
                             <div class="admin-form-group">
                                 <div class="admin-checkbox-group">
                                     <input
@@ -413,6 +424,12 @@
                 slugInput.addEventListener("input", function () {
                     slugAuto = false;
                 });
+
+                // MLA Bibliography panel (new record starts with no sources)
+                var mlaSourcesPanel = AdminMlaSources.mount(
+                    document.getElementById("mla-sources-mount"),
+                    { initialSourceIds: [], hintVariant: "blog" },
+                );
 
                 function clearErrors() {
                     formError.style.display = "none";
@@ -496,6 +513,7 @@
                         link_evidence_ids: parseIdList(
                             document.getElementById("blog-evidence").value,
                         ),
+                        mla_source_ids: mlaSourcesPanel.getSelectedIds(),
                     };
                 }
 

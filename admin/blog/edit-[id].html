@@ -10,6 +10,7 @@
   <script defer src="../assets/js/admin-image-picker.js"></script>
   <script defer src="../assets/js/admin-insert-image.js"></script>
   <script defer src="../assets/js/admin-insert-image.js"></script>
+  <script defer src="../assets/js/admin-mla-sources.js"></script>
   <style>
     .admin-form-actions {
       display: flex;
@@ -323,6 +324,29 @@
     metaCard.appendChild(formGroup('Keywords', 'blog-keywords', '', 'e.g. resurrection, faith, evidence', 'Comma-separated search keywords.', false, data.metadata_keywords || ''));
     metaCard.appendChild(formGroup('Linked Evidence IDs', 'blog-evidence', '', 'e.g. 1, 3, 7', 'Comma-separated evidence IDs.', false, ''));
 
+    // Bibliography card
+    var mlaCard = document.createElement('div');
+    mlaCard.className = 'admin-form-card';
+    mlaCard.style.marginTop = 'var(--space-md)';
+    sidebar.appendChild(mlaCard);
+
+    var mlaTitle = document.createElement('div');
+    mlaTitle.className = 'admin-form-card__title';
+    mlaTitle.textContent = 'Bibliography';
+    mlaCard.appendChild(mlaTitle);
+
+    var mlaMount = document.createElement('div');
+    mlaMount.id = 'mla-sources-mount';
+    mlaCard.appendChild(mlaMount);
+
+    // MLA Bibliography panel, seeded with this record's existing sources
+    var mlaSourcesPanel = AdminMlaSources.mount(mlaMount, {
+      initialSourceIds: (data.mla_sources || []).map(function (link) {
+        return link.mla_source_id;
+      }),
+      hintVariant: 'blog',
+    });
+
     var pubCard = document.createElement('div');
     pubCard.className = 'admin-form-card';
     pubCard.style.marginTop = 'var(--space-md)';
@@ -471,7 +495,8 @@
         blog_content: document.getElementById('blog-content').value.trim() || undefined,
         landing_page_display: document.getElementById('blog-landing').checked ? 1 : 0,
         metadata_keywords: document.getElementById('blog-keywords').value.trim() || undefined,
-                    hero_image: heroPicker ? heroPicker.getValue().image_path || undefined : undefined,            hero_image_alt: heroPicker ? heroPicker.getValue().alt || undefined : undefined,            published_draft: document.getElementById('blog-publish').checked ? 1 : 0
+                    hero_image: heroPicker ? heroPicker.getValue().image_path || undefined : undefined,            hero_image_alt: heroPicker ? heroPicker.getValue().alt || undefined : undefined,            published_draft: document.getElementById('blog-publish').checked ? 1 : 0,
+        mla_source_ids: mlaSourcesPanel.getSelectedIds()
       };
     }
 
