@@ -181,6 +181,7 @@ function renderTimelineContext(item) {
 }
 
 function renderSources(mlaSources) {
+  if (!mlaSources || mlaSources.length === 0) {
     if ($sourcesSection) $sourcesSection.hidden = true;
     return;
   }
