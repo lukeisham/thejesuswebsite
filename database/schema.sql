@@ -520,50 +520,6 @@ CREATE TABLE historiography_breakouts (
 );
 
 -- =====================
--- PICTURE CHILD TABLES
--- =====================
-
-CREATE TABLE evidence_pictures (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    evidence_id INTEGER NOT NULL REFERENCES evidence(id) ON DELETE CASCADE,
-    sort_order  INTEGER NOT NULL DEFAULT 0,
-    image_path  TEXT NOT NULL,
-    caption     TEXT
-);
-
-CREATE TABLE response_pictures (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    response_id INTEGER NOT NULL REFERENCES responses(id) ON DELETE CASCADE,
-    sort_order  INTEGER NOT NULL DEFAULT 0,
-    image_path  TEXT NOT NULL,
-    caption     TEXT
-);
-
-CREATE TABLE essay_pictures (
-    id               INTEGER PRIMARY KEY AUTOINCREMENT,
-    context_essay_id INTEGER NOT NULL REFERENCES context_essays(id) ON DELETE CASCADE,
-    sort_order       INTEGER NOT NULL DEFAULT 0,
-    image_path       TEXT NOT NULL,
-    caption          TEXT
-);
-
-CREATE TABLE blog_pictures (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    blog_post_id INTEGER NOT NULL REFERENCES blog_posts(id) ON DELETE CASCADE,
-    sort_order   INTEGER NOT NULL DEFAULT 0,
-    image_path   TEXT NOT NULL,
-    caption      TEXT
-);
-
-CREATE TABLE historiography_pictures (
-    id                INTEGER PRIMARY KEY AUTOINCREMENT,
-    historiography_id INTEGER NOT NULL REFERENCES historiography(id) ON DELETE CASCADE,
-    sort_order        INTEGER NOT NULL DEFAULT 0,
-    image_path        TEXT NOT NULL,
-    caption           TEXT
-);
-
--- =====================
 -- ARBOR DIAGRAM
 -- =====================
 
@@ -664,13 +620,6 @@ CREATE INDEX idx_response_breakouts        ON response_breakouts (response_id);
 CREATE INDEX idx_essay_breakouts           ON essay_breakouts (context_essay_id);
 CREATE INDEX idx_blog_breakouts            ON blog_breakouts (blog_post_id);
 CREATE INDEX idx_historiography_breakouts  ON historiography_breakouts (historiography_id);
-
--- Picture child tables
-CREATE INDEX idx_evidence_pictures         ON evidence_pictures (evidence_id);
-CREATE INDEX idx_response_pictures         ON response_pictures (response_id);
-CREATE INDEX idx_essay_pictures            ON essay_pictures (context_essay_id);
-CREATE INDEX idx_blog_pictures             ON blog_pictures (blog_post_id);
-CREATE INDEX idx_historiography_pictures   ON historiography_pictures (historiography_id);
 
 -- Resource lists
 CREATE INDEX idx_evidence_resource_lists   ON evidence_resource_lists (resource_id);

@@ -5,7 +5,11 @@
 const db = require("../config");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const { getLinked, replaceLinks } = require("./relations/junctions");
-const { pickWritable, generateUniqueSlug, runUpdate } = require("./model-helpers");
+const {
+  pickWritable,
+  generateUniqueSlug,
+  runUpdate,
+} = require("./model-helpers");
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -23,8 +27,6 @@ const WRITABLE_COLUMNS = [
   "doi",
   "author_bio",
 ];
-
-
 
 /**
  * Published historiography essays for the public site, newest first.
@@ -87,11 +89,6 @@ function assembleDetail(item) {
       "historiography_id",
       item.id,
     ),
-    pictures: getChildren(
-      "historiography_pictures",
-      "historiography_id",
-      item.id,
-    ),
     mla_sources: getLinked(
       "historiography_mla_sources",
       "historiography_id",
@@ -146,7 +143,6 @@ function create(data) {
 function createComposite(data) {
   const writeRelated = db.transaction((data) => {
     const breakouts = data.breakouts;
-    const pictures = data.pictures;
     const mlaSourceIds = data.mla_source_ids;
     const identifierIds = data.identifier_ids;
     const linkEvidenceIds = data.link_evidence_ids;
@@ -161,13 +157,6 @@ function createComposite(data) {
       itemId,
       breakouts,
       ["title", "content"],
-    );
-    replaceChildren(
-      "historiography_pictures",
-      "historiography_id",
-      itemId,
-      pictures,
-      ["image_path", "caption"],
     );
     replaceLinks(
       "historiography_mla_sources",
@@ -235,7 +224,6 @@ function updateComposite(id, data) {
 
   const writeRelated = db.transaction((data) => {
     const breakouts = data.breakouts;
-    const pictures = data.pictures;
     const mlaSourceIds = data.mla_source_ids;
     const identifierIds = data.identifier_ids;
     const linkEvidenceIds = data.link_evidence_ids;
@@ -250,13 +238,6 @@ function updateComposite(id, data) {
       id,
       breakouts,
       ["title", "content"],
-    );
-    replaceChildren(
-      "historiography_pictures",
-      "historiography_id",
-      id,
-      pictures,
-      ["image_path", "caption"],
     );
     replaceLinks(
       "historiography_mla_sources",
@@ -304,8 +285,6 @@ function remove(id) {
   const result = db.prepare("DELETE FROM historiography WHERE id = ?").run(id);
   return result.changes > 0;
 }
-
-
 
 module.exports = {
   getAllPublished,

@@ -100,7 +100,10 @@ function renderSeoBlock(config, row) {
   if (config.jsonLdType === "ScholarlyArticle") {
     jsonLd.author = { "@type": "Person", name: "Luke Isham" };
   }
-  if (config.jsonLdType === "BlogPosting" || config.jsonLdType === "NewsArticle") {
+  if (
+    config.jsonLdType === "BlogPosting" ||
+    config.jsonLdType === "NewsArticle"
+  ) {
     jsonLd.author = { "@type": "Person", name: "Luke Isham" };
   }
   html += `  <script type="application/ld+json">\n  ${JSON.stringify(jsonLd)}\n  </script>\n`;
@@ -187,6 +190,9 @@ function generatePage(type, slug) {
 /**
  * Remove a generated static page (called on unpublish).
  *
+ * Refuses to remove reserved filenames ("index", "[slug]") so no caller can
+ * ever unlink a static asset or template file (JS-2: defensive reject).
+ *
  * @param {string} type - Content type key
  * @param {string} slug - The item's URL slug
  * @returns {{ ok: boolean, error?: string }}
@@ -199,6 +205,15 @@ function removePage(type, slug) {
 
   if (!slug || typeof slug !== "string") {
     return { ok: false, error: "A slug is required." };
+  }
+
+  // Reject reserved filenames (JS-2: defensive reject — never unlink static
+  // assets or templates through the remove-page path).
+  if (slug === "index" || slug === "[slug]") {
+    return {
+      ok: false,
+      error: `Refusing to remove reserved filename: ${slug}.html`,
+    };
   }
 
   const outputPath = path.join(config.outputDir, `${slug}.html`);

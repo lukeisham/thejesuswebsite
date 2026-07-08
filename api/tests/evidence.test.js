@@ -52,7 +52,6 @@ function seedContextEssay() {
 describe("evidence: getAllPublished", () => {
   beforeEach(() => {
     db.exec("DELETE FROM evidence");
-    db.exec("DELETE FROM evidence_pictures");
     db.exec("DELETE FROM evidence_mla_sources");
     db.exec("DELETE FROM evidence_identifiers");
     db.exec("DELETE FROM evidence_links_evidence");
@@ -74,23 +73,23 @@ describe("evidence: getAllPublished", () => {
 
   test("filters by gospel_category", () => {
     evidenceModel.create({
-      title: "Ministry One",
-      slug: "ministry-1",
-      gospel_category: "ministry",
+      title: "Miracle One",
+      slug: "miracle-1",
+      gospel_category: "miracles",
       published_draft: 1,
     });
     evidenceModel.create({
-      title: "Birth One",
-      slug: "birth-1",
-      gospel_category: "birth",
+      title: "Parable One",
+      slug: "parable-1",
+      gospel_category: "parables",
       published_draft: 1,
     });
 
     const items = evidenceModel.getAllPublished({
-      gospel_category: "ministry",
+      gospel_category: "miracles",
     });
     assert.equal(items.length, 1);
-    assert.equal(items[0].title, "Ministry One");
+    assert.equal(items[0].title, "Miracle One");
   });
 });
 
@@ -98,7 +97,6 @@ describe("evidence: getAllPublished", () => {
 describe("evidence: createComposite + getDetailBySlug", () => {
   beforeEach(() => {
     db.exec("DELETE FROM evidence");
-    db.exec("DELETE FROM evidence_pictures");
     db.exec("DELETE FROM evidence_mla_sources");
     db.exec("DELETE FROM evidence_identifiers");
     db.exec("DELETE FROM evidence_links_evidence");
@@ -108,24 +106,17 @@ describe("evidence: createComposite + getDetailBySlug", () => {
     db.exec("DELETE FROM context_essays");
   });
 
-  test("creates with pictures", () => {
+  test("creates with MLA sources", () => {
     const mlaId = seedMlaSource();
     const created = evidenceModel.createComposite({
-      title: "With Pictures",
-      slug: "with-pics",
+      title: "With MLA",
+      slug: "with-mla",
       published_draft: 1,
-      pictures: [
-        { image_path: "/a.jpg", caption: "First" },
-        { image_path: "/b.jpg", caption: "Second" },
-      ],
       mla_source_ids: [mlaId],
     });
 
     assert.ok(created);
-    assert.equal(created.title, "With Pictures");
-    assert.equal(created.pictures.length, 2);
-    assert.equal(created.pictures[0].caption, "First");
-    assert.equal(created.pictures[1].caption, "Second");
+    assert.equal(created.title, "With MLA");
     assert.equal(created.mla_sources.length, 1);
     assert.equal(created.mla_sources[0].mla_source_id, mlaId);
   });
@@ -168,18 +159,16 @@ describe("evidence: createComposite + getDetailBySlug", () => {
 
   test("public getDetailBySlug returns complete detail", () => {
     const mlaId = seedMlaSource();
-    const created = evidenceModel.createComposite({
+    evidenceModel.createComposite({
       title: "Detail Test",
       slug: "detail-test",
       published_draft: 1,
-      pictures: [{ image_path: "/img.jpg", caption: "Caption" }],
       mla_source_ids: [mlaId],
     });
 
     const detail = evidenceModel.getDetailBySlug("detail-test");
     assert.ok(detail);
     assert.equal(detail.title, "Detail Test");
-    assert.equal(detail.pictures.length, 1);
     assert.equal(detail.mla_sources.length, 1);
   });
 
@@ -200,14 +189,12 @@ describe("evidence: createComposite + getDetailBySlug", () => {
       title: "Admin Draft",
       slug: "admin-draft",
       published_draft: 0,
-      pictures: [{ image_path: "/draft.jpg", caption: "Draft Pic" }],
       mla_source_ids: [mlaId],
     });
 
     const admin = evidenceModel.getAdminById(created.id);
     assert.ok(admin);
     assert.equal(admin.title, "Admin Draft");
-    assert.equal(admin.pictures.length, 1);
     assert.equal(admin.mla_sources.length, 1);
   });
 });
@@ -216,7 +203,6 @@ describe("evidence: createComposite + getDetailBySlug", () => {
 describe("evidence: updateComposite", () => {
   beforeEach(() => {
     db.exec("DELETE FROM evidence");
-    db.exec("DELETE FROM evidence_pictures");
     db.exec("DELETE FROM evidence_mla_sources");
     db.exec("DELETE FROM evidence_identifiers");
     db.exec("DELETE FROM evidence_links_evidence");
@@ -237,37 +223,6 @@ describe("evidence: updateComposite", () => {
     });
     assert.equal(updated.title, "Updated");
     assert.equal(updated.slug, "original"); // slug unchanged
-  });
-
-  test("replaces pictures on update", () => {
-    const created = evidenceModel.createComposite({
-      title: "Pic Test",
-      slug: "pic-test",
-      published_draft: 1,
-      pictures: [{ image_path: "/old.jpg", caption: "Old" }],
-    });
-
-    const updated = evidenceModel.updateComposite(created.id, {
-      pictures: [{ image_path: "/new.jpg", caption: "New" }],
-    });
-
-    assert.equal(updated.pictures.length, 1);
-    assert.equal(updated.pictures[0].caption, "New");
-  });
-
-  test("removes pictures when empty array is sent", () => {
-    const created = evidenceModel.createComposite({
-      title: "Remove Pics",
-      slug: "remove-pics",
-      published_draft: 1,
-      pictures: [{ image_path: "/img.jpg", caption: "Img" }],
-    });
-
-    const updated = evidenceModel.updateComposite(created.id, {
-      pictures: [],
-    });
-
-    assert.equal(updated.pictures.length, 0);
   });
 
   test("replaces mla sources on update", () => {
@@ -293,6 +248,22 @@ describe("evidence: updateComposite", () => {
     assert.equal(updated.mla_sources[0].mla_source_id, mla2);
   });
 
+  test("removes mla sources when empty array is sent", () => {
+    const mla1 = seedMlaSource();
+    const created = evidenceModel.createComposite({
+      title: "Remove MLA",
+      slug: "remove-mla",
+      published_draft: 1,
+      mla_source_ids: [mla1],
+    });
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      mla_source_ids: [],
+    });
+
+    assert.equal(updated.mla_sources.length, 0);
+  });
+
   test("returns undefined for non-existent id", () => {
     const result = evidenceModel.updateComposite(99999, { title: "Ghost" });
     assert.equal(result, undefined);
@@ -303,15 +274,15 @@ describe("evidence: updateComposite", () => {
 describe("evidence: remove", () => {
   beforeEach(() => {
     db.exec("DELETE FROM evidence");
-    db.exec("DELETE FROM evidence_pictures");
   });
 
   test("deletes evidence and cascades to children", () => {
+    const mlaId = seedMlaSource();
     const created = evidenceModel.createComposite({
       title: "To Delete",
       slug: "to-delete",
       published_draft: 1,
-      pictures: [{ image_path: "/del.jpg", caption: "Del" }],
+      mla_source_ids: [mlaId],
     });
 
     const removed = evidenceModel.remove(created.id);
@@ -321,10 +292,10 @@ describe("evidence: remove", () => {
     const detail = evidenceModel.getAdminById(created.id);
     assert.equal(detail, undefined);
 
-    const pics = db
-      .prepare("SELECT * FROM evidence_pictures WHERE evidence_id = ?")
+    const sources = db
+      .prepare("SELECT * FROM evidence_mla_sources WHERE evidence_id = ?")
       .all(created.id);
-    assert.equal(pics.length, 0);
+    assert.equal(sources.length, 0);
   });
 
   test("returns false for non-existent id", () => {

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // regenerate-pages.js — batch static page regeneration CLI.
 //
-// Iterates every published row across all content types and (re)generates
-// its static HTML page from the template. Also removes orphaned generated
-// files whose corresponding DB row is gone or unpublished.
+// For every content type, queries the database for published slugs, (re)generates
+// their static HTML pages from the [slug].html template, then removes any .html
+// files in the output directory whose slug is NOT in the published set.
+// index.html and [slug].html are always preserved.
 //
 // Run:  npm run pages   or   node scripts/regenerate-pages.js
 //
@@ -16,22 +17,39 @@ const { generatePage, removePage } = require("../services/page-generator");
 
 /**
  * Remove generated .html files in an output directory that no longer have
- * a matching published row in the database. The [slug].html template file
- * itself is never deleted.
+ * a matching published row in the database (JS-2: validate against DB before
+ * deleting — never unlink based on filesystem state alone).
+ *
+ * index.html and [slug].html are always skipped — they are static assets
+ * managed by git, not generated per-item pages.
  */
-function cleanOrphans(config) {
+function cleanOrphans(config, publishedSlugs) {
   if (!fs.existsSync(config.outputDir)) return;
 
   const files = fs.readdirSync(config.outputDir);
   let removed = 0;
 
+  // Build a set for O(1) lookup (JS-2: predictable performance even on
+  // directories with many files).
+  const slugSet = new Set(publishedSlugs);
+
   for (const file of files) {
-    // Only consider .html files, and never delete the template itself.
-    if (!file.endsWith(".html") || file === "[slug].html") continue;
+    // Only consider .html files, and never delete the template or the index.
+    if (
+      !file.endsWith(".html") ||
+      file === "[slug].html" ||
+      file === "index.html"
+    )
+      continue;
 
     const slug = file.replace(/\.html$/, "");
-    const result = removePage(config.type, slug);
-    if (result.ok) removed++;
+
+    // Only remove files whose slug is NOT in the published set.
+    if (!slugSet.has(slug)) {
+      console.log(`[pages] Removing orphan: ${config.type}/${slug}`);
+      const result = removePage(config.type, slug);
+      if (result.ok) removed++;
+    }
   }
 
   return removed;
@@ -68,8 +86,10 @@ function main() {
       }
     }
 
-    // 2. Remove orphaned generated files (deleted/unpublished items).
-    removed += cleanOrphans(config);
+    // 2. Remove orphaned generated files — only slugs not in the
+    //    published set (JS-2: validate against DB before deleting).
+    const publishedSlugs = rows.map((r) => r.slug);
+    removed += cleanOrphans(config, publishedSlugs);
   }
 
   console.log(`[pages] Generated: ${generated}`);

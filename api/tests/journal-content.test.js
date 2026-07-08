@@ -1,6 +1,6 @@
 // Journal content composite CRUD tests — uses node:test + node:assert.
 // Tests responses, essays, blog posts, and historiography composite operations
-// including breakouts, pictures, sources, and links.
+// including breakouts, sources, and links.
 // Uses an in-memory SQLite DB for isolation.
 
 process.env.DB_PATH = ":memory:";
@@ -81,28 +81,24 @@ function seedContextEssay() {
 function clearTables() {
   db.exec("DELETE FROM responses");
   db.exec("DELETE FROM response_breakouts");
-  db.exec("DELETE FROM response_pictures");
   db.exec("DELETE FROM response_mla_sources");
   db.exec("DELETE FROM response_identifiers");
   db.exec("DELETE FROM response_links_evidence");
   db.exec("DELETE FROM response_links_context");
   db.exec("DELETE FROM context_essays");
   db.exec("DELETE FROM essay_breakouts");
-  db.exec("DELETE FROM essay_pictures");
   db.exec("DELETE FROM context_essay_mla_sources");
   db.exec("DELETE FROM context_essay_identifiers");
   db.exec("DELETE FROM context_essay_links_evidence");
   db.exec("DELETE FROM context_essay_links_context");
   db.exec("DELETE FROM blog_posts");
   db.exec("DELETE FROM blog_breakouts");
-  db.exec("DELETE FROM blog_pictures");
   db.exec("DELETE FROM blog_post_mla_sources");
   db.exec("DELETE FROM blog_post_identifiers");
   db.exec("DELETE FROM blog_post_links_evidence");
   db.exec("DELETE FROM blog_post_links_context");
   db.exec("DELETE FROM historiography");
   db.exec("DELETE FROM historiography_breakouts");
-  db.exec("DELETE FROM historiography_pictures");
   db.exec("DELETE FROM historiography_mla_sources");
   db.exec("DELETE FROM historiography_identifiers");
   db.exec("DELETE FROM historiography_links_evidence");
@@ -120,7 +116,7 @@ describe("responses: composite CRUD", () => {
     clearTables();
   });
 
-  test("createComposite with breakouts and pictures", () => {
+  test("createComposite with breakouts", () => {
     const challengeId = seedChallenge();
     const mlaId = seedMlaSource();
 
@@ -132,7 +128,6 @@ describe("responses: composite CRUD", () => {
         { title: "Breakout 1", content: "Content 1" },
         { title: "Breakout 2", content: "Content 2" },
       ],
-      pictures: [{ image_path: "/img.jpg", caption: "Test Image" }],
       mla_source_ids: [mlaId],
     });
 
@@ -141,8 +136,6 @@ describe("responses: composite CRUD", () => {
     assert.equal(created.breakouts.length, 2);
     assert.equal(created.breakouts[0].title, "Breakout 1");
     assert.equal(created.breakouts[1].sort_order, 1);
-    assert.equal(created.pictures.length, 1);
-    assert.equal(created.pictures[0].caption, "Test Image");
     assert.equal(created.mla_sources.length, 1);
     assert.equal(created.mla_sources[0].mla_source_id, mlaId);
   });
@@ -277,18 +270,16 @@ describe("essays: composite CRUD", () => {
     clearTables();
   });
 
-  test("createComposite with breakouts and pictures", () => {
+  test("createComposite with breakouts", () => {
     const created = essayModel.createComposite({
       slug: "composite-essay",
       published_draft: 1,
       breakouts: [{ title: "Essay Breakout", content: "Content" }],
-      pictures: [{ image_path: "/essay.jpg", caption: "Essay Pic" }],
     });
 
     assert.ok(created);
     assert.equal(created.slug, "composite-essay");
     assert.equal(created.breakouts.length, 1);
-    assert.equal(created.pictures.length, 1);
   });
 
   test("getDetailBySlug returns full detail", () => {
@@ -303,19 +294,19 @@ describe("essays: composite CRUD", () => {
     assert.equal(detail.breakouts.length, 1);
   });
 
-  test("updateComposite replaces pictures", () => {
+  test("updateComposite replaces breakouts", () => {
     const created = essayModel.createComposite({
       slug: "pic-essay",
       published_draft: 1,
-      pictures: [{ image_path: "/old.jpg", caption: "Old" }],
+      breakouts: [{ title: "Old", content: "Old content" }],
     });
 
     const updated = essayModel.updateComposite(created.id, {
-      pictures: [{ image_path: "/new.jpg", caption: "New" }],
+      breakouts: [{ title: "New", content: "New content" }],
     });
 
-    assert.equal(updated.pictures.length, 1);
-    assert.equal(updated.pictures[0].caption, "New");
+    assert.equal(updated.breakouts.length, 1);
+    assert.equal(updated.breakouts[0].title, "New");
   });
 
   test("two_column, doi, and author_bio round-trip through create and update", () => {
@@ -374,13 +365,11 @@ describe("blog posts: composite CRUD", () => {
       slug: "detail-blog",
       published_draft: 1,
       breakouts: [{ title: "Breakout", content: "Content" }],
-      pictures: [{ image_path: "/blog.jpg", caption: "Blog Pic" }],
     });
 
     const detail = blogPostModel.getDetailBySlug("detail-blog");
     assert.ok(detail);
     assert.equal(detail.breakouts.length, 1);
-    assert.equal(detail.pictures.length, 1);
   });
 
   test("hero_image round-trips through createComposite and getDetailBySlug", () => {

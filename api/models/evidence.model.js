@@ -5,7 +5,11 @@
 const db = require("../config");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const { getLinked, replaceLinks } = require("./relations/junctions");
-const { pickWritable, generateUniqueSlug, runUpdate } = require("./model-helpers");
+const {
+  pickWritable,
+  generateUniqueSlug,
+  runUpdate,
+} = require("./model-helpers");
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -32,8 +36,6 @@ const VALID_FILTERS = [
   "timeline_period",
   "map_location",
 ];
-
-
 
 /**
  * Published evidence for the public site, newest first.
@@ -110,7 +112,6 @@ function getAdminById(id) {
 function assembleDetail(evidence) {
   return {
     ...evidence,
-    pictures: getChildren("evidence_pictures", "evidence_id", evidence.id),
     mla_sources: getLinked(
       "evidence_mla_sources",
       "evidence_id",
@@ -164,7 +165,6 @@ function create(data) {
  * related data (SR-3, JS-2: atomicity).
  *
  * Accepts the same base fields as create() plus optional arrays:
- *   pictures: [{ image_path, caption }]
  *   mla_source_ids: [id, ...]
  *   identifier_ids: [id, ...]
  *   link_evidence_ids: [id, ...]
@@ -173,7 +173,6 @@ function create(data) {
 function createComposite(data) {
   const writeRelated = db.transaction((data) => {
     // Extract related arrays before pickWritable strips them.
-    const pictures = data.pictures;
     const mlaSourceIds = data.mla_source_ids;
     const identifierIds = data.identifier_ids;
     const linkEvidenceIds = data.link_evidence_ids;
@@ -182,10 +181,6 @@ function createComposite(data) {
     const evidence = create(data);
     const evidenceId = evidence.id;
 
-    replaceChildren("evidence_pictures", "evidence_id", evidenceId, pictures, [
-      "image_path",
-      "caption",
-    ]);
     replaceLinks(
       "evidence_mla_sources",
       "evidence_id",
@@ -256,7 +251,6 @@ function updateComposite(id, data) {
 
   const writeRelated = db.transaction((data) => {
     // Extract related arrays before pickWritable strips them.
-    const pictures = data.pictures;
     const mlaSourceIds = data.mla_source_ids;
     const identifierIds = data.identifier_ids;
     const linkEvidenceIds = data.link_evidence_ids;
@@ -265,10 +259,6 @@ function updateComposite(id, data) {
     const evidence = update(id, data);
     if (!evidence) return undefined;
 
-    replaceChildren("evidence_pictures", "evidence_id", id, pictures, [
-      "image_path",
-      "caption",
-    ]);
     replaceLinks(
       "evidence_mla_sources",
       "evidence_id",
@@ -313,8 +303,6 @@ function remove(id) {
   const result = db.prepare("DELETE FROM evidence WHERE id = ?").run(id);
   return result.changes > 0;
 }
-
-
 
 module.exports = {
   getAllPublished,
