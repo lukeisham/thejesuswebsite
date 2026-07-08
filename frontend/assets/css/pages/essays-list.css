@@ -1,0 +1,14 @@
+/* ==========================================================================
+   Contextual Essays — Listing Page
+   Narrows the shared journal-header/card-grid components to roughly match
+   the width of the intro text, without affecting other journal-header or
+   card-grid consumers (historiography, responses, evidence).
+   ========================================================================== */
+
+.journal-header p {
+  max-width: var(--measure-reading);
+}
+
+#card-grid {
+  max-width: var(--measure-reading);
+}
