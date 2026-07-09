@@ -14,7 +14,13 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
 
-const SCHEMA_PATH = path.resolve(__dirname, "..", "..", "database", "schema.sql");
+const SCHEMA_PATH = path.resolve(
+  __dirname,
+  "..",
+  "..",
+  "database",
+  "schema.sql",
+);
 
 const db = require("../config");
 const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
@@ -41,7 +47,7 @@ describe("create: every content type accepts a valid new record", () => {
     const created = evidenceModel.create({
       title: "Test Evidence",
       slug: "test-evidence-create",
-      timeline_era: "beginning",
+      timeline_era: "PreIncarnation",
       timeline_period: "PreIncarnation",
     });
     assert.ok(created.id);
@@ -96,7 +102,16 @@ describe("create: every content type accepts a valid new record", () => {
 });
 
 describe("create: evidence accepts every valid timeline_era and a sample of timeline_period", () => {
-  for (const era of ["beginning", "middle", "end"]) {
+  for (const era of [
+    "PreIncarnation",
+    "OldTestament",
+    "EarlyLife",
+    "Life",
+    "GalileeMinistry",
+    "JudeanMinistry",
+    "PassionWeek",
+    "Post-Passion",
+  ]) {
     test(`timeline_era '${era}'`, () => {
       const created = evidenceModel.create({
         title: `Era ${era}`,
@@ -133,7 +148,7 @@ describe("create: CHECK-violating values are rejected cleanly", () => {
         evidenceModel.create({
           title: "Bad Era",
           slug: "bad-era",
-          timeline_era: "ministry-Galilee",
+          timeline_era: "NotAValidEra",
         }),
       /CHECK constraint failed/,
     );

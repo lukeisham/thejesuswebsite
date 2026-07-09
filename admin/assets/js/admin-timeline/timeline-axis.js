@@ -14,24 +14,56 @@ const Axis = window.AdminTimelineAxis;
 
 /* ── Era and period constants (mirrors timeline.model.js) ──────────────────── */
 
-const ERA_ORDER = ["beginning", "middle", "end"];
+const ERA_ORDER = [
+  "PreIncarnation",
+  "OldTestament",
+  "EarlyLife",
+  "Life",
+  "GalileeMinistry",
+  "JudeanMinistry",
+  "PassionWeek",
+  "Post-Passion",
+];
 
 const PERIOD_ORDER = [
-  "PreIncarnation", "OldTestament",
-  "EarlyLifeUnborn", "EarlyLifeBirth", "EarlyLifeInfancy", "EarlyLifeChildhood",
-  "LifeTradie", "LifeBaptism", "LifeTemptation",
-  "GalileeCallingTwelve", "GalileeSermonMount", "GalileeMiraclesSea",
+  "PreIncarnation",
+  "OldTestament",
+  "EarlyLifeUnborn",
+  "EarlyLifeBirth",
+  "EarlyLifeInfancy",
+  "EarlyLifeChildhood",
+  "LifeTradie",
+  "LifeBaptism",
+  "LifeTemptation",
+  "GalileeCallingTwelve",
+  "GalileeSermonMount",
+  "GalileeMiraclesSea",
   "GalileeTransfiguration",
-  "JudeanOutsideJudea", "JudeanMissionSeventy", "JudeanTeachingTemple",
-  "JudeanRaisingLazarus", "JudeanFinalJourney",
-  "PassionPalmSunday", "PassionMondayCleansing", "PassionTuesdayTeaching",
-  "PassionWednesdaySilent", "PassionMaundyThursday", "PassionMaundyLastSupper",
-  "PassionMaundyGethsemane", "PassionMaundyBetrayal",
-  "PassionFridaySanhedrin", "PassionFridayCivilTrials",
-  "PassionFridayCrucifixionBegins", "PassionFridayDarkness",
-  "PassionFridayDeath", "PassionFridayBurial", "PassionSaturdayWatch",
-  "PassionSundayResurrection", "PostResurrectionAppearances",
-  "Ascension", "OurResponse", "ReturnOfJesus",
+  "JudeanOutsideJudea",
+  "JudeanMissionSeventy",
+  "JudeanTeachingTemple",
+  "JudeanRaisingLazarus",
+  "JudeanFinalJourney",
+  "PassionPalmSunday",
+  "PassionMondayCleansing",
+  "PassionTuesdayTeaching",
+  "PassionWednesdaySilent",
+  "PassionMaundyThursday",
+  "PassionMaundyLastSupper",
+  "PassionMaundyGethsemane",
+  "PassionMaundyBetrayal",
+  "PassionFridaySanhedrin",
+  "PassionFridayCivilTrials",
+  "PassionFridayCrucifixionBegins",
+  "PassionFridayDarkness",
+  "PassionFridayDeath",
+  "PassionFridayBurial",
+  "PassionSaturdayWatch",
+  "PassionSundayResurrection",
+  "PostResurrectionAppearances",
+  "Ascension",
+  "OurResponse",
+  "ReturnOfJesus",
 ];
 
 /**
@@ -39,9 +71,14 @@ const PERIOD_ORDER = [
  * Keys are era values, values are human-readable names.
  */
 const ERA_LABELS = {
-  beginning: "The Beginning",
-  middle: "The Ministry",
-  end: "Passion & Beyond",
+  PreIncarnation: "Pre-Incarnation",
+  OldTestament: "Old Testament",
+  EarlyLife: "Early Life",
+  Life: "Life",
+  GalileeMinistry: "Galilee Ministry",
+  JudeanMinistry: "Judean Ministry",
+  PassionWeek: "Passion Week",
+  "Post-Passion": "Post-Passion",
 };
 
 /** Pixels per period unit on the default scale. */
@@ -128,9 +165,14 @@ Axis.eraStartX = function (era, pxPerUnit, offsetX) {
 
   // Map each era to the first period in that era
   var eraStarts = {
-    beginning: "PreIncarnation",
-    middle: "GalileeCallingTwelve",
-    end: "PassionPalmSunday",
+    PreIncarnation: "PreIncarnation",
+    OldTestament: "OldTestament",
+    EarlyLife: "EarlyLifeUnborn",
+    Life: "LifeTradie",
+    GalileeMinistry: "GalileeCallingTwelve",
+    JudeanMinistry: "JudeanOutsideJudea",
+    PassionWeek: "PassionPalmSunday",
+    "Post-Passion": "PostResurrectionAppearances",
   };
 
   var firstPeriod = eraStarts[era];
@@ -210,7 +252,7 @@ Axis.renderAxis = function () {
     band.className = "admin-timeline-era-band";
     band.style.position = "absolute";
     band.style.left = startX + "px";
-    band.style.width = (endX - startX) + "px";
+    band.style.width = endX - startX + "px";
     band.style.top = "0";
     band.style.height = "100%";
     band.setAttribute("data-era", era);

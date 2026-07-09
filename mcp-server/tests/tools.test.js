@@ -191,9 +191,12 @@ describe("getTimelineEvents", () => {
 
   it("appends timeline_era query param for valid era", async () => {
     const apiRequest = mockApiRequest([]);
-    await getTimelineEvents.handler({ era: "beginning" }, apiRequest);
+    await getTimelineEvents.handler({ era: "PreIncarnation" }, apiRequest);
 
-    assert.equal(apiRequest.recordedPath(), "/timeline?timeline_era=beginning");
+    assert.equal(
+      apiRequest.recordedPath(),
+      "/timeline?timeline_era=PreIncarnation",
+    );
   });
 
   it("returns error for invalid era", async () => {
