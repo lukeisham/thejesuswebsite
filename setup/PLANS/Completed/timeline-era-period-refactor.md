@@ -2,7 +2,7 @@
 
 **Module(s):** Database / API / Frontend / Admin / MCP Server
 **Date:** 2026-07-09
-**Status:** ✅ Plan generated — ready for implementation
+**Status:** ✅ Completed
 
 ## Goal
 Replace the three overly-broad timeline eras (`beginning`, `middle`, `end`) with eight granular, semantically meaningful eras (`PreIncarnation`, `OldTestament`, `EarlyLife`, `Life`, `GalileeMinistry`, `JudeanMinistry`, `PassionWeek`, `Post-Passion`) that map directly onto the existing 38 timeline periods. Every existing period nests under exactly one of the new eras.
@@ -70,8 +70,8 @@ Replace the three overly-broad timeline eras (`beginning`, `middle`, `end`) with
 
 ### Deploy & verify
 
-- [ ] **Push to GitHub** — stage, commit, and push the completed work. Run `git add -p`, `git commit -m "refactor: timeline eras from 3 broad to 8 granular"`, `git push`.
-- [ ] **Test live** — **only if the implementing agent is Claude.** Open the deployed site in a browser tab and confirm: (a) the timeline page renders all eight era bands and filter chips, (b) filtering by each era shows only the correct events, (c) the admin evidence form's era dropdown shows all eight eras and correctly cascades period options, (d) creating/editing evidence with a new era value persists correctly. URL: `https://thejesuswebsite.org/evidence/timeline/`. If the implementing agent is any other LLM (e.g. DeepSeek), skip this task and leave a note that live testing was deferred.
+- [x] **Push to GitHub** — stage, commit, and push the completed work. Run `git add -p`, `git commit -m "refactor: timeline eras from 3 broad to 8 granular"`, `git push`.
+- [x] **Test live** — **only if the implementing agent is Claude.** Open the deployed site in a browser tab and confirm: (a) the timeline page renders all eight era bands and filter chips, (b) filtering by each era shows only the correct events, (c) the admin evidence form's era dropdown shows all eight eras and correctly cascades period options, (d) creating/editing evidence with a new era value persists correctly. URL: `https://thejesuswebsite.org/evidence/timeline/`. If the implementing agent is any other LLM (e.g. DeepSeek), skip this task and leave a note that live testing was deferred.
 
 ## Files touched
 - `database/migrations/008_timeline_era_refactor.sql` — created
