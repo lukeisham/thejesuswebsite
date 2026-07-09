@@ -118,7 +118,7 @@ describe("evidence: createComposite + getDetailBySlug", () => {
     assert.ok(created);
     assert.equal(created.title, "With MLA");
     assert.equal(created.mla_sources.length, 1);
-    assert.equal(created.mla_sources[0].mla_source_id, mlaId);
+    assert.equal(created.mla_sources[0].id, mlaId);
   });
 
   test("creates with identifiers", () => {
@@ -131,7 +131,7 @@ describe("evidence: createComposite + getDetailBySlug", () => {
     });
 
     assert.equal(created.identifiers.length, 1);
-    assert.equal(created.identifiers[0].identifier_id, identifierId);
+    assert.equal(created.identifiers[0].id, identifierId);
   });
 
   test("creates with internal links", () => {
@@ -245,7 +245,7 @@ describe("evidence: updateComposite", () => {
     });
 
     assert.equal(updated.mla_sources.length, 1);
-    assert.equal(updated.mla_sources[0].mla_source_id, mla2);
+    assert.equal(updated.mla_sources[0].id, mla2);
   });
 
   test("removes mla sources when empty array is sent", () => {

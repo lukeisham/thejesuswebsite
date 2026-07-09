@@ -9,7 +9,12 @@ const {
   runUpdate,
 } = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
-const { getLinked, replaceLinks } = require("./relations/junctions");
+const {
+  getLinked,
+  getLinkedMlaSources,
+  getLinkedIdentifiers,
+  replaceLinks,
+} = require("./relations/junctions");
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -33,15 +38,26 @@ const WRITABLE_COLUMNS = [
  * reads (getAdminById) skip this so admin forms keep using the raw DB names.
  */
 function normalizeForPublic(item) {
-  const { essay_title, essay_author, essay_content, metadata_keywords, mla_sources, ...rest } = item;
+  const {
+    essay_title,
+    essay_author,
+    essay_content,
+    metadata_keywords,
+    mla_sources,
+    ...rest
+  } = item;
   return {
     ...rest,
     title: essay_title,
     author: essay_author,
     body: essay_content,
     keywords: metadata_keywords
-      ? metadata_keywords.split(",").map((k) => k.trim()).filter(Boolean)
+      ? metadata_keywords
+          .split(",")
+          .map((k) => k.trim())
+          .filter(Boolean)
       : [],
+    mla_sources,
     ...(mla_sources !== undefined ? { bibliography: mla_sources } : {}),
   };
 }
@@ -117,13 +133,13 @@ function assembleDetail(essay) {
   return {
     ...essay,
     breakouts: getChildren("essay_breakouts", "context_essay_id", essay.id),
-    mla_sources: getLinked(
+    mla_sources: getLinkedMlaSources(
       "context_essay_mla_sources",
       "context_essay_id",
       "citation_order",
       essay.id,
     ),
-    identifiers: getLinked(
+    identifiers: getLinkedIdentifiers(
       "context_essay_identifiers",
       "context_essay_id",
       "citation_order",

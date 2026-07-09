@@ -10,6 +10,7 @@
         <script defer src="../assets/js/admin-timeline-taxonomy.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
+        <script defer src="../assets/js/admin-shortcode-help.js"></script>
         <style>
             .admin-form-actions {
                 display: flex;
@@ -504,6 +505,9 @@
                 pubCard.appendChild(pubGroup);
 
                 rightCol.appendChild(pubCard);
+
+                // Formatting reference panel
+                AdminShortcodeHelp.mountFormattingReference(rightCol);
 
                 form.appendChild(rightCol);
                 main.appendChild(form);

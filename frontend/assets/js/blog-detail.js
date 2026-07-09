@@ -12,6 +12,7 @@ import { html } from "./utils/templates.js";
 import { renderBadge } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
+import { parseContentBody } from "./utils/content-markers.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -144,58 +145,17 @@ function renderBody(post) {
     return;
   }
 
-  // Parse body content — handle paragraphs, pull quotes, and figures
-  const htmlContent = parseBlogBody(post.body);
+  // Parse body content — handle paragraphs, pull quotes, figures, and inline MLA citations (parenthetical for blogs)
+  const htmlContent = parseContentBody(post.body, {
+    mlaSources: post.mla_sources || [],
+    identifiers: post.identifiers || [],
+    citationStyle: "parenthetical",
+    pullQuotes: true,
+  });
   $body.innerHTML = htmlContent;
 
   // Number figures in the body
   numberFigures($body);
-}
-
-/**
- * Parse blog body into HTML. Converts double-newlines to paragraphs,
- * wraps [pullquote]...[/pullquote] in pull-quote divs, and handles
- * [figure src="..." caption="..."] blocks.
- */
-function parseBlogBody(text) {
-  if (typeof text !== "string") return "";
-
-  // Process shortcodes on raw text BEFORE escaping, so the regex finds
-  // un-escaped delimiters like src="..." and caption="...".
-  // The shortcode content is escaped inline; surrounding prose is escaped later.
-
-  // Convert pullquote blocks: [pullquote]...[/pullquote] → <aside class="pull-quote">...</aside>
-  let processed = text.replace(
-    /\[pullquote\]([\s\S]*?)\[\/pullquote\]/g,
-    (_, content) =>
-      `<aside class="pull-quote">${escapeHTML(content.trim())}</aside>`,
-  );
-
-  // Convert figure blocks: [figure src="..." caption="..."]
-  processed = processed.replace(
-    /\[figure\s+src="([^"]*)"(?:\s+caption="([^"]*)")?\]/g,
-    (_, src, caption) => {
-      const cap = caption
-        ? `<figcaption>${escapeHTML(caption)}</figcaption>`
-        : "";
-      return `<figure><img src="${src}" alt="${escapeHTML(caption || "")}" loading="lazy">${cap}</figure>`;
-    },
-  );
-
-  // Split by double newlines into paragraphs
-  const paragraphs = processed.split(/\n\n+/).filter((p) => p.trim());
-
-  return paragraphs
-    .map((p) => {
-      const trimmed = p.trim();
-      // Skip if already wrapped in a block element
-      if (trimmed.startsWith("<aside") || trimmed.startsWith("<figure")) {
-        return trimmed;
-      }
-      // Escape remaining prose and convert single newlines to <br>
-      return `<p>${escapeHTML(trimmed).replace(/\n/g, "<br>")}</p>`;
-    })
-    .join("");
 }
 
 function renderFurtherReading(post) {
@@ -275,18 +235,6 @@ function applySEO(post) {
 }
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
-
-function escapeHTML(str) {
-  if (typeof str !== "string") return "";
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}
 
 function truncateText(text, maxLen) {
   if (text.length <= maxLen) return text;

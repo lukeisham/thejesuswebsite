@@ -4,7 +4,12 @@
 
 const db = require("../config");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
-const { getLinked, replaceLinks } = require("./relations/junctions");
+const {
+  getLinked,
+  getLinkedMlaSources,
+  getLinkedIdentifiers,
+  replaceLinks,
+} = require("./relations/junctions");
 const {
   pickWritable,
   generateUniqueSlug,
@@ -35,15 +40,26 @@ const WRITABLE_COLUMNS = [
  * reads (getAdminById) skip this so admin forms keep using the raw DB names.
  */
 function normalizeForPublic(item) {
-  const { essay_title, essay_author, essay_content, metadata_keywords, mla_sources, ...rest } = item;
+  const {
+    essay_title,
+    essay_author,
+    essay_content,
+    metadata_keywords,
+    mla_sources,
+    ...rest
+  } = item;
   return {
     ...rest,
     title: essay_title,
     author: essay_author,
     body: essay_content,
     keywords: metadata_keywords
-      ? metadata_keywords.split(",").map((k) => k.trim()).filter(Boolean)
+      ? metadata_keywords
+          .split(",")
+          .map((k) => k.trim())
+          .filter(Boolean)
       : [],
+    mla_sources,
     ...(mla_sources !== undefined ? { bibliography: mla_sources } : {}),
   };
 }
@@ -124,13 +140,13 @@ function assembleDetail(item) {
       "historiography_id",
       item.id,
     ),
-    mla_sources: getLinked(
+    mla_sources: getLinkedMlaSources(
       "historiography_mla_sources",
       "historiography_id",
       "citation_order",
       item.id,
     ),
-    identifiers: getLinked(
+    identifiers: getLinkedIdentifiers(
       "historiography_identifiers",
       "historiography_id",
       "citation_order",

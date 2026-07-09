@@ -13,6 +13,7 @@ import { html } from "./utils/templates.js";
 import { renderBadge } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
+import { parseContentBody } from "./utils/content-markers.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -133,7 +134,7 @@ function renderTitleBlock(article) {
   // DOI (optional — Issue #2)
   if ($doi) {
     if (article.doi) {
-      $doi.textContent = `DOI: ${escapeHTML(article.doi)}`;
+      $doi.textContent = `DOI: ${article.doi}`;
       $doi.hidden = false;
     } else {
       $doi.hidden = true;
@@ -175,37 +176,14 @@ function renderBody(article) {
     return;
   }
 
-  const htmlContent = parseJournalBody(article.body);
+  const htmlContent = parseContentBody(article.body, {
+    mlaSources: article.mla_sources || [],
+    identifiers: article.identifiers || [],
+    citationStyle: "superscript",
+  });
   $body.innerHTML = htmlContent;
 
   numberFigures($body);
-}
-
-function parseJournalBody(text) {
-  if (typeof text !== "string") return "";
-
-  // Process figure blocks on raw text BEFORE escaping, so the regex finds
-  // un-escaped delimiters like src="..." and caption="...".
-  // Shortcode content is escaped inline; surrounding prose is escaped later.
-  let processed = text.replace(
-    /\[figure\s+src="([^"]*)"(?:\s+caption="([^"]*)")?\]/g,
-    (_, src, caption) => {
-      const cap = caption
-        ? `<figcaption>${escapeHTML(caption)}</figcaption>`
-        : "";
-      return `<figure><img src="${src}" alt="${escapeHTML(caption || "")}" loading="lazy">${cap}</figure>`;
-    },
-  );
-
-  const paragraphs = processed.split(/\n\n+/).filter((p) => p.trim());
-
-  return paragraphs
-    .map((p) => {
-      const trimmed = p.trim();
-      if (trimmed.startsWith("<figure")) return trimmed;
-      return `<p>${escapeHTML(trimmed).replace(/\n/g, "<br>")}</p>`;
-    })
-    .join("");
 }
 
 function renderFootnotes(article) {
@@ -237,7 +215,10 @@ function renderBibliography(article) {
   if ($references) $references.hidden = false;
   if ($referencesList) {
     $referencesList.innerHTML = article.bibliography
-      .map((ref) => html`<li>${ref}</li>`)
+      .map((ref) => {
+        const idAttr = ref && ref.id ? ` id="mla-${ref.id}"` : "";
+        return `<li${idAttr}>${html`${ref}`}</li>`;
+      })
       .join("");
   }
 }
@@ -280,18 +261,6 @@ function applySEO(article) {
 }
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
-
-function escapeHTML(str) {
-  if (typeof str !== "string") return "";
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}
 
 function truncateText(text, maxLen) {
   if (text.length <= maxLen) return text;

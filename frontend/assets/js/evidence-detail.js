@@ -11,6 +11,10 @@ import { html } from "./utils/templates.js";
 import { formatVerse } from "./utils/format.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
+import {
+  parseContentBody,
+  getIdentifierLabel,
+} from "./utils/content-markers.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -120,55 +124,24 @@ function renderDescription(item) {
   }
   if ($descSection) $descSection.hidden = false;
   if ($desc) {
-    $desc.innerHTML = parseEvidenceBody(item.description);
+    $desc.innerHTML = parseContentBody(item.description, {
+      mlaSources: item.mla_sources || [],
+      identifiers: item.identifiers || [],
+      citationStyle: "superscript",
+    });
     numberFigures($desc);
   }
 }
 
-/**
- * Parse evidence description into HTML. Handles [figure src="..." caption="..."]
- * shortcodes inline, then splits remaining prose on blank lines into paragraphs.
- * Mirrors parseBlogBody() in blog-detail.js so all five content types use the
- * same [figure] shortcode mechanism.
- */
-function parseEvidenceBody(text) {
-  if (typeof text !== "string") return "";
-
-  // Extract [figure] shortcodes before escaping prose
-  let processed = text.replace(
-    /\[figure\s+src="([^"]*)"(?:\s+caption="([^"]*)")?\]/g,
-    (_, src, caption) => {
-      const cap = caption
-        ? `<figcaption>${escapeHTML(caption)}</figcaption>`
-        : "";
-      return `<figure><img src="${src}" alt="${escapeHTML(caption || "")}" loading="lazy">${cap}</figure>`;
-    },
-  );
-
-  // Split by double newlines into paragraphs
-  const paragraphs = processed.split(/\n\n+/).filter((p) => p.trim());
-
-  return paragraphs
-    .map((p) => {
-      const trimmed = p.trim();
-      if (trimmed.startsWith("<figure")) {
-        return trimmed;
-      }
-      return `<p>${escapeHTML(trimmed).replace(/\n/g, "<br>")}</p>`;
-    })
-    .join("");
-}
-
 function renderTimelineContext(item) {
   const parts = [];
-  if (item.timeline_era) parts.push(`Era: ${escapeHTML(item.timeline_era)}`);
-  if (item.timeline_period)
-    parts.push(`Period: ${escapeHTML(item.timeline_period)}`);
+  if (item.timeline_era) parts.push(`Era: ${item.timeline_era}`);
+  if (item.timeline_period) parts.push(`Period: ${item.timeline_period}`);
   if (item.timeline_year_start || item.timeline_year_end) {
     const range = [item.timeline_year_start, item.timeline_year_end]
       .filter(Boolean)
       .join("–");
-    parts.push(`Date: ${escapeHTML(range)}`);
+    parts.push(`Date: ${range}`);
   }
 
   if (parts.length === 0) {
@@ -177,7 +150,7 @@ function renderTimelineContext(item) {
   }
 
   if ($timelineSection) $timelineSection.hidden = false;
-  if ($timeline) $timeline.innerHTML = `<p>${parts.join(" · ")}</p>`;
+  if ($timeline) $timeline.textContent = parts.join(" · ");
 }
 
 function renderSources(mlaSources) {
@@ -189,13 +162,19 @@ function renderSources(mlaSources) {
   if ($sourcesSection) $sourcesSection.hidden = false;
 
   const itemsHTML = mlaSources
-    .map(
-      (src) => html`
-        <li class="source-list__item">
-          ${src.citation || src.title || "Untitled source"}
-        </li>
-      `,
-    )
+    .map((src) => {
+      const label =
+        src.citation ||
+        src.title ||
+        src.mla_book_title ||
+        src.mla_website_title ||
+        src.mla_journal_article_title ||
+        "Untitled source";
+      if (src && src.id) {
+        return `<li class="source-list__item" id="mla-${src.id}">${html`${label}`}</li>`;
+      }
+      return html`<li class="source-list__item">${label}</li>`;
+    })
     .join("");
 
   if ($sources) $sources.innerHTML = itemsHTML;
@@ -232,7 +211,10 @@ function renderPageInfoRow(item) {
     if ($infoIdentifiers) $infoIdentifiers.hidden = false;
     if ($infoIdentifiersList) {
       $infoIdentifiersList.innerHTML = item.identifiers
-        .map((id) => html` <li>${id.label || id.value || ""}</li> `)
+        .map((id) => {
+          const label = getIdentifierLabel(id);
+          return html` <li>${label}</li> `;
+        })
         .join("");
     }
     hasContent = true;
@@ -280,18 +262,6 @@ function applySEO(item) {
 }
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
-
-function escapeHTML(str) {
-  if (typeof str !== "string") return "";
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}
 
 function truncateText(text, maxLen) {
   if (text.length <= maxLen) return text;
