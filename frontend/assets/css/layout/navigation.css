@@ -65,6 +65,40 @@
 }
 
 /* -------------------------------------------------------------------------
+   Home Link — subtle stamp-press hover animation
+   ------------------------------------------------------------------------- */
+
+.nav-item--home a {
+    position: relative;
+    transform-origin: left center;
+    transition:
+        background-color var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+}
+
+.nav-item--home a::after {
+    content: "";
+    position: absolute;
+    left: var(--space-lg);
+    right: var(--space-lg);
+    bottom: var(--space-sm);
+    height: 1px;
+    background: var(--accent-gold);
+    opacity: 0;
+    transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.nav-item--home a:hover,
+.nav-item--home a:focus-visible {
+    transform: scale(0.985);
+}
+
+.nav-item--home a:hover::after,
+.nav-item--home a:focus-visible::after {
+    opacity: 1;
+}
+
+/* -------------------------------------------------------------------------
    Active State (class applied to the <a> by sidebar.js)
    ------------------------------------------------------------------------- */
 
