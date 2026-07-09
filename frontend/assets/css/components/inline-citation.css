@@ -1,0 +1,86 @@
+/* ==========================================================================
+   Inline Citation & Identifier Markers
+   Styles for [mla:N] superscript citations and [id:N] inline identifier badges.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Inline Citation (superscript)
+   Used in essays, responses, historiography, evidence — links to bibliography.
+   ------------------------------------------------------------------------- */
+
+.inline-citation {
+  font-size: 0.75em;
+  line-height: 1;
+  vertical-align: super;
+}
+
+.inline-citation a {
+  color: var(--link);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.inline-citation a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+/* Parenthetical variant — blog posts (no superscript, no footnotes) */
+.inline-citation--parenthetical {
+  font-size: inherit;
+  vertical-align: baseline;
+  color: var(--text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Inline Identifier Badge
+   Content Badge styling per Style guide §8 — matches .badge from badges.css.
+   ------------------------------------------------------------------------- */
+
+.inline-identifier {
+  display: inline;
+  padding: 1px 6px;
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------
+   Floated Figures (≥1024px)
+   Breakout behaviour per Style guide §9 Figures. Full-width below 1024px.
+   ------------------------------------------------------------------------- */
+
+.figure-align-left,
+.figure-align-right {
+  max-width: 100%;
+  margin: var(--space-lg) 0;
+}
+
+@media (min-width: 1024px) {
+  .figure-align-left {
+    float: left;
+    max-width: 320px;
+    margin-left: calc(-1 * (320px + var(--space-lg)));
+    margin-right: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+
+  .figure-align-right {
+    float: right;
+    max-width: 320px;
+    margin-right: calc(-1 * (320px + var(--space-lg)));
+    margin-left: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+
+  /* Clearfix — ensure parent containers contain the float */
+  .journal-body::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}

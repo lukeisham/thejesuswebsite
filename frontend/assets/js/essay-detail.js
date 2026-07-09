@@ -13,6 +13,7 @@ import { html } from "./utils/templates.js";
 import { renderBadge } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
+import { parseContentBody } from "./utils/content-markers.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -138,7 +139,7 @@ function renderTitleBlock(essay) {
   // DOI (optional — Issue #2)
   if ($doi) {
     if (essay.doi) {
-      $doi.textContent = `DOI: ${escapeHTML(essay.doi)}`;
+      $doi.textContent = `DOI: ${essay.doi}`;
       $doi.hidden = false;
     } else {
       $doi.hidden = true;
@@ -180,43 +181,14 @@ function renderBody(essay) {
     return;
   }
 
-  const htmlContent = parseJournalBody(essay.body);
+  const htmlContent = parseContentBody(essay.body, {
+    mlaSources: essay.mla_sources || [],
+    identifiers: essay.identifiers || [],
+    citationStyle: "superscript",
+  });
   $body.innerHTML = htmlContent;
 
-  // Number figures
   numberFigures($body);
-}
-
-/**
- * Parse journal body text into HTML.
- * Splits on double newlines for paragraphs; preserves [figure] blocks.
- */
-function parseJournalBody(text) {
-  if (typeof text !== "string") return "";
-
-  // Process figure blocks on raw text BEFORE escaping, so the regex finds
-  // un-escaped delimiters like src="..." and caption="...".
-  // Shortcode content is escaped inline; surrounding prose is escaped later.
-  let processed = text.replace(
-    /\[figure\s+src="([^"]*)"(?:\s+caption="([^"]*)")?\]/g,
-    (_, src, caption) => {
-      const cap = caption
-        ? `<figcaption>${escapeHTML(caption)}</figcaption>`
-        : "";
-      return `<figure><img src="${src}" alt="${escapeHTML(caption || "")}" loading="lazy">${cap}</figure>`;
-    },
-  );
-
-  // Split by double newlines
-  const paragraphs = processed.split(/\n\n+/).filter((p) => p.trim());
-
-  return paragraphs
-    .map((p) => {
-      const trimmed = p.trim();
-      if (trimmed.startsWith("<figure")) return trimmed;
-      return `<p>${escapeHTML(trimmed).replace(/\n/g, "<br>")}</p>`;
-    })
-    .join("");
 }
 
 function renderFootnotes(essay) {
@@ -248,7 +220,10 @@ function renderBibliography(essay) {
   if ($references) $references.hidden = false;
   if ($referencesList) {
     $referencesList.innerHTML = essay.bibliography
-      .map((ref) => html`<li>${ref}</li>`)
+      .map((ref) => {
+        const idAttr = ref && ref.id ? ` id="mla-${ref.id}"` : "";
+        return `<li${idAttr}>${html`${ref}`}</li>`;
+      })
       .join("");
   }
 }
@@ -286,18 +261,6 @@ function applySEO(essay) {
 }
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
-
-function escapeHTML(str) {
-  if (typeof str !== "string") return "";
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}
 
 function truncateText(text, maxLen) {
   if (text.length <= maxLen) return text;

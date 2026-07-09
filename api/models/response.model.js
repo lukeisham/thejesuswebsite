@@ -9,7 +9,12 @@ const {
   runUpdate,
 } = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
-const { getLinked, replaceLinks } = require("./relations/junctions");
+const {
+  getLinked,
+  getLinkedMlaSources,
+  getLinkedIdentifiers,
+  replaceLinks,
+} = require("./relations/junctions");
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -120,13 +125,13 @@ function assembleDetail(response) {
   return {
     ...response,
     breakouts: getChildren("response_breakouts", "response_id", response.id),
-    mla_sources: getLinked(
+    mla_sources: getLinkedMlaSources(
       "response_mla_sources",
       "response_id",
       "citation_order",
       response.id,
     ),
-    identifiers: getLinked(
+    identifiers: getLinkedIdentifiers(
       "response_identifiers",
       "response_id",
       "citation_order",

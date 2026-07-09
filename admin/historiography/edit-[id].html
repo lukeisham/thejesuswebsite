@@ -7,8 +7,9 @@
         <link rel="stylesheet" href="../assets/css/admin.css" />
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
-  <script defer src="../assets/js/admin-insert-image.js"></script>
-  <script defer src="../assets/js/admin-mla-sources.js"></script>
+        <script defer src="../assets/js/admin-insert-image.js"></script>
+        <script defer src="../assets/js/admin-mla-sources.js"></script>
+        <script defer src="../assets/js/admin-shortcode-help.js"></script>
         <style>
             .admin-form-actions {
                 display: flex;
@@ -169,7 +170,7 @@
         </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', async function () {
+            document.addEventListener("DOMContentLoaded", async function () {
                 var main = document.getElementById("edit-content");
 
                 var ok = await AdminAuth.requireSession();
@@ -551,11 +552,11 @@
 
                 // MLA Bibliography panel, seeded with this record's existing sources
                 var mlaSourcesPanel = AdminMlaSources.mount(mlaMount, {
-                    initialSourceIds: (data.mla_sources || []).map(function (
-                        link,
-                    ) {
-                        return link.mla_source_id;
-                    }),
+                    initialSourceIds: (data.mla_sources || []).map(
+                        function (link) {
+                            return link.mla_source_id;
+                        },
+                    ),
                 });
 
                 // Publish checkbox
@@ -589,24 +590,35 @@
                 pubHint.textContent = "Toggle publish state.";
                 pubGroup.appendChild(pubHint);
 
+                // Formatting reference panel
+                AdminShortcodeHelp.mountFormattingReference(sidebar);
+
                 // Actions
                 var actions = document.createElement("div");
                 actions.className = "admin-form-actions";
                 main.appendChild(actions);
-    // Insert Image button
-    var insertBtn = document.createElement('button');
-    insertBtn.type = 'button';
-    insertBtn.className = 'admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn';
-    insertBtn.id = 'insert-image-btn';
-    insertBtn.textContent = 'Insert Image';
-    var contentField = document.getElementById('historiography-content');
-    if (contentField && contentField.parentNode) {
-        contentField.parentNode.insertBefore(insertBtn, contentField.nextSibling);
-    }
-    if (typeof AdminInsertImage !== 'undefined') {
-        AdminInsertImage.wire('#insert-image-btn', '#historiography-content');
-    }
-
+                // Insert Image button
+                var insertBtn = document.createElement("button");
+                insertBtn.type = "button";
+                insertBtn.className =
+                    "admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn";
+                insertBtn.id = "insert-image-btn";
+                insertBtn.textContent = "Insert Image";
+                var contentField = document.getElementById(
+                    "historiography-content",
+                );
+                if (contentField && contentField.parentNode) {
+                    contentField.parentNode.insertBefore(
+                        insertBtn,
+                        contentField.nextSibling,
+                    );
+                }
+                if (typeof AdminInsertImage !== "undefined") {
+                    AdminInsertImage.wire(
+                        "#insert-image-btn",
+                        "#historiography-content",
+                    );
+                }
 
                 var saveBtn = document.createElement("button");
                 saveBtn.type = "button";
@@ -785,9 +797,8 @@
                             document.getElementById("historiography-period")
                                 .value || undefined,
                         period_sort_order:
-                            document.getElementById(
-                                "historiography-sort-order",
-                            ).value !== ""
+                            document.getElementById("historiography-sort-order")
+                                .value !== ""
                                 ? parseInt(
                                       document.getElementById(
                                           "historiography-sort-order",
@@ -897,6 +908,6 @@
                     }
                 });
             });
-</script>
+        </script>
     </body>
 </html>

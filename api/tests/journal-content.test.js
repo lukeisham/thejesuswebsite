@@ -147,7 +147,7 @@ describe("responses: composite CRUD", () => {
     assert.equal(created.breakouts[0].title, "Breakout 1");
     assert.equal(created.breakouts[1].sort_order, 1);
     assert.equal(created.mla_sources.length, 1);
-    assert.equal(created.mla_sources[0].mla_source_id, mlaId);
+    assert.equal(created.mla_sources[0].id, mlaId);
   });
 
   test("createComposite with identifiers and links", () => {
@@ -166,7 +166,7 @@ describe("responses: composite CRUD", () => {
     });
 
     assert.equal(created.identifiers.length, 1);
-    assert.equal(created.identifiers[0].identifier_id, identifierId);
+    assert.equal(created.identifiers[0].id, identifierId);
     assert.equal(created.links_evidence.length, 1);
     assert.equal(created.links_evidence[0].target_evidence_id, evidenceId);
     assert.equal(created.links_context.length, 1);
@@ -390,7 +390,8 @@ describe("essays: composite CRUD", () => {
     assert.equal(detail.author, "Detail Author");
     assert.equal(detail.body, "Detail Body");
     assert.equal(detail.bibliography.length, 1);
-    assert.equal(detail.mla_sources, undefined);
+    assert.equal(detail.mla_sources.length, 1);
+    assert.equal(detail.mla_sources[0].id, mlaId);
   });
 
   test("getAdminById returns raw DB column names, not normalized", () => {
@@ -542,7 +543,7 @@ describe("historiography: composite CRUD", () => {
     assert.equal(updated.breakouts.length, 1);
     assert.equal(updated.breakouts[0].title, "New");
     assert.equal(updated.mla_sources.length, 1);
-    assert.equal(updated.mla_sources[0].mla_source_id, mla2);
+    assert.equal(updated.mla_sources[0].id, mla2);
   });
 
   test("two_column, doi, and author_bio round-trip through create and update", () => {
@@ -636,13 +637,16 @@ describe("historiography: composite CRUD", () => {
       mla_source_ids: [mlaId],
     });
 
-    const detail = historiographyModel.getDetailBySlug("normalized-detail-hist");
+    const detail = historiographyModel.getDetailBySlug(
+      "normalized-detail-hist",
+    );
 
     assert.equal(detail.title, "Detail Title");
     assert.equal(detail.author, "Detail Author");
     assert.equal(detail.body, "Detail Body");
     assert.equal(detail.bibliography.length, 1);
-    assert.equal(detail.mla_sources, undefined);
+    assert.equal(detail.mla_sources.length, 1);
+    assert.equal(detail.mla_sources[0].id, mlaId);
   });
 
   test("getAllPublished orders by period_sort_order ascending, then created_at descending", () => {

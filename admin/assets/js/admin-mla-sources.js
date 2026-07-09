@@ -34,8 +34,10 @@ function formatCitation(source) {
       parts.push(source.mla_journal_article_author + ".");
     parts.push('"' + source.mla_journal_article_title + '."');
     if (source.mla_journal_title) parts.push(source.mla_journal_title + ",");
-    if (source.mla_journal_volume) parts.push("vol. " + source.mla_journal_volume + ",");
-    if (source.mla_journal_issue) parts.push("no. " + source.mla_journal_issue + ",");
+    if (source.mla_journal_volume)
+      parts.push("vol. " + source.mla_journal_volume + ",");
+    if (source.mla_journal_issue)
+      parts.push("no. " + source.mla_journal_issue + ",");
     if (source.mla_journal_date) parts.push(source.mla_journal_date + ",");
     if (source.mla_journal_page_reference)
       parts.push("pp. " + source.mla_journal_page_reference + ".");
@@ -55,7 +57,8 @@ function formatCitation(source) {
     var wParts = [];
     if (source.mla_website_author) wParts.push(source.mla_website_author + ".");
     wParts.push('"' + source.mla_website_title + '."');
-    if (source.mla_website_publisher) wParts.push(source.mla_website_publisher + ",");
+    if (source.mla_website_publisher)
+      wParts.push(source.mla_website_publisher + ",");
     if (source.mla_website_date) wParts.push(source.mla_website_date + ",");
     if (source.mla_website_url) wParts.push(source.mla_website_url + ".");
     return wParts.join(" ");
@@ -132,7 +135,8 @@ AdminMlaSources.mount = function (container, opts) {
 
   var addToggleBtn = document.createElement("button");
   addToggleBtn.type = "button";
-  addToggleBtn.className = "admin-btn admin-btn--ghost admin-btn--sm amla-panel__add-toggle";
+  addToggleBtn.className =
+    "admin-btn admin-btn--ghost admin-btn--sm amla-panel__add-toggle";
   addToggleBtn.textContent = "+ Add new source";
 
   var formHost = document.createElement("div");
@@ -168,8 +172,18 @@ AdminMlaSources.mount = function (container, opts) {
 
       var text = document.createElement("span");
       text.className = "amla-panel__item-text";
-      text.textContent = source ? formatCitation(source) : "Source #" + id + " (not found)";
+      text.textContent = source
+        ? formatCitation(source)
+        : "Source #" + id + " (not found)";
       li.appendChild(text);
+
+      // Per-row marker hint: shows the exact [mla:N] marker for this source
+      var markerHint = document.createElement("span");
+      markerHint.className = "amla-panel__item-marker";
+      markerHint.style.cssText =
+        "display:block;font-size:0.75rem;color:var(--admin-text-secondary, #5a6472);margin-top:2px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;";
+      markerHint.textContent = "Marker: [mla:" + id + "]";
+      li.appendChild(markerHint);
 
       var actions = document.createElement("span");
       actions.className = "amla-panel__item-actions";
@@ -288,7 +302,11 @@ AdminMlaSources.mount = function (container, opts) {
       var option = document.createElement("option");
       option.value = kind;
       option.textContent =
-        kind === "website" ? "Website" : kind === "book" ? "Book" : "Journal Article";
+        kind === "website"
+          ? "Website"
+          : kind === "book"
+            ? "Book"
+            : "Journal Article";
       kindSelect.appendChild(option);
     });
     kindSelect.value = detectKind(existingSource);
@@ -306,7 +324,8 @@ AdminMlaSources.mount = function (container, opts) {
         group.className = "admin-form-group";
 
         var label = document.createElement("label");
-        var inputId = "amla-" + field.key + "-" + Math.random().toString(36).slice(2, 8);
+        var inputId =
+          "amla-" + field.key + "-" + Math.random().toString(36).slice(2, 8);
         label.className = "admin-form-group__label";
         label.setAttribute("for", inputId);
         label.textContent = field.label;

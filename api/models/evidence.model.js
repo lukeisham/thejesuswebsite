@@ -4,7 +4,12 @@
 
 const db = require("../config");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
-const { getLinked, replaceLinks } = require("./relations/junctions");
+const {
+  getLinked,
+  getLinkedMlaSources,
+  getLinkedIdentifiers,
+  replaceLinks,
+} = require("./relations/junctions");
 const {
   pickWritable,
   generateUniqueSlug,
@@ -112,13 +117,13 @@ function getAdminById(id) {
 function assembleDetail(evidence) {
   return {
     ...evidence,
-    mla_sources: getLinked(
+    mla_sources: getLinkedMlaSources(
       "evidence_mla_sources",
       "evidence_id",
       "citation_order",
       evidence.id,
     ),
-    identifiers: getLinked(
+    identifiers: getLinkedIdentifiers(
       "evidence_identifiers",
       "evidence_id",
       "citation_order",
