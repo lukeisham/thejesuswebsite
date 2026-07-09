@@ -18,7 +18,7 @@ CREATE TABLE evidence (
     -- Categorization
     gospel_category     TEXT CHECK (gospel_category IN ('theme', 'events', 'parables', 'sayings-and-sermons', 'people', 'objects', 'places', 'miracles')),
 
-    timeline_era        TEXT CHECK (timeline_era IN ('beginning', 'middle', 'end')),
+    timeline_era        TEXT CHECK (timeline_era IN ('PreIncarnation', 'OldTestament', 'EarlyLife', 'Life', 'GalileeMinistry', 'JudeanMinistry', 'PassionWeek', 'Post-Passion')),
 
     timeline_period     TEXT CHECK (timeline_period IN (
                             'PreIncarnation', 'OldTestament',

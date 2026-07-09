@@ -77,20 +77,24 @@ describe("periodOrdinal", function () {
 // ── eraOrdinal ───────────────────────────────────────────────────────────────
 
 describe("eraOrdinal", function () {
-  test("returns 0 for beginning", function () {
-    assert.equal(eraOrdinal("beginning"), 0);
+  test("returns 0 for PreIncarnation", function () {
+    assert.equal(eraOrdinal("PreIncarnation"), 0);
   });
 
-  test("returns 1 for middle", function () {
-    assert.equal(eraOrdinal("middle"), 1);
+  test("returns 1 for OldTestament", function () {
+    assert.equal(eraOrdinal("OldTestament"), 1);
   });
 
-  test("returns 2 for end", function () {
-    assert.equal(eraOrdinal("end"), 2);
+  test("returns 4 for GalileeMinistry", function () {
+    assert.equal(eraOrdinal("GalileeMinistry"), 4);
+  });
+
+  test("returns 7 for Post-Passion", function () {
+    assert.equal(eraOrdinal("Post-Passion"), 7);
   });
 
   test("sorts unknown eras last", function () {
-    assert.equal(eraOrdinal("unknown"), 3);
+    assert.equal(eraOrdinal("unknown"), 8);
   });
 });
 
@@ -215,23 +219,23 @@ describe("periodToX ↔ xToPeriod round-trip", function () {
 // ── eraStartX ────────────────────────────────────────────────────────────────
 
 describe("eraStartX", function () {
-  test("maps beginning era to PreIncarnation position", function () {
-    var x = eraStartX("beginning", 80, 0);
+  test("maps PreIncarnation era to PreIncarnation position", function () {
+    var x = eraStartX("PreIncarnation", 80, 0);
     assert.equal(x, periodToX("PreIncarnation", 80, 0));
   });
 
-  test("maps middle era to GalileeCallingTwelve position", function () {
-    var x = eraStartX("middle", 80, 0);
+  test("maps GalileeMinistry era to GalileeCallingTwelve position", function () {
+    var x = eraStartX("GalileeMinistry", 80, 0);
     assert.equal(x, periodToX("GalileeCallingTwelve", 80, 0));
   });
 
-  test("maps end era to PassionPalmSunday position", function () {
-    var x = eraStartX("end", 80, 0);
+  test("maps PassionWeek era to PassionPalmSunday position", function () {
+    var x = eraStartX("PassionWeek", 80, 0);
     assert.equal(x, periodToX("PassionPalmSunday", 80, 0));
   });
 
   test("handles scales and offsets", function () {
-    var x = eraStartX("middle", 120, 50);
+    var x = eraStartX("GalileeMinistry", 120, 50);
     var expected = periodToX("GalileeCallingTwelve", 120, 50);
     assert.equal(x, expected);
   });

@@ -5,41 +5,56 @@
 
 (function () {
   var ERAS = [
-    { value: "beginning", label: "Beginning" },
-    { value: "middle", label: "Middle" },
-    { value: "end", label: "End" },
+    { value: "PreIncarnation", label: "Pre-Incarnation" },
+    { value: "OldTestament", label: "Old Testament" },
+    { value: "EarlyLife", label: "Early Life" },
+    { value: "Life", label: "Life" },
+    { value: "GalileeMinistry", label: "Galilee Ministry" },
+    { value: "JudeanMinistry", label: "Judean Ministry" },
+    { value: "PassionWeek", label: "Passion Week" },
+    { value: "Post-Passion", label: "Post-Passion" },
   ];
 
   // Period value -> { era, label }. Order within each era matches
   // TIMELINE_PERIODS in timeline-data.js.
   var PERIODS_BY_ERA = {
-    beginning: [
-      { value: "PreIncarnation", label: "Pre-Incarnation" },
-      { value: "OldTestament", label: "Old Testament" },
+    PreIncarnation: [{ value: "PreIncarnation", label: "Pre-Incarnation" }],
+    OldTestament: [{ value: "OldTestament", label: "Old Testament" }],
+    EarlyLife: [
       { value: "EarlyLifeUnborn", label: "Early Life — Unborn" },
       { value: "EarlyLifeBirth", label: "Early Life — Birth" },
       { value: "EarlyLifeInfancy", label: "Early Life — Infancy" },
       { value: "EarlyLifeChildhood", label: "Early Life — Childhood" },
     ],
-    middle: [
+    Life: [
       { value: "LifeTradie", label: "Life — Tradesman" },
       { value: "LifeBaptism", label: "Life — Baptism" },
       { value: "LifeTemptation", label: "Life — Temptation" },
+    ],
+    GalileeMinistry: [
       { value: "GalileeCallingTwelve", label: "Galilee — Calling the Twelve" },
       { value: "GalileeSermonMount", label: "Galilee — Sermon on the Mount" },
       { value: "GalileeMiraclesSea", label: "Galilee — Miracles at Sea" },
       { value: "GalileeTransfiguration", label: "Galilee — Transfiguration" },
+    ],
+    JudeanMinistry: [
       { value: "JudeanOutsideJudea", label: "Judea — Outside Judea" },
       { value: "JudeanMissionSeventy", label: "Judea — Mission of Seventy" },
-      { value: "JudeanTeachingTemple", label: "Judea — Teaching at the Temple" },
+      {
+        value: "JudeanTeachingTemple",
+        label: "Judea — Teaching at the Temple",
+      },
       { value: "JudeanRaisingLazarus", label: "Judea — Raising Lazarus" },
       { value: "JudeanFinalJourney", label: "Judea — Final Journey" },
     ],
-    end: [
+    PassionWeek: [
       { value: "PassionPalmSunday", label: "Passion — Palm Sunday" },
       { value: "PassionMondayCleansing", label: "Passion — Monday Cleansing" },
       { value: "PassionTuesdayTeaching", label: "Passion — Tuesday Teaching" },
-      { value: "PassionWednesdaySilent", label: "Passion — Wednesday (Silent)" },
+      {
+        value: "PassionWednesdaySilent",
+        label: "Passion — Wednesday (Silent)",
+      },
       { value: "PassionMaundyThursday", label: "Passion — Maundy Thursday" },
       { value: "PassionMaundyLastSupper", label: "Passion — Last Supper" },
       { value: "PassionMaundyGethsemane", label: "Passion — Gethsemane" },
@@ -55,6 +70,8 @@
       { value: "PassionFridayBurial", label: "Passion — Burial" },
       { value: "PassionSaturdayWatch", label: "Passion — Saturday Watch" },
       { value: "PassionSundayResurrection", label: "Passion — Resurrection" },
+    ],
+    "Post-Passion": [
       {
         value: "PostResurrectionAppearances",
         label: "Post-Resurrection Appearances",

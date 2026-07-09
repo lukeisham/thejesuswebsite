@@ -4,19 +4,20 @@
  * Returns timeline events from the published evidence, arranged in narrative
  * order. Optionally filters by era.
  *
- * @param {string} [era] - Optional era filter ("beginning", "middle", or "end").
+ * @param {string} [era] - Optional era filter (one of "PreIncarnation", "OldTestament", "EarlyLife", "Life", "GalileeMinistry", "JudeanMinistry", "PassionWeek", "Post-Passion").
  */
-export const name = 'getTimelineEvents';
+export const name = "getTimelineEvents";
 
 export const description =
-  'Fetch the full narrative timeline of published evidence events. Optionally filter by era: "beginning", "middle", or "end".';
+  'Fetch the full narrative timeline of published evidence events. Optionally filter by era: "PreIncarnation", "OldTestament", "EarlyLife", "Life", "GalileeMinistry", "JudeanMinistry", "PassionWeek", or "Post-Passion".';
 
 export const inputSchema = {
-  type: 'object',
+  type: "object",
   properties: {
     era: {
-      type: 'string',
-      description: 'Optional era to filter by. One of "beginning", "middle", or "end".',
+      type: "string",
+      description:
+        'Optional era to filter by. One of "PreIncarnation", "OldTestament", "EarlyLife", "Life", "GalileeMinistry", "JudeanMinistry", "PassionWeek", or "Post-Passion".',
     },
   },
 };
@@ -29,15 +30,24 @@ export const inputSchema = {
  * @returns {Promise<object>} MCP tool result.
  */
 export async function handler(args, apiRequest) {
-  const era = (args.era || '').trim();
-  const validEras = new Set(['beginning', 'middle', 'end']);
+  const era = (args.era || "").trim();
+  const validEras = new Set([
+    "PreIncarnation",
+    "OldTestament",
+    "EarlyLife",
+    "Life",
+    "GalileeMinistry",
+    "JudeanMinistry",
+    "PassionWeek",
+    "Post-Passion",
+  ]);
 
   if (era && !validEras.has(era)) {
     return {
       content: [
         {
-          type: 'text',
-          text: `Error: era must be one of "beginning", "middle", or "end". Got "${era}".`,
+          type: "text",
+          text: `Error: era must be one of "PreIncarnation", "OldTestament", "EarlyLife", "Life", "GalileeMinistry", "JudeanMinistry", "PassionWeek", or "Post-Passion". Got "${era}".`,
         },
       ],
       isError: true,
@@ -46,8 +56,8 @@ export async function handler(args, apiRequest) {
 
   const path = era
     ? `/timeline?timeline_era=${encodeURIComponent(era)}`
-    : '/timeline';
+    : "/timeline";
 
   const data = await apiRequest(path);
-  return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
 }

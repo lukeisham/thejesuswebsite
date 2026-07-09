@@ -154,7 +154,7 @@ export function renderTimeline(groupedEvents, activeEra) {
     innerEl.appendChild(spine);
 
     // ── Era markers and labels ────────────────────────────────────────────
-    const eraKeys = ["beginning", "middle", "end"];
+    const eraKeys = Object.keys(ERA_BOUNDARIES);
     for (let i = 0; i < eraKeys.length; i++) {
       const era = eraKeys[i];
       const bounds = ERA_BOUNDARIES[era];

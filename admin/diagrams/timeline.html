@@ -1,195 +1,287 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Timeline Editor — Admin</title>
-  <link rel="stylesheet" href="../assets/css/admin.css">
-  <link rel="stylesheet" href="../assets/css/admin-diagrams/timeline.css">
-  <script defer src="../assets/js/admin.js"></script>
-  <script defer src="../assets/js/auth.js"></script>
-  <script defer src="../assets/js/update-record.js"></script>
-  <script defer src="../assets/js/admin-timeline/timeline-axis.js"></script>
-  <script defer src="../assets/js/admin-timeline/timeline-zoom.js"></script>
-  <script defer src="../assets/js/admin-timeline/timeline-events.js"></script>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Timeline Editor — Admin</title>
+        <link rel="stylesheet" href="../assets/css/admin.css" />
+        <link
+            rel="stylesheet"
+            href="../assets/css/admin-diagrams/timeline.css"
+        />
+        <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/auth.js"></script>
+        <script defer src="../assets/js/update-record.js"></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-axis.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-zoom.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-events.js"
+        ></script>
+    </head>
+    <body>
+        <!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
+        <header class="admin-timeline-topbar">
+            <h1>Timeline Editor</h1>
+        </header>
 
-<!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
-<header class="admin-timeline-topbar">
-  <h1>Timeline Editor</h1>
-</header>
+        <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
+        <nav class="admin-timeline-toolbar" aria-label="Timeline editor tools">
+            <div class="admin-timeline-toolbar__left">
+                <button
+                    type="button"
+                    id="add-timeline-event-btn"
+                    class="admin-timeline-toolbar__btn admin-timeline-toolbar__btn--primary"
+                >
+                    Add Event
+                </button>
+            </div>
+        </nav>
 
-<!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
-<nav class="admin-timeline-toolbar" aria-label="Timeline editor tools">
-  <div class="admin-timeline-toolbar__left">
-    <button type="button" id="add-timeline-event-btn" class="admin-timeline-toolbar__btn admin-timeline-toolbar__btn--primary">
-      Add Event
-    </button>
-  </div>
-</nav>
+        <!-- ── Timeline Editor Canvas ─────────────────────────────────────────────── -->
+        <main>
+            <div id="timeline-canvas" class="admin-timeline-canvas">
+                <div id="timeline-axis"></div>
 
-<!-- ── Timeline Editor Canvas ─────────────────────────────────────────────── -->
-<main>
-  <div id="timeline-canvas" class="admin-timeline-canvas">
-    <div id="timeline-axis"></div>
+                <div
+                    id="timeline-search-dialog"
+                    class="admin-timeline-search"
+                    role="dialog"
+                    aria-label="Search evidence to add as event"
+                    hidden
+                >
+                    <div class="admin-timeline-search__header">
+                        <label
+                            for="timeline-event-search"
+                            class="admin-timeline-visually-hidden"
+                            >Search evidence</label
+                        >
+                        <input
+                            type="search"
+                            id="timeline-event-search"
+                            class="admin-timeline-search__input"
+                            placeholder="Search evidence to add as event…"
+                            autocomplete="off"
+                        />
+                        <button
+                            type="button"
+                            id="timeline-search-close"
+                            class="admin-timeline-search__close"
+                            aria-label="Close search"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <div
+                        id="timeline-search-results"
+                        class="admin-timeline-search__results"
+                    ></div>
+                </div>
+            </div>
+        </main>
 
-    <div
-      id="timeline-search-dialog"
-      class="admin-timeline-search"
-      role="dialog"
-      aria-label="Search evidence to add as event"
-      hidden
-    >
-      <div class="admin-timeline-search__header">
-        <label for="timeline-event-search" class="admin-timeline-visually-hidden">Search evidence</label>
-        <input
-          type="search"
-          id="timeline-event-search"
-          class="admin-timeline-search__input"
-          placeholder="Search evidence to add as event…"
-          autocomplete="off"
+        <!-- ── Event Edit Panel ────────────────────────────────────────────────────── -->
+        <aside
+            id="timeline-event-panel"
+            class="admin-timeline-panel"
+            role="dialog"
+            aria-label="Edit event"
+            aria-hidden="true"
         >
-        <button type="button" id="timeline-search-close" class="admin-timeline-search__close" aria-label="Close search">✕</button>
-      </div>
-      <div id="timeline-search-results" class="admin-timeline-search__results"></div>
-    </div>
-  </div>
-</main>
+            <div class="admin-timeline-panel__header">
+                <h2 class="admin-timeline-panel__title">Edit Event</h2>
+                <button
+                    type="button"
+                    id="timeline-event-panel-close"
+                    class="admin-timeline-panel__close"
+                    aria-label="Close event editor"
+                >
+                    ✕
+                </button>
+            </div>
 
-<!-- ── Event Edit Panel ────────────────────────────────────────────────────── -->
-<aside
-  id="timeline-event-panel"
-  class="admin-timeline-panel"
-  role="dialog"
-  aria-label="Edit event"
-  aria-hidden="true"
->
-  <div class="admin-timeline-panel__header">
-    <h2 class="admin-timeline-panel__title">Edit Event</h2>
-    <button
-      type="button"
-      id="timeline-event-panel-close"
-      class="admin-timeline-panel__close"
-      aria-label="Close event editor"
-    >✕</button>
-  </div>
+            <form
+                id="timeline-event-edit-form"
+                class="admin-timeline-panel__form"
+                novalidate
+            >
+                <div class="admin-timeline-panel__field">
+                    <label for="timeline-event-title-input">Title</label>
+                    <input
+                        type="text"
+                        id="timeline-event-title-input"
+                        class="admin-timeline-panel__input"
+                        maxlength="200"
+                        placeholder="e.g. The Last Supper"
+                    />
+                </div>
 
-  <form id="timeline-event-edit-form" class="admin-timeline-panel__form" novalidate>
-    <div class="admin-timeline-panel__field">
-      <label for="timeline-event-title-input">Title</label>
-      <input
-        type="text"
-        id="timeline-event-title-input"
-        class="admin-timeline-panel__input"
-        maxlength="200"
-        placeholder="e.g. The Last Supper"
-      >
-    </div>
+                <div class="admin-timeline-panel__field">
+                    <label for="timeline-event-era-select">Era</label>
+                    <select
+                        id="timeline-event-era-select"
+                        class="admin-timeline-panel__select"
+                    >
+                        <option value="PreIncarnation">Pre-Incarnation</option>
+                        <option value="OldTestament">Old Testament</option>
+                        <option value="EarlyLife">Early Life</option>
+                        <option value="Life">Life</option>
+                        <option value="GalileeMinistry">
+                            Galilee Ministry
+                        </option>
+                        <option value="JudeanMinistry">Judean Ministry</option>
+                        <option value="PassionWeek">Passion Week</option>
+                        <option value="Post-Passion">Post-Passion</option>
+                    </select>
+                </div>
 
-    <div class="admin-timeline-panel__field">
-      <label for="timeline-event-era-select">Era</label>
-      <select id="timeline-event-era-select" class="admin-timeline-panel__select">
-        <option value="beginning">The Beginning</option>
-        <option value="middle">The Ministry</option>
-        <option value="end">Passion &amp; Beyond</option>
-      </select>
-    </div>
+                <div class="admin-timeline-panel__field">
+                    <span class="admin-timeline-panel__info">
+                        Period: <span id="timeline-event-period-display"></span>
+                    </span>
+                </div>
 
-    <div class="admin-timeline-panel__field">
-      <span class="admin-timeline-panel__info">
-        Period: <span id="timeline-event-period-display"></span>
-      </span>
-    </div>
+                <div class="admin-timeline-panel__field">
+                    <span class="admin-timeline-panel__info">
+                        Slug: <span id="timeline-event-slug-display"></span>
+                    </span>
+                </div>
 
-    <div class="admin-timeline-panel__field">
-      <span class="admin-timeline-panel__info">
-        Slug: <span id="timeline-event-slug-display"></span>
-      </span>
-    </div>
+                <div
+                    id="timeline-event-error"
+                    class="admin-timeline-panel__error"
+                    role="alert"
+                    aria-live="assertive"
+                ></div>
 
-    <div
-      id="timeline-event-error"
-      class="admin-timeline-panel__error"
-      role="alert"
-      aria-live="assertive"
-    ></div>
+                <div class="admin-timeline-panel__actions">
+                    <button
+                        type="button"
+                        id="timeline-event-save-btn"
+                        class="admin-timeline-panel__btn admin-timeline-panel__btn--primary"
+                    >
+                        Save
+                    </button>
+                    <button
+                        type="button"
+                        id="timeline-event-cancel-btn"
+                        class="admin-timeline-panel__btn admin-timeline-panel__btn--secondary"
+                    >
+                        Cancel
+                    </button>
+                </div>
 
-    <div class="admin-timeline-panel__actions">
-      <button type="button" id="timeline-event-save-btn" class="admin-timeline-panel__btn admin-timeline-panel__btn--primary">
-        Save
-      </button>
-      <button type="button" id="timeline-event-cancel-btn" class="admin-timeline-panel__btn admin-timeline-panel__btn--secondary">
-        Cancel
-      </button>
-    </div>
+                <div class="admin-timeline-panel__danger">
+                    <button
+                        type="button"
+                        id="timeline-event-delete-btn"
+                        class="admin-timeline-panel__btn admin-timeline-panel__btn--danger"
+                    >
+                        Remove from Timeline
+                    </button>
+                </div>
+            </form>
+        </aside>
 
-    <div class="admin-timeline-panel__danger">
-      <button type="button" id="timeline-event-delete-btn" class="admin-timeline-panel__btn admin-timeline-panel__btn--danger">
-        Remove from Timeline
-      </button>
-    </div>
-  </form>
-</aside>
+        <!-- ── Backdrop ────────────────────────────────────────────────────────────── -->
+        <div
+            id="timeline-panel-backdrop"
+            class="admin-timeline-panel-backdrop"
+            hidden
+        ></div>
 
-<!-- ── Backdrop ────────────────────────────────────────────────────────────── -->
-<div id="timeline-panel-backdrop" class="admin-timeline-panel-backdrop" hidden></div>
+        <!-- ── Zoom Controls ───────────────────────────────────────────────────────── -->
+        <footer class="admin-timeline-zoom-bar">
+            <button
+                type="button"
+                id="timeline-zoom-out"
+                class="admin-timeline-zoom-btn"
+                aria-label="Zoom out"
+            >
+                −
+            </button>
+            <button
+                type="button"
+                id="timeline-zoom-reset"
+                class="admin-timeline-zoom-btn"
+                aria-label="Reset zoom"
+            >
+                Reset
+            </button>
+            <button
+                type="button"
+                id="timeline-zoom-in"
+                class="admin-timeline-zoom-btn"
+                aria-label="Zoom in"
+            >
+                +
+            </button>
+        </footer>
 
-<!-- ── Zoom Controls ───────────────────────────────────────────────────────── -->
-<footer class="admin-timeline-zoom-bar">
-  <button type="button" id="timeline-zoom-out" class="admin-timeline-zoom-btn" aria-label="Zoom out">−</button>
-  <button type="button" id="timeline-zoom-reset" class="admin-timeline-zoom-btn" aria-label="Reset zoom">Reset</button>
-  <button type="button" id="timeline-zoom-in" class="admin-timeline-zoom-btn" aria-label="Zoom in">+</button>
-</footer>
+        <!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Once all deferred scripts have loaded, init each module.
+                var axisContainer = document.getElementById("timeline-axis");
+                AdminTimelineAxis.init(axisContainer);
 
-<!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // Once all deferred scripts have loaded, init each module.
-    var axisContainer = document.getElementById("timeline-axis");
-    AdminTimelineAxis.init(axisContainer);
+                var canvas = document.getElementById("timeline-canvas");
+                AdminTimelineZoom.init(canvas);
 
-    var canvas = document.getElementById("timeline-canvas");
-    AdminTimelineZoom.init(canvas);
+                AdminTimelineEvents.init();
 
-    AdminTimelineEvents.init();
+                // Wire backdrop to close the panel
+                var backdrop = document.getElementById(
+                    "timeline-panel-backdrop",
+                );
+                if (backdrop) {
+                    backdrop.addEventListener("click", function () {
+                        AdminTimelineEvents.closeEditPanel();
+                    });
+                }
 
-    // Wire backdrop to close the panel
-    var backdrop = document.getElementById("timeline-panel-backdrop");
-    if (backdrop) {
-      backdrop.addEventListener("click", function () {
-        AdminTimelineEvents.closeEditPanel();
-      });
-    }
+                // Auth guard
+                AdminAuth.requireSession().then(function (ok) {
+                    if (!ok) {
+                        var c = document.getElementById("timeline-canvas");
+                        if (c)
+                            c.textContent = "Session required. Please sign in.";
+                        return;
+                    }
+                    // Load timeline events
+                    AdminTimelineEvents.loadEvents();
+                });
 
-    // Auth guard
-    AdminAuth.requireSession().then(function (ok) {
-      if (!ok) {
-        var c = document.getElementById("timeline-canvas");
-        if (c) c.textContent = "Session required. Please sign in.";
-        return;
-      }
-      // Load timeline events
-      AdminTimelineEvents.loadEvents();
-    });
+                // Sync backdrop visibility with panel state
+                var observer = new MutationObserver(function () {
+                    var panel = document.getElementById("timeline-event-panel");
+                    var bd = document.getElementById("timeline-panel-backdrop");
+                    if (panel && bd) {
+                        var open = panel.classList.contains(
+                            "admin-timeline-panel--open",
+                        );
+                        bd.hidden = !open;
+                        panel.setAttribute(
+                            "aria-hidden",
+                            open ? "false" : "true",
+                        );
+                    }
+                });
 
-    // Sync backdrop visibility with panel state
-    var observer = new MutationObserver(function () {
-      var panel = document.getElementById("timeline-event-panel");
-      var bd = document.getElementById("timeline-panel-backdrop");
-      if (panel && bd) {
-        var open = panel.classList.contains("admin-timeline-panel--open");
-        bd.hidden = !open;
-        panel.setAttribute("aria-hidden", open ? "false" : "true");
-      }
-    });
-
-    var panel = document.getElementById("timeline-event-panel");
-    if (panel) {
-      observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
-    }
-  });
-</script>
-
-</body>
+                var panel = document.getElementById("timeline-event-panel");
+                if (panel) {
+                    observer.observe(panel, {
+                        attributes: true,
+                        attributeFilter: ["class"],
+                    });
+                }
+            });
+        </script>
+    </body>
 </html>

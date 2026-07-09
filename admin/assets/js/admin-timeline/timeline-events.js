@@ -214,7 +214,7 @@ Events.openEditPanel = function (eventId) {
 
   // Era dropdown
   const eraSelect = document.getElementById("timeline-event-era-select");
-  if (eraSelect) eraSelect.value = ev.timeline_era || "beginning";
+  if (eraSelect) eraSelect.value = ev.timeline_era || "PreIncarnation";
 
   panel.classList.add("admin-timeline-panel--open");
 };
@@ -424,13 +424,23 @@ Events.onEventMouseUp = function (e) {
 Events.eraForPeriod = function (period) {
   const ord = window.AdminTimelineAxis.periodOrdinal(period);
 
-  // Map period ordinal ranges to eras
-  // beginning: PreIncarnation through LifeTemptation (indices 0-9)
-  // middle: GalileeCallingTwelve through JudeanFinalJourney (indices 10-17)
-  // end: PassionPalmSunday through ReturnOfJesus (indices 18+)
-  if (ord <= 9) return "beginning";
-  if (ord <= 17) return "middle";
-  return "end";
+  // Map period ordinal ranges to the eight new eras
+  // PreIncarnation: index 0
+  // OldTestament: index 1
+  // EarlyLife: indices 2-5
+  // Life: indices 6-8
+  // GalileeMinistry: indices 9-12
+  // JudeanMinistry: indices 13-17
+  // PassionWeek: indices 18-33
+  // Post-Passion: indices 34+
+  if (ord <= 0) return "PreIncarnation";
+  if (ord <= 1) return "OldTestament";
+  if (ord <= 5) return "EarlyLife";
+  if (ord <= 8) return "Life";
+  if (ord <= 12) return "GalileeMinistry";
+  if (ord <= 17) return "JudeanMinistry";
+  if (ord <= 33) return "PassionWeek";
+  return "Post-Passion";
 };
 
 /* ── Search-to-add ─────────────────────────────────────────────────────────── */
@@ -557,7 +567,7 @@ Events.addEventToTimeline = function (evidence) {
     id: evidence.id,
     title: evidence.title,
     slug: evidence.slug,
-    timeline_era: evidence.timeline_era || "beginning",
+    timeline_era: evidence.timeline_era || "PreIncarnation",
     timeline_period: evidence.timeline_period || "PreIncarnation",
     primary_verse: evidence.primary_verse,
     description: evidence.description,
@@ -569,7 +579,7 @@ Events.addEventToTimeline = function (evidence) {
   if (!evidence.timeline_period) {
     UpdateRecord.saveEvent(ev.id, {
       timeline_period: "PreIncarnation",
-      timeline_era: "beginning",
+      timeline_era: "PreIncarnation",
     }).catch(function (err) {
       console.error("Failed to set initial timeline period:", err);
     });

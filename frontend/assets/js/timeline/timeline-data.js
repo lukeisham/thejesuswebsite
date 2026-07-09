@@ -62,9 +62,14 @@ export const TIMELINE_PERIODS = [
  * @type {Object<string, string>}
  */
 export const ERA_LABELS = {
-  beginning: "Birth & Early Life",
-  middle: "Ministry",
-  end: "Passion & Resurrection",
+  PreIncarnation: "Pre-Incarnation",
+  OldTestament: "Old Testament",
+  EarlyLife: "Early Life",
+  Life: "Life",
+  GalileeMinistry: "Galilee Ministry",
+  JudeanMinistry: "Judean Ministry",
+  PassionWeek: "Passion Week",
+  "Post-Passion": "Post-Passion",
 };
 
 /**
@@ -74,9 +79,18 @@ export const ERA_LABELS = {
  * @type {Object<string, { start: number, end: number, label: string }>}
  */
 export const ERA_BOUNDARIES = {
-  beginning: { start: 0, end: 5, label: ERA_LABELS.beginning },
-  middle: { start: 6, end: 17, label: ERA_LABELS.middle },
-  end: { start: 18, end: TIMELINE_PERIODS.length - 1, label: ERA_LABELS.end },
+  PreIncarnation: { start: 0, end: 0, label: ERA_LABELS.PreIncarnation },
+  OldTestament: { start: 1, end: 1, label: ERA_LABELS.OldTestament },
+  EarlyLife: { start: 2, end: 5, label: ERA_LABELS.EarlyLife },
+  Life: { start: 6, end: 8, label: ERA_LABELS.Life },
+  GalileeMinistry: { start: 9, end: 12, label: ERA_LABELS.GalileeMinistry },
+  JudeanMinistry: { start: 13, end: 17, label: ERA_LABELS.JudeanMinistry },
+  PassionWeek: { start: 18, end: 33, label: ERA_LABELS.PassionWeek },
+  "Post-Passion": {
+    start: 34,
+    end: TIMELINE_PERIODS.length - 1,
+    label: ERA_LABELS["Post-Passion"],
+  },
 };
 
 /**
@@ -174,7 +188,7 @@ export function getPeriodIndex(period) {
  * Filter events to only those within a given era's period boundaries.
  *
  * @param {Array} events
- * @param {string} era - 'beginning', 'middle', or 'end'
+ * @param {string} era - One of the eight era keys.
  * @returns {Array}
  */
 export function filterEventsByEra(events, era) {
