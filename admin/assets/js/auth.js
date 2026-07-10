@@ -18,11 +18,29 @@ window.AdminAuth = {};
 const AdminAuth = window.AdminAuth;
 
 /**
+ * Return the correct login-page URL for the current environment.
+ *
+ * In production, nginx serves admin/ under the /admin/ URL prefix, so the
+ * login page is at /admin/auth/login.html. In local dev, dev-proxy.js serves
+ * admin/ as the web root with no prefix, so the login page is at
+ * /auth/login.html. The pathname check (zero-latency, no network round-trip)
+ * detects which environment we're in.
+ *
+ * @returns {string}
+ */
+AdminAuth._loginUrl = function () {
+  return window.location.pathname.startsWith("/admin/")
+    ? "/admin/auth/login.html"
+    : "/auth/login.html";
+};
+
+/**
  * Validate the sid cookie session by fetching GET /api/auth/me (a dedicated
  * session-status endpoint — JS-2: never rely on a side-effect like /drafts
  * returning 200 for its static fallback page in production).
- * On 401, redirect to the absolute /admin/auth/login.html (relative paths
- * break from nested pages like /admin/essays/).
+ * On 401, redirect to the login page via AdminAuth._loginUrl() which is
+ * environment-aware (production uses /admin/auth/login.html; local dev
+ * behind dev-proxy.js uses /auth/login.html).
  * Return a Promise that resolves to true when authenticated, false on network
  * errors or other conditions where we choose not to redirect.
  *
@@ -34,7 +52,7 @@ AdminAuth.requireSession = async function () {
   try {
     const res = await AdminHttp.request("/api/auth/me");
     if (res.status === 401) {
-      window.location.href = "/admin/auth/login.html";
+      window.location.href = AdminAuth._loginUrl();
       return false;
     }
     // Any other error (500, etc.) — log but don't redirect; the session may
@@ -63,7 +81,7 @@ AdminAuth.logout = async function () {
   } catch (_err) {
     // Even if the server is unreachable, redirect — the cookie will expire.
   }
-  window.location.href = "/admin/auth/login.html?signedout=1";
+  window.location.href = AdminAuth._loginUrl() + "?signedout=1";
 };
 
 /**
