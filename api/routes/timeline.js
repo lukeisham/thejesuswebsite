@@ -18,9 +18,13 @@ router.get("/", (req, res) => {
   }
 });
 
-// GET /timeline/admin — full timeline including drafts (admin only)
+// GET /timeline/admin — full timeline including drafts, or the holding-pen
+// of unplaced evidence when ?unplaced=1 (admin only)
 router.get("/admin", requireAuth, (req, res) => {
   try {
+    if (req.query.unplaced === "1") {
+      return res.json(timelineModel.getUnplacedEvents());
+    }
     res.json(
       timelineModel.getTimelineEvents({ ...req.query, includeDrafts: true }),
     );

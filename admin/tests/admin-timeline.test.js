@@ -57,6 +57,41 @@ const geometrySource = fs.readFileSync(geometryPath, "utf8");
 
 vm.runInNewContext(geometrySource, axisSandbox);
 
+// ── Load cluster modules (density, placement, labels) ─────────────────────────
+
+const clusterDensityPath = path.resolve(
+  __dirname,
+  "..",
+  "assets",
+  "js",
+  "admin-timeline",
+  "timeline-cluster-density.js",
+);
+const clusterDensitySource = fs.readFileSync(clusterDensityPath, "utf8");
+vm.runInNewContext(clusterDensitySource, axisSandbox);
+
+const clusterPlacementPath = path.resolve(
+  __dirname,
+  "..",
+  "assets",
+  "js",
+  "admin-timeline",
+  "timeline-cluster-placement.js",
+);
+const clusterPlacementSource = fs.readFileSync(clusterPlacementPath, "utf8");
+vm.runInNewContext(clusterPlacementSource, axisSandbox);
+
+const clusterLabelsPath = path.resolve(
+  __dirname,
+  "..",
+  "assets",
+  "js",
+  "admin-timeline",
+  "timeline-cluster-labels.js",
+);
+const clusterLabelsSource = fs.readFileSync(clusterLabelsPath, "utf8");
+vm.runInNewContext(clusterLabelsSource, axisSandbox);
+
 vm.runInNewContext(axisSource, axisSandbox);
 
 const {
@@ -424,6 +459,166 @@ describe("drag-snap round-trip identity for every period", function () {
           "round-trip failed for " + period + " at offset " + offsets[o],
         );
       }
+    }
+  });
+});
+
+// ── Cluster Density Tiers ──────────────────────────────────────────────────
+
+describe("cluster density tiers", function () {
+  const DENSITY_COMPACT = axisSandbox.window.AdminTimelineClusterDensity.DENSITY_COMPACT;
+  const DENSITY_NORMAL = axisSandbox.window.AdminTimelineClusterDensity.DENSITY_NORMAL;
+  const DENSITY_SPREAD = axisSandbox.window.AdminTimelineClusterDensity.DENSITY_SPREAD;
+  const getClusterDensity = axisSandbox.window.AdminTimelineClusterDensity.getClusterDensity.bind(
+    axisSandbox.window.AdminTimelineClusterDensity,
+  );
+
+  test("compact at 30 px/period", function () {
+    assert.equal(getClusterDensity(null, 30), DENSITY_COMPACT);
+  });
+
+  test("compact at 55 px/period (boundary)", function () {
+    assert.equal(getClusterDensity(null, 55), DENSITY_COMPACT);
+  });
+
+  test("normal at 80 px/period", function () {
+    assert.equal(getClusterDensity(null, 80), DENSITY_NORMAL);
+  });
+
+  test("normal at 119 px/period", function () {
+    assert.equal(getClusterDensity(null, 119), DENSITY_NORMAL);
+  });
+
+  test("spread at 120 px/period (boundary)", function () {
+    assert.equal(getClusterDensity(null, 120), DENSITY_SPREAD);
+  });
+
+  test("spread at 200 px/period", function () {
+    assert.equal(getClusterDensity(null, 200), DENSITY_SPREAD);
+  });
+});
+
+// ── Dot Placement ─────────────────────────────────────────────────────────
+
+describe("dot placement", function () {
+  const computeDotPositions = axisSandbox.window.AdminTimelineClusterPlacement.computeDotPositions.bind(
+    axisSandbox.window.AdminTimelineClusterPlacement,
+  );
+
+  test("single event per period — y offset is 0", function () {
+    var grouped = { PreIncarnation: [{ id: 1, title: "Test" }] };
+    var result = computeDotPositions(grouped, 80);
+    var positions = result["PreIncarnation"];
+    assert.equal(positions.length, 1);
+    assert.equal(positions[0].yOffset, 0);
+    assert.equal(positions[0].xFan, 0);
+  });
+
+  test("two events in same period — stacked vertically", function () {
+    var grouped = { PreIncarnation: [{ id: 1 }, { id: 2 }] };
+    var result = computeDotPositions(grouped, 80);
+    var positions = result["PreIncarnation"];
+    assert.equal(positions.length, 2);
+    // normal spacing is 16, so offsets are -8 and +8
+    assert.equal(positions[0].yOffset, -8);
+    assert.equal(positions[1].yOffset, 8);
+  });
+
+  test("no overlaps at any tier", function () {
+    var grouped = {
+      PreIncarnation: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+    };
+    var scales = [30, 55, 80, 119, 120, 200];
+    for (var s = 0; s < scales.length; s++) {
+      var result = computeDotPositions(grouped, scales[s]);
+      var positions = result["PreIncarnation"];
+      assert.equal(
+        positions.length,
+        5,
+        "should have 5 positions at scale " + scales[s],
+      );
+      // Verify all y offsets are unique
+      var offsets = positions.map(function (p) {
+        return p.yOffset;
+      });
+      var unique = [];
+      for (var o = 0; o < offsets.length; o++) {
+        assert.ok(
+          unique.indexOf(offsets[o]) === -1,
+          "duplicate offset at scale " + scales[s],
+        );
+        unique.push(offsets[o]);
+      }
+    }
+  });
+
+  test("spread tier adds horizontal fan-out", function () {
+    var grouped = { PreIncarnation: [{ id: 1 }, { id: 2 }, { id: 3 }] };
+    var result = computeDotPositions(grouped, 200); // spread tier
+    var positions = result["PreIncarnation"];
+    // At least some should have non-zero xFan
+    var hasFan = positions.some(function (p) {
+      return p.xFan !== 0;
+    });
+    assert.ok(hasFan, "spread tier should add horizontal fan-out");
+  });
+});
+
+// ── Label Modes ───────────────────────────────────────────────────────────
+
+describe("label modes", function () {
+  const LABEL_FULL = axisSandbox.window.AdminTimelineClusterLabels.LABEL_FULL;
+  const LABEL_TRUNCATED = axisSandbox.window.AdminTimelineClusterLabels.LABEL_TRUNCATED;
+  const LABEL_HIDDEN = axisSandbox.window.AdminTimelineClusterLabels.LABEL_HIDDEN;
+  const computeLabelModes = axisSandbox.window.AdminTimelineClusterLabels.computeLabelModes.bind(
+    axisSandbox.window.AdminTimelineClusterLabels,
+  );
+
+  test("single event — full label in all tiers", function () {
+    var descs = [{ event: { id: 1 }, timeline_period: "PreIncarnation" }];
+    var modes = computeLabelModes(descs, "compact");
+    assert.equal(modes[0].mode, LABEL_FULL);
+
+    modes = computeLabelModes(descs, "normal");
+    assert.equal(modes[0].mode, LABEL_FULL);
+
+    modes = computeLabelModes(descs, "spread");
+    assert.equal(modes[0].mode, LABEL_FULL);
+  });
+
+  test("compact tier: 2-3 events → truncated, 4+ → hidden", function () {
+    var twoEvents = [
+      { event: { id: 1 }, timeline_period: "Life" },
+      { event: { id: 2 }, timeline_period: "Life" },
+    ];
+    var modes = computeLabelModes(twoEvents, "compact");
+    assert.equal(modes[0].mode, LABEL_TRUNCATED);
+    assert.equal(modes[1].mode, LABEL_TRUNCATED);
+
+    var fourEvents = [
+      { event: { id: 1 }, timeline_period: "Life" },
+      { event: { id: 2 }, timeline_period: "Life" },
+      { event: { id: 3 }, timeline_period: "Life" },
+      { event: { id: 4 }, timeline_period: "Life" },
+    ];
+    modes = computeLabelModes(fourEvents, "compact");
+    assert.equal(modes[0].mode, LABEL_HIDDEN);
+  });
+
+  test("normal and spread tiers: all labels full", function () {
+    var descs = [
+      { event: { id: 1 }, timeline_period: "Life" },
+      { event: { id: 2 }, timeline_period: "Life" },
+      { event: { id: 3 }, timeline_period: "Life" },
+    ];
+    var modes = computeLabelModes(descs, "normal");
+    for (var i = 0; i < modes.length; i++) {
+      assert.equal(modes[i].mode, LABEL_FULL);
+    }
+
+    modes = computeLabelModes(descs, "spread");
+    for (var i = 0; i < modes.length; i++) {
+      assert.equal(modes[i].mode, LABEL_FULL);
     }
   });
 });

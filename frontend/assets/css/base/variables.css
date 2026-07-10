@@ -147,6 +147,21 @@
     --overlay-backdrop: rgba(0, 0, 0, 0.3);
 
     /* -------------------------------------------------------------------------
+        Era Colour Tokens (Timeline)
+        Low-saturation tints derived from the parchment palette.
+        Paired with era labels/markers/tooltips — never relied on alone (WCAG).
+        ------------------------------------------------------------------------- */
+
+    --era-pre-incarnation: #e8e0f0;
+    --era-old-testament: #f0e8d8;
+    --era-early-life: #e0f0e4;
+    --era-life: #e0ecf0;
+    --era-galilee-ministry: #e0f0ec;
+    --era-judean-ministry: #f0e4e4;
+    --era-passion-week: #f0e0e0;
+    --era-post-passion: #f0ecdc;
+
+    /* -------------------------------------------------------------------------
         Utility Colors
         ------------------------------------------------------------------------- */
 

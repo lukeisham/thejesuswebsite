@@ -109,4 +109,29 @@ function getByEra(era) {
   return getTimelineEvents({ timeline_era: era });
 }
 
-module.exports = { getTimelineEvents, getByEra, ERA_ORDER, PERIOD_ORDER };
+/**
+ * Evidence that has an era assigned but no period yet — the admin
+ * "holding pen" for records that need to be placed into a specific
+ * period on the timeline before they appear publicly.
+ */
+function getUnplacedEvents() {
+  const rows = db
+    .prepare(
+      "SELECT * FROM evidence WHERE timeline_era IS NOT NULL AND timeline_era != '' AND timeline_period IS NULL",
+    )
+    .all();
+
+  return rows.sort(
+    (a, b) =>
+      ordinalOf(ERA_ORDER, a.timeline_era) -
+      ordinalOf(ERA_ORDER, b.timeline_era),
+  );
+}
+
+module.exports = {
+  getTimelineEvents,
+  getByEra,
+  getUnplacedEvents,
+  ERA_ORDER,
+  PERIOD_ORDER,
+};

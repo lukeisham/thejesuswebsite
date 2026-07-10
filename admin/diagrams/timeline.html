@@ -7,7 +7,11 @@
         <link rel="stylesheet" href="../assets/css/admin.css" />
         <link
             rel="stylesheet"
-            href="../assets/css/admin-diagrams/timeline.css"
+            href="../assets/css/admin-diagrams/timeline-canvas.css"
+        />
+        <link
+            rel="stylesheet"
+            href="../assets/css/admin-diagrams/timeline-holding-pen.css"
         />
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-http.js"></script>
@@ -16,6 +20,18 @@
         <script
             defer
             src="../assets/js/admin-timeline/timeline-geometry.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-cluster-density.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-cluster-placement.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-cluster-labels.js"
         ></script>
         <script
             defer
@@ -28,6 +44,10 @@
         <script
             defer
             src="../assets/js/admin-timeline/timeline-events.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-holding-pen.js"
         ></script>
     </head>
     <body>
@@ -46,8 +66,30 @@
                 >
                     Add Event
                 </button>
+                <button
+                    type="button"
+                    id="timeline-save-btn"
+                    class="admin-timeline-toolbar__btn admin-timeline-toolbar__btn--primary"
+                >
+                    Save Changes
+                </button>
             </div>
         </nav>
+
+        <!-- ── Holding Pen: unplaced evidence chips ───────────────────────────────── -->
+        <section
+            id="timeline-holding-pen"
+            class="admin-timeline-holding-pen"
+            hidden
+        >
+            <h2 class="admin-timeline-holding-pen__heading">
+                Holding Pen — Drag chips onto the timeline to place them
+            </h2>
+            <div
+                id="timeline-holding-pen-chips"
+                class="admin-timeline-holding-pen__chips"
+            ></div>
+        </section>
 
         <!-- ── Timeline Editor Canvas ─────────────────────────────────────────────── -->
         <main>
@@ -248,6 +290,20 @@
                 if (backdrop) {
                     backdrop.addEventListener("click", function () {
                         AdminTimelineEvents.closeEditPanel();
+                    });
+                }
+
+                // Init holding pen
+                AdminTimelineHoldingPen.init();
+
+                // Wire canvas as drop target for holding pen chips
+                AdminTimelineHoldingPen.wireCanvasDrop();
+
+                // Wire the Save button
+                var saveBtn = document.getElementById("timeline-save-btn");
+                if (saveBtn) {
+                    saveBtn.addEventListener("click", function () {
+                        AdminTimelineHoldingPen.save();
                     });
                 }
 

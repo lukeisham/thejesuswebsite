@@ -59,6 +59,16 @@
     --admin-loading-bg: #f2f5f7;
     --admin-accent-text: #ffffff;
 
+    /* ── Colors: Era tint tokens (mirror frontend variables.css) ─────────── */
+    --era-pre-incarnation: #e8e0f0;
+    --era-old-testament: #f0e8d8;
+    --era-early-life: #e0f0e4;
+    --era-life: #e0ecf0;
+    --era-galilee-ministry: #e0f0ec;
+    --era-judean-ministry: #f0e4e4;
+    --era-passion-week: #f0e0e0;
+    --era-post-passion: #f0ecdc;
+
     /* ── Colors: Draft badge ──────────────────────────────────────────────── */
     --admin-draft-bg: rgba(255, 193, 7, 0.15);
     --admin-draft-color: #997404;

@@ -566,3 +566,19 @@
 - [ ] JS-2 — `formatMlaCitation()` returns `""` on rows with insufficient data; renderers filter empties and hide the section.
 - [ ] JS-4 — JSDoc on `formatMlaCitation` documents the journal → book → website type-detection order.
 - [ ] SR-1 — the formatter lives in its own `frontend/assets/js/utils/mla.js` module.
+
+## Validation: Maps Visual Parity Refactor (Frontend + Cache)
+**Plan:** maps-visual-parity-refactor.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] After deploy + Cloudflare purge, a fresh browser profile loading each of the five map pages shows the real-geography SVGs (Sea of Galilee and Dead Sea recognisable, continuous Jordan river) — not the old sketch coastlines.
+- [ ] `curl -sI https://thejesuswebsite.org/assets/images/maps/galilee.svg` returns `Cache-Control: public, max-age=3600, must-revalidate` (not `immutable`).
+- [ ] Map pins render era-tinted per the timeline colour tokens; pins without a `timeline_era` keep the default `--accent` fill; labels/tooltips unchanged.
+- [ ] Zoom-variant pages (`/evidence/maps/<key>/zoom-<key>.html`) pick up the same versioned image URL and pin colours.
+
+### Code-review checks
+- [ ] CSS-1 — era pin rules live in new `pages/maps-pins.css`, not appended to the oversized `pages/maps.css`.
+- [ ] CSS-2 — colours only via `--era-*` custom properties from `variables.css`.
+- [ ] JS-5 — no new raw `fetch`; pin era data arrives via the existing `maps-data.js` → `api.js` path.
+- [ ] SR-3 — long immutable caching retained for genuinely immutable assets; only regenerable map images moved to the short-cache block.

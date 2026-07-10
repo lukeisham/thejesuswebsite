@@ -468,3 +468,48 @@
 ### Code-review checks
 - [ ] JS-5 — all requests go through `Admin.api.get(...)`; no raw `fetch` added.
 - [ ] The dead `?published_draft=0` query fetch is fully removed from `admin/essays/index.html`.
+
+## Validation: Maps Visual Parity Refactor (Admin)
+**Plan:** maps-visual-parity-refactor.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] `/admin/diagrams/maps.html` shows a holding pen above the canvas listing chips for evidence with `map_location` set but no pin on the selected map (drafts included).
+- [ ] Dragging a chip onto the map stages a pin (dashed/staged style) at the drop point; the chip leaves the pen; nothing is POSTed yet (network tab quiet).
+- [ ] Dragging an existing pin stages a move (no immediate PUT); Save button shows an unsaved-changes count.
+- [ ] Clicking Save persists all staged creates/moves in one pass; partial failures are listed explicitly; button disabled while saving.
+- [ ] Navigating away or switching maps with staged changes prompts a confirmation.
+- [ ] Side-by-side with `/evidence/maps/<key>.html`: identical base SVG, pin size/colour/label/tooltip; only differences are pen, Save, and admin chrome.
+- [ ] Hovering an admin pin no longer shifts it ~8px (hover transform fix).
+
+### Code-review checks
+- [ ] SR-1 — holding pen, staged-changes store, and pen CSS each in their own new file.
+- [ ] JS-2 — batch Save surfaces per-item errors; drop targets validated.
+- [ ] JS-5 — all admin fetches via `Admin.api.*`; no raw fetch.
+- [ ] JS-6 — drag listeners delegated and removed on teardown.
+- [ ] CSS-2 — era pin colours reference the shared `--era-*` tokens, values identical to the frontend's.
+- [ ] HTML-5 — chips and Save are real labelled `<button>`s.
+
+## Validation: Arbor Visual Parity Refactor (Admin)
+**Plan:** arbor-visual-parity-refactor.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] `/admin/diagrams/arbor.html` shows a holding pen listing chips (title + Draft/Published badge) for evidence with no `arbor_nodes` row, drafts included.
+- [ ] Dragging a chip onto empty canvas creates the node at the drop point and auto-saves it (one PUT `/arbor/nodes/:id` in the network tab); the chip leaves the pen.
+- [ ] Dragging a chip or node **onto another node** creates/updates the connecting edge automatically (`source_id` = the drop-target parent) using the toolbar's relationship type, and the node panel's read-only Parent row shows the new parent.
+- [ ] Re-dropping a node onto a different parent re-points its existing incoming edge instead of duplicating it; `related` edges are left alone.
+- [ ] "Add Edge" mode actually draws a line from mousedown-on-node to mouseup-on-node and persists it (previously dead).
+- [ ] Dragging an existing node auto-saves its new position; on API failure the node reverts with an error toast.
+- [ ] Moving a **published** node updates `/evidence/arbor.html` immediately; a **draft** node's placement is saved but never appears publicly.
+- [ ] Publishing a placed draft evidence record from its evidence page makes it appear on the public arbor at its placed position; there are no Save or Publish buttons on the arbor editor itself.
+- [ ] Side-by-side with `/evidence/arbor.html`: identical dot-grid, node size/fill/border/shadow, root and related variants, edge stroke/dash; only differences are pen, Draft badges, and admin chrome.
+
+### Code-review checks
+- [ ] SR-1 — `arbor-pen.js` and `arbor-pen.css` are each new single-purpose files.
+- [ ] JS-2 — auto-save surfaces errors (toast + revert); drop hit-testing validates targets; edge auto-creation reuses `validateConnection`.
+- [ ] JS-5 — all HTTP via `Admin.api.*` / `UpdateRecord`; loading + error states on auto-save and pen fetch.
+- [ ] JS-6 — document-level drag listeners removed on mouseup; no `innerHTML` with evidence titles.
+- [ ] CSS-1/CSS-2 — pen CSS under 150 lines; node/edge colours match the public `arbor.css` token values.
+- [ ] HTML-1/HTML-5 — pen is a labelled landmark; chips are real labelled `<button>`s.
+- [ ] API — `/arbor/admin/unplaced` mounted before `GET /arbor/:id`; `api/tests/arbor-nodes.test.js` covers unplaced filtering and draft visibility.

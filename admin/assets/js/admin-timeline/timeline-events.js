@@ -73,7 +73,7 @@ Events.init = function () {
  */
 Events.loadEvents = async function () {
   try {
-    events = await Admin.api.get("/timeline");
+    events = await Admin.api.get("/timeline/admin");
   } catch (err) {
     console.error("Failed to load timeline events:", err);
     events = [];
@@ -114,33 +114,62 @@ Events.renderEvents = function () {
     ? window.AdminTimelineZoom.getPanOffset()
     : 0;
 
-  // Group events by period to handle clustering
-  const byPeriod = {};
-  for (let j = 0; j < events.length; j++) {
-    const ev = events[j];
-    const period = ev.timeline_period || "PreIncarnation";
-    if (!byPeriod[period]) byPeriod[period] = [];
-    byPeriod[period].push(ev);
+  // Group events by period for clustering
+  var byPeriod = {};
+  for (var j = 0; j < events.length; j++) {
+    var evGroup = events[j];
+    var periodGroup = evGroup.timeline_period || "PreIncarnation";
+    if (!byPeriod[periodGroup]) byPeriod[periodGroup] = [];
+    byPeriod[periodGroup].push(evGroup);
   }
 
-  const periodKeys = Object.keys(byPeriod);
-  for (let p = 0; p < periodKeys.length; p++) {
-    const period = periodKeys[p];
-    const periodEvents = byPeriod[period];
-    const baseX = window.AdminTimelineAxis.periodToX(
-      period,
+  // Use clustering modules for placement and label modes
+  var positions = window.AdminTimelineClusterPlacement.computeDotPositions(
+    byPeriod,
+    pxPerPeriod,
+  );
+  var densityTier = window.AdminTimelineClusterDensity.getClusterDensity(
+    null,
+    pxPerPeriod,
+  );
+
+  // Build flat descriptor list for label modes
+  var flatDescs = [];
+  var periodPosKeys = Object.keys(positions);
+  for (var pk = 0; pk < periodPosKeys.length; pk++) {
+    var pp = periodPosKeys[pk];
+    var ppPositions = positions[pp];
+    for (var pi = 0; pi < ppPositions.length; pi++) {
+      flatDescs.push({ event: ppPositions[pi].event, timeline_period: pp });
+    }
+  }
+  var labelModes = window.AdminTimelineClusterLabels.computeLabelModes(
+    flatDescs,
+    densityTier,
+  );
+  var modeByEventId = {};
+  for (var lm = 0; lm < labelModes.length; lm++) {
+    modeByEventId[labelModes[lm].event.id] = labelModes[lm].mode;
+  }
+
+  for (var pk2 = 0; pk2 < periodPosKeys.length; pk2++) {
+    var period2 = periodPosKeys[pk2];
+    var periodPositions2 = positions[period2];
+    var baseX = window.AdminTimelineAxis.periodToX(
+      period2,
       pxPerPeriod,
       offsetX,
     );
 
-    for (let k = 0; k < periodEvents.length; k++) {
-      const ev = periodEvents[k];
-      // Use shared stagger offsets matching the public timeline
-      const offsets = window.AdminTimelineGeometry.STAGGER_OFFSETS;
-      const staggerY = offsets[k % offsets.length];
-      const y = 60 + staggerY;
-      const el = Events.createEventElement(ev, baseX, y);
-      axisEl.appendChild(el);
+    for (var pi2 = 0; pi2 < periodPositions2.length; pi2++) {
+      var pos = periodPositions2[pi2];
+      var ev2 = pos.event;
+      var yOffset = pos.yOffset;
+      var xFan = pos.xFan || 0;
+      var y = 60 + yOffset;
+      var mode = modeByEventId[ev2.id] || "full";
+      var el2 = Events.createEventElement(ev2, baseX + xFan, y, mode);
+      axisEl.appendChild(el2);
     }
   }
 };
@@ -153,9 +182,29 @@ Events.renderEvents = function () {
  * @param {number} y   - y position (staggered for clustering)
  * @returns {HTMLElement}
  */
-Events.createEventElement = function (ev, x, y) {
+Events.createEventElement = function (ev, x, y, labelMode) {
   const el = document.createElement("button");
-  el.className = "admin-timeline-event";
+  // Era class hook (kebab-case)
+  var eraStr = ev.timeline_era || "";
+  var eraKebab = eraStr
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+
+  // Category class hook
+  var cat = ev.gospel_category || "";
+  var catClass = "";
+  if (cat === "places") catClass = "dot-cat--place";
+  else if (cat === "people") catClass = "dot-cat--person";
+  else if (cat === "objects") catClass = "dot-cat--object";
+
+  el.className = [
+    "admin-timeline-event",
+    eraKebab ? "era--" + eraKebab : "",
+    catClass,
+  ]
+    .filter(Boolean)
+    .join(" ");
   el.style.position = "absolute";
   el.style.left = x - 6 + "px";
   el.style.top = y + "px";
@@ -168,21 +217,29 @@ Events.createEventElement = function (ev, x, y) {
     el.classList.add("admin-timeline-event--selected");
   }
 
-  // Label above the dot (truncated title)
-  let labelText = ev.title || "";
-  const offsets = window.AdminTimelineGeometry.STAGGER_OFFSETS;
-  const staggerIdx = 0; // Always above for admin — stagger handled by y position
-  if (labelText.length > 28) labelText = labelText.slice(0, 26) + "\u2026";
-  if (labelText) {
-    const label = document.createElement("span");
-    label.className = "admin-timeline-event-label";
-    label.style.position = "absolute";
-    label.style.left = x - 50 + "px";
-    label.style.top = y - 18 + "px";
-    label.style.width = "100px";
-    label.style.textAlign = "center";
-    label.textContent = labelText;
-    el.appendChild(label);
+  // Label above the dot (truncated title) — respects clustering labelMode
+  var mode = labelMode || "full";
+  if (mode !== "hidden") {
+    var labelText = ev.title || "";
+    if (mode === "truncated" && labelText.length > 28) {
+      labelText = labelText.slice(0, 26) + "\u2026";
+    }
+    if (labelText) {
+      var label = document.createElement("span");
+      label.className = [
+        "admin-timeline-event-label",
+        mode === "truncated" ? "label--truncated" : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+      label.style.position = "absolute";
+      label.style.left = x - 50 + "px";
+      label.style.top = y - 18 + "px";
+      label.style.width = "100px";
+      label.style.textAlign = "center";
+      label.textContent = labelText;
+      el.appendChild(label);
+    }
   }
 
   el.addEventListener("click", function (e) {
@@ -604,5 +661,28 @@ Events.addEventToTimeline = function (evidence) {
   }
 
   Events.closeSearchDialog();
+  Events.renderEvents();
+};
+
+/**
+ * Add an event staged from the holding pen (already has period assignment).
+ * Called by AdminTimelineHoldingPen when a chip is dropped on the canvas.
+ *
+ * @param {Object} stagedEv - event object with timeline_period and timeline_era set
+ */
+Events.addStagedEvent = function (stagedEv) {
+  if (Events.getEventById(stagedEv.id)) return;
+
+  events.push({
+    id: stagedEv.id,
+    title: stagedEv.title,
+    slug: stagedEv.slug,
+    timeline_era: stagedEv.timeline_era,
+    timeline_period: stagedEv.timeline_period,
+    primary_verse: stagedEv.primary_verse,
+    description: stagedEv.description,
+    gospel_category: stagedEv.gospel_category,
+  });
+
   Events.renderEvents();
 };

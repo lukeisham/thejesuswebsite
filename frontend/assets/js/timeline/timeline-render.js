@@ -17,6 +17,19 @@ import {
 } from "./timeline-data.js";
 import { createElement, batchWrite } from "../utils/dom.js";
 import { debounce } from "../utils/debounce.js";
+import {
+  getClusterDensity,
+  DENSITY_COMPACT,
+  DENSITY_NORMAL,
+  DENSITY_SPREAD,
+} from "./timeline-cluster-density.js";
+import { computeDotPositions } from "./timeline-cluster-placement.js";
+import {
+  computeLabelModes,
+  LABEL_FULL,
+  LABEL_TRUNCATED,
+  LABEL_HIDDEN,
+} from "./timeline-cluster-labels.js";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -46,7 +59,7 @@ const LABEL_GAP_PX = 8;
  *
  * @returns {number}
  */
-function getPxPerPeriod() {
+export function getPxPerPeriod() {
   const el = document.getElementById("timeline-container");
   if (!el) return 100;
   const raw = getComputedStyle(el).getPropertyValue("--px-per-period").trim();
@@ -74,9 +87,7 @@ export function isVerticalMode() {
  * escalation ladder labels are pushed along when their bounding boxes
  * collide with an already-placed neighbour.
  */
-const STAGGER_OFFSETS = [
-  0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40,
-];
+const STAGGER_OFFSETS = [0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40];
 
 // ─── Cached references (SR-3) ─────────────────────────────────────────────────
 
@@ -202,8 +213,29 @@ function labelSide(xOffset) {
  * @returns {HTMLElement}
  */
 function createDot(event, style, isFiltered) {
+  const era = event.timeline_era || "";
+  const eraKebab = era
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+  const category = event.gospel_category || "";
+  const catClass =
+    category === "places"
+      ? "dot-cat--place"
+      : category === "people"
+        ? "dot-cat--person"
+        : category === "objects"
+          ? "dot-cat--object"
+          : "";
+
   return createElement("div", {
-    className: ["timeline-dot", "standard", isFiltered ? "filtered-out" : ""]
+    className: [
+      "timeline-dot",
+      "standard",
+      eraKebab ? `era--${eraKebab}` : "",
+      catClass,
+      isFiltered ? "filtered-out" : "",
+    ]
       .filter(Boolean)
       .join(" "),
     style,
@@ -237,11 +269,9 @@ function createLabel(event, posClass, style, isFiltered) {
   );
 
   const metaText = [event.map_location || ""].filter(Boolean).join(" · ");
-  const metaSpan = createElement(
-    "span",
-    { className: "timeline-label-meta" },
-    [metaText],
-  );
+  const metaSpan = createElement("span", { className: "timeline-label-meta" }, [
+    metaText,
+  ]);
 
   return createElement(
     "div",
@@ -269,6 +299,10 @@ function layoutEraLabelsHorizontal(target, slotWidth) {
   let prevHalfSpan = 0;
   let alternate = false;
 
+  // Two-line labels need more vertical room — increase alternate offsets
+  const BASE_TOP = 4;
+  const ALT_TOP = 28;
+
   eraKeys.forEach((era, i) => {
     const bounds = ERA_BOUNDARIES[era];
 
@@ -292,11 +326,12 @@ function layoutEraLabelsHorizontal(target, slotWidth) {
       prevMidX !== null && eraMidX - prevMidX < halfSpan + prevHalfSpan;
     alternate = tooClose ? !alternate : false;
 
+    const labelMaxW = Math.max(span - 8, 24);
     const eraLabel = createElement(
       "div",
       {
         className: "timeline-era-label",
-        style: `left:${eraMidX}px;top:${alternate ? 28 : 8}px;max-width:${Math.max(span - 8, 24)}px`,
+        style: `left:${eraMidX}px;top:${alternate ? ALT_TOP : BASE_TOP}px;max-width:${Math.min(labelMaxW, 140)}px`,
       },
       [ERA_LABELS[era]],
     );
@@ -371,28 +406,54 @@ function buildHorizontalLayout(groupedEvents, activeEra, slotWidth) {
 
   layoutEraLabelsHorizontal(inner, slotWidth);
 
+  // Compute cluster-placement positions and label modes
+  const positions = computeDotPositions(groupedEvents, slotWidth);
+  const densityTier = getClusterDensity(null, slotWidth);
+
+  // Build flattened descriptors for label-mode computation
+  const flatDescs = [];
+  for (const [period, periodPositions] of positions) {
+    for (const pos of periodPositions) {
+      flatDescs.push({ event: pos.event, timeline_period: period });
+    }
+  }
+  const labelModes = computeLabelModes(flatDescs, densityTier);
+  const modeByEventId = new Map();
+  for (const lm of labelModes) {
+    modeByEventId.set(lm.event.id, lm.mode);
+  }
+
   let hasEvents = false;
   const labelDescriptors = [];
 
-  for (const [period, events] of groupedEvents) {
+  for (const [period, periodPositions] of positions) {
     const periodIdx = getPeriodIndex(period);
     if (periodIdx < 0) continue;
 
     const x = periodX(periodIdx, slotWidth);
 
-    events.forEach((event, clusterIndex) => {
-      const tierIndex = clusterIndex % STAGGER_OFFSETS.length;
-      const yOffset = STAGGER_OFFSETS[tierIndex];
-      const pos = labelPosition(yOffset);
+    periodPositions.forEach((pos, clusterIndex) => {
+      const event = pos.event;
+      const yOffset = pos.yOffset;
+      const xFan = pos.xFan || 0;
+      const posClass = labelPosition(yOffset);
       const isFiltered =
         activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
-      const style = `left:${x}px;top:${50 + yOffset}%`;
+      const style = `left:${x + xFan}px;top:${50 + yOffset / 2}%`;
 
       inner.appendChild(createDot(event, style, isFiltered));
 
-      const label = createLabel(event, pos, style, isFiltered);
+      const label = createLabel(event, posClass, style, isFiltered);
+
+      const mode = modeByEventId.get(event.id) || LABEL_FULL;
+      if (mode === LABEL_TRUNCATED) {
+        label.classList.add("label--truncated");
+      } else if (mode === LABEL_HIDDEN) {
+        label.classList.add("label--hidden");
+      }
+
       inner.appendChild(label);
-      labelDescriptors.push({ el: label, tierIndex, axis: "x" });
+      labelDescriptors.push({ el: label, tierIndex: clusterIndex, axis: "x" });
 
       hasEvents = true;
     });
@@ -427,18 +488,35 @@ function buildVerticalLayout(groupedEvents, activeEra, slotHeight) {
 
   layoutEraLabelsVertical(inner, slotHeight);
 
+  // Compute cluster-placement positions and label modes
+  const positions = computeDotPositions(groupedEvents, slotHeight);
+  const densityTier = getClusterDensity(null, slotHeight);
+
+  const flatDescs = [];
+  for (const [period, periodPositions] of positions) {
+    for (const pos of periodPositions) {
+      flatDescs.push({ event: pos.event, timeline_period: period });
+    }
+  }
+  const labelModes = computeLabelModes(flatDescs, densityTier);
+  const modeByEventId = new Map();
+  for (const lm of labelModes) {
+    modeByEventId.set(lm.event.id, lm.mode);
+  }
+
   let hasEvents = false;
   const labelDescriptors = [];
 
-  for (const [period, events] of groupedEvents) {
+  for (const [period, periodPositions] of positions) {
     const periodIdx = getPeriodIndex(period);
     if (periodIdx < 0) continue;
 
     const y = periodY(periodIdx, slotHeight);
 
-    events.forEach((event, clusterIndex) => {
-      const tierIndex = clusterIndex % STAGGER_OFFSETS.length;
-      const xOffset = STAGGER_OFFSETS[tierIndex];
+    periodPositions.forEach((pos, clusterIndex) => {
+      const event = pos.event;
+      // Map yOffset from placement (vertical stack) to xOffset for vertical mode (left/right of spine)
+      const xOffset = pos.yOffset;
       const side = labelSide(xOffset);
       const isFiltered =
         activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
@@ -447,8 +525,16 @@ function buildVerticalLayout(groupedEvents, activeEra, slotHeight) {
       inner.appendChild(createDot(event, style, isFiltered));
 
       const label = createLabel(event, side, style, isFiltered);
+
+      const mode = modeByEventId.get(event.id) || LABEL_FULL;
+      if (mode === LABEL_TRUNCATED) {
+        label.classList.add("label--truncated");
+      } else if (mode === LABEL_HIDDEN) {
+        label.classList.add("label--hidden");
+      }
+
       inner.appendChild(label);
-      labelDescriptors.push({ el: label, tierIndex, axis: "y" });
+      labelDescriptors.push({ el: label, tierIndex: clusterIndex, axis: "y" });
 
       hasEvents = true;
     });
