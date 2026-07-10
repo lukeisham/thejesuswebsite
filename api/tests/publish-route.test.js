@@ -85,10 +85,9 @@ const realEvidenceTemplate = path.resolve(
   "..",
   "frontend",
   "evidence",
-  "single",
   "[slug].html",
 );
-const tempEvidenceDir = path.join(tmpDir, "evidence", "single");
+const tempEvidenceDir = path.join(tmpDir, "evidence");
 fs.mkdirSync(tempEvidenceDir, { recursive: true });
 fs.copyFileSync(
   realEvidenceTemplate,
@@ -299,14 +298,7 @@ describe("POST /publish/:type/:id", () => {
   });
 
   test("publishing evidence generates HTML in temp dir, not in real frontend", async () => {
-    const realDir = path.resolve(
-      __dirname,
-      "..",
-      "..",
-      "frontend",
-      "evidence",
-      "single",
-    );
+    const realDir = path.resolve(__dirname, "..", "..", "frontend", "evidence");
     const beforeFiles = new Set(
       fs.readdirSync(realDir).filter((f) => !f.startsWith("[slug]")),
     );
@@ -324,7 +316,7 @@ describe("POST /publish/:type/:id", () => {
       "Expected generated file at " + generatedPath,
     );
 
-    // The real frontend/evidence/single/ directory must have gained no new files.
+    // The real frontend/evidence/ directory must have gained no new files.
     const afterFiles = new Set(
       fs.readdirSync(realDir).filter((f) => !f.startsWith("[slug]")),
     );
@@ -332,7 +324,7 @@ describe("POST /publish/:type/:id", () => {
     assert.equal(
       newcomers.length,
       0,
-      "No new files should appear in real frontend/evidence/single/: " +
+      "No new files should appear in real frontend/evidence/: " +
         newcomers.join(", "),
     );
   });

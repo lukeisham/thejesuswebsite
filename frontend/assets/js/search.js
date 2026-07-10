@@ -135,7 +135,7 @@ function getResultUrl(item, type) {
   const slug = item.slug || "";
   switch (type) {
     case "evidence":
-      return `/evidence/single/${encodeURIComponent(slug)}`;
+      return `/evidence/${encodeURIComponent(slug)}`;
     case "essays":
       return `/contextual-essays/${encodeURIComponent(slug)}`;
     case "responses":

@@ -8,7 +8,7 @@ import { getEvidenceBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
 import { setSEO } from "./seo.js";
 import { html } from "./utils/templates.js";
-import { formatVerse } from "./utils/format.js";
+import { formatDate, formatVerse } from "./utils/format.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
 import {
@@ -29,28 +29,22 @@ const $title = document.getElementById("evidence-title");
 const $verse = document.getElementById("evidence-verse");
 const $desc = document.getElementById("evidence-description");
 const $descSection = document.getElementById("evidence-description-section");
-const $timeline = document.getElementById("evidence-timeline-context");
-const $timelineSection = document.getElementById("evidence-timeline-section");
 const $sources = document.getElementById("evidence-sources");
 const $sourcesSection = document.getElementById("evidence-sources-section");
 
-// Page info row
-const $infoRow = document.getElementById("page-info-row");
-const $infoRelated = document.getElementById("info-related");
-const $infoRelatedList = document.getElementById("info-related-list");
-const $infoIdentifiers = document.getElementById("info-identifiers");
-const $infoIdentifiersList = document.getElementById("info-identifiers-list");
-const $infoEra = document.getElementById("info-era");
-const $infoPeriod = document.getElementById("info-period");
-const $infoLocation = document.getElementById("info-location");
-const $infoCategory = document.getElementById("info-category");
+// Pictures
+const $picturesSection = document.getElementById("evidence-pictures-section");
+const $pictures = document.getElementById("evidence-pictures");
+
+// Dates
+const $dates = document.getElementById("evidence-dates");
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
 
 function getSlugFromUrl() {
-  // URL pattern: /evidence/single/{slug}
-  // getSegment(0) = 'evidence', getSegment(1) = 'single', getSegment(2) = slug
-  const segment = getSegment(2);
+  // URL pattern: /evidence/{slug}
+  // getSegment(0) = 'evidence', getSegment(1) = slug
+  const segment = getSegment(1);
   if (!segment) {
     showError("No evidence item specified.");
     return null;
@@ -133,24 +127,47 @@ function renderDescription(item) {
   }
 }
 
-function renderTimelineContext(item) {
-  const parts = [];
-  if (item.timeline_era) parts.push(`Era: ${item.timeline_era}`);
-  if (item.timeline_period) parts.push(`Period: ${item.timeline_period}`);
-  if (item.timeline_year_start || item.timeline_year_end) {
-    const range = [item.timeline_year_start, item.timeline_year_end]
-      .filter(Boolean)
-      .join("–");
-    parts.push(`Date: ${range}`);
+function renderPictures(pictures) {
+  if (!pictures || pictures.length === 0) {
+    if ($picturesSection) $picturesSection.hidden = true;
+    return;
   }
+  if ($picturesSection) $picturesSection.hidden = false;
 
-  if (parts.length === 0) {
-    if ($timelineSection) $timelineSection.hidden = true;
+  const itemsHTML = pictures
+    .map((pic) => {
+      const src = pic.image_path || "";
+      const caption = pic.caption || "";
+      const alt = caption ? html`${caption}` : "";
+      return `<figure>
+        <img src="${html`${src}`}" alt="${alt}" loading="lazy" />
+        ${caption ? `<figcaption>${html`${caption}`}</figcaption>` : ""}
+      </figure>`;
+    })
+    .join("");
+
+  if ($pictures) $pictures.innerHTML = itemsHTML;
+  numberFigures($pictures);
+}
+
+function renderDates(item) {
+  if (!$dates) return;
+  const created = item.created_at ? formatDate(item.created_at) : null;
+  const modified =
+    item.updated_at && item.updated_at !== item.created_at
+      ? formatDate(item.updated_at)
+      : null;
+
+  if (!created) {
+    $dates.hidden = true;
     return;
   }
 
-  if ($timelineSection) $timelineSection.hidden = false;
-  if ($timeline) $timeline.textContent = parts.join(" · ");
+  const parts = [html`Created ${created}`];
+  if (modified) {
+    parts.push(html` · Modified ${modified}`);
+  }
+  $dates.innerHTML = parts.join("");
 }
 
 function renderSources(mlaSources) {
@@ -178,58 +195,6 @@ function renderSources(mlaSources) {
     .join("");
 
   if ($sources) $sources.innerHTML = itemsHTML;
-}
-
-function renderPageInfoRow(item) {
-  if (!$infoRow) return;
-
-  let hasContent = false;
-
-  // Related evidence links
-  if (item.links_evidence && item.links_evidence.length > 0) {
-    if ($infoRelated) $infoRelated.hidden = false;
-    if ($infoRelatedList) {
-      $infoRelatedList.innerHTML = item.links_evidence
-        .map(
-          (link) => html`
-            <li>
-              <a href="/evidence/single/${link.slug || ""}"
-                >${link.title || "Untitled"}</a
-              >
-            </li>
-          `,
-        )
-        .join("");
-    }
-    hasContent = true;
-  } else if ($infoRelated) {
-    $infoRelated.hidden = true;
-  }
-
-  // Identifiers
-  if (item.identifiers && item.identifiers.length > 0) {
-    if ($infoIdentifiers) $infoIdentifiers.hidden = false;
-    if ($infoIdentifiersList) {
-      $infoIdentifiersList.innerHTML = item.identifiers
-        .map((id) => {
-          const label = getIdentifierLabel(id);
-          return html` <li>${label}</li> `;
-        })
-        .join("");
-    }
-    hasContent = true;
-  } else if ($infoIdentifiers) {
-    $infoIdentifiers.hidden = true;
-  }
-
-  // Meta details
-  if ($infoEra) $infoEra.textContent = item.timeline_era || "—";
-  if ($infoPeriod) $infoPeriod.textContent = item.timeline_period || "—";
-  if ($infoLocation) $infoLocation.textContent = item.map_location || "—";
-  if ($infoCategory) $infoCategory.textContent = item.gospel_category || "—";
-  hasContent = true;
-
-  $infoRow.hidden = !hasContent;
 }
 
 // ─── SEO ─────────────────────────────────────────────────────────────────────
@@ -299,10 +264,10 @@ async function init() {
   // Render all sections
   renderBreadcrumbs(data);
   renderHero(data);
+  renderPictures(data.pictures);
   renderDescription(data);
-  renderTimelineContext(data);
   renderSources(data.mla_sources);
-  renderPageInfoRow(data);
+  renderDates(data);
 
   // Apply SEO metadata
   applySEO(data);

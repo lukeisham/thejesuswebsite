@@ -20,8 +20,8 @@ export function getParams() {
  * @param {Object} [state={}] - State object associated with the history entry.
  */
 export function pushState(path, state = {}) {
-  if (typeof path !== 'string' || path.length === 0) return;
-  history.pushState(state, '', path);
+  if (typeof path !== "string" || path.length === 0) return;
+  history.pushState(state, "", path);
 }
 
 /**
@@ -31,17 +31,16 @@ export function pushState(path, state = {}) {
  * @returns {string} The segment, or an empty string if it doesn't exist.
  *
  * @example
- * // URL: /evidence/single/my-slug
+ * // URL: /evidence/my-slug
  * getSegment(0) // 'evidence'
- * getSegment(1) // 'single'
- * getSegment(2) // 'my-slug'
+ * getSegment(1) // 'my-slug'
  */
 export function getSegment(n) {
-  if (typeof n !== 'number' || n < 0) return '';
+  if (typeof n !== "number" || n < 0) return "";
 
   const segments = window.location.pathname
-    .split('/')
+    .split("/")
     .filter((s) => s.length > 0);
 
-  return segments[n] || '';
+  return segments[n] || "";
 }

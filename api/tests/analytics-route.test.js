@@ -156,7 +156,7 @@ describe("POST /analytics", () => {
     const result = await request(app, {
       method: "POST",
       path: "/analytics",
-      body: { page: "/evidence/single/test-slug" },
+      body: { page: "/evidence/test-slug" },
     });
 
     assert.equal(result.status, 204);

@@ -34,10 +34,9 @@ const realEvidenceTemplate = path.resolve(
   "..",
   "frontend",
   "evidence",
-  "single",
   "[slug].html",
 );
-const tempEvidenceDir = path.join(tmpDir, "evidence", "single");
+const tempEvidenceDir = path.join(tmpDir, "evidence");
 fs.mkdirSync(tempEvidenceDir, { recursive: true });
 fs.copyFileSync(
   realEvidenceTemplate,
@@ -161,9 +160,7 @@ describe("generatePage", () => {
     const output = fs.readFileSync(result.path, "utf8");
 
     assert.ok(
-      output.includes(
-        'href="https://thejesuswebsite.org/evidence/single/test-item"',
-      ),
+      output.includes('href="https://thejesuswebsite.org/evidence/test-item"'),
     );
   });
 

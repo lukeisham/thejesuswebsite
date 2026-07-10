@@ -7,8 +7,8 @@
  * @module sidebar
  */
 
-const ACTIVE_CLASS = 'nav-item--active';
-const NAV_ITEM_SELECTOR = '.nav-item, .sidebar a[href]';
+const ACTIVE_CLASS = "nav-item--active";
+const NAV_ITEM_SELECTOR = ".nav-item, .sidebar a[href]";
 
 /**
  * Initialise sidebar active-state highlighting.
@@ -22,7 +22,7 @@ export function initSidebar() {
   let bestLength = 0;
 
   navItems.forEach((item) => {
-    const href = item.getAttribute('href');
+    const href = item.getAttribute("href");
     if (!href) return;
 
     const fullPath = resolvePath(href);
@@ -31,11 +31,11 @@ export function initSidebar() {
       bestMatch = item;
       bestLength = fullPath.length;
     } else if (
-      fullPath !== '/' &&
+      fullPath !== "/" &&
       currentPath.startsWith(fullPath) &&
       fullPath.length > bestLength
     ) {
-      // Parent nav match (e.g. /evidence/ matches /evidence/single/slug)
+      // Parent nav match (e.g. /evidence/ matches /evidence/slug)
       bestMatch = item;
       bestLength = fullPath.length;
     }
@@ -63,6 +63,6 @@ function resolvePath(href) {
 }
 
 // Auto-init on DOMContentLoaded so pages that import this file get it for free.
-if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', initSidebar);
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", initSidebar);
 }
