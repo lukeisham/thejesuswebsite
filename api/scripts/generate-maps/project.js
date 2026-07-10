@@ -122,6 +122,46 @@ function projectLine(geometry, bbox, viewBox, simplifyTolerance) {
 }
 
 /**
+ * Project a GeoJSON geometry into an array of separate SVG "points"
+ * strings — one per disjoint sub-path (each MultiLineString segment,
+ * each Polygon/MultiPolygon ring) — so the caller can render each as
+ * its own <polygon>/<polyline> element instead of joining unrelated
+ * shapes into one, which draws stray connecting lines between them.
+ *
+ * @param {Object} geometry - GeoJSON geometry object.
+ * @param {Object} bbox
+ * @param {Object} viewBox
+ * @param {number} [simplifyTolerance=0.5] - RDP tolerance (0 = no simplification).
+ * @returns {Array<string>}
+ */
+function projectParts(geometry, bbox, viewBox, simplifyTolerance) {
+  const tolerance = simplifyTolerance != null ? simplifyTolerance : 0.5;
+
+  const toPointString = (coords) => {
+    const simplified = tolerance > 0 ? simplify(coords, tolerance) : coords;
+    return simplified.map((c) => pointString(c[0], c[1], bbox, viewBox)).join(" ");
+  };
+
+  if (geometry.type === "LineString") {
+    return [toPointString(geometry.coordinates)];
+  }
+
+  if (geometry.type === "MultiLineString") {
+    return geometry.coordinates.map(toPointString);
+  }
+
+  if (geometry.type === "Polygon") {
+    return geometry.coordinates.map(toPointString);
+  }
+
+  if (geometry.type === "MultiPolygon") {
+    return geometry.coordinates.flatMap((poly) => poly.map(toPointString));
+  }
+
+  return [];
+}
+
+/**
  * Ramer-Douglas-Peucker polyline simplification.
  * Reduces the number of points while preserving shape within `epsilon`.
  *
@@ -174,6 +214,221 @@ function perpendicularDistance(p, a, b) {
   return Math.hypot(p[0] - nearX, p[1] - nearY);
 }
 
+// ── Bounding-box clipping (Cohen–Sutherland for lines, Sutherland–Hodgman for polygons) ──
+
+const INSIDE = 0;
+const LEFT = 1;
+const RIGHT = 2;
+const BOTTOM = 4;
+const TOP = 8;
+
+function outCode(x, y, xmin, ymin, xmax, ymax) {
+  let code = INSIDE;
+  if (x < xmin) code |= LEFT;
+  else if (x > xmax) code |= RIGHT;
+  if (y < ymin) code |= BOTTOM;
+  else if (y > ymax) code |= TOP;
+  return code;
+}
+
+/**
+ * Cohen–Sutherland clip of a single segment against an axis-aligned bbox.
+ *
+ * @param {[number,number]} p0
+ * @param {[number,number]} p1
+ * @param {Object} bbox - { lon_min, lat_min, lon_max, lat_max }.
+ * @returns {[[number,number],[number,number]]|null} Clipped segment, or null if entirely outside.
+ */
+function clipSegmentToBBox(p0, p1, bbox) {
+  const { lon_min: xmin, lat_min: ymin, lon_max: xmax, lat_max: ymax } = bbox;
+  let x0 = p0[0];
+  let y0 = p0[1];
+  let x1 = p1[0];
+  let y1 = p1[1];
+  let code0 = outCode(x0, y0, xmin, ymin, xmax, ymax);
+  let code1 = outCode(x1, y1, xmin, ymin, xmax, ymax);
+
+  while (true) {
+    if (!(code0 | code1)) return [[x0, y0], [x1, y1]];
+    if (code0 & code1) return null;
+
+    const codeOut = code0 || code1;
+    let x, y;
+    if (codeOut & TOP) {
+      x = x0 + ((x1 - x0) * (ymax - y0)) / (y1 - y0);
+      y = ymax;
+    } else if (codeOut & BOTTOM) {
+      x = x0 + ((x1 - x0) * (ymin - y0)) / (y1 - y0);
+      y = ymin;
+    } else if (codeOut & RIGHT) {
+      y = y0 + ((y1 - y0) * (xmax - x0)) / (x1 - x0);
+      x = xmax;
+    } else {
+      y = y0 + ((y1 - y0) * (xmin - x0)) / (x1 - x0);
+      x = xmin;
+    }
+
+    if (codeOut === code0) {
+      x0 = x;
+      y0 = y;
+      code0 = outCode(x0, y0, xmin, ymin, xmax, ymax);
+    } else {
+      x1 = x;
+      y1 = y;
+      code1 = outCode(x1, y1, xmin, ymin, xmax, ymax);
+    }
+  }
+}
+
+function pointsEqual(a, b) {
+  return a[0] === b[0] && a[1] === b[1];
+}
+
+/**
+ * Clip a polyline against a bbox. A line may exit and re-enter the box, so
+ * the result is an array of disjoint clipped polylines rather than one.
+ *
+ * @param {Array<[number,number]>} coords
+ * @param {Object} bbox
+ * @returns {Array<Array<[number,number]>>}
+ */
+function clipLineToBBox(coords, bbox) {
+  const segments = [];
+  let current = null;
+
+  for (let i = 0; i < coords.length - 1; i++) {
+    const clipped = clipSegmentToBBox(coords[i], coords[i + 1], bbox);
+    if (!clipped) {
+      current = null;
+      continue;
+    }
+    if (current && pointsEqual(current[current.length - 1], clipped[0])) {
+      current.push(clipped[1]);
+    } else {
+      current = [clipped[0], clipped[1]];
+      segments.push(current);
+    }
+  }
+
+  return segments;
+}
+
+function intersectVertical(a, b, x) {
+  const t = (x - a[0]) / (b[0] - a[0]);
+  return [x, a[1] + t * (b[1] - a[1])];
+}
+
+function intersectHorizontal(a, b, y) {
+  const t = (y - a[1]) / (b[1] - a[1]);
+  return [a[0] + t * (b[0] - a[0]), y];
+}
+
+/**
+ * Sutherland–Hodgman clip of a polygon ring against an axis-aligned bbox.
+ * Works correctly for non-convex subject polygons since the clip window
+ * (the bbox) is convex.
+ *
+ * @param {Array<[number,number]>} ring
+ * @param {Object} bbox
+ * @returns {Array<[number,number]>} Clipped ring (may be empty).
+ */
+function clipPolygonToBBox(ring, bbox) {
+  const { lon_min: xmin, lat_min: ymin, lon_max: xmax, lat_max: ymax } = bbox;
+  const edges = [
+    { inside: (p) => p[0] >= xmin, intersect: (a, b) => intersectVertical(a, b, xmin) },
+    { inside: (p) => p[0] <= xmax, intersect: (a, b) => intersectVertical(a, b, xmax) },
+    { inside: (p) => p[1] >= ymin, intersect: (a, b) => intersectHorizontal(a, b, ymin) },
+    { inside: (p) => p[1] <= ymax, intersect: (a, b) => intersectHorizontal(a, b, ymax) },
+  ];
+
+  let output = ring;
+  for (const edge of edges) {
+    if (output.length === 0) break;
+    const input = output;
+    output = [];
+    for (let i = 0; i < input.length; i++) {
+      const curr = input[i];
+      const prev = input[(i - 1 + input.length) % input.length];
+      const currInside = edge.inside(curr);
+      const prevInside = edge.inside(prev);
+      if (currInside) {
+        if (!prevInside) output.push(edge.intersect(prev, curr));
+        output.push(curr);
+      } else if (prevInside) {
+        output.push(edge.intersect(prev, curr));
+      }
+    }
+  }
+
+  return output;
+}
+
+/**
+ * Expand a bbox outward by a fraction of its own range on each side.
+ * Used to give clipping a small margin so near-edge geometry isn't
+ * harshly truncated right at the viewBox boundary.
+ *
+ * @param {Object} bbox
+ * @param {number} marginFraction - e.g. 0.05 for a 5% margin.
+ * @returns {Object}
+ */
+function expandBBox(bbox, marginFraction) {
+  const xr = bbox.lon_max - bbox.lon_min;
+  const yr = bbox.lat_max - bbox.lat_min;
+  return {
+    lon_min: bbox.lon_min - xr * marginFraction,
+    lon_max: bbox.lon_max + xr * marginFraction,
+    lat_min: bbox.lat_min - yr * marginFraction,
+    lat_max: bbox.lat_max + yr * marginFraction,
+  };
+}
+
+/**
+ * Clip a GeoJSON geometry to a bbox, dispatching by geometry type.
+ * Returns null if nothing survives clipping.
+ *
+ * @param {Object} geometry - GeoJSON geometry (LineString/MultiLineString/Polygon/MultiPolygon).
+ * @param {Object} bbox
+ * @returns {Object|null} Clipped geometry, or null.
+ */
+function clipGeometryToBBox(geometry, bbox) {
+  if (!geometry) return null;
+
+  if (geometry.type === "LineString") {
+    const segments = clipLineToBBox(geometry.coordinates, bbox);
+    if (segments.length === 0) return null;
+    if (segments.length === 1) return { type: "LineString", coordinates: segments[0] };
+    return { type: "MultiLineString", coordinates: segments };
+  }
+
+  if (geometry.type === "MultiLineString") {
+    const segments = [];
+    for (const line of geometry.coordinates) {
+      segments.push(...clipLineToBBox(line, bbox));
+    }
+    if (segments.length === 0) return null;
+    return { type: "MultiLineString", coordinates: segments };
+  }
+
+  if (geometry.type === "Polygon") {
+    const rings = geometry.coordinates
+      .map((ring) => clipPolygonToBBox(ring, bbox))
+      .filter((ring) => ring.length >= 3);
+    if (rings.length === 0) return null;
+    return { type: "Polygon", coordinates: rings };
+  }
+
+  if (geometry.type === "MultiPolygon") {
+    const polys = geometry.coordinates
+      .map((poly) => poly.map((ring) => clipPolygonToBBox(ring, bbox)).filter((ring) => ring.length >= 3))
+      .filter((poly) => poly.length > 0);
+    if (polys.length === 0) return null;
+    return { type: "MultiPolygon", coordinates: polys };
+  }
+
+  return null;
+}
+
 /**
  * Load a GeoJSON file from disk and return the parsed FeatureCollection.
  *
@@ -219,7 +474,13 @@ module.exports = {
   projectPoint,
   pointString,
   projectLine,
+  projectParts,
   simplify,
   loadGeoJSON,
   roundTo,
+  clipSegmentToBBox,
+  clipLineToBBox,
+  clipPolygonToBBox,
+  clipGeometryToBBox,
+  expandBBox,
 };
