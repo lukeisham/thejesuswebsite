@@ -156,7 +156,7 @@ Events.createEventElement = function (ev, x, y) {
   const el = document.createElement("button");
   el.className = "admin-timeline-event";
   el.style.position = "absolute";
-  el.style.left = x - 8 + "px";
+  el.style.left = x - 6 + "px";
   el.style.top = y + "px";
   el.setAttribute("aria-label", ev.title || "Timeline event");
   el.title = ev.title || "";
@@ -165,6 +165,21 @@ Events.createEventElement = function (ev, x, y) {
 
   if (ev.id === selectedEventId) {
     el.classList.add("admin-timeline-event--selected");
+  }
+
+  // Label above the dot (truncated title)
+  let labelText = ev.title || "";
+  if (labelText.length > 20) labelText = labelText.slice(0, 18) + "\u2026";
+  if (labelText) {
+    const label = document.createElement("span");
+    label.className = "admin-timeline-event-label";
+    label.style.position = "absolute";
+    label.style.left = x - 40 + "px";
+    label.style.top = y - 16 + "px";
+    label.style.width = "80px";
+    label.style.textAlign = "center";
+    label.textContent = labelText;
+    el.appendChild(label);
   }
 
   el.addEventListener("click", function (e) {

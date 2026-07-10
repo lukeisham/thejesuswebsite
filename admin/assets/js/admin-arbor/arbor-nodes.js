@@ -1,9 +1,9 @@
 /**
  * Admin arbor nodes module.
  *
- * Loads evidence nodes from the arbor graph, renders them as draggable SVG
- * circles, supports search-to-add for placing new evidence on the canvas,
- * and persists positions via UpdateRecord.
+ * Loads evidence nodes from the arbor graph, renders them as draggable
+ * public-style rounded-rect nodes (WYSIWYG), supports search-to-add,
+ * and persists positions server-side via UpdateRecord.
  *
  * Depends on AdminArborCanvas for rendering and coordinate conversion.
  *
@@ -29,6 +29,11 @@ let addingMode = false;
 
 /** @type {string} */
 let searchQuery = "";
+
+/** Node dimensions matching the public arbor-node (200×80). */
+const NODE_WIDTH = 200;
+const NODE_HEIGHT = 56;
+const NODE_RX = 8;
 
 /* ── Initialisation ────────────────────────────────────────────────────────── */
 
@@ -62,12 +67,21 @@ Nodes.init = function () {
   const searchClose = document.getElementById("arbor-search-close");
   if (searchClose)
     searchClose.addEventListener("click", Nodes.closeSearchDialog);
+
+  // One-time migration: push any legacy localStorage positions to the server
+  if (
+    typeof UpdateRecord !== "undefined" &&
+    UpdateRecord.migrateLocalPositions
+  ) {
+    UpdateRecord.migrateLocalPositions();
+  }
 };
 
 /* ── Node loading ──────────────────────────────────────────────────────────── */
 
 /**
  * Fetch the full arbor graph and render nodes and edges.
+ * Positions now come from the API (x/y on each node) — localStorage is legacy.
  *
  * @returns {Promise<void>}
  */
@@ -75,16 +89,20 @@ Nodes.loadNodes = async function () {
   try {
     const data = await Admin.api.get("/arbor");
     nodes = data.nodes || [];
-    // Restore saved positions
+    // Use server positions; fall back to grid for nodes with null x/y
     for (let i = 0; i < nodes.length; i++) {
-      const pos = UpdateRecord.loadNodePosition(nodes[i].id);
-      if (pos) {
-        nodes[i].arbor_x = pos.x;
-        nodes[i].arbor_y = pos.y;
+      if (
+        nodes[i].x != null &&
+        nodes[i].y != null &&
+        Number.isFinite(nodes[i].x) &&
+        Number.isFinite(nodes[i].y)
+      ) {
+        nodes[i].arbor_x = nodes[i].x;
+        nodes[i].arbor_y = nodes[i].y;
       } else {
         // Default layout — spread nodes in a grid
-        nodes[i].arbor_x = nodes[i].arbor_x || 100 + (i % 5) * 180;
-        nodes[i].arbor_y = nodes[i].arbor_y || 100 + Math.floor(i / 5) * 140;
+        nodes[i].arbor_x = 100 + (i % 5) * 220;
+        nodes[i].arbor_y = 100 + Math.floor(i / 5) * 160;
       }
     }
     Nodes.renderNodes();
@@ -143,6 +161,8 @@ Nodes.renderNodes = function () {
 
 /**
  * Create the SVG element group for a single node.
+ * Renders a public-style rounded-rect with title + verse, replacing the old
+ * circle+label. Drag/click/selection wiring is unchanged.
  *
  * @param {Object} node
  * @returns {SVGGElement}
@@ -154,30 +174,66 @@ Nodes.createNodeElement = function (node) {
   g.setAttribute("data-node-id", String(node.id));
   g.style.cursor = "pointer";
 
-  const cx = node.arbor_x || 0;
-  const cy = node.arbor_y || 0;
+  const x = node.arbor_x || 0;
+  const y = node.arbor_y || 0;
 
-  const circle = window.AdminArborCanvas.createNodeCircle(
-    cx,
-    cy,
-    24,
-    "admin-arbor-node",
-  );
-  if (node.id === selectedNodeId) {
-    circle.classList.add("admin-arbor-node--selected");
+  // Determine role (root, related) from edges for border styling
+  const edges = window.AdminArborEdges
+    ? window.AdminArborEdges.getAllEdges()
+    : [];
+  let isRoot = false;
+  let isRelated = false;
+  for (let e = 0; e < edges.length; e++) {
+    if (
+      edges[e].relationship_type === "root" &&
+      edges[e].source_id === node.id
+    ) {
+      isRoot = true;
+    }
+    if (
+      edges[e].relationship_type === "related" &&
+      (edges[e].source_id === node.id || edges[e].target_id === node.id)
+    ) {
+      isRelated = true;
+    }
   }
-  g.appendChild(circle);
 
-  // Short title label below the circle
-  let labelText = node.title || "";
-  if (labelText.length > 24) labelText = labelText.slice(0, 22) + "\u2026";
-  const label = window.AdminArborCanvas.createNodeLabel(
-    cx,
-    cy + 38,
-    labelText,
-    "admin-arbor-node-label",
-  );
-  g.appendChild(label);
+  // Background rect
+  const rect = document.createElementNS(ns, "rect");
+  rect.setAttribute("x", String(x));
+  rect.setAttribute("y", String(y));
+  rect.setAttribute("width", String(NODE_WIDTH));
+  rect.setAttribute("height", String(NODE_HEIGHT));
+  rect.setAttribute("rx", String(NODE_RX));
+  rect.setAttribute("ry", String(NODE_RX));
+
+  let nodeClass = "admin-arbor-node";
+  if (isRoot) nodeClass += " admin-arbor-node--root";
+  else if (isRelated) nodeClass += " admin-arbor-node--related";
+  if (node.id === selectedNodeId) nodeClass += " admin-arbor-node--selected";
+  rect.setAttribute("class", nodeClass);
+  g.appendChild(rect);
+
+  // Title text (bold, primary)
+  let titleText = node.title || "";
+  if (titleText.length > 28) titleText = titleText.slice(0, 26) + "\u2026";
+  const titleEl = document.createElementNS(ns, "text");
+  titleEl.setAttribute("x", String(x + 10));
+  titleEl.setAttribute("y", String(y + 20));
+  titleEl.setAttribute("class", "admin-arbor-node-title");
+  titleEl.textContent = titleText;
+  g.appendChild(titleEl);
+
+  // Verse text (italic, muted)
+  const verseText = node.primary_verse || "";
+  if (verseText) {
+    const verseEl = document.createElementNS(ns, "text");
+    verseEl.setAttribute("x", String(x + 10));
+    verseEl.setAttribute("y", String(y + 40));
+    verseEl.setAttribute("class", "admin-arbor-node-verse");
+    verseEl.textContent = verseText;
+    g.appendChild(verseEl);
+  }
 
   // Wire click
   g.addEventListener("click", function (e) {
@@ -277,7 +333,7 @@ Nodes.onSaveNode = async function () {
 /**
  * Remove a node from the canvas (does not delete the evidence record).
  */
-Nodes.onRemoveNode = function () {
+Nodes.onRemoveNode = async function () {
   if (!selectedNodeId) return;
 
   if (
@@ -287,10 +343,15 @@ Nodes.onRemoveNode = function () {
   )
     return;
 
+  try {
+    await UpdateRecord.removeNodePosition(selectedNodeId);
+  } catch (err) {
+    console.error("Failed to remove node position:", err);
+  }
+
   nodes = nodes.filter(function (n) {
     return n.id !== selectedNodeId;
   });
-  UpdateRecord.removeNodePosition(selectedNodeId);
   Nodes.closeEditPanel();
   Nodes.renderNodes();
 
@@ -345,15 +406,20 @@ Nodes.onNodeMouseMove = function (e) {
     '[data-node-id="' + dragState.node.id + '"]',
   );
   if (el) {
-    const circle = el.querySelector("circle");
-    const label = el.querySelector("text");
-    if (circle) {
-      circle.setAttribute("cx", String(newX));
-      circle.setAttribute("cy", String(newY));
+    const rect = el.querySelector("rect");
+    const titleEl = el.querySelector("text.admin-arbor-node-title");
+    const verseEl = el.querySelector("text.admin-arbor-node-verse");
+    if (rect) {
+      rect.setAttribute("x", String(newX));
+      rect.setAttribute("y", String(newY));
     }
-    if (label) {
-      label.setAttribute("x", String(newX));
-      label.setAttribute("y", String(newY + 38));
+    if (titleEl) {
+      titleEl.setAttribute("x", String(newX + 10));
+      titleEl.setAttribute("y", String(newY + 20));
+    }
+    if (verseEl) {
+      verseEl.setAttribute("x", String(newX + 10));
+      verseEl.setAttribute("y", String(newY + 40));
     }
   }
 
@@ -368,7 +434,8 @@ Nodes.onNodeMouseMove = function (e) {
 };
 
 /**
- * Mouse-up during node drag — persist the new position.
+ * Mouse-up during node drag — persist the new position server-side.
+ * On failure, show an error toast and revert to the original position.
  *
  * @param {MouseEvent} e
  */
@@ -384,20 +451,39 @@ Nodes.onNodeMouseUp = function (e) {
 
   const newX = dragState.origX + dx;
   const newY = dragState.origY + dy;
+  const nodeId = dragState.node.id;
+  const origX = dragState.origX;
+  const origY = dragState.origY;
 
-  // Update local state
+  dragState = null;
+
+  // Update local state optimistically
   for (let i = 0; i < nodes.length; i++) {
-    if (nodes[i].id === dragState.node.id) {
+    if (nodes[i].id === nodeId) {
       nodes[i].arbor_x = newX;
       nodes[i].arbor_y = newY;
       break;
     }
   }
 
-  // Persist position
-  UpdateRecord.saveNodePosition(dragState.node.id, newX, newY);
+  // Persist to server; revert on failure
+  UpdateRecord.saveNodePosition(nodeId, newX, newY).catch(function (err) {
+    console.error("Failed to save node position:", err);
+    // Revert local state
+    for (let i = 0; i < nodes.length; i++) {
+      if (nodes[i].id === nodeId) {
+        nodes[i].arbor_x = origX;
+        nodes[i].arbor_y = origY;
+        break;
+      }
+    }
+    Nodes.renderNodes();
+    // Show error toast if available
+    if (typeof window.showToast === "function") {
+      window.showToast("Failed to save node position.", "error");
+    }
+  });
 
-  dragState = null;
   Nodes.renderNodes();
 };
 
@@ -516,10 +602,11 @@ Nodes.renderSearchResults = async function () {
 
 /**
  * Add an evidence record as a node on the canvas.
+ * Persists the position to the server before rendering.
  *
  * @param {Object} evidence
  */
-Nodes.addNodeToCanvas = function (evidence) {
+Nodes.addNodeToCanvas = async function (evidence) {
   // Prevent duplicates
   if (Nodes.getNodeById(evidence.id)) return;
 
@@ -539,19 +626,31 @@ Nodes.addNodeToCanvas = function (evidence) {
     tx,
   );
 
+  const nodeX = Math.round(diag.x);
+  const nodeY = Math.round(diag.y);
+
+  // Persist position to server before rendering
+  try {
+    await UpdateRecord.saveNodePosition(evidence.id, nodeX, nodeY);
+  } catch (err) {
+    console.error("Failed to save new node position:", err);
+    if (typeof window.showToast === "function") {
+      window.showToast("Failed to save node position.", "error");
+    }
+    return;
+  }
+
   const node = {
     id: evidence.id,
     title: evidence.title,
     slug: evidence.slug,
     primary_verse: evidence.primary_verse,
     description: evidence.description,
-    arbor_x: diag.x,
-    arbor_y: diag.y,
+    arbor_x: nodeX,
+    arbor_y: nodeY,
   };
 
   nodes.push(node);
-  UpdateRecord.saveNodePosition(node.id, node.arbor_x, node.arbor_y);
-
   Nodes.closeSearchDialog();
   Nodes.renderNodes();
 };

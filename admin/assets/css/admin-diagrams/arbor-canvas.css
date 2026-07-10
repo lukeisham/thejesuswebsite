@@ -1,6 +1,9 @@
 /* ==========================================================================
-   Arbor Canvas (Admin)
-   SVG canvas, nodes, edges, and responsive.
+   Arbor Canvas (Admin) — WYSIWYG restyle
+   Matches the public arbor page: parchment background with dot-grid,
+   rounded-rect nodes, public edge styling per relationship_type.
+   Admin-only affordances (selection outline, hover, edge-mode cursor)
+   are preserved.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -11,7 +14,13 @@
     flex: 1;
     position: relative;
     overflow: hidden;
-    background: var(--admin-canvas-bg);
+    background-color: var(--bg-primary);
+    background-image: radial-gradient(
+        circle,
+        var(--border) 1px,
+        transparent 1px
+    );
+    background-size: 24px 24px;
     border-top: 1px solid var(--admin-border);
 }
 .admin-arbor-canvas--edging {
@@ -24,59 +33,78 @@
 }
 
 /* -------------------------------------------------------------------------
-   Nodes
+   Nodes — public-style rounded-rect
    ------------------------------------------------------------------------- */
 
 .admin-arbor-node {
-    fill: var(--admin-surface);
-    stroke: var(--admin-accent);
-    stroke-width: 2.5;
+    fill: var(--bg-surface);
+    stroke: var(--border);
+    stroke-width: 1;
     cursor: pointer;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.08));
     transition:
-        r var(--admin-transition),
-        stroke-width var(--admin-transition);
+        filter var(--duration-fast) var(--ease-out),
+        stroke-width var(--duration-fast) var(--ease-out);
 }
 .admin-arbor-node:hover {
-    stroke-width: 3.5;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12));
+    stroke-width: 2;
+}
+.admin-arbor-node--root {
+    fill: var(--bg-surface-alt);
+    stroke: var(--accent);
+    stroke-width: 2;
+}
+.admin-arbor-node--related {
+    stroke: var(--border-strong);
+    stroke-dasharray: 6 4;
 }
 .admin-arbor-node--selected {
-    fill: var(--admin-selected-color);
-    stroke: var(--admin-selected-stroke);
-    stroke-width: 3.5;
+    stroke: var(--accent);
+    stroke-width: 3;
+    filter: drop-shadow(0 0 0 2px rgba(199, 154, 75, 0.2));
 }
-.admin-arbor-node-label {
+.admin-arbor-node-title {
+    font-size: 13px;
+    font-family: var(--font-serif);
+    fill: var(--text-primary);
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
+}
+.admin-arbor-node-verse {
     font-size: 11px;
-    font-family: var(--admin-font-sans);
-    fill: var(--admin-text-primary);
+    font-family: var(--font-serif);
+    fill: var(--text-muted);
+    font-style: italic;
     pointer-events: none;
     user-select: none;
 }
 
 /* -------------------------------------------------------------------------
-   Edges
+   Edges — public-style per relationship_type
    ------------------------------------------------------------------------- */
 
 .admin-arbor-edge {
-    stroke: var(--admin-border);
-    stroke-width: 2;
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
     fill: none;
     cursor: pointer;
-    transition: stroke var(--admin-transition);
+    transition: stroke var(--duration-fast) var(--ease-out);
 }
 .admin-arbor-edge:hover {
-    stroke: var(--admin-accent);
+    stroke: var(--accent);
 }
 .admin-arbor-edge-label {
     font-size: 9px;
-    font-family: var(--admin-font-sans);
-    fill: var(--admin-text-secondary);
+    font-family: var(--font-sans);
+    fill: var(--text-muted);
     pointer-events: none;
     user-select: none;
     text-transform: capitalize;
 }
 .admin-arbor-edge-temp {
-    stroke: var(--admin-accent);
+    stroke: var(--accent);
     stroke-width: 2;
     stroke-dasharray: 6 4;
     fill: none;

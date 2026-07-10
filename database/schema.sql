@@ -564,6 +564,23 @@ CREATE TABLE arbor_edges (
     CHECK (source_id <> target_id)
 );
 
+CREATE TABLE arbor_nodes (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    evidence_id   INTEGER UNIQUE NOT NULL REFERENCES evidence(id) ON DELETE CASCADE,
+    x             REAL NOT NULL,
+    y             REAL NOT NULL,
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER trg_arbor_nodes_updated_at
+    AFTER UPDATE ON arbor_nodes
+    FOR EACH ROW
+    WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+    UPDATE arbor_nodes SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
 -- =====================
 -- COLLECTIONS JUNCTION
 -- =====================
@@ -601,6 +618,7 @@ CREATE INDEX idx_evidence_map_location     ON evidence (map_location);
 -- Arbor edges
 CREATE INDEX idx_arbor_edges_source        ON arbor_edges (source_id);
 CREATE INDEX idx_arbor_edges_target        ON arbor_edges (target_id);
+CREATE INDEX idx_arbor_nodes_evidence      ON arbor_nodes (evidence_id);
 
 -- Responses per challenge
 CREATE INDEX idx_responses_challenge_id     ON responses (challenge_id);

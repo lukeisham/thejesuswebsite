@@ -1,6 +1,9 @@
 /* ==========================================================================
-   Timeline Canvas (Admin)
-   Canvas, axis, era bands, tick marks, event markers, and responsive.
+   Timeline Canvas (Admin) — WYSIWYG restyle
+   Matches the public timeline page: bg-primary background with dot-grid,
+   12px dot events with 1px border, public dot/label/era-marker tokens.
+   Admin-only affordances (hover scale, selection ring, edge-mode cursor)
+   are preserved.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -11,7 +14,13 @@
     flex: 1;
     overflow-x: auto;
     overflow-y: hidden;
-    background: var(--admin-canvas-bg);
+    background-color: var(--bg-primary);
+    background-image: radial-gradient(
+        circle,
+        var(--border) 1px,
+        transparent 1px
+    );
+    background-size: 24px 24px;
     position: relative;
     border-top: 1px solid var(--admin-border);
     cursor: grab;
@@ -26,7 +35,8 @@
    ------------------------------------------------------------------------- */
 
 .admin-timeline-axis-line {
-    background: var(--admin-border);
+    background: var(--border);
+    height: 1px;
 }
 
 /* -------------------------------------------------------------------------
@@ -34,24 +44,28 @@
    ------------------------------------------------------------------------- */
 
 .admin-timeline-era-band {
-    background: var(--admin-era-band-bg);
-    border-right: 1px dashed var(--admin-border-light);
+    background: var(--bg-surface-alt);
+    border-right: 1px dashed var(--border);
+    opacity: 0.6;
 }
 .admin-timeline-era-band:nth-child(2) {
-    background: var(--admin-era-band-bg-alt);
+    background: var(--bg-surface-alt);
+    opacity: 0.4;
 }
 .admin-timeline-era-band:nth-child(3) {
-    background: var(--admin-era-band-bg-third);
+    background: var(--bg-surface-alt);
+    opacity: 0.5;
 }
 .admin-timeline-era-label {
     position: absolute;
     top: 6px;
     left: 12px;
-    font-size: 0.75rem;
+    font-size: var(--text-h4);
     font-weight: 600;
-    color: var(--admin-text-muted);
+    color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    font-family: var(--font-serif);
 }
 
 /* -------------------------------------------------------------------------
@@ -61,7 +75,7 @@
 .admin-timeline-tick {
     width: 1px;
     height: 12px;
-    background: var(--admin-border);
+    background: var(--border-strong);
     transform: translateY(-6px);
 }
 .admin-timeline-tick-label {
@@ -69,31 +83,30 @@
     top: 10px;
     left: 4px;
     font-size: 0.625rem;
-    color: var(--admin-text-muted);
+    color: var(--text-muted);
     white-space: nowrap;
     transform: rotate(-45deg);
     transform-origin: left top;
 }
 
 /* -------------------------------------------------------------------------
-   Event Markers
+   Event Markers — public-style dots
    ------------------------------------------------------------------------- */
 
 .admin-timeline-event {
-    width: 16px;
-    height: 16px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    background: var(--admin-accent);
-    border: 2px solid var(--admin-surface);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
     cursor: pointer;
     z-index: 2;
     padding: 0;
-    margin-left: -8px;
-    margin-top: -8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    margin-left: -6px;
+    margin-top: -6px;
     transition:
-        transform var(--admin-transition),
-        box-shadow var(--admin-transition);
+        transform var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
 }
 .admin-timeline-event:hover {
     transform: scale(1.5);
@@ -101,10 +114,25 @@
     z-index: 3;
 }
 .admin-timeline-event--selected {
-    background: var(--admin-selected-color);
+    background: var(--accent);
+    border-color: var(--accent);
     transform: scale(1.5);
-    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.3);
+    box-shadow: 0 0 0 3px rgba(199, 154, 75, 0.3);
     z-index: 3;
+}
+
+/* -------------------------------------------------------------------------
+   Event Labels
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-event-label {
+    position: absolute;
+    font-size: 10px;
+    font-family: var(--font-sans);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
 }
 
 /* -------------------------------------------------------------------------

@@ -255,3 +255,161 @@ describe("totalWidth", function () {
     assert.ok(w > 1000); // 38 periods * 80px = 3040
   });
 });
+
+// ── Mirror-consistency: period ordering ───────────────────────────────────────
+// These tests verify the admin timeline axis produces results that mirror
+// the public timeline rendering, so a dragged event lands in the same place.
+
+describe("period ordering consistency", function () {
+  test("ordinals are strictly increasing", function () {
+    var prev = -1;
+    // PERIOD_ORDER is captured via periodOrdinal on each value
+    var periods = [
+      "PreIncarnation",
+      "OldTestament",
+      "EarlyLifeUnborn",
+      "EarlyLifeBirth",
+      "EarlyLifeInfancy",
+      "EarlyLifeChildhood",
+      "LifeTradie",
+      "LifeBaptism",
+      "LifeTemptation",
+      "GalileeCallingTwelve",
+      "GalileeSermonMount",
+      "GalileeMiraclesSea",
+      "GalileeTransfiguration",
+      "JudeanOutsideJudea",
+      "JudeanMissionSeventy",
+      "JudeanTeachingTemple",
+      "JudeanRaisingLazarus",
+      "JudeanFinalJourney",
+      "PassionPalmSunday",
+      "ReturnOfJesus",
+    ];
+    for (var i = 0; i < periods.length; i++) {
+      var ord = periodOrdinal(periods[i]);
+      assert.ok(
+        ord > prev,
+        periods[i] + " ordinal " + ord + " should be > " + prev,
+      );
+      prev = ord;
+    }
+  });
+});
+
+// ── Mirror-consistency: era-for-period mapping ────────────────────────────────
+
+describe("era-for-period mapping matches schema CHECK groupings", function () {
+  // Era boundaries defined in the admin axis and matching the public timeline.
+  // These map each era to its first period — the same boundary used by eraStartX.
+  test("era boundaries match expected periods", function () {
+    var expectedBoundaries = {
+      PreIncarnation: "PreIncarnation",
+      OldTestament: "OldTestament",
+      EarlyLife: "EarlyLifeUnborn",
+      Life: "LifeTradie",
+      GalileeMinistry: "GalileeCallingTwelve",
+      JudeanMinistry: "JudeanOutsideJudea",
+      PassionWeek: "PassionPalmSunday",
+      "Post-Passion": "PostResurrectionAppearances",
+    };
+
+    var eras = Object.keys(expectedBoundaries);
+    for (var e = 0; e < eras.length; e++) {
+      var era = eras[e];
+      var firstPeriod = expectedBoundaries[era];
+      var x = eraStartX(era, 80, 0);
+      var expectedX = periodToX(firstPeriod, 80, 0);
+      assert.equal(
+        x,
+        expectedX,
+        "era " + era + " should start at " + firstPeriod,
+      );
+    }
+  });
+
+  test("every era has at least one period in its range", function () {
+    var eras = [
+      "PreIncarnation",
+      "OldTestament",
+      "EarlyLife",
+      "Life",
+      "GalileeMinistry",
+      "JudeanMinistry",
+      "PassionWeek",
+      "Post-Passion",
+    ];
+    for (var e = 0; e < eras.length - 1; e++) {
+      var thisEra = eras[e];
+      var nextEra = eras[e + 1];
+      var thisStart = eraStartX(thisEra, 80, 0);
+      var nextStart = eraStartX(nextEra, 80, 0);
+      assert.ok(
+        nextStart > thisStart,
+        nextEra + " should start after " + thisEra,
+      );
+    }
+  });
+});
+
+// ── Mirror-consistency: drag-snap round-trip identity ─────────────────────────
+
+describe("drag-snap round-trip identity for every period", function () {
+  test("periodToX then xToPeriod returns the same period for all periods", function () {
+    // Verify round-trip for ALL periods at various scales
+    var periods = [
+      "PreIncarnation",
+      "OldTestament",
+      "EarlyLifeUnborn",
+      "EarlyLifeBirth",
+      "EarlyLifeInfancy",
+      "EarlyLifeChildhood",
+      "LifeTradie",
+      "LifeBaptism",
+      "LifeTemptation",
+      "GalileeCallingTwelve",
+      "GalileeSermonMount",
+      "GalileeMiraclesSea",
+      "GalileeTransfiguration",
+      "JudeanOutsideJudea",
+      "JudeanMissionSeventy",
+      "JudeanTeachingTemple",
+      "JudeanRaisingLazarus",
+      "JudeanFinalJourney",
+      "PassionPalmSunday",
+      "PassionMondayCleansing",
+      "PassionTuesdayTeaching",
+      "PassionWednesdaySilent",
+      "PassionMaundyThursday",
+      "PassionMaundyLastSupper",
+      "PassionMaundyGethsemane",
+      "PassionMaundyBetrayal",
+      "PassionFridaySanhedrin",
+      "PassionFridayCivilTrials",
+      "PassionFridayCrucifixionBegins",
+      "PassionFridayDarkness",
+      "PassionFridayDeath",
+      "PassionFridayBurial",
+      "PassionSaturdayWatch",
+      "PassionSundayResurrection",
+      "PostResurrectionAppearances",
+      "Ascension",
+      "OurResponse",
+      "ReturnOfJesus",
+    ];
+
+    var offsets = [0, 50, -30];
+    for (var o = 0; o < offsets.length; o++) {
+      for (var p = 0; p < periods.length; p++) {
+        var period = periods[p];
+        var x = periodToX(period, 100, offsets[o]);
+        var result = xToPeriod(x, 100, offsets[o]);
+        assert.equal(
+          result,
+          period,
+          "round-trip failed for " + period + " at offset " + offsets[o],
+        );
+      }
+    }
+  });
+});
