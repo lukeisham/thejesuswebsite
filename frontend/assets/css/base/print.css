@@ -87,7 +87,7 @@
     .verse-block {
         margin-left: 1.5cm;
         background: none;
-        border-left: 2px solid #888888;
+        border-left: 2px solid var(--border-strong);
     }
 
     /* -----------------------------------------------------------------------
@@ -121,7 +121,7 @@
 
     .breakout {
         background: none;
-        border-left: 3px solid #888888;
+        border-left: 3px solid var(--border-strong);
     }
 
     /* -----------------------------------------------------------------------

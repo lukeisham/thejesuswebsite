@@ -191,6 +191,13 @@ export async function getAbout() {
   return request("/about");
 }
 
+// ─── Site Settings ────────────────────────────────────────────────────────────
+
+/** Global site-branding metadata: title, description, og_image. */
+export async function getSiteSettings() {
+  return request("/site-settings");
+}
+
 // ─── Wikipedia ────────────────────────────────────────────────────────────────
 
 /** @param {Object} [params] */

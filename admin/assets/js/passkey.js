@@ -126,18 +126,11 @@ Passkey.describeCredentialError = function (error, ceremony) {
  */
 Passkey.postJson = async function (url, body, extraHeaders) {
   try {
-    return await fetch(url, {
-      method: "POST",
-      headers: Object.assign(
-        { "Content-Type": "application/json" },
-        extraHeaders,
-      ),
-      body: JSON.stringify(body),
-    });
-  } catch (_networkError) {
-    throw new Error(
-      "Could not reach the server. Check your connection and try again.",
-    );
+    return await AdminHttp.postJson(url, body, extraHeaders);
+  } catch (err) {
+    // AdminHttp.postJson already throws a typed error on network failure.
+    // Re-throw so the ceremony flows can catch and display the message.
+    throw err;
   }
 };
 
