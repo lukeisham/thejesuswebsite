@@ -294,8 +294,22 @@ CREATE TABLE analytics (
     user_agent TEXT,
     ip_hash    TEXT,
     session_id TEXT,
-    visited_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    visited_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    device_type TEXT,
+    browser    TEXT,
+    os         TEXT,
+    country    TEXT
 );
+
+CREATE TABLE geoip_blocks (
+    network_start_ip INTEGER NOT NULL,
+    network_end_ip   INTEGER NOT NULL,
+    geoname_id       INTEGER,
+    country_iso_code TEXT,
+    country_name     TEXT
+);
+
+CREATE INDEX idx_geoip_start ON geoip_blocks (network_start_ip);
 
 CREATE TABLE schema_migrations (
     filename   TEXT PRIMARY KEY,

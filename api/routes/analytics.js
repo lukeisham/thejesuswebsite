@@ -6,6 +6,8 @@ const crypto = require("crypto");
 const analyticsModel = require("../models/analytics.model");
 const requireAuth = require("../middleware/auth");
 const rateLimit = require("../middleware/rate-limit");
+const uaParser = require("../services/ua-parser");
+const geoip = require("../services/geoip");
 
 const router = express.Router();
 
@@ -33,13 +35,36 @@ router.post("/", analyticsPostLimit, (req, res) => {
       }
     }
 
+    // ── Server-side enrichment: device info from user-agent ────────────
+    const ua = req.get("user-agent") || null;
+    let device = { device_type: null, browser: null, os: null };
+    if (ua) {
+      try {
+        device = uaParser.parse(ua);
+      } catch {
+        // Parser failure must never block the page view (JS-2)
+      }
+    }
+
+    // ── Server-side enrichment: country from IP ────────────────────────
+    let geo = { country: null };
+    try {
+      geo = geoip.lookup(req.ip);
+    } catch {
+      // GeoIP lookup failure must never block the page view (JS-2)
+    }
+
     analyticsModel.record({
       page: req.body.page,
       referrer: req.body.referrer || null,
-      user_agent: req.get("user-agent") || null,
+      user_agent: ua,
       // JS-2: hash the IP server-side — never trust a client-supplied ip_hash.
       ip_hash: crypto.createHash("sha256").update(req.ip).digest("hex"),
       session_id: req.body.session_id || null,
+      device_type: device.device_type,
+      browser: device.browser,
+      os: device.os,
+      country: geo.country,
     });
     res.status(204).end();
   } catch (error) {
@@ -128,6 +153,31 @@ router.get("/recent", requireAuth, (req, res) => {
   } catch (error) {
     console.error("GET /analytics/recent failed:", error);
     res.status(500).json({ error: "Failed to load recent activity." });
+  }
+});
+
+// GET /analytics/top-countries (admin only)
+router.get("/top-countries", requireAuth, (req, res) => {
+  try {
+    res.json(
+      analyticsModel.getTopCountries(
+        req.query.since || null,
+        Math.min(Number(req.query.limit) || 10, 50),
+      ),
+    );
+  } catch (error) {
+    console.error("GET /analytics/top-countries failed:", error);
+    res.status(500).json({ error: "Failed to load countries." });
+  }
+});
+
+// GET /analytics/device-breakdown (admin only)
+router.get("/device-breakdown", requireAuth, (req, res) => {
+  try {
+    res.json(analyticsModel.getDeviceBreakdown(req.query.since || null));
+  } catch (error) {
+    console.error("GET /analytics/device-breakdown failed:", error);
+    res.status(500).json({ error: "Failed to load device breakdown." });
   }
 });
 
