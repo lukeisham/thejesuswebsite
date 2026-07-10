@@ -1,51 +1,36 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset="UTF-8" /></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" /></meta>
         <title>Jerusalem (Zoom) — The Jesus Website</title>
-        <meta
-            name="description"
-            content="Zoomed interactive map of Jerusalem showing detailed locations from the Gospels and early Christian history."
-        />
+        <meta name="description" content="Zoomed interactive map of Jerusalem showing detailed locations from the Gospels and early Christian history." /></meta>
 
-        <link
-            rel="icon"
-            href="/assets/images/favicon.png"
-            type="image/png"
-        />
-        <link rel="icon" href="/favicon.ico" sizes="32x32" />
-        <link
-            rel="apple-touch-icon"
-            href="/assets/images/apple-touch-icon.png"
-        />
-        <link rel="manifest" href="/assets/images/site.webmanifest" />
+        <link rel="icon" href="/assets/images/favicon.png" type="image/png" /></link>
+        <link rel="icon" href="/favicon.ico" sizes="32x32" /></link>
+        <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png" /></link>
+        <link rel="manifest" href="/assets/images/site.webmanifest" /></link>
 
-        <link rel="stylesheet" href="/assets/css/base/variables.css" />
-        <link rel="stylesheet" href="/assets/css/base/reset.css" />
-        <link rel="stylesheet" href="/assets/css/base/typography.css" />
-        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" />
-        <link rel="stylesheet" href="/assets/css/base/print.css" />
-        <link rel="stylesheet" href="/assets/css/base/animations.css" />
-        <link rel="stylesheet" href="/assets/css/layout/grid.css" />
-        <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
-        <link rel="stylesheet" href="/assets/css/layout/footer.css" />
-        <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
-        <link rel="stylesheet" href="/assets/css/components/icons.css" />
-        <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" />
-        <link rel="stylesheet" href="/assets/css/components/buttons.css" />
-        <link rel="stylesheet" href="/assets/css/components/breadcrumbs.css" />
-        <link rel="stylesheet" href="/assets/css/components/loading.css" />
-        <link rel="stylesheet" href="/assets/css/components/empty-states.css" />
-        <link rel="stylesheet" href="/assets/css/components/toasts.css" />
-        <link rel="stylesheet" href="/assets/css/pages/maps.css" />
+        <link rel="stylesheet" href="/assets/css/base/variables.css" /></link>
+        <link rel="stylesheet" href="/assets/css/base/reset.css" /></link>
+        <link rel="stylesheet" href="/assets/css/base/typography.css" /></link>
+        <link rel="stylesheet" href="/assets/css/base/invisible-header.css" /></link>
+        <link rel="stylesheet" href="/assets/css/base/print.css" /></link>
+        <link rel="stylesheet" href="/assets/css/base/animations.css" /></link>
+        <link rel="stylesheet" href="/assets/css/layout/grid.css" /></link>
+        <link rel="stylesheet" href="/assets/css/layout/navigation.css" /></link>
+        <link rel="stylesheet" href="/assets/css/layout/footer.css" /></link>
+        <link rel="stylesheet" href="/assets/css/components/sidebar.css" /></link>
+        <link rel="stylesheet" href="/assets/css/components/icons.css" /></link>
+        <link rel="stylesheet" href="/assets/css/components/cookie-consent.css" /></link>
+        <link rel="stylesheet" href="/assets/css/components/buttons.css" /></link>
+        <link rel="stylesheet" href="/assets/css/components/breadcrumbs.css" /></link>
+        <link rel="stylesheet" href="/assets/css/components/loading.css" /></link>
+        <link rel="stylesheet" href="/assets/css/components/empty-states.css" /></link>
+        <link rel="stylesheet" href="/assets/css/components/toasts.css" /></link>
+        <link rel="stylesheet" href="/assets/css/pages/maps.css" /></link>
 
-        <link
-            rel="preload"
-            as="image"
-            href="/assets/images/feather-sprite.svg"
-            fetchpriority="high"
-        />
+        <link rel="preload" as="image" href="/assets/images/feather-sprite.svg" fetchpriority="high" /></link>
     </head>
     <body data-map-key="jerusalem" data-map-zoom="2">
         <header class="sr-only">
@@ -54,14 +39,9 @@
         </header>
 
         <div class="sidebar-backdrop" hidden></div>
-        <button
-            class="sidebar__toggle"
-            id="sidebar-toggle"
-            aria-expanded="true"
-            aria-label="Toggle navigation"
-        >
+        <button class="sidebar__toggle" id="sidebar-toggle" aria-expanded="true" aria-label="Toggle navigation">
             <svg width="20" height="20" aria-hidden="true">
-                <use href="/assets/images/feather-sprite.svg#icon-menu" />
+                <use href="/assets/images/feather-sprite.svg#icon-menu"></use>
             </svg>
         </button>
         <nav class="sidebar" id="sidebar" aria-label="Site navigation">
@@ -92,143 +72,77 @@
         </nav>
 
         <main id="main-content">
-            <nav
-                class="breadcrumbs"
-                id="breadcrumbs"
-                aria-label="Breadcrumb"
-            ></nav>
+            <nav class="breadcrumbs" id="breadcrumbs" aria-label="Breadcrumb"></nav>
 
             <div class="maps-region-header">
                 <h2 class="maps-region-title" id="map-page-title">Map</h2>
             </div>
 
-            <nav
-                class="maps-region-nav"
-                id="region-nav"
-                aria-label="Map regions"
-            ></nav>
+            <nav class="maps-region-nav" id="region-nav" aria-label="Map regions"></nav>
 
             <div class="loading" id="loading-state">
-                <svg
-                    class="loading__spinner"
-                    width="24"
-                    height="24"
-                    aria-hidden="true"
-                >
-                    <use href="/assets/images/feather-sprite.svg#icon-loader" />
+                <svg class="loading__spinner" width="24" height="24" aria-hidden="true">
+                    <use href="/assets/images/feather-sprite.svg#icon-loader"></use>
                 </svg>
                 <span class="loading__text">Loading map…</span>
             </div>
 
             <div class="empty-state" id="empty-state" hidden>
                 <p class="empty-state__message">Map not found.</p>
-                <a href="/evidence/maps/" class="btn btn--secondary"
-                    >Back to Maps</a
-                >
+                <a href="/evidence/maps/" class="btn btn--secondary">Back to Maps</a>
             </div>
 
             <div class="map-canvas" id="map-container" hidden>
-                <div
-                    class="map-controls"
-                    id="map-controls"
-                    role="toolbar"
-                    aria-label="Zoom controls"
-                >
-                    <button
-                        class="btn btn--secondary"
-                        id="zoom-out"
-                        aria-label="Zoom out"
-                    >
+                <div class="map-controls" id="map-controls" role="toolbar" aria-label="Zoom controls">
+                    <button class="btn btn--secondary" id="zoom-out" aria-label="Zoom out">
                         <svg width="20" height="20" aria-hidden="true">
-                            <use
-                                href="/assets/images/feather-sprite.svg#icon-zoom-out"
-                            />
+                            <use href="/assets/images/feather-sprite.svg#icon-zoom-out"></use>
                         </svg>
                     </button>
-                    <button
-                        class="btn btn--secondary"
-                        id="zoom-reset"
-                        aria-label="Reset zoom"
-                    >
+                    <button class="btn btn--secondary" id="zoom-reset" aria-label="Reset zoom">
                         <svg width="20" height="20" aria-hidden="true">
-                            <use
-                                href="/assets/images/feather-sprite.svg#icon-maximize"
-                            />
+                            <use href="/assets/images/feather-sprite.svg#icon-maximize"></use>
                         </svg>
                     </button>
-                    <button
-                        class="btn btn--secondary"
-                        id="zoom-in"
-                        aria-label="Zoom in"
-                    >
+                    <button class="btn btn--secondary" id="zoom-in" aria-label="Zoom in">
                         <svg width="20" height="20" aria-hidden="true">
-                            <use
-                                href="/assets/images/feather-sprite.svg#icon-zoom-in"
-                            />
+                            <use href="/assets/images/feather-sprite.svg#icon-zoom-in"></use>
                         </svg>
                     </button>
                 </div>
 
                 <div class="map-viewport" id="map-viewport">
-                    <img class="map-image" id="map-image" src="" alt="" />
+                    <img class="map-image" id="map-image" src="" alt="" loading="lazy" /></img>
                     <div class="map-pins-layer" id="map-pins"></div>
                 </div>
             </div>
 
-            <div
-                class="map-tooltip"
-                id="map-tooltip"
-                hidden
-                role="tooltip"
-            ></div>
+            <div class="map-tooltip" id="map-tooltip" hidden role="tooltip"></div>
         </main>
 
         <footer>
             <div class="footer__left">
-                <img
-                    src="/assets/images/favicon-64.png"
-                    alt=""
-                    width="20"
-                    height="20"
-                />
+                <img src="/assets/images/favicon-64.png" alt="" width="20" height="20" /></img>
                 <p>
-                    &copy; <span id="footer-year"></span> The Jesus Website. <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC</a>.
+                    © <span id="footer-year"></span> The Jesus Website. <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC</a>.
                 </p>
             </div>
             <div class="footer__right">
-                <button
-                    class="btn btn--ghost"
-                    data-action="print"
-                    aria-label="Print page"
-                >
+                <button class="btn btn--ghost" data-action="print" aria-label="Print page">
                     <svg width="16" height="16" aria-hidden="true">
-                        <use
-                            href="/assets/images/feather-sprite.svg#icon-printer"
-                        />
+                        <use href="/assets/images/feather-sprite.svg#icon-printer"></use>
                     </svg>
                     Print
                 </button>
-                <button
-                    class="btn btn--ghost"
-                    data-action="copy-contents"
-                    aria-label="Copy page contents"
-                >
+                <button class="btn btn--ghost" data-action="copy-contents" aria-label="Copy page contents">
                     <svg width="16" height="16" aria-hidden="true">
-                        <use
-                            href="/assets/images/feather-sprite.svg#icon-copy"
-                        />
+                        <use href="/assets/images/feather-sprite.svg#icon-copy"></use>
                     </svg>
                     Copy Contents
                 </button>
-                <button
-                    class="btn btn--ghost"
-                    data-action="copy-url"
-                    aria-label="Copy page URL"
-                >
+                <button class="btn btn--ghost" data-action="copy-url" aria-label="Copy page URL">
                     <svg width="16" height="16" aria-hidden="true">
-                        <use
-                            href="/assets/images/feather-sprite.svg#icon-link"
-                        />
+                        <use href="/assets/images/feather-sprite.svg#icon-link"></use>
                     </svg>
                     Copy URL
                 </button>

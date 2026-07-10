@@ -32,7 +32,7 @@ const AdminAuth = window.AdminAuth;
  */
 AdminAuth.requireSession = async function () {
   try {
-    const res = await fetch("/api/auth/me");
+    const res = await AdminHttp.request("/api/auth/me");
     if (res.status === 401) {
       window.location.href = "/admin/auth/login.html";
       return false;
@@ -59,7 +59,7 @@ AdminAuth.requireSession = async function () {
  */
 AdminAuth.logout = async function () {
   try {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await AdminHttp.request("/api/auth/logout", { method: "POST" });
   } catch (_err) {
     // Even if the server is unreachable, redirect — the cookie will expire.
   }

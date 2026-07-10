@@ -20,11 +20,9 @@ const $skeleton = document.getElementById("skeleton-state");
 const $error = document.getElementById("error-state");
 const $empty = document.getElementById("empty-state");
 const $content = document.getElementById("blog-content");
-const $h1 = document.getElementById("page-h1");
-
 // Content regions
 const $category = document.getElementById("blog-category");
-const $title = document.getElementById("blog-title");
+const $title = document.getElementById("page-h1");
 const $avatar = document.getElementById("blog-avatar");
 const $author = document.getElementById("blog-author");
 const $date = document.getElementById("blog-date");
@@ -265,9 +263,6 @@ async function init() {
     showEmpty();
     return;
   }
-
-  // Update hidden h1
-  if ($h1) $h1.textContent = data.title || "Blog Post";
 
   // Render all sections
   renderHeader(data);

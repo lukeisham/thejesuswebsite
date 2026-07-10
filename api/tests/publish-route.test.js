@@ -5,6 +5,8 @@
 const { test, describe, before, beforeEach, after } = require("node:test");
 const assert = require("node:assert/strict");
 const http = require("http");
+const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const Database = require("better-sqlite3");
 const Module = require("module");
@@ -63,6 +65,45 @@ Module._cache[configPath] = {
   filename: configPath,
   loaded: true,
   exports: testDb,
+};
+
+// Redirect the content-pages config to a temp directory so generated HTML
+// files never land in the real frontend/ tree during tests.
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "publish-test-"));
+
+const realEvidenceTemplate = path.resolve(
+  __dirname,
+  "..",
+  "..",
+  "frontend",
+  "evidence",
+  "single",
+  "[slug].html",
+);
+const tempEvidenceDir = path.join(tmpDir, "evidence", "single");
+fs.mkdirSync(tempEvidenceDir, { recursive: true });
+fs.copyFileSync(
+  realEvidenceTemplate,
+  path.join(tempEvidenceDir, "[slug].html"),
+);
+
+const contentPagesPath = require.resolve(
+  path.resolve(__dirname, "..", "config", "content-pages"),
+);
+const realContentPages = require("../config/content-pages");
+Module._cache[contentPagesPath] = {
+  id: contentPagesPath,
+  filename: contentPagesPath,
+  loaded: true,
+  exports: {
+    CONTENT_PAGES: {
+      evidence: {
+        ...realContentPages.CONTENT_PAGES.evidence,
+        templatePath: path.join(tempEvidenceDir, "[slug].html"),
+        outputDir: tempEvidenceDir,
+      },
+    },
+  },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -167,6 +208,8 @@ describe("POST /publish/:type/:id", () => {
 
   after(() => {
     stopServer();
+    // Clean up the temp directory (rmSync is recursive, force ignores ENOENT).
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
   beforeEach(() => {
@@ -245,5 +288,44 @@ describe("POST /publish/:type/:id", () => {
     const res = await doReq("POST", "/publish/evidence/99999");
     assert.equal(res.status, 404);
     assert.equal(res.body.error, "Item not found.");
+  });
+
+  test("publishing evidence generates HTML in temp dir, not in real frontend", async () => {
+    const realDir = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "frontend",
+      "evidence",
+      "single",
+    );
+    const beforeFiles = new Set(
+      fs.readdirSync(realDir).filter((f) => !f.startsWith("[slug]")),
+    );
+
+    const id = seedEvidence({ title: "Page Gen Test", published_draft: 0 });
+    const res = await doReq("POST", "/publish/evidence/" + id);
+    assert.equal(res.status, 200);
+
+    // The generated file must exist under the temp output dir.
+    const slug = res.body.slug;
+    assert.ok(slug, "Expected a slug in the response body");
+    const generatedPath = path.join(tempEvidenceDir, slug + ".html");
+    assert.ok(
+      fs.existsSync(generatedPath),
+      "Expected generated file at " + generatedPath,
+    );
+
+    // The real frontend/evidence/single/ directory must have gained no new files.
+    const afterFiles = new Set(
+      fs.readdirSync(realDir).filter((f) => !f.startsWith("[slug]")),
+    );
+    const newcomers = [...afterFiles].filter((f) => !beforeFiles.has(f));
+    assert.equal(
+      newcomers.length,
+      0,
+      "No new files should appear in real frontend/evidence/single/: " +
+        newcomers.join(", "),
+    );
   });
 });

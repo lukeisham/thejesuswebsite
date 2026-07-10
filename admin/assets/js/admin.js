@@ -25,7 +25,7 @@ Admin.api = {
    * @returns {Promise<any>}
    */
   async get(url) {
-    const res = await fetch(this.BASE + url);
+    const res = await AdminHttp.request(this.BASE + url);
     if (res.status === 401) {
       window.location.href = "/admin/auth/login.html";
       throw new Error("Unauthorized");
@@ -44,7 +44,7 @@ Admin.api = {
    * @returns {Promise<any>}
    */
   async post(url, data) {
-    const res = await fetch(this.BASE + url, {
+    const res = await AdminHttp.request(this.BASE + url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -67,7 +67,7 @@ Admin.api = {
    * @returns {Promise<any>}
    */
   async put(url, data) {
-    const res = await fetch(this.BASE + url, {
+    const res = await AdminHttp.request(this.BASE + url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -89,7 +89,7 @@ Admin.api = {
    * @returns {Promise<any>}  null on 204, parsed JSON otherwise.
    */
   async del(url) {
-    const res = await fetch(this.BASE + url, { method: "DELETE" });
+    const res = await AdminHttp.request(this.BASE + url, { method: "DELETE" });
     if (res.status === 401) {
       window.location.href = "/admin/auth/login.html";
       throw new Error("Unauthorized");

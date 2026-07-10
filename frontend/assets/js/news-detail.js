@@ -17,11 +17,9 @@ import { showToast } from "./utils/toasts.js";
 const $skeleton = document.getElementById("skeleton-state");
 const $error = document.getElementById("error-state");
 const $content = document.getElementById("news-content");
-const $h1 = document.getElementById("page-h1");
-
 // Content regions
 const $backLink = document.getElementById("news-back-link");
-const $title = document.getElementById("news-title");
+const $title = document.getElementById("page-h1");
 const $meta = document.getElementById("news-meta");
 const $sourceLink = document.getElementById("news-source-link");
 const $externalLink = document.getElementById("news-external-link");
@@ -220,9 +218,6 @@ async function init() {
     showError("News article not found.");
     return;
   }
-
-  // Update hidden h1
-  if ($h1) $h1.textContent = data.title || "News Article";
 
   // Render all sections
   renderHeader(data);
