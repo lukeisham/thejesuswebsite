@@ -47,6 +47,13 @@
     cursor: grab;
     padding: var(--space-xl) 0 var(--space-3xl);
     -webkit-overflow-scrolling: touch;
+    background-color: var(--bg-primary);
+    background-image: radial-gradient(
+        circle,
+        var(--border) 1px,
+        transparent 1px
+    );
+    background-size: 24px 24px;
 }
 
 .timeline-container:active {
@@ -107,6 +114,9 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
 }
 
 /* -------------------------------------------------------------------------
@@ -171,12 +181,13 @@
 }
 
 .timeline-label-title {
-    display: block;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     font-weight: 500;
     color: var(--text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .timeline-label-meta {
@@ -325,5 +336,70 @@
     .timeline-label {
         font-size: 0.625rem;
         max-width: 72px;
+    }
+
+    /* ---------------------------------------------------------------------
+       Vertical mode — spine runs top-to-bottom, natural page scroll.
+       Applied via `.timeline-container--vertical` (set by timeline-render.js
+       when window.matchMedia('(max-width: 767px)') matches).
+       --------------------------------------------------------------------- */
+
+    .timeline-container--vertical {
+        overflow-x: visible;
+        overflow-y: visible;
+        cursor: default;
+    }
+
+    .timeline-container--vertical:active {
+        cursor: default;
+    }
+
+    .timeline-inner--vertical {
+        width: 100%;
+        min-height: 0;
+    }
+
+    .timeline-spine--vertical {
+        top: 0;
+        left: 50%;
+        width: 2px;
+        height: 100%;
+        transform: translateX(-50%);
+    }
+
+    .timeline-era-marker--vertical {
+        top: auto;
+        bottom: auto;
+        left: 0;
+        right: 0;
+        width: auto;
+        height: 1px;
+    }
+
+    .timeline-era-label--vertical {
+        left: calc(50% + 16px);
+        right: var(--space-sm);
+        transform: none;
+        text-align: left;
+        white-space: normal;
+        max-width: none;
+    }
+
+    .timeline-label.left,
+    .timeline-label.right {
+        max-width: calc(50% - 24px);
+        white-space: normal;
+    }
+
+    .timeline-label.left {
+        transform: translate(-100%, -50%);
+        text-align: right;
+        padding-right: var(--space-sm);
+    }
+
+    .timeline-label.right {
+        transform: translate(0, -50%);
+        text-align: left;
+        padding-left: var(--space-sm);
     }
 }
