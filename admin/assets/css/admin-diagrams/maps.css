@@ -1,0 +1,10 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Maps CSS Entry Point
+   Aggregates the split maps component stylesheets and the metadata panel.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import "./maps-toolbar.css";
+@import "./maps-canvas.css";
+@import "./maps-panel.css";
+@import "./maps-panel-form.css";
+@import "./maps-metadata.css";

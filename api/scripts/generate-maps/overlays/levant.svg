@@ -1,0 +1,22 @@
+<!-- Hand-drawn overlay: levant
+  Features with no modern Natural Earth dataset:
+  - Region boundaries (Galilee, Samaria, Judea, Idumea, Decapolis, Perea)
+  - Via Maris route segment
+  - Jordan River approximate course (natural course may differ from modern)
+  All coordinates are in the viewBox space (900×1000).
+-->
+<g id="overlay-levant" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Via Maris (coastal route) -->
+  <polyline points="180,120 200,220 220,320 250,420 280,520 310,620"/>
+  <!-- Trade road from coast to Damascus -->
+  <polyline points="250,420 320,400 400,340 500,280 600,240"/>
+</g>
+<!-- Region boundaries (approximate) -->
+<g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
+  <!-- Galilee / Samaria boundary -->
+  <polyline points="320,240 380,240 430,250 480,270 540,260 600,240"/>
+  <!-- Samaria / Judea boundary -->
+  <polyline points="310,370 360,370 420,380 480,380 540,370 600,340"/>
+  <!-- Judea / Idumea boundary -->
+  <polyline points="300,520 350,520 410,530 470,540 530,520"/>
+</g>

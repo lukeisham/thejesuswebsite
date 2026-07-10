@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1000" width="900" height="1000">
+<defs>
+<filter id="parchment-texture">
+<feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.95  0 0 0 0 0.93  0 0 0 0 0.89  0 0 0 0.04 0" in="noise" result="tint"/>
+<feBlend in="SourceGraphic" in2="tint" mode="multiply"/>
+</filter>
+</defs>
+<rect x="0" y="0" width="900" height="1000" fill="#F8F5F0"/>
+<polygon points="-36327.3,-2692.3 -35509.1,-3461.5 -35100,-6538.5 -34690.9,-7307.7 -33872.7,-7692.3 -32645.5,-7923.1 -27736.4,-7538.5 -26100,-6923.1 -25281.8,-7461.5 -23236.4,-7692.3 -21190.9,-8461.5 -19145.5,-8076.9 -17918.2,-7692.3 -15872.7,-6153.8 -12600,-4615.4 -8509.1,-1923.1 -3600,384.6 -2781.8,384.6 -736.4,1923.1 163.6,1384.6 -81.8,769.2 245.5,0 572.7,-307.7 1145.5,-153.8 7854.5,6153.8   -17918.2,-7692.3 -18736.4,-8461.5 -19554.5,-8461.5 -20372.7,-8230.8 -21190.9,-6923.1 -16281.8,-2692.3 -13827.3,-5384.6 -14236.4,-6153.8 -17918.2,-7692.3   -11781.8,-3846.2 -7281.8,-6153.8 -5236.4,-5153.8 -9736.4,-2538.5 -11781.8,-3846.2   -6054.5,-5615.4 -4418.2,-6000 -2781.8,-5615.4 -1145.5,-4615.4 1309.1,-2307.7 1309.1,-1923.1 -736.4,-2307.7 -5645.5,1923.1 -6054.5,1923.1 -7445.5,384.6 -7118.2,-769.2 -6054.5,-1923.1 -5645.5,-3461.5 -5645.5,-4230.8 -6463.6,-5384.6 -6054.5,-5615.4   -2127.3,-923.1 -1227.3,-1076.9 -490.9,-769.2 -2127.3,-923.1   -9327.3,-1307.7 -7118.2,-1153.8 -9327.3,-1307.7   -18327.3,-2692.3 -16281.8,-3076.9 -15954.5,-3692.3 -17100,-3692.3 -18736.4,-2769.2 -18327.3,-2692.3   -6054.5,-6384.6 490.9,-6384.6 4581.8,-5769.2 5809.1,-6153.8 5400,-6692.3 -6054.5,-6384.6   -35918.2,-2692.3 -31009.1,-7307.7 -29781.8,-7692.3 -29372.7,-7692.3 -23645.5,-2307.7 -23236.4,-2307.7 -21190.9,-4230.8 -22418.2,-2692.3 -35918.2,-2692.3   -36327.3,-2692.3 -22009.1,4230.8 -20372.7,3846.2 -19963.6,3076.9 -31009.1,-7307.7" fill="#F1EDE4" stroke="none"/>
+<polygon points="523.6,523.1 523.6,523.1   409.1,1538.5 409.1,1538.5" fill="#C9D4D8" stroke="#9FB0B6" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="589.1,323.1 531.8,1538.5   605.5,230.8 589.1,323.1   777.3,653.8 548.2,600   -4009.1,1923.1 -3190.9,1923.1 -2945.5,1538.5   900,-769.2 1145.5,-1384.6 490.9,-2076.9   2536.4,-2307.7 7445.5,-4076.9   -18736.4,-6923.1 -18490.9,-6307.7" fill="none" stroke="#9FB0B6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="-36327.3,-2692.3 -35509.1,-3461.5 -35100,-6538.5 -34690.9,-7307.7 -33872.7,-7692.3 -32645.5,-7923.1 -27736.4,-7538.5 -26100,-6923.1 -25281.8,-7461.5 -23236.4,-7692.3 -21190.9,-8461.5 -19145.5,-8076.9 -17918.2,-7692.3 -15872.7,-6153.8 -12600,-4615.4 -8509.1,-1923.1 -3600,384.6 -2781.8,384.6 -736.4,1923.1 163.6,1384.6 -81.8,769.2 245.5,0 572.7,-307.7 1145.5,-153.8 7854.5,6153.8   -17918.2,-7692.3 -18736.4,-8461.5 -19554.5,-8461.5 -20372.7,-8230.8 -21190.9,-6923.1 -16281.8,-2692.3 -13827.3,-5384.6 -14236.4,-6153.8 -17918.2,-7692.3   -11781.8,-3846.2 -7281.8,-6153.8 -5236.4,-5153.8 -9736.4,-2538.5 -11781.8,-3846.2   -6054.5,-5615.4 -4418.2,-6000 -2781.8,-5615.4 -1145.5,-4615.4 1309.1,-2307.7 1309.1,-1923.1 -736.4,-2307.7 -5645.5,1923.1 -6054.5,1923.1 -7445.5,384.6 -7118.2,-769.2 -6054.5,-1923.1 -5645.5,-3461.5 -5645.5,-4230.8 -6463.6,-5384.6 -6054.5,-5615.4   -2127.3,-923.1 -1227.3,-1076.9 -490.9,-769.2 -2127.3,-923.1   -9327.3,-1307.7 -7118.2,-1153.8 -9327.3,-1307.7   -18327.3,-2692.3 -16281.8,-3076.9 -15954.5,-3692.3 -17100,-3692.3 -18736.4,-2769.2 -18327.3,-2692.3   -6054.5,-6384.6 490.9,-6384.6 4581.8,-5769.2 5809.1,-6153.8 5400,-6692.3 -6054.5,-6384.6   -35918.2,-2692.3 -31009.1,-7307.7 -29781.8,-7692.3 -29372.7,-7692.3 -23645.5,-2307.7 -23236.4,-2307.7 -21190.9,-4230.8 -22418.2,-2692.3 -35918.2,-2692.3   -36327.3,-2692.3 -22009.1,4230.8 -20372.7,3846.2 -19963.6,3076.9 -31009.1,-7307.7" fill="none" stroke="#8B7D6B" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="380" cy="220" r="22" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="380" y="193" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Mt. Meron</text>
+<circle cx="500" cy="280" r="20" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="500" y="255" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Mt. Tabor</text>
+<circle cx="350" cy="150" r="18" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="350" y="127" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Upper Galilee hills</text>
+<!-- Hand-drawn overlay: galilee
+  Features with no modern Natural Earth dataset:
+  - Ancient roads (Via Maris segment, Capernaum corridor)
+  - Lake Huleh historical extent (drained 1950s; may be absent from Natural Earth)
+  - Upper/Lower Galilee regional boundary
+  All coordinates are in the viewBox space (900×1000).
+-->
+<g id="overlay-galilee" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Via Maris (coastal segment) -->
+  <polyline points="100,200 150,300 200,400 250,500 300,580"/>
+  <!-- Road from coast inland to Capernaum area -->
+  <polyline points="250,500 340,480 420,450 500,430 580,420"/>
+  <!-- Road: Nazareth → Sea of Galilee -->
+  <polyline points="380,350 420,380 460,410 500,430"/>
+</g>
+<!-- Lake Huleh historical extent (hand-drawn ellipse) -->
+<g fill="#C9D4D8" fill-opacity="0.6" stroke="#9FB0B6" stroke-width="0.8">
+  <ellipse cx="580" cy="170" rx="35" ry="18"/>
+</g>
+<!-- Upper / Lower Galilee boundary -->
+<g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
+  <polyline points="120,280 200,280 280,290 360,300 440,300 520,280 600,260 680,240"/>
+</g>
+<text x="600" y="480" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-style="italic" font-weight="normal" letter-spacing="0.15em" fill="#6B8B9A">SEA OF GALILEE</text>
+<text x="400" y="180" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">UPPER GALILEE</text>
+<text x="380" y="350" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">LOWER GALILEE</text>
+<text x="620" y="310" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-style="italic" font-weight="normal" letter-spacing="0.1em" fill="#6B8B9A" transform="rotate(-80, 620, 310)">Jordan River</text>
+<text x="570" y="170" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-style="italic" font-weight="normal" letter-spacing="0.15em" fill="#6B8B9A">Lake Huleh</text>
+<text x="200" y="80" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">PHOENICIA</text>
+<text x="700" y="300" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">GAULANITIS</text>
+<text x="750" y="550" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">DECAPOLIS</text>
+<rect x="12" y="12" width="876" height="976" fill="none" stroke="#5C4E3D" stroke-width="2"/>
+<rect x="16" y="16" width="868" height="968" fill="none" stroke="#5C4E3D" stroke-width="0.8"/>
+<rect x="260" y="930" width="380" height="50" rx="4" fill="rgba(248,245,240,0.92)" stroke="#8B7D6B" stroke-width="1"/><text x="450" y="952" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-weight="bold" fill="#5C4E3D">Galilee</text><text x="450" y="970" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-style="italic" fill="#B8A68E">in the time of Jesus · c. AD 30</text>
+<circle cx="845" cy="55" r="30" fill="#F1EDE4" stroke="#8B7D6B" stroke-width="1"/><polygon points="845,29 840,55 850,55" fill="#8B7D6B"/><polygon points="845,81 840,55 850,55" fill="#B8A68E"/><text x="845" y="22" text-anchor="middle" font-family="Georgia, serif" font-size="8" font-weight="bold" fill="#8B7D6B">N</text>
+</svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700">
+<defs>
+<filter id="parchment-texture">
+<feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.95  0 0 0 0 0.93  0 0 0 0 0.89  0 0 0 0.04 0" in="noise" result="tint"/>
+<feBlend in="SourceGraphic" in2="tint" mode="multiply"/>
+</filter>
+</defs>
+<rect x="0" y="0" width="1200" height="700" fill="#F8F5F0"/>
+<polygon points="10.9,388.9 32.7,363 43.6,259.3 54.5,233.3 76.4,220.4 109.1,212.6 240,225.6 283.6,246.3 305.5,228.1 360,220.4 414.5,194.4 469.1,207.4 501.8,220.4 556.4,272.2 643.6,324.1 752.7,414.8 883.6,492.6 905.5,492.6 960,544.4 984,526.3 977.5,505.6 986.2,479.6 994.9,469.3 1010.2,474.4 1189.1,687   501.8,220.4 480,194.4 458.2,194.4 436.4,202.2 414.5,246.3 545.5,388.9 610.9,298.1 600,272.2 501.8,220.4   665.5,350 785.5,272.2 840,305.9 720,394.1 665.5,350   818.2,290.4 861.8,277.4 905.5,290.4 949.1,324.1 1014.5,401.9 1014.5,414.8 960,401.9 829.1,544.4 818.2,544.4 781.1,492.6 789.8,453.7 818.2,414.8 829.1,363 829.1,337 807.3,298.1 818.2,290.4   922.9,448.5 946.9,443.3 966.5,453.7 922.9,448.5   730.9,435.6 789.8,440.7 730.9,435.6   490.9,388.9 545.5,375.9 554.2,355.2 523.6,355.2 480,386.3 490.9,388.9   818.2,264.4 992.7,264.4 1101.8,285.2 1134.5,272.2 1123.6,254.1 818.2,264.4   21.8,388.9 152.7,233.3 185.5,220.4 196.4,220.4 349.1,401.9 360,401.9 414.5,337 381.8,388.9 21.8,388.9   10.9,388.9 392.7,622.2 436.4,609.3 447.3,583.3 152.7,233.3" fill="#F1EDE4" stroke="none"/>
+<polygon points="993.6,497.3 993.6,497.3   990.5,531.5 990.5,531.5" fill="#C9D4D8" stroke="#9FB0B6" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="995.3,490.5 993.8,531.5   995.8,487.4 995.3,490.5   1000.4,501.7 994.3,499.9   872.7,544.4 894.5,544.4 901.1,531.5   1003.6,453.7 1010.2,433 992.7,409.6   1047.3,401.9 1178.2,342.2   480,246.3 486.5,267" fill="none" stroke="#9FB0B6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="10.9,388.9 32.7,363 43.6,259.3 54.5,233.3 76.4,220.4 109.1,212.6 240,225.6 283.6,246.3 305.5,228.1 360,220.4 414.5,194.4 469.1,207.4 501.8,220.4 556.4,272.2 643.6,324.1 752.7,414.8 883.6,492.6 905.5,492.6 960,544.4 984,526.3 977.5,505.6 986.2,479.6 994.9,469.3 1010.2,474.4 1189.1,687   501.8,220.4 480,194.4 458.2,194.4 436.4,202.2 414.5,246.3 545.5,388.9 610.9,298.1 600,272.2 501.8,220.4   665.5,350 785.5,272.2 840,305.9 720,394.1 665.5,350   818.2,290.4 861.8,277.4 905.5,290.4 949.1,324.1 1014.5,401.9 1014.5,414.8 960,401.9 829.1,544.4 818.2,544.4 781.1,492.6 789.8,453.7 818.2,414.8 829.1,363 829.1,337 807.3,298.1 818.2,290.4   922.9,448.5 946.9,443.3 966.5,453.7 922.9,448.5   730.9,435.6 789.8,440.7 730.9,435.6   490.9,388.9 545.5,375.9 554.2,355.2 523.6,355.2 480,386.3 490.9,388.9   818.2,264.4 992.7,264.4 1101.8,285.2 1134.5,272.2 1123.6,254.1 818.2,264.4   21.8,388.9 152.7,233.3 185.5,220.4 196.4,220.4 349.1,401.9 360,401.9 414.5,337 381.8,388.9 21.8,388.9   10.9,388.9 392.7,622.2 436.4,609.3 447.3,583.3 152.7,233.3" fill="none" stroke="#8B7D6B" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="350" cy="195" r="30" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="350" y="160" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Alps</text>
+<circle cx="450" cy="250" r="20" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="450" y="225" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Apennines</text>
+<!-- Hand-drawn overlay: roman-empire
+  Features with no modern Natural Earth dataset:
+  - Via Maris and other ancient trade roads
+  - Province/region boundaries (approx.)
+  All coordinates are in the viewBox space (1200×700).
+-->
+<g id="overlay-roman-empire" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Via Maris (approx. route: Egypt → Gaza → Damascus) -->
+  <polyline points="440,520 480,480 560,420 640,380 720,340 800,310 860,280"/>
+  <!-- Trade road: Asia Minor → Byzantium -->
+  <polyline points="620,200 680,160 750,140"/>
+  <!-- Trade road: Rome → Brundisium -->
+  <polyline points="180,240 220,240 260,250"/>
+</g>
+<!-- Province boundaries (approximate) -->
+<g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
+  <polyline points="350,180 370,220 380,260 400,300 420,340 460,370"/>
+  <polyline points="620,200 640,240 680,280 720,320 780,340 830,350"/>
+</g>
+<text x="480" y="400" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">MEDITERRANEAN SEA</text>
+<text x="950" y="130" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">BLACK SEA</text>
+<text x="180" y="220" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">ITALIA</text>
+<text x="370" y="210" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">GRAECIA</text>
+<text x="650" y="180" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">ASIA MINOR</text>
+<text x="880" y="280" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">SYRIA</text>
+<text x="850" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">JUDAEA</text>
+<text x="480" y="490" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">AEGYPTUS</text>
+<text x="120" y="310" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">HISPANIA</text>
+<text x="140" y="150" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">GALLIA</text>
+<text x="280" y="430" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">AFRICA</text>
+<rect x="12" y="12" width="1176" height="676" fill="none" stroke="#5C4E3D" stroke-width="2"/>
+<rect x="16" y="16" width="1168" height="668" fill="none" stroke="#5C4E3D" stroke-width="0.8"/>
+<rect x="410" y="630" width="380" height="50" rx="4" fill="rgba(248,245,240,0.92)" stroke="#8B7D6B" stroke-width="1"/><text x="600" y="652" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-weight="bold" fill="#5C4E3D">Roman Empire</text><text x="600" y="670" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-style="italic" fill="#B8A68E">in the time of Jesus · c. AD 30</text>
+<circle cx="1145" cy="55" r="30" fill="#F1EDE4" stroke="#8B7D6B" stroke-width="1"/><polygon points="1145,29 1140,55 1150,55" fill="#8B7D6B"/><polygon points="1145,81 1140,55 1150,55" fill="#B8A68E"/><text x="1145" y="22" text-anchor="middle" font-family="Georgia, serif" font-size="8" font-weight="bold" fill="#8B7D6B">N</text>
+</svg>

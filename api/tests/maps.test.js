@@ -400,6 +400,86 @@ describe("maps routes: pin auth guard", () => {
   });
 });
 
+// ── Routes: Map metadata updates ────────────────────────────────────────────
+
+describe("maps routes: map metadata", () => {
+  let app;
+  beforeEach(() => {
+    db.exec("DELETE FROM map_pins");
+    db.exec("DELETE FROM maps");
+    seededMapId = undefined;
+
+    app = express();
+    app.use(express.json());
+    app.use("/maps", require("../routes/maps"));
+  });
+
+  test("PUT /maps/:id updates map_name", async () => {
+    const map = seedMap({ map_key: "test-edit", map_name: "Original" });
+    const res = await makeRequest(app, "PUT", `/maps/${map.id}`, {
+      cookie: authCookie(),
+      body: { map_name: "Renamed" },
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.map_name, "Renamed");
+    assert.equal(res.body.map_key, "test-edit"); // unchanged
+  });
+
+  test("PUT /maps/:id updates description", async () => {
+    const map = seedMap({
+      map_key: "test-desc",
+      map_name: "Map",
+      description: "Old description.",
+    });
+    const res = await makeRequest(app, "PUT", `/maps/${map.id}`, {
+      cookie: authCookie(),
+      body: { description: "New description." },
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.description, "New description.");
+  });
+
+  test("PUT /maps/:id updates image_path", async () => {
+    const map = seedMap({
+      map_key: "test-img",
+      map_name: "Map",
+      image_path: "/old/path.webp",
+    });
+    const res = await makeRequest(app, "PUT", `/maps/${map.id}`, {
+      cookie: authCookie(),
+      body: { image_path: "/new/path.svg" },
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.image_path, "/new/path.svg");
+  });
+
+  test("PUT /maps/:id rejects empty map_name", async () => {
+    const map = seedMap({ map_key: "test-reject", map_name: "Original" });
+    const res = await makeRequest(app, "PUT", `/maps/${map.id}`, {
+      cookie: authCookie(),
+      body: { map_name: "" },
+    });
+    assert.equal(res.status, 400);
+    assert.ok(res.body.error);
+  });
+
+  test("PUT /maps/:id returns 404 for unknown id", async () => {
+    const res = await makeRequest(app, "PUT", "/maps/99999", {
+      cookie: authCookie(),
+      body: { map_name: "Ghost" },
+    });
+    assert.equal(res.status, 404);
+  });
+
+  test("PUT /maps/:id returns 401 without auth", async () => {
+    const map = seedMap({ map_key: "test-auth", map_name: "Map" });
+    const res = await makeRequest(app, "PUT", `/maps/${map.id}`, {
+      body: { map_name: "Hacked" },
+    });
+    assert.equal(res.status, 401);
+  });
+});
+
 // ── Routes: Route-ordering — GET /:map_key is not shadowed by /pins ───────────
 
 describe("maps routes: route ordering", () => {
