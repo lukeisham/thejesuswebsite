@@ -345,7 +345,7 @@
 
         <!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
         <script>
-            (function () {
+            document.addEventListener("DOMContentLoaded", function () {
                 // Once all deferred scripts have loaded, init each module.
                 AdminMapsRender.init();
                 AdminMapsPins.init();
@@ -408,7 +408,7 @@
                         attributeFilter: ["class"],
                     });
                 }
-            })();
+            });
         </script>
     </body>
 </html>
