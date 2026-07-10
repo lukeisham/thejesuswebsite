@@ -241,6 +241,27 @@ CREATE TABLE collections (
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Singleton table (CHECK (id = 1)) holding global site-branding metadata:
+-- title, description, and default OG image fallback. Read by page-generator.js
+-- and the frontend site-meta.js patcher; written from admin/settings.
+CREATE TABLE site_settings (
+    id          INTEGER PRIMARY KEY CHECK (id = 1),
+    title       TEXT NOT NULL DEFAULT 'The Jesus Website',
+    description TEXT NOT NULL DEFAULT 'A comprehensive survey of the historical evidence for Jesus the Messiah, presenting about 300 historical data points from the four gospels.',
+    og_image    TEXT
+);
+
+-- Seed the singleton row so a fresh database (deploy.sh applying schema.sql)
+-- always has a row for site-settings.model.js to read — deploy.sh marks
+-- migration files as already-applied on a fresh DB without running them.
+INSERT INTO site_settings (id, title, description, og_image)
+VALUES (
+    1,
+    'The Jesus Website',
+    'A comprehensive survey of the historical evidence for Jesus the Messiah, presenting about 300 historical data points from the four gospels.',
+    'https://thejesuswebsite.org/assets/images/jesus_walking_on_water.jpg'
+);
+
 CREATE TABLE resources (
     id                   INTEGER PRIMARY KEY AUTOINCREMENT,
     list_key             TEXT NOT NULL CHECK (list_key IN (

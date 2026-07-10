@@ -53,8 +53,9 @@ function createTestDb() {
 
   // Apply migrations not yet folded into schema.sql.
   // Skip 001 (duplicate of schema.sql), 005 and 009 (columns already in schema.sql),
-  // 010 (arbor_nodes already in schema.sql), and 012 (analytics device/geo
-  // columns + geoip_blocks already in schema.sql).
+  // 010 (arbor_nodes already in schema.sql), 012 (analytics device/geo
+  // columns + geoip_blocks already in schema.sql), and 013 (site_settings
+  // table + seed row already in schema.sql).
   const migrationFiles = fs
     .readdirSync(MIGRATIONS_DIR)
     .filter(
@@ -64,7 +65,8 @@ function createTestDb() {
         !name.startsWith("005_") &&
         !name.startsWith("009_") &&
         !name.startsWith("010_") &&
-        !name.startsWith("012_"),
+        !name.startsWith("012_") &&
+        !name.startsWith("013_"),
     )
     .sort();
 
