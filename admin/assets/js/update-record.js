@@ -68,51 +68,28 @@ UpdateRecord.deleteEdge = async function (id) {
   }
 };
 
-/* ── Node position persistence (localStorage until server store exists) ────── */
+/* ── Node position persistence (server-side via API) ─────────────────────── */
 
 const POS_KEY_PREFIX = "arbor_pos_";
 
 /**
- * Save the canvas position of an arbor node.
+ * Save the canvas position of an arbor node to the server.
  *
  * @param {number} evidenceId
  * @param {number} x  - diagram-space x coordinate
  * @param {number} y  - diagram-space y coordinate
+ * @returns {Promise<Object>} the saved position row
  */
-UpdateRecord.saveNodePosition = function (evidenceId, x, y) {
+UpdateRecord.saveNodePosition = async function (evidenceId, x, y) {
   try {
-    localStorage.setItem(
-      POS_KEY_PREFIX + evidenceId,
-      JSON.stringify({ x: Math.round(x), y: Math.round(y) }),
-    );
+    const result = await Admin.api.put("/arbor/nodes/" + evidenceId, {
+      x: Math.round(x),
+      y: Math.round(y),
+    });
+    return result;
   } catch (err) {
     console.error("Failed to save node position:", err);
-  }
-};
-
-/**
- * Load the saved canvas position of an arbor node.
- *
- * @param {number} evidenceId
- * @returns {{ x: number, y: number }|null}
- */
-UpdateRecord.loadNodePosition = function (evidenceId) {
-  try {
-    var raw = localStorage.getItem(POS_KEY_PREFIX + evidenceId);
-    if (!raw) return null;
-    var parsed = JSON.parse(raw);
-    if (
-      typeof parsed.x === "number" &&
-      typeof parsed.y === "number" &&
-      Number.isFinite(parsed.x) &&
-      Number.isFinite(parsed.y)
-    ) {
-      return { x: parsed.x, y: parsed.y };
-    }
-    return null;
-  } catch (err) {
-    console.error("Failed to load node position:", err);
-    return null;
+    throw err;
   }
 };
 
@@ -120,12 +97,59 @@ UpdateRecord.loadNodePosition = function (evidenceId) {
  * Remove a saved node position when a node is deleted from the canvas.
  *
  * @param {number} evidenceId
+ * @returns {Promise<void>}
  */
-UpdateRecord.removeNodePosition = function (evidenceId) {
+UpdateRecord.removeNodePosition = async function (evidenceId) {
   try {
-    localStorage.removeItem(POS_KEY_PREFIX + evidenceId);
+    await Admin.api.del("/arbor/nodes/" + evidenceId);
   } catch (err) {
     console.error("Failed to remove node position:", err);
+    throw err;
+  }
+};
+
+/**
+ * One-time migration: push any legacy localStorage positions to the server,
+ * then clear the localStorage keys on success. Best-effort — a failed PUT
+ * leaves the local key intact.
+ *
+ * @returns {Promise<void>}
+ */
+UpdateRecord.migrateLocalPositions = async function () {
+  var keys = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    if (key && key.startsWith(POS_KEY_PREFIX)) {
+      keys.push(key);
+    }
+  }
+
+  for (var k = 0; k < keys.length; k++) {
+    var key = keys[k];
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) continue;
+      var parsed = JSON.parse(raw);
+      var evidenceId = Number(key.slice(POS_KEY_PREFIX.length));
+      if (
+        !Number.isFinite(evidenceId) ||
+        typeof parsed.x !== "number" ||
+        typeof parsed.y !== "number" ||
+        !Number.isFinite(parsed.x) ||
+        !Number.isFinite(parsed.y)
+      ) {
+        localStorage.removeItem(key);
+        continue;
+      }
+      await Admin.api.put("/arbor/nodes/" + evidenceId, {
+        x: Math.round(parsed.x),
+        y: Math.round(parsed.y),
+      });
+      localStorage.removeItem(key);
+    } catch (err) {
+      // Keep the local key — migration is best-effort
+      console.warn("localStorage migration failed for key " + key + ":", err);
+    }
   }
 };
 
@@ -142,8 +166,10 @@ UpdateRecord.saveEvent = async function (evidenceId, data) {
   try {
     var payload = {};
     if (data.title !== undefined) payload.title = data.title;
-    if (data.timeline_era !== undefined) payload.timeline_era = data.timeline_era;
-    if (data.timeline_period !== undefined) payload.timeline_period = data.timeline_period;
+    if (data.timeline_era !== undefined)
+      payload.timeline_era = data.timeline_era;
+    if (data.timeline_period !== undefined)
+      payload.timeline_period = data.timeline_period;
 
     const updated = await Admin.api.put("/evidence/" + evidenceId, payload);
     return updated;

@@ -175,18 +175,34 @@ function getNodesAndEdges() {
     idSet.add(edge.target_id);
   }
 
+  // Fetch all node positions in one query
+  const positions = new Map();
+  if (idSet.size > 0) {
+    const posRows = db
+      .prepare(
+        `SELECT evidence_id, x, y FROM arbor_nodes WHERE evidence_id IN (${[...idSet].map(() => "?").join(",")})`,
+      )
+      .all(...idSet);
+    for (const row of posRows) {
+      positions.set(row.evidence_id, { x: row.x, y: row.y });
+    }
+  }
+
   // Fetch full evidence rows for each unique ID
   const nodes = [];
   for (const id of idSet) {
     const evidence = evidenceModel.getById(id);
     // Only include published evidence
     if (evidence && evidence.published_draft === 1) {
+      const pos = positions.get(id) || null;
       nodes.push({
         id: evidence.id,
         title: evidence.title,
         slug: evidence.slug,
         primary_verse: evidence.primary_verse,
         description: evidence.description,
+        x: pos ? pos.x : null,
+        y: pos ? pos.y : null,
       });
     }
   }
@@ -200,6 +216,56 @@ function getNodesAndEdges() {
   return { nodes, edges: filteredEdges };
 }
 
+/* ── Node position persistence ───────────────────────────────────────────────── */
+
+/**
+ * Insert or update the canvas position of an arbor node.
+ *
+ * @param {number} evidenceId
+ * @param {number} x
+ * @param {number} y
+ * @returns {Object} the upserted row
+ */
+function upsertNodePosition(evidenceId, x, y) {
+  const sql = `
+        INSERT INTO arbor_nodes (evidence_id, x, y)
+        VALUES (?, ?, ?)
+        ON CONFLICT(evidence_id) DO UPDATE SET
+            x = excluded.x,
+            y = excluded.y,
+            updated_at = CURRENT_TIMESTAMP
+    `;
+  db.prepare(sql).run(evidenceId, x, y);
+  return db
+    .prepare("SELECT * FROM arbor_nodes WHERE evidence_id = ?")
+    .get(evidenceId);
+}
+
+/**
+ * Remove a node from the arbor canvas (does not delete the evidence record).
+ *
+ * @param {number} evidenceId
+ * @returns {boolean} true if a row was removed
+ */
+function removeNode(evidenceId) {
+  const result = db
+    .prepare("DELETE FROM arbor_nodes WHERE evidence_id = ?")
+    .run(evidenceId);
+  return result.changes > 0;
+}
+
+/**
+ * Get the saved position for a single node.
+ *
+ * @param {number} evidenceId
+ * @returns {{ x: number, y: number }|undefined}
+ */
+function getNodePosition(evidenceId) {
+  return db
+    .prepare("SELECT x, y FROM arbor_nodes WHERE evidence_id = ?")
+    .get(evidenceId);
+}
+
 module.exports = {
   getAllEdges,
   getOutgoingEdges,
@@ -210,4 +276,7 @@ module.exports = {
   remove,
   reorderEdges,
   getNodesAndEdges,
+  upsertNodePosition,
+  removeNode,
+  getNodePosition,
 };

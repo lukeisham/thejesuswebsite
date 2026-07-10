@@ -10,11 +10,8 @@
  * @module arbor/arbor-render
  */
 
-import { createElement, batchWrite } from '../utils/dom.js';
-import {
-  buildGraph,
-  getChildren,
-} from './arbor-data.js';
+import { createElement, batchWrite } from "../utils/dom.js";
+import { buildGraph, getChildren } from "./arbor-data.js";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -54,11 +51,11 @@ let nodePositions = new Map();
  * Initialise cached references to key DOM nodes.
  */
 export function init() {
-  canvasEl = document.getElementById('arbor-canvas');
-  diagramEl = document.getElementById('arbor-diagram');
-  svgEl = document.getElementById('arbor-edges');
-  loadingEl = document.getElementById('loading-state');
-  emptyEl = document.getElementById('empty-state');
+  canvasEl = document.getElementById("arbor-canvas");
+  diagramEl = document.getElementById("arbor-diagram");
+  svgEl = document.getElementById("arbor-edges");
+  loadingEl = document.getElementById("loading-state");
+  emptyEl = document.getElementById("empty-state");
 }
 
 /**
@@ -99,7 +96,7 @@ function bfsLevels(root, adjacency) {
       for (const child of getChildren(adjacency, nodeId)) {
         // Only follow non-root relationship types for tree layout
         // Skip 'root' edges (they point away from root) and 'related' (cross-edges)
-        if (child.relationshipType === 'root') continue;
+        if (child.relationshipType === "root") continue;
         if (!visited.has(child.targetId)) {
           visited.add(child.targetId);
           next.push(child.targetId);
@@ -156,13 +153,18 @@ function computeLayout(root, adjacency, nodesById) {
  * @returns {string}
  */
 function nodeClassModifier(parentEdge, isRoot) {
-  if (isRoot) return 'root';
-  if (parentEdge && parentEdge.relationshipType === 'related') return 'related';
-  return '';
+  if (isRoot) return "root";
+  if (parentEdge && parentEdge.relationshipType === "related") return "related";
+  return "";
 }
 
 /**
  * Render the full arbor diagram.
+ *
+ * When every node has a saved position (non-null x/y from the API), those
+ * positions are used verbatim — the layout mirrors the admin editor exactly.
+ * Otherwise, the existing BFS tree layout is used for the whole diagram
+ * (mixed positions would produce overlapping layouts).
  *
  * @param {Array} nodes - Evidence nodes.
  * @param {Array} edges - Arbor edges.
@@ -177,25 +179,49 @@ export function renderArbor(nodes, edges) {
     return;
   }
 
-  // Compute layout
-  nodePositions = computeLayout(root, adjacency, nodesById);
+  // Check if all nodes have saved positions
+  let allHavePositions = true;
+  for (const [, node] of nodesById) {
+    if (
+      node.x == null ||
+      node.y == null ||
+      !Number.isFinite(node.x) ||
+      !Number.isFinite(node.y)
+    ) {
+      allHavePositions = false;
+      break;
+    }
+  }
+
+  // Compute layout: prefer saved positions, fall back to BFS
+  if (allHavePositions) {
+    nodePositions = new Map();
+    for (const [nodeId, node] of nodesById) {
+      nodePositions.set(nodeId, { x: node.x, y: node.y });
+    }
+  } else {
+    nodePositions = computeLayout(root, adjacency, nodesById);
+  }
 
   // Build a map: childId → parentEdge for node class determination
   const parentEdgeMap = new Map();
   for (const [, targets] of adjacency) {
     for (const t of targets) {
-      if (t.relationshipType !== 'root' && !parentEdgeMap.has(t.targetId)) {
-        parentEdgeMap.set(t.targetId, t.edge || { relationshipType: t.relationshipType });
+      if (t.relationshipType !== "root" && !parentEdgeMap.has(t.targetId)) {
+        parentEdgeMap.set(
+          t.targetId,
+          t.edge || { relationshipType: t.relationshipType },
+        );
       }
     }
   }
 
   batchWrite(() => {
     // ── Clear existing content ────────────────────────────────────────────
-    diagramEl.innerHTML = '';
-    svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svgEl.setAttribute('class', 'arbor-edges');
-    svgEl.id = 'arbor-edges';
+    diagramEl.innerHTML = "";
+    svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svgEl.setAttribute("class", "arbor-edges");
+    svgEl.id = "arbor-edges";
     diagramEl.appendChild(svgEl);
 
     // ── Compute diagram bounds ────────────────────────────────────────────
@@ -209,8 +235,8 @@ export function renderArbor(nodes, edges) {
     maxY += TOP_MARGIN;
 
     // Size the SVG and diagram container
-    svgEl.setAttribute('width', String(maxX));
-    svgEl.setAttribute('height', String(maxY));
+    svgEl.setAttribute("width", String(maxX));
+    svgEl.setAttribute("height", String(maxY));
     diagramEl.style.width = `${maxX}px`;
     diagramEl.style.height = `${maxY}px`;
 
@@ -228,22 +254,25 @@ export function renderArbor(nodes, edges) {
         const x2 = targetPos.x + NODE_WIDTH / 2;
         const y2 = targetPos.y;
 
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', String(x1));
-        line.setAttribute('y1', String(y1));
-        line.setAttribute('x2', String(x2));
-        line.setAttribute('y2', String(y2));
+        const line = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line",
+        );
+        line.setAttribute("x1", String(x1));
+        line.setAttribute("y1", String(y1));
+        line.setAttribute("x2", String(x2));
+        line.setAttribute("y2", String(y2));
 
         // Style by relationship type
-        if (relationshipType === 'related') {
-          line.setAttribute('stroke-dasharray', '6 4');
-          line.setAttribute('stroke', 'var(--border-strong)');
-        } else if (relationshipType === 'root') {
-          line.setAttribute('stroke', 'var(--accent)');
-          line.setAttribute('stroke-width', '2');
+        if (relationshipType === "related") {
+          line.setAttribute("stroke-dasharray", "6 4");
+          line.setAttribute("stroke", "var(--border-strong)");
+        } else if (relationshipType === "root") {
+          line.setAttribute("stroke", "var(--accent)");
+          line.setAttribute("stroke-width", "2");
         } else {
           // supports / leads_to
-          line.setAttribute('stroke', 'var(--border-strong)');
+          line.setAttribute("stroke", "var(--border-strong)");
         }
 
         svgEl.appendChild(line);
@@ -259,25 +288,37 @@ export function renderArbor(nodes, edges) {
       const parentEdge = parentEdgeMap.get(nodeId) || null;
       const modifier = nodeClassModifier(parentEdge, isRoot);
 
-      const titleEl = createElement('span', {
-        className: 'arbor-node-title',
-      }, [node.title || '']);
-
-      const verseEl = createElement('span', {
-        className: 'arbor-node-verse',
-      }, [node.primary_verse || '']);
-
-      const nodeEl = createElement('div', {
-        className: ['arbor-node', modifier].filter(Boolean).join(' '),
-        style: `left:${pos.x}px;top:${pos.y}px;width:${NODE_WIDTH}px`,
-        dataset: {
-          nodeId: String(nodeId),
-          slug: node.slug || '',
-          title: node.title || '',
-          description: node.description || '',
-          verse: node.primary_verse || '',
+      const titleEl = createElement(
+        "span",
+        {
+          className: "arbor-node-title",
         },
-      }, [titleEl, verseEl]);
+        [node.title || ""],
+      );
+
+      const verseEl = createElement(
+        "span",
+        {
+          className: "arbor-node-verse",
+        },
+        [node.primary_verse || ""],
+      );
+
+      const nodeEl = createElement(
+        "div",
+        {
+          className: ["arbor-node", modifier].filter(Boolean).join(" "),
+          style: `left:${pos.x}px;top:${pos.y}px;width:${NODE_WIDTH}px`,
+          dataset: {
+            nodeId: String(nodeId),
+            slug: node.slug || "",
+            title: node.title || "",
+            description: node.description || "",
+            verse: node.primary_verse || "",
+          },
+        },
+        [titleEl, verseEl],
+      );
 
       diagramEl.appendChild(nodeEl);
     }
