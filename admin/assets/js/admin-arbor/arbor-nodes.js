@@ -30,9 +30,9 @@ let addingMode = false;
 /** @type {string} */
 let searchQuery = "";
 
-/** Node dimensions matching the public arbor-node (200×80). */
-const NODE_WIDTH = 200;
-const NODE_HEIGHT = 56;
+/** Node dimensions from the shared geometry (matches public arbor). */
+const NODE_WIDTH = window.AdminArborGeometry.NODE_WIDTH;
+const NODE_HEIGHT = window.AdminArborGeometry.NODE_HEIGHT;
 const NODE_RX = 8;
 
 /* ── Initialisation ────────────────────────────────────────────────────────── */

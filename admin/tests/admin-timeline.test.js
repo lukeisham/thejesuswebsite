@@ -43,6 +43,20 @@ const axisSandbox = {
   console: { error: function () {} },
 };
 
+// ── Load timeline-geometry.js (shared constants required by timeline-axis) ────
+
+const geometryPath = path.resolve(
+  __dirname,
+  "..",
+  "assets",
+  "js",
+  "admin-timeline",
+  "timeline-geometry.js",
+);
+const geometrySource = fs.readFileSync(geometryPath, "utf8");
+
+vm.runInNewContext(geometrySource, axisSandbox);
+
 vm.runInNewContext(axisSource, axisSandbox);
 
 const {

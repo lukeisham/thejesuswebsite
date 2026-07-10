@@ -32,6 +32,9 @@ router.post("/pins", requireAuth, (req, res) => {
     const created = mapModel.createPin(req.body);
     res.status(201).json(created);
   } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json({ error: error.message });
+    }
     console.error("POST /maps/pins failed:", error);
     res.status(500).json({ error: "Failed to create pin." });
   }
@@ -44,6 +47,9 @@ router.put("/pins/:id", requireAuth, (req, res) => {
     if (!updated) return res.status(404).json({ error: "Pin not found." });
     res.json(updated);
   } catch (error) {
+    if (error.status === 404) {
+      return res.status(404).json({ error: error.message });
+    }
     console.error("PUT /maps/pins/:id failed:", error);
     res.status(500).json({ error: "Failed to update pin." });
   }
@@ -61,7 +67,7 @@ router.delete("/pins/:id", requireAuth, (req, res) => {
   }
 });
 
-// GET /maps/pins/by-map/:mapId — list all pins for a given map
+// GET /maps/pins/by-map/:mapId — list all pins for a given map (published evidence only)
 router.get("/pins/by-map/:mapId", (req, res) => {
   try {
     const pins = mapModel.getPinsByMap(Number(req.params.mapId));
@@ -72,7 +78,35 @@ router.get("/pins/by-map/:mapId", (req, res) => {
   }
 });
 
-// GET /maps/:map_key — single map by map_key (unique identifier)
+// GET /maps/admin/pins/by-map/:mapId — list all pins for a given map including drafts (admin only)
+router.get("/admin/pins/by-map/:mapId", requireAuth, (req, res) => {
+  try {
+    const pins = mapModel.getPinsByMap(Number(req.params.mapId), {
+      includeDrafts: true,
+    });
+    res.json(pins);
+  } catch (error) {
+    console.error("GET /maps/admin/pins/by-map/:mapId failed:", error);
+    res.status(500).json({ error: "Failed to load pins." });
+  }
+});
+
+// GET /maps/admin/:map_key — single map including draft-evidence pins (admin only)
+// Must be registered above GET /:map_key to avoid Express matching "admin" as a map_key.
+router.get("/admin/:map_key", requireAuth, (req, res) => {
+  try {
+    const item = mapModel.getMapByKey(req.params.map_key, {
+      includeDrafts: true,
+    });
+    if (!item) return res.status(404).json({ error: "Map not found." });
+    res.json(item);
+  } catch (error) {
+    console.error("GET /maps/admin/:map_key failed:", error);
+    res.status(500).json({ error: "Failed to load map." });
+  }
+});
+
+// GET /maps/:map_key — single map by map_key (unique identifier, published evidence only)
 router.get("/:map_key", (req, res) => {
   try {
     const item = mapModel.getMapByKey(req.params.map_key);
