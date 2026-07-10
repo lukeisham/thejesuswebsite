@@ -9,6 +9,12 @@
  *
  * Output written to frontend/assets/images/maps/<map_key>.svg
  *
+ * Cache busting: nginx serves /assets/ images with a long immutable
+ * lifetime, so after regenerating any SVG you must bump the `?v=`
+ * query string on maps.image_path (new migration mirroring
+ * database/migrations/014_map_image_cache_bust.sql, plus seed.sql)
+ * or returning browsers will keep the stale cached artwork.
+ *
  * @module generate-maps/index
  */
 
