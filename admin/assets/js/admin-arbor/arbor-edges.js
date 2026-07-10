@@ -95,13 +95,22 @@ Edges.init = function () {
  */
 Edges.loadEdges = async function () {
   try {
-    var data = await Admin.api.get("/arbor");
+    var data = await Admin.api.get("/arbor/admin");
     edges = data.edges || [];
   } catch (err) {
     console.error("Failed to load arbor edges:", err);
     edges = [];
   }
   Edges.renderEdges();
+};
+
+/**
+ * Return the current edge array (used by nodes module for relationship styling).
+ *
+ * @returns {Array<Object>}
+ */
+Edges.getAllEdges = function () {
+  return edges;
 };
 
 /* ── Rendering ─────────────────────────────────────────────────────────────── */
@@ -237,6 +246,16 @@ Edges.deleteEdge = async function (edgeId) {
 };
 
 /* ── Edge creation via drag ────────────────────────────────────────────────── */
+
+/**
+ * Toggle edge-drawing mode. When active, mousedown on a node starts an edge drag.
+ */
+/**
+ * @returns {boolean}
+ */
+Edges.isEdgeMode = function () {
+  return edgeMode;
+};
 
 /**
  * Toggle edge-drawing mode. When active, mousedown on a node starts an edge drag.

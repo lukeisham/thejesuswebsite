@@ -205,6 +205,7 @@ function getNodesAndEdges({ includeDrafts } = {}) {
         slug: evidence.slug,
         primary_verse: evidence.primary_verse,
         description: evidence.description,
+        published_draft: evidence.published_draft,
         x: pos ? pos.x : null,
         y: pos ? pos.y : null,
       });
@@ -270,6 +271,25 @@ function getNodePosition(evidenceId) {
     .get(evidenceId);
 }
 
+/**
+ * Get evidence records that have no arbor_node row (unplaced on the canvas),
+ * ordered by title. Drafts are included so admins can place them from the
+ * holding pen. Each row carries id, title, slug, primary_verse, and
+ * published_draft for badge rendering.
+ *
+ * @returns {Array<Object>}
+ */
+function getUnplacedEvidence() {
+  const sql = `
+        SELECT e.id, e.title, e.slug, e.primary_verse, e.published_draft
+        FROM evidence e
+        LEFT JOIN arbor_nodes an ON e.id = an.evidence_id
+        WHERE an.evidence_id IS NULL
+        ORDER BY e.title COLLATE NOCASE
+    `;
+  return db.prepare(sql).all();
+}
+
 module.exports = {
   getAllEdges,
   getOutgoingEdges,
@@ -283,4 +303,5 @@ module.exports = {
   upsertNodePosition,
   removeNode,
   getNodePosition,
+  getUnplacedEvidence,
 };
