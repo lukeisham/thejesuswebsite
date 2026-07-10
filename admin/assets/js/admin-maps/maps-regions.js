@@ -56,9 +56,9 @@ Regions.loadMaps = async function () {
   }
 
   // Sort into canonical order
-  allMaps.sort(function (a, b) {
-    return MAP_KEYS.indexOf(a.map_key) - MAP_KEYS.indexOf(b.map_key);
-  });
+  allMaps.sort(
+    (a, b) => MAP_KEYS.indexOf(a.map_key) - MAP_KEYS.indexOf(b.map_key),
+  );
 
   Regions.populateSelector();
 };
@@ -102,14 +102,14 @@ Regions.switchToMap = async function (mapKey) {
       )
     ) {
       // Revert selector to current map
-      var sel = document.getElementById("map-selector");
+      const sel = document.getElementById("map-selector");
       if (sel) sel.value = currentMapKey;
       return;
     }
   }
 
-  var map = null;
-  for (var i = 0; i < allMaps.length; i++) {
+  let map = null;
+  for (let i = 0; i < allMaps.length; i++) {
     if (allMaps[i].map_key === mapKey) {
       map = allMaps[i];
       break;

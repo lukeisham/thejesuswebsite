@@ -10,6 +10,7 @@
             href="../assets/css/admin-diagrams/maps-holding-pen.css"
         />
         <script defer src="../assets/js/admin-maps/maps-render.js"></script>
+        <script defer src="../assets/js/admin-maps/maps-era-utils.js"></script>
         <script
             defer
             src="../assets/js/admin-maps/maps-staged-changes.js"
@@ -314,12 +315,12 @@
                 AdminMapsHoldingPen.init();
 
                 // Wire the Save button
-                var saveBtn = document.getElementById("holding-pen-save");
+                const saveBtn = document.getElementById("holding-pen-save");
                 if (saveBtn) {
-                    saveBtn.addEventListener("click", function () {
-                        AdminMapsStaged.saveAll().then(function () {
+                    saveBtn.addEventListener("click", () => {
+                        AdminMapsStaged.saveAll().then(() => {
                             // Reload holding pen after save (new pins may have used evidence)
-                            var mapId = AdminMapsStaged._getCurrentMapId
+                            const mapId = AdminMapsStaged._getCurrentMapId
                                 ? AdminMapsStaged._getCurrentMapId()
                                 : null;
                             if (mapId) AdminMapsHoldingPen.loadForMap(mapId);
@@ -328,41 +329,42 @@
                 }
 
                 // Wire the backdrop to close the panel.
-                var backdrop = document.getElementById("pin-panel-backdrop");
-                if (backdrop) {
-                    backdrop.addEventListener("click", function () {
+                const backdropEl =
+                    document.getElementById("pin-panel-backdrop");
+                if (backdropEl) {
+                    backdropEl.addEventListener("click", () => {
                         AdminMapsPins.closeEditPanel();
                     });
                 }
 
                 // Kick off: load maps list, then switch to the first map.
-                AdminMapsRegions.loadMaps().then(function () {
-                    var maps = AdminMapsRegions.getMaps();
+                AdminMapsRegions.loadMaps().then(() => {
+                    const maps = AdminMapsRegions.getMaps();
                     if (maps.length > 0) {
                         return AdminMapsRegions.switchToMap(maps[0].map_key);
                     }
                 });
 
                 // Sync backdrop visibility with panel state
-                var observer = new MutationObserver(function () {
-                    var panel = document.getElementById("pin-edit-panel");
-                    var backdrop =
+                const observer = new MutationObserver(() => {
+                    const panelEl = document.getElementById("pin-edit-panel");
+                    const backdrop =
                         document.getElementById("pin-panel-backdrop");
-                    if (panel && backdrop) {
-                        var open = panel.classList.contains(
+                    if (panelEl && backdrop) {
+                        const open = panelEl.classList.contains(
                             "admin-pin-panel--open",
                         );
                         backdrop.hidden = !open;
-                        panel.setAttribute(
+                        panelEl.setAttribute(
                             "aria-hidden",
                             open ? "false" : "true",
                         );
                     }
                 });
 
-                var panel = document.getElementById("pin-edit-panel");
-                if (panel) {
-                    observer.observe(panel, {
+                const panelEl = document.getElementById("pin-edit-panel");
+                if (panelEl) {
+                    observer.observe(panelEl, {
                         attributes: true,
                         attributeFilter: ["class"],
                     });

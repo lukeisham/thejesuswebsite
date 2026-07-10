@@ -11,7 +11,7 @@
     justify-content: center;
     gap: var(--space-xs);
     padding: var(--space-sm) var(--space-md);
-    font-size: 14px;
+    font-size: var(--text-sm, 14px);
     font-weight: 600;
     line-height: 1.4;
     border: 1px solid transparent;
@@ -81,12 +81,12 @@
 /* ── Sizes ────────────────────────────────────────────────────────────────── */
 
 .admin-btn--sm {
-    padding: 4px 10px;
-    font-size: 12px;
+    padding: var(--space-xs) 10px;
+    font-size: var(--text-xs, 12px);
     border-radius: var(--admin-radius-sm);
 }
 
 .admin-btn--lg {
-    padding: 12px 24px;
-    font-size: 16px;
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--text-base, 16px);
 }
