@@ -103,6 +103,13 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /maps/:id — update map (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
+    // Reject empty map_name (JS-2: validate inputs)
+    if (
+      req.body.map_name !== undefined &&
+      String(req.body.map_name).trim() === ""
+    ) {
+      return res.status(400).json({ error: "map_name cannot be empty." });
+    }
     const updated = mapModel.updateMap(Number(req.params.id), req.body);
     if (!updated) return res.status(404).json({ error: "Map not found." });
     res.json(updated);

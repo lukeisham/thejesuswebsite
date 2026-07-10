@@ -1,0 +1,20 @@
+<!-- Hand-drawn overlay: judea
+  Features with no modern Natural Earth dataset:
+  - Judean region boundary
+  - Ancient roads connecting Jerusalem to Jericho, Bethlehem, Hebron
+  - Approximate Dead Sea shoreline context
+  All coordinates are in the viewBox space (900×1000).
+-->
+<g id="overlay-judea" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Road: Jerusalem → Jericho -->
+  <polyline points="460,300 520,330 580,360 620,380"/>
+  <!-- Road: Jerusalem → Bethlehem → Hebron -->
+  <polyline points="460,390 440,430 420,480 400,530 370,580"/>
+  <!-- Road: coastal plain route -->
+  <polyline points="120,200 140,300 160,400 180,500 200,600"/>
+</g>
+<!-- Region boundaries -->
+<g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
+  <polyline points="200,200 260,220 320,240 380,260 440,280 500,300 560,310"/>
+  <polyline points="180,500 240,510 300,520 360,530 420,540 480,550"/>
+</g>

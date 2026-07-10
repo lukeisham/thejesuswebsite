@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1000" width="900" height="1000">
+<defs>
+<filter id="parchment-texture">
+<feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.95  0 0 0 0 0.93  0 0 0 0 0.89  0 0 0 0.04 0" in="noise" result="tint"/>
+<feBlend in="SourceGraphic" in2="tint" mode="multiply"/>
+</filter>
+</defs>
+<rect x="0" y="0" width="900" height="1000" fill="#F8F5F0"/>
+<polygon points="-24581.3,-2588.2 -24018.8,-3176.5 -23737.5,-5529.4 -23456.3,-6117.6 -22893.8,-6411.8 -22050,-6588.2 -18675,-6294.1 -17550,-5823.5 -16987.5,-6235.3 -15581.3,-6411.8 -14175,-7000 -12768.8,-6705.9 -11925,-6411.8 -10518.8,-5235.3 -8268.8,-4058.8 -5456.3,-2000 -2081.3,-235.3 -1518.8,-235.3 -112.5,941.2 506.3,529.4 337.5,58.8 562.5,-529.4 787.5,-764.7 1181.3,-647.1 5793.8,4176.5   -11925,-6411.8 -12487.5,-7000 -13050,-7000 -13612.5,-6823.5 -14175,-5823.5 -10800,-2588.2 -9112.5,-4647.1 -9393.8,-5235.3 -11925,-6411.8   -7706.3,-3470.6 -4612.5,-5235.3 -3206.3,-4470.6 -6300,-2470.6 -7706.3,-3470.6   -3768.8,-4823.5 -2643.8,-5117.6 -1518.8,-4823.5 -393.8,-4058.8 1293.8,-2294.1 1293.8,-2000 -112.5,-2294.1 -3487.5,941.2 -3768.8,941.2 -4725,-235.3 -4500,-1117.6 -3768.8,-2000 -3487.5,-3176.5 -3487.5,-3764.7 -4050,-4647.1 -3768.8,-4823.5   -1068.8,-1235.3 -450,-1352.9 56.2,-1117.6 -1068.8,-1235.3   -6018.8,-1529.4 -4500,-1411.8 -6018.8,-1529.4   -12206.3,-2588.2 -10800,-2882.4 -10575,-3352.9 -11362.5,-3352.9 -12487.5,-2647.1 -12206.3,-2588.2   -3768.8,-5411.8 731.3,-5411.8 3543.8,-4941.2 4387.5,-5235.3 4106.3,-5647.1 -3768.8,-5411.8   -24300,-2588.2 -20925,-6117.6 -20081.3,-6411.8 -19800,-6411.8 -15862.5,-2294.1 -15581.3,-2294.1 -14175,-3764.7 -15018.8,-2588.2 -24300,-2588.2   -24581.3,-2588.2 -14737.5,2705.9 -13612.5,2411.8 -13331.3,1823.5 -20925,-6117.6" fill="#F1EDE4" stroke="none"/>
+<polygon points="753.8,-129.4 753.8,-129.4   675,647.1 675,647.1" fill="#C9D4D8" stroke="#9FB0B6" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="798.7,-282.4 759.4,647.1   810,-352.9 798.7,-282.4   928.1,-29.4 770.6,-70.6   -2362.5,941.2 -1800,941.2 -1631.3,647.1   1012.5,-1117.6 1181.3,-1588.2 731.3,-2117.6   2137.5,-2294.1 5512.5,-3647.1   -12487.5,-5823.5 -12318.8,-5352.9" fill="none" stroke="#9FB0B6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="-24581.3,-2588.2 -24018.8,-3176.5 -23737.5,-5529.4 -23456.3,-6117.6 -22893.8,-6411.8 -22050,-6588.2 -18675,-6294.1 -17550,-5823.5 -16987.5,-6235.3 -15581.3,-6411.8 -14175,-7000 -12768.8,-6705.9 -11925,-6411.8 -10518.8,-5235.3 -8268.8,-4058.8 -5456.3,-2000 -2081.3,-235.3 -1518.8,-235.3 -112.5,941.2 506.3,529.4 337.5,58.8 562.5,-529.4 787.5,-764.7 1181.3,-647.1 5793.8,4176.5   -11925,-6411.8 -12487.5,-7000 -13050,-7000 -13612.5,-6823.5 -14175,-5823.5 -10800,-2588.2 -9112.5,-4647.1 -9393.8,-5235.3 -11925,-6411.8   -7706.3,-3470.6 -4612.5,-5235.3 -3206.3,-4470.6 -6300,-2470.6 -7706.3,-3470.6   -3768.8,-4823.5 -2643.8,-5117.6 -1518.8,-4823.5 -393.8,-4058.8 1293.8,-2294.1 1293.8,-2000 -112.5,-2294.1 -3487.5,941.2 -3768.8,941.2 -4725,-235.3 -4500,-1117.6 -3768.8,-2000 -3487.5,-3176.5 -3487.5,-3764.7 -4050,-4647.1 -3768.8,-4823.5   -1068.8,-1235.3 -450,-1352.9 56.2,-1117.6 -1068.8,-1235.3   -6018.8,-1529.4 -4500,-1411.8 -6018.8,-1529.4   -12206.3,-2588.2 -10800,-2882.4 -10575,-3352.9 -11362.5,-3352.9 -12487.5,-2647.1 -12206.3,-2588.2   -3768.8,-5411.8 731.3,-5411.8 3543.8,-4941.2 4387.5,-5235.3 4106.3,-5647.1 -3768.8,-5411.8   -24300,-2588.2 -20925,-6117.6 -20081.3,-6411.8 -19800,-6411.8 -15862.5,-2294.1 -15581.3,-2294.1 -14175,-3764.7 -15018.8,-2588.2 -24300,-2588.2   -24581.3,-2588.2 -14737.5,2705.9 -13612.5,2411.8 -13331.3,1823.5 -20925,-6117.6" fill="none" stroke="#8B7D6B" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="460" cy="380" r="22" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="460" y="353" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Mt. of Olives</text>
+<circle cx="470" cy="340" r="18" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="470" y="317" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Judean Hills</text>
+<!-- Hand-drawn overlay: judea
+  Features with no modern Natural Earth dataset:
+  - Judean region boundary
+  - Ancient roads connecting Jerusalem to Jericho, Bethlehem, Hebron
+  - Approximate Dead Sea shoreline context
+  All coordinates are in the viewBox space (900×1000).
+-->
+<g id="overlay-judea" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Road: Jerusalem → Jericho -->
+  <polyline points="460,300 520,330 580,360 620,380"/>
+  <!-- Road: Jerusalem → Bethlehem → Hebron -->
+  <polyline points="460,390 440,430 420,480 400,530 370,580"/>
+  <!-- Road: coastal plain route -->
+  <polyline points="120,200 140,300 160,400 180,500 200,600"/>
+</g>
+<!-- Region boundaries -->
+<g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
+  <polyline points="200,200 260,220 320,240 380,260 440,280 500,300 560,310"/>
+  <polyline points="180,500 240,510 300,520 360,530 420,540 480,550"/>
+</g>
+<text x="50" y="450" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">MEDITERRANEAN SEA</text>
+<text x="650" y="550" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">DEAD SEA</text>
+<text x="450" y="400" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">JUDEA</text>
+<text x="400" y="250" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">SAMARIA</text>
+<text x="380" y="650" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">IDUMEA</text>
+<text x="700" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-style="italic" font-weight="normal" letter-spacing="0.1em" fill="#6B8B9A" transform="rotate(-70, 700, 360)">Jordan River</text>
+<rect x="12" y="12" width="876" height="976" fill="none" stroke="#5C4E3D" stroke-width="2"/>
+<rect x="16" y="16" width="868" height="968" fill="none" stroke="#5C4E3D" stroke-width="0.8"/>
+<rect x="260" y="930" width="380" height="50" rx="4" fill="rgba(248,245,240,0.92)" stroke="#8B7D6B" stroke-width="1"/><text x="450" y="952" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-weight="bold" fill="#5C4E3D">Judea</text><text x="450" y="970" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-style="italic" fill="#B8A68E">in the time of Jesus · c. AD 30</text>
+<circle cx="845" cy="55" r="30" fill="#F1EDE4" stroke="#8B7D6B" stroke-width="1"/><polygon points="845,29 840,55 850,55" fill="#8B7D6B"/><polygon points="845,81 840,55 850,55" fill="#B8A68E"/><text x="845" y="22" text-anchor="middle" font-family="Georgia, serif" font-size="8" font-weight="bold" fill="#8B7D6B">N</text>
+</svg>

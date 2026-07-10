@@ -136,6 +136,11 @@ Regions.switchToMap = async function (mapKey) {
     await window.AdminMapsRender.loadMap(map);
     await window.AdminMapsPins.loadPins(map.id);
 
+    // Refresh the metadata panel (if the module is loaded)
+    if (window.AdminMapsMetadata && window.AdminMapsMetadata.loadMap) {
+      window.AdminMapsMetadata.loadMap(map);
+    }
+
     if (loadingEl) loadingEl.hidden = true;
     if (canvas) canvas.hidden = false;
   } catch (e) {

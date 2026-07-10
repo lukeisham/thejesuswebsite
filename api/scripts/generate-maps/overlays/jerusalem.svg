@@ -1,0 +1,40 @@
+<!-- Hand-drawn overlay: jerusalem
+  Features with no modern Natural Earth dataset:
+  - City walls (First Wall, Second Wall, Third Wall)
+  - Temple Mount enclosure
+  - Kidron Valley and Hinnom Valley (geographic, but better as styled overlay)
+  - Ancient road approaches
+  All coordinates are in the viewBox space (1000×1000).
+-->
+<g id="overlay-jerusalem">
+  <!-- Temple Mount enclosure (approximate Herodian platform) -->
+  <rect x="430" y="280" width="140" height="100" rx="2" fill="none" stroke="#8B7D6B" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="435" y="285" width="130" height="90" rx="1" fill="rgba(241,237,228,0.4)" stroke="none"/>
+
+  <!-- First Wall (approx. western hill circuit) -->
+  <polyline points="350,350 380,380 400,430 410,500 400,560 370,600 330,620" fill="none" stroke="#8B7D6B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="350,350 320,370 300,380" fill="none" stroke="#8B7D6B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Second Wall (northern extension) -->
+  <polyline points="380,340 400,310 430,290 470,280 510,280 540,290 560,300" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Third Wall (outer northern line, Agrippa I) -->
+  <polyline points="350,240 400,230 450,225 500,225 550,230 600,240 650,255" fill="none" stroke="#C4B5A3" stroke-width="1" stroke-dasharray="3,5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Kidron Valley -->
+  <polyline points="570,280 590,350 620,420 640,500 660,580 670,650" fill="none" stroke="#7A8B6D" stroke-width="1.2" stroke-dasharray="6,3" stroke-linecap="round"/>
+
+  <!-- Hinnom Valley -->
+  <polyline points="280,400 300,480 320,560 350,630 380,680" fill="none" stroke="#7A8B6D" stroke-width="1.2" stroke-dasharray="6,3" stroke-linecap="round"/>
+
+  <!-- Ancient road approaches -->
+  <g fill="none" stroke="#A89680" stroke-width="1" stroke-dasharray="4,4" stroke-linecap="round">
+    <polyline points="300,200 370,230 430,280"/>  <!-- from north -->
+    <polyline points="700,350 620,380 570,330"/>   <!-- from east (Bethany) -->
+    <polyline points="500,700 500,620 500,550"/>   <!-- from south (Bethlehem) -->
+    <polyline points="200,500 250,520 300,550 350,580"/> <!-- from west -->
+  </g>
+
+  <!-- Temple inner courts hint -->
+  <rect x="470" y="300" width="60" height="60" rx="1" fill="none" stroke="#8B7D6B" stroke-width="1" stroke-dasharray="2,2"/>
+</g>

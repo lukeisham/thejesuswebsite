@@ -1,169 +1,325 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maps Editor — Admin</title>
-  <link rel="stylesheet" href="../assets/css/admin-diagrams/maps.css">
-  <script defer src="../assets/js/admin-maps/maps-render.js"></script>
-  <script defer src="../assets/js/admin-maps/maps-pins.js"></script>
-  <script defer src="../assets/js/admin-maps/maps-regions.js"></script>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Maps Editor — Admin</title>
+        <link rel="stylesheet" href="../assets/css/admin-diagrams/maps.css" />
+        <script defer src="../assets/js/admin-maps/maps-render.js"></script>
+        <script defer src="../assets/js/admin-maps/maps-pins.js"></script>
+        <script defer src="../assets/js/admin-maps/maps-regions.js"></script>
+        <script defer src="../assets/js/admin-maps/maps-metadata.js"></script>
+    </head>
+    <body>
+        <!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
+        <header class="admin-topbar">
+            <h1>Maps Editor</h1>
+            <span id="map-editor-title" class="admin-topbar__subtitle"
+                >Loading…</span
+            >
+        </header>
 
-<!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
-<header class="admin-topbar">
-  <h1>Maps Editor</h1>
-  <span id="map-editor-title" class="admin-topbar__subtitle">Loading…</span>
-</header>
+        <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
+        <nav class="admin-maps-toolbar" aria-label="Map editor tools">
+            <div class="admin-maps-toolbar__left">
+                <select
+                    id="map-selector"
+                    class="admin-maps-toolbar__select"
+                    aria-label="Select map scale"
+                >
+                    <option value="">Loading maps…</option>
+                </select>
 
-<!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
-<nav class="admin-maps-toolbar" aria-label="Map editor tools">
-  <div class="admin-maps-toolbar__left">
-    <select id="map-selector" class="admin-maps-toolbar__select" aria-label="Select map scale">
-      <option value="">Loading maps…</option>
-    </select>
+                <button
+                    type="button"
+                    id="map-prev-btn"
+                    class="admin-maps-toolbar__nav-btn"
+                    aria-label="Previous map"
+                    disabled
+                >
+                    ◀
+                </button>
+                <button
+                    type="button"
+                    id="map-next-btn"
+                    class="admin-maps-toolbar__nav-btn"
+                    aria-label="Next map"
+                    disabled
+                >
+                    ▶
+                </button>
+            </div>
 
-    <button type="button" id="map-prev-btn" class="admin-maps-toolbar__nav-btn" aria-label="Previous map" disabled>◀</button>
-    <button type="button" id="map-next-btn" class="admin-maps-toolbar__nav-btn" aria-label="Next map" disabled>▶</button>
-  </div>
+            <div class="admin-maps-toolbar__right">
+                <button
+                    type="button"
+                    id="map-details-toggle"
+                    class="admin-maps-toolbar__btn admin-maps-toolbar__btn--secondary"
+                    aria-expanded="false"
+                    aria-controls="map-details-panel"
+                >
+                    ▼ Map Details
+                </button>
+                <button
+                    type="button"
+                    id="add-pin-btn"
+                    class="admin-maps-toolbar__btn admin-maps-toolbar__btn--primary"
+                >
+                    Add Pin
+                </button>
+            </div>
+        </nav>
 
-  <div class="admin-maps-toolbar__right">
-    <button type="button" id="add-pin-btn" class="admin-maps-toolbar__btn admin-maps-toolbar__btn--primary">
-      Add Pin
-    </button>
-  </div>
-</nav>
+        <!-- ── Map Details Panel ──────────────────────────────────────────────────── -->
+        <section
+            id="map-details-panel"
+            class="admin-maps-metadata"
+            aria-label="Map details"
+            hidden
+        >
+            <form
+                id="map-details-form"
+                class="admin-maps-metadata__form"
+                novalidate
+            >
+                <div class="admin-maps-metadata__field">
+                    <label for="map-details-name">Map Name</label>
+                    <input
+                        type="text"
+                        id="map-details-name"
+                        class="admin-maps-metadata__input"
+                        maxlength="200"
+                        placeholder="e.g. Galilee"
+                        required
+                    />
+                </div>
 
-<!-- ── Map Editor Canvas ──────────────────────────────────────────────────── -->
-<main>
-  <div id="map-loading" class="admin-map-loading" role="status" aria-live="polite">
-    Loading map…
-  </div>
+                <div class="admin-maps-metadata__field">
+                    <label for="map-details-description">Description</label>
+                    <textarea
+                        id="map-details-description"
+                        class="admin-maps-metadata__input admin-maps-metadata__textarea"
+                        rows="3"
+                        maxlength="500"
+                        placeholder="Describe this map…"
+                    ></textarea>
+                </div>
 
-  <div id="map-canvas" class="admin-map-canvas" hidden>
-    <img
-      id="map-canvas-image"
-      class="admin-map-image"
-      src=""
-      alt=""
-    >
-    <div id="map-pins-layer" class="admin-map-pins-layer"></div>
-  </div>
-</main>
+                <div class="admin-maps-metadata__field">
+                    <label>Base Image</label>
+                    <div class="admin-maps-metadata__image-preview">
+                        <img
+                            id="map-details-preview"
+                            class="admin-maps-metadata__preview-img"
+                            src=""
+                            alt="Map preview"
+                            hidden
+                        />
+                        <span
+                            id="map-details-image-path"
+                            class="admin-pin-panel__hint"
+                            >(none)</span
+                        >
+                    </div>
+                    <div class="admin-maps-metadata__file-row">
+                        <label
+                            for="map-image-replace"
+                            class="admin-maps-metadata__file-label"
+                        >
+                            Replace Image
+                            <input
+                                type="file"
+                                id="map-image-replace"
+                                class="admin-maps-metadata__file-input"
+                                accept="image/png,image/jpeg,image/gif,image/webp"
+                            />
+                        </label>
+                    </div>
+                </div>
 
-<!-- ── Pin Edit Panel ─────────────────────────────────────────────────────── -->
-<aside
-  id="pin-edit-panel"
-  class="admin-pin-panel"
-  role="dialog"
-  aria-label="Edit pin"
-  aria-hidden="true"
->
-  <div class="admin-pin-panel__header">
-    <h2 class="admin-pin-panel__title">Edit Pin</h2>
-    <button
-      type="button"
-      id="pin-panel-close"
-      class="admin-pin-panel__close"
-      aria-label="Close pin editor"
-    >✕</button>
-  </div>
+                <div
+                    id="map-details-error"
+                    class="admin-pin-panel__error"
+                    role="alert"
+                    aria-live="assertive"
+                ></div>
 
-  <form id="pin-edit-form" class="admin-pin-panel__form" novalidate>
-    <div class="admin-pin-panel__field">
-      <label for="pin-label-input">Label</label>
-      <input
-        type="text"
-        id="pin-label-input"
-        class="admin-pin-panel__input"
-        maxlength="200"
-        placeholder="e.g. Capernaum"
-      >
-    </div>
+                <div class="admin-pin-panel__actions">
+                    <button
+                        type="button"
+                        id="map-details-save"
+                        class="admin-pin-panel__btn admin-pin-panel__btn--primary"
+                    >
+                        Save
+                    </button>
+                </div>
+            </form>
+        </section>
 
-    <div class="admin-pin-panel__field">
-      <label for="pin-evidence-input">Evidence ID</label>
-      <input
-        type="text"
-        id="pin-evidence-input"
-        class="admin-pin-panel__input"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        placeholder="e.g. 42"
-        aria-describedby="pin-evidence-info"
-      >
-      <span id="pin-evidence-info" class="admin-pin-panel__hint"></span>
-    </div>
+        <!-- ── Map Editor Canvas ──────────────────────────────────────────────────── -->
+        <main>
+            <div
+                id="map-loading"
+                class="admin-map-loading"
+                role="status"
+                aria-live="polite"
+            >
+                Loading map…
+            </div>
 
-    <div
-      id="pin-edit-error"
-      class="admin-pin-panel__error"
-      role="alert"
-      aria-live="assertive"
-    ></div>
+            <div id="map-canvas" class="admin-map-canvas" hidden>
+                <img
+                    id="map-canvas-image"
+                    class="admin-map-image"
+                    src=""
+                    alt=""
+                />
+                <div id="map-pins-layer" class="admin-map-pins-layer"></div>
+            </div>
+        </main>
 
-    <div class="admin-pin-panel__actions">
-      <button type="button" id="pin-save-btn" class="admin-pin-panel__btn admin-pin-panel__btn--primary">
-        Save
-      </button>
-      <button type="button" id="pin-cancel-btn" class="admin-pin-panel__btn admin-pin-panel__btn--secondary">
-        Cancel
-      </button>
-    </div>
+        <!-- ── Pin Edit Panel ─────────────────────────────────────────────────────── -->
+        <aside
+            id="pin-edit-panel"
+            class="admin-pin-panel"
+            role="dialog"
+            aria-label="Edit pin"
+            aria-hidden="true"
+        >
+            <div class="admin-pin-panel__header">
+                <h2 class="admin-pin-panel__title">Edit Pin</h2>
+                <button
+                    type="button"
+                    id="pin-panel-close"
+                    class="admin-pin-panel__close"
+                    aria-label="Close pin editor"
+                >
+                    ✕
+                </button>
+            </div>
 
-    <div class="admin-pin-panel__danger">
-      <button type="button" id="pin-delete-btn" class="admin-pin-panel__btn admin-pin-panel__btn--danger">
-        Delete Pin
-      </button>
-    </div>
-  </form>
-</aside>
+            <form id="pin-edit-form" class="admin-pin-panel__form" novalidate>
+                <div class="admin-pin-panel__field">
+                    <label for="pin-label-input">Label</label>
+                    <input
+                        type="text"
+                        id="pin-label-input"
+                        class="admin-pin-panel__input"
+                        maxlength="200"
+                        placeholder="e.g. Capernaum"
+                    />
+                </div>
 
-<!-- ── Backdrop ────────────────────────────────────────────────────────────── -->
-<div id="pin-panel-backdrop" class="admin-pin-panel-backdrop" hidden></div>
+                <div class="admin-pin-panel__field">
+                    <label for="pin-evidence-input">Evidence ID</label>
+                    <input
+                        type="text"
+                        id="pin-evidence-input"
+                        class="admin-pin-panel__input"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        placeholder="e.g. 42"
+                        aria-describedby="pin-evidence-info"
+                    />
+                    <span
+                        id="pin-evidence-info"
+                        class="admin-pin-panel__hint"
+                    ></span>
+                </div>
 
-<!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
-<script>
-  (function () {
-    // Once all deferred scripts have loaded, init each module.
-    AdminMapsRender.init();
-    AdminMapsPins.init();
-    AdminMapsRegions.init();
+                <div
+                    id="pin-edit-error"
+                    class="admin-pin-panel__error"
+                    role="alert"
+                    aria-live="assertive"
+                ></div>
 
-    // Wire the backdrop to close the panel.
-    var backdrop = document.getElementById("pin-panel-backdrop");
-    if (backdrop) {
-      backdrop.addEventListener("click", function () {
-        AdminMapsPins.closeEditPanel();
-      });
-    }
+                <div class="admin-pin-panel__actions">
+                    <button
+                        type="button"
+                        id="pin-save-btn"
+                        class="admin-pin-panel__btn admin-pin-panel__btn--primary"
+                    >
+                        Save
+                    </button>
+                    <button
+                        type="button"
+                        id="pin-cancel-btn"
+                        class="admin-pin-panel__btn admin-pin-panel__btn--secondary"
+                    >
+                        Cancel
+                    </button>
+                </div>
 
-    // Kick off: load maps list, then switch to the first map.
-    AdminMapsRegions.loadMaps().then(function () {
-      var maps = AdminMapsRegions.getMaps();
-      if (maps.length > 0) {
-        return AdminMapsRegions.switchToMap(maps[0].map_key);
-      }
-    });
+                <div class="admin-pin-panel__danger">
+                    <button
+                        type="button"
+                        id="pin-delete-btn"
+                        class="admin-pin-panel__btn admin-pin-panel__btn--danger"
+                    >
+                        Delete Pin
+                    </button>
+                </div>
+            </form>
+        </aside>
 
-    // Sync backdrop visibility with panel state
-    var observer = new MutationObserver(function () {
-      var panel = document.getElementById("pin-edit-panel");
-      var backdrop = document.getElementById("pin-panel-backdrop");
-      if (panel && backdrop) {
-        var open = panel.classList.contains("admin-pin-panel--open");
-        backdrop.hidden = !open;
-        panel.setAttribute("aria-hidden", open ? "false" : "true");
-      }
-    });
+        <!-- ── Backdrop ────────────────────────────────────────────────────────────── -->
+        <div
+            id="pin-panel-backdrop"
+            class="admin-pin-panel-backdrop"
+            hidden
+        ></div>
 
-    var panel = document.getElementById("pin-edit-panel");
-    if (panel) {
-      observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
-    }
-  })();
-</script>
+        <!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
+        <script>
+            (function () {
+                // Once all deferred scripts have loaded, init each module.
+                AdminMapsRender.init();
+                AdminMapsPins.init();
+                AdminMapsRegions.init();
+                AdminMapsMetadata.init();
 
-</body>
+                // Wire the backdrop to close the panel.
+                var backdrop = document.getElementById("pin-panel-backdrop");
+                if (backdrop) {
+                    backdrop.addEventListener("click", function () {
+                        AdminMapsPins.closeEditPanel();
+                    });
+                }
+
+                // Kick off: load maps list, then switch to the first map.
+                AdminMapsRegions.loadMaps().then(function () {
+                    var maps = AdminMapsRegions.getMaps();
+                    if (maps.length > 0) {
+                        return AdminMapsRegions.switchToMap(maps[0].map_key);
+                    }
+                });
+
+                // Sync backdrop visibility with panel state
+                var observer = new MutationObserver(function () {
+                    var panel = document.getElementById("pin-edit-panel");
+                    var backdrop =
+                        document.getElementById("pin-panel-backdrop");
+                    if (panel && backdrop) {
+                        var open = panel.classList.contains(
+                            "admin-pin-panel--open",
+                        );
+                        backdrop.hidden = !open;
+                        panel.setAttribute(
+                            "aria-hidden",
+                            open ? "false" : "true",
+                        );
+                    }
+                });
+
+                var panel = document.getElementById("pin-edit-panel");
+                if (panel) {
+                    observer.observe(panel, {
+                        attributes: true,
+                        attributeFilter: ["class"],
+                    });
+                }
+            })();
+        </script>
+    </body>
 </html>

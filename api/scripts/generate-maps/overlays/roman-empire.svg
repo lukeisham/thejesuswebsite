@@ -1,0 +1,19 @@
+<!-- Hand-drawn overlay: roman-empire
+  Features with no modern Natural Earth dataset:
+  - Via Maris and other ancient trade roads
+  - Province/region boundaries (approx.)
+  All coordinates are in the viewBox space (1200×700).
+-->
+<g id="overlay-roman-empire" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Via Maris (approx. route: Egypt → Gaza → Damascus) -->
+  <polyline points="440,520 480,480 560,420 640,380 720,340 800,310 860,280"/>
+  <!-- Trade road: Asia Minor → Byzantium -->
+  <polyline points="620,200 680,160 750,140"/>
+  <!-- Trade road: Rome → Brundisium -->
+  <polyline points="180,240 220,240 260,250"/>
+</g>
+<!-- Province boundaries (approximate) -->
+<g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
+  <polyline points="350,180 370,220 380,260 400,300 420,340 460,370"/>
+  <polyline points="620,200 640,240 680,280 720,320 780,340 830,350"/>
+</g>

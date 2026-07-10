@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1000" width="900" height="1000">
+<defs>
+<filter id="parchment-texture">
+<feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.95  0 0 0 0 0.93  0 0 0 0 0.89  0 0 0 0.04 0" in="noise" result="tint"/>
+<feBlend in="SourceGraphic" in2="tint" mode="multiply"/>
+</filter>
+</defs>
+<rect x="0" y="0" width="900" height="1000" fill="#F8F5F0"/>
+<polygon points="-6225,0 -6075,-125 -6000,-625 -5925,-750 -5775,-812.5 -5550,-850 -4650,-787.5 -4350,-687.5 -4200,-775 -3825,-812.5 -3450,-937.5 -3075,-875 -2850,-812.5 -2475,-562.5 -1875,-312.5 -1125,125 -225,500 -75,500 300,750 465,662.5 420,562.5 480,437.5 540,387.5 645,412.5 1875,1437.5   -2850,-812.5 -3000,-937.5 -3150,-937.5 -3300,-900 -3450,-687.5 -2550,0 -2100,-437.5 -2175,-562.5 -2850,-812.5   -1725,-187.5 -900,-562.5 -525,-400 -1350,25 -1725,-187.5   -675,-475 -375,-537.5 -75,-475 225,-312.5 675,62.5 675,125 300,62.5 -600,750 -675,750 -930,500 -870,312.5 -675,125 -600,-125 -600,-250 -750,-437.5 -675,-475   45,287.5 210,262.5 345,312.5 45,287.5   -1275,225 -870,250 -1275,225   -2925,0 -2550,-62.5 -2490,-162.5 -2700,-162.5 -3000,-12.5 -2925,0   -675,-600 525,-600 1275,-500 1500,-562.5 1425,-650 -675,-600   -6150,0 -5250,-750 -5025,-812.5 -4950,-812.5 -3900,62.5 -3825,62.5 -3450,-250 -3675,0 -6150,0   -6225,0 -3600,1125 -3300,1062.5 -3225,937.5 -5250,-750" fill="#F1EDE4" stroke="none"/>
+<polygon points="531,522.5 531,522.5   510,687.5 510,687.5" fill="#C9D4D8" stroke="#9FB0B6" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="543,490 532.5,687.5   546,475 543,490   577.5,543.8 535.5,535   -300,750 -150,750 -105,687.5   600,312.5 645,212.5 525,100   900,62.5 1800,-225   -3000,-687.5 -2955,-587.5" fill="none" stroke="#9FB0B6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="-6225,0 -6075,-125 -6000,-625 -5925,-750 -5775,-812.5 -5550,-850 -4650,-787.5 -4350,-687.5 -4200,-775 -3825,-812.5 -3450,-937.5 -3075,-875 -2850,-812.5 -2475,-562.5 -1875,-312.5 -1125,125 -225,500 -75,500 300,750 465,662.5 420,562.5 480,437.5 540,387.5 645,412.5 1875,1437.5   -2850,-812.5 -3000,-937.5 -3150,-937.5 -3300,-900 -3450,-687.5 -2550,0 -2100,-437.5 -2175,-562.5 -2850,-812.5   -1725,-187.5 -900,-562.5 -525,-400 -1350,25 -1725,-187.5   -675,-475 -375,-537.5 -75,-475 225,-312.5 675,62.5 675,125 300,62.5 -600,750 -675,750 -930,500 -870,312.5 -675,125 -600,-125 -600,-250 -750,-437.5 -675,-475   45,287.5 210,262.5 345,312.5 45,287.5   -1275,225 -870,250 -1275,225   -2925,0 -2550,-62.5 -2490,-162.5 -2700,-162.5 -3000,-12.5 -2925,0   -675,-600 525,-600 1275,-500 1500,-562.5 1425,-650 -675,-600   -6150,0 -5250,-750 -5025,-812.5 -4950,-812.5 -3900,62.5 -3825,62.5 -3450,-250 -3675,0 -6150,0   -6225,0 -3600,1125 -3300,1062.5 -3225,937.5 -5250,-750" fill="none" stroke="#8B7D6B" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="420" cy="260" r="25" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="420" y="230" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Mt. Gerizim</text>
+<circle cx="420" cy="230" r="25" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="420" y="200" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Mt. Ebal</text>
+<circle cx="430" cy="420" r="20" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="430" y="395" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Mt. of Olives</text>
+<!-- Hand-drawn overlay: levant
+  Features with no modern Natural Earth dataset:
+  - Region boundaries (Galilee, Samaria, Judea, Idumea, Decapolis, Perea)
+  - Via Maris route segment
+  - Jordan River approximate course (natural course may differ from modern)
+  All coordinates are in the viewBox space (900×1000).
+-->
+<g id="overlay-levant" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Via Maris (coastal route) -->
+  <polyline points="180,120 200,220 220,320 250,420 280,520 310,620"/>
+  <!-- Trade road from coast to Damascus -->
+  <polyline points="250,420 320,400 400,340 500,280 600,240"/>
+</g>
+<!-- Region boundaries (approximate) -->
+<g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
+  <!-- Galilee / Samaria boundary -->
+  <polyline points="320,240 380,240 430,250 480,270 540,260 600,240"/>
+  <!-- Samaria / Judea boundary -->
+  <polyline points="310,370 360,370 420,380 480,380 540,370 600,340"/>
+  <!-- Judea / Idumea boundary -->
+  <polyline points="300,520 350,520 410,530 470,540 530,520"/>
+</g>
+<text x="80" y="500" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">MEDITERRANEAN SEA</text>
+<text x="450" y="200" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">GALILEE</text>
+<text x="400" y="320" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">SAMARIA</text>
+<text x="400" y="450" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">JUDEA</text>
+<text x="350" y="580" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">IDUMEA</text>
+<text x="600" y="230" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">DECAPOLIS</text>
+<text x="600" y="350" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">PEREA</text>
+<text x="500" y="720" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">NABATEA</text>
+<text x="350" y="100" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">PHOENICIA</text>
+<text x="500" y="90" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">ITUREA</text>
+<rect x="12" y="12" width="876" height="976" fill="none" stroke="#5C4E3D" stroke-width="2"/>
+<rect x="16" y="16" width="868" height="968" fill="none" stroke="#5C4E3D" stroke-width="0.8"/>
+<rect x="260" y="930" width="380" height="50" rx="4" fill="rgba(248,245,240,0.92)" stroke="#8B7D6B" stroke-width="1"/><text x="450" y="952" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-weight="bold" fill="#5C4E3D">The Levant</text><text x="450" y="970" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-style="italic" fill="#B8A68E">in the time of Jesus · c. AD 30</text>
+<circle cx="845" cy="55" r="30" fill="#F1EDE4" stroke="#8B7D6B" stroke-width="1"/><polygon points="845,29 840,55 850,55" fill="#8B7D6B"/><polygon points="845,81 840,55 850,55" fill="#B8A68E"/><text x="845" y="22" text-anchor="middle" font-family="Georgia, serif" font-size="8" font-weight="bold" fill="#8B7D6B">N</text>
+</svg>
