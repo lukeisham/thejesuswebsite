@@ -127,11 +127,18 @@
                     <a class="admin-sidebar__link" href="../diagrams/maps.html">
                         <span class="admin-sidebar__icon">🗺️</span> Maps Editor
                     </a>
-                    <a class="admin-sidebar__link" href="../diagrams/arbor.html">
+                    <a
+                        class="admin-sidebar__link"
+                        href="../diagrams/arbor.html"
+                    >
                         <span class="admin-sidebar__icon">🌳</span> Arbor Editor
                     </a>
-                    <a class="admin-sidebar__link" href="../diagrams/timeline.html">
-                        <span class="admin-sidebar__icon">⏳</span> Timeline Editor
+                    <a
+                        class="admin-sidebar__link"
+                        href="../diagrams/timeline.html"
+                    >
+                        <span class="admin-sidebar__icon">⏳</span> Timeline
+                        Editor
                     </a>
                     <a class="admin-sidebar__link" href="../analytics.html">
                         <span class="admin-sidebar__icon">📈</span> Analytics
@@ -499,6 +506,25 @@
                                     >Comma-separated search keywords.</span
                                 >
                             </div>
+
+                            <div class="admin-form-group">
+                                <label
+                                    class="admin-form-group__label"
+                                    for="evidence-link-evidence"
+                                    >Linked Evidence IDs</label
+                                >
+                                <input
+                                    class="admin-input"
+                                    id="evidence-link-evidence"
+                                    name="link_evidence_ids"
+                                    type="text"
+                                    aria-describedby="link-ev-hint"
+                                    placeholder="e.g. 1, 3, 7"
+                                />
+                                <span class="admin-form-hint" id="link-ev-hint"
+                                    >Comma-separated evidence IDs to link.</span
+                                >
+                            </div>
                         </div>
 
                         <div
@@ -658,6 +684,18 @@
                     errorEl.style.display = "block";
                 }
 
+                function parseIdList(str) {
+                    if (!str || !str.trim()) return undefined;
+                    return str
+                        .split(",")
+                        .map(function (s) {
+                            return parseInt(s.trim(), 10);
+                        })
+                        .filter(function (n) {
+                            return !isNaN(n);
+                        });
+                }
+
                 function validate() {
                     clearErrors();
                     let valid = true;
@@ -735,6 +773,10 @@
                                 .getElementById("evidence-keywords")
                                 .value.trim() || undefined,
                         published_draft: publish ? 1 : 0,
+                        link_evidence_ids: parseIdList(
+                            document.getElementById("evidence-link-evidence")
+                                .value,
+                        ),
                         mla_source_ids: mlaSourcesPanel.getSelectedIds(),
                     };
                 }
