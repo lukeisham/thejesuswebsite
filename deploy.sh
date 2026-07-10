@@ -103,6 +103,9 @@ npm run sitemap
 echo "[deploy] Generating static pages..."
 npm run pages
 
+echo "[deploy] Embedding initial data for list/visual pages..."
+npm run embed-data
+
 # ---- 4. Start / restart the API and MCP servers -----------------------------
 
 case "$PROCESS_MANAGER" in

@@ -9,6 +9,7 @@
 
 import { createElement, batchWrite } from "../utils/dom.js";
 import { fetchMapByKey } from "./maps-data.js";
+import { readEmbeddedData } from "../api.js";
 import { setupInteractions } from "./maps-interactions.js";
 import { showToast } from "../utils/toasts.js";
 
@@ -296,17 +297,27 @@ export async function initFromDataAttributes() {
     return;
   }
 
-  showRegionLoading();
+  // Try embedded data first (deploy-time snapshot for first-paint content — SR-3)
+  let mapData;
+  const embedded = readEmbeddedData("map-data");
+  if (embedded && embedded.map_key) {
+    mapData = embedded;
+  } else {
+    // Fall back to live API fetch
+    showRegionLoading();
 
-  const { data, error } = await fetchMapByKey(mapKey);
+    const { data, error } = await fetchMapByKey(mapKey);
 
-  if (error) {
-    showToast("Failed to load map. Please try again.", "error");
-    showRegionEmpty();
-    return;
+    if (error) {
+      showToast("Failed to load map. Please try again.", "error");
+      showRegionEmpty();
+      return;
+    }
+
+    mapData = data;
   }
 
-  renderRegion(data);
+  renderRegion(mapData);
 
   // Wire zoom/pan interactions
   setupInteractions();

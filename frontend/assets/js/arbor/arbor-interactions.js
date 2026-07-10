@@ -17,7 +17,8 @@ import {
   renderArbor,
   isVerticalMode,
 } from "./arbor-render.js";
-import { fetchArborGraph } from "./arbor-data.js";
+import { fetchArborGraph, buildGraph } from "./arbor-data.js";
+import { readEmbeddedData } from "../api.js";
 import { showToast } from "../utils/toasts.js";
 
 // ─── DOM references ────────────────────────────────────────────────────────────
@@ -230,30 +231,39 @@ async function init() {
   zoomResetBtn = document.getElementById("zoom-reset");
 
   // ── Fetch data ──────────────────────────────────────────────────────────
-  showLoading();
 
-  const { data, error } = await fetchArborGraph();
+  // Try embedded data first (deploy-time snapshot for first-paint content — SR-3)
+  const embedded = readEmbeddedData("arbor-data");
+  if (embedded && embedded.nodes && embedded.nodes.length > 0) {
+    savedNodes = embedded.nodes;
+    savedEdges = embedded.edges || [];
+  } else {
+    // Fall back to live API fetch
+    showLoading();
 
-  if (error) {
-    showToast("Failed to load arbor diagram. Please try again.", "error");
-    showEmpty();
-    return;
+    const { data, error } = await fetchArborGraph();
+
+    if (error) {
+      showToast("Failed to load arbor diagram. Please try again.", "error");
+      showEmpty();
+      return;
+    }
+
+    const nodes = data && data.nodes ? data.nodes : [];
+    const edges = data && data.edges ? data.edges : [];
+
+    if (!nodes.length) {
+      showEmpty();
+      return;
+    }
+
+    savedNodes = nodes;
+    savedEdges = edges;
   }
 
-  const nodes = data && data.nodes ? data.nodes : [];
-  const edges = data && data.edges ? data.edges : [];
-
-  if (!nodes.length) {
-    showEmpty();
-    return;
-  }
-
-  // Save data for potential re-render on breakpoint crossing
-  savedNodes = nodes;
-  savedEdges = edges;
   currentVerticalMode = isVerticalMode();
 
-  renderArbor(nodes, edges);
+  renderArbor(savedNodes, savedEdges);
 
   // ── Wire tooltip on nodes (JS-6: event delegation) ─────────────────────
   if (diagramEl) {
