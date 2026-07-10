@@ -3,7 +3,7 @@
    260px off-canvas sidebar. Closed by default on mobile; open elsewhere
    (including home) via .sidebar--open (added by sidebar_hamburger.js). On
    desktop, open sidebar shifts <main> and <footer> right; on mobile it
-   overlays content with a backdrop.
+   stacks above the page content in normal document flow.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -134,5 +134,31 @@ main {
     .sidebar--open ~ main,
     .sidebar--open ~ footer {
         margin-left: calc(var(--sidebar-width) + var(--space-lg));
+    }
+}
+
+/* -------------------------------------------------------------------------
+   Mobile (< 768px): stacked flow — sidebar pushes content down
+   instead of overlaying it. When closed the sidebar is hidden; when open
+   it sits at the top of the page as a static block.
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        display: none;
+        transform: none;
+        transition: none;
+        /* Top padding clears the viewport-pinned toggle button */
+        padding: calc(44px + var(--space-lg)) var(--space-md) var(--space-md);
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar--open {
+        display: block;
+        transform: none;
     }
 }

@@ -20,7 +20,8 @@
       "Bash(pgrep -f \"node server.js\")",
       "mcp__visualize__read_me",
       "mcp__visualize__show_widget",
-      "Bash(sqlite3 database/thejesuswebsite.db \".schema evidence\")"
+      "Bash(sqlite3 database/thejesuswebsite.db \".schema evidence\")",
+      "Bash(node api/scripts/generate-maps/index.js)"
     ]
   }
 }

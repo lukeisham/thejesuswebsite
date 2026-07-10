@@ -35,23 +35,10 @@
 }
 
 /* -------------------------------------------------------------------------
-   Backdrop (mobile only)
-   Created dynamically by sidebar_hamburger.js while the sidebar is open.
+   Backdrop (no longer used — sidebar stacks in flow on mobile and shifts
+   content on desktop; kept for safety in case stale markup references it).
    ------------------------------------------------------------------------- */
 
 .sidebar-backdrop {
-    position: fixed;
-    inset: 0;
-    background: var(--overlay-backdrop);
-    z-index: 99;
-}
-
-.sidebar-backdrop[hidden] {
     display: none;
-}
-
-@media (min-width: 768px) {
-    .sidebar-backdrop {
-        display: none;
-    }
 }
