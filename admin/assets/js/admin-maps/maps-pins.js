@@ -11,6 +11,21 @@
 window.AdminMapsPins = {};
 const Pins = window.AdminMapsPins;
 
+/* ── Helpers ──────────────────────────────────────────────────────────────── */
+
+/**
+ * Convert a CamelCase timeline_era value to kebab-case for CSS classes.
+ * e.g. "GalileeMinistry" → "galilee-ministry"
+ * @param {string} era
+ * @returns {string}
+ */
+function eraToKebab(era) {
+  return era
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+    .toLowerCase();
+}
+
 /* ── State ────────────────────────────────────────────────────────────────── */
 
 /** @type {Array<Object>} */
@@ -76,7 +91,7 @@ Pins.loadPins = async function (mapId) {
   Pins.closeEditPanel();
 
   try {
-    pins = await Admin.api.get("/maps/pins/by-map/" + mapId);
+    pins = await Admin.api.get("/maps/admin/pins/by-map/" + mapId);
   } catch (e) {
     console.error("Failed to load pins:", e);
     pins = [];
@@ -92,10 +107,21 @@ Pins.renderPins = function () {
   if (!pinsLayer) return;
   pinsLayer.innerHTML = "";
 
+  // Render existing (saved) pins
   for (let i = 0; i < pins.length; i++) {
-    const pin = pins[i];
-    const el = Pins.createPinElement(pin);
+    var pin = pins[i];
+    var el = Pins.createPinElement(pin);
     pinsLayer.appendChild(el);
+  }
+
+  // Render staged creates (holding-pen drops / staged add-mode clicks)
+  if (window.AdminMapsStaged) {
+    var staged = window.AdminMapsStaged.getCreates();
+    for (let j = 0; j < staged.length; j++) {
+      var s = staged[j];
+      var sel = Pins._createStagedPinElement(s);
+      pinsLayer.appendChild(sel);
+    }
   }
 };
 
@@ -108,6 +134,9 @@ Pins.renderPins = function () {
 Pins.createPinElement = function (pin) {
   const el = document.createElement("button");
   el.className = "admin-map-pin";
+  if (pin.timeline_era) {
+    el.classList.add("era--" + eraToKebab(pin.timeline_era));
+  }
   if (pin.id === selectedPinId) {
     el.classList.add("admin-map-pin--selected");
   }
@@ -116,6 +145,9 @@ Pins.createPinElement = function (pin) {
   el.setAttribute("aria-label", pin.label || "Map pin");
   el.title = pin.label || "";
   el.dataset.pinId = String(pin.id);
+  el.dataset.evidenceSlug = pin.evidence_slug || "";
+  el.dataset.evidenceTitle = pin.evidence_title || "";
+  el.dataset.label = pin.label || "";
 
   // Label span below the dot
   if (pin.label) {
@@ -133,6 +165,36 @@ Pins.createPinElement = function (pin) {
   el.addEventListener("mousedown", function (e) {
     Pins.onPinMouseDown(e, pin);
   });
+
+  return el;
+};
+
+/**
+ * Create a DOM element for a staged (not yet saved) pin.
+ * Styled with a dashed border to distinguish from saved pins.
+ *
+ * @param {Object} staged
+ * @returns {HTMLElement}
+ */
+Pins._createStagedPinElement = function (staged) {
+  const el = document.createElement("button");
+  el.className = "admin-map-pin admin-map-pin--staged";
+  if (staged.timeline_era) {
+    el.classList.add("era--" + eraToKebab(staged.timeline_era));
+  }
+  el.style.left = staged.x + "%";
+  el.style.top = staged.y + "%";
+  el.setAttribute("aria-label", staged.label || "Staged pin");
+  el.title = staged.label || "";
+  el.dataset.tempId = staged._tempId;
+
+  // Label span
+  if (staged.label) {
+    var labelEl = document.createElement("span");
+    labelEl.className = "admin-map-pin-label";
+    labelEl.textContent = staged.label;
+    el.appendChild(labelEl);
+  }
 
   return el;
 };
@@ -183,7 +245,23 @@ Pins.onCanvasClick = async function (e) {
   );
 
   try {
-    const created = await Admin.api.post("/maps/pins", payload);
+    // If staging is available, stage the pin instead of POSTing immediately
+    if (window.AdminMapsStaged) {
+      // Build a minimal evidence-like object for staging
+      var stagedEvidence = { id: null, title: null, timeline_era: null };
+      var staged = window.AdminMapsStaged.stageCreate(
+        currentMapId,
+        stagedEvidence,
+        payload.x,
+        payload.y,
+      );
+      staged.label = null; // No label for clicked pins
+      Pins.renderPins();
+      Pins.toggleAddMode();
+      return;
+    }
+
+    var created = await Admin.api.post("/maps/pins", payload);
     pins.push(created);
     Pins.renderPins();
     Pins.selectPin(created.id);
@@ -413,7 +491,22 @@ Pins.onPinMouseUp = async function (e) {
   const pct = window.AdminMapsRender.screenToPercent(screenX, screenY, rect);
 
   try {
-    const updated = await Admin.api.put("/maps/pins/" + pin.id, {
+    // If staging is available, stage the move instead of PUTting immediately
+    if (window.AdminMapsStaged) {
+      window.AdminMapsStaged.stageMove(pin.id, pct.x, pct.y);
+      // Update local state visually
+      for (let i = 0; i < pins.length; i++) {
+        if (pins[i].id === pin.id) {
+          pins[i].x = Math.round(pct.x * 100) / 100;
+          pins[i].y = Math.round(pct.y * 100) / 100;
+          break;
+        }
+      }
+      Pins.renderPins();
+      return;
+    }
+
+    var updated = await Admin.api.put("/maps/pins/" + pin.id, {
       x: Math.round(pct.x * 100) / 100,
       y: Math.round(pct.y * 100) / 100,
     });

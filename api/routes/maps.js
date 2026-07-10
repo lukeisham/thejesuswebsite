@@ -91,6 +91,23 @@ router.get("/admin/pins/by-map/:mapId", requireAuth, (req, res) => {
   }
 });
 
+// GET /maps/admin/unplaced — list evidence with map_location but no pin on the given map (admin only)
+router.get("/admin/unplaced", requireAuth, (req, res) => {
+  try {
+    const mapId = Number(req.query.map_id);
+    if (!mapId || !Number.isFinite(mapId)) {
+      return res
+        .status(400)
+        .json({ error: "map_id query parameter is required." });
+    }
+    const items = mapModel.getUnplacedEvidence(mapId);
+    res.json(items);
+  } catch (error) {
+    console.error("GET /maps/admin/unplaced failed:", error);
+    res.status(500).json({ error: "Failed to load unplaced evidence." });
+  }
+});
+
 // GET /maps/admin/:map_key — single map including draft-evidence pins (admin only)
 // Must be registered above GET /:map_key to avoid Express matching "admin" as a map_key.
 router.get("/admin/:map_key", requireAuth, (req, res) => {

@@ -1,0 +1,150 @@
+/* ==========================================================================
+   Holding Pen (Admin Maps)
+   Chip strip, staged-pin styling, drop-target highlight.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Pen container
+   ------------------------------------------------------------------------- */
+
+.holding-pen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    margin: 0 auto var(--space-md);
+    max-width: 1200px;
+    width: calc(100% - var(--space-xl) * 2);
+    background: var(--bg-surface-alt);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    min-height: 52px;
+    align-items: center;
+}
+
+.holding-pen__empty {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+/* -------------------------------------------------------------------------
+   Chip
+   ------------------------------------------------------------------------- */
+
+.holding-pen__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: grab;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    min-height: 44px;
+    min-width: 44px;
+    white-space: nowrap;
+    transition:
+        box-shadow var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+    user-select: none;
+    -webkit-user-drag: element;
+}
+
+.holding-pen__chip:hover {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+}
+
+.holding-pen__chip:active {
+    cursor: grabbing;
+}
+
+.holding-pen__chip--dragging {
+    opacity: 0.4;
+}
+
+/* -------------------------------------------------------------------------
+   Chip era swatch
+   ------------------------------------------------------------------------- */
+
+.holding-pen__chip-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-round);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.era-swatch--pre-incarnation     { background: var(--era-pre-incarnation); }
+.era-swatch--old-testament       { background: var(--era-old-testament); }
+.era-swatch--early-life          { background: var(--era-early-life); }
+.era-swatch--life                { background: var(--era-life); }
+.era-swatch--galilee-ministry    { background: var(--era-galilee-ministry); }
+.era-swatch--judean-ministry     { background: var(--era-judean-ministry); }
+.era-swatch--passion-week        { background: var(--era-passion-week); }
+.era-swatch--post-passion        { background: var(--era-post-passion); }
+
+/* -------------------------------------------------------------------------
+   Drop target highlight
+   ------------------------------------------------------------------------- */
+
+.holding-pen--drop-target {
+    outline: 2px dashed var(--admin-accent);
+    outline-offset: -2px;
+}
+
+/* -------------------------------------------------------------------------
+   Staged pin (dashed outline)
+   ------------------------------------------------------------------------- */
+
+.admin-map-pin--staged {
+    border-style: dashed;
+    opacity: 0.75;
+}
+
+/* -------------------------------------------------------------------------
+   Save button in toolbar
+   ------------------------------------------------------------------------- */
+
+.admin-maps-toolbar__btn--save {
+    position: relative;
+}
+
+.holding-pen__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    margin-left: var(--space-xs);
+    background: var(--admin-accent);
+    color: #fff;
+    border-radius: var(--radius-round);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+    .holding-pen {
+        width: 100%;
+        margin: var(--space-sm) 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        padding: var(--space-sm);
+    }
+}

@@ -60,8 +60,7 @@
     position: absolute;
     width: 16px;
     height: 16px;
-    margin-left: -8px;
-    margin-top: -8px;
+    transform: translate(-50%, -50%);
     background: var(--accent);
     border: 2px solid var(--bg-surface);
     border-radius: var(--radius-round);
@@ -78,7 +77,7 @@
 }
 .admin-map-pin--selected {
     background: var(--admin-selected-color);
-    transform: scale(1.4);
+    transform: translate(-50%, -50%) scale(1.4);
     box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.4);
     z-index: 3;
 }
@@ -94,6 +93,38 @@
     white-space: nowrap;
     pointer-events: none;
     z-index: 1;
+}
+
+/* -------------------------------------------------------------------------
+   Era‑coloured pins (mirrors frontend pages/maps-pins.css)
+   ------------------------------------------------------------------------- */
+
+.admin-map-pin {
+    background: var(--accent);
+}
+.admin-map-pin.era--pre-incarnation {
+    background: var(--era-pre-incarnation);
+}
+.admin-map-pin.era--old-testament {
+    background: var(--era-old-testament);
+}
+.admin-map-pin.era--early-life {
+    background: var(--era-early-life);
+}
+.admin-map-pin.era--life {
+    background: var(--era-life);
+}
+.admin-map-pin.era--galilee-ministry {
+    background: var(--era-galilee-ministry);
+}
+.admin-map-pin.era--judean-ministry {
+    background: var(--era-judean-ministry);
+}
+.admin-map-pin.era--passion-week {
+    background: var(--era-passion-week);
+}
+.admin-map-pin.era--post-passion {
+    background: var(--era-post-passion);
 }
 
 /* -------------------------------------------------------------------------
