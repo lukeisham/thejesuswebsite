@@ -81,6 +81,15 @@
     box-shadow: 0 0 0 3px var(--selected-glow);
     z-index: 3;
 }
+
+/* Draft pin — evidence-linked but unpublished */
+.admin-map-pin--draft {
+    border-style: dashed;
+    opacity: 0.7;
+}
+.admin-map-pin--draft:hover {
+    opacity: 1;
+}
 .admin-map-pin-label {
     position: absolute;
     transform: translate(-50%, 8px);

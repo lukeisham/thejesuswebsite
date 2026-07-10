@@ -412,7 +412,89 @@ describe("AdminMapsStaged", function () {
   });
 });
 
-// ── eraToKebab tests ──────────────────────────────────────────────────────
+// ── Draft-pin indicator logic ───────────────────────────────────────────
+
+describe("draft-pin indicator logic", function () {
+  // Simulate the class/title decision from maps-pins.js createPinElement
+  function getDraftInfo(pin) {
+    var isDraft =
+      pin.evidence_id != null &&
+      pin.evidence_published !== undefined &&
+      !pin.evidence_published;
+
+    var title = isDraft
+      ? (pin.label || "") + " (Draft — not public)"
+      : pin.label || "";
+
+    return { isDraft: isDraft, title: title };
+  }
+
+  test("published evidence pin is NOT marked draft", function () {
+    var info = getDraftInfo({
+      id: 1,
+      label: "Capernaum",
+      evidence_id: 42,
+      evidence_published: 1,
+    });
+    assert.equal(info.isDraft, false);
+    assert.equal(info.title, "Capernaum");
+  });
+
+  test("unpublished evidence pin IS marked draft", function () {
+    var info = getDraftInfo({
+      id: 2,
+      label: "Draft Site",
+      evidence_id: 99,
+      evidence_published: 0,
+    });
+    assert.equal(info.isDraft, true);
+    assert.equal(info.title, "Draft Site (Draft — not public)");
+  });
+
+  test("label-only pin (no evidence) is NOT marked draft", function () {
+    var info = getDraftInfo({
+      id: 3,
+      label: "Hand-placed",
+      evidence_id: null,
+      evidence_published: null,
+    });
+    assert.equal(info.isDraft, false);
+    assert.equal(info.title, "Hand-placed");
+  });
+
+  test("pin with missing evidence_published is NOT marked draft", function () {
+    // Legacy pin before evidence_published was added to the query
+    var info = getDraftInfo({
+      id: 4,
+      label: "Legacy",
+      evidence_id: 5,
+    });
+    assert.equal(info.isDraft, false);
+    assert.equal(info.title, "Legacy");
+  });
+
+  test("label-less published pin has empty title with no draft suffix", function () {
+    var info = getDraftInfo({
+      id: 5,
+      label: null,
+      evidence_id: 42,
+      evidence_published: 1,
+    });
+    assert.equal(info.isDraft, false);
+    assert.equal(info.title, "");
+  });
+
+  test("label-less draft pin shows draft in title", function () {
+    var info = getDraftInfo({
+      id: 6,
+      label: null,
+      evidence_id: 99,
+      evidence_published: 0,
+    });
+    assert.equal(info.isDraft, true);
+    assert.equal(info.title, " (Draft — not public)");
+  });
+});
 
 /**
  * eraToKebab is defined in both maps-pins.js and maps-render.js.

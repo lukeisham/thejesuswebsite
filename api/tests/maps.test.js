@@ -540,6 +540,52 @@ describe("maps routes: lat/lng pin validation", () => {
   });
 });
 
+// ── Pin model: evidence_published field ─────────────────────────────────
+
+describe("pin model: evidence_published in responses", () => {
+  beforeEach(() => {
+    db.exec("DELETE FROM map_pins");
+    db.exec("DELETE FROM maps");
+    seededMapId = undefined;
+  });
+
+  test("getPinById includes evidence_published when evidence is linked", () => {
+    const map = seedMap({ map_key: "galilee", map_name: "Galilee" });
+    // Evidence rows aren't seeded in maps.test.js, so pin without evidence
+    // just has null evidence_published
+    const pin = mapModel.createPin({
+      map_id: map.id,
+      x: 50,
+      y: 50,
+      label: "NoEvidence",
+    });
+
+    const fetched = mapModel.getPinById(pin.id);
+    assert.ok(
+      "evidence_published" in fetched,
+      "response should include evidence_published",
+    );
+    assert.equal(fetched.evidence_published, null);
+  });
+
+  test("pin response does NOT include gospel_category", () => {
+    const map = seedMap({ map_key: "galilee", map_name: "Galilee" });
+    const pin = mapModel.createPin({
+      map_id: map.id,
+      x: 50,
+      y: 50,
+      label: "Test",
+    });
+
+    const fetched = mapModel.getPinById(pin.id);
+    assert.equal(
+      fetched.gospel_category,
+      undefined,
+      "gospel_category should be absent from pin response",
+    );
+  });
+});
+
 // ── Routes: Auth guard on pin write endpoints ─────────────────────────────────
 
 describe("maps routes: pin auth guard", () => {

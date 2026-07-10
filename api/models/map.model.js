@@ -86,10 +86,12 @@ function getMapByKey(mapKey, { includeDrafts } = {}) {
             mp.label,
             mp.x,
             mp.y,
+            mp.lat,
+            mp.lng,
             e.title AS evidence_title,
             e.slug AS evidence_slug,
             e.timeline_era,
-            e.gospel_category
+            e.published_draft AS evidence_published
         FROM map_pins mp
         LEFT JOIN evidence e ON mp.evidence_id = e.id
         WHERE mp.map_id = ?
@@ -241,7 +243,7 @@ function getPinById(id) {
             e.title AS evidence_title,
             e.slug AS evidence_slug,
             e.timeline_era,
-            e.gospel_category
+            e.published_draft AS evidence_published
         FROM map_pins mp
         LEFT JOIN evidence e ON mp.evidence_id = e.id
         WHERE mp.id = ?
@@ -344,7 +346,7 @@ function getPinsByMap(mapId, { includeDrafts } = {}) {
             e.title AS evidence_title,
             e.slug AS evidence_slug,
             e.timeline_era,
-            e.gospel_category
+            e.published_draft AS evidence_published
         FROM map_pins mp
         LEFT JOIN evidence e ON mp.evidence_id = e.id
         WHERE mp.map_id = ?

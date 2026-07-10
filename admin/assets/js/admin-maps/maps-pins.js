@@ -125,10 +125,22 @@ Pins.createPinElement = function (pin) {
   if (pin.id === selectedPinId) {
     el.classList.add("admin-map-pin--selected");
   }
+
+  // Draft indicator: evidence-linked pin whose evidence is unpublished
+  if (
+    pin.evidence_id != null &&
+    pin.evidence_published !== undefined &&
+    !pin.evidence_published
+  ) {
+    el.classList.add("admin-map-pin--draft");
+    el.setAttribute("title", (pin.label || "") + " (Draft — not public)");
+  } else {
+    el.setAttribute("title", pin.label || "");
+  }
+
   el.style.left = pin.x + "%";
   el.style.top = pin.y + "%";
   el.setAttribute("aria-label", pin.label || "Map pin");
-  el.title = pin.label || "";
   el.dataset.pinId = String(pin.id);
   el.dataset.evidenceSlug = pin.evidence_slug || "";
   el.dataset.evidenceTitle = pin.evidence_title || "";
