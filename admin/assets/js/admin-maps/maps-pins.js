@@ -304,9 +304,26 @@ Pins.openEditPanel = function (pinId) {
   document.getElementById("pin-label-input").value = pin.label || "";
   document.getElementById("pin-evidence-input").value =
     pin.evidence_id != null ? String(pin.evidence_id) : "";
-  document.getElementById("pin-evidence-info").textContent = pin.evidence_title
-    ? pin.evidence_title + " (" + pin.evidence_slug + ")"
-    : "";
+
+  // Geo-anchor fields
+  const latInput = document.getElementById("pin-lat-input");
+  const lngInput = document.getElementById("pin-lng-input");
+  const geoInfo = document.getElementById("pin-geo-info");
+
+  if (latInput && lngInput) {
+    latInput.value = pin.lat != null ? String(pin.lat) : "";
+    lngInput.value = pin.lng != null ? String(pin.lng) : "";
+  }
+
+  // Show geo-anchored state
+  if (geoInfo) {
+    if (pin.lat != null && pin.lng != null) {
+      geoInfo.textContent = "Geo-anchored: pin position derived from lat/lng.";
+    } else {
+      geoInfo.textContent =
+        "Percentage-only: pin was placed by eye or dragged on the map.";
+    }
+  }
 
   // Show evidence section if evidence is linked
   const evidenceInfo = document.getElementById("pin-evidence-info");
@@ -341,6 +358,8 @@ Pins.onSavePin = async function () {
   const evidenceRaw = document
     .getElementById("pin-evidence-input")
     .value.trim();
+  const latRaw = document.getElementById("pin-lat-input").value.trim();
+  const lngRaw = document.getElementById("pin-lng-input").value.trim();
 
   const payload = { label: label || null };
   if (evidenceRaw !== "") {
@@ -348,6 +367,16 @@ Pins.onSavePin = async function () {
     payload.evidence_id = Number.isFinite(evidenceId) ? evidenceId : null;
   } else {
     payload.evidence_id = null;
+  }
+
+  // Include lat/lng if both are filled
+  if (latRaw !== "" && lngRaw !== "") {
+    const lat = Number(latRaw);
+    const lng = Number(lngRaw);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      payload.lat = lat;
+      payload.lng = lng;
+    }
   }
 
   // Clear error state
@@ -484,6 +513,9 @@ Pins.onPinMouseUp = async function (e) {
         if (pins[i].id === pin.id) {
           pins[i].x = Math.round(pct.x * 100) / 100;
           pins[i].y = Math.round(pct.y * 100) / 100;
+          // Clear lat/lng — the pin is now percentage-only after a manual drag
+          pins[i].lat = null;
+          pins[i].lng = null;
           break;
         }
       }
@@ -498,8 +530,12 @@ Pins.onPinMouseUp = async function (e) {
 
     // Update local state
     for (let i = 0; i < pins.length; i++) {
-      if (pins[i].id === updated.id) {
-        pins[i] = updated;
+      if (pins[i].id === pin.id) {
+        pins[i].x = Math.round(pct.x * 100) / 100;
+        pins[i].y = Math.round(pct.y * 100) / 100;
+        // Clear lat/lng — the pin is now percentage-only after a manual drag
+        pins[i].lat = null;
+        pins[i].lng = null;
         break;
       }
     }

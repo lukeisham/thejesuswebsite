@@ -261,6 +261,45 @@
                     ></span>
                 </div>
 
+                <!-- Geo-anchor fields (optional — derive x/y from lat/lng) -->
+                <fieldset class="admin-pin-panel__fieldset">
+                    <legend class="admin-pin-panel__legend">
+                        Geographic Anchor
+                    </legend>
+                    <div class="admin-pin-panel__field-row">
+                        <div
+                            class="admin-pin-panel__field admin-pin-panel__field--half"
+                        >
+                            <label for="pin-lat-input">Latitude</label>
+                            <input
+                                type="text"
+                                id="pin-lat-input"
+                                class="admin-pin-panel__input"
+                                inputmode="decimal"
+                                placeholder="e.g. 32.8811"
+                                aria-describedby="pin-geo-info"
+                            />
+                        </div>
+                        <div
+                            class="admin-pin-panel__field admin-pin-panel__field--half"
+                        >
+                            <label for="pin-lng-input">Longitude</label>
+                            <input
+                                type="text"
+                                id="pin-lng-input"
+                                class="admin-pin-panel__input"
+                                inputmode="decimal"
+                                placeholder="e.g. 35.5751"
+                                aria-describedby="pin-geo-info"
+                            />
+                        </div>
+                    </div>
+                    <span
+                        id="pin-geo-info"
+                        class="admin-pin-panel__hint"
+                    ></span>
+                </fieldset>
+
                 <div
                     id="pin-edit-error"
                     class="admin-pin-panel__error"

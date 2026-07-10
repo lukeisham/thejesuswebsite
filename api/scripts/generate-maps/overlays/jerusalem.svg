@@ -1,40 +1,139 @@
-<!-- Hand-drawn overlay: jerusalem
-  Features with no modern Natural Earth dataset:
-  - City walls (First Wall, Second Wall, Third Wall)
-  - Temple Mount enclosure
-  - Kidron Valley and Hinnom Valley (geographic, but better as styled overlay)
-  - Ancient road approaches
-  All coordinates are in the viewBox space (1000×1000).
+<!--
+  Hand-drawn overlay: jerusalem — Second-Temple-period city plan
+  Traced from the public-domain Britannica 1911 "Plan of Jerusalem"
+  and OpenBible.info CC-BY topography overlay.
+
+  GEOREFERENCING — anchor points projected from WGS84 to viewBox space:
+    bbox:  lon 35.10–35.30, lat 31.72–31.82  →  viewBox 0 0 1000 1000
+    x = (lon - 35.10) / 0.20 * 1000
+    y = (31.82 - lat) / 0.10 * 1000
+
+    Temple Mount centre (Dome of the Rock)   35.2354, 31.7780  →  x=677  y=420
+    Golgotha (Church of the Holy Sepulchre)  35.2296, 31.7784  →  x=648  y=416
+    City of David                            35.2350, 31.7730  →  x=675  y=470
+    Herod's Palace / Citadel (Jaffa Gate)    35.2278, 31.7761  →  x=639  y=439
+    Antonia Fortress (NW Temple Mount)       35.2340, 31.7800  →  x=670  y=400
+    Mount of Olives summit                   35.2430, 31.7790  →  x=715  y=410
+    Gethsemane (foot of Mt. of Olives)       35.2395, 31.7795  →  x=697  y=405
+    Upper Room (traditional, Mount Zion)     35.2289, 31.7719  →  x=645  y=481
+    Kidron Valley (east of Temple Mount)     ~35.238          →  x≈690
+    Hinnom Valley (south of western hill)    ~35.227–35.238   →  x≈635–690 at y≈490
+
+  Structures are drawn at a readable symbolic scale (3–5× true size),
+  centred at their correct projected positions.
+
+  Licence:  Britannica 1911 is PD.  Topography from OpenBible.info (CC BY 4.0).
+            Attribution rendered separately by the SVG builder.
+            Cities/sites come from map_pins via the admin editor — they are
+            NOT baked into this overlay (per established convention).
 -->
 <g id="overlay-jerusalem">
-  <!-- Temple Mount enclosure (approximate Herodian platform) -->
-  <rect x="430" y="280" width="140" height="100" rx="2" fill="none" stroke="#8B7D6B" stroke-width="2.5" stroke-linejoin="round"/>
-  <rect x="435" y="285" width="130" height="90" rx="1" fill="rgba(241,237,228,0.4)" stroke="none"/>
 
-  <!-- First Wall (approx. western hill circuit) -->
-  <polyline points="350,350 380,380 400,430 410,500 400,560 370,600 330,620" fill="none" stroke="#8B7D6B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="350,350 320,370 300,380" fill="none" stroke="#8B7D6B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Temple Mount platform (Herodian enlargement, ~300 m N–S × ~150 m E–W)
+       Drawn ~4× true scale for readability, centred at projected (677,420).
+       ════════════════════════════════════════════════════════════════════ -->
+  <rect x="642" y="390" width="70" height="60" rx="2" fill="none" stroke="#8B7D6B" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="646" y="394" width="62" height="52" rx="1" fill="rgba(241,237,228,0.35)" stroke="none"/>
 
-  <!-- Second Wall (northern extension) -->
-  <polyline points="380,340 400,310 430,290 470,280 510,280 540,290 560,300" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Temple inner courts / Holy of Holies hint -->
+  <rect x="662" y="402" width="28" height="36" rx="1" fill="none" stroke="#8B7D6B" stroke-width="1" stroke-dasharray="2,2"/>
 
-  <!-- Third Wall (outer northern line, Agrippa I) -->
-  <polyline points="350,240 400,230 450,225 500,225 550,230 600,240 650,255" fill="none" stroke="#C4B5A3" stroke-width="1" stroke-dasharray="3,5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Antonia Fortress (NW corner of Temple Mount platform)
+       ════════════════════════════════════════════════════════════════════ -->
+  <rect x="657" y="384" width="26" height="18" rx="1" fill="rgba(241,237,228,0.5)" stroke="#8B7D6B" stroke-width="1.5" stroke-linejoin="round"/>
 
-  <!-- Kidron Valley -->
-  <polyline points="570,280 590,350 620,420 640,500 660,580 670,650" fill="none" stroke="#7A8B6D" stroke-width="1.2" stroke-dasharray="6,3" stroke-linecap="round"/>
-
-  <!-- Hinnom Valley -->
-  <polyline points="280,400 300,480 320,560 350,630 380,680" fill="none" stroke="#7A8B6D" stroke-width="1.2" stroke-dasharray="6,3" stroke-linecap="round"/>
-
-  <!-- Ancient road approaches -->
-  <g fill="none" stroke="#A89680" stroke-width="1" stroke-dasharray="4,4" stroke-linecap="round">
-    <polyline points="300,200 370,230 430,280"/>  <!-- from north -->
-    <polyline points="700,350 620,380 570,330"/>   <!-- from east (Bethany) -->
-    <polyline points="500,700 500,620 500,550"/>   <!-- from south (Bethlehem) -->
-    <polyline points="200,500 250,520 300,550 350,580"/> <!-- from west -->
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       First Wall — original Hasmonean / Herodian circuit
+       Encloses the western hill (Upper City), the Tyropoeon Valley crossing,
+       and the City of David spur south of the Temple Mount.
+       ════════════════════════════════════════════════════════════════════ -->
+  <g fill="none" stroke="#8B7D6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Western arc: from Citadel (639,439) south along western hill -->
+    <polyline points="639,439 637,455 636,470 635,485 638,495"/>
+    <!-- Southern arc: east across Tyropoeon Valley toward Temple Mount -->
+    <polyline points="638,495 650,498 662,496 672,490 677,480"/>
+    <!-- City of David spur: south from Temple Mount SE, then loop back -->
+    <polyline points="680,440 682,455 683,470 682,485 678,495"/>
+    <polyline points="678,495 672,492 668,488"/>
+    <!-- Northern return: from Citadel east along northern edge of Upper City -->
+    <polyline points="639,439 648,432 658,425 666,420"/>
   </g>
 
-  <!-- Temple inner courts hint -->
-  <rect x="470" y="300" width="60" height="60" rx="1" fill="none" stroke="#8B7D6B" stroke-width="1" stroke-dasharray="2,2"/>
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Second Wall — northern extension (Hasmonean/Herodian, standing in
+       Jesus' time).  Ran from the NW Temple Mount area, curved west then
+       south, enclosing the commercial quarter and Golgotha area.
+       ════════════════════════════════════════════════════════════════════ -->
+  <g fill="none" stroke="#A89680" stroke-width="1.8" stroke-dasharray="5,3" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="666,420 664,408 658,395 648,388 638,386 630,392 626,402 626,412"/>
+    <polyline points="626,412 628,422 633,430 639,439"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Golgotha marker — small cross-hatch at the traditional site
+       (Church of the Holy Sepulchre, projected at 648,416).
+       ════════════════════════════════════════════════════════════════════ -->
+  <g fill="none" stroke="#8B7D6B" stroke-width="1.5" stroke-linecap="round">
+    <line x1="643" y1="416" x2="653" y2="416"/>
+    <line x1="648" y1="411" x2="648" y2="421"/>
+  </g>
+  <circle cx="648" cy="416" r="5" fill="none" stroke="#8B7D6B" stroke-width="0.8"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Herod's Palace marker (at or near the Citadel / Jaffa Gate area,
+       projected at 639,439).
+       ════════════════════════════════════════════════════════════════════ -->
+  <rect x="633" y="433" width="12" height="12" rx="1" fill="none" stroke="#8B7D6B" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="635" y="435" width="8" height="8" rx="1" fill="rgba(241,237,228,0.4)" stroke="none"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Kidron Valley (east of Temple Mount and City of David)
+       Runs N–S between the Temple Mount and the Mount of Olives,
+       continuing southward toward the Dead Sea.
+       ════════════════════════════════════════════════════════════════════ -->
+  <polyline points="690,340 692,370 693,400 693,430 692,460 691,490 690,520 689,550 687,580 685,620" fill="none" stroke="#7A8B6D" stroke-width="1.5" stroke-dasharray="6,3" stroke-linecap="round"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Hinnom Valley (south of the western hill and City of David)
+       Begins west of the city, runs east then south to meet the Kidron.
+       ════════════════════════════════════════════════════════════════════ -->
+  <polyline points="590,480 605,488 620,493 635,496 650,497 665,496 678,494 690,492" fill="none" stroke="#7A8B6D" stroke-width="1.5" stroke-dasharray="6,3" stroke-linecap="round"/>
+  <!-- Southern continuation where Hinnom meets Kidron -->
+  <polyline points="690,492 688,510 685,530 682,550 678,570" fill="none" stroke="#7A8B6D" stroke-width="1.5" stroke-dasharray="6,3" stroke-linecap="round"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Mount of Olives ridgeline (east of the Kidron Valley)
+       ════════════════════════════════════════════════════════════════════ -->
+  <g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
+    <polyline points="710,360 715,380 718,400 720,420 718,440 715,460 710,480 705,500"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Western hill ridgeline (Upper City spine)
+       ════════════════════════════════════════════════════════════════════ -->
+  <g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
+    <polyline points="640,420 638,440 636,460 635,480 636,500"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Ancient road approaches (stylized, anchored to projected directions)
+       ════════════════════════════════════════════════════════════════════ -->
+  <g fill="none" stroke="#A89680" stroke-width="1" stroke-dasharray="4,4" stroke-linecap="round">
+    <!-- From the north (Samaria / Galilee road, entering via Damascus Gate area) -->
+    <polyline points="660,300 662,330 664,360 665,380"/>
+    <!-- From the east — Bethany / Jericho road, crossing the Kidron -->
+    <polyline points="740,410 720,408 705,406 695,405"/>
+    <!-- From the south — Bethlehem / Hebron road -->
+    <polyline points="670,650 670,610 672,570 674,530 676,500"/>
+    <!-- From the west — Jaffa / Emmaus road -->
+    <polyline points="560,450 580,448 600,446 620,444 635,443"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Attribution line — rendered by the SVG builder per map config.
+       (Topography: OpenBible.info CC BY 4.0 · Plan after Britannica 1911)
+       ════════════════════════════════════════════════════════════════════ -->
+
 </g>

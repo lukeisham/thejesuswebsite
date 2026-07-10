@@ -25,15 +25,34 @@ router.get("/", (req, res) => {
 // POST /maps/pins — create a new pin on a map (admin only)
 router.post("/pins", requireAuth, (req, res) => {
   try {
-    const { map_id, x, y } = req.body;
-    if (map_id == null || x == null || y == null) {
-      return res.status(400).json({ error: "map_id, x, and y are required." });
+    const { map_id, x, y, lat, lng } = req.body;
+
+    // Either (x, y) or (lat, lng) must be supplied
+    const hasPercent = x != null && y != null;
+    const hasGeo =
+      lat != null &&
+      lng != null &&
+      Number.isFinite(Number(lat)) &&
+      Number.isFinite(Number(lng));
+
+    if (!map_id) {
+      return res.status(400).json({ error: "map_id is required." });
     }
+    if (!hasPercent && !hasGeo) {
+      return res.status(400).json({
+        error:
+          "Either (x, y) as viewBox percentages or (lat, lng) as geographic coordinates are required.",
+      });
+    }
+
     const created = mapModel.createPin(req.body);
     res.status(201).json(created);
   } catch (error) {
     if (error.status === 404) {
       return res.status(404).json({ error: error.message });
+    }
+    if (error.status === 400) {
+      return res.status(400).json({ error: error.message });
     }
     console.error("POST /maps/pins failed:", error);
     res.status(500).json({ error: "Failed to create pin." });
@@ -49,6 +68,9 @@ router.put("/pins/:id", requireAuth, (req, res) => {
   } catch (error) {
     if (error.status === 404) {
       return res.status(404).json({ error: error.message });
+    }
+    if (error.status === 400) {
+      return res.status(400).json({ error: error.message });
     }
     console.error("PUT /maps/pins/:id failed:", error);
     res.status(500).json({ error: "Failed to update pin." });

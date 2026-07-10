@@ -370,6 +370,176 @@ describe("maps routes: pin validation", () => {
   });
 });
 
+// ── Pin model: lat/lng geo-anchoring ────────────────────────────────────
+
+describe("pin model: lat/lng geo-anchoring", () => {
+  let mapId;
+
+  beforeEach(() => {
+    db.exec("DELETE FROM map_pins");
+    db.exec("DELETE FROM maps");
+    seededMapId = undefined;
+    const map = seedMap({
+      map_key: "galilee",
+      map_name: "Galilee",
+    });
+    mapId = map.id;
+    seededMapId = mapId;
+  });
+
+  test("createPin with lat/lng derives correct x/y", () => {
+    // Capernaum: ~32.8811, 35.5751
+    const pin = mapModel.createPin({
+      map_id: mapId,
+      lat: 32.8811,
+      lng: 35.5751,
+      label: "Capernaum",
+    });
+
+    assert.ok(pin.id, "pin should be created");
+    assert.ok(pin.x != null, "x should be derived");
+    assert.ok(pin.y != null, "y should be derived");
+    assert.equal(pin.lat, 32.8811);
+    assert.equal(pin.lng, 35.5751);
+    assert.equal(pin.label, "Capernaum");
+
+    // x should land on the NW shore area of the Sea of Galilee
+    assert.ok(pin.x > 40 && pin.x < 80, `x=${pin.x} should be in 40-80`);
+    assert.ok(pin.y > 30 && pin.y < 70, `y=${pin.y} should be in 30-70`);
+  });
+
+  test("createPin with out-of-bbox lat/lng rejects with 400", () => {
+    // Rome is nowhere near the galilee bbox
+    assert.throws(
+      () =>
+        mapModel.createPin({
+          map_id: mapId,
+          lat: 41.9,
+          lng: 12.5,
+          label: "Rome",
+        }),
+      (err) => err.status === 400,
+    );
+  });
+
+  test("createPin with percentage-only still works", () => {
+    const pin = mapModel.createPin({
+      map_id: mapId,
+      x: 42,
+      y: 58,
+      label: "Hand-placed",
+    });
+
+    assert.equal(pin.x, 42);
+    assert.equal(pin.y, 58);
+    assert.equal(pin.lat, null);
+    assert.equal(pin.lng, null);
+  });
+
+  test("createPin with both lat/lng and x/y uses lat/lng to derive x/y", () => {
+    const pin = mapModel.createPin({
+      map_id: mapId,
+      lat: 32.8811,
+      lng: 35.5751,
+      x: 99,
+      y: 99,
+      label: "Capernaum",
+    });
+
+    // x/y should come from lat/lng, not the supplied values
+    assert.ok(pin.x > 40 && pin.x < 80, "x should be derived from lat/lng");
+    assert.ok(pin.y > 30 && pin.y < 70, "y should be derived from lat/lng");
+  });
+
+  test("updatePin with lat/lng derives correct x/y", () => {
+    const pin = seedPin(mapId, { label: "Old", x: 10, y: 10 });
+    const updated = mapModel.updatePin(pin.id, {
+      lat: 32.8811,
+      lng: 35.5751,
+      label: "Capernaum",
+    });
+
+    assert.ok(updated.x > 40 && updated.x < 80);
+    assert.ok(updated.y > 30 && updated.y < 70);
+    assert.equal(updated.lat, 32.8811);
+    assert.equal(updated.lng, 35.5751);
+    assert.equal(updated.label, "Capernaum");
+  });
+
+  test("updatePin with out-of-bbox lat/lng rejects with 400", () => {
+    const pin = seedPin(mapId, { label: "Test" });
+    assert.throws(
+      () =>
+        mapModel.updatePin(pin.id, {
+          lat: 0,
+          lng: 0,
+        }),
+      (err) => err.status === 400,
+    );
+  });
+
+  test("updatePin with percentage-only still works", () => {
+    const pin = seedPin(mapId, { label: "Old" });
+    const updated = mapModel.updatePin(pin.id, { x: 77, y: 33 });
+    assert.equal(updated.x, 77);
+    assert.equal(updated.y, 33);
+  });
+});
+
+// ── Routes: lat/lng validation on pin endpoints ───────────────────────────
+
+describe("maps routes: lat/lng pin validation", () => {
+  let app;
+  beforeEach(() => {
+    db.exec("DELETE FROM map_pins");
+    db.exec("DELETE FROM maps");
+    seededMapId = undefined;
+    app = express();
+    app.use(express.json());
+    app.use("/maps", require("../routes/maps"));
+  });
+
+  test("POST /maps/pins accepts lat/lng and derives x/y", async () => {
+    const map = seedMap({ map_key: "galilee", map_name: "Galilee" });
+    const cookie = await authCookie();
+
+    const res = await makeRequest(app, "POST", "/maps/pins", {
+      cookie,
+      body: { map_id: map.id, lat: 32.8811, lng: 35.5751, label: "Capernaum" },
+    });
+
+    assert.equal(res.status, 201);
+    const pin = res.body;
+    assert.ok(pin.x != null && pin.y != null, "x/y should be derived");
+    assert.equal(pin.lat, 32.8811);
+    assert.equal(pin.lng, 35.5751);
+  });
+
+  test("POST /maps/pins returns 400 for out-of-bounds lat/lng", async () => {
+    const map = seedMap({ map_key: "galilee", map_name: "Galilee" });
+    const cookie = await authCookie();
+
+    const res = await makeRequest(app, "POST", "/maps/pins", {
+      cookie,
+      body: { map_id: map.id, lat: 0, lng: 0, label: "Nowhere" },
+    });
+
+    assert.equal(res.status, 400);
+  });
+
+  test("POST /maps/pins returns 400 when no coordinates are provided", async () => {
+    const map = seedMap({ map_key: "galilee", map_name: "Galilee" });
+    const cookie = await authCookie();
+
+    const res = await makeRequest(app, "POST", "/maps/pins", {
+      cookie,
+      body: { map_id: map.id, label: "Missing" },
+    });
+
+    assert.equal(res.status, 400);
+  });
+});
+
 // ── Routes: Auth guard on pin write endpoints ─────────────────────────────────
 
 describe("maps routes: pin auth guard", () => {
