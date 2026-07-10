@@ -20,6 +20,7 @@ import {
   applyEraFilter,
   initialEra,
   isVerticalMode,
+  getPxPerPeriod,
 } from "./timeline-render.js";
 import { fetchTimelineEvents, groupEventsByPeriod } from "./timeline-data.js";
 import { showToast } from "../utils/toasts.js";

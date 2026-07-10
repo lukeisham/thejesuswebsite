@@ -161,17 +161,47 @@ Axis.renderAxis = function () {
   axisContainer.style.minHeight = "120px";
 
   // ── Era bands ──────────────────────────────────────────────────────────
+
+  // Pre-compute era midpoints for overlap detection
+  var eraData = [];
   for (var e = 0; e < ERA_ORDER.length; e++) {
     var era = ERA_ORDER[e];
     var startX = Axis.eraStartX(era, pxPerPeriod, 0);
-
-    // Era end is start of next era, or total width for the last
     var endX;
     if (e < ERA_ORDER.length - 1) {
       endX = Axis.eraStartX(ERA_ORDER[e + 1], pxPerPeriod, 0);
     } else {
       endX = totalWidth;
     }
+    var midX = (startX + endX) / 2;
+    eraData.push({ era: era, startX: startX, endX: endX, midX: midX });
+  }
+
+  // Build a list of which eras need alternating labels (adjacent midpoints
+  // too close together, matching the frontend BASE_TOP / ALT_TOP pattern).
+  var MIN_ERA_LABEL_GAP = 80;
+  var needsAlt = [];
+  for (var i = 0; i < eraData.length; i++) {
+    var prevClose =
+      i > 0 && eraData[i].midX - eraData[i - 1].midX < MIN_ERA_LABEL_GAP;
+    needsAlt.push(prevClose);
+  }
+
+  // Render bands, alternating label tops when adjacent eras are too close
+  var altToggle = false;
+  for (var j = 0; j < eraData.length; j++) {
+    var d = eraData[j];
+    var era = d.era;
+    var startX = d.startX;
+    var endX = d.endX;
+
+    // Determine label top: alternate when this era overlaps the previous one
+    if (needsAlt[j]) {
+      altToggle = !altToggle;
+    } else {
+      altToggle = false;
+    }
+    var labelTop = needsAlt[j] ? (altToggle ? "28px" : "4px") : "4px";
 
     var band = document.createElement("div");
     band.className = "admin-timeline-era-band";
@@ -185,6 +215,9 @@ Axis.renderAxis = function () {
     var label = document.createElement("span");
     label.className = "admin-timeline-era-label";
     label.textContent = ERA_LABELS[era] || era;
+    label.style.left = "50%";
+    label.style.transform = "translateX(-50%)";
+    label.style.top = labelTop;
     band.appendChild(label);
 
     axisContainer.appendChild(band);
