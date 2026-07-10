@@ -90,8 +90,26 @@ Regions.populateSelector = function () {
 Regions.switchToMap = async function (mapKey) {
   if (mapKey === currentMapKey) return;
 
-  let map = null;
-  for (let i = 0; i < allMaps.length; i++) {
+  // Warn if there are unsaved changes
+  if (
+    window.AdminMapsStaged &&
+    window.AdminMapsStaged.hasChanges &&
+    window.AdminMapsStaged.hasChanges()
+  ) {
+    if (
+      !confirm(
+        "You have unsaved pin changes. Switching maps will discard them. Continue?",
+      )
+    ) {
+      // Revert selector to current map
+      var sel = document.getElementById("map-selector");
+      if (sel) sel.value = currentMapKey;
+      return;
+    }
+  }
+
+  var map = null;
+  for (var i = 0; i < allMaps.length; i++) {
     if (allMaps[i].map_key === mapKey) {
       map = allMaps[i];
       break;
@@ -139,6 +157,11 @@ Regions.switchToMap = async function (mapKey) {
     // Refresh the metadata panel (if the module is loaded)
     if (window.AdminMapsMetadata && window.AdminMapsMetadata.loadMap) {
       window.AdminMapsMetadata.loadMap(map);
+    }
+
+    // Load the holding pen for this map
+    if (window.AdminMapsHoldingPen && window.AdminMapsHoldingPen.loadForMap) {
+      window.AdminMapsHoldingPen.loadForMap(map.id);
     }
 
     if (loadingEl) loadingEl.hidden = true;

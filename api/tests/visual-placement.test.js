@@ -581,3 +581,217 @@ describe("maps: public excludes draft-evidence pins, admin includes them", funct
     assert.equal(res.status, 401);
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════════════
+//  Maps — unplaced evidence endpoint
+// ════════════════════════════════════════════════════════════════════════════════
+
+describe("maps: admin unplaced evidence", function () {
+  beforeEach(function () {
+    cleanEvidenceTables();
+  });
+
+  test("GET /maps/admin/unplaced returns 401 without auth", async function () {
+    const res = await makeRequest("GET", "/maps/admin/unplaced?map_id=1");
+    assert.equal(res.status, 401);
+  });
+
+  test("GET /maps/admin/unplaced returns 400 when map_id is missing", async function () {
+    const res = await makeRequest("GET", "/maps/admin/unplaced", {
+      cookie: authCookie(),
+    });
+    assert.equal(res.status, 400);
+  });
+
+  test("returns evidence with map_location set but no pin on the map", async function () {
+    const map = mapModel.createMap({
+      map_key: "unplaced-map",
+      map_name: "Unplaced Map",
+    });
+
+    // Evidence with map_location — the kind that should appear as unplaced
+    const ev1 = evidenceModel.create({
+      title: "Located Evidence",
+      slug: "located-ev",
+      published_draft: 1,
+      map_location: "Galilee",
+    });
+
+    // Evidence without map_location — should NOT appear
+    evidenceModel.create({
+      title: "No Location",
+      slug: "no-loc",
+      published_draft: 1,
+    });
+
+    const res = await makeRequest(
+      "GET",
+      `/maps/admin/unplaced?map_id=${map.id}`,
+      { cookie: authCookie() },
+    );
+    assert.equal(res.status, 200);
+    assert.equal(res.body.length, 1);
+    assert.equal(res.body[0].id, ev1.id);
+    assert.equal(res.body[0].title, "Located Evidence");
+  });
+
+  test("excludes evidence that already has a pin on the map", async function () {
+    const map = mapModel.createMap({
+      map_key: "pinned-map",
+      map_name: "Pinned Map",
+    });
+
+    const ev = evidenceModel.create({
+      title: "Already Pinned",
+      slug: "already-pinned",
+      published_draft: 1,
+      map_location: "Jerusalem",
+    });
+
+    mapModel.createPin({
+      map_id: map.id,
+      evidence_id: ev.id,
+      x: 50,
+      y: 50,
+      label: "Pinned",
+    });
+
+    const res = await makeRequest(
+      "GET",
+      `/maps/admin/unplaced?map_id=${map.id}`,
+      { cookie: authCookie() },
+    );
+    assert.equal(res.status, 200);
+    assert.equal(res.body.length, 0);
+  });
+
+  test("includes draft evidence", async function () {
+    const map = mapModel.createMap({
+      map_key: "draft-map",
+      map_name: "Draft Map",
+    });
+
+    evidenceModel.create({
+      title: "Draft Located",
+      slug: "draft-located",
+      published_draft: 0,
+      map_location: "Nazareth",
+    });
+
+    const res = await makeRequest(
+      "GET",
+      `/maps/admin/unplaced?map_id=${map.id}`,
+      { cookie: authCookie() },
+    );
+    assert.equal(res.status, 200);
+    assert.equal(res.body.length, 1);
+    assert.equal(res.body[0].title, "Draft Located");
+  });
+
+  test("includes timeline_era and map_location in the response", async function () {
+    const map = mapModel.createMap({
+      map_key: "era-map",
+      map_name: "Era Map",
+    });
+
+    evidenceModel.create({
+      title: "Era Evidence",
+      slug: "era-ev",
+      published_draft: 1,
+      timeline_era: "GalileeMinistry",
+      map_location: "Capernaum",
+    });
+
+    const res = await makeRequest(
+      "GET",
+      `/maps/admin/unplaced?map_id=${map.id}`,
+      { cookie: authCookie() },
+    );
+    assert.equal(res.status, 200);
+    assert.equal(res.body.length, 1);
+    assert.equal(res.body[0].timeline_era, "GalileeMinistry");
+    assert.equal(res.body[0].map_location, "Capernaum");
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════════
+//  Maps — era data on pin payloads
+// ════════════════════════════════════════════════════════════════════════════════
+
+describe("maps: pin payloads include era data", function () {
+  beforeEach(function () {
+    cleanEvidenceTables();
+  });
+
+  test("getMapByKey returns timeline_era on pins", function () {
+    const map = mapModel.createMap({
+      map_key: "era-pin-map",
+      map_name: "Era Pin Map",
+    });
+    const ev = evidenceModel.create({
+      title: "Era Pin",
+      slug: "era-pin",
+      published_draft: 1,
+      timeline_era: "PassionWeek",
+      gospel_category: "events",
+    });
+
+    mapModel.createPin({
+      map_id: map.id,
+      evidence_id: ev.id,
+      x: 50,
+      y: 50,
+      label: "Test",
+    });
+
+    const result = mapModel.getMapByKey("era-pin-map");
+    assert.equal(result.pins.length, 1);
+    assert.equal(result.pins[0].timeline_era, "PassionWeek");
+    assert.equal(result.pins[0].gospel_category, "events");
+  });
+
+  test("getPinsByMap returns timeline_era on pins", function () {
+    const map = mapModel.createMap({
+      map_key: "era-pins-list",
+      map_name: "Era Pins List",
+    });
+    const ev = evidenceModel.create({
+      title: "Era Listed",
+      slug: "era-listed",
+      published_draft: 1,
+      timeline_era: "EarlyLife",
+    });
+
+    mapModel.createPin({
+      map_id: map.id,
+      evidence_id: ev.id,
+      x: 30,
+      y: 60,
+      label: "Listed",
+    });
+
+    const pins = mapModel.getPinsByMap(map.id);
+    assert.equal(pins.length, 1);
+    assert.equal(pins[0].timeline_era, "EarlyLife");
+  });
+
+  test("pins without evidence have null timeline_era", function () {
+    const map = mapModel.createMap({
+      map_key: "no-ev-map",
+      map_name: "No Evidence Map",
+    });
+
+    mapModel.createPin({
+      map_id: map.id,
+      evidence_id: null,
+      x: 50,
+      y: 50,
+      label: "No Ev",
+    });
+
+    const pins = mapModel.getPinsByMap(map.id);
+    assert.equal(pins.length, 1);
+    assert.equal(pins[0].timeline_era, null);
+    assert.equal(pins[0].gospel_category, null);
+  });
+});

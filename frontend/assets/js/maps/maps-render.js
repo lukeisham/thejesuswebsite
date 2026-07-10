@@ -171,6 +171,20 @@ export function renderRegion(map) {
 }
 
 /**
+ * Convert a CamelCase timeline_era value to kebab-case for CSS classes.
+ * e.g. "GalileeMinistry" → "galilee-ministry"
+ *
+ * @param {string} era - CamelCase era identifier from the API.
+ * @returns {string} kebab-case class fragment.
+ */
+function eraToKebab(era) {
+  return era
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+    .toLowerCase();
+}
+
+/**
  * Create a single pin element.
  *
  * @param {Object} pin
@@ -179,8 +193,13 @@ export function renderRegion(map) {
 function createPinElement(pin) {
   const hasEvidence = pin.evidence_slug && pin.evidence_title;
 
+  let className = "map-pin";
+  if (pin.timeline_era) {
+    className += " era--" + eraToKebab(pin.timeline_era);
+  }
+
   const el = createElement("button", {
-    className: "map-pin",
+    className: className,
     style: `left:${pin.x}%;top:${pin.y}%`,
     "aria-label": pin.label || "Map pin",
     title: pin.label || "",

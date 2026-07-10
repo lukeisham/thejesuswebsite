@@ -77,7 +77,9 @@ function getMapByKey(mapKey, { includeDrafts } = {}) {
             mp.x,
             mp.y,
             e.title AS evidence_title,
-            e.slug AS evidence_slug
+            e.slug AS evidence_slug,
+            e.timeline_era,
+            e.gospel_category
         FROM map_pins mp
         LEFT JOIN evidence e ON mp.evidence_id = e.id
         WHERE mp.map_id = ?
@@ -178,7 +180,9 @@ function getPinById(id) {
             mp.x,
             mp.y,
             e.title AS evidence_title,
-            e.slug AS evidence_slug
+            e.slug AS evidence_slug,
+            e.timeline_era,
+            e.gospel_category
         FROM map_pins mp
         LEFT JOIN evidence e ON mp.evidence_id = e.id
         WHERE mp.id = ?
@@ -239,7 +243,9 @@ function getPinsByMap(mapId, { includeDrafts } = {}) {
             mp.x,
             mp.y,
             e.title AS evidence_title,
-            e.slug AS evidence_slug
+            e.slug AS evidence_slug,
+            e.timeline_era,
+            e.gospel_category
         FROM map_pins mp
         LEFT JOIN evidence e ON mp.evidence_id = e.id
         WHERE mp.map_id = ?
@@ -255,6 +261,37 @@ function getPinsByMap(mapId, { includeDrafts } = {}) {
   return db.prepare(sql).all(...params);
 }
 
+/**
+ * Get evidence rows that have a map_location set but no pin on the given map.
+ * Includes both draft and published evidence — the admin may place drafts.
+ *
+ * @param {number} mapId
+ * @returns {Array}
+ */
+function getUnplacedEvidence(mapId) {
+  const sql = `
+        SELECT
+            e.id,
+            e.title,
+            e.slug,
+            e.timeline_era,
+            e.map_location,
+            e.map_x,
+            e.map_y
+        FROM evidence e
+        WHERE e.map_location IS NOT NULL
+          AND e.map_location != ''
+          AND e.id NOT IN (
+              SELECT mp.evidence_id
+              FROM map_pins mp
+              WHERE mp.map_id = ?
+                AND mp.evidence_id IS NOT NULL
+          )
+        ORDER BY e.title
+    `;
+  return db.prepare(sql).all(mapId);
+}
+
 module.exports = {
   getAllMaps,
   getMapById,
@@ -267,4 +304,5 @@ module.exports = {
   updatePin,
   removePin,
   getPinsByMap,
+  getUnplacedEvidence,
 };

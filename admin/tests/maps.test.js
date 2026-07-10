@@ -28,7 +28,9 @@ const renderSource = fs.readFileSync(renderPath, "utf8");
 const sandbox = {
   window: {},
   document: {
-    getElementById: function () { return null; },
+    getElementById: function () {
+      return null;
+    },
   },
   console: { error: function () {} },
 };
@@ -82,7 +84,12 @@ describe("screenToPercent", function () {
   });
 
   test("returns 0,0 for a zero-size rect", function () {
-    var result = screenToPercent(50, 50, { width: 0, height: 0, left: 0, top: 0 });
+    var result = screenToPercent(50, 50, {
+      width: 0,
+      height: 0,
+      left: 0,
+      top: 0,
+    });
     assert.equal(result.x, 0);
     assert.equal(result.y, 0);
   });
@@ -116,7 +123,12 @@ describe("percentToScreen", function () {
   });
 
   test("returns 0,0 for a zero-size rect", function () {
-    var result = percentToScreen(50, 50, { width: 0, height: 0, left: 5, top: 5 });
+    var result = percentToScreen(50, 50, {
+      width: 0,
+      height: 0,
+      left: 5,
+      top: 5,
+    });
     assert.equal(result.screenX, 0);
     assert.equal(result.screenY, 0);
   });
@@ -213,5 +225,174 @@ describe("coordinate helpers with edge-case rects", function () {
     var screen = percentToScreen(100, 100, rect);
     assert.ok(Math.abs(screen.screenX - 15) < 0.01);
     assert.ok(Math.abs(screen.screenY - 15) < 0.01);
+  });
+});
+
+// ── Load maps-staged-changes.js in a sandboxed context ───────────────────
+
+const stagedPath = path.resolve(
+  __dirname,
+  "..",
+  "assets",
+  "js",
+  "admin-maps",
+  "maps-staged-changes.js",
+);
+const stagedSource = fs.readFileSync(stagedPath, "utf8");
+
+// ── Staged-changes store tests ────────────────────────────────────────────
+
+// ── Staged-changes store tests ────────────────────────────────────────────
+// Each test uses a fresh sandbox to avoid state leakage.
+
+function freshStagedStore() {
+  var sb = {
+    window: {
+      addEventListener: function () {},
+      removeEventListener: function () {},
+    },
+    document: {
+      getElementById: function () {
+        return null;
+      },
+      addEventListener: function () {},
+      removeEventListener: function () {},
+    },
+    console: { error: function () {} },
+    Admin: {
+      api: {
+        post: async function () {
+          return {};
+        },
+        put: async function () {
+          return {};
+        },
+      },
+    },
+    AdminMapsRegions: {
+      getMaps: function () {
+        return [];
+      },
+      getCurrentMapKey: function () {
+        return null;
+      },
+    },
+    AdminMapsPins: { loadPins: async function () {} },
+  };
+  vm.runInNewContext(stagedSource, sb);
+  return sb.window.AdminMapsStaged;
+}
+
+describe("AdminMapsStaged", function () {
+  test("starts with zero changes", function () {
+    var store = freshStagedStore();
+    assert.equal(store.count(), 0);
+    assert.equal(store.hasChanges(), false);
+    assert.equal(store.getCreates().length, 0);
+    assert.equal(store.getMoves().length, 0);
+  });
+
+  test("stageCreate adds a pending create", function () {
+    var store = freshStagedStore();
+    var evidence = {
+      id: 42,
+      title: "Test Evidence",
+      slug: "test-ev",
+      timeline_era: "GalileeMinistry",
+    };
+    var staged = store.stageCreate(1, evidence, 50, 50);
+
+    assert.ok(staged._tempId.startsWith("staged-"));
+    assert.equal(staged.map_id, 1);
+    assert.equal(staged.evidence_id, 42);
+    assert.equal(staged.x, 50);
+    assert.equal(staged.y, 50);
+    assert.equal(staged.label, "Test Evidence");
+    assert.equal(staged.timeline_era, "GalileeMinistry");
+
+    assert.equal(store.count(), 1);
+    assert.equal(store.hasChanges(), true);
+    assert.equal(store.getCreates().length, 1);
+  });
+
+  test("stageMove adds a pending move", function () {
+    var store = freshStagedStore();
+    store.stageMove(7, 30.5, 70.2);
+
+    assert.equal(store.count(), 1);
+    assert.equal(store.hasChanges(), true);
+    assert.equal(store.getMoves().length, 1);
+    assert.equal(store.getMoves()[0].pinId, 7);
+    assert.equal(store.getMoves()[0].x, 30.5);
+    assert.equal(store.getMoves()[0].y, 70.2);
+  });
+
+  test("stageMove replaces prior move for the same pin", function () {
+    var store = freshStagedStore();
+    store.stageMove(7, 10, 10);
+    store.stageMove(7, 90, 90);
+
+    assert.equal(store.getMoves().length, 1);
+    assert.equal(store.getMoves()[0].x, 90);
+    assert.equal(store.getMoves()[0].y, 90);
+  });
+
+  test("count includes both creates and moves", function () {
+    var store = freshStagedStore();
+
+    store.stageCreate(1, { id: 1, title: "A" }, 10, 10);
+    store.stageMove(5, 20, 20);
+    store.stageMove(6, 30, 30);
+
+    assert.equal(store.count(), 3);
+    assert.equal(store.hasChanges(), true);
+  });
+});
+
+// ── eraToKebab tests ──────────────────────────────────────────────────────
+
+/**
+ * eraToKebab is defined in both maps-pins.js and maps-render.js.
+ * Test the function directly (extracted here for unit testing).
+ */
+function eraToKebab(era) {
+  return era
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+    .toLowerCase();
+}
+
+describe("eraToKebab", function () {
+  test("converts GalileeMinistry to galilee-ministry", function () {
+    assert.equal(eraToKebab("GalileeMinistry"), "galilee-ministry");
+  });
+
+  test("converts PassionWeek to passion-week", function () {
+    assert.equal(eraToKebab("PassionWeek"), "passion-week");
+  });
+
+  test("converts PreIncarnation to pre-incarnation", function () {
+    assert.equal(eraToKebab("PreIncarnation"), "pre-incarnation");
+  });
+
+  test("converts OldTestament to old-testament", function () {
+    assert.equal(eraToKebab("OldTestament"), "old-testament");
+  });
+
+  test("converts EarlyLife to early-life", function () {
+    assert.equal(eraToKebab("EarlyLife"), "early-life");
+  });
+
+  test("converts JudeanMinistry to judean-ministry", function () {
+    assert.equal(eraToKebab("JudeanMinistry"), "judean-ministry");
+  });
+
+  test("converts Post-Passion to post-passion (handles hyphen in input)", function () {
+    // The DB uses "Post-Passion" with a hyphen; eraToKebab preserves existing hyphens
+    assert.equal(eraToKebab("Post-Passion"), "post-passion");
+  });
+
+  test("single word like Life stays lowercase", function () {
+    assert.equal(eraToKebab("Life"), "life");
   });
 });

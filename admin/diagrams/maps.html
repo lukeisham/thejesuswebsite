@@ -5,10 +5,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Maps Editor — Admin</title>
         <link rel="stylesheet" href="../assets/css/admin-diagrams/maps.css" />
+        <link
+            rel="stylesheet"
+            href="../assets/css/admin-diagrams/maps-holding-pen.css"
+        />
         <script defer src="../assets/js/admin-maps/maps-render.js"></script>
+        <script
+            defer
+            src="../assets/js/admin-maps/maps-staged-changes.js"
+        ></script>
         <script defer src="../assets/js/admin-maps/maps-pins.js"></script>
         <script defer src="../assets/js/admin-maps/maps-regions.js"></script>
         <script defer src="../assets/js/admin-maps/maps-metadata.js"></script>
+        <script
+            defer
+            src="../assets/js/admin-maps/maps-holding-pen.js"
+        ></script>
     </head>
     <body>
         <!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
@@ -66,6 +78,18 @@
                     class="admin-maps-toolbar__btn admin-maps-toolbar__btn--primary"
                 >
                     Add Pin
+                </button>
+                <button
+                    type="button"
+                    id="holding-pen-save"
+                    class="admin-maps-toolbar__btn admin-maps-toolbar__btn--primary admin-maps-toolbar__btn--save"
+                >
+                    Save
+                    <span
+                        id="holding-pen-badge"
+                        class="holding-pen__badge"
+                        hidden
+                    ></span>
                 </button>
             </div>
         </nav>
@@ -158,6 +182,15 @@
 
         <!-- ── Map Editor Canvas ──────────────────────────────────────────────────── -->
         <main>
+            <!-- ── Holding Pen ──────────────────────────────────────────────────── -->
+            <section
+                id="holding-pen"
+                class="holding-pen"
+                aria-label="Unplaced evidence"
+            >
+                <p class="holding-pen__empty">Loading unplaced evidence…</p>
+            </section>
+
             <div
                 id="map-loading"
                 class="admin-map-loading"
@@ -278,6 +311,21 @@
                 AdminMapsPins.init();
                 AdminMapsRegions.init();
                 AdminMapsMetadata.init();
+                AdminMapsHoldingPen.init();
+
+                // Wire the Save button
+                var saveBtn = document.getElementById("holding-pen-save");
+                if (saveBtn) {
+                    saveBtn.addEventListener("click", function () {
+                        AdminMapsStaged.saveAll().then(function () {
+                            // Reload holding pen after save (new pins may have used evidence)
+                            var mapId = AdminMapsStaged._getCurrentMapId
+                                ? AdminMapsStaged._getCurrentMapId()
+                                : null;
+                            if (mapId) AdminMapsHoldingPen.loadForMap(mapId);
+                        });
+                    });
+                }
 
                 // Wire the backdrop to close the panel.
                 var backdrop = document.getElementById("pin-panel-backdrop");
