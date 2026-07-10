@@ -210,17 +210,53 @@ export async function getEsvPassage(reference) {
 // ─── Analytics (record only — admin reads handled in admin JS) ────────────────
 
 /**
+ * Return (or create and store) a persistent session identifier for this visitor
+ * across page loads. Lives in sessionStorage so it survives a single browsing
+ * session but resets when the tab/window is closed.
+ *
+ * @returns {string} 16-character hex session ID
+ */
+function getOrCreateSessionId() {
+  const KEY = "_ajs_session_id";
+  try {
+    let id = sessionStorage.getItem(KEY);
+    if (!id) {
+      id = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+      sessionStorage.setItem(KEY, id);
+    }
+    return id;
+  } catch {
+    // sessionStorage unavailable (e.g. privacy mode in some browsers)
+    return crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+  }
+}
+
+/**
  * Record a page view. Fire and forget — never throws, never blocks the page.
+ *
+ * Sends page path, referrer, and a persistent session_id to the analytics
+ * endpoint. The server enriches the record with geo and device data from
+ * the request headers — the client never sends its own location or user-agent.
  *
  * @param {string} page - The URL path.
  */
 export async function recordPageView(page) {
   if (typeof page !== "string" || page.length === 0) return;
   try {
+    const referrer =
+      typeof document !== "undefined"
+        ? (document.referrer || "").slice(0, 500)
+        : "";
+    const sessionId = getOrCreateSessionId();
+
     await fetch(BASE + "/analytics", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ page }),
+      body: JSON.stringify({
+        page,
+        referrer: referrer || null,
+        session_id: sessionId,
+      }),
     });
   } catch {
     // Page views must never break the user experience.

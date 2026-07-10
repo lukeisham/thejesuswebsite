@@ -247,6 +247,189 @@ function renderReferrers(rows, container) {
   container.appendChild(section);
 }
 
+function renderCountries(rows, container) {
+  if (!rows || !rows.length) {
+    container.innerHTML =
+      '<p class="admin-text--muted">No country data available. Import the GeoLite2 Country database to enable geo reporting.</p>';
+    return;
+  }
+
+  const section = document.createElement("div");
+  section.className = "analytics-section";
+
+  const title = document.createElement("h3");
+  title.className = "analytics-section__title";
+  title.textContent = "Top Countries";
+  section.appendChild(title);
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "admin-table-wrapper analytics-table";
+
+  const table = document.createElement("table");
+  table.className = "admin-table";
+
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  ["Country", "Views", "%"].forEach(function (label) {
+    const th = document.createElement("th");
+    th.textContent = label;
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  let total = 0;
+  rows.forEach(function (r) {
+    total += r.count || 0;
+  });
+
+  rows.forEach(function (row) {
+    const tr = document.createElement("tr");
+
+    const tdName = document.createElement("td");
+    tdName.textContent = row.country || "Unknown";
+    tr.appendChild(tdName);
+
+    const tdCount = document.createElement("td");
+    tdCount.className = "analytics-table__cell--numeric";
+    tdCount.textContent = Admin.formatNumber(row.count || 0);
+    tr.appendChild(tdCount);
+
+    const tdPct = document.createElement("td");
+    tdPct.className = "analytics-table__cell--numeric";
+    if (total > 0) {
+      tdPct.textContent = ((row.count / total) * 100).toFixed(1) + "%";
+    } else {
+      tdPct.textContent = "\u2014";
+    }
+    tr.appendChild(tdPct);
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+  section.appendChild(wrapper);
+
+  container.innerHTML = "";
+  container.appendChild(section);
+}
+
+function renderDeviceBreakdown(data, container) {
+  if (!data) {
+    container.innerHTML =
+      '<p class="admin-text--muted">No device data available.</p>';
+    return;
+  }
+
+  const section = document.createElement("div");
+  section.className = "analytics-section";
+
+  const title = document.createElement("h3");
+  title.className = "analytics-section__title";
+  title.textContent = "Devices";
+  section.appendChild(title);
+
+  const grid = document.createElement("div");
+  grid.className = "analytics-device-grid";
+
+  // ── Device Types ────────────────────────────────────────────────────
+  const dtCard = document.createElement("div");
+  dtCard.className = "admin-card analytics-device-card";
+
+  const dtTitle = document.createElement("h4");
+  dtTitle.className = "analytics-device-card__title";
+  dtTitle.textContent = "Device Type";
+  dtCard.appendChild(dtTitle);
+
+  if (data.device_types && data.device_types.length) {
+    data.device_types.forEach(function (d) {
+      const row = document.createElement("div");
+      row.className = "analytics-device-row";
+      const name = document.createElement("span");
+      name.textContent = d.type || "Unknown";
+      const count = document.createElement("span");
+      count.className = "analytics-device-row__count";
+      count.textContent = Admin.formatNumber(d.count);
+      row.appendChild(name);
+      row.appendChild(count);
+      dtCard.appendChild(row);
+    });
+  } else {
+    const empty = document.createElement("p");
+    empty.className = "admin-text--muted";
+    empty.textContent = "No data";
+    dtCard.appendChild(empty);
+  }
+  grid.appendChild(dtCard);
+
+  // ── Browsers ─────────────────────────────────────────────────────────
+  const brCard = document.createElement("div");
+  brCard.className = "admin-card analytics-device-card";
+
+  const brTitle = document.createElement("h4");
+  brTitle.className = "analytics-device-card__title";
+  brTitle.textContent = "Browser";
+  brCard.appendChild(brTitle);
+
+  if (data.browsers && data.browsers.length) {
+    data.browsers.forEach(function (d) {
+      const row = document.createElement("div");
+      row.className = "analytics-device-row";
+      const name = document.createElement("span");
+      name.textContent = d.name || "Unknown";
+      const count = document.createElement("span");
+      count.className = "analytics-device-row__count";
+      count.textContent = Admin.formatNumber(d.count);
+      row.appendChild(name);
+      row.appendChild(count);
+      brCard.appendChild(row);
+    });
+  } else {
+    const empty = document.createElement("p");
+    empty.className = "admin-text--muted";
+    empty.textContent = "No data";
+    brCard.appendChild(empty);
+  }
+  grid.appendChild(brCard);
+
+  // ── OS ───────────────────────────────────────────────────────────────
+  const osCard = document.createElement("div");
+  osCard.className = "admin-card analytics-device-card";
+
+  const osTitle = document.createElement("h4");
+  osTitle.className = "analytics-device-card__title";
+  osTitle.textContent = "OS";
+  osCard.appendChild(osTitle);
+
+  if (data.os && data.os.length) {
+    data.os.forEach(function (d) {
+      const row = document.createElement("div");
+      row.className = "analytics-device-row";
+      const name = document.createElement("span");
+      name.textContent = d.name || "Unknown";
+      const count = document.createElement("span");
+      count.className = "analytics-device-row__count";
+      count.textContent = Admin.formatNumber(d.count);
+      row.appendChild(name);
+      row.appendChild(count);
+      osCard.appendChild(row);
+    });
+  } else {
+    const empty = document.createElement("p");
+    empty.className = "admin-text--muted";
+    empty.textContent = "No data";
+    osCard.appendChild(empty);
+  }
+  grid.appendChild(osCard);
+
+  section.appendChild(grid);
+
+  container.innerHTML = "";
+  container.appendChild(section);
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    Public entry point
    ───────────────────────────────────────────────────────────────────────────── */
@@ -267,8 +450,11 @@ AdminAnalytics.render = async function (days) {
 
   try {
     const data = await Admin.api.get("/analytics?days=" + days);
+    const since = new Date(
+      Date.now() - days * 24 * 60 * 60 * 1000,
+    ).toISOString();
 
-    // Build all three sections
+    // Build all sections
     let sectionContainer;
 
     // Stats cards
@@ -286,6 +472,32 @@ AdminAnalytics.render = async function (days) {
     sectionContainer = document.createElement("div");
     container.appendChild(sectionContainer);
     renderReferrers(data.referrers, sectionContainer);
+
+    // Countries (fire-and-forget — renders independently of main payload)
+    sectionContainer = document.createElement("div");
+    container.appendChild(sectionContainer);
+    try {
+      const countries = await Admin.api.get(
+        "/analytics/top-countries?since=" + encodeURIComponent(since),
+      );
+      renderCountries(countries, sectionContainer);
+    } catch {
+      sectionContainer.innerHTML =
+        '<p class="admin-text--muted">Country data unavailable.</p>';
+    }
+
+    // Device breakdown
+    sectionContainer = document.createElement("div");
+    container.appendChild(sectionContainer);
+    try {
+      const devices = await Admin.api.get(
+        "/analytics/device-breakdown?since=" + encodeURIComponent(since),
+      );
+      renderDeviceBreakdown(devices, sectionContainer);
+    } catch {
+      sectionContainer.innerHTML =
+        '<p class="admin-text--muted">Device data unavailable.</p>';
+    }
   } catch (err) {
     container.innerHTML = "";
     var errorDiv = document.createElement("div");

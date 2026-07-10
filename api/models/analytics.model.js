@@ -2,47 +2,65 @@
 // Records one row per page view and answers the dashboard's aggregate questions.
 // No HTTP concerns in this file: no req, no res, no status codes.
 
-const db = require('../config');
-const { pickWritable } = require('./model-helpers');
+const db = require("../config");
+const { pickWritable } = require("./model-helpers");
 
 // Only these fields are ever written; `visited_at` defaults in the schema.
-const WRITABLE_COLUMNS = ['page', 'referrer', 'user_agent', 'ip_hash', 'session_id'];
+const WRITABLE_COLUMNS = [
+  "page",
+  "referrer",
+  "user_agent",
+  "ip_hash",
+  "session_id",
+  "device_type",
+  "browser",
+  "os",
+  "country",
+];
 
 /** Record a single page view. `page` is required; the rest are best-effort. */
 function record(data) {
-    const row = pickWritable(data, WRITABLE_COLUMNS);
+  const row = pickWritable(data, WRITABLE_COLUMNS);
 
-    const columns = Object.keys(row);
-    const placeholders = columns.map((column) => `@${column}`);
+  const columns = Object.keys(row);
+  const placeholders = columns.map((column) => `@${column}`);
 
-    const result = db
-        .prepare(`INSERT INTO analytics (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`)
-        .run(row);
+  const result = db
+    .prepare(
+      `INSERT INTO analytics (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`,
+    )
+    .run(row);
 
-    return result.lastInsertRowid;
+  return result.lastInsertRowid;
 }
 
 /** Most-viewed pages over the whole history, highest first. */
 function getTopPages(limit = 20) {
-    return db
-        .prepare('SELECT page, COUNT(*) AS views FROM analytics GROUP BY page ORDER BY views DESC LIMIT ?')
-        .all(limit);
+  return db
+    .prepare(
+      "SELECT page, COUNT(*) AS views FROM analytics GROUP BY page ORDER BY views DESC LIMIT ?",
+    )
+    .all(limit);
 }
 
 /** Total views and unique sessions, optionally since an ISO date string. */
 function getSummary(since = null) {
-    const where = since ? 'WHERE visited_at >= ?' : '';
-    const params = since ? [since] : [];
-    return db
-        .prepare(`SELECT COUNT(*) AS total_views, COUNT(DISTINCT session_id) AS unique_sessions FROM analytics ${where}`)
-        .get(...params);
+  const where = since ? "WHERE visited_at >= ?" : "";
+  const params = since ? [since] : [];
+  return db
+    .prepare(
+      `SELECT COUNT(*) AS total_views, COUNT(DISTINCT session_id) AS unique_sessions FROM analytics ${where}`,
+    )
+    .get(...params);
 }
 
 /** Top referrers, ignoring direct (null/empty) traffic. */
 function getTopReferrers(limit = 20) {
-    return db
-        .prepare("SELECT referrer, COUNT(*) AS count FROM analytics WHERE referrer IS NOT NULL AND referrer <> '' GROUP BY referrer ORDER BY count DESC LIMIT ?")
-        .all(limit);
+  return db
+    .prepare(
+      "SELECT referrer, COUNT(*) AS count FROM analytics WHERE referrer IS NOT NULL AND referrer <> '' GROUP BY referrer ORDER BY count DESC LIMIT ?",
+    )
+    .all(limit);
 }
 
 /**
@@ -53,16 +71,20 @@ function getTopReferrers(limit = 20) {
  * @returns {{ page: string, views: number, unique: number, trend: number[] }[]}
  */
 function getTopPagesWithTrend(days, limit = 5) {
-    const topPages = db.prepare(`
+  const topPages = db
+    .prepare(
+      `
         SELECT page, COUNT(*) AS views, COUNT(DISTINCT session_id) AS unique_sessions
         FROM analytics
         WHERE visited_at >= datetime('now', '-${days} days')
         GROUP BY page
         ORDER BY views DESC
         LIMIT ?
-    `).all(limit);
+    `,
+    )
+    .all(limit);
 
-    const trendStmt = db.prepare(`
+  const trendStmt = db.prepare(`
         WITH RECURSIVE dates(d) AS (
             SELECT date('now', '-${days} days')
             UNION ALL
@@ -75,17 +97,86 @@ function getTopPagesWithTrend(days, limit = 5) {
         ORDER BY dates.d
     `);
 
-    return topPages.map(page => ({
-        page: page.page,
-        views: page.views,
-        unique: page.unique_sessions,
-        trend: trendStmt.all(page.page).map(r => r.cnt),
-    }));
+  return topPages.map((page) => ({
+    page: page.page,
+    views: page.views,
+    unique: page.unique_sessions,
+    trend: trendStmt.all(page.page).map((r) => r.cnt),
+  }));
 }
 
 /** Most recent visits, newest first — for a live activity feed. */
 function getRecent(limit = 50) {
-    return db.prepare('SELECT * FROM analytics ORDER BY visited_at DESC LIMIT ?').all(limit);
+  return db
+    .prepare("SELECT * FROM analytics ORDER BY visited_at DESC LIMIT ?")
+    .all(limit);
 }
 
-module.exports = { record, getTopPages, getSummary, getTopReferrers, getTopPagesWithTrend, getRecent };
+/** Top countries by page views, optionally since an ISO date. */
+function getTopCountries(since, limit = 10) {
+  const where = since ? "WHERE visited_at >= ?" : "";
+  const params = since ? [since] : [];
+  params.push(limit);
+  return db
+    .prepare(
+      `SELECT country, COUNT(*) AS count
+       FROM analytics
+       ${where}
+       GROUP BY country
+       ORDER BY count DESC
+       LIMIT ?`,
+    )
+    .all(...params);
+}
+
+/** Device-type, browser, and OS breakdowns, optionally since an ISO date. */
+function getDeviceBreakdown(since) {
+  const where = since ? "WHERE visited_at >= ?" : "";
+  const params = since ? [since] : [];
+
+  const deviceTypes = db
+    .prepare(
+      `SELECT device_type AS type, COUNT(*) AS count
+       FROM analytics
+       ${where}
+       GROUP BY device_type
+       ORDER BY count DESC
+       LIMIT 10`,
+    )
+    .all(...params);
+
+  const browsers = db
+    .prepare(
+      `SELECT browser AS name, COUNT(*) AS count
+       FROM analytics
+       ${where}
+       GROUP BY browser
+       ORDER BY count DESC
+       LIMIT 10`,
+    )
+    .all(...params);
+
+  const os = db
+    .prepare(
+      `SELECT os AS name, COUNT(*) AS count
+       FROM analytics
+       ${where}
+       GROUP BY os
+       ORDER BY count DESC
+       LIMIT 10`,
+    )
+    .all(...params);
+
+  return { device_types: deviceTypes, browsers, os };
+}
+
+module.exports = {
+  record,
+  getTopPages,
+  getSummary,
+  getTopReferrers,
+  getTopPagesWithTrend,
+  getRecent,
+  getTopCountries,
+  getDeviceBreakdown,
+};
