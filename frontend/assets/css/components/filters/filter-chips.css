@@ -1,0 +1,43 @@
+/* ==========================================================================
+   Filter Chips
+   Chip component styles and active/selected states.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Filter Chip
+   ------------------------------------------------------------------------- */
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 0.375rem 0.75rem;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition:
+        background-color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+    min-height: 36px;
+}
+
+.filter-chip:hover {
+    background: var(--bg-surface-alt);
+}
+
+.filter-chip.active {
+    color: var(--accent);
+    background: var(--bg-surface-alt);
+    border-color: var(--accent);
+}
+
+.filter-chip--active {
+    color: var(--accent);
+    background: var(--bg-surface-alt);
+    border-color: var(--accent);
+}

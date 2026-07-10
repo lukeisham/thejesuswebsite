@@ -136,29 +136,3 @@ main {
         margin-left: calc(var(--sidebar-width) + var(--space-lg));
     }
 }
-
-/* -------------------------------------------------------------------------
-   Mobile (< 768px): stacked flow — sidebar pushes content down
-   instead of overlaying it. When closed the sidebar is hidden; when open
-   it sits at the top of the page as a static block.
-   ------------------------------------------------------------------------- */
-
-@media (max-width: 767px) {
-    .sidebar {
-        position: static;
-        width: 100%;
-        height: auto;
-        display: none;
-        transform: none;
-        transition: none;
-        /* Top padding clears the viewport-pinned toggle button */
-        padding: calc(44px + var(--space-lg)) var(--space-md) var(--space-md);
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .sidebar--open {
-        display: block;
-        transform: none;
-    }
-}
