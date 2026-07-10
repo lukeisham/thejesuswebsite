@@ -7,13 +7,13 @@
  * @module arbor/arbor-data
  */
 
-import { getArbor } from '../api.js';
+import { getArbor } from "../api.js";
 
 /**
  * Valid arbor relationship types.
  * @type {string[]}
  */
-export const RELATIONSHIP_TYPES = ['root', 'supports', 'leads_to', 'related'];
+export const RELATIONSHIP_TYPES = ["root", "supports", "leads_to", "related"];
 
 /**
  * Validate that a node has the required fields.
@@ -24,9 +24,9 @@ export const RELATIONSHIP_TYPES = ['root', 'supports', 'leads_to', 'related'];
 function isValidNode(node) {
   return (
     node &&
-    typeof node.id === 'number' &&
-    typeof node.title === 'string' &&
-    typeof node.slug === 'string'
+    typeof node.id === "number" &&
+    typeof node.title === "string" &&
+    typeof node.slug === "string"
   );
 }
 
@@ -39,9 +39,9 @@ function isValidNode(node) {
 function isValidEdge(edge) {
   return (
     edge &&
-    typeof edge.source_id === 'number' &&
-    typeof edge.target_id === 'number' &&
-    typeof edge.relationship_type === 'string' &&
+    typeof edge.source_id === "number" &&
+    typeof edge.target_id === "number" &&
+    typeof edge.relationship_type === "string" &&
     RELATIONSHIP_TYPES.includes(edge.relationship_type) &&
     edge.source_id !== edge.target_id
   );
@@ -95,7 +95,8 @@ export function buildGraph(nodes, edges) {
   if (Array.isArray(edges)) {
     for (const edge of edges) {
       if (!isValidEdge(edge)) continue;
-      if (!nodesById.has(edge.source_id) || !nodesById.has(edge.target_id)) continue;
+      if (!nodesById.has(edge.source_id) || !nodesById.has(edge.target_id))
+        continue;
 
       const type = edge.relationship_type;
 
@@ -103,7 +104,7 @@ export function buildGraph(nodes, edges) {
       edgesByType.get(type).push(edge);
 
       // Identify root: the source of a 'root' relationship edge
-      if (type === 'root') {
+      if (type === "root") {
         rootId = edge.source_id;
       }
 
@@ -154,4 +155,68 @@ export function buildGraph(nodes, edges) {
  */
 export function getChildren(adjacency, nodeId) {
   return adjacency.get(nodeId) || [];
+}
+
+/**
+ * Topologically order nodes from the root outward using BFS through
+ * tree edges (excludes 'root' and 'related' relationship types).
+ * Orphan nodes not reachable from root are appended, sorted by
+ * `sort_order` then `id`.
+ *
+ * This is a pure function — it reads adjacency and nodesById without
+ * mutating them (SR-3).
+ *
+ * @param {Object|null} root - The root node.
+ * @param {Map<number, Array>} adjacency - Source ID → children array.
+ * @param {Map<number, Object>} nodesById - All nodes keyed by id.
+ * @returns {Array<Object>} Topologically ordered node objects.
+ */
+export function topologicalSort(root, adjacency, nodesById) {
+  const visited = new Set();
+  const result = [];
+
+  // BFS from root, following tree edges only
+  if (root && nodesById.has(root.id)) {
+    const queue = [root.id];
+    visited.add(root.id);
+
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      const node = nodesById.get(currentId);
+      if (node) result.push(node);
+
+      const children = getChildren(adjacency, currentId);
+      // Follow tree-forming edges: skip 'root' (points away from root)
+      // and 'related' (cross-edges, not part of the depth tree)
+      for (const child of children) {
+        if (
+          child.relationshipType === "root" ||
+          child.relationshipType === "related"
+        )
+          continue;
+        if (!visited.has(child.targetId)) {
+          visited.add(child.targetId);
+          queue.push(child.targetId);
+        }
+      }
+    }
+  }
+
+  // Collect orphan nodes not reached by tree edges
+  const orphans = [];
+  for (const [id, node] of nodesById) {
+    if (!visited.has(id)) {
+      orphans.push(node);
+    }
+  }
+  orphans.sort((a, b) => {
+    const aOrder = a.sort_order;
+    const bOrder = b.sort_order;
+    if (aOrder !== undefined && bOrder !== undefined && aOrder !== bOrder) {
+      return aOrder - bOrder;
+    }
+    return a.id - b.id;
+  });
+
+  return result.concat(orphans);
 }

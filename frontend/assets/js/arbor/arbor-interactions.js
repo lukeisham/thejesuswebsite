@@ -7,19 +7,18 @@
  * @module arbor/arbor-interactions
  */
 
-import { delegate, batchWrite } from '../utils/dom.js';
-import { throttle } from '../utils/debounce.js';
-import { formatVerse } from '../utils/format.js';
+import { delegate, batchWrite } from "../utils/dom.js";
+import { throttle, debounce } from "../utils/debounce.js";
+import { formatVerse } from "../utils/format.js";
 import {
   init as renderInit,
   showLoading,
   showEmpty,
   renderArbor,
-} from './arbor-render.js';
-import {
-  fetchArborGraph,
-} from './arbor-data.js';
-import { showToast } from '../utils/toasts.js';
+  isVerticalMode,
+} from "./arbor-render.js";
+import { fetchArborGraph } from "./arbor-data.js";
+import { showToast } from "../utils/toasts.js";
 
 // ─── DOM references ────────────────────────────────────────────────────────────
 
@@ -55,6 +54,17 @@ let panStartY = 0;
 let panOriginX = 0;
 let panOriginY = 0;
 
+// ─── Layout mode tracking (for breakpoint-crossing re-render) ────────────────
+
+/** @type {boolean} */
+let currentVerticalMode = false;
+
+/** @type {Array|null} Saved nodes for re-render on resize */
+let savedNodes = null;
+
+/** @type {Array|null} Saved edges for re-render on resize */
+let savedEdges = null;
+
 // ─── Tooltip ───────────────────────────────────────────────────────────────────
 
 let tooltipTimer = null;
@@ -68,14 +78,17 @@ let tooltipTimer = null;
 function showTooltip(e, nodeEl) {
   if (!tooltipEl) return;
 
-  const title = nodeEl.dataset.title || '';
-  const description = nodeEl.dataset.description || '';
-  const verse = nodeEl.dataset.verse ? formatVerse(nodeEl.dataset.verse) : '';
+  const title = nodeEl.dataset.title || "";
+  const description = nodeEl.dataset.description || "";
+  const verse = nodeEl.dataset.verse ? formatVerse(nodeEl.dataset.verse) : "";
 
-  let html = '';
-  if (title) html += `<strong style="display:block;margin-bottom:4px">${title}</strong>`;
-  if (verse) html += `<em style="display:block;margin-bottom:4px;color:var(--text-muted)">${verse}</em>`;
-  if (description) html += `<span style="font-size:var(--text-2xs);color:var(--text-secondary)">${description}</span>`;
+  let html = "";
+  if (title)
+    html += `<strong style="display:block;margin-bottom:4px">${title}</strong>`;
+  if (verse)
+    html += `<em style="display:block;margin-bottom:4px;color:var(--text-muted)">${verse}</em>`;
+  if (description)
+    html += `<span style="font-size:var(--text-2xs);color:var(--text-secondary)">${description}</span>`;
 
   tooltipEl.innerHTML = html;
   tooltipEl.hidden = false;
@@ -157,9 +170,11 @@ function zoomReset() {
  * Start panning.
  */
 function onPanStart(e) {
+  // In vertical (mobile) mode, defer to native page scroll
+  if (isVerticalMode()) return;
   if (e.button !== undefined && e.button !== 0) return;
   // Don't start pan if clicking a node
-  if (e.target.closest('.arbor-node')) return;
+  if (e.target.closest(".arbor-node")) return;
 
   isPanning = true;
   panStartX = e.clientX;
@@ -168,7 +183,7 @@ function onPanStart(e) {
   panOriginY = translateY;
 
   if (canvasEl) {
-    canvasEl.style.cursor = 'grabbing';
+    canvasEl.style.cursor = "grabbing";
   }
 }
 
@@ -195,7 +210,7 @@ function onPanEnd() {
   isPanning = false;
 
   if (canvasEl) {
-    canvasEl.style.cursor = '';
+    canvasEl.style.cursor = "";
   }
 }
 
@@ -207,12 +222,12 @@ function onPanEnd() {
 async function init() {
   // Cache DOM references
   renderInit();
-  canvasEl = document.getElementById('arbor-canvas');
-  diagramEl = document.getElementById('arbor-diagram');
-  tooltipEl = document.getElementById('arbor-tooltip');
-  zoomInBtn = document.getElementById('zoom-in');
-  zoomOutBtn = document.getElementById('zoom-out');
-  zoomResetBtn = document.getElementById('zoom-reset');
+  canvasEl = document.getElementById("arbor-canvas");
+  diagramEl = document.getElementById("arbor-diagram");
+  tooltipEl = document.getElementById("arbor-tooltip");
+  zoomInBtn = document.getElementById("zoom-in");
+  zoomOutBtn = document.getElementById("zoom-out");
+  zoomResetBtn = document.getElementById("zoom-reset");
 
   // ── Fetch data ──────────────────────────────────────────────────────────
   showLoading();
@@ -220,7 +235,7 @@ async function init() {
   const { data, error } = await fetchArborGraph();
 
   if (error) {
-    showToast('Failed to load arbor diagram. Please try again.', 'error');
+    showToast("Failed to load arbor diagram. Please try again.", "error");
     showEmpty();
     return;
   }
@@ -233,26 +248,45 @@ async function init() {
     return;
   }
 
+  // Save data for potential re-render on breakpoint crossing
+  savedNodes = nodes;
+  savedEdges = edges;
+  currentVerticalMode = isVerticalMode();
+
   renderArbor(nodes, edges);
 
   // ── Wire tooltip on nodes (JS-6: event delegation) ─────────────────────
   if (diagramEl) {
-    delegate(diagramEl, '.arbor-node', 'mouseenter', (e, nodeEl) => {
+    delegate(diagramEl, ".arbor-node", "mouseenter", (e, nodeEl) => {
       tooltipTimer = setTimeout(() => showTooltip(e, nodeEl), 300);
     });
 
-    delegate(diagramEl, '.arbor-node', 'mouseleave', () => {
+    delegate(diagramEl, ".arbor-node", "mouseleave", () => {
       hideTooltip();
     });
 
-    delegate(diagramEl, '.arbor-node', 'mousemove', (e, nodeEl) => {
+    delegate(diagramEl, ".arbor-node", "mousemove", (e, nodeEl) => {
       if (tooltipEl && !tooltipEl.hidden) {
         showTooltip(e, nodeEl);
       }
     });
 
+    // Touch tooltip for mobile (long-press shows tooltip before navigation)
+    delegate(diagramEl, ".arbor-node", "touchstart", (e, nodeEl) => {
+      tooltipTimer = setTimeout(() => showTooltip(e, nodeEl), 300);
+    });
+
+    delegate(diagramEl, ".arbor-node", "touchend", () => {
+      hideTooltip();
+    });
+
+    // Cancel tooltip timer on scroll
+    delegate(diagramEl, ".arbor-node", "touchmove", () => {
+      hideTooltip();
+    });
+
     // ── Wire click → navigate to evidence detail ─────────────────────────
-    delegate(diagramEl, '.arbor-node', 'click', (_e, nodeEl) => {
+    delegate(diagramEl, ".arbor-node", "click", (_e, nodeEl) => {
       const slug = nodeEl.dataset.slug;
       if (slug) {
         window.location.href = `/evidence/${slug}`;
@@ -262,61 +296,88 @@ async function init() {
 
   // ── Wire zoom controls ──────────────────────────────────────────────────
   if (zoomInBtn) {
-    zoomInBtn.addEventListener('click', zoomIn);
+    zoomInBtn.addEventListener("click", zoomIn);
   }
   if (zoomOutBtn) {
-    zoomOutBtn.addEventListener('click', zoomOut);
+    zoomOutBtn.addEventListener("click", zoomOut);
   }
   if (zoomResetBtn) {
-    zoomResetBtn.addEventListener('click', zoomReset);
+    zoomResetBtn.addEventListener("click", zoomReset);
   }
 
   // Keyboard zoom shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (e.key === '=' || e.key === '+') {
+  document.addEventListener("keydown", (e) => {
+    if (isVerticalMode()) return;
+    if (e.key === "=" || e.key === "+") {
       zoomIn();
-    } else if (e.key === '-') {
+    } else if (e.key === "-") {
       zoomOut();
-    } else if (e.key === '0') {
+    } else if (e.key === "0") {
       zoomReset();
     }
   });
 
   // ── Wire pan via mouse drag on canvas ───────────────────────────────────
   if (canvasEl) {
-    canvasEl.addEventListener('mousedown', onPanStart);
-    window.addEventListener('mousemove', onPanMove);
-    window.addEventListener('mouseup', onPanEnd);
+    canvasEl.addEventListener("mousedown", onPanStart);
+    window.addEventListener("mousemove", onPanMove);
+    window.addEventListener("mouseup", onPanEnd);
 
-    // Touch support
-    canvasEl.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
-        onPanStart({
-          button: 0,
-          clientX: e.touches[0].clientX,
-          clientY: e.touches[0].clientY,
-          target: e.target,
-        });
-      }
-    }, { passive: false });
+    // Touch support for pan (desktop only — vertical mode defers to scroll)
+    canvasEl.addEventListener(
+      "touchstart",
+      (e) => {
+        if (isVerticalMode()) return;
+        if (e.touches.length === 1) {
+          onPanStart({
+            button: 0,
+            clientX: e.touches[0].clientX,
+            clientY: e.touches[0].clientY,
+            target: e.target,
+          });
+        }
+      },
+      { passive: false },
+    );
 
-    canvasEl.addEventListener('touchmove', (e) => {
-      if (isPanning && e.touches.length === 1) {
-        e.preventDefault();
-        onPanMove({
-          clientX: e.touches[0].clientX,
-          clientY: e.touches[0].clientY,
-        });
-      }
-    }, { passive: false });
+    canvasEl.addEventListener(
+      "touchmove",
+      (e) => {
+        if (isVerticalMode()) return;
+        if (isPanning && e.touches.length === 1) {
+          e.preventDefault();
+          onPanMove({
+            clientX: e.touches[0].clientX,
+            clientY: e.touches[0].clientY,
+          });
+        }
+      },
+      { passive: false },
+    );
 
-    canvasEl.addEventListener('touchend', onPanEnd);
+    canvasEl.addEventListener("touchend", onPanEnd);
   }
+
+  // ── Re-render on breakpoint crossing (debounced resize/orientation) ───
+  const onBreakpointChange = debounce(() => {
+    const newMode = isVerticalMode();
+    if (newMode !== currentVerticalMode) {
+      currentVerticalMode = newMode;
+      // Reset desktop transform when switching to/from vertical
+      zoomReset();
+      if (savedNodes && savedEdges) {
+        renderArbor(savedNodes, savedEdges);
+      }
+    }
+  }, 150);
+
+  window.addEventListener("resize", onBreakpointChange);
+  window.addEventListener("orientationchange", onBreakpointChange);
 }
 
 // Run on DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
 } else {
   init();
 }
