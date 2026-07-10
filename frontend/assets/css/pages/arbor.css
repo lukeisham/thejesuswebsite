@@ -103,3 +103,37 @@
 .arbor-node {
     z-index: 1;
 }
+
+/* -------------------------------------------------------------------------
+   Print Styles
+   ------------------------------------------------------------------------- */
+
+@media print {
+    .arbor-controls,
+    .arbor-tooltip {
+        display: none;
+    }
+
+    .arbor-canvas {
+        overflow: visible;
+        cursor: auto;
+        min-height: auto;
+        page-break-inside: avoid;
+    }
+
+    .arbor-edges line,
+    .arbor-edges path {
+        stroke: var(--color-black);
+    }
+
+    .arbor-node {
+        box-shadow: none;
+        border-color: var(--color-black);
+        background: var(--color-white);
+    }
+
+    .arbor-node-title,
+    .arbor-node-verse {
+        color: var(--color-black);
+    }
+}

@@ -469,3 +469,100 @@
 - [ ] HTML-1 — new era-specific timeline pages use `<body data-initial-era="...">` correctly and have exactly one `<h1>` and one `<h2>`.
 - [ ] HTML-3 — new era-specific pages have the same heading hierarchy as the main timeline page.
 - [ ] JS-3 — `timeline-render.js` no longer hardcodes `['beginning', 'middle', 'end']`; era loop is driven by `Object.keys(ERA_BOUNDARIES)`.
+
+## Validation: Sidebar Title Stone-Stamp Animation
+**Plan:** sidebar-title-stamp-animation.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] Open any non-home page (e.g. `https://thejesuswebsite.org/about.html`) with the sidebar open — hovering "The Jesus Website" presses the text in very slightly (scale 0.985) and fades in a thin gold rule beneath it over ~150ms; releasing hover reverses it smoothly.
+- [ ] `Tab` to the sidebar home link with the keyboard — the same press + gold rule appears on `:focus-visible`.
+- [ ] On `index.html` (home link is the active nav item) — the stamp hover effect and the `.nav-item--active` accent border/background coexist without visual glitches.
+- [ ] Enable "Reduce Motion" in OS accessibility settings and reload — hovering the title swaps states instantly with no visible motion.
+- [ ] On a touch device (or DevTools touch emulation) — tapping the title simply navigates home; no stuck hover state or animation flicker.
+- [ ] Hover several other nav items — none of them show the gold rule or press effect (only the home link is affected).
+
+### Code-review checks
+- [ ] CSS-2 — new rules in `layout/navigation.css` use only `--accent-gold`, `--duration-fast`, `--ease-out`, and `--space-lg`; no hardcoded colors, durations, or offsets.
+- [ ] CSS-4 / CSS-5 — the effect is scoped by the single semantic class `nav-item--home` (matching the `nav-item--admin` precedent); no `:first-child` chains, IDs, or `!important`.
+- [ ] SR-3 — only `transform` and `opacity` are transitioned; no layout properties (width/height/margin/padding) animate.
+- [ ] HTML-1 — the bulk HTML edit added only the `nav-item--home` class to the existing `<li>`; no structural changes, and `admin/` pages were not touched.
+- [ ] CSS-1 — `layout/navigation.css` remains under 150 lines after the addition.
+## Validation: Arbor Position Mirroring & WYSIWYG Diagram Editors (Frontend)
+**Plan:** arbor-timeline-wysiwyg-editors.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] `node --test frontend/assets/js/arbor/tests/*.test.js` passes (saved-position rendering, BFS fallback when any node lacks a position, edge endpoints track nodes).
+- [ ] On the deployed site (post-VPS-deploy only — local DB is empty): `frontend/evidence/arbor.html` renders nodes at the exact positions saved in the admin editor.
+
+### Code-review checks
+- [ ] JS-2 — renderer falls back to BFS layout for the whole diagram if any node has null x/y; never mixes layout modes.
+- [ ] CSS untouched — `arbor-render.js` emits the same class names as before; no changes to `frontend/assets/css/pages/arbor.css` required.
+- [ ] SR-1 — position pass-through lives in `arbor-data.js`; layout decision lives in `arbor-render.js`.
+
+
+## Validation: Maps Generation & Admin Metadata Editing
+**Plan:** maps-generation-and-assets.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] Each of the five map pages under `/evidence/maps/` displays its generated SVG (parchment land, blue-grey water, cartouche, compass, frame) with no broken-image icon.
+- [ ] Geography sanity: Sea of Galilee harp shape, Dead Sea, and Mediterranean coastline visibly match a reference atlas; Roman Empire map shows recognisable Italy/Greece/Asia Minor coasts.
+- [ ] SVGs stay crisp on the zoom-variant pages and each file is under ~200 KB.
+- [ ] The map `<img>` elements have a descriptive `alt` (the map name) — inspect in devtools.
+- [ ] In `/admin/diagrams/maps.html`, the Map details panel loads the selected map's name/description; saving an edited description succeeds and reappears on the public map page after reload.
+- [ ] Replacing the base image via the panel uploads a raster file, updates `image_path`, and the canvas refreshes immediately.
+- [ ] Dragging a pin and saving persists across reload; a pin linked to evidence navigates to that evidence detail page on the public map; an unlinked pin renders as a plain label.
+- [ ] `cd api && npm test` passes, including the new maps metadata and generator tests.
+
+### Code-review checks
+- [ ] SR-2 — generator uses no new npm dependencies; Natural Earth data committed as static GeoJSON.
+- [ ] SR-1 — one module per generator concern; metadata editing lives in its own `maps-metadata.js`.
+- [ ] JS-2 — metadata save rejects empty map name; generator fails loudly on missing GeoJSON.
+- [ ] JS-5 — all admin requests go through `Admin.api.*`; no raw `fetch` in `maps-metadata.js`.
+- [ ] JS-6 — no `innerHTML` with DB values in new/changed render code.
+- [ ] CSS-1/CSS-2 — panel styles in `admin-diagrams/maps.css` using admin tokens only; file split if over 150 lines.
+- [ ] HTML-2/HTML-5 — alt text on map images; every metadata form control has a `<label>`.
+- [ ] Security — `POST /uploads` still rejects SVG payloads (raster magic bytes only).
+
+
+## Validation: Frontend UI Fixes — Evidence Rows, Collapsible Filters, Timeline Spine, Maps Heading, Print/Copy
+**Plan:** frontend-ui-fixes-evidence-timeline-maps.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] `/evidence/` — filter chips sit inside a collapsible box; the toggle button collapses and restores it, `aria-expanded` flips, and the state survives navigating away and back (sessionStorage).
+- [ ] `/evidence/` — records render as rows: thumbnail (or placeholder when no picture) → title → primary verse; each row links to its `/evidence/single/<slug>` page; infinite scroll still loads more rows.
+- [ ] `/evidence/timeline/` — a horizontal spine renders with era-coloured dots positioned by period; clustered dots offset; era chips filter the dots; hover/tap raises the detail card with thumbnail, title, verse, and link.
+- [ ] Timeline era sub-pages (`early-life.html`, `life.html`, etc.) render the spine with the same stylesheet.
+- [ ] `/evidence/maps/` — heading reads exactly "Maps"; description reads exactly "Explore the historical evidence for Jesus geographically."; index and per-map pages are styled (maps.css now exists).
+- [ ] Print (footer button) on a map page, the timeline, and the arbor page — diagram prints black-on-white per Style guide §12; chips, toggles, and controls do not print; nothing clipped by scroll containers.
+- [ ] Copy Contents on the same three pages — clipboard contains sensible readable text (title, description, pins/events/nodes), not raw SVG/diagram noise; success toast appears.
+
+### Code-review checks
+- [ ] CSS-1 — `timeline.css`, `maps.css`, filter-panel styles each single-purpose and under 150 lines.
+- [ ] CSS-2 — no hardcoded colours/spacing; tokens from `variables.css` only.
+- [ ] CSS-3 — mobile and `@media print` rules live inside each component/page file.
+- [ ] JS-5 — thumbnail/verse data flows through `assets/js/api.js`; no raw `fetch` in `evidence-list.js`.
+- [ ] JS-6 — all interpolated values (thumbnail paths, titles, verses) escaped via `utils/templates.js`; filter toggle listeners cleaned up properly.
+- [ ] HTML-2 — evidence row `<img>` elements carry `alt` attributes.
+- [ ] SR-1 — filter-panel toggle logic in its own module, not inlined into `evidence-list.js`.
+
+## Validation: Open Issues Cleanup (Frontend & Tooling)
+**Plan:** open-issues-cleanup.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] Link an MLA source to a historiography article via admin, publish, open its public page: the References section shows a formatted MLA citation (italicised title, period-separated parts) — not `[object Object]`.
+- [ ] Same check on a contextual essay detail page.
+- [ ] An article with no linked sources hides the References section entirely.
+- [ ] With the API running, `node dev-proxy.js frontend 4179` serves the public site at `localhost:4179` and pages that fetch `/api/...` (e.g. historiography index) load real data instead of the error state.
+- [ ] `node dev-proxy.js` with no args still serves `admin/` on 4174 exactly as before.
+- [ ] `frontend/sitemap.xml` contains `<url>` entries for all five map pages and five zoom variants; no pre-existing entries changed.
+
+### Code-review checks
+- [ ] JS-6 — every mla_sources field in `utils/mla.js` is escaped via the `templates.js` helper before HTML interpolation.
+- [ ] JS-2 — `formatMlaCitation()` returns `""` on rows with insufficient data; renderers filter empties and hide the section.
+- [ ] JS-4 — JSDoc on `formatMlaCitation` documents the journal → book → website type-detection order.
+- [ ] SR-1 — the formatter lives in its own `frontend/assets/js/utils/mla.js` module.

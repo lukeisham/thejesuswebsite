@@ -31,6 +31,17 @@ const WRITABLE_COLUMNS = [
 ];
 
 /**
+ * Every blog post — published and draft alike — raw DB column names, for the
+ * admin list view. Requires auth at the route level; never exposed on the
+ * public list endpoint.
+ *
+ * Mirrors historiography.model.js:getAllAdmin().
+ */
+function getAllAdmin() {
+  return db.prepare("SELECT * FROM blog_posts ORDER BY created_at DESC").all();
+}
+
+/**
  * Published blog posts for the public site, newest first.
  */
 function getAllPublished() {
@@ -304,6 +315,7 @@ function updateComposite(id, data) {
 
 module.exports = {
   getAllPublished,
+  getAllAdmin,
   getLandingPagePosts,
   getBySlug,
   getById,

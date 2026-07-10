@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "frontend",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4179", "--directory", "frontend"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["dev-proxy.js", "frontend", "4179"],
       "port": 4179
     },
     {

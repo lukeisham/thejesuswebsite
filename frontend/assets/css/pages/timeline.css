@@ -1,0 +1,329 @@
+/* ==========================================================================
+   Timeline
+   Horizontal scrollable spine with era markers, event dots, labels,
+   tooltip, and detail panel.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Page Header
+   ------------------------------------------------------------------------- */
+
+.timeline-header {
+  padding: var(--space-xl) var(--space-md) var(--space-sm);
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.timeline-header h2 {
+  margin-bottom: var(--space-sm);
+}
+
+.timeline-description {
+  color: var(--text-secondary);
+  max-width: var(--measure-reading);
+}
+
+/* -------------------------------------------------------------------------
+   Era Filter Chips
+   ------------------------------------------------------------------------- */
+
+.timeline-era-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  max-width: var(--container-max);
+  margin: 0 auto var(--space-lg);
+}
+
+/* -------------------------------------------------------------------------
+   Timeline Container — Horizontal Scroll
+   ------------------------------------------------------------------------- */
+
+.timeline-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+  cursor: grab;
+  padding: var(--space-xl) 0 var(--space-3xl);
+  -webkit-overflow-scrolling: touch;
+}
+
+.timeline-container:active {
+  cursor: grabbing;
+}
+
+/* -------------------------------------------------------------------------
+   Timeline Inner — Positioned Canvas
+   ------------------------------------------------------------------------- */
+
+.timeline-inner {
+  position: relative;
+  min-height: 280px;
+}
+
+/* -------------------------------------------------------------------------
+   Spine Line
+   ------------------------------------------------------------------------- */
+
+.timeline-spine {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 2px;
+  background: var(--border-strong);
+  transform: translateY(-50%);
+}
+
+.timeline-inner > .timeline-spine {
+  /* Only the inner wrapper spine gets positioned; the container's child
+     is replaced by the inner wrapper at render time. */
+}
+
+/* -------------------------------------------------------------------------
+   Era Markers — Vertical Divider Lines
+   ------------------------------------------------------------------------- */
+
+.timeline-era-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+  opacity: 0.6;
+}
+
+/* -------------------------------------------------------------------------
+   Era Labels
+   ------------------------------------------------------------------------- */
+
+.timeline-era-label {
+  position: absolute;
+  top: 8px;
+  transform: translateX(-50%);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------
+   Event Dots
+   Positioned absolutely on the spine by JS. Colour varies by era.
+   ------------------------------------------------------------------------- */
+
+.timeline-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-round);
+  background: var(--accent);
+  border: 2px solid var(--bg-surface);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 2;
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.timeline-dot:hover {
+  box-shadow: 0 0 0 4px rgba(92, 64, 51, 0.15);
+  transform: translate(-50%, -50%) scale(1.3);
+}
+
+.timeline-dot.filtered-out {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   Event Labels
+   ------------------------------------------------------------------------- */
+
+.timeline-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-small);
+  z-index: 1;
+  max-width: 100px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.timeline-label.above {
+  top: auto;
+  bottom: auto;
+  /* top set by JS inline with stagger offset */;
+}
+
+.timeline-label.below {
+  top: auto;
+  bottom: auto;
+  /* top set by JS inline with stagger offset */;
+}
+
+.timeline-label.filtered-out {
+  opacity: 0.15;
+}
+
+.timeline-label-title {
+  display: block;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-label-meta {
+  display: block;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------
+   Tooltip
+   ------------------------------------------------------------------------- */
+
+.timeline-tooltip {
+  position: fixed;
+  z-index: 60;
+  max-width: 240px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-small);
+  pointer-events: none;
+}
+
+.timeline-tooltip[hidden] {
+  display: none;
+}
+
+/* -------------------------------------------------------------------------
+   Detail Panel
+   ------------------------------------------------------------------------- */
+
+.timeline-detail-panel {
+  position: fixed;
+  right: var(--space-lg);
+  bottom: var(--space-lg);
+  width: 320px;
+  max-width: calc(100vw - var(--space-2xl));
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+  padding: var(--space-lg);
+  z-index: 50;
+}
+
+.timeline-detail-panel[hidden] {
+  display: none;
+}
+
+.timeline-detail-panel__close {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  padding: var(--space-xs);
+}
+
+.timeline-detail-panel__title {
+  font-size: var(--text-h4);
+  margin-bottom: var(--space-sm);
+  margin-right: var(--space-xl);
+}
+
+.timeline-detail-panel__meta {
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.timeline-detail-panel__verse {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.timeline-detail-panel__link {
+  display: inline-block;
+}
+
+/* -------------------------------------------------------------------------
+   Print Styles
+   ------------------------------------------------------------------------- */
+
+@media print {
+  .timeline-era-filters,
+  .timeline-tooltip,
+  .timeline-detail-panel,
+  .timeline-detail-panel__close {
+    display: none;
+  }
+
+  .timeline-container {
+    overflow: visible;
+    cursor: auto;
+  }
+
+  .timeline-spine {
+    background: var(--color-black);
+  }
+
+  .timeline-era-marker {
+    background: #888888;
+  }
+
+  .timeline-era-label {
+    color: var(--color-black);
+  }
+
+  .timeline-dot {
+    background: var(--color-black);
+    border-color: var(--color-white);
+  }
+
+  .timeline-label-title,
+  .timeline-label-meta {
+    color: var(--color-black);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .timeline-header {
+    padding: var(--space-lg) var(--space-md) var(--space-sm);
+  }
+
+  .timeline-era-filters {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .timeline-detail-panel {
+    right: var(--space-sm);
+    bottom: var(--space-sm);
+    width: auto;
+    left: var(--space-sm);
+  }
+
+  .timeline-label {
+    font-size: 0.625rem;
+    max-width: 72px;
+  }
+}

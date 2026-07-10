@@ -410,6 +410,26 @@ describe("essays: composite CRUD", () => {
     assert.equal(admin.essay_content, "Admin Body");
     assert.equal(admin.title, undefined);
   });
+
+  test("getAllAdmin returns drafts and published rows with raw column names", () => {
+    essayModel.create({
+      slug: "admin-draft-essay",
+      essay_title: "Admin Draft Essay",
+      published_draft: 0,
+    });
+    essayModel.create({
+      slug: "admin-published-essay",
+      essay_title: "Admin Published Essay",
+      published_draft: 1,
+    });
+
+    const items = essayModel.getAllAdmin();
+
+    assert.equal(items.length, 2);
+    assert.ok(items.every((i) => i.essay_title !== undefined));
+    assert.ok(items.some((i) => i.published_draft === 0));
+    assert.ok(items.some((i) => i.published_draft === 1));
+  });
 });
 
 // ── Blog Posts ──────────────────────────────────────────────────────────────
@@ -484,6 +504,26 @@ describe("blog posts: composite CRUD", () => {
     assert.ok(admin);
     assert.equal(admin.hero_image, "/uploads/2026/07/draft-hero.jpg");
     assert.equal(admin.hero_image_alt, "Draft alt");
+  });
+
+  test("getAllAdmin returns drafts and published rows with raw column names", () => {
+    blogPostModel.create({
+      slug: "admin-draft-blog",
+      blog_title: "Admin Draft Blog",
+      published_draft: 0,
+    });
+    blogPostModel.create({
+      slug: "admin-published-blog",
+      blog_title: "Admin Published Blog",
+      published_draft: 1,
+    });
+
+    const items = blogPostModel.getAllAdmin();
+
+    assert.equal(items.length, 2);
+    assert.ok(items.every((i) => i.blog_title !== undefined));
+    assert.ok(items.some((i) => i.published_draft === 0));
+    assert.ok(items.some((i) => i.published_draft === 1));
   });
 });
 

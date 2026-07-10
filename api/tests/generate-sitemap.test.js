@@ -12,9 +12,7 @@ const { createTestDb } = require("./helpers/db");
 const db = createTestDb();
 
 // Mock the config module so the generator uses our test DB.
-const configPath = require.resolve(
-  path.resolve(__dirname, "..", "config"),
-);
+const configPath = require.resolve(path.resolve(__dirname, "..", "config"));
 Module._cache[configPath] = {
   id: configPath,
   filename: configPath,
@@ -96,7 +94,9 @@ describe("sitemap XML output", () => {
 
     assert.ok(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>'));
     assert.ok(
-      xml.includes('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'),
+      xml.includes(
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      ),
     );
     assert.ok(xml.includes("</urlset>"));
     assert.ok(xml.includes("<loc>https://thejesuswebsite.org/</loc>"));
@@ -121,9 +121,7 @@ describe("sitemap XML output", () => {
 describe("sitemap includes section index pages", () => {
   test("includes the home page at priority 1.0", () => {
     const urls = buildSitemap();
-    const home = urls.find(
-      (u) => u.loc === "https://thejesuswebsite.org/",
-    );
+    const home = urls.find((u) => u.loc === "https://thejesuswebsite.org/");
     assert.ok(home);
     assert.equal(home.priority, "1.0");
   });
@@ -165,6 +163,28 @@ describe("sitemap includes section index pages", () => {
     }
   });
 
+  test("includes all 10 individual map and zoom pages", () => {
+    const urls = buildSitemap();
+    const mapPages = [
+      "/evidence/maps/roman-empire.html",
+      "/evidence/maps/levant.html",
+      "/evidence/maps/judea.html",
+      "/evidence/maps/galilee.html",
+      "/evidence/maps/jerusalem.html",
+      "/evidence/maps/roman-empire/zoom-roman-empire.html",
+      "/evidence/maps/levant/zoom-levant.html",
+      "/evidence/maps/judea/zoom-judea.html",
+      "/evidence/maps/galilee/zoom-galilee.html",
+      "/evidence/maps/jerusalem/zoom-jerusalem.html",
+    ];
+    for (const page of mapPages) {
+      assert.ok(
+        urls.some((u) => u.loc === `https://thejesuswebsite.org${page}`),
+        `missing sitemap entry for ${page}`,
+      );
+    }
+  });
+
   test("uses the apex domain, not www", () => {
     const urls = buildSitemap();
     assert.ok(urls.every((u) => !u.loc.includes("www.")));
@@ -182,22 +202,12 @@ describe("sitemap includes published detail pages", () => {
 
     const urls = buildSitemap();
     const detailUrls = urls.filter((u) =>
-      u.loc.startsWith(
-        "https://thejesuswebsite.org/evidence/single/",
-      ),
+      u.loc.startsWith("https://thejesuswebsite.org/evidence/single/"),
     );
 
     assert.equal(detailUrls.length, 2);
-    assert.ok(
-      detailUrls.some((u) =>
-        u.loc.endsWith("/pilate-stone"),
-      ),
-    );
-    assert.ok(
-      detailUrls.some((u) =>
-        u.loc.endsWith("/josephus-testimony"),
-      ),
-    );
+    assert.ok(detailUrls.some((u) => u.loc.endsWith("/pilate-stone")));
+    assert.ok(detailUrls.some((u) => u.loc.endsWith("/josephus-testimony")));
   });
 
   test("includes published essay slugs", () => {
@@ -205,9 +215,7 @@ describe("sitemap includes published detail pages", () => {
 
     const urls = buildSitemap();
     const essayUrls = urls.filter((u) =>
-      u.loc.startsWith(
-        "https://thejesuswebsite.org/contextual-essays/",
-      ),
+      u.loc.startsWith("https://thejesuswebsite.org/contextual-essays/"),
     );
 
     // Should have at least one detail URL (plus the section index).
@@ -223,9 +231,7 @@ describe("sitemap includes published detail pages", () => {
 
     const urls = buildSitemap();
     const blogUrls = urls.filter((u) =>
-      u.loc.startsWith(
-        "https://thejesuswebsite.org/news-and-blog/blog/",
-      ),
+      u.loc.startsWith("https://thejesuswebsite.org/news-and-blog/blog/"),
     );
 
     const detailUrls = blogUrls.filter(
@@ -246,9 +252,7 @@ describe("sitemap excludes unpublished rows", () => {
 
     const urls = buildSitemap();
     const detailUrls = urls.filter((u) =>
-      u.loc.startsWith(
-        "https://thejesuswebsite.org/evidence/single/",
-      ),
+      u.loc.startsWith("https://thejesuswebsite.org/evidence/single/"),
     );
 
     assert.equal(detailUrls.length, 1);
@@ -263,16 +267,12 @@ describe("sitemap excludes unpublished rows", () => {
     const urls = buildSitemap();
     const detailUrls = urls.filter(
       (u) =>
-        u.loc.startsWith(
-          "https://thejesuswebsite.org/contextual-essays/",
-        ) &&
+        u.loc.startsWith("https://thejesuswebsite.org/contextual-essays/") &&
         !u.loc.endsWith("/contextual-essays/"),
     );
 
     assert.equal(detailUrls.length, 1);
-    assert.ok(
-      detailUrls.some((u) => u.loc.endsWith("/published-essay")),
-    );
+    assert.ok(detailUrls.some((u) => u.loc.endsWith("/published-essay")));
   });
 });
 
@@ -283,8 +283,8 @@ describe("sitemap URL counts", () => {
 
   test("section pages are always present even with no content", () => {
     const urls = buildSitemap();
-    // Should have at least the 28 section pages (13 top-level + 15 resource categories).
-    assert.ok(urls.length >= 28);
+    // Should have at least the 38 section pages (28 original + 10 map pages).
+    assert.ok(urls.length >= 38);
   });
 
   test("each published row generates one detail URL", () => {
@@ -293,9 +293,7 @@ describe("sitemap URL counts", () => {
 
     const urls1 = buildSitemap();
     const evidenceBefore = urls1.filter((u) =>
-      u.loc.startsWith(
-        "https://thejesuswebsite.org/evidence/single/",
-      ),
+      u.loc.startsWith("https://thejesuswebsite.org/evidence/single/"),
     );
     assert.equal(evidenceBefore.length, 2);
 
@@ -304,9 +302,7 @@ describe("sitemap URL counts", () => {
 
     const urls2 = buildSitemap();
     const evidenceAfter = urls2.filter((u) =>
-      u.loc.startsWith(
-        "https://thejesuswebsite.org/evidence/single/",
-      ),
+      u.loc.startsWith("https://thejesuswebsite.org/evidence/single/"),
     );
     assert.equal(evidenceAfter.length, 1);
   });

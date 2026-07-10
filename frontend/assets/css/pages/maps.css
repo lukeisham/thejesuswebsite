@@ -1,0 +1,290 @@
+/* ==========================================================================
+   Maps
+   Overview grid, detail layout with image, pins, tooltips, and controls.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Overview Header
+   ------------------------------------------------------------------------- */
+
+.maps-overview-header {
+  padding: var(--space-xl) var(--space-md) var(--space-md);
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.maps-overview-header h2 {
+  margin-bottom: var(--space-sm);
+}
+
+.maps-overview-description {
+  color: var(--text-secondary);
+  max-width: var(--measure-reading);
+}
+
+/* -------------------------------------------------------------------------
+   Overview Grid
+   ------------------------------------------------------------------------- */
+
+.maps-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--card-gap);
+  padding: var(--space-md);
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.maps-overview-grid[hidden] {
+  display: none;
+}
+
+/* -------------------------------------------------------------------------
+   Map Card (overview)
+   ------------------------------------------------------------------------- */
+
+.map-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.map-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.map-card__thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+  background: var(--bg-surface-alt);
+}
+
+.map-card__body {
+  padding: var(--space-md);
+}
+
+.map-card__title {
+  font-size: var(--text-h4);
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.map-card__description {
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  line-height: var(--leading-small);
+}
+
+/* -------------------------------------------------------------------------
+   Region Header (detail page)
+   ------------------------------------------------------------------------- */
+
+.maps-region-header {
+  padding: var(--space-lg) var(--space-md) var(--space-sm);
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.maps-region-title {
+  font-size: var(--text-h2);
+}
+
+/* -------------------------------------------------------------------------
+   Region Navigation (detail page)
+   ------------------------------------------------------------------------- */
+
+.maps-region-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md) var(--space-lg);
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+/* -------------------------------------------------------------------------
+   Map Canvas (detail page)
+   ------------------------------------------------------------------------- */
+
+.map-canvas {
+  position: relative;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+.map-canvas[hidden] {
+  display: none;
+}
+
+/* -------------------------------------------------------------------------
+   Zoom Controls
+   ------------------------------------------------------------------------- */
+
+.map-controls {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+/* -------------------------------------------------------------------------
+   Map Viewport — contains image + pins layer
+   ------------------------------------------------------------------------- */
+
+.map-viewport {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-alt);
+}
+
+.map-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* -------------------------------------------------------------------------
+   Pins Layer — absolutely positioned over the image
+   ------------------------------------------------------------------------- */
+
+.map-pins-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   Pin Marker
+   ------------------------------------------------------------------------- */
+
+.map-pin {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border: 2px solid var(--bg-surface);
+  border-radius: var(--radius-round);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 2;
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.map-pin:hover {
+  box-shadow: 0 0 0 4px rgba(92, 64, 51, 0.15);
+  transform: translate(-50%, -50%) scale(1.3);
+}
+
+/* -------------------------------------------------------------------------
+   Pin Label
+   ------------------------------------------------------------------------- */
+
+.map-pin-label {
+  position: absolute;
+  transform: translate(-50%, 8px);
+  font-size: var(--text-2xs);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-xs);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* -------------------------------------------------------------------------
+   Map Tooltip
+   ------------------------------------------------------------------------- */
+
+.map-tooltip {
+  position: fixed;
+  z-index: 60;
+  max-width: 260px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-small);
+  pointer-events: none;
+}
+
+.map-tooltip[hidden] {
+  display: none;
+}
+
+/* -------------------------------------------------------------------------
+   Print Styles
+   ------------------------------------------------------------------------- */
+
+@media print {
+  .map-controls,
+  .map-tooltip,
+  .maps-region-nav,
+  .breadcrumbs {
+    display: none;
+  }
+
+  .map-canvas {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+
+  .map-viewport {
+    border: 1px solid var(--color-black);
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .map-image {
+    max-width: 100%;
+  }
+
+  .map-pin {
+    background: var(--color-black);
+    border-color: var(--color-white);
+  }
+
+  .map-pin-label {
+    border-color: var(--color-black);
+    color: var(--color-black);
+    background: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .maps-overview-grid {
+    grid-template-columns: 1fr;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .map-card__title {
+    font-size: var(--text-body);
+  }
+
+  .maps-overview-header {
+    padding: var(--space-lg) var(--space-md) var(--space-sm);
+  }
+}

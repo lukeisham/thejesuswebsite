@@ -21,6 +21,18 @@ const db = require("../config");
 const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
 db.exec(schema);
 
+// evidence_pictures exists in migration 001 but not yet in schema.sql;
+// create it here for the thumbnail_path test (schema drift — Issues.md row 19).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS evidence_pictures (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    evidence_id INTEGER NOT NULL REFERENCES evidence(id) ON DELETE CASCADE,
+    sort_order  INTEGER NOT NULL DEFAULT 0,
+    image_path  TEXT NOT NULL,
+    caption     TEXT
+  );
+`);
+
 const evidenceModel = require("../models/evidence.model");
 
 // Seed supporting data for junction links.
@@ -69,6 +81,50 @@ describe("evidence: getAllPublished", () => {
     const items = evidenceModel.getAllPublished();
     assert.equal(items.length, 1);
     assert.equal(items[0].title, "Published");
+  });
+
+  test("returns primary_verse on list items", () => {
+    evidenceModel.create({
+      title: "Verse Item",
+      slug: "verse-item",
+      primary_verse: "John 3:16",
+      published_draft: 1,
+    });
+
+    const items = evidenceModel.getAllPublished();
+    assert.equal(items.length, 1);
+    assert.equal(items[0].primary_verse, "John 3:16");
+  });
+
+  test("returns thumbnail_path from first evidence_picture", () => {
+    const created = evidenceModel.create({
+      title: "With Picture",
+      slug: "with-picture",
+      published_draft: 1,
+    });
+
+    db.prepare(
+      "INSERT INTO evidence_pictures (evidence_id, sort_order, image_path) VALUES (?, 0, ?)",
+    ).run(created.id, "/uploads/test.webp");
+    db.prepare(
+      "INSERT INTO evidence_pictures (evidence_id, sort_order, image_path) VALUES (?, 1, ?)",
+    ).run(created.id, "/uploads/test2.webp");
+
+    const items = evidenceModel.getAllPublished();
+    assert.equal(items.length, 1);
+    assert.equal(items[0].thumbnail_path, "/uploads/test.webp");
+  });
+
+  test("thumbnail_path is null when no pictures exist", () => {
+    evidenceModel.create({
+      title: "No Picture",
+      slug: "no-picture",
+      published_draft: 1,
+    });
+
+    const items = evidenceModel.getAllPublished();
+    assert.equal(items.length, 1);
+    assert.equal(items[0].thumbnail_path, null);
   });
 
   test("filters by gospel_category", () => {

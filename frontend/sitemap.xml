@@ -37,6 +37,66 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/roman-empire.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/levant.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/judea.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/galilee.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/jerusalem.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/roman-empire/zoom-roman-empire.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/levant/zoom-levant.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/judea/zoom-judea.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/galilee/zoom-galilee.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://thejesuswebsite.org/evidence/maps/jerusalem/zoom-jerusalem.html</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://thejesuswebsite.org/contextual-essays/</loc>
     <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>

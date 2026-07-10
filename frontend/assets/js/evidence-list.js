@@ -4,28 +4,29 @@
  * @module evidence-list
  */
 
-import { getEvidence } from './api.js';
-import { renderCard, renderBadge } from './utils/templates.js';
-import { getParams, pushState } from './utils/router.js';
-import { showToast } from './utils/toasts.js';
-import { numberFigures } from './utils/figures.js';
-import { delegate } from './utils/dom.js';
+import { getEvidence } from "./api.js";
+import { html, raw } from "./utils/templates.js";
+import { getParams, pushState } from "./utils/router.js";
+import { showToast } from "./utils/toasts.js";
+import { numberFigures } from "./utils/figures.js";
+import { delegate } from "./utils/dom.js";
+import { initFilterPanel } from "./utils/filter-panel.js";
 
-const SENTINEL_ID = 'scroll-sentinel';
-const CARD_GRID_ID = 'card-grid';
-const LOADING_ID = 'loading-state';
-const EMPTY_ID = 'empty-state';
-const ERROR_ID = 'error-state';
-const END_ID = 'end-of-list';
-const FILTER_CHIPS_ID = 'filter-chips';
-const CLEAR_FILTERS_ID = 'clear-filters';
-const RETRY_ID = 'retry-load';
+const SENTINEL_ID = "scroll-sentinel";
+const EVIDENCE_LIST_ID = "evidence-list";
+const LOADING_ID = "loading-state";
+const EMPTY_ID = "empty-state";
+const ERROR_ID = "error-state";
+const END_ID = "end-of-list";
+const FILTER_CHIPS_ID = "filter-chips";
+const CLEAR_FILTERS_ID = "clear-filters";
+const RETRY_ID = "retry-load";
 
 const PAGE_SIZE = 20;
 const SCROLL_THRESHOLD = 300;
 
-const STORAGE_KEY_ITEMS = 'evidence_list_items';
-const STORAGE_KEY_SCROLL = 'evidence_list_scroll';
+const STORAGE_KEY_ITEMS = "evidence_list_items";
+const STORAGE_KEY_SCROLL = "evidence_list_scroll";
 
 let currentPage = 1;
 let hasMore = true;
@@ -38,7 +39,7 @@ let retryTeardown = null;
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
-const $grid = document.getElementById(CARD_GRID_ID);
+const $list = document.getElementById(EVIDENCE_LIST_ID);
 const $sentinel = document.getElementById(SENTINEL_ID);
 const $loading = document.getElementById(LOADING_ID);
 const $empty = document.getElementById(EMPTY_ID);
@@ -52,9 +53,11 @@ const $retry = document.getElementById(RETRY_ID);
 
 function showState(name) {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
-  const target = { loading: $loading, empty: $empty, error: $error, end: $end }[name];
+  const target = { loading: $loading, empty: $empty, error: $error, end: $end }[
+    name
+  ];
   if (target) target.hidden = false;
-  if ($sentinel) $sentinel.hidden = name !== 'none';
+  if ($sentinel) $sentinel.hidden = name !== "none";
 }
 
 function hideAllStates() {
@@ -66,7 +69,12 @@ function hideAllStates() {
 function parseUrlFilters() {
   const params = getParams();
   const filters = {};
-  for (const key of ['timeline_era', 'timeline_period', 'gospel_category', 'map_location']) {
+  for (const key of [
+    "timeline_era",
+    "timeline_period",
+    "gospel_category",
+    "map_location",
+  ]) {
     const val = params.get(key);
     if (val) filters[key] = val;
   }
@@ -75,17 +83,17 @@ function parseUrlFilters() {
 
 function syncChipUI(filters) {
   if (!$chips) return;
-  const buttons = $chips.querySelectorAll('.filter-chip');
+  const buttons = $chips.querySelectorAll(".filter-chip");
   buttons.forEach((btn) => {
     const key = btn.dataset.filter;
     const val = btn.dataset.value;
-    if (key === 'all') {
+    if (key === "all") {
       const hasAny = Object.keys(filters).length > 0;
-      btn.classList.toggle('filter-chip--active', !hasAny);
+      btn.classList.toggle("filter-chip--active", !hasAny);
     } else if (filters[key] === val) {
-      btn.classList.add('filter-chip--active');
+      btn.classList.add("filter-chip--active");
     } else {
-      btn.classList.remove('filter-chip--active');
+      btn.classList.remove("filter-chip--active");
     }
   });
 }
@@ -93,7 +101,7 @@ function syncChipUI(filters) {
 function applyFilters(filters) {
   activeFilters = { ...filters };
   const qs = new URLSearchParams(filters).toString();
-  pushState(window.location.pathname + (qs ? '?' + qs : ''));
+  pushState(window.location.pathname + (qs ? "?" + qs : ""));
   syncChipUI(filters);
   resetAndLoad();
 }
@@ -102,7 +110,7 @@ async function resetAndLoad() {
   currentPage = 1;
   hasMore = true;
   allItems = [];
-  if ($grid) $grid.innerHTML = '';
+  if ($list) $list.innerHTML = "";
   if ($sentinel) $sentinel.hidden = false;
   hideAllStates();
   clearCachedItems();
@@ -115,7 +123,7 @@ async function resetAndLoad() {
 async function loadPage() {
   if (isLoading || !hasMore) return;
   isLoading = true;
-  showState('loading');
+  showState("loading");
 
   const params = { ...activeFilters };
   // The API doesn't support pagination natively — we fetch all matches and slice
@@ -126,20 +134,21 @@ async function loadPage() {
   isLoading = false;
 
   if (error) {
-    showState('error');
-    showToast('Failed to load evidence', 'error');
+    showState("error");
+    showToast("Failed to load evidence", "error");
     return;
   }
 
   if (!data || data.length === 0) {
     if (allItems.length === 0) {
-      showState('empty');
+      showState("empty");
     } else {
       hasMore = false;
       $sentinel.hidden = true;
-      showState('end');
+      showState("end");
       const total = allItems.length;
-      if ($end) $end.textContent = `All ${total} item${total !== 1 ? 's' : ''} loaded`;
+      if ($end)
+        $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
     }
     return;
   }
@@ -151,22 +160,24 @@ async function loadPage() {
   if (pageItems.length === 0) {
     hasMore = false;
     $sentinel.hidden = true;
-    showState('end');
+    showState("end");
     const total = allItems.length;
-    if ($end) $end.textContent = `All ${total} item${total !== 1 ? 's' : ''} loaded`;
+    if ($end)
+      $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
     return;
   }
 
   allItems = [...allItems, ...pageItems];
-  renderCards(pageItems);
+  renderRows(pageItems);
   cacheItems();
 
   if (pageItems.length < PAGE_SIZE || start + pageItems.length >= data.length) {
     hasMore = false;
     $sentinel.hidden = true;
-    showState('end');
+    showState("end");
     const total = allItems.length;
-    if ($end) $end.textContent = `All ${total} item${total !== 1 ? 's' : ''} loaded`;
+    if ($end)
+      $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
   } else {
     currentPage++;
     hideAllStates();
@@ -178,37 +189,70 @@ async function loadPage() {
 
 // ─── Rendering ───────────────────────────────────────────────────────────────
 
-function renderCards(items) {
-  if (!$grid) return;
+function renderRows(items) {
+  if (!$list) return;
 
   items.forEach((item) => {
-    const cardHTML = renderEvidenceCard(item);
-    const temp = document.createElement('div');
-    temp.innerHTML = cardHTML;
-    const cardEl = temp.firstElementChild;
-    if (cardEl) {
-      $grid.appendChild(cardEl);
+    const rowHTML = renderEvidenceRow(item);
+    const temp = document.createElement("div");
+    temp.innerHTML = rowHTML.toString();
+    const rowEl = temp.firstElementChild;
+    if (rowEl) {
+      $list.appendChild(rowEl);
     }
   });
 
   // Number figures in newly rendered content
-  numberFigures($grid);
+  numberFigures($list);
 }
 
-function renderEvidenceCard(item) {
-  const badges = [];
-  if (item.gospel_category) badges.push(item.gospel_category);
-  if (item.timeline_era) badges.push(item.timeline_era);
-  if (item.map_location) badges.push(item.map_location);
+/**
+ * Render a single evidence row as a safe HTML string.
+ *
+ * Emits an <li> row with:
+ *   - thumbnail (lazy-loaded via data-src, placeholder when null)
+ *   - title (linked to /evidence/single/<slug>)
+ *   - primary_verse in muted monospace style
+ *
+ * All values are escaped via the `html` tagged template (JS-6).
+ * Thumbnail `alt=""` per HTML-2 (title sits beside it).
+ *
+ * @param {Object} item - Evidence row from the API (includes thumbnail_path, primary_verse).
+ * @returns {SafeString}
+ */
+function renderEvidenceRow(item) {
+  const url = `/evidence/single/${encodeURIComponent(item.slug || "")}`;
+  const title = item.title || "Untitled";
+  const verse = item.primary_verse || "";
+  const thumbnail = item.thumbnail_path || "";
 
-  const url = `/evidence/single/${encodeURIComponent(item.slug || '')}`;
-
-  return renderCard({
-    title: item.title || 'Untitled',
-    description: item.description || '',
-    url,
-    badges,
-  });
+  return html`
+    <li class="evidence-row">
+      <a class="evidence-row__link" href="${url}">
+        <div class="evidence-row__thumbnail">
+          ${thumbnail
+            ? raw(`<img
+                class="evidence-row__thumb-img"
+                data-src="${thumbnail}"
+                src=""
+                alt=""
+                width="80"
+                height="80"
+                loading="lazy"
+              />`)
+            : raw(
+                '<div class="evidence-row__thumb-placeholder" aria-hidden="true"></div>',
+              )}
+        </div>
+        <div class="evidence-row__body">
+          <span class="evidence-row__title">${title}</span>
+          ${verse
+            ? html`<span class="evidence-row__verse">${verse}</span>`
+            : raw("")}
+        </div>
+      </a>
+    </li>
+  `;
 }
 
 // ─── Infinite scroll (IntersectionObserver) ──────────────────────────────────
@@ -224,7 +268,7 @@ function initInfiniteScroll() {
         }
       });
     },
-    { rootMargin: `${SCROLL_THRESHOLD}px` }
+    { rootMargin: `${SCROLL_THRESHOLD}px` },
   );
 
   observer.observe($sentinel);
@@ -236,14 +280,18 @@ function cacheItems() {
   try {
     sessionStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(allItems));
     sessionStorage.setItem(STORAGE_KEY_SCROLL, String(window.scrollY));
-  } catch { /* quota exceeded — non-critical */ }
+  } catch {
+    /* quota exceeded — non-critical */
+  }
 }
 
 function clearCachedItems() {
   try {
     sessionStorage.removeItem(STORAGE_KEY_ITEMS);
     sessionStorage.removeItem(STORAGE_KEY_SCROLL);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function restoreFromCache() {
@@ -253,14 +301,17 @@ function restoreFromCache() {
       allItems = JSON.parse(cached);
       hasMore = false; // Assume all cached items are loaded
       $sentinel && ($sentinel.hidden = true);
-      if ($grid) $grid.innerHTML = '';
-      renderCards(allItems);
-      showState('end');
+      if ($list) $list.innerHTML = "";
+      renderRows(allItems);
+      showState("end");
       const total = allItems.length;
-      if ($end) $end.textContent = `All ${total} item${total !== 1 ? 's' : ''} loaded`;
+      if ($end)
+        $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
       return true;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return false;
 }
 
@@ -270,7 +321,9 @@ function restoreScrollPosition() {
     if (scrollY) {
       requestAnimationFrame(() => window.scrollTo(0, Number(scrollY)));
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 // ─── Event wiring ────────────────────────────────────────────────────────────
@@ -278,9 +331,9 @@ function restoreScrollPosition() {
 function bindFilterChips() {
   if (!$chips) return;
 
-  delegate($chips, '.filter-chip', 'click', (_e, target) => {
+  delegate($chips, ".filter-chip", "click", (_e, target) => {
     const filterKey = target.dataset.filter;
-    if (filterKey === 'all') {
+    if (filterKey === "all") {
       applyFilters({});
       return;
     }
@@ -302,15 +355,20 @@ function bindFilterChips() {
 function bindClearFilters() {
   if (!$clearFilters) return;
   if (clearFiltersTeardown) clearFiltersTeardown();
-  clearFiltersTeardown = delegate(document.body, `#${CLEAR_FILTERS_ID}`, 'click', () => {
-    applyFilters({});
-  });
+  clearFiltersTeardown = delegate(
+    document.body,
+    `#${CLEAR_FILTERS_ID}`,
+    "click",
+    () => {
+      applyFilters({});
+    },
+  );
 }
 
 function bindRetry() {
   if (!$retry) return;
   if (retryTeardown) retryTeardown();
-  retryTeardown = delegate(document.body, `#${RETRY_ID}`, 'click', () => {
+  retryTeardown = delegate(document.body, `#${RETRY_ID}`, "click", () => {
     resetAndLoad();
   });
 }
@@ -318,6 +376,7 @@ function bindRetry() {
 // ─── Initialisation ──────────────────────────────────────────────────────────
 
 function init() {
+  initFilterPanel();
   bindFilterChips();
   bindClearFilters();
   bindRetry();
@@ -336,8 +395,8 @@ function init() {
   loadPage();
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
 } else {
   init();
 }
