@@ -55,22 +55,13 @@ describe("generate-maps smoke test", () => {
       result.includes("galilee"),
       "Generator output should mention the map key",
     );
-    assert.ok(
-      fs.existsSync(outPath),
-      "Generator should produce galilee.svg",
-    );
+    assert.ok(fs.existsSync(outPath), "Generator should produce galilee.svg");
 
     const svg = fs.readFileSync(outPath, "utf8");
 
     // Must be an SVG
-    assert.ok(
-      svg.includes("<svg"),
-      "Output should contain <svg> tag",
-    );
-    assert.ok(
-      svg.includes("</svg>"),
-      "Output should close with </svg>",
-    );
+    assert.ok(svg.includes("<svg"), "Output should contain <svg> tag");
+    assert.ok(svg.includes("</svg>"), "Output should close with </svg>");
     assert.ok(
       svg.includes('xmlns="http://www.w3.org/2000/svg"'),
       "Output should have the SVG namespace",
@@ -107,14 +98,14 @@ describe("generate-maps smoke test", () => {
     );
 
     // Must have a compass rose
-    assert.ok(
-      svg.includes("N</text>"),
-      "Output should include compass N",
-    );
+    assert.ok(svg.includes("N</text>"), "Output should include compass N");
 
     // Size check — well under 200 KB
     const sizeKB = Buffer.byteLength(svg, "utf8") / 1024;
-    assert.ok(sizeKB < 200, `SVG should be under 200 KB (got ${sizeKB.toFixed(1)} KB)`);
+    assert.ok(
+      sizeKB < 200,
+      `SVG should be under 200 KB (got ${sizeKB.toFixed(1)} KB)`,
+    );
   });
 
   test("generator rejects an unknown map key", () => {
@@ -129,7 +120,9 @@ describe("generate-maps smoke test", () => {
     } catch (e) {
       threw = true;
       assert.ok(
-        e.stderr.includes("Unknown map key") || e.stdout.includes("Unknown map key") || e.status !== 0,
+        e.stderr.includes("Unknown map key") ||
+          e.stdout.includes("Unknown map key") ||
+          e.status !== 0,
         "Generator should error on unknown map key",
       );
     }
@@ -153,15 +146,9 @@ describe("generate-maps smoke test", () => {
 
     for (const key of keys) {
       const outPath = path.join(OUTPUT_DIR, `${key}.svg`);
-      assert.ok(
-        fs.existsSync(outPath),
-        `Generator should produce ${key}.svg`,
-      );
+      assert.ok(fs.existsSync(outPath), `Generator should produce ${key}.svg`);
       const svg = fs.readFileSync(outPath, "utf8");
-      assert.ok(
-        svg.startsWith("<svg"),
-        `${key}.svg should start with <svg>`,
-      );
+      assert.ok(svg.startsWith("<svg"), `${key}.svg should start with <svg>`);
       assert.ok(
         svg.endsWith("</svg>\n") || svg.endsWith("</svg>"),
         `${key}.svg should end with </svg>`,
@@ -202,7 +189,12 @@ describe("projectPoint bounds", () => {
 
   test("throws on a zero-range bbox", () => {
     assert.throws(() => {
-      projectPoint(35, 32, { lon_min: 35, lat_min: 32, lon_max: 35, lat_max: 33 }, viewBox);
+      projectPoint(
+        35,
+        32,
+        { lon_min: 35, lat_min: 32, lon_max: 35, lat_max: 33 },
+        viewBox,
+      );
     });
   });
 });
@@ -212,7 +204,10 @@ describe("bbox clipping", () => {
 
   test("clipSegmentToBBox keeps a segment fully inside the box", () => {
     const clipped = clipSegmentToBBox([2, 2], [8, 8], bbox);
-    assert.deepEqual(clipped, [[2, 2], [8, 8]]);
+    assert.deepEqual(clipped, [
+      [2, 2],
+      [8, 8],
+    ]);
   });
 
   test("clipSegmentToBBox drops a segment fully outside the box", () => {
@@ -222,14 +217,27 @@ describe("bbox clipping", () => {
 
   test("clipSegmentToBBox truncates a segment crossing the boundary", () => {
     const clipped = clipSegmentToBBox([5, 5], [15, 5], bbox);
-    assert.deepEqual(clipped, [[5, 5], [10, 5]]);
+    assert.deepEqual(clipped, [
+      [5, 5],
+      [10, 5],
+    ]);
   });
 
   test("clipLineToBBox splits a line that exits and re-enters the box", () => {
     // Passes through the box, leaves, then comes back in.
-    const line = [[-5, 5], [5, 5], [15, 5], [15, 15], [5, 5], [5, -5]];
+    const line = [
+      [-5, 5],
+      [5, 5],
+      [15, 5],
+      [15, 15],
+      [5, 5],
+      [5, -5],
+    ];
     const segments = clipLineToBBox(line, bbox);
-    assert.ok(segments.length >= 2, "should produce multiple disjoint segments");
+    assert.ok(
+      segments.length >= 2,
+      "should produce multiple disjoint segments",
+    );
     for (const seg of segments) {
       for (const [x, y] of seg) {
         assert.ok(x >= bbox.lon_min && x <= bbox.lon_max);
@@ -241,7 +249,11 @@ describe("bbox clipping", () => {
   test("clipPolygonToBBox clips a triangle overhanging one edge", () => {
     // Triangle with one vertex outside the box (x=15) — clip should close
     // the shape against the right edge (x=10) rather than dropping it.
-    const ring = [[2, 2], [15, 2], [2, 8]];
+    const ring = [
+      [2, 2],
+      [15, 2],
+      [2, 8],
+    ];
     const clipped = clipPolygonToBBox(ring, bbox);
     assert.ok(clipped.length >= 3, "clipped ring should still be a polygon");
     for (const [x, y] of clipped) {
@@ -251,14 +263,24 @@ describe("bbox clipping", () => {
   });
 
   test("clipPolygonToBBox drops a ring entirely outside the box", () => {
-    const ring = [[20, 20], [30, 20], [20, 30]];
+    const ring = [
+      [20, 20],
+      [30, 20],
+      [20, 30],
+    ];
     const clipped = clipPolygonToBBox(ring, bbox);
     assert.equal(clipped.length, 0);
   });
 
   test("clipGeometryToBBox returns null for geometry entirely outside the box", () => {
     const clipped = clipGeometryToBBox(
-      { type: "LineString", coordinates: [[20, 20], [30, 30]] },
+      {
+        type: "LineString",
+        coordinates: [
+          [20, 20],
+          [30, 30],
+        ],
+      },
       bbox,
     );
     assert.equal(clipped, null);
@@ -266,11 +288,66 @@ describe("bbox clipping", () => {
 
   test("clipGeometryToBBox splits a MultiLineString-producing LineString into pieces", () => {
     const clipped = clipGeometryToBBox(
-      { type: "LineString", coordinates: [[-5, 5], [5, 5], [15, 5], [15, 15], [5, 5], [5, -5]] },
+      {
+        type: "LineString",
+        coordinates: [
+          [-5, 5],
+          [5, 5],
+          [15, 5],
+          [15, 15],
+          [5, 5],
+          [5, -5],
+        ],
+      },
       bbox,
     );
     assert.ok(clipped);
     assert.equal(clipped.type, "MultiLineString");
+  });
+});
+
+describe("jerusalem map — first-century plan", () => {
+  test("regenerated jerusalem SVG contains wall paths and attribution", () => {
+    // Regenerate jerusalem only
+    execSync(`node "${GENERATOR_PATH}" jerusalem`, {
+      cwd: path.resolve(__dirname, ".."),
+      encoding: "utf8",
+      timeout: 15000,
+    });
+
+    const svgPath = path.join(OUTPUT_DIR, "jerusalem.svg");
+    assert.ok(fs.existsSync(svgPath), "jerusalem.svg should exist");
+
+    const svg = fs.readFileSync(svgPath, "utf8");
+
+    // Well-formed SVG
+    assert.ok(svg.startsWith("<svg"), "should start with <svg>");
+    assert.ok(svg.includes("</svg>"), "should close with </svg>");
+
+    // Overlay group present
+    assert.ok(
+      svg.includes("overlay-jerusalem"),
+      "should include the overlay-jerusalem group",
+    );
+
+    // CC-BY attribution line
+    assert.ok(
+      svg.includes("OpenBible.info") || svg.includes("CC BY"),
+      "should include OpenBible.info CC-BY attribution",
+    );
+
+    // Britannica 1911 credit
+    assert.ok(
+      svg.includes("Britannica 1911"),
+      "should include Britannica 1911 credit",
+    );
+
+    // Size budget
+    const sizeKB = Buffer.byteLength(svg, "utf8") / 1024;
+    assert.ok(
+      sizeKB < 200,
+      `jerusalem SVG should be under 200 KB (got ${sizeKB.toFixed(1)} KB)`,
+    );
   });
 });
 
@@ -295,7 +372,9 @@ describe("generated SVG coordinate bounds", () => {
       const yMin = vb.y - vb.height * MARGIN_FRACTION;
       const yMax = vb.y + vb.height * (1 + MARGIN_FRACTION);
 
-      const pointsAttrs = [...svg.matchAll(/points="([^"]+)"/g)].map((m) => m[1]);
+      const pointsAttrs = [...svg.matchAll(/points="([^"]+)"/g)].map(
+        (m) => m[1],
+      );
       let checked = 0;
       for (const attr of pointsAttrs) {
         for (const pair of attr.split(" ")) {
@@ -308,7 +387,10 @@ describe("generated SVG coordinate bounds", () => {
           checked++;
         }
       }
-      assert.ok(checked > 0, `${mapKey}.svg should have projected geometry to check`);
+      assert.ok(
+        checked > 0,
+        `${mapKey}.svg should have projected geometry to check`,
+      );
     }
   });
 });

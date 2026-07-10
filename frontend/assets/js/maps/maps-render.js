@@ -146,7 +146,9 @@ export function renderRegion(map) {
     mapImageEl.src = map.image_path || "";
     mapImageEl.alt = map.description
       ? `Map of ${map.map_name} — ${map.description}`
-      : `Map of ${map.map_name}`;
+      : map.map_key === "jerusalem"
+        ? "First-century plan of Jerusalem showing the Temple Mount, walls, valleys, and districts"
+        : `Map of ${map.map_name}`;
 
     // Update page title
     document.getElementById("map-page-title").textContent =

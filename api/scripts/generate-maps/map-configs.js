@@ -6,13 +6,18 @@
  * cartouche title/subtitle.
  *
  * Bounding boxes are in WGS84 degrees for equirectangular projection.
+ * They are imported from api/lib/map-geo.js — the single source of truth
+ * shared between the generator and the pin API — so the two systems
+ * can never drift apart.
  *
  * @module generate-maps/map-configs
  */
 
+const { MAP_BBOXES } = require("../../lib/map-geo");
+
 const MAP_CONFIGS = {
   "roman-empire": {
-    bbox: { lon_min: -10, lat_min: 25, lon_max: 45, lat_max: 52 },
+    bbox: MAP_BBOXES["roman-empire"],
     viewBox: { x: 0, y: 0, width: 1200, height: 700 },
     dataLayers: ["coastline", "lakes", "rivers"],
     // Continent-scale view — coarse tolerance keeps the SVG small without
@@ -45,7 +50,7 @@ const MAP_CONFIGS = {
   },
 
   levant: {
-    bbox: { lon_min: 32, lat_min: 29, lon_max: 38, lat_max: 37 },
+    bbox: MAP_BBOXES["levant"],
     viewBox: { x: 0, y: 0, width: 900, height: 1000 },
     dataLayers: ["coastline", "lakes", "rivers"],
     simplifyTolerance: 0.01,
@@ -73,7 +78,7 @@ const MAP_CONFIGS = {
   },
 
   judea: {
-    bbox: { lon_min: 34.2, lat_min: 30.9, lon_max: 35.8, lat_max: 32.6 },
+    bbox: MAP_BBOXES["judea"],
     viewBox: { x: 0, y: 0, width: 900, height: 1000 },
     dataLayers: ["coastline", "lakes", "rivers"],
     // Regional-scale — near-zero tolerance so the Dead Sea shoreline stays recognisable.
@@ -97,7 +102,7 @@ const MAP_CONFIGS = {
   },
 
   galilee: {
-    bbox: { lon_min: 34.9, lat_min: 32.2, lon_max: 36.0, lat_max: 33.5 },
+    bbox: MAP_BBOXES["galilee"],
     viewBox: { x: 0, y: 0, width: 900, height: 1000 },
     dataLayers: ["coastline", "lakes", "rivers"],
     // City/lake-scale — near-zero tolerance so the Sea of Galilee shoreline stays recognisable.
@@ -124,7 +129,7 @@ const MAP_CONFIGS = {
   },
 
   jerusalem: {
-    bbox: { lon_min: 35.10, lat_min: 31.72, lon_max: 35.30, lat_max: 31.82 },
+    bbox: MAP_BBOXES["jerusalem"],
     viewBox: { x: 0, y: 0, width: 1000, height: 1000 },
     dataLayers: [], // Jerusalem is small; coastline/lakes/rivers not relevant
     simplifyTolerance: 0,
@@ -132,17 +137,37 @@ const MAP_CONFIGS = {
       title: "Jerusalem",
       subtitle: "in the time of Jesus · c. AD\u00A030",
     },
+    // Attribution text rendered near the cartouche for the jerusalem map only.
+    // Required by CC BY 4.0: OpenBible.info topography data.
+    // Britannica 1911 is PD but credited as a courtesy.
+    attribution:
+      "Topography: OpenBible.info (CC BY 4.0) · Plan after Britannica 1911",
     labels: [
-      { text: "TEMPLE MOUNT", x: 500, y: 350, cls: "district-label" },
-      { text: "UPPER CITY", x: 350, y: 480, cls: "district-label" },
-      { text: "LOWER CITY", x: 550, y: 580, cls: "district-label" },
-      { text: "KIDRON VALLEY", x: 750, y: 520, cls: "valley-label", angle: 20 },
-      { text: "HINNOM VALLEY", x: 350, y: 720, cls: "valley-label", angle: -30 },
-      { text: "MOUNT OF OLIVES", x: 800, y: 320, cls: "hill-label" },
+      // Positions projected from real lat/lng (see overlay georeferencing comments)
+      // bbox lon 35.10–35.30, lat 31.72–31.82 → viewBox 0 0 1000 1000
+      { text: "TEMPLE MOUNT", x: 677, y: 375, cls: "district-label" },
+      { text: "UPPER CITY", x: 636, y: 460, cls: "district-label" },
+      { text: "LOWER CITY", x: 675, y: 505, cls: "district-label" },
+      { text: "CITY OF DAVID", x: 682, y: 515, cls: "district-label" },
+      {
+        text: "KIDRON\u00A0VALLEY",
+        x: 725,
+        y: 480,
+        cls: "valley-label",
+        angle: 12,
+      },
+      {
+        text: "HINNOM\u00A0VALLEY",
+        x: 610,
+        y: 500,
+        cls: "valley-label",
+        angle: -10,
+      },
+      { text: "MOUNT\u00A0OF\u00A0OLIVES", x: 730, y: 365, cls: "hill-label" },
     ],
     hills: [
-      { cx: 800, cy: 330, r: 25, label: "Mt. of Olives" },
-      { cx: 500, cy: 350, r: 20, label: "Temple Mount" },
+      { cx: 715, cy: 410, r: 28, label: "Mt. of Olives" },
+      { cx: 637, cy: 460, r: 22, label: "Western Hill" },
     ],
   },
 };

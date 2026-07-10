@@ -1,0 +1,122 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Temple Mount",
+        "name_he": "הר הבית",
+        "period": "Second Temple",
+        "confidence": "certain",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2354, 31.7780] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Golgotha",
+        "name_he": "גולגותא",
+        "period": "Second Temple",
+        "confidence": "probable",
+        "note": "Traditional site within Church of the Holy Sepulchre",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2296, 31.7784] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "City of David",
+        "name_he": "עיר דוד",
+        "period": "Second Temple",
+        "confidence": "certain",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2350, 31.7730] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Herod's Palace",
+        "period": "Second Temple",
+        "confidence": "probable",
+        "note": "At or near the Citadel / Jaffa Gate area",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2278, 31.7761] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Antonia Fortress",
+        "period": "Second Temple",
+        "confidence": "probable",
+        "note": "NW corner of Temple Mount platform",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2340, 31.7800] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gethsemane",
+        "period": "Second Temple",
+        "confidence": "certain",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2395, 31.7795] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mount of Olives",
+        "period": "Second Temple",
+        "confidence": "certain",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2430, 31.7790] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Upper Room (traditional)",
+        "period": "Second Temple",
+        "confidence": "traditional",
+        "note": "Traditional site on Mount Zion, SW of the Old City",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2289, 31.7719] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pool of Siloam",
+        "period": "Second Temple",
+        "confidence": "certain",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2355, 31.7705] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bethany",
+        "period": "Second Temple",
+        "confidence": "certain",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.2560, 31.7710] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bethlehem",
+        "period": "Second Temple",
+        "confidence": "certain",
+        "source": "Bible-Geocoding-Data (CC BY 4.0)"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.1980, 31.7050] }
+    }
+  ]
+}

@@ -291,7 +291,9 @@ CREATE TABLE map_pins (
     evidence_id INTEGER REFERENCES evidence(id) ON DELETE SET NULL,
     label       TEXT,
     x           REAL NOT NULL,
-    y           REAL NOT NULL
+    y           REAL NOT NULL,
+    lat         REAL,
+    lng         REAL
 );
 
 -- =====================

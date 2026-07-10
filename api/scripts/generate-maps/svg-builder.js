@@ -165,6 +165,11 @@ function buildSVG(cfg, projected, overlaySVG) {
   // ── Cartouche title box ───────────────────────────────────────────────────
   parts.push(buildCartouche(cfg));
 
+  // ── Attribution line (for maps that require it, e.g. CC-BY source data) ───
+  if (cfg.attribution) {
+    parts.push(buildAttribution(cfg));
+  }
+
   // ── Compass rose ──────────────────────────────────────────────────────────
   parts.push(buildCompassRose(cfg));
 
@@ -285,6 +290,23 @@ function buildCompassRose(cfg) {
   html += `<text x="${cx}" y="${cy - r - 3}" text-anchor="middle" font-family="Georgia, serif" font-size="8" font-weight="bold" fill="${PALETTE.compassStroke}">N</text>`;
 
   return html;
+}
+
+/**
+ * Build a small attribution line (e.g., CC-BY credit) for maps that
+ * incorporate third-party licensed data.
+ *
+ * Rendered as subtle text positioned near the cartouche.
+ *
+ * @param {Object} cfg
+ * @returns {string}
+ */
+function buildAttribution(cfg) {
+  const vb = cfg.viewBox;
+  const boxY = vb.height - 70; // matches cartouche bottom
+  const attrY = vb.height - 14; // just below the cartouche
+
+  return `<text x="${vb.width / 2}" y="${attrY}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="7" font-style="italic" fill="${PALETTE.accentLight}">${esc(cfg.attribution)}</text>`;
 }
 
 module.exports = {

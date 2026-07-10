@@ -15,7 +15,17 @@ const MAP_WRITABLE_COLUMNS = [
 ];
 
 // Columns the admin is allowed to write for map pin creation/updates.
-const PIN_WRITABLE_COLUMNS = ["map_id", "evidence_id", "label", "x", "y"];
+const PIN_WRITABLE_COLUMNS = [
+  "map_id",
+  "evidence_id",
+  "label",
+  "x",
+  "y",
+  "lat",
+  "lng",
+];
+
+const { latLngToPercent, isInBounds, getBBox } = require("../lib/map-geo");
 
 /**
  * Get all maps with their pin counts for listing.
@@ -138,7 +148,13 @@ function removeMap(id) {
 
 /**
  * Create a new map pin. Returns the created pin with evidence data.
+ * When lat/lng are supplied (both present and finite), x/y are derived
+ * from them via the shared projection; otherwise the caller must supply
+ * x/y directly.  Supplying both lat/lng AND x/y is valid — lat/lng
+ * take precedence.
  * @throws {Error} if evidence_id does not reference an existing evidence row.
+ * @throws {Error} if lat/lng are supplied but outside the map's bbox.
+ * @throws {Error} if neither lat/lng nor x/y are supplied.
  */
 function createPin(data) {
   // Validate evidence_id references an existing evidence row (draft or published)
@@ -149,6 +165,47 @@ function createPin(data) {
         status: 404,
       });
     }
+  }
+
+  // Derive x/y from lat/lng when both are supplied
+  if (
+    data.lat != null &&
+    data.lng != null &&
+    Number.isFinite(Number(data.lat)) &&
+    Number.isFinite(Number(data.lng))
+  ) {
+    const mapKey = _getMapKeyById(data.map_id);
+    if (!mapKey) {
+      throw Object.assign(new Error("map_id does not reference a known map."), {
+        status: 404,
+      });
+    }
+    const lat = Number(data.lat);
+    const lng = Number(data.lng);
+
+    // Per JS-2: reject out-of-bounds coordinates
+    if (!isInBounds(mapKey, lat, lng)) {
+      throw Object.assign(
+        new Error(
+          `Coordinates (${lat}, ${lng}) are outside the ${mapKey} map bounds.`,
+        ),
+        { status: 400 },
+      );
+    }
+
+    const pct = latLngToPercent(mapKey, lat, lng);
+    data.x = pct.x;
+    data.y = pct.y;
+    data.lat = roundToDecimal(lat, 5);
+    data.lng = roundToDecimal(lng, 5);
+  }
+
+  // Must have x/y by now (either provided directly or derived from lat/lng)
+  if (data.x == null || data.y == null) {
+    throw Object.assign(
+      new Error("Either (x, y) or (lat, lng) coordinates are required."),
+      { status: 400 },
+    );
   }
 
   const row = pickWritable(data, PIN_WRITABLE_COLUMNS);
@@ -179,6 +236,8 @@ function getPinById(id) {
             mp.label,
             mp.x,
             mp.y,
+            mp.lat,
+            mp.lng,
             e.title AS evidence_title,
             e.slug AS evidence_slug,
             e.timeline_era,
@@ -193,8 +252,11 @@ function getPinById(id) {
 
 /**
  * Update an existing map pin. Only writable fields in `data` are changed.
- * Returns the updated pin, or undefined if not found.
+ * When lat/lng are supplied, x/y are derived from them (overriding any
+ * simultaneously-supplied x/y).  Returns the updated pin, or undefined
+ * if not found.
  * @throws {Error} if evidence_id is updated to a non-existent evidence row.
+ * @throws {Error} if lat/lng are outside the pin's map bbox.
  */
 function updatePin(id, data) {
   if (!getPinById(id)) return undefined;
@@ -207,6 +269,41 @@ function updatePin(id, data) {
         status: 404,
       });
     }
+  }
+
+  // Derive x/y from lat/lng when both are supplied
+  if (
+    data.lat != null &&
+    data.lng != null &&
+    Number.isFinite(Number(data.lat)) &&
+    Number.isFinite(Number(data.lng))
+  ) {
+    // Resolve the map_key from the pin's map_id
+    const pin = getPinById(id);
+    const mapKey = _getMapKeyById(pin.map_id);
+    if (!mapKey) {
+      throw Object.assign(
+        new Error("Pin's map_id does not reference a known map."),
+        { status: 404 },
+      );
+    }
+    const lat = Number(data.lat);
+    const lng = Number(data.lng);
+
+    if (!isInBounds(mapKey, lat, lng)) {
+      throw Object.assign(
+        new Error(
+          `Coordinates (${lat}, ${lng}) are outside the ${mapKey} map bounds.`,
+        ),
+        { status: 400 },
+      );
+    }
+
+    const pct = latLngToPercent(mapKey, lat, lng);
+    data.x = pct.x;
+    data.y = pct.y;
+    data.lat = roundToDecimal(lat, 5);
+    data.lng = roundToDecimal(lng, 5);
   }
 
   const row = pickWritable(data, PIN_WRITABLE_COLUMNS);
@@ -242,6 +339,8 @@ function getPinsByMap(mapId, { includeDrafts } = {}) {
             mp.label,
             mp.x,
             mp.y,
+            mp.lat,
+            mp.lng,
             e.title AS evidence_title,
             e.slug AS evidence_slug,
             e.timeline_era,
@@ -306,3 +405,28 @@ module.exports = {
   getPinsByMap,
   getUnplacedEvidence,
 };
+
+// ── Private helpers ──────────────────────────────────────────────────────────
+
+/**
+ * Resolve a map's key from its database id.
+ *
+ * @param {number} mapId
+ * @returns {string|undefined}
+ */
+function _getMapKeyById(mapId) {
+  const row = db.prepare("SELECT map_key FROM maps WHERE id = ?").get(mapId);
+  return row ? row.map_key : undefined;
+}
+
+/**
+ * Round a number to a fixed number of decimal places.
+ *
+ * @param {number} n
+ * @param {number} decimals
+ * @returns {number}
+ */
+function roundToDecimal(n, decimals) {
+  const factor = Math.pow(10, decimals);
+  return Math.round(n * factor) / factor;
+}

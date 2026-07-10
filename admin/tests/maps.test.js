@@ -228,6 +228,69 @@ describe("coordinate helpers with edge-case rects", function () {
   });
 });
 
+// ── Lat/lng geo-anchor payload building (stubbed DOM) ────────────────────
+
+describe("pin save payload includes lat/lng", function () {
+  // Simulate the logic from maps-pins.js onSavePin — tests that lat/lng
+  // values from the edit-panel inputs are included in the save payload.
+
+  function buildSavePayload(labelVal, evidenceVal, latVal, lngVal) {
+    var payload = { label: labelVal || null };
+
+    if (evidenceVal !== "") {
+      var evidenceId = Number(evidenceVal);
+      payload.evidence_id = Number.isFinite(evidenceId) ? evidenceId : null;
+    } else {
+      payload.evidence_id = null;
+    }
+
+    if (latVal !== "" && lngVal !== "") {
+      var lat = Number(latVal);
+      var lng = Number(lngVal);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        payload.lat = lat;
+        payload.lng = lng;
+      }
+    }
+
+    return payload;
+  }
+
+  test("includes lat/lng when both are filled", function () {
+    var payload = buildSavePayload("Capernaum", "", "32.8811", "35.5751");
+    assert.equal(payload.label, "Capernaum");
+    assert.equal(payload.lat, 32.8811);
+    assert.equal(payload.lng, 35.5751);
+    assert.equal(payload.evidence_id, null);
+  });
+
+  test("omits lat/lng when only one is filled", function () {
+    var payload = buildSavePayload("Test", "", "32.8811", "");
+    assert.equal(payload.label, "Test");
+    assert.equal(payload.lat, undefined);
+    assert.equal(payload.lng, undefined);
+  });
+
+  test("omits lat/lng when both are empty", function () {
+    var payload = buildSavePayload("Test", "", "", "");
+    assert.equal(payload.label, "Test");
+    assert.equal(payload.lat, undefined);
+    assert.equal(payload.lng, undefined);
+  });
+
+  test("omits lat/lng when values are non-numeric", function () {
+    var payload = buildSavePayload("Test", "", "abc", "def");
+    assert.equal(payload.label, "Test");
+    assert.equal(payload.lat, undefined);
+    assert.equal(payload.lng, undefined);
+  });
+
+  test("includes evidence_id when valid", function () {
+    var payload = buildSavePayload("Test", "42", "", "");
+    assert.equal(payload.evidence_id, 42);
+  });
+});
+
 // ── Load maps-staged-changes.js in a sandboxed context ───────────────────
 
 const stagedPath = path.resolve(
