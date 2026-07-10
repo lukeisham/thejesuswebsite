@@ -5,8 +5,8 @@
   All coordinates are in the viewBox space (1200×700).
 -->
 <g id="overlay-roman-empire" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Via Maris (approx. route: Egypt → Gaza → Damascus) -->
-  <polyline points="440,520 480,480 560,420 640,380 720,340 800,310 860,280"/>
+  <!-- Via Maris (Egypt → Gaza → Judaean/Phoenician coast → Damascus) -->
+  <polyline points="899,547 965,538 976,519 986,493 1010,480"/>
   <!-- Trade road: Asia Minor → Byzantium -->
   <polyline points="620,200 680,160 750,140"/>
   <!-- Trade road: Rome → Brundisium -->

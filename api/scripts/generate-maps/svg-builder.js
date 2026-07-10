@@ -85,10 +85,14 @@ function buildSVG(cfg, projected, overlaySVG) {
   );
 
   // ── Land fill ─────────────────────────────────────────────────────────────
-  if (projected.land) {
-    parts.push(
-      `<polygon points="${esc(projected.land)}" fill="${PALETTE.parchmentLand}" stroke="none"/>`,
-    );
+  // Each landmass/island is its own <polygon> so disjoint shapes don't get
+  // drawn as if connected by a stray line.
+  if (projected.land && projected.land.length) {
+    for (const points of projected.land) {
+      parts.push(
+        `<polygon points="${esc(points)}" fill="${PALETTE.parchmentLand}" stroke="none"/>`,
+      );
+    }
   } else {
     // No coastline data → fill entire viewBox as land
     parts.push(
@@ -97,24 +101,30 @@ function buildSVG(cfg, projected, overlaySVG) {
   }
 
   // ── Water bodies (lakes) ──────────────────────────────────────────────────
-  if (projected.lakes) {
-    parts.push(
-      `<polygon points="${esc(projected.lakes)}" fill="${PALETTE.waterLight}" stroke="${PALETTE.waterDark}" stroke-width="1" stroke-linejoin="round"/>`,
-    );
+  if (projected.lakes && projected.lakes.length) {
+    for (const points of projected.lakes) {
+      parts.push(
+        `<polygon points="${esc(points)}" fill="${PALETTE.waterLight}" stroke="${PALETTE.waterDark}" stroke-width="1" stroke-linejoin="round"/>`,
+      );
+    }
   }
 
   // ── Rivers ────────────────────────────────────────────────────────────────
-  if (projected.rivers) {
-    parts.push(
-      `<polyline points="${esc(projected.rivers)}" fill="none" stroke="${PALETTE.waterDark}" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`,
-    );
+  if (projected.rivers && projected.rivers.length) {
+    for (const points of projected.rivers) {
+      parts.push(
+        `<polyline points="${esc(points)}" fill="none" stroke="${PALETTE.waterDark}" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+      );
+    }
   }
 
   // ── Coastline stroke ──────────────────────────────────────────────────────
-  if (projected.land) {
-    parts.push(
-      `<polygon points="${esc(projected.land)}" fill="none" stroke="${PALETTE.strokeWarm}" stroke-width="1.5" stroke-linejoin="round"/>`,
-    );
+  if (projected.land && projected.land.length) {
+    for (const points of projected.land) {
+      parts.push(
+        `<polygon points="${esc(points)}" fill="none" stroke="${PALETTE.strokeWarm}" stroke-width="1.5" stroke-linejoin="round"/>`,
+      );
+    }
   }
 
   // ── Hill shading arcs ─────────────────────────────────────────────────────

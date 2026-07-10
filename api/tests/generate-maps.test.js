@@ -28,6 +28,15 @@ const OUTPUT_DIR = path.resolve(
   "maps",
 );
 
+const {
+  projectPoint,
+  clipSegmentToBBox,
+  clipLineToBBox,
+  clipPolygonToBBox,
+  clipGeometryToBBox,
+} = require("../scripts/generate-maps/project");
+const { MAP_CONFIGS } = require("../scripts/generate-maps/map-configs");
+
 describe("generate-maps smoke test", () => {
   test("generator produces a well-formed SVG for galilee", () => {
     const outPath = path.join(OUTPUT_DIR, "galilee.svg");
@@ -168,5 +177,138 @@ describe("generate-maps smoke test", () => {
       result.includes("Done"),
       "Generator should print 'Done' after generating all maps",
     );
+  });
+});
+
+describe("projectPoint bounds", () => {
+  const bbox = { lon_min: 34.9, lat_min: 32.2, lon_max: 36.0, lat_max: 33.5 };
+  const viewBox = { x: 0, y: 0, width: 900, height: 1000 };
+
+  test("corners of the bbox map to corners of the viewBox", () => {
+    const topLeft = projectPoint(bbox.lon_min, bbox.lat_max, bbox, viewBox);
+    assert.deepEqual(topLeft, { x: 0, y: 0 });
+
+    const bottomRight = projectPoint(bbox.lon_max, bbox.lat_min, bbox, viewBox);
+    assert.deepEqual(bottomRight, { x: 900, y: 1000 });
+  });
+
+  test("center of the bbox maps to center of the viewBox", () => {
+    const lonMid = (bbox.lon_min + bbox.lon_max) / 2;
+    const latMid = (bbox.lat_min + bbox.lat_max) / 2;
+    const center = projectPoint(lonMid, latMid, bbox, viewBox);
+    assert.equal(center.x, 450);
+    assert.equal(center.y, 500);
+  });
+
+  test("throws on a zero-range bbox", () => {
+    assert.throws(() => {
+      projectPoint(35, 32, { lon_min: 35, lat_min: 32, lon_max: 35, lat_max: 33 }, viewBox);
+    });
+  });
+});
+
+describe("bbox clipping", () => {
+  const bbox = { lon_min: 0, lat_min: 0, lon_max: 10, lat_max: 10 };
+
+  test("clipSegmentToBBox keeps a segment fully inside the box", () => {
+    const clipped = clipSegmentToBBox([2, 2], [8, 8], bbox);
+    assert.deepEqual(clipped, [[2, 2], [8, 8]]);
+  });
+
+  test("clipSegmentToBBox drops a segment fully outside the box", () => {
+    const clipped = clipSegmentToBBox([20, 20], [30, 30], bbox);
+    assert.equal(clipped, null);
+  });
+
+  test("clipSegmentToBBox truncates a segment crossing the boundary", () => {
+    const clipped = clipSegmentToBBox([5, 5], [15, 5], bbox);
+    assert.deepEqual(clipped, [[5, 5], [10, 5]]);
+  });
+
+  test("clipLineToBBox splits a line that exits and re-enters the box", () => {
+    // Passes through the box, leaves, then comes back in.
+    const line = [[-5, 5], [5, 5], [15, 5], [15, 15], [5, 5], [5, -5]];
+    const segments = clipLineToBBox(line, bbox);
+    assert.ok(segments.length >= 2, "should produce multiple disjoint segments");
+    for (const seg of segments) {
+      for (const [x, y] of seg) {
+        assert.ok(x >= bbox.lon_min && x <= bbox.lon_max);
+        assert.ok(y >= bbox.lat_min && y <= bbox.lat_max);
+      }
+    }
+  });
+
+  test("clipPolygonToBBox clips a triangle overhanging one edge", () => {
+    // Triangle with one vertex outside the box (x=15) — clip should close
+    // the shape against the right edge (x=10) rather than dropping it.
+    const ring = [[2, 2], [15, 2], [2, 8]];
+    const clipped = clipPolygonToBBox(ring, bbox);
+    assert.ok(clipped.length >= 3, "clipped ring should still be a polygon");
+    for (const [x, y] of clipped) {
+      assert.ok(x >= bbox.lon_min - 1e-9 && x <= bbox.lon_max + 1e-9);
+      assert.ok(y >= bbox.lat_min - 1e-9 && y <= bbox.lat_max + 1e-9);
+    }
+  });
+
+  test("clipPolygonToBBox drops a ring entirely outside the box", () => {
+    const ring = [[20, 20], [30, 20], [20, 30]];
+    const clipped = clipPolygonToBBox(ring, bbox);
+    assert.equal(clipped.length, 0);
+  });
+
+  test("clipGeometryToBBox returns null for geometry entirely outside the box", () => {
+    const clipped = clipGeometryToBBox(
+      { type: "LineString", coordinates: [[20, 20], [30, 30]] },
+      bbox,
+    );
+    assert.equal(clipped, null);
+  });
+
+  test("clipGeometryToBBox splits a MultiLineString-producing LineString into pieces", () => {
+    const clipped = clipGeometryToBBox(
+      { type: "LineString", coordinates: [[-5, 5], [5, 5], [15, 5], [15, 15], [5, 5], [5, -5]] },
+      bbox,
+    );
+    assert.ok(clipped);
+    assert.equal(clipped.type, "MultiLineString");
+  });
+});
+
+describe("generated SVG coordinate bounds", () => {
+  test("no polygon/polyline coordinate falls outside viewBox + clip margin", () => {
+    execSync(`node "${GENERATOR_PATH}"`, {
+      cwd: path.resolve(__dirname, ".."),
+      encoding: "utf8",
+      timeout: 30000,
+    });
+
+    // Matches CLIP_MARGIN_FRACTION in index.js, plus slack for label/hill
+    // decorations that are placed by hand rather than projected.
+    const MARGIN_FRACTION = 0.1;
+
+    for (const [mapKey, cfg] of Object.entries(MAP_CONFIGS)) {
+      const svgPath = path.join(OUTPUT_DIR, `${mapKey}.svg`);
+      const svg = fs.readFileSync(svgPath, "utf8");
+      const vb = cfg.viewBox;
+      const xMin = vb.x - vb.width * MARGIN_FRACTION;
+      const xMax = vb.x + vb.width * (1 + MARGIN_FRACTION);
+      const yMin = vb.y - vb.height * MARGIN_FRACTION;
+      const yMax = vb.y + vb.height * (1 + MARGIN_FRACTION);
+
+      const pointsAttrs = [...svg.matchAll(/points="([^"]+)"/g)].map((m) => m[1]);
+      let checked = 0;
+      for (const attr of pointsAttrs) {
+        for (const pair of attr.split(" ")) {
+          const [x, y] = pair.split(",").map(Number);
+          assert.ok(
+            x >= xMin && x <= xMax && y >= yMin && y <= yMax,
+            `${mapKey}.svg has a coordinate (${x},${y}) far outside viewBox ` +
+              `(${vb.width}x${vb.height} + ${MARGIN_FRACTION * 100}% margin)`,
+          );
+          checked++;
+        }
+      }
+      assert.ok(checked > 0, `${mapKey}.svg should have projected geometry to check`);
+    }
   });
 });
