@@ -6,7 +6,7 @@
 // The DOM-bound drag/click canvas wiring is validated manually via browser
 // testing (see setup/TESTS/admin_tests.md for the manual checklist).
 
-const { test, describe } = require("node:test");
+const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
@@ -311,5 +311,185 @@ describe("validateConnection", function () {
   test("accepts with empty edges array", function () {
     var err = validateConnection(5, 10, "root", []);
     assert.equal(err, null);
+  });
+});
+
+// ── Drop hit-testing (pure logic) ────────────────────────────────────────────
+
+/**
+ * Pure function matching the hit-test logic of getNodeAtDiagramPosition.
+ * Given a list of nodes (each with id, arbor_x, arbor_y), a diagram point,
+ * node dimensions, and an optional excludeId, returns the matching node or null.
+ */
+function hitTestNode(nodes, diagX, diagY, nodeWidth, nodeHeight, excludeId) {
+  for (var i = nodes.length - 1; i >= 0; i--) {
+    var n = nodes[i];
+    if (excludeId !== undefined && n.id === excludeId) continue;
+    var nx = n.arbor_x || 0;
+    var ny = n.arbor_y || 0;
+    if (
+      diagX >= nx &&
+      diagX <= nx + nodeWidth &&
+      diagY >= ny &&
+      diagY <= ny + nodeHeight
+    ) {
+      return n;
+    }
+  }
+  return null;
+}
+
+describe("hitTestNode (drop hit-testing)", function () {
+  var nodes;
+
+  beforeEach(function () {
+    nodes = [
+      { id: 1, arbor_x: 100, arbor_y: 100 },
+      { id: 2, arbor_x: 400, arbor_y: 200 },
+      { id: 3, arbor_x: 200, arbor_y: 300 },
+    ];
+  });
+
+  test("finds a node whose bounding rect contains the point", function () {
+    var result = hitTestNode(nodes, 150, 150, 200, 80);
+    assert.ok(result);
+    assert.equal(result.id, 1);
+  });
+
+  test("returns null when no node covers the point", function () {
+    var result = hitTestNode(nodes, 50, 50, 200, 80);
+    assert.equal(result, null);
+  });
+
+  test("returns the topmost node when nodes overlap", function () {
+    // Node 3 overlaps node 1 — iterating in reverse means 3 is found first
+    nodes[0].arbor_x = 200;
+    nodes[0].arbor_y = 300;
+    var result = hitTestNode(nodes, 250, 340, 200, 80);
+    assert.ok(result);
+    assert.equal(result.id, 3); // topmost (last in array)
+  });
+
+  test("excludes a node when excludeId is set", function () {
+    var result = hitTestNode(nodes, 150, 150, 200, 80, 1);
+    assert.equal(result, null);
+  });
+
+  test("handles nodes with null positions (arbor_x/y undefined)", function () {
+    nodes.push({ id: 4, arbor_x: undefined, arbor_y: undefined });
+    // Point at (0,0) — the null-position node is treated as (0,0)
+    var result = hitTestNode(nodes, 50, 40, 200, 80);
+    assert.ok(result);
+    assert.equal(result.id, 4);
+  });
+});
+
+// ── Parent-edge decision logic ───────────────────────────────────────────────
+
+/**
+ * Pure logic: given a target node ID and existing edges, find the first
+ * incoming non-"related" edge (the one that should be re-pointed on drop).
+ * Returns the edge object or null.
+ */
+function findExistingParentEdge(edges, targetId) {
+  for (var i = 0; i < edges.length; i++) {
+    if (
+      edges[i].target_id === targetId &&
+      edges[i].relationship_type !== "related"
+    ) {
+      return edges[i];
+    }
+  }
+  return null;
+}
+
+describe("findExistingParentEdge (re-point vs create decision)", function () {
+  var edges;
+
+  beforeEach(function () {
+    edges = [
+      { id: 10, source_id: 1, target_id: 2, relationship_type: "supports" },
+      { id: 11, source_id: 2, target_id: 3, relationship_type: "related" },
+      { id: 12, source_id: 4, target_id: 5, relationship_type: "leads_to" },
+    ];
+  });
+
+  test("finds an existing incoming non-related edge to re-point", function () {
+    var result = findExistingParentEdge(edges, 2);
+    assert.ok(result);
+    assert.equal(result.id, 10);
+    assert.equal(result.source_id, 1);
+  });
+
+  test("ignores 'related' edges — they should not be re-pointed", function () {
+    // Edge 11 is "related" pointing to node 3 — should be ignored
+    // Edge 12 is "leads_to" pointing to node 5 — distinct target
+    var result = findExistingParentEdge(edges, 3);
+    assert.equal(result, null);
+  });
+
+  test("returns null when no incoming edges exist for the target", function () {
+    var result = findExistingParentEdge(edges, 999);
+    assert.equal(result, null);
+  });
+
+  test("returns null when only incoming edge is 'related'", function () {
+    edges = [
+      { id: 20, source_id: 10, target_id: 20, relationship_type: "related" },
+    ];
+    var result = findExistingParentEdge(edges, 20);
+    assert.equal(result, null);
+  });
+
+  test("finds 'leads_to' edge for re-pointing", function () {
+    var result = findExistingParentEdge(edges, 5);
+    assert.ok(result);
+    assert.equal(result.id, 12);
+  });
+});
+
+// ── Pen chip filtering (already-placed evidence) ─────────────────────────────
+
+/**
+ * Pure logic: given a list of evidence chips and the set of placed node IDs,
+ * filter out chips that are already on the canvas.
+ */
+function filterUnplacedChips(allEvidence, placedNodeIds) {
+  var placedSet = new Set(placedNodeIds);
+  return allEvidence.filter(function (evidence) {
+    return !placedSet.has(evidence.id);
+  });
+}
+
+describe("pen chip filtering (already-placed evidence)", function () {
+  var allEvidence;
+
+  beforeEach(function () {
+    allEvidence = [
+      { id: 1, title: "Evidence A" },
+      { id: 2, title: "Evidence B" },
+      { id: 3, title: "Evidence C" },
+    ];
+  });
+
+  test("returns all evidence when nothing is placed", function () {
+    var result = filterUnplacedChips(allEvidence, []);
+    assert.equal(result.length, 3);
+  });
+
+  test("excludes placed evidence from the result", function () {
+    var result = filterUnplacedChips(allEvidence, [1, 3]);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].id, 2);
+  });
+
+  test("returns empty array when everything is placed", function () {
+    var result = filterUnplacedChips(allEvidence, [1, 2, 3]);
+    assert.equal(result.length, 0);
+  });
+
+  test("handles empty evidence list", function () {
+    var result = filterUnplacedChips([], [1, 2]);
+    assert.equal(result.length, 0);
   });
 });

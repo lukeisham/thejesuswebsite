@@ -186,6 +186,125 @@ describe("arbor.nodes: getNodesAndEdges includes positions", function () {
   });
 });
 
+// ── getUnplacedEvidence ────────────────────────────────────────────────────────
+
+describe("arbor.nodes: getUnplacedEvidence", function () {
+  beforeEach(function () {
+    db.exec("DELETE FROM arbor_nodes");
+    db.exec("DELETE FROM arbor_edges");
+    db.exec("DELETE FROM evidence");
+  });
+
+  test("returns evidence without a saved position", function () {
+    const placed = seedPublishedEvidence("Placed Node", "placed-node");
+    const unplaced = seedPublishedEvidence("Unplaced Node", "unplaced-node");
+
+    arborModel.upsertNodePosition(placed.id, 100, 200);
+
+    const result = arborModel.getUnplacedEvidence();
+    assert.equal(result.length, 1);
+    assert.equal(result[0].id, unplaced.id);
+    assert.equal(result[0].title, "Unplaced Node");
+  });
+
+  test("includes draft evidence", function () {
+    const draft = seedDraftEvidence("Draft Node", "draft-node");
+
+    const result = arborModel.getUnplacedEvidence();
+    assert.equal(result.length, 1);
+    assert.equal(result[0].id, draft.id);
+    assert.equal(result[0].published_draft, 0);
+  });
+
+  test("excludes evidence that has a position saved", function () {
+    const placed = seedPublishedEvidence("Placed", "placed");
+    arborModel.upsertNodePosition(placed.id, 50, 60);
+
+    const result = arborModel.getUnplacedEvidence();
+    assert.equal(result.length, 0);
+  });
+
+  test("returns multiple unplaced evidence ordered by title", function () {
+    const c = seedPublishedEvidence("C Node", "c-node");
+    const a = seedDraftEvidence("A Node", "a-node");
+    const b = seedPublishedEvidence("B Node", "b-node");
+
+    // Place only B so A and C remain unplaced
+    arborModel.upsertNodePosition(b.id, 10, 20);
+
+    const result = arborModel.getUnplacedEvidence();
+    assert.equal(result.length, 2);
+    assert.equal(result[0].title, "A Node");
+    assert.equal(result[1].title, "C Node");
+  });
+
+  test("returns empty array when all evidence is placed", function () {
+    const e1 = seedPublishedEvidence("E1", "e1");
+    const e2 = seedDraftEvidence("E2", "e2");
+    arborModel.upsertNodePosition(e1.id, 1, 2);
+    arborModel.upsertNodePosition(e2.id, 3, 4);
+
+    const result = arborModel.getUnplacedEvidence();
+    assert.equal(result.length, 0);
+  });
+});
+
+// ── getNodesAndEdges includes published_draft (admin view) ─────────────────────
+
+describe("arbor.nodes: getNodesAndEdges published_draft", function () {
+  beforeEach(function () {
+    db.exec("DELETE FROM arbor_nodes");
+    db.exec("DELETE FROM arbor_edges");
+    db.exec("DELETE FROM evidence");
+  });
+
+  test("admin graph includes published_draft on nodes", function () {
+    const pub = seedPublishedEvidence("Pub", "pub");
+    const draft = seedDraftEvidence("Draft", "draft");
+
+    db.prepare(
+      "INSERT INTO arbor_edges (source_id, target_id, relationship_type) VALUES (?, ?, 'supports')",
+    ).run(pub.id, draft.id);
+
+    const graph = arborModel.getNodesAndEdges({ includeDrafts: true });
+    assert.equal(graph.nodes.length, 2);
+
+    const pubNode = graph.nodes.find(function (n) {
+      return n.id === pub.id;
+    });
+    const draftNode = graph.nodes.find(function (n) {
+      return n.id === draft.id;
+    });
+    assert.equal(pubNode.published_draft, 1);
+    assert.equal(draftNode.published_draft, 0);
+  });
+
+  test("public graph omits draft evidence but published_draft is still on included nodes", function () {
+    const pub = seedPublishedEvidence("Pub", "pub");
+    const draft = seedDraftEvidence("Draft", "draft");
+
+    db.prepare(
+      "INSERT INTO arbor_edges (source_id, target_id, relationship_type) VALUES (?, ?, 'supports')",
+    ).run(pub.id, draft.id);
+
+    const graph = arborModel.getNodesAndEdges(); // no includeDrafts → published only
+    assert.equal(graph.nodes.length, 1);
+    assert.equal(graph.nodes[0].published_draft, 1);
+  });
+
+  test("admin graph includes draft nodes", function () {
+    const pub = seedPublishedEvidence("Pub", "pub");
+    const draft = seedDraftEvidence("Draft", "draft");
+
+    db.prepare(
+      "INSERT INTO arbor_edges (source_id, target_id, relationship_type) VALUES (?, ?, 'supports')",
+    ).run(pub.id, draft.id);
+
+    const graph = arborModel.getNodesAndEdges({ includeDrafts: true });
+    assert.equal(graph.nodes.length, 2);
+  });
+});
+
 // ── Cascade on delete ──────────────────────────────────────────────────────────
 
 describe("arbor.nodes: cascade on evidence delete", function () {

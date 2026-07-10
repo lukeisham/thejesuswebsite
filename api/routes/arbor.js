@@ -29,6 +29,18 @@ router.get("/admin", requireAuth, (req, res) => {
   }
 });
 
+// GET /arbor/admin/unplaced — evidence not yet on the canvas (holding pen; admin only)
+// MUST be mounted before GET /arbor/:id to avoid the catch-all swallowing the path.
+router.get("/admin/unplaced", requireAuth, (req, res) => {
+  try {
+    const data = arborModel.getUnplacedEvidence();
+    res.json(data);
+  } catch (error) {
+    console.error("GET /arbor/admin/unplaced failed:", error);
+    res.status(500).json({ error: "Failed to load unplaced evidence." });
+  }
+});
+
 // PUT /arbor/nodes/:evidenceId — save node position (admin only)
 router.put("/nodes/:evidenceId", requireAuth, (req, res) => {
   try {

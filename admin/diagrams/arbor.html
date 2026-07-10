@@ -6,6 +6,10 @@
         <title>Arbor Editor — Admin</title>
         <link rel="stylesheet" href="../assets/css/admin.css" />
         <link rel="stylesheet" href="../assets/css/admin-diagrams/arbor.css" />
+        <link
+            rel="stylesheet"
+            href="../assets/css/admin-diagrams/arbor-pen.css"
+        />
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
@@ -14,6 +18,7 @@
         <script defer src="../assets/js/admin-arbor/arbor-canvas.js"></script>
         <script defer src="../assets/js/admin-arbor/arbor-nodes.js"></script>
         <script defer src="../assets/js/admin-arbor/arbor-edges.js"></script>
+        <script defer src="../assets/js/admin-arbor/arbor-pen.js"></script>
     </head>
     <body>
         <!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
@@ -60,44 +65,68 @@
         </nav>
 
         <!-- ── Arbor Editor Canvas ────────────────────────────────────────────────── -->
-        <main>
-            <div id="arbor-canvas" class="admin-arbor-canvas">
-                <div
-                    id="arbor-search-dialog"
-                    class="admin-arbor-search"
-                    role="dialog"
-                    aria-label="Search evidence to add as node"
-                    hidden
-                >
-                    <div class="admin-arbor-search__header">
-                        <label
-                            for="arbor-node-search"
-                            class="admin-arbor-visually-hidden"
-                            >Search evidence</label
-                        >
-                        <input
-                            type="search"
-                            id="arbor-node-search"
-                            class="admin-arbor-search__input"
-                            placeholder="Search evidence to add as node…"
-                            autocomplete="off"
-                        />
-                        <button
-                            type="button"
-                            id="arbor-search-close"
-                            class="admin-arbor-search__close"
-                            aria-label="Close search"
-                        >
-                            ✕
-                        </button>
-                    </div>
-                    <div
-                        id="arbor-search-results"
-                        class="admin-arbor-search__results"
-                    ></div>
+        <div class="admin-arbor-layout">
+            <aside
+                id="arbor-pen-panel"
+                class="admin-arbor-pen"
+                aria-label="Holding pen — evidence to place on the arbor"
+            >
+                <div class="admin-arbor-pen__header">
+                    <h2 class="admin-arbor-pen__heading">Holding Pen</h2>
+                    <p class="admin-arbor-pen__subtitle">
+                        Drag evidence onto the canvas to place it
+                    </p>
                 </div>
-            </div>
-        </main>
+                <div
+                    id="arbor-pen-list"
+                    class="admin-arbor-pen__list"
+                    role="list"
+                    aria-label="Draggable evidence chips"
+                ></div>
+                <p id="arbor-pen-empty" class="admin-arbor-pen__empty" hidden>
+                    All evidence is placed.
+                </p>
+            </aside>
+
+            <main>
+                <div id="arbor-canvas" class="admin-arbor-canvas">
+                    <div
+                        id="arbor-search-dialog"
+                        class="admin-arbor-search"
+                        role="dialog"
+                        aria-label="Search evidence to add as node"
+                        hidden
+                    >
+                        <div class="admin-arbor-search__header">
+                            <label
+                                for="arbor-node-search"
+                                class="admin-arbor-visually-hidden"
+                                >Search evidence</label
+                            >
+                            <input
+                                type="search"
+                                id="arbor-node-search"
+                                class="admin-arbor-search__input"
+                                placeholder="Search evidence to add as node…"
+                                autocomplete="off"
+                            />
+                            <button
+                                type="button"
+                                id="arbor-search-close"
+                                class="admin-arbor-search__close"
+                                aria-label="Close search"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div
+                            id="arbor-search-results"
+                            class="admin-arbor-search__results"
+                        ></div>
+                    </div>
+                </div>
+            </main>
+        </div>
 
         <!-- ── Node Edit Panel ─────────────────────────────────────────────────────── -->
         <aside
@@ -149,6 +178,12 @@
                 <div class="admin-arbor-panel__field">
                     <span class="admin-arbor-panel__info">
                         Slug: <span id="arbor-node-slug-display"></span>
+                    </span>
+                </div>
+
+                <div class="admin-arbor-panel__field">
+                    <span class="admin-arbor-panel__info">
+                        Parent: <span id="arbor-node-parent-display">—</span>
                     </span>
                 </div>
 
@@ -254,27 +289,10 @@
                     });
                 }
 
-                // Override node mousedown to support edge-mode drag
-                var origAddEventListener =
-                    document.addEventListener.bind(document);
-                // Intercept mousedown on node groups for edge creation
-                var transformGroup = AdminArborCanvas.getTransformGroup();
-                if (transformGroup) {
-                    transformGroup.addEventListener("mousedown", function (e) {
-                        var nodeGroup = e.target.closest(
-                            ".admin-arbor-node-group",
-                        );
-                        if (nodeGroup) {
-                            var nodeId = Number(
-                                nodeGroup.getAttribute("data-node-id"),
-                            );
-                            var node = AdminArborNodes.getNodeById(nodeId);
-                            if (node && window.AdminArborEdges) {
-                                // Let arbor-edges.js intercept if in edge mode
-                                // The nodes module handles its own mousedown separately
-                            }
-                        }
-                    });
+                // Init the holding pen and set up canvas as drop target
+                if (window.AdminArborPen) {
+                    AdminArborPen.init();
+                    AdminArborPen.setupCanvasDropTarget();
                 }
 
                 // Auth guard

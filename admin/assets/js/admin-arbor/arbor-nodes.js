@@ -87,7 +87,7 @@ Nodes.init = function () {
  */
 Nodes.loadNodes = async function () {
   try {
-    const data = await Admin.api.get("/arbor");
+    const data = await Admin.api.get("/arbor/admin");
     nodes = data.nodes || [];
     // Use server positions; fall back to grid for nodes with null x/y
     for (let i = 0; i < nodes.length; i++) {
@@ -104,6 +104,9 @@ Nodes.loadNodes = async function () {
         nodes[i].arbor_x = 100 + (i % 5) * 220;
         nodes[i].arbor_y = 100 + Math.floor(i / 5) * 160;
       }
+      // Carry published_draft for draft badge styling
+      nodes[i].published_draft =
+        nodes[i].published_draft == null ? 1 : nodes[i].published_draft;
     }
     Nodes.renderNodes();
     // Let the edges module know nodes are ready
@@ -126,6 +129,33 @@ Nodes.getNodeById = function (id) {
     if (nodes[i].id === id) return nodes[i];
   }
   return undefined;
+};
+
+/**
+ * Hit-test: find a node under a diagram-space coordinate.
+ * Returns the node if the point falls within its bounding rect, or null.
+ *
+ * @param {number} diagX
+ * @param {number} diagY
+ * @param {number} [excludeId] - optional node id to exclude from the hit-test
+ * @returns {Object|null}
+ */
+Nodes.getNodeAtDiagramPosition = function (diagX, diagY, excludeId) {
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const n = nodes[i];
+    if (excludeId !== undefined && n.id === excludeId) continue;
+    const nx = n.arbor_x || 0;
+    const ny = n.arbor_y || 0;
+    if (
+      diagX >= nx &&
+      diagX <= nx + NODE_WIDTH &&
+      diagY >= ny &&
+      diagY <= ny + NODE_HEIGHT
+    ) {
+      return n;
+    }
+  }
+  return null;
 };
 
 /**
@@ -235,6 +265,26 @@ Nodes.createNodeElement = function (node) {
     g.appendChild(verseEl);
   }
 
+  // Draft badge (admin-only affordance — not on the public page)
+  if (node.published_draft === 0) {
+    const badgeRect = document.createElementNS(ns, "rect");
+    badgeRect.setAttribute("x", String(x + NODE_WIDTH - 52));
+    badgeRect.setAttribute("y", String(y + NODE_HEIGHT - 22));
+    badgeRect.setAttribute("width", "44");
+    badgeRect.setAttribute("height", "16");
+    badgeRect.setAttribute("rx", "3");
+    badgeRect.setAttribute("ry", "3");
+    badgeRect.setAttribute("class", "admin-arbor-node-draft-badge");
+    g.appendChild(badgeRect);
+
+    const badgeText = document.createElementNS(ns, "text");
+    badgeText.setAttribute("x", String(x + NODE_WIDTH - 30));
+    badgeText.setAttribute("y", String(y + NODE_HEIGHT - 9));
+    badgeText.setAttribute("class", "admin-arbor-node-draft-label");
+    badgeText.textContent = "Draft";
+    g.appendChild(badgeText);
+  }
+
   // Wire click
   g.addEventListener("click", function (e) {
     e.stopPropagation();
@@ -279,6 +329,28 @@ Nodes.openEditPanel = function (nodeId) {
     node.primary_verse || "";
   document.getElementById("arbor-node-slug-display").textContent =
     node.slug || "";
+
+  // Show parent (first incoming non-"related" edge)
+  const parentDisplay = document.getElementById("arbor-node-parent-display");
+  if (parentDisplay) {
+    const allEdges =
+      window.AdminArborEdges && window.AdminArborEdges.getAllEdges
+        ? window.AdminArborEdges.getAllEdges()
+        : [];
+    let parentEdge = null;
+    for (let i = 0; i < allEdges.length; i++) {
+      if (
+        allEdges[i].target_id === nodeId &&
+        allEdges[i].relationship_type !== "related"
+      ) {
+        parentEdge = allEdges[i];
+        break;
+      }
+    }
+    parentDisplay.textContent = parentEdge
+      ? parentEdge.source_title || "(node " + parentEdge.source_id + ")"
+      : "—";
+  }
 
   panel.classList.add("admin-arbor-panel--open");
 };
@@ -359,6 +431,97 @@ Nodes.onRemoveNode = async function () {
   if (window.AdminArborEdges && window.AdminArborEdges.renderEdges) {
     window.AdminArborEdges.renderEdges();
   }
+
+  // Refresh the pen — the removed evidence may need to reappear there
+  if (window.AdminArborPen && window.AdminArborPen.refresh) {
+    window.AdminArborPen.refresh();
+  }
+};
+
+/* ── Auto parent-edge creation ──────────────────────────────────────────────── */
+
+/**
+ * Create (or update) a parent edge when a node is dropped onto another node.
+ *
+ * If the dragged node already has an incoming non-"related" edge, that edge's
+ * source_id is re-pointed rather than duplicated. Otherwise a new edge is
+ * created with the toolbar's selected relationship type.
+ *
+ * @param {number} parentId   - the evidence id of the parent node
+ * @param {number} childId    - the evidence id of the dragged node
+ * @param {Object} childNode  - the dragged node (for error display)
+ */
+Nodes.createParentEdge = async function (parentId, childId, childNode) {
+  const allEdges =
+    window.AdminArborEdges && window.AdminArborEdges.getAllEdges
+      ? window.AdminArborEdges.getAllEdges()
+      : [];
+
+  // Determine relationship type from the toolbar dropdown
+  const typeSelect = document.getElementById("arbor-edge-type-select");
+  const relationshipType = typeSelect ? typeSelect.value : "supports";
+
+  // Validate the connection
+  const error =
+    window.AdminArborEdges && window.AdminArborEdges.validateConnection
+      ? window.AdminArborEdges.validateConnection(
+          parentId,
+          childId,
+          relationshipType,
+          allEdges,
+        )
+      : null;
+  if (error) {
+    if (typeof window.showToast === "function") {
+      window.showToast(error, "error");
+    }
+    return;
+  }
+
+  // Check for an existing incoming non-"related" edge to update (re-point)
+  let existingEdge = null;
+  for (let i = 0; i < allEdges.length; i++) {
+    if (
+      allEdges[i].target_id === childId &&
+      allEdges[i].relationship_type !== "related"
+    ) {
+      existingEdge = allEdges[i];
+      break;
+    }
+  }
+
+  try {
+    if (existingEdge) {
+      // Re-point the existing edge's source_id
+      await UpdateRecord.updateEdge(existingEdge.id, {
+        source_id: parentId,
+        relationship_type: relationshipType,
+      });
+      existingEdge.source_id = parentId;
+      existingEdge.relationship_type = relationshipType;
+    } else {
+      // Create a new edge
+      const created = await UpdateRecord.saveEdge({
+        source_id: parentId,
+        target_id: childId,
+        relationship_type: relationshipType,
+      });
+      allEdges.push(created);
+    }
+
+    // Refresh edge rendering and the edit panel (parent display)
+    if (window.AdminArborEdges && window.AdminArborEdges.renderEdges) {
+      window.AdminArborEdges.renderEdges();
+    }
+    if (selectedNodeId === childId) {
+      Nodes.openEditPanel(childId);
+    }
+  } catch (err) {
+    console.error("Failed to create parent edge:", err);
+    if (typeof window.showToast === "function") {
+      window.showToast("Failed to connect to parent node.", "error");
+    }
+  }
 };
 
 /* ── Drag-to-reposition ────────────────────────────────────────────────────── */
@@ -371,6 +534,17 @@ Nodes.onRemoveNode = async function () {
  */
 Nodes.onNodeMouseDown = function (e, node) {
   if (addingMode) return;
+
+  // Edge mode: delegate to the edges module for drawing connections
+  if (
+    window.AdminArborEdges &&
+    window.AdminArborEdges.isEdgeMode &&
+    window.AdminArborEdges.isEdgeMode()
+  ) {
+    window.AdminArborEdges.startEdgeDrag(e, node);
+    return;
+  }
+
   e.preventDefault();
   e.stopPropagation();
 
@@ -435,6 +609,8 @@ Nodes.onNodeMouseMove = function (e) {
 
 /**
  * Mouse-up during node drag — persist the new position server-side.
+ * If the node was dropped on top of another node (parent), create/update
+ * the parent edge automatically.
  * On failure, show an error toast and revert to the original position.
  *
  * @param {MouseEvent} e
@@ -449,13 +625,24 @@ Nodes.onNodeMouseUp = function (e) {
   const dx = (e.clientX - dragState.startX) / tx.scale;
   const dy = (e.clientY - dragState.startY) / tx.scale;
 
-  const newX = dragState.origX + dx;
-  const newY = dragState.origY + dy;
+  let newX = dragState.origX + dx;
+  let newY = dragState.origY + dy;
   const nodeId = dragState.node.id;
   const origX = dragState.origX;
   const origY = dragState.origY;
+  const draggedNode = dragState.node;
 
   dragState = null;
+
+  // Hit-test: was the node dropped on top of another node?
+  const centreX = newX + NODE_WIDTH / 2;
+  const centreY = newY + NODE_HEIGHT / 2;
+  const parentNode = Nodes.getNodeAtDiagramPosition(centreX, centreY, nodeId);
+  if (parentNode) {
+    // Offset the dragged node just below the parent so they don't overlap
+    newX = parentNode.arbor_x || 0;
+    newY = (parentNode.arbor_y || 0) + NODE_HEIGHT + 20;
+  }
 
   // Update local state optimistically
   for (let i = 0; i < nodes.length; i++) {
@@ -466,10 +653,9 @@ Nodes.onNodeMouseUp = function (e) {
     }
   }
 
-  // Persist to server; revert on failure
+  // Persist position to server; revert on failure
   UpdateRecord.saveNodePosition(nodeId, newX, newY).catch(function (err) {
     console.error("Failed to save node position:", err);
-    // Revert local state
     for (let i = 0; i < nodes.length; i++) {
       if (nodes[i].id === nodeId) {
         nodes[i].arbor_x = origX;
@@ -478,13 +664,20 @@ Nodes.onNodeMouseUp = function (e) {
       }
     }
     Nodes.renderNodes();
-    // Show error toast if available
     if (typeof window.showToast === "function") {
       window.showToast("Failed to save node position.", "error");
     }
   });
 
+  // Auto-create parent edge if dropped on a parent node
+  if (parentNode) {
+    Nodes.createParentEdge(parentNode.id, nodeId, draggedNode);
+  }
+
   Nodes.renderNodes();
+  if (window.AdminArborEdges && window.AdminArborEdges.renderEdges) {
+    window.AdminArborEdges.renderEdges();
+  }
 };
 
 /* ── Search-to-add ─────────────────────────────────────────────────────────── */
@@ -605,29 +798,37 @@ Nodes.renderSearchResults = async function () {
  * Persists the position to the server before rendering.
  *
  * @param {Object} evidence
+ * @param {number} [diagX]     - diagram-space x (default: centre of view)
+ * @param {number} [diagY]     - diagram-space y (default: centre of view)
+ * @param {number} [parentId]  - if set, auto-create parent edge to this evidence id
  */
-Nodes.addNodeToCanvas = async function (evidence) {
+Nodes.addNodeToCanvas = async function (evidence, diagX, diagY, parentId) {
   // Prevent duplicates
   if (Nodes.getNodeById(evidence.id)) return;
 
-  // Place new node near the centre of the current view
-  const tx = window.AdminArborCanvas.getTransform();
-  const svgEl = document.querySelector(".admin-arbor-svg");
-  let centreScreenX = 300;
-  let centreScreenY = 200;
-  if (svgEl) {
-    const rect = svgEl.getBoundingClientRect();
-    centreScreenX = rect.width / 2;
-    centreScreenY = rect.height / 2;
+  // Place near centre of current view unless coordinates given
+  let nodeX, nodeY;
+  if (diagX !== undefined && diagY !== undefined) {
+    nodeX = Math.round(diagX);
+    nodeY = Math.round(diagY);
+  } else {
+    const tx = window.AdminArborCanvas.getTransform();
+    const svgEl = document.querySelector(".admin-arbor-svg");
+    let centreScreenX = 300;
+    let centreScreenY = 200;
+    if (svgEl) {
+      const rect = svgEl.getBoundingClientRect();
+      centreScreenX = rect.width / 2;
+      centreScreenY = rect.height / 2;
+    }
+    const diag = window.AdminArborCanvas.screenToDiagram(
+      centreScreenX,
+      centreScreenY,
+      tx,
+    );
+    nodeX = Math.round(diag.x);
+    nodeY = Math.round(diag.y);
   }
-  const diag = window.AdminArborCanvas.screenToDiagram(
-    centreScreenX,
-    centreScreenY,
-    tx,
-  );
-
-  const nodeX = Math.round(diag.x);
-  const nodeY = Math.round(diag.y);
 
   // Persist position to server before rendering
   try {
@@ -646,6 +847,8 @@ Nodes.addNodeToCanvas = async function (evidence) {
     slug: evidence.slug,
     primary_verse: evidence.primary_verse,
     description: evidence.description,
+    published_draft:
+      evidence.published_draft == null ? 1 : evidence.published_draft,
     arbor_x: nodeX,
     arbor_y: nodeY,
   };
@@ -653,4 +856,9 @@ Nodes.addNodeToCanvas = async function (evidence) {
   nodes.push(node);
   Nodes.closeSearchDialog();
   Nodes.renderNodes();
+
+  // Auto-create parent edge if a parent was specified
+  if (parentId !== undefined && parentId !== null) {
+    Nodes.createParentEdge(parentId, evidence.id, node);
+  }
 };
