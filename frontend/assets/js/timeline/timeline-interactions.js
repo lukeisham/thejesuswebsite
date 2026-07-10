@@ -19,6 +19,7 @@ import {
   clearFilteredOut,
   applyEraFilter,
   initialEra,
+  isVerticalMode,
 } from "./timeline-render.js";
 import { fetchTimelineEvents, groupEventsByPeriod } from "./timeline-data.js";
 import { showToast } from "../utils/toasts.js";
@@ -208,9 +209,37 @@ let lastTime = 0;
 let momentumRaf = null;
 
 /**
- * Start drag.
+ * Whether the user has requested reduced motion (Style guide §6) — momentum
+ * decay is a JS-driven animation the global CSS reduced-motion rule can't
+ * reach, so it's checked explicitly here.
+ *
+ * @returns {boolean}
+ */
+function prefersReducedMotion() {
+  return (
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+/**
+ * Clamp a horizontal scroll target to the container's valid scroll range,
+ * so drag/momentum can never push it past either end.
+ *
+ * @param {number} target
+ * @returns {number}
+ */
+function clampScrollLeft(target) {
+  const max = Math.max(0, container.scrollWidth - container.clientWidth);
+  return Math.max(0, Math.min(max, target));
+}
+
+/**
+ * Start drag. Only active in horizontal (desktop/tablet) mode — vertical
+ * mode defers entirely to native page scroll.
  */
 function onDragStart(e) {
+  if (isVerticalMode()) return;
   // Only handle left mouse button
   if (e.button !== 0) return;
   isDragging = true;
@@ -236,7 +265,7 @@ function onDragMove(e) {
   if (!isDragging) return;
 
   const dx = e.clientX - dragStartX;
-  container.scrollLeft = scrollStartX - dx;
+  container.scrollLeft = clampScrollLeft(scrollStartX - dx);
 
   // Calculate velocity
   const now = performance.now();
@@ -258,24 +287,28 @@ function onDragEnd() {
   container.style.cursor = "";
   container.style.removeProperty("user-select");
 
-  // Apply momentum if velocity is significant
-  if (Math.abs(velocityX) > 0.05) {
+  // Apply momentum if velocity is significant (skipped under reduced motion)
+  if (Math.abs(velocityX) > 0.05 && !prefersReducedMotion()) {
     momentumScroll();
   }
 }
 
 /**
- * Decaying momentum animation.
+ * Decaying momentum animation. Stops as soon as the scroll position hits
+ * either edge, rather than continuing to decay against a clamped value.
  */
 function momentumScroll() {
   const friction = 0.95;
   const minVelocity = 0.02;
 
   momentumRaf = requestAnimationFrame(() => {
-    container.scrollLeft -= velocityX * 16; // ~60fps step
+    const raw = container.scrollLeft - velocityX * 16;
+    const next = clampScrollLeft(raw);
+    const hitEdge = next !== raw;
+    container.scrollLeft = next;
     velocityX *= friction;
 
-    if (Math.abs(velocityX) > minVelocity) {
+    if (!hitEdge && Math.abs(velocityX) > minVelocity) {
       momentumScroll();
     } else {
       momentumRaf = null;
@@ -391,10 +424,11 @@ async function init() {
     window.addEventListener("mousemove", onDragMove);
     window.addEventListener("mouseup", onDragEnd);
 
-    // Touch support
+    // Touch support (horizontal mode only — vertical mode uses native scroll)
     container.addEventListener(
       "touchstart",
       (e) => {
+        if (isVerticalMode()) return;
         if (e.touches.length === 1) {
           onDragStart({
             button: 0,

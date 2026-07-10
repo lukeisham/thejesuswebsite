@@ -91,7 +91,7 @@ window.AdminTimelineGeometry = {
   },
 
   /** Stagger offsets (pixels) for events sharing the same period. */
-  STAGGER_OFFSETS: [0, -8, 8, -16, 16, -24, 24],
+  STAGGER_OFFSETS: [0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40],
 
   /** Pixels per period unit on the default scale. */
   DEFAULT_PX_PER_PERIOD: 80,

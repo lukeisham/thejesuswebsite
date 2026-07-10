@@ -2,10 +2,9 @@
  * Timeline render module.
  *
  * Builds the DOM timeline inside `.timeline-container`. Computes horizontal
- * positions from period indices, staggers overlapping events into vertical
- * clusters, draws era markers and labels, and handles loading / empty states.
- *
- * No CSS changes — all emitted classes match the existing `timeline.css` contract.
+ * (desktop/tablet) or vertical (mobile, < 768px) positions from period
+ * indices, staggers overlapping events into escalating clusters, draws era
+ * markers and labels, and handles loading / empty states.
  *
  * @module timeline/timeline-render
  */
@@ -17,6 +16,7 @@ import {
   getPeriodIndex,
 } from "./timeline-data.js";
 import { createElement, batchWrite } from "../utils/dom.js";
+import { debounce } from "../utils/debounce.js";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -33,13 +33,20 @@ export const initialZoom =
     typeof document !== "undefined" && document.body?.dataset?.initialZoom,
   ) || 1;
 
+/** Matches the mobile vertical-mode breakpoint used in timeline.css. */
+const MOBILE_QUERY = "(max-width: 767px)";
+
+/** Minimum pixel gap enforced between adjacent label bounding boxes. */
+const LABEL_GAP_PX = 8;
+
 /**
- * Read the horizontal slot width per period from the CSS custom property
- * --px-per-period on the timeline container, falling back to 100px.
+ * Read the per-period slot size (width in horizontal mode, height in
+ * vertical mode) from the CSS custom property --px-per-period on the
+ * timeline container, falling back to 100px.
  *
  * @returns {number}
  */
-function getSlotWidth() {
+function getPxPerPeriod() {
   const el = document.getElementById("timeline-container");
   if (!el) return 100;
   const raw = getComputedStyle(el).getPropertyValue("--px-per-period").trim();
@@ -47,8 +54,29 @@ function getSlotWidth() {
   return Number.isFinite(px) && px > 0 ? px : 100;
 }
 
-/** Stagger offsets (pixels) for events sharing the same period. */
-const STAGGER_OFFSETS = [0, -8, 8, -16, 16, -24, 24];
+/**
+ * Whether the viewport is currently in mobile vertical-mode range.
+ *
+ * @returns {boolean}
+ */
+export function isVerticalMode() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia(MOBILE_QUERY).matches
+  );
+}
+
+/**
+ * Stagger tiers for events sharing the same period, ordered by increasing
+ * distance from the spine (alternating each side). Reused as: (a) the
+ * per-cluster starting tier for events in the same period, and (b) the
+ * escalation ladder labels are pushed along when their bounding boxes
+ * collide with an already-placed neighbour.
+ */
+const STAGGER_OFFSETS = [
+  0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40,
+];
 
 // ─── Cached references (SR-3) ─────────────────────────────────────────────────
 
@@ -67,14 +95,38 @@ let loadingEl = null;
 /** @type {HTMLElement|null} */
 let emptyEl = null;
 
+/** Last render inputs, kept so a breakpoint crossing can trigger a re-render. */
+let lastGroupedEvents = null;
+let lastActiveEra = "all";
+let currentMode = null;
+
+/** Teardown for the debounced resize listener (JS-6: clean up listeners). */
+let resizeTeardown = null;
+
 /**
- * Initialise cached references to key DOM nodes.
+ * Initialise cached references to key DOM nodes and wire the
+ * resize/orientation listener that re-renders on breakpoint crossing.
  */
 export function init() {
   container = document.getElementById("timeline-container");
   spineEl = document.getElementById("timeline-spine");
   loadingEl = document.getElementById("loading-state");
   emptyEl = document.getElementById("empty-state");
+
+  if (resizeTeardown) resizeTeardown();
+
+  const handleResize = debounce(() => {
+    const mode = isVerticalMode() ? "vertical" : "horizontal";
+    if (mode !== currentMode && lastGroupedEvents) {
+      renderTimeline(lastGroupedEvents, lastActiveEra);
+    }
+  }, 150);
+
+  window.addEventListener("resize", handleResize);
+  resizeTeardown = () => {
+    window.removeEventListener("resize", handleResize);
+    handleResize.cancel();
+  };
 }
 
 /**
@@ -96,9 +148,11 @@ export function showEmpty() {
 }
 
 /**
- * Compute the pixel X position for a period by its canonical index.
+ * Compute the pixel X position for a period by its canonical index
+ * (horizontal mode).
  *
  * @param {number} periodIndex
+ * @param {number} slotWidth
  * @returns {number}
  */
 function periodX(periodIndex, slotWidth) {
@@ -106,17 +160,20 @@ function periodX(periodIndex, slotWidth) {
 }
 
 /**
- * Determine the vertical stagger offset for an event within a cluster.
+ * Compute the pixel Y position for a period by its canonical index
+ * (vertical mode).
  *
- * @param {number} index - Position within the cluster (0-based).
- * @returns {number} Pixel offset from the spine centre.
+ * @param {number} periodIndex
+ * @param {number} slotHeight
+ * @returns {number}
  */
-function staggerY(index) {
-  return STAGGER_OFFSETS[index % STAGGER_OFFSETS.length];
+function periodY(periodIndex, slotHeight) {
+  return periodIndex * slotHeight + slotHeight / 2;
 }
 
 /**
- * Determine whether a label should be above or below the dot based on stagger.
+ * Determine whether a horizontal-mode label should sit above or below the
+ * dot based on its stagger offset.
  *
  * @param {number} yOffset
  * @returns {'above'|'below'}
@@ -126,7 +183,367 @@ function labelPosition(yOffset) {
 }
 
 /**
+ * Determine whether a vertical-mode label should sit left or right of the
+ * spine based on its stagger offset.
+ *
+ * @param {number} xOffset
+ * @returns {'left'|'right'}
+ */
+function labelSide(xOffset) {
+  return xOffset <= 0 ? "left" : "right";
+}
+
+/**
+ * Build the dot element shared by both layout modes.
+ *
+ * @param {Object} event
+ * @param {string} style - inline positioning style
+ * @param {boolean} isFiltered
+ * @returns {HTMLElement}
+ */
+function createDot(event, style, isFiltered) {
+  return createElement("div", {
+    className: ["timeline-dot", "standard", isFiltered ? "filtered-out" : ""]
+      .filter(Boolean)
+      .join(" "),
+    style,
+    dataset: {
+      eventId: String(event.id),
+      period: event.timeline_period || "",
+      era: event.timeline_era || "",
+      title: event.title || "",
+      location: event.map_location || "",
+      verse: event.primary_verse || "",
+      slug: event.slug || "",
+      category: event.gospel_category || "",
+    },
+  });
+}
+
+/**
+ * Build the label element shared by both layout modes.
+ *
+ * @param {Object} event
+ * @param {string} posClass - 'above'/'below' (horizontal) or 'left'/'right' (vertical)
+ * @param {string} style - inline positioning style
+ * @param {boolean} isFiltered
+ * @returns {HTMLElement}
+ */
+function createLabel(event, posClass, style, isFiltered) {
+  const titleSpan = createElement(
+    "span",
+    { className: "timeline-label-title" },
+    [event.title || ""],
+  );
+
+  const metaText = [event.map_location || ""].filter(Boolean).join(" · ");
+  const metaSpan = createElement(
+    "span",
+    { className: "timeline-label-meta" },
+    [metaText],
+  );
+
+  return createElement(
+    "div",
+    {
+      className: ["timeline-label", posClass, isFiltered ? "filtered-out" : ""]
+        .filter(Boolean)
+        .join(" "),
+      style,
+    },
+    [titleSpan, metaSpan],
+  );
+}
+
+/**
+ * Lay out era divider markers and labels for horizontal mode: centred over
+ * each era's span, truncated to that span's width, and alternated
+ * vertically when adjacent eras are narrow enough for labels to touch.
+ *
+ * @param {HTMLElement} target
+ * @param {number} slotWidth
+ */
+function layoutEraLabelsHorizontal(target, slotWidth) {
+  const eraKeys = Object.keys(ERA_BOUNDARIES);
+  let prevMidX = null;
+  let prevHalfSpan = 0;
+  let alternate = false;
+
+  eraKeys.forEach((era, i) => {
+    const bounds = ERA_BOUNDARIES[era];
+
+    if (i > 0) {
+      const markerX = bounds.start * slotWidth;
+      target.appendChild(
+        createElement("div", {
+          className: "timeline-era-marker",
+          style: `left:${markerX}px`,
+        }),
+      );
+    }
+
+    const eraStartX = bounds.start * slotWidth;
+    const eraEndX = (bounds.end + 1) * slotWidth;
+    const eraMidX = (eraStartX + eraEndX) / 2;
+    const span = eraEndX - eraStartX;
+    const halfSpan = span / 2;
+
+    const tooClose =
+      prevMidX !== null && eraMidX - prevMidX < halfSpan + prevHalfSpan;
+    alternate = tooClose ? !alternate : false;
+
+    const eraLabel = createElement(
+      "div",
+      {
+        className: "timeline-era-label",
+        style: `left:${eraMidX}px;top:${alternate ? 28 : 8}px;max-width:${Math.max(span - 8, 24)}px`,
+      },
+      [ERA_LABELS[era]],
+    );
+    target.appendChild(eraLabel);
+
+    prevMidX = eraMidX;
+    prevHalfSpan = halfSpan;
+  });
+}
+
+/**
+ * Lay out era divider markers and section-heading labels for vertical
+ * mode: a horizontal rule and left-aligned heading at the start of each
+ * era's Y range, beside the spine.
+ *
+ * @param {HTMLElement} target
+ * @param {number} slotHeight
+ */
+function layoutEraLabelsVertical(target, slotHeight) {
+  const eraKeys = Object.keys(ERA_BOUNDARIES);
+
+  eraKeys.forEach((era, i) => {
+    const bounds = ERA_BOUNDARIES[era];
+
+    if (i > 0) {
+      const markerY = bounds.start * slotHeight;
+      target.appendChild(
+        createElement("div", {
+          className: "timeline-era-marker timeline-era-marker--vertical",
+          style: `top:${markerY}px`,
+        }),
+      );
+    }
+
+    const eraStartY = bounds.start * slotHeight;
+    target.appendChild(
+      createElement(
+        "div",
+        {
+          className: "timeline-era-label timeline-era-label--vertical",
+          style: `top:${eraStartY}px`,
+        },
+        [ERA_LABELS[era]],
+      ),
+    );
+  });
+}
+
+/**
+ * Build the horizontal (desktop/tablet) layout: spine runs left-to-right,
+ * events stagger above/below it.
+ *
+ * @param {Map<string, Array>} groupedEvents
+ * @param {string|null} activeEra
+ * @param {number} slotWidth
+ * @returns {{innerEl: HTMLElement, hasEvents: boolean, labelDescriptors: Array}}
+ */
+function buildHorizontalLayout(groupedEvents, activeEra, slotWidth) {
+  const totalWidth = TIMELINE_PERIODS.length * slotWidth;
+
+  const inner = createElement("div", {
+    className: "timeline-inner",
+    style: `width:${totalWidth}px;position:relative;height:100%;min-height:280px`,
+  });
+
+  inner.appendChild(
+    createElement("div", {
+      className: "timeline-spine",
+      style: `width:${totalWidth}px`,
+    }),
+  );
+
+  layoutEraLabelsHorizontal(inner, slotWidth);
+
+  let hasEvents = false;
+  const labelDescriptors = [];
+
+  for (const [period, events] of groupedEvents) {
+    const periodIdx = getPeriodIndex(period);
+    if (periodIdx < 0) continue;
+
+    const x = periodX(periodIdx, slotWidth);
+
+    events.forEach((event, clusterIndex) => {
+      const tierIndex = clusterIndex % STAGGER_OFFSETS.length;
+      const yOffset = STAGGER_OFFSETS[tierIndex];
+      const pos = labelPosition(yOffset);
+      const isFiltered =
+        activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
+      const style = `left:${x}px;top:${50 + yOffset}%`;
+
+      inner.appendChild(createDot(event, style, isFiltered));
+
+      const label = createLabel(event, pos, style, isFiltered);
+      inner.appendChild(label);
+      labelDescriptors.push({ el: label, tierIndex, axis: "x" });
+
+      hasEvents = true;
+    });
+  }
+
+  return { innerEl: inner, hasEvents, labelDescriptors };
+}
+
+/**
+ * Build the vertical (mobile, < 768px) layout: spine runs top-to-bottom,
+ * events stagger left/right of it, era labels become section headings.
+ *
+ * @param {Map<string, Array>} groupedEvents
+ * @param {string|null} activeEra
+ * @param {number} slotHeight
+ * @returns {{innerEl: HTMLElement, hasEvents: boolean, labelDescriptors: Array}}
+ */
+function buildVerticalLayout(groupedEvents, activeEra, slotHeight) {
+  const totalHeight = TIMELINE_PERIODS.length * slotHeight;
+
+  const inner = createElement("div", {
+    className: "timeline-inner timeline-inner--vertical",
+    style: `height:${totalHeight}px;position:relative;width:100%;min-height:${totalHeight}px`,
+  });
+
+  inner.appendChild(
+    createElement("div", {
+      className: "timeline-spine timeline-spine--vertical",
+      style: `height:${totalHeight}px`,
+    }),
+  );
+
+  layoutEraLabelsVertical(inner, slotHeight);
+
+  let hasEvents = false;
+  const labelDescriptors = [];
+
+  for (const [period, events] of groupedEvents) {
+    const periodIdx = getPeriodIndex(period);
+    if (periodIdx < 0) continue;
+
+    const y = periodY(periodIdx, slotHeight);
+
+    events.forEach((event, clusterIndex) => {
+      const tierIndex = clusterIndex % STAGGER_OFFSETS.length;
+      const xOffset = STAGGER_OFFSETS[tierIndex];
+      const side = labelSide(xOffset);
+      const isFiltered =
+        activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
+      const style = `top:${y}px;left:calc(50% + ${xOffset}px)`;
+
+      inner.appendChild(createDot(event, style, isFiltered));
+
+      const label = createLabel(event, side, style, isFiltered);
+      inner.appendChild(label);
+      labelDescriptors.push({ el: label, tierIndex, axis: "y" });
+
+      hasEvents = true;
+    });
+  }
+
+  return { innerEl: inner, hasEvents, labelDescriptors };
+}
+
+/**
+ * Apply an escalated stagger tier to a label's position and side/above-below
+ * class, for the axis it was laid out on.
+ *
+ * @param {HTMLElement} el
+ * @param {number} tier
+ * @param {'x'|'y'} axis
+ */
+function applyTier(el, tier, axis) {
+  const offset = STAGGER_OFFSETS[tier];
+  if (axis === "x") {
+    el.style.top = `${50 + offset}%`;
+    el.classList.remove("above", "below");
+    el.classList.add(labelPosition(offset));
+  } else {
+    el.style.left = `calc(50% + ${offset}px)`;
+    el.classList.remove("left", "right");
+    el.classList.add(labelSide(offset));
+  }
+}
+
+/**
+ * Whether two bounding rects overlap, with a minimum required gap between
+ * them on both axes.
+ *
+ * @param {DOMRect} a
+ * @param {DOMRect} b
+ * @param {number} gap
+ * @returns {boolean}
+ */
+function rectsOverlap(a, b, gap) {
+  return !(
+    a.right + gap <= b.left ||
+    b.right + gap <= a.left ||
+    a.bottom + gap <= b.top ||
+    b.bottom + gap <= a.top
+  );
+}
+
+/**
+ * Push labels whose bounding boxes overlap *any* already-placed label to the
+ * next stagger tier, so long titles never visually collide — whether the
+ * collision is between neighbouring periods (same tier, adjacent x/y) or
+ * between events clustered in the same period (same x/y, adjacent tiers).
+ * Re-measures a label's rect only when it's actually escalated, after the
+ * caller has already attached every label to the document (SR-3: layout is
+ * forced only as needed during this one render pass, not per frame).
+ *
+ * @param {Array<{el: HTMLElement, tierIndex: number, axis: 'x'|'y'}>} descriptors
+ */
+function resolveLabelCollisions(descriptors) {
+  if (!descriptors.length) return;
+
+  const axis = descriptors[0].axis;
+  const maxTier = STAGGER_OFFSETS.length - 1;
+
+  const items = descriptors.map((d) => ({
+    ...d,
+    rect: d.el.getBoundingClientRect(),
+  }));
+
+  items.sort((a, b) =>
+    axis === "x" ? a.rect.left - b.rect.left : a.rect.top - b.rect.top,
+  );
+
+  const placedRects = [];
+
+  items.forEach((item) => {
+    let tier = item.tierIndex;
+    let rect = item.rect;
+
+    while (
+      tier < maxTier &&
+      placedRects.some((placed) => rectsOverlap(rect, placed, LABEL_GAP_PX))
+    ) {
+      tier += 1;
+      applyTier(item.el, tier, axis);
+      rect = item.el.getBoundingClientRect();
+    }
+
+    placedRects.push(rect);
+  });
+}
+
+/**
  * Build the complete timeline DOM and inject it into the container.
+ * Chooses horizontal or vertical layout based on the current viewport.
  *
  * Uses batchWrite to avoid layout thrash during scroll/filter (SR-3).
  *
@@ -136,136 +553,32 @@ function labelPosition(yOffset) {
 export function renderTimeline(groupedEvents, activeEra) {
   if (!container) return;
 
-  const slotWidth = getSlotWidth();
-  const totalWidth = TIMELINE_PERIODS.length * slotWidth;
+  lastGroupedEvents = groupedEvents;
+  lastActiveEra = activeEra;
+
+  const vertical = isVerticalMode();
+  currentMode = vertical ? "vertical" : "horizontal";
+  const slotSize = getPxPerPeriod();
 
   batchWrite(() => {
-    // ── Build inner scrollable canvas ──────────────────────────────────────
-    innerEl = createElement("div", {
-      className: "timeline-inner",
-      style: `width:${totalWidth}px;position:relative;height:100%;min-height:280px`,
-    });
+    const built = vertical
+      ? buildVerticalLayout(groupedEvents, activeEra, slotSize)
+      : buildHorizontalLayout(groupedEvents, activeEra, slotSize);
 
-    // ── Spine ─────────────────────────────────────────────────────────────
-    const spine = createElement("div", {
-      className: "timeline-spine",
-      style: `width:${totalWidth}px`,
-    });
-    innerEl.appendChild(spine);
-
-    // ── Era markers and labels ────────────────────────────────────────────
-    const eraKeys = Object.keys(ERA_BOUNDARIES);
-    for (let i = 0; i < eraKeys.length; i++) {
-      const era = eraKeys[i];
-      const bounds = ERA_BOUNDARIES[era];
-
-      // Divider line at the start of each era (except the first)
-      if (i > 0) {
-        const markerX = bounds.start * slotWidth;
-        const marker = createElement("div", {
-          className: "timeline-era-marker",
-          style: `left:${markerX}px`,
-        });
-        innerEl.appendChild(marker);
-      }
-
-      // Era label centred over the era's span
-      const eraStartX = bounds.start * slotWidth;
-      const eraEndX = (bounds.end + 1) * slotWidth;
-      const eraMidX = (eraStartX + eraEndX) / 2;
-
-      const eraLabel = createElement(
-        "div",
-        {
-          className: "timeline-era-label",
-          style: `left:${eraMidX}px`,
-        },
-        [ERA_LABELS[era]],
-      );
-      innerEl.appendChild(eraLabel);
-    }
-
-    // ── Events (dots + labels) ────────────────────────────────────────────
-    let hasEvents = false;
-
-    for (const [period, events] of groupedEvents) {
-      const periodIdx = getPeriodIndex(period);
-      if (periodIdx < 0) continue;
-
-      const x = periodX(periodIdx, slotWidth);
-
-      events.forEach((event, clusterIndex) => {
-        const yOffset = staggerY(clusterIndex);
-        const pos = labelPosition(yOffset);
-        const isFiltered =
-          activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
-
-        // ── Dot ──────────────────────────────────────────────────────────
-        const dot = createElement("div", {
-          className: [
-            "timeline-dot",
-            "standard",
-            isFiltered ? "filtered-out" : "",
-          ]
-            .filter(Boolean)
-            .join(" "),
-          style: `left:${x}px;top:${50 + yOffset}%`,
-          dataset: {
-            eventId: String(event.id),
-            period,
-            era: event.timeline_era || "",
-            title: event.title || "",
-            location: event.map_location || "",
-            verse: event.primary_verse || "",
-            slug: event.slug || "",
-            category: event.gospel_category || "",
-          },
-        });
-        innerEl.appendChild(dot);
-
-        // ── Label ────────────────────────────────────────────────────────
-        const titleSpan = createElement(
-          "span",
-          {
-            className: "timeline-label-title",
-          },
-          [event.title || ""],
-        );
-
-        const metaText = [event.map_location || ""].filter(Boolean).join(" · ");
-
-        const metaSpan = createElement(
-          "span",
-          {
-            className: "timeline-label-meta",
-          },
-          [metaText],
-        );
-
-        const label = createElement(
-          "div",
-          {
-            className: ["timeline-label", pos, isFiltered ? "filtered-out" : ""]
-              .filter(Boolean)
-              .join(" "),
-            style: `left:${x}px;top:${50 + yOffset}%`,
-          },
-          [titleSpan, metaSpan],
-        );
-        innerEl.appendChild(label);
-
-        hasEvents = true;
-      });
-    }
+    innerEl = built.innerEl;
 
     // ── Clear and inject ──────────────────────────────────────────────────
     container.innerHTML = "";
+    container.classList.toggle("timeline-container--vertical", vertical);
     container.appendChild(innerEl);
+
+    // ── Resolve collisions once, after elements are attached ───────────────
+    resolveLabelCollisions(built.labelDescriptors);
 
     // ── State visibility ──────────────────────────────────────────────────
     if (loadingEl) loadingEl.hidden = true;
-    container.hidden = !hasEvents;
-    if (emptyEl) emptyEl.hidden = hasEvents;
+    container.hidden = !built.hasEvents;
+    if (emptyEl) emptyEl.hidden = built.hasEvents;
   });
 }
 
