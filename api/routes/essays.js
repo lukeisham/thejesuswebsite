@@ -7,14 +7,26 @@ const requireAuth = require("../middleware/auth");
 
 const router = express.Router();
 
-// GET /essays — public list of published essays, with optional filter for draft status
-// e.g. /essays?published_draft=1
+// GET /essays — public list of published essays
 router.get("/", (req, res) => {
   try {
-    const items = essayModel.getAllPublished(req.query);
+    const items = essayModel.getAllPublished();
     res.json(items);
   } catch (error) {
     console.error("GET /essays failed:", error);
+    res.status(500).json({ error: "Failed to load essays." });
+  }
+});
+
+// GET /essays/admin — full list (published + drafts) for the admin table.
+// Auth-gated so drafts never leak on the public /essays route.
+// Must be registered before /:slug or Express will treat "admin" as a slug.
+router.get("/admin", requireAuth, (req, res) => {
+  try {
+    const items = essayModel.getAllAdmin();
+    res.json(items);
+  } catch (error) {
+    console.error("GET /essays/admin failed:", error);
     res.status(500).json({ error: "Failed to load essays." });
   }
 });

@@ -65,6 +65,15 @@ function normalizeForPublic(item) {
 /**
  * Published essays for the public site, newest first.
  */
+function getAllAdmin() {
+  return db
+    .prepare("SELECT * FROM context_essays ORDER BY created_at DESC")
+    .all();
+}
+
+/**
+ * Published essays for the public site, newest first.
+ */
 function getAllPublished() {
   return db
     .prepare(
@@ -340,6 +349,7 @@ function remove(id) {
 
 module.exports = {
   getAllPublished,
+  getAllAdmin,
   getBySlug,
   getById,
   getDetailBySlug,

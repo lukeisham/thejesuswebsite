@@ -7,14 +7,26 @@ const requireAuth = require("../middleware/auth");
 
 const router = express.Router();
 
-// GET /blog-posts — public list of published blog posts, with optional filter for draft status
-// e.g. /blog-posts?published_draft=1
+// GET /blog-posts — public list of published blog posts
 router.get("/", (req, res) => {
   try {
-    const items = blogPostModel.getAllPublished(req.query);
+    const items = blogPostModel.getAllPublished();
     res.json(items);
   } catch (error) {
     console.error("GET /blog-posts failed:", error);
+    res.status(500).json({ error: "Failed to load blog posts." });
+  }
+});
+
+// GET /blog-posts/admin — full list (published + drafts) for the admin table.
+// Auth-gated so drafts never leak on the public /blog-posts route.
+// Must be registered before /:slug or Express will treat "admin" as a slug.
+router.get("/admin", requireAuth, (req, res) => {
+  try {
+    const items = blogPostModel.getAllAdmin();
+    res.json(items);
+  } catch (error) {
+    console.error("GET /blog-posts/admin failed:", error);
     res.status(500).json({ error: "Failed to load blog posts." });
   }
 });

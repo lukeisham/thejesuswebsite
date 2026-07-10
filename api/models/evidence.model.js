@@ -47,20 +47,25 @@ const VALID_FILTERS = [
  * Accepts an optional filter object; only whitelisted keys are applied.
  */
 function getAllPublished(filters = {}) {
-  const conditions = ["published_draft = 1"];
+  const conditions = ["e.published_draft = 1"];
   const params = [];
 
   for (const key of VALID_FILTERS) {
     if (filters[key]) {
-      conditions.push(`${key} = ?`);
+      conditions.push(`e.${key} = ?`);
       params.push(filters[key]);
     }
   }
 
   const sql = `
-        SELECT * FROM evidence
+        SELECT
+          e.*,
+          (SELECT ep.image_path FROM evidence_pictures ep
+           WHERE ep.evidence_id = e.id
+           ORDER BY ep.sort_order LIMIT 1) AS thumbnail_path
+        FROM evidence e
         WHERE ${conditions.join(" AND ")}
-        ORDER BY created_at DESC
+        ORDER BY e.created_at DESC
     `;
   return db.prepare(sql).all(...params);
 }

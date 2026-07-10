@@ -14,6 +14,7 @@ import { renderBadge } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
 import { parseContentBody } from "./utils/content-markers.js";
+import { formatMlaCitation } from "./utils/mla.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -217,12 +218,21 @@ function renderBibliography(essay) {
     if ($references) $references.hidden = true;
     return;
   }
+
+  const citations = essay.bibliography.map(formatMlaCitation).filter(Boolean);
+
+  if (citations.length === 0) {
+    if ($references) $references.hidden = true;
+    return;
+  }
+
   if ($references) $references.hidden = false;
   if ($referencesList) {
-    $referencesList.innerHTML = essay.bibliography
-      .map((ref) => {
+    $referencesList.innerHTML = citations
+      .map((citation, i) => {
+        const ref = essay.bibliography[i];
         const idAttr = ref && ref.id ? ` id="mla-${ref.id}"` : "";
-        return `<li${idAttr}>${html`${ref}`}</li>`;
+        return `<li${idAttr}>${citation}</li>`;
       })
       .join("");
   }

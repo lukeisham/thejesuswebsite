@@ -7,17 +7,38 @@
 import { showToast } from "./utils/toasts.js";
 
 /**
- * Strip navigation and footer from body text for "Copy Contents".
+ * Strip navigation, footer, sidebar, and interactive diagram controls from
+ * body text for "Copy Contents".
+ *
+ * For diagram pages (maps, timeline, arbor), removes tooltips, detail
+ * panels, controls, and SVG/canvas layers so the remaining text is the
+ * page title, description, and visible labels rather than raw diagram markup.
  *
  * @returns {string} Cleaned body text.
  */
 function getStrippedBodyText() {
   const clone = document.body.cloneNode(true);
 
-  // Remove nav, footer, and sidebar
+  // Remove nav, footer, sidebar, and their toggles/backdrops
   clone
     .querySelectorAll(
       "nav, footer, .sidebar, .sidebar__toggle, .sidebar-backdrop",
+    )
+    .forEach((el) => el.remove());
+
+  // Remove interactive diagram-only containers so innerText is readable
+  clone
+    .querySelectorAll(
+      [
+        ".timeline-tooltip",
+        ".timeline-detail-panel",
+        ".map-tooltip",
+        ".map-controls",
+        ".arbor-tooltip",
+        ".arbor-controls",
+        ".arbor-edges",
+        ".map-pins-layer",
+      ].join(","),
     )
     .forEach((el) => el.remove());
 

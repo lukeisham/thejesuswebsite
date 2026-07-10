@@ -515,3 +515,44 @@
 - [ ] JS-2 — Evidence creation with invalid `timeline_era` (e.g. old `"beginning"`) correctly throws a CHECK constraint error.
 - [ ] SR-1 — `timeline.model.js` changed only the `ERA_ORDER` constant and its comment; no SQL logic altered.
 - [ ] Tests in `content-create.test.js` iterate over all eight new era values.
+## Validation: Arbor Position Mirroring & WYSIWYG Diagram Editors (API)
+**Plan:** arbor-timeline-wysiwyg-editors.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] `npm test` in `api/` passes, including the new `arbor-nodes.test.js` (upsert, GET /arbor includes x/y, delete, auth guard, 400 on non-numeric coordinates, evidence-delete cascade).
+- [ ] `sqlite3 database/thejesuswebsite.db ".schema arbor_nodes"` after running migration 010 shows the table, unique evidence_id, index, and updated_at trigger.
+
+### Code-review checks
+- [ ] JS-2 — PUT /arbor/nodes/:evidenceId rejects missing/NaN/Infinity x or y with 400 and a clear error body.
+- [ ] JS-2 — node routes are registered before /:id routes in `api/routes/arbor.js` (route-order comment present).
+- [ ] SR-1 — all new SQL lives in `api/models/arbor.model.js`; the route file has no SQL.
+
+
+## Validation: Evidence List Thumbnail Field
+**Plan:** frontend-ui-fixes-evidence-timeline-maps.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] `GET /api/evidence` — each item includes `thumbnail_path` (first `evidence_pictures.image_path` by `sort_order`, or null) and `primary_verse`.
+
+### Code-review checks
+- [ ] SR-3 — thumbnail joined via a single correlated subquery, no N+1 queries.
+- [ ] JS-2 — records with no pictures return `thumbnail_path: null`, never undefined/error.
+- [ ] Tests in `api/tests/evidence.test.js` cover both with-picture and no-picture cases.
+
+## Validation: Open Issues Cleanup (API)
+**Plan:** open-issues-cleanup.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] `GET /api/essays/admin` without a session cookie returns 401; with an authenticated admin session it returns both draft and published essays with raw column names.
+- [ ] `GET /api/blog-posts/admin` behaves identically for blog posts.
+- [ ] Public `GET /api/essays` and `GET /api/blog-posts` still return published items only.
+- [ ] `node api/scripts/generate-sitemap.js` output includes the five map page URLs and their five zoom-variant URLs.
+- [ ] `cd api && npm test` passes, including the new admin-list and sitemap assertions.
+
+### Code-review checks
+- [ ] SR-1 — admin list logic added to the existing essay/blog-post model files (tightly related by purpose), no SQL in routes.
+- [ ] JS-2 — new routes validate/authorise explicitly (`requireAuth`) and map errors to status codes; no silent failures.
+- [ ] Route ordering — `/admin` routes registered before `/:slug` in both `essays.js` and `blog-posts.js`.

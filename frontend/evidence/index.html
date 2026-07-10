@@ -114,7 +114,9 @@
         </button>
         <nav class="sidebar" id="sidebar" aria-label="Site navigation">
             <ul class="sidebar__nav">
-                <li class="nav-item nav-item--home"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item nav-item--home">
+                    <a href="/">The Jesus Website</a>
+                </li>
                 <li class="nav-item"><a href="/evidence/">Evidence</a></li>
                 <li class="nav-item">
                     <a href="/evidence/search.html">Search</a>
@@ -147,6 +149,21 @@
                     id="filter-bar"
                     aria-label="Filter evidence"
                 >
+                    <button
+                        class="filter-bar__toggle"
+                        id="filter-toggle"
+                        data-action="filter-toggle"
+                        aria-expanded="true"
+                        aria-controls="filter-chips"
+                        aria-label="Toggle filter panel"
+                    >
+                        <svg width="16" height="16" aria-hidden="true">
+                            <use
+                                href="/assets/images/feather-sprite.svg#icon-filter"
+                            />
+                        </svg>
+                        <span class="filter-bar__toggle-label">Filters</span>
+                    </button>
                     <div class="filter-bar__chips" id="filter-chips">
                         <button
                             class="filter-chip filter-chip--active"
@@ -262,14 +279,14 @@
                     </div>
                 </section>
 
-                <!-- Card grid region -->
-                <section
-                    class="card-grid"
-                    id="card-grid"
+                <!-- Evidence list region -->
+                <ul
+                    class="evidence-list"
+                    id="evidence-list"
                     aria-label="Evidence items"
                 >
-                    <!-- Cards are rendered here by evidence-list.js -->
-                </section>
+                    <!-- Rows are rendered here by evidence-list.js -->
+                </ul>
 
                 <!-- Loading state -->
                 <div class="loading" id="loading-state" hidden>

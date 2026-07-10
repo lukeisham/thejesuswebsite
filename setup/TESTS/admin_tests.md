@@ -440,3 +440,31 @@
 - [ ] `timeline-axis.js` `eraStarts` maps each new era to the correct first-period key.
 - [ ] SR-1 — no unrelated changes bundled into the four modified admin JS files.
 - [ ] `admin/tests/admin-timeline.test.js` passes all tests after updating era values.
+## Validation: Arbor Position Mirroring & WYSIWYG Diagram Editors (Admin)
+**Plan:** arbor-timeline-wysiwyg-editors.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] Open `admin/diagrams/arbor.html` — nodes render as public-style rounded rectangles (title + italic verse) on the parchment dot-grid canvas, not circles; drag a node, reload the page, the node stays where it was dropped (position now server-side, not localStorage).
+- [ ] Open `admin/diagrams/timeline.html` — spine, 12px dots, cluster stacking, and accent era labels visually match `frontend/evidence/timeline/index.html`; dragging an event still snaps to a period and persists.
+- [ ] With devtools → Application → Local Storage: legacy `arbor` position keys are migrated to the server and cleared on first editor load.
+
+### Code-review checks
+- [ ] JS-5 — all persistence in `update-record.js` goes through `Admin.api.*` with async/await + try/catch; no localStorage position store remains.
+- [ ] JS-6 — node/label text set via `textContent`/`createElementNS`, never `innerHTML` with record data.
+- [ ] CSS-2 — `arbor-canvas.css` and `timeline-canvas.css` reference public design tokens (`--bg-primary`, `--border`, `--accent`, `--border-strong`); no hardcoded parchment hex values.
+- [ ] CSS-1 — each admin-diagrams CSS file stays under 150 lines after the restyle.
+- [ ] `node --test admin/tests/*.test.js` passes, including the new timeline mirror-consistency assertions (period ordering matches frontend `TIMELINE_PERIODS`; periodToX/xToPeriod round-trip).
+
+## Validation: Open Issues Cleanup (Admin)
+**Plan:** open-issues-cleanup.md
+**Date:** 2026-07-10
+
+### Manual checks
+- [ ] `admin/essays/index.html` lists a draft essay (create one via the New form, don't publish) with a Draft status badge alongside published essays.
+- [ ] `admin/blog/index.html` lists a draft blog post the same way.
+- [ ] Both pages redirect to login when the session is expired (401 handling unchanged).
+
+### Code-review checks
+- [ ] JS-5 — all requests go through `Admin.api.get(...)`; no raw `fetch` added.
+- [ ] The dead `?published_draft=0` query fetch is fully removed from `admin/essays/index.html`.

@@ -1,19 +1,24 @@
-// Throwaway local dev proxy — serves admin/ as static files and forwards
+// Throwaway local dev proxy — serves a static directory and forwards
 // /api/* paths to the Express API server, stripping the /api prefix (exactly
-// what deploy/nginx.conf does). This means the admin frontend uses the same
+// what deploy/nginx.conf does). This means the frontend uses the same
 // /api/passkey/... URL shape locally as in production — no path-mismatch bugs
 // can hide in local dev.
+//
+// Usage:  node dev-proxy.js [staticRoot] [port]
+//   staticRoot — directory to serve (default: "admin")
+//   port       — proxy listen port (default: 4174)
+//
 // Not for production use; don't wire this into deploy.sh.
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
-const STATIC_ROOT = path.join(__dirname, "admin");
+const STATIC_ROOT = path.join(__dirname, process.argv[2] || "admin");
 const API_TARGET = {
   host: "127.0.0.1",
   port: Number(process.env.API_PORT || 3000),
 };
-const PROXY_PORT = Number(process.env.PROXY_PORT || 4174);
+const PROXY_PORT = Number(process.argv[3] || process.env.PROXY_PORT || 4174);
 
 const MIME = {
   ".html": "text/html",
