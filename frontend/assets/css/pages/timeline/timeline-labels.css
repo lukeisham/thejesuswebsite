@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Timeline Labels
+   Event labels, clustering modes, and label inner content.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Event Labels
+   ------------------------------------------------------------------------- */
+
+.timeline-label {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: var(--text-2xs);
+    line-height: var(--leading-small);
+    z-index: 1;
+    max-width: 100px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.timeline-label.above {
+    top: auto;
+    bottom: auto;
+    /* top set by JS inline with stagger offset */
+}
+
+.timeline-label.below {
+    top: auto;
+    bottom: auto;
+    /* top set by JS inline with stagger offset */
+}
+
+.timeline-label.filtered-out {
+    opacity: 0.15;
+}
+
+/* Clustering label modes */
+.timeline-label.label--truncated .timeline-label-title {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.timeline-label.label--hidden {
+    display: none;
+}
+
+.timeline-label-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeline-label-meta {
+    display: block;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -1,0 +1,62 @@
+/* ==========================================================================
+   Maps Responsive & Print
+   Print styles and mobile layout overrides.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Print Styles
+   ------------------------------------------------------------------------- */
+
+@media print {
+  .map-controls,
+  .map-tooltip,
+  .maps-region-nav,
+  .breadcrumbs {
+    display: none;
+  }
+
+  .map-canvas {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+
+  .map-viewport {
+    border: 1px solid var(--color-black);
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .map-image {
+    max-width: 100%;
+  }
+
+  .map-pin {
+    background: var(--color-black);
+    border-color: var(--color-white);
+  }
+
+  .map-pin-label {
+    border-color: var(--color-black);
+    color: var(--color-black);
+    background: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .maps-overview-grid {
+    grid-template-columns: 1fr;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .map-card__title {
+    font-size: var(--text-body);
+  }
+
+  .maps-overview-header {
+    padding: var(--space-lg) var(--space-md) var(--space-sm);
+  }
+}

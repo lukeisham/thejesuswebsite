@@ -1,0 +1,75 @@
+/* ==========================================================================
+   Timeline Dots
+   Event dots, era colours, and category overrides.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Event Dots
+   Positioned absolutely on the spine by JS. Colour varies by era.
+   ------------------------------------------------------------------------- */
+
+.timeline-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-round);
+    background: var(--accent);
+    border: 2px solid var(--bg-surface);
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 2;
+    transition:
+        box-shadow var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+}
+
+.timeline-dot:hover {
+    box-shadow: 0 0 0 4px rgba(92, 64, 51, 0.15);
+    transform: translate(-50%, -50%) scale(1.3);
+}
+
+.timeline-dot.filtered-out {
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   Era Dot Colours
+   ------------------------------------------------------------------------- */
+
+.timeline-dot.era--pre-incarnation {
+    background: var(--era-pre-incarnation);
+}
+.timeline-dot.era--old-testament {
+    background: var(--era-old-testament);
+}
+.timeline-dot.era--early-life {
+    background: var(--era-early-life);
+}
+.timeline-dot.era--life {
+    background: var(--era-life);
+}
+.timeline-dot.era--galilee-ministry {
+    background: var(--era-galilee-ministry);
+}
+.timeline-dot.era--judean-ministry {
+    background: var(--era-judean-ministry);
+}
+.timeline-dot.era--passion-week {
+    background: var(--era-passion-week);
+}
+.timeline-dot.era--post-passion {
+    background: var(--era-post-passion);
+}
+
+/* Category overrides — must come after era rules (CSS-5) */
+.timeline-dot.dot-cat--place {
+    background: var(--color-black);
+}
+.timeline-dot.dot-cat--person {
+    background: var(--bg-surface);
+    border-color: var(--color-black);
+}
+.timeline-dot.dot-cat--object {
+    background: var(--text-muted);
+}

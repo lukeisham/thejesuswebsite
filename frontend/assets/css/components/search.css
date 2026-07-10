@@ -1,6 +1,6 @@
 /* ==========================================================================
    Search
-   Search page layout, input, and result cards.
+   Search page container, input, and matched-text highlighting.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -102,102 +102,7 @@ mark {
 }
 
 /* -------------------------------------------------------------------------
-   Search Results Group
-   ------------------------------------------------------------------------- */
-
-.search-results {
-    margin-top: var(--space-xl);
-}
-
-.search-results__group {
-    margin-bottom: var(--space-xl);
-}
-
-.search-results__group-heading {
-    font-size: var(--text-small);
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: var(--space-md);
-    padding-bottom: var(--space-xs);
-    border-bottom: 1px solid var(--border);
-}
-
-/* -------------------------------------------------------------------------
-   Search Results Cards Grid
-   ------------------------------------------------------------------------- */
-
-.search-results__cards {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-md);
-}
-
-@media (min-width: 768px) {
-    .search-results__cards {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .search-results__cards {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-/* -------------------------------------------------------------------------
-   Search Result Card
-   ------------------------------------------------------------------------- */
-
-.search-result-card {
-    display: block;
-    padding: var(--space-md);
-    background: var(--bg-surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-card);
-    text-decoration: none;
-    color: inherit;
-    transition:
-        transform var(--duration-fast) var(--ease-out),
-        box-shadow var(--duration-fast) var(--ease-out);
-}
-
-.search-result-card:hover {
-    transform: translateY(-2px);
-    box-shadow:
-        var(--shadow-card),
-        0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.search-result-card__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-sm);
-}
-
-.search-result-card__title {
-    font-size: var(--text-body);
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.search-result-card__badge {
-    flex-shrink: 0;
-}
-
-.search-result-card__snippet {
-    font-size: var(--text-small);
-    color: var(--text-secondary);
-    line-height: var(--leading-relaxed);
-    margin: 0;
-}
-
-/* -------------------------------------------------------------------------
-   Mobile: single-column results, comfortable touch targets
+   Mobile search input adjustments
    ------------------------------------------------------------------------- */
 
 @media (max-width: 767px) {
@@ -206,13 +111,5 @@ mark {
         min-height: 48px;
         padding: var(--space-sm) var(--space-md);
         padding-left: calc(var(--space-md) + 20px + var(--space-sm));
-    }
-
-    .search-results__cards {
-        grid-template-columns: 1fr;
-    }
-
-    .search-result-card {
-        padding: var(--space-sm);
     }
 }

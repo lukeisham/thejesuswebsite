@@ -1,6 +1,6 @@
 /* ==========================================================================
    Arbor Diagram
-   Node/edge graph with dot-grid background, zoom controls.
+   Canvas container, zoom/pan, mobile vertical flow, and print.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -34,74 +34,6 @@
     position: absolute;
     transform-origin: 0 0;
     transition: transform var(--duration-fast) var(--ease-out);
-}
-
-/* -------------------------------------------------------------------------
-   Nodes
-   ------------------------------------------------------------------------- */
-
-.arbor-node {
-    position: absolute;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: var(--space-sm) var(--space-md);
-    box-shadow: var(--shadow-card);
-    cursor: pointer;
-    transition:
-        box-shadow var(--duration-fast) var(--ease-out),
-        transform var(--duration-fast) var(--ease-out);
-    max-width: 200px;
-}
-
-.arbor-node:hover {
-    box-shadow: var(--shadow-card-hover);
-    transform: scale(1.02);
-}
-
-.arbor-node-title {
-    font-size: var(--text-h4);
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--space-xs);
-}
-
-.arbor-node-verse {
-    font-size: var(--text-small);
-    color: var(--text-muted);
-    font-style: italic;
-}
-
-/* Node types */
-.arbor-node.root {
-    border: 2px solid var(--accent);
-    background: var(--bg-surface-alt);
-}
-
-.arbor-node.related {
-    border-style: dashed;
-    border-color: var(--border-strong);
-}
-
-/* -------------------------------------------------------------------------
-   Edges (SVG layer behind nodes)
-   ------------------------------------------------------------------------- */
-
-.arbor-edges {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-}
-
-.arbor-edges line,
-.arbor-edges path {
-    stroke: var(--border-strong);
-    stroke-width: 1.5;
-}
-
-.arbor-node {
-    z-index: 1;
 }
 
 /* -------------------------------------------------------------------------

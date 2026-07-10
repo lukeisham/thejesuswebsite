@@ -1,0 +1,123 @@
+/* ==========================================================================
+   Maps Canvas
+   Detail-page map canvas, image, pins, labels, and tooltip.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Map Canvas (detail page)
+   ------------------------------------------------------------------------- */
+
+.map-canvas {
+  position: relative;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+.map-canvas[hidden] {
+  display: none;
+}
+
+/* -------------------------------------------------------------------------
+   Zoom Controls
+   ------------------------------------------------------------------------- */
+
+.map-controls {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+/* -------------------------------------------------------------------------
+   Map Viewport — contains image + pins layer
+   ------------------------------------------------------------------------- */
+
+.map-viewport {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-alt);
+}
+
+.map-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* -------------------------------------------------------------------------
+   Pins Layer — absolutely positioned over the image
+   ------------------------------------------------------------------------- */
+
+.map-pins-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   Pin Marker
+   ------------------------------------------------------------------------- */
+
+.map-pin {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border: 2px solid var(--bg-surface);
+  border-radius: var(--radius-round);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 2;
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.map-pin:hover {
+  box-shadow: 0 0 0 4px rgba(92, 64, 51, 0.15);
+  transform: translate(-50%, -50%) scale(1.3);
+}
+
+/* -------------------------------------------------------------------------
+   Pin Label
+   ------------------------------------------------------------------------- */
+
+.map-pin-label {
+  position: absolute;
+  transform: translate(-50%, 8px);
+  font-size: var(--text-2xs);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-xs);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* -------------------------------------------------------------------------
+   Map Tooltip
+   ------------------------------------------------------------------------- */
+
+.map-tooltip {
+  position: fixed;
+  z-index: 60;
+  max-width: 260px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-small);
+  pointer-events: none;
+}
+
+.map-tooltip[hidden] {
+  display: none;
+}
