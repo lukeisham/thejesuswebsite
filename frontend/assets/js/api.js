@@ -198,6 +198,27 @@ export async function getSiteSettings() {
   return request("/site-settings");
 }
 
+// ─── Embedded Data (SR-3: first-paint content) ───────────────────────────────
+
+/**
+ * Read deploy-time embedded data from a <script type="application/json"> block.
+ * Returns the parsed object or null if the block is missing, empty, or malformed.
+ * Used by list/visual pages to render first-paint content immediately without
+ * waiting for a network round-trip (SR-3).
+ *
+ * @param {string} scriptId - The id attribute of the script element.
+ * @returns {Object|Array|null}
+ */
+export function readEmbeddedData(scriptId) {
+  try {
+    const el = document.getElementById(scriptId);
+    if (!el || !el.textContent || !el.textContent.trim()) return null;
+    return JSON.parse(el.textContent);
+  } catch {
+    return null;
+  }
+}
+
 // ─── Wikipedia ────────────────────────────────────────────────────────────────
 
 /** @param {Object} [params] */

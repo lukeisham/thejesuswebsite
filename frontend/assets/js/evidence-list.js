@@ -4,7 +4,7 @@
  * @module evidence-list
  */
 
-import { getEvidence } from "./api.js";
+import { getEvidence, readEmbeddedData } from "./api.js";
 import { html, raw } from "./utils/templates.js";
 import { getParams, pushState } from "./utils/router.js";
 import { showToast } from "./utils/toasts.js";
@@ -385,6 +385,27 @@ function init() {
   const restored = restoreFromCache();
   if (restored) {
     restoreScrollPosition();
+    return;
+  }
+
+  // Try embedded data (deploy-time snapshot for first-paint content — SR-3)
+  const embedded = readEmbeddedData("evidence-list-data");
+  if (embedded && Array.isArray(embedded) && embedded.length > 0) {
+    const pageItems = embedded.slice(0, PAGE_SIZE);
+    allItems = pageItems;
+    renderRows(pageItems);
+    hasMore = embedded.length > PAGE_SIZE;
+    hideAllStates();
+    if (!hasMore) {
+      $sentinel.hidden = true;
+      showState("end");
+      if ($end) $end.textContent = formatItemsLoaded(allItems.length);
+    } else {
+      currentPage = 2;
+      $sentinel.hidden = false;
+    }
+    cacheItems();
+    initInfiniteScroll();
     return;
   }
 

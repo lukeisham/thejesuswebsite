@@ -24,6 +24,7 @@ import {
 } from "./timeline-render.js";
 import { fetchTimelineEvents, groupEventsByPeriod } from "./timeline-data.js";
 import { showToast } from "../utils/toasts.js";
+import { readEmbeddedData } from "../api.js";
 
 // ─── DOM references ────────────────────────────────────────────────────────────
 
@@ -336,21 +337,31 @@ async function init() {
   filtersEl = document.getElementById("era-filters");
 
   // ── Fetch events ────────────────────────────────────────────────────────
-  showLoading();
 
-  const { data, error } = await fetchTimelineEvents();
+  // Try embedded data first (deploy-time snapshot for first-paint content — SR-3)
+  const embedded = readEmbeddedData("timeline-data");
+  let events;
+  if (embedded && Array.isArray(embedded) && embedded.length > 0) {
+    events = embedded;
+  } else {
+    // Fall back to live API fetch
+    showLoading();
 
-  if (error) {
-    showToast("Failed to load timeline events. Please try again.", "error");
-    showEmpty();
-    return;
+    const { data, error } = await fetchTimelineEvents();
+
+    if (error) {
+      showToast("Failed to load timeline events. Please try again.", "error");
+      showEmpty();
+      return;
+    }
+
+    events = Array.isArray(data)
+      ? data
+      : data && data.events
+        ? data.events
+        : [];
   }
 
-  const events = Array.isArray(data)
-    ? data
-    : data && data.events
-      ? data.events
-      : [];
   const grouped = groupEventsByPeriod(events);
 
   if (grouped.size === 0) {
