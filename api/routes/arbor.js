@@ -7,13 +7,24 @@ const requireAuth = require("../middleware/auth");
 
 const router = express.Router();
 
-// GET /arbor — full diagram with nodes and edges
+// GET /arbor — full diagram with nodes and edges (published only)
 router.get("/", (req, res) => {
   try {
     const data = arborModel.getNodesAndEdges();
     res.json(data);
   } catch (error) {
     console.error("GET /arbor failed:", error);
+    res.status(500).json({ error: "Failed to load arbor diagram." });
+  }
+});
+
+// GET /arbor/admin — full diagram including drafts (admin only)
+router.get("/admin", requireAuth, (req, res) => {
+  try {
+    const data = arborModel.getNodesAndEdges({ includeDrafts: true });
+    res.json(data);
+  } catch (error) {
+    console.error("GET /arbor/admin failed:", error);
     res.status(500).json({ error: "Failed to load arbor diagram." });
   }
 });

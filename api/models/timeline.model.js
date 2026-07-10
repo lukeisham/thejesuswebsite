@@ -70,12 +70,18 @@ const ordinalOf = (order, value) => {
 };
 
 /**
- * Published evidence that belongs on the timeline, in narrative order.
+ * Evidence that belongs on the timeline, in narrative order.
+ * By default returns only published evidence. Pass `includeDrafts: true`
+ * to also include draft records (admin editor use).
  * Optionally narrow to a single era via `filters.timeline_era`.
  */
-function getTimelineEvents({ timeline_era } = {}) {
-  const conditions = ["published_draft = 1", "timeline_period IS NOT NULL"];
+function getTimelineEvents({ timeline_era, includeDrafts } = {}) {
+  const conditions = ["timeline_period IS NOT NULL"];
   const params = [];
+
+  if (!includeDrafts) {
+    conditions.push("published_draft = 1");
+  }
 
   if (timeline_era) {
     conditions.push("timeline_era = ?");

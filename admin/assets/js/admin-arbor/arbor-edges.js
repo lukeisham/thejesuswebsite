@@ -159,13 +159,14 @@ Edges.createEdgeElement = function (edge, sourceNode, targetNode) {
     "admin-arbor-edge",
   );
 
-  // Per-relationship_type styling matching the public page
-  if (edge.relationship_type === "related") {
-    line.setAttribute("stroke-dasharray", "6 4");
-    line.setAttribute("stroke", "var(--border-strong)");
-  } else if (edge.relationship_type === "root") {
-    line.setAttribute("stroke", "var(--accent)");
-    line.setAttribute("stroke-width", "2");
+  // Per-relationship_type styling matching the public page (via shared geometry)
+  var style =
+    window.AdminArborGeometry.EDGE_STYLES[edge.relationship_type] ||
+    window.AdminArborGeometry.EDGE_STYLES.default;
+  for (var attr in style) {
+    if (style.hasOwnProperty(attr)) {
+      line.setAttribute(attr, style[attr]);
+    }
   }
   g.appendChild(line);
 

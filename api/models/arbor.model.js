@@ -163,9 +163,13 @@ function reorderEdges(edges) {
  * Get full arbor graph: all edges plus the unique evidence nodes involved.
  * Returns { nodes: Array, edges: Array }.
  * Nodes include id, title, slug, primary_verse, and description.
- * Only published evidence is included.
+ *
+ * @param {Object} [opts]
+ * @param {boolean} [opts.includeDrafts=false] - When true, draft evidence is included
+ *   alongside published (for admin editors). The public frontend receives only
+ *   published evidence.
  */
-function getNodesAndEdges() {
+function getNodesAndEdges({ includeDrafts } = {}) {
   const edges = getAllEdges();
 
   // Collect unique evidence IDs from both sides of edges
@@ -192,8 +196,8 @@ function getNodesAndEdges() {
   const nodes = [];
   for (const id of idSet) {
     const evidence = evidenceModel.getById(id);
-    // Only include published evidence
-    if (evidence && evidence.published_draft === 1) {
+    // Public: only published evidence. Admin: drafts included.
+    if (evidence && (includeDrafts || evidence.published_draft === 1)) {
       const pos = positions.get(id) || null;
       nodes.push({
         id: evidence.id,
@@ -207,7 +211,7 @@ function getNodesAndEdges() {
     }
   }
 
-  // Filter edges to only those where both source and target are published
+  // Filter edges to only those where both source and target are included
   const nodeIds = new Set(nodes.map((n) => n.id));
   const filteredEdges = edges.filter(
     (e) => nodeIds.has(e.source_id) && nodeIds.has(e.target_id),

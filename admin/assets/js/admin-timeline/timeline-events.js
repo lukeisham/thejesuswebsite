@@ -135,10 +135,11 @@ Events.renderEvents = function () {
 
     for (let k = 0; k < periodEvents.length; k++) {
       const ev = periodEvents[k];
-      // Stack events at the same period vertically
-      const stackY =
-        60 + (k % 5) * 18 - (Math.min(periodEvents.length, 5) - 1) * 9;
-      const el = Events.createEventElement(ev, baseX, stackY);
+      // Use shared stagger offsets matching the public timeline
+      const offsets = window.AdminTimelineGeometry.STAGGER_OFFSETS;
+      const staggerY = offsets[k % offsets.length];
+      const y = 60 + staggerY;
+      const el = Events.createEventElement(ev, baseX, y);
       axisEl.appendChild(el);
     }
   }
@@ -169,14 +170,16 @@ Events.createEventElement = function (ev, x, y) {
 
   // Label above the dot (truncated title)
   let labelText = ev.title || "";
-  if (labelText.length > 20) labelText = labelText.slice(0, 18) + "\u2026";
+  const offsets = window.AdminTimelineGeometry.STAGGER_OFFSETS;
+  const staggerIdx = 0; // Always above for admin — stagger handled by y position
+  if (labelText.length > 28) labelText = labelText.slice(0, 26) + "\u2026";
   if (labelText) {
     const label = document.createElement("span");
     label.className = "admin-timeline-event-label";
     label.style.position = "absolute";
-    label.style.left = x - 40 + "px";
-    label.style.top = y - 16 + "px";
-    label.style.width = "80px";
+    label.style.left = x - 50 + "px";
+    label.style.top = y - 18 + "px";
+    label.style.width = "100px";
     label.style.textAlign = "center";
     label.textContent = labelText;
     el.appendChild(label);

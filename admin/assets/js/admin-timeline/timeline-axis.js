@@ -12,77 +12,14 @@
 window.AdminTimelineAxis = {};
 const Axis = window.AdminTimelineAxis;
 
-/* ── Era and period constants (mirrors timeline.model.js) ──────────────────── */
+/* ── Era and period constants (from admin-timeline/timeline-geometry.js) ────── */
 
-const ERA_ORDER = [
-  "PreIncarnation",
-  "OldTestament",
-  "EarlyLife",
-  "Life",
-  "GalileeMinistry",
-  "JudeanMinistry",
-  "PassionWeek",
-  "Post-Passion",
-];
-
-const PERIOD_ORDER = [
-  "PreIncarnation",
-  "OldTestament",
-  "EarlyLifeUnborn",
-  "EarlyLifeBirth",
-  "EarlyLifeInfancy",
-  "EarlyLifeChildhood",
-  "LifeTradie",
-  "LifeBaptism",
-  "LifeTemptation",
-  "GalileeCallingTwelve",
-  "GalileeSermonMount",
-  "GalileeMiraclesSea",
-  "GalileeTransfiguration",
-  "JudeanOutsideJudea",
-  "JudeanMissionSeventy",
-  "JudeanTeachingTemple",
-  "JudeanRaisingLazarus",
-  "JudeanFinalJourney",
-  "PassionPalmSunday",
-  "PassionMondayCleansing",
-  "PassionTuesdayTeaching",
-  "PassionWednesdaySilent",
-  "PassionMaundyThursday",
-  "PassionMaundyLastSupper",
-  "PassionMaundyGethsemane",
-  "PassionMaundyBetrayal",
-  "PassionFridaySanhedrin",
-  "PassionFridayCivilTrials",
-  "PassionFridayCrucifixionBegins",
-  "PassionFridayDarkness",
-  "PassionFridayDeath",
-  "PassionFridayBurial",
-  "PassionSaturdayWatch",
-  "PassionSundayResurrection",
-  "PostResurrectionAppearances",
-  "Ascension",
-  "OurResponse",
-  "ReturnOfJesus",
-];
-
-/**
- * Era display labels shown on the timeline axis.
- * Keys are era values, values are human-readable names.
- */
-const ERA_LABELS = {
-  PreIncarnation: "Pre-Incarnation",
-  OldTestament: "Old Testament",
-  EarlyLife: "Early Life",
-  Life: "Life",
-  GalileeMinistry: "Galilee Ministry",
-  JudeanMinistry: "Judean Ministry",
-  PassionWeek: "Passion Week",
-  "Post-Passion": "Post-Passion",
-};
-
-/** Pixels per period unit on the default scale. */
-const DEFAULT_PX_PER_PERIOD = 80;
+const ERA_ORDER = window.AdminTimelineGeometry.ERA_ORDER;
+const PERIOD_ORDER = window.AdminTimelineGeometry.TIMELINE_PERIODS;
+const ERA_LABELS = window.AdminTimelineGeometry.ERA_LABELS;
+const ERA_STARTS = window.AdminTimelineGeometry.ERA_STARTS;
+const DEFAULT_PX_PER_PERIOD =
+  window.AdminTimelineGeometry.DEFAULT_PX_PER_PERIOD;
 
 /* ── State ─────────────────────────────────────────────────────────────────── */
 
@@ -163,19 +100,7 @@ Axis.eraStartX = function (era, pxPerUnit, offsetX) {
   var scale = pxPerUnit || DEFAULT_PX_PER_PERIOD;
   var off = offsetX || 0;
 
-  // Map each era to the first period in that era
-  var eraStarts = {
-    PreIncarnation: "PreIncarnation",
-    OldTestament: "OldTestament",
-    EarlyLife: "EarlyLifeUnborn",
-    Life: "LifeTradie",
-    GalileeMinistry: "GalileeCallingTwelve",
-    JudeanMinistry: "JudeanOutsideJudea",
-    PassionWeek: "PassionPalmSunday",
-    "Post-Passion": "PostResurrectionAppearances",
-  };
-
-  var firstPeriod = eraStarts[era];
+  var firstPeriod = ERA_STARTS[era];
   if (!firstPeriod) return 0;
   return Axis.periodToX(firstPeriod, scale, off);
 };

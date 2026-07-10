@@ -12,20 +12,20 @@
 
 import { createElement, batchWrite } from "../utils/dom.js";
 import { buildGraph, getChildren } from "./arbor-data.js";
+import {
+  NODE_WIDTH,
+  NODE_HEIGHT,
+  H_GAP,
+  V_GAP,
+  TOP_MARGIN,
+  LEFT_MARGIN,
+  EDGE_STYLES,
+  nodeClassModifier,
+} from "./arbor-geometry.js";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
-
-/** Estimated node dimensions (used before layout measurement). */
-const NODE_WIDTH = 200;
-const NODE_HEIGHT = 80;
-
-/** Spacing between nodes. */
-const H_GAP = 50;
-const V_GAP = 80;
-
-/** Top/left margins for the diagram. */
-const TOP_MARGIN = 40;
-const LEFT_MARGIN = 40;
+// Node dimensions, spacing, and margins are imported from arbor-geometry.js
+// so the admin editor renders with the same values.
 
 // ─── Cached references (SR-3) ─────────────────────────────────────────────────
 
@@ -146,19 +146,6 @@ function computeLayout(root, adjacency, nodesById) {
 }
 
 /**
- * Determine the CSS class modifier for a node based on its relationship to its parent.
- *
- * @param {Object|null} parentEdge - The edge from parent to this node.
- * @param {boolean} isRoot - Whether this is the root node.
- * @returns {string}
- */
-function nodeClassModifier(parentEdge, isRoot) {
-  if (isRoot) return "root";
-  if (parentEdge && parentEdge.relationshipType === "related") return "related";
-  return "";
-}
-
-/**
  * Render the full arbor diagram.
  *
  * When every node has a saved position (non-null x/y from the API), those
@@ -264,15 +251,9 @@ export function renderArbor(nodes, edges) {
         line.setAttribute("y2", String(y2));
 
         // Style by relationship type
-        if (relationshipType === "related") {
-          line.setAttribute("stroke-dasharray", "6 4");
-          line.setAttribute("stroke", "var(--border-strong)");
-        } else if (relationshipType === "root") {
-          line.setAttribute("stroke", "var(--accent)");
-          line.setAttribute("stroke-width", "2");
-        } else {
-          // supports / leads_to
-          line.setAttribute("stroke", "var(--border-strong)");
+        const style = EDGE_STYLES[relationshipType] || EDGE_STYLES.default;
+        for (const [attr, value] of Object.entries(style)) {
+          line.setAttribute(attr, value);
         }
 
         svgEl.appendChild(line);

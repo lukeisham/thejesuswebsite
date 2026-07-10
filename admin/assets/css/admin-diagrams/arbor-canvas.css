@@ -65,7 +65,7 @@
     filter: drop-shadow(0 0 0 2px rgba(199, 154, 75, 0.2));
 }
 .admin-arbor-node-title {
-    font-size: 13px;
+    font-size: var(--text-h4);
     font-family: var(--font-serif);
     fill: var(--text-primary);
     font-weight: 600;
@@ -73,7 +73,7 @@
     user-select: none;
 }
 .admin-arbor-node-verse {
-    font-size: 11px;
+    font-size: var(--text-small);
     font-family: var(--font-serif);
     fill: var(--text-muted);
     font-style: italic;

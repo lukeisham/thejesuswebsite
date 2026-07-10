@@ -33,7 +33,9 @@ const canvasSandbox = {
         appendChild: function () {},
         addEventListener: function () {},
         style: {},
-        getAttribute: function () { return null; },
+        getAttribute: function () {
+          return null;
+        },
       };
     },
     addEventListener: function () {},
@@ -41,6 +43,20 @@ const canvasSandbox = {
   },
   console: { error: function () {} },
 };
+
+// ── Load arbor-geometry.js (shared constants required by arbor-canvas/edges) ──
+
+const geometryPath = path.resolve(
+  __dirname,
+  "..",
+  "assets",
+  "js",
+  "admin-arbor",
+  "arbor-geometry.js",
+);
+const geometrySource = fs.readFileSync(geometryPath, "utf8");
+
+vm.runInNewContext(geometrySource, canvasSandbox);
 
 vm.runInNewContext(canvasSource, canvasSandbox);
 
@@ -61,29 +77,52 @@ const edgesSource = fs.readFileSync(edgesPath, "utf8");
 
 const edgesSandbox = {
   window: {
+    AdminArborGeometry: {
+      EDGE_STYLES: {
+        default: { stroke: "var(--border-strong)" },
+        root: { stroke: "var(--accent)", "stroke-width": "2" },
+        related: { "stroke-dasharray": "6 4", stroke: "var(--border-strong)" },
+      },
+    },
     AdminArborCanvas: {
-      getTransformGroup: function () { return null; },
+      getTransformGroup: function () {
+        return null;
+      },
       createEdgeLine: function () {
         return { setAttribute: function () {} };
       },
       createNodeLabel: function () {
         return { setAttribute: function () {}, textContent: "" };
       },
-      screenToDiagram: function (x, y) { return { x: x, y: y }; },
-      getTransform: function () { return { x: 0, y: 0, scale: 1 }; },
+      screenToDiagram: function (x, y) {
+        return { x: x, y: y };
+      },
+      getTransform: function () {
+        return { x: 0, y: 0, scale: 1 };
+      },
     },
     AdminArborNodes: {
-      getNodeById: function () { return null; },
+      getNodeById: function () {
+        return null;
+      },
     },
     UpdateRecord: {
-      saveEdge: async function () { return {}; },
+      saveEdge: async function () {
+        return {};
+      },
       deleteEdge: async function () {},
     },
   },
   document: {
-    getElementById: function () { return null; },
-    querySelector: function () { return null; },
-    querySelectorAll: function () { return []; },
+    getElementById: function () {
+      return null;
+    },
+    querySelector: function () {
+      return null;
+    },
+    querySelectorAll: function () {
+      return [];
+    },
     addEventListener: function () {},
     removeEventListener: function () {},
     createElement: function () {
@@ -92,7 +131,11 @@ const edgesSandbox = {
         appendChild: function () {},
         addEventListener: function () {},
         style: {},
-        classList: { add: function () {}, remove: function () {}, toggle: function () {} },
+        classList: {
+          add: function () {},
+          remove: function () {},
+          toggle: function () {},
+        },
       };
     },
   },
