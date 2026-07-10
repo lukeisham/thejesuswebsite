@@ -80,7 +80,9 @@
         </button>
         <nav class="sidebar" id="sidebar" aria-label="Site navigation">
             <ul class="sidebar__nav">
-                <li class="nav-item nav-item--home"><a href="/">The Jesus Website</a></li>
+                <li class="nav-item nav-item--home">
+                    <a href="/">The Jesus Website</a>
+                </li>
                 <li class="nav-item"><a href="/evidence/">Evidence</a></li>
                 <li class="nav-item">
                     <a href="/evidence/search.html">Search</a>
@@ -139,10 +141,23 @@
                 <header class="evidence-hero">
                     <h2 class="evidence-hero__title" id="evidence-title"></h2>
                     <blockquote
-                        class="verse-block"
+                        class="verse-block verse-block--subtle"
                         id="evidence-verse"
                     ></blockquote>
                 </header>
+
+                <!-- Pictures section -->
+                <section
+                    class="evidence-section"
+                    id="evidence-pictures-section"
+                    hidden
+                >
+                    <h3 class="evidence-section__heading">Pictures</h3>
+                    <div
+                        class="evidence-section__body"
+                        id="evidence-pictures"
+                    ></div>
+                </section>
 
                 <!-- Description section -->
                 <section
@@ -156,67 +171,18 @@
                     ></div>
                 </section>
 
-                <!-- Timeline context section -->
-                <section
-                    class="evidence-section"
-                    id="evidence-timeline-section"
-                    hidden
-                >
-                    <h3 class="evidence-section__heading">Timeline Context</h3>
-                    <div
-                        class="evidence-section__body"
-                        id="evidence-timeline-context"
-                    ></div>
-                </section>
-
-                <!-- Sources section -->
+                <!-- Bibliography section -->
                 <section
                     class="evidence-section"
                     id="evidence-sources-section"
                     hidden
                 >
-                    <h3 class="evidence-section__heading">Sources</h3>
+                    <h3 class="evidence-section__heading">Bibliography</h3>
                     <ul class="source-list" id="evidence-sources"></ul>
                 </section>
 
-                <!-- Page info row: metadata panels above footer -->
-                <aside class="page-info-row" id="page-info-row" hidden>
-                    <div class="page-info-row__panel" id="info-related" hidden>
-                        <h4 class="page-info-row__panel-heading">
-                            Related Evidence
-                        </h4>
-                        <ul
-                            class="page-info-row__list"
-                            id="info-related-list"
-                        ></ul>
-                    </div>
-                    <div
-                        class="page-info-row__panel"
-                        id="info-identifiers"
-                        hidden
-                    >
-                        <h4 class="page-info-row__panel-heading">
-                            Identifiers
-                        </h4>
-                        <ul
-                            class="page-info-row__list"
-                            id="info-identifiers-list"
-                        ></ul>
-                    </div>
-                    <div class="page-info-row__panel" id="info-meta">
-                        <h4 class="page-info-row__panel-heading">Details</h4>
-                        <dl class="page-info-row__dl">
-                            <dt>Era</dt>
-                            <dd id="info-era"></dd>
-                            <dt>Period</dt>
-                            <dd id="info-period"></dd>
-                            <dt>Location</dt>
-                            <dd id="info-location"></dd>
-                            <dt>Category</dt>
-                            <dd id="info-category"></dd>
-                        </dl>
-                    </div>
-                </aside>
+                <!-- Dates -->
+                <p class="evidence-dates" id="evidence-dates"></p>
             </article>
         </main>
 

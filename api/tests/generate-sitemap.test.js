@@ -201,9 +201,7 @@ describe("sitemap includes published detail pages", () => {
     seedEvidence({ slug: "josephus-testimony", published_draft: 1 });
 
     const urls = buildSitemap();
-    const detailUrls = urls.filter((u) =>
-      u.loc.startsWith("https://thejesuswebsite.org/evidence/single/"),
-    );
+    const detailUrls = urls.filter((u) => /\/evidence\/[^./]+$/.test(u.loc));
 
     assert.equal(detailUrls.length, 2);
     assert.ok(detailUrls.some((u) => u.loc.endsWith("/pilate-stone")));
@@ -251,9 +249,7 @@ describe("sitemap excludes unpublished rows", () => {
     seedEvidence({ slug: "draft-item", published_draft: 0 });
 
     const urls = buildSitemap();
-    const detailUrls = urls.filter((u) =>
-      u.loc.startsWith("https://thejesuswebsite.org/evidence/single/"),
-    );
+    const detailUrls = urls.filter((u) => /\/evidence\/[^./]+$/.test(u.loc));
 
     assert.equal(detailUrls.length, 1);
     assert.ok(detailUrls.some((u) => u.loc.endsWith("/published-item")));
@@ -293,7 +289,7 @@ describe("sitemap URL counts", () => {
 
     const urls1 = buildSitemap();
     const evidenceBefore = urls1.filter((u) =>
-      u.loc.startsWith("https://thejesuswebsite.org/evidence/single/"),
+      /\/evidence\/[^./]+$/.test(u.loc),
     );
     assert.equal(evidenceBefore.length, 2);
 
@@ -302,7 +298,7 @@ describe("sitemap URL counts", () => {
 
     const urls2 = buildSitemap();
     const evidenceAfter = urls2.filter((u) =>
-      u.loc.startsWith("https://thejesuswebsite.org/evidence/single/"),
+      /\/evidence\/[^./]+$/.test(u.loc),
     );
     assert.equal(evidenceAfter.length, 1);
   });

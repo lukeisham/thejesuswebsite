@@ -31,9 +31,9 @@ const FRONTEND_DIR = path.resolve(__dirname, "..", "..", "frontend");
 const CONTENT_PAGES = {
   evidence: {
     type: "evidence",
-    templatePath: path.join(FRONTEND_DIR, "evidence", "single", "[slug].html"),
-    outputDir: path.join(FRONTEND_DIR, "evidence", "single"),
-    urlPattern: "/evidence/single/",
+    templatePath: path.join(FRONTEND_DIR, "evidence", "[slug].html"),
+    outputDir: path.join(FRONTEND_DIR, "evidence"),
+    urlPattern: "/evidence/",
     table: "evidence",
     slugColumn: "slug",
     titleColumn: "title",

@@ -156,7 +156,7 @@ const SECTION_PAGES = [
 const CONTENT_TYPES = [
   {
     table: "evidence",
-    urlPrefix: "/evidence/single/",
+    urlPrefix: "/evidence/",
     slugColumn: "slug",
     dateColumn: "updated_at",
     priority: "0.8",

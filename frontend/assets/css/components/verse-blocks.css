@@ -8,17 +8,29 @@
    ------------------------------------------------------------------------- */
 
 .verse-block {
-  font-family: var(--font-mono);
-  font-size: var(--text-small);
-  color: var(--text-primary);
-  background: var(--bg-surface-alt);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent-gold);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1rem;
-  margin: var(--space-lg) 0;
-  line-height: var(--leading-small);
-  overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--text-primary);
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-gold);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    margin: var(--space-lg) 0;
+    line-height: var(--leading-small);
+    overflow-x: auto;
+}
+
+/* -------------------------------------------------------------------------
+   Verse Block — Subtle Variant
+   ------------------------------------------------------------------------- */
+
+.verse-block--subtle {
+    background: transparent;
+    border: none;
+    border-left: 2px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.5rem 0.75rem;
 }
 
 /* -------------------------------------------------------------------------
@@ -27,18 +39,18 @@
    ------------------------------------------------------------------------- */
 
 .code-block {
-  font-family: var(--font-mono);
-  font-size: var(--text-small);
-  color: var(--text-secondary);
-  background: var(--bg-surface-alt);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent-gold);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1rem;
-  margin: var(--space-lg) 0;
-  line-height: var(--leading-small);
-  overflow-x: auto;
-  white-space: pre-wrap;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--text-secondary);
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-gold);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    margin: var(--space-lg) 0;
+    line-height: var(--leading-small);
+    overflow-x: auto;
+    white-space: pre-wrap;
 }
 
 /* -------------------------------------------------------------------------
@@ -46,8 +58,8 @@
    ------------------------------------------------------------------------- */
 
 .verse-ref {
-  font-family: var(--font-mono);
-  font-size: var(--text-small);
-  font-weight: 600;
-  font-variant: small-caps;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-weight: 600;
+    font-variant: small-caps;
 }

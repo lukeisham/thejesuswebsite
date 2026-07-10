@@ -8,6 +8,7 @@ import { getEvidence } from "./api.js";
 import { html, raw } from "./utils/templates.js";
 import { getParams, pushState } from "./utils/router.js";
 import { showToast } from "./utils/toasts.js";
+import { formatItemsLoaded } from "./utils/format.js";
 import { numberFigures } from "./utils/figures.js";
 import { delegate } from "./utils/dom.js";
 import { initFilterPanel } from "./utils/filter-panel.js";
@@ -147,8 +148,7 @@ async function loadPage() {
       $sentinel.hidden = true;
       showState("end");
       const total = allItems.length;
-      if ($end)
-        $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
+      if ($end) $end.textContent = formatItemsLoaded(total);
     }
     return;
   }
@@ -162,8 +162,7 @@ async function loadPage() {
     $sentinel.hidden = true;
     showState("end");
     const total = allItems.length;
-    if ($end)
-      $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
+    if ($end) $end.textContent = formatItemsLoaded(total);
     return;
   }
 
@@ -176,8 +175,7 @@ async function loadPage() {
     $sentinel.hidden = true;
     showState("end");
     const total = allItems.length;
-    if ($end)
-      $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
+    if ($end) $end.textContent = formatItemsLoaded(total);
   } else {
     currentPage++;
     hideAllStates();
@@ -211,7 +209,7 @@ function renderRows(items) {
  *
  * Emits an <li> row with:
  *   - thumbnail (lazy-loaded via data-src, placeholder when null)
- *   - title (linked to /evidence/single/<slug>)
+ *   - title (linked to /evidence/<slug>)
  *   - primary_verse in muted monospace style
  *
  * All values are escaped via the `html` tagged template (JS-6).
@@ -221,7 +219,7 @@ function renderRows(items) {
  * @returns {SafeString}
  */
 function renderEvidenceRow(item) {
-  const url = `/evidence/single/${encodeURIComponent(item.slug || "")}`;
+  const url = `/evidence/${encodeURIComponent(item.slug || "")}`;
   const title = item.title || "Untitled";
   const verse = item.primary_verse || "";
   const thumbnail = item.thumbnail_path || "";
@@ -305,8 +303,7 @@ function restoreFromCache() {
       renderRows(allItems);
       showState("end");
       const total = allItems.length;
-      if ($end)
-        $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
+      if ($end) $end.textContent = formatItemsLoaded(total);
       return true;
     }
   } catch {

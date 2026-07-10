@@ -15,12 +15,12 @@
  * formatDate('2024-03-15') // 'March 15, 2024' (en-US)
  */
 export function formatDate(iso, locale) {
-  if (typeof iso !== 'string' || iso.length === 0) return iso;
+  if (typeof iso !== "string" || iso.length === 0) return iso;
 
   const date = new Date(iso);
   if (isNaN(date.getTime())) return iso;
 
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  const options = { year: "numeric", month: "long", day: "numeric" };
   try {
     return new Intl.DateTimeFormat(locale || undefined, options).format(date);
   } catch {
@@ -38,15 +38,15 @@ export function formatDate(iso, locale) {
  * formatSlug('Jesus of Nazareth') // 'jesus-of-nazareth'
  */
 export function formatSlug(str) {
-  if (typeof str !== 'string') return '';
+  if (typeof str !== "string") return "";
 
   return str
     .trim()
     .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 /**
@@ -57,11 +57,11 @@ export function formatSlug(str) {
  * @returns {string}
  */
 export function truncate(str, n) {
-  if (typeof str !== 'string') return '';
-  if (typeof n !== 'number' || n <= 0) return str;
+  if (typeof str !== "string") return "";
+  if (typeof n !== "number" || n <= 0) return str;
 
   if (str.length <= n) return str;
-  return str.slice(0, n - 1).trimEnd() + '…';
+  return str.slice(0, n - 1).trimEnd() + "…";
 }
 
 /**
@@ -71,11 +71,27 @@ export function truncate(str, n) {
  * @returns {string} Formatted reference.
  */
 export function formatVerse(ref) {
-  if (typeof ref !== 'string' || ref.length === 0) return '';
+  if (typeof ref !== "string" || ref.length === 0) return "";
 
   // Capitalise book name, normalise spacing around colon
   return ref
     .replace(/\b\w/g, (c) => c.toUpperCase())
-    .replace(/\s*:\s*/g, ':')
+    .replace(/\s*:\s*/g, ":")
     .trim();
+}
+
+/**
+ * Return a human-readable end-of-list label.
+ *
+ * @param {number} total - Total number of items loaded.
+ * @returns {string} "Just 1 item loaded" when total is 1,
+ *   otherwise "All N items loaded".
+ *
+ * @example
+ * formatItemsLoaded(1)  // "Just 1 item loaded"
+ * formatItemsLoaded(42) // "All 42 items loaded"
+ */
+export function formatItemsLoaded(total) {
+  if (total === 1) return "Just 1 item loaded";
+  return `All ${total} items loaded`;
 }
