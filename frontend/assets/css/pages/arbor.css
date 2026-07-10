@@ -105,6 +105,49 @@
 }
 
 /* -------------------------------------------------------------------------
+   Mobile Vertical Flow (< 768px)
+   Nodes stack top-to-bottom, full-width, page-scrollable.
+   Dot-grid retained; zoom controls hidden; pan-drag disabled.
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .arbor-canvas {
+        overflow: visible;
+        height: auto;
+        min-height: auto;
+        cursor: default;
+    }
+
+    .arbor-canvas:active {
+        cursor: default;
+    }
+
+    .arbor-diagram {
+        position: relative;
+        transform: none !important;
+        transition: none;
+    }
+
+    .arbor-node {
+        max-width: calc(100vw - 2 * var(--space-md));
+    }
+
+    .arbor-node:hover {
+        transform: none;
+    }
+
+    /* Hide zoom/pan controls in vertical mode */
+    .arbor-controls {
+        display: none;
+    }
+
+    /* SVG edges stay visible */
+    .arbor-edges {
+        position: absolute;
+    }
+}
+
+/* -------------------------------------------------------------------------
    Print Styles
    ------------------------------------------------------------------------- */
 

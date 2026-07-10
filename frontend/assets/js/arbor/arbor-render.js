@@ -11,7 +11,7 @@
  */
 
 import { createElement, batchWrite } from "../utils/dom.js";
-import { buildGraph, getChildren } from "./arbor-data.js";
+import { buildGraph, getChildren, topologicalSort } from "./arbor-data.js";
 import {
   NODE_WIDTH,
   NODE_HEIGHT,
@@ -146,6 +146,50 @@ function computeLayout(root, adjacency, nodesById) {
 }
 
 /**
+ * Check whether the viewport is in vertical (mobile < 768px) mode.
+ *
+ * @returns {boolean}
+ */
+export function isVerticalMode() {
+  try {
+    return window.matchMedia("(max-width: 767px)").matches;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Vertical (mobile) layout: nodes stacked top-to-bottom, full-width.
+ * Overrides admin-authored x/y positions — those encode the desktop
+ * composition and can't be honoured on a phone-width canvas.
+ *
+ * @param {Object} root
+ * @param {Map} adjacency
+ * @param {Map<number, Object>} nodesById
+ * @returns {Map<number, { x: number, y: number }>}
+ */
+function computeVerticalLayout(root, adjacency, nodesById) {
+  const positions = new Map();
+  const ordered = topologicalSort(root, adjacency, nodesById);
+  if (ordered.length === 0) return positions;
+
+  const vw = window.innerWidth;
+  // Match CSS calc(100vw - 2 * var(--space-md)), clamped to a max-width
+  const nodeWidth = Math.min(vw - 2 * 16, 400);
+  const x = (vw - nodeWidth) / 2;
+  const rowHeight = NODE_HEIGHT + V_GAP;
+
+  for (let i = 0; i < ordered.length; i++) {
+    positions.set(ordered[i].id, {
+      x: x,
+      y: TOP_MARGIN + i * rowHeight,
+    });
+  }
+
+  return positions;
+}
+
+/**
  * Render the full arbor diagram.
  *
  * When every node has a saved position (non-null x/y from the API), those
@@ -153,11 +197,14 @@ function computeLayout(root, adjacency, nodesById) {
  * Otherwise, the existing BFS tree layout is used for the whole diagram
  * (mixed positions would produce overlapping layouts).
  *
+ * On mobile (< 768px) a vertical top-to-bottom layout is always used,
+ * overriding saved positions.
+ *
  * @param {Array} nodes - Evidence nodes.
  * @param {Array} edges - Arbor edges.
  */
 export function renderArbor(nodes, edges) {
-  if (!canvasEl || !diagramEl || !svgEl) return;
+  if (!canvasEl || !diagramEl) return;
 
   const { nodesById, adjacency, root } = buildGraph(nodes, edges);
 
@@ -166,28 +213,35 @@ export function renderArbor(nodes, edges) {
     return;
   }
 
-  // Check if all nodes have saved positions
-  let allHavePositions = true;
-  for (const [, node] of nodesById) {
-    if (
-      node.x == null ||
-      node.y == null ||
-      !Number.isFinite(node.x) ||
-      !Number.isFinite(node.y)
-    ) {
-      allHavePositions = false;
-      break;
-    }
-  }
+  const vertical = isVerticalMode();
 
-  // Compute layout: prefer saved positions, fall back to BFS
-  if (allHavePositions) {
-    nodePositions = new Map();
-    for (const [nodeId, node] of nodesById) {
-      nodePositions.set(nodeId, { x: node.x, y: node.y });
-    }
+  // Compute layout
+  if (vertical) {
+    // Mobile: always use vertical layout
+    nodePositions = computeVerticalLayout(root, adjacency, nodesById);
   } else {
-    nodePositions = computeLayout(root, adjacency, nodesById);
+    // Desktop: prefer saved positions, fall back to BFS
+    let allHavePositions = true;
+    for (const [, node] of nodesById) {
+      if (
+        node.x == null ||
+        node.y == null ||
+        !Number.isFinite(node.x) ||
+        !Number.isFinite(node.y)
+      ) {
+        allHavePositions = false;
+        break;
+      }
+    }
+
+    if (allHavePositions) {
+      nodePositions = new Map();
+      for (const [nodeId, node] of nodesById) {
+        nodePositions.set(nodeId, { x: node.x, y: node.y });
+      }
+    } else {
+      nodePositions = computeLayout(root, adjacency, nodesById);
+    }
   }
 
   // Build a map: childId → parentEdge for node class determination
@@ -204,6 +258,13 @@ export function renderArbor(nodes, edges) {
   }
 
   batchWrite(() => {
+    // ── Track vertical-mode state on the canvas (picked up by CSS) ───────
+    if (vertical) {
+      canvasEl.classList.add("arbor-canvas--vertical");
+    } else {
+      canvasEl.classList.remove("arbor-canvas--vertical");
+    }
+
     // ── Clear existing content ────────────────────────────────────────────
     diagramEl.innerHTML = "";
     svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -221,13 +282,28 @@ export function renderArbor(nodes, edges) {
     maxX += LEFT_MARGIN;
     maxY += TOP_MARGIN;
 
-    // Size the SVG and diagram container
-    svgEl.setAttribute("width", String(maxX));
-    svgEl.setAttribute("height", String(maxY));
-    diagramEl.style.width = `${maxX}px`;
-    diagramEl.style.height = `${maxY}px`;
+    if (vertical) {
+      // Mobile: diagram grows to content height; canvas scrolls with page
+      diagramEl.style.position = "relative";
+      diagramEl.style.width = "";
+      diagramEl.style.height = `${maxY}px`;
+      diagramEl.style.transform = "";
+      svgEl.setAttribute("width", String(window.innerWidth));
+      svgEl.setAttribute("height", String(maxY));
+    } else {
+      // Desktop: absolute-positioned within the canvas
+      diagramEl.style.position = "absolute";
+      diagramEl.style.width = `${maxX}px`;
+      diagramEl.style.height = `${maxY}px`;
+      svgEl.setAttribute("width", String(maxX));
+      svgEl.setAttribute("height", String(maxY));
+    }
 
     // ── Draw edges ────────────────────────────────────────────────────────
+    const drawNodeWidth = vertical
+      ? Math.min(window.innerWidth - 2 * 16, 400)
+      : NODE_WIDTH;
+
     for (const [sourceId, targets] of adjacency) {
       const sourcePos = nodePositions.get(sourceId);
       if (!sourcePos) continue;
@@ -236,9 +312,9 @@ export function renderArbor(nodes, edges) {
         const targetPos = nodePositions.get(targetId);
         if (!targetPos) continue;
 
-        const x1 = sourcePos.x + NODE_WIDTH / 2;
+        const x1 = sourcePos.x + drawNodeWidth / 2;
         const y1 = sourcePos.y + NODE_HEIGHT;
-        const x2 = targetPos.x + NODE_WIDTH / 2;
+        const x2 = targetPos.x + drawNodeWidth / 2;
         const y2 = targetPos.y;
 
         const line = document.createElementNS(
@@ -289,7 +365,9 @@ export function renderArbor(nodes, edges) {
         "div",
         {
           className: ["arbor-node", modifier].filter(Boolean).join(" "),
-          style: `left:${pos.x}px;top:${pos.y}px;width:${NODE_WIDTH}px`,
+          style: vertical
+            ? `left:${pos.x}px;top:${pos.y}px;width:${drawNodeWidth}px`
+            : `left:${pos.x}px;top:${pos.y}px;width:${NODE_WIDTH}px`,
           dataset: {
             nodeId: String(nodeId),
             slug: node.slug || "",
