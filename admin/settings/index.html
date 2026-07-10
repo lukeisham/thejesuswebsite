@@ -10,6 +10,50 @@
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/passkey.js"></script>
         <script defer src="../assets/js/admin-credentials.js"></script>
+        <style>
+            .settings-form {
+                max-width: 600px;
+            }
+            .settings-message {
+                margin-top: var(--space-md);
+                padding: var(--space-sm) var(--space-md);
+                border-radius: var(--admin-radius-sm);
+                font-size: 14px;
+                line-height: 1.5;
+            }
+            .settings-message--success {
+                color: var(--admin-success-color);
+                background: var(--admin-success-bg);
+                border: 1px solid var(--admin-success-border);
+            }
+            .settings-message--error {
+                color: var(--admin-error-color);
+                background: var(--admin-error-bg);
+                border: 1px solid var(--admin-error-border);
+            }
+            .settings-char-counter {
+                display: block;
+                margin-top: var(--space-xs);
+                font-size: 11px;
+                color: var(--admin-text-muted);
+            }
+            .settings-char-counter--over {
+                color: var(--admin-danger);
+            }
+            .settings-image-preview {
+                display: block;
+                width: 120px;
+                margin-top: var(--space-sm);
+                border-radius: var(--admin-radius-sm);
+                border: 1px solid var(--admin-border-light);
+            }
+            .settings-passkeys {
+                max-width: 600px;
+                margin-top: var(--space-2xl);
+                padding-top: var(--space-lg);
+                border-top: 1px solid var(--admin-border-light);
+            }
+        </style>
     </head>
     <body>
         <div class="admin-shell">
@@ -129,45 +173,67 @@
 
                 try {
                     // Load current settings
-                    const about = await Admin.api
-                        .get("/about")
-                        .catch(function () {
-                            return {};
-                        });
+                    var settings = (await Admin.api.get("/site-settings")) || {};
 
                     main.innerHTML = "";
 
                     // Build the settings form
                     const form = document.createElement("form");
-                    form.style.maxWidth = "600px";
+                    form.className = "settings-form";
                     form.addEventListener("submit", saveSettings);
 
                     // Site Title
-                    var group = buildFormGroup(
-                        "Site Title",
-                        "siteTitle",
-                        "input",
-                        about.title || "",
+                    form.appendChild(
+                        buildFormGroup(
+                            "Site Title",
+                            "siteTitle",
+                            "input",
+                            settings.title || "",
+                            "Appears in browser tabs, search results, social sharing cards, and the site header.",
+                        ),
                     );
-                    form.appendChild(group);
 
-                    // Site Description
-                    group = buildFormGroup(
+                    // Site Description (+ character counter)
+                    var descGroup = buildFormGroup(
                         "Site Description",
                         "siteDescription",
                         "textarea",
-                        about.description || "",
+                        settings.description || "",
+                        "Appears in search result snippets and social sharing cards. Keep under 160 characters.",
                     );
-                    form.appendChild(group);
+                    var descInput = descGroup.querySelector(
+                        "#field-siteDescription",
+                    );
+                    var counter = document.createElement("p");
+                    counter.className = "settings-char-counter";
+                    counter.id = "description-counter";
+                    descGroup.appendChild(counter);
+                    descInput.addEventListener("input", function () {
+                        updateCharCounter(counter, descInput.value.length);
+                    });
+                    updateCharCounter(counter, descInput.value.length);
+                    form.appendChild(descGroup);
 
-                    // Default OG Image URL
-                    group = buildFormGroup(
+                    // Default OG Image URL (+ preview thumbnail)
+                    var ogImageValue = settings.og_image || "";
+                    var ogGroup = buildFormGroup(
                         "Default OG Image URL",
                         "ogImage",
                         "input",
-                        about.ogImage || about.og_image || "",
+                        ogImageValue,
+                        "The image shown when any page on the site is shared on social media. Used as a fallback when a content page has no image of its own.",
                     );
-                    form.appendChild(group);
+                    var ogInput = ogGroup.querySelector("#field-ogImage");
+                    var preview = document.createElement("img");
+                    preview.className = "settings-image-preview";
+                    preview.id = "og-image-preview";
+                    preview.alt = "Default OG image preview";
+                    preview.hidden = true;
+                    ogGroup.appendChild(preview);
+                    ogInput.addEventListener("blur", function () {
+                        updateImagePreview(preview, ogInput.value.trim());
+                    });
+                    form.appendChild(ogGroup);
 
                     // Save button
                     var btnGroup = document.createElement("div");
@@ -176,28 +242,30 @@
 
                     var saveBtn = document.createElement("button");
                     saveBtn.type = "submit";
+                    saveBtn.id = "settings-save-btn";
                     saveBtn.className = "admin-btn admin-btn--primary";
                     saveBtn.textContent = "Save Settings";
                     btnGroup.appendChild(saveBtn);
 
                     form.appendChild(btnGroup);
-                    main.appendChild(form);
 
                     // Message area
                     var msg = document.createElement("div");
                     msg.id = "settings-message";
+                    msg.className = "settings-message";
                     msg.setAttribute("role", "status");
                     msg.setAttribute("aria-live", "polite");
-                    main.appendChild(msg);
+                    form.appendChild(msg);
+
+                    main.appendChild(form);
+
+                    // Show the preview immediately if a URL is already saved.
+                    updateImagePreview(preview, ogImageValue);
 
                     // ── Passkeys section ───────────────────────────────────
                     var passkeysContainer = document.createElement("section");
                     passkeysContainer.id = "settings-passkeys";
-                    passkeysContainer.style.maxWidth = "600px";
-                    passkeysContainer.style.marginTop = "var(--space-2xl)";
-                    passkeysContainer.style.paddingTop = "var(--space-lg)";
-                    passkeysContainer.style.borderTop =
-                        "1px solid var(--admin-border-light)";
+                    passkeysContainer.className = "settings-passkeys";
                     main.appendChild(passkeysContainer);
 
                     // Initialise the credential-management component when its
@@ -224,7 +292,7 @@
 
                 /* ── Helpers ─────────────────────────────────────────────────────── */
 
-                function buildFormGroup(labelText, id, type, value) {
+                function buildFormGroup(labelText, id, type, value, hintText) {
                     var div = document.createElement("div");
                     div.className = "admin-form-group";
 
@@ -234,31 +302,64 @@
                     label.textContent = labelText;
                     div.appendChild(label);
 
+                    var hintId = "hint-" + id;
+                    var el;
                     if (type === "textarea") {
-                        var el = document.createElement("textarea");
+                        el = document.createElement("textarea");
                         el.className = "admin-textarea";
-                        el.id = "field-" + id;
-                        el.name = id;
-                        el.value = value;
                         el.rows = 4;
-                        div.appendChild(el);
                     } else {
-                        var el = document.createElement("input");
+                        el = document.createElement("input");
                         el.className = "admin-input";
                         el.type = "text";
-                        el.id = "field-" + id;
-                        el.name = id;
-                        el.value = value;
-                        div.appendChild(el);
+                    }
+                    el.id = "field-" + id;
+                    el.name = id;
+                    el.value = value;
+                    if (hintText) el.setAttribute("aria-describedby", hintId);
+                    div.appendChild(el);
+
+                    if (hintText) {
+                        var hint = document.createElement("p");
+                        hint.className = "admin-form-hint";
+                        hint.id = hintId;
+                        hint.textContent = hintText;
+                        div.appendChild(hint);
                     }
 
                     return div;
                 }
 
+                function updateCharCounter(el, length) {
+                    el.textContent = length + " / 160 characters";
+                    el.classList.toggle(
+                        "settings-char-counter--over",
+                        length > 160,
+                    );
+                }
+
+                function updateImagePreview(imgEl, url) {
+                    if (!url) {
+                        imgEl.hidden = true;
+                        imgEl.removeAttribute("src");
+                        return;
+                    }
+                    imgEl.onload = function () {
+                        imgEl.hidden = false;
+                    };
+                    imgEl.onerror = function () {
+                        imgEl.hidden = true;
+                    };
+                    imgEl.src = url;
+                }
+
                 async function saveSettings(e) {
                     e.preventDefault();
                     var msg = document.getElementById("settings-message");
-                    if (!msg) return;
+                    var saveBtn = document.getElementById(
+                        "settings-save-btn",
+                    );
+                    if (!msg || !saveBtn) return;
 
                     var payload = {
                         title: document
@@ -267,22 +368,29 @@
                         description: document
                             .getElementById("field-siteDescription")
                             .value.trim(),
-                        ogImage: document
+                        og_image: document
                             .getElementById("field-ogImage")
                             .value.trim(),
                     };
 
+                    var originalLabel = saveBtn.textContent;
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = "Saving…";
+                    msg.className = "settings-message";
+                    msg.textContent = "";
+
                     try {
-                        await Admin.api.put("/about", payload);
-                        msg.className = "";
-                        msg.style.color = "var(--admin-success)";
-                        msg.style.marginTop = "var(--space-md)";
+                        await Admin.api.put("/site-settings", payload);
+                        msg.className =
+                            "settings-message settings-message--success";
                         msg.textContent = "Settings saved successfully.";
                     } catch (err) {
-                        msg.className = "admin-error";
-                        msg.setAttribute("role", "alert");
-                        msg.style.marginTop = "var(--space-md)";
+                        msg.className =
+                            "settings-message settings-message--error";
                         msg.textContent = "Error: " + err.message;
+                    } finally {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = originalLabel;
                     }
                 }
             });

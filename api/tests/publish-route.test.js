@@ -56,6 +56,14 @@ testDb.exec(`
     target_context_essay_id INTEGER NOT NULL,
     sort_order            INTEGER DEFAULT 0
   );
+  CREATE TABLE site_settings (
+    id          INTEGER PRIMARY KEY CHECK (id = 1),
+    title       TEXT NOT NULL DEFAULT 'The Jesus Website',
+    description TEXT NOT NULL DEFAULT '',
+    og_image    TEXT
+  );
+  INSERT INTO site_settings (id, title, description, og_image)
+  VALUES (1, 'The Jesus Website', 'Test description.', NULL);
 `);
 
 // Replace the real database with our in-memory copy.

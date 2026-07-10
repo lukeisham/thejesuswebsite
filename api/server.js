@@ -54,6 +54,7 @@ app.use("/search", publicReadLimit, require("./routes/search"));
 app.use("/sources", publicReadLimit, require("./routes/sources"));
 app.use("/about", publicReadLimit, require("./routes/about"));
 app.use("/esv", publicReadLimit, require("./routes/esv"));
+app.use("/site-settings", publicReadLimit, require("./routes/site-settings"));
 
 // --- Upload route (mounted before global body limit so it can use its own 8 MB limit) ---
 app.use("/uploads", require("./routes/uploads"));

@@ -13,6 +13,22 @@ const { CONTENT_PAGES } = require("../config/content-pages");
 
 const BASE_URL = "https://thejesuswebsite.org";
 
+// ── Site settings (cached after first read) ──────────────────────────────────
+
+let cachedSettings = null;
+
+/**
+ * Read the singleton site_settings row, caching after the first call —
+ * generateAll() may render hundreds of pages in one run and the row rarely
+ * changes.
+ */
+function getSettings() {
+  if (!cachedSettings) {
+    cachedSettings = db.prepare("SELECT * FROM site_settings WHERE id = 1").get();
+  }
+  return cachedSettings;
+}
+
 // ── HTML escaping ────────────────────────────────────────────────────────────
 
 const ESCAPE_MAP = {
@@ -52,18 +68,23 @@ function truncate(text, maxLen) {
  * @returns {string} HTML fragment for <head>
  */
 function renderSeoBlock(config, row) {
+  const settings = getSettings();
+  const siteName = settings.title;
   const title = row[config.titleColumn] || "";
   const description = config.descriptionColumn
     ? row[config.descriptionColumn] || ""
     : "";
-  const ogImage = config.imageColumn ? row[config.imageColumn] || "" : "";
+  const ogImage =
+    (config.imageColumn ? row[config.imageColumn] || "" : "") ||
+    settings.og_image ||
+    "";
   const canonicalUrl = `${BASE_URL}${config.urlPattern}${encodeURIComponent(row.slug)}`;
   const datePublished = config.dateColumn ? row[config.dateColumn] : null;
 
   let html = "";
 
   // <title>
-  html += `  <title>${escapeHTML(title)} — ${escapeHTML(config.sectionLabel)} — The Jesus Website</title>\n`;
+  html += `  <title>${escapeHTML(title)} — ${escapeHTML(config.sectionLabel)} — ${escapeHTML(siteName)}</title>\n`;
 
   // Meta description
   if (description) {
@@ -72,12 +93,12 @@ function renderSeoBlock(config, row) {
   html += `  <meta name="robots" content="index, follow">\n`;
 
   // Open Graph
-  html += `  <meta property="og:title" content="${escapeHTML(title)} — ${escapeHTML(config.sectionLabel)} — The Jesus Website">\n`;
+  html += `  <meta property="og:title" content="${escapeHTML(title)} — ${escapeHTML(config.sectionLabel)} — ${escapeHTML(siteName)}">\n`;
   if (description) {
     html += `  <meta property="og:description" content="${escapeHTML(truncate(description, 160))}">\n`;
   }
   html += `  <meta property="og:type" content="article">\n`;
-  html += `  <meta property="og:site_name" content="The Jesus Website">\n`;
+  html += `  <meta property="og:site_name" content="${escapeHTML(siteName)}">\n`;
   html += `  <meta property="og:url" content="${escapeHTML(canonicalUrl)}">\n`;
   if (ogImage) {
     html += `  <meta property="og:image" content="${escapeHTML(ogImage)}">\n`;
@@ -85,6 +106,9 @@ function renderSeoBlock(config, row) {
 
   // Twitter Card
   html += `  <meta name="twitter:card" content="summary_large_image">\n`;
+  if (ogImage) {
+    html += `  <meta name="twitter:image" content="${escapeHTML(ogImage)}">\n`;
+  }
 
   // Canonical
   html += `  <link rel="canonical" href="${escapeHTML(canonicalUrl)}">\n`;
