@@ -11,21 +11,6 @@
 window.AdminMapsPins = {};
 const Pins = window.AdminMapsPins;
 
-/* ── Helpers ──────────────────────────────────────────────────────────────── */
-
-/**
- * Convert a CamelCase timeline_era value to kebab-case for CSS classes.
- * e.g. "GalileeMinistry" → "galilee-ministry"
- * @param {string} era
- * @returns {string}
- */
-function eraToKebab(era) {
-  return era
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
-    .toLowerCase();
-}
-
 /* ── State ────────────────────────────────────────────────────────────────── */
 
 /** @type {Array<Object>} */
@@ -109,17 +94,17 @@ Pins.renderPins = function () {
 
   // Render existing (saved) pins
   for (let i = 0; i < pins.length; i++) {
-    var pin = pins[i];
-    var el = Pins.createPinElement(pin);
+    const pin = pins[i];
+    const el = Pins.createPinElement(pin);
     pinsLayer.appendChild(el);
   }
 
   // Render staged creates (holding-pen drops / staged add-mode clicks)
   if (window.AdminMapsStaged) {
-    var staged = window.AdminMapsStaged.getCreates();
+    const staged = window.AdminMapsStaged.getCreates();
     for (let j = 0; j < staged.length; j++) {
-      var s = staged[j];
-      var sel = Pins._createStagedPinElement(s);
+      const s = staged[j];
+      const sel = Pins._createStagedPinElement(s);
       pinsLayer.appendChild(sel);
     }
   }
@@ -135,7 +120,7 @@ Pins.createPinElement = function (pin) {
   const el = document.createElement("button");
   el.className = "admin-map-pin";
   if (pin.timeline_era) {
-    el.classList.add("era--" + eraToKebab(pin.timeline_era));
+    el.classList.add("era--" + AdminMapsEraUtils.eraToKebab(pin.timeline_era));
   }
   if (pin.id === selectedPinId) {
     el.classList.add("admin-map-pin--selected");
@@ -157,12 +142,12 @@ Pins.createPinElement = function (pin) {
     el.appendChild(labelEl);
   }
 
-  el.addEventListener("click", function (e) {
+  el.addEventListener("click", (e) => {
     Pins.onPinClick(e, pin);
   });
 
   // Drag listeners
-  el.addEventListener("mousedown", function (e) {
+  el.addEventListener("mousedown", (e) => {
     Pins.onPinMouseDown(e, pin);
   });
 
@@ -180,7 +165,9 @@ Pins._createStagedPinElement = function (staged) {
   const el = document.createElement("button");
   el.className = "admin-map-pin admin-map-pin--staged";
   if (staged.timeline_era) {
-    el.classList.add("era--" + eraToKebab(staged.timeline_era));
+    el.classList.add(
+      "era--" + AdminMapsEraUtils.eraToKebab(staged.timeline_era),
+    );
   }
   el.style.left = staged.x + "%";
   el.style.top = staged.y + "%";
@@ -190,7 +177,7 @@ Pins._createStagedPinElement = function (staged) {
 
   // Label span
   if (staged.label) {
-    var labelEl = document.createElement("span");
+    const labelEl = document.createElement("span");
     labelEl.className = "admin-map-pin-label";
     labelEl.textContent = staged.label;
     el.appendChild(labelEl);
@@ -248,8 +235,8 @@ Pins.onCanvasClick = async function (e) {
     // If staging is available, stage the pin instead of POSTing immediately
     if (window.AdminMapsStaged) {
       // Build a minimal evidence-like object for staging
-      var stagedEvidence = { id: null, title: null, timeline_era: null };
-      var staged = window.AdminMapsStaged.stageCreate(
+      const stagedEvidence = { id: null, title: null, timeline_era: null };
+      const staged = window.AdminMapsStaged.stageCreate(
         currentMapId,
         stagedEvidence,
         payload.x,
@@ -261,7 +248,7 @@ Pins.onCanvasClick = async function (e) {
       return;
     }
 
-    var created = await Admin.api.post("/maps/pins", payload);
+    const created = await Admin.api.post("/maps/pins", payload);
     pins.push(created);
     Pins.renderPins();
     Pins.selectPin(created.id);
@@ -401,9 +388,7 @@ Pins.onDeletePin = async function () {
     await Admin.api.del("/maps/pins/" + selectedPinId);
 
     // Remove from local state
-    pins = pins.filter(function (p) {
-      return p.id !== selectedPinId;
-    });
+    pins = pins.filter((p) => p.id !== selectedPinId);
     Pins.closeEditPanel();
     Pins.renderPins();
   } catch (e) {
@@ -506,7 +491,7 @@ Pins.onPinMouseUp = async function (e) {
       return;
     }
 
-    var updated = await Admin.api.put("/maps/pins/" + pin.id, {
+    const updated = await Admin.api.put("/maps/pins/" + pin.id, {
       x: Math.round(pct.x * 100) / 100,
       y: Math.round(pct.y * 100) / 100,
     });

@@ -31,12 +31,12 @@ HoldingPen.init = function () {
   // Wire the canvas as a drop target
   const canvas = document.getElementById("map-canvas");
   if (canvas) {
-    canvas.addEventListener("dragover", function (e) {
+    canvas.addEventListener("dragover", (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = "copy";
       canvas.classList.add("holding-pen--drop-target");
     });
-    canvas.addEventListener("dragleave", function () {
+    canvas.addEventListener("dragleave", () => {
       canvas.classList.remove("holding-pen--drop-target");
     });
     canvas.addEventListener("drop", HoldingPen.onDrop);
@@ -66,16 +66,6 @@ HoldingPen.loadForMap = async function (mapId) {
 /* ── Rendering ────────────────────────────────────────────────────────────── */
 
 /**
- * Era CamelCase → kebab-case helper.
- */
-function eraToKebab(era) {
-  return era
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
-    .toLowerCase();
-}
-
-/**
  * Render chips for all unplaced evidence.
  */
 HoldingPen.render = function () {
@@ -84,16 +74,16 @@ HoldingPen.render = function () {
   penContainer.innerHTML = "";
 
   if (unplacedEvidence.length === 0) {
-    var empty = document.createElement("p");
+    const empty = document.createElement("p");
     empty.className = "holding-pen__empty";
     empty.textContent = "All map-located evidence has been placed.";
     penContainer.appendChild(empty);
     return;
   }
 
-  for (var i = 0; i < unplacedEvidence.length; i++) {
-    var ev = unplacedEvidence[i];
-    var chip = HoldingPen.createChip(ev);
+  for (let i = 0; i < unplacedEvidence.length; i++) {
+    const ev = unplacedEvidence[i];
+    const chip = HoldingPen.createChip(ev);
     penContainer.appendChild(chip);
   }
 };
@@ -105,33 +95,34 @@ HoldingPen.render = function () {
  * @returns {HTMLElement}
  */
 HoldingPen.createChip = function (evidence) {
-  var chip = document.createElement("button");
+  const chip = document.createElement("button");
   chip.className = "holding-pen__chip";
   chip.draggable = true;
   chip.dataset.evidenceId = String(evidence.id);
 
   // Era swatch
   if (evidence.timeline_era) {
-    var swatch = document.createElement("span");
+    const swatch = document.createElement("span");
     swatch.className =
-      "holding-pen__chip-swatch era-swatch--" + eraToKebab(evidence.timeline_era);
+      "holding-pen__chip-swatch era-swatch--" +
+      AdminMapsEraUtils.eraToKebab(evidence.timeline_era);
     chip.appendChild(swatch);
   }
 
   // Title
-  var titleEl = document.createElement("span");
+  const titleEl = document.createElement("span");
   titleEl.className = "holding-pen__chip-title";
   titleEl.textContent = evidence.title;
   chip.appendChild(titleEl);
 
   // Drag start — stash evidence data
-  chip.addEventListener("dragstart", function (e) {
+  chip.addEventListener("dragstart", (e) => {
     e.dataTransfer.setData("text/plain", String(evidence.id));
     e.dataTransfer.effectAllowed = "copy";
     chip.classList.add("holding-pen__chip--dragging");
   });
 
-  chip.addEventListener("dragend", function () {
+  chip.addEventListener("dragend", () => {
     chip.classList.remove("holding-pen__chip--dragging");
   });
 
@@ -147,17 +138,17 @@ HoldingPen.createChip = function (evidence) {
  */
 HoldingPen.onDrop = function (e) {
   e.preventDefault();
-  var canvas = document.getElementById("map-canvas");
+  const canvas = document.getElementById("map-canvas");
   if (canvas) {
     canvas.classList.remove("holding-pen--drop-target");
   }
 
-  var evidenceId = Number(e.dataTransfer.getData("text/plain"));
+  const evidenceId = Number(e.dataTransfer.getData("text/plain"));
   if (!evidenceId) return;
 
   // Find the evidence in our local array
-  var evidence = null;
-  for (var i = 0; i < unplacedEvidence.length; i++) {
+  let evidence = null;
+  for (let i = 0; i < unplacedEvidence.length; i++) {
     if (unplacedEvidence[i].id === evidenceId) {
       evidence = unplacedEvidence[i];
       break;
@@ -166,20 +157,20 @@ HoldingPen.onDrop = function (e) {
   if (!evidence) return;
 
   // Convert drop coordinates to percentages
-  var rect = window.AdminMapsRender.getImageRect();
+  const rect = window.AdminMapsRender.getImageRect();
   if (!rect) return;
 
-  var containerRect = canvas.getBoundingClientRect();
-  var screenX = e.clientX - containerRect.left;
-  var screenY = e.clientY - containerRect.top;
+  const containerRect = canvas.getBoundingClientRect();
+  const screenX = e.clientX - containerRect.left;
+  const screenY = e.clientY - containerRect.top;
 
-  var pct = window.AdminMapsRender.screenToPercent(screenX, screenY, rect);
+  const pct = window.AdminMapsRender.screenToPercent(screenX, screenY, rect);
 
   // Get current map ID from AdminMapsRegions
-  var maps = window.AdminMapsRegions.getMaps();
-  var currentKey = window.AdminMapsRegions.getCurrentMapKey();
-  var mapId = null;
-  for (var j = 0; j < maps.length; j++) {
+  const maps = window.AdminMapsRegions.getMaps();
+  const currentKey = window.AdminMapsRegions.getCurrentMapKey();
+  let mapId = null;
+  for (let j = 0; j < maps.length; j++) {
     if (maps[j].map_key === currentKey) {
       mapId = maps[j].id;
       break;
@@ -193,8 +184,6 @@ HoldingPen.onDrop = function (e) {
   }
 
   // Remove the chip from the pen (evidence now has a staged pin)
-  unplacedEvidence = unplacedEvidence.filter(function (ev) {
-    return ev.id !== evidenceId;
-  });
+  unplacedEvidence = unplacedEvidence.filter((ev) => ev.id !== evidenceId);
   HoldingPen.render();
 };

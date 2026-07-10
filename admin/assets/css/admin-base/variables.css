@@ -88,5 +88,10 @@
 
     /* ── Shadows & Transitions ────────────────────────────────────────────── */
     --admin-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --overlay-subtle: rgba(0, 0, 0, 0.12);
+    --overlay-backdrop: rgba(0, 0, 0, 0.3);
+    --canvas-shadow: rgba(92, 64, 51, 0.15);
+    --selected-glow: rgba(231, 76, 60, 0.4);
+    --admin-white: #ffffff;
     --admin-transition: 150ms ease;
 }

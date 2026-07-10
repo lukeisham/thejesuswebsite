@@ -34,7 +34,7 @@ let tempIdCounter = 0;
  * @returns {Object} the staged pin object (includes _tempId for DOM tracking)
  */
 Staged.stageCreate = function (mapId, evidence, x, y) {
-  var staged = {
+  const staged = {
     _tempId: "staged-" + ++tempIdCounter,
     map_id: mapId,
     evidence_id: evidence.id,
@@ -59,9 +59,7 @@ Staged.stageCreate = function (mapId, evidence, x, y) {
  */
 Staged.stageMove = function (pinId, x, y) {
   // Remove any prior staged move for this pin
-  stagedMoves = stagedMoves.filter(function (m) {
-    return m.pinId !== pinId;
-  });
+  stagedMoves = stagedMoves.filter((m) => m.pinId !== pinId);
   stagedMoves.push({
     pinId: pinId,
     x: Math.round(x * 100) / 100,
@@ -109,13 +107,13 @@ Staged.hasChanges = function () {
  * @returns {Promise<Array<Object>>}
  */
 Staged.saveAll = async function () {
-  var results = [];
-  var saveBtn = document.getElementById("holding-pen-save");
+  const results = [];
+  const saveBtn = document.getElementById("holding-pen-save");
   if (saveBtn) saveBtn.disabled = true;
 
   // Save creates
-  for (var i = 0; i < stagedCreates.length; i++) {
-    var c = stagedCreates[i];
+  for (let i = 0; i < stagedCreates.length; i++) {
+    const c = stagedCreates[i];
     try {
       await Admin.api.post("/maps/pins", {
         map_id: c.map_id,
@@ -136,8 +134,8 @@ Staged.saveAll = async function () {
   }
 
   // Save moves
-  for (var j = 0; j < stagedMoves.length; j++) {
-    var m = stagedMoves[j];
+  for (let j = 0; j < stagedMoves.length; j++) {
+    const m = stagedMoves[j];
     try {
       await Admin.api.put("/maps/pins/" + m.pinId, {
         x: m.x,
@@ -155,20 +153,20 @@ Staged.saveAll = async function () {
   }
 
   // Clear only the successfully saved items
-  var failedCreates = [];
-  for (var k = 0; k < results.length; k++) {
+  const failedCreates = [];
+  for (let k = 0; k < results.length; k++) {
     if (results[k].type === "create" && results[k].success) {
       // Remove from stagedCreates by _tempId
-      stagedCreates = stagedCreates.filter(function (sc) {
-        return sc._tempId !== results[k]._tempId;
-      });
+      stagedCreates = stagedCreates.filter(
+        (sc) => sc._tempId !== results[k]._tempId,
+      );
     }
     if (results[k].type === "create" && !results[k].success) {
       failedCreates.push(results[k]);
     }
   }
-  stagedMoves = stagedMoves.filter(function (sm) {
-    for (var r = 0; r < results.length; r++) {
+  stagedMoves = stagedMoves.filter((sm) => {
+    for (let r = 0; r < results.length; r++) {
       if (results[r].type === "move" && results[r].pinId === sm.pinId) {
         return !results[r].success; // keep if failed
       }
@@ -181,20 +179,16 @@ Staged.saveAll = async function () {
 
   // Reload pins from the server to get real IDs for newly created pins
   if (window.AdminMapsPins && window.AdminMapsPins.loadPins) {
-    var mapId = Staged._getCurrentMapId();
+    const mapId = Staged._getCurrentMapId();
     if (mapId) await window.AdminMapsPins.loadPins(mapId);
   }
 
   // Surface partial failures
   if (failedCreates.length > 0) {
-    var msg =
+    const msg =
       failedCreates.length +
       " pin(s) failed to save: " +
-      failedCreates
-        .map(function (f) {
-          return f.error;
-        })
-        .join("; ");
+      failedCreates.map((f) => f.error).join("; ");
     alert(msg);
   }
 
@@ -207,10 +201,10 @@ Staged.saveAll = async function () {
  * Update the save button count badge and beforeunload guard.
  */
 Staged._updateUI = function () {
-  var count = Staged.count();
+  const count = Staged.count();
 
   // Badge
-  var badge = document.getElementById("holding-pen-badge");
+  const badge = document.getElementById("holding-pen-badge");
   if (badge) {
     badge.textContent = count > 0 ? String(count) : "";
     badge.hidden = count === 0;
@@ -250,13 +244,15 @@ Staged._beforeUnloadWired = false;
  * @returns {number|null}
  */
 Staged._getCurrentMapId = function () {
-  var maps = window.AdminMapsRegions && window.AdminMapsRegions.getMaps
-    ? window.AdminMapsRegions.getMaps()
-    : [];
-  var currentKey = window.AdminMapsRegions && window.AdminMapsRegions.getCurrentMapKey
-    ? window.AdminMapsRegions.getCurrentMapKey()
-    : null;
-  for (var i = 0; i < maps.length; i++) {
+  const maps =
+    window.AdminMapsRegions && window.AdminMapsRegions.getMaps
+      ? window.AdminMapsRegions.getMaps()
+      : [];
+  const currentKey =
+    window.AdminMapsRegions && window.AdminMapsRegions.getCurrentMapKey
+      ? window.AdminMapsRegions.getCurrentMapKey()
+      : null;
+  for (let i = 0; i < maps.length; i++) {
     if (maps[i].map_key === currentKey) return maps[i].id;
   }
   return null;
