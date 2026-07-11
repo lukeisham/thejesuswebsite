@@ -78,6 +78,8 @@ const edgesSource = fs.readFileSync(edgesPath, "utf8");
 const edgesSandbox = {
   window: {
     AdminArborGeometry: {
+      NODE_WIDTH: 200,
+      NODE_HEIGHT: 80,
       EDGE_STYLES: {
         default: { stroke: "var(--border-strong)" },
         root: { stroke: "var(--accent)", "stroke-width": "2" },
@@ -491,5 +493,151 @@ describe("pen chip filtering (already-placed evidence)", function () {
   test("handles empty evidence list", function () {
     var result = filterUnplacedChips([], [1, 2]);
     assert.equal(result.length, 0);
+  });
+});
+
+// ── Edge anchor alignment ────────────────────────────────────────────────────
+// Verifies that createEdgeElement computes centre-bottom → centre-top anchors
+// (x + NODE_WIDTH/2, y + NODE_HEIGHT) → (x + NODE_WIDTH/2, y), matching the
+// frontend's edge-drawing logic.
+
+describe("edge anchor alignment", function () {
+  // Re-load edges.js with a mock that captures the line coordinates.
+  var capturedEdges = null;
+
+  var anchorSandbox = {
+    window: {
+      AdminArborGeometry: {
+        NODE_WIDTH: 200,
+        NODE_HEIGHT: 80,
+        EDGE_STYLES: {
+          default: { stroke: "var(--border-strong)" },
+          root: { stroke: "var(--accent)", "stroke-width": "2" },
+          related: {
+            "stroke-dasharray": "6 4",
+            stroke: "var(--border-strong)",
+          },
+        },
+      },
+      AdminArborCanvas: {
+        getTransformGroup: function () {
+          return null;
+        },
+        createEdgeLine: function (x1, y1, x2, y2) {
+          capturedEdges = { x1: x1, y1: y1, x2: x2, y2: y2 };
+          return { setAttribute: function () {} };
+        },
+        createNodeLabel: function () {
+          return { setAttribute: function () {}, textContent: "" };
+        },
+        screenToDiagram: function (x, y) {
+          return { x: x, y: y };
+        },
+        getTransform: function () {
+          return { x: 0, y: 0, scale: 1 };
+        },
+      },
+      AdminArborNodes: {
+        getNodeById: function () {
+          return null;
+        },
+      },
+      UpdateRecord: {
+        saveEdge: async function () {
+          return {};
+        },
+        deleteEdge: async function () {},
+      },
+    },
+    document: {
+      createElementNS: function () {
+        return {
+          setAttribute: function () {},
+          appendChild: function () {},
+          addEventListener: function () {},
+          style: {},
+          classList: {
+            add: function () {},
+            remove: function () {},
+            toggle: function () {},
+          },
+        };
+      },
+      getElementById: function () {
+        return null;
+      },
+      querySelector: function () {
+        return null;
+      },
+      querySelectorAll: function () {
+        return [];
+      },
+      addEventListener: function () {},
+      removeEventListener: function () {},
+      createElement: function () {
+        return {
+          setAttribute: function () {},
+          appendChild: function () {},
+          addEventListener: function () {},
+          style: {},
+          classList: {
+            add: function () {},
+            remove: function () {},
+            toggle: function () {},
+          },
+        };
+      },
+    },
+    console: { error: function () {} },
+  };
+
+  // Load geometry and edges into the capture sandbox.
+  var edgesSource2 = fs.readFileSync(edgesPath, "utf8");
+  var geometrySource2 = fs.readFileSync(geometryPath, "utf8");
+  vm.runInNewContext(geometrySource2, anchorSandbox);
+  vm.runInNewContext(edgesSource2, anchorSandbox);
+
+  var createEdgeElement =
+    anchorSandbox.window.AdminArborEdges.createEdgeElement;
+
+  test("anchors source at centre-bottom (x + NODE_WIDTH/2, y + NODE_HEIGHT)", function () {
+    capturedEdges = null;
+    var sourceNode = { arbor_x: 100, arbor_y: 200 };
+    var targetNode = { arbor_x: 500, arbor_y: 600 };
+    var edge = { id: 1, relationship_type: "supports" };
+
+    createEdgeElement(edge, sourceNode, targetNode);
+
+    // Source: centre-bottom
+    assert.equal(capturedEdges.x1, 100 + 200 / 2); // 200
+    assert.equal(capturedEdges.y1, 200 + 80); // 280
+  });
+
+  test("anchors target at centre-top (x + NODE_WIDTH/2, y)", function () {
+    capturedEdges = null;
+    var sourceNode = { arbor_x: 100, arbor_y: 200 };
+    var targetNode = { arbor_x: 500, arbor_y: 600 };
+    var edge = { id: 1, relationship_type: "supports" };
+
+    createEdgeElement(edge, sourceNode, targetNode);
+
+    // Target: centre-top
+    assert.equal(capturedEdges.x2, 500 + 200 / 2); // 600
+    assert.equal(capturedEdges.y2, 600); // top of target
+  });
+
+  test("handles nodes with null arbor_x/y (falls back to 0)", function () {
+    capturedEdges = null;
+    var sourceNode = { arbor_x: null, arbor_y: null };
+    var targetNode = { arbor_x: null, arbor_y: null };
+    var edge = { id: 1, relationship_type: "supports" };
+
+    createEdgeElement(edge, sourceNode, targetNode);
+
+    // Nulls become 0, plus offset
+    assert.equal(capturedEdges.x1, 0 + 100);
+    assert.equal(capturedEdges.y1, 0 + 80);
+    assert.equal(capturedEdges.x2, 0 + 100);
+    assert.equal(capturedEdges.y2, 0);
   });
 });

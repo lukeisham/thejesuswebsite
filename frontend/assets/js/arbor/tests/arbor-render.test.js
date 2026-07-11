@@ -252,4 +252,98 @@ describe("arbor-render: position-vs-fallback decision", function () {
     // BFS layout won't have y=200 for node 1
     assert.notEqual(bfs.get(1).y, 200);
   });
+
+  test("per-node fallback: nodes with saved positions keep them, unplaced nodes get BFS fallback", function () {
+    // Simulates the new per-node fallback logic in renderArbor.
+    // Node 1 has a saved position at (500, 300). Node 2 has no position (null x/y).
+    // After per-node fallback: node 1 should stay at (500, 300); node 2 should
+    // get a BFS-computed fallback (not overlapping node 1).
+
+    const nodesById = new Map();
+    nodesById.set(1, { id: 1, title: "Placed", x: 500, y: 300 });
+    nodesById.set(2, { id: 2, title: "Unplaced", x: null, y: null });
+
+    const adjacency = new Map();
+    adjacency.set(1, [{ targetId: 2 }]);
+    adjacency.set(2, []);
+
+    // Build saved-positions for nodes with valid x/y.
+    const savedPositions = new Map();
+    const unplacedNodeIds = [];
+    for (const [nodeId, node] of nodesById) {
+      if (
+        node.x != null &&
+        node.y != null &&
+        Number.isFinite(node.x) &&
+        Number.isFinite(node.y)
+      ) {
+        savedPositions.set(nodeId, { x: node.x, y: node.y });
+      } else {
+        unplacedNodeIds.push(nodeId);
+      }
+    }
+
+    // Merge: saved positions + BFS for unplaced only.
+    const merged = new Map(savedPositions);
+    const fallback = computeBFSLayout(1, nodesById, adjacency);
+    for (const nodeId of unplacedNodeIds) {
+      const fb = fallback.get(nodeId);
+      if (fb) merged.set(nodeId, fb);
+    }
+
+    // Node 1 must keep its saved position exactly.
+    assert.equal(merged.get(1).x, 500);
+    assert.equal(merged.get(1).y, 300);
+
+    // Node 2 must get a fallback position (not undefined).
+    assert.ok(merged.has(2), "unplaced node should get a fallback");
+    assert.ok(Number.isFinite(merged.get(2).x));
+    assert.ok(Number.isFinite(merged.get(2).y));
+
+    // Node 2's fallback should NOT equal the saved position of node 1
+    // (validation that fallback doesn't just reuse the wrong position).
+    assert.notEqual(merged.get(2).x, 500);
+  });
+
+  test("per-node fallback: mixed set preserves all placed nodes", function () {
+    // 3 nodes: two placed, one unplaced. Both placed nodes keep their positions.
+    const nodesById = new Map();
+    nodesById.set(1, { id: 1, title: "A", x: 100, y: 50 });
+    nodesById.set(2, { id: 2, title: "B", x: 700, y: 400 });
+    nodesById.set(3, { id: 3, title: "C", x: null, y: null });
+
+    const adjacency = new Map();
+    adjacency.set(1, [{ targetId: 2 }, { targetId: 3 }]);
+    adjacency.set(2, []);
+    adjacency.set(3, []);
+
+    const savedPositions = new Map();
+    const unplacedNodeIds = [];
+    for (const [nodeId, node] of nodesById) {
+      if (
+        node.x != null &&
+        node.y != null &&
+        Number.isFinite(node.x) &&
+        Number.isFinite(node.y)
+      ) {
+        savedPositions.set(nodeId, { x: node.x, y: node.y });
+      } else {
+        unplacedNodeIds.push(nodeId);
+      }
+    }
+
+    const merged = new Map(savedPositions);
+    const fallback = computeBFSLayout(1, nodesById, adjacency);
+    for (const nodeId of unplacedNodeIds) {
+      const fb = fallback.get(nodeId);
+      if (fb) merged.set(nodeId, fb);
+    }
+
+    assert.equal(merged.get(1).x, 100);
+    assert.equal(merged.get(1).y, 50);
+    assert.equal(merged.get(2).x, 700);
+    assert.equal(merged.get(2).y, 400);
+    assert.ok(merged.has(3));
+    assert.ok(Number.isFinite(merged.get(3).x));
+  });
 });
