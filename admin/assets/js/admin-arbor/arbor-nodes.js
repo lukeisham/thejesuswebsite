@@ -2,8 +2,9 @@
  * Admin arbor nodes module.
  *
  * Loads evidence nodes from the arbor graph, renders them as draggable
- * public-style rounded-rect nodes (WYSIWYG), supports search-to-add,
- * and persists positions server-side via UpdateRecord.
+ * public-style rounded-rect nodes (WYSIWYG), and persists positions
+ * server-side via UpdateRecord. Left-drag moves, left-click opens the
+ * edit panel, right-drag delegates to the edges module for connecting.
  *
  * Depends on AdminArborCanvas for rendering and coordinate conversion.
  *
@@ -24,12 +25,6 @@ let dragState = null;
 /** @type {number|null} */
 let selectedNodeId = null;
 
-/** @type {boolean} */
-let addingMode = false;
-
-/** @type {string} */
-let searchQuery = "";
-
 /** Node dimensions from the shared geometry (matches public arbor). */
 const NODE_WIDTH = window.AdminArborGeometry.NODE_WIDTH;
 const NODE_HEIGHT = window.AdminArborGeometry.NODE_HEIGHT;
@@ -38,7 +33,7 @@ const NODE_RX = 8;
 /* ── Initialisation ────────────────────────────────────────────────────────── */
 
 /**
- * Wire DOM events for the node edit panel and search-to-add dialog.
+ * Wire DOM events for the node edit panel.
  */
 Nodes.init = function () {
   const saveBtn = document.getElementById("arbor-node-save-btn");
@@ -52,21 +47,6 @@ Nodes.init = function () {
 
   const deleteBtn = document.getElementById("arbor-node-delete-btn");
   if (deleteBtn) deleteBtn.addEventListener("click", Nodes.onRemoveNode);
-
-  const addBtn = document.getElementById("add-arbor-node-btn");
-  if (addBtn) addBtn.addEventListener("click", Nodes.toggleAddMode);
-
-  const searchInput = document.getElementById("arbor-node-search");
-  if (searchInput) {
-    searchInput.addEventListener("input", function () {
-      searchQuery = searchInput.value.trim();
-      Nodes.renderSearchResults();
-    });
-  }
-
-  const searchClose = document.getElementById("arbor-search-close");
-  if (searchClose)
-    searchClose.addEventListener("click", Nodes.closeSearchDialog);
 
   // One-time migration: push any legacy localStorage positions to the server
   if (
@@ -191,8 +171,8 @@ Nodes.renderNodes = function () {
 
 /**
  * Create the SVG element group for a single node.
- * Renders a public-style rounded-rect with title + verse, replacing the old
- * circle+label. Drag/click/selection wiring is unchanged.
+ * Renders a public-style rounded-rect with title + verse.
+ * Right-drag delegate to edges module for connecting.
  *
  * @param {Object} node
  * @returns {SVGGElement}
@@ -285,15 +265,20 @@ Nodes.createNodeElement = function (node) {
     g.appendChild(badgeText);
   }
 
-  // Wire click
+  // Left-click: select / edit
   g.addEventListener("click", function (e) {
     e.stopPropagation();
     Nodes.selectNode(node.id);
   });
 
-  // Wire drag
+  // Wire mousedown: left for drag, right for connect
   g.addEventListener("mousedown", function (e) {
     Nodes.onNodeMouseDown(e, node);
+  });
+
+  // Prevent native context menu on nodes (we use right-drag for connect)
+  g.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
   });
 
   return g;
@@ -438,28 +423,30 @@ Nodes.onRemoveNode = async function () {
   }
 };
 
-/* ── Auto parent-edge creation ──────────────────────────────────────────────── */
+/* ── Parent edge creation (called by pen module) ────────────────────────────── */
 
 /**
- * Create (or update) a parent edge when a node is dropped onto another node.
+ * Create (or update) a parent edge with a specific relationship type.
  *
- * If the dragged node already has an incoming non-"related" edge, that edge's
+ * If the child node already has an incoming non-"related" edge, that edge's
  * source_id is re-pointed rather than duplicated. Otherwise a new edge is
- * created with the toolbar's selected relationship type.
+ * created with the given relationship type.
  *
- * @param {number} parentId   - the evidence id of the parent node
- * @param {number} childId    - the evidence id of the dragged node
- * @param {Object} childNode  - the dragged node (for error display)
+ * @param {number} parentId      - the evidence id of the parent node
+ * @param {number} childId       - the evidence id of the child node
+ * @param {string} relationshipType
+ * @param {Object} childNode     - the child node (for error display)
  */
-Nodes.createParentEdge = async function (parentId, childId, childNode) {
+Nodes.createParentEdge = async function (
+  parentId,
+  childId,
+  relationshipType,
+  childNode,
+) {
   const allEdges =
     window.AdminArborEdges && window.AdminArborEdges.getAllEdges
       ? window.AdminArborEdges.getAllEdges()
       : [];
-
-  // Determine relationship type from the toolbar dropdown
-  const typeSelect = document.getElementById("arbor-edge-type-select");
-  const relationshipType = typeSelect ? typeSelect.value : "supports";
 
   // Validate the connection
   const error =
@@ -527,24 +514,23 @@ Nodes.createParentEdge = async function (parentId, childId, childNode) {
 /* ── Drag-to-reposition ────────────────────────────────────────────────────── */
 
 /**
- * Mouse-down on a node — begin drag.
+ * Mouse-down on a node.
+ * Left button: start position drag.
+ * Right button: delegate to edges module for connecting.
  *
  * @param {MouseEvent} e
  * @param {Object} node
  */
 Nodes.onNodeMouseDown = function (e, node) {
-  if (addingMode) return;
-
-  // Edge mode: delegate to the edges module for drawing connections
-  if (
-    window.AdminArborEdges &&
-    window.AdminArborEdges.isEdgeMode &&
-    window.AdminArborEdges.isEdgeMode()
-  ) {
-    window.AdminArborEdges.startEdgeDrag(e, node);
+  // Right button: connect mode — delegate to edges for right-drag
+  if (e.button === 2) {
+    if (window.AdminArborEdges && window.AdminArborEdges.startEdgeDrag) {
+      window.AdminArborEdges.startEdgeDrag(e, node);
+    }
     return;
   }
 
+  // Left button: drag to move
   e.preventDefault();
   e.stopPropagation();
 
@@ -580,9 +566,11 @@ Nodes.onNodeMouseMove = function (e) {
     '[data-node-id="' + dragState.node.id + '"]',
   );
   if (el) {
-    const rect = el.querySelector("rect");
+    const rect = el.querySelector("rect.admin-arbor-node, rect");
     const titleEl = el.querySelector("text.admin-arbor-node-title");
     const verseEl = el.querySelector("text.admin-arbor-node-verse");
+    const badgeRect = el.querySelector("rect.admin-arbor-node-draft-badge");
+    const badgeText = el.querySelector("text.admin-arbor-node-draft-label");
     if (rect) {
       rect.setAttribute("x", String(newX));
       rect.setAttribute("y", String(newY));
@@ -594,6 +582,14 @@ Nodes.onNodeMouseMove = function (e) {
     if (verseEl) {
       verseEl.setAttribute("x", String(newX + 10));
       verseEl.setAttribute("y", String(newY + 40));
+    }
+    if (badgeRect) {
+      badgeRect.setAttribute("x", String(newX + NODE_WIDTH - 52));
+      badgeRect.setAttribute("y", String(newY + NODE_HEIGHT - 22));
+    }
+    if (badgeText) {
+      badgeText.setAttribute("x", String(newX + NODE_WIDTH - 30));
+      badgeText.setAttribute("y", String(newY + NODE_HEIGHT - 9));
     }
   }
 
@@ -609,8 +605,8 @@ Nodes.onNodeMouseMove = function (e) {
 
 /**
  * Mouse-up during node drag — persist the new position server-side.
- * If the node was dropped on top of another node (parent), create/update
- * the parent edge automatically.
+ * No longer auto-creates parent edges (dropping a node on another no
+ * longer silently rewires it).
  * On failure, show an error toast and revert to the original position.
  *
  * @param {MouseEvent} e
@@ -625,24 +621,13 @@ Nodes.onNodeMouseUp = function (e) {
   const dx = (e.clientX - dragState.startX) / tx.scale;
   const dy = (e.clientY - dragState.startY) / tx.scale;
 
-  let newX = dragState.origX + dx;
-  let newY = dragState.origY + dy;
+  const newX = dragState.origX + dx;
+  const newY = dragState.origY + dy;
   const nodeId = dragState.node.id;
   const origX = dragState.origX;
   const origY = dragState.origY;
-  const draggedNode = dragState.node;
 
   dragState = null;
-
-  // Hit-test: was the node dropped on top of another node?
-  const centreX = newX + NODE_WIDTH / 2;
-  const centreY = newY + NODE_HEIGHT / 2;
-  const parentNode = Nodes.getNodeAtDiagramPosition(centreX, centreY, nodeId);
-  if (parentNode) {
-    // Offset the dragged node just below the parent so they don't overlap
-    newX = parentNode.arbor_x || 0;
-    newY = (parentNode.arbor_y || 0) + NODE_HEIGHT + 20;
-  }
 
   // Update local state optimistically
   for (let i = 0; i < nodes.length; i++) {
@@ -669,129 +654,13 @@ Nodes.onNodeMouseUp = function (e) {
     }
   });
 
-  // Auto-create parent edge if dropped on a parent node
-  if (parentNode) {
-    Nodes.createParentEdge(parentNode.id, nodeId, draggedNode);
-  }
-
   Nodes.renderNodes();
   if (window.AdminArborEdges && window.AdminArborEdges.renderEdges) {
     window.AdminArborEdges.renderEdges();
   }
 };
 
-/* ── Search-to-add ─────────────────────────────────────────────────────────── */
-
-/**
- * Toggle "Add Node" mode — opens the search dialog.
- */
-Nodes.toggleAddMode = function () {
-  addingMode = !addingMode;
-  const dialog = document.getElementById("arbor-search-dialog");
-  const btn = document.getElementById("add-arbor-node-btn");
-
-  if (dialog) dialog.hidden = !addingMode;
-  if (btn) {
-    btn.classList.toggle("admin-arbor-toolbar__btn--active", addingMode);
-    btn.textContent = addingMode ? "Cancel" : "Add Node";
-  }
-
-  if (addingMode) {
-    searchQuery = "";
-    const input = document.getElementById("arbor-node-search");
-    if (input) {
-      input.value = "";
-      input.focus();
-    }
-    Nodes.renderSearchResults();
-  }
-};
-
-/**
- * Close the search dialog.
- */
-Nodes.closeSearchDialog = function () {
-  addingMode = false;
-  const dialog = document.getElementById("arbor-search-dialog");
-  const btn = document.getElementById("add-arbor-node-btn");
-  if (dialog) dialog.hidden = true;
-  if (btn) {
-    btn.classList.remove("admin-arbor-toolbar__btn--active");
-    btn.textContent = "Add Node";
-  }
-};
-
-/**
- * Search evidence and render result list.
- */
-Nodes.renderSearchResults = async function () {
-  const list = document.getElementById("arbor-search-results");
-  if (!list) return;
-
-  if (searchQuery.length < 2) {
-    list.innerHTML = "";
-    const empty = document.createElement("p");
-    empty.className = "admin-arbor-search-empty";
-    empty.textContent = "Type at least 2 characters to search evidence.";
-    list.appendChild(empty);
-    return;
-  }
-
-  list.innerHTML = "";
-  const loading = document.createElement("p");
-  loading.className = "admin-arbor-search-loading";
-  loading.textContent = "Searching\u2026";
-  list.appendChild(loading);
-
-  try {
-    const results = await Admin.api.get(
-      "/search?q=" +
-        encodeURIComponent(searchQuery) +
-        "&type=evidence&limit=15",
-    );
-    list.innerHTML = "";
-
-    if (!results || results.length === 0) {
-      const none = document.createElement("p");
-      none.className = "admin-arbor-search-empty";
-      none.textContent = "No evidence found.";
-      list.appendChild(none);
-      return;
-    }
-
-    for (let i = 0; i < results.length; i++) {
-      const item = results[i];
-      const row = document.createElement("button");
-      row.className = "admin-arbor-search-item";
-      row.type = "button";
-      row.textContent = item.title || "(untitled)";
-
-      // Don't allow adding nodes already on the canvas
-      const alreadyAdded = Nodes.getNodeById(item.id);
-      if (alreadyAdded) {
-        row.disabled = true;
-        row.textContent += " (already on canvas)";
-      }
-
-      row.addEventListener(
-        "click",
-        (function (it) {
-          return function () {
-            Nodes.addNodeToCanvas(it);
-          };
-        })(item),
-      );
-
-      list.appendChild(row);
-    }
-  } catch (err) {
-    list.innerHTML = "";
-    const errEl = document.createElement("p");
-    errEl.className = "admin-arbor-search-error";
-    errEl.textContent = "Search failed: " + err.message;
-    list.appendChild(errEl);
-  }
-};
+/* ── Add node to canvas ────────────────────────────────────────────────────── */
 
 /**
  * Add an evidence record as a node on the canvas.
@@ -854,11 +723,10 @@ Nodes.addNodeToCanvas = async function (evidence, diagX, diagY, parentId) {
   };
 
   nodes.push(node);
-  Nodes.closeSearchDialog();
   Nodes.renderNodes();
 
   // Auto-create parent edge if a parent was specified
   if (parentId !== undefined && parentId !== null) {
-    Nodes.createParentEdge(parentId, evidence.id, node);
+    Nodes.createParentEdge(parentId, evidence.id, "supports", node);
   }
 };

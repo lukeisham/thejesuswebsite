@@ -18,10 +18,7 @@ var HoldingPen = window.AdminTimelineHoldingPen;
 /** @type {Array<Object>} Unplaced evidence rows (era set, no period). */
 var unplaced = [];
 
-/** @type {Array<Object>} Staged period assignments, pending Save. */
-var staged = [];
-
-/** @type {boolean} Whether we're currently saving. */
+/** @type {boolean} Whether we're currently saving (retained for coordination). */
 var saving = false;
 
 /* ── Initialisation ────────────────────────────────────────────────────────── */
@@ -72,12 +69,15 @@ HoldingPen.renderChips = function () {
 
   chipsEl.innerHTML = "";
 
+  pen.hidden = false;
+
   if (unplaced.length === 0) {
-    pen.hidden = true;
+    var emptyMsg = document.createElement("span");
+    emptyMsg.className = "admin-timeline-holding-pen__empty";
+    emptyMsg.textContent = "No unassigned records";
+    chipsEl.appendChild(emptyMsg);
     return;
   }
-
-  pen.hidden = false;
 
   for (var i = 0; i < unplaced.length; i++) {
     var ev = unplaced[i];
@@ -140,23 +140,33 @@ HoldingPen.onDragEnd = function (e) {
 /* ── Canvas Drop Target ────────────────────────────────────────────────────── */
 
 /**
- * Wire the canvas as a drop target. Called from the main init after DOM ready.
+ * Wire the canvas and pen as drop targets. Called from the main init after
+ * DOM ready.
  */
-HoldingPen.wireCanvasDrop = function () {
+HoldingPen.wireDropTargets = function () {
   var canvas = document.getElementById("timeline-canvas");
-  if (!canvas) return;
+  if (canvas) {
+    canvas.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      canvas.classList.add("admin-timeline-canvas--drop-target");
+    });
 
-  canvas.addEventListener("dragover", function (e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    canvas.classList.add("admin-timeline-canvas--drop-target");
-  });
+    canvas.addEventListener("dragleave", function () {
+      canvas.classList.remove("admin-timeline-canvas--drop-target");
+    });
 
-  canvas.addEventListener("dragleave", function () {
-    canvas.classList.remove("admin-timeline-canvas--drop-target");
-  });
+    canvas.addEventListener("drop", HoldingPen.onCanvasDrop);
+  }
 
-  canvas.addEventListener("drop", HoldingPen.onCanvasDrop);
+  // Also wire the pen itself as a drop target so dots can be dragged
+  // FROM the timeline INTO the pen to trigger an unassign.
+  var pen = document.getElementById("timeline-holding-pen");
+  if (pen) {
+    pen.addEventListener("dragover", HoldingPen._onPenDragOver);
+    pen.addEventListener("dragleave", HoldingPen._onPenDragLeave);
+    pen.addEventListener("drop", HoldingPen._onPenDrop);
+  }
 };
 
 /**
@@ -200,12 +210,10 @@ HoldingPen.onCanvasDrop = function (e) {
     newEra = window.AdminTimelineEvents.eraForPeriod(snapPeriod);
   }
 
-  // Stage the change
-  staged.push({
-    id: ev.id,
-    timeline_period: snapPeriod,
-    timeline_era: newEra,
-  });
+  // Stage the placement via the shared staged-changes store
+  if (window.AdminTimelineStaged && window.AdminTimelineStaged.stagePlacement) {
+    window.AdminTimelineStaged.stagePlacement(ev.id, snapPeriod, newEra);
+  }
 
   // Add to the displayed events immediately
   var placedEv = {
@@ -229,70 +237,50 @@ HoldingPen.onCanvasDrop = function (e) {
   HoldingPen.renderChips();
 };
 
-/* ── Save ──────────────────────────────────────────────────────────────────── */
+/* ── Pen as drop target (for dots dragged FROM the timeline) ───────────────── */
 
 /**
- * Save all staged period assignments via the API.
- * Each staged event is PATCHed individually via UpdateRecord.
- * Explicit error surfacing (JS-2); button disabled while saving.
+ * Handle a dot being dragged over the pen.
  */
-HoldingPen.save = async function () {
-  if (saving || staged.length === 0) return;
+HoldingPen._onPenDragOver = function (e) {
+  // Only accept drops that carry an eventId
+  if (e.dataTransfer.types.indexOf("text/plain") === -1) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  e.currentTarget.classList.add("admin-timeline-holding-pen--drop-target");
+};
 
-  var saveBtn = document.getElementById("timeline-save-btn");
-  saving = true;
-  if (saveBtn) {
-    saveBtn.disabled = true;
-    saveBtn.textContent = "Saving...";
+/**
+ * Handle a dot leaving the pen during drag.
+ */
+HoldingPen._onPenDragLeave = function (e) {
+  e.currentTarget.classList.remove("admin-timeline-holding-pen--drop-target");
+};
+
+/**
+ * Handle a dot dropped onto the pen: stage unassign, remove from events,
+ * refresh pen, re-render.
+ */
+HoldingPen._onPenDrop = function (e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove("admin-timeline-holding-pen--drop-target");
+
+  var eventId = parseInt(e.dataTransfer.getData("text/plain"), 10);
+  if (!eventId) return;
+
+  // Stage the unassign
+  if (window.AdminTimelineStaged && window.AdminTimelineStaged.stageUnassign) {
+    window.AdminTimelineStaged.stageUnassign(eventId);
   }
 
-  var errors = [];
-  var succeeded = [];
-
-  for (var i = 0; i < staged.length; i++) {
-    var item = staged[i];
-    try {
-      await UpdateRecord.saveEvent(item.id, {
-        timeline_period: item.timeline_period,
-        timeline_era: item.timeline_era,
-      });
-      succeeded.push(item.id);
-    } catch (err) {
-      errors.push({
-        id: item.id,
-        message: err.message || "Unknown error",
-      });
+  // Remove from the events array and re-render
+  if (window.AdminTimelineEvents) {
+    if (window.AdminTimelineEvents.removeEventById) {
+      window.AdminTimelineEvents.removeEventById(eventId);
     }
+    window.AdminTimelineEvents.renderEvents();
   }
 
-  // Remove successfully saved items from staged
-  staged = staged.filter(function (s) {
-    return succeeded.indexOf(s.id) === -1;
-  });
-
-  saving = false;
-  if (saveBtn) {
-    saveBtn.disabled = staged.length === 0;
-    saveBtn.textContent =
-      staged.length > 0
-        ? "Save Changes (" + staged.length + " remaining)"
-        : "Save Changes";
-  }
-
-  if (errors.length > 0) {
-    var msg =
-      "Failed to save " +
-      errors.length +
-      " event(s): " +
-      errors
-        .map(function (e) {
-          return "ID " + e.id + ": " + e.message;
-        })
-        .join("; ");
-    console.error(msg);
-    // Try to show via toast if available
-    if (typeof showToast === "function") {
-      showToast(msg, "error");
-    }
-  }
+  // Refresh the holding pen so the chip appears
+  HoldingPen.refresh();
 };

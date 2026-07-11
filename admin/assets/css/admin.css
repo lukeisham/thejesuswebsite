@@ -30,6 +30,7 @@
 /* ── Diagrams ─────────────────────────────────────────────────────────────── */
 @import "./admin-diagrams/arbor-toolbar.css";
 @import "./admin-diagrams/arbor-canvas.css";
+@import "./admin-diagrams/arbor-connect-menu.css";
 @import "./admin-diagrams/arbor-zoom.css";
 @import "./admin-diagrams/arbor-panel.css";
 @import "./admin-diagrams/arbor-panel-form.css";

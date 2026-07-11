@@ -19,50 +19,16 @@
         <script defer src="../assets/js/admin-arbor/arbor-nodes.js"></script>
         <script defer src="../assets/js/admin-arbor/arbor-edges.js"></script>
         <script defer src="../assets/js/admin-arbor/arbor-pen.js"></script>
+        <script
+            defer
+            src="../assets/js/admin-arbor/arbor-connect-menu.js"
+        ></script>
     </head>
     <body>
         <!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
         <header class="admin-arbor-topbar">
             <h1>Arbor Editor</h1>
         </header>
-
-        <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
-        <nav class="admin-arbor-toolbar" aria-label="Arbor editor tools">
-            <div class="admin-arbor-toolbar__left">
-                <button
-                    type="button"
-                    id="add-arbor-node-btn"
-                    class="admin-arbor-toolbar__btn admin-arbor-toolbar__btn--primary"
-                >
-                    Add Node
-                </button>
-                <button
-                    type="button"
-                    id="add-arbor-edge-btn"
-                    class="admin-arbor-toolbar__btn"
-                >
-                    Add Edge
-                </button>
-                <label
-                    for="arbor-edge-type-select"
-                    class="admin-arbor-visually-hidden"
-                    >Edge relationship type</label
-                >
-                <select
-                    id="arbor-edge-type-select"
-                    class="admin-arbor-toolbar__select"
-                    aria-label="Edge relationship type"
-                ></select>
-            </div>
-            <div class="admin-arbor-toolbar__right">
-                <span
-                    id="arbor-edge-error"
-                    class="admin-arbor-edge-error"
-                    role="alert"
-                    aria-live="assertive"
-                ></span>
-            </div>
-        </nav>
 
         <!-- ── Arbor Editor Canvas ────────────────────────────────────────────────── -->
         <div class="admin-arbor-layout">
@@ -89,42 +55,7 @@
             </aside>
 
             <main>
-                <div id="arbor-canvas" class="admin-arbor-canvas">
-                    <div
-                        id="arbor-search-dialog"
-                        class="admin-arbor-search"
-                        role="dialog"
-                        aria-label="Search evidence to add as node"
-                        hidden
-                    >
-                        <div class="admin-arbor-search__header">
-                            <label
-                                for="arbor-node-search"
-                                class="admin-arbor-visually-hidden"
-                                >Search evidence</label
-                            >
-                            <input
-                                type="search"
-                                id="arbor-node-search"
-                                class="admin-arbor-search__input"
-                                placeholder="Search evidence to add as node…"
-                                autocomplete="off"
-                            />
-                            <button
-                                type="button"
-                                id="arbor-search-close"
-                                class="admin-arbor-search__close"
-                                aria-label="Close search"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        <div
-                            id="arbor-search-results"
-                            class="admin-arbor-search__results"
-                        ></div>
-                    </div>
-                </div>
+                <div id="arbor-canvas" class="admin-arbor-canvas"></div>
             </main>
         </div>
 
@@ -242,14 +173,6 @@
             </button>
             <button
                 type="button"
-                id="arbor-zoom-reset"
-                class="admin-arbor-zoom-btn"
-                aria-label="Reset zoom"
-            >
-                Reset
-            </button>
-            <button
-                type="button"
                 id="arbor-zoom-in"
                 class="admin-arbor-zoom-btn"
                 aria-label="Zoom in"
@@ -261,6 +184,14 @@
         <!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
         <script>
             document.addEventListener("DOMContentLoaded", function () {
+                // Init the connect menu (creates DOM for the relationship-type picker)
+                if (
+                    window.AdminArborConnectMenu &&
+                    window.AdminArborConnectMenu.init
+                ) {
+                    window.AdminArborConnectMenu.init();
+                }
+
                 // Once all deferred scripts have loaded, init each module.
                 var canvas = document.getElementById("arbor-canvas");
                 AdminArborCanvas.init(canvas);
@@ -270,16 +201,10 @@
                 // Wire zoom buttons
                 var zoomIn = document.getElementById("arbor-zoom-in");
                 var zoomOut = document.getElementById("arbor-zoom-out");
-                var zoomReset = document.getElementById("arbor-zoom-reset");
                 if (zoomIn)
                     zoomIn.addEventListener("click", AdminArborCanvas.zoomIn);
                 if (zoomOut)
                     zoomOut.addEventListener("click", AdminArborCanvas.zoomOut);
-                if (zoomReset)
-                    zoomReset.addEventListener(
-                        "click",
-                        AdminArborCanvas.resetZoom,
-                    );
 
                 // Wire backdrop to close the panel
                 var backdrop = document.getElementById("arbor-panel-backdrop");

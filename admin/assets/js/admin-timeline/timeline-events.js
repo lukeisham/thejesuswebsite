@@ -94,6 +94,21 @@ Events.getEventById = function (id) {
   return undefined;
 };
 
+/**
+ * Remove an event from the local events array by its evidence id.
+ * Used by the context menu and holding-pen drop-to-unassign.
+ *
+ * @param {number} id
+ */
+Events.removeEventById = function (id) {
+  events = events.filter(function (ev) {
+    return ev.id !== id;
+  });
+  if (selectedEventId === id) {
+    selectedEventId = null;
+  }
+};
+
 /* ── Rendering ─────────────────────────────────────────────────────────────── */
 
 /**
@@ -263,7 +278,16 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
     Events.selectEvent(ev.id);
   });
 
-  // Drag
+  // Context menu (right-click)
+  if (window.AdminTimelineContextMenu && window.AdminTimelineContextMenu.show) {
+    el.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.AdminTimelineContextMenu.show(e.clientX, e.clientY, ev.id);
+    });
+  }
+
+  // Drag (axis repositioning via mousedown)
   el.addEventListener("mousedown", function (e) {
     Events.onEventMouseDown(e, ev);
   });
@@ -377,11 +401,23 @@ Events.onRemoveEvent = function () {
   )
     return;
 
-  events = events.filter(function (ev) {
-    return ev.id !== selectedEventId;
-  });
+  // Stage the unassign (will be saved when the user clicks Save Changes)
+  if (window.AdminTimelineStaged && window.AdminTimelineStaged.stageUnassign) {
+    window.AdminTimelineStaged.stageUnassign(selectedEventId);
+  }
+
+  // Optimistic removal from local array
+  Events.removeEventById(selectedEventId);
   Events.closeEditPanel();
   Events.renderEvents();
+
+  // Refresh holding pen so the chip appears
+  if (
+    window.AdminTimelineHoldingPen &&
+    window.AdminTimelineHoldingPen.refresh
+  ) {
+    window.AdminTimelineHoldingPen.refresh();
+  }
 };
 
 /* ── Drag-to-reposition ────────────────────────────────────────────────────── */
@@ -477,6 +513,8 @@ Events.onEventMouseUp = function (e) {
   );
 
   const ev = dragState.event;
+  const origPeriod = ev.timeline_period;
+  const origEra = ev.timeline_era;
   dragState = null;
 
   if (newPeriod === ev.timeline_period) {
@@ -487,19 +525,25 @@ Events.onEventMouseUp = function (e) {
   // Determine the era for the new period
   const newEra = Events.eraForPeriod(newPeriod);
 
-  // Update local state immediately
-  ev.timeline_period = newPeriod;
-  if (newEra) ev.timeline_era = newEra;
+  // Stage the move (will be saved when the user clicks Save Changes)
+  try {
+    if (window.AdminTimelineStaged && window.AdminTimelineStaged.stageMove) {
+      window.AdminTimelineStaged.stageMove(
+        ev.id,
+        newPeriod,
+        newEra || ev.timeline_era,
+      );
+    }
 
-  // Persist
-  UpdateRecord.saveEvent(ev.id, {
-    timeline_period: newPeriod,
-    timeline_era: newEra || ev.timeline_era,
-  }).catch(function (err) {
-    console.error("Failed to persist event position:", err);
+    // Update local state immediately (optimistic)
+    ev.timeline_period = newPeriod;
+    if (newEra) ev.timeline_era = newEra;
+  } catch (err) {
     // Revert on failure
-    ev.timeline_period = dragState ? dragState.origPeriod : ev.timeline_period;
-  });
+    console.error("Failed to stage event move:", err);
+    ev.timeline_period = origPeriod;
+    ev.timeline_era = origEra;
+  }
 
   Events.renderEvents();
 };

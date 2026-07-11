@@ -1,11 +1,13 @@
 /**
  * Admin arbor edges module.
  *
- * Handles edge creation via click-drag between nodes, edge deletion, and
+ * Handles edge creation via right-drag between nodes (with a relationship-type
+ * pop-up menu), edge deletion via right-click on connection lines, and
  * connection validation (no self-edge, no duplicate, valid relationship_type).
  * Persists edges through UpdateRecord (JS-5: async/await + try/catch).
  *
- * Depends on AdminArborCanvas for rendering and AdminArborNodes for node data.
+ * Depends on AdminArborCanvas for rendering, AdminArborNodes for node data,
+ * and AdminArborConnectMenu for the relationship-type picker.
  *
  * @module admin-arbor/arbor-edges
  */
@@ -20,9 +22,6 @@ let edges = [];
 
 /** @type {Object|null}  Edge creation drag state. */
 let edgeDrag = null;
-
-/** @type {boolean} */
-let edgeMode = false;
 
 /** Allowable relationship types (mirrors the CHECK constraint in schema.sql). */
 const VALID_TYPES = ["root", "supports", "leads_to", "related"];
@@ -68,22 +67,12 @@ Edges.validateConnection = function (
 /* ── Initialisation ────────────────────────────────────────────────────────── */
 
 /**
- * Wire DOM events for edge mode toggle and relationship-type selector.
+ * Wire nothing at init — edge creation is now driven by right-drag gestures
+ * from arbor-nodes.js, not a toolbar toggle.
  */
 Edges.init = function () {
-  var edgeBtn = document.getElementById("add-arbor-edge-btn");
-  if (edgeBtn) edgeBtn.addEventListener("click", Edges.toggleEdgeMode);
-
-  var typeSelect = document.getElementById("arbor-edge-type-select");
-  if (typeSelect) {
-    for (var i = 0; i < VALID_TYPES.length; i++) {
-      var option = document.createElement("option");
-      option.value = VALID_TYPES[i];
-      option.textContent = VALID_TYPES[i].replace(/_/g, " ");
-      if (i === 1) option.selected = true; // default to "supports"
-      typeSelect.appendChild(option);
-    }
-  }
+  // Right-drag connect and right-click disconnect are gesture-driven;
+  // no toolbar wiring needed.
 };
 
 /* ── Edge loading ──────────────────────────────────────────────────────────── */
@@ -156,10 +145,6 @@ Edges.createEdgeElement = function (edge, sourceNode, targetNode) {
   g.style.cursor = "pointer";
 
   // Edge anchors: centre-bottom of source → centre-top of target.
-  // This matches frontend/assets/js/arbor/arbor-render.js edge-drawing
-  // (x + NODE_WIDTH/2, y + NODE_HEIGHT) → (x + NODE_WIDTH/2, y).
-  // Using raw corner coordinates (x, y → x, y) misaligns edges by
-  // ~NODE_WIDTH/2 horizontally and ~NODE_HEIGHT vertically.
   var x1 = (sourceNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
   var y1 = (sourceNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT;
   var x2 = (targetNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
@@ -195,23 +180,24 @@ Edges.createEdgeElement = function (edge, sourceNode, targetNode) {
   );
   g.appendChild(typeLabel);
 
-  // Click to select/delete
-  g.addEventListener("click", function (e) {
+  // Right-click to disconnect
+  g.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
     e.stopPropagation();
-    Edges.onEdgeClick(edge);
+    Edges.onEdgeContextMenu(edge);
   });
 
   return g;
 };
 
-/* ── Edge click / delete ───────────────────────────────────────────────────── */
+/* ── Edge disconnect via right-click ────────────────────────────────────────── */
 
 /**
- * Handle click on an edge — show delete confirmation.
+ * Handle right-click on an edge — show delete confirmation.
  *
  * @param {Object} edge
  */
-Edges.onEdgeClick = function (edge) {
+Edges.onEdgeContextMenu = function (edge) {
   var sourceNode = window.AdminArborNodes.getNodeById(edge.source_id);
   var targetNode = window.AdminArborNodes.getNodeById(edge.target_id);
   var sourceTitle = sourceNode ? sourceNode.title : "?";
@@ -247,46 +233,22 @@ Edges.deleteEdge = async function (edgeId) {
     Edges.renderEdges();
   } catch (err) {
     console.error("Failed to delete edge:", err);
+    if (typeof window.showToast === "function") {
+      window.showToast("Failed to delete connection.", "error");
+    }
   }
 };
 
-/* ── Edge creation via drag ────────────────────────────────────────────────── */
+/* ── Right-drag edge creation ──────────────────────────────────────────────── */
 
 /**
- * Toggle edge-drawing mode. When active, mousedown on a node starts an edge drag.
- */
-/**
- * @returns {boolean}
- */
-Edges.isEdgeMode = function () {
-  return edgeMode;
-};
-
-/**
- * Toggle edge-drawing mode. When active, mousedown on a node starts an edge drag.
- */
-Edges.toggleEdgeMode = function () {
-  edgeMode = !edgeMode;
-  var btn = document.getElementById("add-arbor-edge-btn");
-  var canvas = document.getElementById("arbor-canvas");
-  if (btn) {
-    btn.classList.toggle("admin-arbor-toolbar__btn--active", edgeMode);
-    btn.textContent = edgeMode ? "Cancel Edge" : "Add Edge";
-  }
-  if (canvas) {
-    canvas.classList.toggle("admin-arbor-canvas--edging", edgeMode);
-  }
-};
-
-/**
- * Called by arbor-nodes.js when a node mousedown happens in edge mode.
+ * Called by arbor-nodes.js on right-button mousedown over a node.
  * Begins drawing a temporary edge line from this node to the cursor.
  *
  * @param {MouseEvent} e
  * @param {Object} sourceNode
  */
 Edges.startEdgeDrag = function (e, sourceNode) {
-  if (!edgeMode) return;
   e.preventDefault();
   e.stopPropagation();
 
@@ -297,10 +259,15 @@ Edges.startEdgeDrag = function (e, sourceNode) {
   var screenY = rect ? e.clientY - rect.top : e.clientY;
   var diag = window.AdminArborCanvas.screenToDiagram(screenX, screenY, tx);
 
+  // Anchor the temp line at centre-bottom of the source node
+  var srcX =
+    (sourceNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
+  var srcY = (sourceNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT;
+
   edgeDrag = {
     sourceNode: sourceNode,
-    startX: diag.x,
-    startY: diag.y,
+    startX: srcX,
+    startY: srcY,
     tempLine: null,
   };
 
@@ -308,8 +275,8 @@ Edges.startEdgeDrag = function (e, sourceNode) {
   var ns = "http://www.w3.org/2000/svg";
   var line = document.createElementNS(ns, "line");
   line.setAttribute("class", "admin-arbor-edge-temp");
-  line.setAttribute("x1", String(diag.x));
-  line.setAttribute("y1", String(diag.y));
+  line.setAttribute("x1", String(srcX));
+  line.setAttribute("y1", String(srcY));
   line.setAttribute("x2", String(diag.x));
   line.setAttribute("y2", String(diag.y));
   var group = window.AdminArborCanvas.getTransformGroup();
@@ -340,7 +307,7 @@ Edges.onEdgeDragMove = function (e) {
 };
 
 /**
- * Mouse-up during edge creation — validate and persist the edge.
+ * Mouse-up during edge creation — open the connect menu, validate, persist.
  *
  * @param {MouseEvent} e
  */
@@ -372,39 +339,43 @@ Edges.onEdgeDragUp = async function (e) {
 
   if (!targetNode || !sourceNode) return;
 
-  // Determine relationship type from the dropdown
-  var typeSelect = document.getElementById("arbor-edge-type-select");
-  var relationshipType = typeSelect ? typeSelect.value : "supports";
+  // Open the connect menu to choose relationship type
+  if (window.AdminArborConnectMenu && window.AdminArborConnectMenu.open) {
+    var chosenType = await window.AdminArborConnectMenu.open(
+      e.clientX,
+      e.clientY,
+    );
+    if (!chosenType) return; // user cancelled
 
-  // Validate
-  var error = Edges.validateConnection(
-    sourceNode.id,
-    targetNode.id,
-    relationshipType,
-    edges,
-  );
-  if (error) {
-    var errEl = document.getElementById("arbor-edge-error");
-    if (errEl) errEl.textContent = error;
-    return;
-  }
+    // Validate
+    var error = Edges.validateConnection(
+      sourceNode.id,
+      targetNode.id,
+      chosenType,
+      edges,
+    );
+    if (error) {
+      if (typeof window.showToast === "function") {
+        window.showToast(error, "error");
+      }
+      return;
+    }
 
-  // Clear any previous error
-  var errEl = document.getElementById("arbor-edge-error");
-  if (errEl) errEl.textContent = "";
-
-  // Persist
-  try {
-    var created = await UpdateRecord.saveEdge({
-      source_id: sourceNode.id,
-      target_id: targetNode.id,
-      relationship_type: relationshipType,
-    });
-    edges.push(created);
-    Edges.renderEdges();
-  } catch (err) {
-    console.error("Failed to create edge:", err);
-    if (errEl) errEl.textContent = err.message;
+    // Persist
+    try {
+      var created = await UpdateRecord.saveEdge({
+        source_id: sourceNode.id,
+        target_id: targetNode.id,
+        relationship_type: chosenType,
+      });
+      edges.push(created);
+      Edges.renderEdges();
+    } catch (err) {
+      console.error("Failed to create edge:", err);
+      if (typeof window.showToast === "function") {
+        window.showToast("Failed to create connection.", "error");
+      }
+    }
   }
 };
 
@@ -415,8 +386,8 @@ Edges.onEdgeDragUp = async function (e) {
  * Called by arbor-nodes.js during node drag.
  *
  * @param {number} nodeId
- * @param {number} newX  - new diagram-space x of the node
- * @param {number} newY  - new diagram-space y of the node
+ * @param {number} newX  - new x position of node in diagram space (anchored centre-bottom)
+ * @param {number} newY  - new y position of node in diagram space (anchored centre-bottom)
  */
 Edges.repositionEdgesForNode = function (nodeId, newX, newY) {
   var edgeGroups = document.querySelectorAll(".admin-arbor-edge-group");

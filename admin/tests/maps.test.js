@@ -593,3 +593,101 @@ describe("eraToKebab", function () {
     }
   });
 });
+
+// ── unstageCreate and updateStagedPosition ────────────────────────────────
+
+describe("AdminMapsStaged — remove and reposition staged pins", function () {
+  test("unstageCreate removes a staged pin by tempId", function () {
+    var store = freshStagedStore();
+    var evidence = { id: 1, title: "A" };
+    var staged = store.stageCreate(1, evidence, 10, 10);
+
+    assert.equal(store.getCreates().length, 1);
+    store.unstageCreate(staged._tempId);
+    assert.equal(store.getCreates().length, 0);
+    assert.equal(store.count(), 0);
+  });
+
+  test("unstageCreate does nothing for unknown tempId", function () {
+    var store = freshStagedStore();
+    var evidence = { id: 1, title: "A" };
+    store.stageCreate(1, evidence, 10, 10);
+    store.unstageCreate("nonexistent");
+    assert.equal(store.getCreates().length, 1);
+  });
+
+  test("unstageCreate removes only the matching staged pin", function () {
+    var store = freshStagedStore();
+    var a = store.stageCreate(1, { id: 1, title: "A" }, 10, 10);
+    var b = store.stageCreate(1, { id: 2, title: "B" }, 20, 20);
+
+    store.unstageCreate(a._tempId);
+    assert.equal(store.getCreates().length, 1);
+    assert.equal(store.getCreates()[0]._tempId, b._tempId);
+  });
+
+  test("updateStagedPosition changes x/y on the staged pin", function () {
+    var store = freshStagedStore();
+    var evidence = { id: 1, title: "Test" };
+    var staged = store.stageCreate(1, evidence, 10, 10);
+
+    store.updateStagedPosition(staged._tempId, 75, 85);
+
+    var creates = store.getCreates();
+    assert.equal(creates.length, 1);
+    assert.equal(creates[0].x, 75);
+    assert.equal(creates[0].y, 85);
+  });
+
+  test("updateStagedPosition does nothing for unknown tempId", function () {
+    var store = freshStagedStore();
+    var evidence = { id: 1, title: "Test" };
+    var staged = store.stageCreate(1, evidence, 10, 10);
+
+    store.updateStagedPosition("nonexistent", 99, 99);
+
+    var creates = store.getCreates();
+    assert.equal(creates[0].x, 10);
+    assert.equal(creates[0].y, 10);
+  });
+});
+
+// ── pin-menu viewport clamping ─────────────────────────────────────────────
+
+function clampMenuPosition(screenX, screenY, menuWidth, menuHeight, viewW, viewH) {
+  var left = screenX;
+  var top = screenY;
+  if (left + menuWidth > viewW) { left = viewW - menuWidth - 8; }
+  if (top + menuHeight > viewH) { top = viewH - menuHeight - 8; }
+  if (left < 0) left = 8;
+  if (top < 0) top = 8;
+  return { left: left, top: top };
+}
+
+describe("pin-menu position clamping", function () {
+  test("positions menu at cursor when within viewport", function () {
+    var result = clampMenuPosition(200, 300, 160, 100, 1024, 768);
+    assert.equal(result.left, 200);
+    assert.equal(result.top, 300);
+  });
+
+  test("clamps right edge when overflow", function () {
+    var result = clampMenuPosition(950, 300, 160, 100, 1024, 768);
+    assert.equal(result.left, 1024 - 160 - 8);
+  });
+
+  test("clamps bottom edge when overflow", function () {
+    var result = clampMenuPosition(200, 700, 160, 100, 1024, 768);
+    assert.equal(result.top, 768 - 100 - 8);
+  });
+
+  test("clamps left edge when negative", function () {
+    var result = clampMenuPosition(-10, 300, 160, 100, 1024, 768);
+    assert.equal(result.left, 8);
+  });
+
+  test("clamps top edge when negative", function () {
+    var result = clampMenuPosition(200, -10, 160, 100, 1024, 768);
+    assert.equal(result.top, 8);
+  });
+});

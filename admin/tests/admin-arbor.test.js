@@ -641,3 +641,59 @@ describe("edge anchor alignment", function () {
     assert.equal(capturedEdges.y2, 0);
   });
 });
+
+// ── Connect-menu position clamping ──────────────────────────────────────────
+
+/**
+ * Pure logic matching the viewport-clamping in arbor-connect-menu.js.
+ * Given a cursor position, menu dimensions, and viewport size, returns
+ * the clamped { left, top } position.
+ */
+function clampMenuPosition(
+  screenX,
+  screenY,
+  menuWidth,
+  menuHeight,
+  viewW,
+  viewH,
+) {
+  var left = screenX;
+  var top = screenY;
+  if (left + menuWidth > viewW) {
+    left = viewW - menuWidth - 8;
+  }
+  if (top + menuHeight > viewH) {
+    top = viewH - menuHeight - 8;
+  }
+  if (left < 0) left = 8;
+  if (top < 0) top = 8;
+  return { left: left, top: top };
+}
+
+describe("connect-menu position clamping", function () {
+  test("positions menu at cursor when within viewport", function () {
+    var result = clampMenuPosition(200, 300, 140, 152, 1024, 768);
+    assert.equal(result.left, 200);
+    assert.equal(result.top, 300);
+  });
+
+  test("clamps right edge when overflow", function () {
+    var result = clampMenuPosition(950, 300, 140, 152, 1024, 768);
+    assert.equal(result.left, 1024 - 140 - 8);
+  });
+
+  test("clamps bottom edge when overflow", function () {
+    var result = clampMenuPosition(200, 700, 140, 152, 1024, 768);
+    assert.equal(result.top, 768 - 152 - 8);
+  });
+
+  test("clamps left edge when negative", function () {
+    var result = clampMenuPosition(-10, 300, 140, 152, 1024, 768);
+    assert.equal(result.left, 8);
+  });
+
+  test("clamps top edge when negative", function () {
+    var result = clampMenuPosition(200, -10, 140, 152, 1024, 768);
+    assert.equal(result.top, 8);
+  });
+});

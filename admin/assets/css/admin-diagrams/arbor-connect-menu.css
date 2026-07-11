@@ -1,0 +1,57 @@
+/* ==========================================================================
+   Arbor Connect Menu (Admin)
+   Small pop-up menu for choosing a relationship type when connecting nodes.
+   Keyboard-operable via role="menu" (arrows/Enter/Esc).
+   ========================================================================== */
+
+.admin-arbor-connect-menu {
+    position: fixed;
+    z-index: 200;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    padding: var(--space-xs);
+    min-width: 140px;
+    display: none;
+}
+
+.admin-arbor-connect-menu--open {
+    display: block;
+}
+
+.admin-arbor-connect-menu__item {
+    display: block;
+    width: 100%;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.875rem;
+    font-family: var(--admin-font-sans);
+    color: var(--admin-text-primary);
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    text-transform: capitalize;
+}
+
+.admin-arbor-connect-menu__item:hover,
+.admin-arbor-connect-menu__item:focus-visible {
+    background: var(--admin-border);
+    outline: none;
+}
+
+.admin-arbor-connect-menu__item[aria-current="true"] {
+    background: var(--admin-border);
+}
+
+.admin-arbor-connect-menu__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    display: none;
+}
+
+.admin-arbor-connect-menu__backdrop--open {
+    display: block;
+}

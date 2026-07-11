@@ -1,0 +1,56 @@
+/* ==========================================================================
+   Arbor Editor — Page Shell & WYSIWYG Token Bridge (Admin)
+   Provides (a) a full-height flex-column page shell so the arbor canvas
+   fills the viewport, and (b) the frontend palette tokens consumed by the
+   WYSIWYG arbor-canvas.css ruleset (--bg-primary, --border, --bg-surface,
+   etc.) which the admin's variables.css does not define.
+   Tokens mirror frontend variables per setup/Style_guide.md §1/§2.
+   ========================================================================== */
+
+/* ── Page Shell ─────────────────────────────────────────────────────────────── */
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── WYSIWYG Token Bridge ─────────────────────────────────────────────────────
+   These frontend tokens are consumed by the existing admin-diagrams/arbor-canvas.css
+   rules. Defining them here (in the :root scope, loaded after admin-base/variables.css)
+   fixes the blank canvas, missing dot-grid, and node styling.                 */
+
+:root {
+    /* Backgrounds */
+    --bg-primary: #F8F5F0;
+    --bg-surface: #FFFFFF;
+    --bg-surface-alt: #F1EDE4;
+
+    /* Borders */
+    --border: #D4C9B8;
+    --border-strong: #B8A48A;
+
+    /* Accent */
+    --accent: #5C4033;
+    --accent-gold: #B8976A;
+
+    /* Text */
+    --text-primary: #2C2522;
+    --text-secondary: #5C524A;
+    --text-muted: #7A7066;
+
+    /* Typography */
+    --font-serif: Georgia, serif;
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --text-h4: 1.125rem;
+    --text-small: 0.875rem;
+
+    /* Transitions */
+    --duration-fast: 150ms;
+    --ease-out: ease;
+}

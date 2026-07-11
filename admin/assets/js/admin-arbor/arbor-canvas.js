@@ -207,14 +207,6 @@ Canvas.zoomOut = function () {
 };
 
 /**
- * Reset zoom and pan to default.
- */
-Canvas.resetZoom = function () {
-  transform = { x: 0, y: 0, scale: 1 };
-  Canvas.applyTransform();
-};
-
-/**
  * Handle mouse wheel for zoom.
  *
  * @param {WheelEvent} e
@@ -228,7 +220,10 @@ Canvas.onWheel = function (e) {
   var diag = Canvas.screenToDiagram(mouseX, mouseY, transform);
 
   var factor = e.deltaY < 0 ? 1.1 : 0.9;
-  var newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, transform.scale * factor));
+  var newScale = Math.min(
+    MAX_SCALE,
+    Math.max(MIN_SCALE, transform.scale * factor),
+  );
 
   // Adjust pan so the point under the cursor stays fixed
   transform.x = mouseX - diag.x * newScale;
@@ -285,6 +280,13 @@ Canvas.onSvgMouseUp = function () {
  */
 Canvas.applyTransform = function () {
   if (!transformGroup) return;
-  var t = "translate(" + transform.x + ", " + transform.y + ") scale(" + transform.scale + ")";
+  var t =
+    "translate(" +
+    transform.x +
+    ", " +
+    transform.y +
+    ") scale(" +
+    transform.scale +
+    ")";
   transformGroup.setAttribute("transform", t);
 };
