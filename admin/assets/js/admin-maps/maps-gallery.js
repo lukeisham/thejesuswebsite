@@ -184,12 +184,16 @@ Gallery.show = function () {
 Gallery.hide = function () {
   if (galleryEl) galleryEl.hidden = true;
 
+  var main = document.querySelector("main");
   var toolbar = document.querySelector(".admin-maps-toolbar");
   var loading = document.getElementById("map-loading");
+  var pen = document.getElementById("holding-pen");
 
+  if (main) main.hidden = false;
   if (toolbar) toolbar.hidden = false;
   // canvas is shown by switchToMap after loading
   if (loading) loading.hidden = false;
+  if (pen) pen.hidden = false;
 
   isVisible = false;
 };
