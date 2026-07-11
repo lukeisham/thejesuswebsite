@@ -9,6 +9,8 @@
             rel="stylesheet"
             href="../assets/css/admin-diagrams/maps-holding-pen.css"
         />
+        <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/admin-maps/maps-render.js"></script>
         <script defer src="../assets/js/admin-maps/maps-era-utils.js"></script>
         <script
@@ -346,6 +348,18 @@
         <!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
         <script>
             document.addEventListener("DOMContentLoaded", function () {
+                // Guard: if the core admin scripts didn't load, fail visibly instead
+                // of hanging on a permanent loading state.
+                if (typeof window.Admin === "undefined") {
+                    var loadingEl = document.getElementById("map-loading");
+                    if (loadingEl) {
+                        loadingEl.textContent =
+                            "Editor failed to load. Check network connection and try refreshing.";
+                        loadingEl.classList.add("admin-map-loading--error");
+                    }
+                    return;
+                }
+
                 // Once all deferred scripts have loaded, init each module.
                 AdminMapsRender.init();
                 AdminMapsPins.init();
