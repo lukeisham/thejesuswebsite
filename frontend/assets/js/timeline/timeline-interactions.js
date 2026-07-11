@@ -25,6 +25,7 @@ import {
 import { fetchTimelineEvents, groupEventsByPeriod } from "./timeline-data.js";
 import { showToast } from "../utils/toasts.js";
 import { readEmbeddedData } from "../api.js";
+import { announce } from "../utils/announce.js";
 
 // ─── DOM references ────────────────────────────────────────────────────────────
 
@@ -49,6 +50,9 @@ let filtersEl = null;
 
 /** @type {string} */
 let activeEra = initialEra || "all";
+
+/** @type {HTMLElement|null} Focus-return target for keyboard navigation (JS-2) */
+let focusReturnTarget = null;
 
 // ─── Tooltip ───────────────────────────────────────────────────────────────────
 
@@ -139,6 +143,9 @@ function hideTooltip() {
 function showDetailPanel(dot) {
   if (!panelEl) return;
 
+  // Record the triggering dot for focus return on dismiss
+  focusReturnTarget = dot;
+
   const title = dot.dataset.title || "";
   const location = dot.dataset.location || "";
   const verse = dot.dataset.verse || "";
@@ -166,6 +173,11 @@ function showDetailPanel(dot) {
  */
 function hideDetailPanel() {
   if (panelEl) panelEl.hidden = true;
+  // Return focus to the triggering dot so keyboard users don't lose their place
+  if (focusReturnTarget && focusReturnTarget.isConnected) {
+    focusReturnTarget.focus();
+  }
+  focusReturnTarget = null;
 }
 
 // ─── Era Filters ───────────────────────────────────────────────────────────────
@@ -398,6 +410,16 @@ async function init() {
     // ── Wire click → detail panel ────────────────────────────────────────
     delegate(container, ".timeline-dot", "click", (_e, dot) => {
       showDetailPanel(dot);
+      announce(`${dot.dataset.title || "Event"}, details shown`);
+    });
+
+    // ── Wire keyboard activation (Enter/Space) → detail panel ────────────
+    delegate(container, ".timeline-dot", "keydown", (e, dot) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault(); // Space scrolls the page by default
+        showDetailPanel(dot);
+        announce(`${dot.dataset.title || "Event"}, details shown`);
+      }
     });
 
     // ── Cluster hover highlight ─────────────────────────────────────────

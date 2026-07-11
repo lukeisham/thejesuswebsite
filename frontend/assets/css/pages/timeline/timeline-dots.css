@@ -28,6 +28,11 @@
     transform: translate(-50%, -50%) scale(1.3);
 }
 
+.timeline-dot:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
 .timeline-dot.filtered-out {
     opacity: 0.15;
     pointer-events: none;

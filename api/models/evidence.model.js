@@ -45,29 +45,64 @@ const VALID_FILTERS = [
 /**
  * Published evidence for the public site, newest first.
  * Accepts an optional filter object; only whitelisted keys are applied.
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible).
  */
 function getAllPublished(filters = {}) {
+  const { page, limit, ...filterKeys } = filters;
   const conditions = ["e.published_draft = 1"];
   const params = [];
 
   for (const key of VALID_FILTERS) {
-    if (filters[key]) {
+    if (filterKeys[key]) {
       conditions.push(`e.${key} = ?`);
-      params.push(filters[key]);
+      params.push(filterKeys[key]);
     }
   }
 
-  const sql = `
-        SELECT
-          e.*,
-          (SELECT ep.image_path FROM evidence_pictures ep
-           WHERE ep.evidence_id = e.id
-           ORDER BY ep.sort_order LIMIT 1) AS thumbnail_path
+  const whereClause = conditions.join(" AND ");
+
+  // Backward-compatible: no page/limit → flat array
+  if (page === undefined && limit === undefined) {
+    const sql = `
+          SELECT e.*
+          FROM evidence e
+          WHERE ${whereClause}
+          ORDER BY e.created_at DESC
+      `;
+    return db.prepare(sql).all(...params);
+  }
+
+  // Paginated: validate and return structured response
+  const pageNum = Number(page) || 1;
+  const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100);
+
+  if (pageNum < 1) {
+    throw new Error("page must be >= 1");
+  }
+
+  const countSql = `SELECT COUNT(*) AS total FROM evidence e WHERE ${whereClause}`;
+  const { total } = db.prepare(countSql).get(...params);
+
+  const offset = (pageNum - 1) * limitNum;
+  const itemsSql = `
+        SELECT e.*
         FROM evidence e
-        WHERE ${conditions.join(" AND ")}
+        WHERE ${whereClause}
         ORDER BY e.created_at DESC
+        LIMIT ? OFFSET ?
     `;
-  return db.prepare(sql).all(...params);
+  const items = db.prepare(itemsSql).all(...params, limitNum, offset);
+
+  return {
+    items,
+    total,
+    page: pageNum,
+    limit: limitNum,
+    totalPages: Math.ceil(total / limitNum),
+  };
 }
 
 /** Single published item by its public slug, or undefined if not found. */
@@ -155,6 +190,17 @@ function assembleDetail(evidence) {
  */
 function create(data) {
   const row = pickWritable(data, WRITABLE_COLUMNS);
+  // If slug is missing after pickWritable, generate one from the title
+  // (JS-2: defensive fallback so a malformed request body never produces
+  // a slug like "undefined").
+  if (!row.slug && data.title) {
+    row.slug = data.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
   row.slug = generateUniqueSlug(db, "evidence", row.slug);
 
   const columns = Object.keys(row);
@@ -308,6 +354,15 @@ function updateComposite(id, data) {
   return writeRelated(data);
 }
 
+/**
+ * All evidence rows regardless of publish state, sorted by title — for the
+ * admin list page. (JS-2: separate from the public getAllPublished so drafts
+ * never leak accidentally.)
+ */
+function getAllAdmin() {
+  return db.prepare("SELECT * FROM evidence ORDER BY title ASC").all();
+}
+
 /** Delete by id. Returns true if a row was removed. */
 function remove(id) {
   const result = db.prepare("DELETE FROM evidence WHERE id = ?").run(id);
@@ -325,4 +380,5 @@ module.exports = {
   update,
   updateComposite,
   remove,
+  getAllAdmin,
 };

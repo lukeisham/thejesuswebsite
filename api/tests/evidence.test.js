@@ -21,18 +21,6 @@ const db = require("../config");
 const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
 db.exec(schema);
 
-// evidence_pictures exists in migration 001 but not yet in schema.sql;
-// create it here for the thumbnail_path test (schema drift — Issues.md row 19).
-db.exec(`
-  CREATE TABLE IF NOT EXISTS evidence_pictures (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    evidence_id INTEGER NOT NULL REFERENCES evidence(id) ON DELETE CASCADE,
-    sort_order  INTEGER NOT NULL DEFAULT 0,
-    image_path  TEXT NOT NULL,
-    caption     TEXT
-  );
-`);
-
 const evidenceModel = require("../models/evidence.model");
 
 // Seed supporting data for junction links.
@@ -96,35 +84,19 @@ describe("evidence: getAllPublished", () => {
     assert.equal(items[0].primary_verse, "John 3:16");
   });
 
-  test("returns thumbnail_path from first evidence_picture", () => {
-    const created = evidenceModel.create({
-      title: "With Picture",
-      slug: "with-picture",
-      published_draft: 1,
-    });
-
-    db.prepare(
-      "INSERT INTO evidence_pictures (evidence_id, sort_order, image_path) VALUES (?, 0, ?)",
-    ).run(created.id, "/uploads/test.webp");
-    db.prepare(
-      "INSERT INTO evidence_pictures (evidence_id, sort_order, image_path) VALUES (?, 1, ?)",
-    ).run(created.id, "/uploads/test2.webp");
-
-    const items = evidenceModel.getAllPublished();
-    assert.equal(items.length, 1);
-    assert.equal(items[0].thumbnail_path, "/uploads/test.webp");
-  });
-
-  test("thumbnail_path is null when no pictures exist", () => {
+  test("thumbnail_path is null (pictures use [figure] shortcodes in description)", () => {
     evidenceModel.create({
-      title: "No Picture",
-      slug: "no-picture",
+      title: "With Figure",
+      slug: "with-figure",
+      description: '[figure src="/uploads/test.webp" caption="Test"]',
       published_draft: 1,
     });
 
     const items = evidenceModel.getAllPublished();
     assert.equal(items.length, 1);
-    assert.equal(items[0].thumbnail_path, null);
+    // thumbnail_path is no longer included since evidence_pictures was dropped
+    // (migration 006); pictures are now [figure] shortcodes in body text
+    assert.equal(items[0].thumbnail_path, undefined);
   });
 
   test("filters by gospel_category", () => {
@@ -356,5 +328,277 @@ describe("evidence: remove", () => {
 
   test("returns false for non-existent id", () => {
     assert.equal(evidenceModel.remove(99999), false);
+  });
+});
+
+// Admin list tests.
+describe("evidence: getAllAdmin", () => {
+  beforeEach(() => {
+    db.exec("DELETE FROM evidence");
+    db.exec("DELETE FROM evidence_mla_sources");
+    db.exec("DELETE FROM evidence_identifiers");
+    db.exec("DELETE FROM evidence_links_evidence");
+    db.exec("DELETE FROM evidence_links_context");
+  });
+
+  test("returns empty array when no evidence exists", () => {
+    const items = evidenceModel.getAllAdmin();
+    assert.equal(Array.isArray(items), true);
+    assert.equal(items.length, 0);
+  });
+
+  test("returns all evidence regardless of publish state", () => {
+    evidenceModel.create({
+      title: "Published Item",
+      slug: "pub-item",
+      published_draft: 1,
+    });
+    evidenceModel.create({
+      title: "Draft Item",
+      slug: "draft-item",
+      published_draft: 0,
+    });
+
+    const items = evidenceModel.getAllAdmin();
+    assert.equal(items.length, 2);
+    assert.equal(items[0].title, "Draft Item"); // sorted by title
+    assert.equal(items[1].title, "Published Item");
+  });
+
+  test("returns items sorted by title ascending", () => {
+    evidenceModel.create({ title: "Zebra", slug: "zebra", published_draft: 1 });
+    evidenceModel.create({ title: "Apple", slug: "apple", published_draft: 1 });
+    evidenceModel.create({ title: "Mango", slug: "mango", published_draft: 1 });
+
+    const items = evidenceModel.getAllAdmin();
+    assert.equal(items.length, 3);
+    assert.equal(items[0].title, "Apple");
+    assert.equal(items[1].title, "Mango");
+    assert.equal(items[2].title, "Zebra");
+  });
+});
+
+// Edge-case tests for coverage gaps.
+describe("evidence: edge cases", () => {
+  beforeEach(() => {
+    db.exec("DELETE FROM evidence");
+    db.exec("DELETE FROM evidence_mla_sources");
+    db.exec("DELETE FROM evidence_identifiers");
+    db.exec("DELETE FROM evidence_links_evidence");
+    db.exec("DELETE FROM evidence_links_context");
+    db.exec("DELETE FROM mla_sources");
+    db.exec("DELETE FROM identifiers");
+  });
+
+  test("getAdminById returns undefined for non-existent ID", () => {
+    assert.equal(evidenceModel.getAdminById(99999), undefined);
+  });
+
+  test("createComposite with undefined relation arrays creates clean record", () => {
+    const created = evidenceModel.createComposite({
+      title: "No Relations",
+      slug: "no-relations",
+      published_draft: 1,
+      mla_source_ids: undefined,
+      identifier_ids: undefined,
+      link_evidence_ids: undefined,
+      link_context_ids: undefined,
+    });
+
+    assert.ok(created);
+    assert.equal(created.title, "No Relations");
+    assert.equal(created.mla_sources.length, 0);
+    assert.equal(created.identifiers.length, 0);
+    assert.equal(created.links_evidence.length, 0);
+    assert.equal(created.links_context.length, 0);
+  });
+
+  test("getAllPublished with multiple simultaneous filters", () => {
+    evidenceModel.create({
+      title: "Miracle in Galilee",
+      slug: "miracle-galilee",
+      gospel_category: "miracles",
+      timeline_era: "GalileeMinistry",
+      published_draft: 1,
+    });
+    evidenceModel.create({
+      title: "Miracle in Judea",
+      slug: "miracle-judea",
+      gospel_category: "miracles",
+      timeline_era: "JudeanMinistry",
+      published_draft: 1,
+    });
+    evidenceModel.create({
+      title: "Parable in Galilee",
+      slug: "parable-galilee",
+      gospel_category: "parables",
+      timeline_era: "GalileeMinistry",
+      published_draft: 1,
+    });
+
+    const items = evidenceModel.getAllPublished({
+      gospel_category: "miracles",
+      timeline_era: "GalileeMinistry",
+    });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].title, "Miracle in Galilee");
+  });
+
+  test("filter keys outside VALID_FILTERS are silently ignored", () => {
+    evidenceModel.create({
+      title: "Test",
+      slug: "test-filter",
+      published_draft: 1,
+    });
+
+    const items = evidenceModel.getAllPublished({
+      nonsense: "value",
+      alsoBad: "x",
+    });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].title, "Test");
+  });
+
+  test("update() with zero writable fields returns existing row unchanged", () => {
+    const created = evidenceModel.create({
+      title: "Unchanged",
+      slug: "unchanged",
+      published_draft: 1,
+    });
+
+    const result = evidenceModel.update(created.id, {});
+    assert.ok(result);
+    assert.equal(result.title, "Unchanged");
+    assert.equal(result.slug, "unchanged");
+  });
+});
+
+// Slug fallback tests.
+describe("evidence: slug fallback on create", () => {
+  beforeEach(() => {
+    db.exec("DELETE FROM evidence");
+  });
+
+  test("create() generates slug from title when slug is missing", () => {
+    const created = evidenceModel.create({
+      title: "My Test Title",
+      published_draft: 1,
+    });
+
+    assert.ok(created);
+    assert.equal(created.slug, "my-test-title");
+    assert.equal(created.title, "My Test Title");
+  });
+
+  test("create() still uses provided slug when both title and slug are present", () => {
+    const created = evidenceModel.create({
+      title: "My Test Title",
+      slug: "custom-slug",
+      published_draft: 1,
+    });
+
+    assert.equal(created.slug, "custom-slug");
+    assert.equal(created.title, "My Test Title");
+  });
+
+  test("create() deduplicates title-derived slug on collision", () => {
+    evidenceModel.create({
+      title: "My Test Title",
+      slug: "my-test-title",
+      published_draft: 1,
+    });
+
+    const second = evidenceModel.create({
+      title: "My Test Title",
+      published_draft: 1,
+    });
+
+    assert.equal(second.slug, "my-test-title-2");
+  });
+});
+
+// Server-side pagination tests.
+describe("evidence: getAllPublished pagination", () => {
+  beforeEach(() => {
+    db.exec("DELETE FROM evidence");
+    // Seed 25 items so we have enough for multi-page tests.
+    for (let i = 1; i <= 25; i++) {
+      evidenceModel.create({
+        title: `Item ${String(i).padStart(2, "0")}`,
+        slug: `item-${i}`,
+        published_draft: 1,
+      });
+    }
+  });
+
+  test("returns flat array when no page/limit (backward compatible)", () => {
+    const items = evidenceModel.getAllPublished({});
+    assert.equal(Array.isArray(items), true);
+    assert.equal(items.length, 25);
+  });
+
+  test("returns paginated response with default limit=20", () => {
+    const result = evidenceModel.getAllPublished({ page: "1" });
+    assert.equal(result.page, 1);
+    assert.equal(result.limit, 20);
+    assert.equal(result.total, 25);
+    assert.equal(result.totalPages, 2);
+    assert.equal(result.items.length, 20);
+  });
+
+  test("page 2 returns remaining items", () => {
+    const result = evidenceModel.getAllPublished({ page: "2" });
+    assert.equal(result.page, 2);
+    assert.equal(result.items.length, 5);
+  });
+
+  test("custom limit returns exactly that many items", () => {
+    const result = evidenceModel.getAllPublished({ page: "1", limit: "5" });
+    assert.equal(result.limit, 5);
+    assert.equal(result.items.length, 5);
+    assert.equal(result.totalPages, 5);
+  });
+
+  test("page=999 returns empty items array", () => {
+    const result = evidenceModel.getAllPublished({ page: "999" });
+    assert.equal(result.items.length, 0);
+    assert.equal(result.total, 25);
+  });
+
+  test("filters + pagination work together", () => {
+    // Create a specific item for filtering.
+    evidenceModel.create({
+      title: "Filtered Miracle",
+      slug: "filtered-miracle",
+      gospel_category: "miracles",
+      timeline_era: "GalileeMinistry",
+      published_draft: 1,
+    });
+
+    const result = evidenceModel.getAllPublished({
+      gospel_category: "miracles",
+      timeline_era: "GalileeMinistry",
+      page: "1",
+      limit: "10",
+    });
+    assert.equal(result.total, 1);
+    assert.equal(result.items.length, 1);
+    assert.equal(result.items[0].title, "Filtered Miracle");
+  });
+
+  test("flat array still works with filters (no page/limit)", () => {
+    evidenceModel.create({
+      title: "Flat Filtered",
+      slug: "flat-filtered",
+      gospel_category: "miracles",
+      published_draft: 1,
+    });
+
+    const items = evidenceModel.getAllPublished({
+      gospel_category: "miracles",
+    });
+    assert.equal(Array.isArray(items), true);
+    assert.equal(items.length, 1);
+    assert.equal(items[0].title, "Flat Filtered");
   });
 });

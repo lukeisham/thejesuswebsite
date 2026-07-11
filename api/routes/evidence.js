@@ -4,17 +4,34 @@
 const express = require("express");
 const evidenceModel = require("../models/evidence.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError, sendValidationError } = require("../lib/error-handler");
 
 const router = express.Router();
 
-// GET /evidence — public list of published items, with optional filters
-// e.g. /evidence?timeline_era=beginning&map_location=Galilee
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// GET /evidence — public list of published items, with optional filters.
+// e.g. /evidence?timeline_era=beginning&map_location=Galilee&page=1&limit=20
 router.get("/", (req, res) => {
   try {
-    const items = evidenceModel.getAllPublished(req.query);
-    res.json(items);
+    const result = evidenceModel.getAllPublished(req.query);
+    res.json(result);
   } catch (error) {
     console.error("GET /evidence failed:", error);
+    res.status(500).json({ error: "Failed to load evidence." });
+  }
+});
+
+// GET /evidence/admin — all evidence across all publish states, for the admin
+// list page. Must be defined before /admin/:id so Express doesn't match "admin"
+// as an :id parameter.
+router.get("/admin", requireAuth, (req, res) => {
+  try {
+    const items = evidenceModel.getAllAdmin();
+    res.json(items);
+  } catch (error) {
+    console.error("GET /evidence/admin failed:", error);
     res.status(500).json({ error: "Failed to load evidence." });
   }
 });
@@ -22,7 +39,14 @@ router.get("/", (req, res) => {
 // GET /evidence/admin/:id — full detail including relations, any publish state
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {
-    const item = evidenceModel.getAdminById(Number(req.params.id));
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) {
+      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
+        field: "id",
+        received: req.params.id,
+      });
+    }
+    const item = evidenceModel.getAdminById(id);
     if (!item) return res.status(404).json({ error: "Evidence not found." });
     res.json(item);
   } catch (error) {
@@ -47,7 +71,14 @@ router.get("/:slug", (req, res) => {
 router.post("/", requireAuth, (req, res) => {
   try {
     if (!req.body.title || !req.body.slug) {
-      return res.status(400).json({ error: "title and slug are required." });
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, {
+        fields: ["title", "slug"].filter((f) => !req.body[f]),
+      });
+    }
+    if (!SLUG_PATTERN.test(req.body.slug)) {
+      return sendValidationError(res, "slug", ERRORS.INVALID_SLUG, {
+        received: req.body.slug,
+      });
     }
     const created = evidenceModel.createComposite(req.body);
     res.status(201).json(created);
@@ -60,10 +91,19 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /evidence/:id — update (admin only), accepts related arrays
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const updated = evidenceModel.updateComposite(
-      Number(req.params.id),
-      req.body,
-    );
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) {
+      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
+        field: "id",
+        received: req.params.id,
+      });
+    }
+    if (req.body.slug !== undefined && !SLUG_PATTERN.test(req.body.slug)) {
+      return sendValidationError(res, "slug", ERRORS.INVALID_SLUG, {
+        received: req.body.slug,
+      });
+    }
+    const updated = evidenceModel.updateComposite(id, req.body);
     if (!updated) return res.status(404).json({ error: "Evidence not found." });
     res.json(updated);
   } catch (error) {
@@ -75,7 +115,14 @@ router.put("/:id", requireAuth, (req, res) => {
 // DELETE /evidence/:id — remove (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const removed = evidenceModel.remove(Number(req.params.id));
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) {
+      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
+        field: "id",
+        received: req.params.id,
+      });
+    }
+    const removed = evidenceModel.remove(id);
     if (!removed) return res.status(404).json({ error: "Evidence not found." });
     res.status(204).end();
   } catch (error) {
