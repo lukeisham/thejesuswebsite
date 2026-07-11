@@ -1,0 +1,23 @@
+-- Migration 019: Bump jerusalem map image to ?v=5.
+--
+-- The jerusalem overlay was corrected and extended:
+--   - Bethany off-map arrow rotated from due east to its true bearing
+--     (~104°, east-southeast) instead of pointing due east.
+--   - Added missing labels for Antonia, Herod's Palace, and Golgotha
+--     (shapes existed but were unlabelled).
+--   - Added two missing features: Pool of Siloam and Gethsemane
+--     (marker + label each), both previously absent from the plan.
+--   - Added a top-left scale-and-sources legend box (100 SVG units =
+--     300 m scale bar, plus source attribution for Britannica 1911,
+--     OpenBible.info, and Bible-Geocoding-Data).
+--
+-- No Cardo Maximus was added — it is a 2nd-century (Aelia Capitolina)
+-- feature and would be anachronistic for this AD 30 plan.
+--
+-- Bumping the version query string forces every client past the nginx
+-- `Cache-Control: public, immutable` policy to fetch the new artwork.
+--
+-- Usage (applied automatically by deploy.sh):
+--   sqlite3 database/thejesuswebsite.db < database/migrations/019_jerusalem_map_v5.sql
+
+UPDATE maps SET image_path = '/assets/images/maps/jerusalem.svg?v=5' WHERE map_key = 'jerusalem';
