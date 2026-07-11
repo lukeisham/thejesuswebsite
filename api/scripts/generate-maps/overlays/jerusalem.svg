@@ -15,6 +15,7 @@
     Antonia Fortress (NW Temple Mount)       35.2340, 31.7800  →  x=563  y=352
     Mount of Olives summit                   35.2430, 31.7790  →  x=844  y=389
     Gethsemane (foot of Mt. of Olives)       35.2395, 31.7795  →  x=734  y=370
+    Pool of Siloam (SE tip, City of David)   35.2345, 31.7690  →  x=578  y=759
     Upper Room (traditional, Mount Zion)     35.2289, 31.7719  →  x=403  y=652
     Kidron Valley (east of Temple Mount)     ~35.238          →  x≈688
     Hinnom Valley (south of western hill)    ~35.222–35.238   →  x≈375–688 at y≈685
@@ -22,12 +23,37 @@
   Structures are drawn at a readable symbolic scale (3–5× true size),
   centred at their correct projected positions.
 
+  Feature labels use the small-feature style: text-anchor="middle"
+  font-family="Georgia, serif" font-style="italic" font-size="9|8"
+  fill="#8B7A6D" (matches the SVG builder's hill-label style).
+
   Licence:  Britannica 1911 is PD.  Topography from OpenBible.info (CC BY 4.0).
             Attribution rendered separately by the SVG builder.
             Cities/sites come from map_pins via the admin editor — they are
             NOT baked into this overlay (per established convention).
 -->
 <g id="overlay-jerusalem">
+
+  <!-- Scale-and-sources legend, top-left (x 30–195 y 30–170, clear of the
+       compass rose at top-right). Scale bar: 100 units = 300 m. -->
+  <g id="legend-box">
+    <rect x="30" y="30" width="165" height="140" rx="4" fill="rgba(248,245,240,0.92)" stroke="#8B7D6B" stroke-width="1"/>
+    <text x="112.5" y="48" text-anchor="middle" font-family="Georgia, serif" font-size="10" font-weight="bold" letter-spacing="0.1em" fill="#5C4E3D">Scale &amp; Sources</text>
+    <line x1="40" y1="55" x2="185" y2="55" stroke="#8B7D6B" stroke-width="0.5" opacity="0.5"/>
+    <line x1="45" y1="75" x2="145" y2="75" stroke="#5C4E3D" stroke-width="1.2"/>
+    <line x1="45" y1="70" x2="45" y2="80" stroke="#5C4E3D" stroke-width="1.2"/>
+    <line x1="145" y1="70" x2="145" y2="80" stroke="#5C4E3D" stroke-width="1.2"/>
+    <line x1="78.33" y1="72" x2="78.33" y2="78" stroke="#5C4E3D" stroke-width="0.8"/>
+    <line x1="111.67" y1="72" x2="111.67" y2="78" stroke="#5C4E3D" stroke-width="0.8"/>
+    <text x="95" y="93" text-anchor="middle" font-family="Georgia, serif" font-size="8" fill="#5C4E3D">300 m</text>
+    <text x="95" y="104" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="7" fill="#7A7066">0.19 mi</text>
+    <text x="38" y="122" font-family="Georgia, serif" font-style="italic" font-size="5.5" fill="#7A7066">
+      <tspan x="38" dy="0">Sources: Britannica 1911</tspan>
+      <tspan x="38" dy="8">(public domain) &#183; OpenBible.info</tspan>
+      <tspan x="38" dy="8">(CC BY 4.0) &#183; Bible-Geocoding-Data</tspan>
+      <tspan x="38" dy="8">(CC BY 4.0)</tspan>
+    </text>
+  </g>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        Temple Mount platform (Herodian enlargement, ~300 m N–S × ~150 m E–W)
@@ -43,6 +69,7 @@
        Antonia Fortress (NW corner of Temple Mount platform)
        ════════════════════════════════════════════════════════════════════ -->
   <rect x="550" y="336" width="26" height="18" rx="1" fill="rgba(241,237,228,0.5)" stroke="#8B7D6B" stroke-width="1.5" stroke-linejoin="round"/>
+  <text x="563" y="330" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Antonia</text>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        First Wall — original Hasmonean / Herodian circuit
@@ -80,13 +107,14 @@
     <line x1="425" y1="406" x2="425" y2="416"/>
   </g>
   <circle cx="425" cy="411" r="5" fill="none" stroke="#8B7D6B" stroke-width="0.8"/>
+  <text x="425" y="390" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Golgotha</text>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       Herod's Palace marker (at or near the Citadel / Jaffa Gate area,
-       projected at 369,496).
-       ════════════════════════════════════════════════════════════════════ -->
+  <!-- Herod's Palace marker (Citadel / Jaffa Gate area, projected 369,496).
+       Label nudged to x=315,y=505 from the requested 369,510: the First
+       Wall's western arc passes ~x=367 at y=510, right under the label. -->
   <rect x="363" y="490" width="12" height="12" rx="1" fill="none" stroke="#8B7D6B" stroke-width="1.5" stroke-linejoin="round"/>
   <rect x="365" y="492" width="8" height="8" rx="1" fill="rgba(241,237,228,0.4)" stroke="none"/>
+  <text x="315" y="505" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Herod's Palace</text>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        Kidron Valley (east of Temple Mount and City of David)
@@ -102,6 +130,10 @@
   <polyline points="-30,796 125,796 281,796 438,796 594,796 688,796" fill="none" stroke="#7A8B6D" stroke-width="1.5" stroke-dasharray="6,3" stroke-linecap="round"/>
   <!-- Southern continuation where Hinnom meets Kidron -->
   <polyline points="688,796 688,850 688,907 688,964 688,1020" fill="none" stroke="#7A8B6D" stroke-width="1.5" stroke-dasharray="6,3" stroke-linecap="round"/>
+
+  <!-- Pool of Siloam — SE tip of the City of David (projected 578,759). -->
+  <ellipse cx="578" cy="759" rx="6" ry="8" fill="none" stroke="#7A8B6D" stroke-width="1.2" stroke-dasharray="2,2"/>
+  <text x="578" y="775" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="8" fill="#8B7A6D">Pool of Siloam</text>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        Mount of Olives ridgeline (east of the Kidron Valley)
@@ -131,14 +163,15 @@
     <polyline points="-50,500 63,500 250,500"/>
   </g>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       Bethany off-map indicator — arrow pointing east at the right edge
-       Bethany ≈ 2.5 km from the Temple Mount (great-circle distance).
-       ════════════════════════════════════════════════════════════════════ -->
-  <g fill="none" stroke="#8B7D6B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Arrow shaft -->
+  <!-- Gethsemane — foot of the Mt. of Olives, east of the Kidron (734,370). -->
+  <circle cx="734" cy="370" r="4" fill="none" stroke="#8B7D6B" stroke-width="1.2"/>
+  <text x="734" y="355" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="8" fill="#8B7A6D">Gethsemane</text>
+
+  <!-- Bethany off-map indicator, rotated 14° cw about the tail (970,678)
+       to point ESE (bearing ≈104°, the true bearing to Bethany).
+       Bethany ≈ 2.5 km from the Temple Mount (great-circle distance). -->
+  <g fill="none" stroke="#8B7D6B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(14, 970, 678)">
     <line x1="970" y1="678" x2="990" y2="678"/>
-    <!-- Arrow head -->
     <polyline points="985,673 993,678 985,683"/>
   </g>
   <text x="960" y="670" text-anchor="end" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-style="italic" fill="#8B7A6D">Bethany ≈ 2.5 km</text>
