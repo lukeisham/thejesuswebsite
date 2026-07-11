@@ -30,6 +30,7 @@ import {
   LABEL_TRUNCATED,
   LABEL_HIDDEN,
 } from "./timeline-cluster-labels.js";
+import { periodX, periodY, STAGGER_OFFSETS } from "./timeline-geometry.js";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -86,8 +87,10 @@ export function isVerticalMode() {
  * per-cluster starting tier for events in the same period, and (b) the
  * escalation ladder labels are pushed along when their bounding boxes
  * collide with an already-placed neighbour.
+ *
+ * Imported from ./timeline-geometry.js.
  */
-const STAGGER_OFFSETS = [0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40];
+// STAGGER_OFFSETS is imported from ./timeline-geometry.js.
 
 // ─── Cached references (SR-3) ─────────────────────────────────────────────────
 
@@ -166,21 +169,6 @@ export function showEmpty() {
  * @param {number} slotWidth
  * @returns {number}
  */
-function periodX(periodIndex, slotWidth) {
-  return periodIndex * slotWidth + slotWidth / 2;
-}
-
-/**
- * Compute the pixel Y position for a period by its canonical index
- * (vertical mode).
- *
- * @param {number} periodIndex
- * @param {number} slotHeight
- * @returns {number}
- */
-function periodY(periodIndex, slotHeight) {
-  return periodIndex * slotHeight + slotHeight / 2;
-}
 
 /**
  * Determine whether a horizontal-mode label should sit above or below the

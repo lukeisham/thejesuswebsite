@@ -103,6 +103,11 @@ const {
   totalWidth,
 } = axisSandbox.window.AdminTimelineAxis;
 
+const DEFAULT_PX_PER_PERIOD =
+  axisSandbox.window.AdminTimelineGeometry.DEFAULT_PX_PER_PERIOD;
+const periodToXCentered =
+  axisSandbox.window.AdminTimelineGeometry.periodToXCentered;
+
 // ── periodOrdinal ────────────────────────────────────────────────────────────
 
 describe("periodOrdinal", function () {
@@ -150,75 +155,101 @@ describe("eraOrdinal", function () {
 // ── periodToX ────────────────────────────────────────────────────────────────
 
 describe("periodToX", function () {
-  test("maps the first period to x = 0 at default scale", function () {
-    var x = periodToX("PreIncarnation", 80, 0);
-    assert.equal(x, 0);
+  test("maps the first period to x = 50 at default scale (centred in slot)", function () {
+    // PreIncarnation at index 0 with scale 100: 0*100 + 100/2 + 0 = 50
+    var x = periodToX("PreIncarnation", 100, 0);
+    assert.equal(x, 50);
   });
 
   test("scales with pxPerUnit", function () {
-    var x = periodToX("OldTestament", 80, 0);
-    assert.equal(x, 80);
+    // OldTestament at index 1 with scale 100: 1*100 + 100/2 + 0 = 150
+    var x = periodToX("OldTestament", 100, 0);
+    assert.equal(x, 150);
 
+    // Same period at scale 160: 1*160 + 160/2 + 0 = 240
     x = periodToX("OldTestament", 160, 0);
-    assert.equal(x, 160);
+    assert.equal(x, 240);
   });
 
   test("adds the pan offset", function () {
-    var x = periodToX("PreIncarnation", 80, 100);
-    assert.equal(x, 100);
+    // PreIncarnation with offset 100: 0*100 + 50 + 100 = 150
+    var x = periodToX("PreIncarnation", 100, 100);
+    assert.equal(x, 150);
 
-    x = periodToX("OldTestament", 80, -50);
-    assert.equal(x, 30);
+    // OldTestament with offset -50: 1*100 + 50 + (-50) = 100
+    x = periodToX("OldTestament", 100, -50);
+    assert.equal(x, 100);
   });
 
-  test("defaults to 80 px/period when no scale given", function () {
+  test("defaults to 100 px/period when no scale given", function () {
+    // OldTestament default: 1*100 + 50 = 150
     var x = periodToX("OldTestament");
-    assert.equal(x, 80);
+    assert.equal(x, 150);
+  });
+
+  test("DEFAULT_PX_PER_PERIOD is 100", function () {
+    assert.equal(DEFAULT_PX_PER_PERIOD, 100);
+  });
+
+  test("periodToXCentered matches periodX formula", function () {
+    // periodIndex * scale + scale/2 + offset
+    assert.equal(periodToXCentered(0, 100, 0), 50);
+    assert.equal(periodToXCentered(5, 100, 0), 550);
+    assert.equal(periodToXCentered(5, 80, 50), 490);
   });
 });
 
 // ── xToPeriod ────────────────────────────────────────────────────────────────
 
 describe("xToPeriod", function () {
-  test("maps x = 0 to PreIncarnation at default scale", function () {
-    var period = xToPeriod(0, 80, 0);
+  test("maps x = 50 to PreIncarnation at default scale (centred snap)", function () {
+    // With centering: period 0 centre is at 50, snap range for period 0 is x ∈ [0, 100)
+    var period = xToPeriod(50, 100, 0);
     assert.equal(period, "PreIncarnation");
   });
 
-  test("maps x = 80 to OldTestament at default scale", function () {
-    var period = xToPeriod(80, 80, 0);
+  test("maps x = 150 to OldTestament at default scale", function () {
+    var period = xToPeriod(150, 100, 0);
     assert.equal(period, "OldTestament");
   });
 
   test("snaps to the nearest period", function () {
-    // x = 100 is between OldTestament (80) and EarlyLifeUnborn (160) → closer to 80
-    var period = xToPeriod(100, 80, 0);
+    // x = 110 is between OldTestament (centre 150) and EarlyLifeUnborn (centre 250) → closer to OldTestament
+    var period = xToPeriod(110, 100, 0);
     assert.equal(period, "OldTestament");
 
-    // x = 130 is closer to 160
-    period = xToPeriod(130, 80, 0);
+    // x = 200 is closer to EarlyLifeUnborn (centre 250)
+    period = xToPeriod(200, 100, 0);
     assert.equal(period, "EarlyLifeUnborn");
   });
 
   test("accounts for pan offset", function () {
-    // With offset 200: x=200 → period 0, x=360 → period 2 (160*1 + 200 = 360)
-    var period = xToPeriod(360, 80, 200);
-    assert.equal(period, "EarlyLifeUnborn");
+    // With offset 200: periodToX(PreIncarnation, 100, 200) = 0*100 + 50 + 200 = 250
+    // xToPeriod(250, 100, 200): index = round((250 - 200 - 50)/100) = round(0) = 0
+    var period = xToPeriod(250, 100, 200);
+    assert.equal(period, "PreIncarnation");
   });
 
   test("clamps to the valid range", function () {
-    var period = xToPeriod(-1000, 80, 0);
+    var period = xToPeriod(-1000, 100, 0);
     assert.equal(period, "PreIncarnation");
 
-    period = xToPeriod(999999, 80, 0);
+    period = xToPeriod(999999, 100, 0);
     // Should be the last period (ReturnOfJesus)
     assert.ok(typeof period === "string");
     assert.ok(period.length > 0);
   });
 
-  test("defaults to 80 px/period when no scale given", function () {
-    var period = xToPeriod(0);
+  test("defaults to 100 px/period when no scale given", function () {
+    var period = xToPeriod(50);
     assert.equal(period, "PreIncarnation");
+  });
+
+  test("boundary between adjacent periods handles centring correctly", function () {
+    // At scale 100, period 0 centre = 50, period 1 centre = 150, boundary = 100.
+    // x = 99 should snap to period 0, x = 101 should snap to period 1.
+    assert.equal(xToPeriod(99, 100, 0), "PreIncarnation");
+    assert.equal(xToPeriod(101, 100, 0), "OldTestament");
   });
 });
 
@@ -269,18 +300,18 @@ describe("periodToX ↔ xToPeriod round-trip", function () {
 
 describe("eraStartX", function () {
   test("maps PreIncarnation era to PreIncarnation position", function () {
-    var x = eraStartX("PreIncarnation", 80, 0);
-    assert.equal(x, periodToX("PreIncarnation", 80, 0));
+    var x = eraStartX("PreIncarnation", 100, 0);
+    assert.equal(x, periodToX("PreIncarnation", 100, 0));
   });
 
   test("maps GalileeMinistry era to GalileeCallingTwelve position", function () {
-    var x = eraStartX("GalileeMinistry", 80, 0);
-    assert.equal(x, periodToX("GalileeCallingTwelve", 80, 0));
+    var x = eraStartX("GalileeMinistry", 100, 0);
+    assert.equal(x, periodToX("GalileeCallingTwelve", 100, 0));
   });
 
   test("maps PassionWeek era to PassionPalmSunday position", function () {
-    var x = eraStartX("PassionWeek", 80, 0);
-    assert.equal(x, periodToX("PassionPalmSunday", 80, 0));
+    var x = eraStartX("PassionWeek", 100, 0);
+    assert.equal(x, periodToX("PassionPalmSunday", 100, 0));
   });
 
   test("handles scales and offsets", function () {
@@ -294,14 +325,15 @@ describe("eraStartX", function () {
 
 describe("totalWidth", function () {
   test("is proportional to scale", function () {
-    var w1 = totalWidth(80);
-    var w2 = totalWidth(160);
+    var w1 = totalWidth(100);
+    var w2 = totalWidth(200);
     assert.equal(w2, w1 * 2);
   });
 
-  test("defaults to 80 px/period when no scale given", function () {
+  test("defaults to 100 px/period when no scale given", function () {
     var w = totalWidth();
-    assert.ok(w > 1000); // 38 periods * 80px = 3040
+    // 38 periods * 100px = 3800
+    assert.ok(w > 3500);
   });
 });
 
@@ -466,12 +498,16 @@ describe("drag-snap round-trip identity for every period", function () {
 // ── Cluster Density Tiers ──────────────────────────────────────────────────
 
 describe("cluster density tiers", function () {
-  const DENSITY_COMPACT = axisSandbox.window.AdminTimelineClusterDensity.DENSITY_COMPACT;
-  const DENSITY_NORMAL = axisSandbox.window.AdminTimelineClusterDensity.DENSITY_NORMAL;
-  const DENSITY_SPREAD = axisSandbox.window.AdminTimelineClusterDensity.DENSITY_SPREAD;
-  const getClusterDensity = axisSandbox.window.AdminTimelineClusterDensity.getClusterDensity.bind(
-    axisSandbox.window.AdminTimelineClusterDensity,
-  );
+  const DENSITY_COMPACT =
+    axisSandbox.window.AdminTimelineClusterDensity.DENSITY_COMPACT;
+  const DENSITY_NORMAL =
+    axisSandbox.window.AdminTimelineClusterDensity.DENSITY_NORMAL;
+  const DENSITY_SPREAD =
+    axisSandbox.window.AdminTimelineClusterDensity.DENSITY_SPREAD;
+  const getClusterDensity =
+    axisSandbox.window.AdminTimelineClusterDensity.getClusterDensity.bind(
+      axisSandbox.window.AdminTimelineClusterDensity,
+    );
 
   test("compact at 30 px/period", function () {
     assert.equal(getClusterDensity(null, 30), DENSITY_COMPACT);
@@ -501,9 +537,10 @@ describe("cluster density tiers", function () {
 // ── Dot Placement ─────────────────────────────────────────────────────────
 
 describe("dot placement", function () {
-  const computeDotPositions = axisSandbox.window.AdminTimelineClusterPlacement.computeDotPositions.bind(
-    axisSandbox.window.AdminTimelineClusterPlacement,
-  );
+  const computeDotPositions =
+    axisSandbox.window.AdminTimelineClusterPlacement.computeDotPositions.bind(
+      axisSandbox.window.AdminTimelineClusterPlacement,
+    );
 
   test("single event per period — y offset is 0", function () {
     var grouped = { PreIncarnation: [{ id: 1, title: "Test" }] };
@@ -568,11 +605,14 @@ describe("dot placement", function () {
 
 describe("label modes", function () {
   const LABEL_FULL = axisSandbox.window.AdminTimelineClusterLabels.LABEL_FULL;
-  const LABEL_TRUNCATED = axisSandbox.window.AdminTimelineClusterLabels.LABEL_TRUNCATED;
-  const LABEL_HIDDEN = axisSandbox.window.AdminTimelineClusterLabels.LABEL_HIDDEN;
-  const computeLabelModes = axisSandbox.window.AdminTimelineClusterLabels.computeLabelModes.bind(
-    axisSandbox.window.AdminTimelineClusterLabels,
-  );
+  const LABEL_TRUNCATED =
+    axisSandbox.window.AdminTimelineClusterLabels.LABEL_TRUNCATED;
+  const LABEL_HIDDEN =
+    axisSandbox.window.AdminTimelineClusterLabels.LABEL_HIDDEN;
+  const computeLabelModes =
+    axisSandbox.window.AdminTimelineClusterLabels.computeLabelModes.bind(
+      axisSandbox.window.AdminTimelineClusterLabels,
+    );
 
   test("single event — full label in all tiers", function () {
     var descs = [{ event: { id: 1 }, timeline_period: "PreIncarnation" }];

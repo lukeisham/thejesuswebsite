@@ -66,9 +66,14 @@ Axis.eraOrdinal = function (era) {
  * @returns {number}  x-position in pixels
  */
 Axis.periodToX = function (period, pxPerUnit, offsetX) {
-  var scale = pxPerUnit || DEFAULT_PX_PER_PERIOD;
-  var off = offsetX || 0;
-  return Axis.periodOrdinal(period) * scale + off;
+  var index = Axis.periodOrdinal(period);
+  // Use the shared centred helper so dots land in the middle of their
+  // period slot, matching the frontend's periodX (periodIndex * scale + scale/2).
+  return window.AdminTimelineGeometry.periodToXCentered(
+    index,
+    pxPerUnit,
+    offsetX,
+  );
 };
 
 /**
@@ -82,7 +87,11 @@ Axis.periodToX = function (period, pxPerUnit, offsetX) {
 Axis.xToPeriod = function (x, pxPerUnit, offsetX) {
   var scale = pxPerUnit || DEFAULT_PX_PER_PERIOD;
   var off = offsetX || 0;
-  var index = Math.round((x - off) / scale);
+  // Subtract scale/2 so the snap boundary aligns with the centred dot
+  // position produced by periodToXCentered. Without this correction,
+  // a dot at x=40 (centred in period 0 at scale 80) would round to
+  // Math.round(40/80)=0.5→1 (period 1), breaking the round-trip.
+  var index = Math.round((x - off - scale / 2) / scale);
   if (index < 0) index = 0;
   if (index >= PERIOD_ORDER.length) index = PERIOD_ORDER.length - 1;
   return PERIOD_ORDER[index];
