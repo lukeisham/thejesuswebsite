@@ -12,8 +12,30 @@
 
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 const { CONTENT_PAGES } = require("../config/content-pages");
 const { generatePage, removePage } = require("../services/page-generator");
+
+/**
+ * List git-tracked .html files in a directory (non-recursive basenames).
+ * Static pages (arbor.html, search.html, ...) are tracked in git; generated
+ * per-slug pages are not — so tracked files must never be treated as orphans.
+ * Returns null if git is unavailable, so the caller can fail safe.
+ */
+function gitTrackedHtml(dir) {
+  try {
+    const out = execSync("git ls-files -z -- '*.html'", { cwd: dir });
+    return new Set(
+      out
+        .toString("utf8")
+        .split("\0")
+        .filter((f) => f && !f.includes("/"))
+        .map((f) => path.basename(f)),
+    );
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Remove generated .html files in an output directory that no longer have
@@ -24,7 +46,19 @@ const { generatePage, removePage } = require("../services/page-generator");
  * managed by git, not generated per-item pages.
  */
 function cleanOrphans(config, publishedSlugs) {
-  if (!fs.existsSync(config.outputDir)) return;
+  if (!fs.existsSync(config.outputDir)) return 0;
+
+  // Git-tracked .html files are static assets, never generated pages —
+  // deleting them (as happened to evidence/arbor.html and search.html)
+  // breaks real routes. If git is unavailable we cannot tell static from
+  // generated, so fail safe and delete nothing.
+  const tracked = gitTrackedHtml(config.outputDir);
+  if (tracked === null) {
+    console.warn(
+      `[pages] WARN git unavailable — skipping orphan cleanup for ${config.type}`,
+    );
+    return 0;
+  }
 
   const files = fs.readdirSync(config.outputDir);
   let removed = 0;
@@ -38,7 +72,8 @@ function cleanOrphans(config, publishedSlugs) {
     if (
       !file.endsWith(".html") ||
       file === "[slug].html" ||
-      file === "index.html"
+      file === "index.html" ||
+      tracked.has(file)
     )
       continue;
 
