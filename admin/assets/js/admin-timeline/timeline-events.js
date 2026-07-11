@@ -166,9 +166,14 @@ Events.renderEvents = function () {
       var ev2 = pos.event;
       var yOffset = pos.yOffset;
       var xFan = pos.xFan || 0;
-      var y = 60 + yOffset;
+      // Match the frontend's vertical positioning: dots sit at
+      // top: ${50 + yOffset / 2}% of the timeline container, which
+      // has min-height: 280px (see frontend/assets/js/timeline/timeline-render.js
+      // buildHorizontalLayout). Convert percentage to absolute px for the
+      // admin's fixed-height canvas.
+      var y = (280 * (50 + yOffset / 2)) / 100;
       var mode = modeByEventId[ev2.id] || "full";
-      var el2 = Events.createEventElement(ev2, baseX + xFan, y, mode);
+      var el2 = Events.createEventElement(ev2, baseX + xFan, y, yOffset, mode);
       axisEl.appendChild(el2);
     }
   }
@@ -178,11 +183,13 @@ Events.renderEvents = function () {
  * Create a DOM element for a single timeline event marker.
  *
  * @param {Object} ev
- * @param {number} x   - x position on the axis
- * @param {number} y   - y position (staggered for clustering)
+ * @param {number} x        - x position on the axis
+ * @param {number} y        - y position (percentage-converted, see renderEvents)
+ * @param {number} yOffset  - stagger offset from cluster placement
+ * @param {string} labelMode - "full"|"truncated"|"hidden"
  * @returns {HTMLElement}
  */
-Events.createEventElement = function (ev, x, y, labelMode) {
+Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
   const el = document.createElement("button");
   // Era class hook (kebab-case)
   var eraStr = ev.timeline_era || "";
@@ -233,10 +240,19 @@ Events.createEventElement = function (ev, x, y, labelMode) {
         .filter(Boolean)
         .join(" ");
       label.style.position = "absolute";
+      // Centre the label horizontally over the dot.
       label.style.left = x - 50 + "px";
-      label.style.top = y - 18 + "px";
       label.style.width = "100px";
       label.style.textAlign = "center";
+      // Position the label relative to the dot using the same stagger
+      // tier (yOffset) from cluster placement — matching the frontend's
+      // behaviour where labels sit at the same relative offset from their
+      // dot rather than in a fixed box.
+      if (yOffset <= 0) {
+        label.style.top = y - 22 + "px";
+      } else {
+        label.style.top = y + 8 + "px";
+      }
       label.textContent = labelText;
       el.appendChild(label);
     }
