@@ -1,0 +1,76 @@
+/* ==========================================================================
+   Timeline Context Menu (Admin)
+   Right-click popover menu for timeline event actions.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Menu
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-context-menu {
+    position: fixed;
+    z-index: 200;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    padding: var(--space-xs, 4px) 0;
+    min-width: 160px;
+    display: none;
+}
+
+.admin-timeline-context-menu--open {
+    display: block;
+}
+
+/* -------------------------------------------------------------------------
+   Menu items
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-context-menu__item {
+    display: block;
+    width: 100%;
+    padding: var(--space-xs, 4px) var(--space-sm, 8px);
+    font-size: var(--text-small, 0.875rem);
+    font-family: var(--admin-font-sans);
+    color: var(--admin-text-primary);
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    line-height: 1.5;
+    transition: background var(--admin-transition);
+}
+
+.admin-timeline-context-menu__item:hover,
+.admin-timeline-context-menu__item:focus-visible {
+    background: var(--admin-surface-hover);
+    outline: none;
+}
+
+/* Danger variant */
+.admin-timeline-context-menu__item--danger {
+    color: var(--admin-danger, #c0392b);
+}
+
+/* Separator */
+.admin-timeline-context-menu__separator {
+    height: 1px;
+    background: var(--admin-border);
+    margin: var(--space-xs, 4px) 0;
+}
+
+/* -------------------------------------------------------------------------
+   Backdrop
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-context-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    display: none;
+}
+
+.admin-timeline-context-menu-backdrop--open {
+    display: block;
+}

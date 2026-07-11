@@ -4,6 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Maps Editor — Admin</title>
+        <link rel="stylesheet" href="../assets/css/admin.css" />
         <link rel="stylesheet" href="../assets/css/admin-diagrams/maps.css" />
         <link
             rel="stylesheet"
@@ -17,8 +18,10 @@
             defer
             src="../assets/js/admin-maps/maps-staged-changes.js"
         ></script>
+        <script defer src="../assets/js/admin-maps/maps-pin-menu.js"></script>
         <script defer src="../assets/js/admin-maps/maps-pins.js"></script>
         <script defer src="../assets/js/admin-maps/maps-regions.js"></script>
+        <script defer src="../assets/js/admin-maps/maps-gallery.js"></script>
         <script defer src="../assets/js/admin-maps/maps-metadata.js"></script>
         <script
             defer
@@ -34,9 +37,28 @@
             >
         </header>
 
+        <!-- ── Maps Gallery ────────────────────────────────────────────────────────── -->
+        <section
+            id="maps-gallery"
+            class="admin-maps-gallery"
+            aria-label="All maps"
+        >
+            <h2>Maps</h2>
+            <div id="maps-gallery-grid" class="admin-maps-gallery__grid"></div>
+        </section>
+
         <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
-        <nav class="admin-maps-toolbar" aria-label="Map editor tools">
+        <nav class="admin-maps-toolbar" aria-label="Map editor tools" hidden>
             <div class="admin-maps-toolbar__left">
+                <button
+                    type="button"
+                    id="maps-back-btn"
+                    class="admin-maps-toolbar__btn admin-maps-toolbar__btn--secondary"
+                    aria-label="Back to all maps"
+                >
+                    ← All Maps
+                </button>
+
                 <select
                     id="map-selector"
                     class="admin-maps-toolbar__select"
@@ -184,7 +206,7 @@
         </section>
 
         <!-- ── Map Editor Canvas ──────────────────────────────────────────────────── -->
-        <main>
+        <main hidden>
             <!-- ── Holding Pen ──────────────────────────────────────────────────── -->
             <section
                 id="holding-pen"
@@ -366,6 +388,8 @@
                 AdminMapsRegions.init();
                 AdminMapsMetadata.init();
                 AdminMapsHoldingPen.init();
+                AdminMapsPinMenu.init();
+                AdminMapsGallery.init();
 
                 // Wire the Save button
                 const saveBtn = document.getElementById("holding-pen-save");
@@ -390,12 +414,9 @@
                     });
                 }
 
-                // Kick off: load maps list, then switch to the first map.
+                // Kick off: load maps list, then render the gallery.
                 AdminMapsRegions.loadMaps().then(() => {
-                    const maps = AdminMapsRegions.getMaps();
-                    if (maps.length > 0) {
-                        return AdminMapsRegions.switchToMap(maps[0].map_key);
-                    }
+                    AdminMapsGallery.render();
                 });
 
                 // Sync backdrop visibility with panel state

@@ -1,25 +1,20 @@
 /* ==========================================================================
    Timeline Holding Pen (Admin)
-   Horizontal strip of draft chips above the canvas. Chips are draggable
+   Horizontal strip of draft chips below the canvas. Chips are draggable
    evidence rows with era set but no timeline_period.
    ========================================================================== */
 
 .admin-timeline-holding-pen {
     padding: var(--space-sm) var(--space-md);
     background: var(--admin-surface);
-    border-bottom: 1px solid var(--admin-border);
-}
-
-.admin-timeline-holding-pen__heading {
-    font-size: var(--text-small);
-    font-weight: 600;
-    color: var(--admin-text-secondary);
-    margin-bottom: var(--space-sm);
+    border-top: 1px solid var(--admin-border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .admin-timeline-holding-pen__chips {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: var(--space-xs);
     min-height: 44px;
     align-items: center;
@@ -62,6 +57,13 @@
     border-radius: 50%;
     border: 1px solid var(--admin-border);
     flex-shrink: 0;
+}
+
+/* On narrow screens allow chips to wrap */
+@media (max-width: 600px) {
+    .admin-timeline-holding-pen__chips {
+        flex-wrap: wrap;
+    }
 }
 
 /* Drop-target highlight on the canvas when a chip is being dragged */

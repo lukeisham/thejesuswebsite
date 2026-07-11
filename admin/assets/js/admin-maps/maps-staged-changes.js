@@ -69,6 +69,34 @@ Staged.stageMove = function (pinId, x, y) {
 };
 
 /**
+ * Remove a staged create by its temporary ID without hitting the API.
+ *
+ * @param {string} tempId
+ */
+Staged.unstageCreate = function (tempId) {
+  stagedCreates = stagedCreates.filter((sc) => sc._tempId !== tempId);
+  Staged._updateUI();
+};
+
+/**
+ * Update a staged create's position in place (for drag-before-save).
+ *
+ * @param {string} tempId
+ * @param {number} x - percentage x
+ * @param {number} y - percentage y
+ */
+Staged.updateStagedPosition = function (tempId, x, y) {
+  for (var i = 0; i < stagedCreates.length; i++) {
+    if (stagedCreates[i]._tempId === tempId) {
+      stagedCreates[i].x = Math.round(x * 100) / 100;
+      stagedCreates[i].y = Math.round(y * 100) / 100;
+      break;
+    }
+  }
+  Staged._updateUI();
+};
+
+/**
  * Return all staged creates (for rendering staged pins on the canvas).
  * @returns {Array<Object>}
  */

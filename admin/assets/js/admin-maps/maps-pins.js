@@ -163,6 +163,23 @@ Pins.createPinElement = function (pin) {
     Pins.onPinMouseDown(e, pin);
   });
 
+  // Right-click → "Remove from Map" (with confirmation for saved pins)
+  el.addEventListener("contextmenu", async function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!window.AdminMapsPinMenu || !window.AdminMapsPinMenu.open) return;
+
+    var result = await window.AdminMapsPinMenu.open(e.clientX, e.clientY, [
+      { label: "Remove from Map", danger: true },
+    ]);
+    if (!result) return;
+
+    if (!confirm("Delete this pin? This cannot be undone.")) return;
+
+    await Pins.removePin(pin.id);
+  });
+
   return el;
 };
 
@@ -194,6 +211,38 @@ Pins._createStagedPinElement = function (staged) {
     labelEl.textContent = staged.label;
     el.appendChild(labelEl);
   }
+
+  // Drag — reuse the same handlers, generalized for staged pins
+  el.addEventListener("mousedown", function (e) {
+    Pins.onPinMouseDown(e, staged);
+  });
+
+  // Right-click → "Remove from Map" (no confirmation for unsaved pins)
+  el.addEventListener("contextmenu", async function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!window.AdminMapsPinMenu || !window.AdminMapsPinMenu.open) return;
+
+    var result = await window.AdminMapsPinMenu.open(e.clientX, e.clientY, [
+      { label: "Remove from Map", danger: true },
+    ]);
+    if (!result) return;
+
+    // Unstage the create — no API call needed
+    if (window.AdminMapsStaged && window.AdminMapsStaged.unstageCreate) {
+      window.AdminMapsStaged.unstageCreate(staged._tempId);
+    }
+
+    // Refresh holding pen so the evidence chip reappears
+    if (window.AdminMapsHoldingPen && window.AdminMapsHoldingPen.loadForMap) {
+      var mapId = window.AdminMapsStaged && window.AdminMapsStaged._getCurrentMapId
+        ? window.AdminMapsStaged._getCurrentMapId() : null;
+      if (mapId) window.AdminMapsHoldingPen.loadForMap(mapId);
+    }
+
+    Pins.renderPins();
+  });
 
   return el;
 };
@@ -429,18 +478,33 @@ Pins.onSavePin = async function () {
  */
 Pins.onDeletePin = async function () {
   if (!selectedPinId) return;
-
   if (!confirm("Delete this pin? This cannot be undone.")) return;
+  await Pins.removePin(selectedPinId);
+  Pins.closeEditPanel();
+  Pins.renderPins();
+};
 
+/**
+ * Remove a saved pin by id (delete from API and local state).
+ * Reusable from both the edit-panel Delete button and the
+ * right-click context menu.
+ *
+ * @param {number} pinId
+ * @returns {Promise<void>}
+ */
+Pins.removePin = async function (pinId) {
   const errorEl = document.getElementById("pin-edit-error");
   if (errorEl) errorEl.textContent = "";
 
   try {
-    await Admin.api.del("/maps/pins/" + selectedPinId);
-
-    // Remove from local state
-    pins = pins.filter((p) => p.id !== selectedPinId);
-    Pins.closeEditPanel();
+    await Admin.api.del("/maps/pins/" + pinId);
+    pins = pins.filter(function (p) { return p.id !== pinId; });
+    // Refresh the holding pen so the evidence chip reappears
+    if (window.AdminMapsHoldingPen && window.AdminMapsHoldingPen.loadForMap) {
+      var mapId = window.AdminMapsStaged && window.AdminMapsStaged._getCurrentMapId
+        ? window.AdminMapsStaged._getCurrentMapId() : null;
+      if (mapId) window.AdminMapsHoldingPen.loadForMap(mapId);
+    }
     Pins.renderPins();
   } catch (e) {
     console.error("Failed to delete pin:", e);
@@ -479,8 +543,15 @@ Pins.onPinMouseDown = function (e, pin) {
 Pins.onPinMouseMove = function (e) {
   if (!dragState) return;
 
-  // Visual feedback: move the pin element
-  const el = document.querySelector('[data-pin-id="' + dragState.pin.id + '"]');
+  // Visual feedback: move the pin element — supports both saved pins
+  // (data-pin-id) and staged pins (data-temp-id)
+  var selector;
+  if (dragState.pin._tempId) {
+    selector = '[data-temp-id="' + dragState.pin._tempId + '"]';
+  } else {
+    selector = '[data-pin-id="' + dragState.pin.id + '"]';
+  }
+  const el = document.querySelector(selector);
   if (!el) return;
 
   const rect = window.AdminMapsRender.getImageRect();
@@ -527,6 +598,15 @@ Pins.onPinMouseUp = async function (e) {
   const pct = window.AdminMapsRender.screenToPercent(screenX, screenY, rect);
 
   try {
+    // If this is a staged pin (has _tempId), update its position in the store
+    if (pin._tempId) {
+      if (window.AdminMapsStaged && window.AdminMapsStaged.updateStagedPosition) {
+        window.AdminMapsStaged.updateStagedPosition(pin._tempId, pct.x, pct.y);
+      }
+      Pins.renderPins();
+      return;
+    }
+
     // If staging is available, stage the move instead of PUTting immediately
     if (window.AdminMapsStaged) {
       window.AdminMapsStaged.stageMove(pin.id, pct.x, pct.y);

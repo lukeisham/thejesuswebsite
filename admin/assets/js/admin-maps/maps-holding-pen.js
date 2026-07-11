@@ -126,6 +126,41 @@ HoldingPen.createChip = function (evidence) {
     chip.classList.remove("holding-pen__chip--dragging");
   });
 
+  // ── Right-click: "Place on Map" without dragging ──────────────────────
+  chip.addEventListener("contextmenu", async function (e) {
+    e.preventDefault();
+
+    if (!window.AdminMapsPinMenu || !window.AdminMapsPinMenu.open) return;
+
+    var result = await window.AdminMapsPinMenu.open(e.clientX, e.clientY, [
+      { label: "Place on Map" },
+    ]);
+    if (!result) return;
+
+    // Get current map ID
+    var maps = window.AdminMapsRegions.getMaps();
+    var currentKey = window.AdminMapsRegions.getCurrentMapKey();
+    var mapId = null;
+    for (var j = 0; j < maps.length; j++) {
+      if (maps[j].map_key === currentKey) {
+        mapId = maps[j].id;
+        break;
+      }
+    }
+    if (!mapId) return;
+
+    // Stage a create at a default centred position (50, 50)
+    if (window.AdminMapsStaged) {
+      window.AdminMapsStaged.stageCreate(mapId, evidence, 50, 50);
+    }
+
+    // Remove the chip from the pen
+    unplacedEvidence = unplacedEvidence.filter(function (ev) {
+      return ev.id !== evidence.id;
+    });
+    HoldingPen.render();
+  });
+
   return chip;
 };
 

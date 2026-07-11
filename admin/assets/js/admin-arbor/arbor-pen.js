@@ -3,9 +3,9 @@
  *
  * Fetches unplaced evidence from GET /arbor/admin/unplaced and renders
  * draggable chips in a side panel. Chips can be dragged onto the canvas
- * to place a node (with parent-edge creation when dropped on an existing
- * node). Uses HTML5 drag-and-drop with a mousedown fallback matching the
- * canvas coordinate maths.
+ * to place a node. Dropping onto an existing node opens the connect menu
+ * to choose the relationship type before creating the parent edge.
+ * Uses HTML5 drag-and-drop.
  *
  * @module admin-arbor/arbor-pen
  */
@@ -137,14 +137,6 @@ Pen.createChipElement = function (evidence) {
     Pen.clearDropHighlights();
   });
 
-  // ── Mousedown fallback (for browsers/devices without HTML5 DnD) ────────
-  chip.addEventListener("mousedown", function (e) {
-    // Only use fallback if HTML5 drag-and-drop is supported but dragging
-    // might not fire (e.g. some mobile/resize scenarios). We still prefer
-    // the HTML5 path where available. For simplicity, the main DnD path
-    // uses HTML5 — this is documented as the mousedown "fallback".
-  });
-
   return chip;
 };
 
@@ -174,8 +166,8 @@ Pen.setupCanvasDropTarget = function () {
 
 /**
  * Handle a chip drop — convert screen coordinates to diagram space, find
- * any node under the cursor, then either create a standalone node or a
- * child node with parent edge.
+ * any node under the cursor, then either create a standalone node or open
+ * the connect menu to attach as a child of the chosen relationship type.
  *
  * @param {number} clientX
  * @param {number} clientY
@@ -201,19 +193,42 @@ Pen.handleDrop = async function (clientX, clientY, evidenceId) {
 
   // Hit-test: is there a node under the drop point?
   let parentId = null;
-  if (window.AdminArborNodes && window.AdminArborNodes.getNodeAtDiagramPosition) {
-    const parentNode = window.AdminArborNodes.getNodeAtDiagramPosition(diagX, diagY);
+  let parentNode = null;
+  if (
+    window.AdminArborNodes &&
+    window.AdminArborNodes.getNodeAtDiagramPosition
+  ) {
+    parentNode = window.AdminArborNodes.getNodeAtDiagramPosition(diagX, diagY);
     if (parentNode) {
       parentId = parentNode.id;
       // Offset the new node just below the parent
       diagX = parentNode.arbor_x || 0;
-      diagY = (parentNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT + 20;
+      diagY =
+        (parentNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT + 20;
     }
   }
 
-  // Add the node to the canvas (persists position + parent edge)
+  // Add the node to the canvas first (standalone)
   if (window.AdminArborNodes && window.AdminArborNodes.addNodeToCanvas) {
-    await window.AdminArborNodes.addNodeToCanvas(evidence, diagX, diagY, parentId);
+    await window.AdminArborNodes.addNodeToCanvas(evidence, diagX, diagY, null);
+  }
+
+  // If dropped on an existing node, open the connect menu to choose the
+  // relationship type, then create the parent edge.
+  if (
+    parentNode &&
+    window.AdminArborConnectMenu &&
+    window.AdminArborConnectMenu.open
+  ) {
+    var chosenType = await window.AdminArborConnectMenu.open(clientX, clientY);
+    if (chosenType && window.AdminArborNodes.createParentEdge) {
+      await window.AdminArborNodes.createParentEdge(
+        parentNode.id,
+        evidence.id,
+        chosenType,
+        { id: evidence.id },
+      );
+    }
   }
 
   // Remove the chip from the pen

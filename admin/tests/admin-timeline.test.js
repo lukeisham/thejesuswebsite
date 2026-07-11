@@ -662,3 +662,250 @@ describe("label modes", function () {
     }
   });
 });
+
+// ── Load timeline-events.js for eraForPeriod tests ──────────────────────────
+
+const eventsPath = path.resolve(
+  __dirname,
+  "..",
+  "assets",
+  "js",
+  "admin-timeline",
+  "timeline-events.js",
+);
+const eventsSource = fs.readFileSync(eventsPath, "utf8");
+vm.runInNewContext(eventsSource, axisSandbox);
+
+const eraForPeriod = axisSandbox.window.AdminTimelineEvents.eraForPeriod;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// eraForPeriod — boundary mapping
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("eraForPeriod", function () {
+  test("maps PreIncarnation to PreIncarnation", function () {
+    assert.equal(eraForPeriod("PreIncarnation"), "PreIncarnation");
+  });
+
+  test("maps OldTestament to OldTestament", function () {
+    assert.equal(eraForPeriod("OldTestament"), "OldTestament");
+  });
+
+  test("maps EarlyLifeUnborn to EarlyLife", function () {
+    assert.equal(eraForPeriod("EarlyLifeUnborn"), "EarlyLife");
+  });
+
+  test("maps EarlyLifeBirth to EarlyLife", function () {
+    assert.equal(eraForPeriod("EarlyLifeBirth"), "EarlyLife");
+  });
+
+  test("maps EarlyLifeInfancy to EarlyLife", function () {
+    assert.equal(eraForPeriod("EarlyLifeInfancy"), "EarlyLife");
+  });
+
+  test("maps EarlyLifeChildhood to EarlyLife", function () {
+    assert.equal(eraForPeriod("EarlyLifeChildhood"), "EarlyLife");
+  });
+
+  test("maps LifeTradie to Life", function () {
+    assert.equal(eraForPeriod("LifeTradie"), "Life");
+  });
+
+  test("maps LifeBaptism to Life", function () {
+    assert.equal(eraForPeriod("LifeBaptism"), "Life");
+  });
+
+  test("maps LifeTemptation to Life", function () {
+    assert.equal(eraForPeriod("LifeTemptation"), "Life");
+  });
+
+  test("maps GalileeCallingTwelve to GalileeMinistry", function () {
+    assert.equal(eraForPeriod("GalileeCallingTwelve"), "GalileeMinistry");
+  });
+
+  test("maps GalileeSermonMount to GalileeMinistry", function () {
+    assert.equal(eraForPeriod("GalileeSermonMount"), "GalileeMinistry");
+  });
+
+  test("maps GalileeMiraclesSea to GalileeMinistry", function () {
+    assert.equal(eraForPeriod("GalileeMiraclesSea"), "GalileeMinistry");
+  });
+
+  test("maps GalileeTransfiguration to GalileeMinistry", function () {
+    assert.equal(eraForPeriod("GalileeTransfiguration"), "GalileeMinistry");
+  });
+
+  test("maps JudeanOutsideJudea to JudeanMinistry", function () {
+    assert.equal(eraForPeriod("JudeanOutsideJudea"), "JudeanMinistry");
+  });
+
+  test("maps JudeanMissionSeventy to JudeanMinistry", function () {
+    assert.equal(eraForPeriod("JudeanMissionSeventy"), "JudeanMinistry");
+  });
+
+  test("maps JudeanTeachingTemple to JudeanMinistry", function () {
+    assert.equal(eraForPeriod("JudeanTeachingTemple"), "JudeanMinistry");
+  });
+
+  test("maps JudeanRaisingLazarus to JudeanMinistry", function () {
+    assert.equal(eraForPeriod("JudeanRaisingLazarus"), "JudeanMinistry");
+  });
+
+  test("maps JudeanFinalJourney to JudeanMinistry", function () {
+    assert.equal(eraForPeriod("JudeanFinalJourney"), "JudeanMinistry");
+  });
+
+  test("maps PassionPalmSunday to PassionWeek", function () {
+    assert.equal(eraForPeriod("PassionPalmSunday"), "PassionWeek");
+  });
+
+  test("maps PassionFridayCrucifixionBegins to PassionWeek", function () {
+    assert.equal(eraForPeriod("PassionFridayCrucifixionBegins"), "PassionWeek");
+  });
+
+  test("maps PassionSundayResurrection to PassionWeek", function () {
+    assert.equal(eraForPeriod("PassionSundayResurrection"), "PassionWeek");
+  });
+
+  test("maps PostResurrectionAppearances to Post-Passion", function () {
+    assert.equal(eraForPeriod("PostResurrectionAppearances"), "Post-Passion");
+  });
+
+  test("maps Ascension to Post-Passion", function () {
+    assert.equal(eraForPeriod("Ascension"), "Post-Passion");
+  });
+
+  test("maps OurResponse to Post-Passion", function () {
+    assert.equal(eraForPeriod("OurResponse"), "Post-Passion");
+  });
+
+  test("maps ReturnOfJesus to Post-Passion", function () {
+    assert.equal(eraForPeriod("ReturnOfJesus"), "Post-Passion");
+  });
+
+  test("every period in TIMELINE_PERIODS maps to a valid era", function () {
+    var periods = axisSandbox.window.AdminTimelineGeometry.TIMELINE_PERIODS;
+    var validEras = axisSandbox.window.AdminTimelineGeometry.ERA_ORDER;
+    for (var i = 0; i < periods.length; i++) {
+      var era = eraForPeriod(periods[i]);
+      assert.ok(
+        validEras.indexOf(era) !== -1,
+        "period " + periods[i] + " maps to unknown era: " + era,
+      );
+    }
+  });
+
+  test("era boundaries are strictly monotonic", function () {
+    var periods = axisSandbox.window.AdminTimelineGeometry.TIMELINE_PERIODS;
+    var eraOrder = axisSandbox.window.AdminTimelineGeometry.ERA_ORDER;
+    var prevEraIdx = -1;
+    for (var i = 0; i < periods.length; i++) {
+      var era = eraForPeriod(periods[i]);
+      var eraIdx = eraOrder.indexOf(era);
+      assert.ok(
+        eraIdx >= prevEraIdx,
+        "era order should be non-decreasing; period " +
+          periods[i] +
+          " maps to " +
+          era +
+          " (idx " +
+          eraIdx +
+          ") after prev idx " +
+          prevEraIdx,
+      );
+      prevEraIdx = eraIdx;
+    }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Era filter logic — pure function determining fade state
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Pure filter function: given an active era (or null for "show all") and
+ * a list of dot elements with dataset.era, return the set of element indices
+ * that should be faded (i.e. do NOT match the active era).
+ *
+ * @param {string|null} activeEra  — the selected era, or null/undefined
+ * @param {Array<{dataset: {era: string}}>} dots
+ * @returns {Array<number>} indices of dots that should be faded
+ */
+function computeFadedIndices(activeEra, dots) {
+  if (!activeEra || activeEra === "all") {
+    return [];
+  }
+  var faded = [];
+  for (var i = 0; i < dots.length; i++) {
+    if (dots[i].dataset.era !== activeEra) {
+      faded.push(i);
+    }
+  }
+  return faded;
+}
+
+describe("era filter logic (computeFadedIndices)", function () {
+  test("returns empty array when activeEra is null (show all)", function () {
+    var dots = [
+      { dataset: { era: "EarlyLife" } },
+      { dataset: { era: "PassionWeek" } },
+    ];
+    assert.deepEqual(computeFadedIndices(null, dots), []);
+  });
+
+  test("returns empty array when activeEra is undefined", function () {
+    var dots = [{ dataset: { era: "Life" } }];
+    assert.deepEqual(computeFadedIndices(undefined, dots), []);
+  });
+
+  test("returns empty array when activeEra is 'all'", function () {
+    var dots = [
+      { dataset: { era: "Life" } },
+      { dataset: { era: "PassionWeek" } },
+    ];
+    assert.deepEqual(computeFadedIndices("all", dots), []);
+  });
+
+  test("returns empty array for empty dots list", function () {
+    assert.deepEqual(computeFadedIndices("Life", []), []);
+  });
+
+  test("fades all dots when none match the active era", function () {
+    var dots = [
+      { dataset: { era: "EarlyLife" } },
+      { dataset: { era: "Life" } },
+    ];
+    assert.deepEqual(computeFadedIndices("PassionWeek", dots), [0, 1]);
+  });
+
+  test("fades only non-matching dots", function () {
+    var dots = [
+      { dataset: { era: "Life" } },
+      { dataset: { era: "PassionWeek" } },
+      { dataset: { era: "Life" } },
+      { dataset: { era: "EarlyLife" } },
+    ];
+    // active "Life" — indices 0,2 match; 1,3 should fade
+    assert.deepEqual(computeFadedIndices("Life", dots), [1, 3]);
+  });
+
+  test("returns all indices when no dot matches", function () {
+    var dots = [
+      { dataset: { era: "OldTestament" } },
+      { dataset: { era: "OldTestament" } },
+      { dataset: { era: "OldTestament" } },
+    ];
+    assert.deepEqual(computeFadedIndices("PassionWeek", dots), [0, 1, 2]);
+  });
+
+  test("returns no indices when all dots match", function () {
+    var dots = [{ dataset: { era: "Life" } }, { dataset: { era: "Life" } }];
+    assert.deepEqual(computeFadedIndices("Life", dots), []);
+  });
+
+  test("handles single-element list correctly", function () {
+    var dots = [{ dataset: { era: "Post-Passion" } }];
+    assert.deepEqual(computeFadedIndices("Post-Passion", dots), []);
+    assert.deepEqual(computeFadedIndices("EarlyLife", dots), [0]);
+  });
+});

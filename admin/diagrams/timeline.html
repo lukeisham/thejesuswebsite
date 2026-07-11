@@ -13,6 +13,14 @@
             rel="stylesheet"
             href="../assets/css/admin-diagrams/timeline-holding-pen.css"
         />
+        <link
+            rel="stylesheet"
+            href="../assets/css/admin-diagrams/timeline-era-filter.css"
+        />
+        <link
+            rel="stylesheet"
+            href="../assets/css/admin-diagrams/timeline-context-menu.css"
+        />
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
@@ -49,6 +57,18 @@
             defer
             src="../assets/js/admin-timeline/timeline-holding-pen.js"
         ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-staged-changes.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-era-filter.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-context-menu.js"
+        ></script>
     </head>
     <body>
         <!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
@@ -76,20 +96,12 @@
             </div>
         </nav>
 
-        <!-- ── Holding Pen: unplaced evidence chips ───────────────────────────────── -->
-        <section
-            id="timeline-holding-pen"
-            class="admin-timeline-holding-pen"
-            hidden
-        >
-            <h2 class="admin-timeline-holding-pen__heading">
-                Holding Pen — Drag chips onto the timeline to place them
-            </h2>
-            <div
-                id="timeline-holding-pen-chips"
-                class="admin-timeline-holding-pen__chips"
-            ></div>
-        </section>
+        <!-- ── Era Filter ─────────────────────────────────────────────────────────── -->
+        <div
+            id="timeline-era-filter"
+            class="admin-timeline-era-filter"
+            aria-label="Filter by era"
+        ></div>
 
         <!-- ── Timeline Editor Canvas ─────────────────────────────────────────────── -->
         <main>
@@ -132,6 +144,14 @@
                 </div>
             </div>
         </main>
+
+        <!-- ── Holding Pen: unplaced evidence chips ───────────────────────────────── -->
+        <section id="timeline-holding-pen" class="admin-timeline-holding-pen">
+            <div
+                id="timeline-holding-pen-chips"
+                class="admin-timeline-holding-pen__chips"
+            ></div>
+        </section>
 
         <!-- ── Event Edit Panel ────────────────────────────────────────────────────── -->
         <aside
@@ -296,14 +316,35 @@
                 // Init holding pen
                 AdminTimelineHoldingPen.init();
 
-                // Wire canvas as drop target for holding pen chips
-                AdminTimelineHoldingPen.wireCanvasDrop();
+                // Wire canvas and pen as drop targets for drag-and-drop
+                AdminTimelineHoldingPen.wireDropTargets();
+
+                // Init era filter
+                if (
+                    typeof AdminTimelineEraFilter !== "undefined" &&
+                    AdminTimelineEraFilter.init
+                ) {
+                    AdminTimelineEraFilter.init();
+                }
+
+                // Init context menu
+                if (
+                    typeof AdminTimelineContextMenu !== "undefined" &&
+                    AdminTimelineContextMenu.init
+                ) {
+                    AdminTimelineContextMenu.init();
+                }
 
                 // Wire the Save button
                 var saveBtn = document.getElementById("timeline-save-btn");
                 if (saveBtn) {
                     saveBtn.addEventListener("click", function () {
-                        AdminTimelineHoldingPen.save();
+                        if (
+                            typeof AdminTimelineStaged !== "undefined" &&
+                            AdminTimelineStaged.save
+                        ) {
+                            AdminTimelineStaged.save();
+                        }
                     });
                 }
 

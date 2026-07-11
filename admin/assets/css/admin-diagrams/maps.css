@@ -3,8 +3,11 @@
    Aggregates the split maps component stylesheets and the metadata panel.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+@import "./maps-tokens.css";
 @import "./maps-toolbar.css";
 @import "./maps-canvas.css";
+@import "./maps-gallery.css";
+@import "./maps-pin-menu.css";
 @import "./maps-panel.css";
 @import "./maps-panel-form.css";
 @import "./maps-metadata.css";

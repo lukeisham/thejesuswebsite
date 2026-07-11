@@ -33,9 +33,6 @@
     background-size: 24px 24px;
     border-top: 1px solid var(--admin-border);
 }
-.admin-arbor-canvas--edging {
-    cursor: crosshair;
-}
 .admin-arbor-svg {
     display: block;
     width: 100%;
@@ -126,15 +123,7 @@
    ------------------------------------------------------------------------- */
 
 @media (max-width: 600px) {
-    .admin-arbor-toolbar {
-        padding: var(--space-sm) var(--space-md);
-        flex-direction: column;
-        align-items: stretch;
-    }
     .admin-arbor-panel {
         width: 100vw;
-    }
-    .admin-arbor-search {
-        position: fixed;
     }
 }

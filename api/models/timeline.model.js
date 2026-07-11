@@ -115,10 +115,11 @@ function getByEra(era) {
  * period on the timeline before they appear publicly.
  */
 function getUnplacedEvents() {
+  // Return any evidence that has no period assigned yet — regardless of whether
+  // it has an era. This includes rows with timeline_era IS NULL (the admin may
+  // assign an era later) as well as rows with an era already set.
   const rows = db
-    .prepare(
-      "SELECT * FROM evidence WHERE timeline_era IS NOT NULL AND timeline_era != '' AND timeline_period IS NULL",
-    )
+    .prepare("SELECT * FROM evidence WHERE timeline_period IS NULL")
     .all();
 
   return rows.sort(

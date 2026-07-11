@@ -1,0 +1,106 @@
+/* ==========================================================================
+   Maps Gallery (Admin)
+   Admin-prefixed mirror of the frontend maps-overview-grid / map-card
+   component.  Click-through cards with thumbnail, title, description,
+   and pin count.
+   ========================================================================== */
+
+.admin-maps-gallery {
+    max-width: var(--container-max, 1200px);
+    margin: 0 auto;
+    padding: var(--space-xl);
+}
+
+.admin-maps-gallery h2 {
+    font-size: var(--text-h4);
+    color: var(--admin-text-primary);
+    margin: 0 0 var(--space-lg);
+}
+
+.admin-maps-gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--card-gap, var(--space-md));
+}
+
+/* ── Card ──────────────────────────────────────────────────────────────────── */
+
+.admin-map-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    cursor: pointer;
+    text-align: left;
+    padding: 0;
+    font-family: inherit;
+    transition:
+        box-shadow var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+}
+
+.admin-map-card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+}
+
+.admin-map-card:focus-visible {
+    outline: 2px solid var(--admin-accent);
+    outline-offset: 2px;
+}
+
+/* ── Thumbnail ─────────────────────────────────────────────────────────────── */
+
+.admin-map-card__thumbnail {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+    background: var(--bg-surface-alt);
+    border-bottom: 1px solid var(--border);
+}
+
+/* ── Body ──────────────────────────────────────────────────────────────────── */
+
+.admin-map-card__body {
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    flex: 1;
+}
+
+.admin-map-card__title {
+    font-size: var(--text-h4);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.admin-map-card__description {
+    font-size: var(--text-small);
+    color: var(--text-secondary);
+    line-height: var(--leading-small);
+    margin: 0;
+    flex: 1;
+}
+
+.admin-map-card__pin-count {
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .admin-maps-gallery__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-maps-gallery {
+        padding: var(--space-md);
+    }
+}
