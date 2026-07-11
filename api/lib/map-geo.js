@@ -25,10 +25,15 @@
  */
 const MAP_BBOXES = {
   "roman-empire": { lon_min: -10, lat_min: 25, lon_max: 45, lat_max: 52 },
-  levant:         { lon_min: 32,  lat_min: 29, lon_max: 38, lat_max: 37 },
-  judea:          { lon_min: 34.2, lat_min: 30.9, lon_max: 35.8, lat_max: 32.6 },
-  galilee:        { lon_min: 34.9, lat_min: 32.2, lon_max: 36.0, lat_max: 33.5 },
-  jerusalem:      { lon_min: 35.10, lat_min: 31.72, lon_max: 35.30, lat_max: 31.82 },
+  levant: { lon_min: 32, lat_min: 29, lon_max: 38, lat_max: 37 },
+  judea: { lon_min: 34.2, lat_min: 30.9, lon_max: 35.8, lat_max: 32.6 },
+  galilee: { lon_min: 34.9, lat_min: 32.2, lon_max: 36.0, lat_max: 33.5 },
+  jerusalem: {
+    lon_min: 35.216,
+    lat_min: 31.7625,
+    lon_max: 35.248,
+    lat_max: 31.7895,
+  },
 };
 
 /**
@@ -159,9 +164,7 @@ function _validatePercent(value, label) {
   // Percentages may legitimately fall slightly outside 0–100 when a pin
   // is near the bbox edge, so we use a generous range here.
   if (value < -10 || value > 110) {
-    throw new Error(
-      `${label} must be between 0 and 100, got ${value}.`,
-    );
+    throw new Error(`${label} must be between 0 and 100, got ${value}.`);
   }
 }
 
