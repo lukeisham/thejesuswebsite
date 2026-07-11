@@ -108,11 +108,18 @@
                     <a class="admin-sidebar__link" href="../diagrams/maps.html">
                         <span class="admin-sidebar__icon">🗺️</span> Maps Editor
                     </a>
-                    <a class="admin-sidebar__link" href="../diagrams/arbor.html">
+                    <a
+                        class="admin-sidebar__link"
+                        href="../diagrams/arbor.html"
+                    >
                         <span class="admin-sidebar__icon">🌳</span> Arbor Editor
                     </a>
-                    <a class="admin-sidebar__link" href="../diagrams/timeline.html">
-                        <span class="admin-sidebar__icon">⏳</span> Timeline Editor
+                    <a
+                        class="admin-sidebar__link"
+                        href="../diagrams/timeline.html"
+                    >
+                        <span class="admin-sidebar__icon">⏳</span> Timeline
+                        Editor
                     </a>
                     <a class="admin-sidebar__link" href="../analytics.html">
                         <span class="admin-sidebar__icon">📈</span> Analytics
@@ -157,7 +164,7 @@
         </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', async function () {
+            document.addEventListener("DOMContentLoaded", async function () {
                 const main = document.getElementById("evidence-content");
                 const loadingEl = document.getElementById("evidence-loading");
 
@@ -171,7 +178,7 @@
                 var evidenceData = [];
 
                 try {
-                    evidenceData = await Admin.api.get("/evidence");
+                    evidenceData = await Admin.api.get("/evidence/admin");
                     main.removeChild(loadingEl);
 
                     if (!Array.isArray(evidenceData)) evidenceData = [];
@@ -274,7 +281,7 @@
                         var emptyEl = document.createElement("div");
                         emptyEl.className = "admin-empty";
                         emptyEl.setAttribute("role", "status");
-                        emptyEl.textContent = "No evidence published yet.";
+                        emptyEl.textContent = "No evidence created yet.";
                         wrapper.appendChild(emptyEl);
                         return;
                     }
@@ -518,6 +525,6 @@
                         added + " added, " + skipped + " skipped";
                 });
             });
-</script>
+        </script>
     </body>
 </html>

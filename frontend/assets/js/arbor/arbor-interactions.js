@@ -296,10 +296,23 @@ async function init() {
     });
 
     // ── Wire click → navigate to evidence detail ─────────────────────────
-    delegate(diagramEl, ".arbor-node", "click", (_e, nodeEl) => {
+    // (JS-6: shared logic for click and keyboard activation)
+    const navigateToEvidence = (nodeEl) => {
       const slug = nodeEl.dataset.slug;
       if (slug) {
         window.location.href = `/evidence/${slug}`;
+      }
+    };
+
+    delegate(diagramEl, ".arbor-node", "click", (_e, nodeEl) => {
+      navigateToEvidence(nodeEl);
+    });
+
+    // ── Wire keyboard activation (Enter/Space) ───────────────────────────
+    delegate(diagramEl, ".arbor-node", "keydown", (e, nodeEl) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault(); // Space scrolls the page by default
+        navigateToEvidence(nodeEl);
       }
     });
   }
@@ -315,8 +328,10 @@ async function init() {
     zoomResetBtn.addEventListener("click", zoomReset);
   }
 
-  // Keyboard zoom shortcuts
+  // Keyboard zoom shortcuts — guard: don't fire while focus is on an input/textarea
   document.addEventListener("keydown", (e) => {
+    const tag = document.activeElement?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     if (isVerticalMode()) return;
     if (e.key === "=" || e.key === "+") {
       zoomIn();

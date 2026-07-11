@@ -8,7 +8,7 @@
  * @module maps/maps-interactions
  */
 
-import { delegate } from '../utils/dom.js';
+import { delegate } from "../utils/dom.js";
 
 // ─── DOM references ────────────────────────────────────────────────────────────
 
@@ -57,22 +57,21 @@ let tooltipTimer = null;
 function showTooltip(e, pinEl) {
   if (!tooltipEl) return;
 
-  const label = pinEl.dataset.label || '';
-  const evidenceTitle = pinEl.dataset.evidenceTitle || '';
-  const evidenceSlug = pinEl.dataset.evidenceSlug || '';
+  const label = pinEl.dataset.label || "";
+  const evidenceTitle = pinEl.dataset.evidenceTitle || "";
+  const evidenceSlug = pinEl.dataset.evidenceSlug || "";
 
   if (!label && !evidenceTitle) {
     hideTooltip();
     return;
   }
 
-  let html = '';
+  let html = "";
   if (label) {
     html += `<strong class="map-tooltip-title">${label}</strong>`;
   }
   if (evidenceTitle && evidenceSlug) {
-    html +=
-      `<span class="map-tooltip-evidence">${evidenceTitle}</span>`;
+    html += `<span class="map-tooltip-evidence">${evidenceTitle}</span>`;
   }
 
   tooltipEl.innerHTML = html;
@@ -147,7 +146,7 @@ function zoomReset() {
 
 function onPanStart(e) {
   if (e.button !== undefined && e.button !== 0) return;
-  if (e.target.closest('.map-pin')) return;
+  if (e.target.closest(".map-pin")) return;
 
   isPanning = true;
   panStartX = e.clientX;
@@ -156,7 +155,7 @@ function onPanStart(e) {
   panOriginY = translateY;
 
   if (mapContainer) {
-    mapContainer.style.cursor = 'grabbing';
+    mapContainer.style.cursor = "grabbing";
   }
 }
 
@@ -177,7 +176,7 @@ function onPanEnd() {
   isPanning = false;
 
   if (mapContainer) {
-    mapContainer.style.cursor = '';
+    mapContainer.style.cursor = "";
   }
 }
 
@@ -193,90 +192,116 @@ let teardowns = [];
  */
 export function setupInteractions(container) {
   // Cache DOM references
-  mapContainer = container || document.getElementById('map-container');
-  pinsLayer = document.getElementById('map-pins');
-  tooltipEl = document.getElementById('map-tooltip');
-  zoomInBtn = document.getElementById('zoom-in');
-  zoomOutBtn = document.getElementById('zoom-out');
-  zoomResetBtn = document.getElementById('zoom-reset');
+  mapContainer = container || document.getElementById("map-container");
+  pinsLayer = document.getElementById("map-pins");
+  tooltipEl = document.getElementById("map-tooltip");
+  zoomInBtn = document.getElementById("zoom-in");
+  zoomOutBtn = document.getElementById("zoom-out");
+  zoomResetBtn = document.getElementById("zoom-reset");
 
   teardowns = [];
 
   // ── Pin hover → tooltip ──────────────────────────────────────────────────
   if (pinsLayer) {
     teardowns.push(
-      delegate(pinsLayer, '.map-pin', 'mouseenter', (e, pinEl) => {
+      delegate(pinsLayer, ".map-pin", "mouseenter", (e, pinEl) => {
         tooltipTimer = setTimeout(() => showTooltip(e, pinEl), 200);
-      })
+      }),
     );
 
     teardowns.push(
-      delegate(pinsLayer, '.map-pin', 'mouseleave', () => {
+      delegate(pinsLayer, ".map-pin", "mouseleave", () => {
         hideTooltip();
-      })
+      }),
     );
 
     // ── Pin click → open evidence detail ───────────────────────────────────
     teardowns.push(
-      delegate(pinsLayer, '.map-pin', 'click', (_e, pinEl) => {
+      delegate(pinsLayer, ".map-pin", "click", (_e, pinEl) => {
         const slug = pinEl.dataset.evidenceSlug;
         if (slug) {
-          window.open(`/evidence/${encodeURIComponent(slug)}`, '_blank');
+          window.open(`/evidence/${encodeURIComponent(slug)}`, "_blank");
         }
-      })
+      }),
+    );
+
+    // ── Keep focused pin visible within the pan/zoom viewport ─────────────
+    teardowns.push(
+      delegate(pinsLayer, ".map-pin", "focusin", (_e, pinEl) => {
+        if (!mapContainer) return;
+        const containerRect = mapContainer.getBoundingClientRect();
+        const pinRect = pinEl.getBoundingClientRect();
+        const safeMargin = 0.1;
+
+        const minX = containerRect.left + containerRect.width * safeMargin;
+        const maxX = containerRect.right - containerRect.width * safeMargin;
+        const minY = containerRect.top + containerRect.height * safeMargin;
+        const maxY = containerRect.bottom - containerRect.height * safeMargin;
+
+        let dx = 0;
+        let dy = 0;
+        if (pinRect.left < minX) dx = minX - pinRect.left;
+        else if (pinRect.right > maxX) dx = maxX - pinRect.right;
+        if (pinRect.top < minY) dy = minY - pinRect.top;
+        else if (pinRect.bottom > maxY) dy = maxY - pinRect.bottom;
+
+        if (dx !== 0 || dy !== 0) {
+          translateX = Math.max(-500, Math.min(500, translateX + dx));
+          translateY = Math.max(-500, Math.min(500, translateY + dy));
+          applyTransform();
+        }
+      }),
     );
   }
 
   // ── Zoom controls ────────────────────────────────────────────────────────
   if (zoomInBtn) {
-    zoomInBtn.addEventListener('click', zoomIn);
-    teardowns.push(() => zoomInBtn.removeEventListener('click', zoomIn));
+    zoomInBtn.addEventListener("click", zoomIn);
+    teardowns.push(() => zoomInBtn.removeEventListener("click", zoomIn));
   }
   if (zoomOutBtn) {
-    zoomOutBtn.addEventListener('click', zoomOut);
-    teardowns.push(() => zoomOutBtn.removeEventListener('click', zoomOut));
+    zoomOutBtn.addEventListener("click", zoomOut);
+    teardowns.push(() => zoomOutBtn.removeEventListener("click", zoomOut));
   }
   if (zoomResetBtn) {
-    zoomResetBtn.addEventListener('click', zoomReset);
-    teardowns.push(() => zoomResetBtn.removeEventListener('click', zoomReset));
+    zoomResetBtn.addEventListener("click", zoomReset);
+    teardowns.push(() => zoomResetBtn.removeEventListener("click", zoomReset));
   }
 
   // Keyboard shortcuts
   const onKeyDown = (e) => {
-    if (e.key === '=' || e.key === '+') {
+    if (e.key === "=" || e.key === "+") {
       e.preventDefault();
       zoomIn();
-    } else if (e.key === '-') {
+    } else if (e.key === "-") {
       e.preventDefault();
       zoomOut();
-    } else if (e.key === '0') {
+    } else if (e.key === "0") {
       e.preventDefault();
       zoomReset();
     }
   };
-  document.addEventListener('keydown', onKeyDown);
-  teardowns.push(() => document.removeEventListener('keydown', onKeyDown));
+  document.addEventListener("keydown", onKeyDown);
+  teardowns.push(() => document.removeEventListener("keydown", onKeyDown));
 
   // ── Pan via mouse drag ───────────────────────────────────────────────────
   if (mapContainer) {
-    mapContainer.addEventListener('mousedown', onPanStart);
+    mapContainer.addEventListener("mousedown", onPanStart);
     teardowns.push(() =>
-      mapContainer.removeEventListener('mousedown', onPanStart)
+      mapContainer.removeEventListener("mousedown", onPanStart),
     );
 
-    mapContainer.addEventListener('mousemove', onPanMove);
+    mapContainer.addEventListener("mousemove", onPanMove);
     teardowns.push(() =>
-      mapContainer.removeEventListener('mousemove', onPanMove)
+      mapContainer.removeEventListener("mousemove", onPanMove),
     );
 
-    mapContainer.addEventListener('mouseup', onPanEnd);
-    teardowns.push(() =>
-      mapContainer.removeEventListener('mouseup', onPanEnd)
-    );
+    mapContainer.addEventListener("mouseup", onPanEnd);
+    teardowns.push(() => mapContainer.removeEventListener("mouseup", onPanEnd));
 
-    mapContainer.addEventListener('mouseleave', onPanEnd);
+    mapContainer.addEventListener("mouseleave", onPanEnd);
     teardowns.push(() =>
-      mapContainer.removeEventListener('mouseleave', onPanEnd)
+      mapContainer.removeEventListener("mouseleave", onPanEnd),
     );
 
     // Touch support
@@ -290,9 +315,11 @@ export function setupInteractions(container) {
         });
       }
     };
-    mapContainer.addEventListener('touchstart', onTouchStart, { passive: false });
+    mapContainer.addEventListener("touchstart", onTouchStart, {
+      passive: false,
+    });
     teardowns.push(() =>
-      mapContainer.removeEventListener('touchstart', onTouchStart)
+      mapContainer.removeEventListener("touchstart", onTouchStart),
     );
 
     const onTouchMove = (e) => {
@@ -304,15 +331,15 @@ export function setupInteractions(container) {
         });
       }
     };
-    mapContainer.addEventListener('touchmove', onTouchMove, { passive: false });
+    mapContainer.addEventListener("touchmove", onTouchMove, { passive: false });
     teardowns.push(() =>
-      mapContainer.removeEventListener('touchmove', onTouchMove)
+      mapContainer.removeEventListener("touchmove", onTouchMove),
     );
 
     const onTouchEnd = () => onPanEnd();
-    mapContainer.addEventListener('touchend', onTouchEnd);
+    mapContainer.addEventListener("touchend", onTouchEnd);
     teardowns.push(() =>
-      mapContainer.removeEventListener('touchend', onTouchEnd)
+      mapContainer.removeEventListener("touchend", onTouchEnd),
     );
   }
 

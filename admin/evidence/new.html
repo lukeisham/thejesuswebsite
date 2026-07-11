@@ -525,6 +525,46 @@
                                     >Comma-separated evidence IDs to link.</span
                                 >
                             </div>
+
+                            <div class="admin-form-group">
+                                <label
+                                    class="admin-form-group__label"
+                                    for="evidence-link-context"
+                                    >Linked Context Essay IDs</label
+                                >
+                                <input
+                                    class="admin-input"
+                                    id="evidence-link-context"
+                                    name="link_context_ids"
+                                    type="text"
+                                    aria-describedby="link-ctx-hint"
+                                    placeholder="e.g. 1, 3, 7"
+                                />
+                                <span class="admin-form-hint" id="link-ctx-hint"
+                                    >Comma-separated context essay IDs to
+                                    link.</span
+                                >
+                            </div>
+
+                            <div class="admin-form-group">
+                                <label
+                                    class="admin-form-group__label"
+                                    for="evidence-identifiers"
+                                    >Identifier IDs</label
+                                >
+                                <input
+                                    class="admin-input"
+                                    id="evidence-identifiers"
+                                    name="identifier_ids"
+                                    type="text"
+                                    aria-describedby="id-hint"
+                                    placeholder="e.g. 1, 3, 7"
+                                />
+                                <span class="admin-form-hint" id="id-hint"
+                                    >Comma-separated identifier IDs to
+                                    associate.</span
+                                >
+                            </div>
                         </div>
 
                         <div
@@ -775,6 +815,14 @@
                         published_draft: publish ? 1 : 0,
                         link_evidence_ids: parseIdList(
                             document.getElementById("evidence-link-evidence")
+                                .value,
+                        ),
+                        link_context_ids: parseIdList(
+                            document.getElementById("evidence-link-context")
+                                .value,
+                        ),
+                        identifier_ids: parseIdList(
+                            document.getElementById("evidence-identifiers")
                                 .value,
                         ),
                         mla_source_ids: mlaSourcesPanel.getSelectedIds(),

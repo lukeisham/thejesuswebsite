@@ -8,13 +8,34 @@
     background: var(--accent);
 }
 
+.map-pin:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
 /* ── Era‑coloured pins ──────────────────────────────────────────────────── */
 
-.map-pin.era--pre-incarnation     { background: var(--era-pre-incarnation); }
-.map-pin.era--old-testament       { background: var(--era-old-testament); }
-.map-pin.era--early-life          { background: var(--era-early-life); }
-.map-pin.era--life                { background: var(--era-life); }
-.map-pin.era--galilee-ministry    { background: var(--era-galilee-ministry); }
-.map-pin.era--judean-ministry     { background: var(--era-judean-ministry); }
-.map-pin.era--passion-week        { background: var(--era-passion-week); }
-.map-pin.era--post-passion        { background: var(--era-post-passion); }
+.map-pin.era--pre-incarnation {
+    background: var(--era-pre-incarnation);
+}
+.map-pin.era--old-testament {
+    background: var(--era-old-testament);
+}
+.map-pin.era--early-life {
+    background: var(--era-early-life);
+}
+.map-pin.era--life {
+    background: var(--era-life);
+}
+.map-pin.era--galilee-ministry {
+    background: var(--era-galilee-ministry);
+}
+.map-pin.era--judean-ministry {
+    background: var(--era-judean-ministry);
+}
+.map-pin.era--passion-week {
+    background: var(--era-passion-week);
+}
+.map-pin.era--post-passion {
+    background: var(--era-post-passion);
+}

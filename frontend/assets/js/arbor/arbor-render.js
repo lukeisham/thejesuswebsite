@@ -400,6 +400,13 @@ export function renderArbor(nodes, edges) {
           style: vertical
             ? `left:${pos.x}px;top:${pos.y}px;width:${drawNodeWidth}px`
             : `left:${pos.x}px;top:${pos.y}px;width:${NODE_WIDTH}px`,
+          tabIndex: "0",
+          role: "link",
+          ariaLabel: node.title
+            ? node.primary_verse
+              ? `${node.title}, ${node.primary_verse}`
+              : node.title
+            : "",
           dataset: {
             nodeId: String(nodeId),
             slug: node.slug || "",

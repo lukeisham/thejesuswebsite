@@ -127,27 +127,49 @@ function renderDescription(item) {
   }
 }
 
-function renderPictures(pictures) {
-  if (!pictures || pictures.length === 0) {
-    if ($picturesSection) $picturesSection.hidden = true;
-    return;
-  }
-  if ($picturesSection) $picturesSection.hidden = false;
+function renderPictures(description) {
+  // Pictures are now [figure] shortcodes in body text (migration 006 dropped
+  // evidence_pictures). Extract them from the description for the dedicated
+  // pictures section, and return the cleaned description for renderDescription.
+  if (!$picturesSection || !$pictures) return description || "";
 
-  const itemsHTML = pictures
-    .map((pic) => {
-      const src = pic.image_path || "";
-      const caption = pic.caption || "";
-      const alt = caption ? html`${caption}` : "";
+  const figureRegex =
+    /\[figure\s+src="([^"]*)"(?:\s+caption="([^"]*)")?(?:\s+align="(left|right)")?\]/g;
+  const figures = [];
+  let cleaned = description || "";
+
+  let match;
+  while ((match = figureRegex.exec(description || "")) !== null) {
+    figures.push({ src: match[1], caption: match[2] || "" });
+  }
+
+  if (figures.length === 0) {
+    $picturesSection.hidden = true;
+    return cleaned;
+  }
+
+  $picturesSection.hidden = false;
+
+  const itemsHTML = figures
+    .map((fig) => {
+      const alt = fig.caption ? html`${fig.caption}` : "";
       return `<figure>
-        <img src="${html`${src}`}" alt="${alt}" loading="lazy" />
-        ${caption ? `<figcaption>${html`${caption}`}</figcaption>` : ""}
+        <img src="${html`${fig.src}`}" alt="${alt}" loading="lazy" />
+        ${fig.caption ? `<figcaption>${html`${fig.caption}`}</figcaption>` : ""}
       </figure>`;
     })
     .join("");
 
-  if ($pictures) $pictures.innerHTML = itemsHTML;
+  $pictures.innerHTML = itemsHTML;
   numberFigures($pictures);
+
+  // Strip [figure] shortcodes from the description so renderDescription only
+  // processes prose + inline markers (mla/id).
+  cleaned = cleaned
+    .replace(figureRegex, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return cleaned;
 }
 
 function renderDates(item) {
@@ -264,8 +286,10 @@ async function init() {
   // Render all sections
   renderBreadcrumbs(data);
   renderHero(data);
-  renderPictures(data.pictures);
-  renderDescription(data);
+  // Extract [figure] shortcodes from description for the pictures section;
+  // renderPictures returns the cleaned description for renderDescription.
+  const cleanDescription = renderPictures(data.description);
+  renderDescription({ ...data, description: cleanDescription });
   renderSources(data.mla_sources);
   renderDates(data);
 

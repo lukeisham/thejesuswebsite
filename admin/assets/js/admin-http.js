@@ -18,13 +18,25 @@ const AdminHttp = window.AdminHttp;
  * @returns {Promise<Response>}
  */
 AdminHttp.request = async function (url, options) {
+  let response;
   try {
-    return await fetch(url, options);
+    response = await fetch(url, options);
   } catch (_networkError) {
     throw new Error(
       "Could not reach the server. Check your connection and try again.",
     );
   }
+
+  // (JS-2) 401 auto-redirect for expired sessions.
+  // Guard: don't redirect if we're already on the login page.
+  if (
+    response.status === 401 &&
+    !window.location.pathname.endsWith("/auth/login.html")
+  ) {
+    window.location.href = "../auth/login.html";
+  }
+
+  return response;
 };
 
 /**

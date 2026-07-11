@@ -521,6 +521,40 @@
                     ),
                 );
 
+                mapCard.appendChild(
+                    formGroup(
+                        "Linked Context Essay IDs",
+                        "ev-link-context",
+                        '<input class="admin-input" id="ev-link-context" name="link_context_ids" type="text" value="' +
+                            esc(
+                                (data.links_context || [])
+                                    .map(function (link) {
+                                        return link.target_context_essay_id;
+                                    })
+                                    .join(", "),
+                            ) +
+                            '" placeholder="e.g. 1, 3, 7">' +
+                            '<span class="admin-form-hint">Comma-separated context essay IDs to link.</span>',
+                    ),
+                );
+
+                mapCard.appendChild(
+                    formGroup(
+                        "Identifier IDs",
+                        "ev-identifiers",
+                        '<input class="admin-input" id="ev-identifiers" name="identifier_ids" type="text" value="' +
+                            esc(
+                                (data.identifiers || [])
+                                    .map(function (ident) {
+                                        return ident.id;
+                                    })
+                                    .join(", "),
+                            ) +
+                            '" placeholder="e.g. 1, 3, 7">' +
+                            '<span class="admin-form-hint">Comma-separated identifier IDs to associate.</span>',
+                    ),
+                );
+
                 rightCol.appendChild(mapCard);
 
                 // Publish card
@@ -787,6 +821,12 @@
                             : 0,
                         link_evidence_ids: parseIdList(
                             document.getElementById("ev-link-evidence").value,
+                        ),
+                        link_context_ids: parseIdList(
+                            document.getElementById("ev-link-context").value,
+                        ),
+                        identifier_ids: parseIdList(
+                            document.getElementById("ev-identifiers").value,
                         ),
                         mla_source_ids: mlaSourcesPanel.getSelectedIds(),
                     };

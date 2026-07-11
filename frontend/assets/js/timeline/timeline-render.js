@@ -227,6 +227,13 @@ function createDot(event, style, isFiltered) {
       .filter(Boolean)
       .join(" "),
     style,
+    tabIndex: isFiltered ? "-1" : "0",
+    role: "button",
+    ariaLabel: event.title
+      ? event.map_location
+        ? `${event.title}, ${event.map_location}`
+        : event.title
+      : "",
     dataset: {
       eventId: String(event.id),
       period: event.timeline_period || "",
@@ -664,6 +671,10 @@ export function clearFilteredOut() {
   batchWrite(() => {
     container.querySelectorAll(".filtered-out").forEach((el) => {
       el.classList.remove("filtered-out");
+      // Restore tabbability when filter is cleared
+      if (el.classList.contains("timeline-dot")) {
+        el.setAttribute("tabindex", "0");
+      }
     });
   });
 }
@@ -682,8 +693,10 @@ export function applyEraFilter(era) {
     dots.forEach((dot) => {
       if (dot.dataset.era !== era) {
         dot.classList.add("filtered-out");
+        dot.setAttribute("tabindex", "-1");
       } else {
         dot.classList.remove("filtered-out");
+        dot.setAttribute("tabindex", "0");
       }
     });
 

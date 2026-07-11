@@ -78,13 +78,11 @@ describe("AdminHttp.request — network error", () => {
       throw new TypeError("Failed to fetch");
     });
 
-    await assert.rejects(
-      () => AdminHttp.request("/api/offline"),
-      {
-        name: "Error",
-        message: "Could not reach the server. Check your connection and try again.",
-      },
-    );
+    await assert.rejects(() => AdminHttp.request("/api/offline"), {
+      name: "Error",
+      message:
+        "Could not reach the server. Check your connection and try again.",
+    });
   });
 });
 
@@ -117,7 +115,11 @@ describe("AdminHttp.postJson", () => {
       return new Response(null, { status: 200 });
     });
 
-    await AdminHttp.postJson("/api/auth", { handle: "admin" }, { "x-setup-token": "abc123" });
+    await AdminHttp.postJson(
+      "/api/auth",
+      { handle: "admin" },
+      { "x-setup-token": "abc123" },
+    );
 
     assert.equal(capturedOptions.headers["Content-Type"], "application/json");
     assert.equal(capturedOptions.headers["x-setup-token"], "abc123");
@@ -128,12 +130,62 @@ describe("AdminHttp.postJson", () => {
       throw new TypeError("Failed to fetch");
     });
 
-    await assert.rejects(
-      () => AdminHttp.postJson("/api/down", {}),
-      {
-        name: "Error",
-        message: "Could not reach the server. Check your connection and try again.",
+    await assert.rejects(() => AdminHttp.postJson("/api/down", {}), {
+      name: "Error",
+      message:
+        "Could not reach the server. Check your connection and try again.",
+    });
+  });
+});
+
+// ── 401 redirect ──────────────────────────────────────────────────────────────
+
+describe("AdminHttp.request — 401 redirect", () => {
+  test("redirects to login on 401 from a non-login path", async () => {
+    const sandbox = {
+      window: {
+        location: {
+          pathname: "/admin/evidence/index.html",
+          href: "",
+        },
       },
+      fetch: async () => new Response("Unauthorized", { status: 401 }),
+      Object,
+      Error,
+      TypeError,
+    };
+    vm.runInNewContext(httpSource, sandbox);
+    const AdminHttp = sandbox.window.AdminHttp;
+
+    // The redirect sets window.location.href; the returned value is a pending
+    // never-resolving promise.
+    const result = await AdminHttp.request("/api/protected");
+    assert.equal(sandbox.window.location.href, "../auth/login.html");
+    assert.equal(result.status, 401);
+  });
+
+  test("does NOT redirect on 401 when already on login page", async () => {
+    const sandbox = {
+      window: {
+        location: {
+          pathname: "/admin/auth/login.html",
+          href: "https://thejesuswebsite.org/admin/auth/login.html",
+        },
+      },
+      fetch: async () => new Response("Unauthorized", { status: 401 }),
+      Object,
+      Error,
+      TypeError,
+    };
+    vm.runInNewContext(httpSource, sandbox);
+    const AdminHttp = sandbox.window.AdminHttp;
+
+    const res = await AdminHttp.request("/api/protected");
+    // Should NOT redirect — should return the 401 response as-is.
+    assert.equal(res.status, 401);
+    assert.equal(
+      sandbox.window.location.href,
+      "https://thejesuswebsite.org/admin/auth/login.html",
     );
   });
 });

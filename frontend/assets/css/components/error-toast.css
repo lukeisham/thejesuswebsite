@@ -1,0 +1,138 @@
+/* ==========================================================================
+   Error Toast
+   Fixed bottom-right stacking error notifications.
+   Red-tinted cards with copy-to-clipboard and dismiss actions.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Container
+   ------------------------------------------------------------------------- */
+
+.error-toast-container {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: var(--space-sm);
+}
+
+/* -------------------------------------------------------------------------
+   Toast Card
+   ------------------------------------------------------------------------- */
+
+.error-toast {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    width: min(280px, calc(100vw - 2rem));
+    padding: var(--space-sm) var(--space-md);
+    background: color-mix(in srgb, var(--error) 5%, var(--bg-surface));
+    border-left: 4px solid var(--error);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-toast);
+    font-size: var(--text-2xs);
+    animation: slide-up-fade var(--duration-base) var(--ease-out);
+}
+
+/* -------------------------------------------------------------------------
+   Message & Details
+   ------------------------------------------------------------------------- */
+
+.error-toast__message {
+    margin: 0;
+    padding-right: 28px;
+    line-height: var(--leading-tight);
+    color: var(--text-primary);
+}
+
+.error-toast__details {
+    color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------------
+   Action Buttons (Copy, Dismiss-text, X icon)
+   ------------------------------------------------------------------------- */
+
+.error-toast__actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+/* Shared action-button base */
+.error-toast__copy,
+.error-toast__dismiss-text {
+    padding: 0.1875rem 0.375rem;
+    min-height: 18px;
+    font-size: 0.40625rem;
+    line-height: 1;
+    color: var(--text-primary);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.error-toast__copy:hover,
+.error-toast__dismiss-text:hover {
+    background: var(--bg-surface-alt);
+}
+
+.error-toast__dismiss-text:hover {
+    border-color: var(--error);
+}
+
+/* X icon dismiss (top-right) */
+.error-toast__dismiss {
+    position: absolute;
+    top: var(--space-xs);
+    right: var(--space-xs);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: var(--text-small);
+    line-height: 1;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.error-toast__dismiss:hover {
+    background: var(--bg-surface-alt);
+}
+
+/* -------------------------------------------------------------------------
+   Exit Animation
+   ------------------------------------------------------------------------- */
+
+.error-toast.removing {
+    animation: fade-in var(--duration-fast) var(--ease-out) reverse forwards;
+}
+
+/* -------------------------------------------------------------------------
+   Mobile
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 480px) {
+    .error-toast-container {
+        bottom: 8px;
+        right: 8px;
+        left: 8px;
+    }
+
+    .error-toast {
+        width: 100%;
+    }
+}

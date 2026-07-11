@@ -126,9 +126,11 @@ async function loadPage() {
   isLoading = true;
   showState("loading");
 
-  const params = { ...activeFilters };
-  // The API doesn't support pagination natively — we fetch all matches and slice
-  // TODO: update API to support `?page=N&limit=N` for proper pagination
+  const params = {
+    ...activeFilters,
+    page: String(currentPage),
+    limit: String(PAGE_SIZE),
+  };
 
   const { data, error } = await getEvidence(params);
 
@@ -140,29 +142,20 @@ async function loadPage() {
     return;
   }
 
-  if (!data || data.length === 0) {
+  // Server returns paginated shape: { items, total, page, limit, totalPages }
+  // when page/limit params are sent.
+  const pageItems = data?.items || data || [];
+  const total = data?.total ?? pageItems.length;
+
+  if (!Array.isArray(pageItems) || pageItems.length === 0) {
     if (allItems.length === 0) {
       showState("empty");
     } else {
       hasMore = false;
       $sentinel.hidden = true;
       showState("end");
-      const total = allItems.length;
       if ($end) $end.textContent = formatItemsLoaded(total);
     }
-    return;
-  }
-
-  // Paginate manually from the full result set
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = data.slice(start, start + PAGE_SIZE);
-
-  if (pageItems.length === 0) {
-    hasMore = false;
-    $sentinel.hidden = true;
-    showState("end");
-    const total = allItems.length;
-    if ($end) $end.textContent = formatItemsLoaded(total);
     return;
   }
 
@@ -170,17 +163,15 @@ async function loadPage() {
   renderRows(pageItems);
   cacheItems();
 
-  if (pageItems.length < PAGE_SIZE || start + pageItems.length >= data.length) {
+  if (pageItems.length < PAGE_SIZE || allItems.length >= total) {
     hasMore = false;
     $sentinel.hidden = true;
     showState("end");
-    const total = allItems.length;
     if ($end) $end.textContent = formatItemsLoaded(total);
   } else {
     currentPage++;
     hideAllStates();
     $sentinel.hidden = false;
-    // Re-observe sentinel (it may have been unobserved on last page)
     if (observer && $sentinel) observer.observe($sentinel);
   }
 }
@@ -208,14 +199,15 @@ function renderRows(items) {
  * Render a single evidence row as a safe HTML string.
  *
  * Emits an <li> row with:
- *   - thumbnail (lazy-loaded via data-src, placeholder when null)
+ *   - thumbnail placeholder (evidence_pictures was dropped by migration 006;
+ *     pictures are now [figure] shortcodes in body text)
  *   - title (linked to /evidence/<slug>)
  *   - primary_verse in muted monospace style
  *
  * All values are escaped via the `html` tagged template (JS-6).
  * Thumbnail `alt=""` per HTML-2 (title sits beside it).
  *
- * @param {Object} item - Evidence row from the API (includes thumbnail_path, primary_verse).
+ * @param {Object} item - Evidence row from the API.
  * @returns {SafeString}
  */
 function renderEvidenceRow(item) {
@@ -274,9 +266,17 @@ function initInfiniteScroll() {
 
 // ─── SessionStorage caching (back-nav) ───────────────────────────────────────
 
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 function cacheItems() {
   try {
-    sessionStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(allItems));
+    sessionStorage.setItem(
+      STORAGE_KEY_ITEMS,
+      JSON.stringify({
+        version: Date.now(),
+        items: allItems,
+      }),
+    );
     sessionStorage.setItem(STORAGE_KEY_SCROLL, String(window.scrollY));
   } catch {
     /* quota exceeded — non-critical */
@@ -296,15 +296,31 @@ function restoreFromCache() {
   try {
     const cached = sessionStorage.getItem(STORAGE_KEY_ITEMS);
     if (cached) {
-      allItems = JSON.parse(cached);
-      hasMore = false; // Assume all cached items are loaded
-      $sentinel && ($sentinel.hidden = true);
-      if ($list) $list.innerHTML = "";
-      renderRows(allItems);
-      showState("end");
-      const total = allItems.length;
-      if ($end) $end.textContent = formatItemsLoaded(total);
-      return true;
+      const parsed = JSON.parse(cached);
+      // Handle both versioned and legacy (flat array) cache formats
+      const cachedItems = parsed.items || parsed;
+      const cacheAge = parsed.version ? Date.now() - parsed.version : Infinity;
+
+      if (cachedItems && cachedItems.length > 0) {
+        allItems = cachedItems;
+        if ($list) $list.innerHTML = "";
+        renderRows(allItems);
+        showState("end");
+        const total = allItems.length;
+        if ($end) $end.textContent = formatItemsLoaded(total);
+        $sentinel && ($sentinel.hidden = true);
+
+        // If cache is stale, silently refresh in background
+        if (cacheAge > CACHE_TTL) {
+          $sentinel && ($sentinel.hidden = false);
+          hasMore = true;
+          currentPage = Math.ceil(allItems.length / PAGE_SIZE) + 1;
+          initInfiniteScroll();
+          loadPage();
+        }
+
+        return true;
+      }
     }
   } catch {
     /* ignore */
