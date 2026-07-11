@@ -67,6 +67,15 @@ app.use("/analytics", require("./routes/analytics"));
 app.use("/auth", require("./routes/auth"));
 app.use("/passkey", require("./routes/passkey"));
 
+// Dev-only auth bypass: only mount the route when the flag is explicitly set.
+// The module itself also gates every request, but not require()ing it at all
+// means the code is never loaded into the running process on the VPS — even a
+// bug in the gate logic cannot be reached because the route simply doesn't
+// exist. (JS-4: explanatory comment so a future refactor doesn't remove this.)
+if (process.env.ADMIN_DEV_BYPASS === "1") {
+  app.use("/auth", require("./routes/dev-bypass"));
+}
+
 // Static hosting for uploaded files (see project structure: public/uploads).
 app.use(
   "/uploads",
