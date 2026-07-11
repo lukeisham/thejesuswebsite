@@ -25,9 +25,6 @@ let selectedPinId = null;
 /** @type {HTMLElement|null} */
 let pinsLayer = null;
 
-/** @type {boolean} */
-let addingMode = false;
-
 /** @type {Object|null}  Pin currently being dragged. */
 let dragState = null;
 
@@ -38,11 +35,6 @@ let dragState = null;
  */
 Pins.init = function () {
   pinsLayer = document.getElementById("map-pins-layer");
-
-  const canvas = document.getElementById("map-canvas");
-  if (canvas) {
-    canvas.addEventListener("click", Pins.onCanvasClick);
-  }
 
   // Pin-edit panel actions
   const saveBtn = document.getElementById("pin-save-btn");
@@ -57,9 +49,6 @@ Pins.init = function () {
   const closePanelBtn = document.getElementById("pin-panel-close");
   if (closePanelBtn)
     closePanelBtn.addEventListener("click", Pins.closeEditPanel);
-
-  const addPinBtn = document.getElementById("add-pin-btn");
-  if (addPinBtn) addPinBtn.addEventListener("click", Pins.toggleAddMode);
 };
 
 /* ── Pin loading ──────────────────────────────────────────────────────────── */
@@ -247,78 +236,6 @@ Pins._createStagedPinElement = function (staged) {
   return el;
 };
 
-/* ── Adding mode ──────────────────────────────────────────────────────────── */
-
-/**
- * Toggle "Add Pin" mode. When active, the next canvas click places a new pin.
- */
-Pins.toggleAddMode = function () {
-  addingMode = !addingMode;
-  const btn = document.getElementById("add-pin-btn");
-  const canvas = document.getElementById("map-canvas");
-  if (btn) {
-    btn.classList.toggle("admin-maps-toolbar__btn--active", addingMode);
-    btn.textContent = addingMode ? "Cancel Add" : "Add Pin";
-  }
-  if (canvas) {
-    canvas.classList.toggle("admin-map-canvas--adding", addingMode);
-  }
-};
-
-/**
- * Canvas click handler. If in adding mode, create a new pin at the click position.
- *
- * @param {MouseEvent} e
- */
-Pins.onCanvasClick = async function (e) {
-  if (!addingMode || !currentMapId) return;
-
-  // Don't fire if we clicked on an existing pin
-  if (e.target.closest(".admin-map-pin")) return;
-
-  const rect = window.AdminMapsRender.getImageRect();
-  if (!rect) return;
-
-  const containerRect = document
-    .getElementById("map-canvas")
-    .getBoundingClientRect();
-  const screenX = e.clientX - containerRect.left;
-  const screenY = e.clientY - containerRect.top;
-
-  const payload = window.AdminMapsRender.buildPinPayload(
-    currentMapId,
-    screenX,
-    screenY,
-    rect,
-  );
-
-  try {
-    // If staging is available, stage the pin instead of POSTing immediately
-    if (window.AdminMapsStaged) {
-      // Build a minimal evidence-like object for staging
-      const stagedEvidence = { id: null, title: null, timeline_era: null };
-      const staged = window.AdminMapsStaged.stageCreate(
-        currentMapId,
-        stagedEvidence,
-        payload.x,
-        payload.y,
-      );
-      staged.label = null; // No label for clicked pins
-      Pins.renderPins();
-      Pins.toggleAddMode();
-      return;
-    }
-
-    const created = await Admin.api.post("/maps/pins", payload);
-    pins.push(created);
-    Pins.renderPins();
-    Pins.selectPin(created.id);
-    Pins.toggleAddMode();
-  } catch (e) {
-    console.error("Failed to create pin:", e);
-  }
-};
-
 /* ── Pin selection & edit panel ───────────────────────────────────────────── */
 
 /**
@@ -328,7 +245,6 @@ Pins.onCanvasClick = async function (e) {
  * @param {Object} pin
  */
 Pins.onPinClick = function (e, pin) {
-  if (addingMode) return;
   e.stopPropagation();
   Pins.selectPin(pin.id);
 };
@@ -521,7 +437,6 @@ Pins.removePin = async function (pinId) {
  * @param {Object} pin
  */
 Pins.onPinMouseDown = function (e, pin) {
-  if (addingMode) return;
   e.preventDefault();
   e.stopPropagation();
 

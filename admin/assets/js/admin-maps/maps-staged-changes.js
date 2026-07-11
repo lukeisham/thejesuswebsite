@@ -231,11 +231,11 @@ Staged.saveAll = async function () {
 Staged._updateUI = function () {
   const count = Staged.count();
 
-  // Badge
+  // Staged-count segment
   const badge = document.getElementById("holding-pen-badge");
   if (badge) {
-    badge.textContent = count > 0 ? String(count) : "";
-    badge.hidden = count === 0;
+    badge.textContent = String(count);
+    badge.classList.toggle("admin-maps-toolbar__btn-count--active", count > 0);
   }
 
   // beforeunload guard

@@ -20,10 +20,16 @@ let penContainer = null;
 /** @type {Array<Object>} */
 let unplacedEvidence = [];
 
+/** @type {Object|null}  Evidence chip selected for click-to-place. */
+let selectedEvidence = null;
+
+/** @type {HTMLElement|null} */
+let selectedChipEl = null;
+
 /* ── Initialisation ───────────────────────────────────────────────────────── */
 
 /**
- * Cache DOM refs and wire drop target on the canvas.
+ * Cache DOM refs and wire drop target + click-to-place on the canvas.
  */
 HoldingPen.init = function () {
   penContainer = document.getElementById("holding-pen");
@@ -40,7 +46,49 @@ HoldingPen.init = function () {
       canvas.classList.remove("holding-pen--drop-target");
     });
     canvas.addEventListener("drop", HoldingPen.onDrop);
+    canvas.addEventListener("click", HoldingPen.onCanvasClick);
   }
+};
+
+/* ── Click-to-place selection ─────────────────────────────────────────────── */
+
+/**
+ * Select a chip, arming the canvas so the next click places it there.
+ * Selecting again deselects.
+ *
+ * @param {Object} evidence
+ * @param {HTMLElement} chipEl
+ */
+HoldingPen.selectChip = function (evidence, chipEl) {
+  if (selectedEvidence && selectedEvidence.id === evidence.id) {
+    HoldingPen.clearSelection();
+    return;
+  }
+
+  if (selectedChipEl) {
+    selectedChipEl.classList.remove("holding-pen__chip--selected");
+  }
+
+  selectedEvidence = evidence;
+  selectedChipEl = chipEl;
+  chipEl.classList.add("holding-pen__chip--selected");
+
+  const canvas = document.getElementById("map-canvas");
+  if (canvas) canvas.classList.add("admin-map-canvas--adding");
+};
+
+/**
+ * Clear the current chip selection and disarm the canvas.
+ */
+HoldingPen.clearSelection = function () {
+  if (selectedChipEl) {
+    selectedChipEl.classList.remove("holding-pen__chip--selected");
+  }
+  selectedEvidence = null;
+  selectedChipEl = null;
+
+  const canvas = document.getElementById("map-canvas");
+  if (canvas) canvas.classList.remove("admin-map-canvas--adding");
 };
 
 /* ── Loading ──────────────────────────────────────────────────────────────── */
@@ -52,6 +100,7 @@ HoldingPen.init = function () {
  * @returns {Promise<void>}
  */
 HoldingPen.loadForMap = async function (mapId) {
+  HoldingPen.clearSelection();
   try {
     unplacedEvidence = await Admin.api.get(
       "/maps/admin/unplaced?map_id=" + mapId,
@@ -114,6 +163,12 @@ HoldingPen.createChip = function (evidence) {
   titleEl.className = "holding-pen__chip-title";
   titleEl.textContent = evidence.title;
   chip.appendChild(titleEl);
+
+  // Click — select for click-to-place (next canvas click places the pin)
+  chip.addEventListener("click", (e) => {
+    e.preventDefault();
+    HoldingPen.selectChip(evidence, chip);
+  });
 
   // Drag start — stash evidence data
   chip.addEventListener("dragstart", (e) => {
@@ -220,5 +275,53 @@ HoldingPen.onDrop = function (e) {
 
   // Remove the chip from the pen (evidence now has a staged pin)
   unplacedEvidence = unplacedEvidence.filter((ev) => ev.id !== evidenceId);
+  HoldingPen.render();
+};
+
+/* ── Click-to-place handler ───────────────────────────────────────────────── */
+
+/**
+ * Handle a canvas click while a chip is selected — stage a pin there.
+ *
+ * @param {MouseEvent} e
+ */
+HoldingPen.onCanvasClick = function (e) {
+  if (!selectedEvidence) return;
+
+  // Don't fire if we clicked on an existing pin
+  if (e.target.closest(".admin-map-pin")) return;
+
+  const evidence = selectedEvidence;
+  const canvas = document.getElementById("map-canvas");
+
+  const rect = window.AdminMapsRender.getImageRect();
+  if (!rect) return;
+
+  const containerRect = canvas.getBoundingClientRect();
+  const screenX = e.clientX - containerRect.left;
+  const screenY = e.clientY - containerRect.top;
+
+  const pct = window.AdminMapsRender.screenToPercent(screenX, screenY, rect);
+
+  // Get current map ID from AdminMapsRegions
+  const maps = window.AdminMapsRegions.getMaps();
+  const currentKey = window.AdminMapsRegions.getCurrentMapKey();
+  let mapId = null;
+  for (let j = 0; j < maps.length; j++) {
+    if (maps[j].map_key === currentKey) {
+      mapId = maps[j].id;
+      break;
+    }
+  }
+  if (!mapId) return;
+
+  // Stage the new pin
+  if (window.AdminMapsStaged) {
+    window.AdminMapsStaged.stageCreate(mapId, evidence, pct.x, pct.y);
+  }
+
+  // Remove the chip from the pen (evidence now has a staged pin)
+  unplacedEvidence = unplacedEvidence.filter((ev) => ev.id !== evidence.id);
+  HoldingPen.clearSelection();
   HoldingPen.render();
 };
