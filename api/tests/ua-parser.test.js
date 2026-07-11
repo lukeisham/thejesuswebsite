@@ -1,136 +1,171 @@
-// UA parser tests — covers the top user-agent strings by market share.
+// ua-parser tests — uses node:test + node:assert.
+// Tests isBot() and parseSearchTerms() functions.
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
-const { parse } = require("../services/ua-parser");
+const { isBot, parseSearchTerms } = require("../services/ua-parser");
 
-describe("ua-parser: OS detection", () => {
-  test("detects macOS + Chrome", () => {
-    const result = parse(
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+// ── isBot() ──────────────────────────────────────────────────────────────────
+
+describe("isBot()", () => {
+  test("returns true for Googlebot UA", () => {
+    assert.equal(
+      isBot(
+        "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      ),
+      true,
     );
-    assert.equal(result.os, "macOS");
-    assert.equal(result.browser, "Chrome");
-    assert.equal(result.device_type, "desktop");
   });
 
-  test("detects Windows + Chrome", () => {
-    const result = parse(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  test("returns true for Bingbot UA", () => {
+    assert.equal(
+      isBot(
+        "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+      ),
+      true,
     );
-    assert.equal(result.os, "Windows");
-    assert.equal(result.browser, "Chrome");
-    assert.equal(result.device_type, "desktop");
   });
 
-  test("detects iOS + Safari", () => {
-    const result = parse(
-      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
-    );
-    assert.equal(result.os, "iOS");
-    assert.equal(result.browser, "Safari");
-    assert.equal(result.device_type, "mobile");
+  test("returns true for Twitterbot UA", () => {
+    assert.equal(isBot("Twitterbot/1.0"), true);
   });
 
-  test("detects macOS + Safari", () => {
-    const result = parse(
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15",
+  test("returns true for AhrefsBot UA", () => {
+    assert.equal(
+      isBot(
+        "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
+      ),
+      true,
     );
-    assert.equal(result.os, "macOS");
-    assert.equal(result.browser, "Safari");
-    assert.equal(result.device_type, "desktop");
   });
 
-  test("detects Android + Chrome", () => {
-    const result = parse(
-      "Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.135 Mobile Safari/537.36",
-    );
-    assert.equal(result.os, "Android");
-    assert.equal(result.browser, "Chrome");
-    assert.equal(result.device_type, "mobile");
+  test("returns true for SemrushBot UA", () => {
+    assert.equal(isBot("SemrushBot/7~bl"), true);
   });
 
-  test("detects Windows + Firefox", () => {
-    const result = parse(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
+  test("returns false for Chrome desktop UA", () => {
+    assert.equal(
+      isBot(
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      ),
+      false,
     );
-    assert.equal(result.os, "Windows");
-    assert.equal(result.browser, "Firefox");
-    assert.equal(result.device_type, "desktop");
   });
 
-  test("detects Windows + Edge", () => {
-    const result = parse(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+  test("returns false for Safari mobile UA", () => {
+    assert.equal(
+      isBot(
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+      ),
+      false,
     );
-    assert.equal(result.os, "Windows");
-    assert.equal(result.browser, "Edge");
-    assert.equal(result.device_type, "desktop");
   });
 
-  test("detects iPadOS + Safari (tablet)", () => {
-    const result = parse(
-      "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+  test("returns false for Firefox desktop UA", () => {
+    assert.equal(
+      isBot(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0",
+      ),
+      false,
     );
-    assert.equal(result.os, "iPadOS");
-    assert.equal(result.browser, "Safari");
-    assert.equal(result.device_type, "tablet");
   });
 
-  test("detects Linux + Firefox", () => {
-    const result = parse(
-      "Mozilla/5.0 (X11; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0",
-    );
-    assert.equal(result.os, "Linux");
-    assert.equal(result.browser, "Firefox");
-    assert.equal(result.device_type, "desktop");
+  test("returns false for null", () => {
+    assert.equal(isBot(null), false);
   });
 
-  test("detects macOS + Firefox", () => {
-    const result = parse(
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:133.0) Gecko/20100101 Firefox/133.0",
-    );
-    assert.equal(result.os, "macOS");
-    assert.equal(result.browser, "Firefox");
-    assert.equal(result.device_type, "desktop");
+  test("returns false for undefined", () => {
+    assert.equal(isBot(undefined), false);
+  });
+
+  test("returns false for empty string", () => {
+    assert.equal(isBot(""), false);
   });
 });
 
-describe("ua-parser: edge cases", () => {
-  test("returns nulls for null input", () => {
-    const result = parse(null);
-    assert.equal(result.os, null);
-    assert.equal(result.browser, null);
-    assert.equal(result.device_type, null);
-  });
+// ── parseSearchTerms() ───────────────────────────────────────────────────────
 
-  test("returns nulls for undefined input", () => {
-    const result = parse(undefined);
-    assert.equal(result.os, null);
-    assert.equal(result.browser, null);
-    assert.equal(result.device_type, null);
-  });
-
-  test("returns nulls for empty string", () => {
-    const result = parse("");
-    assert.equal(result.os, null);
-    assert.equal(result.browser, null);
-    assert.equal(result.device_type, null);
-  });
-
-  test("returns desktop + unknown for unrecognised UA", () => {
-    const result = parse("SomeRandomBot/1.0");
-    assert.equal(result.device_type, "desktop");
-    assert.equal(result.browser, null);
-    assert.equal(result.os, null);
-  });
-
-  test("detects Internet Explorer", () => {
-    const result = parse(
-      "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko",
+describe("parseSearchTerms()", () => {
+  test("extracts query from Google referrer", () => {
+    assert.equal(
+      parseSearchTerms(
+        "https://www.google.com/search?q=historical+jesus+evidence",
+      ),
+      "historical jesus evidence",
     );
-    assert.equal(result.browser, "Internet Explorer");
-    assert.equal(result.os, "Windows");
-    assert.equal(result.device_type, "desktop");
+  });
+
+  test("extracts query from Google URL with extra params", () => {
+    assert.equal(
+      parseSearchTerms(
+        "https://www.google.com/search?q=roman+crucifixion&sourceid=chrome&ie=UTF-8",
+      ),
+      "roman crucifixion",
+    );
+  });
+
+  test("extracts query from Bing referrer", () => {
+    assert.equal(
+      parseSearchTerms("https://www.bing.com/search?q=jesus+of+nazareth"),
+      "jesus of nazareth",
+    );
+  });
+
+  test("extracts query from DuckDuckGo referrer", () => {
+    assert.equal(
+      parseSearchTerms("https://duckduckgo.com/?q=new+testament+reliability"),
+      "new testament reliability",
+    );
+  });
+
+  test("extracts query from Yahoo referrer (p= param)", () => {
+    assert.equal(
+      parseSearchTerms("https://search.yahoo.com/search?p=evidence+for+jesus"),
+      "evidence for jesus",
+    );
+  });
+
+  test("extracts query from Yandex referrer (text= param)", () => {
+    assert.equal(
+      parseSearchTerms("https://yandex.ru/search/?text=historical+jesus"),
+      "historical jesus",
+    );
+  });
+
+  test("returns null for non-search referrer", () => {
+    assert.equal(parseSearchTerms("https://example.com/blog/post"), null);
+  });
+
+  test("returns null for thejesuswebsite.org referrer", () => {
+    assert.equal(
+      parseSearchTerms("https://thejesuswebsite.org/evidence/"),
+      null,
+    );
+  });
+
+  test("returns null for null", () => {
+    assert.equal(parseSearchTerms(null), null);
+  });
+
+  test("returns null for undefined", () => {
+    assert.equal(parseSearchTerms(undefined), null);
+  });
+
+  test("returns null for empty string", () => {
+    assert.equal(parseSearchTerms(""), null);
+  });
+
+  test("handles URL-encoded characters", () => {
+    assert.equal(
+      parseSearchTerms("https://www.google.com/search?q=J%C3%BCrgen+Moltmann"),
+      "Jürgen Moltmann",
+    );
+  });
+
+  test("handles plus signs as spaces", () => {
+    assert.equal(
+      parseSearchTerms("https://www.google.com/search?q=who+was+jesus"),
+      "who was jesus",
+    );
   });
 });

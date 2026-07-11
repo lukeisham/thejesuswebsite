@@ -54,6 +54,22 @@ router.post("/", analyticsPostLimit, (req, res) => {
       // GeoIP lookup failure must never block the page view (JS-2)
     }
 
+    // ── Server-side enrichment: bot detection ──────────────────────────
+    let isBot = 0;
+    try {
+      isBot = uaParser.isBot(ua) ? 1 : 0;
+    } catch {
+      // Bot detection failure must never block the page view (JS-2)
+    }
+
+    // ── Server-side enrichment: search terms from referrer ─────────────
+    let searchTerms = null;
+    try {
+      searchTerms = uaParser.parseSearchTerms(req.body.referrer || null);
+    } catch {
+      // Search-term parsing failure must never block the page view (JS-2)
+    }
+
     analyticsModel.record({
       page: req.body.page,
       referrer: req.body.referrer || null,
@@ -65,6 +81,8 @@ router.post("/", analyticsPostLimit, (req, res) => {
       browser: device.browser,
       os: device.os,
       country: geo.country,
+      is_bot: isBot,
+      search_terms: searchTerms,
     });
     res.status(204).end();
   } catch (error) {
@@ -96,11 +114,14 @@ router.get("/top-pages", requireAuth, (req, res) => {
 });
 
 // GET /analytics/top-referrers (admin only)
+// Accepts ?external=true to exclude same-site referrers (thejesuswebsite.org).
 router.get("/top-referrers", requireAuth, (req, res) => {
   try {
+    const external = req.query.external === "true";
     res.json(
       analyticsModel.getTopReferrers(
         Math.min(Number(req.query.limit) || 20, 100),
+        external,
       ),
     );
   } catch (error) {
@@ -178,6 +199,33 @@ router.get("/device-breakdown", requireAuth, (req, res) => {
   } catch (error) {
     console.error("GET /analytics/device-breakdown failed:", error);
     res.status(500).json({ error: "Failed to load device breakdown." });
+  }
+});
+
+// GET /analytics/search-terms (admin only)
+// Returns top search terms grouped by search_terms, ordered by count DESC.
+router.get("/search-terms", requireAuth, (req, res) => {
+  try {
+    res.json(
+      analyticsModel.getSearchTerms(
+        req.query.since || null,
+        Math.min(Number(req.query.limit) || 20, 100),
+      ),
+    );
+  } catch (error) {
+    console.error("GET /analytics/search-terms failed:", error);
+    res.status(500).json({ error: "Failed to load search terms." });
+  }
+});
+
+// GET /analytics/bot-stats (admin only)
+// Returns { human: N, bot: N, bot_breakdown: [{ name, count }] }.
+router.get("/bot-stats", requireAuth, (req, res) => {
+  try {
+    res.json(analyticsModel.getBotStats(req.query.since || null));
+  } catch (error) {
+    console.error("GET /analytics/bot-stats failed:", error);
+    res.status(500).json({ error: "Failed to load bot stats." });
   }
 });
 

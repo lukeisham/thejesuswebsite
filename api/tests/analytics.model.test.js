@@ -126,22 +126,188 @@ describe("model: getTopPagesWithTrend()", () => {
 
   test("excludes views outside the days window", () => {
     // Insert a view with an old visited_at timestamp
-    testDb.prepare(`
+    testDb
+      .prepare(
+        `
       INSERT INTO analytics (page, referrer, user_agent, ip_hash, session_id, visited_at)
       VALUES ('/old', NULL, 'agent', 'hash', 'sess-old', datetime('now', '-100 days'))
-    `).run();
+    `,
+      )
+      .run();
 
     seedPageView({ page: "/recent", session_id: "s1" });
 
     const result = analyticsModel.getTopPagesWithTrend(7, 5);
-    const pages = result.map(r => r.page);
-    assert.ok(!pages.includes("/old"), "old page should be outside 7-day window");
+    const pages = result.map((r) => r.page);
+    assert.ok(
+      !pages.includes("/old"),
+      "old page should be outside 7-day window",
+    );
     assert.ok(pages.includes("/recent"));
   });
 
   test("returns an empty array when there are no views", () => {
     const result = analyticsModel.getTopPagesWithTrend(7, 5);
     assert.deepStrictEqual(result, []);
+  });
+});
+
+// ── getTopReferrers() — external-only filter ─────────────────────────────────
+
+describe("model: getTopReferrers() external filter", () => {
+  beforeEach(clearTable);
+
+  test("excludes same-site referrers when external=true", () => {
+    seedPageView({
+      referrer: "https://thejesuswebsite.org/evidence/",
+      session_id: "s1",
+    });
+    seedPageView({
+      referrer: "https://thejesuswebsite.org/blog/",
+      session_id: "s2",
+    });
+    seedPageView({ referrer: "https://google.com", session_id: "s3" });
+
+    const result = analyticsModel.getTopReferrers(10, true);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].referrer, "https://google.com");
+  });
+
+  test("includes same-site referrers when external=false (default)", () => {
+    seedPageView({
+      referrer: "https://thejesuswebsite.org/evidence/",
+      session_id: "s1",
+    });
+    seedPageView({ referrer: "https://google.com", session_id: "s2" });
+
+    const result = analyticsModel.getTopReferrers(10);
+    assert.equal(result.length, 2);
+  });
+});
+
+// ── getSearchTerms() ─────────────────────────────────────────────────────────
+
+describe("model: getSearchTerms()", () => {
+  beforeEach(clearTable);
+
+  test("returns search terms grouped by term with count", () => {
+    analyticsModel.record({
+      page: "/test",
+      search_terms: "historical jesus",
+      user_agent: "test",
+      ip_hash: "h1",
+      session_id: "s1",
+    });
+    analyticsModel.record({
+      page: "/test",
+      search_terms: "historical jesus",
+      user_agent: "test",
+      ip_hash: "h2",
+      session_id: "s2",
+    });
+    analyticsModel.record({
+      page: "/test",
+      search_terms: "roman empire",
+      user_agent: "test",
+      ip_hash: "h3",
+      session_id: "s3",
+    });
+
+    const result = analyticsModel.getSearchTerms(null, 10);
+    assert.equal(result.length, 2);
+    assert.equal(result[0].term, "historical jesus");
+    assert.equal(result[0].count, 2);
+    assert.equal(result[1].term, "roman empire");
+    assert.equal(result[1].count, 1);
+  });
+
+  test("returns empty array when no search terms exist", () => {
+    const result = analyticsModel.getSearchTerms(null, 10);
+    assert.deepStrictEqual(result, []);
+  });
+
+  test("respects limit parameter", () => {
+    for (let i = 0; i < 10; i++) {
+      analyticsModel.record({
+        page: "/test",
+        search_terms: "term-" + i,
+        user_agent: "test",
+        ip_hash: "h",
+        session_id: "s-" + i,
+      });
+    }
+    const result = analyticsModel.getSearchTerms(null, 5);
+    assert.ok(result.length <= 5);
+  });
+});
+
+// ── getBotStats() ────────────────────────────────────────────────────────────
+
+describe("model: getBotStats()", () => {
+  beforeEach(clearTable);
+
+  test("returns human and bot counts", () => {
+    analyticsModel.record({
+      page: "/test",
+      user_agent: "Chrome",
+      ip_hash: "h1",
+      session_id: "s1",
+      is_bot: 0,
+    });
+    analyticsModel.record({
+      page: "/test",
+      user_agent: "Googlebot",
+      ip_hash: "h2",
+      session_id: "s2",
+      is_bot: 1,
+    });
+
+    const result = analyticsModel.getBotStats(null);
+    assert.equal(result.human, 1);
+    assert.equal(result.bot, 1);
+    assert.ok(Array.isArray(result.bot_breakdown));
+  });
+
+  test("bot_breakdown groups bots by user_agent", () => {
+    analyticsModel.record({
+      page: "/test",
+      user_agent: "Googlebot/2.1",
+      ip_hash: "h1",
+      session_id: "s1",
+      is_bot: 1,
+    });
+    analyticsModel.record({
+      page: "/test",
+      user_agent: "Googlebot/2.1",
+      ip_hash: "h2",
+      session_id: "s2",
+      is_bot: 1,
+    });
+    analyticsModel.record({
+      page: "/test",
+      user_agent: "Bingbot/2.0",
+      ip_hash: "h3",
+      session_id: "s3",
+      is_bot: 1,
+    });
+
+    const result = analyticsModel.getBotStats(null);
+    assert.equal(result.bot, 3);
+    assert.ok(result.bot_breakdown.length >= 2);
+  });
+
+  test("returns zero bot count when no bots recorded", () => {
+    analyticsModel.record({
+      page: "/test",
+      user_agent: "Chrome",
+      ip_hash: "h1",
+      session_id: "s1",
+      is_bot: 0,
+    });
+
+    const result = analyticsModel.getBotStats(null);
+    assert.equal(result.human, 1);
+    assert.equal(result.bot, 0);
   });
 });
 
@@ -206,7 +372,11 @@ describe("route: POST /analytics field validation", () => {
   test("accepts valid request with 204", async () => {
     const res = await analyticsReq("POST", "/analytics", {
       port,
-      body: { page: "/valid-page", referrer: "example.com", session_id: "abc123" },
+      body: {
+        page: "/valid-page",
+        referrer: "example.com",
+        session_id: "abc123",
+      },
     });
     assert.equal(res.status, 204);
   });
@@ -272,7 +442,11 @@ describe("route: POST /analytics rate limiting", () => {
         port,
         body: { page: `/rate-test-${i}` },
       });
-      assert.equal(res.status, 204, `request ${i + 1} should be 204 but got ${res.status}`);
+      assert.equal(
+        res.status,
+        204,
+        `request ${i + 1} should be 204 but got ${res.status}`,
+      );
     }
     // 31st request should be rate-limited.
     const blocked = await analyticsReq("POST", "/analytics", {

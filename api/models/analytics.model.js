@@ -16,6 +16,8 @@ const WRITABLE_COLUMNS = [
   "browser",
   "os",
   "country",
+  "is_bot",
+  "search_terms",
 ];
 
 /** Record a single page view. `page` is required; the rest are best-effort. */
@@ -54,13 +56,22 @@ function getSummary(since = null) {
     .get(...params);
 }
 
-/** Top referrers, ignoring direct (null/empty) traffic. */
-function getTopReferrers(limit = 20) {
-  return db
-    .prepare(
-      "SELECT referrer, COUNT(*) AS count FROM analytics WHERE referrer IS NOT NULL AND referrer <> '' GROUP BY referrer ORDER BY count DESC LIMIT ?",
-    )
-    .all(limit);
+/** Top referrers, ignoring direct (null/empty) traffic.
+ *  When `external` is truthy, also excludes same-site referrers
+ *  (thejesuswebsite.org) so only outside traffic sources are shown. */
+function getTopReferrers(limit = 20, external = false) {
+  let sql =
+    "SELECT referrer, COUNT(*) AS count FROM analytics WHERE referrer IS NOT NULL AND referrer <> ''";
+  const params = [];
+
+  if (external) {
+    sql += " AND LOWER(referrer) NOT LIKE '%thejesuswebsite.org%'";
+  }
+
+  sql += " GROUP BY referrer ORDER BY count DESC LIMIT ?";
+  params.push(limit);
+
+  return db.prepare(sql).all(...params);
 }
 
 /**
@@ -170,6 +181,70 @@ function getDeviceBreakdown(since) {
   return { device_types: deviceTypes, browsers, os };
 }
 
+/** Top search terms from search-engine referrers, optionally since an ISO date. */
+function getSearchTerms(since, limit = 20) {
+  const where = since
+    ? "WHERE visited_at >= ? AND search_terms IS NOT NULL AND search_terms <> ''"
+    : "WHERE search_terms IS NOT NULL AND search_terms <> ''";
+  const params = since ? [since] : [];
+  params.push(limit);
+  return db
+    .prepare(
+      `SELECT search_terms AS term, COUNT(*) AS count
+       FROM analytics
+       ${where}
+       GROUP BY search_terms
+       ORDER BY count DESC
+       LIMIT ?`,
+    )
+    .all(...params);
+}
+
+/** Bot vs human stats, optionally since an ISO date.
+ *  bot_breakdown groups by user_agent for rows flagged as bot. */
+function getBotStats(since) {
+  const whereClause = since ? "WHERE visited_at >= ?" : "";
+  const params = since ? [since] : [];
+
+  // Use a subquery-style approach: prepare separate statements for clarity.
+  // SQLite allows ? in the WHERE clause across all three queries.
+  function buildWhere(existing, extra) {
+    const parts = [existing];
+    if (whereClause) parts.push(whereClause.replace("WHERE", "AND"));
+    if (extra) parts.push(extra);
+    return parts.join(" ");
+  }
+
+  const human = db
+    .prepare(
+      `SELECT COUNT(*) AS count FROM analytics ${buildWhere("WHERE (is_bot = 0 OR is_bot IS NULL)")}`,
+    )
+    .get(...params);
+
+  const bot = db
+    .prepare(
+      `SELECT COUNT(*) AS count FROM analytics ${buildWhere("WHERE is_bot = 1")}`,
+    )
+    .get(...params);
+
+  const botBreakdown = db
+    .prepare(
+      `SELECT user_agent AS name, COUNT(*) AS count
+       FROM analytics
+       ${buildWhere("WHERE is_bot = 1")}
+       GROUP BY user_agent
+       ORDER BY count DESC
+       LIMIT 10`,
+    )
+    .all(...params);
+
+  return {
+    human: human.count,
+    bot: bot.count,
+    bot_breakdown: botBreakdown,
+  };
+}
+
 module.exports = {
   record,
   getTopPages,
@@ -179,4 +254,6 @@ module.exports = {
   getRecent,
   getTopCountries,
   getDeviceBreakdown,
+  getSearchTerms,
+  getBotStats,
 };

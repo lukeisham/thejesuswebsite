@@ -169,7 +169,7 @@ function renderPageViews(rows, container) {
   container.appendChild(section);
 }
 
-function renderReferrers(rows, container) {
+function renderReferrers(rows, container, sectionTitle) {
   if (!rows || !rows.length) {
     container.innerHTML =
       '<p class="admin-text--muted">No referrer data available.</p>';
@@ -182,7 +182,7 @@ function renderReferrers(rows, container) {
 
   const title = document.createElement("h3");
   title.className = "analytics-section__title";
-  title.textContent = "Top Referrers";
+  title.textContent = sectionTitle || "Top Referrers";
   section.appendChild(title);
 
   // Table wrapper
@@ -331,100 +331,111 @@ function renderDeviceBreakdown(data, container) {
   title.textContent = "Devices";
   section.appendChild(title);
 
-  const grid = document.createElement("div");
-  grid.className = "analytics-device-grid";
+  const wrapper = document.createElement("div");
+  wrapper.className = "admin-table-wrapper analytics-table";
 
-  // ── Device Types ────────────────────────────────────────────────────
-  const dtCard = document.createElement("div");
-  dtCard.className = "admin-card analytics-device-card";
+  const table = document.createElement("table");
+  table.className = "admin-table";
 
-  const dtTitle = document.createElement("h4");
-  dtTitle.className = "analytics-device-card__title";
-  dtTitle.textContent = "Device Type";
-  dtCard.appendChild(dtTitle);
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  ["Category", "Value", "Count", "%"].forEach(function (label) {
+    const th = document.createElement("th");
+    th.textContent = label;
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Flatten all three groups into a single row list with category labels.
+  const allRows = [];
 
   if (data.device_types && data.device_types.length) {
+    allRows.push({ _group: "Device Type" });
     data.device_types.forEach(function (d) {
-      const row = document.createElement("div");
-      row.className = "analytics-device-row";
-      const name = document.createElement("span");
-      name.textContent = d.type || "Unknown";
-      const count = document.createElement("span");
-      count.className = "analytics-device-row__count";
-      count.textContent = Admin.formatNumber(d.count);
-      row.appendChild(name);
-      row.appendChild(count);
-      dtCard.appendChild(row);
+      allRows.push({
+        category: "Device Type",
+        value: d.type || "Unknown",
+        count: d.count,
+      });
     });
-  } else {
-    const empty = document.createElement("p");
-    empty.className = "admin-text--muted";
-    empty.textContent = "No data";
-    dtCard.appendChild(empty);
   }
-  grid.appendChild(dtCard);
-
-  // ── Browsers ─────────────────────────────────────────────────────────
-  const brCard = document.createElement("div");
-  brCard.className = "admin-card analytics-device-card";
-
-  const brTitle = document.createElement("h4");
-  brTitle.className = "analytics-device-card__title";
-  brTitle.textContent = "Browser";
-  brCard.appendChild(brTitle);
-
   if (data.browsers && data.browsers.length) {
+    allRows.push({ _group: "Browser" });
     data.browsers.forEach(function (d) {
-      const row = document.createElement("div");
-      row.className = "analytics-device-row";
-      const name = document.createElement("span");
-      name.textContent = d.name || "Unknown";
-      const count = document.createElement("span");
-      count.className = "analytics-device-row__count";
-      count.textContent = Admin.formatNumber(d.count);
-      row.appendChild(name);
-      row.appendChild(count);
-      brCard.appendChild(row);
+      allRows.push({
+        category: "Browser",
+        value: d.name || "Unknown",
+        count: d.count,
+      });
     });
-  } else {
-    const empty = document.createElement("p");
-    empty.className = "admin-text--muted";
-    empty.textContent = "No data";
-    brCard.appendChild(empty);
   }
-  grid.appendChild(brCard);
-
-  // ── OS ───────────────────────────────────────────────────────────────
-  const osCard = document.createElement("div");
-  osCard.className = "admin-card analytics-device-card";
-
-  const osTitle = document.createElement("h4");
-  osTitle.className = "analytics-device-card__title";
-  osTitle.textContent = "OS";
-  osCard.appendChild(osTitle);
-
   if (data.os && data.os.length) {
+    allRows.push({ _group: "OS" });
     data.os.forEach(function (d) {
-      const row = document.createElement("div");
-      row.className = "analytics-device-row";
-      const name = document.createElement("span");
-      name.textContent = d.name || "Unknown";
-      const count = document.createElement("span");
-      count.className = "analytics-device-row__count";
-      count.textContent = Admin.formatNumber(d.count);
-      row.appendChild(name);
-      row.appendChild(count);
-      osCard.appendChild(row);
+      allRows.push({
+        category: "OS",
+        value: d.name || "Unknown",
+        count: d.count,
+      });
     });
-  } else {
-    const empty = document.createElement("p");
-    empty.className = "admin-text--muted";
-    empty.textContent = "No data";
-    osCard.appendChild(empty);
   }
-  grid.appendChild(osCard);
 
-  section.appendChild(grid);
+  if (!allRows.length) {
+    section.appendChild(wrapper);
+    wrapper.appendChild(table);
+    container.innerHTML = "";
+    container.appendChild(section);
+    return;
+  }
+
+  // Compute the total for percentage (sum of all data rows, not group headers).
+  let total = 0;
+  allRows.forEach(function (r) {
+    if (!r._group) total += r.count || 0;
+  });
+
+  const tbody = document.createElement("tbody");
+  allRows.forEach(function (row) {
+    const tr = document.createElement("tr");
+
+    if (row._group) {
+      // Group header row
+      const tdGroup = document.createElement("td");
+      tdGroup.colSpan = 4;
+      tdGroup.className = "analytics-table__group-header";
+      tdGroup.textContent = row._group;
+      tr.appendChild(tdGroup);
+    } else {
+      const tdCat = document.createElement("td");
+      tdCat.textContent = "";
+      tr.appendChild(tdCat);
+
+      const tdVal = document.createElement("td");
+      tdVal.textContent = row.value;
+      tr.appendChild(tdVal);
+
+      const tdCount = document.createElement("td");
+      tdCount.className = "analytics-table__cell--numeric";
+      tdCount.textContent = Admin.formatNumber(row.count || 0);
+      tr.appendChild(tdCount);
+
+      const tdPct = document.createElement("td");
+      tdPct.className = "analytics-table__cell--numeric";
+      if (total > 0) {
+        tdPct.textContent = ((row.count / total) * 100).toFixed(1) + "%";
+      } else {
+        tdPct.textContent = "\u2014";
+      }
+      tr.appendChild(tdPct);
+    }
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+  section.appendChild(wrapper);
 
   container.innerHTML = "";
   container.appendChild(section);
@@ -433,6 +444,176 @@ function renderDeviceBreakdown(data, container) {
 /* ─────────────────────────────────────────────────────────────────────────────
    Public entry point
    ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Render a table of top search terms from search-engine referrers.
+ * Same layout as renderCountries() — columns: Search Term, Visits, %.
+ */
+function renderSearchTerms(rows, container) {
+  if (!rows || !rows.length) {
+    container.innerHTML =
+      '<p class="admin-text--muted">No search term data available.</p>';
+    return;
+  }
+
+  const section = document.createElement("div");
+  section.className = "analytics-section";
+
+  const title = document.createElement("h3");
+  title.className = "analytics-section__title";
+  title.textContent = "Search Terms";
+  section.appendChild(title);
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "admin-table-wrapper analytics-table";
+
+  const table = document.createElement("table");
+  table.className = "admin-table";
+
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  ["Search Term", "Visits", "%"].forEach(function (label) {
+    const th = document.createElement("th");
+    th.textContent = label;
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  let total = 0;
+  rows.forEach(function (r) {
+    total += r.count || 0;
+  });
+
+  rows.forEach(function (row) {
+    const tr = document.createElement("tr");
+
+    const tdTerm = document.createElement("td");
+    tdTerm.textContent = row.term || "Unknown";
+    tr.appendChild(tdTerm);
+
+    const tdCount = document.createElement("td");
+    tdCount.className = "analytics-table__cell--numeric";
+    tdCount.textContent = Admin.formatNumber(row.count || 0);
+    tr.appendChild(tdCount);
+
+    const tdPct = document.createElement("td");
+    tdPct.className = "analytics-table__cell--numeric";
+    if (total > 0) {
+      tdPct.textContent = ((row.count / total) * 100).toFixed(1) + "%";
+    } else {
+      tdPct.textContent = "\u2014";
+    }
+    tr.appendChild(tdPct);
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+  section.appendChild(wrapper);
+
+  container.innerHTML = "";
+  container.appendChild(section);
+}
+
+/**
+ * Render bot vs human stats — a compact stat row and a table of top bots.
+ */
+function renderBotStats(data, container) {
+  if (!data) {
+    container.innerHTML =
+      '<p class="admin-text--muted">Bot stats unavailable.</p>';
+    return;
+  }
+
+  const section = document.createElement("div");
+  section.className = "analytics-section";
+
+  const title = document.createElement("h3");
+  title.className = "analytics-section__title";
+  title.textContent = "Bot Traffic";
+  section.appendChild(title);
+
+  // Compact stat row using textContent (JS-6)
+  const statRow = document.createElement("div");
+  statRow.className = "analytics-bot-stats";
+
+  const humanLabel = document.createElement("span");
+  humanLabel.className = "analytics-bot-stats__label";
+  humanLabel.textContent = "Human visits: ";
+  statRow.appendChild(humanLabel);
+
+  const humanValue = document.createElement("span");
+  humanValue.className = "analytics-bot-stats__value";
+  humanValue.textContent = Admin.formatNumber(data.human || 0);
+  statRow.appendChild(humanValue);
+
+  const sep = document.createElement("span");
+  sep.textContent = "  |  ";
+  statRow.appendChild(sep);
+
+  const botLabel = document.createElement("span");
+  botLabel.className = "analytics-bot-stats__label";
+  botLabel.textContent = "Bot visits: ";
+  statRow.appendChild(botLabel);
+
+  const botValue = document.createElement("span");
+  botValue.className = "analytics-bot-stats__value";
+  botValue.textContent = Admin.formatNumber(data.bot || 0);
+  statRow.appendChild(botValue);
+
+  section.appendChild(statRow);
+
+  // Bot breakdown table (only if there are bots)
+  if (data.bot_breakdown && data.bot_breakdown.length) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "admin-table-wrapper analytics-table";
+
+    const table = document.createElement("table");
+    table.className = "admin-table";
+
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    ["Bot", "Visits", "%"].forEach(function (label) {
+      const th = document.createElement("th");
+      th.textContent = label;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    const botTotal = data.bot || 1;
+    data.bot_breakdown.forEach(function (row) {
+      const tr = document.createElement("tr");
+
+      const tdName = document.createElement("td");
+      tdName.textContent = row.name || "Unknown";
+      tr.appendChild(tdName);
+
+      const tdCount = document.createElement("td");
+      tdCount.className = "analytics-table__cell--numeric";
+      tdCount.textContent = Admin.formatNumber(row.count || 0);
+      tr.appendChild(tdCount);
+
+      const tdPct = document.createElement("td");
+      tdPct.className = "analytics-table__cell--numeric";
+      tdPct.textContent = ((row.count / botTotal) * 100).toFixed(1) + "%";
+      tr.appendChild(tdPct);
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+    section.appendChild(wrapper);
+  }
+
+  container.innerHTML = "";
+  container.appendChild(section);
+}
 
 /**
  * Render the full analytics page into #analytics-content.
@@ -468,10 +649,22 @@ AdminAnalytics.render = async function (days) {
     container.appendChild(sectionContainer);
     renderPageViews(data.pageViews, sectionContainer);
 
-    // Referrers
+    // External referrers
     sectionContainer = document.createElement("div");
     container.appendChild(sectionContainer);
-    renderReferrers(data.referrers, sectionContainer);
+    try {
+      const externalReferrers = await Admin.api.get(
+        "/analytics/top-referrers?external=true&limit=20",
+      );
+      renderReferrers(
+        externalReferrers,
+        sectionContainer,
+        "External Referrers",
+      );
+    } catch {
+      sectionContainer.innerHTML =
+        '<p class="admin-text--muted">Referrer data unavailable.</p>';
+    }
 
     // Countries (fire-and-forget — renders independently of main payload)
     sectionContainer = document.createElement("div");
@@ -497,6 +690,32 @@ AdminAnalytics.render = async function (days) {
     } catch {
       sectionContainer.innerHTML =
         '<p class="admin-text--muted">Device data unavailable.</p>';
+    }
+
+    // Search terms
+    sectionContainer = document.createElement("div");
+    container.appendChild(sectionContainer);
+    try {
+      const searchTerms = await Admin.api.get(
+        "/analytics/search-terms?since=" + encodeURIComponent(since),
+      );
+      renderSearchTerms(searchTerms, sectionContainer);
+    } catch {
+      sectionContainer.innerHTML =
+        '<p class="admin-text--muted">Search term data unavailable.</p>';
+    }
+
+    // Bot stats
+    sectionContainer = document.createElement("div");
+    container.appendChild(sectionContainer);
+    try {
+      const botStats = await Admin.api.get(
+        "/analytics/bot-stats?since=" + encodeURIComponent(since),
+      );
+      renderBotStats(botStats, sectionContainer);
+    } catch {
+      sectionContainer.innerHTML =
+        '<p class="admin-text--muted">Bot stats unavailable.</p>';
     }
   } catch (err) {
     container.innerHTML = "";
