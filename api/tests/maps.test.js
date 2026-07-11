@@ -484,6 +484,44 @@ describe("pin model: lat/lng geo-anchoring", () => {
     assert.equal(updated.x, 77);
     assert.equal(updated.y, 33);
   });
+
+  test("updatePin with x/y-only re-derives lat/lng (drag simulation)", () => {
+    // Create a pin with initial lat/lng, then move it by providing only x/y.
+    // The model should re-derive lat/lng from the new x/y via percentToLatLng.
+    const pin = seedPin(mapId, {
+      label: "Movable",
+      lat: 32.8811,
+      lng: 35.5751,
+    });
+    const originalLat = pin.lat;
+    const originalLng = pin.lng;
+
+    // Drag the pin to a new x/y position (no lat/lng in payload).
+    const updated = mapModel.updatePin(pin.id, { x: 60, y: 40 });
+
+    // x/y should be updated.
+    assert.equal(updated.x, 60);
+    assert.equal(updated.y, 40);
+
+    // lat/lng should be re-derived, not nulled.
+    assert.ok(updated.lat != null, "lat should be re-derived, not nulled");
+    assert.ok(updated.lng != null, "lng should be re-derived, not nulled");
+
+    // The re-derived lat/lng should be different from the original
+    // (since the pin moved to a different position).
+    assert.notEqual(updated.lat, originalLat);
+    assert.notEqual(updated.lng, originalLng);
+
+    // Round-trip: using the re-derived lat/lng to create a pin should
+    // produce the same x/y.
+    const roundTrip = mapModel.createPin({
+      map_id: mapId,
+      lat: updated.lat,
+      lng: updated.lng,
+    });
+    assert.equal(roundTrip.x, 60);
+    assert.equal(roundTrip.y, 40);
+  });
 });
 
 // ── Routes: lat/lng validation on pin endpoints ───────────────────────────
