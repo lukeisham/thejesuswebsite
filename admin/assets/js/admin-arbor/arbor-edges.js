@@ -155,9 +155,14 @@ Edges.createEdgeElement = function (edge, sourceNode, targetNode) {
   g.setAttribute("data-edge-id", String(edge.id));
   g.style.cursor = "pointer";
 
-  var x1 = sourceNode.arbor_x || 0;
-  var y1 = sourceNode.arbor_y || 0;
-  var x2 = targetNode.arbor_x || 0;
+  // Edge anchors: centre-bottom of source → centre-top of target.
+  // This matches frontend/assets/js/arbor/arbor-render.js edge-drawing
+  // (x + NODE_WIDTH/2, y + NODE_HEIGHT) → (x + NODE_WIDTH/2, y).
+  // Using raw corner coordinates (x, y → x, y) misaligns edges by
+  // ~NODE_WIDTH/2 horizontally and ~NODE_HEIGHT vertically.
+  var x1 = (sourceNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
+  var y1 = (sourceNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT;
+  var x2 = (targetNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
   var y2 = targetNode.arbor_y || 0;
 
   var line = window.AdminArborCanvas.createEdgeLine(
@@ -435,13 +440,13 @@ Edges.repositionEdgesForNode = function (nodeId, newX, newY) {
     var targetNode = window.AdminArborNodes.getNodeById(edge.target_id);
 
     var x1 = sourceNode
-      ? sourceNode.arbor_x || 0
+      ? (sourceNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2
       : Number(line.getAttribute("x1"));
     var y1 = sourceNode
-      ? sourceNode.arbor_y || 0
+      ? (sourceNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT
       : Number(line.getAttribute("y1"));
     var x2 = targetNode
-      ? targetNode.arbor_x || 0
+      ? (targetNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2
       : Number(line.getAttribute("x2"));
     var y2 = targetNode
       ? targetNode.arbor_y || 0

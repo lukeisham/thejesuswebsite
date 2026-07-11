@@ -220,27 +220,59 @@ export function renderArbor(nodes, edges) {
     // Mobile: always use vertical layout
     nodePositions = computeVerticalLayout(root, adjacency, nodesById);
   } else {
-    // Desktop: prefer saved positions, fall back to BFS
-    let allHavePositions = true;
-    for (const [, node] of nodesById) {
+    // Desktop: per-node fallback using shared BFS/grid-independent logic.
+    //
+    // Previously the frontend used an all-or-nothing check: if *any* node
+    // lacked a saved x/y, every saved position was discarded and the whole
+    // diagram was recomputed via BFS. That caused complete divergence from
+    // the admin editor whenever a single unplaced node was present (admin
+    // has always used per-node fallback).
+    //
+    // Per-node fallback is strictly more informative — real positions are
+    // never thrown away because an unrelated node lacks one. Nodes WITH
+    // saved positions render at their exact admin-authored coordinates;
+    // nodes WITHOUT get a BFS-computed fallback laid out in the gaps.
+    //
+    // Note: the "which nodes lack a position" set can differ between the
+    // public page (GET /arbor — published only) and the admin editor
+    // (GET /arbor/admin — includes drafts). That is expected — both sides
+    // correctly use the same fallback algorithm for whichever nodes they
+    // render, and the difference is in data scope, not geometry.
+    // (See plan: arbor-frontend-admin-alignment-fix.md)
+
+    // Build saved-positions map for nodes with valid x/y.
+    const savedPositions = new Map();
+    const unplacedNodeIds = [];
+    for (const [nodeId, node] of nodesById) {
       if (
-        node.x == null ||
-        node.y == null ||
-        !Number.isFinite(node.x) ||
-        !Number.isFinite(node.y)
+        node.x != null &&
+        node.y != null &&
+        Number.isFinite(node.x) &&
+        Number.isFinite(node.y)
       ) {
-        allHavePositions = false;
-        break;
+        savedPositions.set(nodeId, { x: node.x, y: node.y });
+      } else {
+        unplacedNodeIds.push(nodeId);
       }
     }
 
-    if (allHavePositions) {
-      nodePositions = new Map();
-      for (const [nodeId, node] of nodesById) {
-        nodePositions.set(nodeId, { x: node.x, y: node.y });
-      }
-    } else {
+    if (unplacedNodeIds.length === 0) {
+      // All nodes have saved positions — use them verbatim.
+      nodePositions = savedPositions;
+    } else if (savedPositions.size === 0) {
+      // No nodes have saved positions — fall back to full BFS layout.
       nodePositions = computeLayout(root, adjacency, nodesById);
+    } else {
+      // Mixed case: merge saved positions with BFS-computed fallbacks.
+      // Compute layout only for unplaced nodes, then merge with saved.
+      nodePositions = new Map(savedPositions);
+      const fallbackPositions = computeLayout(root, adjacency, nodesById);
+      for (const nodeId of unplacedNodeIds) {
+        const fallback = fallbackPositions.get(nodeId);
+        if (fallback) {
+          nodePositions.set(nodeId, fallback);
+        }
+      }
     }
   }
 

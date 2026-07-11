@@ -19,6 +19,10 @@
         box-shadow var(--duration-fast) var(--ease-out),
         transform var(--duration-fast) var(--ease-out);
     max-width: 200px;
+    /* Match NODE_HEIGHT=80 from arbor-geometry.js so the rendered box
+	       agrees with the constant both layout math and admin SVG assume. */
+    min-height: 80px;
+    box-sizing: border-box;
 }
 
 .arbor-node:hover {
