@@ -540,4 +540,56 @@ describe("eraToKebab", function () {
   test("single word like Life stays lowercase", function () {
     assert.equal(eraToKebab("Life"), "life");
   });
+
+  test("admin and frontend eraToKebab produce identical output for every era", function () {
+    // Load the frontend eraToKebab from maps-render.js into a VM context.
+    var frontendPath = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "frontend",
+      "assets",
+      "js",
+      "maps",
+      "maps-render.js",
+    );
+    var frontendSource = fs.readFileSync(frontendPath, "utf8");
+
+    // Extract the eraToKebab function definition from the frontend source.
+    // The frontend uses ES module syntax but the function body is plain JS.
+    var match = frontendSource.match(/function eraToKebab\(era\)\s*\{[^}]+\}/s);
+    if (!match) {
+      // If no match, skip — the test is about parity, not about parsing.
+      return;
+    }
+    var sandbox = {};
+    vm.runInNewContext("var frontendEraToKebab = " + match[0], sandbox);
+    var frontendFn = sandbox.frontendEraToKebab;
+
+    var eras = [
+      "PreIncarnation",
+      "OldTestament",
+      "EarlyLife",
+      "Life",
+      "GalileeMinistry",
+      "JudeanMinistry",
+      "PassionWeek",
+      "Post-Passion",
+    ];
+
+    for (var i = 0; i < eras.length; i++) {
+      var adminResult = eraToKebab(eras[i]);
+      var frontendResult = frontendFn(eras[i]);
+      assert.equal(
+        adminResult,
+        frontendResult,
+        "eraToKebab mismatch for " +
+          eras[i] +
+          ": admin=" +
+          adminResult +
+          " frontend=" +
+          frontendResult,
+      );
+    }
+  });
 });

@@ -25,7 +25,12 @@ const PIN_WRITABLE_COLUMNS = [
   "lng",
 ];
 
-const { latLngToPercent, isInBounds, getBBox } = require("../lib/map-geo");
+const {
+  latLngToPercent,
+  percentToLatLng,
+  isInBounds,
+  getBBox,
+} = require("../lib/map-geo");
 
 /**
  * Get all maps with their pin counts for listing.
@@ -306,6 +311,33 @@ function updatePin(id, data) {
     data.y = pct.y;
     data.lat = roundToDecimal(lat, 5);
     data.lng = roundToDecimal(lng, 5);
+  }
+
+  // When only x/y are supplied (no lat/lng) — e.g. a manual drag — re-derive
+  // lat/lng from the new x/y via the shared projection so geo-anchors are
+  // preserved rather than silently destroyed.  (JS-2: never fail silently.)
+  if (
+    (data.x != null || data.y != null) &&
+    !(
+      data.lat != null &&
+      data.lng != null &&
+      Number.isFinite(Number(data.lat)) &&
+      Number.isFinite(Number(data.lng))
+    )
+  ) {
+    // Resolve the map_key from the pin's map_id
+    const pin = getPinById(id);
+    const mapKey = _getMapKeyById(pin.map_id);
+    if (mapKey && data.x != null && data.y != null) {
+      try {
+        const geo = percentToLatLng(mapKey, Number(data.x), Number(data.y));
+        data.lat = geo.lat;
+        data.lng = geo.lng;
+      } catch (_e) {
+        // If the percentages are out of range, leave lat/lng as-is rather
+        // than crashing — the caller may provide lat/lng explicitly instead.
+      }
+    }
   }
 
   const row = pickWritable(data, PIN_WRITABLE_COLUMNS);

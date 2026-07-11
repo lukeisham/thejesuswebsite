@@ -381,14 +381,24 @@ Pins.onSavePin = async function () {
     payload.evidence_id = null;
   }
 
-  // Include lat/lng if both are filled
-  if (latRaw !== "" && lngRaw !== "") {
+  // Include lat/lng if both are filled, validate before sending
+  if (latRaw !== "" || lngRaw !== "") {
+    // One field filled but not the other — both required for geo-anchoring.
+    if (latRaw === "" || lngRaw === "") {
+      if (errorEl)
+        errorEl.textContent =
+          "Both latitude and longitude are required for geo-anchoring.";
+      return;
+    }
     const lat = Number(latRaw);
     const lng = Number(lngRaw);
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      payload.lat = lat;
-      payload.lng = lng;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      if (errorEl)
+        errorEl.textContent = "Latitude and longitude must be valid numbers.";
+      return;
     }
+    payload.lat = lat;
+    payload.lng = lng;
   }
 
   // Clear error state
@@ -525,9 +535,9 @@ Pins.onPinMouseUp = async function (e) {
         if (pins[i].id === pin.id) {
           pins[i].x = Math.round(pct.x * 100) / 100;
           pins[i].y = Math.round(pct.y * 100) / 100;
-          // Clear lat/lng — the pin is now percentage-only after a manual drag
-          pins[i].lat = null;
-          pins[i].lng = null;
+          // lat/lng are now re-derived server-side on save — no need to
+          // clear them here.  The API's updatePin computes percentToLatLng
+          // when it receives x/y without explicit lat/lng.
           break;
         }
       }
@@ -545,9 +555,7 @@ Pins.onPinMouseUp = async function (e) {
       if (pins[i].id === pin.id) {
         pins[i].x = Math.round(pct.x * 100) / 100;
         pins[i].y = Math.round(pct.y * 100) / 100;
-        // Clear lat/lng — the pin is now percentage-only after a manual drag
-        pins[i].lat = null;
-        pins[i].lng = null;
+        // lat/lng are now re-derived server-side on save.
         break;
       }
     }

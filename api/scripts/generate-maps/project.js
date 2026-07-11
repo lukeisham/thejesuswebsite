@@ -5,14 +5,22 @@
  * per-map bounding box. This is the simplest projection (plate carrée)
  * which works well for the scale range of our five maps.
  *
- * Includes coordinate rounding, polyline simplification (Ramer-Douglas-Peucker),
+ * The core lat/lng ↔ percentage math is imported from api/lib/map-geo.js —
+ * the single source of truth shared between the generator and the pin API.
+ * This module adds viewBox scaling, polyline simplification (Ramer-Douglas-Peucker),
  * and a helper to project an entire GeoJSON geometry.
  *
  * @module generate-maps/project
  */
 
+const { MAP_BBOXES, latLngToPercent } = require("../../lib/map-geo");
+
 /**
  * Project a (lon, lat) point into SVG viewBox coordinates.
+ *
+ * The core lat/lng → percentage math is delegated to api/lib/map-geo.js
+ * (the single source of truth).  This function scales the 0–100 percentages
+ * into the caller's viewBox space.
  *
  * @param {number} lon - Longitude in degrees.
  * @param {number} lat - Latitude in degrees.
@@ -23,21 +31,45 @@
  */
 function projectPoint(lon, lat, bbox, viewBox, precision) {
   const p = precision != null ? precision : 1;
-  const xRange = bbox.lon_max - bbox.lon_min;
-  const yRange = bbox.lat_max - bbox.lat_min;
 
-  if (xRange <= 0 || yRange <= 0) {
-    throw new Error("Invalid bounding box: zero or negative range.");
+  // Resolve map key from bbox (reverse-lookup in MAP_BBOXES).
+  const mapKey = _findMapKey(bbox);
+  if (!mapKey) {
+    throw new Error("Unknown bbox — not found in MAP_BBOXES.");
   }
 
-  const x = viewBox.x + ((lon - bbox.lon_min) / xRange) * viewBox.width;
-  // Latitude is inverted: top of viewBox = lat_max
-  const y = viewBox.y + ((bbox.lat_max - lat) / yRange) * viewBox.height;
+  // Delegate core formula to the shared lib.
+  const pct = latLngToPercent(mapKey, lat, lon);
+
+  const x = viewBox.x + (pct.x / 100) * viewBox.width;
+  const y = viewBox.y + (pct.y / 100) * viewBox.height;
 
   return {
     x: roundTo(x, p),
     y: roundTo(y, p),
   };
+}
+
+/**
+ * Find the MAP_BBOXES key whose lon/lat bounds match the given bbox
+ * within a small floating-point tolerance.
+ *
+ * @param {Object} bbox
+ * @returns {string|undefined}
+ */
+function _findMapKey(bbox) {
+  const TOL = 1e-9;
+  for (const [key, candidate] of Object.entries(MAP_BBOXES)) {
+    if (
+      Math.abs(candidate.lon_min - bbox.lon_min) < TOL &&
+      Math.abs(candidate.lat_min - bbox.lat_min) < TOL &&
+      Math.abs(candidate.lon_max - bbox.lon_max) < TOL &&
+      Math.abs(candidate.lat_max - bbox.lat_max) < TOL
+    ) {
+      return key;
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -75,7 +107,9 @@ function projectLine(geometry, bbox, viewBox, simplifyTolerance) {
 
   if (geometry.type === "LineString") {
     const simplified =
-      tolerance > 0 ? simplify(geometry.coordinates, tolerance) : geometry.coordinates;
+      tolerance > 0
+        ? simplify(geometry.coordinates, tolerance)
+        : geometry.coordinates;
     return simplified
       .map((c) => pointString(c[0], c[1], bbox, viewBox))
       .join(" ");
@@ -139,7 +173,9 @@ function projectParts(geometry, bbox, viewBox, simplifyTolerance) {
 
   const toPointString = (coords) => {
     const simplified = tolerance > 0 ? simplify(coords, tolerance) : coords;
-    return simplified.map((c) => pointString(c[0], c[1], bbox, viewBox)).join(" ");
+    return simplified
+      .map((c) => pointString(c[0], c[1], bbox, viewBox))
+      .join(" ");
   };
 
   if (geometry.type === "LineString") {
@@ -208,7 +244,10 @@ function perpendicularDistance(p, a, b) {
   const dy = b[1] - a[1];
   const lenSq = dx * dx + dy * dy;
   if (lenSq === 0) return Math.hypot(p[0] - a[0], p[1] - a[1]);
-  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / lenSq));
+  const t = Math.max(
+    0,
+    Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / lenSq),
+  );
   const nearX = a[0] + t * dx;
   const nearY = a[1] + t * dy;
   return Math.hypot(p[0] - nearX, p[1] - nearY);
@@ -249,7 +288,11 @@ function clipSegmentToBBox(p0, p1, bbox) {
   let code1 = outCode(x1, y1, xmin, ymin, xmax, ymax);
 
   while (true) {
-    if (!(code0 | code1)) return [[x0, y0], [x1, y1]];
+    if (!(code0 | code1))
+      return [
+        [x0, y0],
+        [x1, y1],
+      ];
     if (code0 & code1) return null;
 
     const codeOut = code0 || code1;
@@ -335,10 +378,22 @@ function intersectHorizontal(a, b, y) {
 function clipPolygonToBBox(ring, bbox) {
   const { lon_min: xmin, lat_min: ymin, lon_max: xmax, lat_max: ymax } = bbox;
   const edges = [
-    { inside: (p) => p[0] >= xmin, intersect: (a, b) => intersectVertical(a, b, xmin) },
-    { inside: (p) => p[0] <= xmax, intersect: (a, b) => intersectVertical(a, b, xmax) },
-    { inside: (p) => p[1] >= ymin, intersect: (a, b) => intersectHorizontal(a, b, ymin) },
-    { inside: (p) => p[1] <= ymax, intersect: (a, b) => intersectHorizontal(a, b, ymax) },
+    {
+      inside: (p) => p[0] >= xmin,
+      intersect: (a, b) => intersectVertical(a, b, xmin),
+    },
+    {
+      inside: (p) => p[0] <= xmax,
+      intersect: (a, b) => intersectVertical(a, b, xmax),
+    },
+    {
+      inside: (p) => p[1] >= ymin,
+      intersect: (a, b) => intersectHorizontal(a, b, ymin),
+    },
+    {
+      inside: (p) => p[1] <= ymax,
+      intersect: (a, b) => intersectHorizontal(a, b, ymax),
+    },
   ];
 
   let output = ring;
@@ -397,7 +452,8 @@ function clipGeometryToBBox(geometry, bbox) {
   if (geometry.type === "LineString") {
     const segments = clipLineToBBox(geometry.coordinates, bbox);
     if (segments.length === 0) return null;
-    if (segments.length === 1) return { type: "LineString", coordinates: segments[0] };
+    if (segments.length === 1)
+      return { type: "LineString", coordinates: segments[0] };
     return { type: "MultiLineString", coordinates: segments };
   }
 
@@ -420,7 +476,11 @@ function clipGeometryToBBox(geometry, bbox) {
 
   if (geometry.type === "MultiPolygon") {
     const polys = geometry.coordinates
-      .map((poly) => poly.map((ring) => clipPolygonToBBox(ring, bbox)).filter((ring) => ring.length >= 3))
+      .map((poly) =>
+        poly
+          .map((ring) => clipPolygonToBBox(ring, bbox))
+          .filter((ring) => ring.length >= 3),
+      )
       .filter((poly) => poly.length > 0);
     if (polys.length === 0) return null;
     return { type: "MultiPolygon", coordinates: polys };
