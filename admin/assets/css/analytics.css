@@ -23,9 +23,10 @@
     border: 1px solid var(--admin-border);
     border-radius: 20px;
     cursor: pointer;
-    transition: background var(--admin-transition),
-                color var(--admin-transition),
-                border-color var(--admin-transition);
+    transition:
+        background var(--admin-transition),
+        color var(--admin-transition),
+        border-color var(--admin-transition);
 }
 
 .analytics-chip:hover {
@@ -89,4 +90,41 @@
     font-weight: 600;
     color: var(--admin-text-primary);
     margin-bottom: var(--space-md);
+}
+
+/* ── Device Table Group Headers ────────────────────────────────────────────── */
+
+.analytics-table__group-header {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--admin-text-secondary);
+    background: var(--admin-surface);
+    padding: 8px var(--space-md);
+}
+
+/* ── Bot Stats Row ─────────────────────────────────────────────────────────── */
+
+.analytics-bot-stats {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.analytics-bot-stats__label {
+    color: var(--admin-text-secondary);
+    font-weight: 500;
+}
+
+.analytics-bot-stats__value {
+    color: var(--admin-text-primary);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }

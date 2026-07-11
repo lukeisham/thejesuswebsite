@@ -306,3 +306,130 @@ describe("GET /analytics/device-breakdown", () => {
     assert.equal(result.status, 401);
   });
 });
+
+// ── GET /analytics/search-terms ───────────────────────────────────────────────
+
+describe("GET /analytics/search-terms", () => {
+  const requireAuth = require("../middleware/auth");
+
+  test("returns an array", async () => {
+    const app = createApp();
+    const cookie = `sid=${encodeURIComponent(requireAuth.createSession("test"))}`;
+
+    const result = await request(app, {
+      method: "GET",
+      path: "/analytics/search-terms",
+      headers: { cookie },
+    });
+
+    assert.equal(result.status, 200);
+    assert.ok(Array.isArray(result.body));
+  });
+
+  test("returns 401 without auth", async () => {
+    const app = createApp();
+
+    const result = await request(app, {
+      method: "GET",
+      path: "/analytics/search-terms",
+    });
+
+    assert.equal(result.status, 401);
+  });
+});
+
+// ── GET /analytics/bot-stats ─────────────────────────────────────────────────
+
+describe("GET /analytics/bot-stats", () => {
+  const requireAuth = require("../middleware/auth");
+
+  test("returns correct shape with human, bot, and bot_breakdown", async () => {
+    const app = createApp();
+    const cookie = `sid=${encodeURIComponent(requireAuth.createSession("test"))}`;
+
+    const result = await request(app, {
+      method: "GET",
+      path: "/analytics/bot-stats",
+      headers: { cookie },
+    });
+
+    assert.equal(result.status, 200);
+    assert.ok(typeof result.body.human === "number");
+    assert.ok(typeof result.body.bot === "number");
+    assert.ok(Array.isArray(result.body.bot_breakdown));
+  });
+
+  test("returns 401 without auth", async () => {
+    const app = createApp();
+
+    const result = await request(app, {
+      method: "GET",
+      path: "/analytics/bot-stats",
+    });
+
+    assert.equal(result.status, 401);
+  });
+});
+
+// ── POST /analytics — bot detection enrichment ───────────────────────────────
+
+describe("POST /analytics — bot detection", () => {
+  test("stores is_bot=1 for a Googlebot user-agent", async () => {
+    const app = createApp();
+
+    await request(app, {
+      method: "POST",
+      path: "/analytics",
+      body: { page: "/bot-test" },
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      },
+    });
+
+    const row = testDb
+      .prepare("SELECT is_bot FROM analytics WHERE page = ?")
+      .get("/bot-test");
+    assert.ok(row);
+    assert.equal(row.is_bot, 1);
+  });
+
+  test("stores is_bot=0 for a normal browser user-agent", async () => {
+    const app = createApp();
+
+    await request(app, {
+      method: "POST",
+      path: "/analytics",
+      body: { page: "/human-test" },
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/131.0.0.0",
+      },
+    });
+
+    const row = testDb
+      .prepare("SELECT is_bot FROM analytics WHERE page = ?")
+      .get("/human-test");
+    assert.ok(row);
+    assert.equal(row.is_bot, 0);
+  });
+
+  test("stores search_terms from Google referrer", async () => {
+    const app = createApp();
+
+    await request(app, {
+      method: "POST",
+      path: "/analytics",
+      body: {
+        page: "/search-test",
+        referrer: "https://www.google.com/search?q=jesus+historical",
+      },
+    });
+
+    const row = testDb
+      .prepare("SELECT search_terms FROM analytics WHERE page = ?")
+      .get("/search-test");
+    assert.ok(row);
+    assert.equal(row.search_terms, "jesus historical");
+  });
+});
