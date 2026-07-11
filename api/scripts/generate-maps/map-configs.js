@@ -144,30 +144,30 @@ const MAP_CONFIGS = {
       "Topography: OpenBible.info (CC BY 4.0) · Plan after Britannica 1911",
     labels: [
       // Positions projected from real lat/lng (see overlay georeferencing comments)
-      // bbox lon 35.10–35.30, lat 31.72–31.82 → viewBox 0 0 1000 1000
-      { text: "TEMPLE MOUNT", x: 677, y: 375, cls: "district-label" },
-      { text: "UPPER CITY", x: 636, y: 460, cls: "district-label" },
-      { text: "LOWER CITY", x: 675, y: 505, cls: "district-label" },
-      { text: "CITY OF DAVID", x: 682, y: 515, cls: "district-label" },
+      // bbox lon 35.216–35.248, lat 31.7625–31.7895 → viewBox 0 0 1000 1000
+      { text: "TEMPLE MOUNT", x: 606, y: 386, cls: "district-label" },
+      { text: "UPPER CITY", x: 369, y: 486, cls: "district-label" },
+      { text: "LOWER CITY", x: 531, y: 722, cls: "district-label" },
+      { text: "CITY OF DAVID", x: 594, y: 621, cls: "district-label" },
       {
         text: "KIDRON\u00A0VALLEY",
-        x: 725,
-        y: 480,
+        x: 688,
+        y: 537,
         cls: "valley-label",
-        angle: 12,
+        angle: 8,
       },
       {
         text: "HINNOM\u00A0VALLEY",
-        x: 610,
-        y: 500,
+        x: 375,
+        y: 685,
         cls: "valley-label",
-        angle: -10,
+        angle: -12,
       },
-      { text: "MOUNT\u00A0OF\u00A0OLIVES", x: 730, y: 365, cls: "hill-label" },
+      { text: "MOUNT\u00A0OF\u00A0OLIVES", x: 844, y: 359, cls: "hill-label" },
     ],
     hills: [
-      { cx: 715, cy: 410, r: 28, label: "Mt. of Olives" },
-      { cx: 637, cy: 460, r: 22, label: "Western Hill" },
+      { cx: 844, cy: 389, r: 28, label: "Mt. of Olives" },
+      { cx: 375, cy: 574, r: 22, label: "Western Hill" },
     ],
   },
 };

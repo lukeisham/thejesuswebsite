@@ -30,8 +30,14 @@ describe("MAP_BBOXES", () => {
     for (const [key, bbox] of Object.entries(MAP_BBOXES)) {
       assert.ok(bbox.lon_max > bbox.lon_min, `${key}: lon_max > lon_min`);
       assert.ok(bbox.lat_max > bbox.lat_min, `${key}: lat_max > lat_min`);
-      assert.ok(bbox.lon_min >= -180 && bbox.lon_max <= 180, `${key}: lon in range`);
-      assert.ok(bbox.lat_min >= -90 && bbox.lat_max <= 90, `${key}: lat in range`);
+      assert.ok(
+        bbox.lon_min >= -180 && bbox.lon_max <= 180,
+        `${key}: lon in range`,
+      );
+      assert.ok(
+        bbox.lat_min >= -90 && bbox.lat_max <= 90,
+        `${key}: lat in range`,
+      );
     }
   });
 });
@@ -60,30 +66,42 @@ describe("latLngToPercent", () => {
     assert.ok(Math.abs(result.y - 50) < 1);
   });
 
-  test("converts bbox corners to 0%/100% for jerusalem", () => {
-    const topLeft = latLngToPercent("jerusalem", 31.82, 35.10);
-    assert.equal(topLeft.x, 0);
-    assert.equal(topLeft.y, 0);
-
-    const bottomRight = latLngToPercent("jerusalem", 31.72, 35.30);
-    assert.equal(bottomRight.x, 100);
-    assert.equal(bottomRight.y, 100);
-  });
-
   test("known site — Capernaum on galilee map", () => {
     // Capernaum: ~32.8811, 35.5751
     const result = latLngToPercent("galilee", 32.8811, 35.5751);
     // Should land roughly on the NW shore of the Sea of Galilee
-    assert.ok(result.x > 40 && result.x < 80, `x=${result.x} should be in 40-80 range`);
-    assert.ok(result.y > 30 && result.y < 70, `y=${result.y} should be in 30-70 range`);
+    assert.ok(
+      result.x > 40 && result.x < 80,
+      `x=${result.x} should be in 40-80 range`,
+    );
+    assert.ok(
+      result.y > 30 && result.y < 70,
+      `y=${result.y} should be in 30-70 range`,
+    );
+  });
+
+  test("converts bbox corners to 0%/100% for jerusalem", () => {
+    const topLeft = latLngToPercent("jerusalem", 31.7895, 35.216);
+    assert.equal(topLeft.x, 0);
+    assert.equal(topLeft.y, 0);
+
+    const bottomRight = latLngToPercent("jerusalem", 31.7625, 35.248);
+    assert.equal(bottomRight.x, 100);
+    assert.equal(bottomRight.y, 100);
   });
 
   test("known site — Golgotha on jerusalem map", () => {
     // Golgotha: ~35.2296, 31.7784
     const result = latLngToPercent("jerusalem", 31.7784, 35.2296);
-    // Should land in the central-western part of the viewBox
-    assert.ok(result.x > 55 && result.x < 75, `x=${result.x} should be near Temple Mount area`);
-    assert.ok(result.y > 35 && result.y < 50, `y=${result.y} should be in central area`);
+    // Should land in the Old City area (central ~third)
+    assert.ok(
+      result.x > 35 && result.x < 50,
+      `x=${result.x} should be in Old City`,
+    );
+    assert.ok(
+      result.y > 35 && result.y < 50,
+      `y=${result.y} should be central`,
+    );
   });
 
   test("throws for unknown map key", () => {
@@ -116,14 +134,14 @@ describe("percentToLatLng", () => {
 
   test("converts 0% to top-left corner for jerusalem", () => {
     const result = percentToLatLng("jerusalem", 0, 0);
-    assert.ok(Math.abs(result.lat - 31.82) < 0.001);
-    assert.ok(Math.abs(result.lng - 35.10) < 0.001);
+    assert.ok(Math.abs(result.lat - 31.7895) < 0.001);
+    assert.ok(Math.abs(result.lng - 35.216) < 0.001);
   });
 
   test("converts 100% to bottom-right corner for jerusalem", () => {
     const result = percentToLatLng("jerusalem", 100, 100);
-    assert.ok(Math.abs(result.lat - 31.72) < 0.001);
-    assert.ok(Math.abs(result.lng - 35.30) < 0.001);
+    assert.ok(Math.abs(result.lat - 31.7625) < 0.001);
+    assert.ok(Math.abs(result.lng - 35.248) < 0.001);
   });
 
   test("throws for unknown map key", () => {
@@ -141,9 +159,14 @@ describe("percentToLatLng", () => {
 describe("latLngToPercent ↔ percentToLatLng round-trip", () => {
   const testCases = [
     { mapKey: "galilee", lat: 32.8811, lng: 35.5751, label: "Capernaum" },
-    { mapKey: "jerusalem", lat: 31.7780, lng: 35.2354, label: "Temple Mount" },
-    { mapKey: "judea", lat: 31.7780, lng: 35.2354, label: "Jerusalem in Judea" },
-    { mapKey: "levant", lat: 31.7780, lng: 35.2354, label: "Jerusalem in Levant" },
+    { mapKey: "jerusalem", lat: 31.778, lng: 35.2354, label: "Temple Mount" },
+    { mapKey: "judea", lat: 31.778, lng: 35.2354, label: "Jerusalem in Judea" },
+    {
+      mapKey: "levant",
+      lat: 31.778,
+      lng: 35.2354,
+      label: "Jerusalem in Levant",
+    },
     { mapKey: "roman-empire", lat: 41.9, lng: 12.5, label: "Rome" },
   ];
 
@@ -207,7 +230,7 @@ describe("isInBounds", () => {
   });
 
   test("Temple Mount is in bounds on jerusalem map", () => {
-    assert.equal(isInBounds("jerusalem", 31.7780, 35.2354), true);
+    assert.equal(isInBounds("jerusalem", 31.778, 35.2354), true);
   });
 
   test("Capernaum is in bounds on galilee map", () => {
@@ -223,12 +246,30 @@ describe("isInBounds", () => {
 
 describe("edge cases", () => {
   test("point just outside a bbox edge is out of bounds", () => {
-    // Jerusalem bbox: lat 31.72–31.82, lon 35.10–35.30
-    assert.equal(isInBounds("jerusalem", 31.71, 35.20), false);
-    assert.equal(isInBounds("jerusalem", 31.80, 35.09), false);
+    // Jerusalem bbox: lat 31.7625–31.7895, lon 35.216–35.248
+    assert.equal(isInBounds("jerusalem", 31.75, 35.23), false);
+    assert.equal(isInBounds("jerusalem", 31.78, 35.21), false);
   });
 
   test("point just inside a bbox edge is in bounds", () => {
-    assert.equal(isInBounds("jerusalem", 31.721, 35.101), true);
+    assert.equal(isInBounds("jerusalem", 31.763, 35.217), true);
+  });
+
+  test("Bethany is out of bounds on jerusalem map", () => {
+    // Bethany: ~35.2606, 31.7712 — intentionally off-map (shown as edge arrow)
+    assert.equal(isInBounds("jerusalem", 31.7712, 35.2606), false);
+  });
+
+  test("Bethphage is at the eastern margin of jerusalem map", () => {
+    // Bethphage: ~35.248, 31.778 — at the eastern edge
+    assert.equal(isInBounds("jerusalem", 31.778, 35.248), true);
+  });
+
+  test("Mount of Olives is in bounds on jerusalem map", () => {
+    assert.equal(isInBounds("jerusalem", 31.779, 35.243), true);
+  });
+
+  test("Gethsemane is in bounds on jerusalem map", () => {
+    assert.equal(isInBounds("jerusalem", 31.7795, 35.2395), true);
   });
 });
