@@ -59,25 +59,6 @@
     color: var(--admin-text-primary);
     min-height: 36px;
 }
-.admin-maps-toolbar__nav-btn {
-    padding: var(--space-xs) var(--space-sm);
-    font-size: 0.875rem;
-    border: 1px solid var(--admin-border);
-    border-radius: 6px;
-    background: var(--admin-surface);
-    color: var(--admin-text-primary);
-    cursor: pointer;
-    min-height: 36px;
-    min-width: 36px;
-}
-.admin-maps-toolbar__nav-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-.admin-maps-toolbar__nav-btn:hover:not(:disabled) {
-    background: var(--admin-bg);
-}
-
 /* Shared button base for toolbar + panel */
 .admin-maps-toolbar__btn,
 .admin-pin-panel__btn {
@@ -98,8 +79,4 @@
 .admin-maps-toolbar__btn--primary:hover,
 .admin-pin-panel__btn--primary:hover {
     background: var(--admin-accent-hover);
-}
-.admin-maps-toolbar__btn--active {
-    background: var(--admin-accent-hover);
-    color: var(--admin-accent-text);
 }

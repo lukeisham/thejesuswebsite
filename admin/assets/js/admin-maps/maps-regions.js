@@ -32,12 +32,6 @@ Regions.init = function () {
   if (selector) {
     selector.addEventListener("change", Regions.onMapChange);
   }
-
-  const prevBtn = document.getElementById("map-prev-btn");
-  if (prevBtn) prevBtn.addEventListener("click", Regions.onPrevMap);
-
-  const nextBtn = document.getElementById("map-next-btn");
-  if (nextBtn) nextBtn.addEventListener("click", Regions.onNextMap);
 };
 
 /* ── Map loading ──────────────────────────────────────────────────────────── */
@@ -136,9 +130,6 @@ Regions.switchToMap = async function (mapKey) {
   const selector = document.getElementById("map-selector");
   if (selector) selector.value = mapKey;
 
-  // Update navigation button states
-  Regions.updateNavButtons();
-
   // Show loading
   const loadingEl = document.getElementById("map-loading");
   const canvas = document.getElementById("map-canvas");
@@ -181,39 +172,6 @@ Regions.onMapChange = function () {
   const selector = document.getElementById("map-selector");
   if (!selector) return;
   Regions.switchToMap(selector.value);
-};
-
-/**
- * Navigate to the previous map in the canonical order.
- */
-Regions.onPrevMap = function () {
-  const idx = MAP_KEYS.indexOf(currentMapKey);
-  if (idx > 0) {
-    Regions.switchToMap(MAP_KEYS[idx - 1]);
-  }
-};
-
-/**
- * Navigate to the next map in the canonical order.
- */
-Regions.onNextMap = function () {
-  const idx = MAP_KEYS.indexOf(currentMapKey);
-  if (idx < MAP_KEYS.length - 1) {
-    Regions.switchToMap(MAP_KEYS[idx + 1]);
-  }
-};
-
-/**
- * Enable or disable the prev/next navigation buttons based on position
- * in the canonical order.
- */
-Regions.updateNavButtons = function () {
-  const idx = MAP_KEYS.indexOf(currentMapKey);
-  const prevBtn = document.getElementById("map-prev-btn");
-  const nextBtn = document.getElementById("map-next-btn");
-
-  if (prevBtn) prevBtn.disabled = idx <= 0;
-  if (nextBtn) nextBtn.disabled = idx >= MAP_KEYS.length - 1;
 };
 
 /* ── Public accessors ─────────────────────────────────────────────────────── */

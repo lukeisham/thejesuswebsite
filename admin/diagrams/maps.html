@@ -66,25 +66,6 @@
                 >
                     <option value="">Loading maps…</option>
                 </select>
-
-                <button
-                    type="button"
-                    id="map-prev-btn"
-                    class="admin-maps-toolbar__nav-btn"
-                    aria-label="Previous map"
-                    disabled
-                >
-                    ◀
-                </button>
-                <button
-                    type="button"
-                    id="map-next-btn"
-                    class="admin-maps-toolbar__nav-btn"
-                    aria-label="Next map"
-                    disabled
-                >
-                    ▶
-                </button>
             </div>
 
             <div class="admin-maps-toolbar__right">
@@ -99,22 +80,15 @@
                 </button>
                 <button
                     type="button"
-                    id="add-pin-btn"
-                    class="admin-maps-toolbar__btn admin-maps-toolbar__btn--primary"
-                >
-                    Add Pin
-                </button>
-                <button
-                    type="button"
                     id="holding-pen-save"
                     class="admin-maps-toolbar__btn admin-maps-toolbar__btn--primary admin-maps-toolbar__btn--save"
                 >
-                    Save
+                    <span class="admin-maps-toolbar__btn-label">Save</span>
                     <span
                         id="holding-pen-badge"
-                        class="holding-pen__badge"
-                        hidden
-                    ></span>
+                        class="admin-maps-toolbar__btn-count"
+                        aria-live="polite"
+                    >0</span>
                 </button>
             </div>
         </nav>
@@ -210,7 +184,7 @@
             <!-- ── Holding Pen ──────────────────────────────────────────────────── -->
             <section
                 id="holding-pen"
-                class="holding-pen"
+                class="holding-pen admin-holding-pen-panel"
                 aria-label="Unplaced evidence"
             >
                 <p class="holding-pen__empty">Loading unplaced evidence…</p>

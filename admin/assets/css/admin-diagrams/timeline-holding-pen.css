@@ -5,9 +5,6 @@
    ========================================================================== */
 
 .admin-timeline-holding-pen {
-    padding: var(--space-sm) var(--space-md);
-    background: var(--admin-surface);
-    border-top: 1px solid var(--admin-border);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }

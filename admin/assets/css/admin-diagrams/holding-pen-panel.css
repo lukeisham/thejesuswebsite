@@ -1,0 +1,18 @@
+/* ==========================================================================
+   Holding Pen Panel (Admin — shared: Maps + Timeline)
+   Container "box" chrome for the unplaced-evidence holding pen, shared by
+   both diagram editors so the panel reads as one consistent site pattern.
+   Chip layout and other component-specific styling stay in each editor's
+   own holding-pen stylesheet — this file styles only the surrounding box.
+   ========================================================================== */
+
+.admin-holding-pen-panel {
+    margin: var(--space-md) auto;
+    max-width: var(--container-max, 1200px);
+    width: calc(100% - var(--space-xl) * 2);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius, 6px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
