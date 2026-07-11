@@ -372,3 +372,194 @@ describe("orphan cleanup (regenerate-pages)", () => {
     assert.ok(fs.existsSync(templatePath));
   });
 });
+
+// ── gitTrackedHtml guard regression (JS-2) ───────────────────────────────────
+// These tests verify the git-tracked-file guard added in commit 92016d5
+// (“Fix orphan cleanup deleting static pages”) that prevents cleanOrphans()
+// from deleting hand-authored static .html files (arbor.html, search.html)
+// that have no matching DB row.
+
+describe("git-tracked file guard (regenerate-pages)", () => {
+  const {
+    cleanOrphans,
+    gitTrackedHtml,
+  } = require("../scripts/regenerate-pages");
+
+  beforeEach(() => {
+    clearAll();
+    // Clean any generated .html files from the evidence output dir.
+    if (fs.existsSync(tempEvidenceDir)) {
+      const files = fs.readdirSync(tempEvidenceDir);
+      for (const f of files) {
+        if (f !== "[slug].html" && f.endsWith(".html")) {
+          fs.unlinkSync(path.join(tempEvidenceDir, f));
+        }
+      }
+    }
+  });
+
+  test("gitTrackedHtml returns git-tracked .html files in a directory", () => {
+    // The temp dir is not a git repo, but the project root is.
+    // Test against the real evidence dir which has arbor.html and search.html tracked.
+    const realEvidenceDir = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "frontend",
+      "evidence",
+    );
+    const tracked = gitTrackedHtml(realEvidenceDir);
+    // git is available in the test environment — should return a Set.
+    assert.ok(tracked instanceof Set);
+    // arbor.html and search.html are tracked in git.
+    assert.ok(tracked.has("arbor.html"), "arbor.html should be git-tracked");
+    assert.ok(tracked.has("search.html"), "search.html should be git-tracked");
+    // [slug].html template is also tracked.
+    assert.ok(
+      tracked.has("[slug].html"),
+      "[slug].html template should be git-tracked",
+    );
+  });
+
+  test("cleanOrphans skips git-tracked .html files even with no published row", () => {
+    // Create a dummy file that simulates a git-tracked static page in the temp dir.
+    // We can't use gitTrackedHtml directly on the temp dir (not a repo),
+    // but we can test cleanOrphans behavior by placing a file named like a
+    // git-tracked file and confirming it survives when it has no matching
+    // published DB row.
+    const staticFileName = "arbor.html";
+    const staticFilePath = path.join(tempEvidenceDir, staticFileName);
+    fs.writeFileSync(
+      staticFilePath,
+      "<html><title>Arbor Diagram</title></html>",
+      "utf8",
+    );
+
+    // The file exists.
+    assert.ok(fs.existsSync(staticFilePath));
+
+    // At this point there are NO published evidence rows (clearAll was called).
+    // cleanOrphans would normally delete arbor.html as an "orphan" since
+    // "arbor" is not a published slug — but the git-tracked guard should
+    // prevent that. Since the temp dir is not a git repo, gitTrackedHtml
+    // will return null, which triggers the fail-safe: cleanOrphans should
+    // return 0 and delete nothing.
+    const config = require("../config/content-pages").CONTENT_PAGES.evidence;
+    // Override outputDir to point to our temp dir.
+    const testConfig = {
+      ...config,
+      outputDir: tempEvidenceDir,
+      type: "evidence",
+    };
+    const removed = cleanOrphans(testConfig, []);
+
+    // When git is unavailable, fail safe: 0 files removed.
+    assert.strictEqual(removed, 0);
+    // The static file must survive.
+    assert.ok(fs.existsSync(staticFilePath));
+  });
+
+  test("cleanOrphans removes truly orphaned .html files (not git-tracked)", () => {
+    // This test verifies the happy path: when git IS available and a file
+    // is NOT git-tracked, cleanOrphans should still remove it if it has no
+    // published DB row.
+
+    // Use the real evidence dir from the project (which IS a git repo).
+    const realEvidenceDir = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "frontend",
+      "evidence",
+    );
+    const config = require("../config/content-pages").CONTENT_PAGES.evidence;
+
+    // Temporarily override the content-pages config so that removePage
+    // (called by cleanOrphans) targets the real evidence dir, not the
+    // mocked temp dir.
+    const savedEvidence =
+      Module._cache[contentPagesPath].exports.CONTENT_PAGES.evidence;
+    Module._cache[contentPagesPath].exports.CONTENT_PAGES.evidence = {
+      ...config,
+      outputDir: realEvidenceDir,
+      type: "evidence",
+    };
+
+    const testConfig = {
+      ...config,
+      outputDir: realEvidenceDir,
+      type: "evidence",
+    };
+
+    // Create a dummy .html file that is NOT git-tracked.
+    const orphanFileName = "zzz-test-orphan-do-not-track.html";
+    const orphanFilePath = path.join(realEvidenceDir, orphanFileName);
+    fs.writeFileSync(orphanFilePath, "<html></html>", "utf8");
+
+    try {
+      // Verify the orphan file exists.
+      assert.ok(fs.existsSync(orphanFilePath));
+
+      // Confirm it is NOT git-tracked.
+      const tracked = gitTrackedHtml(realEvidenceDir);
+      assert.ok(
+        !tracked.has(orphanFileName),
+        "orphan file must not be git-tracked",
+      );
+
+      // Run cleanOrphans with an empty published set — the orphan should be deleted.
+      const removed = cleanOrphans(testConfig, []);
+
+      // The orphan should have been removed.
+      assert.strictEqual(removed, 1);
+      assert.ok(!fs.existsSync(orphanFilePath));
+    } finally {
+      // Clean up in case the test failed mid-way.
+      if (fs.existsSync(orphanFilePath)) {
+        fs.unlinkSync(orphanFilePath);
+      }
+      // Restore the original mocked config.
+      Module._cache[contentPagesPath].exports.CONTENT_PAGES.evidence =
+        savedEvidence;
+    }
+  });
+
+  test("git-tracked static files survive cleanOrphans (end-to-end)", () => {
+    // Full integration test: use the real evidence dir, confirm arbor.html
+    // and search.html survive cleanOrphans even though they have no
+    // published DB row with slug "arbor" or "search".
+    const realEvidenceDir = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "frontend",
+      "evidence",
+    );
+    const config = require("../config/content-pages").CONTENT_PAGES.evidence;
+    const testConfig = {
+      ...config,
+      outputDir: realEvidenceDir,
+      type: "evidence",
+    };
+
+    // Verify the static files exist before the test.
+    assert.ok(fs.existsSync(path.join(realEvidenceDir, "arbor.html")));
+    assert.ok(fs.existsSync(path.join(realEvidenceDir, "search.html")));
+
+    // Confirm they are git-tracked.
+    const tracked = gitTrackedHtml(realEvidenceDir);
+    assert.ok(tracked.has("arbor.html"));
+    assert.ok(tracked.has("search.html"));
+
+    // Run cleanOrphans with an empty published set.
+    const removed = cleanOrphans(testConfig, []);
+
+    // The static files must survive.
+    assert.ok(fs.existsSync(path.join(realEvidenceDir, "arbor.html")));
+    assert.ok(fs.existsSync(path.join(realEvidenceDir, "search.html")));
+
+    // removed count may be >0 if there are other orphan files, but the
+    // key assertion is that the git-tracked files survive.
+    assert.ok(removed >= 0);
+  });
+});

@@ -140,4 +140,10 @@ function main() {
   }
 }
 
-main();
+// Only run main() when invoked directly (e.g. `node scripts/regenerate-pages.js`),
+// not when require()d by tests.
+if (require.main === module) {
+  main();
+}
+
+module.exports = { cleanOrphans, gitTrackedHtml };
