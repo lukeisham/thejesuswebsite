@@ -41,6 +41,9 @@
     gap: var(--space-sm);
     flex-wrap: wrap;
 }
+.admin-maps-toolbar[hidden] {
+    display: none;
+}
 .admin-maps-toolbar__left,
 .admin-maps-toolbar__right {
     display: flex;
