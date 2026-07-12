@@ -59,23 +59,30 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let filePath = path.join(
-    STATIC_ROOT,
-    decodeURIComponent(req.url.split("?")[0]),
-  );
+  const urlPath = decodeURIComponent(req.url.split("?")[0]);
+  let filePath = path.join(STATIC_ROOT, urlPath);
   if (filePath.endsWith("/")) filePath = path.join(filePath, "index.html");
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not found");
-      return;
-    }
-    res.writeHead(200, {
-      "Content-Type":
-        MIME[path.extname(filePath)] || "application/octet-stream",
+  const serveFile = (fp, fallback) =>
+    fs.readFile(fp, (err, data) => {
+      if (err) {
+        if (fallback) return serveFile(fallback, null);
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not found");
+        return;
+      }
+      res.writeHead(200, {
+        "Content-Type": MIME[path.extname(fp)] || "application/octet-stream",
+      });
+      res.end(data);
     });
-    res.end(data);
-  });
+  // Mirror nginx: /assets/* always resolves against frontend/, even when the
+  // static root is admin/ (see deploy/nginx.conf).
+  serveFile(
+    filePath,
+    urlPath.startsWith("/assets/")
+      ? path.join(__dirname, "frontend", urlPath)
+      : null,
+  );
 });
 
 server.listen(PROXY_PORT, () => {
