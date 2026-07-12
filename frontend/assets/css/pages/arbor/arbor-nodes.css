@@ -23,6 +23,7 @@
 	       agrees with the constant both layout math and admin SVG assume. */
     min-height: 80px;
     box-sizing: border-box;
+    text-align: center;
 }
 
 .arbor-node:hover {
@@ -36,6 +37,7 @@
 }
 
 .arbor-node-title {
+    display: block;
     font-size: var(--text-h4);
     font-weight: 600;
     color: var(--text-primary);
@@ -43,6 +45,7 @@
 }
 
 .arbor-node-verse {
+    display: block;
     font-size: var(--text-small);
     color: var(--text-muted);
     font-style: italic;

@@ -76,6 +76,7 @@
     font-family: var(--font-serif);
     fill: var(--text-primary);
     font-weight: 600;
+    text-anchor: middle;
     pointer-events: none;
     user-select: none;
 }
@@ -84,6 +85,7 @@
     font-family: var(--font-serif);
     fill: var(--text-muted);
     font-style: italic;
+    text-anchor: middle;
     pointer-events: none;
     user-select: none;
 }
