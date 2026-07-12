@@ -51,6 +51,13 @@
     gap: var(--space-xs);
 }
 
+/* display:flex above would defeat the hidden attribute toggled by
+   arbor-pen.js — restore it explicitly (same pattern as arbor-search). */
+.admin-arbor-pen__list[hidden],
+.admin-arbor-pen__empty[hidden] {
+    display: none;
+}
+
 /* -------------------------------------------------------------------------
    Chip button
    ------------------------------------------------------------------------- */

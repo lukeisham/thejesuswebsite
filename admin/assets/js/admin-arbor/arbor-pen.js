@@ -50,7 +50,10 @@ Pen.init = function () {
 Pen.loadChips = async function () {
   if (!chipList) return;
 
-  // Loading state
+  // Loading state — make sure the list is visible in case a previous
+  // empty render hid it (loading/error messages render inside it).
+  chipList.hidden = false;
+  if (penEmpty) penEmpty.hidden = true;
   chipList.innerHTML = "";
   const loading = document.createElement("p");
   loading.className = "admin-arbor-pen__loading";
