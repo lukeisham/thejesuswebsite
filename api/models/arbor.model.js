@@ -179,6 +179,15 @@ function getNodesAndEdges({ includeDrafts } = {}) {
     idSet.add(edge.target_id);
   }
 
+  // Also include evidence placed on the canvas without any edges yet
+  // (e.g. a holding-pen chip dropped standalone). Without this, such
+  // nodes have an arbor_nodes row — so they leave the pen — but never
+  // render on the canvas, becoming invisible "ghost" nodes.
+  const placedRows = db.prepare("SELECT evidence_id FROM arbor_nodes").all();
+  for (const row of placedRows) {
+    idSet.add(row.evidence_id);
+  }
+
   // Fetch all node positions in one query
   const positions = new Map();
   if (idSet.size > 0) {

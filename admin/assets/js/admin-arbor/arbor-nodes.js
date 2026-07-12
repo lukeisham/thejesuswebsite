@@ -228,7 +228,7 @@ Nodes.createNodeElement = function (node) {
   let titleText = node.title || "";
   if (titleText.length > 28) titleText = titleText.slice(0, 26) + "\u2026";
   const titleEl = document.createElementNS(ns, "text");
-  titleEl.setAttribute("x", String(x + 10));
+  titleEl.setAttribute("x", String(x + NODE_WIDTH / 2));
   titleEl.setAttribute("y", String(y + 20));
   titleEl.setAttribute("class", "admin-arbor-node-title");
   titleEl.textContent = titleText;
@@ -238,7 +238,7 @@ Nodes.createNodeElement = function (node) {
   const verseText = node.primary_verse || "";
   if (verseText) {
     const verseEl = document.createElementNS(ns, "text");
-    verseEl.setAttribute("x", String(x + 10));
+    verseEl.setAttribute("x", String(x + NODE_WIDTH / 2));
     verseEl.setAttribute("y", String(y + 40));
     verseEl.setAttribute("class", "admin-arbor-node-verse");
     verseEl.textContent = verseText;
