@@ -24,8 +24,8 @@ let transformGroup = null;
 let transform = { x: 0, y: 0, scale: 1 };
 
 /** Minimum and maximum zoom levels. */
-const MIN_SCALE = 0.2;
-const MAX_SCALE = 3;
+const MIN_SCALE = 0.05;
+const MAX_SCALE = 1.0;
 
 /** @type {boolean} */
 let panning = false;

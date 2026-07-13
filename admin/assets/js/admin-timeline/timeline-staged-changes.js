@@ -96,6 +96,25 @@ window.AdminTimelineStaged = {};
     });
   };
 
+  /**
+   * Get the currently staged offset for an event (if any).
+   * Returns both offsetX and offsetY, or null if no staged offset exists.
+   *
+   * @param {number} id
+   * @returns {{timeline_offset_x: number, timeline_offset_y: number}|null}
+   */
+  self.getOffset = function (id) {
+    for (var i = 0; i < _offsets.length; i++) {
+      if (_offsets[i].id === id) {
+        return {
+          timeline_offset_x: _offsets[i].timeline_offset_x,
+          timeline_offset_y: _offsets[i].timeline_offset_y,
+        };
+      }
+    }
+    return null;
+  };
+
   /* ── Save ───────────────────────────────────────────────────────────────── */
 
   /**
@@ -202,7 +221,7 @@ window.AdminTimelineStaged = {};
         : "Save Changes";
     }
 
-    // Refresh the timeline and holding pen after successful save
+    // Refresh the timeline after successful save
     if (failed.length === 0) {
       try {
         if (
@@ -210,16 +229,6 @@ window.AdminTimelineStaged = {};
           AdminTimelineEvents.loadEvents
         ) {
           await AdminTimelineEvents.loadEvents();
-        }
-      } catch (_) {
-        /* best-effort */
-      }
-      try {
-        if (
-          typeof AdminTimelineHoldingPen !== "undefined" &&
-          AdminTimelineHoldingPen.refresh
-        ) {
-          await AdminTimelineHoldingPen.refresh();
         }
       } catch (_) {
         /* best-effort */

@@ -7,11 +7,15 @@
         <link rel="stylesheet" href="../assets/css/admin.css" />
         <link
             rel="stylesheet"
+            href="../assets/css/admin-diagrams/timeline-tokens.css"
+        />
+        <link
+            rel="stylesheet"
             href="../assets/css/admin-diagrams/timeline-canvas.css"
         />
         <link
             rel="stylesheet"
-            href="../assets/css/admin-diagrams/timeline-holding-pen.css"
+            href="../assets/css/admin-diagrams/timeline-dots.css"
         />
         <link
             rel="stylesheet"
@@ -19,7 +23,7 @@
         />
         <link
             rel="stylesheet"
-            href="../assets/css/admin-diagrams/timeline-context-menu.css"
+            href="../assets/css/admin-diagrams/timeline-node-drag.css"
         />
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-http.js"></script>
@@ -55,7 +59,11 @@
         ></script>
         <script
             defer
-            src="../assets/js/admin-timeline/timeline-holding-pen.js"
+            src="../assets/js/admin-timeline/timeline-node-bounds.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-timeline/timeline-node-drag.js"
         ></script>
         <script
             defer
@@ -64,10 +72,6 @@
         <script
             defer
             src="../assets/js/admin-timeline/timeline-era-filter.js"
-        ></script>
-        <script
-            defer
-            src="../assets/js/admin-timeline/timeline-context-menu.js"
         ></script>
     </head>
     <body>
@@ -80,13 +84,6 @@
         <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
         <nav class="admin-timeline-toolbar" aria-label="Timeline editor tools">
             <div class="admin-timeline-toolbar__left">
-                <button
-                    type="button"
-                    id="add-timeline-event-btn"
-                    class="admin-timeline-toolbar__btn admin-timeline-toolbar__btn--primary"
-                >
-                    Add Event
-                </button>
                 <button
                     type="button"
                     id="timeline-save-btn"
@@ -108,54 +105,9 @@
         <main>
             <div id="timeline-canvas" class="admin-timeline-canvas">
                 <div id="timeline-axis"></div>
-
-                <div
-                    id="timeline-search-dialog"
-                    class="admin-timeline-search"
-                    role="dialog"
-                    aria-label="Search evidence to add as event"
-                    hidden
-                >
-                    <div class="admin-timeline-search__header">
-                        <label
-                            for="timeline-event-search"
-                            class="admin-timeline-visually-hidden"
-                            >Search evidence</label
-                        >
-                        <input
-                            type="search"
-                            id="timeline-event-search"
-                            class="admin-timeline-search__input"
-                            placeholder="Search evidence to add as event…"
-                            autocomplete="off"
-                        />
-                        <button
-                            type="button"
-                            id="timeline-search-close"
-                            class="admin-timeline-search__close"
-                            aria-label="Close search"
-                        >
-                            ✕
-                        </button>
-                    </div>
-                    <div
-                        id="timeline-search-results"
-                        class="admin-timeline-search__results"
-                    ></div>
-                </div>
             </div>
         </main>
 
-        <!-- ── Holding Pen: unplaced evidence chips ───────────────────────────────── -->
-        <section
-            id="timeline-holding-pen"
-            class="admin-timeline-holding-pen admin-holding-pen-panel"
-        >
-            <div
-                id="timeline-holding-pen-chips"
-                class="admin-timeline-holding-pen__chips"
-            ></div>
-        </section>
 
         <!-- ── Event Edit Panel ────────────────────────────────────────────────────── -->
         <aside
@@ -247,16 +199,6 @@
                         Cancel
                     </button>
                 </div>
-
-                <div class="admin-timeline-panel__danger">
-                    <button
-                        type="button"
-                        id="timeline-event-delete-btn"
-                        class="admin-timeline-panel__btn admin-timeline-panel__btn--danger"
-                    >
-                        Remove from Timeline
-                    </button>
-                </div>
             </form>
         </aside>
 
@@ -317,26 +259,12 @@
                     });
                 }
 
-                // Init holding pen
-                AdminTimelineHoldingPen.init();
-
-                // Wire canvas and pen as drop targets for drag-and-drop
-                AdminTimelineHoldingPen.wireDropTargets();
-
                 // Init era filter
                 if (
                     typeof AdminTimelineEraFilter !== "undefined" &&
                     AdminTimelineEraFilter.init
                 ) {
                     AdminTimelineEraFilter.init();
-                }
-
-                // Init context menu
-                if (
-                    typeof AdminTimelineContextMenu !== "undefined" &&
-                    AdminTimelineContextMenu.init
-                ) {
-                    AdminTimelineContextMenu.init();
                 }
 
                 // Wire the Save button

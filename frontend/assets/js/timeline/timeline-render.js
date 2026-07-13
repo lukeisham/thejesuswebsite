@@ -429,12 +429,23 @@ function buildHorizontalLayout(groupedEvents, activeEra, slotWidth) {
 
     periodPositions.forEach((pos, clusterIndex) => {
       const event = pos.event;
-      const yOffset = pos.yOffset;
+      let yOffset = pos.yOffset;
       const xFan = pos.xFan || 0;
+
+      // Apply timeline offsets if present (stored manual repositioning).
+      // Offsets override cluster-computed placement.
+      let finalX = x + xFan;
+      if (event.timeline_offset_x !== null && event.timeline_offset_x !== undefined) {
+        finalX = x + (event.timeline_offset_x * slotWidth);
+      }
+      if (event.timeline_offset_y !== null && event.timeline_offset_y !== undefined) {
+        yOffset = event.timeline_offset_y * 280;
+      }
+
       const posClass = labelPosition(yOffset);
       const isFiltered =
         activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
-      const style = `left:${x + xFan}px;top:${50 + yOffset / 2}%`;
+      const style = `left:${finalX}px;top:${50 + yOffset / 2}%`;
 
       inner.appendChild(createDot(event, style, isFiltered));
 
@@ -511,11 +522,22 @@ function buildVerticalLayout(groupedEvents, activeEra, slotHeight) {
     periodPositions.forEach((pos, clusterIndex) => {
       const event = pos.event;
       // Map yOffset from placement (vertical stack) to xOffset for vertical mode (left/right of spine)
-      const xOffset = pos.yOffset;
+      let xOffset = pos.yOffset;
+      let finalY = y;
+
+      // Apply timeline offsets if present (stored manual repositioning).
+      // In vertical mode: offsetX maps to left/right offset, offsetY maps to top offset.
+      if (event.timeline_offset_x !== null && event.timeline_offset_x !== undefined) {
+        xOffset = event.timeline_offset_x * slotHeight;
+      }
+      if (event.timeline_offset_y !== null && event.timeline_offset_y !== undefined) {
+        finalY = y + (event.timeline_offset_y * slotHeight);
+      }
+
       const side = labelSide(xOffset);
       const isFiltered =
         activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
-      const style = `top:${y}px;left:calc(50% + ${xOffset}px)`;
+      const style = `top:${finalY}px;left:calc(50% + ${xOffset}px)`;
 
       inner.appendChild(createDot(event, style, isFiltered));
 

@@ -1,0 +1,11 @@
+/* ==========================================================================
+   Timeline Node Drag (Admin)
+   Visual feedback for right-click drag repositioning.
+   ========================================================================== */
+
+/* Dragging state: grab cursor and visual scale feedback */
+.admin-timeline-event--dragging {
+    cursor: grabbing;
+    transform: translate(-50%, -50%) scale(1.3);
+    box-shadow: 0 0 0 6px var(--canvas-drag-shadow);
+}
