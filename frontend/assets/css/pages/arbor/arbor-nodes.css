@@ -38,6 +38,7 @@
 
 .arbor-node-title {
     display: block;
+    font-family: var(--font-serif);
     font-size: var(--text-h4);
     font-weight: 600;
     color: var(--text-primary);
@@ -46,6 +47,7 @@
 
 .arbor-node-verse {
     display: block;
+    font-family: var(--font-serif);
     font-size: var(--text-small);
     color: var(--text-muted);
     font-style: italic;

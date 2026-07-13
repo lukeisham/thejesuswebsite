@@ -2,8 +2,11 @@
  * Admin timeline events module.
  *
  * Loads timeline events from the API, renders them as draggable markers along
- * the axis, supports an edit panel for title/date/era, and search-to-add.
+ * the axis, and supports an edit panel for title/date/era.
  * Positions are derived from each event's timeline_period via AdminTimelineAxis.
+ *
+ * Right-click drag (within SPREAD density) repositions dots via AdminTimelineNodeDrag.
+ * Left-click opens the edit panel; left-drag (period moves) has been removed.
  *
  * Depends on AdminTimelineAxis for positioning and UpdateRecord for persistence.
  *
@@ -24,16 +27,10 @@ let selectedEventId = null;
 /** @type {Object|null}  Event currently being dragged. */
 let dragState = null;
 
-/** @type {boolean} */
-let addingMode = false;
-
-/** @type {string} */
-let searchQuery = "";
-
 /* ── Initialisation ────────────────────────────────────────────────────────── */
 
 /**
- * Wire DOM events for the event edit panel, add/search dialog, and zoom controls.
+ * Wire DOM events for the event edit panel.
  */
 Events.init = function () {
   const saveBtn = document.getElementById("timeline-event-save-btn");
@@ -44,24 +41,6 @@ Events.init = function () {
 
   const closeBtn = document.getElementById("timeline-event-panel-close");
   if (closeBtn) closeBtn.addEventListener("click", Events.closeEditPanel);
-
-  const deleteBtn = document.getElementById("timeline-event-delete-btn");
-  if (deleteBtn) deleteBtn.addEventListener("click", Events.onRemoveEvent);
-
-  const addBtn = document.getElementById("add-timeline-event-btn");
-  if (addBtn) addBtn.addEventListener("click", Events.toggleAddMode);
-
-  const searchInput = document.getElementById("timeline-event-search");
-  if (searchInput) {
-    searchInput.addEventListener("input", function () {
-      searchQuery = searchInput.value.trim();
-      Events.renderSearchResults();
-    });
-  }
-
-  const searchClose = document.getElementById("timeline-search-close");
-  if (searchClose)
-    searchClose.addEventListener("click", Events.closeSearchDialog);
 };
 
 /* ── Event loading ─────────────────────────────────────────────────────────── */
@@ -94,25 +73,12 @@ Events.getEventById = function (id) {
   return undefined;
 };
 
-/**
- * Remove an event from the local events array by its evidence id.
- * Used by the context menu and holding-pen drop-to-unassign.
- *
- * @param {number} id
- */
-Events.removeEventById = function (id) {
-  events = events.filter(function (ev) {
-    return ev.id !== id;
-  });
-  if (selectedEventId === id) {
-    selectedEventId = null;
-  }
-};
 
 /* ── Rendering ─────────────────────────────────────────────────────────────── */
 
 /**
  * Render all event markers onto the timeline axis.
+ * Applies stored/staged offsets on top of cluster-computed positions.
  */
 Events.renderEvents = function () {
   const axisEl = document.getElementById("timeline-axis");
@@ -181,16 +147,59 @@ Events.renderEvents = function () {
       var ev2 = pos.event;
       var yOffset = pos.yOffset;
       var xFan = pos.xFan || 0;
+
+      // Apply stored/staged offsets if present
+      var finalX = baseX + xFan;
+      var finalY = yOffset;
+
+      // Offset precedence: staged (if present) > saved API offset > cluster placement
+      var stagedOffset = null;
+      if (window.AdminTimelineStaged && window.AdminTimelineStaged.getOffset) {
+        stagedOffset = window.AdminTimelineStaged.getOffset(ev2.id);
+      }
+
+      if (stagedOffset) {
+        // Staged offsets override cluster placement
+        var offsetXPixels = window.AdminTimelineNodeBounds
+          ? window.AdminTimelineNodeBounds.offsetXToPixel(
+              stagedOffset.timeline_offset_x,
+              pxPerPeriod,
+            )
+          : 0;
+        finalX = baseX + offsetXPixels;
+        finalY = stagedOffset.timeline_offset_y * 280; // canvas height * offset fraction
+      } else if (
+        ev2.timeline_offset_x != null ||
+        ev2.timeline_offset_y != null
+      ) {
+        // API offsets (no staged override) — use != null to handle offset of 0
+        var apiOffsetXPixels = window.AdminTimelineNodeBounds
+          ? window.AdminTimelineNodeBounds.offsetXToPixel(
+              ev2.timeline_offset_x != null ? ev2.timeline_offset_x : 0,
+              pxPerPeriod,
+            )
+          : 0;
+        finalX = baseX + apiOffsetXPixels;
+        if (ev2.timeline_offset_y != null) {
+          finalY = ev2.timeline_offset_y * 280;
+        }
+      }
+
       // Match the frontend's vertical positioning: dots sit at
-      // top: ${50 + yOffset / 2}% of the timeline container, which
+      // top: ${50 + finalY / 2}% of the timeline container, which
       // has min-height: 280px (see frontend/assets/js/timeline/timeline-render.js
       // buildHorizontalLayout). Convert percentage to absolute px for the
       // admin's fixed-height canvas.
-      var y = (280 * (50 + yOffset / 2)) / 100;
+      var y = (280 * (50 + finalY / 2)) / 100;
       var mode = modeByEventId[ev2.id] || "full";
-      var el2 = Events.createEventElement(ev2, baseX + xFan, y, yOffset, mode);
+      var el2 = Events.createEventElement(ev2, finalX, y, finalY, mode);
       axisEl.appendChild(el2);
     }
+  }
+
+  // Attach right-click drag listeners to all dots
+  if (window.AdminTimelineNodeDrag && window.AdminTimelineNodeDrag.attachDragListeners) {
+    window.AdminTimelineNodeDrag.attachDragListeners();
   }
 };
 
@@ -228,7 +237,7 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
     .filter(Boolean)
     .join(" ");
   el.style.position = "absolute";
-  el.style.left = x - 6 + "px";
+  el.style.left = x + "px";
   el.style.top = y + "px";
   el.setAttribute("aria-label", ev.title || "Timeline event");
   el.title = ev.title || "";
@@ -278,19 +287,8 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
     Events.selectEvent(ev.id);
   });
 
-  // Context menu (right-click)
-  if (window.AdminTimelineContextMenu && window.AdminTimelineContextMenu.show) {
-    el.addEventListener("contextmenu", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      window.AdminTimelineContextMenu.show(e.clientX, e.clientY, ev.id);
-    });
-  }
-
-  // Drag (axis repositioning via mousedown)
-  el.addEventListener("mousedown", function (e) {
-    Events.onEventMouseDown(e, ev);
-  });
+  // Left-drag (period moves) has been removed; right-click drag is now handled
+  // by AdminTimelineNodeDrag (see attachDragListeners in renderEvents).
 
   return el;
 };
@@ -388,165 +386,12 @@ Events.onSaveEvent = async function () {
   }
 };
 
-/**
- * Remove an event from the timeline (does not delete the evidence record).
- */
-Events.onRemoveEvent = function () {
-  if (!selectedEventId) return;
 
-  if (
-    !confirm(
-      "Remove this event from the timeline? The evidence record will not be deleted.",
-    )
-  )
-    return;
-
-  // Stage the unassign (will be saved when the user clicks Save Changes)
-  if (window.AdminTimelineStaged && window.AdminTimelineStaged.stageUnassign) {
-    window.AdminTimelineStaged.stageUnassign(selectedEventId);
-  }
-
-  // Optimistic removal from local array
-  Events.removeEventById(selectedEventId);
-  Events.closeEditPanel();
-  Events.renderEvents();
-
-  // Refresh holding pen so the chip appears
-  if (
-    window.AdminTimelineHoldingPen &&
-    window.AdminTimelineHoldingPen.refresh
-  ) {
-    window.AdminTimelineHoldingPen.refresh();
-  }
-};
-
-/* ── Drag-to-reposition ────────────────────────────────────────────────────── */
-
-/**
- * Mouse-down on an event marker — begin drag.
- *
- * @param {MouseEvent} e
- * @param {Object} ev
- */
-Events.onEventMouseDown = function (e, ev) {
-  if (addingMode) return;
-  e.preventDefault();
-  e.stopPropagation();
-
-  dragState = {
-    event: ev,
-    startX: e.clientX,
-    origPeriod: ev.timeline_period,
-  };
-
-  document.addEventListener("mousemove", Events.onEventMouseMove);
-  document.addEventListener("mouseup", Events.onEventMouseUp);
-};
-
-/**
- * Mouse-move during event drag — update position visually.
- *
- * @param {MouseEvent} e
- */
-Events.onEventMouseMove = function (e) {
-  if (!dragState) return;
-
-  const el = document.querySelector(
-    '[data-event-id="' + dragState.event.id + '"]',
-  );
-  if (!el) return;
-
-  const dx = e.clientX - dragState.startX;
-  const pxPerPeriod = window.AdminTimelineAxis.getPxPerPeriod();
-  const offsetX = window.AdminTimelineZoom
-    ? window.AdminTimelineZoom.getPanOffset()
-    : 0;
-
-  const origX = window.AdminTimelineAxis.periodToX(
-    dragState.origPeriod,
-    pxPerPeriod,
-    offsetX,
-  );
-  const newX = origX + dx;
-
-  el.style.left = newX - 8 + "px";
-
-  // Show a visual indicator of which period the event would snap to
-  const snapPeriod = window.AdminTimelineAxis.xToPeriod(
-    newX,
-    pxPerPeriod,
-    offsetX,
-  );
-  el.title =
-    dragState.event.title +
-    " \u2192 " +
-    snapPeriod.replace(/([a-z])([A-Z])/g, "$1 $2");
-};
-
-/**
- * Mouse-up during event drag — persist the new period.
- *
- * @param {MouseEvent} e
- */
-Events.onEventMouseUp = function (e) {
-  document.removeEventListener("mousemove", Events.onEventMouseMove);
-  document.removeEventListener("mouseup", Events.onEventMouseUp);
-
-  if (!dragState) return;
-
-  const dx = e.clientX - dragState.startX;
-  const pxPerPeriod = window.AdminTimelineAxis.getPxPerPeriod();
-  const offsetX = window.AdminTimelineZoom
-    ? window.AdminTimelineZoom.getPanOffset()
-    : 0;
-
-  const origX = window.AdminTimelineAxis.periodToX(
-    dragState.origPeriod,
-    pxPerPeriod,
-    offsetX,
-  );
-  const newX = origX + dx;
-  const newPeriod = window.AdminTimelineAxis.xToPeriod(
-    newX,
-    pxPerPeriod,
-    offsetX,
-  );
-
-  const ev = dragState.event;
-  const origPeriod = ev.timeline_period;
-  const origEra = ev.timeline_era;
-  dragState = null;
-
-  if (newPeriod === ev.timeline_period) {
-    Events.renderEvents();
-    return;
-  }
-
-  // Determine the era for the new period
-  const newEra = Events.eraForPeriod(newPeriod);
-
-  // Stage the move (will be saved when the user clicks Save Changes)
-  try {
-    if (window.AdminTimelineStaged && window.AdminTimelineStaged.stageMove) {
-      window.AdminTimelineStaged.stageMove(
-        ev.id,
-        newPeriod,
-        newEra || ev.timeline_era,
-      );
-    }
-
-    // Update local state immediately (optimistic)
-    ev.timeline_period = newPeriod;
-    if (newEra) ev.timeline_era = newEra;
-  } catch (err) {
-    // Revert on failure
-    console.error("Failed to stage event move:", err);
-    ev.timeline_period = origPeriod;
-    ev.timeline_era = origEra;
-  }
-
-  Events.renderEvents();
-};
+/* ── Left-drag repositioning removed ───────────────────────────────────────────
+   Left-click drag (onEventMouseDown, onEventMouseMove, onEventMouseUp) has been
+   removed. Use the edit panel (left-click opens it) to change the period via the
+   Era dropdown. Right-click drag (AdminTimelineNodeDrag) repositions within the
+   period slot in SPREAD density. ────────────────────────────────────────────── */
 
 /* ── Era mapping ───────────────────────────────────────────────────────────── */
 
@@ -578,171 +423,7 @@ Events.eraForPeriod = function (period) {
   return "Post-Passion";
 };
 
-/* ── Search-to-add ─────────────────────────────────────────────────────────── */
 
-/**
- * Toggle "Add Event" mode — opens the evidence search dialog.
- */
-Events.toggleAddMode = function () {
-  addingMode = !addingMode;
-  const dialog = document.getElementById("timeline-search-dialog");
-  const btn = document.getElementById("add-timeline-event-btn");
 
-  if (dialog) dialog.hidden = !addingMode;
-  if (btn) {
-    btn.classList.toggle("admin-timeline-toolbar__btn--active", addingMode);
-    btn.textContent = addingMode ? "Cancel" : "Add Event";
-  }
 
-  if (addingMode) {
-    searchQuery = "";
-    const input = document.getElementById("timeline-event-search");
-    if (input) {
-      input.value = "";
-      input.focus();
-    }
-    Events.renderSearchResults();
-  }
-};
 
-/**
- * Close the search dialog.
- */
-Events.closeSearchDialog = function () {
-  addingMode = false;
-  const dialog = document.getElementById("timeline-search-dialog");
-  const btn = document.getElementById("add-timeline-event-btn");
-  if (dialog) dialog.hidden = true;
-  if (btn) {
-    btn.classList.remove("admin-timeline-toolbar__btn--active");
-    btn.textContent = "Add Event";
-  }
-};
-
-/**
- * Search evidence and render result list for adding to the timeline.
- */
-Events.renderSearchResults = async function () {
-  const list = document.getElementById("timeline-search-results");
-  if (!list) return;
-
-  if (searchQuery.length < 2) {
-    list.innerHTML = "";
-    const empty = document.createElement("p");
-    empty.className = "admin-timeline-search-empty";
-    empty.textContent = "Type at least 2 characters to search evidence.";
-    list.appendChild(empty);
-    return;
-  }
-
-  list.innerHTML = "";
-  const loading = document.createElement("p");
-  loading.className = "admin-timeline-search-loading";
-  loading.textContent = "Searching\u2026";
-  list.appendChild(loading);
-
-  try {
-    const results = await Admin.api.get(
-      "/search?q=" +
-        encodeURIComponent(searchQuery) +
-        "&type=evidence&limit=15",
-    );
-    list.innerHTML = "";
-
-    if (!results || results.length === 0) {
-      const none = document.createElement("p");
-      none.className = "admin-timeline-search-empty";
-      none.textContent = "No evidence found.";
-      list.appendChild(none);
-      return;
-    }
-
-    for (let i = 0; i < results.length; i++) {
-      const item = results[i];
-      const row = document.createElement("button");
-      row.className = "admin-timeline-search-item";
-      row.type = "button";
-      row.textContent = item.title || "(untitled)";
-
-      const alreadyAdded = Events.getEventById(item.id);
-      if (alreadyAdded) {
-        row.disabled = true;
-        row.textContent += " (already on timeline)";
-      }
-
-      row.addEventListener(
-        "click",
-        (function (it) {
-          return function () {
-            Events.addEventToTimeline(it);
-          };
-        })(item),
-      );
-
-      list.appendChild(row);
-    }
-  } catch (err) {
-    list.innerHTML = "";
-    const errEl = document.createElement("p");
-    errEl.className = "admin-timeline-search-error";
-    errEl.textContent = "Search failed: " + err.message;
-    list.appendChild(errEl);
-  }
-};
-
-/**
- * Add an evidence record as an event on the timeline.
- *
- * @param {Object} evidence
- */
-Events.addEventToTimeline = function (evidence) {
-  if (Events.getEventById(evidence.id)) return;
-
-  const ev = {
-    id: evidence.id,
-    title: evidence.title,
-    slug: evidence.slug,
-    timeline_era: evidence.timeline_era || "PreIncarnation",
-    timeline_period: evidence.timeline_period || "PreIncarnation",
-    primary_verse: evidence.primary_verse,
-    description: evidence.description,
-  };
-
-  events.push(ev);
-
-  // If the evidence doesn't have a timeline_period yet, set one
-  if (!evidence.timeline_period) {
-    UpdateRecord.saveEvent(ev.id, {
-      timeline_period: "PreIncarnation",
-      timeline_era: "PreIncarnation",
-    }).catch(function (err) {
-      console.error("Failed to set initial timeline period:", err);
-    });
-  }
-
-  Events.closeSearchDialog();
-  Events.renderEvents();
-};
-
-/**
- * Add an event staged from the holding pen (already has period assignment).
- * Called by AdminTimelineHoldingPen when a chip is dropped on the canvas.
- *
- * @param {Object} stagedEv - event object with timeline_period and timeline_era set
- */
-Events.addStagedEvent = function (stagedEv) {
-  if (Events.getEventById(stagedEv.id)) return;
-
-  events.push({
-    id: stagedEv.id,
-    title: stagedEv.title,
-    slug: stagedEv.slug,
-    timeline_era: stagedEv.timeline_era,
-    timeline_period: stagedEv.timeline_period,
-    primary_verse: stagedEv.primary_verse,
-    description: stagedEv.description,
-    gospel_category: stagedEv.gospel_category,
-  });
-
-  Events.renderEvents();
-};

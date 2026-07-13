@@ -2,7 +2,7 @@
 // Each test creates a fresh sandbox so internal state does not leak.
 //
 // Mocks: UpdateRecord.saveEvent, AdminTimelineEvents.loadEvents,
-//        AdminTimelineHoldingPen.refresh, showToast, document.getElementById.
+//        showToast, document.getElementById.
 
 const { test, describe, beforeEach, afterEach } = require("node:test");
 const assert = require("node:assert/strict");
@@ -444,29 +444,8 @@ describe("AdminTimelineStaged", function () {
       assert.equal(eventsCalls.count, 1);
     });
 
-    test("calls AdminTimelineHoldingPen.refresh after full success", async function () {
-      var penCalls = { count: 0 };
-      var s = createSandbox({
-        saveEvent: async function () {
-          /* succeed */
-        },
-      });
-      s.sandbox.AdminTimelineEvents.loadEvents = async function () {};
-      s.sandbox.AdminTimelineHoldingPen.refresh = async function () {
-        penCalls.count++;
-      };
-      vm.runInNewContext(stagedSource, s.sandbox);
-      var Staged = s.sandbox.window.AdminTimelineStaged;
-
-      Staged.stagePlacement(1, "LifeBaptism", "Life");
-      await Staged.save();
-
-      assert.equal(penCalls.count, 1);
-    });
-
-    test("does NOT call refresh when there are failures", async function () {
+    test("does NOT call AdminTimelineEvents.loadEvents when there are failures", async function () {
       var eventsCalls = { count: 0 };
-      var penCalls = { count: 0 };
       var s = createSandbox({
         saveEvent: async function () {
           throw new Error("Fail");
@@ -475,9 +454,6 @@ describe("AdminTimelineStaged", function () {
       s.sandbox.AdminTimelineEvents.loadEvents = async function () {
         eventsCalls.count++;
       };
-      s.sandbox.AdminTimelineHoldingPen.refresh = async function () {
-        penCalls.count++;
-      };
       vm.runInNewContext(stagedSource, s.sandbox);
       var Staged = s.sandbox.window.AdminTimelineStaged;
 
@@ -485,7 +461,6 @@ describe("AdminTimelineStaged", function () {
       await Staged.save();
 
       assert.equal(eventsCalls.count, 0);
-      assert.equal(penCalls.count, 0);
     });
 
     test("clear empties all three collections", function () {

@@ -159,7 +159,8 @@ Axis.init = function (container) {
 };
 
 /**
- * Render the horizontal axis line, period tick marks, and era bands.
+ * Render the horizontal axis line and era labels (matching frontend exactly).
+ * Era bands and tick marks are removed for parity with the frontend timeline.
  */
 Axis.renderAxis = function () {
   if (!axisContainer) return;
@@ -169,9 +170,9 @@ Axis.renderAxis = function () {
   axisContainer.style.width = totalWidth + "px";
   axisContainer.style.minHeight = "120px";
 
-  // ── Era bands ──────────────────────────────────────────────────────────
+  // ── Era labels (no band backgrounds) ───────────────────────────────────
 
-  // Pre-compute era midpoints for overlap detection
+  // Pre-compute era midpoints for overlap detection (matching frontend logic)
   var eraData = [];
   for (var e = 0; e < ERA_ORDER.length; e++) {
     var era = ERA_ORDER[e];
@@ -196,13 +197,11 @@ Axis.renderAxis = function () {
     needsAlt.push(prevClose);
   }
 
-  // Render bands, alternating label tops when adjacent eras are too close
+  // Render era labels (without band backgrounds), alternating tops when adjacent eras are too close
   var altToggle = false;
   for (var j = 0; j < eraData.length; j++) {
     var d = eraData[j];
     var era = d.era;
-    var startX = d.startX;
-    var endX = d.endX;
 
     // Determine label top: alternate when this era overlaps the previous one
     if (needsAlt[j]) {
@@ -212,24 +211,28 @@ Axis.renderAxis = function () {
     }
     var labelTop = needsAlt[j] ? (altToggle ? "28px" : "4px") : "4px";
 
-    var band = document.createElement("div");
-    band.className = "admin-timeline-era-band";
-    band.style.position = "absolute";
-    band.style.left = startX + "px";
-    band.style.width = endX - startX + "px";
-    band.style.top = "0";
-    band.style.height = "100%";
-    band.setAttribute("data-era", era);
-
     var label = document.createElement("span");
     label.className = "admin-timeline-era-label";
     label.textContent = ERA_LABELS[era] || era;
-    label.style.left = "50%";
-    label.style.transform = "translateX(-50%)";
+    label.style.position = "absolute";
+    label.style.left = d.midX + "px";
     label.style.top = labelTop;
-    band.appendChild(label);
+    label.style.transform = "translateX(-50%)";
+    label.setAttribute("data-era", era);
 
-    axisContainer.appendChild(band);
+    axisContainer.appendChild(label);
+  }
+
+  // ── Era divider lines (matching frontend era-marker) ───────────────────
+  for (var d2 = 1; d2 < eraData.length; d2++) {
+    var dividerX = eraData[d2].startX;
+    var divider = document.createElement("div");
+    divider.className = "admin-timeline-era-divider";
+    divider.style.position = "absolute";
+    divider.style.left = dividerX + "px";
+    divider.style.top = "0";
+    divider.style.height = "100%";
+    axisContainer.appendChild(divider);
   }
 
   // ── Main axis line ─────────────────────────────────────────────────────
@@ -241,26 +244,6 @@ Axis.renderAxis = function () {
   axisLine.style.top = "60px";
   axisLine.style.height = "1px";
   axisContainer.appendChild(axisLine);
-
-  // ── Period tick marks ──────────────────────────────────────────────────
-  for (var p = 0; p < PERIOD_ORDER.length; p++) {
-    var period = PERIOD_ORDER[p];
-    var x = Axis.periodToX(period, pxPerPeriod, 0);
-
-    var tick = document.createElement("div");
-    tick.className = "admin-timeline-tick";
-    tick.style.position = "absolute";
-    tick.style.left = x + "px";
-    tick.style.top = "54px";
-    tick.setAttribute("data-period", period);
-
-    var tickLabel = document.createElement("span");
-    tickLabel.className = "admin-timeline-tick-label";
-    tickLabel.textContent = period.replace(/([a-z])([A-Z])/g, "$1 $2");
-    tick.appendChild(tickLabel);
-
-    axisContainer.appendChild(tick);
-  }
 };
 
 /**

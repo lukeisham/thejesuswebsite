@@ -1,0 +1,49 @@
+/* ==========================================================================
+   Timeline Tokens (Admin) — WYSIWYG token bridge
+   These frontend tokens are consumed by timeline-canvas.css and
+   timeline-dots.css. Admin-base/variables.css defines --admin-* and
+   --era-* tokens, but the frontend-named palette tokens are not available
+   there. Defining them here (loaded after admin-base/variables.css) fixes
+   the canvas background, dot-grid, dot styling, and labels.
+   Values mirror frontend variables per setup/Style_guide.md §1/§2.
+   ========================================================================== */
+
+:root {
+    /* Backgrounds */
+    --bg-primary: #f8f5f0;
+    --bg-surface: #ffffff;
+    --bg-surface-alt: #f1ede4;
+
+    /* Borders */
+    --border: #d4c9b8;
+    --border-strong: #b8a48a;
+
+    /* Accent */
+    --accent: #5c4033;
+
+    /* Text */
+    --text-primary: #2c2522;
+    --text-muted: #7a7066;
+
+    /* Typography */
+    --font-sans:
+        system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif;
+    --text-2xs: 0.625rem;
+    --leading-small: 1.5;
+
+    /* Radii */
+    --radius-round: 50%;
+
+    /* Transitions */
+    --duration-fast: 150ms;
+    --ease-out: ease;
+
+    /* Semantic */
+    --color-black: #2c2522;
+
+    /* Shadows (accent/gold at low opacity for hover, selection, drag) */
+    --canvas-hover-shadow: rgba(92, 64, 51, 0.15);
+    --canvas-selection-shadow: rgba(199, 154, 75, 0.3);
+    --canvas-drag-shadow: rgba(92, 64, 51, 0.25);
+}

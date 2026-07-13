@@ -39,9 +39,9 @@ let zoomResetBtn = null;
 
 // ─── Zoom State ────────────────────────────────────────────────────────────────
 
-const ZOOM_MIN = 0.25;
-const ZOOM_MAX = 3.0;
-const ZOOM_STEP = 0.25;
+const ZOOM_MIN = 0.05;
+const ZOOM_MAX = 1.0;
+const ZOOM_FACTOR = 1.25;
 
 let zoomLevel = 1.0;
 
@@ -136,20 +136,20 @@ function applyTransform() {
 }
 
 /**
- * Zoom in by one step.
+ * Zoom in by multiplying the current zoom level.
  */
 function zoomIn() {
-  const newZoom = Math.min(ZOOM_MAX, zoomLevel + ZOOM_STEP);
+  const newZoom = Math.min(ZOOM_MAX, zoomLevel * ZOOM_FACTOR);
   if (newZoom === zoomLevel) return;
   zoomLevel = newZoom;
   applyTransform();
 }
 
 /**
- * Zoom out by one step.
+ * Zoom out by dividing the current zoom level.
  */
 function zoomOut() {
-  const newZoom = Math.max(ZOOM_MIN, zoomLevel - ZOOM_STEP);
+  const newZoom = Math.max(ZOOM_MIN, zoomLevel / ZOOM_FACTOR);
   if (newZoom === zoomLevel) return;
   zoomLevel = newZoom;
   applyTransform();
