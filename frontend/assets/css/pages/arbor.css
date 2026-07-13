@@ -37,6 +37,24 @@
 }
 
 /* -------------------------------------------------------------------------
+   Zoom Controls (positioned above nodes)
+   ------------------------------------------------------------------------- */
+
+.arbor-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    padding: var(--space-sm) var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
    Mobile Vertical Flow (< 768px)
    Nodes stack top-to-bottom, full-width, page-scrollable.
    Dot-grid retained; zoom controls hidden; pan-drag disabled.
