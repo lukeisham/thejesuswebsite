@@ -4,6 +4,8 @@
 const express = require("express");
 const mapModel = require("../models/map.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -14,7 +16,7 @@ router.get("/", (req, res) => {
     res.json(items);
   } catch (error) {
     console.error("GET /maps failed:", error);
-    res.status(500).json({ error: "Failed to load maps." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -36,12 +38,11 @@ router.post("/pins", requireAuth, (req, res) => {
       Number.isFinite(Number(lng));
 
     if (!map_id) {
-      return res.status(400).json({ error: "map_id is required." });
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, { field: "map_id" });
     }
     if (!hasPercent && !hasGeo) {
-      return res.status(400).json({
-        error:
-          "Either (x, y) as viewBox percentages or (lat, lng) as geographic coordinates are required.",
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, {
+        fields: ["x", "y", "lat", "lng"],
       });
     }
 
@@ -49,13 +50,17 @@ router.post("/pins", requireAuth, (req, res) => {
     res.status(201).json(created);
   } catch (error) {
     if (error.status === 404) {
-      return res.status(404).json({ error: error.message });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        detail: error.message,
+      });
     }
     if (error.status === 400) {
-      return res.status(400).json({ error: error.message });
+      return sendError(res, ERRORS.INVALID_COORDINATES, {
+        detail: error.message,
+      });
     }
     console.error("POST /maps/pins failed:", error);
-    res.status(500).json({ error: "Failed to create pin." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -63,17 +68,25 @@ router.post("/pins", requireAuth, (req, res) => {
 router.put("/pins/:id", requireAuth, (req, res) => {
   try {
     const updated = mapModel.updatePin(Number(req.params.id), req.body);
-    if (!updated) return res.status(404).json({ error: "Pin not found." });
+    if (!updated)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "pin",
+        id: req.params.id,
+      });
     res.json(updated);
   } catch (error) {
     if (error.status === 404) {
-      return res.status(404).json({ error: error.message });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        detail: error.message,
+      });
     }
     if (error.status === 400) {
-      return res.status(400).json({ error: error.message });
+      return sendError(res, ERRORS.INVALID_COORDINATES, {
+        detail: error.message,
+      });
     }
     console.error("PUT /maps/pins/:id failed:", error);
-    res.status(500).json({ error: "Failed to update pin." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -81,11 +94,15 @@ router.put("/pins/:id", requireAuth, (req, res) => {
 router.delete("/pins/:id", requireAuth, (req, res) => {
   try {
     const removed = mapModel.removePin(Number(req.params.id));
-    if (!removed) return res.status(404).json({ error: "Pin not found." });
+    if (!removed)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "pin",
+        id: req.params.id,
+      });
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /maps/pins/:id failed:", error);
-    res.status(500).json({ error: "Failed to delete pin." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -96,7 +113,7 @@ router.get("/pins/by-map/:mapId", (req, res) => {
     res.json(pins);
   } catch (error) {
     console.error("GET /maps/pins/by-map/:mapId failed:", error);
-    res.status(500).json({ error: "Failed to load pins." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -109,7 +126,7 @@ router.get("/admin/pins/by-map/:mapId", requireAuth, (req, res) => {
     res.json(pins);
   } catch (error) {
     console.error("GET /maps/admin/pins/by-map/:mapId failed:", error);
-    res.status(500).json({ error: "Failed to load pins." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -118,15 +135,13 @@ router.get("/admin/unplaced", requireAuth, (req, res) => {
   try {
     const mapId = Number(req.query.map_id);
     if (!mapId || !Number.isFinite(mapId)) {
-      return res
-        .status(400)
-        .json({ error: "map_id query parameter is required." });
+      return sendError(res, ERRORS.MISSING_QUERY_PARAM, { field: "map_id" });
     }
     const items = mapModel.getUnplacedEvidence(mapId);
     res.json(items);
   } catch (error) {
     console.error("GET /maps/admin/unplaced failed:", error);
-    res.status(500).json({ error: "Failed to load unplaced evidence." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -137,11 +152,15 @@ router.get("/admin/:map_key", requireAuth, (req, res) => {
     const item = mapModel.getMapByKey(req.params.map_key, {
       includeDrafts: true,
     });
-    if (!item) return res.status(404).json({ error: "Map not found." });
+    if (!item)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "map",
+        map_key: req.params.map_key,
+      });
     res.json(item);
   } catch (error) {
     console.error("GET /maps/admin/:map_key failed:", error);
-    res.status(500).json({ error: "Failed to load map." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -149,11 +168,15 @@ router.get("/admin/:map_key", requireAuth, (req, res) => {
 router.get("/:map_key", (req, res) => {
   try {
     const item = mapModel.getMapByKey(req.params.map_key);
-    if (!item) return res.status(404).json({ error: "Map not found." });
+    if (!item)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "map",
+        map_key: req.params.map_key,
+      });
     res.json(item);
   } catch (error) {
     console.error("GET /maps/:map_key failed:", error);
-    res.status(500).json({ error: "Failed to load map." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -161,15 +184,15 @@ router.get("/:map_key", (req, res) => {
 router.post("/", requireAuth, (req, res) => {
   try {
     if (!req.body.map_key || !req.body.map_name) {
-      return res
-        .status(400)
-        .json({ error: "map_key and map_name are required." });
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, {
+        fields: ["map_key", "map_name"].filter((f) => !req.body[f]),
+      });
     }
     const created = mapModel.createMap(req.body);
     res.status(201).json(created);
   } catch (error) {
     console.error("POST /maps failed:", error);
-    res.status(500).json({ error: "Failed to create map." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -181,14 +204,20 @@ router.put("/:id", requireAuth, (req, res) => {
       req.body.map_name !== undefined &&
       String(req.body.map_name).trim() === ""
     ) {
-      return res.status(400).json({ error: "map_name cannot be empty." });
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, {
+        field: "map_name",
+      });
     }
     const updated = mapModel.updateMap(Number(req.params.id), req.body);
-    if (!updated) return res.status(404).json({ error: "Map not found." });
+    if (!updated)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "map",
+        id: req.params.id,
+      });
     res.json(updated);
   } catch (error) {
     console.error("PUT /maps/:id failed:", error);
-    res.status(500).json({ error: "Failed to update map." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -196,11 +225,15 @@ router.put("/:id", requireAuth, (req, res) => {
 router.delete("/:id", requireAuth, (req, res) => {
   try {
     const removed = mapModel.removeMap(Number(req.params.id));
-    if (!removed) return res.status(404).json({ error: "Map not found." });
+    if (!removed)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "map",
+        id: req.params.id,
+      });
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /maps/:id failed:", error);
-    res.status(500).json({ error: "Failed to delete map." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

@@ -4,6 +4,8 @@
 const express = require("express");
 const searchModel = require("../models/search.model");
 const rateLimit = require("../middleware/rate-limit");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -18,7 +20,7 @@ router.get("/", searchLimit, (req, res) => {
   try {
     const query = (req.query.q || "").trim();
     if (!query) {
-      return res.status(400).json({ error: "A search query (q) is required." });
+      return sendError(res, ERRORS.EMPTY_SEARCH_QUERY);
     }
     const type = Object.hasOwn(searchModel.SEARCHABLE, req.query.type)
       ? req.query.type
@@ -27,7 +29,11 @@ router.get("/", searchLimit, (req, res) => {
     res.json(searchModel.search(query, type, limit));
   } catch (error) {
     console.error("GET /search failed:", error);
-    res.status(500).json({ error: "Search failed." });
+    const msg = String(error.message || "").toLowerCase();
+    if (msg.includes("fts5") || msg.includes("syntax error")) {
+      return sendError(res, ERRORS.FTS_SYNTAX_ERROR);
+    }
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

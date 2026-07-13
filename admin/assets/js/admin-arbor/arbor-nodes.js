@@ -584,11 +584,11 @@ Nodes.onNodeMouseMove = function (e) {
       rect.setAttribute("y", String(newY));
     }
     if (titleEl) {
-      titleEl.setAttribute("x", String(newX + 10));
+      titleEl.setAttribute("x", String(newX + NODE_WIDTH / 2));
       titleEl.setAttribute("y", String(newY + 20));
     }
     if (verseEl) {
-      verseEl.setAttribute("x", String(newX + 10));
+      verseEl.setAttribute("x", String(newX + NODE_WIDTH / 2));
       verseEl.setAttribute("y", String(newY + 40));
     }
     if (badgeRect) {

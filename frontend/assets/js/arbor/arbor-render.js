@@ -315,6 +315,7 @@ export function renderArbor(nodes, edges) {
       diagramEl.style.transform = "";
       svgEl.setAttribute("width", String(window.innerWidth));
       svgEl.setAttribute("height", String(maxY));
+      svgEl.setAttribute("viewBox", `0 0 ${window.innerWidth} ${maxY}`);
     } else {
       // Desktop: absolute-positioned within the canvas
       diagramEl.style.position = "absolute";
@@ -322,6 +323,7 @@ export function renderArbor(nodes, edges) {
       diagramEl.style.height = `${maxY}px`;
       svgEl.setAttribute("width", String(maxX));
       svgEl.setAttribute("height", String(maxY));
+      svgEl.setAttribute("viewBox", `0 0 ${maxX} ${maxY}`);
     }
 
     // ── Draw edges ────────────────────────────────────────────────────────

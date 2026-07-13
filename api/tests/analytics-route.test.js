@@ -96,7 +96,7 @@ describe("POST /analytics", () => {
     });
 
     assert.equal(result.status, 400);
-    assert.ok(result.body.error.includes("page"));
+    assert.equal(result.body.error.context.field, "page");
   });
 
   test("returns 400 when page is an object instead of a string", async () => {
@@ -109,7 +109,7 @@ describe("POST /analytics", () => {
     });
 
     assert.equal(result.status, 400);
-    assert.ok(result.body.error.includes("page"));
+    assert.equal(result.body.error.context.field, "page");
   });
 
   test("returns 400 when page is an array instead of a string", async () => {
@@ -122,7 +122,7 @@ describe("POST /analytics", () => {
     });
 
     assert.equal(result.status, 400);
-    assert.ok(result.body.error.includes("page"));
+    assert.equal(result.body.error.context.field, "page");
   });
 
   test("returns 400 when page is null", async () => {
@@ -135,7 +135,7 @@ describe("POST /analytics", () => {
     });
 
     assert.equal(result.status, 400);
-    assert.ok(result.body.error.includes("page"));
+    assert.equal(result.body.error.context.field, "page");
   });
 
   test("returns 400 when page is missing", async () => {

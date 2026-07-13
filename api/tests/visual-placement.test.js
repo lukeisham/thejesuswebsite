@@ -360,7 +360,8 @@ describe("maps: evidence existence validation", function () {
       body: { map_id: map.id, x: 50, y: 50, evidence_id: 99999 },
     });
     assert.equal(res.status, 404);
-    assert.match(res.body.error, /Evidence record not found/);
+    assert.equal(res.body.error.code, "E-PERSIST-004");
+    assert.match(res.body.error.context.detail, /Evidence record not found/);
   });
 });
 

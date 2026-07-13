@@ -5,9 +5,11 @@
 
 const express = require("express");
 const path = require("path");
-const fs = require("fs");
 const crypto = require("crypto");
 const requireAuth = require("../middleware/auth");
+const { safeMkdir, safeWriteFile } = require("../lib/io-guard");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -51,7 +53,7 @@ router.post("/", requireAuth, (req, res) => {
     const { filename, data } = req.body || {};
 
     if (!data || typeof data !== "string") {
-      return res.status(400).json({ error: "Missing or invalid 'data' field (base64 string required)." });
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, { field: "data" });
     }
 
     // Decode base64
@@ -63,18 +65,20 @@ router.post("/", requireAuth, (req, res) => {
         throw new Error("Empty decode");
       }
     } catch {
-      return res.status(400).json({ error: "Could not decode base64 'data' field." });
+      return sendError(res, ERRORS.INVALID_BASE64, { field: "data" });
     }
 
     // Size guard (after decode — base64 is ~33% larger than raw)
     if (buffer.length > MAX_FILE_BYTES) {
-      return res.status(413).json({ error: "File exceeds 5 MB limit." });
+      return sendError(res, ERRORS.FILE_TOO_LARGE, { maxBytes: MAX_FILE_BYTES });
     }
 
     // Sniff magic bytes to determine extension
     const ext = sniffExtension(buffer);
     if (!ext) {
-      return res.status(400).json({ error: "Unsupported image type. Allowed: JPEG, PNG, GIF, WEBP." });
+      return sendError(res, ERRORS.UNSUPPORTED_FILE_TYPE, {
+        allowed: ["jpg", "png", "gif", "webp"],
+      });
     }
 
     // Build destination path: public/uploads/<yyyy>/<mm>/<uuid>.<ext>
@@ -89,10 +93,16 @@ router.post("/", requireAuth, (req, res) => {
     const destPath = path.join(destDir, destName);
 
     // Create directory recursively
-    fs.mkdirSync(destDir, { recursive: true });
+    const mkdirResult = safeMkdir(destDir);
+    if (!mkdirResult.ok) {
+      return sendError(res, ERRORS.DIRECTORY_CREATION_FAILURE);
+    }
 
     // Write the file
-    fs.writeFileSync(destPath, buffer);
+    const writeResult = safeWriteFile(destPath, buffer);
+    if (!writeResult.ok) {
+      return sendError(res, ERRORS.FILE_WRITE_FAILURE);
+    }
 
     // Public URL path (relative to the site root, served by express.static)
     const imagePath = `/uploads/${year}/${month}/${destName}`;
@@ -100,7 +110,7 @@ router.post("/", requireAuth, (req, res) => {
     res.status(201).json({ image_path: imagePath });
   } catch (error) {
     console.error("POST /uploads failed:", error);
-    res.status(500).json({ error: "Upload failed." });
+    sendError(res, ERRORS.FILE_WRITE_FAILURE);
   }
 });
 

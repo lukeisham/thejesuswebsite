@@ -27,7 +27,7 @@
     background-color: var(--bg-primary);
     background-image: radial-gradient(
         circle,
-        rgba(212, 201, 184, 0.4) 1px,
+        var(--grid-line) 1px,
         transparent 1px
     );
     background-size: 24px 24px;
@@ -48,13 +48,13 @@
     stroke: var(--border);
     stroke-width: 1;
     cursor: pointer;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
+    filter: drop-shadow(var(--admin-shadow));
     transition:
         filter var(--duration-fast) var(--ease-out),
         stroke-width var(--duration-fast) var(--ease-out);
 }
 .admin-arbor-node:hover {
-    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.12));
+    filter: drop-shadow(var(--shadow-node-hover));
     stroke-width: 1;
 }
 .admin-arbor-node--root {
@@ -69,7 +69,7 @@
 .admin-arbor-node--selected {
     stroke: var(--accent);
     stroke-width: 3;
-    filter: drop-shadow(0 0 0 2px rgba(199, 154, 75, 0.2));
+    filter: drop-shadow(0 0 0 2px var(--gold-glow));
 }
 .admin-arbor-node-title {
     font-size: var(--text-h4);

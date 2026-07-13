@@ -10,6 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const db = require("../config");
 const { CONTENT_PAGES } = require("../config/content-pages");
+const { safeReadFile, safeMkdir, safeWriteFile } = require("../lib/io-guard");
 
 const BASE_URL = "https://thejesuswebsite.org";
 
@@ -164,7 +165,14 @@ function generatePage(type, slug) {
       error: `Template not found: ${config.templatePath}`,
     };
   }
-  const template = fs.readFileSync(config.templatePath, "utf8");
+  const readResult = safeReadFile(config.templatePath);
+  if (!readResult.ok) {
+    return {
+      ok: false,
+      error: `Failed to read template: ${config.templatePath} (${readResult.code})`,
+    };
+  }
+  const template = readResult.data;
 
   // 2. Check the placeholder exists (fail loudly if missing — JS-2).
   if (!template.includes("<!-- SEO -->")) {
@@ -200,14 +208,31 @@ function generatePage(type, slug) {
 
   // Ensure the output directory exists.
   if (!fs.existsSync(config.outputDir)) {
-    fs.mkdirSync(config.outputDir, { recursive: true });
+    const mkdirResult = safeMkdir(config.outputDir);
+    if (!mkdirResult.ok) {
+      return {
+        ok: false,
+        error: `Failed to create output directory: ${config.outputDir} (${mkdirResult.code})`,
+      };
+    }
   }
 
   // Write atomically: write to temp file, then rename (JS-2: never leave a
   // half-written file if the process crashes mid-write).
   const tmpPath = outputPath + ".tmp";
-  fs.writeFileSync(tmpPath, output, "utf8");
-  fs.renameSync(tmpPath, outputPath);
+  const writeResult = safeWriteFile(tmpPath, output);
+  if (!writeResult.ok) {
+    return {
+      ok: false,
+      error: `Failed to write page: ${outputPath} (${writeResult.code})`,
+    };
+  }
+  try {
+    fs.renameSync(tmpPath, outputPath);
+  } catch (err) {
+    console.error(`Failed to rename "${tmpPath}" to "${outputPath}":`, err.message);
+    return { ok: false, error: `Failed to finalize page write: ${outputPath}` };
+  }
 
   return { ok: true, path: outputPath };
 }

@@ -15,6 +15,8 @@ const academicChallengesModel = require("../models/academic-challenges.model");
 const collectionModel = require("../models/collection.model");
 const requireAuth = require("../middleware/auth");
 const { generatePage, removePage } = require("../services/page-generator");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -41,19 +43,24 @@ function setPublished(req, res, publishedDraft) {
   // lookup also returns inherited Object.prototype keys (constructor,
   // toString, etc.) which would cause a 500 at the model call below.
   if (!Object.hasOwn(MODELS, req.params.type))
-    return res.status(400).json({ error: "Unknown or non-publishable type." });
+    return sendError(res, ERRORS.UNKNOWN_ENTITY_TYPE, { type: req.params.type });
 
   const model = MODELS[req.params.type];
 
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id < 1) {
-    return res
-      .status(400)
-      .json({ error: "A positive numeric id is required." });
+    return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
+      field: "id",
+      received: req.params.id,
+    });
   }
 
   const updated = model.update(id, { published_draft: publishedDraft });
-  if (!updated) return res.status(404).json({ error: "Item not found." });
+  if (!updated)
+    return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+      entity: req.params.type,
+      id,
+    });
 
   // Generate or remove the static page for this content item (JS-2: failure
   // to generate the static page is logged but does not roll back the publish
@@ -77,7 +84,7 @@ router.post("/:type/:id", requireAuth, (req, res) => {
     setPublished(req, res, 1);
   } catch (error) {
     console.error("POST /publish failed:", error);
-    res.status(500).json({ error: "Failed to publish item." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -87,7 +94,7 @@ router.delete("/:type/:id", requireAuth, (req, res) => {
     setPublished(req, res, 0);
   } catch (error) {
     console.error("DELETE /publish failed:", error);
-    res.status(500).json({ error: "Failed to unpublish item." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

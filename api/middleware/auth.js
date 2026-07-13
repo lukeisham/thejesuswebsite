@@ -6,6 +6,8 @@
 // VPS an in-memory map is sufficient; a restart simply forces a fresh login.
 
 const crypto = require("crypto");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const SESSION_COOKIE = "sid";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
@@ -74,13 +76,9 @@ function readToken(req) {
 function requireAuth(req, res, next) {
   res.setHeader("Cache-Control", "no-store");
   const token = readToken(req);
-  if (!token)
-    return res.status(401).json({ error: "Authentication required." });
+  if (!token) return sendError(res, ERRORS.MISSING_AUTH_TOKEN);
   const session = getSession(token);
-  if (!session)
-    return res
-      .status(401)
-      .json({ error: "Session expired or invalid — please sign in again." });
+  if (!session) return sendError(res, ERRORS.EXPIRED_SESSION);
   req.user = { handle: session.userHandle };
   next();
 }

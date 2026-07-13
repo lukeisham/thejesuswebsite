@@ -252,49 +252,49 @@ describe("POST /publish/:type/:id", () => {
   test("returns 400 for an unknown type", async () => {
     const res = await doReq("POST", "/publish/not-a-real-type/1");
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "Unknown or non-publishable type.");
+    assert.equal(res.body.error.code, "E-INPUT-024");
   });
 
   test("returns 400 for a constructor prototype key (not 500)", async () => {
     const res = await doReq("POST", "/publish/constructor/1");
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "Unknown or non-publishable type.");
+    assert.equal(res.body.error.code, "E-INPUT-024");
   });
 
   test("returns 400 for a toString prototype key (not 500)", async () => {
     const res = await doReq("POST", "/publish/toString/1");
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "Unknown or non-publishable type.");
+    assert.equal(res.body.error.code, "E-INPUT-024");
   });
 
   test("returns 400 for __proto__ prototype key (not 500)", async () => {
     const res = await doReq("POST", "/publish/__proto__/1");
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "Unknown or non-publishable type.");
+    assert.equal(res.body.error.code, "E-INPUT-024");
   });
 
   test("returns 400 for a non-numeric id", async () => {
     const res = await doReq("POST", "/publish/evidence/abc");
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "A positive numeric id is required.");
+    assert.equal(res.body.error.code, "E-INPUT-005");
   });
 
   test("returns 400 for a negative id", async () => {
     const res = await doReq("POST", "/publish/evidence/-1");
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "A positive numeric id is required.");
+    assert.equal(res.body.error.code, "E-INPUT-005");
   });
 
   test("returns 400 for a zero id", async () => {
     const res = await doReq("POST", "/publish/evidence/0");
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "A positive numeric id is required.");
+    assert.equal(res.body.error.code, "E-INPUT-005");
   });
 
   test("returns 404 for a non-existent id", async () => {
     const res = await doReq("POST", "/publish/evidence/99999");
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, "Item not found.");
+    assert.equal(res.body.error.code, "E-PERSIST-004");
   });
 
   test("publishing evidence generates HTML in temp dir, not in real frontend", async () => {

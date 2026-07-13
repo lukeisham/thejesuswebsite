@@ -84,7 +84,7 @@
 
 .admin-arbor-pen__chip:hover {
     border-color: var(--accent);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-xs);
 }
 
 .admin-arbor-pen__chip:active {
@@ -118,12 +118,12 @@
 }
 
 .admin-arbor-pen__badge--published {
-    background: rgba(92, 64, 51, 0.1);
+    background: var(--accent-subtle);
     color: var(--accent);
 }
 
 .admin-arbor-pen__badge--draft {
-    background: rgba(136, 136, 152, 0.12);
+    background: var(--gray-subtle);
     color: var(--text-muted);
 }
 
@@ -162,7 +162,7 @@
 .admin-arbor-node--pen-drop .admin-arbor-node {
     stroke: var(--accent);
     stroke-width: 2.5;
-    filter: drop-shadow(0 0 0 3px rgba(92, 64, 51, 0.2));
+    filter: drop-shadow(0 0 0 3px var(--accent-glow));
 }
 
 /* -------------------------------------------------------------------------
@@ -170,7 +170,7 @@
    ------------------------------------------------------------------------- */
 
 .admin-arbor-node-draft-badge {
-    fill: rgba(136, 136, 152, 0.8);
+    fill: var(--gray-fill);
     pointer-events: none;
 }
 

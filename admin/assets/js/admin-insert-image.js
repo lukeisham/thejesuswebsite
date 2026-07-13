@@ -123,27 +123,25 @@ AdminInsertImage.wire = function (buttonSelector, textareaSelector) {
   });
 
   // When a file is selected, upload it
-  fileInput.addEventListener("change", function () {
+  fileInput.addEventListener("change", async function () {
     var file = fileInput.files && fileInput.files[0];
     if (!file) return;
 
     btn.disabled = true;
     btn.textContent = "Uploading…";
 
-    Admin.uploadImage(file)
-      .then(function (result) {
-        pendingPath = result.image_path;
-        promptEl.hidden = false;
-        captionInput.focus();
-      })
-      .catch(function (err) {
-        alert("Upload failed: " + (err.message || "Unknown error"));
-      })
-      .finally(function () {
-        btn.disabled = false;
-        btn.textContent = "Insert Image";
-        fileInput.value = "";
-      });
+    try {
+      var result = await Admin.uploadImage(file);
+      pendingPath = result.image_path;
+      promptEl.hidden = false;
+      captionInput.focus();
+    } catch (err) {
+      alert("Upload failed: " + (err.message || "Unknown error"));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Insert Image";
+      fileInput.value = "";
+    }
   });
 
   // Insert button inside prompt
