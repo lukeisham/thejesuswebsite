@@ -1,0 +1,67 @@
+/* ==========================================================================
+   Maps Grid (Admin)
+   Reference grid overlay on the map editor canvas (20×20, columns A-T, rows 1-20).
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Grid Layer
+   The container that holds all grid lines and labels.
+   ------------------------------------------------------------------------- */
+
+.admin-map-grid-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Grid Lines
+   21 vertical and 21 horizontal lines forming the 20×20 grid.
+   ------------------------------------------------------------------------- */
+
+.admin-map-grid-line {
+    position: absolute;
+    background: var(--border);
+    opacity: 0.45;
+}
+
+.admin-map-grid-line--v {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    transform: translateX(-50%);
+}
+
+.admin-map-grid-line--h {
+    left: 0;
+    right: 0;
+    height: 1px;
+    transform: translateY(-50%);
+}
+
+/* -------------------------------------------------------------------------
+   Grid Labels
+   Column letters (A-T) and row numbers (1-20).
+   ------------------------------------------------------------------------- */
+
+.admin-map-grid-label {
+    position: absolute;
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+    background: var(--bg-surface);
+    opacity: 0.8;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+}
+
+.admin-map-grid-label--col {
+    top: 3px;
+}
+
+.admin-map-grid-label--row {
+    left: 3px;
+}

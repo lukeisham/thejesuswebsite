@@ -69,6 +69,14 @@ Pins.loadPins = async function (mapId) {
   } catch (e) {
     console.error("Failed to load pins:", e);
     pins = [];
+    // Show error to user
+    const loadingEl = document.getElementById("map-loading");
+    if (loadingEl) {
+      loadingEl.textContent = "Failed to load pins: " + (e.message || "Unknown error");
+      loadingEl.classList.add("admin-map-loading--error");
+      loadingEl.hidden = false;
+    }
+    throw e;
   }
 
   Pins.renderPins();
@@ -559,5 +567,18 @@ Pins.onPinMouseUp = async function (e) {
     console.error("Failed to reposition pin:", e);
     // Re-render from local state to restore position
     Pins.renderPins();
+    // Show error to user
+    const loadingEl = document.getElementById("map-loading");
+    if (loadingEl) {
+      loadingEl.textContent = "Failed to save pin position: " + (e.message || "Unknown error");
+      loadingEl.classList.add("admin-map-loading--error");
+      loadingEl.hidden = false;
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        loadingEl.hidden = true;
+        loadingEl.classList.remove("admin-map-loading--error");
+        loadingEl.textContent = "Loading map…";
+      }, 5000);
+    }
   }
 };

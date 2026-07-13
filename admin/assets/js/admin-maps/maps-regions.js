@@ -47,6 +47,16 @@ Regions.loadMaps = async function () {
   } catch (e) {
     console.error("Failed to load maps:", e);
     allMaps = [];
+    // Show error to user in gallery area
+    const gridEl = document.getElementById("maps-gallery-grid");
+    if (gridEl) {
+      gridEl.innerHTML = "";
+      const errorMsg = document.createElement("p");
+      errorMsg.style.color = "var(--admin-error-color)";
+      errorMsg.textContent = "Failed to load maps: " + (e.message || "Unknown error");
+      gridEl.appendChild(errorMsg);
+    }
+    return;
   }
 
   // Sort into canonical order
@@ -116,6 +126,12 @@ Regions.switchToMap = async function (mapKey) {
       map = await Admin.api.get("/maps/" + encodeURIComponent(mapKey));
     } catch (e) {
       console.error("Failed to load map:", e);
+      const loadingEl = document.getElementById("map-loading");
+      if (loadingEl) {
+        loadingEl.textContent = "Failed to load map: " + (e.message || "Unknown error");
+        loadingEl.classList.add("admin-map-loading--error");
+        loadingEl.hidden = false;
+      }
       return;
     }
   }
@@ -130,10 +146,14 @@ Regions.switchToMap = async function (mapKey) {
   const selector = document.getElementById("map-selector");
   if (selector) selector.value = mapKey;
 
-  // Show loading
+  // Show loading and clear any previous error state
   const loadingEl = document.getElementById("map-loading");
   const canvas = document.getElementById("map-canvas");
-  if (loadingEl) loadingEl.hidden = false;
+  if (loadingEl) {
+    loadingEl.textContent = "Loading map…";
+    loadingEl.classList.remove("admin-map-loading--error");
+    loadingEl.hidden = false;
+  }
   if (canvas) canvas.hidden = true;
 
   // Close any open edit panel
@@ -155,11 +175,22 @@ Regions.switchToMap = async function (mapKey) {
       window.AdminMapsHoldingPen.loadForMap(map.id);
     }
 
-    if (loadingEl) loadingEl.hidden = true;
+    if (loadingEl) {
+      loadingEl.hidden = true;
+      loadingEl.classList.remove("admin-map-loading--error");
+      loadingEl.textContent = "Loading map…";
+    }
     if (canvas) canvas.hidden = false;
   } catch (e) {
     console.error("Failed to switch map:", e);
-    if (loadingEl) loadingEl.hidden = true;
+    if (loadingEl) {
+      // Only update if no specific error was already set (e.g. by a sub-module)
+      if (!loadingEl.classList.contains("admin-map-loading--error")) {
+        loadingEl.textContent = "Failed to load map: " + (e.message || "Unknown error");
+        loadingEl.classList.add("admin-map-loading--error");
+      }
+      loadingEl.hidden = false;
+    }
   }
 };
 
