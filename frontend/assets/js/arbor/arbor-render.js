@@ -290,13 +290,6 @@ export function renderArbor(nodes, edges) {
   }
 
   batchWrite(() => {
-    // ── Track vertical-mode state on the canvas (picked up by CSS) ───────
-    if (vertical) {
-      canvasEl.classList.add("arbor-canvas--vertical");
-    } else {
-      canvasEl.classList.remove("arbor-canvas--vertical");
-    }
-
     // ── Clear existing content ────────────────────────────────────────────
     diagramEl.innerHTML = "";
     svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");

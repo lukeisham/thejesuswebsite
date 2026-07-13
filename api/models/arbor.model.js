@@ -188,6 +188,20 @@ function getNodesAndEdges({ includeDrafts } = {}) {
     idSet.add(row.evidence_id);
   }
 
+  // For admin (includeDrafts), also include all evidence that has NOT been placed
+  // or connected yet, so editors can see everything available in the holding pen
+  // conceptually, even when viewing the canvas. This ensures unplaced evidence
+  // isn't silently hidden. The holding pen endpoint (getUnplacedEvidence) will
+  // show these explicitly, but having them here prevents blind spots.
+  if (includeDrafts) {
+    const allEvidence = db
+      .prepare("SELECT id FROM evidence")
+      .all();
+    for (const row of allEvidence) {
+      idSet.add(row.id);
+    }
+  }
+
   // Fetch all node positions in one query
   const positions = new Map();
   if (idSet.size > 0) {

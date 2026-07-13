@@ -184,6 +184,23 @@ Canvas.diagramToScreen = function (diagX, diagY, tx) {
   };
 };
 
+/**
+ * Convert client coordinates to diagram-space, handling SVG offset internally.
+ * Queries the SVG element's bounding rect and applies the transform.
+ *
+ * @param {number} clientX
+ * @param {number} clientY
+ * @param {{ x: number, y: number, scale: number }} tx
+ * @returns {{ x: number, y: number }}
+ */
+Canvas.clientToDiagram = function (clientX, clientY, tx) {
+  if (!svg) return { x: clientX, y: clientY };
+  const svgRect = svg.getBoundingClientRect();
+  const screenX = clientX - svgRect.left;
+  const screenY = clientY - svgRect.top;
+  return Canvas.screenToDiagram(screenX, screenY, tx);
+};
+
 /* ── Zoom / Pan ────────────────────────────────────────────────────────────── */
 
 /**

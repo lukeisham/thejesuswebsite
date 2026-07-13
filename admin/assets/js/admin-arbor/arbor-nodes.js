@@ -68,33 +68,41 @@ Nodes.init = function () {
 Nodes.loadNodes = async function () {
   try {
     const data = await Admin.api.get("/arbor/admin");
-    nodes = data.nodes || [];
-    // Use server positions; fall back to grid for nodes with null x/y
-    for (let i = 0; i < nodes.length; i++) {
+    const allNodes = data.nodes || [];
+    nodes = [];
+    for (let i = 0; i < allNodes.length; i++) {
+      const n = allNodes[i];
       if (
-        nodes[i].x != null &&
-        nodes[i].y != null &&
-        Number.isFinite(nodes[i].x) &&
-        Number.isFinite(nodes[i].y)
+        n.x != null &&
+        n.y != null &&
+        Number.isFinite(n.x) &&
+        Number.isFinite(n.y)
       ) {
-        nodes[i].arbor_x = nodes[i].x;
-        nodes[i].arbor_y = nodes[i].y;
-      } else {
-        // Default layout — spread nodes in a grid
-        nodes[i].arbor_x = 100 + (i % 5) * 220;
-        nodes[i].arbor_y = 100 + Math.floor(i / 5) * 160;
+        n.arbor_x = n.x;
+        n.arbor_y = n.y;
+        n.published_draft = n.published_draft == null ? 1 : n.published_draft;
+        nodes.push(n);
       }
-      // Carry published_draft for draft badge styling
-      nodes[i].published_draft =
-        nodes[i].published_draft == null ? 1 : nodes[i].published_draft;
     }
     Nodes.renderNodes();
-    // Let the edges module know nodes are ready
     if (window.AdminArborEdges && window.AdminArborEdges.loadEdges) {
       await window.AdminArborEdges.loadEdges();
     }
   } catch (err) {
     console.error("Failed to load arbor nodes:", err);
+    const canvas = document.getElementById("arbor-canvas");
+    if (canvas) {
+      const errorDiv = document.createElement("div");
+      errorDiv.className = "admin-arbor-error-overlay";
+      errorDiv.setAttribute("role", "alert");
+      errorDiv.setAttribute("aria-live", "polite");
+      if (err?.status === 401 || err?.status === 403) {
+        errorDiv.textContent = "Access denied. Please log in again.";
+      } else {
+        errorDiv.textContent = "Failed to load canvas. Please refresh the page.";
+      }
+      canvas.appendChild(errorDiv);
+    }
   }
 };
 
@@ -675,13 +683,11 @@ Nodes.addNodeToCanvas = async function (evidence, diagX, diagY, parentId) {
   // Prevent duplicates
   if (Nodes.getNodeById(evidence.id)) return;
 
-  // Place near centre of current view unless coordinates given
   let nodeX, nodeY;
   if (diagX !== undefined && diagY !== undefined) {
     nodeX = Math.round(diagX);
     nodeY = Math.round(diagY);
   } else {
-    const tx = window.AdminArborCanvas.getTransform();
     const svgEl = document.querySelector(".admin-arbor-svg");
     let centreScreenX = 300;
     let centreScreenY = 200;
@@ -690,6 +696,7 @@ Nodes.addNodeToCanvas = async function (evidence, diagX, diagY, parentId) {
       centreScreenX = rect.width / 2;
       centreScreenY = rect.height / 2;
     }
+    const tx = window.AdminArborCanvas.getTransform();
     const diag = window.AdminArborCanvas.screenToDiagram(
       centreScreenX,
       centreScreenY,
