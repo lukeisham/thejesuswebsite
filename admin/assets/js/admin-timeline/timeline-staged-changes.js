@@ -27,13 +27,18 @@ window.AdminTimelineStaged = {};
   /** @type {Array<{id: number}>} */
   var _unassigns = [];
 
+  /** @type {Array<{id: number, timeline_offset_x: number, timeline_offset_y: number}>} */
+  var _offsets = [];
+
   var _saving = false;
 
   /* ── Public helpers ─────────────────────────────────────────────────────── */
 
-  /** Total staged items across all three collections. */
+  /** Total staged items across all four collections. */
   self.pendingCount = function () {
-    return _placements.length + _moves.length + _unassigns.length;
+    return (
+      _placements.length + _moves.length + _unassigns.length + _offsets.length
+    );
   };
 
   /** True when there is at least one change waiting to be saved. */
@@ -69,6 +74,26 @@ window.AdminTimelineStaged = {};
    */
   self.stageUnassign = function (id) {
     _unassigns.push({ id: id });
+  };
+
+  /**
+   * Stage a placement offset adjustment for an already-placed event.
+   * Replaces any prior offset for the same id (last offset wins).
+   * Both offsets are optional; omit/null to clear.
+   */
+  self.stageOffset = function (id, offsetX, offsetY) {
+    for (var i = 0; i < _offsets.length; i++) {
+      if (_offsets[i].id === id) {
+        _offsets[i].timeline_offset_x = offsetX;
+        _offsets[i].timeline_offset_y = offsetY;
+        return;
+      }
+    }
+    _offsets.push({
+      id: id,
+      timeline_offset_x: offsetX,
+      timeline_offset_y: offsetY,
+    });
   };
 
   /* ── Save ───────────────────────────────────────────────────────────────── */
@@ -148,6 +173,25 @@ window.AdminTimelineStaged = {};
     });
     self._unassigns = _unassigns;
 
+    // ── Offsets ──────────────────────────────────────────────────────────
+    var succeededOffsets = [];
+    for (var l = 0; l < _offsets.length; l++) {
+      var o = _offsets[l];
+      try {
+        await UpdateRecord.saveEvent(o.id, {
+          timeline_offset_x: o.timeline_offset_x,
+          timeline_offset_y: o.timeline_offset_y,
+        });
+        succeededOffsets.push(o.id);
+      } catch (err) {
+        failed.push({ collection: "offsets", id: o.id, error: err });
+      }
+    }
+    _offsets = _offsets.filter(function (o) {
+      return succeededOffsets.indexOf(o.id) === -1;
+    });
+    self._offsets = _offsets;
+
     // ── Post-save ───────────────────────────────────────────────────────
     _saving = false;
 
@@ -206,6 +250,7 @@ window.AdminTimelineStaged = {};
     _placements.length = 0;
     _moves.length = 0;
     _unassigns.length = 0;
+    _offsets.length = 0;
   };
 
   /* ── Expose internals for testing ───────────────────────────────────────── */
@@ -213,4 +258,5 @@ window.AdminTimelineStaged = {};
   self._placements = _placements;
   self._moves = _moves;
   self._unassigns = _unassigns;
+  self._offsets = _offsets;
 })();

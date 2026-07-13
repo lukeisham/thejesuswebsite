@@ -43,6 +43,9 @@ CREATE TABLE evidence (
     map_x               REAL,
     map_y               REAL,
 
+    timeline_offset_x   REAL,
+    timeline_offset_y   REAL,
+
     -- Relationships & Metadata
     metadata_keywords   TEXT,
 
