@@ -602,3 +602,102 @@ describe("evidence: getAllPublished pagination", () => {
     assert.equal(items[0].title, "Flat Filtered");
   });
 });
+
+// Timeline offset validation tests.
+describe("evidence: timeline offset fields", () => {
+  beforeEach(() => {
+    db.exec("DELETE FROM evidence");
+  });
+
+  test("updateComposite accepts null timeline offsets", () => {
+    const created = evidenceModel.create({
+      title: "Offset Test",
+      slug: "offset-test",
+      published_draft: 1,
+    });
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      timeline_offset_x: null,
+      timeline_offset_y: null,
+    });
+    assert.equal(updated.timeline_offset_x, null);
+    assert.equal(updated.timeline_offset_y, null);
+  });
+
+  test("updateComposite clamps timeline_offset_x to [-0.5, 0.5]", () => {
+    const created = evidenceModel.create({
+      title: "Clamp X",
+      slug: "clamp-x",
+      published_draft: 1,
+    });
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      timeline_offset_x: 1.5,
+    });
+    assert.equal(updated.timeline_offset_x, 0.5);
+
+    const updated2 = evidenceModel.updateComposite(created.id, {
+      timeline_offset_x: -2.0,
+    });
+    assert.equal(updated2.timeline_offset_x, -0.5);
+
+    const updated3 = evidenceModel.updateComposite(created.id, {
+      timeline_offset_x: 0.25,
+    });
+    assert.equal(updated3.timeline_offset_x, 0.25);
+  });
+
+  test("updateComposite clamps timeline_offset_y to [-0.4, 0.4]", () => {
+    const created = evidenceModel.create({
+      title: "Clamp Y",
+      slug: "clamp-y",
+      published_draft: 1,
+    });
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      timeline_offset_y: 1.0,
+    });
+    assert.equal(updated.timeline_offset_y, 0.4);
+
+    const updated2 = evidenceModel.updateComposite(created.id, {
+      timeline_offset_y: -1.0,
+    });
+    assert.equal(updated2.timeline_offset_y, -0.4);
+
+    const updated3 = evidenceModel.updateComposite(created.id, {
+      timeline_offset_y: 0.15,
+    });
+    assert.equal(updated3.timeline_offset_y, 0.15);
+  });
+
+  test("updateComposite sets invalid offsets to null", () => {
+    const created = evidenceModel.create({
+      title: "Invalid Offset",
+      slug: "invalid-offset",
+      published_draft: 1,
+    });
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      timeline_offset_x: "not a number",
+      timeline_offset_y: Infinity,
+    });
+    assert.equal(updated.timeline_offset_x, null);
+    assert.equal(updated.timeline_offset_y, null);
+  });
+
+  test("updateComposite preserves offsets not in update data", () => {
+    const created = evidenceModel.create({
+      title: "Preserve Offset",
+      slug: "preserve-offset",
+      timeline_offset_x: 0.1,
+      timeline_offset_y: 0.2,
+      published_draft: 1,
+    });
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      title: "Updated Title",
+    });
+    // Offsets not touched by this update, so they should remain
+    assert.equal(updated.title, "Updated Title");
+  });
+});

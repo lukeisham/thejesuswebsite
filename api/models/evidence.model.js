@@ -16,6 +16,46 @@ const {
   runUpdate,
 } = require("./model-helpers");
 
+/**
+ * Validate numeric offset fields for timeline positioning.
+ * Mutates the row object: clamps valid numbers, sets invalid/out-of-range to null.
+ */
+function validateOffsets(row) {
+  // timeline_offset_x: fraction of slot width, clamped -0.5..0.5
+  if (row.timeline_offset_x !== undefined) {
+    if (row.timeline_offset_x === null) {
+      // null is valid; leave it
+    } else if (
+      typeof row.timeline_offset_x === "number" &&
+      Number.isFinite(row.timeline_offset_x)
+    ) {
+      row.timeline_offset_x = Math.max(
+        -0.5,
+        Math.min(0.5, row.timeline_offset_x),
+      );
+    } else {
+      row.timeline_offset_x = null;
+    }
+  }
+
+  // timeline_offset_y: fraction of canvas height, clamped -0.4..0.4
+  if (row.timeline_offset_y !== undefined) {
+    if (row.timeline_offset_y === null) {
+      // null is valid; leave it
+    } else if (
+      typeof row.timeline_offset_y === "number" &&
+      Number.isFinite(row.timeline_offset_y)
+    ) {
+      row.timeline_offset_y = Math.max(
+        -0.4,
+        Math.min(0.4, row.timeline_offset_y),
+      );
+    } else {
+      row.timeline_offset_y = null;
+    }
+  }
+}
+
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
 const WRITABLE_COLUMNS = [
@@ -30,6 +70,8 @@ const WRITABLE_COLUMNS = [
   "map_location",
   "map_x",
   "map_y",
+  "timeline_offset_x",
+  "timeline_offset_y",
   "metadata_keywords",
   "published_draft",
   "version_update",
@@ -288,6 +330,8 @@ function update(id, data) {
   if (row.slug !== undefined) {
     row.slug = generateUniqueSlug(db, "evidence", row.slug, id);
   }
+
+  validateOffsets(row);
 
   runUpdate(db, "evidence", row, id);
   return getById(id);

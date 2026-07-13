@@ -74,6 +74,7 @@ const ordinalOf = (order, value) => {
  * By default returns only published evidence. Pass `includeDrafts: true`
  * to also include draft records (admin editor use).
  * Optionally narrow to a single era via `filters.timeline_era`.
+ * Includes timeline_offset_x and timeline_offset_y for per-node positioning.
  */
 function getTimelineEvents({ timeline_era, includeDrafts } = {}) {
   const conditions = ["timeline_period IS NOT NULL"];
