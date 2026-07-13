@@ -62,14 +62,20 @@ Pen.loadChips = async function () {
 
   try {
     const data = await Admin.api.get("/arbor/admin/unplaced");
-    chips = data || [];
+    chips = Array.isArray(data) ? data : [];
     Pen.renderChips();
   } catch (err) {
     console.error("Failed to load unplaced evidence:", err);
     chipList.innerHTML = "";
     const error = document.createElement("p");
     error.className = "admin-arbor-pen__error";
-    error.textContent = "Failed to load evidence.";
+    error.setAttribute("role", "alert");
+    error.setAttribute("aria-live", "polite");
+    if (err?.status === 401 || err?.status === 403) {
+      error.textContent = "Access denied. Please log in again.";
+    } else {
+      error.textContent = "Failed to load evidence. Please refresh the page.";
+    }
     chipList.appendChild(error);
   }
 };
@@ -180,19 +186,10 @@ Pen.handleDrop = async function (clientX, clientY, evidenceId) {
   const evidence = Pen.findChip(evidenceId);
   if (!evidence) return;
 
-  // Convert drop point to diagram-space coordinates
   const tx = window.AdminArborCanvas.getTransform();
-  const svgEl = document.querySelector(".admin-arbor-svg");
-  let diagX = clientX;
-  let diagY = clientY;
-  if (svgEl) {
-    const svgRect = svgEl.getBoundingClientRect();
-    const screenX = clientX - svgRect.left;
-    const screenY = clientY - svgRect.top;
-    const diag = window.AdminArborCanvas.screenToDiagram(screenX, screenY, tx);
-    diagX = diag.x;
-    diagY = diag.y;
-  }
+  const diag = window.AdminArborCanvas.clientToDiagram(clientX, clientY, tx);
+  let diagX = diag.x;
+  let diagY = diag.y;
 
   // Hit-test: is there a node under the drop point?
   let parentId = null;

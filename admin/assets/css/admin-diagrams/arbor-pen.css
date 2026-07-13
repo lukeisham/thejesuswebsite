@@ -118,12 +118,12 @@
 }
 
 .admin-arbor-pen__badge--published {
-    background: rgba(199, 154, 75, 0.12);
+    background: rgba(92, 64, 51, 0.1);
     color: var(--accent);
 }
 
 .admin-arbor-pen__badge--draft {
-    background: rgba(100, 100, 100, 0.12);
+    background: rgba(136, 136, 152, 0.12);
     color: var(--text-muted);
 }
 
@@ -152,7 +152,7 @@
 }
 
 .admin-arbor-pen__error {
-    color: var(--color-error, #c0392b);
+    color: var(--admin-error-color);
 }
 
 /* -------------------------------------------------------------------------
@@ -162,7 +162,7 @@
 .admin-arbor-node--pen-drop .admin-arbor-node {
     stroke: var(--accent);
     stroke-width: 2.5;
-    filter: drop-shadow(0 0 0 3px rgba(199, 154, 75, 0.25));
+    filter: drop-shadow(0 0 0 3px rgba(92, 64, 51, 0.2));
 }
 
 /* -------------------------------------------------------------------------
@@ -170,7 +170,7 @@
    ------------------------------------------------------------------------- */
 
 .admin-arbor-node-draft-badge {
-    fill: rgba(100, 100, 100, 0.85);
+    fill: rgba(136, 136, 152, 0.8);
     pointer-events: none;
 }
 
@@ -178,7 +178,7 @@
     font-size: 9px;
     font-family: var(--font-sans);
     font-weight: 600;
-    fill: #fff;
+    fill: var(--admin-white);
     text-anchor: middle;
     pointer-events: none;
     user-select: none;

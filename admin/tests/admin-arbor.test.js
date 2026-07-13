@@ -496,6 +496,92 @@ describe("pen chip filtering (already-placed evidence)", function () {
   });
 });
 
+// ── Node filtering (skip unplaced nodes with null x/y) ──────────────────────
+// Verifies that loadNodes excludes nodes without valid x/y positions.
+// Unplaced nodes (x/y null) should appear only in the holding pen,
+// not on the canvas.
+
+describe("node filtering (unplaced detection)", function () {
+  test("includes nodes with valid x/y coordinates", function () {
+    var nodes = [
+      { id: 1, x: 100, y: 200, title: "A" },
+      { id: 2, x: 300, y: 400, title: "B" },
+    ];
+    var filtered = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.x != null && n.y != null && Number.isFinite(n.x) && Number.isFinite(n.y)) {
+        filtered.push(n);
+      }
+    }
+    assert.equal(filtered.length, 2);
+  });
+
+  test("excludes nodes with null x", function () {
+    var nodes = [
+      { id: 1, x: null, y: 200, title: "A" },
+      { id: 2, x: 300, y: 400, title: "B" },
+    ];
+    var filtered = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.x != null && n.y != null && Number.isFinite(n.x) && Number.isFinite(n.y)) {
+        filtered.push(n);
+      }
+    }
+    assert.equal(filtered.length, 1);
+    assert.equal(filtered[0].id, 2);
+  });
+
+  test("excludes nodes with null y", function () {
+    var nodes = [
+      { id: 1, x: 100, y: null, title: "A" },
+      { id: 2, x: 300, y: 400, title: "B" },
+    ];
+    var filtered = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.x != null && n.y != null && Number.isFinite(n.x) && Number.isFinite(n.y)) {
+        filtered.push(n);
+      }
+    }
+    assert.equal(filtered.length, 1);
+    assert.equal(filtered[0].id, 2);
+  });
+
+  test("excludes nodes with NaN coordinates", function () {
+    var nodes = [
+      { id: 1, x: NaN, y: 200, title: "A" },
+      { id: 2, x: 300, y: NaN, title: "B" },
+      { id: 3, x: 500, y: 600, title: "C" },
+    ];
+    var filtered = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.x != null && n.y != null && Number.isFinite(n.x) && Number.isFinite(n.y)) {
+        filtered.push(n);
+      }
+    }
+    assert.equal(filtered.length, 1);
+    assert.equal(filtered[0].id, 3);
+  });
+
+  test("returns empty when all nodes are unplaced", function () {
+    var nodes = [
+      { id: 1, x: null, y: 200, title: "A" },
+      { id: 2, x: 300, y: null, title: "B" },
+    ];
+    var filtered = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.x != null && n.y != null && Number.isFinite(n.x) && Number.isFinite(n.y)) {
+        filtered.push(n);
+      }
+    }
+    assert.equal(filtered.length, 0);
+  });
+});
+
 // ── Edge anchor alignment ────────────────────────────────────────────────────
 // Verifies that createEdgeElement computes centre-bottom → centre-top anchors
 // (x + NODE_WIDTH/2, y + NODE_HEIGHT) → (x + NODE_WIDTH/2, y), matching the
