@@ -4,6 +4,8 @@
 const express = require("express");
 const arborModel = require("../models/arbor.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -14,7 +16,7 @@ router.get("/", (req, res) => {
     res.json(data);
   } catch (error) {
     console.error("GET /arbor failed:", error);
-    res.status(500).json({ error: "Failed to load arbor diagram." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -25,7 +27,7 @@ router.get("/admin", requireAuth, (req, res) => {
     res.json(data);
   } catch (error) {
     console.error("GET /arbor/admin failed:", error);
-    res.status(500).json({ error: "Failed to load arbor diagram." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -37,7 +39,7 @@ router.get("/admin/unplaced", requireAuth, (req, res) => {
     res.json(data);
   } catch (error) {
     console.error("GET /arbor/admin/unplaced failed:", error);
-    res.status(500).json({ error: "Failed to load unplaced evidence." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -46,26 +48,34 @@ router.put("/nodes/:evidenceId", requireAuth, (req, res) => {
   try {
     const evidenceId = Number(req.params.evidenceId);
     if (!Number.isFinite(evidenceId) || evidenceId < 1) {
-      return res.status(400).json({ error: "Invalid evidence ID." });
+      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
+        field: "evidenceId",
+        received: req.params.evidenceId,
+      });
     }
 
     const x = Number(req.body.x);
     const y = Number(req.body.y);
     if (!Number.isFinite(x) || !Number.isFinite(y)) {
-      return res.status(400).json({ error: "x and y must be finite numbers." });
+      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
+        field: "x/y",
+      });
     }
 
     // Verify the evidence record exists
     const evidence = require("../models/evidence.model").getById(evidenceId);
     if (!evidence) {
-      return res.status(404).json({ error: "Evidence record not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "evidence",
+        id: evidenceId,
+      });
     }
 
     const result = arborModel.upsertNodePosition(evidenceId, x, y);
     res.json(result);
   } catch (error) {
     console.error("PUT /arbor/nodes/:evidenceId failed:", error);
-    res.status(500).json({ error: "Failed to save node position." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -74,17 +84,23 @@ router.delete("/nodes/:evidenceId", requireAuth, (req, res) => {
   try {
     const evidenceId = Number(req.params.evidenceId);
     if (!Number.isFinite(evidenceId) || evidenceId < 1) {
-      return res.status(400).json({ error: "Invalid evidence ID." });
+      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
+        field: "evidenceId",
+        received: req.params.evidenceId,
+      });
     }
 
     const removed = arborModel.removeNode(evidenceId);
     if (!removed) {
-      return res.status(404).json({ error: "Node position not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "arbor_node",
+        id: evidenceId,
+      });
     }
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /arbor/nodes/:evidenceId failed:", error);
-    res.status(500).json({ error: "Failed to remove node position." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -92,11 +108,15 @@ router.delete("/nodes/:evidenceId", requireAuth, (req, res) => {
 router.get("/:id", (req, res) => {
   try {
     const item = arborModel.getById(Number(req.params.id));
-    if (!item) return res.status(404).json({ error: "Arbor edge not found." });
+    if (!item)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "arbor_edge",
+        id: req.params.id,
+      });
     res.json(item);
   } catch (error) {
     console.error("GET /arbor/:id failed:", error);
-    res.status(500).json({ error: "Failed to load arbor edge." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -108,15 +128,17 @@ router.post("/", requireAuth, (req, res) => {
       !req.body.target_id ||
       !req.body.relationship_type
     ) {
-      return res.status(400).json({
-        error: "source_id, target_id, and relationship_type are required.",
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, {
+        fields: ["source_id", "target_id", "relationship_type"].filter(
+          (f) => !req.body[f],
+        ),
       });
     }
     const created = arborModel.create(req.body);
     res.status(201).json(created);
   } catch (error) {
     console.error("POST /arbor failed:", error);
-    res.status(500).json({ error: "Failed to create arbor edge." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -125,11 +147,14 @@ router.put("/:id", requireAuth, (req, res) => {
   try {
     const updated = arborModel.update(Number(req.params.id), req.body);
     if (!updated)
-      return res.status(404).json({ error: "Arbor edge not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "arbor_edge",
+        id: req.params.id,
+      });
     res.json(updated);
   } catch (error) {
     console.error("PUT /arbor/:id failed:", error);
-    res.status(500).json({ error: "Failed to update arbor edge." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -138,11 +163,14 @@ router.delete("/:id", requireAuth, (req, res) => {
   try {
     const removed = arborModel.remove(Number(req.params.id));
     if (!removed)
-      return res.status(404).json({ error: "Arbor edge not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "arbor_edge",
+        id: req.params.id,
+      });
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /arbor/:id failed:", error);
-    res.status(500).json({ error: "Failed to delete arbor edge." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

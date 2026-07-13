@@ -233,18 +233,16 @@ AdminMlaSources.mount = function (container, opts) {
     });
   }
 
-  function reload() {
-    return Admin.api
-      .get("/sources")
-      .then(function (sources) {
-        catalog = sources || [];
-        refreshCatalogIndex();
-        renderAttachedList();
-        renderAttachSelect();
-      })
-      .catch(function (err) {
-        setStatus(err.message || "Failed to load sources.", true);
-      });
+  async function reload() {
+    try {
+      var sources = await Admin.api.get("/sources");
+      catalog = sources || [];
+      refreshCatalogIndex();
+      renderAttachedList();
+      renderAttachSelect();
+    } catch (err) {
+      setStatus(err.message || "Failed to load sources.", true);
+    }
   }
 
   // ── Attach existing ──
@@ -365,40 +363,37 @@ AdminMlaSources.mount = function (container, opts) {
       setStatus("");
     }
 
-    saveBtn.addEventListener("click", function () {
+    saveBtn.addEventListener("click", async function () {
       var payload = {};
       Object.keys(inputs).forEach(function (key) {
         payload[key] = inputs[key].value.trim() || undefined;
       });
 
       saveBtn.disabled = true;
-      var request = existingSource
-        ? Admin.api.put("/sources/" + existingSource.id, payload)
-        : Admin.api.post("/sources", payload);
+      try {
+        var saved = existingSource
+          ? await Admin.api.put("/sources/" + existingSource.id, payload)
+          : await Admin.api.post("/sources", payload);
 
-      request
-        .then(function (saved) {
-          var isNew = !existingSource;
-          var existingIndex = catalog.findIndex(function (source) {
-            return source.id === saved.id;
-          });
-          if (existingIndex === -1) {
-            catalog.push(saved);
-          } else {
-            catalog[existingIndex] = saved;
-          }
-          refreshCatalogIndex();
-          if (isNew) selectedIds.push(saved.id);
-          renderAttachedList();
-          renderAttachSelect();
-          closeForm();
-        })
-        .catch(function (err) {
-          setStatus(err.message || "Failed to save source.", true);
-        })
-        .finally(function () {
-          saveBtn.disabled = false;
+        var isNew = !existingSource;
+        var existingIndex = catalog.findIndex(function (source) {
+          return source.id === saved.id;
         });
+        if (existingIndex === -1) {
+          catalog.push(saved);
+        } else {
+          catalog[existingIndex] = saved;
+        }
+        refreshCatalogIndex();
+        if (isNew) selectedIds.push(saved.id);
+        renderAttachedList();
+        renderAttachSelect();
+        closeForm();
+      } catch (err) {
+        setStatus(err.message || "Failed to save source.", true);
+      } finally {
+        saveBtn.disabled = false;
+      }
     });
 
     cancelBtn.addEventListener("click", closeForm);

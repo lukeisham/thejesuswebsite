@@ -25,8 +25,8 @@
     --admin-sidebar-text-muted: #a0a0b0;
 
     /* ── Colors: Accent ───────────────────────────────────────────────────── */
-    --admin-accent: #e94560;
-    --admin-accent-hover: #d63851;
+    --admin-accent: #3d5a78;
+    --admin-accent-hover: #2c4a68;
     --admin-accent-text: #ffffff;
 
     /* ── Colors: Text ─────────────────────────────────────────────────────── */
@@ -90,8 +90,20 @@
     --admin-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     --overlay-subtle: rgba(0, 0, 0, 0.12);
     --overlay-backdrop: rgba(0, 0, 0, 0.3);
+    --overlay-backdrop-modal: rgba(0, 0, 0, 0.4);
     --canvas-shadow: rgba(92, 64, 51, 0.15);
     --selected-glow: rgba(231, 76, 60, 0.4);
     --admin-white: #ffffff;
     --admin-transition: 150ms ease;
+    --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.15);
+    --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.06);
+    --accent-subtle: rgba(92, 64, 51, 0.1);
+    --gray-subtle: rgba(136, 136, 152, 0.12);
+    --accent-glow: rgba(92, 64, 51, 0.2);
+    --gray-fill: rgba(136, 136, 152, 0.8);
+    --grid-line: rgba(212, 201, 184, 0.4);
+    --shadow-node-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --gold-glow: rgba(199, 154, 75, 0.2);
+    --shadow-panel: -2px 0 12px rgba(0, 0, 0, 0.1);
+    --white-overlay: rgba(255, 255, 255, 0.2);
 }

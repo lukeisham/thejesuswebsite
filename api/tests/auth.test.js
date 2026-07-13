@@ -224,7 +224,7 @@ describe("requireAuth middleware", () => {
 
     requireAuth(req, res, next);
     assert.equal(res._status, 401);
-    assert.equal(res._body.error, "Authentication required.");
+    assert.equal(res._body.error.code, "E-INPUT-012");
     assert.equal(next.called(), false);
     assert.equal(res._headers["cache-control"], "no-store");
   });
@@ -236,10 +236,7 @@ describe("requireAuth middleware", () => {
 
     requireAuth(req, res, next);
     assert.equal(res._status, 401);
-    assert.equal(
-      res._body.error,
-      "Session expired or invalid — please sign in again.",
-    );
+    assert.equal(res._body.error.code, "E-INPUT-013");
     assert.equal(res._headers["cache-control"], "no-store");
   });
 

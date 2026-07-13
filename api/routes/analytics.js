@@ -8,6 +8,8 @@ const requireAuth = require("../middleware/auth");
 const rateLimit = require("../middleware/rate-limit");
 const uaParser = require("../services/ua-parser");
 const geoip = require("../services/geoip");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -19,9 +21,7 @@ const MAX_FIELD_LENGTHS = { page: 500, referrer: 500, session_id: 100 };
 router.post("/", analyticsPostLimit, (req, res) => {
   try {
     if (!req.body.page || typeof req.body.page !== "string") {
-      return res
-        .status(400)
-        .json({ error: "page is required and must be a string." });
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, { field: "page" });
     }
 
     // JS-2: cap field lengths before they reach the database.
@@ -31,7 +31,7 @@ router.post("/", analyticsPostLimit, (req, res) => {
         typeof value === "string" &&
         value.length > MAX_FIELD_LENGTHS[field]
       ) {
-        return res.status(400).json({ error: field + " is too long." });
+        return sendError(res, ERRORS.INPUT_EXCEEDS_MAX_LENGTH, { field });
       }
     }
 
@@ -87,7 +87,7 @@ router.post("/", analyticsPostLimit, (req, res) => {
     res.status(204).end();
   } catch (error) {
     console.error("POST /analytics failed:", error);
-    res.status(500).json({ error: "Failed to record view." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -97,7 +97,7 @@ router.get("/summary", requireAuth, (req, res) => {
     res.json(analyticsModel.getSummary(req.query.since || null));
   } catch (error) {
     console.error("GET /analytics/summary failed:", error);
-    res.status(500).json({ error: "Failed to load summary." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -109,7 +109,7 @@ router.get("/top-pages", requireAuth, (req, res) => {
     );
   } catch (error) {
     console.error("GET /analytics/top-pages failed:", error);
-    res.status(500).json({ error: "Failed to load top pages." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -126,7 +126,7 @@ router.get("/top-referrers", requireAuth, (req, res) => {
     );
   } catch (error) {
     console.error("GET /analytics/top-referrers failed:", error);
-    res.status(500).json({ error: "Failed to load referrers." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -140,7 +140,7 @@ router.get("/", requireAuth, (req, res) => {
     if (daysParam !== undefined) {
       days = Number(daysParam);
       if (![7, 30, 90].includes(days)) {
-        return res.status(400).json({ error: "days must be 7, 30, or 90." });
+        return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, { field: "days", received: daysParam });
       }
     }
 
@@ -161,7 +161,7 @@ router.get("/", requireAuth, (req, res) => {
     res.json({ stats, pageViews, referrers });
   } catch (error) {
     console.error("GET /analytics failed:", error);
-    res.status(500).json({ error: "Failed to load analytics." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -173,7 +173,7 @@ router.get("/recent", requireAuth, (req, res) => {
     );
   } catch (error) {
     console.error("GET /analytics/recent failed:", error);
-    res.status(500).json({ error: "Failed to load recent activity." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -188,7 +188,7 @@ router.get("/top-countries", requireAuth, (req, res) => {
     );
   } catch (error) {
     console.error("GET /analytics/top-countries failed:", error);
-    res.status(500).json({ error: "Failed to load countries." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -198,7 +198,7 @@ router.get("/device-breakdown", requireAuth, (req, res) => {
     res.json(analyticsModel.getDeviceBreakdown(req.query.since || null));
   } catch (error) {
     console.error("GET /analytics/device-breakdown failed:", error);
-    res.status(500).json({ error: "Failed to load device breakdown." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -214,7 +214,7 @@ router.get("/search-terms", requireAuth, (req, res) => {
     );
   } catch (error) {
     console.error("GET /analytics/search-terms failed:", error);
-    res.status(500).json({ error: "Failed to load search terms." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -225,7 +225,7 @@ router.get("/bot-stats", requireAuth, (req, res) => {
     res.json(analyticsModel.getBotStats(req.query.since || null));
   } catch (error) {
     console.error("GET /analytics/bot-stats failed:", error);
-    res.status(500).json({ error: "Failed to load bot stats." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

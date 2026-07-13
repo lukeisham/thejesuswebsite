@@ -387,7 +387,7 @@ describe("route: POST /analytics field validation", () => {
       body: { page: "x".repeat(501) },
     });
     assert.equal(res.status, 400);
-    assert.ok(res.body.error.includes("too long"));
+    assert.equal(res.body.error.code, "E-INPUT-022");
   });
 
   test("rejects referrer > 500 chars with 400", async () => {

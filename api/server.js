@@ -19,8 +19,15 @@ const PORT = process.env.PORT || 3000;
 // Trust the first proxy (e.g. Nginx) so req.ip returns the real client IP.
 app.set("trust proxy", 1);
 
-app.use(express.json({ limit: "1mb" }));
 app.use(require("./middleware/security-headers"));
+
+// Upload route mounted BEFORE the global body limit so it can apply its own
+// 8 MB limit (base64 inflates payload size ~33%). If mounted after
+// express.json({ limit: "1mb" }) below, the global parser would reject any
+// upload over 1 MB before the route's own parser ever ran.
+app.use("/uploads", require("./routes/uploads"));
+
+app.use(express.json({ limit: "1mb" }));
 
 // Shared per-IP rate limiter for all public read endpoints.
 // 300 req/min is deliberately generous — a normal page visit fires only a
@@ -57,9 +64,6 @@ app.use("/sources", publicReadLimit, require("./routes/sources"));
 app.use("/about", publicReadLimit, require("./routes/about"));
 app.use("/esv", publicReadLimit, require("./routes/esv"));
 app.use("/site-settings", publicReadLimit, require("./routes/site-settings"));
-
-// --- Upload route (mounted before global body limit so it can use its own 8 MB limit) ---
-app.use("/uploads", require("./routes/uploads"));
 
 // --- Admin operations (already carry their own limiters or auth gates) ---
 app.use("/drafts", require("./routes/drafts"));

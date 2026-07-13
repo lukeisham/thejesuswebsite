@@ -118,7 +118,7 @@ AdminImagePicker.mount = function (container, opts) {
     uploadBtn.textContent = isUploading ? "Uploading…" : "Choose Image";
   }
 
-  var startUpload = function () {
+  var startUpload = async function () {
     var file = fileInput.files && fileInput.files[0];
     if (!file) return;
 
@@ -126,22 +126,20 @@ AdminImagePicker.mount = function (container, opts) {
     statusEl.className = "aimg-picker__status";
     setUploading(true);
 
-    Admin.uploadImage(file)
-      .then(function (result) {
-        currentPath = result.image_path;
-        thumbnail.src = currentPath;
-        thumbnail.hidden = false;
-        removeBtn.hidden = false;
-        fireChange();
-      })
-      .catch(function (err) {
-        statusEl.textContent = err.message || "Upload failed.";
-        statusEl.className = "aimg-picker__status aimg-picker__status--error";
-      })
-      .finally(function () {
-        setUploading(false);
-        fileInput.value = "";
-      });
+    try {
+      var result = await Admin.uploadImage(file);
+      currentPath = result.image_path;
+      thumbnail.src = currentPath;
+      thumbnail.hidden = false;
+      removeBtn.hidden = false;
+      fireChange();
+    } catch (err) {
+      statusEl.textContent = err.message || "Upload failed.";
+      statusEl.className = "aimg-picker__status aimg-picker__status--error";
+    } finally {
+      setUploading(false);
+      fileInput.value = "";
+    }
   };
 
   uploadBtn.addEventListener("click", function () {

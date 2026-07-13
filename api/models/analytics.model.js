@@ -82,6 +82,13 @@ function getTopReferrers(limit = 20, external = false) {
  * @returns {{ page: string, views: number, unique: number, trend: number[] }[]}
  */
 function getTopPagesWithTrend(days, limit = 5) {
+  // JS-2 / SQL-safety: `days` cannot be bound as a parameter inside SQLite's
+  // datetime modifier syntax, so it is validated against a strict allow-list
+  // here rather than trusting route-level validation.
+  if (![7, 30, 90].includes(days)) {
+    throw new Error("Invalid days parameter");
+  }
+
   const topPages = db
     .prepare(
       `

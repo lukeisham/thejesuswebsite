@@ -26,10 +26,18 @@ async function request(url, options = {}) {
     const data = await res.json();
 
     if (!res.ok) {
-      return {
-        data: null,
-        error: data.error || `Request failed (${res.status})`,
-      };
+      // Server errors may be a plain string (`{ error: "..." }`) or the
+      // structured error-codes shape (`{ error: { code, message, detail } }`).
+      // Prefer the structured message/code when present so callers get
+      // richer context instead of a generic fallback.
+      const errPayload = data.error;
+      let error = `Request failed (${res.status})`;
+      if (typeof errPayload === "string" && errPayload) {
+        error = errPayload;
+      } else if (errPayload && typeof errPayload === "object") {
+        error = errPayload.message || errPayload.detail || error;
+      }
+      return { data: null, error };
     }
 
     return { data, error: null };

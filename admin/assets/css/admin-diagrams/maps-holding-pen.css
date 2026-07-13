@@ -140,7 +140,7 @@
     min-width: 1.375rem;
     height: 1.375rem;
     padding: 0 var(--space-xs);
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--white-overlay);
     border-radius: var(--radius-sm);
     font-size: 0.75rem;
     font-weight: 700;

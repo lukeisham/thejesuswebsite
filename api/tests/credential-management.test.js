@@ -226,7 +226,7 @@ describe("route: GET /passkey/credentials", () => {
   test("returns 401 when unauthenticated", async () => {
     const res = await req("GET", "/passkey/credentials");
     assert.equal(res.status, 401);
-    assert.equal(res.body.error, "Authentication required.");
+    assert.equal(res.body.error.code, "E-INPUT-012");
   });
 
   test("returns an array for an authenticated user", async () => {
@@ -266,7 +266,7 @@ describe("route: DELETE /passkey/credentials/:id", () => {
   test("returns 401 when unauthenticated", async () => {
     const res = await req("DELETE", "/passkey/credentials/1");
     assert.equal(res.status, 401);
-    assert.equal(res.body.error, "Authentication required.");
+    assert.equal(res.body.error.code, "E-INPUT-012");
   });
 
   test("returns 404 when the credential id does not exist", async () => {
@@ -370,7 +370,7 @@ describe("route: POST /passkey/credentials/add/options", () => {
   test("returns 401 when unauthenticated", async () => {
     const res = await req("POST", "/passkey/credentials/add/options");
     assert.equal(res.status, 401);
-    assert.equal(res.body.error, "Authentication required.");
+    assert.equal(res.body.error.code, "E-INPUT-012");
   });
 
   test("returns a challenge for an authenticated user", async () => {
@@ -405,7 +405,7 @@ describe("route: POST /passkey/credentials/add/verify", () => {
       body: {},
     });
     assert.equal(res.status, 401);
-    assert.equal(res.body.error, "Authentication required.");
+    assert.equal(res.body.error.code, "E-INPUT-012");
   });
 
   test("returns 400 when required fields are missing", async () => {

@@ -19,7 +19,7 @@ router.get("/", (req, res) => {
     res.json(result);
   } catch (error) {
     console.error("GET /evidence failed:", error);
-    res.status(500).json({ error: "Failed to load evidence." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -32,7 +32,7 @@ router.get("/admin", requireAuth, (req, res) => {
     res.json(items);
   } catch (error) {
     console.error("GET /evidence/admin failed:", error);
-    res.status(500).json({ error: "Failed to load evidence." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -47,11 +47,11 @@ router.get("/admin/:id", requireAuth, (req, res) => {
       });
     }
     const item = evidenceModel.getAdminById(id);
-    if (!item) return res.status(404).json({ error: "Evidence not found." });
+    if (!item) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "evidence", id });
     res.json(item);
   } catch (error) {
     console.error("GET /evidence/admin/:id failed:", error);
-    res.status(500).json({ error: "Failed to load evidence detail." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -59,11 +59,11 @@ router.get("/admin/:id", requireAuth, (req, res) => {
 router.get("/:slug", (req, res) => {
   try {
     const item = evidenceModel.getDetailBySlug(req.params.slug);
-    if (!item) return res.status(404).json({ error: "Evidence not found." });
+    if (!item) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "evidence", slug: req.params.slug });
     res.json(item);
   } catch (error) {
     console.error("GET /evidence/:slug failed:", error);
-    res.status(500).json({ error: "Failed to load evidence." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -84,7 +84,7 @@ router.post("/", requireAuth, (req, res) => {
     res.status(201).json(created);
   } catch (error) {
     console.error("POST /evidence failed:", error);
-    res.status(500).json({ error: "Failed to create evidence." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -104,11 +104,11 @@ router.put("/:id", requireAuth, (req, res) => {
       });
     }
     const updated = evidenceModel.updateComposite(id, req.body);
-    if (!updated) return res.status(404).json({ error: "Evidence not found." });
+    if (!updated) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "evidence", id });
     res.json(updated);
   } catch (error) {
     console.error("PUT /evidence/:id failed:", error);
-    res.status(500).json({ error: "Failed to update evidence." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -123,11 +123,11 @@ router.delete("/:id", requireAuth, (req, res) => {
       });
     }
     const removed = evidenceModel.remove(id);
-    if (!removed) return res.status(404).json({ error: "Evidence not found." });
+    if (!removed) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "evidence", id });
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /evidence/:id failed:", error);
-    res.status(500).json({ error: "Failed to delete evidence." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

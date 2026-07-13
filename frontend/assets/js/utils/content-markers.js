@@ -80,7 +80,8 @@ export function parseContentBody(text, options = {}) {
       if (align === "left") figureClass = ' class="figure-align-left"';
       else if (align === "right") figureClass = ' class="figure-align-right"';
 
-      return `<figure${figureClass}><img src="${src}" alt="${alt}" loading="lazy">${cap}</figure>`;
+      const safeSrc = escapeHTML(src);
+      return `<figure${figureClass}><img src="${safeSrc}" alt="${alt}" loading="lazy">${cap}</figure>`;
     },
   );
 
