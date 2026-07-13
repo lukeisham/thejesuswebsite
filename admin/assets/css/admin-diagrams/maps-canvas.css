@@ -28,6 +28,9 @@
 }
 
 .admin-map-canvas {
+    /* Positioning context for the absolutely-inset grid, pins, and loading
+       layers — without this they escape to the page's containing block. */
+    position: relative;
     margin: var(--space-md) 0;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
@@ -68,6 +71,12 @@
 }
 .admin-map-loading--error {
     color: var(--admin-error-color);
+}
+/* display: flex above outranks the UA's built-in [hidden] { display: none },
+   so restate it — otherwise the overlay never dismisses. */
+.admin-map-canvas[hidden],
+.admin-map-loading[hidden] {
+    display: none;
 }
 
 /* -------------------------------------------------------------------------
