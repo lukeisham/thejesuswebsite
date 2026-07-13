@@ -8,11 +8,16 @@
         <link rel="stylesheet" href="../assets/css/admin-diagrams/maps.css" />
         <link
             rel="stylesheet"
+            href="../assets/css/admin-diagrams/maps-grid.css"
+        />
+        <link
+            rel="stylesheet"
             href="../assets/css/admin-diagrams/maps-holding-pen.css"
         />
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/admin-maps/maps-render.js"></script>
+        <script defer src="../assets/js/admin-maps/maps-grid.js"></script>
         <script defer src="../assets/js/admin-maps/maps-era-utils.js"></script>
         <script
             defer
@@ -181,26 +186,33 @@
         </section>
 
         <!-- ── Map Editor Canvas ──────────────────────────────────────────────────── -->
-        <main hidden>
+        <main hidden class="admin-map-editor-canvas">
             <!-- ── Holding Pen ──────────────────────────────────────────────────── -->
             <section
                 id="holding-pen"
-                class="holding-pen admin-holding-pen-panel"
+                class="holding-pen admin-holding-pen-panel admin-map-editor-canvas__row-1"
                 aria-label="Unplaced evidence"
             >
+                <div
+                    id="holding-pen-error"
+                    class="admin-pin-panel__error"
+                    role="alert"
+                    aria-live="assertive"
+                ></div>
                 <p class="holding-pen__empty">Loading unplaced evidence…</p>
             </section>
 
             <div
                 id="map-loading"
-                class="admin-map-loading"
+                class="admin-map-loading admin-map-editor-canvas__row-2"
                 role="status"
                 aria-live="polite"
+                hidden
             >
                 Loading map…
             </div>
 
-            <div id="map-canvas" class="admin-map-canvas" hidden>
+            <div id="map-canvas" class="admin-map-canvas admin-map-editor-canvas__row-2" hidden>
                 <img
                     id="map-canvas-image"
                     class="admin-map-image"
@@ -359,6 +371,7 @@
 
                 // Once all deferred scripts have loaded, init each module.
                 AdminMapsRender.init();
+                AdminMapsGrid.init();
                 AdminMapsPins.init();
                 AdminMapsRegions.init();
                 AdminMapsMetadata.init();

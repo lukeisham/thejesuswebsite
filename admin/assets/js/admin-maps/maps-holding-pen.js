@@ -108,6 +108,15 @@ HoldingPen.loadForMap = async function (mapId) {
   } catch (e) {
     console.error("Failed to load unplaced evidence:", e);
     unplacedEvidence = [];
+    // Show error in the holding pen area
+    if (penContainer) {
+      penContainer.innerHTML = "";
+      const errorMsg = document.createElement("p");
+      errorMsg.style.color = "var(--admin-error-color)";
+      errorMsg.textContent = "Failed to load unplaced evidence: " + (e.message || "Unknown error");
+      penContainer.appendChild(errorMsg);
+    }
+    return;
   }
   HoldingPen.render();
 };

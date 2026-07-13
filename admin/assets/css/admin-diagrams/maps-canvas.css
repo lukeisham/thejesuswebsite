@@ -5,13 +5,30 @@
 
 /* -------------------------------------------------------------------------
    Canvas
+   Uses CSS Grid to overlay loading indicator and canvas in same visual space.
+   Both are placed in the same grid cell (row 2, col 1) so they stack on top
+   of each other without affecting layout.
    ------------------------------------------------------------------------- */
 
-.admin-map-canvas {
-    position: relative;
-    margin: var(--space-md) auto;
-    max-width: 1200px;
+.admin-map-editor-canvas {
+    display: grid;
+}
+
+.admin-map-editor-canvas__row-1 {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.admin-map-editor-canvas__row-2 {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: center;
     width: calc(100% - var(--space-xl) * 2);
+    max-width: 1200px;
+}
+
+.admin-map-canvas {
+    margin: var(--space-md) 0;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: var(--bg-surface-alt);
@@ -40,9 +57,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 300px;
+    min-height: 200px;
+    background: var(--bg-surface);
     color: var(--admin-text-secondary);
     font-size: 0.9375rem;
+    z-index: 10;
+    margin: var(--space-md) 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+.admin-map-loading--error {
+    color: var(--admin-error-color);
 }
 
 /* -------------------------------------------------------------------------

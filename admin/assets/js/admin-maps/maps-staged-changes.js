@@ -217,7 +217,23 @@ Staged.saveAll = async function () {
       failedCreates.length +
       " pin(s) failed to save: " +
       failedCreates.map((f) => f.error).join("; ");
-    alert(msg);
+    const errorEl = document.getElementById("holding-pen-error");
+    if (errorEl) {
+      errorEl.textContent = msg;
+      errorEl.hidden = false;
+      // Auto-hide after 8 seconds
+      setTimeout(() => {
+        errorEl.textContent = "";
+        errorEl.hidden = true;
+      }, 8000);
+    }
+  } else {
+    // Clear any previous error on successful save
+    const errorEl = document.getElementById("holding-pen-error");
+    if (errorEl) {
+      errorEl.textContent = "";
+      errorEl.hidden = true;
+    }
   }
 
   return results;

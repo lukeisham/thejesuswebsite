@@ -192,6 +192,7 @@ Metadata.onImageSelected = async function () {
         await window.AdminMapsRender.loadMap(updated);
       } catch (e) {
         console.error("Failed to reload map image:", e);
+        if (errorEl) errorEl.textContent = "Map image uploaded but failed to refresh on canvas: " + (e.message || "Unknown error");
       }
     }
 
