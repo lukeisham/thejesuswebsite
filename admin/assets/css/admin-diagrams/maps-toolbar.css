@@ -26,6 +26,21 @@
     font-size: 0.875rem;
     color: var(--admin-text-secondary);
 }
+.admin-topbar__back-link {
+    text-decoration: none;
+    color: var(--admin-text-secondary);
+    font-size: 0.875rem;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--admin-radius-sm);
+    transition: color var(--admin-transition);
+}
+.admin-topbar__back-link:hover {
+    color: var(--admin-text-primary);
+}
+.admin-topbar__back-link:focus-visible {
+    outline: 2px solid var(--admin-accent);
+    outline-offset: 2px;
+}
 
 /* -------------------------------------------------------------------------
    Toolbar
