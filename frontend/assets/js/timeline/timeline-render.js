@@ -275,6 +275,9 @@ function createLabel(event, posClass, style, isFiltered) {
         .filter(Boolean)
         .join(" "),
       style,
+      dataset: {
+        eventId: String(event.id),
+      },
     },
     [titleSpan, metaSpan],
   );
@@ -618,12 +621,17 @@ function resolveLabelCollisions(descriptors) {
 
   const items = descriptors.map((d) => ({
     ...d,
+    eventId: d.el.dataset.eventId,
     rect: d.el.getBoundingClientRect(),
   }));
 
-  items.sort((a, b) =>
-    axis === "x" ? a.rect.left - b.rect.left : a.rect.top - b.rect.top,
-  );
+  items.sort((a, b) => {
+    const primaryDiff =
+      axis === "x" ? a.rect.left - b.rect.left : a.rect.top - b.rect.top;
+    return primaryDiff !== 0
+      ? primaryDiff
+      : (a.eventId || "").localeCompare(b.eventId || "");
+  });
 
   const placedRects = [];
 
@@ -723,8 +731,9 @@ export function applyEraFilter(era) {
     });
 
     labels.forEach((label) => {
-      // Labels are siblings of dots in the DOM tree; filter by the same logic
-      const dot = label.previousElementSibling;
+      const dot = container.querySelector(
+        `[data-event-id="${CSS.escape(label.dataset.eventId)}"].timeline-dot`,
+      );
       if (dot && dot.dataset.era !== era) {
         label.classList.add("filtered-out");
       } else {

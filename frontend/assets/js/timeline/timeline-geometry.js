@@ -7,9 +7,23 @@
  * editor (plain `<script>` via the admin-timeline shim) must agree on every
  * value defined here.
  *
+ * Period indexing and stagger logic:
+ * - The database defines 8 timeline eras (PreIncarnation, OldTestament, EarlyLife,
+ *   Life, GalileeMinistry, JudeanMinistry, PassionWeek, Post-Passion) and 38
+ *   granular periods (EarlyLifeBirth, GalileeSermonMount, etc. — see schema.sql
+ *   lines 23–39). Period indices used here are 0-based across all 38 periods in
+ *   canonical order (matching schema.sql). STAGGER_OFFSETS applies to events
+ *   sharing the same period: start at tier 0 (spine), then alternate ±8px, ±16px,
+ *   etc. Filtering by era occurs at the data-load layer; this module assumes
+ *   already-filtered periods and computes pixel geometry only.
+ *
  * Keep the admin shim at `admin/assets/js/admin-timeline/timeline-geometry.js`
  * byte-identical for the positioning functions and stagger array. See that
  * file's doc comment for the sync contract.
+ *
+ * See also:
+ * - `database/schema.sql` lines 21–39 (era and period enums)
+ * - `frontend/assets/js/timeline/timeline-data.js` (period display labels)
  *
  * @module timeline/timeline-geometry
  */

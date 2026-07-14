@@ -3,6 +3,8 @@
 // browser. Responses are cached in-memory — passage text never changes.
 
 const express = require("express");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -44,13 +46,16 @@ router.get("/passage", async (req, res) => {
 
     if (!upstream.ok) {
       console.error(`ESV API responded ${upstream.status} for "${reference}"`);
-      return res.status(502).json({ error: "ESV API request failed." });
+      return sendError(res, ERRORS.EXTERNAL_API_UPSTREAM_ERROR);
     }
 
     const body = await upstream.json();
     const text = (body.passages || []).join("\n").trim();
     if (!text) {
-      return res.status(404).json({ error: "Passage not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "passage",
+        reference,
+      });
     }
 
     const result = { reference: body.canonical || reference, text };
@@ -58,7 +63,19 @@ router.get("/passage", async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error("GET /esv/passage failed:", error);
-    res.status(502).json({ error: "Failed to reach the ESV API." });
+
+    // Network-level failures: DNS, TCP, TLS, timeout
+    if (error instanceof TypeError) {
+      return sendError(res, ERRORS.EXTERNAL_API_NETWORK_ERROR);
+    }
+
+    // JSON parse failure on response body
+    if (error instanceof SyntaxError) {
+      return sendError(res, ERRORS.JSON_PARSE_FAILURE);
+    }
+
+    // Unexpected errors: generic upstream failure
+    sendError(res, ERRORS.EXTERNAL_API_UPSTREAM_ERROR);
   }
 });
 
