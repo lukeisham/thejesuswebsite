@@ -317,8 +317,8 @@ async function init() {
   applySEO(data);
 
   // Two-column layout flag (optional — Issue #2)
-  if (data.two_column && $content) {
-    $content.classList.add("two-column");
+  if (data.two_column && $body) {
+    $body.classList.add("journal-body--two-column");
   }
 
   showContent();

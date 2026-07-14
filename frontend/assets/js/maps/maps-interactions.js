@@ -66,15 +66,21 @@ function showTooltip(e, pinEl) {
     return;
   }
 
-  let html = "";
+  tooltipEl.innerHTML = ""; // Clear previous content
+
   if (label) {
-    html += `<strong class="map-tooltip-title">${label}</strong>`;
-  }
-  if (evidenceTitle && evidenceSlug) {
-    html += `<span class="map-tooltip-evidence">${evidenceTitle}</span>`;
+    const strong = document.createElement("strong");
+    strong.className = "map-tooltip-title";
+    strong.textContent = label;
+    tooltipEl.appendChild(strong);
   }
 
-  tooltipEl.innerHTML = html;
+  if (evidenceTitle && evidenceSlug) {
+    const span = document.createElement("span");
+    span.className = "map-tooltip-evidence";
+    span.textContent = evidenceTitle;
+    tooltipEl.appendChild(span);
+  }
   tooltipEl.hidden = false;
 
   // Position relative to the map container

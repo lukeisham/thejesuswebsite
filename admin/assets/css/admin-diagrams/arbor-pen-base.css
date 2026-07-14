@@ -1,0 +1,59 @@
+/* ==========================================================================
+   Arbor Holding Pen Base (Admin)
+   Panel container, header, chip list.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Pen panel — docked left of the canvas
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-pen {
+    width: 260px;
+    min-width: 220px;
+    max-height: calc(100vh - 120px);
+    background: var(--bg-surface);
+    border-right: 1px solid var(--admin-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.admin-arbor-pen__header {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--admin-border);
+    background: var(--bg-surface-alt);
+}
+
+.admin-arbor-pen__heading {
+    font-size: var(--text-h4);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.admin-arbor-pen__subtitle {
+    font-size: var(--text-small);
+    color: var(--text-muted);
+    margin: var(--space-xs) 0 0;
+}
+
+/* -------------------------------------------------------------------------
+   Chip list
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-pen__list {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+/* display:flex above would defeat the hidden attribute toggled by
+   arbor-pen.js — restore it explicitly (same pattern as arbor-search). */
+.admin-arbor-pen__list[hidden],
+.admin-arbor-pen__empty[hidden] {
+    display: none;
+}

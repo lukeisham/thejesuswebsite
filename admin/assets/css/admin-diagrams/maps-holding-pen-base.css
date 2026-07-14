@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Holding Pen (Admin Maps)
-   Chip strip, staged-pin styling, drop-target highlight.
+   Holding Pen Base (Admin Maps)
+   Container, chip styles, drop target, staged pin, toolbar save button.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -67,44 +67,6 @@
 }
 
 /* -------------------------------------------------------------------------
-   Chip era swatch
-   ------------------------------------------------------------------------- */
-
-.holding-pen__chip-swatch {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: var(--radius-round);
-    border: 1px solid var(--border);
-    flex-shrink: 0;
-}
-
-.era-swatch--pre-incarnation {
-    background: var(--era-pre-incarnation);
-}
-.era-swatch--old-testament {
-    background: var(--era-old-testament);
-}
-.era-swatch--early-life {
-    background: var(--era-early-life);
-}
-.era-swatch--life {
-    background: var(--era-life);
-}
-.era-swatch--galilee-ministry {
-    background: var(--era-galilee-ministry);
-}
-.era-swatch--judean-ministry {
-    background: var(--era-judean-ministry);
-}
-.era-swatch--passion-week {
-    background: var(--era-passion-week);
-}
-.era-swatch--post-passion {
-    background: var(--era-post-passion);
-}
-
-/* -------------------------------------------------------------------------
    Drop target highlight
    ------------------------------------------------------------------------- */
 
@@ -150,19 +112,4 @@
 
 .admin-maps-toolbar__btn-count--active {
     opacity: 1;
-}
-
-/* -------------------------------------------------------------------------
-   Responsive
-   ------------------------------------------------------------------------- */
-
-@media (max-width: 600px) {
-    .holding-pen {
-        width: 100%;
-        margin: var(--space-sm) 0;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-        padding: var(--space-sm);
-    }
 }

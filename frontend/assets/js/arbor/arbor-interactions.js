@@ -131,7 +131,7 @@ function hideTooltip() {
  * Apply the current zoom and pan transform to the diagram.
  */
 function applyTransform() {
-  if (!diagramEl) return;
+  if (!diagramEl || isVerticalMode()) return;
   diagramEl.style.transform = `translate(${translateX}px, ${translateY}px) scale(${zoomLevel})`;
 }
 

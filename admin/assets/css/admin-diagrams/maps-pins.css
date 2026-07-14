@@ -1,0 +1,95 @@
+/* ==========================================================================
+   Maps Pins (Admin)
+   Pin button, states, labels, era-coloured pins.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Pins
+   ------------------------------------------------------------------------- */
+
+.admin-map-pins-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.admin-map-pin {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    transform: translate(-50%, -50%);
+    background: var(--accent);
+    border: 2px solid var(--bg-surface);
+    border-radius: var(--radius-round);
+    cursor: pointer;
+    z-index: 2;
+    padding: 0;
+    transition:
+        box-shadow var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+}
+.admin-map-pin:hover {
+    box-shadow: 0 0 0 4px var(--canvas-shadow);
+    transform: translate(-50%, -50%) scale(1.3);
+}
+.admin-map-pin--selected {
+    background: var(--admin-selected-color);
+    transform: translate(-50%, -50%) scale(1.4);
+    box-shadow: 0 0 0 3px var(--selected-glow);
+    z-index: 3;
+}
+
+/* Draft pin — evidence-linked but unpublished */
+.admin-map-pin--draft {
+    border-style: dashed;
+    opacity: 0.7;
+}
+.admin-map-pin--draft:hover {
+    opacity: 1;
+}
+.admin-map-pin-label {
+    position: absolute;
+    transform: translate(-50%, 8px);
+    font-size: var(--text-2xs);
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 2px var(--space-xs);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* -------------------------------------------------------------------------
+   Era‑coloured pins (mirrors frontend pages/maps-pins.css)
+   ------------------------------------------------------------------------- */
+
+.admin-map-pin {
+    background: var(--accent);
+}
+.admin-map-pin.era--pre-incarnation {
+    background: var(--era-pre-incarnation);
+}
+.admin-map-pin.era--old-testament {
+    background: var(--era-old-testament);
+}
+.admin-map-pin.era--early-life {
+    background: var(--era-early-life);
+}
+.admin-map-pin.era--life {
+    background: var(--era-life);
+}
+.admin-map-pin.era--galilee-ministry {
+    background: var(--era-galilee-ministry);
+}
+.admin-map-pin.era--judean-ministry {
+    background: var(--era-judean-ministry);
+}
+.admin-map-pin.era--passion-week {
+    background: var(--era-passion-week);
+}
+.admin-map-pin.era--post-passion {
+    background: var(--era-post-passion);
+}
