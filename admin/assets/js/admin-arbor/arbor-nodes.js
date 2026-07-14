@@ -190,6 +190,9 @@ Nodes.createNodeElement = function (node) {
   const g = document.createElementNS(ns, "g");
   g.setAttribute("class", "admin-arbor-node-group");
   g.setAttribute("data-node-id", String(node.id));
+  g.setAttribute("tabindex", "0");
+  g.setAttribute("role", "button");
+  g.setAttribute("aria-label", (node.title || "Untitled") + " — Enter to edit, C to connect");
   g.style.cursor = "pointer";
 
   const x = node.arbor_x || 0;
@@ -287,6 +290,11 @@ Nodes.createNodeElement = function (node) {
   // Prevent native context menu on nodes (we use right-drag for connect)
   g.addEventListener("contextmenu", function (e) {
     e.preventDefault();
+  });
+
+  // Keyboard support: Enter to edit, C to connect
+  g.addEventListener("keydown", function (e) {
+    Nodes.onNodeKeyDown(e, node);
   });
 
   return g;
@@ -520,6 +528,28 @@ Nodes.createParentEdge = async function (
 };
 
 /* ── Drag-to-reposition ────────────────────────────────────────────────────── */
+
+/**
+ * Keyboard handler for node keydown.
+ * Enter or Space: select and open edit panel.
+ * C: start keyboard-driven edge connection.
+ *
+ * @param {KeyboardEvent} e
+ * @param {Object} node
+ */
+Nodes.onNodeKeyDown = function (e, node) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    Nodes.selectNode(node.id);
+    return;
+  }
+  if (e.key === "c" || e.key === "C") {
+    e.preventDefault();
+    if (window.AdminArborEdges && window.AdminArborEdges.startEdgeConnectFromKeyboard) {
+      window.AdminArborEdges.startEdgeConnectFromKeyboard(node, e.currentTarget);
+    }
+  }
+};
 
 /**
  * Mouse-down on a node.

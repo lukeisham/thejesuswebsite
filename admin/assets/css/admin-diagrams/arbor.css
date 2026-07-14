@@ -54,3 +54,17 @@ body {
     --duration-fast: 150ms;
     --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
+
+/* ── Keyboard Accessibility: Focus Styling ──────────────────────────────────── */
+
+.admin-arbor-node-group:focus-visible rect.admin-arbor-node,
+.admin-arbor-edge-group:focus-visible line {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Keyboard-initiated connection source state (armed) */
+.admin-arbor-node--connect-source rect.admin-arbor-node {
+    stroke: var(--accent-gold);
+    stroke-width: 2;
+}

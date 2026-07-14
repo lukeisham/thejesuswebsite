@@ -37,7 +37,7 @@
 .admin-timeline-panel__input:focus {
     outline: none;
     border-color: var(--admin-accent);
-    box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
+    box-shadow: 0 0 0 2px var(--admin-accent-glow-strong);
 }
 .admin-timeline-panel__select {
     padding: var(--space-xs) var(--space-sm);
