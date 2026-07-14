@@ -23,6 +23,9 @@ let edges = [];
 /** @type {Object|null}  Edge creation drag state. */
 let edgeDrag = null;
 
+/** @type {Object|null}  Pending keyboard-initiated connection state. */
+let pendingKeySource = null;
+
 /** Allowable relationship types (mirrors the CHECK constraint in schema.sql). */
 const VALID_TYPES = ["root", "supports", "leads_to", "related"];
 
@@ -185,6 +188,17 @@ Edges.createEdgeElement = function (edge, sourceNode, targetNode) {
     e.preventDefault();
     e.stopPropagation();
     Edges.onEdgeContextMenu(edge);
+  });
+
+  // Keyboard support for disconnect: Delete, Backspace, or Enter to trigger disconnect
+  g.setAttribute("tabindex", "0");
+  g.setAttribute("role", "button");
+  g.setAttribute("aria-label", "Connection (" + (edge.relationship_type || "") + ") — press Delete to remove");
+  g.addEventListener("keydown", function (e) {
+    if (e.key === "Delete" || e.key === "Backspace" || e.key === "Enter") {
+      e.preventDefault();
+      Edges.onEdgeContextMenu(edge);
+    }
   });
 
   return g;
@@ -377,6 +391,85 @@ Edges.onEdgeDragUp = async function (e) {
       }
     }
   }
+};
+
+/* ── Keyboard-driven edge creation ─────────────────────────────────────────── */
+
+/**
+ * Keyboard equivalent of the right-drag connect gesture.
+ * First press of "C" on a node arms the source; the user then Tab-navigates
+ * to a target node and presses "C" again to complete the connection,
+ * or Escape to cancel. Mirrors startEdgeDrag/onEdgeDragUp but with no cursor
+ * coordinates — the connect menu opens next to the target node's screen rect.
+ *
+ * @param {Object} node  - the source node
+ * @param {SVGGElement} el  - the node's SVG group element
+ */
+Edges.startEdgeConnectFromKeyboard = async function (node, el) {
+  if (!pendingKeySource) {
+    pendingKeySource = { node: node, el: el };
+    el.classList.add("admin-arbor-node--connect-source");
+    if (typeof window.showToast === "function") {
+      window.showToast(
+        "Connecting from \"" + (node.title || "?") + "\" — Tab to a target node and press C, or Esc to cancel.",
+        "info",
+      );
+    }
+    document.addEventListener("keydown", Edges.onKeyboardConnectEscape);
+    return;
+  }
+
+  var sourceNode = pendingKeySource.node;
+  var sourceEl = pendingKeySource.el;
+  sourceEl.classList.remove("admin-arbor-node--connect-source");
+  document.removeEventListener("keydown", Edges.onKeyboardConnectEscape);
+  pendingKeySource = null;
+
+  if (sourceNode.id === node.id) return; // same node re-pressed; no-op
+
+  var rect = el.getBoundingClientRect();
+  var menuX = rect.left + rect.width / 2;
+  var menuY = rect.top + rect.height / 2;
+
+  if (!window.AdminArborConnectMenu || !window.AdminArborConnectMenu.open) return;
+
+  var chosenType = await window.AdminArborConnectMenu.open(menuX, menuY);
+  if (!chosenType) return;
+
+  var error = Edges.validateConnection(sourceNode.id, node.id, chosenType, edges);
+  if (error) {
+    if (typeof window.showToast === "function") {
+      window.showToast(error, "error");
+    }
+    return;
+  }
+
+  try {
+    var created = await UpdateRecord.saveEdge({
+      source_id: sourceNode.id,
+      target_id: node.id,
+      relationship_type: chosenType,
+    });
+    edges.push(created);
+    Edges.renderEdges();
+  } catch (err) {
+    console.error("Failed to create edge:", err);
+    if (typeof window.showToast === "function") {
+      window.showToast("Failed to create connection.", "error");
+    }
+  }
+};
+
+/**
+ * Escape key handler: cancels an armed keyboard connection.
+ *
+ * @param {KeyboardEvent} e
+ */
+Edges.onKeyboardConnectEscape = function (e) {
+  if (e.key !== "Escape" || !pendingKeySource) return;
+  pendingKeySource.el.classList.remove("admin-arbor-node--connect-source");
+  pendingKeySource = null;
+  document.removeEventListener("keydown", Edges.onKeyboardConnectEscape);
 };
 
 /* ── Reposition edges when a node is dragged ───────────────────────────────── */

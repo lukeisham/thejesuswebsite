@@ -41,7 +41,7 @@
 .admin-textarea:focus {
     outline: none;
     border-color: var(--admin-accent);
-    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
+    box-shadow: 0 0 0 3px var(--admin-accent-glow);
 }
 
 .admin-input::placeholder,
