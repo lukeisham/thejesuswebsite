@@ -32,7 +32,7 @@
    Collapsible Variant
    ------------------------------------------------------------------------- */
 
-.breakout-collapsible .breakout-header {
+.breakout-collapsible-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -40,16 +40,16 @@
   min-height: 44px;
 }
 
-.breakout-collapsible .breakout-chevron {
+.breakout-collapsible-chevron {
   transition: transform var(--duration-base) var(--ease-in-out);
   color: var(--text-muted);
 }
 
-.breakout-collapsible.open .breakout-chevron {
+.breakout-collapsible-chevron.open {
   transform: rotate(180deg);
 }
 
-.breakout-collapsible .breakout-body {
+.breakout-collapsible-body {
   overflow: hidden;
   max-height: 0;
   opacity: 0;
@@ -58,7 +58,7 @@
     opacity var(--duration-base) var(--ease-in-out);
 }
 
-.breakout-collapsible.open .breakout-body {
+.breakout-collapsible-body.open {
   max-height: 2000px;
   opacity: 1;
 }

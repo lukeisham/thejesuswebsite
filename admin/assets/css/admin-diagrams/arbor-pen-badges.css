@@ -1,0 +1,86 @@
+/* ==========================================================================
+   Arbor Holding Pen Badges (Admin)
+   Status badges, empty/loading/error states, canvas node decorations.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Status badge (Published / Draft)
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-pen__badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+.admin-arbor-pen__badge--published {
+    background: var(--accent-subtle);
+    color: var(--accent);
+}
+
+.admin-arbor-pen__badge--draft {
+    background: var(--gray-subtle);
+    color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------------
+   Empty / loading / error states
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-pen__empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+    color: var(--text-muted);
+    font-size: var(--text-small);
+    font-style: italic;
+    text-align: center;
+}
+
+.admin-arbor-pen__loading,
+.admin-arbor-pen__error {
+    padding: var(--space-md);
+    color: var(--text-muted);
+    font-size: var(--text-small);
+    text-align: center;
+}
+
+.admin-arbor-pen__error {
+    color: var(--admin-error-color);
+}
+
+/* -------------------------------------------------------------------------
+   Drop highlight on canvas nodes (pen drag over a node)
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-node--pen-drop .admin-arbor-node {
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 0 3px var(--accent-glow));
+}
+
+/* -------------------------------------------------------------------------
+   Draft badge on canvas nodes (admin-only, not present on public page)
+   ------------------------------------------------------------------------- */
+
+.admin-arbor-node-draft-badge {
+    fill: var(--gray-fill);
+    pointer-events: none;
+}
+
+.admin-arbor-node-draft-label {
+    font-size: 9px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    fill: var(--admin-white);
+    text-anchor: middle;
+    pointer-events: none;
+    user-select: none;
+}

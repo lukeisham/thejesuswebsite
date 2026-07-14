@@ -1,0 +1,44 @@
+/* ==========================================================================
+   Arbor Holding Pen Chips (Admin)
+   Draggable evidence chip button.
+   ========================================================================== */
+
+.admin-arbor-pen__chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    width: 100%;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: grab;
+    font-family: var(--font-sans);
+    font-size: var(--text-small);
+    color: var(--text-primary);
+    text-align: left;
+    transition:
+        border-color var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.admin-arbor-pen__chip:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-xs);
+}
+
+.admin-arbor-pen__chip:active {
+    cursor: grabbing;
+}
+
+.admin-arbor-pen__chip--dragging {
+    opacity: 0.4;
+}
+
+.admin-arbor-pen__chip-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

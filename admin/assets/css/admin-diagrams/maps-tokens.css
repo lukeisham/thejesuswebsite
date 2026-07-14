@@ -1,8 +1,9 @@
 /* ==========================================================================
    Maps Token Bridge (Admin)
-   Defines frontend-named custom properties that maps-canvas.css,
-   maps-holding-pen.css, maps-gallery.css, and maps-pin-menu.css consume
-   but that admin-base/variables.css never defines.
+   Defines frontend-named custom properties that maps-canvas-base.css,
+   maps-pins.css, maps-loading.css, maps-holding-pen-base.css,
+   maps-holding-pen-swatches.css, maps-gallery.css, and maps-pin-menu.css
+   consume but that admin-base/variables.css never defines.
 
    Token values are mirrored from the frontend palette per
    setup/Style_guide.md §1/§2.  The era tokens are already defined

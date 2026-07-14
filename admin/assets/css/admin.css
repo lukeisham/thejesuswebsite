@@ -42,7 +42,10 @@
 @import "./admin-diagrams/timeline-panel.css";
 @import "./admin-diagrams/timeline-panel-form.css";
 @import "./admin-diagrams/maps-toolbar.css";
-@import "./admin-diagrams/maps-canvas.css";
+@import "./admin-diagrams/maps-canvas-base.css";
+@import "./admin-diagrams/maps-pins.css";
+@import "./admin-diagrams/maps-loading.css";
+@import "./admin-diagrams/maps-canvas-responsive.css";
 @import "./admin-diagrams/maps-panel.css";
 @import "./admin-diagrams/maps-panel-form.css";
 @import "./admin-diagrams/maps-metadata.css";

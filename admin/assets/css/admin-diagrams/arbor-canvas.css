@@ -48,13 +48,15 @@
     stroke: var(--border);
     stroke-width: 1;
     cursor: pointer;
-    filter: drop-shadow(var(--admin-shadow));
+    /* Geometry hardcoded, color from token — see variables.css shadow docs */
+    filter: drop-shadow(0 2px 8px var(--admin-shadow-color));
     transition:
         filter var(--duration-fast) var(--ease-out),
         stroke-width var(--duration-fast) var(--ease-out);
 }
 .admin-arbor-node:hover {
-    filter: drop-shadow(var(--shadow-node-hover));
+    /* Geometry hardcoded, color from token — see variables.css shadow docs */
+    filter: drop-shadow(0 4px 16px var(--shadow-node-hover-color));
     stroke-width: 1;
 }
 .admin-arbor-node--root {

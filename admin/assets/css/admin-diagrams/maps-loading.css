@@ -1,0 +1,27 @@
+/* ==========================================================================
+   Maps Loading (Admin)
+   Loading overlay states for the map canvas.
+   ========================================================================== */
+
+.admin-map-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    background: var(--bg-surface);
+    color: var(--admin-text-secondary);
+    font-size: 0.9375rem;
+    z-index: 10;
+    margin: var(--space-md) 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+.admin-map-loading--error {
+    color: var(--admin-error-color);
+}
+/* display: flex above outranks the UA's built-in [hidden] { display: none },
+   so restate it — otherwise the overlay never dismisses. */
+.admin-map-canvas[hidden],
+.admin-map-loading[hidden] {
+    display: none;
+}

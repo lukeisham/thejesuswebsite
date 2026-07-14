@@ -74,7 +74,7 @@
 
     .arbor-diagram {
         position: relative;
-        transform: none !important;
+        transform: none;
         transition: none;
     }
 

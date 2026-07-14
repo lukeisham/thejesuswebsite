@@ -5,7 +5,10 @@
 
 @import "./maps-tokens.css";
 @import "./maps-toolbar.css";
-@import "./maps-canvas.css";
+@import "./maps-canvas-base.css";
+@import "./maps-pins.css";
+@import "./maps-loading.css";
+@import "./maps-canvas-responsive.css";
 @import "./maps-gallery.css";
 @import "./maps-pin-menu.css";
 @import "./maps-panel.css";

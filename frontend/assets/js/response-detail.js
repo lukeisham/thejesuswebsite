@@ -353,8 +353,8 @@ async function init() {
 
   applySEO(data);
 
-  if (data.two_column && $content) {
-    $content.classList.add("two-column");
+  if (data.two_column && $body) {
+    $body.classList.add("journal-body--two-column");
   }
 
   showContent();

@@ -86,7 +86,28 @@
     --admin-radius: 6px;
     --admin-radius-sm: 4px;
 
-    /* ── Shadows & Transitions ────────────────────────────────────────────── */
+    /* ── Shadows & Transitions ──────────────────────────────────────────────
+       Shadow Tokens: Complete Values
+       All shadow tokens are defined as complete `offset blur color` values
+       optimized for use in box-shadow and box-shadow-only contexts (modals,
+       cards, tables, panels, etc.).
+
+       For filter: drop-shadow(), do NOT pass the entire token directly.
+       Instead, hardcode the offset and blur geometry inline and reference
+       a color token only. Example:
+         WRONG:  filter: drop-shadow(var(--admin-shadow));
+         RIGHT:  filter: drop-shadow(0 2px 8px var(--admin-shadow-color));
+
+       This pattern keeps geometric intent explicit in the CSS and avoids
+       semantic confusion between "complete shadow values" (for box-shadow)
+       and "shadow color components" (for use in other contexts).
+       ────────────────────────────────────────────────────────────────────── */
+    /* ── Shadow Colors (for use with filter: drop-shadow and other filters) – */
+    --admin-shadow-color: rgba(0, 0, 0, 0.08);
+    --shadow-modal-color: rgba(0, 0, 0, 0.15);
+    --shadow-xs-color: rgba(0, 0, 0, 0.06);
+    --shadow-node-hover-color: rgba(0, 0, 0, 0.12);
+    --shadow-panel-color: rgba(0, 0, 0, 0.1);
     --admin-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     --overlay-subtle: rgba(0, 0, 0, 0.12);
     --overlay-backdrop: rgba(0, 0, 0, 0.3);
