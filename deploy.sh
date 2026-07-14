@@ -142,4 +142,20 @@ case "$PROCESS_MANAGER" in
     ;;
 esac
 
+# ---- 5. Reload nginx so committed config changes take effect -----------------
+# deploy/nginx.conf changes (e.g. cache-control rules) are inert until nginx
+# reloads. Use sudo -n (never prompt) and treat failure as a warning: a deploy
+# must not die because the deploy user lacks the sudo grant. Grant it with:
+#   echo "$USER ALL=(root) NOPASSWD: /usr/sbin/nginx -s reload" | sudo tee /etc/sudoers.d/deploy-nginx-reload
+if command -v nginx >/dev/null 2>&1; then
+  echo "[deploy] Reloading nginx..."
+  if sudo -n nginx -s reload 2>/dev/null; then
+    echo "[deploy] nginx reloaded."
+  else
+    echo "[deploy] WARNING: nginx reload failed (no passwordless sudo?). Config changes in deploy/nginx.conf are NOT live until nginx is reloaded manually."
+  fi
+else
+  echo "[deploy] nginx not found on PATH — skipping reload."
+fi
+
 echo "[deploy] Done."
