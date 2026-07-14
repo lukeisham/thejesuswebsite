@@ -210,7 +210,10 @@ async function init() {
   const { data, error } = await fetchFn(slug);
 
   if (error) {
-    if (error === "Slug is required" || error.includes("not found")) {
+    const is404 =
+      error === "Slug is required" ||
+      (typeof error === "object" && error.code === "E-PERSIST-004");
+    if (is404) {
       showEmpty();
     } else {
       showError("Failed to load this challenge.");

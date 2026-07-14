@@ -18,6 +18,8 @@ const crypto = require("crypto");
 const credentialModel = require("../models/credential.model");
 const auth = require("../middleware/auth");
 const rateLimit = require("../middleware/rate-limit");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -96,19 +98,31 @@ function verifyClientData(
 /** Sanitise and validate a user handle. Rejects empty, over-long, or invalid
  *  characters. Returns the cleaned handle. Call at the top of every handler. */
 function validateHandle(handle) {
-  if (typeof handle !== "string")
-    throw Object.assign(new Error("handle must be a string."), { status: 400 });
+  if (typeof handle !== "string") {
+    const err = new Error(ERRORS.INVALID_CREDENTIAL_HANDLE.message);
+    err.errorDef = ERRORS.INVALID_CREDENTIAL_HANDLE;
+    err.context = { field: "handle" };
+    throw err;
+  }
   const cleaned = handle.toLowerCase().trim();
-  if (!cleaned)
-    throw Object.assign(new Error("handle is required."), { status: 400 });
-  if (cleaned.length > 64)
-    throw Object.assign(new Error("handle must be 64 characters or fewer."), {
-      status: 400,
-    });
-  if (!/^[a-z0-9_-]+$/.test(cleaned))
-    throw Object.assign(new Error("handle contains invalid characters."), {
-      status: 400,
-    });
+  if (!cleaned) {
+    const err = new Error(ERRORS.MISSING_BODY_FIELD.message);
+    err.errorDef = ERRORS.MISSING_BODY_FIELD;
+    err.context = { field: "handle" };
+    throw err;
+  }
+  if (cleaned.length > 64) {
+    const err = new Error(ERRORS.INPUT_EXCEEDS_MAX_LENGTH.message);
+    err.errorDef = ERRORS.INPUT_EXCEEDS_MAX_LENGTH;
+    err.context = { field: "handle", limit: 64 };
+    throw err;
+  }
+  if (!/^[a-z0-9_-]+$/.test(cleaned)) {
+    const err = new Error(ERRORS.INVALID_CREDENTIAL_HANDLE.message);
+    err.errorDef = ERRORS.INVALID_CREDENTIAL_HANDLE;
+    err.context = { field: "handle" };
+    throw err;
+  }
   return cleaned;
 }
 
@@ -164,9 +178,10 @@ router.post(
       });
     } catch (error) {
       console.error("POST /passkey/register/options failed:", error);
-      res.status(error.status || 500).json({
-        error: error.status ? error.message : "Failed to start registration.",
-      });
+      if (error.errorDef) {
+        return sendError(res, error.errorDef, error.context || {});
+      }
+      sendError(res, ERRORS.SQL_QUERY_FAILURE);
     }
   },
 );
@@ -183,14 +198,14 @@ router.post(
       const handle = validateHandle(req.body.handle || "");
       const { id, clientDataJSON, publicKeyPem, attemptId } = req.body;
       if (!id || !clientDataJSON || !publicKeyPem || !attemptId) {
-        return res.status(400).json({
-          error: "id, clientDataJSON, publicKeyPem and attemptId are required.",
+        return sendError(res, ERRORS.MISSING_BODY_FIELD, {
+          fields: ["id", "clientDataJSON", "publicKeyPem", "attemptId"],
         });
       }
 
       const expectedChallenge = consumeChallenge(attemptId, handle);
       if (!expectedChallenge)
-        return res.status(400).json({ error: "Challenge expired or missing." });
+        return sendError(res, ERRORS.CHALLENGE_EXPIRED);
       if (
         !verifyClientData(
           clientDataJSON,
@@ -199,14 +214,12 @@ router.post(
           process.env.ORIGIN || null,
         )
       ) {
-        return res
-          .status(400)
-          .json({ error: "Client data did not match the challenge." });
+        return sendError(res, ERRORS.INVALID_WEBAUTHN_ASSERTION, {
+          reason: "challenge_mismatch",
+        });
       }
       if (credentialModel.getByCredentialId(id)) {
-        return res
-          .status(409)
-          .json({ error: "Credential already registered." });
+        return sendError(res, ERRORS.DUPLICATE_CREDENTIAL);
       }
 
       credentialModel.create({
@@ -218,11 +231,10 @@ router.post(
       res.status(201).json({ registered: true });
     } catch (error) {
       console.error("POST /passkey/register/verify failed:", error);
-      res.status(error.status || 500).json({
-        error: error.status
-          ? error.message
-          : "Failed to complete registration.",
-      });
+      if (error.errorDef) {
+        return sendError(res, error.errorDef, error.context || {});
+      }
+      sendError(res, ERRORS.SQL_QUERY_FAILURE);
     }
   },
 );
@@ -251,9 +263,10 @@ router.post("/login/options", loginOptionsLimit, (req, res) => {
     });
   } catch (error) {
     console.error("POST /passkey/login/options failed:", error);
-    res
-      .status(error.status || 500)
-      .json({ error: error.status ? error.message : "Failed to start login." });
+    if (error.errorDef) {
+      return sendError(res, error.errorDef, error.context || {});
+    }
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -272,9 +285,14 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
       !signature ||
       !attemptId
     ) {
-      return res.status(400).json({
-        error:
-          "id, clientDataJSON, authenticatorData, signature and attemptId are required.",
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, {
+        fields: [
+          "id",
+          "clientDataJSON",
+          "authenticatorData",
+          "signature",
+          "attemptId",
+        ],
       });
     }
 
@@ -283,14 +301,15 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     // controls the handle field and could name a different user's challenge).
     const credential = credentialModel.getByCredentialId(id);
     if (!credential)
-      return res.status(404).json({ error: "Unknown credential." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "credential",
+      });
 
     const expectedChallenge = consumeChallenge(
       attemptId,
       credential.user_handle,
     );
-    if (!expectedChallenge)
-      return res.status(400).json({ error: "Challenge expired or missing." });
+    if (!expectedChallenge) return sendError(res, ERRORS.CHALLENGE_EXPIRED);
     if (
       !verifyClientData(
         clientDataJSON,
@@ -299,9 +318,9 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
         process.env.ORIGIN || null,
       )
     ) {
-      return res
-        .status(400)
-        .json({ error: "Client data did not match the challenge." });
+      return sendError(res, ERRORS.INVALID_WEBAUTHN_ASSERTION, {
+        reason: "challenge_mismatch",
+      });
     }
 
     // WebAuthn signs authenticatorData concatenated with the SHA-256 of
@@ -314,7 +333,10 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     // Anything shorter is malformed and would cause timingSafeEqual or the
     // counter read to throw a 500 on truncated input — reject with 401.
     if (authData.length < 37) {
-      return res.status(401).json({ error: "Malformed authenticator data." });
+      return sendError(res, ERRORS.MALFORMED_WEBAUTHN_DATA, {
+        minLength: 37,
+        actual: authData.length,
+      });
     }
 
     // Verify the relying-party ID hash baked into authenticatorData by the
@@ -323,7 +345,9 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     const expectedRpIdHash = crypto.createHash("sha256").update(RP_ID).digest();
     const actualRpIdHash = authData.subarray(0, 32);
     if (!crypto.timingSafeEqual(expectedRpIdHash, actualRpIdHash)) {
-      return res.status(401).json({ error: "RP ID hash mismatch." });
+      return sendError(res, ERRORS.INVALID_WEBAUTHN_ASSERTION, {
+        reason: "rp_id_mismatch",
+      });
     }
 
     // Flags byte at offset 32: bit 0 is UP (user-present). The authenticator
@@ -331,7 +355,9 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     // ceremony (JS-2: reject if the flag is absent — never assume presence).
     const flags = authData[32];
     if ((flags & 0x01) === 0) {
-      return res.status(401).json({ error: "User presence not asserted." });
+      return sendError(res, ERRORS.INVALID_WEBAUTHN_ASSERTION, {
+        reason: "user_presence_missing",
+      });
     }
 
     const clientHash = crypto
@@ -347,7 +373,9 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
       Buffer.from(signature, "base64url"),
     );
     if (!isValid)
-      return res.status(401).json({ error: "Signature verification failed." });
+      return sendError(res, ERRORS.INVALID_WEBAUTHN_ASSERTION, {
+        reason: "signature_invalid",
+      });
 
     // JS-2: Parse the sign counter from the signed authenticatorData bytes
     // (offset 33, 4-byte big-endian uint32), not from the client-supplied
@@ -357,9 +385,9 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     // (they don't implement the feature); only enforce when non-zero.
     const parsedSignCount = authData.readUInt32BE(33);
     if (parsedSignCount > 0 && parsedSignCount <= credential.sign_count) {
-      return res
-        .status(401)
-        .json({ error: "Possible replay: sign counter did not advance." });
+      return sendError(res, ERRORS.INVALID_WEBAUTHN_ASSERTION, {
+        reason: "counter_replay_suspected",
+      });
     }
     credentialModel.updateSignCount(id, parsedSignCount);
 
@@ -374,9 +402,10 @@ router.post("/login/verify", loginVerifyLimit, (req, res) => {
     res.json({ authenticated: true, handle: credential.user_handle });
   } catch (error) {
     console.error("POST /passkey/login/verify failed:", error);
-    res.status(error.status || 500).json({
-      error: error.status ? error.message : "Failed to verify login.",
-    });
+    if (error.errorDef) {
+      return sendError(res, error.errorDef, error.context || {});
+    }
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -388,7 +417,7 @@ router.get("/credentials", auth, (req, res) => {
     res.json(credentials);
   } catch (error) {
     console.error("GET /passkey/credentials failed:", error);
-    res.status(500).json({ error: "Failed to list credentials." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -398,12 +427,18 @@ router.delete("/credentials/:id", auth, (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isFinite(id) || id < 1) {
-      return res.status(400).json({ error: "Invalid credential id." });
+      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
+        field: "id",
+        received: req.params.id,
+      });
     }
 
     const credential = credentialModel.getById(id);
     if (!credential) {
-      return res.status(404).json({ error: "Credential not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
+        entity: "credential",
+        id,
+      });
     }
 
     // Prevent lock-out: refuse to delete the last credential owned by the
@@ -411,16 +446,14 @@ router.delete("/credentials/:id", auth, (req, res) => {
     // session with multiple enrolled handles must not strip another handle's
     // last credential).
     if (credentialModel.countByUserHandle(credential.user_handle) <= 1) {
-      return res
-        .status(400)
-        .json({ error: "Cannot delete the last credential." });
+      return sendError(res, ERRORS.LAST_CREDENTIAL_DELETION);
     }
 
     credentialModel.remove(credential.credential_id);
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /passkey/credentials/:id failed:", error);
-    res.status(500).json({ error: "Failed to delete credential." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -449,11 +482,10 @@ router.post("/credentials/add/options", auth, addOptionsLimit, (req, res) => {
     });
   } catch (error) {
     console.error("POST /passkey/credentials/add/options failed:", error);
-    res.status(error.status || 500).json({
-      error: error.status
-        ? error.message
-        : "Failed to start credential registration.",
-    });
+    if (error.errorDef) {
+      return sendError(res, error.errorDef, error.context || {});
+    }
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -465,14 +497,13 @@ router.post("/credentials/add/verify", auth, addVerifyLimit, (req, res) => {
   try {
     const { id, clientDataJSON, publicKeyPem, attemptId } = req.body;
     if (!id || !clientDataJSON || !publicKeyPem || !attemptId) {
-      return res.status(400).json({
-        error: "id, clientDataJSON, publicKeyPem and attemptId are required.",
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, {
+        fields: ["id", "clientDataJSON", "publicKeyPem", "attemptId"],
       });
     }
 
     const expectedChallenge = consumeChallenge(attemptId, req.user.handle);
-    if (!expectedChallenge)
-      return res.status(400).json({ error: "Challenge expired or missing." });
+    if (!expectedChallenge) return sendError(res, ERRORS.CHALLENGE_EXPIRED);
     if (
       !verifyClientData(
         clientDataJSON,
@@ -481,12 +512,12 @@ router.post("/credentials/add/verify", auth, addVerifyLimit, (req, res) => {
         process.env.ORIGIN || null,
       )
     ) {
-      return res
-        .status(400)
-        .json({ error: "Client data did not match the challenge." });
+      return sendError(res, ERRORS.INVALID_WEBAUTHN_ASSERTION, {
+        reason: "challenge_mismatch",
+      });
     }
     if (credentialModel.getByCredentialId(id)) {
-      return res.status(409).json({ error: "Credential already registered." });
+      return sendError(res, ERRORS.DUPLICATE_CREDENTIAL);
     }
 
     credentialModel.create({
@@ -498,11 +529,10 @@ router.post("/credentials/add/verify", auth, addVerifyLimit, (req, res) => {
     res.status(201).json({ registered: true });
   } catch (error) {
     console.error("POST /passkey/credentials/add/verify failed:", error);
-    res.status(error.status || 500).json({
-      error: error.status
-        ? error.message
-        : "Failed to complete credential registration.",
-    });
+    if (error.errorDef) {
+      return sendError(res, error.errorDef, error.context || {});
+    }
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

@@ -266,12 +266,17 @@ async function init() {
   const { data, error } = await getEvidenceBySlug(slug);
 
   if (error) {
-    showError(
-      error === "Slug is required"
-        ? "No evidence item specified."
-        : "Failed to load this evidence item.",
-    );
-    showToast("Failed to load evidence", "error");
+    const is404 =
+      error === "Slug is required" ||
+      (typeof error === "object" && error.code === "E-PERSIST-004");
+    if (error === "Slug is required") {
+      showError("No evidence item specified.");
+    } else if (is404) {
+      showError("Evidence item not found.");
+    } else {
+      showError("Failed to load this evidence item.");
+      showToast("Failed to load evidence", "error");
+    }
     return;
   }
 

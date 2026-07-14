@@ -4,6 +4,8 @@
 const express = require('express');
 const newsArticleModel = require('../models/news-article.model');
 const requireAuth = require('../middleware/auth');
+const ERRORS = require('../lib/error-codes');
+const { sendError } = require('../lib/error-handler');
 
 const router = express.Router();
 
@@ -22,7 +24,8 @@ router.get('/', (req, res) => {
 router.get('/:slug', (req, res) => {
     try {
         const item = newsArticleModel.getBySlug(req.params.slug);
-        if (!item) return res.status(404).json({ error: 'News article not found.' });
+        if (!item)
+            return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'news article', slug: req.params.slug });
         res.json(item);
     } catch (error) {
         console.error('GET /news-articles/:slug failed:', error);
@@ -48,7 +51,8 @@ router.post('/', requireAuth, (req, res) => {
 router.put('/:id', requireAuth, (req, res) => {
     try {
         const updated = newsArticleModel.update(Number(req.params.id), req.body);
-        if (!updated) return res.status(404).json({ error: 'News article not found.' });
+        if (!updated)
+            return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'news article', id: req.params.id });
         res.json(updated);
     } catch (error) {
         console.error('PUT /news-articles/:id failed:', error);
@@ -60,7 +64,8 @@ router.put('/:id', requireAuth, (req, res) => {
 router.delete('/:id', requireAuth, (req, res) => {
     try {
         const removed = newsArticleModel.remove(Number(req.params.id));
-        if (!removed) return res.status(404).json({ error: 'News article not found.' });
+        if (!removed)
+            return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'news article', id: req.params.id });
         res.status(204).end();
     } catch (error) {
         console.error('DELETE /news-articles/:id failed:', error);

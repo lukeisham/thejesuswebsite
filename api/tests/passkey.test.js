@@ -27,20 +27,32 @@ describe("validateHandle", () => {
     assert.equal(validateHandle("my-handle-123"), "my-handle-123");
   });
 
-  test("throws 400 on an empty handle", () => {
-    assert.throws(() => validateHandle(""), { status: 400 });
-    assert.throws(() => validateHandle("   "), { status: 400 });
+  test("throws with MISSING_BODY_FIELD on an empty handle", () => {
+    assert.throws(() => validateHandle(""), (err) => {
+      assert.equal(err.errorDef.code, "E-INPUT-001");
+      return true;
+    });
+    assert.throws(() => validateHandle("   "), (err) => {
+      assert.equal(err.errorDef.code, "E-INPUT-001");
+      return true;
+    });
   });
 
-  test("throws 400 on a non-string handle", () => {
-    assert.throws(() => validateHandle(123), { status: 400 });
-    assert.throws(() => validateHandle(null), { status: 400 });
-    assert.throws(() => validateHandle(undefined), { status: 400 });
+  test("throws with INVALID_CREDENTIAL_HANDLE on a non-string handle", () => {
+    for (const bad of [123, null, undefined]) {
+      assert.throws(() => validateHandle(bad), (err) => {
+        assert.equal(err.errorDef.code, "E-INPUT-031");
+        return true;
+      });
+    }
   });
 
-  test("throws 400 when handle exceeds 64 characters", () => {
+  test("throws with INPUT_EXCEEDS_MAX_LENGTH when handle exceeds 64 characters", () => {
     const longHandle = "a".repeat(65);
-    assert.throws(() => validateHandle(longHandle), { status: 400 });
+    assert.throws(() => validateHandle(longHandle), (err) => {
+      assert.equal(err.errorDef.code, "E-INPUT-022");
+      return true;
+    });
   });
 
   test("allows exactly 64 characters", () => {
@@ -48,11 +60,13 @@ describe("validateHandle", () => {
     assert.equal(validateHandle(maxHandle), maxHandle);
   });
 
-  test("throws 400 on invalid characters", () => {
-    assert.throws(() => validateHandle("hello world"), { status: 400 });
-    assert.throws(() => validateHandle("user@domain"), { status: 400 });
-    assert.throws(() => validateHandle("handle!"), { status: 400 });
-    assert.throws(() => validateHandle("test.handle"), { status: 400 });
+  test("throws with INVALID_CREDENTIAL_HANDLE on invalid characters", () => {
+    for (const bad of ["hello world", "user@domain", "handle!", "test.handle"]) {
+      assert.throws(() => validateHandle(bad), (err) => {
+        assert.equal(err.errorDef.code, "E-INPUT-031");
+        return true;
+      });
+    }
   });
 });
 
@@ -378,11 +392,11 @@ describe("authData length check (integration)", () => {
       attemptId,
     });
 
-    assert.equal(res.status, 401, "should be 401 for malformed authData");
+    assert.equal(res.status, 400, "should be 400 for malformed authData");
     assert.equal(
-      res.body.error,
-      "Malformed authenticator data.",
-      "should reject with a clear message",
+      res.body.error.code,
+      "E-INPUT-032",
+      "should reject with the MALFORMED_WEBAUTHN_DATA error code",
     );
   });
 });

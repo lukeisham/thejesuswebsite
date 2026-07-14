@@ -35,7 +35,8 @@ async function request(url, options = {}) {
       if (typeof errPayload === "string" && errPayload) {
         error = errPayload;
       } else if (errPayload && typeof errPayload === "object") {
-        error = errPayload.message || errPayload.detail || error;
+        // Return full structured error object so caller can access code field
+        error = errPayload;
       }
       return { data: null, error };
     }

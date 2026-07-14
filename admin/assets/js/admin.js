@@ -16,6 +16,24 @@ const Admin = window.Admin;
    - Returns the parsed JSON body (204 returns null for DELETE)
    ───────────────────────────────────────────────────────────────────────────── */
 
+/**
+ * Extract a human-readable message from an error response body.
+ * Handles both legacy string bodies ({ error: "..." }) and structured
+ * sendError bodies ({ error: { code, message, detail?, context? } }).
+ *
+ * @param {*} body — parsed JSON body (may be {})
+ * @param {number} status — HTTP status, used in the fallback message
+ * @returns {string}
+ */
+function extractErrorMessage(body, status) {
+  const err = body && body.error;
+  if (typeof err === "string" && err) return err;
+  if (err && typeof err === "object" && typeof err.message === "string" && err.message) {
+    return err.message;
+  }
+  return "Request failed (" + status + ")";
+}
+
 Admin.api = {
   BASE: "/api",
 
@@ -32,7 +50,7 @@ Admin.api = {
     }
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || "Request failed (" + res.status + ")");
+      throw new Error(extractErrorMessage(body, res.status));
     }
     return res.json();
   },
@@ -55,7 +73,7 @@ Admin.api = {
     }
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || "Request failed (" + res.status + ")");
+      throw new Error(extractErrorMessage(body, res.status));
     }
     return res.json();
   },
@@ -78,7 +96,7 @@ Admin.api = {
     }
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || "Request failed (" + res.status + ")");
+      throw new Error(extractErrorMessage(body, res.status));
     }
     return res.json();
   },
@@ -96,7 +114,7 @@ Admin.api = {
     }
     if (!res.ok && res.status !== 204) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || "Request failed (" + res.status + ")");
+      throw new Error(extractErrorMessage(body, res.status));
     }
     return res.status === 204 ? null : res.json();
   },

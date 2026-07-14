@@ -305,6 +305,26 @@ const CATEGORY_1 = {
     detail: "The client-side fetch failed — no HTTP response was received.",
     severity: "error",
   },
+
+  INVALID_CREDENTIAL_HANDLE: {
+    code: "E-INPUT-031",
+    category: 1,
+    httpStatus: 400,
+    message: "The credential handle is invalid.",
+    detail:
+      "The handle must contain only lowercase letters, numbers, underscores, and hyphens; cannot exceed 64 characters.",
+    severity: "error",
+  },
+
+  MALFORMED_WEBAUTHN_DATA: {
+    code: "E-INPUT-032",
+    category: 1,
+    httpStatus: 400,
+    message: "The security key data is malformed.",
+    detail:
+      "The WebAuthn authenticator data is too short or does not contain expected fields.",
+    severity: "error",
+  },
 };
 
 // ── Category 2: Transformation Boundaries (Data Processing) ─────────────────
