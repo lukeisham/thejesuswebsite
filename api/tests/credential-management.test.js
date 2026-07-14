@@ -275,7 +275,7 @@ describe("route: DELETE /passkey/credentials/:id", () => {
 
     const res = await req("DELETE", "/passkey/credentials/9999", { cookie });
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, "Credential not found.");
+    assert.equal(res.body.error.code, "E-PERSIST-004");
   });
 
   test("returns 400 for an invalid id (non-numeric)", async () => {
@@ -284,7 +284,7 @@ describe("route: DELETE /passkey/credentials/:id", () => {
 
     const res = await req("DELETE", "/passkey/credentials/abc", { cookie });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "Invalid credential id.");
+    assert.equal(res.body.error.code, "E-INPUT-005");
   });
 
   test("deletes a credential when the user has more than one", async () => {
@@ -312,7 +312,7 @@ describe("route: DELETE /passkey/credentials/:id", () => {
 
     const res = await req("DELETE", `/passkey/credentials/${c.id}`, { cookie });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "Cannot delete the last credential.");
+    assert.equal(res.body.error.code, "E-INPUT-025");
     assert.ok(credentialModel.getById(c.id));
   });
 
@@ -331,7 +331,7 @@ describe("route: DELETE /passkey/credentials/:id", () => {
       cookie: adminCookie,
     });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, "Cannot delete the last credential.");
+    assert.equal(res.body.error.code, "E-INPUT-025");
     assert.ok(
       credentialModel.getById(editorCred.id),
       "editor's credential must still exist",
@@ -417,7 +417,7 @@ describe("route: POST /passkey/credentials/add/verify", () => {
       body: { id: "some-id" },
     });
     assert.equal(res.status, 400);
-    assert.ok(res.body.error.includes("required"));
+    assert.equal(res.body.error.code, "E-INPUT-001");
   });
 
   test("returns 409 when credential already registered", async () => {
@@ -458,7 +458,7 @@ describe("route: POST /passkey/credentials/add/verify", () => {
       },
     });
     assert.equal(res.status, 409);
-    assert.equal(res.body.error, "Credential already registered.");
+    assert.equal(res.body.error.code, "E-INPUT-017");
   });
 
   test("successful round trip creates a credential", async () => {

@@ -144,7 +144,14 @@ Passkey.postJson = async function (url, body, extraHeaders) {
  */
 Passkey.readErrorMessage = async function (res, step) {
   const body = await res.json().catch(() => ({}));
-  return body.error || step + " failed (HTTP " + res.status + ").";
+  const err = body && body.error;
+  // Legacy string bodies ({ error: "..." }) and structured sendError bodies
+  // ({ error: { code, message, ... } }) both resolve to a readable message.
+  if (typeof err === "string" && err) return err;
+  if (err && typeof err === "object" && typeof err.message === "string" && err.message) {
+    return err.message;
+  }
+  return step + " failed (HTTP " + res.status + ").";
 };
 
 /* ── Ceremony flows ──────────────────────────────────────────────────────── */

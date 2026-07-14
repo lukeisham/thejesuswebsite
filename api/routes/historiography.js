@@ -4,6 +4,8 @@
 const express = require("express");
 const historiographyModel = require("../models/historiography.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -35,7 +37,7 @@ router.get("/admin/:id", requireAuth, (req, res) => {
   try {
     const item = historiographyModel.getAdminById(Number(req.params.id));
     if (!item)
-      return res.status(404).json({ error: "Historiography item not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "historiography", id: req.params.id });
     res.json(item);
   } catch (error) {
     console.error("GET /historiography/admin/:id failed:", error);
@@ -48,7 +50,7 @@ router.get("/:slug", (req, res) => {
   try {
     const item = historiographyModel.getDetailBySlug(req.params.slug);
     if (!item)
-      return res.status(404).json({ error: "Historiography item not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "historiography", slug: req.params.slug });
     res.json(item);
   } catch (error) {
     console.error("GET /historiography/:slug failed:", error);
@@ -78,7 +80,7 @@ router.put("/:id", requireAuth, (req, res) => {
       req.body,
     );
     if (!updated)
-      return res.status(404).json({ error: "Historiography item not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "historiography", id: req.params.id });
     res.json(updated);
   } catch (error) {
     console.error("PUT /historiography/:id failed:", error);
@@ -91,7 +93,7 @@ router.delete("/:id", requireAuth, (req, res) => {
   try {
     const removed = historiographyModel.remove(Number(req.params.id));
     if (!removed)
-      return res.status(404).json({ error: "Historiography item not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "historiography", id: req.params.id });
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /historiography/:id failed:", error);

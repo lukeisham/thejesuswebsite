@@ -4,6 +4,8 @@
 const express = require("express");
 const essayModel = require("../models/essay.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -35,7 +37,8 @@ router.get("/admin", requireAuth, (req, res) => {
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {
     const item = essayModel.getAdminById(Number(req.params.id));
-    if (!item) return res.status(404).json({ error: "Essay not found." });
+    if (!item)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "essay", id: req.params.id });
     res.json(item);
   } catch (error) {
     console.error("GET /essays/admin/:id failed:", error);
@@ -47,7 +50,8 @@ router.get("/admin/:id", requireAuth, (req, res) => {
 router.get("/:slug", (req, res) => {
   try {
     const item = essayModel.getDetailBySlug(req.params.slug);
-    if (!item) return res.status(404).json({ error: "Essay not found." });
+    if (!item)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "essay", slug: req.params.slug });
     res.json(item);
   } catch (error) {
     console.error("GET /essays/:slug failed:", error);
@@ -73,7 +77,8 @@ router.post("/", requireAuth, (req, res) => {
 router.put("/:id", requireAuth, (req, res) => {
   try {
     const updated = essayModel.updateComposite(Number(req.params.id), req.body);
-    if (!updated) return res.status(404).json({ error: "Essay not found." });
+    if (!updated)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "essay", id: req.params.id });
     res.json(updated);
   } catch (error) {
     console.error("PUT /essays/:id failed:", error);
@@ -85,7 +90,8 @@ router.put("/:id", requireAuth, (req, res) => {
 router.delete("/:id", requireAuth, (req, res) => {
   try {
     const removed = essayModel.remove(Number(req.params.id));
-    if (!removed) return res.status(404).json({ error: "Essay not found." });
+    if (!removed)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "essay", id: req.params.id });
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /essays/:id failed:", error);

@@ -4,6 +4,8 @@
 const express = require("express");
 const challengeModel = require("../models/academic-challenges.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -25,7 +27,8 @@ router.get("/", (req, res) => {
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {
     const item = challengeModel.getAdminById(Number(req.params.id));
-    if (!item) return res.status(404).json({ error: "Challenge not found." });
+    if (!item)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "academic challenge", id: req.params.id });
     res.json(item);
   } catch (error) {
     console.error("GET /academic-challenges/admin/:id failed:", error);
@@ -37,7 +40,8 @@ router.get("/admin/:id", requireAuth, (req, res) => {
 router.get("/:slug", (req, res) => {
   try {
     const item = challengeModel.getDetailBySlug(req.params.slug);
-    if (!item) return res.status(404).json({ error: "Challenge not found." });
+    if (!item)
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "academic challenge", slug: req.params.slug });
     res.json(item);
   } catch (error) {
     console.error("GET /academic-challenges/:slug failed:", error);
@@ -64,7 +68,7 @@ router.put("/:id", requireAuth, (req, res) => {
   try {
     const updated = challengeModel.update(Number(req.params.id), req.body);
     if (!updated)
-      return res.status(404).json({ error: "Challenge not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "academic challenge", id: req.params.id });
     res.json(updated);
   } catch (error) {
     console.error("PUT /academic-challenges/:id failed:", error);
@@ -77,7 +81,7 @@ router.delete("/:id", requireAuth, (req, res) => {
   try {
     const removed = challengeModel.remove(Number(req.params.id));
     if (!removed)
-      return res.status(404).json({ error: "Challenge not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "academic challenge", id: req.params.id });
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /academic-challenges/:id failed:", error);
