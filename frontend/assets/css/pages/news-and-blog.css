@@ -1,6 +1,6 @@
 /* ==========================================================================
-   News & Blog Landing
-   Latest-5 + latest-3 preview layout with clickable section headings.
+   News & Blog Landing + Feed Pages
+   Shared row layout for the landing page preview and both endless-feed pages.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -43,7 +43,7 @@
 }
 
 /* -------------------------------------------------------------------------
-   List
+   List container
    ------------------------------------------------------------------------- */
 
 .news-blog-list {
@@ -53,7 +53,7 @@
 }
 
 /* -------------------------------------------------------------------------
-   Row (thumbnail + text)
+   Row (the core layout: thumbnail + text body)
    ------------------------------------------------------------------------- */
 
 .news-blog-row {
@@ -78,14 +78,10 @@
 
 .news-blog-row:hover {
   background-color: var(--bg-surface-alt);
-  margin: 0 calc(-1 * var(--space-sm));
-  padding-left: var(--space-sm);
-  padding-right: var(--space-sm);
-  border-radius: var(--radius-sm);
 }
 
 /* -------------------------------------------------------------------------
-   Thumbnail
+   Thumbnail (80x80px square)
    ------------------------------------------------------------------------- */
 
 .news-blog-row-thumb {
@@ -102,7 +98,7 @@
 }
 
 /* -------------------------------------------------------------------------
-   Text body
+   Text body (title, meta, excerpt)
    ------------------------------------------------------------------------- */
 
 .news-blog-row-body {
@@ -121,11 +117,33 @@
 .news-blog-row-meta {
   font-size: var(--text-xs);
   color: var(--text-muted);
-  margin-bottom: var(--space-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .news-blog-row-excerpt {
   font-size: var(--text-small);
   color: var(--text-secondary);
   line-height: var(--leading-small);
+  margin-top: var(--space-xs);
+}
+
+/* -------------------------------------------------------------------------
+   Breadcrumb (back to landing page)
+   ------------------------------------------------------------------------- */
+
+.news-blog-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-bottom: var(--space-lg);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.news-blog-back-link:hover {
+  color: var(--link-hover);
 }
