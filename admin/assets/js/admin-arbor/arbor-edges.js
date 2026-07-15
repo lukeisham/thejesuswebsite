@@ -29,6 +29,72 @@ let pendingKeySource = null;
 /** Allowable relationship types (mirrors the CHECK constraint in schema.sql). */
 const VALID_TYPES = ["root", "supports", "leads_to", "related"];
 
+/* ── Edge path computation (shared with frontend — keep byte-identical) ─────── */
+
+/**
+ * Vertical gap the path extends below source / above target before turning.
+ */
+const EDGE_PATH_GAP = 20;
+
+/**
+ * Horizontal offset per parallel edge on the same source→target pair (px).
+ */
+const EDGE_PARALLEL_OFFSET = 12;
+
+/**
+ * Compute an SVG path `d` string for an orthogonal edge route with rounded
+ * corners.  Edges sharing the same (source, target) pair are offset
+ * horizontally so they run parallel instead of overlapping.
+ *
+ * Anchor points:
+ *   source → centre-bottom of source node
+ *   target → centre-top of target node
+ *
+ * Route shape:
+ *   source ↓ gap → horizontal → ↑ gap → target
+ *   (flipped when target is above source)
+ *
+ * @param {number} sx  - source centre-x (diagram coords)
+ * @param {number} sy  - source bottom-y
+ * @param {number} tx  - target centre-x
+ * @param {number} ty  - target top-y
+ * @param {number} offsetIndex - 0 for first edge, 1,2,… for parallel edges
+ * @returns {string} SVG path `d` attribute
+ */
+function computeEdgePath(sx, sy, tx, ty, offsetIndex) {
+  // Alternate offset direction: 0=straight, 1=+right, 2=-left, 3=+2×right, …
+  var dir = offsetIndex % 2 === 0 ? -1 : 1;
+  var mag = Math.ceil(offsetIndex / 2);
+  var offset = dir * mag * EDGE_PARALLEL_OFFSET;
+
+  // If nodes are vertically aligned, draw straight
+  if (Math.abs(sx - tx) < 5) {
+    if (offsetIndex === 0) {
+      return "M " + sx + " " + sy + " L " + tx + " " + ty;
+    }
+    // Vertical with offset: slight dog-leg
+    var midY = (sy + ty) / 2;
+    return (
+      "M " + sx + " " + sy +
+      " L " + (sx + offset) + " " + midY +
+      " L " + (tx + offset) + " " + midY +
+      " L " + tx + " " + ty
+    );
+  }
+
+  // Target below source: route down → across → down
+  // Target above source: route up → across → up
+  var gap = ty > sy ? EDGE_PATH_GAP : -EDGE_PATH_GAP;
+
+  return (
+    "M " + sx + " " + sy +
+    " L " + sx + " " + (sy + gap) +
+    " L " + (tx + offset) + " " + (sy + gap) +
+    " L " + (tx + offset) + " " + (ty - gap) +
+    " L " + tx + " " + ty
+  );
+}
+
 /* ── Pure validation helpers ───────────────────────────────────────────────── */
 
 /**
@@ -121,13 +187,26 @@ Edges.renderEdges = function () {
     existing[i].remove();
   }
 
+  // Count parallel edges per (source_id, target_id) pair for offsetIndex
+  var pairCounts = {};
   for (var j = 0; j < edges.length; j++) {
-    var edge = edges[j];
+    var e = edges[j];
+    var key = e.source_id + "-" + e.target_id;
+    pairCounts[key] = (pairCounts[key] || 0) + 1;
+  }
+  var pairIndex = {};
+
+  for (var k = 0; k < edges.length; k++) {
+    var edge = edges[k];
     var sourceNode = window.AdminArborNodes.getNodeById(edge.source_id);
     var targetNode = window.AdminArborNodes.getNodeById(edge.target_id);
     if (!sourceNode || !targetNode) continue;
 
-    var el = Edges.createEdgeElement(edge, sourceNode, targetNode);
+    var pairKey = edge.source_id + "-" + edge.target_id;
+    if (!(pairKey in pairIndex)) pairIndex[pairKey] = 0;
+    var offsetIdx = pairIndex[pairKey]++;
+
+    var el = Edges.createEdgeElement(edge, sourceNode, targetNode, offsetIdx);
     group.appendChild(el);
   }
 };
@@ -140,7 +219,7 @@ Edges.renderEdges = function () {
  * @param {Object} targetNode
  * @returns {SVGGElement}
  */
-Edges.createEdgeElement = function (edge, sourceNode, targetNode) {
+Edges.createEdgeElement = function (edge, sourceNode, targetNode, offsetIndex) {
   var ns = "http://www.w3.org/2000/svg";
   var g = document.createElementNS(ns, "g");
   g.setAttribute("class", "admin-arbor-edge-group");
@@ -148,18 +227,16 @@ Edges.createEdgeElement = function (edge, sourceNode, targetNode) {
   g.style.cursor = "pointer";
 
   // Edge anchors: centre-bottom of source → centre-top of target.
-  var x1 = (sourceNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
-  var y1 = (sourceNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT;
-  var x2 = (targetNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
-  var y2 = targetNode.arbor_y || 0;
+  var sx = (sourceNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
+  var sy = (sourceNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT;
+  var tx = (targetNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
+  var ty = targetNode.arbor_y || 0;
 
-  var line = window.AdminArborCanvas.createEdgeLine(
-    x1,
-    y1,
-    x2,
-    y2,
-    "admin-arbor-edge",
-  );
+  var d = computeEdgePath(sx, sy, tx, ty, offsetIndex || 0);
+
+  var path = document.createElementNS(ns, "path");
+  path.setAttribute("d", d);
+  path.setAttribute("class", "admin-arbor-edge");
 
   // Per-relationship_type styling matching the public page (via shared geometry)
   var style =
@@ -167,14 +244,14 @@ Edges.createEdgeElement = function (edge, sourceNode, targetNode) {
     window.AdminArborGeometry.EDGE_STYLES.default;
   for (var attr in style) {
     if (style.hasOwnProperty(attr)) {
-      line.setAttribute(attr, style[attr]);
+      path.setAttribute(attr, style[attr]);
     }
   }
-  g.appendChild(line);
+  g.appendChild(path);
 
   // Relationship type label at midpoint
-  var mx = (x1 + x2) / 2;
-  var my = (y1 + y2) / 2;
+  var mx = (sx + tx) / 2;
+  var my = (sy + ty) / 2;
   var typeLabel = window.AdminArborCanvas.createNodeLabel(
     mx,
     my - 6,
@@ -318,6 +395,26 @@ Edges.onEdgeDragMove = function (e) {
 
   edgeDrag.tempLine.setAttribute("x2", String(diag.x));
   edgeDrag.tempLine.setAttribute("y2", String(diag.y));
+
+  // Snap feedback: highlight target node when hovering over it
+  var targetEl = document.elementFromPoint(e.clientX, e.clientY);
+  var targetGroup = targetEl ? targetEl.closest(".admin-arbor-node-group") : null;
+
+  // Clear previous highlight
+  if (edgeDrag._highlightedEl && edgeDrag._highlightedEl !== targetGroup) {
+    edgeDrag._highlightedEl.classList.remove("admin-arbor-node--connect-target");
+    edgeDrag._highlightedEl = null;
+    edgeDrag.tempLine.classList.remove("admin-arbor-edge-temp--snap");
+  }
+
+  if (targetGroup) {
+    var targetId = Number(targetGroup.getAttribute("data-node-id"));
+    if (targetId && targetId !== edgeDrag.sourceNode.id) {
+      targetGroup.classList.add("admin-arbor-node--connect-target");
+      edgeDrag.tempLine.classList.add("admin-arbor-edge-temp--snap");
+      edgeDrag._highlightedEl = targetGroup;
+    }
+  }
 };
 
 /**
@@ -331,10 +428,14 @@ Edges.onEdgeDragUp = async function (e) {
 
   if (!edgeDrag) return;
 
-  // Remove the temporary line
+  // Remove the temporary line and clear any snap highlight
   if (edgeDrag.tempLine && edgeDrag.tempLine.parentNode) {
     edgeDrag.tempLine.parentNode.removeChild(edgeDrag.tempLine);
     edgeDrag.tempLine = null;
+  }
+  if (edgeDrag._highlightedEl) {
+    edgeDrag._highlightedEl.classList.remove("admin-arbor-node--connect-target");
+    edgeDrag._highlightedEl = null;
   }
 
   // Find which node the cursor ended on, if any
@@ -484,17 +585,26 @@ Edges.onKeyboardConnectEscape = function (e) {
  */
 Edges.repositionEdgesForNode = function (nodeId, newX, newY) {
   var edgeGroups = document.querySelectorAll(".admin-arbor-edge-group");
-  for (var i = 0; i < edgeGroups.length; i++) {
-    var g = edgeGroups[i];
-    var line = g.querySelector("line");
+  // Recompute pair counts for offset recalculation
+  var pairCounts = {};
+  for (var i = 0; i < edges.length; i++) {
+    var e = edges[i];
+    var key = e.source_id + "-" + e.target_id;
+    pairCounts[key] = (pairCounts[key] || 0) + 1;
+  }
+  var pairIndex = {};
+
+  for (var j = 0; j < edgeGroups.length; j++) {
+    var g = edgeGroups[j];
+    var path = g.querySelector("path");
     var typeLabel = g.querySelector("text");
-    if (!line) continue;
+    if (!path) continue;
 
     var edgeId = Number(g.getAttribute("data-edge-id"));
     var edge = null;
-    for (var j = 0; j < edges.length; j++) {
-      if (edges[j].id === edgeId) {
-        edge = edges[j];
+    for (var k = 0; k < edges.length; k++) {
+      if (edges[k].id === edgeId) {
+        edge = edges[k];
         break;
       }
     }
@@ -503,36 +613,41 @@ Edges.repositionEdgesForNode = function (nodeId, newX, newY) {
     var sourceNode = window.AdminArborNodes.getNodeById(edge.source_id);
     var targetNode = window.AdminArborNodes.getNodeById(edge.target_id);
 
-    var x1 = sourceNode
+    var sx = sourceNode
       ? (sourceNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2
-      : Number(line.getAttribute("x1"));
-    var y1 = sourceNode
+      : null;
+    var sy = sourceNode
       ? (sourceNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT
-      : Number(line.getAttribute("y1"));
-    var x2 = targetNode
+      : null;
+    var tx = targetNode
       ? (targetNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2
-      : Number(line.getAttribute("x2"));
-    var y2 = targetNode
+      : null;
+    var ty = targetNode
       ? targetNode.arbor_y || 0
-      : Number(line.getAttribute("y2"));
+      : null;
 
     if (edge.source_id === nodeId) {
-      x1 = newX;
-      y1 = newY;
+      sx = newX;
+      sy = newY;
     }
     if (edge.target_id === nodeId) {
-      x2 = newX;
-      y2 = newY;
+      tx = newX;
+      ty = newY;
     }
 
-    line.setAttribute("x1", String(x1));
-    line.setAttribute("y1", String(y1));
-    line.setAttribute("x2", String(x2));
-    line.setAttribute("y2", String(y2));
+    if (sx == null || sy == null || tx == null || ty == null) continue;
+
+    // Recompute offset index
+    var pairKey = edge.source_id + "-" + edge.target_id;
+    if (!(pairKey in pairIndex)) pairIndex[pairKey] = 0;
+    var offsetIdx = pairIndex[pairKey]++;
+
+    var d = computeEdgePath(sx, sy, tx, ty, offsetIdx);
+    path.setAttribute("d", d);
 
     if (typeLabel) {
-      typeLabel.setAttribute("x", String((x1 + x2) / 2));
-      typeLabel.setAttribute("y", String((y1 + y2) / 2 - 6));
+      typeLabel.setAttribute("x", String((sx + tx) / 2));
+      typeLabel.setAttribute("y", String((sy + ty) / 2 - 6));
     }
   }
 };

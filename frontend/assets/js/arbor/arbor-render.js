@@ -23,6 +23,72 @@ import {
   nodeClassModifier,
 } from "./arbor-geometry.js";
 
+// ─── Edge path computation (shared with admin — keep byte-identical) ───────────
+
+/**
+ * Vertical gap the path extends below source / above target before turning.
+ */
+const EDGE_PATH_GAP = 20;
+
+/**
+ * Horizontal offset per parallel edge on the same source→target pair (px).
+ */
+const EDGE_PARALLEL_OFFSET = 12;
+
+/**
+ * Compute an SVG path `d` string for an orthogonal edge route with rounded
+ * corners.  Edges sharing the same (source, target) pair are offset
+ * horizontally so they run parallel instead of overlapping.
+ *
+ * Anchor points:
+ *   source → centre-bottom of source node
+ *   target → centre-top of target node
+ *
+ * Route shape:
+ *   source ↓ gap → horizontal → ↑ gap → target
+ *   (flipped when target is above source)
+ *
+ * @param {number} sx  - source centre-x (diagram coords)
+ * @param {number} sy  - source bottom-y
+ * @param {number} tx  - target centre-x
+ * @param {number} ty  - target top-y
+ * @param {number} offsetIndex - 0 for first edge, 1,2,… for parallel edges
+ * @returns {string} SVG path `d` attribute
+ */
+function computeEdgePath(sx, sy, tx, ty, offsetIndex) {
+  // Alternate offset direction: 0=straight, 1=+right, 2=-left, 3=+2×right, …
+  var dir = offsetIndex % 2 === 0 ? -1 : 1;
+  var mag = Math.ceil(offsetIndex / 2);
+  var offset = dir * mag * EDGE_PARALLEL_OFFSET;
+
+  // If nodes are vertically aligned, draw straight
+  if (Math.abs(sx - tx) < 5) {
+    if (offsetIndex === 0) {
+      return "M " + sx + " " + sy + " L " + tx + " " + ty;
+    }
+    // Vertical with offset: slight dog-leg
+    var midY = (sy + ty) / 2;
+    return (
+      "M " + sx + " " + sy +
+      " L " + (sx + offset) + " " + midY +
+      " L " + (tx + offset) + " " + midY +
+      " L " + tx + " " + ty
+    );
+  }
+
+  // Target below source: route down → across → down
+  // Target above source: route up → across → up
+  var gap = ty > sy ? EDGE_PATH_GAP : -EDGE_PATH_GAP;
+
+  return (
+    "M " + sx + " " + sy +
+    " L " + sx + " " + (sy + gap) +
+    " L " + (tx + offset) + " " + (sy + gap) +
+    " L " + (tx + offset) + " " + (ty - gap) +
+    " L " + tx + " " + ty
+  );
+}
+
 // ─── Configuration ────────────────────────────────────────────────────────────
 // Node dimensions, spacing, and margins are imported from arbor-geometry.js
 // so the admin editor renders with the same values.
@@ -331,6 +397,16 @@ export function renderArbor(nodes, edges) {
       ? Math.min(window.innerWidth - 2 * 16, 400)
       : NODE_WIDTH;
 
+    // Count parallel edges per (sourceId, targetId) for offsetIndex
+    const pairCounts = new Map();
+    for (const [sourceId, targets] of adjacency) {
+      for (const { targetId } of targets) {
+        const key = sourceId + "-" + targetId;
+        pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
+      }
+    }
+    const pairIndex = new Map();
+
     for (const [sourceId, targets] of adjacency) {
       const sourcePos = nodePositions.get(sourceId);
       if (!sourcePos) continue;
@@ -339,27 +415,31 @@ export function renderArbor(nodes, edges) {
         const targetPos = nodePositions.get(targetId);
         if (!targetPos) continue;
 
-        const x1 = sourcePos.x + drawNodeWidth / 2;
-        const y1 = sourcePos.y + NODE_HEIGHT;
-        const x2 = targetPos.x + drawNodeWidth / 2;
-        const y2 = targetPos.y;
+        const sx = sourcePos.x + drawNodeWidth / 2;
+        const sy = sourcePos.y + NODE_HEIGHT;
+        const tx = targetPos.x + drawNodeWidth / 2;
+        const ty = targetPos.y;
 
-        const line = document.createElementNS(
+        const pairKey = sourceId + "-" + targetId;
+        if (!pairIndex.has(pairKey)) pairIndex.set(pairKey, 0);
+        const offsetIdx = pairIndex.get(pairKey);
+        pairIndex.set(pairKey, offsetIdx + 1);
+
+        const d = computeEdgePath(sx, sy, tx, ty, offsetIdx);
+
+        const path = document.createElementNS(
           "http://www.w3.org/2000/svg",
-          "line",
+          "path",
         );
-        line.setAttribute("x1", String(x1));
-        line.setAttribute("y1", String(y1));
-        line.setAttribute("x2", String(x2));
-        line.setAttribute("y2", String(y2));
+        path.setAttribute("d", d);
 
         // Style by relationship type
         const style = EDGE_STYLES[relationshipType] || EDGE_STYLES.default;
         for (const [attr, value] of Object.entries(style)) {
-          line.setAttribute(attr, value);
+          path.setAttribute(attr, value);
         }
 
-        svgEl.appendChild(line);
+        svgEl.appendChild(path);
       }
     }
 
