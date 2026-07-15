@@ -1,6 +1,6 @@
 /**
- * News list page: fetch paginated news articles, render cards with thumbnails,
- * external links, author/publisher display, and infinite scroll.
+ * News list page: fetch paginated news articles, render cards with side-by-side
+ * thumbnails, external links, author/publisher display, and infinite scroll.
  *
  * @module news-list
  */
@@ -31,7 +31,7 @@ let allItems = [];
 let observer = null;
 let retryTeardown = null;
 
-// ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// ─── DOM refs (JS-6: cached queries, never re-queried) ────────────────────────
 
 const $grid = document.getElementById(CARD_GRID_ID);
 const $sentinel = document.getElementById(SENTINEL_ID);
@@ -41,7 +41,7 @@ const $error = document.getElementById(ERROR_ID);
 const $end = document.getElementById(END_ID);
 const $retry = document.getElementById(RETRY_ID);
 
-// ─── State management ────────────────────────────────────────────────────────
+// ─── State management (JS-2: defensive null checks) ───────────────────────────
 
 function showState(name) {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
@@ -54,16 +54,16 @@ function hideAllStates() {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers (JS-2: validates input before processing) ────────────────────────
 
 function buildNewsDescription(article) {
   const parts = [];
   if (article.news_article_author) parts.push(`By ${article.news_article_author}`);
   if (article.news_article_publisher) parts.push(`in ${article.news_article_publisher}`);
-  return parts.length ? parts.join(' · ') : '';
+  return parts.length ? parts.join(' \u00b7 ') : '';
 }
 
-// ─── Data fetching ───────────────────────────────────────────────────────────
+// ─── Data fetching (JS-5: async/await + centralized fetch via api.js) ──────────
 
 async function loadPage() {
   if (isLoading || !hasMore) return;
@@ -93,7 +93,7 @@ async function loadPage() {
     return;
   }
 
-  // Normalise raw DB column names
+  // Normalise raw DB column names to the shape expected by renderCard
   const normalized = data.map((article) => ({
     ...article,
     title: article.news_article_title,
@@ -133,7 +133,7 @@ async function loadPage() {
   }
 }
 
-// ─── Rendering ───────────────────────────────────────────────────────────────
+// ─── Rendering (JS-6: textContent for user data, SafeString via renderCard) ───
 
 function renderCards(items) {
   if (!$grid) return;
@@ -144,6 +144,7 @@ function renderCards(items) {
       : '';
     const url = item.external_url || `/news-and-blog/news/${encodeURIComponent(item.slug || '')}`;
 
+    // (JS-6) renderCard uses SafeString — all values are escaped
     const cardHTML = renderCard({
       title: item.title || 'Untitled',
       description: item.description || '',
@@ -157,28 +158,16 @@ function renderCards(items) {
 
     if (!cardEl) return;
 
-    // Open external URL in new tab
+    // News cards: open external URL in new tab (JS-6: setAttribute, not HTML)
     if (item.external_url && cardEl.tagName === 'A') {
       cardEl.setAttribute('target', '_blank');
       cardEl.setAttribute('rel', 'noopener noreferrer');
     }
 
-    // Thumbnail
-    if (item.thumbnail) {
-      const img = document.createElement('img');
-      img.className = 'news-card-thumbnail';
-      img.src = item.thumbnail;
-      img.alt = '';
-      img.loading = 'lazy';
-      cardEl.insertBefore(img, cardEl.firstChild);
-    } else {
-      const placeholder = document.createElement('div');
-      placeholder.className = 'news-card-thumbnail news-card-thumbnail--empty';
-      placeholder.setAttribute('aria-hidden', 'true');
-      cardEl.insertBefore(placeholder, cardEl.firstChild);
-    }
+    // Side-by-side row: thumbnail on left, title + description on right
+    restructureNewsCard(cardEl, item);
 
-    // Date meta
+    // Date meta (JS-6: textContent, not innerHTML)
     if (date) {
       const meta = document.createElement('p');
       meta.className = 'news-blog-card-meta';
@@ -190,7 +179,46 @@ function renderCards(items) {
   });
 }
 
-// ─── Infinite scroll ─────────────────────────────────────────────────────────
+// ─── News card side-by-side layout (HTML-2: thumbnail alt="") ──────────────────
+
+function restructureNewsCard(cardEl, item) {
+  const thumb = item.thumbnail
+    ? buildThumbnailImg(item.thumbnail)
+    : buildEmptyThumbnail();
+
+  const titleEl = cardEl.querySelector('.card-title');
+  const descEl = cardEl.querySelector('.card-description');
+
+  const body = document.createElement('div');
+  body.className = 'news-card-body';
+  if (titleEl) body.appendChild(titleEl);
+  if (descEl) body.appendChild(descEl);
+
+  const row = document.createElement('div');
+  row.className = 'news-card-row';
+  row.appendChild(thumb);
+  row.appendChild(body);
+
+  cardEl.insertBefore(row, cardEl.firstChild);
+}
+
+function buildThumbnailImg(path) {
+  const img = document.createElement('img');
+  img.className = 'news-card-thumbnail';
+  img.src = path;
+  img.alt = '';
+  img.loading = 'lazy';
+  return img;
+}
+
+function buildEmptyThumbnail() {
+  const placeholder = document.createElement('div');
+  placeholder.className = 'news-card-thumbnail news-card-thumbnail--empty';
+  placeholder.setAttribute('aria-hidden', 'true');
+  return placeholder;
+}
+
+// ─── Infinite scroll (JS-6: IntersectionObserver) ─────────────────────────────
 
 function initInfiniteScroll() {
   if (!$sentinel) return;
@@ -209,7 +237,7 @@ function initInfiniteScroll() {
   observer.observe($sentinel);
 }
 
-// ─── SessionStorage caching ──────────────────────────────────────────────────
+// ─── SessionStorage caching (JS-2: try/catch for quota errors) ────────────────
 
 function cacheItems() {
   try {
@@ -252,7 +280,7 @@ function restoreScrollPosition() {
   } catch { /* ignore */ }
 }
 
-// ─── Event wiring ────────────────────────────────────────────────────────────
+// ─── Event wiring (JS-6: delegation + teardown) ───────────────────────────────
 
 function bindRetry() {
   if (!$retry) return;
@@ -269,7 +297,7 @@ function bindRetry() {
   });
 }
 
-// ─── Initialisation ──────────────────────────────────────────────────────────
+// ─── Initialisation ───────────────────────────────────────────────────────────
 
 function init() {
   bindRetry();
