@@ -1,6 +1,6 @@
 /**
  * News list page: fetch paginated news articles, render row-based cards
- * with thumbnail, title, meta (author · publisher · date), and infinite scroll.
+ * with thumbnail, title, meta (Author · Publisher · Date), and infinite scroll.
  * Items open the external article URL in a new tab. (JS-5, JS-6)
  *
  * @module news-list
@@ -69,14 +69,46 @@ function formatDate(dateStr) {
   }
 }
 
+/**
+ * Build structured meta parts for a news article.
+ * Publisher is flagged italic so the DOM builder wraps it in <em>.
+ */
 function buildMeta(article) {
   const parts = [];
-  if (article.news_article_author) parts.push(article.news_article_author);
-  if (article.news_article_publisher) parts.push(article.news_article_publisher);
-  if (article.news_article_date || article.created_at) {
-    parts.push(formatDate(article.news_article_date || article.created_at));
+  if (article.news_article_author) {
+    parts.push({ text: article.news_article_author });
   }
-  return parts.join(' \u00b7 ');
+  if (article.news_article_publisher) {
+    parts.push({ text: article.news_article_publisher, italic: true });
+  }
+  if (article.news_article_date || article.created_at) {
+    parts.push({ text: formatDate(article.news_article_date || article.created_at) });
+  }
+  return parts;
+}
+
+/**
+ * Build a .news-blog-row-meta <p> from structured parts.
+ * Each part: { text, italic? }. Italic parts get <em> wrapping.
+ * Separator " · " is plain text nodes between parts. (JS-6: DOM, not innerHTML)
+ */
+function buildMetaElement(parts) {
+  if (!parts || !parts.length) return null;
+  const p = document.createElement('p');
+  p.className = 'news-blog-row-meta';
+  parts.forEach((part, i) => {
+    if (i > 0) {
+      p.appendChild(document.createTextNode(' \u00b7 '));
+    }
+    if (part.italic) {
+      const em = document.createElement('em');
+      em.textContent = part.text;
+      p.appendChild(em);
+    } else {
+      p.appendChild(document.createTextNode(part.text));
+    }
+  });
+  return p;
 }
 
 // ─── Data fetching (JS-5: async/await, centralized fetch) ─────────────────────
@@ -139,7 +171,7 @@ async function loadPage() {
   }
 }
 
-// ─── Rendering (JS-6: textContent for user data) ──────────────────────────────
+// ─── Rendering (JS-6: DOM construction, no innerHTML for user data) ───────────
 
 function renderCards(items) {
   if (!$grid) return;
@@ -178,13 +210,8 @@ function renderCards(items) {
     titleEl.textContent = item.news_article_title || 'Untitled';
     body.appendChild(titleEl);
 
-    const meta = buildMeta(item);
-    if (meta) {
-      const metaEl = document.createElement('p');
-      metaEl.className = 'news-blog-row-meta';
-      metaEl.textContent = meta;
-      body.appendChild(metaEl);
-    }
+    const metaEl = buildMetaElement(buildMeta(item));
+    if (metaEl) body.appendChild(metaEl);
 
     row.appendChild(body);
     $grid.appendChild(row);
