@@ -8,6 +8,7 @@
   <script defer src="../assets/js/admin-http.js"></script>
   <script defer src="../assets/js/auth.js"></script>
   <script defer src="../assets/js/admin.js"></script>
+  <script defer src="../assets/js/admin-image-picker.js"></script>
   <style>
     .admin-loading,
     .admin-empty,
@@ -223,7 +224,7 @@
 
       var thead = document.createElement('thead');
       var hRow = document.createElement('tr');
-      ['Title', 'URL', 'Publisher', 'Date', 'Landing', 'Status', 'Actions'].forEach(function (label) {
+      ['Title', 'URL', 'Publisher', 'Date', 'Thumb', 'Landing', 'Status', 'Actions'].forEach(function (label) {
         var th = document.createElement('th');
         th.textContent = label;
         hRow.appendChild(th);
@@ -265,6 +266,18 @@
         var tdDate = document.createElement('td');
         tdDate.textContent = Admin.formatDate(a.news_article_date) || '\u2014';
         tr.appendChild(tdDate);
+
+        var tdThumb = document.createElement('td');
+        if (a.news_article_thumbnail) {
+          var thumbImg = document.createElement('img');
+          thumbImg.src = a.news_article_thumbnail;
+          thumbImg.alt = '';
+          thumbImg.style.cssText = 'width:40px;height:40px;object-fit:cover;border-radius:4px;';
+          tdThumb.appendChild(thumbImg);
+        } else {
+          tdThumb.textContent = '\u2014';
+        }
+        tr.appendChild(tdThumb);
 
         var tdLanding = document.createElement('td');
         if (a.landing_page_display) {
@@ -389,6 +402,19 @@
       modal.appendChild(field('Article URL', 'modal-url', 'url', 'https://example.com/article', articleData ? articleData.news_article_url : ''));
       modal.appendChild(field('Publisher', 'modal-publisher', 'text', 'e.g. The Times of Israel', articleData ? articleData.news_article_publisher : ''));
       modal.appendChild(field('Author', 'modal-author', 'text', 'e.g. John Smith', articleData ? articleData.news_article_author : ''));
+
+      // Thumbnail picker
+      var thumbnailGroup = document.createElement('div');
+      thumbnailGroup.className = 'admin-form-group';
+      var thumbnailLabel = document.createElement('label');
+      thumbnailLabel.className = 'admin-form-group__label';
+      thumbnailLabel.textContent = 'Thumbnail';
+      thumbnailGroup.appendChild(thumbnailLabel);
+      var thumbnailContainer = document.createElement('div');
+      thumbnailContainer.id = 'modal-thumbnail-picker';
+      thumbnailGroup.appendChild(thumbnailContainer);
+      modal.appendChild(thumbnailGroup);
+
       modal.appendChild(field('Date', 'modal-date', 'date', '', articleData ? (articleData.news_article_date ? articleData.news_article_date.slice(0, 10) : '') : ''));
       modal.appendChild(field('Keywords', 'modal-keywords', 'text', 'e.g. archaeology, jerusalem', articleData ? articleData.metadata_keywords : ''));
       modal.appendChild(checkbox('Show on Landing Page', 'modal-landing', articleData ? articleData.landing_page_display : false));
@@ -434,6 +460,9 @@
       });
       slugInput.addEventListener('input', function () { slugAuto = false; });
 
+      // Thumbnail picker instance (mounted after modal is in DOM)
+      var thumbnailPicker = null;
+
       saveBtn.addEventListener('click', async function () {
         var titleVal = titleInput.value.trim();
         var slugVal = slugInput.value.trim();
@@ -446,6 +475,7 @@
           news_article_url: document.getElementById('modal-url').value.trim() || undefined,
           news_article_publisher: document.getElementById('modal-publisher').value.trim() || undefined,
           news_article_author: document.getElementById('modal-author').value.trim() || undefined,
+          news_article_thumbnail: thumbnailPicker ? (thumbnailPicker.getValue().image_path || undefined) : undefined,
           news_article_date: document.getElementById('modal-date').value || undefined,
           metadata_keywords: document.getElementById('modal-keywords').value.trim() || undefined,
           landing_page_display: document.getElementById('modal-landing').checked ? 1 : 0,
@@ -468,6 +498,18 @@
 
       modalOverlay.appendChild(modal);
       modalOverlay.style.display = 'flex';
+
+      // Mount thumbnail picker after modal is in the DOM
+      if (typeof AdminImagePicker !== 'undefined') {
+        thumbnailPicker = AdminImagePicker.mount(
+          modal.querySelector('#modal-thumbnail-picker'),
+          {
+            initialPath: articleData ? (articleData.news_article_thumbnail || '') : '',
+            initialAlt: '',
+            onChange: function (val) { /* tracked via getValue */ },
+          }
+        );
+      }
     }
 
     function openAddModal() {
