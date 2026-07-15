@@ -29,6 +29,7 @@ let hasMore = true;
 let isLoading = false;
 let allItems = [];
 let activeType = 'all'; // 'all', 'blog', 'news'
+let heroItem = null; // item currently displayed in the hero slot
 let observer = null;
 let retryTeardown = null;
 
@@ -57,6 +58,25 @@ function hideAllStates() {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Strip HTML tags and truncate plain text to a maximum length.
+ * Used to create safe card excerpts from rich-content fields like blog_content.
+ *
+ * @param {string} html - Raw HTML content
+ * @param {number} [maxLength=200] - Maximum character length for the excerpt
+ * @returns {string} Plain text excerpt, truncated without cutting words mid-word
+ */
+function stripHtmlAndTruncate(html, maxLength = 200) {
+  if (!html || typeof html !== 'string') return '';
+  // Strip all HTML tags, collapse whitespace
+  const plain = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  if (plain.length <= maxLength) return plain;
+  // Truncate at a word boundary
+  return plain.slice(0, maxLength).replace(/\s+\S*$/, '') + '…';
+}
+
 // ─── Data fetching ───────────────────────────────────────────────────────────
 
 async function fetchAllItems() {
@@ -72,8 +92,13 @@ async function fetchAllItems() {
     blogResult.data.forEach((post) => {
       items.push({
         ...post,
+        // Normalise raw DB column names (blog_title, blog_content) to the
+        // shape expected by renderCard (title, description).
+        // blog_content is full HTML — strip tags and truncate for the card excerpt.
+        title: post.blog_title,
+        description: stripHtmlAndTruncate(post.blog_content, 200),
         _type: 'blog',
-        _date: post.published_at || post.created_at,
+        _date: post.blog_date || post.created_at,
       });
     });
   }
@@ -82,8 +107,15 @@ async function fetchAllItems() {
     newsResult.data.forEach((article) => {
       items.push({
         ...article,
+        // Normalise raw DB column names (news_article_title, etc.) to the
+        // shape expected by renderCard (title, description).
+        // News articles have no body field — use the publisher as a descriptor.
+        title: article.news_article_title,
+        description: article.news_article_publisher
+          ? `Published by ${article.news_article_publisher}`
+          : '',
         _type: 'news',
-        _date: article.published_at || article.created_at,
+        _date: article.news_article_date || article.created_at,
       });
     });
   }
@@ -119,13 +151,14 @@ async function loadPage() {
     allItems = items;
 
     // Render hero promotion card (first item with landing_page_display = 1)
-    renderHeroPromotion();
+    heroItem = renderHeroPromotion();
   }
 
-  // Filter by active type
-  const filtered = activeType === 'all'
+  // Filter by active type, excluding the hero item to avoid duplication
+  const filtered = (activeType === 'all'
     ? allItems
-    : allItems.filter((item) => item._type === activeType);
+    : allItems.filter((item) => item._type === activeType))
+    .filter((item) => !heroItem || item.slug !== heroItem.slug);
 
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(start, start + PAGE_SIZE);
@@ -165,22 +198,23 @@ async function loadPage() {
 // ─── Hero promotion ──────────────────────────────────────────────────────────
 
 function renderHeroPromotion() {
-  const heroItem = allItems.find((item) => item.landing_page_display === 1 || item.landing_page_display === true);
-  if (!heroItem || !$hero) return;
+  const hero = allItems.find((item) => item.landing_page_display === 1 || item.landing_page_display === true);
+  if (!hero || !$hero) return null;
 
-  const typeLabel = heroItem._type === 'blog' ? 'Blog' : 'News';
-  const url = heroItem._type === 'blog'
-    ? `/news-and-blog/blog/${encodeURIComponent(heroItem.slug || '')}`
-    : `/news-and-blog/news/${encodeURIComponent(heroItem.slug || '')}`;
+  const typeLabel = hero._type === 'blog' ? 'Blog' : 'News';
+  const url = hero._type === 'blog'
+    ? `/news-and-blog/blog/${encodeURIComponent(hero.slug || '')}`
+    : `/news-and-blog/news/${encodeURIComponent(hero.slug || '')}`;
 
   $hero.innerHTML = renderCard({
-    title: heroItem.title || 'Untitled',
-    description: heroItem.description || heroItem.summary || '',
+    title: hero.title || 'Untitled',
+    description: hero.description || hero.summary || '',
     url,
     badges: [typeLabel],
   });
 
   $hero.hidden = false;
+  return hero;
 }
 
 // ─── Rendering ───────────────────────────────────────────────────────────────
@@ -277,6 +311,7 @@ function bindRetry() {
     currentPage = 1;
     hasMore = true;
     allItems = [];
+    heroItem = null;
     if ($list) $list.innerHTML = '';
     if ($hero) $hero.hidden = true;
     hideAllStates();
