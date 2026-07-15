@@ -265,17 +265,16 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
         .join(" ");
       label.style.position = "absolute";
       // Centre the label horizontally over the dot.
-      label.style.left = x - 50 + "px";
+      label.style.left = "-50px";
       label.style.width = "100px";
       label.style.textAlign = "center";
-      // Position the label relative to the dot using the same stagger
-      // tier (yOffset) from cluster placement — matching the frontend's
-      // behaviour where labels sit at the same relative offset from their
-      // dot rather than in a fixed box.
+      // Label is a child of the absolutely-positioned dot, so its
+      // left/top are relative offsets from the dot’s origin, not
+      // canvas coordinates.
       if (yOffset <= 0) {
-        label.style.top = y - 22 + "px";
+        label.style.top = "-22px";
       } else {
-        label.style.top = y + 8 + "px";
+        label.style.top = "8px";
       }
       label.textContent = labelText;
       el.appendChild(label);
