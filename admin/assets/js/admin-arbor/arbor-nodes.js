@@ -177,6 +177,124 @@ Nodes.renderNodes = function () {
   }
 };
 
+/* ── Text wrapping helper ──────────────────────────────────────────────────── */
+
+// Shared offscreen canvas for measuring text width (SR-3: create once, reuse)
+let _measureCtx = null;
+
+/**
+ * Split text into lines that fit within maxWidth pixels when rendered
+ * in the node title font (Georgia 18px bold).  Uses canvas measureText
+ * when available, falls back to a char-count estimate otherwise.
+ *
+ * @param {string}  text
+ * @param {number}  maxWidth
+ * @param {number}  [maxLines=3]
+ * @returns {string[]}
+ */
+function wrapTextToWidth(text, maxWidth, maxLines) {
+  if (!text) return [];
+  maxLines = maxLines || 3;
+
+  // Estimate: Georgia at 18px ≈ 9–10 px/char.  Use 7 for safety margin
+  // so we slightly over-wrap rather than overflow.
+  var charsPerLine = Math.floor(maxWidth / 7);
+
+  // If canvas is available, use accurate measurement
+  var useCanvas = false;
+  try {
+    if (!_measureCtx) {
+      var cvs = document.createElement("canvas");
+      _measureCtx = cvs.getContext("2d");
+    }
+    if (_measureCtx) {
+      _measureCtx.font = "600 18px Georgia, serif";
+      useCanvas = true;
+    }
+  } catch (_) { /* canvas unavailable — use char estimate */ }
+
+  var words = text.split(" ");
+  var lines = [];
+  var current = "";
+
+  for (var w = 0; w < words.length; w++) {
+    var word = words[w];
+    var test = current ? current + " " + word : word;
+
+    var testWidth;
+    if (useCanvas) {
+      testWidth = _measureCtx.measureText(test).width;
+    } else {
+      testWidth = test.length;
+      // Convert char count to estimated px (each char ≈ 9px average)
+      testWidth = testWidth * 9;
+    }
+
+    if (testWidth > maxWidth && current) {
+      lines.push(current);
+      if (lines.length >= maxLines) break;
+      current = word;
+    } else {
+      current = test;
+    }
+  }
+
+  if (current && lines.length < maxLines) {
+    lines.push(current);
+  }
+
+  // If a single word is too long for one line, break by character
+  // instead of leaving it to overflow.
+  for (var i = 0; i < lines.length; i++) {
+    var lineWidth;
+    if (useCanvas) {
+      lineWidth = _measureCtx.measureText(lines[i]).width;
+    } else {
+      lineWidth = lines[i].length * 9;
+    }
+    if (lineWidth > maxWidth && lines[i].indexOf(" ") === -1) {
+      // Single long word — character-level split
+      var longWord = lines[i];
+      var chars = [];
+      var chunk = "";
+      for (var c = 0; c < longWord.length; c++) {
+        var next = chunk + longWord[c];
+        var nextWidth;
+        if (useCanvas) {
+          nextWidth = _measureCtx.measureText(next).width;
+        } else {
+          nextWidth = next.length * 9;
+        }
+        if (nextWidth > maxWidth && chunk) {
+          chars.push(chunk);
+          chunk = longWord[c];
+        } else {
+          chunk = next;
+        }
+      }
+      if (chunk) chars.push(chunk);
+      // Splice in the character-chunks, respecting maxLines
+      lines.splice(i, 1);
+      for (var ci = 0; ci < chars.length && lines.length < maxLines; ci++) {
+        lines.splice(i + ci, 0, chars[ci]);
+      }
+      break;
+    }
+  }
+
+  // Truncate final line if it still overflows after splitting
+  if (lines.length >= maxLines) {
+    var last = lines[maxLines - 1];
+    // Conservative truncation: cut to charsPerLine and append ellipsis
+    if (last.length > charsPerLine + 2) {
+      lines[maxLines - 1] = last.slice(0, charsPerLine - 1) + "\u2026";
+    }
+    lines = lines.slice(0, maxLines);
+  }
+
+  return lines.length ? lines : [text.slice(0, charsPerLine)];
+}
+
 /**
  * Create the SVG element group for a single node.
  * Renders a public-style rounded-rect with title + verse.
@@ -235,22 +353,34 @@ Nodes.createNodeElement = function (node) {
   rect.setAttribute("class", nodeClass);
   g.appendChild(rect);
 
-  // Title text (bold, primary)
-  let titleText = node.title || "";
+  // Title text — wrapped across multiple <tspan> lines so long titles
+  // fit inside the 200px-wide node instead of overflowing the rect.
+  var titleText = node.title || "";
   if (titleText.length > 28) titleText = titleText.slice(0, 26) + "\u2026";
-  const titleEl = document.createElementNS(ns, "text");
-  titleEl.setAttribute("x", String(x + NODE_WIDTH / 2));
-  titleEl.setAttribute("y", String(y + 20));
+  var maxTextWidth = NODE_WIDTH - 16; // 8px padding each side
+  var titleLines = wrapTextToWidth(titleText, maxTextWidth, 3);
+
+  var titleEl = document.createElementNS(ns, "text");
   titleEl.setAttribute("class", "admin-arbor-node-title");
-  titleEl.textContent = titleText;
+  // x is set per-tspan for centering; y is the baseline of the first line
+  titleEl.setAttribute("y", String(y + 20));
+
+  for (var tl = 0; tl < titleLines.length; tl++) {
+    var tspan = document.createElementNS(ns, "tspan");
+    tspan.setAttribute("x", String(x + NODE_WIDTH / 2));
+    if (tl > 0) tspan.setAttribute("dy", "1.3em");
+    tspan.textContent = titleLines[tl];
+    titleEl.appendChild(tspan);
+  }
   g.appendChild(titleEl);
 
-  // Verse text (italic, muted)
-  const verseText = node.primary_verse || "";
+  // Verse text (italic, muted) — positioned below the last title line
+  var verseText = node.primary_verse || "";
   if (verseText) {
-    const verseEl = document.createElementNS(ns, "text");
+    var verseY = y + 20 + titleLines.length * 22;
+    var verseEl = document.createElementNS(ns, "text");
     verseEl.setAttribute("x", String(x + NODE_WIDTH / 2));
-    verseEl.setAttribute("y", String(y + 40));
+    verseEl.setAttribute("y", String(verseY));
     verseEl.setAttribute("class", "admin-arbor-node-verse");
     verseEl.textContent = verseText;
     g.appendChild(verseEl);
