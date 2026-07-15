@@ -30,7 +30,7 @@ import {
   LABEL_TRUNCATED,
   LABEL_HIDDEN,
 } from "./timeline-cluster-labels.js";
-import { periodX, periodY, STAGGER_OFFSETS } from "./timeline-geometry.js";
+import { periodX, periodY } from "./timeline-geometry.js";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -80,17 +80,6 @@ export function isVerticalMode() {
     window.matchMedia(MOBILE_QUERY).matches
   );
 }
-
-/**
- * Stagger tiers for events sharing the same period, ordered by increasing
- * distance from the spine (alternating each side). Reused as: (a) the
- * per-cluster starting tier for events in the same period, and (b) the
- * escalation ladder labels are pushed along when their bounding boxes
- * collide with an already-placed neighbour.
- *
- * Imported from ./timeline-geometry.js.
- */
-// STAGGER_OFFSETS is imported from ./timeline-geometry.js.
 
 // ─── Cached references (SR-3) ─────────────────────────────────────────────────
 
@@ -190,6 +179,59 @@ function labelPosition(yOffset) {
  */
 function labelSide(xOffset) {
   return xOffset <= 0 ? "left" : "right";
+}
+
+/**
+ * Clearance constants for label positioning relative to dots (Phase 1).
+ * LABEL_CLEARANCE_PCT: percentage offset from dot's top in horizontal mode.
+ *   10% gives ~60px at typical 600px timeline height — enough for two-line
+ *   wrapped labels (title + meta) plus a readable gap.
+ * LABEL_CLEARANCE_PX: pixel offset from spine in vertical (mobile) mode.
+ *   48px gives room for a 100px-wide label centred at 50% + offset.
+ */
+const LABEL_CLEARANCE_PCT = 10;
+const LABEL_CLEARANCE_PX = 48;
+
+/**
+ * Step size per collision-escalation tier (Phase 2).
+ * TIER_STEP_PCT = 12% — larger than clearance so each escalation
+ * meaningfully separates colliding labels.
+ * TIER_STEP_PX = 40px for vertical mode.
+ */
+const TIER_STEP_PCT = 12;
+const TIER_STEP_PX = 40;
+
+/**
+ * Compute the inline style string for a horizontal-mode label.
+ * Offsets the label above or below its dot with clearance, preserving
+ * the dot's jittered yOffset so labels follow their cluster placement.
+ *
+ * @param {number} finalX  - dot's pixel x position
+ * @param {number} yOffset - dot's cluster-jittered y offset
+ * @returns {string} inline style value
+ */
+function labelStyleHorizontal(finalX, yOffset) {
+  var dotTop = 50 + yOffset / 2;
+  var labelTop = yOffset <= 0
+    ? dotTop - LABEL_CLEARANCE_PCT
+    : dotTop + LABEL_CLEARANCE_PCT;
+  return "left:" + finalX + "px;top:" + labelTop + "%";
+}
+
+/**
+ * Compute the inline style string for a vertical-mode label.
+ * Offsets the label left or right of the spine with clearance, preserving
+ * the dot's jittered xOffset.
+ *
+ * @param {number} finalY  - dot's pixel y position
+ * @param {number} xOffset - dot's cluster-jittered x offset
+ * @returns {string} inline style value
+ */
+function labelStyleVertical(finalY, xOffset) {
+  var labelLeft = xOffset <= 0
+    ? xOffset - LABEL_CLEARANCE_PX
+    : xOffset + LABEL_CLEARANCE_PX;
+  return "top:" + finalY + "px;left:calc(50% + " + labelLeft + "px)";
 }
 
 /**
@@ -448,11 +490,12 @@ function buildHorizontalLayout(groupedEvents, activeEra, slotWidth) {
       const posClass = labelPosition(yOffset);
       const isFiltered =
         activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
-      const style = `left:${finalX}px;top:${50 + yOffset / 2}%`;
+      const dotStyle = `left:${finalX}px;top:${50 + yOffset / 2}%`;
+      const labelStyle = labelStyleHorizontal(finalX, yOffset);
 
-      inner.appendChild(createDot(event, style, isFiltered));
+      inner.appendChild(createDot(event, dotStyle, isFiltered));
 
-      const label = createLabel(event, posClass, style, isFiltered);
+      const label = createLabel(event, posClass, labelStyle, isFiltered);
 
       const mode = modeByEventId.get(event.id) || LABEL_FULL;
       if (mode === LABEL_TRUNCATED) {
@@ -462,7 +505,12 @@ function buildHorizontalLayout(groupedEvents, activeEra, slotWidth) {
       }
 
       inner.appendChild(label);
-      labelDescriptors.push({ el: label, tierIndex: clusterIndex, axis: "x" });
+      labelDescriptors.push({
+        el: label,
+        tierIndex: clusterIndex,
+        axis: "x",
+        originalTop: labelStyle,
+      });
 
       hasEvents = true;
     });
@@ -540,11 +588,12 @@ function buildVerticalLayout(groupedEvents, activeEra, slotHeight) {
       const side = labelSide(xOffset);
       const isFiltered =
         activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
-      const style = `top:${finalY}px;left:calc(50% + ${xOffset}px)`;
+      const dotStyle = `top:${finalY}px;left:calc(50% + ${xOffset}px)`;
+      const labelStyle = labelStyleVertical(finalY, xOffset);
 
-      inner.appendChild(createDot(event, style, isFiltered));
+      inner.appendChild(createDot(event, dotStyle, isFiltered));
 
-      const label = createLabel(event, side, style, isFiltered);
+      const label = createLabel(event, side, labelStyle, isFiltered);
 
       const mode = modeByEventId.get(event.id) || LABEL_FULL;
       if (mode === LABEL_TRUNCATED) {
@@ -554,7 +603,12 @@ function buildVerticalLayout(groupedEvents, activeEra, slotHeight) {
       }
 
       inner.appendChild(label);
-      labelDescriptors.push({ el: label, tierIndex: clusterIndex, axis: "y" });
+      labelDescriptors.push({
+        el: label,
+        tierIndex: clusterIndex,
+        axis: "y",
+        originalLeft: labelStyle,
+      });
 
       hasEvents = true;
     });
@@ -564,23 +618,37 @@ function buildVerticalLayout(groupedEvents, activeEra, slotHeight) {
 }
 
 /**
- * Apply an escalated stagger tier to a label's position and side/above-below
- * class, for the axis it was laid out on.
+ * Apply an escalated stagger tier to a label's position, escalating
+ * incrementally from the label's original cluster-jittered position
+ * rather than overriding to an absolute STAGGER_OFFSETS value.
+ * The above/below (or left/right) class is preserved — the label
+ * stays on its original side of the spine regardless of escalation.
  *
  * @param {HTMLElement} el
- * @param {number} tier
+ * @param {number} tier       - escalation tier (0 = original position)
  * @param {'x'|'y'} axis
+ * @param {string} originalStyle - the label's initial inline style string
  */
-function applyTier(el, tier, axis) {
-  const offset = STAGGER_OFFSETS[tier];
+function applyTier(el, tier, axis, originalStyle) {
   if (axis === "x") {
-    el.style.top = `${50 + offset}%`;
-    el.classList.remove("above", "below");
-    el.classList.add(labelPosition(offset));
+    // Extract original top percentage from style string
+    var match = originalStyle.match(/top:([\d.]+)%/);
+    if (match) {
+      var originalTop = parseFloat(match[1]);
+      el.style.top = "calc(" + originalTop + "% + " + (tier * TIER_STEP_PCT) + "%)";
+    }
+    // Preserve the above/below class — never change it during escalation
   } else {
-    el.style.left = `calc(50% + ${offset}px)`;
-    el.classList.remove("left", "right");
-    el.classList.add(labelSide(offset));
+    // Extract original left calc from style string
+    var leftMatch = originalStyle.match(/left:calc\(50% \+ (-?[\d.]+)px\)/);
+    if (leftMatch) {
+      var originalLeft = parseFloat(leftMatch[1]);
+      // Escalate away from the spine: if label is on the left (negative), go further left;
+      // if on the right (positive), go further right.
+      var dir = originalLeft <= 0 ? -1 : 1;
+      el.style.left = "calc(50% + " + (originalLeft + dir * tier * TIER_STEP_PX) + "px)";
+    }
+    // Preserve the left/right class — never change it during escalation
   }
 }
 
@@ -617,11 +685,12 @@ function resolveLabelCollisions(descriptors) {
   if (!descriptors.length) return;
 
   const axis = descriptors[0].axis;
-  const maxTier = STAGGER_OFFSETS.length - 1;
+  const maxTier = 10; // allow up to 11 positions (0–10)
 
   const items = descriptors.map((d) => ({
     ...d,
     eventId: d.el.dataset.eventId,
+    originalStyle: axis === "x" ? d.originalTop : d.originalLeft,
     rect: d.el.getBoundingClientRect(),
   }));
 
@@ -644,7 +713,7 @@ function resolveLabelCollisions(descriptors) {
       placedRects.some((placed) => rectsOverlap(rect, placed, LABEL_GAP_PX))
     ) {
       tier += 1;
-      applyTier(item.el, tier, axis);
+      applyTier(item.el, tier, axis, item.originalStyle);
       rect = item.el.getBoundingClientRect();
     }
 
