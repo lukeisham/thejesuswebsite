@@ -108,6 +108,8 @@
     stroke: var(--border-strong);
     stroke-width: 1.5;
     fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
     cursor: pointer;
     transition: stroke var(--duration-fast) var(--ease-out);
 }
@@ -128,6 +130,18 @@
     stroke-dasharray: 6 4;
     fill: none;
     pointer-events: none;
+}
+
+/* Snap-to-target feedback during right-drag connect */
+.admin-arbor-edge-temp--snap {
+    stroke: var(--success);
+    stroke-width: 3;
+    stroke-dasharray: none;
+}
+
+.admin-arbor-node--connect-target {
+    outline: 2px solid var(--accent-gold);
+    outline-offset: 2px;
 }
 
 /* -------------------------------------------------------------------------

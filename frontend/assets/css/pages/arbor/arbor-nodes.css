@@ -78,4 +78,6 @@
 .arbor-edges path {
     stroke: var(--border-strong);
     stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
 }
