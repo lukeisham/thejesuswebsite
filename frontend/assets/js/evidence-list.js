@@ -266,8 +266,6 @@ function initInfiniteScroll() {
 
 // ─── SessionStorage caching (back-nav) ───────────────────────────────────────
 
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
 function cacheItems() {
   try {
     sessionStorage.setItem(
@@ -292,6 +290,57 @@ function clearCachedItems() {
   }
 }
 
+/**
+ * Silently fetch page 1 and replace the rendered list if the server
+ * data differs from the current in-memory items.  Never shows loading
+ * or error states — the cache already provides visible content.
+ */
+async function silentlyRefreshPage1() {
+  try {
+    const params = { page: "1", limit: String(PAGE_SIZE) };
+    const { data, error } = await getEvidence(params);
+    if (error || !data) return;
+
+    const freshItems = data?.items || data || [];
+    const freshTotal = data?.total ?? freshItems.length;
+    if (!Array.isArray(freshItems) || freshItems.length === 0) return;
+
+    // Only replace if the data actually changed
+    if (
+      freshItems.length === allItems.length &&
+      JSON.stringify(freshItems) === JSON.stringify(allItems)
+    ) {
+      // Identical — update the end counter just in case total changed
+      if (freshTotal !== allItems.length) {
+        if ($end) $end.textContent = formatItemsLoaded(freshTotal);
+      }
+      return;
+    }
+
+    // Data differs — replace the rendered list
+    allItems = freshItems;
+    if ($list) $list.innerHTML = "";
+    renderRows(allItems);
+    cacheItems();
+
+    // Update pagination state from the fresh page-1 data
+    if (freshItems.length < PAGE_SIZE || allItems.length >= freshTotal) {
+      hasMore = false;
+      $sentinel && ($sentinel.hidden = true);
+      showState("end");
+      if ($end) $end.textContent = formatItemsLoaded(freshTotal);
+    } else {
+      hasMore = true;
+      currentPage = 2;
+      hideAllStates();
+      $sentinel && ($sentinel.hidden = false);
+      if (observer && $sentinel) observer.observe($sentinel);
+    }
+  } catch {
+    /* network error — leave cached list in place */
+  }
+}
+
 function restoreFromCache() {
   try {
     const cached = sessionStorage.getItem(STORAGE_KEY_ITEMS);
@@ -299,7 +348,6 @@ function restoreFromCache() {
       const parsed = JSON.parse(cached);
       // Handle both versioned and legacy (flat array) cache formats
       const cachedItems = parsed.items || parsed;
-      const cacheAge = parsed.version ? Date.now() - parsed.version : Infinity;
 
       if (cachedItems && cachedItems.length > 0) {
         allItems = cachedItems;
@@ -310,14 +358,9 @@ function restoreFromCache() {
         if ($end) $end.textContent = formatItemsLoaded(total);
         $sentinel && ($sentinel.hidden = true);
 
-        // If cache is stale, silently refresh in background
-        if (cacheAge > CACHE_TTL) {
-          $sentinel && ($sentinel.hidden = false);
-          hasMore = true;
-          currentPage = Math.ceil(allItems.length / PAGE_SIZE) + 1;
-          initInfiniteScroll();
-          loadPage();
-        }
+        // Always silently revalidate from page 1 — new items may have
+        // appeared anywhere in the list, not just after the cached window.
+        silentlyRefreshPage1();
 
         return true;
       }
