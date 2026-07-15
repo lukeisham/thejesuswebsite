@@ -31,6 +31,18 @@ function getAllPublished() {
 }
 
 /**
+ * All Wikipedia articles regardless of publish state — for the admin list view.
+ * Requires auth at the route level.
+ */
+function getAllAdmin() {
+    return db
+        .prepare(
+            'SELECT * FROM wikipedia_articles ORDER BY wikipedia_article_rank_number ASC'
+        )
+        .all();
+}
+
+/**
  * Single published Wikipedia article by slug, or undefined if not found.
  */
 function getBySlug(slug) {
@@ -89,4 +101,4 @@ function remove(id) {
     return result.changes > 0;
 }
 
-module.exports = { getAllPublished, getBySlug, getById, create, update, remove };
+module.exports = { getAllPublished, getAllAdmin, getBySlug, getById, create, update, remove };

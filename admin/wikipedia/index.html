@@ -128,6 +128,13 @@
                 display: flex;
                 gap: var(--space-sm);
             }
+            .publish-toggle-btn {
+                min-width: 70px;
+            }
+            .publish-toggle-btn--published {
+                background: var(--admin-success) !important;
+                color: #fff !important;
+            }
         </style>
     </head>
     <body>
@@ -265,7 +272,7 @@
                 }
 
                 try {
-                    articles = await Admin.api.get("/wikipedia");
+                    articles = await Admin.api.get("/wikipedia/admin");
                     main.removeChild(loadingEl);
 
                     if (!Array.isArray(articles) || articles.length === 0) {
@@ -295,6 +302,19 @@
                 listEl.className = "rank-list";
                 listEl.id = "rank-list";
                 main.appendChild(listEl);
+
+                async function togglePublished(article) {
+                    var newState = article.published_draft ? 0 : 1;
+                    try {
+                        var result = await Admin.api.put("/wikipedia/" + article.id, {
+                            published_draft: newState,
+                        });
+                        article.published_draft = result.published_draft;
+                        renderRows();
+                    } catch (err) {
+                        alert("Failed to update: " + err.message);
+                    }
+                }
 
                 function renderRows() {
                     listEl.innerHTML = "";
@@ -377,6 +397,22 @@
                         meta.appendChild(minusesSpan);
 
                         row.appendChild(meta);
+
+                        // Publish/Draft toggle button
+                        var pubBtn = document.createElement("button");
+                        pubBtn.type = "button";
+                        pubBtn.className = "admin-btn admin-btn--sm publish-toggle-btn";
+                        if (article.published_draft) {
+                            pubBtn.classList.add("publish-toggle-btn--published");
+                            pubBtn.textContent = "Published";
+                        } else {
+                            pubBtn.textContent = "Draft";
+                        }
+                        pubBtn.addEventListener("click", async function (e) {
+                            e.stopPropagation();
+                            await togglePublished(article);
+                        });
+                        row.appendChild(pubBtn);
 
                         // Delete button
                         var deleteBtn = document.createElement("button");
@@ -537,6 +573,21 @@
 
                     inlineForm.appendChild(fields);
 
+                    // Published checkbox
+                    var checkboxRow = document.createElement("div");
+                    checkboxRow.style.cssText = "display:flex;align-items:center;gap:var(--space-sm);";
+                    var pubCheckbox = document.createElement("input");
+                    pubCheckbox.type = "checkbox";
+                    pubCheckbox.id = "inline-publish";
+                    pubCheckbox.style.cssText = "width:18px;height:18px;accent-color:var(--admin-accent);";
+                    checkboxRow.appendChild(pubCheckbox);
+                    var pubLabel = document.createElement("label");
+                    pubLabel.setAttribute("for", "inline-publish");
+                    pubLabel.textContent = "Published";
+                    pubLabel.style.cssText = "font-size:14px;cursor:pointer;";
+                    checkboxRow.appendChild(pubLabel);
+                    inlineForm.appendChild(checkboxRow);
+
                     var actions = document.createElement("div");
                     actions.style.cssText =
                         "display:flex;gap:var(--space-sm);margin-top:var(--space-sm);";
@@ -596,7 +647,7 @@
                                     dateInput.value || undefined,
                                 wikipedia_article_rank_number:
                                     articles.length + 1,
-                                published_draft: 0,
+                                published_draft: pubCheckbox.checked ? 1 : 0,
                             });
                             articles.push(result);
                             renderRows();
@@ -660,6 +711,17 @@
                 bulkBtn.textContent = "Upload";
                 bulkActions.appendChild(bulkBtn);
 
+                var bulkPubCheckbox = document.createElement("input");
+                bulkPubCheckbox.type = "checkbox";
+                bulkPubCheckbox.id = "bulk-publish";
+                bulkPubCheckbox.style.cssText = "width:18px;height:18px;accent-color:var(--admin-accent);";
+                bulkActions.appendChild(bulkPubCheckbox);
+                var bulkPubLabel = document.createElement("label");
+                bulkPubLabel.setAttribute("for", "bulk-publish");
+                bulkPubLabel.textContent = "Publish all";
+                bulkPubLabel.style.cssText = "font-size:14px;cursor:pointer;";
+                bulkActions.appendChild(bulkPubLabel);
+
                 var bulkSummaryEl = document.createElement("span");
                 bulkSummaryEl.style.cssText =
                     "font-size:0.8125rem;color:var(--admin-text-muted);";
@@ -678,6 +740,7 @@
 
                     var added = 0;
                     var skipped = 0;
+                    var pubState = bulkPubCheckbox.checked ? 1 : 0;
 
                     for (var i = 0; i < lines.length; i++) {
                         var line = lines[i].trim();
@@ -710,7 +773,7 @@
                                 wikipedia_article_title: title,
                                 wikipedia_article_url: url,
                                 wikipedia_article_rank_number: rank,
-                                published_draft: 0,
+                                published_draft: pubState,
                             });
                             articles.push(result);
                             added++;

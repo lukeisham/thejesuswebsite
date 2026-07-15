@@ -18,6 +18,17 @@ router.get('/', (req, res) => {
     }
 });
 
+// GET /wikipedia/admin — all articles regardless of publish state (admin only)
+router.get('/admin', requireAuth, (req, res) => {
+    try {
+        const items = wikipediaModel.getAllAdmin();
+        res.json(items);
+    } catch (error) {
+        console.error('GET /wikipedia/admin failed:', error);
+        res.status(500).json({ error: 'Failed to load Wikipedia articles.' });
+    }
+});
+
 // GET /wikipedia/:slug — public single Wikipedia article by slug
 router.get('/:slug', (req, res) => {
     try {
