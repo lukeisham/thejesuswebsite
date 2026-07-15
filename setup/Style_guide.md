@@ -276,16 +276,22 @@ Philosophy: transitions aid perception, never slow the user down. Scholarly cont
 - **Infinite scroll**: figure numbering must re-run after each new batch of content is inserted into the DOM — call the numbering function from the infinite scroll callback, not just on initial page load
 - **Print**: border removed, `9pt` italic, inline at full width — consistent with the academic paper print rules in §12
 
-### Thumbnails (News Articles)
-- **Size**: `80px × 80px` (fixed square) — small enough to sit beside text without overwhelming the card, `flex-shrink: 0` prevents squashing
-- **Fit**: `object-fit: cover` — fills the square without distortion
-- **Border radius**: `var(--radius-sm)` — subtle rounding, sits inside the card row
-- **Layout**: side-by-side row — thumbnail on the left, title + description in a `.news-card-body` flex column on the right, badges and date below the row
-- **Row wrapper**: `.news-card-row` uses `display: flex; gap: var(--space-md); align-items: flex-start`
-- **Empty state**: `var(--bg-surface-alt)` fill with `1px dashed var(--border)` — a visible placeholder square when no thumbnail is uploaded
-- **Caption**: none — thumbnails are decorative and never have captions
-- **Semantic markup**: `aria-hidden="true"` on empty-placeholder divs; real images use `alt=""` with `loading="lazy"`
-- **Admin**: uses the shared `AdminImagePicker` widget (same component as blog hero images, challenge pictures) uploading through the `/uploads` endpoint
+### News & Blog Row Layout
+The landing page and both endless-feed pages (News, Blog) share a consistent horizontal row layout. Each row is an `<a>` link containing an 80×80px thumbnail on the left and a text body on the right.
+
+- **Row element**: `.news-blog-row` — `display: flex; flex-direction: row; gap: var(--space-md); align-items: flex-start`
+- **Hover**: subtle `var(--bg-surface-alt)` background tint, no lift, no shadow, no border-radius change — rows are not cards
+- **Separator**: `border-bottom: 1px solid var(--border)` between rows, no border on last row
+- **Container**: `.news-blog-list` — `max-width: var(--measure-narrow); margin: auto` (single column, no grid)
+- **Thumbnail**: `.news-blog-row-thumb` — `width: 80px; height: 80px; object-fit: cover; flex-shrink: 0; border-radius: var(--radius-sm)`
+- **Empty thumbnail**: `.news-blog-row-thumb--empty` — `var(--bg-surface-alt)` fill with `1px dashed var(--border)`
+- **Text body**: `.news-blog-row-body` — `flex: 1; min-width: 0`
+- **Title**: `.news-blog-row-title` — `font-size: var(--text-body); font-weight: 600`
+- **Meta line**: `.news-blog-row-meta` — `font-size: var(--text-xs); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis` — format is `Author · Publisher · Date` (no "By" or "in" prefixes)
+- **Excerpt** (blog only): `.news-blog-row-excerpt` — `font-size: var(--text-small); color: var(--text-secondary); margin-top: var(--space-xs)` — first ~150 characters of `blog_content` stripped of HTML
+- **Breadcrumb**: `.news-blog-back-link` — inline-flex with `← Back to News & Blog`, present on both feed pages
+- **Semantic markup**: `aria-hidden="true"` on empty-placeholder divs; real thumbnails use `alt=""` with `loading="lazy"`
+- **Admin**: uses the shared `AdminImagePicker` widget for news thumbnails and blog hero images, uploading through the `/uploads` endpoint
 
 ### Evidence Card
 - Title (h3)
