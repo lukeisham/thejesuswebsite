@@ -121,8 +121,10 @@ function renderArticles(items) {
   items.forEach((item, index) => {
     const rank = existingCount + index + 1;
 
-    const dateStr = item.last_revised
-      ? new Date(item.last_revised).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
+    const title = item.wikipedia_article_title || 'Untitled';
+    const url = item.wikipedia_article_url || '#';
+    const dateStr = item.wikipedia_article_latest_revision_date
+      ? new Date(item.wikipedia_article_latest_revision_date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
       : '';
 
     const li = document.createElement('li');
@@ -133,20 +135,14 @@ function renderArticles(items) {
       <span class="wikipedia-rank-number">${rank}</span>
       <div class="wikipedia-rank-content">
         <div class="wikipedia-rank-title">
-          <a href="${item.url || '#'}" target="_blank" rel="noopener noreferrer">
-            ${item.title || 'Untitled'}
+          <a href="${url}" target="_blank" rel="noopener noreferrer">
+            ${title}
             <svg width="14" height="14" aria-hidden="true" style="display:inline;vertical-align:middle;">
               <use href="/assets/images/feather-sprite.svg#icon-external-link"/>
             </svg>
           </a>
         </div>
-        <div class="wikipedia-rank-meta">
-          <span class="wikipedia-rank-date">${dateStr ? `Last revised: ${dateStr}` : ''}</span>
-          <div class="wikipedia-rank-indicators">
-            <span class="wikipedia-rank-plus">+${item.upvotes || 0}</span>
-            <span class="wikipedia-rank-minus">\u2212${item.downvotes || 0}</span>
-          </div>
-        </div>
+        <span class="wikipedia-rank-date">${dateStr ? `Last revised: ${dateStr}` : ''}</span>
       </div>
     `;
 
