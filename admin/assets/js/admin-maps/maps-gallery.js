@@ -160,12 +160,14 @@ Gallery.show = function () {
   if (galleryEl) galleryEl.hidden = false;
 
   // Hide editor chrome
+  var main = document.querySelector("main");
   var toolbar = document.querySelector(".admin-maps-toolbar");
   var canvas = document.getElementById("map-canvas");
   var loading = document.getElementById("map-loading");
   var details = document.getElementById("map-details-panel");
   var pen = document.getElementById("holding-pen");
 
+  if (main) main.hidden = true;
   if (toolbar) toolbar.hidden = true;
   if (canvas) canvas.hidden = true;
   if (loading) loading.hidden = true;
