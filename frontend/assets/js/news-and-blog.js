@@ -175,17 +175,19 @@ async function loadPage() {
 
 // ─── News rendering ──────────────────────────────────────────────────────────
 
+function getVisibleNewsItems() {
+  if (!heroItem || heroItem._type !== 'news') return newsItems;
+  return newsItems.filter((item) => item.slug !== heroItem.slug);
+}
+
 function renderNewsPage() {
   if (!$newsList || !hasMoreNews) return;
 
+  const visible = getVisibleNewsItems();
   const start = (currentNewsPage - 1) * PAGE_SIZE;
-  const pageItems = newsItems.slice(start, start + PAGE_SIZE);
+  const pageItems = visible.slice(start, start + PAGE_SIZE);
 
-  if (newsItems.length === 0 && currentNewsPage === 1) {
-    if (activeType === 'all') {
-      // Only show empty if no blog items either
-      return;
-    }
+  if (visible.length === 0 && currentNewsPage === 1) {
     return;
   }
 
@@ -194,19 +196,19 @@ function renderNewsPage() {
     if ($newsSentinel) $newsSentinel.hidden = true;
     if ($newsEnd) {
       $newsEnd.hidden = false;
-      $newsEnd.textContent = `All ${newsItems.length} article${newsItems.length !== 1 ? 's' : ''} loaded`;
+      $newsEnd.textContent = `All ${visible.length} article${visible.length !== 1 ? 's' : ''} loaded`;
     }
     return;
   }
 
   renderCards($newsList, pageItems);
 
-  if (start + pageItems.length >= newsItems.length) {
+  if (start + pageItems.length >= visible.length) {
     hasMoreNews = false;
     if ($newsSentinel) $newsSentinel.hidden = true;
     if ($newsEnd) {
       $newsEnd.hidden = false;
-      $newsEnd.textContent = `All ${newsItems.length} article${newsItems.length !== 1 ? 's' : ''} loaded`;
+      $newsEnd.textContent = `All ${visible.length} article${visible.length !== 1 ? 's' : ''} loaded`;
     }
   } else {
     currentNewsPage++;
@@ -217,13 +219,19 @@ function renderNewsPage() {
 
 // ─── Blog rendering ──────────────────────────────────────────────────────────
 
+function getVisibleBlogItems() {
+  if (!heroItem || heroItem._type !== 'blog') return blogItems;
+  return blogItems.filter((item) => item.slug !== heroItem.slug);
+}
+
 function renderBlogPage() {
   if (!$blogList || !hasMoreBlog) return;
 
+  const visible = getVisibleBlogItems();
   const start = (currentBlogPage - 1) * PAGE_SIZE;
-  const pageItems = blogItems.slice(start, start + PAGE_SIZE);
+  const pageItems = visible.slice(start, start + PAGE_SIZE);
 
-  if (blogItems.length === 0 && currentBlogPage === 1) {
+  if (visible.length === 0 && currentBlogPage === 1) {
     return;
   }
 
@@ -232,19 +240,19 @@ function renderBlogPage() {
     if ($blogSentinel) $blogSentinel.hidden = true;
     if ($blogEnd) {
       $blogEnd.hidden = false;
-      $blogEnd.textContent = `All ${blogItems.length} post${blogItems.length !== 1 ? 's' : ''} loaded`;
+      $blogEnd.textContent = `All ${visible.length} post${visible.length !== 1 ? 's' : ''} loaded`;
     }
     return;
   }
 
   renderCards($blogList, pageItems);
 
-  if (start + pageItems.length >= blogItems.length) {
+  if (start + pageItems.length >= visible.length) {
     hasMoreBlog = false;
     if ($blogSentinel) $blogSentinel.hidden = true;
     if ($blogEnd) {
       $blogEnd.hidden = false;
-      $blogEnd.textContent = `All ${blogItems.length} post${blogItems.length !== 1 ? 's' : ''} loaded`;
+      $blogEnd.textContent = `All ${visible.length} post${visible.length !== 1 ? 's' : ''} loaded`;
     }
   } else {
     currentBlogPage++;

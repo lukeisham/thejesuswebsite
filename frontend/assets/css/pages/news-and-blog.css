@@ -90,12 +90,12 @@
    ------------------------------------------------------------------------- */
 
 .news-card-thumbnail {
-  width: 100%;
+  width: 200px;
+  max-width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   display: block;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  margin: calc(-1 * var(--space-lg));
+  border-radius: var(--radius-md);
   margin-bottom: var(--space-md);
 }
 
