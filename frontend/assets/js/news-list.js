@@ -1,6 +1,6 @@
 /**
- * News list page: fetch paginated news articles, render cards,
- * and infinite scroll.
+ * News list page: fetch paginated news articles, render cards with thumbnails,
+ * external links, author/publisher display, and infinite scroll.
  *
  * @module news-list
  */
@@ -54,6 +54,15 @@ function hideAllStates() {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function buildNewsDescription(article) {
+  const parts = [];
+  if (article.news_article_author) parts.push(`By ${article.news_article_author}`);
+  if (article.news_article_publisher) parts.push(`in ${article.news_article_publisher}`);
+  return parts.length ? parts.join(' · ') : '';
+}
+
 // ─── Data fetching ───────────────────────────────────────────────────────────
 
 async function loadPage() {
@@ -84,8 +93,18 @@ async function loadPage() {
     return;
   }
 
+  // Normalise raw DB column names
+  const normalized = data.map((article) => ({
+    ...article,
+    title: article.news_article_title,
+    description: buildNewsDescription(article),
+    _date: article.news_article_date || article.created_at,
+    thumbnail: article.news_article_thumbnail || null,
+    external_url: article.news_article_url || null,
+  }));
+
   const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = data.slice(start, start + PAGE_SIZE);
+  const pageItems = normalized.slice(start, start + PAGE_SIZE);
 
   if (pageItems.length === 0) {
     hasMore = false;
@@ -120,25 +139,54 @@ function renderCards(items) {
   if (!$grid) return;
 
   items.forEach((item) => {
-    const date = item.published_at || item.created_at;
-    const dateStr = date
-      ? new Date(date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
+    const date = item._date
+      ? new Date(item._date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
       : '';
-    const publisher = item.publisher ? `${item.publisher}${dateStr ? ` · ${dateStr}` : ''}` : dateStr;
+    const url = item.external_url || `/news-and-blog/news/${encodeURIComponent(item.slug || '')}`;
 
     const cardHTML = renderCard({
       title: item.title || 'Untitled',
-      description: publisher || '',
-      url: `/news-and-blog/news/${encodeURIComponent(item.slug || '')}`,
+      description: item.description || '',
+      url,
       badges: ['News'],
     });
 
     const temp = document.createElement('div');
     temp.innerHTML = cardHTML;
     const cardEl = temp.firstElementChild;
-    if (cardEl) {
-      $grid.appendChild(cardEl);
+
+    if (!cardEl) return;
+
+    // Open external URL in new tab
+    if (item.external_url && cardEl.tagName === 'A') {
+      cardEl.setAttribute('target', '_blank');
+      cardEl.setAttribute('rel', 'noopener noreferrer');
     }
+
+    // Thumbnail
+    if (item.thumbnail) {
+      const img = document.createElement('img');
+      img.className = 'news-card-thumbnail';
+      img.src = item.thumbnail;
+      img.alt = '';
+      img.loading = 'lazy';
+      cardEl.insertBefore(img, cardEl.firstChild);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'news-card-thumbnail news-card-thumbnail--empty';
+      placeholder.setAttribute('aria-hidden', 'true');
+      cardEl.insertBefore(placeholder, cardEl.firstChild);
+    }
+
+    // Date meta
+    if (date) {
+      const meta = document.createElement('p');
+      meta.className = 'news-blog-card-meta';
+      meta.textContent = date;
+      cardEl.appendChild(meta);
+    }
+
+    $grid.appendChild(cardEl);
   });
 }
 

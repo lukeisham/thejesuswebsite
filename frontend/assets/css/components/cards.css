@@ -8,6 +8,8 @@
    ------------------------------------------------------------------------- */
 
 .card {
+  display: flex;
+  flex-direction: column;
   background: var(--bg-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);

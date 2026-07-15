@@ -14,6 +14,7 @@ const WRITABLE_COLUMNS = [
     'news_article_date',
     'news_article_author',
     'news_article_publisher',
+    'news_article_thumbnail',
     'landing_page_display',
     'published_draft',
     'metadata_keywords',

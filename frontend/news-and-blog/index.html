@@ -173,15 +173,6 @@
                     hidden
                 ></section>
 
-                <!-- Mixed card list -->
-                <section
-                    class="news-blog-list"
-                    id="card-list"
-                    aria-label="Latest posts and articles"
-                >
-                    <!-- Cards rendered by news-and-blog.js -->
-                </section>
-
                 <!-- Loading state -->
                 <div class="loading" id="loading-state" hidden>
                     <svg
@@ -212,11 +203,33 @@
                     </button>
                 </div>
 
-                <!-- Infinite-scroll sentinel -->
-                <div class="scroll-sentinel" id="scroll-sentinel" hidden></div>
+                <!-- News Section -->
+                <section
+                    class="news-blog-section"
+                    id="news-section"
+                    aria-label="News articles"
+                >
+                    <h3 class="news-blog-section-header">News</h3>
+                    <div class="news-blog-list" id="news-list">
+                        <!-- News cards rendered by news-and-blog.js -->
+                    </div>
+                    <div class="scroll-sentinel" id="news-scroll-sentinel" hidden></div>
+                    <p class="end-of-list" id="news-end-of-list" hidden></p>
+                </section>
 
-                <!-- End-of-list message -->
-                <p class="end-of-list" id="end-of-list" hidden></p>
+                <!-- Blog Section -->
+                <section
+                    class="news-blog-section"
+                    id="blog-section"
+                    aria-label="Blog posts"
+                >
+                    <h3 class="news-blog-section-header">Blog</h3>
+                    <div class="news-blog-list" id="blog-list">
+                        <!-- Blog cards rendered by news-and-blog.js -->
+                    </div>
+                    <div class="scroll-sentinel" id="blog-scroll-sentinel" hidden></div>
+                    <p class="end-of-list" id="blog-end-of-list" hidden></p>
+                </section>
             </div>
         </main>
 

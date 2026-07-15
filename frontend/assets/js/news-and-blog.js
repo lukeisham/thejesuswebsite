@@ -1,7 +1,7 @@
 /**
- * News & Blog landing page: fetch mixed blog posts and news articles,
- * merge/sort by date, toggle chips (All / Blog / News), hero promotion,
- * and infinite scroll.
+ * News & Blog landing page: fetch blog posts and news articles separately,
+ * render each in its own section (News at top, Blog below), hero promotion,
+ * toggle chips, and infinite scroll per section.
  *
  * @module news-and-blog
  */
@@ -11,51 +11,73 @@ import { renderCard, renderBadge } from './utils/templates.js';
 import { showToast } from './utils/toasts.js';
 import { delegate } from './utils/dom.js';
 
-const SENTINEL_ID = 'scroll-sentinel';
-const CARD_LIST_ID = 'card-list';
+const NEWS_SENTINEL_ID = 'news-scroll-sentinel';
+const BLOG_SENTINEL_ID = 'blog-scroll-sentinel';
+const NEWS_LIST_ID = 'news-list';
+const BLOG_LIST_ID = 'blog-list';
 const HERO_ID = 'hero-promotion';
 const LOADING_ID = 'loading-state';
 const EMPTY_ID = 'empty-state';
 const ERROR_ID = 'error-state';
-const END_ID = 'end-of-list';
+const NEWS_END_ID = 'news-end-of-list';
+const BLOG_END_ID = 'blog-end-of-list';
 const TOGGLE_CHIPS_ID = 'toggle-chips';
 const RETRY_ID = 'retry-load';
 
 const PAGE_SIZE = 10;
 const SCROLL_THRESHOLD = 300;
 
-let currentPage = 1;
-let hasMore = true;
+// ─── State ────────────────────────────────────────────────────────────────────
+
+let currentNewsPage = 1;
+let hasMoreNews = true;
+let currentBlogPage = 1;
+let hasMoreBlog = true;
 let isLoading = false;
-let allItems = [];
+let newsItems = [];
+let blogItems = [];
+let allItems = []; // combined for hero lookup
 let activeType = 'all'; // 'all', 'blog', 'news'
-let heroItem = null; // item currently displayed in the hero slot
-let observer = null;
+let heroItem = null;
+let newsObserver = null;
+let blogObserver = null;
 let retryTeardown = null;
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
-const $list = document.getElementById(CARD_LIST_ID);
+const $newsList = document.getElementById(NEWS_LIST_ID);
+const $blogList = document.getElementById(BLOG_LIST_ID);
 const $hero = document.getElementById(HERO_ID);
-const $sentinel = document.getElementById(SENTINEL_ID);
+const $newsSentinel = document.getElementById(NEWS_SENTINEL_ID);
+const $blogSentinel = document.getElementById(BLOG_SENTINEL_ID);
 const $loading = document.getElementById(LOADING_ID);
 const $empty = document.getElementById(EMPTY_ID);
 const $error = document.getElementById(ERROR_ID);
-const $end = document.getElementById(END_ID);
+const $newsEnd = document.getElementById(NEWS_END_ID);
+const $blogEnd = document.getElementById(BLOG_END_ID);
+const $newsSection = document.getElementById('news-section');
+const $blogSection = document.getElementById('blog-section');
 const $toggles = document.getElementById(TOGGLE_CHIPS_ID);
 const $retry = document.getElementById(RETRY_ID);
 
 // ─── State management ────────────────────────────────────────────────────────
 
 function showState(name) {
-  [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
-  const target = { loading: $loading, empty: $empty, error: $error, end: $end }[name];
+  [$loading, $empty, $error].forEach((el) => el && (el.hidden = true));
+  const target = { loading: $loading, empty: $empty, error: $error }[name];
   if (target) target.hidden = false;
-  if ($sentinel) $sentinel.hidden = name !== 'none';
 }
 
 function hideAllStates() {
-  [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
+  [$loading, $empty, $error].forEach((el) => el && (el.hidden = true));
+}
+
+function updateSectionVisibility() {
+  const showNews = activeType === 'all' || activeType === 'news';
+  const showBlog = activeType === 'all' || activeType === 'blog';
+
+  if ($newsSection) $newsSection.hidden = !showNews;
+  if ($blogSection) $blogSection.hidden = !showBlog;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -63,77 +85,66 @@ function hideAllStates() {
 /**
  * Strip HTML tags and truncate plain text to a maximum length.
  * Used to create safe card excerpts from rich-content fields like blog_content.
- *
- * @param {string} html - Raw HTML content
- * @param {number} [maxLength=200] - Maximum character length for the excerpt
- * @returns {string} Plain text excerpt, truncated without cutting words mid-word
  */
 function stripHtmlAndTruncate(html, maxLength = 200) {
   if (!html || typeof html !== 'string') return '';
-  // Strip all HTML tags, collapse whitespace
   const plain = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
   if (plain.length <= maxLength) return plain;
-  // Truncate at a word boundary
   return plain.slice(0, maxLength).replace(/\s+\S*$/, '') + '…';
 }
 
 // ─── Data fetching ───────────────────────────────────────────────────────────
 
 async function fetchAllItems() {
-  // Fetch from both endpoints in parallel via Promise.all (JS-5)
   const [blogResult, newsResult] = await Promise.all([
     getBlogPosts(),
     getNewsArticles(),
   ]);
 
-  const items = [];
-
   if (blogResult.data) {
-    blogResult.data.forEach((post) => {
-      items.push({
-        ...post,
-        // Normalise raw DB column names (blog_title, blog_content) to the
-        // shape expected by renderCard (title, description).
-        // blog_content is full HTML — strip tags and truncate for the card excerpt.
-        title: post.blog_title,
-        description: stripHtmlAndTruncate(post.blog_content, 200),
-        _type: 'blog',
-        _date: post.blog_date || post.created_at,
-      });
-    });
+    blogItems = blogResult.data.map((post) => ({
+      ...post,
+      title: post.blog_title,
+      description: stripHtmlAndTruncate(post.blog_content, 200),
+      _type: 'blog',
+      _date: post.blog_date || post.created_at,
+    }));
   }
 
   if (newsResult.data) {
-    newsResult.data.forEach((article) => {
-      items.push({
-        ...article,
-        // Normalise raw DB column names (news_article_title, etc.) to the
-        // shape expected by renderCard (title, description).
-        // News articles have no body field — use the publisher as a descriptor.
-        title: article.news_article_title,
-        description: article.news_article_publisher
-          ? `Published by ${article.news_article_publisher}`
-          : '',
-        _type: 'news',
-        _date: article.news_article_date || article.created_at,
-      });
-    });
+    newsItems = newsResult.data.map((article) => ({
+      ...article,
+      title: article.news_article_title,
+      description: buildNewsDescription(article),
+      _type: 'news',
+      _date: article.news_article_date || article.created_at,
+      thumbnail: article.news_article_thumbnail || null,
+      external_url: article.news_article_url || null,
+    }));
   }
 
-  // Sort by date descending
-  items.sort((a, b) => new Date(b._date) - new Date(a._date));
+  // Combined for hero lookup
+  allItems = [...newsItems, ...blogItems];
+  allItems.sort((a, b) => new Date(b._date) - new Date(a._date));
 
-  return { items, error: blogResult.error || newsResult.error || null };
+  return { error: blogResult.error || newsResult.error || null };
+}
+
+function buildNewsDescription(article) {
+  const parts = [];
+  if (article.news_article_author) parts.push(`By ${article.news_article_author}`);
+  if (article.news_article_publisher) parts.push(`in ${article.news_article_publisher}`);
+  return parts.length ? parts.join(' · ') : '';
 }
 
 async function loadPage() {
-  if (isLoading || !hasMore) return;
+  if (isLoading) return;
   isLoading = true;
   showState('loading');
 
   // If first load, fetch all from API
   if (allItems.length === 0) {
-    const { items, error } = await fetchAllItems();
+    const { error } = await fetchAllItems();
 
     if (error) {
       isLoading = false;
@@ -142,56 +153,103 @@ async function loadPage() {
       return;
     }
 
-    if (!items || items.length === 0) {
+    if (allItems.length === 0) {
       isLoading = false;
       showState('empty');
       return;
     }
 
-    allItems = items;
-
-    // Render hero promotion card (first item with landing_page_display = 1)
+    // Render hero promotion card
     heroItem = renderHeroPromotion();
   }
 
-  // Filter by active type, excluding the hero item to avoid duplication
-  const filtered = (activeType === 'all'
-    ? allItems
-    : allItems.filter((item) => item._type === activeType))
-    .filter((item) => !heroItem || item.slug !== heroItem.slug);
+  updateSectionVisibility();
 
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = filtered.slice(start, start + PAGE_SIZE);
+  // Render first page of each section
+  renderNewsPage();
+  renderBlogPage();
 
   isLoading = false;
+  hideAllStates();
+}
 
-  if (filtered.length === 0) {
-    showState('empty');
+// ─── News rendering ──────────────────────────────────────────────────────────
+
+function renderNewsPage() {
+  if (!$newsList || !hasMoreNews) return;
+
+  const start = (currentNewsPage - 1) * PAGE_SIZE;
+  const pageItems = newsItems.slice(start, start + PAGE_SIZE);
+
+  if (newsItems.length === 0 && currentNewsPage === 1) {
+    if (activeType === 'all') {
+      // Only show empty if no blog items either
+      return;
+    }
     return;
   }
 
   if (pageItems.length === 0) {
-    hasMore = false;
-    $sentinel && ($sentinel.hidden = true);
-    showState('end');
-    const total = filtered.length;
-    if ($end) $end.textContent = `All ${total} item${total !== 1 ? 's' : ''} loaded`;
+    hasMoreNews = false;
+    if ($newsSentinel) $newsSentinel.hidden = true;
+    if ($newsEnd) {
+      $newsEnd.hidden = false;
+      $newsEnd.textContent = `All ${newsItems.length} article${newsItems.length !== 1 ? 's' : ''} loaded`;
+    }
     return;
   }
 
-  renderCards(pageItems);
+  renderCards($newsList, pageItems);
 
-  if (start + pageItems.length >= filtered.length) {
-    hasMore = false;
-    $sentinel && ($sentinel.hidden = true);
-    showState('end');
-    const total = filtered.length;
-    if ($end) $end.textContent = `All ${total} item${total !== 1 ? 's' : ''} loaded`;
+  if (start + pageItems.length >= newsItems.length) {
+    hasMoreNews = false;
+    if ($newsSentinel) $newsSentinel.hidden = true;
+    if ($newsEnd) {
+      $newsEnd.hidden = false;
+      $newsEnd.textContent = `All ${newsItems.length} article${newsItems.length !== 1 ? 's' : ''} loaded`;
+    }
   } else {
-    currentPage++;
-    hideAllStates();
-    $sentinel && ($sentinel.hidden = false);
-    if (observer && $sentinel) observer.observe($sentinel);
+    currentNewsPage++;
+    if ($newsSentinel) $newsSentinel.hidden = false;
+    if (newsObserver && $newsSentinel) newsObserver.observe($newsSentinel);
+  }
+}
+
+// ─── Blog rendering ──────────────────────────────────────────────────────────
+
+function renderBlogPage() {
+  if (!$blogList || !hasMoreBlog) return;
+
+  const start = (currentBlogPage - 1) * PAGE_SIZE;
+  const pageItems = blogItems.slice(start, start + PAGE_SIZE);
+
+  if (blogItems.length === 0 && currentBlogPage === 1) {
+    return;
+  }
+
+  if (pageItems.length === 0) {
+    hasMoreBlog = false;
+    if ($blogSentinel) $blogSentinel.hidden = true;
+    if ($blogEnd) {
+      $blogEnd.hidden = false;
+      $blogEnd.textContent = `All ${blogItems.length} post${blogItems.length !== 1 ? 's' : ''} loaded`;
+    }
+    return;
+  }
+
+  renderCards($blogList, pageItems);
+
+  if (start + pageItems.length >= blogItems.length) {
+    hasMoreBlog = false;
+    if ($blogSentinel) $blogSentinel.hidden = true;
+    if ($blogEnd) {
+      $blogEnd.hidden = false;
+      $blogEnd.textContent = `All ${blogItems.length} post${blogItems.length !== 1 ? 's' : ''} loaded`;
+    }
+  } else {
+    currentBlogPage++;
+    if ($blogSentinel) $blogSentinel.hidden = false;
+    if (blogObserver && $blogSentinel) blogObserver.observe($blogSentinel);
   }
 }
 
@@ -219,41 +277,71 @@ function renderHeroPromotion() {
 
 // ─── Rendering ───────────────────────────────────────────────────────────────
 
-function renderCards(items) {
-  if (!$list) return;
+function renderCards($list, items) {
+  if (!$list || !items.length) return;
 
   items.forEach((item) => {
-    const typeLabel = item._type === 'blog' ? 'Blog' : 'News';
-    const url = item._type === 'blog'
-      ? `/news-and-blog/blog/${encodeURIComponent(item.slug || '')}`
-      : `/news-and-blog/news/${encodeURIComponent(item.slug || '')}`;
+    const isNews = item._type === 'news';
+    const url = isNews
+      ? (item.external_url || `/news-and-blog/news/${encodeURIComponent(item.slug || '')}`)
+      : `/news-and-blog/blog/${encodeURIComponent(item.slug || '')}`;
     const date = item._date
       ? new Date(item._date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
       : '';
 
-    const cardHTML = renderCard({
+    // Build base card HTML
+    let cardHTML = renderCard({
       title: item.title || 'Untitled',
       description: item.description || item.summary || '',
       url,
-      badges: [typeLabel],
+      badges: [isNews ? 'News' : 'Blog'],
     });
 
     const temp = document.createElement('div');
     temp.innerHTML = cardHTML;
     const cardEl = temp.firstElementChild;
 
+    if (!cardEl) return;
+
+    // News cards: open external URL in new tab
+    if (isNews && item.external_url && cardEl.tagName === 'A') {
+      cardEl.setAttribute('target', '_blank');
+      cardEl.setAttribute('rel', 'noopener noreferrer');
+    }
+
+    // Thumbnail for news cards
+    if (isNews && item.thumbnail) {
+      prependThumbnail(cardEl, item.thumbnail);
+    } else if (isNews) {
+      prependEmptyThumbnail(cardEl);
+    }
+
     // Add meta row below badges
-    if (cardEl && date) {
+    if (date) {
       const metaEl = document.createElement('p');
       metaEl.className = 'news-blog-card-meta';
       metaEl.textContent = date;
       cardEl.appendChild(metaEl);
     }
 
-    if (cardEl) {
-      $list.appendChild(cardEl);
-    }
+    $list.appendChild(cardEl);
   });
+}
+
+function prependThumbnail(cardEl, thumbnailPath) {
+  const img = document.createElement('img');
+  img.className = 'news-card-thumbnail';
+  img.src = thumbnailPath;
+  img.alt = '';
+  img.loading = 'lazy';
+  cardEl.insertBefore(img, cardEl.firstChild);
+}
+
+function prependEmptyThumbnail(cardEl) {
+  const placeholder = document.createElement('div');
+  placeholder.className = 'news-card-thumbnail news-card-thumbnail--empty';
+  placeholder.setAttribute('aria-hidden', 'true');
+  cardEl.insertBefore(placeholder, cardEl.firstChild);
 }
 
 // ─── Toggle chips ────────────────────────────────────────────────────────────
@@ -265,41 +353,45 @@ function bindToggleChips() {
     const type = target.dataset.type;
     if (!type || type === activeType) return;
 
-    // Update active chip
     $toggles.querySelectorAll('.news-blog-toggle').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.type === type);
     });
 
     activeType = type;
-
-    // Reset and reload
-    currentPage = 1;
-    hasMore = true;
-    if ($list) $list.innerHTML = '';
-    if ($hero) $hero.hidden = true;
-    hideAllStates();
-    $sentinel && ($sentinel.hidden = false);
-    loadPage();
+    updateSectionVisibility();
   });
 }
 
 // ─── Infinite scroll ─────────────────────────────────────────────────────────
 
 function initInfiniteScroll() {
-  if (!$sentinel) return;
+  if ($newsSentinel) {
+    newsObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && hasMoreNews && !isLoading) {
+            renderNewsPage();
+          }
+        });
+      },
+      { rootMargin: `${SCROLL_THRESHOLD}px` }
+    );
+    newsObserver.observe($newsSentinel);
+  }
 
-  observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && hasMore && !isLoading) {
-          loadPage();
-        }
-      });
-    },
-    { rootMargin: `${SCROLL_THRESHOLD}px` }
-  );
-
-  observer.observe($sentinel);
+  if ($blogSentinel) {
+    blogObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && hasMoreBlog && !isLoading) {
+            renderBlogPage();
+          }
+        });
+      },
+      { rootMargin: `${SCROLL_THRESHOLD}px` }
+    );
+    blogObserver.observe($blogSentinel);
+  }
 }
 
 // ─── Event wiring ────────────────────────────────────────────────────────────
@@ -308,14 +400,22 @@ function bindRetry() {
   if (!$retry) return;
   if (retryTeardown) retryTeardown();
   retryTeardown = delegate(document.body, `#${RETRY_ID}`, 'click', () => {
-    currentPage = 1;
-    hasMore = true;
+    currentNewsPage = 1;
+    hasMoreNews = true;
+    currentBlogPage = 1;
+    hasMoreBlog = true;
     allItems = [];
+    newsItems = [];
+    blogItems = [];
     heroItem = null;
-    if ($list) $list.innerHTML = '';
+    if ($newsList) $newsList.innerHTML = '';
+    if ($blogList) $blogList.innerHTML = '';
     if ($hero) $hero.hidden = true;
+    if ($newsEnd) $newsEnd.hidden = true;
+    if ($blogEnd) $blogEnd.hidden = true;
     hideAllStates();
-    $sentinel && ($sentinel.hidden = false);
+    if ($newsSentinel) $newsSentinel.hidden = false;
+    if ($blogSentinel) $blogSentinel.hidden = false;
     loadPage();
   });
 }
