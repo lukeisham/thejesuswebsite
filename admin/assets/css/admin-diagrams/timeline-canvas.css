@@ -18,10 +18,29 @@ body {
     flex-direction: column;
 }
 
+/* ── Content shell ─────────────────────────────────────────────────────── */
+
+/*
+ * <main> wraps .admin-timeline-canvas but was a plain block element, so the
+ * canvas's `flex: 1` below had no effect (flex-basis only sizes direct
+ * children of a flex container). The canvas collapsed to its content's
+ * min-height (120px, set inline by AdminTimelineAxis.renderAxis) instead of
+ * filling the viewport, and its `overflow-y: hidden` then clipped any event
+ * dot positioned below the timeline's vertical midpoint — invisible even
+ * though it rendered correctly in the DOM.
+ */
+main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
 /* ── Canvas ────────────────────────────────────────────────────────────── */
 
 .admin-timeline-canvas {
     flex: 1;
+    min-height: 0;
     overflow-x: auto;
     overflow-y: hidden;
     background-color: var(--bg-primary);
