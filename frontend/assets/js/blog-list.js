@@ -1,12 +1,11 @@
 /**
- * Blog list page: fetch paginated blog posts, render cards with
- * type badge, title, byline, excerpt, and infinite scroll.
+ * Blog list page: fetch paginated blog posts, render row-based cards
+ * with title, date, excerpt, and infinite scroll. (JS-5, JS-6)
  *
  * @module blog-list
  */
 
 import { getBlogPosts } from './api.js';
-import { renderCard } from './utils/templates.js';
 import { showToast } from './utils/toasts.js';
 import { delegate } from './utils/dom.js';
 
@@ -31,7 +30,7 @@ let allItems = [];
 let observer = null;
 let retryTeardown = null;
 
-// ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// ─── DOM refs (JS-6: cached queries) ──────────────────────────────────────────
 
 const $grid = document.getElementById(CARD_GRID_ID);
 const $sentinel = document.getElementById(SENTINEL_ID);
@@ -41,7 +40,7 @@ const $error = document.getElementById(ERROR_ID);
 const $end = document.getElementById(END_ID);
 const $retry = document.getElementById(RETRY_ID);
 
-// ─── State management ────────────────────────────────────────────────────────
+// ─── State management (JS-2: defensive null checks) ───────────────────────────
 
 function showState(name) {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
@@ -54,7 +53,29 @@ function hideAllStates() {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
 }
 
-// ─── Data fetching ───────────────────────────────────────────────────────────
+// ─── Helpers (JS-2: validated input) ──────────────────────────────────────────
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+function stripHtmlAndTruncate(html, maxLength) {
+  if (!html || typeof html !== 'string') return '';
+  const plain = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  if (plain.length <= maxLength) return plain;
+  return plain.slice(0, maxLength).replace(/\s+\S*$/, '') + '\u2026';
+}
+
+// ─── Data fetching (JS-5: async/await, centralized fetch) ─────────────────────
 
 async function loadPage() {
   if (isLoading || !hasMore) return;
@@ -84,9 +105,16 @@ async function loadPage() {
     return;
   }
 
-  // Paginate manually from the full result set
+  // Normalise raw DB column names (JS-2: defensive mapping)
+  const normalized = data.map((post) => ({
+    ...post,
+    _title: post.blog_title,
+    _date: post.blog_date || post.created_at,
+    _excerpt: stripHtmlAndTruncate(post.blog_content, 150),
+  }));
+
   const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = data.slice(start, start + PAGE_SIZE);
+  const pageItems = normalized.slice(start, start + PAGE_SIZE);
 
   if (pageItems.length === 0) {
     hasMore = false;
@@ -115,45 +143,63 @@ async function loadPage() {
   }
 }
 
-// ─── Rendering ───────────────────────────────────────────────────────────────
+// ─── Rendering (JS-6: textContent for user data) ──────────────────────────────
 
 function renderCards(items) {
   if (!$grid) return;
 
   items.forEach((item) => {
-    const date = item.published_at || item.created_at;
-    const dateStr = date
-      ? new Date(date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
-      : '';
-    const byline = item.author
-      ? `${item.author}${dateStr ? ` · ${dateStr}` : ''}`
-      : dateStr;
+    const url = `/news-and-blog/blog/${encodeURIComponent(item.slug || '')}`;
 
-    const cardHTML = renderCard({
-      title: item.title || 'Untitled',
-      description: byline || '',
-      url: `/news-and-blog/blog/${encodeURIComponent(item.slug || '')}`,
-      badges: item.category ? [item.category] : [],
-    });
+    const row = document.createElement('a');
+    row.className = 'news-blog-row';
+    row.href = url;
+    row.setAttribute('target', '_blank');
+    row.setAttribute('rel', 'noopener noreferrer');
 
-    const temp = document.createElement('div');
-    temp.innerHTML = cardHTML;
-    const cardEl = temp.firstElementChild;
-    if (cardEl) {
-      // Add type badge row
-      const typeBadge = cardEl.querySelector('.card-badges');
-      if (typeBadge) {
-        const blogBadge = document.createElement('span');
-        blogBadge.className = 'badge';
-        blogBadge.textContent = 'Blog';
-        typeBadge.insertBefore(blogBadge, typeBadge.firstChild);
-      }
-      $grid.appendChild(cardEl);
+    // Hero image as thumbnail if available
+    if (item.hero_image) {
+      const img = document.createElement('img');
+      img.className = 'news-blog-row-thumb';
+      img.src = item.hero_image;
+      img.alt = '';
+      img.loading = 'lazy';
+      row.appendChild(img);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'news-blog-row-thumb news-blog-row-thumb--empty';
+      placeholder.setAttribute('aria-hidden', 'true');
+      row.appendChild(placeholder);
     }
+
+    const body = document.createElement('div');
+    body.className = 'news-blog-row-body';
+
+    const titleEl = document.createElement('h3');
+    titleEl.className = 'news-blog-row-title';
+    titleEl.textContent = item._title || 'Untitled';
+    body.appendChild(titleEl);
+
+    if (item._date) {
+      const meta = document.createElement('p');
+      meta.className = 'news-blog-row-meta';
+      meta.textContent = formatDate(item._date);
+      body.appendChild(meta);
+    }
+
+    if (item._excerpt) {
+      const excerpt = document.createElement('p');
+      excerpt.className = 'news-blog-row-excerpt';
+      excerpt.textContent = item._excerpt;
+      body.appendChild(excerpt);
+    }
+
+    row.appendChild(body);
+    $grid.appendChild(row);
   });
 }
 
-// ─── Infinite scroll ─────────────────────────────────────────────────────────
+// ─── Infinite scroll (JS-6) ───────────────────────────────────────────────────
 
 function initInfiniteScroll() {
   if (!$sentinel) return;
@@ -172,7 +218,7 @@ function initInfiniteScroll() {
   observer.observe($sentinel);
 }
 
-// ─── SessionStorage caching ──────────────────────────────────────────────────
+// ─── SessionStorage caching (JS-2: try/catch for quota) ───────────────────────
 
 function cacheItems() {
   try {
@@ -215,7 +261,7 @@ function restoreScrollPosition() {
   } catch { /* ignore */ }
 }
 
-// ─── Event wiring ────────────────────────────────────────────────────────────
+// ─── Event wiring (JS-6: delegation + teardown) ───────────────────────────────
 
 function bindRetry() {
   if (!$retry) return;
@@ -232,7 +278,7 @@ function bindRetry() {
   });
 }
 
-// ─── Initialisation ──────────────────────────────────────────────────────────
+// ─── Initialisation ───────────────────────────────────────────────────────────
 
 function init() {
   bindRetry();

@@ -1,6 +1,6 @@
 /* ==========================================================================
    News & Blog Landing
-   Mixed aggregation page with toggle chips and infinite scroll.
+   Latest-5 + latest-3 preview layout with clickable section headings.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -16,37 +16,30 @@
 }
 
 /* -------------------------------------------------------------------------
-   Toggle Chips (All / Blog / News)
+   Section
    ------------------------------------------------------------------------- */
 
-.news-blog-toggles {
-  display: flex;
-  gap: var(--space-xs);
-  margin-bottom: var(--space-lg);
+.news-blog-section {
+  margin-bottom: var(--space-xl);
 }
 
-.news-blog-toggle {
-  padding: 0.375rem 0.75rem;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  cursor: pointer;
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
-  background: transparent;
+.news-blog-section-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 
-.news-blog-toggle:hover {
-  background: var(--bg-surface-alt);
-}
-
-.news-blog-toggle.active {
-  background: var(--bg-surface-alt);
-  border-color: var(--accent);
+.news-blog-section-link:hover .news-blog-section-header {
   color: var(--accent);
+}
+
+.news-blog-section-header {
+  font-size: var(--text-h3);
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--border);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 /* -------------------------------------------------------------------------
@@ -60,36 +53,42 @@
 }
 
 /* -------------------------------------------------------------------------
-   Card Type Badge
+   Row (thumbnail + text)
    ------------------------------------------------------------------------- */
 
-.news-blog-card-type {
-  margin-bottom: var(--space-xs);
+.news-blog-row {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-md);
+  align-items: flex-start;
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.news-blog-row:first-child {
+  padding-top: 0;
+}
+
+.news-blog-row:last-child {
+  border-bottom: none;
+}
+
+.news-blog-row:hover {
+  background-color: var(--bg-surface-alt);
+  margin: 0 calc(-1 * var(--space-sm));
+  padding-left: var(--space-sm);
+  padding-right: var(--space-sm);
+  border-radius: var(--radius-sm);
 }
 
 /* -------------------------------------------------------------------------
-   Card Meta
+   Thumbnail
    ------------------------------------------------------------------------- */
 
-.news-blog-card-meta {
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  margin-bottom: var(--space-sm);
-}
-
-/* -------------------------------------------------------------------------
-   Hero Promotion Card
-   ------------------------------------------------------------------------- */
-
-.news-blog-hero {
-  margin-bottom: var(--space-xl);
-}
-
-/* -------------------------------------------------------------------------
-   Card Thumbnail (news articles)
-   ------------------------------------------------------------------------- */
-
-.news-card-thumbnail {
+.news-blog-row-thumb {
   width: 80px;
   height: 80px;
   object-fit: cover;
@@ -97,44 +96,36 @@
   border-radius: var(--radius-sm);
 }
 
-.news-card-thumbnail--empty {
+.news-blog-row-thumb--empty {
   background: var(--bg-surface-alt);
   border: 1px dashed var(--border);
 }
 
 /* -------------------------------------------------------------------------
-   Card Row (thumbnail + text side-by-side)
+   Text body
    ------------------------------------------------------------------------- */
 
-.news-card-row {
-  display: flex;
-  flex-direction: row;
-  gap: var(--space-md);
-  align-items: flex-start;
-  margin-bottom: var(--space-md);
-}
-
-.news-card-row .card-title {
-  margin-bottom: var(--space-xs);
-}
-
-.news-card-row .card-description {
-  margin-bottom: var(--space-xs);
-}
-
-.news-card-body {
+.news-blog-row-body {
   flex: 1;
   min-width: 0;
 }
 
-/* -------------------------------------------------------------------------
-   Section Headers
-   ------------------------------------------------------------------------- */
-
-.news-blog-section-header {
-  font-size: var(--text-h3);
+.news-blog-row-title {
+  font-size: var(--text-body);
   font-weight: 600;
-  margin-bottom: var(--space-md);
-  padding-bottom: var(--space-xs);
-  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+  line-height: var(--leading-small);
+}
+
+.news-blog-row-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-bottom: var(--space-xs);
+}
+
+.news-blog-row-excerpt {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  line-height: var(--leading-small);
 }

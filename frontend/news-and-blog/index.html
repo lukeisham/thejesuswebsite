@@ -80,12 +80,6 @@
         <link rel="stylesheet" href="/assets/css/components/buttons.css" />
         <link rel="stylesheet" href="/assets/css/components/cards.css" />
         <link rel="stylesheet" href="/assets/css/components/badges.css" />
-        <link rel="stylesheet" href="/assets/css/components/filters.css" />
-        <link rel="stylesheet" href="/assets/css/components/filters/filter-chips.css" />
-        <link
-            rel="stylesheet"
-            href="/assets/css/components/infinite-scroll.css"
-        />
         <link rel="stylesheet" href="/assets/css/components/loading.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="/assets/css/pages/news-and-blog.css" />
@@ -148,31 +142,6 @@
                     <h2>News &amp; Blog</h2>
                 </section>
 
-                <!-- Toggle chips: All / Blog / News -->
-                <div
-                    class="news-blog-toggles"
-                    id="toggle-chips"
-                    aria-label="Filter by type"
-                >
-                    <button class="news-blog-toggle active" data-type="all">
-                        All
-                    </button>
-                    <button class="news-blog-toggle" data-type="blog">
-                        Blog
-                    </button>
-                    <button class="news-blog-toggle" data-type="news">
-                        News
-                    </button>
-                </div>
-
-                <!-- Hero promotion card slot (for landing_page_display = 1 items) -->
-                <section
-                    class="news-blog-hero"
-                    id="hero-promotion"
-                    aria-label="Featured"
-                    hidden
-                ></section>
-
                 <!-- Loading state -->
                 <div class="loading" id="loading-state" hidden>
                     <svg
@@ -186,13 +155,6 @@
                         />
                     </svg>
                     <span class="loading__text">Loading posts…</span>
-                </div>
-
-                <!-- Empty state -->
-                <div class="empty-state" id="empty-state" hidden>
-                    <p class="empty-state__message">
-                        No posts or articles found.
-                    </p>
                 </div>
 
                 <!-- Error state -->
@@ -209,12 +171,12 @@
                     id="news-section"
                     aria-label="News articles"
                 >
-                    <h3 class="news-blog-section-header">News</h3>
+                    <a class="news-blog-section-link" href="/news-and-blog/news/">
+                        <h3 class="news-blog-section-header">News</h3>
+                    </a>
                     <div class="news-blog-list" id="news-list">
-                        <!-- News cards rendered by news-and-blog.js -->
+                        <!-- Rows rendered by news-and-blog.js -->
                     </div>
-                    <div class="scroll-sentinel" id="news-scroll-sentinel" hidden></div>
-                    <p class="end-of-list" id="news-end-of-list" hidden></p>
                 </section>
 
                 <!-- Blog Section -->
@@ -223,12 +185,12 @@
                     id="blog-section"
                     aria-label="Blog posts"
                 >
-                    <h3 class="news-blog-section-header">Blog</h3>
+                    <a class="news-blog-section-link" href="/news-and-blog/blog/">
+                        <h3 class="news-blog-section-header">Blog</h3>
+                    </a>
                     <div class="news-blog-list" id="blog-list">
-                        <!-- Blog cards rendered by news-and-blog.js -->
+                        <!-- Rows rendered by news-and-blog.js -->
                     </div>
-                    <div class="scroll-sentinel" id="blog-scroll-sentinel" hidden></div>
-                    <p class="end-of-list" id="blog-end-of-list" hidden></p>
                 </section>
             </div>
         </main>
