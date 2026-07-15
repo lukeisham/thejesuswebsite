@@ -70,7 +70,6 @@ function renderNewsRows(articles) {
       thumbnail: article.news_article_thumbnail || null,
       url: article.news_article_url,
     });
-    // (JS-6: setAttribute, not innerHTML for attrs)
     if (article.news_article_url) {
       row.setAttribute('target', '_blank');
       row.setAttribute('rel', 'noopener noreferrer');
@@ -97,6 +96,10 @@ function renderBlogRows(posts) {
 
 // ─── Row builder ──────────────────────────────────────────────────────────────
 
+/**
+ * Build a horizontal row link element.
+ * `meta` is an array of { text, italic? } objects for safe DOM construction.
+ */
 function buildRow({ title, meta, thumbnail, excerpt, url }) {
   const a = document.createElement('a');
   a.className = 'news-blog-row';
@@ -126,10 +129,8 @@ function buildRow({ title, meta, thumbnail, excerpt, url }) {
   titleEl.textContent = title || 'Untitled';
   body.appendChild(titleEl);
 
-  if (meta) {
-    const metaEl = document.createElement('p');
-    metaEl.className = 'news-blog-row-meta';
-    metaEl.textContent = meta;
+  if (meta && meta.length) {
+    const metaEl = buildMetaElement(meta);
     body.appendChild(metaEl);
   }
 
@@ -144,23 +145,56 @@ function buildRow({ title, meta, thumbnail, excerpt, url }) {
   return a;
 }
 
+/**
+ * Build a .news-blog-row-meta <p> from an array of parts.
+ * Each part: { text: string, italic?: boolean }.
+ * Publisher parts are wrapped in <em> for italic styling.
+ * Separator " · " is plain text between parts.
+ */
+function buildMetaElement(parts) {
+  const p = document.createElement('p');
+  p.className = 'news-blog-row-meta';
+
+  parts.forEach((part, i) => {
+    if (i > 0) {
+      p.appendChild(document.createTextNode(' · '));
+    }
+    if (part.italic) {
+      const em = document.createElement('em');
+      em.textContent = part.text;
+      p.appendChild(em);
+    } else {
+      p.appendChild(document.createTextNode(part.text));
+    }
+  });
+
+  return p;
+}
+
 // ─── Meta helpers ─────────────────────────────────────────────────────────────
 
 function buildNewsMeta(article) {
   const parts = [];
-  if (article.news_article_author) parts.push(article.news_article_author);
-  if (article.news_article_publisher) parts.push(article.news_article_publisher);
-  if (article.news_article_date) {
-    parts.push(formatDate(article.news_article_date));
+  if (article.news_article_author) {
+    parts.push({ text: article.news_article_author });
   }
-  return parts.join(' · ');
+  if (article.news_article_publisher) {
+    parts.push({ text: article.news_article_publisher, italic: true });
+  }
+  if (article.news_article_date) {
+    parts.push({ text: formatDate(article.news_article_date) });
+  }
+  return parts;
 }
 
 function buildBlogMeta(post) {
   const parts = [];
-  if (post.blog_date) parts.push(formatDate(post.blog_date));
-  else if (post.created_at) parts.push(formatDate(post.created_at));
-  return parts.join(' · ');
+  if (post.blog_date) {
+    parts.push({ text: formatDate(post.blog_date) });
+  } else if (post.created_at) {
+    parts.push({ text: formatDate(post.created_at) });
+  }
+  return parts;
 }
 
 // ─── Helpers (JS-2: validated input) ──────────────────────────────────────────
@@ -193,7 +227,6 @@ if (document.readyState === 'loading') {
   init();
 }
 
-// Retry button
 if ($retry) {
   $retry.addEventListener('click', () => {
     if ($newsList) $newsList.innerHTML = '';
