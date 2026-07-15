@@ -238,6 +238,13 @@
                     >
                         Save Order
                     </button>
+                    <button
+                        type="button"
+                        class="admin-btn admin-btn--danger admin-btn--sm"
+                        id="btn-delete-all"
+                    >
+                        Delete All Articles
+                    </button>
                 </div>
             </header>
 
@@ -477,6 +484,39 @@
                 document
                     .getElementById("btn-save-order")
                     .addEventListener("click", saveOrder);
+
+                // ── Delete All ────────────────────────────────────────────
+
+                document
+                    .getElementById("btn-delete-all")
+                    .addEventListener("click", async function () {
+                        if (articles.length === 0) {
+                            alert("No articles to delete.");
+                            return;
+                        }
+                        if (
+                            !confirm(
+                                "Delete all " +
+                                    articles.length +
+                                    " articles? This cannot be undone.",
+                            )
+                        )
+                            return;
+
+                        var btn = document.getElementById("btn-delete-all");
+                        btn.disabled = true;
+                        btn.textContent = "Deleting…";
+                        try {
+                            await Admin.api.del("/wikipedia");
+                            articles = [];
+                            renderRows();
+                        } catch (err) {
+                            alert("Failed to delete: " + err.message);
+                        } finally {
+                            btn.disabled = false;
+                            btn.textContent = "Delete All Articles";
+                        }
+                    });
 
                 // Initialize ranking drag module
                 AdminRanking.init("#rank-list", {

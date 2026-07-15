@@ -67,6 +67,17 @@ router.put('/:id', requireAuth, (req, res) => {
     }
 });
 
+// DELETE /wikipedia — delete all Wikipedia articles (admin only)
+router.delete('/', requireAuth, (req, res) => {
+    try {
+        const count = wikipediaModel.deleteAll();
+        res.json({ deleted: count });
+    } catch (error) {
+        console.error('DELETE /wikipedia failed:', error);
+        res.status(500).json({ error: 'Failed to delete Wikipedia articles.' });
+    }
+});
+
 // DELETE /wikipedia/:id — remove Wikipedia article (admin only)
 router.delete('/:id', requireAuth, (req, res) => {
     try {

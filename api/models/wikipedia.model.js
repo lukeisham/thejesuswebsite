@@ -101,4 +101,12 @@ function remove(id) {
     return result.changes > 0;
 }
 
-module.exports = { getAllPublished, getAllAdmin, getBySlug, getById, create, update, remove };
+/**
+ * Delete every Wikipedia article. Returns the number of rows removed.
+ */
+function deleteAll() {
+    const result = db.prepare('DELETE FROM wikipedia_articles').run();
+    return result.changes;
+}
+
+module.exports = { getAllPublished, getAllAdmin, getBySlug, getById, create, update, remove, deleteAll };
