@@ -1,12 +1,12 @@
 /**
- * News list page: fetch paginated news articles, render cards with side-by-side
- * thumbnails, external links, author/publisher display, and infinite scroll.
+ * News list page: fetch paginated news articles, render row-based cards
+ * with thumbnail, title, meta (author · publisher · date), and infinite scroll.
+ * Items open the external article URL in a new tab. (JS-5, JS-6)
  *
  * @module news-list
  */
 
 import { getNewsArticles } from './api.js';
-import { renderCard } from './utils/templates.js';
 import { showToast } from './utils/toasts.js';
 import { delegate } from './utils/dom.js';
 
@@ -31,7 +31,7 @@ let allItems = [];
 let observer = null;
 let retryTeardown = null;
 
-// ─── DOM refs (JS-6: cached queries, never re-queried) ────────────────────────
+// ─── DOM refs (JS-6: cached queries) ──────────────────────────────────────────
 
 const $grid = document.getElementById(CARD_GRID_ID);
 const $sentinel = document.getElementById(SENTINEL_ID);
@@ -54,16 +54,32 @@ function hideAllStates() {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
 }
 
-// ─── Helpers (JS-2: validates input before processing) ────────────────────────
+// ─── Helpers (JS-2: validated input) ──────────────────────────────────────────
 
-function buildNewsDescription(article) {
-  const parts = [];
-  if (article.news_article_author) parts.push(`By ${article.news_article_author}`);
-  if (article.news_article_publisher) parts.push(`in ${article.news_article_publisher}`);
-  return parts.length ? parts.join(' \u00b7 ') : '';
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
 }
 
-// ─── Data fetching (JS-5: async/await + centralized fetch via api.js) ──────────
+function buildMeta(article) {
+  const parts = [];
+  if (article.news_article_author) parts.push(article.news_article_author);
+  if (article.news_article_publisher) parts.push(article.news_article_publisher);
+  if (article.news_article_date || article.created_at) {
+    parts.push(formatDate(article.news_article_date || article.created_at));
+  }
+  return parts.join(' \u00b7 ');
+}
+
+// ─── Data fetching (JS-5: async/await, centralized fetch) ─────────────────────
 
 async function loadPage() {
   if (isLoading || !hasMore) return;
@@ -93,18 +109,8 @@ async function loadPage() {
     return;
   }
 
-  // Normalise raw DB column names to the shape expected by renderCard
-  const normalized = data.map((article) => ({
-    ...article,
-    title: article.news_article_title,
-    description: buildNewsDescription(article),
-    _date: article.news_article_date || article.created_at,
-    thumbnail: article.news_article_thumbnail || null,
-    external_url: article.news_article_url || null,
-  }));
-
   const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = normalized.slice(start, start + PAGE_SIZE);
+  const pageItems = data.slice(start, start + PAGE_SIZE);
 
   if (pageItems.length === 0) {
     hasMore = false;
@@ -133,92 +139,59 @@ async function loadPage() {
   }
 }
 
-// ─── Rendering (JS-6: textContent for user data, SafeString via renderCard) ───
+// ─── Rendering (JS-6: textContent for user data) ──────────────────────────────
 
 function renderCards(items) {
   if (!$grid) return;
 
   items.forEach((item) => {
-    const date = item._date
-      ? new Date(item._date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
-      : '';
-    const url = item.external_url || `/news-and-blog/news/${encodeURIComponent(item.slug || '')}`;
+    const url = item.news_article_url || `/news-and-blog/news/${encodeURIComponent(item.slug || '')}`;
 
-    // (JS-6) renderCard uses SafeString — all values are escaped
-    const cardHTML = renderCard({
-      title: item.title || 'Untitled',
-      description: item.description || '',
-      url,
-      badges: ['News'],
-    });
-
-    const temp = document.createElement('div');
-    temp.innerHTML = cardHTML;
-    const cardEl = temp.firstElementChild;
-
-    if (!cardEl) return;
-
-    // News cards: open external URL in new tab (JS-6: setAttribute, not HTML)
-    if (item.external_url && cardEl.tagName === 'A') {
-      cardEl.setAttribute('target', '_blank');
-      cardEl.setAttribute('rel', 'noopener noreferrer');
+    const row = document.createElement('a');
+    row.className = 'news-blog-row';
+    row.href = url;
+    if (item.news_article_url) {
+      row.setAttribute('target', '_blank');
+      row.setAttribute('rel', 'noopener noreferrer');
     }
 
-    // Side-by-side row: thumbnail on left, title + description on right
-    restructureNewsCard(cardEl, item);
-
-    // Date meta (JS-6: textContent, not innerHTML)
-    if (date) {
-      const meta = document.createElement('p');
-      meta.className = 'news-blog-card-meta';
-      meta.textContent = date;
-      cardEl.appendChild(meta);
+    // Thumbnail
+    if (item.news_article_thumbnail) {
+      const img = document.createElement('img');
+      img.className = 'news-blog-row-thumb';
+      img.src = item.news_article_thumbnail;
+      img.alt = '';
+      img.loading = 'lazy';
+      row.appendChild(img);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'news-blog-row-thumb news-blog-row-thumb--empty';
+      placeholder.setAttribute('aria-hidden', 'true');
+      row.appendChild(placeholder);
     }
 
-    $grid.appendChild(cardEl);
+    const body = document.createElement('div');
+    body.className = 'news-blog-row-body';
+
+    const titleEl = document.createElement('h3');
+    titleEl.className = 'news-blog-row-title';
+    titleEl.textContent = item.news_article_title || 'Untitled';
+    body.appendChild(titleEl);
+
+    const meta = buildMeta(item);
+    if (meta) {
+      const metaEl = document.createElement('p');
+      metaEl.className = 'news-blog-row-meta';
+      metaEl.textContent = meta;
+      body.appendChild(metaEl);
+    }
+
+    row.appendChild(body);
+    $grid.appendChild(row);
   });
 }
 
-// ─── News card side-by-side layout (HTML-2: thumbnail alt="") ──────────────────
-
-function restructureNewsCard(cardEl, item) {
-  const thumb = item.thumbnail
-    ? buildThumbnailImg(item.thumbnail)
-    : buildEmptyThumbnail();
-
-  const titleEl = cardEl.querySelector('.card-title');
-  const descEl = cardEl.querySelector('.card-description');
-
-  const body = document.createElement('div');
-  body.className = 'news-card-body';
-  if (titleEl) body.appendChild(titleEl);
-  if (descEl) body.appendChild(descEl);
-
-  const row = document.createElement('div');
-  row.className = 'news-card-row';
-  row.appendChild(thumb);
-  row.appendChild(body);
-
-  cardEl.insertBefore(row, cardEl.firstChild);
-}
-
-function buildThumbnailImg(path) {
-  const img = document.createElement('img');
-  img.className = 'news-card-thumbnail';
-  img.src = path;
-  img.alt = '';
-  img.loading = 'lazy';
-  return img;
-}
-
-function buildEmptyThumbnail() {
-  const placeholder = document.createElement('div');
-  placeholder.className = 'news-card-thumbnail news-card-thumbnail--empty';
-  placeholder.setAttribute('aria-hidden', 'true');
-  return placeholder;
-}
-
-// ─── Infinite scroll (JS-6: IntersectionObserver) ─────────────────────────────
+// ─── Infinite scroll (JS-6) ───────────────────────────────────────────────────
 
 function initInfiniteScroll() {
   if (!$sentinel) return;
@@ -237,7 +210,7 @@ function initInfiniteScroll() {
   observer.observe($sentinel);
 }
 
-// ─── SessionStorage caching (JS-2: try/catch for quota errors) ────────────────
+// ─── SessionStorage caching (JS-2: try/catch for quota) ───────────────────────
 
 function cacheItems() {
   try {
