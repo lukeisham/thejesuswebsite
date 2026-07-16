@@ -1,7 +1,8 @@
 /**
- * Wikipedia ranked list page: fetch ranked Wikipedia articles,
- * render each with rank number, external link + Feather icon,
- * last-revised date, and +/- counts. Infinite scroll.
+ * Wikipedia ranked list page: fetch ranked Wikipedia articles, render each
+ * with rank number and external link + Feather icon. A single page-level
+ * "Last revised" line (most recent date across the dataset) sits in the
+ * page header rather than per article. Infinite scroll.
  *
  * Also renders the "reliability stones" widget per article: a copy-results
  * button, a toggle that expands a stone wall (one stone per reliability
@@ -34,6 +35,9 @@ const STONE_COLLAPSE_STAGGER_MS = 40;
 const STONE_DURATION_MS = 150;
 const TIER_OPACITY = [0.32, 0.55, 0.78, 1];
 const COPY_SUCCESS_MS = 1500;
+// Mirrors --duration-base (variables.css) — fallback in case the wrap's
+// max-height transitionend never fires (JS-2: don't rely solely on an event).
+const WRAP_SETTLE_FALLBACK_MS = 300;
 
 let currentPage = 1;
 let hasMore = true;
@@ -53,6 +57,7 @@ const $empty    = document.getElementById(EMPTY_ID);
 const $error    = document.getElementById(ERROR_ID);
 const $end      = document.getElementById(END_ID);
 const $retry    = document.getElementById(RETRY_ID);
+const $revisedLine = document.getElementById('wikipedia-revised-line');
 
 // ─── State management ────────────────────────────────────────────────────────
 
@@ -65,6 +70,29 @@ function showState(name) {
 
 function hideAllStates() {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
+}
+
+/**
+ * Shows the single most recent revision date across the whole dataset as one
+ * page-level line. Stays hidden if no article has a valid date (JS-2).
+ */
+function updateRevisedLine(items) {
+  if (!$revisedLine || !Array.isArray(items)) return;
+
+  const validDates = items
+    .map((item) => item.wikipedia_article_latest_revision_date && Date.parse(item.wikipedia_article_latest_revision_date))
+    .filter((parsed) => !Number.isNaN(parsed) && parsed);
+
+  if (validDates.length === 0) {
+    $revisedLine.hidden = true;
+    return;
+  }
+
+  const latestMs = Math.max(...validDates);
+
+  const dateStr = new Date(latestMs).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+  $revisedLine.textContent = `Last revised: ${dateStr}`;
+  $revisedLine.hidden = false;
 }
 
 // ─── Data fetching ───────────────────────────────────────────────────────────
@@ -83,6 +111,8 @@ async function loadPage() {
     showToast('Failed to load Wikipedia articles', 'error');
     return;
   }
+
+  updateRevisedLine(data);
 
   if (!data || data.length === 0) {
     if (allItems.length === 0) {
@@ -215,8 +245,12 @@ function buildStoneMarkup(dictEntry, contribution, cap) {
 
   const sizeJitter = hashToUnit(dictEntry.key + 'sz');
   const rotationJitter = hashToUnit(dictEntry.key + 'rot');
+  const shuffleXJitter = hashToUnit(dictEntry.key + 'shx');
+  const shuffleYJitter = hashToUnit(dictEntry.key + 'shy');
   const size = 48 + Math.round((sizeJitter - 0.5) * 5);
   const rotation = ((rotationJitter - 0.5) * 2).toFixed(2);
+  const shuffleX = ((shuffleXJitter - 0.5) * 10).toFixed(1);
+  const shuffleY = ((shuffleYJitter - 0.5) * 10).toFixed(1);
 
   const svgMarkup = ashlarSvgMarkup(dictEntry.key, tier, isNegative, rotation);
 
@@ -224,7 +258,7 @@ function buildStoneMarkup(dictEntry, contribution, cap) {
     <div
       class="wikipedia-stone"
       data-signal-key="${dictEntry.key}"
-      style="width:${size}px;height:${size}px;--stone-target-opacity:${TIER_OPACITY[tier]};animation-delay:0ms;"
+      style="width:${size}px;height:${size}px;--stone-target-opacity:${TIER_OPACITY[tier]};--stone-shuffle-x:${shuffleX}px;--stone-shuffle-y:${shuffleY}px;animation-delay:0ms;"
       tabindex="0"
     >
       ${raw(svgMarkup)}
@@ -285,8 +319,8 @@ function buildStoneWidget(item, articleId) {
     <button
       type="button"
       class="btn btn--ghost wikipedia-signal-btn wikipedia-signal-copy"
-      title="Copy text results"
-      aria-label="Copy text results"
+      title="Copy of the reliability information"
+      aria-label="Copy of the reliability information"
       data-copy-target="${wrapId}"
     >
       <svg width="18" height="18" aria-hidden="true">
@@ -310,11 +344,6 @@ function buildStoneWidget(item, articleId) {
     <div class="wikipedia-stone-wrap" id="${wrapId}" aria-hidden="true">
       <div class="wikipedia-stone-inner">
         <div class="wikipedia-stone-row">${positiveStones}${gap}${negativeStones}</div>
-        <p class="wikipedia-stone-caption">
-          An invisible <code>&lt;script class="agent-data"&gt;</code> block below carries the
-          full scoring data behind these stones (name, cap, contribution, statement) for AI
-          agents. The copy button above copies a plain-text rendering of the same data.
-        </p>
       </div>
     </div>
     <script type="application/json" class="agent-data" data-agent-readable="true">${raw(agentJson)}</script>
@@ -333,9 +362,6 @@ function renderArticles(items) {
 
     const title = item.wikipedia_article_title || 'Untitled';
     const url = item.wikipedia_article_url || '#';
-    const dateStr = item.wikipedia_article_latest_revision_date
-      ? new Date(item.wikipedia_article_latest_revision_date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
-      : '';
     const articleId = item.id ?? `${rank}`;
 
     const li = document.createElement('li');
@@ -354,7 +380,6 @@ function renderArticles(items) {
           </a>
           ${raw(buildStoneWidget(item, articleId))}
         </div>
-        <span class="wikipedia-rank-date">${dateStr ? `Last revised: ${dateStr}` : ''}</span>
       </div>
     `;
 
@@ -368,10 +393,34 @@ function prefersReducedMotion() {
   return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/** Marks the wrap as settled (overflow: visible) once its expand transition
+ *  finishes, so top-row stone tooltips aren't clipped. Falls back to a timer
+ *  in case max-height never actually changes (e.g. re-opening an already-open
+ *  wrap) and transitionend never fires. */
+function settleWrapAfterOpen(wrap) {
+  let settled = false;
+  const markSettled = () => {
+    if (settled) return;
+    settled = true;
+    wrap.classList.add('is-settled');
+  };
+
+  wrap.addEventListener(
+    'transitionend',
+    (e) => {
+      if (e.target === wrap && e.propertyName === 'max-height') markSettled();
+    },
+    { once: true }
+  );
+  setTimeout(markSettled, WRAP_SETTLE_FALLBACK_MS);
+}
+
 function openStoneWrap(wrap) {
   const stones = Array.from(wrap.querySelectorAll('.wikipedia-stone'));
+  wrap.classList.remove('is-settled');
   wrap.classList.add('is-open');
   wrap.setAttribute('aria-hidden', 'false');
+  settleWrapAfterOpen(wrap);
 
   stones.forEach((stone, index) => {
     stone.style.animationDelay = prefersReducedMotion() ? '0ms' : `${index * STONE_STAGGER_MS}ms`;
@@ -382,6 +431,10 @@ function openStoneWrap(wrap) {
 function closeStoneWrap(wrap) {
   const stones = Array.from(wrap.querySelectorAll('.wikipedia-stone'));
   const total = stones.length;
+
+  // Re-clip before the collapse transition starts, so shrinking stones don't
+  // paint outside the card.
+  wrap.classList.remove('is-settled');
 
   if (prefersReducedMotion()) {
     stones.forEach((stone) => stone.classList.remove('is-visible'));
@@ -438,8 +491,8 @@ function showCopySuccess(button) {
   setTimeout(() => {
     button.innerHTML = originalHTML;
     button.classList.remove('is-copied');
-    button.setAttribute('title', originalTitle || 'Copy text results');
-    button.setAttribute('aria-label', 'Copy text results');
+    button.setAttribute('title', originalTitle || 'Copy of the reliability information');
+    button.setAttribute('aria-label', 'Copy of the reliability information');
   }, COPY_SUCCESS_MS);
 }
 

@@ -19,6 +19,12 @@
   color: var(--text-secondary);
 }
 
+.wikipedia-header .wikipedia-revised-line {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+}
+
 /* -------------------------------------------------------------------------
    Ranked List
    ------------------------------------------------------------------------- */
@@ -70,13 +76,3 @@
   color: var(--link-hover);
 }
 
-/* -------------------------------------------------------------------------
-   Meta
-   ------------------------------------------------------------------------- */
-
-.wikipedia-rank-date {
-  display: block;
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  margin-top: var(--space-sm);
-}
