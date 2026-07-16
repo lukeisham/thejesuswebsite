@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="/assets/css/components/loading.css">
   <link rel="stylesheet" href="/assets/css/components/toasts.css">
   <link rel="stylesheet" href="/assets/css/pages/blog.css">
+  <link rel="stylesheet" href="/assets/css/pages/journal-footer.css">
 
   <link rel="preload" as="image" href="/assets/images/feather-sprite.svg" fetchpriority="high">
 </head>
@@ -92,21 +93,10 @@
     <article class="blog-article" id="blog-content" hidden>
       <!-- Header: left-aligned -->
       <header class="blog-header">
-        <div class="blog-category" id="blog-category"></div>
         <h1 class="blog-title" id="page-h1"></h1>
-        <div class="blog-byline" id="blog-byline">
-          <img class="blog-byline-avatar" id="blog-avatar" src="" alt="" width="24" height="24">
-          <span id="blog-author"></span>
-          <span class="blog-byline-separator">·</span>
+        <div class="blog-byline">
           <time id="blog-date"></time>
         </div>
-        <img
-          class="blog-hero-image"
-          id="blog-hero"
-          src=""
-          alt=""
-          loading="lazy"
-        >
       </header>
 
       <!-- Body: reading column -->
@@ -118,11 +108,11 @@
         <ul id="blog-sources-list"></ul>
       </section>
 
-      <!-- Tags row -->
-      <div class="blog-tags" id="blog-tags">
-        <span class="blog-tags-label">Tags</span>
-        <div class="blog-tags-items" id="blog-tags-items"></div>
-      </div>
+      <!-- Bibliography (MLA sources) -->
+      <section class="blog-bibliography journal-references" id="blog-bibliography" hidden>
+        <h2 class="unnumbered">Bibliography</h2>
+        <ol id="blog-bibliography-list"></ol>
+      </section>
     </article>
   </main>
 

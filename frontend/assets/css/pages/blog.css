@@ -55,15 +55,6 @@
     color: var(--text-muted);
 }
 
-/* Hero Image */
-.blog-hero-image {
-    width: 100%;
-    max-height: 480px;
-    object-fit: cover;
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-xl);
-}
-
 /* -------------------------------------------------------------------------
    Body
    ------------------------------------------------------------------------- */

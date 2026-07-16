@@ -40,8 +40,8 @@ export function formatMlaCitation(source) {
     const journal = source.mla_journal_title || "";
     const volume = source.mla_journal_volume || "";
     const issue = source.mla_journal_issue || "";
-    const year = source.mla_journal_year || "";
-    const pages = source.mla_journal_pages || "";
+    const date = source.mla_journal_date || "";
+    const pages = source.mla_journal_page_reference || "";
 
     if (!title) return "";
 
@@ -64,8 +64,8 @@ export function formatMlaCitation(source) {
       parts.push(volIssue.join(", ") + " ");
     }
 
-    // (Year)
-    if (year) parts.push(`(${year})`);
+    // (Date)
+    if (date) parts.push(`(${date})`);
 
     // pp. X-Y
     if (pages) parts.push(`, ${pages}`);
@@ -84,8 +84,8 @@ export function formatMlaCitation(source) {
     const author = source.mla_book_author || "";
     const title = source.mla_book_title || "";
     const publisher = source.mla_book_publisher || "";
-    const year = source.mla_book_year || "";
-    const edition = source.mla_book_edition || "";
+    const date = source.mla_book_date || "";
+    const pageRef = source.mla_book_page_reference || "";
 
     if (!title) return "";
 
@@ -97,14 +97,14 @@ export function formatMlaCitation(source) {
     // _Title_.
     parts.push(html`<em>${title}</em>`.toString());
 
-    // Edition
-    if (edition) parts.push(`, ${edition}`);
-
     // Publisher
     if (publisher) parts.push(`, ${publisher}`);
 
-    // Year
-    if (year) parts.push(`, ${year}`);
+    // Date
+    if (date) parts.push(`, ${date}`);
+
+    // Page reference
+    if (pageRef) parts.push(`, ${pageRef}`);
 
     parts.push(".");
 
@@ -114,12 +114,10 @@ export function formatMlaCitation(source) {
   // ── Website ────────────────────────────────────────────────────────────
   if (
     source.mla_website_author ||
-    source.mla_website_title ||
-    source.mla_website_name
+    source.mla_website_title
   ) {
     const author = source.mla_website_author || "";
     const title = source.mla_website_title || "";
-    const siteName = source.mla_website_name || "";
     const publisher = source.mla_website_publisher || "";
     const date = source.mla_website_date || "";
     const url = source.mla_website_url || "";
@@ -133,9 +131,6 @@ export function formatMlaCitation(source) {
 
     // "Page Title."
     parts.push(html`<em>${title}</em>. `.toString());
-
-    // _Site Name_,
-    if (siteName) parts.push(html`${siteName}, `.toString());
 
     // Publisher,
     if (publisher) parts.push(html`${publisher}, `.toString());
