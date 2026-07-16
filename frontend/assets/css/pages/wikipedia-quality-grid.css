@@ -64,6 +64,13 @@
   max-height: 900px;
 }
 
+/* Applied once the open transition finishes (JS), so stone-label tooltips on
+   the top row aren't clipped by this container's overflow. Removed again
+   before the collapse transition starts, so collapsing stones stay clipped. */
+.wikipedia-stone-wrap.is-settled {
+  overflow: visible;
+}
+
 .wikipedia-stone-inner {
   padding-top: var(--space-md);
 }
@@ -86,17 +93,19 @@
   flex: 0 0 auto;
   align-self: flex-end;
   opacity: 0;
-  transform: scale(0.5);
+  transform: scale(0.5) translate(var(--stone-shuffle-x, 0px), var(--stone-shuffle-y, 0px));
 }
 
 .wikipedia-stone-wrap.is-open .wikipedia-stone.is-visible {
   animation: wikipedia-stone-in var(--duration-fast) var(--ease-out) forwards;
 }
 
+/* Settles into place from its shuffle offset (--stone-shuffle-x/y, set per-stone
+   in JS) rather than growing straight in — a slight in-place shuffle on open. */
 @keyframes wikipedia-stone-in {
   to {
     opacity: var(--stone-target-opacity, 1);
-    transform: scale(1);
+    transform: scale(1) translate(0, 0);
   }
 }
 
@@ -105,6 +114,12 @@
   height: 100%;
   display: block;
   overflow: visible;
+}
+
+.wikipedia-stone:hover,
+.wikipedia-stone:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
 }
 
 /* -------------------------------------------------------------------------
@@ -133,22 +148,6 @@
 .wikipedia-stone:focus-visible .wikipedia-stone-label {
   opacity: 1;
   transform: translate(-50%, 0);
-}
-
-/* -------------------------------------------------------------------------
-   Caption (explains the embedded agent-data block)
-   ------------------------------------------------------------------------- */
-
-.wikipedia-stone-caption {
-  margin-top: var(--space-md);
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  color: var(--text-secondary);
-  background: var(--bg-surface-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-sm) var(--space-md);
-  line-height: var(--leading-small);
 }
 
 /* -------------------------------------------------------------------------
