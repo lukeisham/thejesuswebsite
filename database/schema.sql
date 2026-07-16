@@ -223,6 +223,19 @@ CREATE TABLE wikipedia_articles (
     metadata_keywords                      TEXT
 );
 
+-- One row per (article, signal) — 27 rows per published article. `signal_key`
+-- matches keys in the static SIGNAL_DICTIONARY (frontend/assets/js/utils/wikipedia-signals.js).
+-- `contribution` is points earned (negative for negative signals); `cap` is that
+-- signal's max magnitude for this article (also negative for negative signals).
+CREATE TABLE wikipedia_article_signals (
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    wikipedia_article_id INTEGER NOT NULL REFERENCES wikipedia_articles(id) ON DELETE CASCADE,
+    signal_key           TEXT NOT NULL,
+    contribution         INTEGER NOT NULL DEFAULT 0,
+    cap                  INTEGER NOT NULL,
+    UNIQUE(wikipedia_article_id, signal_key)
+);
+
 CREATE TABLE about_pages (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     about_section_title   TEXT,
@@ -669,6 +682,7 @@ CREATE INDEX idx_historiography_period     ON historiography (historiography_per
 -- Ranking queries
 CREATE INDEX idx_challenges_rank           ON challenges (challenge_rank_number);
 CREATE INDEX idx_wikipedia_rank            ON wikipedia_articles (wikipedia_article_rank_number);
+CREATE INDEX idx_wikipedia_article_signals ON wikipedia_article_signals (wikipedia_article_id); -- fast lookup of all signals for an article (stone-wall widget)
 
 -- Analytics dashboard queries
 CREATE INDEX idx_analytics_page            ON analytics (page);
