@@ -1,6 +1,6 @@
 /**
  * Blog post detail page: fetch blog post by slug, render header,
- * body, pull quotes, figures, tags, further reading, and SEO JSON-LD.
+ * body, pull quotes, figures, bibliography, further reading, and SEO JSON-LD.
  *
  * @module blog-detail
  */
@@ -9,10 +9,11 @@ import { getBlogPostBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
 import { setSEO } from "./seo.js";
 import { html } from "./utils/templates.js";
-import { renderBadge } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
 import { parseContentBody } from "./utils/content-markers.js";
+import { formatMlaCitation } from "./utils/mla.js";
+import { renderMarkdown } from "./utils/markdown.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -21,17 +22,13 @@ const $error = document.getElementById("error-state");
 const $empty = document.getElementById("empty-state");
 const $content = document.getElementById("blog-content");
 // Content regions
-const $category = document.getElementById("blog-category");
 const $title = document.getElementById("page-h1");
-const $avatar = document.getElementById("blog-avatar");
-const $author = document.getElementById("blog-author");
 const $date = document.getElementById("blog-date");
-const $hero = document.getElementById("blog-hero");
 const $body = document.getElementById("blog-body");
 const $furtherReading = document.getElementById("blog-further-reading");
 const $sourcesList = document.getElementById("blog-sources-list");
-const $tags = document.getElementById("blog-tags");
-const $tagsItems = document.getElementById("blog-tags-items");
+const $bibList = document.getElementById("blog-bibliography-list");
+const $bibSection = document.getElementById("blog-bibliography");
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
 
@@ -87,29 +84,12 @@ function showContent() {
 // ─── Render functions ────────────────────────────────────────────────────────
 
 function renderHeader(post) {
-  // Category badge
-  if ($category && post.category) {
-    $category.innerHTML = renderBadge(post.category);
-  } else if ($category) {
-    $category.innerHTML = "";
-  }
-
   // Title
-  if ($title) $title.textContent = post.title || "Untitled";
+  if ($title) $title.textContent = post.blog_title || "Untitled";
 
-  // Byline row
-  if ($author) $author.textContent = post.author || "";
-  if ($avatar) {
-    if (post.author_avatar) {
-      $avatar.src = post.author_avatar;
-      $avatar.alt = post.author || "Author";
-    } else {
-      $avatar.hidden = true;
-    }
-  }
-
+  // Date
   if ($date) {
-    const dateStr = post.published_at || post.created_at;
+    const dateStr = post.blog_date || post.published_at || post.created_at;
     if (dateStr) {
       const d = new Date(dateStr);
       $date.textContent = d.toLocaleDateString("en-GB", {
@@ -122,29 +102,21 @@ function renderHeader(post) {
       $date.textContent = "";
     }
   }
-
-  // Hero image
-  if ($hero) {
-    if (post.hero_image) {
-      $hero.src = post.hero_image;
-      $hero.alt = post.hero_image_alt || post.title || "";
-      $hero.hidden = false;
-    } else {
-      $hero.hidden = true;
-    }
-  }
 }
 
 function renderBody(post) {
   if (!$body) return;
 
-  if (!post.body) {
+  if (!post.blog_content) {
     $body.innerHTML = "";
     return;
   }
 
-  // Parse body content — handle paragraphs, pull quotes, figures, and inline MLA citations (parenthetical for blogs)
-  const htmlContent = parseContentBody(post.body, {
+  // Step 1: Parse markdown (headings, bold, italic, lists, tables) into HTML
+  const markdownHtml = renderMarkdown(post.blog_content);
+
+  // Step 2: Parse shortcode markers ([figure], [mla:N], [pullquote]) on top
+  const htmlContent = parseContentBody(markdownHtml, {
     mlaSources: post.mla_sources || [],
     identifiers: post.identifiers || [],
     citationStyle: "parenthetical",
@@ -154,6 +126,34 @@ function renderBody(post) {
 
   // Number figures in the body
   numberFigures($body);
+}
+
+/**
+ * Render the bibliography list from mla_sources using formatMlaCitation.
+ * Mirrors essay-detail.js / historiography-detail.js pattern.
+ */
+function renderBibliography(post) {
+  if (
+    !post.mla_sources ||
+    !Array.isArray(post.mla_sources) ||
+    post.mla_sources.length === 0
+  ) {
+    if ($bibSection) $bibSection.hidden = true;
+    return;
+  }
+
+  if ($bibSection) $bibSection.hidden = false;
+
+  if ($bibList) {
+    $bibList.innerHTML = post.mla_sources
+      .map(function (source) {
+        const citation = formatMlaCitation(source);
+        if (!citation) return "";
+        return html`<li id="mla-${source.id}">${citation}</li>`;
+      })
+      .filter(Boolean)
+      .join("");
+  }
 }
 
 function renderFurtherReading(post) {
@@ -186,48 +186,27 @@ function renderFurtherReading(post) {
   }
 }
 
-function renderTags(post) {
-  if (!post.tags || !Array.isArray(post.tags) || post.tags.length === 0) {
-    if ($tags) $tags.hidden = true;
-    return;
-  }
-
-  if ($tags) $tags.hidden = false;
-
-  if ($tagsItems) {
-    $tagsItems.innerHTML = post.tags.map((tag) => renderBadge(tag)).join("");
-  }
-}
-
 // ─── SEO ─────────────────────────────────────────────────────────────────────
 
 function applySEO(post) {
-  const title = post.title
-    ? `${post.title} — Blog — The Jesus Website`
+  const title = post.blog_title
+    ? `${post.blog_title} — Blog — The Jesus Website`
     : "Blog Post — The Jesus Website";
 
-  const description = post.description
-    ? truncateText(post.description, 160)
+  const description = post.metadata_keywords
+    ? truncateText(post.metadata_keywords, 160)
     : "A blog post from The Jesus Website.";
-
-  const ogImage = post.hero_image || undefined;
 
   setSEO({
     title,
     description,
-    ogImage,
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
-      headline: post.title,
-      description: post.description,
-      image: post.hero_image || undefined,
-      datePublished: post.published_at || post.created_at,
-      dateModified: post.updated_at || post.published_at || post.created_at,
-      author: {
-        "@type": "Person",
-        name: post.author || "Luke Isham",
-      },
+      headline: post.blog_title,
+      description: post.metadata_keywords || undefined,
+      datePublished: post.blog_date || post.published_at || post.created_at,
+      dateModified: post.updated_at || post.blog_date || post.published_at || post.created_at,
     },
   });
 }
@@ -235,7 +214,7 @@ function applySEO(post) {
 // ─── Utilities ───────────────────────────────────────────────────────────────
 
 function truncateText(text, maxLen) {
-  if (text.length <= maxLen) return text;
+  if (!text || text.length <= maxLen) return text;
   return text.slice(0, maxLen - 1).trimEnd() + "\u2026";
 }
 
@@ -270,8 +249,8 @@ async function init() {
   // Render all sections
   renderHeader(data);
   renderBody(data);
+  renderBibliography(data);
   renderFurtherReading(data);
-  renderTags(data);
 
   // Apply SEO metadata
   applySEO(data);

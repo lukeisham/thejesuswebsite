@@ -8,7 +8,6 @@
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
-        <script defer src="../assets/js/admin-image-picker.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
         <style>
@@ -288,11 +287,6 @@
                             </div>
                         </div>
 
-                        <div class="admin-form-card" style="margin-top:var(--space-md)">
-                            <div class="admin-form-card__title">Hero Image</div>
-                            <div id="hero-image-picker"></div>
-                        </div>
-
                         <div
                             class="admin-form-card"
                             style="margin-top: var(--space-md)"
@@ -514,8 +508,6 @@
                             document
                                 .getElementById("blog-keywords")
                                 .value.trim() || undefined,
-                        hero_image: heroPicker ? heroPicker.getValue().image_path || undefined : undefined,
-                        hero_image_alt: heroPicker ? heroPicker.getValue().alt || undefined : undefined,
                         published_draft: publish ? 1 : 0,
                         link_evidence_ids: parseIdList(
                             document.getElementById("blog-evidence").value,
