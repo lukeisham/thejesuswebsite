@@ -896,3 +896,16 @@ WHEN NEW.updated_at = OLD.updated_at
 BEGIN
     UPDATE credentials SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
 END;
+
+-- =====================
+-- SPELLCHECK
+-- =====================
+
+CREATE TABLE spellcheck_dictionary (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    word       TEXT NOT NULL,
+    normalized TEXT NOT NULL UNIQUE,
+    status     TEXT NOT NULL CHECK (status IN ('learned', 'ignored')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_spellcheck_dictionary_normalized ON spellcheck_dictionary (normalized);
