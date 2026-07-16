@@ -20,14 +20,56 @@ const WRITABLE_COLUMNS = [
 ];
 
 /**
+ * The 27 reliability-signal rows for one article (id, signal_key, contribution, cap).
+ * Empty array if the article predates this feature or has no scored signals.
+ */
+function getSignalsForArticle(articleId) {
+    return db
+        .prepare(
+            'SELECT id, signal_key, contribution, cap FROM wikipedia_article_signals WHERE wikipedia_article_id = ?'
+        )
+        .all(articleId);
+}
+
+/**
+ * Attach a `signals` array to each article via a single query grouped in JS
+ * (simpler than a JOIN at this scale — at most a few hundred articles).
+ */
+function attachSignals(articles) {
+    if (articles.length === 0) return articles;
+
+    const ids = articles.map((article) => article.id);
+    const placeholders = ids.map(() => '?').join(', ');
+    const rows = db
+        .prepare(
+            `SELECT id, wikipedia_article_id, signal_key, contribution, cap FROM wikipedia_article_signals WHERE wikipedia_article_id IN (${placeholders})`
+        )
+        .all(...ids);
+
+    const signalsByArticleId = new Map();
+    for (const row of rows) {
+        const list = signalsByArticleId.get(row.wikipedia_article_id) || [];
+        list.push({ id: row.id, signal_key: row.signal_key, contribution: row.contribution, cap: row.cap });
+        signalsByArticleId.set(row.wikipedia_article_id, list);
+    }
+
+    return articles.map((article) => ({
+        ...article,
+        signals: signalsByArticleId.get(article.id) || [],
+    }));
+}
+
+/**
  * Published Wikipedia articles, ranked by wikipedia_article_rank_number.
+ * Each article carries a `signals` array (see attachSignals).
  */
 function getAllPublished() {
-    return db
+    const articles = db
         .prepare(
             'SELECT * FROM wikipedia_articles WHERE published_draft = 1 ORDER BY wikipedia_article_rank_number ASC'
         )
         .all();
+    return attachSignals(articles);
 }
 
 /**
@@ -44,11 +86,14 @@ function getAllAdmin() {
 
 /**
  * Single published Wikipedia article by slug, or undefined if not found.
+ * Carries a `signals` array (see attachSignals).
  */
 function getBySlug(slug) {
-    return db
+    const article = db
         .prepare('SELECT * FROM wikipedia_articles WHERE slug = ? AND published_draft = 1')
         .get(slug);
+    if (!article) return undefined;
+    return attachSignals([article])[0];
 }
 
 /**
@@ -109,4 +154,14 @@ function deleteAll() {
     return result.changes;
 }
 
-module.exports = { getAllPublished, getAllAdmin, getBySlug, getById, create, update, remove, deleteAll };
+module.exports = {
+    getAllPublished,
+    getAllAdmin,
+    getBySlug,
+    getById,
+    getSignalsForArticle,
+    create,
+    update,
+    remove,
+    deleteAll,
+};

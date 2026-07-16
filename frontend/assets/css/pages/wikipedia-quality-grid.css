@@ -1,0 +1,184 @@
+/* ==========================================================================
+   Wikipedia Reliability Stones
+   Per-article signal glyph buttons + collapsible stone-wall widget on the
+   Wikipedia ranked list. See setup/STYLE_GUIDE/animation.md §6.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Header glyph buttons (copy-results, toggle stone-wall)
+   ------------------------------------------------------------------------- */
+
+.wikipedia-rank-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.wikipedia-rank-title-link {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wikipedia-signal-btn {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+
+.wikipedia-signal-btn:hover {
+  background: var(--bg-surface-alt);
+  border-color: var(--border);
+  text-decoration: none;
+}
+
+.wikipedia-signal-btn[aria-expanded='true'] {
+  background: var(--bg-surface-alt);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.wikipedia-signal-btn.is-copied {
+  color: var(--success);
+  border-color: var(--success);
+  background: var(--bg-surface-alt);
+}
+
+/* -------------------------------------------------------------------------
+   Stone wall (collapsible)
+   ------------------------------------------------------------------------- */
+
+.wikipedia-stone-wrap {
+  flex-basis: 100%;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height var(--duration-base) var(--ease-in-out);
+}
+
+.wikipedia-stone-wrap.is-open {
+  max-height: 900px;
+}
+
+.wikipedia-stone-inner {
+  padding-top: var(--space-md);
+}
+
+.wikipedia-stone-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.wikipedia-stone-gap {
+  width: var(--space-md);
+  flex: 0 0 auto;
+}
+
+.wikipedia-stone {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  align-self: flex-end;
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.wikipedia-stone-wrap.is-open .wikipedia-stone.is-visible {
+  animation: wikipedia-stone-in var(--duration-fast) var(--ease-out) forwards;
+}
+
+@keyframes wikipedia-stone-in {
+  to {
+    opacity: var(--stone-target-opacity, 1);
+    transform: scale(1);
+  }
+}
+
+.wikipedia-stone svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* -------------------------------------------------------------------------
+   Stone tooltip (name-only)
+   ------------------------------------------------------------------------- */
+
+.wikipedia-stone-label {
+  position: absolute;
+  bottom: calc(100% + var(--space-sm));
+  left: 50%;
+  transform: translate(-50%, 4px);
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-tight);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+  box-shadow: var(--shadow-md);
+}
+
+.wikipedia-stone:hover .wikipedia-stone-label,
+.wikipedia-stone:focus-visible .wikipedia-stone-label {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* -------------------------------------------------------------------------
+   Caption (explains the embedded agent-data block)
+   ------------------------------------------------------------------------- */
+
+.wikipedia-stone-caption {
+  margin-top: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  line-height: var(--leading-small);
+}
+
+/* -------------------------------------------------------------------------
+   Reduced motion
+   ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .wikipedia-stone-wrap.wikipedia-stone-wrap,
+  .wikipedia-stone.wikipedia-stone,
+  .wikipedia-stone-label.wikipedia-stone-label,
+  .wikipedia-signal-btn.wikipedia-signal-btn {
+    transition: none;
+  }
+
+  /* Matches the specificity of .wikipedia-stone-wrap.is-open
+     .wikipedia-stone.is-visible { animation: ... } above so it actually wins. */
+  .wikipedia-stone-wrap.is-open .wikipedia-stone.is-visible.is-visible {
+    animation: none;
+    opacity: var(--stone-target-opacity, 1);
+    transform: scale(1);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Mobile
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .wikipedia-stone {
+    width: 40px;
+    height: 40px;
+  }
+}
