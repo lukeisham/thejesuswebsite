@@ -381,6 +381,7 @@
                     "When checked, this post will appear on the homepage.";
                 landGroup.appendChild(landHint);
 
+                // Metadata card
                 var metaCard = document.createElement("div");
                 metaCard.className = "admin-form-card";
                 metaCard.style.marginTop = "var(--space-md)";
@@ -389,29 +390,6 @@
                 var metaTitle = document.createElement("div");
                 metaTitle.className = "admin-form-card__title";
                 metaTitle.textContent = "Metadata";
-                // Hero image picker
-                var heroCard = document.createElement("div");
-                heroCard.className = "admin-form-card";
-                heroCard.style.marginTop = "var(--space-md)";
-                var heroTitle = document.createElement("div");
-                heroTitle.className = "admin-form-card__title";
-                heroTitle.textContent = "Hero Image";
-                heroCard.appendChild(heroTitle);
-                var heroContainer = document.createElement("div");
-                heroContainer.id = "hero-image-picker";
-                heroCard.appendChild(heroContainer);
-                sidebar.insertBefore(heroCard, metaCard);
-                var heroPicker = null;
-                if (typeof AdminImagePicker !== "undefined") {
-                    heroPicker = AdminImagePicker.mount(heroContainer, {
-                        initialPath: data.hero_image || "",
-                        initialAlt: data.hero_image_alt || "",
-                        onChange: function (val) {
-                            /* tracked via getValue */
-                        },
-                    });
-                }
-
                 metaCard.appendChild(metaTitle);
 
                 metaCard.appendChild(
@@ -661,12 +639,6 @@
                             document
                                 .getElementById("blog-keywords")
                                 .value.trim() || undefined,
-                        hero_image: heroPicker
-                            ? heroPicker.getValue().image_path || undefined
-                            : undefined,
-                        hero_image_alt: heroPicker
-                            ? heroPicker.getValue().alt || undefined
-                            : undefined,
                         published_draft: document.getElementById("blog-publish")
                             .checked
                             ? 1
