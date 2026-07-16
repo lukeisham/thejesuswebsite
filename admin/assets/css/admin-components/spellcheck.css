@@ -1,0 +1,103 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Spellcheck Overlay & Context Menu
+   CSS-1: Spellcheck widget styles only. Under 150 lines.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Overlay container ────────────────────────────────────────────────────── */
+
+.admin-spellcheck-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    z-index: 1;
+}
+
+/* ── Underline marks ──────────────────────────────────────────────────────── */
+
+.admin-spellcheck-mark {
+    text-decoration-line: underline;
+    text-decoration-style: wavy;
+}
+
+.admin-spellcheck-mark--spelling {
+    text-decoration-color: var(--admin-danger);
+}
+
+.admin-spellcheck-mark--grammar {
+    text-decoration-color: var(--admin-warning);
+}
+
+/* ── Spacer spans (unflagged text between marks) ──────────────────────────── */
+
+.admin-spellcheck-plain {
+    color: transparent;
+}
+
+/* ── Context menu ─────────────────────────────────────────────────────────── */
+
+.admin-spellcheck-menu {
+    position: fixed;
+    z-index: 2000;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    box-shadow: var(--admin-shadow), var(--shadow-modal);
+    min-width: 180px;
+    max-width: 280px;
+    padding: var(--space-xs) 0;
+    font-size: 13px;
+}
+
+.admin-spellcheck-menu__item {
+    display: block;
+    width: 100%;
+    padding: var(--space-xs) var(--space-md);
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 13px;
+    color: var(--admin-text-primary);
+    cursor: pointer;
+    line-height: 1.6;
+}
+
+.admin-spellcheck-menu__item:hover,
+.admin-spellcheck-menu__item:focus {
+    background: var(--admin-surface-hover);
+    outline: none;
+}
+
+.admin-spellcheck-menu__item--suggestion {
+    font-weight: 500;
+}
+
+.admin-spellcheck-menu__item--action {
+    color: var(--admin-text-secondary);
+    border-top: 1px solid var(--admin-border-light);
+    margin-top: var(--space-xs);
+    padding-top: var(--space-xs);
+}
+
+/* ── Context menu separator ───────────────────────────────────────────────── */
+
+.admin-spellcheck-menu__separator {
+    height: 1px;
+    background: var(--admin-border-light);
+    margin: var(--space-xs) 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────
+   CSS-3: Mobile rules inline. Keep menu within viewport on narrow screens. */
+
+@media (max-width: 480px) {
+    .admin-spellcheck-menu {
+        min-width: 160px;
+        max-width: calc(100vw - var(--space-md));
+    }
+}

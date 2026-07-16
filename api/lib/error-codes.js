@@ -325,6 +325,15 @@ const CATEGORY_1 = {
       "The WebAuthn authenticator data is too short or does not contain expected fields.",
     severity: "error",
   },
+
+  INVALID_SPELLCHECK_STATUS: {
+    code: "E-INPUT-033",
+    category: 1,
+    httpStatus: 400,
+    message: "Invalid spellcheck dictionary status.",
+    detail: "The status field must be one of: 'learned', 'ignored'.",
+    severity: "warn",
+  },
 };
 
 // ── Category 2: Transformation Boundaries (Data Processing) ─────────────────
