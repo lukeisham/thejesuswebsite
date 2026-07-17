@@ -309,6 +309,39 @@ describe("model: getBotStats()", () => {
     assert.equal(result.human, 1);
     assert.equal(result.bot, 0);
   });
+
+  test("UA-less rows increment unknown, not human", () => {
+    analyticsModel.record({
+      page: "/test",
+      user_agent: null,
+      ip_hash: "h1",
+      session_id: "s1",
+    });
+    analyticsModel.record({
+      page: "/test",
+      user_agent: "Chrome",
+      ip_hash: "h2",
+      session_id: "s2",
+      is_bot: 0,
+    });
+    analyticsModel.record({
+      page: "/test",
+      user_agent: "Googlebot",
+      ip_hash: "h3",
+      session_id: "s3",
+      is_bot: 1,
+    });
+
+    const result = analyticsModel.getBotStats(null);
+    assert.equal(result.human, 1, "only the Chrome row should be human");
+    assert.equal(result.bot, 1, "Googlebot row should be bot");
+    assert.equal(result.unknown, 1, "UA-less row should be unknown, not human");
+    assert.equal(
+      result.human + result.bot + result.unknown,
+      3,
+      "human + bot + unknown should account for every seeded row",
+    );
+  });
 });
 
 // Route: POST /analytics hardening

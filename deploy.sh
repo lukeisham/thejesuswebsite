@@ -95,7 +95,17 @@ else
   echo "[deploy] No migrations directory found — skipping."
 fi
 
-# ---- 3. Generate sitemap and static pages ------------------------------------
+# ---- 3. Import GeoIP data (idempotent, runs on every deploy) -----------------
+GEOIP_CSV="$API_DIR/data/geoip/GeoLite2-Country-Blocks-IPv4.csv"
+if [ -f "$GEOIP_CSV" ]; then
+  echo "[deploy] Importing GeoIP country data..."
+  cd "$API_DIR"
+  npm run import-geoip
+else
+  echo "[deploy] WARNING: GeoIP CSV not found at $GEOIP_CSV — country data will remain 'Unknown' until the CSV is placed and a deploy re-runs."
+fi
+
+# ---- 4. Generate sitemap and static pages ------------------------------------
 echo "[deploy] Generating sitemap..."
 cd "$API_DIR"
 npm run sitemap
@@ -106,7 +116,7 @@ npm run pages
 echo "[deploy] Embedding initial data for list/visual pages..."
 npm run embed-data
 
-# ---- 4. Start / restart the API and MCP servers -----------------------------
+# ---- 5. Start / restart the API and MCP servers -----------------------------
 
 case "$PROCESS_MANAGER" in
   pm2)
@@ -142,7 +152,7 @@ case "$PROCESS_MANAGER" in
     ;;
 esac
 
-# ---- 5. Reload nginx so committed config changes take effect -----------------
+# ---- 6. Reload nginx so committed config changes take effect -----------------
 # deploy/nginx.conf changes (e.g. cache-control rules) are inert until nginx
 # reloads. Use sudo -n (never prompt) and treat failure as a warning: a deploy
 # must not die because the deploy user lacks the sudo grant. Grant it with:
