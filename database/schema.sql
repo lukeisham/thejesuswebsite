@@ -221,7 +221,10 @@ CREATE TABLE wikipedia_articles (
     wikipedia_rank_pluses                  INTEGER,
     wikipedia_rank_minuses                 INTEGER,
     published_draft                        INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
-    metadata_keywords                      TEXT
+    metadata_keywords                      TEXT,
+    -- When the row was uploaded to this website (NOT the Wikipedia article's own
+    -- revision date). Drives the "Last updated" line on the public list.
+    created_at                             DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- One row per (article, signal) — 27 rows per published article. `signal_key`

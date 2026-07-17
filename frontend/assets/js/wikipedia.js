@@ -1,8 +1,8 @@
 /**
  * Wikipedia ranked list page: fetch ranked Wikipedia articles, render each
  * with rank number and external link + Feather icon. A single page-level
- * "Last revised" line (most recent date across the dataset) sits in the
- * page header rather than per article. Infinite scroll.
+ * "Last updated" line (when the list was most recently uploaded to this
+ * website) sits in the page header rather than per article. Infinite scroll.
  *
  * Also renders the "reliability stones" widget per article: a copy-results
  * button, a toggle that expands a stone wall (one stone per reliability
@@ -73,14 +73,16 @@ function hideAllStates() {
 }
 
 /**
- * Shows the single most recent revision date across the whole dataset as one
- * page-level line. Stays hidden if no article has a valid date (JS-2).
+ * Shows when the list was most recently uploaded to this website, as one
+ * page-level line. This is the newest `created_at` (row upload time) across
+ * the dataset — it has nothing to do with the Wikipedia articles' own revision
+ * dates. Stays hidden if no article has a valid date (JS-2).
  */
 function updateRevisedLine(items) {
   if (!$revisedLine || !Array.isArray(items)) return;
 
   const validDates = items
-    .map((item) => item.wikipedia_article_latest_revision_date && Date.parse(item.wikipedia_article_latest_revision_date))
+    .map((item) => item.created_at && Date.parse(item.created_at))
     .filter((parsed) => !Number.isNaN(parsed) && parsed);
 
   if (validDates.length === 0) {
@@ -91,7 +93,7 @@ function updateRevisedLine(items) {
   const latestMs = Math.max(...validDates);
 
   const dateStr = new Date(latestMs).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
-  $revisedLine.textContent = `Last revised: ${dateStr}`;
+  $revisedLine.textContent = `Last updated: ${dateStr}`;
   $revisedLine.hidden = false;
 }
 

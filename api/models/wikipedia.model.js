@@ -111,6 +111,11 @@ function create(data) {
     const row = pickWritable(data, WRITABLE_COLUMNS);
     row.slug = generateUniqueSlug(db, 'wikipedia_articles', row.slug);
 
+    // Stamp the website upload time explicitly. `created_at` is not a writable
+    // column (the admin can't override it), and the production DB's migrated
+    // column has no DEFAULT, so we set it here for consistency across DBs.
+    row.created_at = new Date().toISOString().replace('T', ' ').slice(0, 19);
+
     const columns = Object.keys(row);
     const placeholders = columns.map((column) => `@${column}`);
 
