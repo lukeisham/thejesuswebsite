@@ -39,3 +39,16 @@
 .map-pin.era--post-passion {
     background: var(--era-post-passion);
 }
+
+/* ── Category overrides ─────────────────────────────────────────────────────
+   Must come after era rules (CSS-5). Mirrors timeline-dots.css: people and
+   places share the "roundel" style — white fill, black ring. */
+
+.map-pin.dot-cat--place,
+.map-pin.dot-cat--person {
+    background: var(--color-white);
+    border-color: var(--color-black);
+}
+.map-pin.dot-cat--object {
+    background: var(--text-muted);
+}

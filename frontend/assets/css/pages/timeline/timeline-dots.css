@@ -67,12 +67,11 @@
     background: var(--era-post-passion);
 }
 
-/* Category overrides — must come after era rules (CSS-5) */
-.timeline-dot.dot-cat--place {
-    background: var(--color-black);
-}
+/* Category overrides — must come after era rules (CSS-5).
+   People and places share the "roundel" style: white fill, black ring. */
+.timeline-dot.dot-cat--place,
 .timeline-dot.dot-cat--person {
-    background: var(--bg-surface);
+    background: var(--color-white);
     border-color: var(--color-black);
 }
 .timeline-dot.dot-cat--object {
