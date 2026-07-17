@@ -4,7 +4,7 @@
  * @module utils/toasts
  */
 
-import { createElement, delegate } from './dom.js';
+import { createElement } from './dom.js';
 
 /** @type {'success'|'error'|'warning'|'info'} */
 const VARIANTS = ['success', 'error', 'warning', 'info'];
@@ -36,13 +36,17 @@ function getContainer() {
 
 function dismissToast(toastEl) {
   if (!toastEl || !toastEl.parentNode) return;
+  if (toastEl.classList.contains('toast--dismissing')) return;
 
   const index = visible.indexOf(toastEl);
   if (index !== -1) visible.splice(index, 1);
 
-  toastEl.addEventListener('transitionend', () => {
+  const remove = () => {
     if (toastEl.parentNode) toastEl.parentNode.removeChild(toastEl);
-  }, { once: true });
+  };
+  toastEl.addEventListener('transitionend', remove, { once: true });
+  // Fallback: transitionend may never fire (reduced motion, hidden tab)
+  setTimeout(remove, 400);
 
   toastEl.classList.add('toast--dismissing');
   processQueue();
@@ -121,13 +125,4 @@ export function showToast(message, variant = 'info', { duration } = {}) {
   const item = { message, variant, duration: autoDuration };
   queue.push(item);
   processQueue();
-}
-
-// Initialise dismiss-on-click after DOM ready
-if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => {
-    delegate(document.body, '.toast__dismiss', 'click', (_e, _target) => {
-      // dismiss is handled inline via onclick on the button itself
-    });
-  });
 }
