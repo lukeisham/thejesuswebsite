@@ -64,10 +64,11 @@
 
 /* Category overrides (after era rules, CSS-5) */
 .admin-timeline-event.dot-cat--place {
-    background: var(--color-black);
+    background: var(--color-white);
+    border-color: var(--color-black);
 }
 .admin-timeline-event.dot-cat--person {
-    background: var(--bg-surface);
+    background: var(--color-white);
     border-color: var(--color-black);
 }
 .admin-timeline-event.dot-cat--object {
