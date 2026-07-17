@@ -20,7 +20,7 @@ const WRITABLE_COLUMNS = [
 ];
 
 /**
- * The 27 reliability-signal rows for one article (id, signal_key, contribution, cap).
+ * The 28 reliability-signal rows for one article (id, signal_key, contribution, cap).
  * Empty array if the article predates this feature or has no scored signals.
  */
 function getSignalsForArticle(articleId) {
