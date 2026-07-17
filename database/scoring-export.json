@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-16T18:40:06",
-  "article_count": 256,
+  "generated": "2026-07-17T10:27:43",
+  "article_count": 254,
   "ceiling": 250,
   "source": "Lukeatron !TheJesusWebsite-Wikipedia rank_engine.py",
   "note": "contributions are capped/conditional POINTS per signal (they sum to net_score); raw_signals are the uncapped harvested values."
@@ -16427,73 +16427,6 @@
   },
   {
    "ranking": 244,
-   "title": "Scourge",
-   "url": "https://en.wikipedia.org/wiki/Scourge",
-   "net_score": 11,
-   "contributions": {
-    "bible_verses": 6,
-    "narrative_interp_split": 0,
-    "manuscripts": 0,
-    "ante_nicene": 0,
-    "arch_site": 0,
-    "location_bonus": 0,
-    "historical_context": 0,
-    "journals": 0,
-    "books": 3,
-    "primary_quotes": 4,
-    "jewish_context": 0,
-    "commentaries": 0,
-    "ancient_historians": 1,
-    "wiki_quality": 0,
-    "manuscript_bonus": 0,
-    "niche_bonus": 0,
-    "gnostic_quoted": 0,
-    "poor_referencing": -1,
-    "jesus_seminar": 0,
-    "ot_nt_criticism": 0,
-    "supernatural_criticism": -2,
-    "passion_criticism": 0,
-    "miracle_criticism": 0,
-    "islamic_mormon": 0,
-    "mythicist": 0,
-    "no_references": 0,
-    "no_bible_verse": 0
-   },
-   "raw_signals": {
-    "verse_count": 2,
-    "ref_count": 13,
-    "journal_hits": 0,
-    "book_hits": 3,
-    "commentary_hits": 0,
-    "arch_site": false,
-    "historical_context": false,
-    "manuscript_hits": 0,
-    "primary_source_quotes": 7,
-    "gnostic_source_quoted": false,
-    "poor_referencing": true,
-    "wiki_quality": false,
-    "ancient_historian_hits": 1,
-    "ante_nicene_hits": 0,
-    "mythicist_hits": 0,
-    "narrative_and_interp_sections": false,
-    "jesus_seminar_hits": 0,
-    "ot_nt_criticism": 0,
-    "supernatural_criticism": 1,
-    "jewish_context_hits": 0,
-    "islamic_mormon_hit": false,
-    "passion_criticism_hits": 0,
-    "miracle_criticism_hits": 0
-   },
-   "categories": {
-    "is_passion": false,
-    "is_miracle": false,
-    "is_parable": false,
-    "is_location": false,
-    "is_manuscript": false
-   }
-  },
-  {
-   "ranking": 245,
    "title": "True Cross",
    "url": "https://en.wikipedia.org/wiki/True_Cross",
    "net_score": 11,
@@ -16560,7 +16493,7 @@
    }
   },
   {
-   "ranking": 246,
+   "ranking": 245,
    "title": "The blind leading the blind",
    "url": "https://en.wikipedia.org/wiki/The_blind_leading_the_blind",
    "net_score": 11,
@@ -16627,7 +16560,7 @@
    }
   },
   {
-   "ranking": 247,
+   "ranking": 246,
    "title": "Simon the Leper",
    "url": "https://en.wikipedia.org/wiki/Simon_the_Leper",
    "net_score": 10,
@@ -16694,74 +16627,7 @@
    }
   },
   {
-   "ranking": 248,
-   "title": "Signs Gospel",
-   "url": "https://en.wikipedia.org/wiki/Signs_Gospel",
-   "net_score": 10,
-   "contributions": {
-    "bible_verses": 3,
-    "narrative_interp_split": 0,
-    "manuscripts": 2,
-    "ante_nicene": 0,
-    "arch_site": 0,
-    "location_bonus": 0,
-    "historical_context": 0,
-    "journals": 2,
-    "books": 5,
-    "primary_quotes": 4,
-    "jewish_context": 0,
-    "commentaries": 2,
-    "ancient_historians": 0,
-    "wiki_quality": 0,
-    "manuscript_bonus": 0,
-    "niche_bonus": 0,
-    "gnostic_quoted": 0,
-    "poor_referencing": -1,
-    "jesus_seminar": -2,
-    "ot_nt_criticism": -2,
-    "supernatural_criticism": 0,
-    "passion_criticism": 0,
-    "miracle_criticism": 0,
-    "islamic_mormon": -3,
-    "mythicist": 0,
-    "no_references": 0,
-    "no_bible_verse": 0
-   },
-   "raw_signals": {
-    "verse_count": 1,
-    "ref_count": 18,
-    "journal_hits": 2,
-    "book_hits": 11,
-    "commentary_hits": 2,
-    "arch_site": false,
-    "historical_context": false,
-    "manuscript_hits": 1,
-    "primary_source_quotes": 5,
-    "gnostic_source_quoted": false,
-    "poor_referencing": true,
-    "wiki_quality": false,
-    "ancient_historian_hits": 0,
-    "ante_nicene_hits": 0,
-    "mythicist_hits": 0,
-    "narrative_and_interp_sections": false,
-    "jesus_seminar_hits": 1,
-    "ot_nt_criticism": 1,
-    "supernatural_criticism": 0,
-    "jewish_context_hits": 0,
-    "islamic_mormon_hit": true,
-    "passion_criticism_hits": 0,
-    "miracle_criticism_hits": 0
-   },
-   "categories": {
-    "is_passion": false,
-    "is_miracle": true,
-    "is_parable": false,
-    "is_location": false,
-    "is_manuscript": false
-   }
-  },
-  {
-   "ranking": 249,
+   "ranking": 247,
    "title": "Parable of Drawing in the Net",
    "url": "https://en.wikipedia.org/wiki/Parable_of_Drawing_in_the_Net",
    "net_score": 9,
@@ -16828,7 +16694,7 @@
    }
   },
   {
-   "ranking": 250,
+   "ranking": 248,
    "title": "Jesus' true relatives",
    "url": "https://en.wikipedia.org/wiki/Jesus%27_true_relatives",
    "net_score": 5,
@@ -16895,7 +16761,7 @@
    }
   },
   {
-   "ranking": 251,
+   "ranking": 249,
    "title": "Oral gospel traditions",
    "url": "https://en.wikipedia.org/wiki/Oral_gospel_traditions",
    "net_score": 4,
@@ -16962,7 +16828,7 @@
    }
   },
   {
-   "ranking": 252,
+   "ranking": 250,
    "title": "Pilate stone",
    "url": "https://en.wikipedia.org/wiki/Pilate_stone",
    "net_score": 2,
@@ -17029,7 +16895,7 @@
    }
   },
   {
-   "ranking": 253,
+   "ranking": 251,
    "title": "Bartholomew the Apostle",
    "url": "https://en.wikipedia.org/wiki/Bartholomew_the_Apostle",
    "net_score": -2,
@@ -17096,7 +16962,7 @@
    }
   },
   {
-   "ranking": 254,
+   "ranking": 252,
    "title": "Tomb of Jesus",
    "url": "https://en.wikipedia.org/wiki/Tomb_of_Jesus",
    "net_score": -3,
@@ -17163,7 +17029,7 @@
    }
   },
   {
-   "ranking": 255,
+   "ranking": 253,
    "title": "Mount of Beatitudes",
    "url": "https://en.wikipedia.org/wiki/Mount_of_Beatitudes",
    "net_score": -7,
@@ -17230,7 +17096,7 @@
    }
   },
   {
-   "ranking": 256,
+   "ranking": 254,
    "title": "Parable of a scribe",
    "url": "https://en.wikipedia.org/wiki/Parable_of_a_scribe",
    "net_score": -9,

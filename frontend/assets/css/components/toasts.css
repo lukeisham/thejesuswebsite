@@ -20,6 +20,8 @@
 
 /* -------------------------------------------------------------------------
    Toast Item
+   Enters hidden; JS adds .toast--visible to slide up + fade in, and
+   .toast--dismissing to fade out (removal waits on transitionend).
    ------------------------------------------------------------------------- */
 
 .toast {
@@ -34,26 +36,40 @@
   font-size: var(--text-small);
   color: var(--text-primary);
   border-left: 4px solid var(--info);
-  animation: slide-up-fade var(--duration-base) var(--ease-out);
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.toast--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast--dismissing {
+  opacity: 0;
+  transition-duration: var(--duration-fast);
 }
 
 /* -------------------------------------------------------------------------
    Toast Variants
    ------------------------------------------------------------------------- */
 
-.toast-success {
+.toast--success {
   border-left-color: var(--success);
 }
 
-.toast-error {
+.toast--error {
   border-left-color: var(--error);
 }
 
-.toast-warning {
+.toast--warning {
   border-left-color: var(--warning);
 }
 
-.toast-info {
+.toast--info {
   border-left-color: var(--info);
 }
 
@@ -61,12 +77,12 @@
    Toast Content
    ------------------------------------------------------------------------- */
 
-.toast-message {
+.toast__message {
   flex: 1;
   line-height: var(--leading-small);
 }
 
-.toast-dismiss {
+.toast__dismiss {
   flex-shrink: 0;
   width: 24px;
   height: 24px;
@@ -79,14 +95,10 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.toast-dismiss:hover {
+.toast__dismiss:hover {
   background: var(--bg-surface-alt);
 }
 
-/* -------------------------------------------------------------------------
-   Toast Exit Animation
-   ------------------------------------------------------------------------- */
-
-.toast.removing {
-  animation: fade-in var(--duration-fast) var(--ease-out) reverse forwards;
+.toast__dismiss-icon {
+  display: block;
 }

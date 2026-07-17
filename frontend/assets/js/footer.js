@@ -19,10 +19,20 @@ import { showToast } from "./utils/toasts.js";
 function getStrippedBodyText() {
   const clone = document.body.cloneNode(true);
 
-  // Remove nav, footer, sidebar, and their toggles/backdrops
+  // Remove nav, footer, sidebar, their toggles/backdrops, and transient
+  // overlays (toasts, cookie banner) that live directly in <body>
   clone
     .querySelectorAll(
-      "nav, footer, .sidebar, .sidebar__toggle, .sidebar-backdrop",
+      [
+        "nav",
+        "footer",
+        ".sidebar",
+        ".sidebar__toggle",
+        ".sidebar-backdrop",
+        ".toast-container",
+        ".error-toast-container",
+        ".cookie-consent",
+      ].join(","),
     )
     .forEach((el) => el.remove());
 
