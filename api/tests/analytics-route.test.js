@@ -433,3 +433,63 @@ describe("POST /analytics — bot detection", () => {
     assert.equal(row.search_terms, "jesus historical");
   });
 });
+
+// ── GET /analytics — aggregate stats (reconciled Top Referrer) ─────────────
+
+describe("GET /analytics — aggregate stats", () => {
+  const requireAuth = require("../middleware/auth");
+
+  test("Top Referrer stat uses external-only referrers", async () => {
+    // Clear analytics and seed one internal and one external referrer
+    testDb.exec("DELETE FROM analytics");
+
+    const analyticsModel = require("../models/analytics.model");
+    analyticsModel.record({
+      page: "/test",
+      referrer: "https://thejesuswebsite.org/evidence/",
+      user_agent: "test",
+      ip_hash: "h1",
+      session_id: "s1",
+    });
+    analyticsModel.record({
+      page: "/test",
+      referrer: "https://thejesuswebsite.org/evidence/",
+      user_agent: "test",
+      ip_hash: "h2",
+      session_id: "s2",
+    });
+    analyticsModel.record({
+      page: "/test",
+      referrer: "https://google.com",
+      user_agent: "test",
+      ip_hash: "h3",
+      session_id: "s3",
+    });
+
+    // Clear route cache so the module picks up the DB state
+    const routePath = require.resolve("../routes/analytics");
+    delete require.cache[routePath];
+
+    const app = createApp();
+    const cookie = `sid=${encodeURIComponent(requireAuth.createSession("test"))}`;
+
+    const result = await request(app, {
+      method: "GET",
+      path: "/analytics",
+      headers: { cookie },
+    });
+
+    assert.equal(result.status, 200);
+    const topReferrerStat = result.body.stats.find(
+      (s) => s.label === "Top Referrer",
+    );
+    assert.ok(topReferrerStat, "should have a Top Referrer stat");
+    // The external referrer (google.com) has 1 visit; the internal one
+    // (thejesuswebsite.org) has 2 but should be excluded.
+    assert.equal(
+      topReferrerStat.value,
+      1,
+      "Top Referrer value should match external-only count, not combined total",
+    );
+  });
+});

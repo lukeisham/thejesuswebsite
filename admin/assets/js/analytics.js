@@ -564,6 +564,20 @@ function renderBotStats(data, container) {
   botValue.textContent = Admin.formatNumber(data.bot || 0);
   statRow.appendChild(botValue);
 
+  const sep2 = document.createElement("span");
+  sep2.textContent = "  |  ";
+  statRow.appendChild(sep2);
+
+  const unknownLabel = document.createElement("span");
+  unknownLabel.className = "analytics-bot-stats__label";
+  unknownLabel.textContent = "Unknown visits: ";
+  statRow.appendChild(unknownLabel);
+
+  const unknownValue = document.createElement("span");
+  unknownValue.className = "analytics-bot-stats__value";
+  unknownValue.textContent = Admin.formatNumber(data.unknown || 0);
+  statRow.appendChild(unknownValue);
+
   section.appendChild(statRow);
 
   // Bot breakdown table (only if there are bots)

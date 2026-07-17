@@ -149,7 +149,7 @@ router.get("/", requireAuth, (req, res) => {
     ).toISOString();
     const summary = analyticsModel.getSummary(since);
     const pageViews = analyticsModel.getTopPagesWithTrend(days, 5);
-    const referrers = analyticsModel.getTopReferrers(20);
+    const referrers = analyticsModel.getTopReferrers(20, true);
 
     const stats = [
       { label: "Total Page Views", value: summary.total_views },

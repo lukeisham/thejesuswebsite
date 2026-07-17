@@ -224,13 +224,19 @@ function getBotStats(since) {
 
   const human = db
     .prepare(
-      `SELECT COUNT(*) AS count FROM analytics ${buildWhere("WHERE (is_bot = 0 OR is_bot IS NULL)")}`,
+      `SELECT COUNT(*) AS count FROM analytics ${buildWhere("WHERE user_agent IS NOT NULL AND (is_bot = 0 OR is_bot IS NULL)")}`,
     )
     .get(...params);
 
   const bot = db
     .prepare(
       `SELECT COUNT(*) AS count FROM analytics ${buildWhere("WHERE is_bot = 1")}`,
+    )
+    .get(...params);
+
+  const unknown = db
+    .prepare(
+      `SELECT COUNT(*) AS count FROM analytics ${buildWhere("WHERE user_agent IS NULL")}`,
     )
     .get(...params);
 
@@ -248,6 +254,7 @@ function getBotStats(since) {
   return {
     human: human.count,
     bot: bot.count,
+    unknown: unknown.count,
     bot_breakdown: botBreakdown,
   };
 }
