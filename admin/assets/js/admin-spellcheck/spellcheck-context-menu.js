@@ -27,20 +27,48 @@ const SpellcheckContextMenu = {
 
   /**
    * Handle the contextmenu event.
+   *
+   * The overlay (and its marks) are pointer-events:none so the textarea keeps
+   * native caret placement and drag-selection. That means right-clicks land
+   * on the textarea itself — so we hit-test the click coordinates against the
+   * overlay's mark rects to find the flagged word under the cursor.
    * @param {MouseEvent} e
    */
   _onContextMenu(e) {
     const target = e.target;
-    if (
-      !target.classList.contains("admin-spellcheck-mark") ||
-      !target.dataset.spellcheckType
-    ) {
-      // Not a flagged span — allow the default browser context menu.
+    const overlay = target._spellcheckOverlay;
+    if (!overlay) {
+      // Not a spellchecked textarea — allow the default browser context menu.
       return;
     }
 
+    const mark = this._findMarkAt(overlay, e.clientX, e.clientY);
+    if (!mark) return;
+
     e.preventDefault();
-    this._show(target, e.clientX, e.clientY);
+    this._show(mark, e.clientX, e.clientY);
+  },
+
+  /**
+   * Find the flagged mark span whose rendered rect contains the given
+   * viewport point. Uses getClientRects() because a mark that wraps across
+   * lines has multiple boxes.
+   * @param {HTMLElement} overlay
+   * @param {number} x - viewport (client) x
+   * @param {number} y - viewport (client) y
+   * @returns {HTMLElement|null}
+   */
+  _findMarkAt(overlay, x, y) {
+    const marks = overlay.querySelectorAll(".admin-spellcheck-mark");
+    for (const mark of marks) {
+      if (!mark.dataset.spellcheckType) continue;
+      for (const rect of mark.getClientRects()) {
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+          return mark;
+        }
+      }
+    }
+    return null;
   },
 
   /**
@@ -107,6 +135,9 @@ const SpellcheckContextMenu = {
         textarea.dispatchEvent(new Event("input", { bubbles: true }));
       } catch (err) {
         console.warn("Failed to ignore word:", err.message);
+        if (typeof window.showToast === "function") {
+          window.showToast("Failed to ignore word.", "error");
+        }
       }
       this._remove();
     });
@@ -121,6 +152,9 @@ const SpellcheckContextMenu = {
           textarea.dispatchEvent(new Event("input", { bubbles: true }));
         } catch (err) {
           console.warn("Failed to learn word:", err.message);
+          if (typeof window.showToast === "function") {
+            window.showToast("Failed to learn word.", "error");
+          }
         }
         this._remove();
       });
@@ -131,11 +165,23 @@ const SpellcheckContextMenu = {
       menu.appendChild(item);
     }
 
-    // Position the menu, keeping it within the viewport
-    menu.style.left = Math.min(x, window.innerWidth - 290) + "px";
-    menu.style.top = Math.min(y, window.innerHeight - menu.offsetHeight - 10) + "px";
-
+    // Append off-screen first so we can measure real dimensions before
+    // clamping (offsetWidth/Height are 0 until the element is in the DOM).
+    menu.style.visibility = "hidden";
     document.body.appendChild(menu);
+
+    const pos = SpellcheckContextMenu._clampPosition(
+      x,
+      y,
+      menu.offsetWidth,
+      menu.offsetHeight,
+      window.innerWidth,
+      window.innerHeight,
+    );
+    menu.style.left = pos.left + "px";
+    menu.style.top = pos.top + "px";
+    menu.style.visibility = "";
+
     this._menu = menu;
     this._items = items;
     this._activeIndex = -1;
@@ -145,6 +191,34 @@ const SpellcheckContextMenu = {
       this._activeIndex = 0;
       items[0].focus();
     }
+  },
+
+  /**
+   * Pure function: clamp a menu's top-left position so it stays fully
+   * within the viewport (no overflow on right/bottom, and never negative).
+   * @param {number} x - desired left (cursor position)
+   * @param {number} y - desired top (cursor position)
+   * @param {number} menuWidth
+   * @param {number} menuHeight
+   * @param {number} viewportWidth
+   * @param {number} viewportHeight
+   * @returns {{left: number, top: number}}
+   */
+  _clampPosition(x, y, menuWidth, menuHeight, viewportWidth, viewportHeight) {
+    const margin = 8;
+    let left = x;
+    let top = y;
+
+    if (left + menuWidth > viewportWidth) {
+      left = viewportWidth - menuWidth - margin;
+    }
+    if (top + menuHeight > viewportHeight) {
+      top = viewportHeight - menuHeight - margin;
+    }
+    if (left < 0) left = margin;
+    if (top < 0) top = margin;
+
+    return { left, top };
   },
 
   /**

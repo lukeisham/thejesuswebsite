@@ -23,8 +23,16 @@ const SpellcheckDictionary = {
         (data.words || []).map((row) => row.normalized),
       );
     } catch (err) {
-      // Non-critical feature — log and continue with empty set (JS-2).
-      console.warn("Spellcheck dictionary sync failed:", err.message);
+      // Spellcheck stays functional with an empty local dictionary (JS-2),
+      // but the failure must be surfaced rather than silently swallowed —
+      // otherwise learned/ignored words silently stop being recognised.
+      console.error("Spellcheck dictionary sync failed:", err.message);
+      if (typeof window.showToast === "function") {
+        window.showToast(
+          "Could not load the spellcheck dictionary. Learned words may be flagged again.",
+          "error",
+        );
+      }
       this._words = new Set();
     }
   },

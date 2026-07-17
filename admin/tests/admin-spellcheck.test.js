@@ -305,3 +305,64 @@ describe("tokenizer — word extraction", () => {
     assert.equal(tokens.length, 0);
   });
 });
+
+// ── Context menu: viewport clamping ─────────────────────────────────────────
+//   Loads the real SpellcheckContextMenu via vm (same pattern as
+//   admin-arbor.test.js) so _clampPosition is tested directly, not a replica.
+
+describe("context menu — viewport clamping", () => {
+  const fs = require("fs");
+  const path = require("path");
+  const vm = require("vm");
+
+  const menuPath = path.resolve(
+    __dirname,
+    "..",
+    "assets",
+    "js",
+    "admin-spellcheck",
+    "spellcheck-context-menu.js",
+  );
+  const menuSource = fs.readFileSync(menuPath, "utf8");
+
+  // The file has no top-level side effects beyond declaring the object;
+  // evaluate it and take the object as the script's completion value.
+  const SpellcheckContextMenu = vm.runInNewContext(
+    menuSource + "\nSpellcheckContextMenu;",
+    { window: {}, document: { addEventListener() {} } },
+  );
+
+  const clampPosition = SpellcheckContextMenu._clampPosition.bind(
+    SpellcheckContextMenu,
+  );
+
+  test("leaves position unchanged when menu fits within viewport", () => {
+    // Field-wise comparison: the object comes from the vm realm, so
+    // deepStrictEqual would fail on differing Object prototypes.
+    const pos = clampPosition(100, 100, 200, 150, 1280, 800);
+    assert.equal(pos.left, 100);
+    assert.equal(pos.top, 100);
+  });
+
+  test("clamps left when menu would overflow the right edge", () => {
+    const pos = clampPosition(1250, 100, 200, 150, 1280, 800);
+    assert.equal(pos.left, 1280 - 200 - 8);
+  });
+
+  test("clamps top when menu would overflow the bottom edge", () => {
+    const pos = clampPosition(100, 780, 200, 150, 1280, 800);
+    assert.equal(pos.top, 800 - 150 - 8);
+  });
+
+  test("clamps both axes when menu opens near bottom-right corner", () => {
+    const pos = clampPosition(1270, 790, 200, 150, 1280, 800);
+    assert.equal(pos.left, 1280 - 200 - 8);
+    assert.equal(pos.top, 800 - 150 - 8);
+  });
+
+  test("never produces a negative left/top on a tiny viewport", () => {
+    const pos = clampPosition(5, 5, 200, 150, 100, 100);
+    assert.equal(pos.left, 8);
+    assert.equal(pos.top, 8);
+  });
+});
