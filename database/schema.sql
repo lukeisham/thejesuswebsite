@@ -227,7 +227,7 @@ CREATE TABLE wikipedia_articles (
     created_at                             DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- One row per (article, signal) — 27 rows per published article. `signal_key`
+-- One row per (article, signal) — 28 rows per published article. `signal_key`
 -- matches keys in the static SIGNAL_DICTIONARY (frontend/assets/js/utils/wikipedia-signals.js).
 -- `contribution` is points earned (negative for negative signals); `cap` is that
 -- signal's max magnitude for this article (also negative for negative signals).

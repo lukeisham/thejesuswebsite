@@ -1,6 +1,6 @@
 -- Migration 024: Add wikipedia_article_signals child table.
 -- Backs the "reliability stones" widget on the Wikipedia list page: one row
--- per (article, signal) — 27 rows per article — recording the points earned
+-- per (article, signal) — 28 rows per article — recording the points earned
 -- (contribution) and that signal's max magnitude for the article (cap).
 -- The static signal names/order/polarity live in
 -- frontend/assets/js/utils/wikipedia-signals.js, not in the database.
