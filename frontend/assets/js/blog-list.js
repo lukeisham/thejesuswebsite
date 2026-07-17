@@ -157,11 +157,12 @@ function renderCards(items) {
     row.setAttribute('target', '_blank');
     row.setAttribute('rel', 'noopener noreferrer');
 
-    // Hero image as thumbnail if available
-    if (item.hero_image) {
+    // Thumbnail image (prefer blog_thumbnail, fall back to hero_image)
+    const thumbSrc = item.blog_thumbnail || item.hero_image;
+    if (thumbSrc) {
       const img = document.createElement('img');
       img.className = 'news-blog-row-thumb';
-      img.src = item.hero_image;
+      img.src = thumbSrc;
       img.alt = '';
       img.loading = 'lazy';
       row.appendChild(img);

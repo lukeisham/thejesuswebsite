@@ -16,8 +16,9 @@ var HINT_TEXT = {
     "The public page renders attached sources as the full MLA reference list.",
   blog:
     'Cite sources inline using MLA parenthetical style — e.g. "(Wright 214)" — ' +
-    "matching a source attached below. Blog posts show no formal bibliography " +
-    "on the public site; the citation appears only as plain text in the post.",
+    "matching a source attached below. Inline citations render as parenthetical " +
+    '"(Author)" text in the post body. Attached sources render as a full ' +
+    "Bibliography at the end of the post on the public site.",
 };
 
 /**

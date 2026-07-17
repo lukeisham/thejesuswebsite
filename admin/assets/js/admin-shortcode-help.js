@@ -68,12 +68,32 @@ AdminShortcodeHelp.mountFormattingReference = function (container) {
       code: "...the Nazareth inscription[id:12], which was discovered...",
     },
     {
-      label: "Blog: MLA Citation (parenthetical, no bibliography)",
+      label: "Blog: MLA Citation (parenthetical, bibliography at end)",
       code: "...supported by recent findings[mla:3] in the region.",
     },
     {
-      label: "Blog: Pull-quote (block, no other content type)",
+      label: "Blog: Pull-quote (block, no other shortcodes nearby)",
       code: "[pullquote]A memorable passage.[/pullquote]",
+    },
+    {
+      label: "Markdown: Headings",
+      code: "## Section Title\n### Sub-section Title",
+    },
+    {
+      label: "Markdown: Bold / Italic",
+      code: "**bold text** *italic text*",
+    },
+    {
+      label: "Markdown: Unordered List",
+      code: "- Item one\n- Item two\n  - Nested item",
+    },
+    {
+      label: "Markdown: Ordered List",
+      code: "1. First point\n2. Second point",
+    },
+    {
+      label: "Markdown: Table",
+      code: "| Header A | Header B |\n|----------|----------|\n| Cell 1   | Cell 2   |",
     },
   ];
 
