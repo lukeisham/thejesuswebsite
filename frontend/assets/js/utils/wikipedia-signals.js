@@ -38,7 +38,6 @@ export const SIGNAL_DICTIONARY = [
   { key: 'arch_site', name: 'Archaeological site/artefact', capMagnitude: 2, polarity: 'positive' },
   { key: 'historical_context', name: 'Historical/contextual comparanda', capMagnitude: 2, polarity: 'positive' },
   { key: 'wiki_quality', name: 'Wikipedia Good/Featured Article', capMagnitude: 1, polarity: 'positive' },
-  { key: 'manuscript_bonus', name: 'Manuscript-article bonus', capMagnitude: 1, polarity: 'positive' },
   { key: 'niche_bonus', name: 'Niche exposure bonus', capMagnitude: 1, polarity: 'positive' },
 
   // ─── Negative signals, largest penalty magnitude first ─────────────────────
@@ -50,7 +49,8 @@ export const SIGNAL_DICTIONARY = [
   { key: 'supernatural_criticism', name: 'Supernatural-worldview criticism', capMagnitude: 6, polarity: 'negative' },
   { key: 'passion_criticism', name: 'Passion-specific criticism', capMagnitude: 6, polarity: 'negative' },
   { key: 'miracle_criticism', name: 'Miracle-specific criticism', capMagnitude: 6, polarity: 'negative' },
-  { key: 'islamic_mormon', name: 'Islamic/Mormon sources', capMagnitude: 3, polarity: 'negative' },
+  { key: 'other_religion', name: 'Other-religion sources', capMagnitude: 3, polarity: 'negative' },
+  { key: 'confessional_balance', name: 'Confessional balance', capMagnitude: 3, polarity: 'negative' },
   { key: 'gnostic_quoted', name: 'Gnostic source quoted', capMagnitude: 1, polarity: 'negative' },
   { key: 'poor_referencing', name: 'Poor referencing', capMagnitude: 1, polarity: 'negative' },
 ];
