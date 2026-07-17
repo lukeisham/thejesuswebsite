@@ -15,6 +15,7 @@
     "pages": "node scripts/regenerate-pages.js",
     "embed-data": "node scripts/embed-initial-data.js",
     "import-geoip": "node scripts/import-geoip.js",
+        "import-wikipedia-scoring": "node scripts/import-wikipedia-scoring.js",
     "test": "node --test tests/*.test.js"
   },
   "engines": {

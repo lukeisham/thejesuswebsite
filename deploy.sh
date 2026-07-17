@@ -105,7 +105,17 @@ else
   echo "[deploy] WARNING: GeoIP CSV not found at $GEOIP_CSV — country data will remain 'Unknown' until the CSV is placed and a deploy re-runs."
 fi
 
-# ---- 4. Generate sitemap and static pages ------------------------------------
+# ---- 4. Import Wikipedia scoring data (idempotent, runs on every deploy) -------
+SCORING_EXPORT="$PROJECT_DIR/database/scoring-export.json"
+if [ -f "$SCORING_EXPORT" ]; then
+  echo "[deploy] Importing Wikipedia scoring data..."
+  cd "$API_DIR"
+  npm run import-wikipedia-scoring
+else
+  echo "[deploy] WARNING: Wikipedia scoring export not found at $SCORING_EXPORT — Wikipedia reliability data will remain stale until the file is placed and a deploy re-runs."
+fi
+
+# ---- 5. Generate sitemap and static pages ------------------------------------
 echo "[deploy] Generating sitemap..."
 cd "$API_DIR"
 npm run sitemap
@@ -116,7 +126,7 @@ npm run pages
 echo "[deploy] Embedding initial data for list/visual pages..."
 npm run embed-data
 
-# ---- 5. Start / restart the API and MCP servers -----------------------------
+# ---- 6. Start / restart the API and MCP servers -----------------------------
 
 case "$PROCESS_MANAGER" in
   pm2)
@@ -152,7 +162,7 @@ case "$PROCESS_MANAGER" in
     ;;
 esac
 
-# ---- 6. Reload nginx so committed config changes take effect -----------------
+# ---- 7. Reload nginx so committed config changes take effect -----------------
 # deploy/nginx.conf changes (e.g. cache-control rules) are inert until nginx
 # reloads. Use sudo -n (never prompt) and treat failure as a warning: a deploy
 # must not die because the deploy user lacks the sudo grant. Grant it with:
