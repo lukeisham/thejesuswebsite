@@ -159,7 +159,7 @@ UpdateRecord.migrateLocalPositions = async function () {
  * Update an evidence record's timeline fields (used by the timeline editor).
  *
  * @param {number} evidenceId
- * @param {{ title?: string, timeline_era?: string, timeline_period?: string }} data
+ * @param {{ title?: string, timeline_era?: string, timeline_period?: string, timeline_offset_x?: number|null, timeline_offset_y?: number|null }} data
  * @returns {Promise<Object>} the updated evidence row
  */
 UpdateRecord.saveEvent = async function (evidenceId, data) {
@@ -170,6 +170,10 @@ UpdateRecord.saveEvent = async function (evidenceId, data) {
       payload.timeline_era = data.timeline_era;
     if (data.timeline_period !== undefined)
       payload.timeline_period = data.timeline_period;
+    if (data.timeline_offset_x !== undefined)
+      payload.timeline_offset_x = data.timeline_offset_x;
+    if (data.timeline_offset_y !== undefined)
+      payload.timeline_offset_y = data.timeline_offset_y;
 
     const updated = await Admin.api.put("/evidence/" + evidenceId, payload);
     return updated;

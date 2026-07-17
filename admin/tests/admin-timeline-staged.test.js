@@ -476,5 +476,38 @@ describe("AdminTimelineStaged", function () {
       assert.equal(ctx.Staged._unassigns.length, 0);
       assert.equal(ctx.Staged.pendingCount(), 0);
     });
+
+    test("forwards timeline_offset_x and timeline_offset_y in saveEvent payload", async function () {
+      var savedPayloads = [];
+      var ctx = loadStaged({
+        saveEvent: async function (id, data) {
+          savedPayloads.push({ id: id, data: data });
+        },
+      });
+      ctx.Staged.stageOffset(42, 0.25, -0.15);
+
+      await ctx.Staged.save();
+
+      assert.equal(savedPayloads.length, 1);
+      assert.equal(savedPayloads[0].id, 42);
+      assert.equal(savedPayloads[0].data.timeline_offset_x, 0.25);
+      assert.equal(savedPayloads[0].data.timeline_offset_y, -0.15);
+    });
+
+    test("forwards explicit null offsets (clearing)", async function () {
+      var savedPayloads = [];
+      var ctx = loadStaged({
+        saveEvent: async function (id, data) {
+          savedPayloads.push({ id: id, data: data });
+        },
+      });
+      ctx.Staged.stageOffset(99, null, null);
+
+      await ctx.Staged.save();
+
+      assert.equal(savedPayloads.length, 1);
+      assert.equal(savedPayloads[0].data.timeline_offset_x, null);
+      assert.equal(savedPayloads[0].data.timeline_offset_y, null);
+    });
   });
 });

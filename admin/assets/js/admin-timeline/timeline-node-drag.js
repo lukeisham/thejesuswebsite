@@ -99,6 +99,19 @@ window.AdminTimelineNodeDrag = {};
     dot.setPointerCapture(e.pointerId);
 
     // Initialize drag state
+    var currentLeft = parseFloat(dot.style.left) || 0;
+    var currentTop = parseFloat(dot.style.top) || 0;
+
+    // Capture the period-slot centre position (without any offset) so
+    // updateDotPosition can compute an absolute position each frame
+    // instead of reading the already-mutated style.left (which caused
+    // cumulative leftward drift — see plan notes).
+    var startOffsetXCombined = (ev.timeline_offset_x || 0) +
+      (self.getStagedOffsetX(eventId) || 0);
+    var startOffsetXToPixels = window.AdminTimelineNodeBounds
+      ? window.AdminTimelineNodeBounds.offsetXToPixel(startOffsetXCombined, pxPerPeriod)
+      : 0;
+
     dragState = {
       eventId: eventId,
       event: ev,
@@ -106,11 +119,16 @@ window.AdminTimelineNodeDrag = {};
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
-      startOffsetX: (ev.timeline_offset_x || 0) +
-        (self.getStagedOffsetX(eventId) || 0),
+      startOffsetX: startOffsetXCombined,
       startOffsetY: (ev.timeline_offset_y || 0) +
         (self.getStagedOffsetY(eventId) || 0),
       pxPerPeriod: pxPerPeriod,
+      // The dot's position at zero offset — the centre of its period slot.
+      // Subtracting the current pixel offset gives the slot centre on the
+      // horizontal axis; for the vertical axis the render formula uses
+      // (280 * (50 + (offsetY * 280) / 2)) / 100, so zero-offset top is 140.
+      baseLeftPx: currentLeft - startOffsetXToPixels,
+      baseTopPx: 140, // render formula zero-offset vertical centre
     };
 
     // Add dragging class for visual feedback
@@ -215,34 +233,42 @@ window.AdminTimelineNodeDrag = {};
   /**
    * Update the visual position of a dot and its label based on offset fractions.
    *
+   * Uses a base position captured at pointerdown (not the live mutated
+   * style.left) to prevent cumulative horizontal drift. The top formula
+   * matches renderEvents exactly (280 * (50 + finalY / 2) / 100 where
+   * finalY = offsetY * 280), so there is no vertical jump when dragging
+   * starts.
+   *
    * @param {HTMLElement} dot
    * @param {number} offsetX - fraction of period slot
    * @param {number} offsetY - fraction of canvas height
    */
   function updateDotPosition(dot, offsetX, offsetY) {
-    if (!dot) return;
+    if (!dot || !dragState) return;
 
-    var pxPerPeriod = dragState ? dragState.pxPerPeriod : 100;
+    var pxPerPeriod = dragState.pxPerPeriod;
     var pixelOffsetX = window.AdminTimelineNodeBounds
       ? window.AdminTimelineNodeBounds.offsetXToPixel(offsetX, pxPerPeriod)
       : 0;
-    var pixelOffsetY = window.AdminTimelineNodeBounds
-      ? window.AdminTimelineNodeBounds.offsetYToPixel(offsetY, 280)
-      : 0;
 
-    // Apply offset to dot position
-    var currentLeft = parseFloat(dot.style.left) || 0;
-    var baseLeft = currentLeft - (dragState ? dragState.pxPerPeriod / 2 : 0);
-    dot.style.left = baseLeft + pixelOffsetX + "px";
-    dot.style.top = (50 + offsetY * 280 / 2) + "px";
+    // Compute absolute position from the captured base, not from the
+    // live (already-mutated) style.left. This stops the cumulative
+    // pxPerPeriod/2 leftward drift that the old code produced.
+    dot.style.left = (dragState.baseLeftPx + pixelOffsetX) + "px";
 
-    // Update label if present
+    // Match the renderEvents vertical formula exactly:
+    //   y = (280 * (50 + finalY / 2)) / 100   where finalY = offsetY * 280
+    // This prevents the vertical jump that the old code (50 + offsetY * 280 / 2)
+    // caused because it used a different coordinate system than render.
+    var finalY = offsetY * 280;
+    dot.style.top = (280 * (50 + finalY / 2)) / 100 + "px";
+
+    // The label is a child of the dot with position:absolute and left:-50px,
+    // so its horizontal position is already relative to the dot — no left
+    // update needed. Only flip the label above/below based on the new offset.
     var label = dot.querySelector(".admin-timeline-event-label");
     if (label) {
-      var labelLeft = parseFloat(label.style.left) || 0;
-      var labelBaseLeft = labelLeft - (dragState ? dragState.pxPerPeriod / 2 : 0);
-      label.style.left = labelBaseLeft + pixelOffsetX + "px";
-      label.style.top = (50 + offsetY * 280 / 2 + (offsetY <= 0 ? -22 : 8)) + "px";
+      label.style.top = (offsetY <= 0 ? "-22px" : "8px");
     }
   }
 
