@@ -199,6 +199,14 @@ function createPinElement(pin) {
   if (pin.timeline_era) {
     className += " era--" + eraToKebab(pin.timeline_era);
   }
+  const category = pin.gospel_category || "";
+  if (category === "places") {
+    className += " dot-cat--place";
+  } else if (category === "people") {
+    className += " dot-cat--person";
+  } else if (category === "objects") {
+    className += " dot-cat--object";
+  }
 
   const el = createElement("button", {
     className: className,
