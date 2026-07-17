@@ -30,7 +30,7 @@ export const SIGNAL_DICTIONARY = [
   { key: 'books', name: 'Book citations', capMagnitude: 5, polarity: 'positive' },
   { key: 'primary_quotes', name: 'Primary-source quotes', capMagnitude: 4, polarity: 'positive' },
   { key: 'jewish_context', name: 'Jewish context terms', capMagnitude: 4, polarity: 'positive' },
-  { key: 'balanced_debate', name: 'Balanced debate', capMagnitude: 2, polarity: 'positive' },
+  { key: 'balanced_debate', name: 'Balanced debate', capMagnitude: 3, polarity: 'positive' },
   { key: 'narrative_interp_split', name: 'Narrative/interpretation section split', capMagnitude: 3, polarity: 'positive' },
   { key: 'location_bonus', name: 'Location + archaeology bonus', capMagnitude: 3, polarity: 'positive' },
   { key: 'commentaries', name: 'Commentary citations', capMagnitude: 3, polarity: 'positive' },
