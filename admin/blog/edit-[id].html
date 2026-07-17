@@ -11,7 +11,6 @@
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-image-picker.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
-        <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
         <script defer src="../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
@@ -341,7 +340,7 @@
                         "blog-content",
                         "",
                         "Write your blog post here…",
-                        "The full blog post body.",
+                        "Write in Markdown (headings, bold/italic, lists, tables). Use shortcodes: [figure] for images, [mla:N] for citations, [pullquote] for pull-quotes. See the Formatting Reference below.",
                         true,
                         data.blog_content || "",
                     ),
@@ -447,6 +446,25 @@
                         },
                     ),
                     hintVariant: "blog",
+                });
+
+                // Thumbnail card
+                var thumbCard = document.createElement("div");
+                thumbCard.className = "admin-form-card";
+                thumbCard.style.marginTop = "var(--space-md)";
+                sidebar.appendChild(thumbCard);
+
+                var thumbTitle = document.createElement("div");
+                thumbTitle.className = "admin-form-card__title";
+                thumbTitle.textContent = "Thumbnail";
+                thumbCard.appendChild(thumbTitle);
+
+                var thumbMount = document.createElement("div");
+                thumbMount.id = "blog-thumbnail-mount";
+                thumbCard.appendChild(thumbMount);
+
+                var thumbnailPicker = AdminImagePicker.mount(thumbMount, {
+                    initialPath: data.blog_thumbnail || "",
                 });
 
                 var pubCard = document.createElement("div");
@@ -639,6 +657,8 @@
                             document
                                 .getElementById("blog-content")
                                 .value.trim() || undefined,
+                        blog_thumbnail:
+                            thumbnailPicker.getValue().image_path || undefined,
                         landing_page_display: document.getElementById(
                             "blog-landing",
                         ).checked

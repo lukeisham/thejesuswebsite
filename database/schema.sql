@@ -139,6 +139,7 @@ CREATE TABLE blog_posts (
     blog_content         TEXT,
     hero_image           TEXT,
     hero_image_alt       TEXT,
+    blog_thumbnail       TEXT,
     landing_page_display INTEGER DEFAULT 0,
     published_draft      INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
     metadata_keywords    TEXT,

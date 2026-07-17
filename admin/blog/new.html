@@ -10,7 +10,9 @@
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
+        <script defer src="../assets/js/admin-image-picker.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
+        <script defer src="../assets/js/admin-shortcode-help.js"></script>
         <script defer src="../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
         <script defer src="../assets/js/admin-spellcheck/spellcheck-dictionary-client.js"></script>
         <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
@@ -258,8 +260,12 @@
                                     placeholder="Write your blog post here…"
                                 ></textarea>
                                 <span class="admin-form-hint" id="content-hint"
-                                    >The full blog post body. Supports plain
-                                    text and HTML.</span
+                                    >The full blog post body. Write in Markdown (headings,
+                                    bold/italic, lists, tables). Use shortcodes for
+                                    special content: <code>[figure]</code> for images,
+                                    <code>[mla:N]</code> for inline citations,
+                                    <code>[pullquote]</code> for pull-quotes. See the
+                                    Formatting Reference sidebar panel for examples.</span
                                 >
                             
                             <button type="button" class="admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn" id="insert-image-btn">Insert Image</button>
@@ -345,6 +351,16 @@
                                 Bibliography
                             </div>
                             <div id="mla-sources-mount"></div>
+                        </div>
+
+                        <div
+                            class="admin-form-card"
+                            style="margin-top: var(--space-md)"
+                        >
+                            <div class="admin-form-card__title">
+                                Thumbnail
+                            </div>
+                            <div id="blog-thumbnail-mount"></div>
                         </div>
 
                         <div
@@ -441,6 +457,25 @@
                     { initialSourceIds: [], hintVariant: "blog" },
                 );
 
+                // Wire the Insert Image button
+                if (typeof AdminInsertImage !== "undefined") {
+                    AdminInsertImage.wire("#insert-image-btn", "#blog-content");
+                }
+
+                // Thumbnail picker
+                var thumbnailPicker = AdminImagePicker.mount(
+                    document.getElementById("blog-thumbnail-mount"),
+                    { initialPath: "" },
+                );
+
+                // Formatting Reference panel
+                var formattingRefMount = document.createElement("div");
+                var sidebarEl = document.querySelector(".admin-form-grid__sidebar");
+                if (sidebarEl) {
+                    sidebarEl.appendChild(formattingRefMount);
+                    AdminShortcodeHelp.mountFormattingReference(formattingRefMount);
+                }
+
                 function clearErrors() {
                     formError.style.display = "none";
                     formError.textContent = "";
@@ -508,6 +543,7 @@
                         blog_title: titleInput.value.trim(),
                         slug: slugInput.value.trim(),
                         blog_content: contentInput.value.trim() || undefined,
+                        blog_thumbnail: thumbnailPicker.getValue().image_path || undefined,
                         landing_page_display: document.getElementById(
                             "blog-landing",
                         ).checked

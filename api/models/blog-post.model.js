@@ -25,6 +25,7 @@ const WRITABLE_COLUMNS = [
   "blog_content",
   "hero_image",
   "hero_image_alt",
+  "blog_thumbnail",
   "landing_page_display",
   "published_draft",
   "metadata_keywords",
