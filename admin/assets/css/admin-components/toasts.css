@@ -1,0 +1,29 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Toast Adapter
+   CSS-1: token bridging only — the toast component itself is the shared
+   frontend stylesheet (/assets/css/components/toasts.css), loaded alongside
+   this file. Admin pages don't load frontend variables.css, so the frontend
+   tokens the component consumes are aliased onto admin tokens here, scoped
+   to the toast container so nothing else on the page is affected.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.toast-container {
+    --bg-surface: var(--admin-surface);
+    --bg-surface-alt: var(--admin-surface-hover);
+    --text-primary: var(--admin-text-primary);
+    --text-muted: var(--admin-text-muted);
+    --success: var(--admin-success);
+    --error: var(--admin-danger);
+    --warning: var(--admin-warning);
+    --info: var(--admin-accent);
+    --radius-md: var(--admin-radius);
+    --radius-sm: var(--admin-radius-sm);
+    --shadow-toast: var(--admin-shadow), var(--shadow-modal);
+    /* No admin equivalents exist for these typography/motion tokens;
+       literal values match admin base typography and --admin-transition. */
+    --text-small: 13px;
+    --leading-small: 1.4;
+    --duration-base: 150ms;
+    --duration-fast: 100ms;
+    --ease-out: ease;
+}

@@ -21,6 +21,9 @@
 /* ── Underline marks ──────────────────────────────────────────────────────── */
 
 .admin-spellcheck-mark {
+    /* Marks stay pointer-events:none (inherited from the overlay) so native
+       textarea caret/selection is untouched; right-clicks are hit-tested
+       against mark rects in spellcheck-context-menu.js instead. */
     text-decoration-line: underline;
     text-decoration-style: wavy;
 }
