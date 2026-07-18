@@ -109,6 +109,10 @@ const SpellcheckContextMenu = {
             const newPos = start + suggestion.length;
             textarea.setSelectionRange(newPos, newPos);
             textarea.focus();
+            // Synchronously remove the old mark and shift trailing ones so the
+            // overlay matches the new text in the same frame (JS-2: no flicker).
+            // The debounced worker re-scan will reconcile authoritatively later.
+            SpellcheckOverlay.invalidateRange(textarea, start, end, suggestion.length);
             // Trigger a new scan
             textarea.dispatchEvent(new Event("input", { bubbles: true }));
             this._remove();
