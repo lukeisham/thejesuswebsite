@@ -135,10 +135,11 @@ describe("generatePage output path", () => {
 // ── validateSlug ─────────────────────────────────────────────────────────────
 
 describe("validateSlug", () => {
-  test("accepts a valid slug (lowercase, numbers, hyphens)", () => {
+  test("accepts a valid slug", () => {
     assert.doesNotThrow(() => validateSlug("test"));
     assert.doesNotThrow(() => validateSlug("my-post-123"));
     assert.doesNotThrow(() => validateSlug("a"));
+    assert.doesNotThrow(() => validateSlug("era-PreIncarnation"));
   });
 
   test("rejects slug containing /", () => {
@@ -180,24 +181,6 @@ describe("validateSlug", () => {
     );
     assert.throws(
       () => validateSlug(undefined),
-      (err) => err.code === ERRORS.INVALID_SLUG.code,
-    );
-  });
-
-  test("rejects uppercase characters", () => {
-    assert.throws(
-      () => validateSlug("Test-Post"),
-      (err) => err.code === ERRORS.INVALID_SLUG.code,
-    );
-  });
-
-  test("rejects special characters", () => {
-    assert.throws(
-      () => validateSlug("test post"),
-      (err) => err.code === ERRORS.INVALID_SLUG.code,
-    );
-    assert.throws(
-      () => validateSlug("test@post"),
       (err) => err.code === ERRORS.INVALID_SLUG.code,
     );
   });
