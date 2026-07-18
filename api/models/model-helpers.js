@@ -61,12 +61,6 @@ function validateSlug(slug) {
     err.code = ERRORS.INVALID_SLUG.code;
     throw err;
   }
-  // Reject any character outside the safe slug set
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-    const err = new Error(ERRORS.INVALID_SLUG.message);
-    err.code = ERRORS.INVALID_SLUG.code;
-    throw err;
-  }
 }
 
 function generateUniqueSlug(db, table, baseSlug, excludeId = null) {
