@@ -1,10 +1,25 @@
 # Dependencies
 node_modules/
 
-# Local notes / planning (not for GitHub)
-/setup/
+# Local notes / planning (not for GitHub), except the specific paths
+# re-included below, which are tracked and pushed like any other file.
+!/setup/
+/setup/*
+!/setup/SKILLS
+!/setup/SKILLS/**
+!/setup/Wikipedia algorithm
+!/setup/Wikipedia algorithm/**
+!/setup/Vibe_coding_rules.md
+!/setup/STYLE_GUIDE
+!/setup/STYLE_GUIDE/**
+!/setup/plan_template.md
 /scratchpad.md
 /CLAUDE.local.md
+
+# Python build artifacts — placed after the /setup/ re-inclusion block so it
+# still wins inside the re-included paths (gitignore: later rules win).
+__pycache__/
+*.pyc
 
 # Environment
 .env
