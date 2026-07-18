@@ -68,6 +68,7 @@ function createTestDb() {
         !name.startsWith("012_") &&
         !name.startsWith("013_") &&
         !name.startsWith("016_") &&
+        !name.startsWith("017_") &&
         !name.startsWith("024_") &&
         !name.startsWith("025_") &&
         !name.startsWith("026_") &&
