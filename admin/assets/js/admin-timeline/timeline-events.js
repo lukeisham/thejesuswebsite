@@ -5,8 +5,10 @@
  * the axis, and supports an edit panel for title/date/era.
  * Positions are derived from each event's timeline_period via AdminTimelineAxis.
  *
- * Right-click drag (within SPREAD density) repositions dots via AdminTimelineNodeDrag.
- * Left-click opens the edit panel; left-drag (period moves) has been removed.
+ * Left-click drag (at any zoom level) repositions dots via AdminTimelineNodeDrag
+ * with a 4px threshold to disambiguate from click-to-select.
+ * Right-click drag (within SPREAD density) repositions dots as before.
+ * Left-click below the threshold opens the edit panel.
  *
  * Depends on AdminTimelineAxis for positioning and UpdateRecord for persistence.
  *
@@ -197,7 +199,7 @@ Events.renderEvents = function () {
     }
   }
 
-  // Attach right-click drag listeners to all dots
+  // Attach left- and right-click drag listeners to all dots
   if (window.AdminTimelineNodeDrag && window.AdminTimelineNodeDrag.attachDragListeners) {
     window.AdminTimelineNodeDrag.attachDragListeners();
   }
@@ -283,11 +285,20 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
 
   el.addEventListener("click", function (e) {
     e.stopPropagation();
+    // If a left-drag just happened (the drag module set this flag),
+    // skip selection — this click is the end of a drag, not a plain click.
+    if (el._timelineDragActive) {
+      delete el._timelineDragActive;
+      return;
+    }
     Events.selectEvent(ev.id);
   });
 
-  // Left-drag (period moves) has been removed; right-click drag is now handled
-  // by AdminTimelineNodeDrag (see attachDragListeners in renderEvents).
+  // Left-drag is handled by AdminTimelineNodeDrag with a 4px threshold:
+  // sub-threshold pointerup fires this click handler (opens the edit panel);
+  // supra-threshold movement activates a drag that writes timeline_offset_x/y
+  // via the staged-changes system. Right-click drag is unchanged (SPREAD only).
+  // See attachDragListeners in renderEvents.
 
   return el;
 };
@@ -386,11 +397,13 @@ Events.onSaveEvent = async function () {
 };
 
 
-/* ── Left-drag repositioning removed ───────────────────────────────────────────
-   Left-click drag (onEventMouseDown, onEventMouseMove, onEventMouseUp) has been
-   removed. Use the edit panel (left-click opens it) to change the period via the
-   Era dropdown. Right-click drag (AdminTimelineNodeDrag) repositions within the
-   period slot in SPREAD density. ────────────────────────────────────────────── */
+/* ── Left-drag repositioning restored ──────────────────────────────────────────
+   Left-click drag has been restored in AdminTimelineNodeDrag with a 4px
+   pointer-move threshold.  Sub-threshold movement lets the click event fire
+   through to selectEvent() (opens the edit panel).  Supra-threshold movement
+   activates a drag that writes timeline_offset_x/y via the staged-changes
+   system — no density gate (works at every zoom level).  Right-click drag
+   remains unchanged (SPREAD density only). ─────────────────────────────────── */
 
 /* ── Era mapping ───────────────────────────────────────────────────────────── */
 
