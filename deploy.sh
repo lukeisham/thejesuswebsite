@@ -166,9 +166,14 @@ case "$PROCESS_MANAGER" in
 esac
 
 # ---- 7. Reload nginx so committed config changes take effect -----------------
-# deploy/nginx.conf changes (e.g. cache-control rules) are inert until nginx
-# reloads. Use sudo -n (never prompt) and treat failure as a warning: a deploy
-# must not die because the deploy user lacks the sudo grant. Grant it with:
+# This reload only re-reads whatever file already sits at
+# /etc/nginx/sites-available/thejesuswebsite on the VPS — it does NOT copy
+# deploy/nginx.conf into place. That path must be a symlink to this repo's
+# deploy/nginx.conf (see the one-time setup note at the top of that file) or
+# committed nginx.conf changes reload "successfully" while staying completely
+# inert, as they silently did until Issues.md #68 (2026-07-19). Use sudo -n
+# (never prompt) and treat reload failure as a warning: a deploy must not die
+# because the deploy user lacks the sudo grant. Grant it with:
 #   echo "$USER ALL=(root) NOPASSWD: /usr/sbin/nginx -s reload" | sudo tee /etc/sudoers.d/deploy-nginx-reload
 if command -v nginx >/dev/null 2>&1; then
   echo "[deploy] Reloading nginx..."
