@@ -1,6 +1,7 @@
 // Admin spellcheck JS tests — uses node:test + node:assert.
 // Covers: overlay renderer span offsets, grammar-overlap exclusion logic,
-// and dictionary client optimistic local-set updates.
+// dictionary client optimistic local-set updates, sync init behaviour,
+// and synchronous mark invalidation on replace.
 //
 // Since the modules under test are browser-side ES scripts that use DOM APIs
 // and a Web Worker, the relevant pure functions are replicated inline here
@@ -336,6 +337,115 @@ describe("dictionary client — init and sync", () => {
     assert.equal(words.size, 1);
     assert.ok(!words.has("world"));
     assert.ok(words.has("hello")); // original word still present
+  });
+});
+
+// ── Overlay: synchronous mark invalidation ────────────────────────────────
+//   Tests the pure logic of SpellcheckOverlay.invalidateRange() — removing
+//   the replaced mark and shifting trailing ones by the length delta.
+//   Replicated from spellcheck-overlay-render.js.
+
+describe("overlay — synchronous invalidation", () => {
+  /**
+   * Replicate invalidateRange core logic.
+   */
+  function invalidateRange(marks, start, end, replacementLength) {
+    const delta = replacementLength - (end - start);
+    const updated = [];
+    for (const mark of marks) {
+      if (mark.start === start && mark.end === end) continue;
+      updated.push(
+        mark.start >= end
+          ? { ...mark, start: mark.start + delta, end: mark.end + delta }
+          : mark,
+      );
+    }
+    return updated;
+  }
+
+  test("removes the exact replaced mark", () => {
+    const marks = [
+      { start: 0, end: 5, type: "spelling", data: { word: "Hello" } },
+      { start: 6, end: 9, type: "spelling", data: { word: "bad" } },
+    ];
+    const result = invalidateRange(marks, 6, 9, 4); // "bad" -> "good"
+    assert.equal(result.length, 1);
+    assert.equal(result[0].start, 0);
+    assert.equal(result[0].end, 5);
+  });
+
+  test("shifts trailing marks by positive delta when replacement is longer", () => {
+    const marks = [
+      { start: 0, end: 3, type: "spelling", data: { word: "The" } },
+      { start: 4, end: 8, type: "spelling", data: { word: "wrld" } },
+      { start: 9, end: 12, type: "spelling", data: { word: "isz" } },
+    ];
+    const result = invalidateRange(marks, 4, 8, 5); // "wrld" -> "world", delta +1
+    assert.equal(result.length, 2);
+    assert.equal(result[0].start, 0);
+    assert.equal(result[1].start, 10);
+    assert.equal(result[1].end, 13);
+  });
+
+  test("shifts trailing marks by negative delta when replacement is shorter", () => {
+    const marks = [
+      { start: 0, end: 3, type: "spelling", data: { word: "The" } },
+      { start: 4, end: 8, type: "spelling", data: { word: "wrld" } },
+      { start: 9, end: 12, type: "spelling", data: { word: "isz" } },
+    ];
+    const result = invalidateRange(marks, 4, 8, 1); // "wrld" -> "w", delta -3
+    assert.equal(result.length, 2);
+    assert.equal(result[1].start, 6);
+    assert.equal(result[1].end, 9);
+  });
+
+  test("shifts multiple trailing marks", () => {
+    // Replace "bad" (3 chars) -> "excellent" (9 chars), delta +6
+    const marks = [
+      { start: 0, end: 4, type: "grammar", data: { message: "A" } },
+      { start: 5, end: 8, type: "spelling", data: { word: "bad" } },
+      { start: 10, end: 15, type: "spelling", data: { word: "spel" } },
+      { start: 16, end: 22, type: "grammar", data: { message: "B" } },
+    ];
+    const result = invalidateRange(marks, 5, 8, 9);
+    assert.equal(result.length, 3);
+    assert.equal(result[0].start, 0);
+    assert.equal(result[1].start, 16);
+    assert.equal(result[2].start, 22);
+  });
+
+  test("no-op when marks array is empty", () => {
+    assert.equal(invalidateRange([], 0, 5, 10).length, 0);
+  });
+
+  test("no-op when replaced mark is not in the array", () => {
+    const marks = [{ start: 0, end: 5, type: "spelling", data: { word: "Hello" } }];
+    const result = invalidateRange(marks, 10, 15, 5);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].start, 0);
+  });
+
+  test("zero-delta replacement preserves trailing offsets", () => {
+    const marks = [
+      { start: 0, end: 3, type: "spelling", data: { word: "The" } },
+      { start: 4, end: 7, type: "spelling", data: { word: "bad" } },
+      { start: 8, end: 11, type: "spelling", data: { word: "isz" } },
+    ];
+    const result = invalidateRange(marks, 4, 7, 3);
+    assert.equal(result.length, 2);
+    assert.equal(result[0].start, 0);
+    assert.equal(result[1].start, 8);
+  });
+
+  test("marks before the replaced range are untouched", () => {
+    const marks = [
+      { start: 0, end: 5, type: "spelling", data: { word: "First" } },
+      { start: 6, end: 11, type: "spelling", data: { word: "Secnd" } },
+    ];
+    const result = invalidateRange(marks, 10, 15, 6);
+    assert.equal(result.length, 2);
+    assert.equal(result[0].start, 0);
+    assert.equal(result[1].start, 6);
   });
 });
 

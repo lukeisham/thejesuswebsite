@@ -69,6 +69,9 @@ const SpellcheckOverlay = {
 
   /**
    * Render spelling and grammar error marks on the overlay.
+   * Stores the marks array on the overlay element so invalidateRange() can
+   * modify it optimistically without waiting for the worker re-scan.
+   *
    * @param {HTMLTextAreaElement} textarea
    * @param {{ start: number, end: number, word?: string, suggestions?: string[] }[]} spellingErrors
    * @param {{ start: number, end: number, message: string }[]} grammarErrors
@@ -95,12 +98,60 @@ const SpellcheckOverlay = {
     }
     marks.sort((a, b) => a.start - b.start);
 
-    // Build overlay HTML using DOM (JS-6: no innerHTML with user text)
+    // Store on the overlay for synchronous invalidation by the context menu
+    overlay._marks = marks;
+
+    this._renderMarks(overlay, text, marks);
+  },
+
+  /**
+   * Synchronously remove a mark range and shift trailing marks by the
+   * length delta, then re-render immediately. Called by the context menu
+   * in the same task as the text mutation so no stale-mark frame appears.
+   *
+   * The worker's subsequent full re-render (via the debounced input handler)
+   * reconciles authoritatively — this is just an optimistic gap-fill (JS-2).
+   *
+   * @param {HTMLTextAreaElement} textarea
+   * @param {number} start  - start offset of the replaced mark
+   * @param {number} end    - end offset of the replaced mark
+   * @param {number} replacementLength - length of the replacement text
+   */
+  invalidateRange(textarea, start, end, replacementLength) {
+    const overlay = textarea._spellcheckOverlay;
+    if (!overlay || !overlay._marks) return;
+
+    const delta = replacementLength - (end - start);
+
+    // Filter out the replaced mark; shift all marks after it by delta
+    const updated = [];
+    for (const mark of overlay._marks) {
+      if (mark.start === start && mark.end === end) continue;
+      updated.push(
+        mark.start >= end
+          ? { ...mark, start: mark.start + delta, end: mark.end + delta }
+          : mark,
+      );
+    }
+
+    overlay._marks = updated;
+    this._renderMarks(overlay, textarea.value, updated);
+  },
+
+  /**
+   * Low-level render: clear the overlay and rebuild its DOM children
+   * from an already-built marks array. Shared by render() and invalidateRange().
+   *
+   * @param {HTMLElement} overlay
+   * @param {string} text
+   * @param {{ start: number, end: number, type: string, data: object }[]} marks
+   */
+  _renderMarks(overlay, text, marks) {
     overlay.textContent = "";
 
     let cursor = 0;
     for (const mark of marks) {
-      if (mark.start < cursor) continue; // skip overlapping (shouldn't happen after sort+filter)
+      if (mark.start < cursor) continue;
 
       // Plain text before this mark
       if (cursor < mark.start) {
