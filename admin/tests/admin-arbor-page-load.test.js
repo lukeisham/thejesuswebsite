@@ -29,7 +29,7 @@ const arborHtmlPath = path.resolve(__dirname, "..", "diagrams", "arbor.html");
  */
 function arborScriptFilenames() {
   const html = fs.readFileSync(arborHtmlPath, "utf8");
-  const re = /<script[^>]*src="\.\.\/assets\/js\/admin-arbor\/([a-z0-9-]+\.js)"/g;
+  const re = /<script[^>]*src="\.\.\/assets\/js\/admin-arbor\/([a-z0-9-]+\.js)(?:\?[^"]*)?"/g;
   const files = [];
   let match;
   while ((match = re.exec(html)) !== null) {
