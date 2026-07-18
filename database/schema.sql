@@ -618,6 +618,7 @@ CREATE TABLE arbor_edges (
     target_id         INTEGER NOT NULL REFERENCES evidence(id) ON DELETE CASCADE,
     relationship_type TEXT CHECK (relationship_type IN ('root', 'supports', 'leads_to', 'related')),
     sort_order        INTEGER DEFAULT 0,
+    waypoints         TEXT,
     created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(source_id, target_id),
     CHECK (source_id <> target_id)

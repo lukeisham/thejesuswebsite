@@ -18,6 +18,14 @@
             rel="stylesheet"
             href="../assets/css/admin-diagrams/arbor-pen-badges.css"
         />
+        <link
+            rel="stylesheet"
+            href="../assets/css/admin-diagrams/arbor-edge-menu.css"
+        />
+        <link
+            rel="stylesheet"
+            href="../assets/css/admin-diagrams/arbor-edge-reroute.css"
+        />
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
@@ -30,6 +38,14 @@
         <script
             defer
             src="../assets/js/admin-arbor/arbor-connect-menu.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-arbor/arbor-edge-menu.js"
+        ></script>
+        <script
+            defer
+            src="../assets/js/admin-arbor/arbor-edge-reroute.js"
         ></script>
     </head>
     <body>
@@ -199,6 +215,14 @@
                     window.AdminArborConnectMenu.init
                 ) {
                     window.AdminArborConnectMenu.init();
+                }
+
+                // Init the edge action menu (creates DOM for Re-route/Delete)
+                if (
+                    window.AdminArborEdgeMenu &&
+                    window.AdminArborEdgeMenu.init
+                ) {
+                    window.AdminArborEdgeMenu.init();
                 }
 
                 // Once all deferred scripts have loaded, init each module.

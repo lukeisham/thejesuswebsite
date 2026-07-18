@@ -4,7 +4,8 @@
  * Loads evidence nodes from the arbor graph, renders them as draggable
  * public-style rounded-rect nodes (WYSIWYG), and persists positions
  * server-side via UpdateRecord. Left-drag moves, left-click opens the
- * edit panel, right-drag delegates to the edges module for connecting.
+ * edit panel, right-click delegates to the edges module's click-click
+ * connect flow (arm the source, then right-click a target to connect).
  *
  * Depends on AdminArborCanvas for rendering and coordinate conversion.
  *
@@ -298,7 +299,7 @@ function wrapTextToWidth(text, maxWidth, maxLines) {
 /**
  * Create the SVG element group for a single node.
  * Renders a public-style rounded-rect with title + verse.
- * Right-drag delegate to edges module for connecting.
+ * Right-click delegates to the edges module's click-click connect flow.
  *
  * @param {Object} node
  * @returns {SVGGElement}
@@ -417,9 +418,13 @@ Nodes.createNodeElement = function (node) {
     Nodes.onNodeMouseDown(e, node);
   });
 
-  // Prevent native context menu on nodes (we use right-drag for connect)
+  // Right-click: arm/complete a connection (click-click gesture)
   g.addEventListener("contextmenu", function (e) {
-    e.preventDefault();
+    if (window.AdminArborEdges && window.AdminArborEdges.onNodeContextMenu) {
+      window.AdminArborEdges.onNodeContextMenu(e, node, g);
+    } else {
+      e.preventDefault();
+    }
   });
 
   // Keyboard support: Enter to edit, C to connect
@@ -684,19 +689,14 @@ Nodes.onNodeKeyDown = function (e, node) {
 /**
  * Mouse-down on a node.
  * Left button: start position drag.
- * Right button: delegate to edges module for connecting.
+ * Right button: no-op — connecting is handled by the node's contextmenu
+ * listener (see createNodeElement), not by mousedown.
  *
  * @param {MouseEvent} e
  * @param {Object} node
  */
 Nodes.onNodeMouseDown = function (e, node) {
-  // Right button: connect mode — delegate to edges for right-drag
-  if (e.button === 2) {
-    if (window.AdminArborEdges && window.AdminArborEdges.startEdgeDrag) {
-      window.AdminArborEdges.startEdgeDrag(e, node);
-    }
-    return;
-  }
+  if (e.button === 2) return;
 
   // Left button: drag to move
   e.preventDefault();

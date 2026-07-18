@@ -1,13 +1,18 @@
 /**
  * Admin arbor edges module.
  *
- * Handles edge creation via right-drag between nodes (with a relationship-type
- * pop-up menu), edge deletion via right-click on connection lines, and
- * connection validation (no self-edge, no duplicate, valid relationship_type).
+ * Handles edge creation via a click-click gesture — right-click a node to
+ * arm it as the connection source, then right-click a different node to
+ * complete the connection through a relationship-type pop-up menu — plus
+ * right-click on a connection line, which opens a small Re-route/Delete
+ * action menu (Delete confirms and removes the edge; Re-route hands off to
+ * arbor-edge-reroute.js for grid-snapped waypoint editing), and connection
+ * validation (no self-edge, no duplicate, valid relationship_type).
  * Persists edges through UpdateRecord (JS-5: async/await + try/catch).
  *
  * Depends on AdminArborCanvas for rendering, AdminArborNodes for node data,
- * and AdminArborConnectMenu for the relationship-type picker.
+ * AdminArborConnectMenu for the relationship-type picker, AdminArborEdgeMenu
+ * for the edge action menu, and AdminArborEdgeReroute for waypoint editing.
  *
  * @module admin-arbor/arbor-edges
  */
@@ -20,11 +25,13 @@ const Edges = window.AdminArborEdges;
 /** @type {Array<Object>} */
 let edges = [];
 
-/** @type {Object|null}  Edge creation drag state. */
-let edgeDrag = null;
-
-/** @type {Object|null}  Pending keyboard-initiated connection state. */
-let pendingKeySource = null;
+/**
+ * Armed connection source — shared by the pointer (right-click) and
+ * keyboard (C) connect flows so the two entry points can never diverge
+ * or double-arm.
+ * @type {{node: Object, el: Element}|null}
+ */
+let armedSource = null;
 
 /** Allowable relationship types (mirrors the CHECK constraint in schema.sql). */
 const VALID_TYPES = ["root", "supports", "leads_to", "related"];
@@ -50,18 +57,36 @@ const EDGE_PARALLEL_OFFSET = 12;
  *   source → centre-bottom of source node
  *   target → centre-top of target node
  *
- * Route shape:
+ * Route shape (no waypoints):
  *   source ↓ gap → horizontal → ↑ gap → target
  *   (flipped when target is above source)
+ *
+ * Route shape (with waypoints): source → straight segments through each
+ * waypoint in order → target. Waypoints are user-placed bend points (the
+ * re-route feature), so no automatic gap/turn is inserted between them —
+ * the admin creates right angles by placing waypoints on the grid.
+ * A present `waypoints` array overrides `offsetIndex` entirely: manual
+ * routing already avoids overlap, so the parallel-edge offset no longer
+ * applies to this edge.
  *
  * @param {number} sx  - source centre-x (diagram coords)
  * @param {number} sy  - source bottom-y
  * @param {number} tx  - target centre-x
  * @param {number} ty  - target top-y
- * @param {number} offsetIndex - 0 for first edge, 1,2,… for parallel edges
+ * @param {number} offsetIndex - 0 for first edge, 1,2,… for parallel edges (ignored if waypoints present)
+ * @param {Array<{x: number, y: number}>} [waypoints] - ordered bend points from a re-route
  * @returns {string} SVG path `d` attribute
  */
-function computeEdgePath(sx, sy, tx, ty, offsetIndex) {
+function computeEdgePath(sx, sy, tx, ty, offsetIndex, waypoints) {
+  if (Array.isArray(waypoints) && waypoints.length > 0) {
+    var d = "M " + sx + " " + sy;
+    for (var w = 0; w < waypoints.length; w++) {
+      d += " L " + waypoints[w].x + " " + waypoints[w].y;
+    }
+    d += " L " + tx + " " + ty;
+    return d;
+  }
+
   // Alternate offset direction: 0=straight, 1=+right, 2=-left, 3=+2×right, …
   var dir = offsetIndex % 2 === 0 ? -1 : 1;
   var mag = Math.ceil(offsetIndex / 2);
@@ -136,12 +161,28 @@ Edges.validateConnection = function (
 /* ── Initialisation ────────────────────────────────────────────────────────── */
 
 /**
- * Wire nothing at init — edge creation is now driven by right-drag gestures
- * from arbor-nodes.js, not a toolbar toggle.
+ * Wire the canvas-level right-click handler (cancels an armed connection
+ * and suppresses the native context menu over empty canvas). Node and edge
+ * right-clicks are wired per-element in createNodeElement/createEdgeElement.
  */
 Edges.init = function () {
-  // Right-drag connect and right-click disconnect are gesture-driven;
-  // no toolbar wiring needed.
+  var svgEl = document.querySelector(".admin-arbor-svg");
+  if (svgEl) {
+    svgEl.addEventListener("contextmenu", Edges.onCanvasContextMenu);
+  }
+};
+
+/**
+ * Right-click on empty canvas: suppress the native menu and cancel any
+ * armed connection (one of the three required cancel paths).
+ *
+ * @param {MouseEvent} e
+ */
+Edges.onCanvasContextMenu = function (e) {
+  e.preventDefault();
+  if (armedSource) {
+    Edges.disarmConnectionSource("Connection cancelled.");
+  }
 };
 
 /* ── Edge loading ──────────────────────────────────────────────────────────── */
@@ -232,7 +273,7 @@ Edges.createEdgeElement = function (edge, sourceNode, targetNode, offsetIndex) {
   var tx = (targetNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
   var ty = targetNode.arbor_y || 0;
 
-  var d = computeEdgePath(sx, sy, tx, ty, offsetIndex || 0);
+  var d = computeEdgePath(sx, sy, tx, ty, offsetIndex || 0, edge.waypoints);
 
   var path = document.createElementNS(ns, "path");
   path.setAttribute("d", d);
@@ -260,25 +301,94 @@ Edges.createEdgeElement = function (edge, sourceNode, targetNode, offsetIndex) {
   );
   g.appendChild(typeLabel);
 
-  // Right-click to disconnect
+  // Right-click: if a connection is armed, right-clicking an edge cancels
+  // the arm (one gesture, one meaning); otherwise it opens the Re-route/
+  // Delete action menu.
   g.addEventListener("contextmenu", function (e) {
     e.preventDefault();
     e.stopPropagation();
-    Edges.onEdgeContextMenu(edge);
+    if (armedSource) {
+      Edges.disarmConnectionSource("Connection cancelled.");
+      return;
+    }
+    Edges.openEdgeActionMenu(edge, e.clientX, e.clientY);
   });
 
-  // Keyboard support for disconnect: Delete, Backspace, or Enter to trigger disconnect
+  // Keyboard support: Delete/Backspace/Enter disconnects, R enters re-route mode.
   g.setAttribute("tabindex", "0");
   g.setAttribute("role", "button");
-  g.setAttribute("aria-label", "Connection (" + (edge.relationship_type || "") + ") — press Delete to remove");
+  g.setAttribute("aria-label", "Connection (" + (edge.relationship_type || "") + ") — press Delete to remove, R to re-route");
   g.addEventListener("keydown", function (e) {
     if (e.key === "Delete" || e.key === "Backspace" || e.key === "Enter") {
       e.preventDefault();
       Edges.onEdgeContextMenu(edge);
+    } else if (e.key === "r" || e.key === "R") {
+      e.preventDefault();
+      Edges.startEdgeReroute(edge);
     }
   });
 
   return g;
+};
+
+/* ── Re-route action menu ─────────────────────────────────────────────────── */
+
+/**
+ * Open the small Re-route/Delete action menu for an edge (right-click
+ * entry point). Falls back to the old delete-only confirmation if the menu
+ * module isn't loaded.
+ *
+ * @param {Object} edge
+ * @param {number} screenX
+ * @param {number} screenY
+ */
+Edges.openEdgeActionMenu = async function (edge, screenX, screenY) {
+  if (!window.AdminArborEdgeMenu || !window.AdminArborEdgeMenu.open) {
+    Edges.onEdgeContextMenu(edge);
+    return;
+  }
+
+  var choice = await window.AdminArborEdgeMenu.open(screenX, screenY, [
+    { label: "Re-route" },
+    { label: "Delete", danger: true },
+  ]);
+  if (!choice) return;
+
+  if (choice.label === "Delete") {
+    Edges.onEdgeContextMenu(edge);
+  } else if (choice.label === "Re-route") {
+    Edges.startEdgeReroute(edge);
+  }
+};
+
+/**
+ * Enter re-route mode for an edge (shared by the pointer menu and the R
+ * keyboard shortcut).
+ *
+ * @param {Object} edge
+ */
+Edges.startEdgeReroute = function (edge) {
+  if (!window.AdminArborEdgeReroute || !window.AdminArborEdgeReroute.enter) return;
+  var sourceNode = window.AdminArborNodes.getNodeById(edge.source_id);
+  var targetNode = window.AdminArborNodes.getNodeById(edge.target_id);
+  window.AdminArborEdgeReroute.enter(edge, sourceNode, targetNode);
+};
+
+/**
+ * Update a single edge's waypoints in the in-memory array and re-render.
+ * Called by arbor-edge-reroute.js after a successful commit.
+ *
+ * @param {number} edgeId
+ * @param {Array<{x:number,y:number}>|null} waypoints
+ */
+Edges.setEdgeWaypoints = function (edgeId, waypoints) {
+  for (var i = 0; i < edges.length; i++) {
+    if (edges[i].id === edgeId) {
+      edges[i].waypoints = waypoints;
+      break;
+    }
+  }
+  Edges.renderEdges();
 };
 
 /* ── Edge disconnect via right-click ────────────────────────────────────────── */
@@ -296,13 +406,13 @@ Edges.onEdgeContextMenu = function (edge) {
 
   if (
     !confirm(
-      "Delete the \u201C" +
+      "Delete the “" +
         edge.relationship_type +
-        "\u201D connection from \u201C" +
+        "” connection from “" +
         sourceTitle +
-        "\u201D to \u201C" +
+        "” to “" +
         targetTitle +
-        "\u201D?",
+        "”?",
     )
   )
     return;
@@ -330,214 +440,75 @@ Edges.deleteEdge = async function (edgeId) {
   }
 };
 
-/* ── Right-drag edge creation ──────────────────────────────────────────────── */
+/* ── Shared armed-source connect flow (pointer + keyboard) ───────────────────── */
 
 /**
- * Called by arbor-nodes.js on right-button mousedown over a node.
- * Begins drawing a temporary edge line from this node to the cursor.
+ * Arm a node as the connection source: apply the gold outline, announce it,
+ * and start listening for Escape. Shared by both entry points so there is
+ * exactly one way to be "armed".
  *
- * @param {MouseEvent} e
+ * @param {Object} node
+ * @param {Element} el
+ * @param {string} toastMessage
+ */
+Edges.armConnectionSource = function (node, el, toastMessage) {
+  armedSource = { node: node, el: el };
+  el.classList.add("admin-arbor-node--connect-source");
+  if (typeof window.showToast === "function") {
+    window.showToast(toastMessage, "info");
+  }
+  document.addEventListener("keydown", Edges.onArmedSourceEscape);
+};
+
+/**
+ * Disarm the current connection source, clearing its outline and the
+ * Escape listener.
+ *
+ * @param {string} [cancelMessage]  - toast text if this disarm is a cancellation
+ */
+Edges.disarmConnectionSource = function (cancelMessage) {
+  if (!armedSource) return;
+  armedSource.el.classList.remove("admin-arbor-node--connect-source");
+  armedSource = null;
+  document.removeEventListener("keydown", Edges.onArmedSourceEscape);
+  if (cancelMessage && typeof window.showToast === "function") {
+    window.showToast(cancelMessage, "info");
+  }
+};
+
+/**
+ * Escape key handler: cancels an armed connection from either the pointer
+ * or keyboard flow.
+ *
+ * @param {KeyboardEvent} e
+ */
+Edges.onArmedSourceEscape = function (e) {
+  if (e.key !== "Escape" || !armedSource) return;
+  Edges.disarmConnectionSource("Connection cancelled.");
+};
+
+/**
+ * Complete a connection from an armed source to a target node: opens the
+ * relationship-type menu, validates, and persists via UpdateRecord. Shared
+ * by the pointer and keyboard flows so the persistence path is identical.
+ *
  * @param {Object} sourceNode
+ * @param {Object} targetNode
+ * @param {number} menuX  - screen x for the connect menu
+ * @param {number} menuY  - screen y for the connect menu
  */
-Edges.startEdgeDrag = function (e, sourceNode) {
-  e.preventDefault();
-  e.stopPropagation();
-
-  var tx = window.AdminArborCanvas.getTransform();
-  var svgEl = document.querySelector(".admin-arbor-svg");
-  var rect = svgEl ? svgEl.getBoundingClientRect() : null;
-  var screenX = rect ? e.clientX - rect.left : e.clientX;
-  var screenY = rect ? e.clientY - rect.top : e.clientY;
-  var diag = window.AdminArborCanvas.screenToDiagram(screenX, screenY, tx);
-
-  // Anchor the temp line at centre-bottom of the source node
-  var srcX =
-    (sourceNode.arbor_x || 0) + window.AdminArborGeometry.NODE_WIDTH / 2;
-  var srcY = (sourceNode.arbor_y || 0) + window.AdminArborGeometry.NODE_HEIGHT;
-
-  edgeDrag = {
-    sourceNode: sourceNode,
-    startX: srcX,
-    startY: srcY,
-    tempLine: null,
-  };
-
-  // Create a temporary line
-  var ns = "http://www.w3.org/2000/svg";
-  var line = document.createElementNS(ns, "line");
-  line.setAttribute("class", "admin-arbor-edge-temp");
-  line.setAttribute("x1", String(srcX));
-  line.setAttribute("y1", String(srcY));
-  line.setAttribute("x2", String(diag.x));
-  line.setAttribute("y2", String(diag.y));
-  var group = window.AdminArborCanvas.getTransformGroup();
-  if (group) group.appendChild(line);
-  edgeDrag.tempLine = line;
-
-  document.addEventListener("mousemove", Edges.onEdgeDragMove);
-  document.addEventListener("mouseup", Edges.onEdgeDragUp);
-};
-
-/**
- * Mouse-move during edge creation — update the temporary line.
- *
- * @param {MouseEvent} e
- */
-Edges.onEdgeDragMove = function (e) {
-  if (!edgeDrag || !edgeDrag.tempLine) return;
-
-  var tx = window.AdminArborCanvas.getTransform();
-  var svgEl = document.querySelector(".admin-arbor-svg");
-  var rect = svgEl ? svgEl.getBoundingClientRect() : null;
-  var screenX = rect ? e.clientX - rect.left : e.clientX;
-  var screenY = rect ? e.clientY - rect.top : e.clientY;
-  var diag = window.AdminArborCanvas.screenToDiagram(screenX, screenY, tx);
-
-  edgeDrag.tempLine.setAttribute("x2", String(diag.x));
-  edgeDrag.tempLine.setAttribute("y2", String(diag.y));
-
-  // Snap feedback: highlight target node when hovering over it
-  var targetEl = document.elementFromPoint(e.clientX, e.clientY);
-  var targetGroup = targetEl ? targetEl.closest(".admin-arbor-node-group") : null;
-
-  // Clear previous highlight
-  if (edgeDrag._highlightedEl && edgeDrag._highlightedEl !== targetGroup) {
-    edgeDrag._highlightedEl.classList.remove("admin-arbor-node--connect-target");
-    edgeDrag._highlightedEl = null;
-    edgeDrag.tempLine.classList.remove("admin-arbor-edge-temp--snap");
-  }
-
-  if (targetGroup) {
-    var targetId = Number(targetGroup.getAttribute("data-node-id"));
-    if (targetId && targetId !== edgeDrag.sourceNode.id) {
-      targetGroup.classList.add("admin-arbor-node--connect-target");
-      edgeDrag.tempLine.classList.add("admin-arbor-edge-temp--snap");
-      edgeDrag._highlightedEl = targetGroup;
-    }
-  }
-};
-
-/**
- * Mouse-up during edge creation — open the connect menu, validate, persist.
- *
- * @param {MouseEvent} e
- */
-Edges.onEdgeDragUp = async function (e) {
-  document.removeEventListener("mousemove", Edges.onEdgeDragMove);
-  document.removeEventListener("mouseup", Edges.onEdgeDragUp);
-
-  if (!edgeDrag) return;
-
-  // Remove the temporary line and clear any snap highlight
-  if (edgeDrag.tempLine && edgeDrag.tempLine.parentNode) {
-    edgeDrag.tempLine.parentNode.removeChild(edgeDrag.tempLine);
-    edgeDrag.tempLine = null;
-  }
-  if (edgeDrag._highlightedEl) {
-    edgeDrag._highlightedEl.classList.remove("admin-arbor-node--connect-target");
-    edgeDrag._highlightedEl = null;
-  }
-
-  // Find which node the cursor ended on, if any
-  var targetNode = null;
-  var targetEl = document.elementFromPoint(e.clientX, e.clientY);
-  if (targetEl) {
-    var group = targetEl.closest(".admin-arbor-node-group");
-    if (group) {
-      var targetId = Number(group.getAttribute("data-node-id"));
-      targetNode = window.AdminArborNodes.getNodeById(targetId);
-    }
-  }
-
-  var sourceNode = edgeDrag.sourceNode;
-  edgeDrag = null;
-
-  if (!targetNode || !sourceNode) return;
-
-  // Open the connect menu to choose relationship type
-  if (window.AdminArborConnectMenu && window.AdminArborConnectMenu.open) {
-    var chosenType = await window.AdminArborConnectMenu.open(
-      e.clientX,
-      e.clientY,
-    );
-    if (!chosenType) return; // user cancelled
-
-    // Validate
-    var error = Edges.validateConnection(
-      sourceNode.id,
-      targetNode.id,
-      chosenType,
-      edges,
-    );
-    if (error) {
-      if (typeof window.showToast === "function") {
-        window.showToast(error, "error");
-      }
-      return;
-    }
-
-    // Persist
-    try {
-      var created = await UpdateRecord.saveEdge({
-        source_id: sourceNode.id,
-        target_id: targetNode.id,
-        relationship_type: chosenType,
-      });
-      edges.push(created);
-      Edges.renderEdges();
-    } catch (err) {
-      console.error("Failed to create edge:", err);
-      if (typeof window.showToast === "function") {
-        window.showToast("Failed to create connection.", "error");
-      }
-    }
-  }
-};
-
-/* ── Keyboard-driven edge creation ─────────────────────────────────────────── */
-
-/**
- * Keyboard equivalent of the right-drag connect gesture.
- * First press of "C" on a node arms the source; the user then Tab-navigates
- * to a target node and presses "C" again to complete the connection,
- * or Escape to cancel. Mirrors startEdgeDrag/onEdgeDragUp but with no cursor
- * coordinates — the connect menu opens next to the target node's screen rect.
- *
- * @param {Object} node  - the source node
- * @param {SVGGElement} el  - the node's SVG group element
- */
-Edges.startEdgeConnectFromKeyboard = async function (node, el) {
-  if (!pendingKeySource) {
-    pendingKeySource = { node: node, el: el };
-    el.classList.add("admin-arbor-node--connect-source");
-    if (typeof window.showToast === "function") {
-      window.showToast(
-        "Connecting from \"" + (node.title || "?") + "\" — Tab to a target node and press C, or Esc to cancel.",
-        "info",
-      );
-    }
-    document.addEventListener("keydown", Edges.onKeyboardConnectEscape);
-    return;
-  }
-
-  var sourceNode = pendingKeySource.node;
-  var sourceEl = pendingKeySource.el;
-  sourceEl.classList.remove("admin-arbor-node--connect-source");
-  document.removeEventListener("keydown", Edges.onKeyboardConnectEscape);
-  pendingKeySource = null;
-
-  if (sourceNode.id === node.id) return; // same node re-pressed; no-op
-
-  var rect = el.getBoundingClientRect();
-  var menuX = rect.left + rect.width / 2;
-  var menuY = rect.top + rect.height / 2;
-
+Edges.completeConnection = async function (sourceNode, targetNode, menuX, menuY) {
   if (!window.AdminArborConnectMenu || !window.AdminArborConnectMenu.open) return;
 
   var chosenType = await window.AdminArborConnectMenu.open(menuX, menuY);
-  if (!chosenType) return;
+  if (!chosenType) return; // user cancelled
 
-  var error = Edges.validateConnection(sourceNode.id, node.id, chosenType, edges);
+  var error = Edges.validateConnection(
+    sourceNode.id,
+    targetNode.id,
+    chosenType,
+    edges,
+  );
   if (error) {
     if (typeof window.showToast === "function") {
       window.showToast(error, "error");
@@ -548,7 +519,7 @@ Edges.startEdgeConnectFromKeyboard = async function (node, el) {
   try {
     var created = await UpdateRecord.saveEdge({
       source_id: sourceNode.id,
-      target_id: node.id,
+      target_id: targetNode.id,
       relationship_type: chosenType,
     });
     edges.push(created);
@@ -561,16 +532,75 @@ Edges.startEdgeConnectFromKeyboard = async function (node, el) {
   }
 };
 
+/* ── Pointer-driven connect: right-click, right-click ─────────────────────────── */
+
 /**
- * Escape key handler: cancels an armed keyboard connection.
+ * Called by arbor-nodes.js on right-click (contextmenu) over a node.
+ * First right-click with nothing armed arms this node as the source.
+ * Right-clicking the armed node again cancels. Right-clicking a different
+ * node while armed completes the connection at the cursor position.
  *
- * @param {KeyboardEvent} e
+ * @param {MouseEvent} e
+ * @param {Object} node
+ * @param {Element} el
  */
-Edges.onKeyboardConnectEscape = function (e) {
-  if (e.key !== "Escape" || !pendingKeySource) return;
-  pendingKeySource.el.classList.remove("admin-arbor-node--connect-source");
-  pendingKeySource = null;
-  document.removeEventListener("keydown", Edges.onKeyboardConnectEscape);
+Edges.onNodeContextMenu = async function (e, node, el) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (!armedSource) {
+    Edges.armConnectionSource(
+      node,
+      el,
+      "Connecting from \"" + (node.title || "?") +
+        "\" — right-click a target node; Esc cancels.",
+    );
+    return;
+  }
+
+  if (armedSource.node.id === node.id) {
+    Edges.disarmConnectionSource("Connection cancelled.");
+    return;
+  }
+
+  var sourceNode = armedSource.node;
+  Edges.disarmConnectionSource();
+  return Edges.completeConnection(sourceNode, node, e.clientX, e.clientY);
+};
+
+/* ── Keyboard-driven connect: C, Tab, C ────────────────────────────────────────── */
+
+/**
+ * Keyboard equivalent of the pointer connect flow.
+ * First press of "C" on a node arms the source; the user then Tab-navigates
+ * to a target node and presses "C" again to complete the connection, or
+ * Escape to cancel. Shares armedSource/completeConnection with the pointer
+ * flow so keyboard and pointer arming can't diverge or double-arm.
+ *
+ * @param {Object} node  - the source node
+ * @param {SVGGElement} el  - the node's SVG group element
+ */
+Edges.startEdgeConnectFromKeyboard = async function (node, el) {
+  if (!armedSource) {
+    Edges.armConnectionSource(
+      node,
+      el,
+      "Connecting from \"" + (node.title || "?") +
+        "\" — Tab to a target node and press C, or Esc to cancel.",
+    );
+    return;
+  }
+
+  var sourceNode = armedSource.node;
+  Edges.disarmConnectionSource();
+
+  if (sourceNode.id === node.id) return; // same node re-pressed; no-op
+
+  var rect = el.getBoundingClientRect();
+  var menuX = rect.left + rect.width / 2;
+  var menuY = rect.top + rect.height / 2;
+
+  return Edges.completeConnection(sourceNode, node, menuX, menuY);
 };
 
 /* ── Reposition edges when a node is dragged ───────────────────────────────── */
@@ -642,7 +672,7 @@ Edges.repositionEdgesForNode = function (nodeId, newX, newY) {
     if (!(pairKey in pairIndex)) pairIndex[pairKey] = 0;
     var offsetIdx = pairIndex[pairKey]++;
 
-    var d = computeEdgePath(sx, sy, tx, ty, offsetIdx);
+    var d = computeEdgePath(sx, sy, tx, ty, offsetIdx, edge.waypoints);
     path.setAttribute("d", d);
 
     if (typeLabel) {
@@ -651,3 +681,7 @@ Edges.repositionEdgesForNode = function (nodeId, newX, newY) {
     }
   }
 };
+
+// Exposed so arbor-edge-reroute.js can render an identical live-preview path
+// without a second implementation (JS-3: one routing algorithm, not two).
+Edges.computeEdgePath = computeEdgePath;

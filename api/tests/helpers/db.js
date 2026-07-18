@@ -7,6 +7,7 @@
 // `historiography` statements are filtered out (not skipped wholesale) because
 // schema.sql also already defines two_column/doi/author_bio on that one table,
 // while context_essays and responses still rely on migration 003 for them.
+// 028 (arbor_edges.waypoints) is also skipped — already in schema.sql.
 // Every test suite gets a fresh copy via createTestDb() (JS-2: no shared state).
 //
 // Usage:
@@ -54,8 +55,9 @@ function createTestDb() {
   // Apply migrations not yet folded into schema.sql.
   // Skip 001 (duplicate of schema.sql), 005 and 009 (columns already in schema.sql),
   // 010 (arbor_nodes already in schema.sql), 012 (analytics device/geo
-  // columns + geoip_blocks already in schema.sql), and 013 (site_settings
-  // table + seed row already in schema.sql).
+  // columns + geoip_blocks already in schema.sql), 013 (site_settings
+  // table + seed row already in schema.sql), and 028 (arbor_edges.waypoints
+  // already in schema.sql).
   const migrationFiles = fs
     .readdirSync(MIGRATIONS_DIR)
     .filter(
@@ -72,7 +74,8 @@ function createTestDb() {
         !name.startsWith("024_") &&
         !name.startsWith("025_") &&
         !name.startsWith("026_") &&
-        !name.startsWith("027_"),
+        !name.startsWith("027_") &&
+        !name.startsWith("028_"),
     )
     .sort();
 

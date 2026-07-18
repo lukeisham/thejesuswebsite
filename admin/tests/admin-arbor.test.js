@@ -728,6 +728,155 @@ describe("edge anchor alignment", function () {
   });
 });
 
+// ── computeEdgePath waypoints (re-route feature) ────────────────────────────
+// Exercises computeEdgePath indirectly via createEdgeElement's produced
+// path "d" string, by capturing document.createElementNS("path") calls.
+
+function makeEdgePathCaptureSandbox() {
+  var capturedD = null;
+
+  var sandbox = {
+    window: {
+      AdminArborGeometry: {
+        NODE_WIDTH: 200,
+        NODE_HEIGHT: 80,
+        EDGE_STYLES: {
+          default: { stroke: "var(--border-strong)" },
+          supports: { stroke: "var(--accent)" },
+        },
+      },
+      AdminArborCanvas: {
+        getTransformGroup: function () {
+          return null;
+        },
+        createNodeLabel: function () {
+          return { setAttribute: function () {}, textContent: "" };
+        },
+      },
+      AdminArborNodes: {
+        getNodeById: function () {
+          return null;
+        },
+      },
+      UpdateRecord: {
+        saveEdge: async function () {
+          return {};
+        },
+        deleteEdge: async function () {},
+      },
+    },
+    document: {
+      createElementNS: function (ns, tag) {
+        return {
+          setAttribute: function (name, value) {
+            if (tag === "path" && name === "d") capturedD = value;
+          },
+          appendChild: function () {},
+          style: {},
+          addEventListener: function () {},
+        };
+      },
+      getElementById: function () {
+        return null;
+      },
+      querySelector: function () {
+        return null;
+      },
+      querySelectorAll: function () {
+        return [];
+      },
+      addEventListener: function () {},
+      removeEventListener: function () {},
+      createElement: function () {
+        return {
+          setAttribute: function () {},
+          appendChild: function () {},
+          addEventListener: function () {},
+          style: {},
+          classList: {
+            add: function () {},
+            remove: function () {},
+            toggle: function () {},
+          },
+        };
+      },
+    },
+    console: { error: function () {} },
+  };
+
+  vm.runInNewContext(edgesSource, sandbox);
+  return {
+    edgesModule: sandbox.window.AdminArborEdges,
+    getD: function () {
+      return capturedD;
+    },
+  };
+}
+
+describe("computeEdgePath waypoints (re-route feature)", function () {
+  // sourceNode centre-bottom: (0+100, 0+80) = (100, 80)
+  // targetNode centre-top:    (200+100, 300) = (300, 300)
+  var sourceNode = { arbor_x: 0, arbor_y: 0 };
+  var targetNode = { arbor_x: 200, arbor_y: 300 };
+
+  test("without waypoints, produces the default two-turn orthogonal path", function () {
+    var cap = makeEdgePathCaptureSandbox();
+    var edge = { id: 1, relationship_type: "supports", waypoints: null };
+    cap.edgesModule.createEdgeElement(edge, sourceNode, targetNode, 0);
+    var d = cap.getD();
+    // Default routing has exactly 4 "L" segments (down, across, up, into target).
+    assert.equal(d.split(" L ").length - 1, 4);
+    assert.ok(d.indexOf("M 100 80") === 0);
+  });
+
+  test("with waypoints, routes straight through each point in order", function () {
+    var cap = makeEdgePathCaptureSandbox();
+    var edge = {
+      id: 1,
+      relationship_type: "supports",
+      waypoints: [
+        { x: 50, y: 100 },
+        { x: 150, y: 150 },
+      ],
+    };
+    cap.edgesModule.createEdgeElement(edge, sourceNode, targetNode, 0);
+    var d = cap.getD();
+    assert.equal(d, "M 100 80 L 50 100 L 150 150 L 300 300");
+  });
+
+  test("waypoints override the parallel-edge offset entirely", function () {
+    var cap = makeEdgePathCaptureSandbox();
+    var edge = {
+      id: 1,
+      relationship_type: "supports",
+      waypoints: [{ x: 50, y: 100 }],
+    };
+    // offsetIndex=2 would normally shift a parallel edge horizontally;
+    // with waypoints present it must have no effect on the path.
+    cap.edgesModule.createEdgeElement(edge, sourceNode, targetNode, 2);
+    var d = cap.getD();
+    assert.equal(d, "M 100 80 L 50 100 L 300 300");
+  });
+
+  test("an empty waypoints array falls back to default routing", function () {
+    var cap = makeEdgePathCaptureSandbox();
+    var edge = { id: 1, relationship_type: "supports", waypoints: [] };
+    cap.edgesModule.createEdgeElement(edge, sourceNode, targetNode, 0);
+    var d = cap.getD();
+    assert.equal(d.split(" L ").length - 1, 4);
+  });
+
+  test("malformed (non-array) waypoints on the edge object fall back to default routing, no crash", function () {
+    var cap = makeEdgePathCaptureSandbox();
+    var edge = { id: 1, relationship_type: "supports", waypoints: "not-an-array" };
+    assert.doesNotThrow(function () {
+      cap.edgesModule.createEdgeElement(edge, sourceNode, targetNode, 0);
+    });
+    var d = cap.getD();
+    assert.equal(d.split(" L ").length - 1, 4);
+  });
+});
+
 // ── Connect-menu position clamping ──────────────────────────────────────────
 
 /**
@@ -784,131 +933,369 @@ describe("connect-menu position clamping", function () {
   });
 });
 
-// ── Keyboard accessibility: Edge connect state machine ──────────────────────
+// ── Click-click connect gesture (pointer + keyboard, shared armed state) ────
+//
+// Replaces the old right-drag gesture tests: connecting is now a two-step
+// right-click (pointer) or C/Tab/C (keyboard) flow sharing one armedSource
+// module variable (see arbor-connect-click-click.md).
 
-describe("keyboard-driven edge connection state transitions", function () {
-  var startEdgeConnectFromKeyboard;
-  var keyboardSandbox;
+/**
+ * Build a fresh sandbox with mocked AdminArborConnectMenu/UpdateRecord and
+ * a toast spy, for exercising the armed-connect flow in isolation.
+ *
+ * @param {Array<Object>} [initialEdges]
+ * @param {string} [connectMenuChoice]  - relationship type resolved by ConnectMenu.open, or null for "cancelled"
+ * @returns {{ edgesModule: Object, toasts: Array<string>, confirmResult: boolean }}
+ */
+function makeConnectFlowSandbox(connectMenuChoice) {
+  var toasts = [];
+  var confirmResult = true;
 
-  beforeEach(function () {
-    // Create a sandbox similar to edgesSandbox but with mocked AdminArborConnectMenu
-    keyboardSandbox = {
-      window: {
-        AdminArborGeometry: {
-          NODE_WIDTH: 200,
-          NODE_HEIGHT: 80,
-          EDGE_STYLES: {
-            default: { stroke: "var(--border-strong)" },
-            root: { stroke: "var(--accent)", "stroke-width": "2" },
-            related: { "stroke-dasharray": "6 4", stroke: "var(--border-strong)" },
-          },
+  // arbor-edges.js references UpdateRecord as a bare identifier (a real
+  // page-level global loaded from another script), not window.UpdateRecord —
+  // so it must be defined at the sandbox's top level, not just under window.
+  var updateRecordMock = {
+    saveEdge: async function (payload) {
+      return Object.assign({ id: 100 }, payload);
+    },
+    deleteEdge: async function () {},
+  };
+
+  var sandbox = {
+    UpdateRecord: updateRecordMock,
+    window: {
+      AdminArborGeometry: {
+        NODE_WIDTH: 200,
+        NODE_HEIGHT: 80,
+        EDGE_STYLES: {
+          default: { stroke: "var(--border-strong)" },
+          root: { stroke: "var(--accent)", "stroke-width": "2" },
+          related: { "stroke-dasharray": "6 4", stroke: "var(--border-strong)" },
         },
-        AdminArborCanvas: {
-          getTransformGroup: function () {
-            return null;
-          },
-          createEdgeLine: function () {
-            return { setAttribute: function () {} };
-          },
-          createNodeLabel: function () {
-            return { setAttribute: function () {}, textContent: "" };
-          },
-          screenToDiagram: function (x, y) {
-            return { x: x, y: y };
-          },
-          getTransform: function () {
-            return { x: 0, y: 0, scale: 1 };
-          },
-        },
-        AdminArborNodes: {
-          getNodeById: function (id) {
-            return { id: id, title: "Node " + id };
-          },
-        },
-        AdminArborConnectMenu: {
-          open: async function () {
-            return "supports";
-          },
-        },
-        UpdateRecord: {
-          saveEdge: async function () {
-            return { id: 100, source_id: 1, target_id: 2, relationship_type: "supports" };
-          },
-          deleteEdge: async function () {},
-        },
-        showToast: function () {},
       },
-      document: {
-        getElementById: function () {
+      AdminArborCanvas: {
+        getTransformGroup: function () {
           return null;
         },
-        querySelector: function () {
-          return null;
+        createNodeLabel: function () {
+          return { setAttribute: function () {}, textContent: "" };
         },
-        querySelectorAll: function () {
-          return [];
+        screenToDiagram: function (x, y) {
+          return { x: x, y: y };
         },
-        addEventListener: function () {},
-        removeEventListener: function () {},
-        createElement: function () {
-          return {
-            setAttribute: function () {},
-            appendChild: function () {},
-            addEventListener: function () {},
-            style: {},
-            classList: {
-              add: function () {},
-              remove: function () {},
-              toggle: function () {},
-            },
-          };
+        getTransform: function () {
+          return { x: 0, y: 0, scale: 1 };
         },
       },
-      console: { error: function () {} },
-    };
-
-    vm.runInNewContext(edgesSource, keyboardSandbox);
-    startEdgeConnectFromKeyboard = keyboardSandbox.window.AdminArborEdges.startEdgeConnectFromKeyboard;
-  });
-
-  test("first invocation of startEdgeConnectFromKeyboard arms the source", function (t, done) {
-    // This test verifies that calling startEdgeConnectFromKeyboard with no pending source
-    // sets pendingKeySource to the provided node and element
-    var sourceNode = { id: 1, title: "Source Node" };
-    var sourceEl = {
-      classList: { add: function () {}, remove: function () {} },
-      getBoundingClientRect: function () {
-        return { left: 100, top: 100, width: 200, height: 80 };
+      AdminArborNodes: {
+        getNodeById: function (id) {
+          return { id: id, title: "Node " + id };
+        },
       },
-    };
+      AdminArborConnectMenu: {
+        open: async function () {
+          return connectMenuChoice === undefined ? "supports" : connectMenuChoice;
+        },
+      },
+      UpdateRecord: updateRecordMock,
+      showToast: function (msg) {
+        toasts.push(msg);
+      },
+    },
+    document: {
+      getElementById: function () {
+        return null;
+      },
+      querySelector: function () {
+        return null;
+      },
+      querySelectorAll: function () {
+        return [];
+      },
+      addEventListener: function () {},
+      removeEventListener: function () {},
+      createElement: function () {
+        return {
+          setAttribute: function () {},
+          appendChild: function () {},
+          addEventListener: function () {},
+          style: {},
+          classList: {
+            add: function () {},
+            remove: function () {},
+            toggle: function () {},
+          },
+        };
+      },
+      // Captures the contextmenu handler wired by createEdgeElement so tests
+      // can invoke it directly, mirroring the "edge anchor alignment" sandbox.
+      createElementNS: function () {
+        var listeners = {};
+        return {
+          setAttribute: function () {},
+          appendChild: function () {},
+          style: {},
+          addEventListener: function (type, handler) {
+            listeners[type] = handler;
+          },
+          _listeners: listeners,
+        };
+      },
+    },
+    confirm: function () {
+      return confirmResult;
+    },
+    console: { error: function () {} },
+  };
 
-    // Call the async function but don't await it; we just verify it arms the state
-    startEdgeConnectFromKeyboard(sourceNode, sourceEl);
+  vm.runInNewContext(edgesSource, sandbox);
+  return {
+    edgesModule: sandbox.window.AdminArborEdges,
+    toasts: toasts,
+    setConfirmResult: function (v) {
+      confirmResult = v;
+    },
+  };
+}
 
-    // Since startEdgeConnectFromKeyboard returns immediately on first call,
-    // we can't directly assert pendingKeySource (it's private module state),
-    // but the test validates that the function exists and is callable
-    assert.ok(typeof startEdgeConnectFromKeyboard === "function");
-    done();
+/**
+ * A minimal SVG-group-like element stub with a working classList, for
+ * asserting the "armed" gold-outline class is applied/removed.
+ */
+function makeNodeEl() {
+  var classes = new Set();
+  return {
+    classList: {
+      add: function (c) {
+        classes.add(c);
+      },
+      remove: function (c) {
+        classes.delete(c);
+      },
+      contains: function (c) {
+        return classes.has(c);
+      },
+    },
+    getBoundingClientRect: function () {
+      return { left: 100, top: 100, width: 200, height: 80 };
+    },
+  };
+}
+
+describe("pointer connect flow: right-click, right-click", function () {
+  test("first right-click arms the source and announces it", function () {
+    var flow = makeConnectFlowSandbox();
+    var nodeA = { id: 1, title: "Node A" };
+    var elA = makeNodeEl();
+    var evt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+
+    flow.edgesModule.onNodeContextMenu(evt, nodeA, elA);
+
+    assert.ok(elA.classList.contains("admin-arbor-node--connect-source"));
+    assert.equal(flow.toasts.length, 1);
+    assert.ok(flow.toasts[0].indexOf("Connecting from") !== -1);
   });
 
-  test("escape key handler cancels an armed keyboard connection", function () {
-    var onKeyboardConnectEscape = keyboardSandbox.window.AdminArborEdges.onKeyboardConnectEscape;
-    assert.ok(typeof onKeyboardConnectEscape === "function");
-    // The handler checks for Escape key and cleans up pendingKeySource
-    var mockEvent = { key: "Escape" };
-    // This should not throw, even if pendingKeySource is null
-    onKeyboardConnectEscape(mockEvent);
+  test("right-clicking the armed node again cancels", function () {
+    var flow = makeConnectFlowSandbox();
+    var nodeA = { id: 1, title: "Node A" };
+    var elA = makeNodeEl();
+    var evt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+
+    flow.edgesModule.onNodeContextMenu(evt, nodeA, elA);
+    flow.edgesModule.onNodeContextMenu(evt, nodeA, elA);
+
+    assert.ok(!elA.classList.contains("admin-arbor-node--connect-source"));
+    assert.equal(flow.toasts.length, 2);
+    assert.ok(flow.toasts[1].indexOf("cancelled") !== -1);
+  });
+
+  test("right-clicking a different node while armed completes the connection", async function () {
+    var flow = makeConnectFlowSandbox("supports");
+    var nodeA = { id: 1, title: "Node A" };
+    var nodeB = { id: 2, title: "Node B" };
+    var elA = makeNodeEl();
+    var elB = makeNodeEl();
+    var evt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+
+    flow.edgesModule.onNodeContextMenu(evt, nodeA, elA);
+    await flow.edgesModule.onNodeContextMenu(evt, nodeB, elB);
+
+    assert.ok(!elA.classList.contains("admin-arbor-node--connect-source"));
+    var allEdges = flow.edgesModule.getAllEdges();
+    assert.equal(allEdges.length, 1);
+    assert.equal(allEdges[0].source_id, 1);
+    assert.equal(allEdges[0].target_id, 2);
+    assert.equal(allEdges[0].relationship_type, "supports");
+  });
+
+  test("cancelling the relationship-type menu leaves no edge and re-arms nothing", async function () {
+    var flow = makeConnectFlowSandbox(null); // ConnectMenu.open resolves null (cancelled)
+    var nodeA = { id: 1, title: "Node A" };
+    var nodeB = { id: 2, title: "Node B" };
+    var elA = makeNodeEl();
+    var elB = makeNodeEl();
+    var evt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+
+    flow.edgesModule.onNodeContextMenu(evt, nodeA, elA);
+    await flow.edgesModule.onNodeContextMenu(evt, nodeB, elB);
+
+    assert.equal(flow.edgesModule.getAllEdges().length, 0);
+  });
+
+  test("Escape cancels an armed pointer connection", function () {
+    var flow = makeConnectFlowSandbox();
+    var nodeA = { id: 1, title: "Node A" };
+    var elA = makeNodeEl();
+    var evt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+
+    flow.edgesModule.onNodeContextMenu(evt, nodeA, elA);
+    flow.edgesModule.onArmedSourceEscape({ key: "Escape" });
+
+    assert.ok(!elA.classList.contains("admin-arbor-node--connect-source"));
+  });
+
+  test("right-click on empty canvas cancels an armed connection", function () {
+    var flow = makeConnectFlowSandbox();
+    var nodeA = { id: 1, title: "Node A" };
+    var elA = makeNodeEl();
+    var evt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+
+    flow.edgesModule.onNodeContextMenu(evt, nodeA, elA);
+
+    var prevented = false;
+    flow.edgesModule.onCanvasContextMenu({
+      preventDefault: function () {
+        prevented = true;
+      },
+    });
+
+    assert.ok(prevented);
+    assert.ok(!elA.classList.contains("admin-arbor-node--connect-source"));
   });
 });
 
-// ── Keyboard accessibility: Edge disconnect ──────────────────────────────
+describe("keyboard connect flow: C, Tab, C (shares armedSource with pointer flow)", function () {
+  test("first C press arms the source and announces the Tab-based flow", function () {
+    var flow = makeConnectFlowSandbox();
+    var nodeA = { id: 1, title: "Node A" };
+    var elA = makeNodeEl();
 
-describe("keyboard-driven edge disconnect", function () {
+    flow.edgesModule.startEdgeConnectFromKeyboard(nodeA, elA);
+
+    assert.ok(elA.classList.contains("admin-arbor-node--connect-source"));
+    assert.equal(flow.toasts.length, 1);
+    assert.ok(flow.toasts[0].indexOf("Tab to a target node") !== -1);
+  });
+
+  test("second C press on a different node completes the connection", async function () {
+    var flow = makeConnectFlowSandbox("related");
+    var nodeA = { id: 1, title: "Node A" };
+    var nodeB = { id: 2, title: "Node B" };
+    var elA = makeNodeEl();
+    var elB = makeNodeEl();
+
+    flow.edgesModule.startEdgeConnectFromKeyboard(nodeA, elA);
+    await flow.edgesModule.startEdgeConnectFromKeyboard(nodeB, elB);
+
+    var allEdges = flow.edgesModule.getAllEdges();
+    assert.equal(allEdges.length, 1);
+    assert.equal(allEdges[0].relationship_type, "related");
+  });
+
+  test("re-pressing C on the same (armed) node is a no-op, not a self-edge", async function () {
+    var flow = makeConnectFlowSandbox();
+    var nodeA = { id: 1, title: "Node A" };
+    var elA = makeNodeEl();
+
+    flow.edgesModule.startEdgeConnectFromKeyboard(nodeA, elA);
+    await flow.edgesModule.startEdgeConnectFromKeyboard(nodeA, elA);
+
+    assert.equal(flow.edgesModule.getAllEdges().length, 0);
+  });
+
+  test("Escape (via the shared handler) cancels an armed keyboard connection", function () {
+    var flow = makeConnectFlowSandbox();
+    var nodeA = { id: 1, title: "Node A" };
+    var elA = makeNodeEl();
+
+    flow.edgesModule.startEdgeConnectFromKeyboard(nodeA, elA);
+    flow.edgesModule.onArmedSourceEscape({ key: "Escape" });
+
+    assert.ok(!elA.classList.contains("admin-arbor-node--connect-source"));
+  });
+
+  test("armedSource set by a pointer right-click completes via the keyboard C press", async function () {
+    // Proves pointer and keyboard flows share one armed-state variable.
+    var flow = makeConnectFlowSandbox("leads_to");
+    var nodeA = { id: 1, title: "Node A" };
+    var nodeB = { id: 2, title: "Node B" };
+    var elA = makeNodeEl();
+    var elB = makeNodeEl();
+    var pointerEvt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+
+    flow.edgesModule.onNodeContextMenu(pointerEvt, nodeA, elA); // arm via pointer
+    await flow.edgesModule.startEdgeConnectFromKeyboard(nodeB, elB); // complete via keyboard
+
+    var allEdges = flow.edgesModule.getAllEdges();
+    assert.equal(allEdges.length, 1);
+    assert.equal(allEdges[0].relationship_type, "leads_to");
+  });
+});
+
+// ── Edge right-click: delete when unarmed, cancel-arm when armed ────────────
+
+describe("edge right-click: delete vs cancel-arm (one gesture, one meaning)", function () {
   test("onEdgeContextMenu is reused for both pointer and keyboard disconnect paths", function () {
     var onEdgeContextMenu = edgesSandbox.window.AdminArborEdges.onEdgeContextMenu;
     assert.ok(typeof onEdgeContextMenu === "function");
     // The function expects a confirm dialog and then calls deleteEdge.
     // Verify the function exists and is callable (actual behavior tested manually).
+  });
+
+  test("right-clicking an edge while a node is armed cancels the arm and does not delete", function () {
+    var flow = makeConnectFlowSandbox();
+    var deleteCalled = false;
+    flow.edgesModule.deleteEdge = async function () {
+      deleteCalled = true;
+    };
+
+    // Arm a connection source via a right-click on node A.
+    var nodeA = { id: 1, title: "Node A" };
+    var elA = makeNodeEl();
+    var armEvt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+    flow.edgesModule.onNodeContextMenu(armEvt, nodeA, elA);
+    assert.ok(elA.classList.contains("admin-arbor-node--connect-source"));
+
+    // Build a real edge element and dispatch its contextmenu handler directly.
+    var sourceNode = { id: 1, arbor_x: 0, arbor_y: 0 };
+    var targetNode = { id: 2, arbor_x: 0, arbor_y: 100 };
+    var edge = { id: 5, source_id: 1, target_id: 2, relationship_type: "supports" };
+    var edgeGroup = flow.edgesModule.createEdgeElement(edge, sourceNode, targetNode, 0);
+
+    var edgeContextEvt = { preventDefault: function () {}, stopPropagation: function () {} };
+    edgeGroup._listeners.contextmenu(edgeContextEvt);
+
+    // Cancelled the arm, did not delete.
+    assert.ok(!elA.classList.contains("admin-arbor-node--connect-source"));
+    assert.ok(!deleteCalled);
+  });
+
+  test("right-clicking an edge with nothing armed still opens the delete confirmation", function () {
+    var flow = makeConnectFlowSandbox();
+    var deleteCalled = false;
+    flow.edgesModule.deleteEdge = async function () {
+      deleteCalled = true;
+    };
+
+    var sourceNode = { id: 1, arbor_x: 0, arbor_y: 0 };
+    var targetNode = { id: 2, arbor_x: 0, arbor_y: 100 };
+    var edge = { id: 5, source_id: 1, target_id: 2, relationship_type: "supports" };
+    var edgeGroup = flow.edgesModule.createEdgeElement(edge, sourceNode, targetNode, 0);
+
+    var edgeContextEvt = { preventDefault: function () {}, stopPropagation: function () {} };
+    edgeGroup._listeners.contextmenu(edgeContextEvt); // confirm() stubbed to true
+
+    assert.ok(deleteCalled);
   });
 });

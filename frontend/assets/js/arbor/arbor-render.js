@@ -44,18 +44,36 @@ const EDGE_PARALLEL_OFFSET = 12;
  *   source → centre-bottom of source node
  *   target → centre-top of target node
  *
- * Route shape:
+ * Route shape (no waypoints):
  *   source ↓ gap → horizontal → ↑ gap → target
  *   (flipped when target is above source)
+ *
+ * Route shape (with waypoints): source → straight segments through each
+ * waypoint in order → target. Waypoints are user-placed bend points (the
+ * re-route feature), so no automatic gap/turn is inserted between them —
+ * the admin creates right angles by placing waypoints on the grid.
+ * A present `waypoints` array overrides `offsetIndex` entirely: manual
+ * routing already avoids overlap, so the parallel-edge offset no longer
+ * applies to this edge.
  *
  * @param {number} sx  - source centre-x (diagram coords)
  * @param {number} sy  - source bottom-y
  * @param {number} tx  - target centre-x
  * @param {number} ty  - target top-y
- * @param {number} offsetIndex - 0 for first edge, 1,2,… for parallel edges
+ * @param {number} offsetIndex - 0 for first edge, 1,2,… for parallel edges (ignored if waypoints present)
+ * @param {Array<{x: number, y: number}>} [waypoints] - ordered bend points from a re-route
  * @returns {string} SVG path `d` attribute
  */
-function computeEdgePath(sx, sy, tx, ty, offsetIndex) {
+function computeEdgePath(sx, sy, tx, ty, offsetIndex, waypoints) {
+  if (Array.isArray(waypoints) && waypoints.length > 0) {
+    var d = "M " + sx + " " + sy;
+    for (var w = 0; w < waypoints.length; w++) {
+      d += " L " + waypoints[w].x + " " + waypoints[w].y;
+    }
+    d += " L " + tx + " " + ty;
+    return d;
+  }
+
   // Alternate offset direction: 0=straight, 1=+right, 2=-left, 3=+2×right, …
   var dir = offsetIndex % 2 === 0 ? -1 : 1;
   var mag = Math.ceil(offsetIndex / 2);
@@ -411,7 +429,7 @@ export function renderArbor(nodes, edges) {
       const sourcePos = nodePositions.get(sourceId);
       if (!sourcePos) continue;
 
-      for (const { targetId, relationshipType } of targets) {
+      for (const { targetId, relationshipType, edge } of targets) {
         const targetPos = nodePositions.get(targetId);
         if (!targetPos) continue;
 
@@ -425,7 +443,7 @@ export function renderArbor(nodes, edges) {
         const offsetIdx = pairIndex.get(pairKey);
         pairIndex.set(pairKey, offsetIdx + 1);
 
-        const d = computeEdgePath(sx, sy, tx, ty, offsetIdx);
+        const d = computeEdgePath(sx, sy, tx, ty, offsetIdx, edge && edge.waypoints);
 
         const path = document.createElementNS(
           "http://www.w3.org/2000/svg",

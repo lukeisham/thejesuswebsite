@@ -5,6 +5,7 @@
 const db = require("../config");
 const evidenceModel = require("./evidence.model");
 const { pickWritable, runUpdate } = require("./model-helpers");
+const ERRORS = require("../lib/error-codes");
 
 // Columns the admin is allowed to write for arbor edge creation/updates.
 const WRITABLE_COLUMNS = [
@@ -12,7 +13,83 @@ const WRITABLE_COLUMNS = [
   "target_id",
   "relationship_type",
   "sort_order",
+  "waypoints",
 ];
+
+// Upper bound on stored bend points per edge (re-route grid-snap feature).
+const MAX_WAYPOINTS = 20;
+
+/**
+ * Validate a waypoints array: must be an array of at most MAX_WAYPOINTS
+ * `{x, y}` objects with finite numeric coordinates. Throws an Error with
+ * `.code === ERRORS.INVALID_JSON.code` on any violation (SQL-3/JS-2: never
+ * let malformed shape reach the database).
+ *
+ * @param {*} waypoints
+ */
+function validateWaypoints(waypoints) {
+  if (!Array.isArray(waypoints) || waypoints.length > MAX_WAYPOINTS) {
+    throwInvalidWaypoints();
+  }
+  for (const point of waypoints) {
+    if (
+      !point ||
+      typeof point !== "object" ||
+      !Number.isFinite(point.x) ||
+      !Number.isFinite(point.y)
+    ) {
+      throwInvalidWaypoints();
+    }
+  }
+}
+
+function throwInvalidWaypoints() {
+  const err = new Error(ERRORS.INVALID_JSON.message);
+  err.code = ERRORS.INVALID_JSON.code;
+  throw err;
+}
+
+/**
+ * Whitelist an edge create/update payload and JSON-encode `waypoints` for
+ * storage, validating its shape first. `waypoints: null` (clear re-routing)
+ * passes through unchanged; an absent `waypoints` key leaves existing
+ * routing untouched on update.
+ *
+ * @param {object} data
+ * @returns {object} row ready for INSERT/UPDATE
+ */
+function prepareEdgeRow(data) {
+  const row = pickWritable(data, WRITABLE_COLUMNS);
+  if ("waypoints" in row && row.waypoints !== null) {
+    validateWaypoints(row.waypoints);
+    row.waypoints = JSON.stringify(row.waypoints);
+  }
+  return row;
+}
+
+/**
+ * Parse the raw `waypoints` TEXT column into an array in place. Missing or
+ * malformed data falls back to `null` (default orthogonal routing) rather
+ * than throwing — a bad row must never break rendering (JS-2).
+ *
+ * @param {object|undefined} row
+ * @returns {object|undefined} the same row, `waypoints` replaced by an array or null
+ */
+function parseEdgeRow(row) {
+  if (!row) return row;
+  if (!row.waypoints) {
+    row.waypoints = null;
+    return row;
+  }
+  try {
+    const parsed = JSON.parse(row.waypoints);
+    validateWaypoints(parsed);
+    row.waypoints = parsed;
+  } catch (_err) {
+    row.waypoints = null;
+  }
+  return row;
+}
 
 /**
  * Get all edges in the arbor diagram, ordered for rendering.
@@ -26,6 +103,7 @@ function getAllEdges() {
             ae.target_id,
             ae.relationship_type,
             ae.sort_order,
+            ae.waypoints,
             ae.created_at,
             s.title AS source_title,
             t.title AS target_title
@@ -34,7 +112,7 @@ function getAllEdges() {
         LEFT JOIN evidence t ON ae.target_id = t.id
         ORDER BY ae.sort_order, ae.created_at
     `;
-  return db.prepare(sql).all();
+  return db.prepare(sql).all().map(parseEdgeRow);
 }
 
 /**
@@ -49,6 +127,7 @@ function getOutgoingEdges(sourceId) {
             ae.target_id,
             ae.relationship_type,
             ae.sort_order,
+            ae.waypoints,
             ae.created_at,
             t.title AS target_title
         FROM arbor_edges ae
@@ -56,7 +135,7 @@ function getOutgoingEdges(sourceId) {
         WHERE ae.source_id = ?
         ORDER BY ae.sort_order, ae.created_at
     `;
-  return db.prepare(sql).all(sourceId);
+  return db.prepare(sql).all(sourceId).map(parseEdgeRow);
 }
 
 /**
@@ -71,6 +150,7 @@ function getIncomingEdges(targetId) {
             ae.target_id,
             ae.relationship_type,
             ae.sort_order,
+            ae.waypoints,
             ae.created_at,
             s.title AS source_title
         FROM arbor_edges ae
@@ -78,7 +158,7 @@ function getIncomingEdges(targetId) {
         WHERE ae.target_id = ?
         ORDER BY ae.sort_order, ae.created_at
     `;
-  return db.prepare(sql).all(targetId);
+  return db.prepare(sql).all(targetId).map(parseEdgeRow);
 }
 
 /**
@@ -92,6 +172,7 @@ function getById(id) {
             ae.target_id,
             ae.relationship_type,
             ae.sort_order,
+            ae.waypoints,
             ae.created_at,
             s.title AS source_title,
             t.title AS target_title
@@ -100,14 +181,14 @@ function getById(id) {
         LEFT JOIN evidence t ON ae.target_id = t.id
         WHERE ae.id = ?
     `;
-  return db.prepare(sql).get(id);
+  return parseEdgeRow(db.prepare(sql).get(id));
 }
 
 /**
  * Create a new arbor edge. Returns the created edge with evidence titles included.
  */
 function create(data) {
-  const row = pickWritable(data, WRITABLE_COLUMNS);
+  const row = prepareEdgeRow(data);
 
   const columns = Object.keys(row);
   const placeholders = columns.map((column) => `@${column}`);
@@ -128,7 +209,7 @@ function create(data) {
 function update(id, data) {
   if (!getById(id)) return undefined;
 
-  const row = pickWritable(data, WRITABLE_COLUMNS);
+  const row = prepareEdgeRow(data);
   runUpdate(db, "arbor_edges", row, id);
 
   return getById(id);

@@ -1,0 +1,65 @@
+/* ==========================================================================
+   Arbor Edge Menu (Admin)
+   Small pop-up context menu for edge right-click actions
+   (Re-route, Delete). Keyboard-operable via role="menu".
+   ========================================================================== */
+
+.admin-arbor-edge-menu {
+    position: fixed;
+    z-index: 200;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    padding: var(--space-xs);
+    min-width: 160px;
+    display: none;
+}
+
+.admin-arbor-edge-menu--open {
+    display: block;
+}
+
+.admin-arbor-edge-menu__item {
+    display: block;
+    width: 100%;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.875rem;
+    font-family: var(--admin-font-sans);
+    color: var(--admin-text-primary);
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.admin-arbor-edge-menu__item:hover,
+.admin-arbor-edge-menu__item:focus-visible {
+    background: var(--admin-border);
+    outline: none;
+}
+
+.admin-arbor-edge-menu__item[aria-current="true"] {
+    background: var(--admin-border);
+}
+
+.admin-arbor-edge-menu__item--danger {
+    color: var(--admin-danger);
+}
+
+.admin-arbor-edge-menu__item--danger:hover,
+.admin-arbor-edge-menu__item--danger:focus-visible {
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.admin-arbor-edge-menu__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    display: none;
+}
+
+.admin-arbor-edge-menu__backdrop--open {
+    display: block;
+}
