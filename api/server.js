@@ -72,7 +72,7 @@ app.use("/publish", require("./routes/publish"));
 app.use("/analytics", require("./routes/analytics"));
 app.use("/auth", require("./routes/auth"));
 app.use("/passkey", require("./routes/passkey"));
-app.use("/api/spellcheck-dictionary", require("./routes/spellcheck-dictionary"));
+app.use("/spellcheck-dictionary", require("./routes/spellcheck-dictionary"));
 
 // Dev-only auth bypass: only mount the route when the flag is explicitly set.
 if (process.env.ADMIN_DEV_BYPASS === "1") {
