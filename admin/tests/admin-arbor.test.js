@@ -959,10 +959,15 @@ describe("connect-menu position clamping", function () {
  *
  * @param {Array<Object>} [initialEdges]
  * @param {string} [connectMenuChoice]  - relationship type resolved by ConnectMenu.open, or null for "cancelled"
- * @returns {{ edgesModule: Object, toasts: Array<string>, confirmResult: boolean }}
+ * @param {Object} [options]
+ * @param {boolean} [options.noConnectMenu]  - simulate AdminArborConnectMenu never having loaded (e.g. a parse-time SyntaxError in that file)
+ * @param {boolean} [options.openThrows]  - simulate ConnectMenu.open rejecting/throwing
+ * @returns {{ edgesModule: Object, toasts: Array<string>, consoleErrors: Array<string>, confirmResult: boolean }}
  */
-function makeConnectFlowSandbox(connectMenuChoice) {
+function makeConnectFlowSandbox(connectMenuChoice, options) {
+  options = options || {};
   var toasts = [];
+  var consoleErrors = [];
   var confirmResult = true;
 
   // arbor-edges.js references UpdateRecord as a bare identifier (a real
@@ -1006,11 +1011,17 @@ function makeConnectFlowSandbox(connectMenuChoice) {
           return { id: id, title: "Node " + id };
         },
       },
-      AdminArborConnectMenu: {
-        open: async function () {
-          return connectMenuChoice === undefined ? "supports" : connectMenuChoice;
-        },
-      },
+      AdminArborConnectMenu: options.noConnectMenu
+        ? undefined
+        : {
+            open: options.openThrows
+              ? async function () {
+                  throw new Error("ConnectMenu.open failed");
+                }
+              : async function () {
+                  return connectMenuChoice === undefined ? "supports" : connectMenuChoice;
+                },
+          },
       UpdateRecord: updateRecordMock,
       showToast: function (msg) {
         toasts.push(msg);
@@ -1059,13 +1070,18 @@ function makeConnectFlowSandbox(connectMenuChoice) {
     confirm: function () {
       return confirmResult;
     },
-    console: { error: function () {} },
+    console: {
+      error: function (msg) {
+        consoleErrors.push(msg);
+      },
+    },
   };
 
   vm.runInNewContext(edgesSource, sandbox);
   return {
     edgesModule: sandbox.window.AdminArborEdges,
     toasts: toasts,
+    consoleErrors: consoleErrors,
     setConfirmResult: function (v) {
       confirmResult = v;
     },
@@ -1186,6 +1202,48 @@ describe("pointer connect flow: right-click, right-click", function () {
 
     assert.ok(prevented);
     assert.ok(!elA.classList.contains("admin-arbor-node--connect-source"));
+  });
+
+  test("completing a connection when AdminArborConnectMenu never loaded surfaces an error toast, not a silent no-op", async function () {
+    var flow = makeConnectFlowSandbox(undefined, { noConnectMenu: true });
+    var nodeA = { id: 1, title: "Node A" };
+    var nodeB = { id: 2, title: "Node B" };
+    var elA = makeNodeEl();
+    var elB = makeNodeEl();
+    var evt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+
+    flow.edgesModule.onNodeContextMenu(evt, nodeA, elA);
+    await flow.edgesModule.onNodeContextMenu(evt, nodeB, elB);
+
+    assert.equal(flow.edgesModule.getAllEdges().length, 0);
+    assert.ok(
+      flow.toasts.some(function (t) {
+        return t.indexOf("Connection menu failed to load") !== -1;
+      }),
+    );
+    assert.ok(flow.consoleErrors.length > 0);
+  });
+
+  test("a throwing ConnectMenu.open surfaces an error toast instead of an unhandled rejection", async function () {
+    var flow = makeConnectFlowSandbox(undefined, { openThrows: true });
+    var nodeA = { id: 1, title: "Node A" };
+    var nodeB = { id: 2, title: "Node B" };
+    var elA = makeNodeEl();
+    var elB = makeNodeEl();
+    var evt = { preventDefault: function () {}, stopPropagation: function () {}, clientX: 10, clientY: 10 };
+
+    flow.edgesModule.onNodeContextMenu(evt, nodeA, elA);
+    await assert.doesNotReject(
+      flow.edgesModule.onNodeContextMenu(evt, nodeB, elB),
+    );
+
+    assert.equal(flow.edgesModule.getAllEdges().length, 0);
+    assert.ok(
+      flow.toasts.some(function (t) {
+        return t.indexOf("Failed to complete connection") !== -1;
+      }),
+    );
+    assert.ok(flow.consoleErrors.length > 0);
   });
 });
 
