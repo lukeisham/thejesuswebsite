@@ -590,8 +590,8 @@
 </g>
 <!-- Province boundaries (approximate) -->
 <g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
-  <polyline points="350,180 480,220 510,260 560,300 580,340 520,370"/>
-  <polyline points="620,200 640,240 680,280 800,320 820,340 830,350"/>
+  <polyline points="350,180 370,220 380,260 400,300 420,340 460,370"/>
+  <polyline points="620,200 640,240 680,280 720,320 780,340 830,350"/>
 </g>
 <text x="611" y="467" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">MEDITERRANEAN SEA</text>
 <text x="982" y="233" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">BLACK SEA</text>
