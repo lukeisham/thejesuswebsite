@@ -124,26 +124,6 @@
     user-select: none;
     text-transform: capitalize;
 }
-.admin-arbor-edge-temp {
-    stroke: var(--accent);
-    stroke-width: 2;
-    stroke-dasharray: 6 4;
-    fill: none;
-    pointer-events: none;
-}
-
-/* Snap-to-target feedback during right-drag connect */
-.admin-arbor-edge-temp--snap {
-    stroke: var(--success);
-    stroke-width: 3;
-    stroke-dasharray: none;
-}
-
-.admin-arbor-node--connect-target {
-    outline: 2px solid var(--accent-gold);
-    outline-offset: 2px;
-}
-
 /* -------------------------------------------------------------------------
    Responsive
    ------------------------------------------------------------------------- */

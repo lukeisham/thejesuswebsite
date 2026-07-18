@@ -5,7 +5,7 @@ const express = require("express");
 const arborModel = require("../models/arbor.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
-const { sendError } = require("../lib/error-handler");
+const { sendError, sendValidationError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -137,6 +137,9 @@ router.post("/", requireAuth, (req, res) => {
     const created = arborModel.create(req.body);
     res.status(201).json(created);
   } catch (error) {
+    if (error.code === ERRORS.INVALID_JSON.code) {
+      return sendValidationError(res, "waypoints", ERRORS.INVALID_JSON);
+    }
     console.error("POST /arbor failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
@@ -153,6 +156,9 @@ router.put("/:id", requireAuth, (req, res) => {
       });
     res.json(updated);
   } catch (error) {
+    if (error.code === ERRORS.INVALID_JSON.code) {
+      return sendValidationError(res, "waypoints", ERRORS.INVALID_JSON);
+    }
     console.error("PUT /arbor/:id failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
