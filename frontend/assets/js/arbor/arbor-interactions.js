@@ -270,17 +270,15 @@ async function init() {
   // embedded snapshot is only as fresh as the last deploy, so always
   // check for changes after first paint and re-render if the graph
   // actually changed. Not awaited — must not delay interaction wiring.
-  console.log("[DEBUG] about to call revalidateInBackground", typeof revalidateInBackground);
   revalidateInBackground({
     embeddedData: { nodes: savedNodes, edges: savedEdges },
     fetchLive: fetchArborGraph,
     onFresh: (fresh) => {
-      console.log("[DEBUG] onFresh called", fresh.nodes && fresh.nodes.length);
       savedNodes = fresh.nodes || [];
       savedEdges = fresh.edges || [];
       renderArbor(savedNodes, savedEdges);
     },
-  }).then(() => console.log("[DEBUG] revalidateInBackground settled")).catch((e) => console.log("[DEBUG] revalidateInBackground threw", e));
+  });
 
   // ── Wire tooltip on nodes (JS-6: event delegation) ─────────────────────
   if (diagramEl) {
