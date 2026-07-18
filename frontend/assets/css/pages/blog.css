@@ -22,10 +22,6 @@
     margin-bottom: var(--space-xl);
 }
 
-.blog-category {
-    margin-bottom: var(--space-sm);
-}
-
 .blog-title {
     font-family: var(--font-heading);
     font-size: var(--text-h1);
@@ -42,17 +38,6 @@
     font-size: var(--text-small);
     color: var(--text-secondary);
     margin-bottom: var(--space-lg);
-}
-
-.blog-byline-avatar {
-    width: 24px;
-    height: 24px;
-    border-radius: var(--radius-round);
-    border: 1px solid var(--border);
-}
-
-.blog-byline-separator {
-    color: var(--text-muted);
 }
 
 /* -------------------------------------------------------------------------
