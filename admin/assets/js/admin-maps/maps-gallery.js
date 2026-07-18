@@ -156,6 +156,10 @@ Gallery.show = function () {
     window.AdminMapsPins.closeEditPanel();
   }
 
+  // Reset the topbar subtitle to describe the gallery view (JS-2).
+  var titleEl = document.getElementById("map-editor-title");
+  if (titleEl) titleEl.textContent = "Select a map";
+
   // Show gallery
   if (galleryEl) galleryEl.hidden = false;
 
