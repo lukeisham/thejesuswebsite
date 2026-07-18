@@ -440,44 +440,46 @@ function init() {
   activeFilters = parseUrlFilters();
   syncChipUI(activeFilters);
 
-  // Try restoring from cache first (back-navigation)
-  const restored = restoreFromCache();
-  if (restored) {
-    restoreScrollPosition();
-    return;
-  }
+  // A filtered URL (direct visit or back-navigation) must always render live
+  // filtered data — the cached/embedded paths below only ever hold the
+  // unfiltered default listing, so skip straight to the live fetch (#65).
+  const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
-  // Try embedded data (deploy-time snapshot for first-paint content — SR-3)
-  const embedded = readEmbeddedData("evidence-list-data");
-  if (embedded && Array.isArray(embedded) && embedded.length > 0) {
-    const pageItems = embedded.slice(0, PAGE_SIZE);
-    allItems = pageItems;
-    renderRows(pageItems);
-    hasMore = embedded.length > PAGE_SIZE;
-    hideAllStates();
-    if (!hasMore) {
-      $sentinel.hidden = true;
-      showState("end");
-      if ($end) $end.textContent = formatItemsLoaded(allItems.length);
-    } else {
-      currentPage = 2;
-      $sentinel.hidden = false;
+  if (!hasActiveFilters) {
+    // Try restoring from cache first (back-navigation)
+    const restored = restoreFromCache();
+    if (restored) {
+      restoreScrollPosition();
+      return;
     }
-    cacheItems();
-    initInfiniteScroll();
 
-    // Revalidate against live data in the background (Issues.md #64): an
-    // embedded snapshot is only as fresh as the last deploy, so always
-    // check for changes after first paint. Reuses the same silent
-    // revalidation already used by the cache-restore path above.
-    // Unfiltered only — the embedded snapshot represents the default
-    // listing, so an admin edit shouldn't trigger a re-render while the
-    // visible list is actually a filtered view.
-    if (Object.keys(activeFilters).length === 0) {
+    // Try embedded data (deploy-time snapshot for first-paint content — SR-3)
+    const embedded = readEmbeddedData("evidence-list-data");
+    if (embedded && Array.isArray(embedded) && embedded.length > 0) {
+      const pageItems = embedded.slice(0, PAGE_SIZE);
+      allItems = pageItems;
+      renderRows(pageItems);
+      hasMore = embedded.length > PAGE_SIZE;
+      hideAllStates();
+      if (!hasMore) {
+        $sentinel.hidden = true;
+        showState("end");
+        if ($end) $end.textContent = formatItemsLoaded(allItems.length);
+      } else {
+        currentPage = 2;
+        $sentinel.hidden = false;
+      }
+      cacheItems();
+      initInfiniteScroll();
+
+      // Revalidate against live data in the background (Issues.md #64): an
+      // embedded snapshot is only as fresh as the last deploy, so always
+      // check for changes after first paint. Reuses the same silent
+      // revalidation already used by the cache-restore path above.
       silentlyRefreshPage1();
-    }
 
-    return;
+      return;
+    }
   }
 
   initInfiniteScroll();

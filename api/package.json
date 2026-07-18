@@ -16,6 +16,7 @@
     "embed-data": "node scripts/embed-initial-data.js",
     "import-geoip": "node scripts/import-geoip.js",
         "import-wikipedia-scoring": "node scripts/import-wikipedia-scoring.js",
+    "version-assets": "node scripts/version-assets.js",
     "test": "node --test tests/*.test.js"
   },
   "engines": {

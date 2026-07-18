@@ -21,3 +21,18 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             PROCESS_MANAGER=pm2 ./deploy.sh
+
+      # Purge Cloudflare's edge cache so the deploy is visible immediately,
+      # instead of waiting out the HTML edge cache's max-age=60 window. Must
+      # run after the SSH deploy step succeeds — purging before origin serves
+      # the new content would just re-cache stale bytes.
+      - name: Purge Cloudflare cache
+        run: |
+          set -euo pipefail
+          response=$(curl -fsS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+          echo "$response"
+          echo "$response" | grep -q '"success":true'
