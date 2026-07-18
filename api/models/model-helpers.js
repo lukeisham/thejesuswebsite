@@ -5,6 +5,8 @@
 // Every function here is a drop-in replacement for the inline code that
 // existed in each model before extraction. Behavior must be byte-identical.
 
+const ERRORS = require("../lib/error-codes");
+
 /**
  * Keep only whitelisted columns from an arbitrary input object.
  * Used by create() and update() in every model (JS-2: never let a stray
@@ -35,7 +37,42 @@ function pickWritable(data, columns) {
  *                                         uniqueness check.
  * @returns {string} A unique slug.
  */
+/**
+ * Validate a slug for unsafe characters (path separators, directory traversal,
+ * and non-slug characters). Throws an Error with `code` set to the error-code
+ * constant so routes can catch it and use sendValidationError.
+ *
+ * Rejects slugs containing `/`, `\`, or `..` (directory traversal), plus any
+ * character outside the safe set: lowercase letters, numbers, and hyphens.
+ *
+ * @param {string} slug
+ * @throws {Error} with `.code === ERRORS.INVALID_SLUG.code` on invalid input
+ */
+function validateSlug(slug) {
+  if (typeof slug !== "string" || slug.length === 0) {
+    const err = new Error(ERRORS.INVALID_SLUG.message);
+    err.code = ERRORS.INVALID_SLUG.code;
+    throw err;
+  }
+  // Reject path separators and directory traversal (JS-2: explicit rejection,
+  // never silently mangle input).
+  if (slug.includes("/") || slug.includes("\\") || slug.includes("..")) {
+    const err = new Error(ERRORS.INVALID_SLUG.message);
+    err.code = ERRORS.INVALID_SLUG.code;
+    throw err;
+  }
+  // Reject any character outside the safe slug set
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    const err = new Error(ERRORS.INVALID_SLUG.message);
+    err.code = ERRORS.INVALID_SLUG.code;
+    throw err;
+  }
+}
+
 function generateUniqueSlug(db, table, baseSlug, excludeId = null) {
+  // Validate before touching the database (JS-2: reject bad input early).
+  validateSlug(baseSlug);
+
   const slugExists = db.prepare(
     `SELECT 1 FROM ${table} WHERE slug = ? AND id IS NOT ?`,
   );
@@ -74,4 +111,4 @@ function runUpdate(db, table, row, id) {
   return true;
 }
 
-module.exports = { pickWritable, generateUniqueSlug, runUpdate };
+module.exports = { pickWritable, generateUniqueSlug, runUpdate, validateSlug };
