@@ -26,6 +26,7 @@ import { fetchTimelineEvents, groupEventsByPeriod } from "./timeline-data.js";
 import { showToast } from "../utils/toasts.js";
 import { readEmbeddedData } from "../api.js";
 import { announce } from "../utils/announce.js";
+import { revalidateInBackground } from "../utils/data-revalidation.js";
 
 // ─── DOM references ────────────────────────────────────────────────────────────
 
@@ -382,6 +383,21 @@ async function init() {
   }
 
   renderTimeline(grouped, activeEra);
+
+  // Revalidate against live data in the background (Issues.md #64): an
+  // embedded snapshot is only as fresh as the last deploy, so always
+  // check for changes after first paint and re-render if events actually
+  // changed. Not awaited — must not delay interaction wiring below.
+  revalidateInBackground({
+    embeddedData: events,
+    fetchLive: fetchTimelineEvents,
+    onFresh: (fresh) => {
+      events = Array.isArray(fresh) ? fresh : fresh.events || [];
+      const freshGrouped = groupEventsByPeriod(events);
+      if (freshGrouped.size === 0) return;
+      renderTimeline(freshGrouped, activeEra);
+    },
+  });
 
   // ── Update chip active state for initial era ────────────────────────────
   if (activeEra !== "all" && filtersEl) {

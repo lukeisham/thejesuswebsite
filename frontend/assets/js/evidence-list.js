@@ -465,6 +465,18 @@ function init() {
     }
     cacheItems();
     initInfiniteScroll();
+
+    // Revalidate against live data in the background (Issues.md #64): an
+    // embedded snapshot is only as fresh as the last deploy, so always
+    // check for changes after first paint. Reuses the same silent
+    // revalidation already used by the cache-restore path above.
+    // Unfiltered only — the embedded snapshot represents the default
+    // listing, so an admin edit shouldn't trigger a re-render while the
+    // visible list is actually a filtered view.
+    if (Object.keys(activeFilters).length === 0) {
+      silentlyRefreshPage1();
+    }
+
     return;
   }
 
