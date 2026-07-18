@@ -39,8 +39,8 @@ function createApp() {
   const routePath = require.resolve("../routes/spellcheck-dictionary");
   delete require.cache[routePath];
 
-  const router = require("../routes/spellcheck-dictionary");
-  app.use("/api/spellcheck-dictionary", router);
+  	const router = require("../routes/spellcheck-dictionary");
+  	app.use("/spellcheck-dictionary", router);
 
   return app;
 }
@@ -163,6 +163,9 @@ describe("spellcheck-dictionary model", () => {
 });
 
 // ── Route: HTTP tests ───────────────────────────────────────────────────────
+//   All paths omit the /api prefix — nginx strips it in production, and the
+//   Express mount in server.js matches the bare path (consistent with every
+//   other admin route). See Issues.md #54.
 
 // Clear the spellcheck dictionary between HTTP tests so state from one test
 // doesn't leak into another.
@@ -170,14 +173,14 @@ function clearDictionary() {
   testDb.exec("DELETE FROM spellcheck_dictionary");
 }
 
-describe("GET /api/spellcheck-dictionary", () => {
+describe("GET /spellcheck-dictionary", () => {
   beforeEach(clearDictionary);
 
   test("returns 401 without auth", async () => {
     const app = createApp();
     const result = await request(app, {
       method: "GET",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
     });
     assert.equal(result.status, 401);
   });
@@ -186,23 +189,53 @@ describe("GET /api/spellcheck-dictionary", () => {
     const app = createApp();
     const result = await request(app, {
       method: "GET",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       headers: { cookie: authCookie() },
     });
     assert.equal(result.status, 200);
     assert.ok(result.body.words);
     assert.equal(result.body.words.length, 0);
   });
+
+  test("returns populated dictionary for an authenticated session", async () => {
+    const app = createApp();
+    // Seed the dictionary via POST
+    await request(app, {
+      method: "POST",
+      path: "/spellcheck-dictionary",
+      body: { word: "Nazareth", status: "learned" },
+      headers: { cookie: authCookie() },
+    });
+    await request(app, {
+      method: "POST",
+      path: "/spellcheck-dictionary",
+      body: { word: "synoptic", status: "ignored" },
+      headers: { cookie: authCookie() },
+    });
+
+    const result = await request(app, {
+      method: "GET",
+      path: "/spellcheck-dictionary",
+      headers: { cookie: authCookie() },
+    });
+
+    assert.equal(result.status, 200);
+    assert.ok(Array.isArray(result.body.words));
+    assert.equal(result.body.words.length, 2);
+
+    const words = result.body.words.map((w) => w.normalized).sort();
+    assert.deepEqual(words, ["nazareth", "synoptic"]);
+  });
 });
 
-describe("POST /api/spellcheck-dictionary", () => {
+describe("POST /spellcheck-dictionary", () => {
   beforeEach(clearDictionary);
 
   test("returns 401 without auth", async () => {
     const app = createApp();
     const result = await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { word: "test", status: "learned" },
     });
     assert.equal(result.status, 401);
@@ -212,7 +245,7 @@ describe("POST /api/spellcheck-dictionary", () => {
     const app = createApp();
     const result = await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { word: "Resurrection", status: "learned" },
       headers: { cookie: authCookie() },
     });
@@ -226,7 +259,7 @@ describe("POST /api/spellcheck-dictionary", () => {
     const app = createApp();
     const result = await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { word: "typo", status: "ignored" },
       headers: { cookie: authCookie() },
     });
@@ -238,14 +271,14 @@ describe("POST /api/spellcheck-dictionary", () => {
     const app = createApp();
     await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { word: "Hello", status: "ignored" },
       headers: { cookie: authCookie() },
     });
 
     const result = await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { word: "HELLO", status: "learned" },
       headers: { cookie: authCookie() },
     });
@@ -257,7 +290,7 @@ describe("POST /api/spellcheck-dictionary", () => {
     // GET should confirm only one row
     const getResult = await request(app, {
       method: "GET",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       headers: { cookie: authCookie() },
     });
     assert.equal(getResult.body.words.length, 1);
@@ -267,7 +300,7 @@ describe("POST /api/spellcheck-dictionary", () => {
     const app = createApp();
     const result = await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { word: "", status: "learned" },
       headers: { cookie: authCookie() },
     });
@@ -278,7 +311,7 @@ describe("POST /api/spellcheck-dictionary", () => {
     const app = createApp();
     const result = await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { status: "learned" },
       headers: { cookie: authCookie() },
     });
@@ -289,7 +322,7 @@ describe("POST /api/spellcheck-dictionary", () => {
     const app = createApp();
     const result = await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { word: "test", status: "invalid" },
       headers: { cookie: authCookie() },
     });
@@ -300,7 +333,7 @@ describe("POST /api/spellcheck-dictionary", () => {
     const app = createApp();
     const result = await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { word: "test" },
       headers: { cookie: authCookie() },
     });
@@ -308,14 +341,14 @@ describe("POST /api/spellcheck-dictionary", () => {
   });
 });
 
-describe("DELETE /api/spellcheck-dictionary/:word", () => {
+describe("DELETE /spellcheck-dictionary/:word", () => {
   beforeEach(clearDictionary);
 
   test("returns 401 without auth", async () => {
     const app = createApp();
     const result = await request(app, {
       method: "DELETE",
-      path: "/api/spellcheck-dictionary/test",
+      path: "/spellcheck-dictionary/test",
     });
     assert.equal(result.status, 401);
   });
@@ -325,14 +358,14 @@ describe("DELETE /api/spellcheck-dictionary/:word", () => {
     // Add a word first
     await request(app, {
       method: "POST",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       body: { word: "remove-me", status: "learned" },
       headers: { cookie: authCookie() },
     });
 
     const result = await request(app, {
       method: "DELETE",
-      path: "/api/spellcheck-dictionary/remove-me",
+      path: "/spellcheck-dictionary/remove-me",
       headers: { cookie: authCookie() },
     });
     assert.equal(result.status, 204);
@@ -340,7 +373,7 @@ describe("DELETE /api/spellcheck-dictionary/:word", () => {
     // Verify it's gone
     const getResult = await request(app, {
       method: "GET",
-      path: "/api/spellcheck-dictionary",
+      path: "/spellcheck-dictionary",
       headers: { cookie: authCookie() },
     });
     assert.equal(getResult.body.words.length, 0);
@@ -350,7 +383,7 @@ describe("DELETE /api/spellcheck-dictionary/:word", () => {
     const app = createApp();
     const result = await request(app, {
       method: "DELETE",
-      path: "/api/spellcheck-dictionary/nonexistent",
+      path: "/spellcheck-dictionary/nonexistent",
       headers: { cookie: authCookie() },
     });
     assert.equal(result.status, 404);

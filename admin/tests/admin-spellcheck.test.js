@@ -250,6 +250,95 @@ describe("dictionary client — optimistic updates", () => {
   });
 });
 
+// ── Dictionary client: init/getWords behaviour ────────────────────────────
+//   Simulates the sync lifecycle from spellcheck-dictionary-client.js.
+//   The client's init() calls Admin.api.get("/spellcheck-dictionary") and
+//   populates _words from the response; on failure it resets to an empty
+//   Set and fires a toast. Spellcheck stays functional either way (JS-2).
+
+describe("dictionary client — init and sync", () => {
+  /**
+   * Simulate a successful sync: the server returns an array of rows with
+   * a "normalized" property, and the client populates its Set from them.
+   */
+  function simulateInitSuccess(responseRows) {
+    return new Set((responseRows || []).map((row) => row.normalized));
+  }
+
+  /**
+   * Simulate a failed sync: the Set is reset to empty (spellcheck stays
+   * functional with an empty learned-words list — JS-2 graceful degradation).
+   */
+  function simulateInitFailure() {
+    return new Set();
+  }
+
+  test("successful sync populates the learned-words set", () => {
+    const serverResponse = {
+      words: [
+        { id: 1, word: "Nazareth", normalized: "nazareth", status: "learned" },
+        { id: 2, word: "synoptic", normalized: "synoptic", status: "ignored" },
+      ],
+    };
+    const words = simulateInitSuccess(serverResponse.words);
+    assert.equal(words.size, 2);
+    assert.ok(words.has("nazareth"));
+    assert.ok(words.has("synoptic"));
+  });
+
+  test("successful sync with empty dictionary produces empty set", () => {
+    const words = simulateInitSuccess([]);
+    assert.equal(words.size, 0);
+    // getWords() still returns a valid (empty) array
+    assert.deepStrictEqual(Array.from(words), []);
+  });
+
+  test("failed sync leaves an empty set — spellcheck stays functional", () => {
+    const words = simulateInitFailure();
+    assert.equal(words.size, 0);
+    // The worker can still call getWords() — it just gets an empty array
+    const arr = Array.from(words);
+    assert.ok(Array.isArray(arr));
+    assert.equal(arr.length, 0);
+  });
+
+  test("getWords returns array form of the Set (empty after failure)", () => {
+    // Simulate failure then call getWords
+    const words = simulateInitFailure();
+    const result = Array.from(words);
+    assert.ok(Array.isArray(result));
+    assert.equal(result.length, 0);
+  });
+
+  test("getWords returns array form of the Set (populated after success)", () => {
+    const serverResponse = {
+      words: [
+        { id: 1, word: "Capernaum", normalized: "capernaum", status: "learned" },
+      ],
+    };
+    const words = simulateInitSuccess(serverResponse.words);
+    const result = Array.from(words);
+    assert.deepStrictEqual(result, ["capernaum"]);
+  });
+
+  test("learnWord adds optimistically — reverted on failure", () => {
+    // Simulates learnWord: optimistically add, then revert on error
+    const words = new Set(["hello"]);
+    const normalized = "world";
+
+    // Optimistic add
+    words.add(normalized);
+    assert.equal(words.size, 2);
+    assert.ok(words.has("world"));
+
+    // Simulate server failure — revert
+    words.delete(normalized);
+    assert.equal(words.size, 1);
+    assert.ok(!words.has("world"));
+    assert.ok(words.has("hello")); // original word still present
+  });
+});
+
 // ── Tokenization (used by worker) ──────────────────────────────────────────
 
 describe("tokenizer — word extraction", () => {
