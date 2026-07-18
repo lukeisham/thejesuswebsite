@@ -14,7 +14,7 @@
     height: 10px;
     border-radius: var(--radius-round);
     background: var(--accent);
-    border: 2px solid var(--bg-surface);
+    border: 1px solid var(--bg-surface);
     transform: translate(-50%, -50%);
     cursor: pointer;
     z-index: 2;
