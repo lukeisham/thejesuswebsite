@@ -126,6 +126,9 @@ npm run pages
 echo "[deploy] Embedding initial data for list/visual pages..."
 npm run embed-data
 
+echo "[deploy] Stamping asset references with deploy version..."
+npm run version-assets
+
 # ---- 6. Start / restart the API and MCP servers -----------------------------
 
 case "$PROCESS_MANAGER" in
