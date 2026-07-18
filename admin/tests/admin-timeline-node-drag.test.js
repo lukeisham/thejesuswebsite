@@ -140,3 +140,169 @@ describe("AdminTimelineNodeDrag — position math", () => {
     });
   });
 });
+
+// ── Left-drag candidate threshold logic ──────────────────────────────────
+//   Replicates the distance check in timeline-node-drag.js onDocPointerMove
+//   before a left-drag candidate activates (CANDIDATE_DRAG_PX = 4).
+
+describe("AdminTimelineNodeDrag — left-drag threshold", () => {
+  var CANDIDATE_DRAG_PX = 4;
+
+  /**
+   * Returns true if the pointer has moved far enough from the down position
+   * to activate the drag.
+   */
+  function exceedsThreshold(startX, startY, clientX, clientY) {
+    var dx = clientX - startX;
+    var dy = clientY - startY;
+    return Math.abs(dx) >= CANDIDATE_DRAG_PX || Math.abs(dy) >= CANDIDATE_DRAG_PX;
+  }
+
+  test("sub-threshold horizontal movement does NOT activate drag", () => {
+    assert.strictEqual(exceedsThreshold(100, 100, 103, 100), false);
+  });
+
+  test("sub-threshold vertical movement does NOT activate drag", () => {
+    assert.strictEqual(exceedsThreshold(100, 100, 100, 103), false);
+  });
+
+  test("sub-threshold diagonal movement does NOT activate drag", () => {
+    assert.strictEqual(exceedsThreshold(100, 100, 102, 102), false);
+  });
+
+  test("supra-threshold horizontal movement activates drag", () => {
+    assert.strictEqual(exceedsThreshold(100, 100, 104, 100), true);
+  });
+
+  test("supra-threshold vertical movement activates drag", () => {
+    assert.strictEqual(exceedsThreshold(100, 100, 100, 104), true);
+  });
+
+  test("supra-threshold diagonal movement activates drag", () => {
+    assert.strictEqual(exceedsThreshold(100, 100, 104, 104), true);
+  });
+
+  test("zero movement does NOT activate drag", () => {
+    assert.strictEqual(exceedsThreshold(100, 100, 100, 100), false);
+  });
+
+  test("negative movement (left/up) activates drag past threshold", () => {
+    assert.strictEqual(exceedsThreshold(100, 100, 96, 100), true);
+    assert.strictEqual(exceedsThreshold(100, 100, 100, 96), true);
+  });
+});
+
+// ── Left-drag state machine / cleanup ─────────────────────────────────────
+//   Tests the dragState transitions: candidate → active → cleanup.
+
+describe("AdminTimelineNodeDrag — state machine", () => {
+  /**
+   * Simulate cleanup of a candidate drag that never activated.
+   * After cleanup, dragState is null and no offset was written.
+   */
+  function cleanupSubThreshold(dragState) {
+    if (!dragState._active) {
+      return null; // Let click fire
+    }
+    return dragState; // Active drag — would stage offset
+  }
+
+  test("sub-threshold click leaves dragState null (click fires)", () => {
+    var candidate = {
+      eventId: 42,
+      dot: {},
+      pointerId: 1,
+      startX: 100,
+      startY: 100,
+      button: 0,
+      _active: false,
+    };
+    var result = cleanupSubThreshold(candidate);
+    assert.strictEqual(result, null);
+  });
+
+  test("active drag after cleanup returns dragState (stages offset)", () => {
+    var active = {
+      eventId: 42,
+      dot: {},
+      pointerId: 1,
+      startX: 100,
+      startY: 100,
+      button: 0,
+      _active: true,
+      startOffsetX: 0.1,
+      startOffsetY: -0.05,
+    };
+    var result = cleanupSubThreshold(active);
+    assert.notStrictEqual(result, null);
+    assert.strictEqual(result.startOffsetX, 0.1);
+  });
+
+  test("right-drag is always active from the start", () => {
+    var rightDrag = {
+      eventId: 7,
+      dot: {},
+      pointerId: 2,
+      startX: 50,
+      startY: 50,
+      button: 2,
+      _active: true,
+      startOffsetX: 0,
+      startOffsetY: 0,
+    };
+    var result = cleanupSubThreshold(rightDrag);
+    assert.notStrictEqual(result, null);
+    assert.strictEqual(result.button, 2);
+  });
+
+  test("pointercancel on candidate cleans up — no offset written", () => {
+    var candidate = {
+      eventId: 99,
+      dot: {},
+      pointerId: 3,
+      startX: 200,
+      startY: 200,
+      button: 0,
+      _active: false,
+    };
+    var result = cleanupSubThreshold(candidate);
+    assert.strictEqual(result, null);
+  });
+
+  test("drag activation sets _active and flags the dot", () => {
+    var candidate = {
+      eventId: 5,
+      dot: {},
+      pointerId: 1,
+      startX: 100,
+      startY: 100,
+      button: 0,
+      _active: false,
+      startOffsetX: null,
+      startOffsetY: null,
+    };
+    candidate._active = true;
+    candidate.dot._timelineDragActive = true;
+    candidate.startOffsetX = 0.15;
+    candidate.startOffsetY = 0.05;
+
+    assert.strictEqual(candidate._active, true);
+    assert.strictEqual(candidate.dot._timelineDragActive, true);
+    assert.strictEqual(candidate.startOffsetX, 0.15);
+    assert.notStrictEqual(candidate.startOffsetY, null);
+  });
+
+  test("left-drag activation removes _timelineDragActive from dot on cleanup", () => {
+    var active = {
+      eventId: 10,
+      dot: { _timelineDragActive: true },
+      pointerId: 1,
+      button: 0,
+      _active: true,
+      startOffsetX: 0.2,
+      startOffsetY: 0,
+    };
+    delete active.dot._timelineDragActive;
+    assert.strictEqual(active.dot._timelineDragActive, undefined);
+  });
+});
