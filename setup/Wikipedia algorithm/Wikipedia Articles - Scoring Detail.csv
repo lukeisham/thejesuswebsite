@@ -1,0 +1,256 @@
+ranking,title,net_score,verse_count,ref_count,journal_hits,book_hits,commentary_hits,arch_site,historical_context,manuscript_hits,primary_source_quotes,gnostic_source_quoted,poor_referencing,wiki_quality,ancient_historian_hits,ante_nicene_hits,mythicist_hits,narrative_and_interp_sections,jesus_seminar_hits,jesus_seminar_mult,mythicist_mult,no_bible_verse,no_references,ot_nt_criticism,supernatural_criticism,jewish_context_hits,other_religion_hit,passion_criticism_hits,miracle_criticism_hits,balanced_debate_hits,balanced_debate_named,critical_scholar_hits,critical_outside_interp,evangelical_contrast,is_passion,is_miracle,is_parable,is_location,is_teaching,is_bible_book
+1,Jesus and the woman taken in adultery,47,23,68,6,19,3,False,True,4,59,False,False,False,0,5,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,1,4,2,True,False,False,False,False,False,True,False
+2,Gospel of Mark,44,80,164,8,37,5,True,True,2,52,False,True,False,3,1,0,False,1,1.0,1.0,False,False,0,0,8,False,0,0,3,5,1,True,False,False,False,False,False,False,True
+3,Lord's Prayer,43,45,179,0,26,8,True,True,3,120,True,True,False,2,3,0,False,0,1.0,1.0,False,False,0,1,2,True,0,0,4,1,0,False,True,False,False,False,False,True,False
+4,Gospel of John,42,30,198,4,51,6,True,True,2,69,True,False,True,0,3,0,False,1,1.0,1.0,False,False,0,0,6,False,0,0,6,1,1,True,True,False,False,False,False,False,True
+5,Gospel of Luke,42,19,111,0,44,5,False,True,4,27,True,False,False,2,3,0,False,0,1.0,1.0,False,False,0,0,3,False,0,0,3,1,1,True,False,False,False,False,False,False,True
+6,Nativity of Jesus,37,23,198,2,140,6,True,True,2,51,False,False,False,0,5,0,True,1,1.0,1.0,False,False,0,0,2,True,0,0,4,3,1,True,False,False,False,False,False,False,False
+7,Emmaus,36,6,75,4,14,3,True,True,2,37,False,True,False,1,2,0,False,0,1.0,1.0,False,False,1,0,4,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+8,Saint Joseph,35,26,142,4,40,1,True,True,0,49,False,False,False,1,3,0,False,1,1.0,1.0,False,False,0,0,5,False,0,0,0,0,1,True,False,False,False,False,True,False,False
+9,Gospel of Matthew,35,16,112,4,38,3,False,True,1,24,False,False,False,1,3,0,False,0,1.0,1.0,False,False,0,1,6,True,0,0,2,2,1,True,True,False,False,False,False,False,True
+10,Mary - mother of Jesus,34,58,364,2,171,4,True,True,1,134,False,True,False,1,4,0,False,0,1.0,1.0,False,False,0,0,4,True,0,0,1,0,2,True,False,False,False,False,True,False,False
+11,Chronology of Jesus,34,44,202,15,119,10,True,False,1,44,False,False,False,3,6,0,False,1,1.0,1.0,False,False,0,2,7,True,0,0,3,3,3,True,True,False,False,False,False,False,False
+12,James - brother of Jesus,34,32,134,2,33,4,True,False,1,117,True,True,False,1,7,0,False,1,1.0,1.0,False,False,0,0,5,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+13,Josephus on Jesus,34,6,175,5,39,3,True,True,1,70,False,False,False,4,3,0,False,0,1.0,1.0,False,False,0,1,4,True,0,0,0,0,2,True,False,False,False,False,False,False,False
+14,Turning the other cheek,33,14,12,0,6,5,False,True,1,17,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,4,False,0,0,1,2,0,False,False,False,False,False,False,True,False
+15,Exorcism of the Gerasene demoniac,33,8,44,2,12,4,True,True,1,27,False,False,False,0,1,0,True,0,1.0,1.0,False,False,0,1,2,False,0,0,2,1,0,False,True,False,False,False,False,False,False
+16,Nicodemus,32,9,67,6,11,1,False,True,0,39,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,4,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+17,Census of Quirinius,32,9,54,4,9,1,True,False,1,20,False,False,False,1,3,0,False,1,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+18,Rich man and Lazarus,32,3,79,1,13,4,False,True,1,54,False,True,False,1,3,0,False,0,1.0,1.0,False,False,0,0,3,True,0,0,1,0,0,False,True,False,False,True,False,False,False
+19,Saint Peter,31,55,332,6,58,11,True,True,1,176,True,True,False,3,10,1,True,0,1.0,0.5,False,False,2,2,4,True,0,0,0,2,3,True,False,False,False,False,True,False,False
+20,Jerusalem,31,27,437,6,65,1,True,True,1,254,False,True,False,1,0,0,False,0,1.0,1.0,False,False,1,0,7,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+21,Nazareth,31,18,178,10,32,2,True,True,1,60,False,True,False,0,3,0,False,1,1.0,1.0,False,False,0,0,2,True,0,0,0,0,2,True,False,False,False,False,True,False,False
+22,Rylands Library Papyrus P52,31,5,89,1,10,0,True,True,4,44,False,False,False,0,1,0,False,0,1.0,1.0,False,False,0,1,0,False,0,0,2,1,0,False,False,False,False,False,False,False,False
+23,Bethany,30,30,78,3,3,0,True,False,1,27,False,False,False,1,1,0,False,0,1.0,1.0,False,False,0,0,6,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+24,Crucifixion darkness,30,14,80,0,3,4,False,True,1,23,True,False,True,3,4,0,True,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,True,False,False,False,False,False
+25,Pontius Pilate,30,13,301,0,6,1,True,False,1,61,False,False,False,3,5,0,False,0,1.0,1.0,False,False,0,1,5,False,0,0,0,3,2,True,False,False,False,False,False,False,False
+26,Cana,30,3,25,2,5,0,True,False,1,8,False,True,False,1,1,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+27,Crucifixion of Jesus,29,85,283,8,106,3,True,False,1,99,True,False,False,5,6,0,False,1,1.0,1.0,False,False,0,0,2,True,1,0,1,3,5,True,False,True,False,False,False,False,False
+28,Genealogy of Jesus,29,56,123,4,27,12,False,True,1,55,False,True,False,1,7,0,False,2,1.0,1.0,False,False,0,0,7,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+29,Resurrection of Jesus,29,43,410,2,59,0,True,True,0,205,True,False,False,1,4,0,True,2,0.5,1.0,False,False,0,13,10,True,0,0,5,5,5,True,True,True,False,False,False,False,False
+30,Parable of the Good Samaritan,29,17,75,0,0,1,True,True,0,63,False,False,False,0,2,0,True,1,0.5,1.0,False,False,0,0,5,False,0,0,4,1,0,False,False,False,False,True,False,False,False
+31,Calvary,29,14,85,0,12,0,True,True,0,28,False,True,False,1,3,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,True,False,False,True,False,False
+32,Jesus preaches in a ship,29,12,10,0,4,6,True,False,1,7,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,True,False,False,False,False,True,False
+33,Date of the birth of Jesus,29,11,154,7,35,1,True,False,1,67,False,True,False,1,4,1,False,1,1.0,1.0,False,False,0,0,5,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+34,Gospel of Judas,29,2,77,1,6,0,True,True,1,52,True,True,False,0,5,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,4,2,3,True,True,False,False,False,False,False,False
+35,Judas Iscariot,28,60,158,7,50,8,False,True,1,95,True,True,False,2,2,0,False,0,1.0,1.0,False,False,1,0,3,True,0,0,1,2,2,True,False,False,False,False,False,False,False
+36,Temptation of Christ,28,25,67,4,11,7,False,True,1,44,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,1,1,True,0,0,0,1,0,False,True,False,False,False,False,True,False
+37,Lazarus of Bethany,28,24,104,0,20,3,True,True,1,64,False,True,False,0,1,0,True,0,1.0,1.0,False,False,0,0,2,True,0,0,1,1,1,True,False,False,False,False,True,False,False
+38,Raising of Lazarus,28,24,104,0,20,3,True,True,1,64,False,True,False,0,1,0,True,0,1.0,1.0,False,False,0,0,2,True,0,0,1,1,1,True,False,False,False,False,True,False,False
+39,Raising of Jairus' daughter,28,23,21,0,7,0,True,False,1,33,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,2,False,0,0,1,0,0,False,False,False,True,False,False,False,False
+40,Brothers of Jesus,28,17,86,0,13,1,True,True,1,41,True,False,False,1,4,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,1,True,False,False,False,False,False,False,False
+41,Bethsaida,28,14,48,4,8,0,True,False,0,34,False,True,False,1,0,0,False,0,1.0,1.0,False,False,1,0,3,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+42,Parable of the Talents,28,14,32,0,12,3,False,True,1,28,False,False,False,1,1,0,True,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+43,Penitent thief,28,12,45,0,7,1,True,True,1,36,False,False,False,0,2,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,1,True,False,False,False,False,True,False,False
+44,Bread of Life Discourse,28,8,16,0,7,3,False,False,0,17,False,False,False,0,3,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+45,Sermon on the Mount,27,15,43,3,20,0,True,True,1,15,True,True,False,2,0,0,False,0,1.0,1.0,False,False,0,0,2,True,0,0,1,6,1,True,True,False,False,False,False,True,False
+46,Martha,27,15,32,0,4,3,True,True,1,29,True,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+47,Thirty pieces of silver,27,9,42,0,11,4,True,True,0,22,False,False,True,1,0,0,True,0,1.0,1.0,False,False,0,0,0,False,0,0,0,2,1,True,True,True,False,False,False,True,False
+48,List of gospels,27,3,35,3,7,1,False,True,1,8,True,True,False,1,4,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,1,True,False,False,False,False,False,False,True
+49,John the Baptist,26,70,259,4,69,5,True,True,1,156,True,True,False,1,0,0,True,1,1.0,1.0,False,False,0,2,6,True,0,0,1,1,2,True,False,False,False,False,True,False,False
+50,Disciple whom Jesus loved,26,29,64,1,24,1,False,True,0,22,True,True,False,1,2,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+51,Jesus at the home of Martha and Mary,26,15,30,3,3,1,False,True,1,26,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,1,1,0,False,False,False,False,False,False,False,False
+52,Parable of the Prodigal Son,26,9,49,5,16,2,False,False,0,37,False,True,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,True,0,0,1,0,0,False,False,False,False,True,False,False,False
+53,Bethlehem,26,8,165,2,18,1,True,False,0,62,False,True,True,0,3,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,2,True,False,False,False,False,True,False,False
+54,The Garden Tomb,26,8,72,6,8,0,True,False,0,28,False,True,False,1,1,0,False,0,1.0,1.0,False,False,0,1,2,True,0,0,2,0,0,False,False,False,False,False,False,False,False
+55,Salome (disciple),26,8,20,0,10,0,False,True,1,21,True,False,False,1,2,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+56,Noli me tangere,26,3,17,0,7,0,True,False,1,8,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+57,Jordan River,25,28,39,1,7,0,True,True,1,22,False,True,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,1,0,False,False,False,False,False,True,False,False
+58,Pilate's court,25,28,15,0,4,2,True,False,0,9,False,False,False,0,2,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,1,1,2,True,False,True,False,False,False,False,False
+59,Sources for the historicity of Jesus,25,27,225,4,172,3,True,True,1,69,True,False,False,8,3,1,False,1,1.0,1.0,False,False,0,2,5,True,0,0,0,0,3,True,False,False,False,False,False,False,False
+60,Transfiguration of Jesus,25,23,54,0,3,0,False,True,1,21,True,False,False,1,3,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,1,0,0,False,False,False,False,False,False,False,False
+61,Healing the deaf mute of Decapolis,25,14,7,0,5,1,False,True,0,6,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,1,0,False,False,False,True,False,False,False,False
+62,Joseph of Arimathea,25,13,42,1,14,1,True,False,0,35,False,False,False,1,4,0,False,0,1.0,1.0,False,False,0,1,2,True,0,0,0,0,1,True,False,False,False,False,True,False,False
+63,Sea of Galilee,25,12,62,6,8,0,True,False,0,40,False,True,False,1,1,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+64,Andrew the Apostle,25,9,76,0,5,1,False,True,1,28,False,False,False,0,3,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+65,Jesus healing an infirm woman,25,5,8,0,3,2,False,True,0,11,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,3,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+66,Herod the Great,25,2,125,12,18,0,True,False,1,48,False,True,False,1,0,0,False,0,1.0,1.0,False,False,0,0,7,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+67,Textual variants in the Gospel of John,25,2,7,0,3,0,False,True,7,6,False,False,False,0,3,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,2,True,False,False,False,False,False,False,False
+68,Mary Magdalene,24,38,332,0,16,0,True,True,1,142,True,True,True,1,3,0,False,0,1.0,1.0,False,False,1,2,3,True,0,0,0,0,3,True,True,False,False,False,True,False,False
+69,Cleansing of the Temple,24,29,57,2,21,5,True,False,0,23,False,True,False,1,1,0,False,1,0.5,1.0,False,False,0,0,2,False,0,0,2,0,3,True,True,True,False,False,False,False,False
+70,John the Apostle,24,28,158,2,54,5,False,True,1,67,True,True,False,1,6,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,2,True,False,False,False,False,True,False,False
+71,Beatitudes,24,15,35,0,14,2,False,True,1,23,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,1,1,True,0,0,2,0,0,False,False,False,False,False,False,True,False
+72,Ascension of Jesus,24,14,57,3,2,0,True,False,1,24,False,True,False,0,1,0,True,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+73,Gethsemane,24,5,25,1,6,0,True,False,0,18,False,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+74,Parable of the Unjust Steward,24,5,16,2,6,2,False,False,1,13,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,2,0,0,False,False,False,False,True,False,False,False
+75,Parable of the Friend at Night,24,4,6,0,4,2,False,True,0,7,False,False,False,0,1,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,1,0,False,True,False,False,True,False,False,False
+76,Capernaum,23,18,29,2,4,0,True,False,1,11,False,True,False,1,0,0,False,0,1.0,1.0,False,False,1,0,2,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+77,Biblical Magi,23,14,104,2,16,2,True,True,1,77,False,True,False,0,1,0,True,1,1.0,1.0,False,False,0,0,1,True,0,0,0,1,2,True,False,False,False,False,False,False,False
+78,Anointing of Jesus,23,9,16,0,7,0,False,False,1,23,False,True,False,0,0,0,True,1,1.0,1.0,False,False,0,0,2,False,0,0,1,0,0,False,False,True,False,False,False,False,False
+79,Seventy disciples,23,9,13,0,2,1,False,True,1,13,True,False,False,1,2,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+80,Jude Thaddeus the Apostle,23,8,64,0,9,3,True,False,1,26,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+81,Parable of the Two Debtors,23,8,22,0,15,4,False,False,0,21,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,True,0,0,1,0,0,False,False,False,False,True,False,False,False
+82,Herodians,23,8,10,0,2,2,False,False,1,11,False,False,False,1,1,0,False,0,1.0,1.0,False,False,0,0,3,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+83,Mary of Clopas,23,7,22,0,2,0,True,False,1,14,True,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+84,Philip the Apostle,23,5,25,0,3,0,True,False,0,6,True,True,False,0,2,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+85,The four woes of Jesus,23,5,10,0,1,3,False,False,1,13,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+86,Galilee,23,4,54,7,14,0,True,True,0,27,False,True,False,1,0,0,False,0,1.0,1.0,False,False,1,0,5,True,0,0,0,0,1,True,False,False,False,False,False,False,False
+87,Jerusalem during the Second Temple period,23,2,115,4,6,0,True,False,0,55,False,True,False,2,0,0,False,0,1.0,1.0,False,False,0,0,11,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+88,Jesus predicts his death,22,33,43,2,15,0,False,False,0,31,True,False,False,1,0,0,False,0,1.0,1.0,False,False,0,1,4,False,0,0,0,0,0,False,False,True,False,False,False,False,False
+89,James - son of Alphaeus,22,32,32,0,3,3,False,True,1,19,False,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+90,Farewell Discourse,22,26,25,0,23,3,False,True,1,28,False,False,False,3,0,1,False,1,1.0,1.0,False,False,0,1,2,True,0,0,0,0,0,False,False,False,False,False,False,True,False
+91,New Commandment,22,16,18,0,7,3,False,False,0,7,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+92,Maundy (foot washing),22,13,52,2,17,0,False,False,0,20,True,True,False,0,4,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+93,Olivet Discourse,22,12,36,0,10,2,False,False,0,33,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+94,Clopas,22,8,11,0,1,0,False,True,1,12,False,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+95,Jesus healing the bleeding woman,22,7,23,0,1,1,False,False,0,13,False,True,False,0,1,0,True,0,1.0,1.0,False,False,0,0,4,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+96,Lesson of the widow's mite,22,7,13,1,1,1,True,False,0,13,False,True,False,0,0,0,True,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+97,Parable of the Wedding Feast,22,7,7,1,2,2,False,True,0,10,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+98,Crown of thorns,22,6,40,0,4,2,True,False,0,17,False,True,False,0,2,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+99,Caiaphas,22,6,22,0,5,0,True,False,0,10,False,True,False,1,0,0,False,0,1.0,1.0,False,False,1,0,8,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+100,Joanna - wife of Chuza,22,6,20,1,6,0,True,False,0,13,False,True,False,0,0,0,True,0,1.0,1.0,False,False,0,2,0,False,0,0,0,0,0,False,True,False,False,False,True,False,False
+101,Parable of the Wicked Husbandmen,22,6,14,1,3,0,True,True,1,7,True,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,2,0,0,False,True,False,False,True,False,False,False
+102,Mary of Bethany,22,5,41,2,8,4,False,False,0,30,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+103,Jude - brother of Jesus,22,5,20,0,5,2,False,False,0,9,False,False,False,0,2,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+104,Jesus and the rich young man,22,5,14,0,4,2,False,False,0,20,False,False,False,0,1,0,True,0,1.0,1.0,False,False,0,0,0,False,0,0,0,1,0,False,False,False,False,False,False,False,False
+105,Woes to the unrepentant cities,22,5,4,0,1,1,True,False,0,8,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+106,Parable of the Unforgiving Servant,22,3,7,0,3,3,False,True,0,4,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+107,Calming the storm,22,3,4,0,2,2,False,False,0,7,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+108,Life of Jesus,21,87,173,1,138,19,True,False,0,23,False,False,False,2,0,0,False,1,1.0,1.0,False,False,0,0,3,False,0,0,0,0,2,True,False,False,False,False,False,False,False
+109,Jesus's interactions with women,21,52,94,1,7,6,False,True,0,70,True,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,4,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+110,Parable of the Tares,21,13,20,2,4,4,False,False,0,57,True,True,False,0,1,0,True,0,1.0,1.0,False,False,1,0,0,True,0,0,1,0,0,False,False,False,False,True,False,False,False
+111,Matthew the Apostle,21,11,61,1,6,1,False,True,0,20,True,False,False,0,4,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,2,True,False,False,False,False,True,False,False
+112,Women at the crucifixion,21,11,4,0,2,0,False,False,0,5,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,True,False,False,False,False,False
+113,Healing of the centurion's servant,21,7,18,1,12,5,False,False,0,16,True,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,True,False,True,False,False,False,False
+114,Parable of the Mustard Seed,21,7,15,0,7,2,False,False,0,21,True,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,2,True,0,0,0,0,0,False,True,False,False,True,False,False,False
+115,Jesus wept,21,7,10,0,1,0,False,True,1,3,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+116,Healing the mother of Peter's wife,21,6,7,0,0,2,False,False,1,10,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+117,Historical reliability of the Gospels,21,4,259,14,106,9,True,True,1,71,True,True,False,3,3,1,False,2,1.0,1.0,False,False,0,13,2,True,0,0,0,0,4,True,False,False,False,False,False,False,True
+118,Historicity of the Gospels,21,4,259,14,106,9,True,True,1,71,True,True,False,3,3,1,False,2,1.0,1.0,False,False,0,13,2,True,0,0,0,0,4,True,False,False,False,False,False,False,True
+119,Miraculous catch of fish,21,4,26,0,19,2,False,True,0,17,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,3,0,False,False,False,True,False,False,False,False
+120,Parable of the Unjust Judge,21,4,13,0,4,2,False,False,0,11,False,False,False,0,1,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+121,Naked fugitive,21,2,12,3,4,0,False,True,1,6,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,True,False,False,False,False,False
+122,Triumphal entry into Jerusalem,20,49,60,1,2,2,False,True,0,41,False,True,False,1,0,0,True,2,0.5,1.0,False,False,0,1,2,False,0,0,2,3,4,True,True,True,False,False,False,False,False
+123,Sanhedrin trial of Jesus,20,42,24,1,8,1,False,False,0,16,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,2,True,False,True,False,False,False,False,False
+124,False prophet,20,20,42,0,14,1,False,True,0,34,False,False,False,1,0,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,False,False,True,False
+125,Baptism of Jesus,20,16,81,0,52,7,True,True,0,19,False,False,False,3,2,1,True,1,1.0,1.0,False,False,0,1,1,True,0,0,0,0,1,True,False,False,False,False,False,False,False
+126,Gospel harmony,20,14,43,0,29,1,False,True,1,6,False,False,False,3,1,1,False,0,1.0,1.0,False,False,0,1,2,True,0,0,0,0,2,True,False,False,False,False,False,False,True
+127,Mount of Olives,20,11,39,3,9,0,True,False,0,24,True,True,False,1,0,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+128,Agony in the Garden,20,11,26,0,4,1,False,False,0,12,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+129,Healing the paralytic at Bethesda,20,10,7,0,2,0,True,False,1,5,False,True,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+130,Joses,20,9,23,0,2,0,False,True,1,16,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+131,Exorcism of the Syrophoenician woman's daughter,20,9,15,1,3,2,False,False,0,19,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,3,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+132,Simon the Zealot,20,7,24,1,6,0,False,False,1,14,False,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+133,Parable of the Rich Fool,20,5,14,0,5,3,False,False,0,15,True,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+134,Calling of Matthew,20,5,10,0,3,3,False,False,0,11,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+135,Parable of the Lost Sheep,20,5,6,0,3,2,False,False,0,8,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+136,Kiss of Judas,20,4,16,2,3,2,False,False,0,16,True,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,True,False,False,False,False,False
+137,Parable of the Leaven,20,4,12,0,6,4,False,False,0,9,True,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,1,0,False,True,False,False,True,False,False,False
+138,Healing the paralytic at Capernaum,20,4,10,0,1,3,False,False,0,11,False,False,False,0,1,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+139,Healing the royal official's son,20,4,6,0,6,2,False,False,0,5,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+140,Parable of the Hidden Treasure,20,3,11,0,6,5,False,False,0,13,True,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+141,Parable of the Workers in the Vineyard,20,3,10,0,2,6,False,True,0,4,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,True,0,0,1,0,0,False,False,False,False,True,False,False,False
+142,Parable of the Growing Seed,20,3,8,0,5,1,False,False,0,6,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,1,0,False,False,False,False,True,False,False,False
+143,Jesus healing in the land of Gennesaret,20,3,4,0,2,1,False,False,0,4,False,False,False,1,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+144,Sermon on the Plain,20,3,2,0,2,1,False,False,1,1,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+145,Last Supper,19,36,108,0,6,0,True,True,1,29,True,False,False,1,0,0,False,1,1.0,1.0,False,False,0,1,4,True,0,0,1,0,2,True,True,True,False,False,False,False,False
+146,Passion of Jesus,19,27,58,2,13,0,False,True,1,34,False,True,False,3,0,1,False,0,1.0,1.0,False,False,0,1,5,True,0,0,0,0,2,True,False,True,False,False,False,False,False
+147,Herod Antipas,19,25,63,1,2,0,True,False,0,10,False,False,False,2,0,0,False,0,1.0,1.0,False,False,0,2,3,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+148,Bargain of Judas,19,9,8,0,2,0,False,False,0,7,True,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,True,False,False,False,False,False
+149,Jesus at Herod's court,19,8,16,0,11,0,False,False,0,7,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,True,False,False,False,False,False
+150,Healing the man with a withered hand,19,8,9,0,0,2,False,False,0,9,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+151,Thomas the Apostle,19,7,108,1,3,0,True,False,1,60,True,True,False,0,3,0,False,0,1.0,1.0,False,False,0,3,0,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+152,Arrest of Jesus,19,7,10,0,5,2,False,False,0,5,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,True,False,False,False,False,False
+153,Messengers from John the Baptist,19,7,9,0,3,1,False,False,1,6,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+154,New Wine into Old Wineskins,19,6,12,0,6,4,False,True,0,6,False,False,False,0,0,0,False,0,1.0,1.0,False,False,2,0,3,True,0,0,0,0,0,False,False,False,False,True,False,True,False
+155,Parable of the Faithful Servant,19,6,6,0,4,1,False,False,0,7,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+156,Parable of the Great Banquet,19,5,18,1,8,4,False,True,0,15,True,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,1,1,1,True,False,False,False,True,False,False,False
+157,Commissioning of the Twelve Apostles,19,5,7,0,2,1,False,False,0,5,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+158,Cleopas,19,4,16,0,2,1,True,False,0,10,False,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+159,Jesus cleansing a leper,19,4,10,0,2,2,False,False,0,5,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+160,Mary - mother of James,19,4,10,0,1,0,True,False,0,4,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+161,Jesus' authority questioned,19,4,4,0,2,1,False,False,0,6,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,True,False,False,False,False,False
+162,Healing the man blind from birth,19,3,6,0,0,1,False,True,0,6,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,1,2,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+163,Coin in the fish's mouth,19,2,13,0,6,3,False,False,0,6,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,1,0,False,False,False,True,False,False,False,False
+164,Ministry of Jesus,18,66,119,0,106,11,True,False,0,26,False,False,False,1,0,0,False,1,1.0,1.0,False,False,0,0,2,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+165,Teachings of Jesus,18,66,119,0,106,11,True,False,0,26,False,False,False,1,0,0,False,1,1.0,1.0,False,False,0,0,2,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+166,Miracles of Jesus,18,47,87,1,38,1,False,True,1,22,True,False,False,1,1,0,False,1,1.0,1.0,False,False,0,2,2,True,0,0,3,1,3,True,True,False,True,False,False,False,False
+167,Feeding the multitude,18,14,19,0,0,3,False,True,1,8,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+168,Book of Signs,18,14,11,0,3,2,False,False,1,2,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+169,Jesus walking on water,18,10,29,0,14,4,False,False,1,11,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,1,2,True,0,0,1,0,2,True,True,False,True,False,False,False,False
+170,Lord of the Sabbath,18,7,14,0,2,2,False,False,0,8,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+171,Calling of the disciples,18,7,11,0,6,1,False,False,0,6,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+172,Historicity of Jesus,18,6,202,3,50,0,True,True,1,84,True,False,False,5,1,3,False,1,1.0,1.0,False,False,0,12,4,True,0,0,3,5,3,True,True,False,False,False,False,False,False
+173,Sign of Jonah,18,6,7,0,0,0,False,True,0,9,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,False,True,False,False,False
+174,Counting the cost,18,4,10,0,2,3,False,False,0,7,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,2,0,False,False,False,False,True,False,False,False
+175,Raising of the son of the widow of Nain,18,2,6,0,1,1,False,True,0,7,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+176,Young man from Nain,18,2,6,0,1,1,False,True,0,7,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+177,Letter of Pilate to Tiberius,18,1,49,1,3,0,False,False,1,10,True,False,False,1,3,0,False,0,1.0,1.0,False,False,0,1,5,False,0,0,0,0,2,True,False,False,False,False,False,False,False
+178,Parables of Jesus,17,88,120,0,3,1,False,True,1,18,True,False,False,0,0,0,False,1,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,True,False
+179,Confession of Peter,17,23,21,0,16,4,False,False,0,17,False,True,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+180,Ecce homo,17,14,46,0,0,0,True,False,1,34,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+181,The Three Marys,17,11,25,1,13,0,False,True,1,3,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,1,0,False,0,0,0,0,2,True,False,True,False,False,True,False,False
+182,Samaritan woman at the well,17,8,27,0,1,0,False,False,0,24,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+183,Cursing of the fig tree,17,8,26,0,0,0,False,True,0,5,True,True,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,2,0,0,False,False,False,True,False,False,False,False
+184,True Vine,17,6,15,0,7,2,False,False,0,4,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,False,True,False
+185,Parable of the Pearl,17,6,13,0,5,4,False,False,0,13,True,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+186,Salt and light,17,6,4,0,2,0,False,False,0,3,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+187,Parable of the Strong Man,17,5,12,0,8,4,False,False,0,6,True,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,1,0,False,True,False,False,True,False,False,False
+188,Parable of the Wise and the Foolish Builders,17,5,6,0,2,1,False,False,0,10,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,True,False
+189,The Mote and the Beam,17,4,6,0,3,1,False,False,0,5,False,True,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,True,False
+190,Mount of Transfiguration,17,3,8,0,0,0,True,False,0,6,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+191,Pool of Bethesda,17,2,29,0,2,1,True,False,1,4,False,True,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+192,Matthias the Apostle,17,2,18,1,1,0,False,False,0,10,False,True,False,0,3,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+193,Four Evangelists,17,2,10,0,4,1,False,False,1,2,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,True
+194,Pharisee and the Publican,17,2,8,1,2,1,False,False,0,10,False,True,False,0,0,0,True,0,1.0,1.0,False,False,0,0,2,True,0,0,1,0,0,False,False,False,False,True,False,False,False
+195,City upon a Hill,17,1,23,1,5,0,False,False,1,26,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+196,Good Shepherd,16,18,19,0,1,2,True,False,0,13,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,1,0,0,False,False,False,False,False,False,True,False
+197,Flight into Egypt,16,15,48,0,11,4,True,True,0,27,True,True,False,1,0,0,False,1,1.0,1.0,False,False,1,0,2,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+198,Marriage at Cana,16,12,53,3,17,2,True,False,0,28,False,True,False,0,1,0,True,0,1.0,1.0,False,False,0,4,1,True,0,0,0,2,2,True,False,False,False,False,False,False,False
+199,Road to Emmaus appearance,16,10,36,0,1,0,False,True,1,22,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,1,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+200,Restoration of Peter,16,9,19,0,5,1,False,False,0,20,False,False,False,1,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+201,Parable of the Sower,16,8,10,0,0,3,False,False,0,21,True,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,1,0,False,False,False,False,True,False,False,False
+202,Eye of a needle,16,7,17,0,8,0,False,True,0,16,False,False,False,0,0,0,False,0,1.0,1.0,False,False,1,0,1,True,0,0,0,0,0,False,False,False,False,False,False,True,False
+203,Lamp under a bushel,16,7,10,0,5,2,False,False,0,16,True,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,True,False
+204,Healing the blind near Jericho,16,5,14,2,6,0,False,False,0,5,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,1,1,False,0,0,0,0,1,True,False,False,True,False,False,False,False
+205,Parable of the barren fig tree,16,5,9,0,2,1,False,False,0,6,False,True,False,0,0,0,True,1,1.0,1.0,False,False,0,0,2,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+206,Healing the ear of a servant,16,5,2,0,1,0,False,False,0,2,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,True,True,False,False,False,False
+207,Zebedee,16,4,8,0,0,0,False,True,0,6,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+208,Discourse on Defilement,16,4,5,0,2,0,False,False,0,3,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+209,Malchus,16,4,3,0,1,0,False,False,0,3,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+210,The Tree and Its Fruits,16,3,5,0,2,0,False,False,1,3,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,False,True,False
+211,Finding in the Temple,16,2,12,0,2,3,False,False,0,17,True,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+212,Cleansing ten lepers,16,2,6,0,3,2,False,False,0,2,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+213,Parable of the Master and Servant,16,2,6,0,4,1,False,False,0,8,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+214,Mocking of Jesus,15,25,19,0,2,4,False,False,0,32,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,1,0,False,False,True,False,False,False,False,False
+215,Denial of Peter,15,15,30,0,1,1,False,False,1,31,True,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,1,0,False,False,True,False,False,False,False,False
+216,Elizabeth - mother of John the Baptist,15,12,16,0,6,1,False,False,0,18,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+217,Light of the World,15,11,12,0,8,0,False,False,0,8,True,False,False,0,0,0,False,0,1.0,1.0,False,False,0,1,0,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+218,Jesus in the synagogue of Capernaum,15,9,6,0,0,0,False,False,0,5,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,1,0,False,False,False,False,False,False,False,False
+219,James the Less,15,8,12,0,0,2,False,False,0,14,False,False,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+220,Zacchaeus,15,5,7,0,0,1,False,False,0,2,False,True,False,0,2,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+221,Parable of the Budding Fig Tree,15,4,2,0,0,0,False,False,0,3,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,True,False,False,True,False,False,False
+222,Tacitus on Jesus,15,1,80,2,33,0,True,False,1,36,False,False,False,5,0,0,False,1,1.0,1.0,False,False,0,0,1,True,0,0,1,0,2,True,False,False,False,False,False,False,False
+223,Wolf in sheep's clothing,15,1,30,2,6,0,False,False,0,16,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+224,Parable of the Lost Coin,15,1,5,0,4,2,False,False,0,4,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+225,Healing a man with dropsy,15,1,4,0,1,2,False,False,1,4,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,2,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+226,Synoptic Gospels,15,0,81,3,36,1,True,True,1,15,True,True,False,0,5,0,False,0,1.0,1.0,True,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,False,True
+227,Jesus,14,154,649,16,217,16,True,True,1,129,True,True,True,4,2,3,False,2,1.0,1.0,False,False,1,7,10,True,0,0,1,4,2,True,True,False,False,False,False,False,False
+228,Beheading of John the Baptist,14,24,30,0,2,3,True,False,0,17,False,True,False,1,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+229,Christ's discourse with Nicodemus,14,12,7,0,1,2,False,False,0,8,False,True,False,3,0,1,True,0,1.0,1.0,False,False,0,1,2,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+230,Great Commandment,14,10,12,0,0,3,False,False,0,21,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,False,False,True,False
+231,Mount of Temptation,14,6,60,0,2,0,True,False,1,17,False,True,False,1,0,0,False,0,1.0,1.0,False,False,0,1,0,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+232,Woes of the Pharisees,14,4,3,0,1,0,False,False,0,0,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+233,Parable of the Two Sons,14,2,1,0,0,1,False,False,0,3,False,False,False,0,0,0,True,0,1.0,1.0,False,False,0,0,1,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+234,Great Commission,13,10,5,0,0,0,False,False,0,7,False,True,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+235,The Sheep and the Goats,13,5,11,0,1,2,False,False,0,13,False,True,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,1,0,0,False,False,False,False,False,False,True,False
+236,Blind man of Bethsaida,13,5,8,0,2,1,False,False,0,3,False,False,False,0,0,0,False,0,1.0,1.0,False,False,0,1,0,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+237,Healing the two blind men in Galilee,13,2,5,0,2,2,False,False,0,3,False,True,False,0,0,0,True,0,1.0,1.0,False,False,0,1,1,False,0,0,0,0,0,False,False,False,True,False,False,False,False
+238,Gabbatha,13,1,6,0,2,0,True,False,0,2,False,True,False,1,0,0,False,0,1.0,1.0,False,False,0,0,0,False,0,0,0,0,0,False,False,True,False,False,True,False,False
+239,James the Great,12,8,39,0,1,1,False,False,1,19,False,True,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+240,Nathanael (follower of Jesus),12,6,13,1,0,0,False,False,0,6,False,True,False,0,0,0,False,0,1.0,1.0,False,False,0,1,1,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+241,Gospel of James,12,3,43,0,1,0,False,False,1,6,True,False,False,0,2,0,False,0,1.0,1.0,False,False,1,0,1,True,0,0,0,0,1,True,False,False,False,False,False,False,False
+242,Doubting Thomas,11,2,27,0,0,0,False,False,1,13,True,False,False,0,0,0,False,0,1.0,1.0,False,False,0,1,2,False,0,0,0,0,0,False,False,True,False,False,False,False,False
+243,Simon the Leper,10,10,14,0,0,0,False,False,0,1,False,True,False,0,0,0,False,0,1.0,1.0,False,False,0,0,1,False,0,0,0,0,0,False,False,False,False,False,True,False,False
+244,Parable of the Ten Virgins,10,8,34,0,0,1,False,False,1,22,False,True,False,0,0,0,True,1,1.0,1.0,False,False,0,0,0,True,0,0,0,0,2,True,False,False,False,True,False,False,False
+245,Gospel of Philip,9,8,22,0,2,0,False,False,1,38,True,True,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,2,True,False,False,False,False,False,False,False
+246,Parable of Drawing in the Net,9,1,15,0,0,1,False,False,0,29,True,False,False,0,1,0,True,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+247,The blind leading the blind,9,1,9,1,2,0,False,True,0,11,True,False,False,0,0,0,False,0,1.0,1.0,False,False,0,0,0,True,0,0,0,0,0,False,False,False,False,True,False,False,False
+248,True Cross,8,1,58,0,3,0,True,False,0,40,False,True,False,0,1,0,False,0,1.0,1.0,False,False,0,1,0,True,0,0,0,0,0,False,False,True,False,False,False,False,False
+249,Jesus' true relatives,7,6,0,0,0,0,False,False,0,7,True,False,False,0,0,0,False,0,1.0,1.0,False,True,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+250,Oral gospel traditions,5,0,46,3,20,0,False,True,1,12,True,False,False,0,0,0,False,0,1.0,1.0,True,False,0,1,1,False,0,0,1,3,3,True,True,False,False,False,False,False,True
+251,Pilate stone,2,0,11,2,4,0,True,False,0,3,False,True,False,2,0,0,False,0,1.0,1.0,True,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,False,False
+252,Bartholomew the Apostle,-4,0,51,0,4,2,False,False,1,19,False,True,False,0,1,0,False,0,1.0,1.0,True,False,0,1,0,True,0,0,0,0,0,False,False,False,False,False,True,False,False
+253,Mount of Beatitudes,-5,0,3,0,0,0,True,False,0,0,False,False,False,0,0,0,False,0,1.0,1.0,True,False,0,0,0,False,0,0,0,0,0,False,False,False,False,False,False,True,False
+254,Tomb of Jesus,-6,0,21,0,1,0,True,False,0,15,False,False,False,0,0,0,False,0,1.0,1.0,True,False,0,0,0,True,0,0,0,0,0,False,False,False,False,False,False,False,False
+255,Parable of a scribe,-7,0,1,0,0,0,False,False,0,2,False,False,False,0,0,0,False,0,1.0,1.0,True,False,0,0,1,True,0,0,0,0,0,False,False,False,False,True,False,False,False
