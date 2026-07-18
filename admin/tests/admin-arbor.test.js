@@ -636,9 +636,23 @@ describe("edge anchor alignment", function () {
       },
     },
     document: {
-      createElementNS: function () {
+      // edges.js now draws a <path> with a "d" attribute (needed for
+      // multi-segment waypoint routes) instead of calling
+      // AdminArborCanvas.createEdgeLine(x1,y1,x2,y2) directly, so capture
+      // the anchor coordinates by parsing the "M sx sy ... L tx ty" string.
+      createElementNS: function (ns, tagName) {
         return {
-          setAttribute: function () {},
+          setAttribute: function (name, value) {
+            if (tagName === "path" && name === "d") {
+              var parts = String(value).trim().split(/\s+/);
+              capturedEdges = {
+                x1: parseFloat(parts[1]),
+                y1: parseFloat(parts[2]),
+                x2: parseFloat(parts[parts.length - 2]),
+                y2: parseFloat(parts[parts.length - 1]),
+              };
+            }
+          },
           appendChild: function () {},
           addEventListener: function () {},
           style: {},
