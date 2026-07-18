@@ -155,14 +155,14 @@
         Paired with era labels/markers/tooltips — never relied on alone (WCAG).
         ------------------------------------------------------------------------- */
 
-    --era-pre-incarnation: #e8e0f0;
-    --era-old-testament: #f0e8d8;
-    --era-early-life: #e0f0e4;
-    --era-life: #e0ecf0;
-    --era-galilee-ministry: #e0f0ec;
-    --era-judean-ministry: #f0e4e4;
-    --era-passion-week: #f0e0e0;
-    --era-post-passion: #f0ecdc;
+    --era-pre-incarnation: #c4acd4;
+    --era-old-testament: #d0bc94;
+    --era-early-life: #a8c8b4;
+    --era-life: #9cbccc;
+    --era-galilee-ministry: #9cccc0;
+    --era-judean-ministry: #d4a8a8;
+    --era-passion-week: #d4a0a0;
+    --era-post-passion: #d4c0a0;
 
     /* -------------------------------------------------------------------------
         Utility Colors

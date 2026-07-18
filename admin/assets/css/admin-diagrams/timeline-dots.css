@@ -12,7 +12,7 @@
     height: 10px;
     border-radius: var(--radius-round);
     background: var(--accent);
-    border: 2px solid var(--bg-surface);
+    border: 1px solid var(--bg-surface);
     cursor: pointer;
     z-index: 2;
     padding: 0;
@@ -64,12 +64,12 @@
 
 /* Category overrides (after era rules, CSS-5) */
 .admin-timeline-event.dot-cat--place {
-    background: var(--color-white);
-    border-color: var(--color-black);
+    background: var(--admin-white);
+    border-color: var(--admin-text-primary);
 }
 .admin-timeline-event.dot-cat--person {
-    background: var(--color-white);
-    border-color: var(--color-black);
+    background: var(--admin-white);
+    border-color: var(--admin-text-primary);
 }
 .admin-timeline-event.dot-cat--object {
     background: var(--text-muted);
