@@ -20,6 +20,7 @@ import {
 import { fetchArborGraph, buildGraph } from "./arbor-data.js";
 import { readEmbeddedData } from "../api.js";
 import { showToast } from "../utils/toasts.js";
+import { revalidateInBackground } from "../utils/data-revalidation.js";
 
 // ─── DOM references ────────────────────────────────────────────────────────────
 
@@ -264,6 +265,20 @@ async function init() {
   currentVerticalMode = isVerticalMode();
 
   renderArbor(savedNodes, savedEdges);
+
+  // Revalidate against live data in the background (Issues.md #64): an
+  // embedded snapshot is only as fresh as the last deploy, so always
+  // check for changes after first paint and re-render if the graph
+  // actually changed. Not awaited — must not delay interaction wiring.
+  revalidateInBackground({
+    embeddedData: { nodes: savedNodes, edges: savedEdges },
+    fetchLive: fetchArborGraph,
+    onFresh: (fresh) => {
+      savedNodes = fresh.nodes || [];
+      savedEdges = fresh.edges || [];
+      renderArbor(savedNodes, savedEdges);
+    },
+  });
 
   // ── Wire tooltip on nodes (JS-6: event delegation) ─────────────────────
   if (diagramEl) {

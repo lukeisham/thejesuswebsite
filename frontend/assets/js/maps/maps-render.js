@@ -12,6 +12,7 @@ import { fetchMapByKey } from "./maps-data.js";
 import { readEmbeddedData } from "../api.js";
 import { setupInteractions } from "./maps-interactions.js";
 import { showToast } from "../utils/toasts.js";
+import { revalidateInBackground } from "../utils/data-revalidation.js";
 
 // ─── Overview render ──────────────────────────────────────────────────────────
 
@@ -350,6 +351,21 @@ export async function initFromDataAttributes() {
 
   // Wire zoom/pan interactions
   setupInteractions();
+
+  // Revalidate against live data in the background (Issues.md #64): an
+  // embedded snapshot is only as fresh as the last deploy, so always
+  // check for changes after first paint and re-render if the map
+  // actually changed. Not awaited. Re-renders via renderRegion only —
+  // it clears and refills #map-pins in place, so the pin listeners
+  // setupInteractions() already delegated onto that persistent element
+  // keep working without needing to be re-wired.
+  revalidateInBackground({
+    embeddedData: mapData,
+    fetchLive: () => fetchMapByKey(mapKey),
+    onFresh: (fresh) => {
+      renderRegion(fresh);
+    },
+  });
 
   // Apply initial zoom if data-map-zoom is set
   const zoomAttr = document.body.dataset.mapZoom;
