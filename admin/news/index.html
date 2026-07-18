@@ -295,6 +295,7 @@
         tr.appendChild(tdStatus);
 
         var tdActions = document.createElement('td');
+        tdActions.style.cssText = 'display:flex;gap:var(--space-xs);';
         var editBtn = document.createElement('button');
         editBtn.type = 'button';
         editBtn.className = 'admin-btn admin-btn--sm admin-btn--secondary';
@@ -306,7 +307,6 @@
         deleteBtn.type = 'button';
         deleteBtn.className = 'admin-btn admin-btn--sm admin-btn--danger';
         deleteBtn.textContent = 'Delete';
-        deleteBtn.style.marginLeft = 'var(--space-sm)';
         deleteBtn.addEventListener('click', async function () {
           if (!confirm('Delete "' + (a.news_article_title || 'this article') + '"? This cannot be undone.')) return;
           try {
