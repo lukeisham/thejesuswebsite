@@ -31,12 +31,12 @@
   <!-- Road: Jerusalem → Bethlehem → Hebron -->
   <polyline points="460,390 440,430 420,480 400,530 370,580"/>
   <!-- Road: coastal plain route -->
-  <polyline points="374,200 338,300 296,400 244,500 200,600"/>
+  <polyline points="120,200 140,300 160,400 180,500 200,600"/>
 </g>
 <!-- Region boundaries -->
 <g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
-  <polyline points="374,200 367,220 360,240 380,260 440,280 500,300 560,310"/>
-  <polyline points="244,500 240,510 300,520 360,530 420,540 480,550"/>
+  <polyline points="200,200 260,220 320,240 380,260 440,280 500,300 560,310"/>
+  <polyline points="180,500 240,510 300,520 360,530 420,540 480,550"/>
 </g>
 <text x="112" y="412" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">MEDITERRANEAN SEA</text>
 <text x="731" y="647" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">DEAD SEA</text>
