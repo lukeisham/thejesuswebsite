@@ -5,7 +5,7 @@ const express = require("express");
 const blogPostModel = require("../models/blog-post.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
-const { sendError } = require("../lib/error-handler");
+const { sendError, sendValidationError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -68,6 +68,9 @@ router.post("/", requireAuth, (req, res) => {
     const created = blogPostModel.createComposite(req.body);
     res.status(201).json(created);
   } catch (error) {
+    if (error.code === ERRORS.INVALID_SLUG.code) {
+      return sendValidationError(res, "slug", ERRORS.INVALID_SLUG);
+    }
     console.error("POST /blog-posts failed:", error);
     res.status(500).json({ error: "Failed to create blog post." });
   }
@@ -84,6 +87,9 @@ router.put("/:id", requireAuth, (req, res) => {
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "blog post", id: req.params.id });
     res.json(updated);
   } catch (error) {
+    if (error.code === ERRORS.INVALID_SLUG.code) {
+      return sendValidationError(res, "slug", ERRORS.INVALID_SLUG);
+    }
     console.error("PUT /blog-posts/:id failed:", error);
     res.status(500).json({ error: "Failed to update blog post." });
   }

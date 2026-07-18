@@ -7,6 +7,18 @@
  * with one parser function. Parses block-level [figure] shortcodes and
  * inline [mla:N] / [id:N] markers into HTML.
  *
+ * Accepts two input shapes:
+ *   - **Raw text** (essays, responses, historiography, evidence) — every
+ *     paragraph is HTML-escaped, wrapped in `<p>`, and inline markers are
+ *     resolved inside the escaped text.
+ *   - **Markdown-rendered HTML** (blog posts) — the text has already been
+ *     through `renderMarkdown()`, so blocks start with `<p`, `<h1`–`<h3`,
+ *     `<ul`, `<ol`, `<table`, or `<blockquote`. These blocks are passed
+ *     through without re-escaping; `<p>` blocks have inline markers resolved
+ *     on the inner (already-escaped) text. `<figure>` and `<aside>` blocks
+ *     (produced by this parser's own shortcode expansion) are also passed
+ *     through.
+ *
  * @module content-markers
  *
  * ## Marker Grammar
@@ -28,7 +40,8 @@
  * Every <img> carries an alt attribute. Inline markers are wrapped with
  * hair-space `.sr-only` text nodes so Copy Contents produces readable output.
  *
- * @param {string} text - Raw body text
+ * @param {string} text - Raw body text, or markdown-rendered HTML with
+ *   shortcode markers preserved.
  * @param {object} options
  * @param {Array<{id: number, citation?: string, author?: string, title?: string, ...}>} [options.mlaSources]
  * @param {Array<{id: number, label?: string, ...}>} [options.identifiers]
@@ -88,6 +101,10 @@ export function parseContentBody(text, options = {}) {
   // ── Step 3: Split into paragraphs on blank lines ─────────────────────
   const paragraphs = processed.split(/\n\n+/).filter((p) => p.trim());
 
+  // Blocks produced by renderMarkdown() — these start with an HTML tag
+  // and must not be re-escaped.
+  const MARKDOWN_TAGS = /^<(p|h[1-3]|ul|ol|table|blockquote)\b/;
+
   return paragraphs
     .map((p) => {
       const trimmed = p.trim();
@@ -99,7 +116,29 @@ export function parseContentBody(text, options = {}) {
         return trimmed;
       }
 
-      // ── Step 4: Process inline markers inside the paragraph ─────────
+      // Markdown-rendered blocks — already escaped by renderMarkdown,
+      // must not be double-escaped (JS-2).
+      const mdMatch = trimmed.match(MARKDOWN_TAGS);
+      if (mdMatch) {
+        const tag = mdMatch[1];
+        // <p> blocks: resolve inline markers on the inner text
+        if (tag === "p") {
+          const inner = trimmed.slice(3, -4); // strip <p> and </p>
+          const resolved = resolveInlineMarkers(
+            inner,
+            mlaMap,
+            idMap,
+            citationStyle,
+          );
+          return `<p>${resolved}</p>`;
+        }
+        // Other block types (h1-h3, ul, ol, table, blockquote):
+        // pass through unchanged — inline markers inside headings/lists
+        // are already resolved with escapePreservingMarkers in renderMarkdown.
+        return trimmed;
+      }
+
+      // ── Step 4: Raw text path — escape then wrap ───────────────────
       const innerHTML = resolveInlineMarkers(
         escapeHTML(trimmed),
         mlaMap,
