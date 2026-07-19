@@ -73,3 +73,15 @@ body > footer {
     justify-content: flex-start;
   }
 }
+
+/* -------------------------------------------------------------------------
+   Created/Edited metadata line (sits directly above the footer)
+   ------------------------------------------------------------------------- */
+
+.created-edited-line {
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  text-align: center;
+  margin: var(--space-lg) 0 0;
+}

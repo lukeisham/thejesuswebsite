@@ -15,6 +15,7 @@ import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
 import { parseContentBody } from "./utils/content-markers.js";
 import { formatMlaCitation } from "./utils/mla.js";
+import { renderCreatedEditedLine } from "./utils/date-format.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -353,6 +354,7 @@ async function init() {
   renderBody(data);
   renderFootnotes(data);
   renderBibliography(data);
+  renderCreatedEditedLine(data.created_at, data.updated_at);
 
   applySEO(data);
 

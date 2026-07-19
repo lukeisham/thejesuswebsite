@@ -29,7 +29,9 @@
         <link rel="stylesheet" href="/assets/css/layout/grid.css" />
         <link rel="stylesheet" href="/assets/css/layout/navigation.css" />
         <link rel="stylesheet" href="/assets/css/layout/navigation/navigation-responsive.css" />
+        <link rel="stylesheet" href="/assets/css/layout/footer.css" />
         <link rel="stylesheet" href="/assets/css/components/sidebar.css" />
+        <link rel="stylesheet" href="/assets/css/components/buttons.css" />
         <link rel="stylesheet" href="/assets/css/components/icons.css" />
         <link
             rel="stylesheet"
@@ -184,6 +186,36 @@
                 </ul>
             </section>
         </article>
+
+        <footer class="site-footer">
+            <div class="footer__left">
+                <img src="/assets/images/favicon-64.png" alt="" width="20" height="20" />
+                <p>
+                    &copy; <span id="footer-year"></span> The Jesus Website.
+                    <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC</a>.
+                </p>
+            </div>
+            <div class="footer__right">
+                <button class="btn btn--ghost btn--ghost--footer" data-action="print" aria-label="Print page">
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use href="/assets/images/feather-sprite.svg#icon-printer"></use>
+                    </svg>
+                    Print
+                </button>
+                <button class="btn btn--ghost btn--ghost--footer" data-action="copy-contents" aria-label="Copy page contents">
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use href="/assets/images/feather-sprite.svg#icon-copy"></use>
+                    </svg>
+                    Copy Contents
+                </button>
+                <button class="btn btn--ghost btn--ghost--footer" data-action="copy-url" aria-label="Copy page URL">
+                    <svg width="16" height="16" aria-hidden="true">
+                        <use href="/assets/images/feather-sprite.svg#icon-link"></use>
+                    </svg>
+                    Copy URL
+                </button>
+            </div>
+        </footer>
 
         <!-- Scripts at bottom with defer (HTML-4) -->
         <script type="module" src="/assets/js/main.js" defer></script>

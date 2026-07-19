@@ -15,6 +15,7 @@ import {
   parseContentBody,
   getIdentifierLabel,
 } from "./utils/content-markers.js";
+import { renderCreatedEditedLine } from "./utils/date-format.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -297,6 +298,7 @@ async function init() {
   renderDescription({ ...data, description: cleanDescription });
   renderSources(data.mla_sources);
   renderDates(data);
+  renderCreatedEditedLine(data.created_at, data.updated_at);
 
   // Apply SEO metadata
   applySEO(data);
