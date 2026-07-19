@@ -108,3 +108,77 @@ export function sortByDate(a, b, dateField, direction = "desc") {
 
   return direction === "desc" ? -result : result;
 }
+
+/**
+ * Build the display strings for a "Created: …, Edited: …" metadata line.
+ * Compares calendar days in UTC (not the visitor's local timezone) so
+ * DB-backed pages (SQLite `CURRENT_TIMESTAMP`) and the git-stamped about
+ * page (`git log --format=%aI`) behave identically regardless of who's
+ * viewing. `edited` is `null` whenever `updatedAt`'s UTC calendar day is not
+ * later than `createdAt`'s.
+ *
+ * @param {string|null|undefined} createdAt - ISO 8601 date string.
+ * @param {string|null|undefined} updatedAt - ISO 8601 date string.
+ * @returns {{created: string, edited: string|null}}
+ *
+ * @example
+ * formatCreatedEdited("2026-07-19", "2026-07-19")  // { created: "19 July 2026", edited: null }
+ * formatCreatedEdited("2026-07-19", "2026-07-21")  // { created: "19 July 2026", edited: "21 July 2026" }
+ * formatCreatedEdited(null, "2026-07-21")          // { created: "—", edited: null }
+ */
+export function formatCreatedEdited(createdAt, updatedAt) {
+  const created = formatDate(createdAt);
+
+  const createdDate = typeof createdAt === "string" ? new Date(createdAt) : null;
+  if (!createdDate || isNaN(createdDate.getTime())) {
+    return { created, edited: null };
+  }
+
+  const updatedDate =
+    typeof updatedAt === "string" && updatedAt.length > 0
+      ? new Date(updatedAt)
+      : null;
+  if (!updatedDate || isNaN(updatedDate.getTime())) {
+    return { created, edited: null };
+  }
+
+  const createdDay = Date.UTC(
+    createdDate.getUTCFullYear(),
+    createdDate.getUTCMonth(),
+    createdDate.getUTCDate(),
+  );
+  const updatedDay = Date.UTC(
+    updatedDate.getUTCFullYear(),
+    updatedDate.getUTCMonth(),
+    updatedDate.getUTCDate(),
+  );
+
+  return {
+    created,
+    edited: updatedDay > createdDay ? formatDate(updatedAt) : null,
+  };
+}
+
+/**
+ * Insert an italic "Created: …[, Edited: …]" paragraph immediately before
+ * the universal site footer. No-ops if no `.site-footer` element exists in
+ * the document (JS-2 — defensive, not an error: not every template has
+ * landed the universal footer).
+ *
+ * @param {string|null|undefined} createdAt - ISO 8601 date string.
+ * @param {string|null|undefined} updatedAt - ISO 8601 date string.
+ */
+export function renderCreatedEditedLine(createdAt, updatedAt) {
+  const siteFooter = document.querySelector(".site-footer");
+  if (!siteFooter) return;
+
+  const { created, edited } = formatCreatedEdited(createdAt, updatedAt);
+
+  const p = document.createElement("p");
+  p.className = "created-edited-line";
+  p.textContent = edited
+    ? `Created: ${created}, Edited: ${edited}`
+    : `Created: ${created}`;
+
+  siteFooter.before(p);
+}

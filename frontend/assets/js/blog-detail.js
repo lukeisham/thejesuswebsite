@@ -14,6 +14,7 @@ import { showToast } from "./utils/toasts.js";
 import { parseContentBody } from "./utils/content-markers.js";
 import { formatMlaCitation } from "./utils/mla.js";
 import { renderMarkdown } from "./utils/markdown.js";
+import { renderCreatedEditedLine } from "./utils/date-format.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -219,6 +220,7 @@ async function init() {
   renderHeader(data);
   renderBody(data);
   renderBibliography(data);
+  renderCreatedEditedLine(data.created_at, data.updated_at);
 
     // Apply SEO metadata
   applySEO(data);

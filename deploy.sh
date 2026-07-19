@@ -123,6 +123,9 @@ npm run sitemap
 echo "[deploy] Generating static pages..."
 npm run pages
 
+echo "[deploy] Stamping about.html dates from git history..."
+cd "$API_DIR" && npm run stamp-about-dates
+
 echo "[deploy] Embedding initial data for list/visual pages..."
 npm run embed-data
 
