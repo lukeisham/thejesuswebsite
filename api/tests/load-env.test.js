@@ -126,8 +126,8 @@ describe("loadEnv production assertions", () => {
     }
   });
 
-  test("does NOT throw when NODE_ENV is not production (even with missing keys)", () => {
-    delete process.env.NODE_ENV;
+  test("does NOT throw when NODE_ENV=development with missing keys", () => {
+    process.env.NODE_ENV = "development";
     delete process.env.RP_ID;
     delete process.env.ORIGIN;
 
@@ -139,14 +139,99 @@ describe("loadEnv production assertions", () => {
     }
   });
 
-  test("does NOT throw when NODE_ENV=development with missing keys", () => {
-    process.env.NODE_ENV = "development";
+  test("throws when NODE_ENV is unset", () => {
+    delete process.env.NODE_ENV;
     delete process.env.RP_ID;
     delete process.env.ORIGIN;
 
     const loader = createLoaderWithEnv("");
     try {
-      assert.doesNotThrow(() => loader.call());
+      assert.throws(
+        () => loader.call(),
+        (err) =>
+          err instanceof Error && err.message.includes("NODE_ENV must be"),
+        "should throw about unset NODE_ENV",
+      );
+    } finally {
+      loader.restore();
+    }
+  });
+
+  test("throws when NODE_ENV has an invalid value", () => {
+    process.env.NODE_ENV = "staging";
+    process.env.RP_ID = "test.example.com";
+    process.env.ORIGIN = "https://test.example.com";
+
+    const loader = createLoaderWithEnv("");
+    try {
+      assert.throws(
+        () => loader.call(),
+        (err) =>
+          err instanceof Error && err.message.includes("NODE_ENV must be"),
+        "should throw about invalid NODE_ENV",
+      );
+    } finally {
+      loader.restore();
+    }
+  });
+});
+
+describe("loadEnv dev-bypass warning", () => {
+  let originalNodeEnv;
+  let originalBypass;
+  let originalBypassSecret;
+  let originalWarn;
+  let warnings;
+
+  beforeEach(() => {
+    originalNodeEnv = process.env.NODE_ENV;
+    originalBypass = process.env.ADMIN_DEV_BYPASS;
+    originalBypassSecret = process.env.ADMIN_DEV_BYPASS_SECRET;
+    warnings = [];
+    originalWarn = console.warn;
+    console.warn = (...args) => warnings.push(args.join(" "));
+  });
+
+  afterEach(() => {
+    console.warn = originalWarn;
+    if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = originalNodeEnv;
+    if (originalBypass === undefined) delete process.env.ADMIN_DEV_BYPASS;
+    else process.env.ADMIN_DEV_BYPASS = originalBypass;
+    if (originalBypassSecret === undefined)
+      delete process.env.ADMIN_DEV_BYPASS_SECRET;
+    else process.env.ADMIN_DEV_BYPASS_SECRET = originalBypassSecret;
+  });
+
+  test("warns when ADMIN_DEV_BYPASS=1 is set without ADMIN_DEV_BYPASS_SECRET", () => {
+    process.env.NODE_ENV = "development";
+    process.env.ADMIN_DEV_BYPASS = "1";
+    delete process.env.ADMIN_DEV_BYPASS_SECRET;
+
+    const loader = createLoaderWithEnv("");
+    try {
+      loader.call();
+      assert.ok(
+        warnings.some((w) => w.includes("ADMIN_DEV_BYPASS=1")),
+        "expected a warning about ADMIN_DEV_BYPASS without a secret",
+      );
+    } finally {
+      loader.restore();
+    }
+  });
+
+  test("does NOT warn when ADMIN_DEV_BYPASS_SECRET is also set", () => {
+    process.env.NODE_ENV = "development";
+    process.env.ADMIN_DEV_BYPASS = "1";
+    process.env.ADMIN_DEV_BYPASS_SECRET = "some-secret";
+
+    const loader = createLoaderWithEnv("");
+    try {
+      loader.call();
+      assert.ok(
+        !warnings.some((w) => w.includes("ADMIN_DEV_BYPASS=1")),
+        "should not warn when the secret is present",
+      );
     } finally {
       loader.restore();
     }

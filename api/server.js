@@ -75,7 +75,17 @@ app.use("/passkey", require("./routes/passkey"));
 app.use("/spellcheck-dictionary", require("./routes/spellcheck-dictionary"));
 
 // Dev-only auth bypass: only mount the route when the flag is explicitly set.
+// Hard-refuse in production regardless of the flag — load-env.js already
+// guarantees NODE_ENV is one of exactly two explicit values, so this check
+// cannot be bypassed by an unset/typo'd NODE_ENV.
 if (process.env.ADMIN_DEV_BYPASS === "1") {
+  if (process.env.NODE_ENV === "production") {
+    console.error(
+      "FATAL: ADMIN_DEV_BYPASS=1 is set with NODE_ENV=production. " +
+        "The dev auth bypass route must never mount in production. Exiting.",
+    );
+    process.exit(1);
+  }
   app.use("/auth", require("./routes/dev-bypass"));
 }
 
