@@ -7,6 +7,20 @@
 
 const ERRORS = require("../lib/error-codes");
 
+// SQL-4: generateUniqueSlug interpolates `table` directly into raw SQL, so it
+// must come from this hardcoded whitelist — every table that has a `slug`
+// column and calls this shared helper.
+const SLUG_UNIQUE_TABLES = new Set([
+  "evidence",
+  "responses",
+  "context_essays",
+  "historiography",
+  "blog_posts",
+  "news_articles",
+  "wikipedia_articles",
+  "collections",
+]);
+
 /**
  * Keep only whitelisted columns from an arbitrary input object.
  * Used by create() and update() in every model (JS-2: never let a stray
@@ -64,6 +78,10 @@ function validateSlug(slug) {
 }
 
 function generateUniqueSlug(db, table, baseSlug, excludeId = null) {
+  if (!SLUG_UNIQUE_TABLES.has(table)) {
+    throw new Error(`Unknown table in generateUniqueSlug: ${table}`);
+  }
+
   // Validate before touching the database (JS-2: reject bad input early).
   validateSlug(baseSlug);
 

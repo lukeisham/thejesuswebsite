@@ -20,8 +20,26 @@ const DRAFTABLE = [
     { type: 'collections', table: 'collections', title: 'title', hasSlug: true, hasUpdated: true },
 ];
 
+// SQL-4: getDraftsFor/getDraftCounts interpolate entity.table and
+// entity.title into raw SQL. entity always comes from the hardcoded
+// DRAFTABLE array above, but is validated against these whitelists anyway —
+// derived directly from DRAFTABLE — so this stays true even if a future
+// caller passes an entity object built elsewhere.
+const DRAFTABLE_TABLES = new Set(DRAFTABLE.map((entity) => entity.table));
+const DRAFTABLE_TITLE_COLUMNS = new Set(DRAFTABLE.map((entity) => entity.title));
+
+function assertDraftableEntity(entity) {
+    if (!DRAFTABLE_TABLES.has(entity.table)) {
+        throw new Error(`Unknown table in drafts helper: ${entity.table}`);
+    }
+    if (!DRAFTABLE_TITLE_COLUMNS.has(entity.title)) {
+        throw new Error(`Unknown title column in drafts helper: ${entity.title}`);
+    }
+}
+
 /** Draft rows for one entity, normalised to a common shape for the dashboard. */
 function getDraftsFor(entity) {
+    assertDraftableEntity(entity);
     const slug = entity.hasSlug ? 'slug' : 'NULL AS slug';
     const updated = entity.hasUpdated ? 'updated_at' : 'NULL AS updated_at';
     const sql = `
@@ -41,10 +59,13 @@ function getAllDrafts() {
 
 /** Count of pending drafts per entity type — for dashboard badges. */
 function getDraftCounts() {
-    return DRAFTABLE.map((entity) => ({
-        type: entity.type,
-        count: db.prepare(`SELECT COUNT(*) AS count FROM ${entity.table} WHERE published_draft = 0`).get().count,
-    }));
+    return DRAFTABLE.map((entity) => {
+        assertDraftableEntity(entity);
+        return {
+            type: entity.type,
+            count: db.prepare(`SELECT COUNT(*) AS count FROM ${entity.table} WHERE published_draft = 0`).get().count,
+        };
+    });
 }
 
 module.exports = { getAllDrafts, getDraftCounts, DRAFTABLE };
