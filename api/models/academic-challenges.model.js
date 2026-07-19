@@ -31,12 +31,12 @@ const WRITABLE_COLUMNS = [
  */
 function generateUniqueSlug(baseSlug, excludeId = null) {
   const slugExists = db.prepare(
-    "SELECT 1 FROM challenges WHERE slug = ? AND academic_popular = ? AND id IS NOT ?",
+    "SELECT 1 FROM challenges WHERE slug = ? AND id IS NOT ?",
   );
 
   let candidate = baseSlug;
   let suffix = 2;
-  while (slugExists.get(candidate, "academic", excludeId)) {
+  while (slugExists.get(candidate, excludeId)) {
     candidate = `${baseSlug}-${suffix}`;
     suffix += 1;
   }
