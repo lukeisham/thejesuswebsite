@@ -5,10 +5,10 @@
    card-grid consumers (historiography, responses, evidence).
    ========================================================================== */
 
-.journal-header p {
+.journal-header__paragraph {
   max-width: var(--measure-reading);
 }
 
-#card-grid {
+.essays-card-grid {
   max-width: var(--measure-reading);
 }

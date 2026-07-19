@@ -151,27 +151,6 @@
 }
 
 /* -------------------------------------------------------------------------
-   Reduced motion
-   ------------------------------------------------------------------------- */
-
-@media (prefers-reduced-motion: reduce) {
-  .wikipedia-stone-wrap.wikipedia-stone-wrap,
-  .wikipedia-stone.wikipedia-stone,
-  .wikipedia-stone-label.wikipedia-stone-label,
-  .wikipedia-signal-btn.wikipedia-signal-btn {
-    transition: none;
-  }
-
-  /* Matches the specificity of .wikipedia-stone-wrap.is-open
-     .wikipedia-stone.is-visible { animation: ... } above so it actually wins. */
-  .wikipedia-stone-wrap.is-open .wikipedia-stone.is-visible.is-visible {
-    animation: none;
-    opacity: var(--stone-target-opacity, 1);
-    transform: scale(1);
-  }
-}
-
-/* -------------------------------------------------------------------------
    Mobile
    ------------------------------------------------------------------------- */
 

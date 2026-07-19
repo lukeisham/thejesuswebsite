@@ -7,24 +7,24 @@
   margin-bottom: var(--space-xl);
 }
 
-.resources-header h2 {
+.resources-header__title {
   margin-bottom: var(--space-sm);
 }
 
-.resources-header p {
+.resources-header__description {
   color: var(--text-secondary);
 }
 
-#resources-category-grid {
+.resources-category-grid {
   margin-bottom: var(--space-xl);
 }
 
-#resources-category-grid .card {
+.resources-category-grid__card {
   text-decoration: none;
   color: inherit;
   display: block;
 }
 
-#resources-category-grid .card-title {
+.resources-category-grid__card-title {
   color: var(--text-primary);
 }
