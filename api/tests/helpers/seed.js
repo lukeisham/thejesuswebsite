@@ -186,18 +186,6 @@ function seedData(db) {
     published_draft: 1,
   });
 
-  // --- About Pages ---
-  db.prepare(
-    `
-    INSERT INTO about_pages (about_section_title, about_section_content, published_draft)
-    VALUES (@about_section_title, @about_section_content, @published_draft)
-  `,
-  ).run({
-    about_section_title: "About This Site",
-    about_section_content: "This is a test about page.",
-    published_draft: 1,
-  });
-
   // --- Evidence pictures (child) ---
   db.prepare(
     `

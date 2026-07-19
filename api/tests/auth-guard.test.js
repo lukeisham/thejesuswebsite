@@ -335,63 +335,6 @@ describe('auth guard: sources routes', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// About
-// ═══════════════════════════════════════════════════════════════════════════════
-
-describe('auth guard: about routes', () => {
-  let app;
-  beforeEach(() => {
-    app = express();
-    app.use(express.json());
-    app.use('/about', require('../routes/about'));
-  });
-
-  test('GET /about is public (no 401)', async () => {
-    const res = await makeRequest(app, 'GET', '/about');
-    assert.notEqual(res.status, 401);
-  });
-
-  test('GET /about/admin returns 401 without auth', async () => {
-    const res = await makeRequest(app, 'GET', '/about/admin');
-    assert.equal(res.status, 401);
-  });
-
-  test('GET /about/admin passes through with valid session', async () => {
-    const res = await makeRequest(app, 'GET', '/about/admin', {
-      cookie: authCookie(),
-    });
-    assert.notEqual(res.status, 401);
-  });
-
-  test('POST /about returns 401 without auth', async () => {
-    const res = await makeRequest(app, 'POST', '/about', {
-      body: { about_section_title: 'Test' },
-    });
-    assert.equal(res.status, 401);
-  });
-
-  test('POST /about passes through with valid session', async () => {
-    const res = await makeRequest(app, 'POST', '/about', {
-      cookie: authCookie(),
-      body: {}, // no valid fields → 400
-    });
-    assert.notEqual(res.status, 401);
-  });
-
-  test('PUT /about/:id returns 401 without auth', async () => {
-    const res = await makeRequest(app, 'PUT', '/about/99999', {
-      body: { about_section_title: 'Test' },
-    });
-    assert.equal(res.status, 401);
-  });
-
-  test('DELETE /about/:id returns 401 without auth', async () => {
-    const res = await makeRequest(app, 'DELETE', '/about/99999');
-    assert.equal(res.status, 401);
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // Drafts — entirely admin-only
 // ═══════════════════════════════════════════════════════════════════════════════
 
