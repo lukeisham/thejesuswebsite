@@ -82,6 +82,6 @@ body > footer {
   font-style: italic;
   color: var(--text-muted);
   font-size: var(--text-xs);
-  text-align: center;
+  text-align: left;
   margin: var(--space-lg) 0 0;
 }
