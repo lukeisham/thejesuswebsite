@@ -58,39 +58,92 @@ const geometrySource = fs.readFileSync(geometryPath, "utf8");
 vm.runInNewContext(geometrySource, axisSandbox);
 
 // ── Load cluster modules (density, placement, labels) ─────────────────────────
+//
+// These now live as canonical ES modules under frontend/assets/js/cluster-logic/
+// (unified with admin via cluster-logic-bridge/*.js — see
+// setup/PLANS/Completed/shared-cluster-logic-module.md). vm.runInNewContext
+// can't execute `export`/`import` syntax directly, so each canonical source
+// is stripped of its ESM keywords before evaluation, then wrapped into the
+// same window.AdminTimelineCluster* shape the real bridge files build — i.e.
+// this exercises the real canonical logic through the same glue the bridge
+// applies, without needing an async dynamic import() in a CommonJS test file.
+
+function loadEsmAsPlainScript(absPath, sandbox) {
+  const source = fs
+    .readFileSync(absPath, "utf8")
+    .replace(/^import\s+\{[^}]*\}\s+from\s+["'][^"']+["'];?$/gm, "")
+    .replace(/^export\s+const\s+/gm, "var ")
+    .replace(/^export\s+function\s+/gm, "function ")
+    .replace(/^export\s+\{[^}]*\};?$/gm, "");
+  vm.runInNewContext(source, sandbox);
+}
 
 const clusterDensityPath = path.resolve(
   __dirname,
   "..",
+  "..",
+  "frontend",
   "assets",
   "js",
-  "admin-timeline",
-  "timeline-cluster-density.js",
+  "cluster-logic",
+  "cluster-density.js",
 );
-const clusterDensitySource = fs.readFileSync(clusterDensityPath, "utf8");
-vm.runInNewContext(clusterDensitySource, axisSandbox);
+loadEsmAsPlainScript(clusterDensityPath, axisSandbox);
+axisSandbox.window.AdminTimelineClusterDensity = {
+  DENSITY_COMPACT: axisSandbox.DENSITY_COMPACT,
+  DENSITY_NORMAL: axisSandbox.DENSITY_NORMAL,
+  DENSITY_SPREAD: axisSandbox.DENSITY_SPREAD,
+  THRESHOLDS: axisSandbox.THRESHOLDS,
+  getClusterDensity: axisSandbox.getClusterDensity,
+};
 
 const clusterPlacementPath = path.resolve(
   __dirname,
   "..",
+  "..",
+  "frontend",
   "assets",
   "js",
-  "admin-timeline",
-  "timeline-cluster-placement.js",
+  "cluster-logic",
+  "cluster-placement.js",
 );
-const clusterPlacementSource = fs.readFileSync(clusterPlacementPath, "utf8");
-vm.runInNewContext(clusterPlacementSource, axisSandbox);
+loadEsmAsPlainScript(clusterPlacementPath, axisSandbox);
+axisSandbox.window.AdminTimelineClusterPlacement = {
+  SPACING: { compact: 12, normal: 16, spread: 22 },
+  FAN_SPREAD: 6,
+  // Bridge converts the admin caller's plain-object groupedEvents to/from
+  // the canonical module's Map shape (see cluster-placement-bridge.js).
+  computeDotPositions: function (groupedEventsObject, pxPerPeriod) {
+    const groupedEventsMap = new Map(Object.entries(groupedEventsObject));
+    const positionedMap = axisSandbox.computeDotPositions(
+      groupedEventsMap,
+      pxPerPeriod,
+    );
+    const positionedObject = {};
+    for (const [period, positions] of positionedMap) {
+      positionedObject[period] = positions;
+    }
+    return positionedObject;
+  },
+};
 
 const clusterLabelsPath = path.resolve(
   __dirname,
   "..",
+  "..",
+  "frontend",
   "assets",
   "js",
-  "admin-timeline",
-  "timeline-cluster-labels.js",
+  "cluster-logic",
+  "cluster-labels.js",
 );
-const clusterLabelsSource = fs.readFileSync(clusterLabelsPath, "utf8");
-vm.runInNewContext(clusterLabelsSource, axisSandbox);
+loadEsmAsPlainScript(clusterLabelsPath, axisSandbox);
+axisSandbox.window.AdminTimelineClusterLabels = {
+  LABEL_FULL: axisSandbox.LABEL_FULL,
+  LABEL_TRUNCATED: axisSandbox.LABEL_TRUNCATED,
+  LABEL_HIDDEN: axisSandbox.LABEL_HIDDEN,
+  computeLabelModes: axisSandbox.computeLabelModes,
+};
 
 vm.runInNewContext(axisSource, axisSandbox);
 

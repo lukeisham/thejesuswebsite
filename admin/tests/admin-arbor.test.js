@@ -144,6 +144,33 @@ const edgesSandbox = {
   console: { error: function () {} },
 };
 
+// arbor-edges.js now reads window.AdminArborComputeEdgePath, normally set by
+// cluster-logic-bridge/edge-path-bridge.js before arbor-edges.js runs (see
+// admin/diagrams/arbor.html). Load the real canonical module into any
+// sandbox before evaluating arbor-edges.js in it, so tests exercise the same
+// computeEdgePath logic (frontend/assets/js/cluster-logic/edge-path.js),
+// stripped of its `export` keyword since vm.runInNewContext can't execute
+// ESM syntax directly.
+const edgePathModulePath = path.resolve(
+  __dirname,
+  "..",
+  "..",
+  "frontend",
+  "assets",
+  "js",
+  "cluster-logic",
+  "edge-path.js",
+);
+const edgePathSource = fs
+  .readFileSync(edgePathModulePath, "utf8")
+  .replace(/^export\s+function\s+/m, "function ");
+
+function installComputeEdgePathBridge(sandbox) {
+  vm.runInNewContext(edgePathSource, sandbox);
+  sandbox.window.AdminArborComputeEdgePath = sandbox.computeEdgePath;
+}
+
+installComputeEdgePathBridge(edgesSandbox);
 vm.runInNewContext(edgesSource, edgesSandbox);
 
 const { validateConnection } = edgesSandbox.window.AdminArborEdges;
@@ -695,6 +722,7 @@ describe("edge anchor alignment", function () {
   var edgesSource2 = fs.readFileSync(edgesPath, "utf8");
   var geometrySource2 = fs.readFileSync(geometryPath, "utf8");
   vm.runInNewContext(geometrySource2, anchorSandbox);
+  installComputeEdgePathBridge(anchorSandbox);
   vm.runInNewContext(edgesSource2, anchorSandbox);
 
   var createEdgeElement =
@@ -818,6 +846,7 @@ function makeEdgePathCaptureSandbox() {
     console: { error: function () {} },
   };
 
+  installComputeEdgePathBridge(sandbox);
   vm.runInNewContext(edgesSource, sandbox);
   return {
     edgesModule: sandbox.window.AdminArborEdges,
@@ -1077,6 +1106,7 @@ function makeConnectFlowSandbox(connectMenuChoice, options) {
     },
   };
 
+  installComputeEdgePathBridge(sandbox);
   vm.runInNewContext(edgesSource, sandbox);
   return {
     edgesModule: sandbox.window.AdminArborEdges,

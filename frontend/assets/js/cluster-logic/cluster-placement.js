@@ -7,7 +7,7 @@
  *
  * Replaces the old STAGGER_OFFSETS alternating pattern in timeline-render.js.
  *
- * @module timeline/timeline-cluster-placement
+ * @module cluster-logic/cluster-placement
  */
 
 import {
@@ -15,7 +15,7 @@ import {
   DENSITY_NORMAL,
   DENSITY_SPREAD,
   getClusterDensity,
-} from "./timeline-cluster-density.js";
+} from "./cluster-density.js";
 
 /**
  * Dot spacing values (pixels between adjacent dots in a stack) per density tier.
