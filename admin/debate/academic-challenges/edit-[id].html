@@ -198,16 +198,6 @@
     form.className = 'admin-form-grid';
     form.setAttribute('novalidate', '');
     main.appendChild(form);
-    // Image picker for challenge picture
-    var challengePickerContainer = document.getElementById('challenge-picker');
-    var challengePicker = null;
-    if (challengePickerContainer && typeof AdminImagePicker !== 'undefined') {
-        challengePicker = AdminImagePicker.mount(challengePickerContainer, {
-            initialPath: data.challenge_picture || '',
-            onChange: function(val) { /* tracked via getValue */ },
-        });
-    }
-
 
     var mainCol = document.createElement('div');
     mainCol.className = 'admin-form-grid__main';
@@ -290,6 +280,8 @@
         picGroup.appendChild(picHint);
         return picGroup;
     })());
+
+    var challengePicker = AdminImagePicker.mount(document.getElementById('challenge-picker'), { initialPath: data.challenge_picture || '' });
 
     var sidebar = document.createElement('div');
     sidebar.className = 'admin-form-grid__sidebar';

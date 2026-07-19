@@ -235,15 +235,6 @@
           </div>
         </div>
 
-        <div class="admin-form-card" style="margin-top:var(--space-md)">
-          <div class="admin-form-group">
-            <div class="admin-checkbox-group">
-              <input type="checkbox" id="challenge-publish" name="published_draft" value="1">
-              <label for="challenge-publish">Publish immediately</label>
-            </div>
-            <span class="admin-form-hint" style="margin-top:var(--space-xs)">When checked, the challenge will be published on save.</span>
-          </div>
-        </div>
       </div>
 
     </form>
@@ -270,6 +261,7 @@
     var submitStatus = document.getElementById('submit-status');
     var titleError = document.getElementById('title-error');
     var slugError = document.getElementById('slug-error');
+    var challengePicker = AdminImagePicker.mount(document.getElementById('challenge-picker'), { initialPath: '' });
 
     // Spellcheck: init the system and attach to the summary textarea
     var summaryInput = document.getElementById('challenge-summary');
