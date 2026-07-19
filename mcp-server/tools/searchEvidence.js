@@ -19,10 +19,12 @@ export const inputSchema = {
     query: {
       type: 'string',
       description: 'The search term — at least one non-whitespace character.',
+      maxLength: 200,
     },
     type: {
       type: 'string',
       description: 'Optional entity type to narrow results (e.g. "evidence").',
+      maxLength: 50,
     },
     limit: {
       type: 'number',

@@ -16,6 +16,7 @@ export const inputSchema = {
     mapKey: {
       type: 'string',
       description: 'The unique map key (e.g. "roman-empire", "galilee", "jerusalem").',
+      maxLength: 200,
     },
   },
   required: ['mapKey'],
