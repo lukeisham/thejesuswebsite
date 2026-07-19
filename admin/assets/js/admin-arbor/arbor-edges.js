@@ -41,10 +41,18 @@ window.AdminArborEdges = {};
   /* ── Edge path computation ────────────────────────────────────────────────────
      Delegated to the shared canonical module (frontend/assets/js/cluster-logic/
      edge-path.js) via window.AdminArborComputeEdgePath, provided by
-     cluster-logic-bridge/edge-path-bridge.js, which must load before this
-     script (see admin/diagrams/arbor.html). Kept as a local reference so the
-     two call sites below stay unchanged in shape. */
-  var computeEdgePath = window.AdminArborComputeEdgePath;
+     cluster-logic-bridge/edge-path-bridge.js, which is expected to load before
+     this script (see admin/diagrams/arbor.html). Resolved lazily at each call
+     site rather than captured at module load, so script-order changes fail
+     loudly at the point of use instead of silently breaking. */
+  function computeEdgePath(sx, sy, tx, ty, offsetIndex, waypoints) {
+    if (typeof window.AdminArborComputeEdgePath !== "function") {
+      throw new Error(
+        "AdminArborComputeEdgePath is not available — cluster-logic-bridge/edge-path-bridge.js must load before arbor-edges.js.",
+      );
+    }
+    return window.AdminArborComputeEdgePath(sx, sy, tx, ty, offsetIndex, waypoints);
+  }
 
   /* ── Pure validation helpers ───────────────────────────────────────────────── */
 
@@ -624,4 +632,5 @@ window.AdminArborEdges = {};
   // Exposed so arbor-edge-reroute.js can render an identical live-preview path
   // without a second implementation (JS-3: one routing algorithm, not two).
   Edges.computeEdgePath = computeEdgePath;
+
 })();
