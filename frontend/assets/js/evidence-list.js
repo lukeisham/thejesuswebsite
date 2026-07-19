@@ -273,12 +273,25 @@ function cacheItems() {
       JSON.stringify({
         version: Date.now(),
         items: allItems,
+        // Tag the cache with the filter state it was built under (JS-6) so
+        // restoreFromCache() can refuse a mismatched snapshot — e.g. back-
+        // navigating from /evidence?timeline_era=Life to the unfiltered
+        // /evidence must not show the filtered cache.
+        filters: activeFilters,
       }),
     );
     sessionStorage.setItem(STORAGE_KEY_SCROLL, String(window.scrollY));
   } catch {
     /* quota exceeded — non-critical */
   }
+}
+
+/** Shallow key/value equality check for the small filter-params objects. */
+function filtersEqual(a, b) {
+  const aKeys = Object.keys(a || {});
+  const bKeys = Object.keys(b || {});
+  if (aKeys.length !== bKeys.length) return false;
+  return aKeys.every((key) => a[key] === b[key]);
 }
 
 function clearCachedItems() {
@@ -297,9 +310,18 @@ function clearCachedItems() {
  */
 async function silentlyRefreshPage1() {
   try {
-    const params = { page: "1", limit: String(PAGE_SIZE) };
+    // Capture the filter context at the moment the fetch is issued (JS-5) so
+    // the callback below can detect if the user changed filters while this
+    // request was in flight and discard a now-stale response instead of
+    // silently overwriting a filtered view with unfiltered data.
+    const requestFilters = { ...activeFilters };
+    const params = { ...requestFilters, page: "1", limit: String(PAGE_SIZE) };
     const { data, error } = await getEvidence(params);
     if (error || !data) return;
+
+    // Filters diverged while the fetch was in flight — this response no
+    // longer describes the view the user is looking at. Discard it.
+    if (!filtersEqual(requestFilters, activeFilters)) return;
 
     const freshItems = data?.items || data || [];
     const freshTotal = data?.total ?? freshItems.length;
@@ -348,6 +370,19 @@ function restoreFromCache() {
       const parsed = JSON.parse(cached);
       // Handle both versioned and legacy (flat array) cache formats
       const cachedItems = parsed.items || parsed;
+      // Legacy caches (written before filter-tagging) have no `filters` key —
+      // treat that as "unfiltered" so old sessionStorage entries aren't
+      // rejected outright, but still require an exact match against the
+      // current URL's filters (parsed into activeFilters before this runs).
+      const cachedFilters = parsed.filters || {};
+
+      if (!filtersEqual(cachedFilters, activeFilters)) {
+        // Cache was built under different filters than the current view —
+        // e.g. back-navigating from a filtered URL to the unfiltered list.
+        // Restoring it would show the wrong items, so fall through to a
+        // fresh live fetch instead.
+        return false;
+      }
 
       if (cachedItems && cachedItems.length > 0) {
         allItems = cachedItems;
