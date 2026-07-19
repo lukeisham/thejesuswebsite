@@ -1,6 +1,6 @@
 /**
  * Blog post detail page: fetch blog post by slug, render header,
- * body, pull quotes, figures, bibliography, further reading, and SEO JSON-LD.
+ * body, pull quotes, figures, bibliography, and SEO JSON-LD.
  *
  * @module blog-detail
  */
@@ -25,8 +25,7 @@ const $content = document.getElementById("blog-content");
 const $title = document.getElementById("page-h1");
 const $date = document.getElementById("blog-date");
 const $body = document.getElementById("blog-body");
-const $furtherReading = document.getElementById("blog-further-reading");
-const $sourcesList = document.getElementById("blog-sources-list");
+
 const $bibList = document.getElementById("blog-bibliography-list");
 const $bibSection = document.getElementById("blog-bibliography");
 
@@ -156,36 +155,6 @@ function renderBibliography(post) {
   }
 }
 
-function renderFurtherReading(post) {
-  if (
-    !post.sources ||
-    !Array.isArray(post.sources) ||
-    post.sources.length === 0
-  ) {
-    if ($furtherReading) $furtherReading.hidden = true;
-    return;
-  }
-
-  if ($furtherReading) $furtherReading.hidden = false;
-
-  if ($sourcesList) {
-    $sourcesList.innerHTML = post.sources
-      .map((src) => {
-        const label =
-          src.title || src.label || src.citation || "Untitled source";
-        if (src.url) {
-          return html`<li>
-            <a href="${src.url}" target="_blank" rel="noopener noreferrer"
-              >${label}</a
-            >
-          </li>`;
-        }
-        return html`<li>${label}</li>`;
-      })
-      .join("");
-  }
-}
-
 // ─── SEO ─────────────────────────────────────────────────────────────────────
 
 function applySEO(post) {
@@ -250,9 +219,8 @@ async function init() {
   renderHeader(data);
   renderBody(data);
   renderBibliography(data);
-  renderFurtherReading(data);
 
-  // Apply SEO metadata
+    // Apply SEO metadata
   applySEO(data);
 
   // Show content
