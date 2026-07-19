@@ -258,19 +258,16 @@
                             var typeSelect = document.createElement("select");
                             typeSelect.className = "admin-select";
                             typeSelect.id = "filter-type";
-                            typeSelect.innerHTML =
-                                '<option value="">All Types</option>' +
-                                types
-                                    .map(function (t) {
-                                        return (
-                                            '<option value="' +
-                                            t +
-                                            '">' +
-                                            (TYPE_LABELS[t] || t) +
-                                            "</option>"
-                                        );
-                                    })
-                                    .join("");
+                            var allTypesOption = document.createElement("option");
+                            allTypesOption.value = "";
+                            allTypesOption.textContent = "All Types";
+                            typeSelect.appendChild(allTypesOption);
+                            types.forEach(function (t) {
+                                var typeOption = document.createElement("option");
+                                typeOption.value = t;
+                                typeOption.textContent = TYPE_LABELS[t] || t;
+                                typeSelect.appendChild(typeOption);
+                            });
                             typeDiv.appendChild(typeLabel);
                             typeDiv.appendChild(typeSelect);
                             filterBar.appendChild(typeDiv);

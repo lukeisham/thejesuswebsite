@@ -242,6 +242,9 @@ router.post(
 // POST /passkey/login/options — begin an assertion ceremony
 router.post("/login/options", loginOptionsLimit, (req, res) => {
   try {
+    // Defaulting to "admin" here is intentional: login/verify re-resolves the
+    // real handle from the credential id, so this default never grants access
+    // on its own.
     const handle = validateHandle(req.body.handle || "admin");
     // Restrict the browser to credentials the server actually has enrolled for
     // this handle, so a stale passkey left over from a credential reset is

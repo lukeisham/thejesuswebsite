@@ -17,6 +17,7 @@ export const inputSchema = {
     slug: {
       type: 'string',
       description: 'The URL slug of the evidence item (e.g. "baptism-of-jesus").',
+      maxLength: 200,
     },
   },
   required: ['slug'],

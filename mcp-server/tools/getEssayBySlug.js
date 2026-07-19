@@ -16,6 +16,7 @@ export const inputSchema = {
     slug: {
       type: 'string',
       description: 'The URL slug of the essay (e.g. "messianic-expectations").',
+      maxLength: 200,
     },
   },
   required: ['slug'],

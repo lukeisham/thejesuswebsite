@@ -18,6 +18,7 @@ export const inputSchema = {
       type: "string",
       description:
         'Optional era to filter by. One of "PreIncarnation", "OldTestament", "EarlyLife", "Life", "GalileeMinistry", "JudeanMinistry", "PassionWeek", or "Post-Passion".',
+      maxLength: 50,
     },
   },
 };
