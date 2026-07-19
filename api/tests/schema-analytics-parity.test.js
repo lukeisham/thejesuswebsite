@@ -43,6 +43,20 @@ describe("analytics indexes", () => {
     assert.ok(index, "idx_analytics_is_bot index missing from schema");
     assert.equal(index.name, "idx_analytics_is_bot");
   });
+
+  // Matches migration 029_analytics_composite_index.sql — speeds up
+  // getTopPagesWithTrend()'s per-page date-range JOIN.
+  test("includes idx_analytics_page_visited_at composite index on (page, visited_at)", () => {
+    const index = db
+      .prepare("SELECT name, sql FROM sqlite_master WHERE type = 'index' AND name = ?")
+      .get("idx_analytics_page_visited_at");
+
+    assert.ok(index, "idx_analytics_page_visited_at index missing from schema");
+    const indexedColumns = db.pragma("index_info(idx_analytics_page_visited_at)")
+      .map((c) => c.name);
+    assert.deepEqual(indexedColumns, ["page", "visited_at"],
+      `Expected composite index on (page, visited_at), got (${indexedColumns.join(", ")})`);
+  });
 });
 
 // ── Full column list parity ──────────────────────────────────────────────────

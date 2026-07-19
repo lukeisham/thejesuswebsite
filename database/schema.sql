@@ -695,6 +695,9 @@ CREATE INDEX idx_wikipedia_article_signals ON wikipedia_article_signals (wikiped
 CREATE INDEX idx_analytics_page            ON analytics (page);
 CREATE INDEX idx_analytics_visited_at      ON analytics (visited_at);
 CREATE INDEX idx_analytics_is_bot          ON analytics (is_bot);
+-- Composite index for getTopPagesWithTrend()'s per-page date-range JOIN
+-- (see database/migrations/029_analytics_composite_index.sql).
+CREATE INDEX idx_analytics_page_visited_at ON analytics (page, visited_at);
 
 -- Map pins
 CREATE INDEX idx_map_pins_map_id ON map_pins (map_id);
