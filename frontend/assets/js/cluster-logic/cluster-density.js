@@ -6,7 +6,7 @@
  * the single source of truth consumed by both placement and label modules
  * so their behaviour stays in step.
  *
- * @module timeline/timeline-cluster-density
+ * @module cluster-logic/cluster-density
  */
 
 /** Density tier constants. */

@@ -22,14 +22,14 @@ import {
   DENSITY_COMPACT,
   DENSITY_NORMAL,
   DENSITY_SPREAD,
-} from "./timeline-cluster-density.js";
-import { computeDotPositions } from "./timeline-cluster-placement.js";
+} from "../cluster-logic/cluster-density.js";
+import { computeDotPositions } from "../cluster-logic/cluster-placement.js";
 import {
   computeLabelModes,
   LABEL_FULL,
   LABEL_TRUNCATED,
   LABEL_HIDDEN,
-} from "./timeline-cluster-labels.js";
+} from "../cluster-logic/cluster-labels.js";
 import { periodX, periodY } from "./timeline-geometry.js";
 
 // ─── Configuration ────────────────────────────────────────────────────────────

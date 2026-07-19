@@ -5,7 +5,7 @@
  * fully, truncated with ellipsis, or hidden entirely — all based on the same
  * density tier consumed by the placement module.
  *
- * @module timeline/timeline-cluster-labels
+ * @module cluster-logic/cluster-labels
  */
 
 import {
@@ -13,7 +13,7 @@ import {
   DENSITY_NORMAL,
   DENSITY_SPREAD,
   getClusterDensity,
-} from "./timeline-cluster-density.js";
+} from "./cluster-density.js";
 
 /** Label display modes. */
 export const LABEL_FULL = "full";
