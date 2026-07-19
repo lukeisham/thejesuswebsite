@@ -48,47 +48,51 @@ describe("pickWritable", () => {
 describe("generateUniqueSlug", () => {
   let db;
 
+  // generateUniqueSlug now whitelists its `table` argument (SQL-4), so tests
+  // must use a real whitelisted table rather than an ad-hoc CREATE TABLE.
+  // `collections` already exists in the schema createTestDb() loads.
   beforeEach(() => {
     db = createTestDb();
-    db.exec(`
-      CREATE TABLE test_slugs (
-        id   INTEGER PRIMARY KEY AUTOINCREMENT,
-        slug TEXT NOT NULL
-      );
-    `);
   });
 
   test("returns the base slug when no collision exists", () => {
-    const slug = generateUniqueSlug(db, "test_slugs", "my-slug");
+    const slug = generateUniqueSlug(db, "collections", "my-slug");
     assert.equal(slug, "my-slug");
   });
 
   test("appends -2 on collision", () => {
-    db.prepare("INSERT INTO test_slugs (slug) VALUES (?)").run("my-slug");
-    const slug = generateUniqueSlug(db, "test_slugs", "my-slug");
+    db.prepare("INSERT INTO collections (slug, title) VALUES (?, ?)").run("my-slug", "Title");
+    const slug = generateUniqueSlug(db, "collections", "my-slug");
     assert.equal(slug, "my-slug-2");
   });
 
   test("increments the suffix across multiple collisions", () => {
-    db.prepare("INSERT INTO test_slugs (slug) VALUES (?)").run("my-slug");
-    db.prepare("INSERT INTO test_slugs (slug) VALUES (?)").run("my-slug-2");
-    const slug = generateUniqueSlug(db, "test_slugs", "my-slug");
+    db.prepare("INSERT INTO collections (slug, title) VALUES (?, ?)").run("my-slug", "Title");
+    db.prepare("INSERT INTO collections (slug, title) VALUES (?, ?)").run("my-slug-2", "Title 2");
+    const slug = generateUniqueSlug(db, "collections", "my-slug");
     assert.equal(slug, "my-slug-3");
   });
 
   test("excludeId lets a row keep its own slug", () => {
-    db.prepare("INSERT INTO test_slugs (id, slug) VALUES (1, 'my-slug')").run();
+    db.prepare("INSERT INTO collections (id, slug, title) VALUES (1, 'my-slug', 'Title')").run();
     // Row with id=1 already has 'my-slug', but we exclude it.
-    const slug = generateUniqueSlug(db, "test_slugs", "my-slug", 1);
+    const slug = generateUniqueSlug(db, "collections", "my-slug", 1);
     assert.equal(slug, "my-slug");
   });
 
   test("collides with a different row's slug when excludeId doesn't match", () => {
-    db.prepare("INSERT INTO test_slugs (id, slug) VALUES (1, 'my-slug')").run();
-    db.prepare("INSERT INTO test_slugs (id, slug) VALUES (2, 'my-slug-2')").run();
+    db.prepare("INSERT INTO collections (id, slug, title) VALUES (1, 'my-slug', 'Title')").run();
+    db.prepare("INSERT INTO collections (id, slug, title) VALUES (2, 'my-slug-2', 'Title 2')").run();
     // Excluding id=1 means 'my-slug' is free, but 'my-slug-2' is taken by id=2.
-    const slug = generateUniqueSlug(db, "test_slugs", "my-slug", 1);
+    const slug = generateUniqueSlug(db, "collections", "my-slug", 1);
     assert.equal(slug, "my-slug");
+  });
+
+  test("throws for a table not in the whitelist", () => {
+    assert.throws(
+      () => generateUniqueSlug(db, "not_a_real_table", "my-slug"),
+      /Unknown table in generateUniqueSlug/,
+    );
   });
 });
 

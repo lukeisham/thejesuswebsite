@@ -5,6 +5,33 @@
 
 const db = require('../../config');
 
+// SQL-4: identifiers interpolated into raw SQL below must come from these
+// hardcoded whitelists. Derived from every call site of getChildren/
+// replaceChildren across the models (all four breakout tables share the
+// title/content shape).
+const CHILD_TABLES = new Set([
+  'response_breakouts',
+  'essay_breakouts',
+  'blog_breakouts',
+  'historiography_breakouts',
+]);
+
+const CHILD_FK_COLUMNS = new Set([
+  'response_id',
+  'context_essay_id',
+  'blog_post_id',
+  'historiography_id',
+]);
+
+const CHILD_WRITABLE_COLUMNS = new Set(['title', 'content']);
+
+/** Throw if `value` is not present in `allowedSet`, tagging the error with `label`. */
+function assertWhitelisted(value, allowedSet, label) {
+  if (!allowedSet.has(value)) {
+    throw new Error(`Unknown ${label}: ${value}`);
+  }
+}
+
 /**
  * Fetch all child rows for a given parent, ordered by sort_order then id.
  *
@@ -18,6 +45,9 @@ const db = require('../../config');
  * @returns {object[]}
  */
 function getChildren(table, fkColumn, parentId) {
+  assertWhitelisted(table, CHILD_TABLES, 'child table');
+  assertWhitelisted(fkColumn, CHILD_FK_COLUMNS, 'child FK column');
+
   const sql = `SELECT * FROM ${table} WHERE ${fkColumn} = ? ORDER BY sort_order ASC, id ASC`;
   return db.prepare(sql).all(parentId);
 }
@@ -37,6 +67,12 @@ function getChildren(table, fkColumn, parentId) {
  * @param {string[]} columns - column names to insert (excluding id and fkColumn)
  */
 function replaceChildren(table, fkColumn, parentId, rows, columns) {
+  assertWhitelisted(table, CHILD_TABLES, 'child table');
+  assertWhitelisted(fkColumn, CHILD_FK_COLUMNS, 'child FK column');
+  for (const col of columns) {
+    assertWhitelisted(col, CHILD_WRITABLE_COLUMNS, 'child writable column');
+  }
+
   // Delete existing children.
   db.prepare(`DELETE FROM ${table} WHERE ${fkColumn} = ?`).run(parentId);
 
