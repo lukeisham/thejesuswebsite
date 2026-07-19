@@ -240,17 +240,6 @@ CREATE TABLE wikipedia_article_signals (
     UNIQUE(wikipedia_article_id, signal_key)
 );
 
-CREATE TABLE about_pages (
-    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
-    about_section_title   TEXT,
-    about_section_content TEXT,
-    published_draft       INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
-    version_update        INTEGER DEFAULT 1,
-    metadata_keywords     TEXT,
-    created_at            DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at            DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE collections (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     slug            TEXT UNIQUE NOT NULL,
@@ -885,13 +874,6 @@ AFTER UPDATE ON historiography
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
     UPDATE historiography SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER about_pages_updated_at
-AFTER UPDATE ON about_pages
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-    UPDATE about_pages SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
 END;
 
 CREATE TRIGGER collections_updated_at

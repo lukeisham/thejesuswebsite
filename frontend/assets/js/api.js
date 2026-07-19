@@ -194,12 +194,6 @@ export async function getResources(params) {
   return request(`/resources${qs}`);
 }
 
-// ─── About ────────────────────────────────────────────────────────────────────
-
-export async function getAbout() {
-  return request("/about");
-}
-
 // ─── Site Settings ────────────────────────────────────────────────────────────
 
 /** Global site-branding metadata: title, description, og_image. */
