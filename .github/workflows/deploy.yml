@@ -26,13 +26,63 @@ jobs:
       # instead of waiting out the HTML edge cache's max-age=60 window. Must
       # run after the SSH deploy step succeeds — purging before origin serves
       # the new content would just re-cache stale bytes.
+      #
+      # A purge failure is EXPECTED AND INTENDED to turn the job red and
+      # trigger GitHub's failure notification. The SSH deploy step above has
+      # already completed and is unaffected. Do NOT add `continue-on-error:
+      # true` here — that would silently swallow purge failures and reintroduce
+      # the issue this step is designed to prevent (row #73 in setup/Issues.md).
       - name: Purge Cloudflare cache
+        id: purge
         run: |
           set -euo pipefail
-          response=$(curl -fsS -X POST \
+
+          http_code=$(curl -sS -w '%{http_code}' -o response.json -X POST \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}')
-          echo "$response"
-          echo "$response" | grep -q '"success":true'
+
+          body=$(cat response.json)
+          echo "$body"
+
+          # Fail visibly on non-2xx HTTP status (auth errors, rate limiting,
+          # network failures, etc.).
+          if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            {
+              echo "❌ Cloudflare cache purge FAILED — HTTP $http_code"
+              echo "Response body: $body"
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          # Parse the JSON success field explicitly. Cloudflare sometimes
+          # returns HTTP 200 with {"success":false,"errors":[...]} — curl's
+          # exit code alone cannot catch that case.
+          if command -v jq &>/dev/null; then
+            if echo "$body" | jq -e '.success == true' >/dev/null 2>&1; then
+              echo "✅ Cloudflare cache purge succeeded" | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              error_detail=$(echo "$body" | jq -c '.errors // "no errors array"' 2>/dev/null || echo "(unable to parse errors)")
+              {
+                echo "❌ Cloudflare cache purge FAILED — HTTP $http_code, success:false"
+                echo "Cloudflare errors: $error_detail"
+                echo "Full response: $body"
+              } | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+          else
+            # jq unavailable (should never happen on ubuntu-latest). Fall back
+            # to a stricter grep: require "success":true present AND
+            # "success":false absent.
+            if echo "$body" | grep -q '"success"[[:space:]]*:[[:space:]]*true' && \
+               ! echo "$body" | grep -q '"success"[[:space:]]*:[[:space:]]*false'; then
+              echo "✅ Cloudflare cache purge succeeded (grep fallback)" | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              {
+                echo "❌ Cloudflare cache purge FAILED — HTTP $http_code, success check failed"
+                echo "Full response: $body"
+              } | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+          fi
