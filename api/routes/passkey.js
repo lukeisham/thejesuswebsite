@@ -24,6 +24,10 @@ const { sendError } = require("../lib/error-handler");
 const router = express.Router();
 
 // Relying-party identity. RP_ID must match the site's domain in production.
+// The "localhost" fallback below is safe only because api/config/load-env.js
+// enforces NODE_ENV to be explicitly "production" or "development" at boot,
+// and separately throws if RP_ID is missing when NODE_ENV=production — so
+// this fallback can only ever apply in development.
 const RP_ID = process.env.RP_ID || "localhost";
 const RP_NAME = "The Jesus Website";
 const CHALLENGE_TTL_MS = 1000 * 60 * 5; // 5 minutes to complete a ceremony

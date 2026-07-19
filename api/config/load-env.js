@@ -73,6 +73,18 @@ function loadEnv() {
     }
   }
 
+  // Tier 1 (fatal): NODE_ENV must be explicitly "production" or "development".
+  // An unset or misspelled NODE_ENV silently disables every production-only
+  // guard below (RP_ID/ORIGIN enforcement, dev-bypass gating), so it is
+  // validated first, before any other boot code runs.
+  const VALID_NODE_ENVS = ["production", "development"];
+  if (!VALID_NODE_ENVS.includes(process.env.NODE_ENV)) {
+    throw new Error(
+      `FATAL: NODE_ENV must be explicitly set to "production" or "development" ` +
+        `(got ${JSON.stringify(process.env.NODE_ENV)}). Set it in .env.`,
+    );
+  }
+
   // JS-2: In production, refuse to boot without RP_ID and ORIGIN — the origin
   // and RP ID checks silently weaken without them, and a missing RP_ID also
   // breaks WebAuthn ceremony generation (challenge endpoints use it as a const).
@@ -90,6 +102,29 @@ function loadEnv() {
       );
     }
   }
+
+  // Tier 2 (warning, non-fatal): the dev-bypass flag armed without its secret
+  // is a footgun — it works, but with a weaker guard than intended. NODE_ENV
+  // unset can no longer reach this point (it throws above), so this only
+  // fires when the operator has explicitly opted into dev mode.
+  if (
+    process.env.ADMIN_DEV_BYPASS === "1" &&
+    !process.env.ADMIN_DEV_BYPASS_SECRET
+  ) {
+    console.warn(
+      "WARNING: ADMIN_DEV_BYPASS=1 is set without ADMIN_DEV_BYPASS_SECRET — " +
+        "the dev auth bypass route is armed but potentially insecure.",
+    );
+  }
+
+  // Dev ergonomics: when NODE_ENV=development, RP_ID and ORIGIN are allowed
+  // to be absent from .env. routes/passkey.js falls back to RP_ID="localhost"
+  // for WebAuthn ceremonies, and unset ORIGIN is treated as `null` by the
+  // same route (see the `process.env.ORIGIN || null` checks there) — WebAuthn
+  // origin verification is effectively skipped for local testing. Both
+  // fallbacks are safe only because this loader guarantees NODE_ENV is one of
+  // exactly two explicit values, so "development" cannot be reached by
+  // accident (e.g. a typo'd or unset NODE_ENV, which now throws above).
 
   return count;
 }
