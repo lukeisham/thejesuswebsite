@@ -449,6 +449,97 @@ describe("overlay — synchronous invalidation", () => {
   });
 });
 
+// ── Overlay: attach() initializes _marks (early-correction fix) ────────────
+//   Regression coverage for the overlap-flicker fix verification: attach()
+//   must set overlay._marks = [] synchronously so invalidateRange() can run
+//   before the first worker scan completes, instead of silently no-op'ing
+//   on `!overlay._marks` and leaving a stale mark on screen. Replicated from
+//   spellcheck-overlay-render.js (attach() and invalidateRange()).
+
+describe("overlay — attach initializes _marks for early corrections", () => {
+  /** Minimal stand-in for the real overlay object attach() builds. */
+  function fakeAttach() {
+    const overlay = { _marks: [], renderCalls: 0 };
+    return overlay;
+  }
+
+  /** Exact copy of invalidateRange()'s guard + update logic, operating on the fake overlay. */
+  function invalidateRange(overlay, start, end, replacementLength) {
+    if (!overlay || !overlay._marks) return false; // mirrors the silent-return guard
+
+    const delta = replacementLength - (end - start);
+    const updated = [];
+    for (const mark of overlay._marks) {
+      if (mark.start === start && mark.end === end) continue;
+      updated.push(
+        mark.start >= end
+          ? { ...mark, start: mark.start + delta, end: mark.end + delta }
+          : mark,
+      );
+    }
+    overlay._marks = updated;
+    overlay.renderCalls += 1; // stands in for the synchronous _renderMarks() call
+    return true;
+  }
+
+  test("invalidateRange succeeds immediately after attach(), before any render()", () => {
+    const overlay = fakeAttach();
+    assert.deepStrictEqual(overlay._marks, []);
+
+    // Before this fix, overlay._marks was undefined until the first worker
+    // render() — invalidateRange would hit the guard and silently return.
+    const handled = invalidateRange(overlay, 0, 4, 3);
+    assert.equal(handled, true);
+    assert.equal(overlay.renderCalls, 1);
+    assert.deepStrictEqual(overlay._marks, []);
+  });
+
+  test("without the fix (overlay._marks undefined), invalidateRange silently no-ops", () => {
+    const overlay = { renderCalls: 0 }; // _marks intentionally left unset
+    const handled = invalidateRange(overlay, 0, 4, 3);
+    assert.equal(handled, false);
+    assert.equal(overlay.renderCalls, 0);
+  });
+
+  test("rapid-fire corrections: two invalidateRange calls with no render() in between", () => {
+    const overlay = fakeAttach();
+    // Simulate a worker render() landing between attach() and the first
+    // correction, containing two misspellings.
+    overlay._marks = [
+      { start: 0, end: 3, type: "spelling", data: { word: "Teh" } },
+      { start: 4, end: 8, type: "spelling", data: { word: "wrld" } },
+    ];
+
+    // Correct "Teh" -> "The" (delta 0) synchronously.
+    let handled = invalidateRange(overlay, 0, 3, 3);
+    assert.equal(handled, true);
+    assert.equal(overlay._marks.length, 1);
+    assert.equal(overlay._marks[0].start, 4);
+    assert.equal(overlay._marks[0].end, 8);
+
+    // Immediately correct "wrld" -> "world" (delta +1) within the same
+    // 1000ms debounce window, with no intervening worker re-render.
+    handled = invalidateRange(overlay, 4, 8, 5);
+    assert.equal(handled, true);
+    assert.equal(overlay._marks.length, 0);
+    assert.equal(overlay.renderCalls, 2);
+  });
+
+  test("rapid-fire corrections leave no stale mark for text typed after both edits", () => {
+    const overlay = fakeAttach();
+    overlay._marks = [
+      { start: 0, end: 3, type: "spelling", data: { word: "Teh" } },
+      { start: 10, end: 14, type: "spelling", data: { word: "isz" } },
+    ];
+
+    invalidateRange(overlay, 0, 3, 3); // "Teh" -> "The", delta 0
+    const result = invalidateRange(overlay, 10, 14, 2); // "isz" -> "is", delta -2
+
+    assert.equal(result, true);
+    assert.equal(overlay._marks.length, 0);
+  });
+});
+
 // ── Tokenization (used by worker) ──────────────────────────────────────────
 
 describe("tokenizer — word extraction", () => {

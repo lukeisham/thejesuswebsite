@@ -26,6 +26,12 @@ const SpellcheckOverlay = {
     overlay.setAttribute("aria-hidden", "true");
     wrapper.appendChild(overlay);
 
+    // Initialize to an empty marks array (not undefined) so invalidateRange()
+    // can run synchronously even if a correction happens before the first
+    // worker scan completes — otherwise its `!overlay._marks` guard would
+    // silently no-op and leave a stale mark on screen for up to ~1000ms.
+    overlay._marks = [];
+
     // Store references for later updates
     textarea._spellcheckWrapper = wrapper;
     textarea._spellcheckOverlay = overlay;
