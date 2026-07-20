@@ -39,6 +39,9 @@ function getAll() {
  * @returns {{ id: number, word: string, normalized: string, status: string }}
  */
 function add(word, status) {
+  if (/\s/.test(word)) {
+    throw new Error("Dictionary entries must be single words without whitespace");
+  }
   const normalized = word.toLowerCase();
   stmtUpsert.run({ word, normalized, status });
   return db

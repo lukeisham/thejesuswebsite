@@ -11,6 +11,8 @@ const http = require("http");
 const path = require("path");
 const Module = require("module");
 const { createTestDb } = require("./helpers/db");
+const { createTestServer, closeTestServer } = require("./helpers/test-server");
+const { clearAuthSessions } = require("./helpers/test-setup");
 
 // ── In-memory test database ─────────────────────────────────────────────────
 
@@ -45,11 +47,9 @@ function createApp() {
   return app;
 }
 
-function request(app, { method, path, body, headers }) {
+async function request(app, { method, path, body, headers }) {
+  const { server, port } = await createTestServer(app);
   return new Promise((resolve, reject) => {
-    const server = app.listen(0);
-    const { port } = server.address();
-
     const bodyStr =
       typeof body === "string" ? body : JSON.stringify(body || {});
     const reqHeaders = {
@@ -64,19 +64,19 @@ function request(app, { method, path, body, headers }) {
         let data = "";
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
-          server.close();
-          try {
-            resolve({ status: res.statusCode, body: JSON.parse(data) });
-          } catch {
-            resolve({ status: res.statusCode, body: data });
-          }
+          closeTestServer(server).then(() => {
+            try {
+              resolve({ status: res.statusCode, body: JSON.parse(data) });
+            } catch {
+              resolve({ status: res.statusCode, body: data });
+            }
+          });
         });
       },
     );
 
     req.on("error", (err) => {
-      server.close();
-      reject(err);
+      closeTestServer(server).then(() => reject(err));
     });
 
     req.write(bodyStr);
@@ -89,6 +89,11 @@ function authCookie() {
   const requireAuth = require("../middleware/auth");
   return `sid=${encodeURIComponent(requireAuth.createSession("test"))}`;
 }
+
+// Clear sessions between tests to prevent cross-test token leakage.
+beforeEach(() => {
+  clearAuthSessions();
+});
 
 // ── Model: direct tests ─────────────────────────────────────────────────────
 //   Test the model directly (no HTTP) for fine-grained coverage.
@@ -147,6 +152,16 @@ describe("spellcheck-dictionary model", () => {
     model.add("MiXeDcAsE", "learned");
     const result = model.remove("mixedcase");
     assert.equal(result, true);
+    assert.equal(model.getAll().length, 0);
+  });
+
+  test("add() throws on a multi-word entry and persists nothing", () => {
+    assert.throws(() => model.add("the scholars", "ignored"), /single words/);
+    assert.equal(model.getAll().length, 0);
+  });
+
+  test("add() throws on internal whitespace (tabs/newlines)", () => {
+    assert.throws(() => model.add("is\tis", "learned"), /single words/);
     assert.equal(model.getAll().length, 0);
   });
 
@@ -338,6 +353,58 @@ describe("POST /spellcheck-dictionary", () => {
       headers: { cookie: authCookie() },
     });
     assert.equal(result.status, 400);
+  });
+
+  test("rejects a multi-word phrase with 400 and does not persist it", async () => {
+    const app = createApp();
+    const result = await request(app, {
+      method: "POST",
+      path: "/spellcheck-dictionary",
+      body: { word: "the scholars", status: "ignored" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-034");
+
+    // Nothing should have been written to the dictionary.
+    const getResult = await request(app, {
+      method: "GET",
+      path: "/spellcheck-dictionary",
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(getResult.body.words.length, 0);
+  });
+
+  test("rejects a repeated-word grammar phrase with 400", async () => {
+    const app = createApp();
+    const result = await request(app, {
+      method: "POST",
+      path: "/spellcheck-dictionary",
+      body: { word: "is is", status: "learned" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-034");
+  });
+
+  test("still accepts a single-word entry after multi-word rejection", async () => {
+    const app = createApp();
+    // A multi-word attempt is rejected...
+    await request(app, {
+      method: "POST",
+      path: "/spellcheck-dictionary",
+      body: { word: "the scholars", status: "ignored" },
+      headers: { cookie: authCookie() },
+    });
+    // ...but a legitimate single word still succeeds.
+    const result = await request(app, {
+      method: "POST",
+      path: "/spellcheck-dictionary",
+      body: { word: "synoptic", status: "learned" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 201);
+    assert.equal(result.body.normalized, "synoptic");
   });
 });
 

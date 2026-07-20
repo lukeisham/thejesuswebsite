@@ -9,6 +9,7 @@ const http = require("http");
 const path = require("path");
 const Module = require("module");
 const { createTestDb } = require("./helpers/db");
+const { createTestServer, closeTestServer } = require("./helpers/test-server");
 
 // ── In-memory test database ─────────────────────────────────────────────────
 
@@ -44,11 +45,9 @@ function createApp() {
 /**
  * Make an HTTP request and return { status, body }.
  */
-function request(app, { method, path, body, headers }) {
+async function request(app, { method, path, body, headers }) {
+  const { server, port } = await createTestServer(app);
   return new Promise((resolve, reject) => {
-    const server = app.listen(0);
-    const { port } = server.address();
-
     const bodyStr =
       typeof body === "string" ? body : JSON.stringify(body || {});
     const reqHeaders = {
@@ -63,19 +62,19 @@ function request(app, { method, path, body, headers }) {
         let data = "";
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
-          server.close();
-          try {
-            resolve({ status: res.statusCode, body: JSON.parse(data) });
-          } catch {
-            resolve({ status: res.statusCode, body: data });
-          }
+          closeTestServer(server).then(() => {
+            try {
+              resolve({ status: res.statusCode, body: JSON.parse(data) });
+            } catch {
+              resolve({ status: res.statusCode, body: data });
+            }
+          });
         });
       },
     );
 
     req.on("error", (err) => {
-      server.close();
-      reject(err);
+      closeTestServer(server).then(() => reject(err));
     });
 
     req.write(bodyStr);

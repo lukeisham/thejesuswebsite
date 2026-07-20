@@ -54,6 +54,13 @@ function destroySession(token) {
   return sessions.delete(token);
 }
 
+/** Clear all sessions. Used by the test suite to isolate test files from
+ * each other when they each start their own test server. Not exported to
+ * production routes — only reachable via the internal exports object. */
+function clearSessions() {
+  sessions.clear();
+}
+
 /** Read the session token from the request's Cookie header without a parser lib. */
 function readToken(req) {
   const header = req.headers.cookie;
@@ -90,6 +97,7 @@ module.exports = requireAuth;
 module.exports.createSession = createSession;
 module.exports.getSession = getSession;
 module.exports.destroySession = destroySession;
+module.exports.clearSessions = clearSessions;
 module.exports.readToken = readToken;
 module.exports._evictExpired = _evictExpired;
 module.exports.SESSION_COOKIE = SESSION_COOKIE;
