@@ -17,7 +17,14 @@
  *     through without re-escaping; `<p>` blocks have inline markers resolved
  *     on the inner (already-escaped) text. `<figure>` and `<aside>` blocks
  *     (produced by this parser's own shortcode expansion) are also passed
- *     through.
+ *     through. If an inline `[figure ...]` shortcode expands *inside* a
+ *     `<p>` block (i.e. it shared a markdown line with other prose), the
+ *     resulting `<figure>` is extracted into its own sibling block —
+ *     `<figure>` is a block element and cannot legally nest inside `<p>` —
+ *     splitting the surrounding text into separate `<p>` blocks before and
+ *     after it. A `<p>` whose entire content is a single `<figure>` (no
+ *     other text on that line) is left nested exactly as-is, since there is
+ *     no prose to split out.
  *
  * @module content-markers
  *
@@ -130,6 +137,13 @@ export function parseContentBody(text, options = {}) {
             idMap,
             citationStyle,
           );
+          // An inline [figure ...] shortcode (Step 2) may have expanded to
+          // raw <figure> HTML inside this <p>. <figure> is a block element
+          // and browsers auto-close the <p> when they hit it, producing
+          // unpredictable rendering — split it out into a sibling block.
+          if (resolved.includes("<figure")) {
+            return splitParagraphAroundFigures(resolved);
+          }
           return `<p>${resolved}</p>`;
         }
         // Other block types (h1-h3, ul, ol, table, blockquote):
@@ -147,6 +161,53 @@ export function parseContentBody(text, options = {}) {
       ).replace(/\n/g, "<br>");
 
       return `<p>${innerHTML}</p>`;
+    })
+    .join("");
+}
+
+/**
+ * Split a `<p>`-block's resolved inner HTML around any `<figure>...</figure>`
+ * blocks it contains, so figures become standalone sibling blocks instead of
+ * being nested inside `<p>` (invalid HTML — block content inside `<p>`).
+ *
+ * Text before/between/after figures is re-wrapped in its own `<p>` (empty
+ * segments are dropped). If the content is a single figure with no
+ * surrounding text at all, the original nested `<p><figure>...</figure></p>`
+ * form is returned unchanged, since there is nothing to split out.
+ *
+ * @param {string} resolved - Inner HTML of a `<p>` block, markers already
+ *   resolved, containing at least one `<figure>` tag.
+ * @returns {string} Concatenated HTML blocks.
+ */
+function splitParagraphAroundFigures(resolved) {
+  const FIGURE_RE = /<figure[^>]*>[\s\S]*?<\/figure>/g;
+  const segments = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = FIGURE_RE.exec(resolved)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ type: "text", content: resolved.slice(lastIndex, match.index) });
+    }
+    segments.push({ type: "figure", content: match[0] });
+    lastIndex = FIGURE_RE.lastIndex;
+  }
+  if (lastIndex < resolved.length) {
+    segments.push({ type: "text", content: resolved.slice(lastIndex) });
+  }
+
+  const hasSurroundingText = segments.some(
+    (seg) => seg.type === "text" && seg.content.trim(),
+  );
+  if (!hasSurroundingText) {
+    return `<p>${resolved}</p>`;
+  }
+
+  return segments
+    .map((seg) => {
+      if (seg.type === "figure") return seg.content;
+      if (!seg.content.trim()) return "";
+      return `<p>${seg.content}</p>`;
     })
     .join("");
 }
