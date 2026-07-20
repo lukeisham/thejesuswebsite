@@ -2,7 +2,7 @@
  * Debate list pages: renders challenge cards for both popular and academic
  * challenge lists. Reads `data-type` attribute on <main> to determine which
  * API endpoint to call (popular or academic). Supports filter chips, infinite
- * scroll, and ranked rendering with response counts and +/- indicators.
+ * scroll, and ranked rendering with response counts.
  *
  * @module debate
  */
@@ -192,10 +192,6 @@ function renderChallengeCards(items) {
       </div>
       <div class="challenge-rank-footer">
         <span class="challenge-rank-response-count">${item.response_count || 0} response${item.response_count !== 1 ? 's' : ''}</span>
-        <div class="challenge-rank-indicators">
-          <span class="challenge-rank-plus">+${item.upvotes || 0}</span>
-          <span class="challenge-rank-minus">\u2212${item.downvotes || 0}</span>
-        </div>
       </div>
       ${item.category ? html`<span class="badge">${item.category}</span>` : ''}
     `;
