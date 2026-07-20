@@ -65,6 +65,23 @@ testDb.exec(`
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(challenge_id, identifier_id)
   );
+
+  CREATE TABLE responses (
+    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug               TEXT UNIQUE NOT NULL,
+    challenge_id       INTEGER REFERENCES challenges(id) ON DELETE CASCADE,
+    response_title     TEXT,
+    response_content   TEXT,
+    response_author    TEXT,
+    response_date      TEXT,
+    response_publisher TEXT,
+    response_headings  TEXT,
+    published_draft    INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
+    metadata_keywords  TEXT,
+    created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CHECK (published_draft = 0 OR challenge_id IS NOT NULL)
+  );
 `);
 
 // Replace the real database with our in-memory copy so model requires pick it up.
@@ -194,8 +211,35 @@ describe("Academic Challenge lifecycle", () => {
 
     const published = academicModel.getAllPublished();
     assert.equal(published.length, 2, "only published challenges should appear");
-    assert.equal(published[0].challenge_title, "Rank 1", "should be sorted by rank ASC");
-    assert.equal(published[1].challenge_title, "Rank 3");
+    assert.equal(published[0].title, "Rank 1", "should be sorted by rank ASC");
+    assert.equal(published[1].title, "Rank 3");
+  });
+
+  test("READ — getAllPublished returns correct response shape with mapped field names", () => {
+    academicModel.create({
+      slug: "shape-test-1",
+      challenge_title: "Shape Test",
+      challenge_summary: "Testing the response shape.",
+      challenge_rank_pluses: 10,
+      challenge_rank_minuses: 3,
+      challenge_rank_number: 1,
+      published_draft: 1,
+    });
+
+    const published = academicModel.getAllPublished();
+    assert.equal(Array.isArray(published), true, "getAllPublished() should return an array");
+
+    if (published.length > 0) {
+      const item = published[0];
+      assert.equal(item.title, "Shape Test", "should have mapped 'title' field");
+      assert.equal(item.summary, "Testing the response shape.", "should have mapped 'summary' field");
+      assert.equal(item.upvotes, 10, "should have mapped 'upvotes' field");
+      assert.equal(item.downvotes, 3, "should have mapped 'downvotes' field");
+      assert.ok(Object.hasOwn(item, "response_count"), "should have 'response_count' field");
+      assert.equal(typeof item.response_count, "number", "response_count should be a number");
+      assert.ok(item.response_count >= 0, "response_count should be >= 0");
+      assert.equal(item.response_count, 0, "response_count should be 0 when no responses exist");
+    }
   });
 
   test("READ — getPublishedCount returns correct count", () => {
@@ -419,8 +463,35 @@ describe("Popular Challenge lifecycle", () => {
 
     const published = popularModel.getAllPublished();
     assert.equal(published.length, 2);
-    assert.equal(published[0].challenge_title, "Pop One");
-    assert.equal(published[1].challenge_title, "Pop Two");
+    assert.equal(published[0].title, "Pop One");
+    assert.equal(published[1].title, "Pop Two");
+  });
+
+  test("READ — getAllPublished returns correct response shape with mapped field names", () => {
+    popularModel.create({
+      slug: "pop-shape-test-1",
+      challenge_title: "Popular Shape Test",
+      challenge_summary: "Testing popular response shape.",
+      challenge_rank_pluses: 25,
+      challenge_rank_minuses: 7,
+      challenge_rank_number: 1,
+      published_draft: 1,
+    });
+
+    const published = popularModel.getAllPublished();
+    assert.equal(Array.isArray(published), true, "getAllPublished() should return an array");
+
+    if (published.length > 0) {
+      const item = published[0];
+      assert.equal(item.title, "Popular Shape Test", "should have mapped 'title' field");
+      assert.equal(item.summary, "Testing popular response shape.", "should have mapped 'summary' field");
+      assert.equal(item.upvotes, 25, "should have mapped 'upvotes' field");
+      assert.equal(item.downvotes, 7, "should have mapped 'downvotes' field");
+      assert.ok(Object.hasOwn(item, "response_count"), "should have 'response_count' field");
+      assert.equal(typeof item.response_count, "number", "response_count should be a number");
+      assert.ok(item.response_count >= 0, "response_count should be >= 0");
+      assert.equal(item.response_count, 0, "response_count should be 0 when no responses exist");
+    }
   });
 
   test("UPDATE — modifies fields correctly", () => {

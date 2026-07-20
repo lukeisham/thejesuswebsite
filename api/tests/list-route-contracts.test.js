@@ -50,16 +50,8 @@ Module._cache[configPath] = {
 const ROUTES = [
   { mount: "/evidence", file: "../routes/evidence" },
   { mount: "/essays", file: "../routes/essays" },
-  {
-    mount: "/popular-challenges",
-    file: "../routes/popular-challenges",
-    expectEnvelope: true,
-  },
-  {
-    mount: "/academic-challenges",
-    file: "../routes/academic-challenges",
-    expectEnvelope: true,
-  },
+  { mount: "/popular-challenges", file: "../routes/popular-challenges" },
+  { mount: "/academic-challenges", file: "../routes/academic-challenges" },
   { mount: "/historiography", file: "../routes/historiography" },
   { mount: "/responses", file: "../routes/responses" },
   { mount: "/blog-posts", file: "../routes/blog-posts" },
@@ -69,17 +61,8 @@ const ROUTES = [
   { mount: "/identifiers", file: "../routes/identifiers" },
 ];
 
-// Routes that are KNOWN BROKEN today (return an envelope object instead of a
-// bare array) and are expected to fail the bare-array assertion until
-// setup/PLANS/New/challenge-data-structure-frontend-sync.md is implemented.
-// This is NOT a list of legitimate exceptions to codify — it exists so this
-// suite documents and tracks the bug rather than either (a) failing the whole
-// suite on a already-known issue or (b) silently asserting the wrong shape as
-// correct.
-const EXPECTED_ENVELOPE_ROUTES = new Set([
-  "/popular-challenges",
-  "/academic-challenges",
-]);
+// All routes now return bare arrays. The challenge routes were the last
+// holdouts, fixed by setup/PLANS/New/challenge-data-structure-frontend-sync.md.
 
 // ── Per-route field manifests ───────────────────────────────────────────────
 //
@@ -287,33 +270,7 @@ describe("public GET list route contracts", () => {
     seedAll();
   });
 
-  for (const { mount, expectEnvelope } of ROUTES) {
-    if (expectEnvelope) {
-      // Known-broken today: documented expected-failure, not a codified
-      // "correct" shape. Tracked by
-      // setup/PLANS/New/challenge-data-structure-frontend-sync.md.
-      test(`${mount}: KNOWN BUG — returns { items, response_count } envelope instead of a bare array (see challenge-data-structure-frontend-sync.md)`, async () => {
-        const app = createApp();
-        const result = await get(app, mount);
-
-        assert.equal(result.status, 200);
-        // Document the current (wrong) shape so this test starts failing --
-        // i.e. tells us the fix landed -- the moment the route is changed to
-        // return a bare array, per the sync plan.
-        assert.ok(
-          !Array.isArray(result.body),
-          `${mount} now returns a bare array — update this test and the ` +
-            `EXPECTED_ENVELOPE_ROUTES exception list, the challenge-data-` +
-            `structure-frontend-sync plan's route-layer fix has landed.`,
-        );
-        assert.ok(
-          Array.isArray(result.body.items),
-          `${mount} envelope should still expose items as an array`,
-        );
-      });
-      continue;
-    }
-
+  for (const { mount } of ROUTES) {
     test(`${mount}: returns HTTP 200 with a bare array body`, async () => {
       const app = createApp();
       const result = await get(app, mount);

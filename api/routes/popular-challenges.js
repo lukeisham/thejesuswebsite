@@ -13,10 +13,7 @@ const router = express.Router();
 router.get("/", (req, res) => {
   try {
     const items = challengeModel.getAllPublished();
-    res.json({
-      items,
-      response_count: challengeModel.getPublishedCount(),
-    });
+    res.json(items);
   } catch (error) {
     console.error("GET /popular-challenges failed:", error);
     res.status(500).json({ error: "Failed to load popular challenges." });

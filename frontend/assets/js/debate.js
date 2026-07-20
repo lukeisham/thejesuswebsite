@@ -124,7 +124,7 @@ async function loadPage() {
     return;
   }
 
-  if (!data || data.length === 0) {
+  if (!data || !Array.isArray(data) || data.length === 0) {
     if (allItems.length === 0) {
       showState('empty');
     } else {
