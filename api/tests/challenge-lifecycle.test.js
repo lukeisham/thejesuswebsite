@@ -250,6 +250,53 @@ describe("Academic Challenge lifecycle", () => {
     assert.equal(academicModel.getPublishedCount(), 2);
   });
 
+  test("READ — getAllAdmin returns BOTH draft and published, ranked, with raw column names", () => {
+    academicModel.create({
+      slug: "admin-rank-3",
+      challenge_title: "Admin Rank 3",
+      challenge_rank_number: 3,
+      published_draft: 1,
+    });
+    academicModel.create({
+      slug: "admin-rank-1",
+      challenge_title: "Admin Rank 1",
+      challenge_rank_number: 1,
+      published_draft: 1,
+    });
+    academicModel.create({
+      slug: "admin-draft-2",
+      challenge_title: "Admin Draft 2",
+      challenge_rank_number: 2,
+      published_draft: 0,
+    });
+
+    const all = academicModel.getAllAdmin();
+    assert.equal(Array.isArray(all), true, "getAllAdmin() should return an array");
+    assert.equal(all.length, 3, "should include drafts as well as published");
+    // Sorted by challenge_rank_number ASC.
+    assert.equal(all[0].challenge_title, "Admin Rank 1");
+    assert.equal(all[1].challenge_title, "Admin Draft 2");
+    assert.equal(all[2].challenge_title, "Admin Rank 3");
+    // The draft must be present (this is the whole point of the admin list).
+    assert.ok(
+      all.some((c) => c.published_draft === 0),
+      "the draft challenge must appear in the admin list",
+    );
+    // Raw column names the admin table reads directly (not the getAllPublished aliases).
+    assert.ok(Object.hasOwn(all[0], "challenge_title"), "raw challenge_title column");
+    assert.ok(Object.hasOwn(all[0], "published_draft"), "published_draft column");
+    assert.ok(Object.hasOwn(all[0], "slug"), "slug column");
+  });
+
+  test("READ — getAllAdmin only returns academic challenges", () => {
+    academicModel.create({ slug: "acad-only", challenge_title: "Acad", published_draft: 0 });
+    popularModel.create({ slug: "pop-excluded", challenge_title: "Pop", published_draft: 0 });
+
+    const all = academicModel.getAllAdmin();
+    assert.equal(all.length, 1);
+    assert.equal(all[0].academic_popular, "academic");
+  });
+
   test("UPDATE — modifies existing challenge fields (save as draft)", () => {
     const created = academicModel.create({
       slug: "before-update",
@@ -492,6 +539,32 @@ describe("Popular Challenge lifecycle", () => {
       assert.ok(item.response_count >= 0, "response_count should be >= 0");
       assert.equal(item.response_count, 0, "response_count should be 0 when no responses exist");
     }
+  });
+
+  test("READ — getAllAdmin returns BOTH draft and published popular challenges, ranked", () => {
+    popularModel.create({
+      slug: "pop-admin-2",
+      challenge_title: "Pop Admin 2",
+      challenge_rank_number: 2,
+      published_draft: 1,
+    });
+    popularModel.create({
+      slug: "pop-admin-draft-1",
+      challenge_title: "Pop Admin Draft 1",
+      challenge_rank_number: 1,
+      published_draft: 0,
+    });
+
+    const all = popularModel.getAllAdmin();
+    assert.equal(Array.isArray(all), true);
+    assert.equal(all.length, 2, "should include the draft too");
+    assert.equal(all[0].challenge_title, "Pop Admin Draft 1", "sorted by rank ASC");
+    assert.equal(all[1].challenge_title, "Pop Admin 2");
+    assert.ok(
+      all.some((c) => c.published_draft === 0),
+      "the draft challenge must appear in the admin list",
+    );
+    assert.ok(all.every((c) => c.academic_popular === "popular"));
   });
 
   test("UPDATE — modifies fields correctly", () => {

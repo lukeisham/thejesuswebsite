@@ -20,6 +20,18 @@ router.get("/", (req, res) => {
   }
 });
 
+// GET /academic-challenges/admin — admin list of ALL challenges incl. drafts (admin only).
+// Declared before "/:slug" so the literal "admin" path is not captured as a slug.
+router.get("/admin", requireAuth, (req, res) => {
+  try {
+    const items = challengeModel.getAllAdmin();
+    res.json(items);
+  } catch (error) {
+    console.error("GET /academic-challenges/admin failed:", error);
+    res.status(500).json({ error: "Failed to load academic challenges." });
+  }
+});
+
 // GET /academic-challenges/admin/:id — admin detail with citations (admin only)
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {
