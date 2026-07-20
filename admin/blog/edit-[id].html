@@ -353,45 +353,9 @@
                 sidebar.className = "admin-form-grid__sidebar";
                 form.appendChild(sidebar);
 
-                var settingsCard = document.createElement("div");
-                settingsCard.className = "admin-form-card";
-                sidebar.appendChild(settingsCard);
-
-                var setTitle = document.createElement("div");
-                setTitle.className = "admin-form-card__title";
-                setTitle.textContent = "Settings";
-                settingsCard.appendChild(setTitle);
-
-                var landGroup = document.createElement("div");
-                landGroup.className = "admin-form-group";
-                settingsCard.appendChild(landGroup);
-
-                var landWrap = document.createElement("div");
-                landWrap.className = "admin-checkbox-group";
-
-                var landCheck = document.createElement("input");
-                landCheck.type = "checkbox";
-                landCheck.id = "blog-landing";
-                landCheck.checked = !!data.landing_page_display;
-                landWrap.appendChild(landCheck);
-
-                var landLabel = document.createElement("label");
-                landLabel.setAttribute("for", "blog-landing");
-                landLabel.textContent = "Show on Landing Page";
-                landWrap.appendChild(landLabel);
-
-                landGroup.appendChild(landWrap);
-                var landHint = document.createElement("span");
-                landHint.className = "admin-form-hint";
-                landHint.style.marginTop = "var(--space-xs)";
-                landHint.textContent =
-                    "When checked, this post will appear on the homepage.";
-                landGroup.appendChild(landHint);
-
                 // Metadata card
                 var metaCard = document.createElement("div");
                 metaCard.className = "admin-form-card";
-                metaCard.style.marginTop = "var(--space-md)";
                 sidebar.appendChild(metaCard);
 
                 var metaTitle = document.createElement("div");
@@ -469,36 +433,6 @@
                 var thumbnailPicker = AdminImagePicker.mount(thumbMount, {
                     initialPath: data.blog_thumbnail || "",
                 });
-
-                var pubCard = document.createElement("div");
-                pubCard.className = "admin-form-card";
-                pubCard.style.marginTop = "var(--space-md)";
-                sidebar.appendChild(pubCard);
-
-                var pubGroup = document.createElement("div");
-                pubGroup.className = "admin-form-group";
-                pubCard.appendChild(pubGroup);
-
-                var pubWrap = document.createElement("div");
-                pubWrap.className = "admin-checkbox-group";
-
-                var pubCheckbox = document.createElement("input");
-                pubCheckbox.type = "checkbox";
-                pubCheckbox.id = "blog-publish";
-                pubCheckbox.checked = !!data.published_draft;
-                pubWrap.appendChild(pubCheckbox);
-
-                var pubLabel = document.createElement("label");
-                pubLabel.setAttribute("for", "blog-publish");
-                pubLabel.textContent = "Published";
-                pubWrap.appendChild(pubLabel);
-
-                pubGroup.appendChild(pubWrap);
-                var pubHint = document.createElement("span");
-                pubHint.className = "admin-form-hint";
-                pubHint.style.marginTop = "var(--space-xs)";
-                pubHint.textContent = "Toggle publish state.";
-                pubGroup.appendChild(pubHint);
 
                 // Formatting reference panel
                 AdminShortcodeHelp.mountFormattingReference(sidebar);
@@ -662,19 +596,11 @@
                                 .value.trim() || undefined,
                         blog_thumbnail:
                             thumbnailPicker.getValue().image_path || undefined,
-                        landing_page_display: document.getElementById(
-                            "blog-landing",
-                        ).checked
-                            ? 1
-                            : 0,
                         metadata_keywords:
                             document
                                 .getElementById("blog-keywords")
                                 .value.trim() || undefined,
-                        published_draft: document.getElementById("blog-publish")
-                            .checked
-                            ? 1
-                            : 0,
+                        published_draft: data.published_draft ? 1 : 0,
                         link_evidence_ids: parseIdList(
                             document.getElementById("blog-evidence").value,
                         ),
@@ -739,8 +665,6 @@
                             data.published_draft = 1;
                             publishBtn.textContent = "Unpublish";
                         }
-                        document.getElementById("blog-publish").checked =
-                            !!data.published_draft;
                         submitStatus.innerHTML =
                             '<span style="color:var(--admin-success)">' +
                             (data.published_draft

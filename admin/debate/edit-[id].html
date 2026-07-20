@@ -513,36 +513,6 @@
                     ),
                 });
 
-                var pubCard = document.createElement("div");
-                pubCard.className = "admin-form-card";
-                pubCard.style.marginTop = "var(--space-md)";
-                sidebar.appendChild(pubCard);
-
-                var pubGroup = document.createElement("div");
-                pubGroup.className = "admin-form-group";
-                pubCard.appendChild(pubGroup);
-
-                var pubCheckboxWrap = document.createElement("div");
-                pubCheckboxWrap.className = "admin-checkbox-group";
-
-                var pubCheckbox = document.createElement("input");
-                pubCheckbox.type = "checkbox";
-                pubCheckbox.id = "response-publish";
-                pubCheckbox.checked = !!data.published_draft;
-                pubCheckboxWrap.appendChild(pubCheckbox);
-
-                var pubLabel = document.createElement("label");
-                pubLabel.setAttribute("for", "response-publish");
-                pubLabel.textContent = "Published";
-                pubCheckboxWrap.appendChild(pubLabel);
-
-                pubGroup.appendChild(pubCheckboxWrap);
-                var pubHint = document.createElement("span");
-                pubHint.className = "admin-form-hint";
-                pubHint.style.marginTop = "var(--space-xs)";
-                pubHint.textContent = "Toggle publish state.";
-                pubGroup.appendChild(pubHint);
-
                 // Formatting reference panel
                 AdminShortcodeHelp.mountFormattingReference(sidebar);
 
@@ -753,11 +723,7 @@
                             document
                                 .getElementById("response-author-bio")
                                 .value.trim() || undefined,
-                        published_draft: document.getElementById(
-                            "response-publish",
-                        ).checked
-                            ? 1
-                            : 0,
+                        published_draft: data.published_draft ? 1 : 0,
                         link_evidence_ids: parseIdList(
                             document.getElementById("response-evidence").value,
                         ),
@@ -822,8 +788,6 @@
                             data.published_draft = 1;
                             publishBtn.textContent = "Unpublish";
                         }
-                        document.getElementById("response-publish").checked =
-                            !!data.published_draft;
                         submitStatus.innerHTML =
                             '<span style="color:var(--admin-success)">' +
                             (data.published_draft

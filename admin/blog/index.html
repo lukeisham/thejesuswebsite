@@ -20,15 +20,6 @@
             .admin-error {
                 color: var(--admin-danger);
             }
-            .admin-landing-badge {
-                display: inline-block;
-                padding: 2px 8px;
-                font-size: 11px;
-                border-radius: 10px;
-                background: var(--admin-accent);
-                color: #fff;
-                font-weight: 500;
-            }
         </style>
     </head>
     <body>
@@ -191,7 +182,6 @@
                     var hRow = document.createElement("tr");
                     [
                         "Title",
-                        "Landing Page",
                         "Created",
                         "Status",
                         "Edit",
@@ -217,17 +207,6 @@
                             "color:var(--admin-accent);text-decoration:none;font-weight:500;";
                         tdTitle.appendChild(link);
                         tr.appendChild(tdTitle);
-
-                        var tdLanding = document.createElement("td");
-                        if (p.landing_page_display) {
-                            var badge = document.createElement("span");
-                            badge.className = "admin-landing-badge";
-                            badge.textContent = "Landing";
-                            tdLanding.appendChild(badge);
-                        } else {
-                            tdLanding.textContent = "\u2014";
-                        }
-                        tr.appendChild(tdLanding);
 
                         var tdDate = document.createElement("td");
                         tdDate.textContent = Admin.formatDate(p.created_at);
