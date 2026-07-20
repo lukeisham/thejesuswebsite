@@ -10,12 +10,15 @@ Use external dependencies **only** for visual/display libraries. Exception: clie
 **SR-3** — Performance First  
 Website loading speed is non-negotiable. Optimize for it at every step.
 
+**SR-4** — Share, don't copy-paste across admin editors  
+Before adding logic to any `admin/<type>/` editor page, check whether the same block already exists in another editor; if so, extract it into a shared module under `admin/assets/js/` and have all editors call it, rather than adding another copy. When a bug is found in one editor, grep the other editors for the same pattern before closing the fix — the same defect has historically shipped in up to five editors at once (the `mla_source_id` incident).
+
 ## JS Rules
 **JS-1** — Self-documenting > Comments  
 Use clear, intention-revealing names for everything. Write code that is readable without comments.
 
 **JS-2** — Robust & Predictable > Clever  
-Validate inputs, handle errors explicitly, prefer early returns and defensive programming. Never fail silently.
+Validate inputs, handle errors explicitly, prefer early returns and defensive programming. Never fail silently. Defensive early returns that guard a "shouldn't happen" state (uninitialized module state, missing required element, malformed data) must `console.warn` with enough context to identify the call site — only *expected* absences (e.g. an optional element genuinely not present on this page) may return silently. A guard that swallows an impossible state without logging hides real bugs (see the spellcheck `invalidateRange()` no-op incident).
 
 **JS-3** — Modern & Simple > Over-engineered  
 Use current JS features. Keep functions small and focused. Avoid unnecessary classes, abstractions, or layers.

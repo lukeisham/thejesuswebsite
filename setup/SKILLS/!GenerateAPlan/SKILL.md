@@ -66,7 +66,7 @@ Use the structure defined in the plan template:
 
 The required sections are:
 
-1. **Header** — `# Plan: <Feature Name>`, plus module, date, and a **Status** field set to `Drafting`.
+1. **Header** — `# Plan: <Feature Name>`, plus module, date, a **Status** field set to `Drafting`, and a **Live site** field giving the canonical production origin. Source that origin from the codebase (`README.md`, `api/config/load-env.js`, `frontend/assets/js/utils/site-meta.js` — currently `https://thejesuswebsite.org`), **never** from the wording of the user's request or a bug report: a plan was once written entirely against `thejesuswebsite.com`, an unrelated dead domain, wasting the whole diagnostic pass (see `setup/Issues.md` #78).
 2. **Goal** — one or two sentences describing what this plan delivers and why.
 3. **Coding rules to keep in mind** — list any Vibe Coding Rules that are especially relevant to this plan. Reference them by ID (e.g. `JS-5`, `CSS-2`).
 4. **Tasks** — grouped by layer (Database, API, Frontend, etc.) in dependency order, ending with a **Deploy & verify** group (see below).
@@ -82,7 +82,8 @@ Every plan must end with a `## Completion Protocol` section, addressed to *any* 
 - **Markdown edits happen via a Python script, never manual find/replace.** State plainly that hand-edited markdown/HTML is a known source of corruption in this codebase (cite `setup/Issues.md` if it has relevant rows) and that whoever implements this plan should write a small script to parse-and-rewrite rather than hand-edit checkboxes, status fields, or `Issues.md` rows.
 - **Tick checkboxes as tasks complete** (`- [ ]` → `- [x]`).
 - **Mark related Issues.md rows resolved, if applicable** — only if this plan's Goal is to fix issue(s) already logged in `setup/Issues.md` by an earlier plan. Add a corresponding task earlier in the Tasks list (a "Close out" group just before "Deploy & verify" is the natural home) that updates only the `Status` cell for those specific row(s) from `open` to `resolved`, once the fix is verified. Do not add this if the plan doesn't resolve any existing Issues.md rows.
-- **Plan lifecycle**: once every task is checked, flip the header's **Status** to `✅ Completed` and move the file from `PLANS/New/` to `PLANS/Completed/`.
+- **Shipped-artifact audit before completion** — before flipping Status to Completed, verify every file listed in **Files touched** actually exists with the *planned content*, not a stub or placeholder (e.g. `ls` created directories and open key files; a vendored library directory containing only a README is a failed audit). If any planned artifact is missing or smaller than specced, the plan stays in `PLANS/New/` with a note describing the gap. (History: a dictionary upgrade was once marked done with only a README shipped.)
+- **Plan lifecycle**: once every task is checked *and the shipped-artifact audit passes*, flip the header's **Status** to `✅ Completed` and move the file from `PLANS/New/` to `PLANS/Completed/`.
 - **Push everything to GitHub as the final step** — code changes, any `Issues.md` update, and the plan file's own edits/move, all in the same push described in "Deploy & verify".
 
 ### Deploy & verify group (always last)
@@ -90,8 +91,12 @@ Every plan must end with a `## Completion Protocol` section, addressed to *any* 
 Every plan ends with a **Deploy & verify** task group as the final group, after all implementation tasks:
 
 - **Always** include a **Push to GitHub** task: `git add -p`, `git commit -m "<feature name>"`, `git push`.
-- **Only if relevant** include a **Test live** task — open the deployed site in a browser tab and confirm the change works in production. Add this *only* when the plan touches user-facing pages or behaviour that can actually be checked in a browser. For backend-only, schema-only, tooling, or non-visible changes, omit the live-test task (do not force it).
-  - When you do include it, gate it on the implementing agent: **only Claude proceeds with live testing.** If the implementing agent is a different LLM (e.g. DeepSeek), it must skip the live test and note that it was deferred. Write the task so this gate is explicit in the plan.
+- **Every plan must include a verification task** — which kind depends on what the plan touches:
+  - **UI/UX features (mandatory Test live)** — if the plan touches user-facing pages, admin UI, or any behaviour observable in a browser, include a **Test live** task: open the deployed site in a browser tab and confirm the change works in production. This is mandatory, not optional — a UI/UX plan may not be marked Completed while its live test is unchecked. (History: issues recurred repeatedly when fixes were marked complete with live testing deferred.)
+    - **Include the Live testing playbook.** Copy the `### Live testing playbook` section from `plan_template.md` verbatim into any plan with a Test live task (delete it from plans without one). It prescribes: use the header's `Live site:` origin only; curl the URL for a `200` *before* opening the browser (a dead URL hangs `preview_start` for minutes and poisons the pane); do curl-triageable checks (headers, JSON endpoints, asset diffs) before browser checks; call `preview_start {url}` once and pass its returned `tabId` explicitly to every subsequent browser call; verify via `read_page`/`javascript_tool` DOM queries plus `read_console_messages`, treating screenshots as optional supporting evidence only; allow ~30–60s for Cloudflare edge propagation before concluding a deploy failed; and — for tests that need an authenticated `/admin/` page — follow the playbook's admin-auth step. WebAuthn passkey login cannot be automated by any agent (Issues.md #33/#76), and the agent cannot reuse a tab the user already has open (the `claude-in-chrome` tools only see their own tab-group, and `sameSite:strict` blocks inherited sessions) — so the **one reliable flow** is: the agent opens a fresh admin tab in its own group, asks the user to sign in with their passkey in *that* tab, waits, then drives the test there (cleaning up any test input, never clicking Save). If the user is unavailable or declines, the curl/tests checks still run but the Test live checkbox stays **unchecked as deferred** (with a note of what was and wasn't verified) and the plan stays in `PLANS/New/` — no `Issues.md` row is logged for the login constraint itself, since it's a known environment fact, not a defect.
+    - **If the live test touches `/admin/` pages, say so in the task.** When writing the Test live task for an admin-facing plan, state up front that the page requires passkey auth and describe the reliable flow (agent opens the tab → user signs in once → agent drives it), so the implementing agent pauses to ask the user *before* attempting the browser rather than discovering the redirect mid-test.
+    - Gate it on the implementing agent: **only Claude proceeds with live testing.** If the implementing agent is a different LLM (e.g. DeepSeek), it must skip the live test, note that it was deferred, and the plan must NOT be moved to `PLANS/Completed/` until a follow-up live check has been performed and the task ticked.
+  - **Everything else (mandatory smoke test)** — for backend-only, schema-only, API, tooling, or otherwise non-browser-visible changes, include a **Smoke test** task instead: run the automated test suite plus a targeted check that exercises the changed behaviour end-to-end (e.g. curl the affected API route on the deployed server and assert the response shape, run the migration against a copy, or execute the script and inspect its output). Never omit verification entirely.
 
 ### Task writing rules
 
@@ -154,6 +159,7 @@ If the file already exists, append a new section for this plan rather than overw
 Review every file you created or edited in Steps 2–4 for these plan-level issues:
 
 **Plan structure:**
+- The header's **Live site** field is present and matches the codebase's canonical origin (`https://thejesuswebsite.org`), and every URL in the plan's tasks (live tests, curl checks, example pages) uses that origin — no `.com`, no URLs copied unverified from the user's report.
 - Every task in the plan references at least one specific file path.
 - Every implementation file listed in "Files touched" appears in at least one task. Config, dependency, and environment files (`package.json`, `.env`, etc.) that are implicitly updated by a task are exempt.
 - Tasks are in dependency order — nothing depends on a later task.
@@ -261,7 +267,7 @@ After completing all steps, tell the user:
 3. What was added or changed in the sitemap.
 4. The path to the validation checklist file.
 5. Any issues logged to `Issues.md` (number of rows added, or "none").
-6. Confirm the plan ends with a **Deploy & verify** group — a **Push to GitHub** task (always) and a **Test live** task (only if the plan touches browser-checkable, user-facing behaviour).
+6. Confirm the plan ends with a **Deploy & verify** group — a **Push to GitHub** task (always) plus a verification task: **Test live** (mandatory for UI/UX or browser-checkable behaviour) or **Smoke test** (mandatory for everything else). No plan ships without one of the two.
 7. Confirm the plan includes a **Completion Protocol** section, and — if it fixes existing `Issues.md` row(s) — a task to mark those rows `resolved`.
 
 

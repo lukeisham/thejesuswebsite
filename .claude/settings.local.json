@@ -23,7 +23,8 @@
       "Bash(sqlite3 database/thejesuswebsite.db \".schema evidence\")",
       "Bash(node api/scripts/generate-maps/index.js)",
       "Bash(git -C /Users/lukeishammacbookair/Developer/thejesuswebsite log --oneline -25)",
-      "mcp__claude-in-chrome__tabs_context_mcp"
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "WebFetch(domain:thejesuswebsite.com)"
     ]
   }
 }
