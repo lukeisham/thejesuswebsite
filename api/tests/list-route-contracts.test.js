@@ -27,6 +27,7 @@ const http = require("http");
 const path = require("path");
 const Module = require("module");
 const { createTestDb } = require("./helpers/db");
+const { createTestServer, closeTestServer } = require("./helpers/test-server");
 
 // ── In-memory test database, installed in place of ../config ───────────────
 
@@ -139,32 +140,39 @@ function createApp() {
 }
 
 function get(app, urlPath) {
-  return new Promise((resolve, reject) => {
-    const server = app.listen(0);
-    const { port } = server.address();
+  return new Promise(async (resolve, reject) => {
+    let server;
+    try {
+      const created = await createTestServer(app);
+      server = created.server;
+      const port = created.port;
 
-    const req = http.request(
-      { hostname: "127.0.0.1", port, path: urlPath, method: "GET" },
-      (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          server.close();
-          try {
-            resolve({ status: res.statusCode, body: JSON.parse(data) });
-          } catch {
-            resolve({ status: res.statusCode, body: data });
-          }
-        });
-      },
-    );
+      const req = http.request(
+        { hostname: "127.0.0.1", port, path: urlPath, method: "GET" },
+        (res) => {
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => {
+            closeTestServer(server).then(() => {
+              try {
+                resolve({ status: res.statusCode, body: JSON.parse(data) });
+              } catch {
+                resolve({ status: res.statusCode, body: data });
+              }
+            });
+          });
+        },
+      );
 
-    req.on("error", (err) => {
-      server.close();
+      req.on("error", (err) => {
+        closeTestServer(server).then(() => reject(err));
+      });
+
+      req.end();
+    } catch (err) {
+      if (server) closeTestServer(server);
       reject(err);
-    });
-
-    req.end();
+    }
   });
 }
 

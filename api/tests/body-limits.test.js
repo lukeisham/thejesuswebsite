@@ -6,6 +6,7 @@ const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
 const express = require("express");
 const http = require("http");
+const { createTestServer, closeTestServer } = require("./helpers/test-server");
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -34,11 +35,9 @@ function createApp() {
 /**
  * Make an HTTP request and return { status, headers, body }.
  */
-function request(app, { method, path, body, headers }) {
+async function request(app, { method, path, body, headers }) {
+  const { server, port } = await createTestServer(app);
   return new Promise((resolve, reject) => {
-    const server = app.listen(0);
-    const { port } = server.address();
-
     const bodyStr = typeof body === "string" ? body : JSON.stringify(body || {});
     const reqHeaders = {
       "Content-Type": "application/json",
@@ -52,19 +51,19 @@ function request(app, { method, path, body, headers }) {
         let data = "";
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
-          server.close();
-          try {
-            resolve({ status: res.statusCode, headers: res.headers, body: JSON.parse(data) });
-          } catch {
-            resolve({ status: res.statusCode, headers: res.headers, body: data });
-          }
+          closeTestServer(server).then(() => {
+            try {
+              resolve({ status: res.statusCode, headers: res.headers, body: JSON.parse(data) });
+            } catch {
+              resolve({ status: res.statusCode, headers: res.headers, body: data });
+            }
+          });
         });
       },
     );
 
     req.on("error", (err) => {
-      server.close();
-      reject(err);
+      closeTestServer(server).then(() => reject(err));
     });
 
     req.write(bodyStr);
@@ -133,10 +132,8 @@ describe("body-parser error mapping", () => {
 
     // Send a raw HTTP request with invalid JSON so that express.json()
     // triggers a parse error.
+    const { server, port } = await createTestServer(app);
     const result = await new Promise((resolve, reject) => {
-      const server = app.listen(0);
-      const { port } = server.address();
-
       const bodyStr = "{bad json";
       const req = http.request(
         {
@@ -153,19 +150,19 @@ describe("body-parser error mapping", () => {
           let data = "";
           res.on("data", (chunk) => (data += chunk));
           res.on("end", () => {
-            server.close();
-            try {
-              resolve({ status: res.statusCode, body: JSON.parse(data) });
-            } catch {
-              resolve({ status: res.statusCode, body: data });
-            }
+            closeTestServer(server).then(() => {
+              try {
+                resolve({ status: res.statusCode, body: JSON.parse(data) });
+              } catch {
+                resolve({ status: res.statusCode, body: data });
+              }
+            });
           });
         },
       );
 
       req.on("error", (err) => {
-        server.close();
-        reject(err);
+        closeTestServer(server).then(() => reject(err));
       });
 
       req.write(bodyStr);

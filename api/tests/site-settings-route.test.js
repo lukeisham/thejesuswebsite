@@ -2,13 +2,15 @@
 // Tests GET /site-settings (public), PUT /site-settings (auth-guarded),
 // and the 400/401 error paths.
 
-const { test, describe } = require("node:test");
+const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
 const express = require("express");
 const http = require("http");
 const path = require("path");
 const Module = require("module");
 const { createTestDb } = require("./helpers/db");
+const { createTestServer, closeTestServer } = require("./helpers/test-server");
+const { clearAuthSessions } = require("./helpers/test-setup");
 
 // ── In-memory test database ─────────────────────────────────────────────────
 
@@ -37,11 +39,9 @@ function createApp() {
   return app;
 }
 
-function request(app, { method, path: reqPath, body, headers }) {
+async function request(app, { method, path: reqPath, body, headers }) {
+  const { server, port } = await createTestServer(app);
   return new Promise((resolve, reject) => {
-    const server = app.listen(0);
-    const { port } = server.address();
-
     const bodyStr = body !== undefined ? JSON.stringify(body) : "";
     const reqHeaders = {
       "Content-Type": "application/json",
@@ -55,19 +55,19 @@ function request(app, { method, path: reqPath, body, headers }) {
         let data = "";
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
-          server.close();
-          try {
-            resolve({ status: res.statusCode, body: JSON.parse(data) });
-          } catch {
-            resolve({ status: res.statusCode, body: data });
-          }
+          closeTestServer(server).then(() => {
+            try {
+              resolve({ status: res.statusCode, body: JSON.parse(data) });
+            } catch {
+              resolve({ status: res.statusCode, body: data });
+            }
+          });
         });
       },
     );
 
     req.on("error", (err) => {
-      server.close();
-      reject(err);
+      closeTestServer(server).then(() => reject(err));
     });
 
     if (bodyStr) req.write(bodyStr);
@@ -78,6 +78,11 @@ function request(app, { method, path: reqPath, body, headers }) {
 function authCookie() {
   return `sid=${encodeURIComponent(requireAuth.createSession("test"))}`;
 }
+
+// Clear sessions between tests to prevent cross-test token leakage.
+beforeEach(() => {
+  clearAuthSessions();
+});
 
 // ── GET /site-settings ────────────────────────────────────────────────────────
 

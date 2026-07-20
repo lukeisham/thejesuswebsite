@@ -36,7 +36,12 @@ router.post("/", (req, res) => {
       return sendValidationError(res, "status", ERRORS.INVALID_SPELLCHECK_STATUS);
     }
 
-    const row = model.add(word.trim(), status);
+    const trimmedWord = word.trim();
+    if (/\s/.test(trimmedWord)) {
+      return sendValidationError(res, "word", ERRORS.SPELLCHECK_MULTI_WORD);
+    }
+
+    const row = model.add(trimmedWord, status);
     res.status(201).json(row);
   } catch (error) {
     console.error("POST /spellcheck-dictionary failed:", error);

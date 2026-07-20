@@ -9,11 +9,13 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const { createTestServer, closeTestServer } = require("./helpers/test-server");
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 let app;
 let server;
+let port;
 let baseUrl;
 let tmpDir;
 
@@ -140,7 +142,7 @@ function request(method, path, body) {
     };
 
     const req = http.request(
-      { hostname: "127.0.0.1", port: server.address().port, path, method, headers: reqHeaders },
+      { hostname: "127.0.0.1", port, path, method, headers: reqHeaders },
       (res) => {
         let data = "";
         res.on("data", (chunk) => (data += chunk));
@@ -164,14 +166,16 @@ function request(method, path, body) {
 
 // ── Setup / Teardown ────────────────────────────────────────────────────────
 
-before(() => {
+before(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "upload-test-"));
   app = createApp(tmpDir);
-  server = app.listen(0);
+  const created = await createTestServer(app);
+  server = created.server;
+  port = created.port;
 });
 
-after(() => {
-  server.close();
+after(async () => {
+  await closeTestServer(server);
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 

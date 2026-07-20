@@ -9,7 +9,8 @@ const express = require('express');
 const http = require('http');
 
 const requireAuth = require('../middleware/auth');
-const { createSession } = requireAuth;
+const { createSession, clearSessions } = requireAuth;
+const { closeTestServer } = require('./helpers/test-server');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -40,17 +41,17 @@ function makeRequest(app, method, path, { cookie, body } = {}) {
         let data = '';
         res.on('data', (chunk) => { data += chunk; });
         res.on('end', () => {
-          server.close();
-          try {
-            resolve({ status: res.statusCode, body: data ? JSON.parse(data) : null });
-          } catch (_e) {
-            resolve({ status: res.statusCode, body: data || null });
-          }
+          closeTestServer(server).then(() => {
+            try {
+              resolve({ status: res.statusCode, body: data ? JSON.parse(data) : null });
+            } catch (_e) {
+              resolve({ status: res.statusCode, body: data || null });
+            }
+          });
         });
       });
       req.on('error', (e) => {
-        server.close();
-        reject(e);
+        closeTestServer(server).then(() => reject(e));
       });
       if (body) req.write(JSON.stringify(body));
       req.end();
@@ -63,6 +64,12 @@ function authCookie() {
   const token = createSession('admin');
   return `sid=${token}`;
 }
+
+// Clear sessions after each test so stale tokens from one describe block
+// don't leak into the next (intermittent 401-vs-404 failures).
+afterEach(() => {
+  clearSessions();
+});
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Evidence

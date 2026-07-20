@@ -334,6 +334,16 @@ const CATEGORY_1 = {
     detail: "The status field must be one of: 'learned', 'ignored'.",
     severity: "warn",
   },
+
+  SPELLCHECK_MULTI_WORD: {
+    code: "E-INPUT-034",
+    category: 1,
+    httpStatus: 400,
+    message: "Dictionary entries must be single words without whitespace.",
+    detail:
+      "The word field contains whitespace. The single-word tokenizer cannot match multi-word phrases, so only individual words may be added to the dictionary.",
+    severity: "warn",
+  },
 };
 
 // ── Category 2: Transformation Boundaries (Data Processing) ─────────────────

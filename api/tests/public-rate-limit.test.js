@@ -7,6 +7,7 @@ const assert = require("node:assert/strict");
 const express = require("express");
 const rateLimit = require("../middleware/rate-limit");
 const http = require("http");
+const { createTestServer, closeTestServer } = require("./helpers/test-server");
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -48,32 +49,39 @@ function createApp({ readMax = 5, searchMax = 3 } = {}) {
  * Make an HTTP GET request and return { status, body }.
  */
 function get(app, path) {
-  return new Promise((resolve, reject) => {
-    const server = app.listen(0);
-    const { port } = server.address();
+  return new Promise(async (resolve, reject) => {
+    let server;
+    try {
+      const created = await createTestServer(app);
+      server = created.server;
+      const port = created.port;
 
-    const req = http.request(
-      { hostname: "127.0.0.1", port, path, method: "GET" },
-      (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          server.close();
-          try {
-            resolve({ status: res.statusCode, body: JSON.parse(data) });
-          } catch {
-            resolve({ status: res.statusCode, body: data });
-          }
-        });
-      },
-    );
+      const req = http.request(
+        { hostname: "127.0.0.1", port, path, method: "GET" },
+        (res) => {
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => {
+            closeTestServer(server).then(() => {
+              try {
+                resolve({ status: res.statusCode, body: JSON.parse(data) });
+              } catch {
+                resolve({ status: res.statusCode, body: data });
+              }
+            });
+          });
+        },
+      );
 
-    req.on("error", (err) => {
-      server.close();
+      req.on("error", (err) => {
+        closeTestServer(server).then(() => reject(err));
+      });
+
+      req.end();
+    } catch (err) {
+      if (server) closeTestServer(server);
       reject(err);
-    });
-
-    req.end();
+    }
   });
 }
 
