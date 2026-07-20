@@ -33,11 +33,15 @@ One or two sentences describing what this plan delivers and why.
 
 ### Deploy & verify
 
-<!-- Always include the push task. Include the live-test task only if this plan touches
-     user-facing pages/behaviour that can be checked in a browser. Delete it otherwise. -->
+<!-- Always include the push task. Then include ONE of the two verification tasks below:
+     - Smoke test — sufficient for non-UI/UX changes (backend, schema, API, tooling).
+     - Test live   — mandatory for UI/UX changes (user-facing pages, admin UI, browser behaviour).
+     Delete the task that does NOT apply and the playbook section below it if unused. -->
 
 - [ ] **Push to GitHub** — stage, commit, and push the completed work. Run `git add -p`, `git commit -m "<feature name>"`, `git push`.
-- [ ] **Test live** — **only if the implementing agent is Claude.** Follow the **Live testing playbook** below to open the deployed site and confirm the change works in production. URL: `https://thejesuswebsite.org/<page>`. If the implementing agent is any other LLM (e.g. DeepSeek), skip this task and leave a note that live testing was deferred.
+
+- [ ] **Smoke test** — run the automated test suite plus a targeted check: e.g. curl the affected API route on the deployed server and assert the response shape, run a migration against a copy, or execute the script and inspect its output.
+- [ ] **Test live** — if the implementing agent is **Claude**, follow the **Live testing playbook** below to open the deployed site in Chrome and confirm the change works in production. URL: `https://thejesuswebsite.org/<page>`. If the implementing agent is **not Claude** (e.g. DeepSeek in Zed), **tell the user to open Claude in Chrome** (the Claude Code Browser extension) and perform the live test there — leave the checkbox unchecked but annotate it with a note: "Deferred to Claude in Chrome: <reason>." Do not move the plan to `PLANS/Completed/` until this box is ticked.
 
 ### Live testing playbook
 
