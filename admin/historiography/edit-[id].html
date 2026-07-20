@@ -8,9 +8,14 @@
         <link rel="stylesheet" href="../assets/css/admin-components/spellcheck.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/toasts.css" />
+        <link rel="stylesheet" href="../assets/css/admin-components/admin-editor-shared-forms.css" />
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-layout.js"></script>
+        <script defer src="../assets/js/admin-editor-utils.js"></script>
+        <script defer src="../assets/js/admin-editor-scaffold.js"></script>
+        <script defer src="../assets/js/admin-form-builder.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
@@ -19,874 +24,451 @@
         <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
         <script defer src="../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
-        <style>
-            .admin-form-actions {
-                display: flex;
-                gap: var(--space-sm);
-                margin-top: var(--space-lg);
-                padding-top: var(--space-md);
-                border-top: 1px solid var(--admin-border-light);
-            }
-            .admin-form-card {
-                background: var(--admin-surface);
-                border: 1px solid var(--admin-border-light);
-                border-radius: var(--admin-radius);
-                padding: var(--space-lg);
-            }
-            .admin-form-card__title {
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--admin-text-secondary);
-                text-transform: uppercase;
-                letter-spacing: 0.03em;
-                margin-bottom: var(--space-md);
-            }
-            .admin-checkbox-group {
-                display: flex;
-                align-items: center;
-                gap: var(--space-sm);
-            }
-            .admin-checkbox-group input[type="checkbox"] {
-                width: 18px;
-                height: 18px;
-                accent-color: var(--admin-accent);
-            }
-            .admin-checkbox-group label {
-                font-size: 14px;
-                color: var(--admin-text-primary);
-                cursor: pointer;
-            }
-            .admin-error {
-                padding: var(--space-md);
-                color: var(--admin-danger);
-                background: rgba(220, 53, 69, 0.08);
-                border: 1px solid rgba(220, 53, 69, 0.2);
-                border-radius: var(--admin-radius);
-                margin-bottom: var(--space-md);
-            }
-            .admin-loading {
-                padding: var(--space-xl);
-                text-align: center;
-                color: var(--admin-text-muted);
-                font-size: 14px;
-            }
-            .admin-delete-section {
-                margin-top: var(--space-xl);
-                padding-top: var(--space-md);
-                border-top: 1px solid var(--admin-danger);
-            }
-        </style>
     </head>
     <body>
-        <div class="admin-shell">
-            <nav class="admin-sidebar" aria-label="Admin navigation">
-                <div class="admin-sidebar__brand">⚡ Admin</div>
-                <div class="admin-sidebar__nav">
-                    <a class="admin-sidebar__link" href="../index.html">
-                        <span class="admin-sidebar__icon">📊</span> Dashboard
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../evidence/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📋</span> Evidence
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../collections/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📁</span> Collections
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../resources/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📚</span> Resources
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../wikipedia/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📖</span> Wikipedia
-                    </a>
-                    <a class="admin-sidebar__link" href="../essays/index.html">
-                        <span class="admin-sidebar__icon">✍️</span> Essays
-                    </a>
-                    <a class="admin-sidebar__link" href="../debate/index.html">
-                        <span class="admin-sidebar__icon">🗣️</span> Responses
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../debate/popular-challenges/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📢</span> Popular
-                        Challenges
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../debate/academic-challenges/index.html"
-                    >
-                        <span class="admin-sidebar__icon">🎓</span> Academic
-                        Challenges
-                    </a>
-                    <a
-                        class="admin-sidebar__link admin-sidebar__link--active"
-                        href="index.html"
-                    >
-                        <span class="admin-sidebar__icon">🏛️</span>
-                        Historiography
-                    </a>
-                    <a class="admin-sidebar__link" href="../blog/index.html">
-                        <span class="admin-sidebar__icon">📰</span> Blog
-                    </a>
-                    <a class="admin-sidebar__link" href="../news/index.html">
-                        <span class="admin-sidebar__icon">📡</span> News
-                    </a>
-                    <a class="admin-sidebar__link" href="../diagrams/maps.html">
-                        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
-                    </a>
-                    <a class="admin-sidebar__link" href="../diagrams/arbor.html">
-                        <span class="admin-sidebar__icon">🌳</span> Arbor Editor
-                    </a>
-                    <a class="admin-sidebar__link" href="../diagrams/timeline.html">
-                        <span class="admin-sidebar__icon">⏳</span> Timeline Editor
-                    </a>
-                    <a class="admin-sidebar__link" href="../analytics.html">
-                        <span class="admin-sidebar__icon">📈</span> Analytics
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../settings/index.html"
-                    >
-                        <span class="admin-sidebar__icon">⚙️</span> Settings
-                    </a>
-                </div>
-                <div class="admin-sidebar__bottom">
-                    <a class="admin-sidebar__link" href="../auth/login.html">
-                        <span class="admin-sidebar__icon">🚪</span> Logout
-                    </a>
-                </div>
-            </nav>
-
-            <header class="admin-topbar">
-                <h1 class="admin-topbar__title">Edit Historiography Article</h1>
-                <div class="admin-topbar__actions">
-                    <a
-                        class="admin-btn admin-btn--sm admin-btn--ghost"
-                        href="index.html"
-                        >← Back to Historiography</a
-                    >
-                </div>
-            </header>
-
-            <main class="admin-main" id="edit-content">
-                <div class="admin-loading" role="status">Loading article…</div>
-            </main>
-        </div>
+        <div class="admin-shell" id="admin-shell"></div>
 
         <script>
             document.addEventListener("DOMContentLoaded", async function () {
-                var main = document.getElementById("edit-content");
-
-                var ok = await AdminAuth.requireSession();
-                if (!ok) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">Unable to verify session.</div>';
-                    return;
-                }
-
-                var params = new URLSearchParams(window.location.search);
-                var articleId = params.get("id");
-
-                if (!articleId) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">No article ID specified. <a href="index.html">Go back</a>.</div>';
-                    return;
-                }
-
-                var data;
-                try {
-                    data = await Admin.api.get(
-                        "/historiography/admin/" + articleId,
-                    );
-                } catch (err) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">Failed to load article: ' +
-                        err.message +
-                        "</div>";
-                    return;
-                }
-
-                if (!data) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">Article not found. <a href="index.html">Go back</a>.</div>';
-                    return;
-                }
-
-                main.innerHTML = "";
-
-                var formError = document.createElement("div");
-                formError.className = "admin-error";
-                formError.style.display = "none";
-                formError.setAttribute("role", "alert");
-                formError.setAttribute("aria-live", "assertive");
-                formError.id = "form-error";
-                main.appendChild(formError);
-
-                var form = document.createElement("form");
-                form.className = "admin-form-grid";
-                form.setAttribute("novalidate", "");
-                main.appendChild(form);
-
-                // Left column
-                var mainCol = document.createElement("div");
-                mainCol.className = "admin-form-grid__main";
-                form.appendChild(mainCol);
-
-                var contentCard = document.createElement("div");
-                contentCard.className = "admin-form-card";
-                mainCol.appendChild(contentCard);
-
-                var cardTitle = document.createElement("div");
-                cardTitle.className = "admin-form-card__title";
-                cardTitle.textContent = "Content";
-                contentCard.appendChild(cardTitle);
-
-                function formGroup(
-                    label,
-                    id,
-                    type,
-                    placeholder,
-                    hint,
-                    isTextarea,
-                    value,
-                ) {
-                    var div = document.createElement("div");
-                    div.className = "admin-form-group";
-
-                    var lbl = document.createElement("label");
-                    lbl.className = "admin-form-group__label";
-                    lbl.setAttribute("for", id);
-                    lbl.innerHTML =
-                        label +
-                        (type === "required"
-                            ? ' <span aria-hidden="true">*</span>'
-                            : "");
-                    div.appendChild(lbl);
-
-                    var hintId = id + "-hint";
-                    var errId = id + "-error";
-
-                    var input;
-                    if (isTextarea) {
-                        input = document.createElement("textarea");
-                        input.className = "admin-textarea";
-                        input.rows = 20;
-                    } else {
-                        input = document.createElement("input");
-                        input.className = "admin-input";
-                        input.type =
-                            type === "url"
-                                ? "url"
-                                : type === "date"
-                                  ? "date"
-                                  : type === "number"
-                                    ? "number"
-                                    : "text";
-                    }
-                    input.id = id;
-                    input.placeholder = placeholder || "";
-                    input.setAttribute(
-                        "aria-describedby",
-                        hintId + " " + errId,
-                    );
-                    if (value !== undefined && value !== null)
-                        input.value = value;
-                    div.appendChild(input);
-
-                    if (hint) {
-                        var hintEl = document.createElement("span");
-                        hintEl.className = "admin-form-hint";
-                        hintEl.id = hintId;
-                        hintEl.textContent = hint;
-                        div.appendChild(hintEl);
-                    }
-
-                    var errEl = document.createElement("span");
-                    errEl.className = "admin-form-hint";
-                    errEl.id = errId;
-                    errEl.style.display = "none";
-                    errEl.style.color = "var(--admin-danger)";
-                    errEl.setAttribute("role", "alert");
-                    div.appendChild(errEl);
-
-                    return div;
-                }
-
-                contentCard.appendChild(
-                    formGroup(
-                        "Title *",
-                        "historiography-title",
-                        "required",
-                        "e.g. The Historical Jesus",
-                        "The article title shown in headings and search results.",
-                        false,
-                        data.essay_title || "",
-                    ),
-                );
-                contentCard.appendChild(
-                    formGroup(
-                        "Slug *",
-                        "historiography-slug",
-                        "required",
-                        "e.g. the-historical-jesus",
-                        "URL-friendly identifier.",
-                        false,
-                        data.slug || "",
-                    ),
-                );
-                contentCard.appendChild(
-                    formGroup(
-                        "Author",
-                        "historiography-author",
-                        "",
-                        "e.g. Luke Isham",
-                        "The article author. Displayed below the title.",
-                        false,
-                        data.essay_author || "",
-                    ),
-                );
-                contentCard.appendChild(
-                    formGroup(
-                        "Date",
-                        "historiography-date",
-                        "",
-                        "e.g. 2024",
-                        "Publication or writing date.",
-                        false,
-                        data.essay_date || "",
-                    ),
-                );
-                contentCard.appendChild(
-                    formGroup(
-                        "Publisher",
-                        "historiography-publisher",
-                        "",
-                        "e.g. Journal of Historical Studies",
-                        "Publisher or journal name.",
-                        false,
-                        data.essay_publisher || "",
-                    ),
-                );
-                contentCard.appendChild(
-                    formGroup(
-                        "Headings",
-                        "historiography-headings",
-                        "",
-                        "e.g. Introduction|Background|Analysis",
-                        "Pipe-separated section headings for the table of contents.",
-                        false,
-                        data.essay_headings || "",
-                    ),
-                );
-                contentCard.appendChild(
-                    formGroup(
-                        "Article Content",
-                        "historiography-content",
-                        "",
-                        "Write your article here…",
-                        "The full article body.",
-                        true,
-                        data.essay_content || "",
-                    ),
+                var shell = document.getElementById("admin-shell");
+                AdminLayout.injectSidebar(shell, "historiography");
+                AdminLayout.injectTopbar(
+                    shell,
+                    "Edit Historiography Article",
+                    "index.html",
+                    "Historiography",
                 );
 
-                // Right column
-                var sidebar = document.createElement("div");
-                sidebar.className = "admin-form-grid__sidebar";
-                form.appendChild(sidebar);
+                var main = document.createElement("main");
+                main.className = "admin-main";
+                main.id = "edit-content";
+                main.innerHTML =
+                    '<div class="admin-loading" role="status">Loading article…</div>';
+                shell.appendChild(main);
 
-                var metaCard = document.createElement("div");
-                metaCard.className = "admin-form-card";
-                sidebar.appendChild(metaCard);
+                await AdminEditorScaffold.initializeEditor({
+                    main: main,
+                    apiPath: "/historiography/admin/",
+                    entityLabel: "article",
+                    backHref: "index.html",
+                    onDataLoaded: async function (data, ctx) {
+                        var articleId = ctx.id;
 
-                var metaTitle = document.createElement("div");
-                metaTitle.className = "admin-form-card__title";
-                metaTitle.textContent = "Metadata";
-                metaCard.appendChild(metaTitle);
+                        var formError = document.createElement("div");
+                        formError.className = "admin-error";
+                        formError.style.display = "none";
+                        formError.setAttribute("role", "alert");
+                        formError.setAttribute("aria-live", "assertive");
+                        formError.id = "form-error";
+                        main.appendChild(formError);
 
-                metaCard.appendChild(
-                    formGroup(
-                        "Keywords",
-                        "historiography-keywords",
-                        "",
-                        "e.g. historical jesus, resurrection",
-                        "Comma-separated search keywords.",
-                        false,
-                        data.metadata_keywords || "",
-                    ),
-                );
-                metaCard.appendChild(
-                    formGroup(
-                        "Linked Evidence IDs",
-                        "historiography-evidence",
-                        "",
-                        "e.g. 1, 3, 7",
-                        "Comma-separated evidence IDs.",
-                        false,
-                        (data.links_evidence || [])
-                            .map(function (link) {
-                                return link.target_evidence_id;
-                            })
-                            .join(", "),
-                    ),
-                );
+                        var form = document.createElement("form");
+                        form.className = "admin-form-grid";
+                        form.setAttribute("novalidate", "");
+                        main.appendChild(form);
 
-                // Period dropdown
-                var PERIOD_OPTIONS = [
-                    ["", "— Select a period —"],
-                    ["early-church", "Early Church (1st–5th c.)"],
-                    ["medieval", "Medieval (5th–15th c.)"],
-                    [
-                        "reformation-early-modern",
-                        "Reformation & Early Modern (16th–18th c.)",
-                    ],
-                    [
-                        "enlightenment-old-quest",
-                        "Enlightenment & Old Quest (1778–1906)",
-                    ],
-                    [
-                        "no-quest-period-of-silence",
-                        "No Quest / Period of Silence (1906–1953)",
-                    ],
-                    [
-                        "second-quest-new-quest",
-                        "Second Quest / New Quest (1953–1970s)",
-                    ],
-                    ["third-quest", "Third Quest (1980s–1990s)"],
-                    ["contemporary", "Contemporary (21st c.)"],
-                ];
-                var periodGroup = document.createElement("div");
-                periodGroup.className = "admin-form-group";
-                var periodLabel = document.createElement("label");
-                periodLabel.className = "admin-form-group__label";
-                periodLabel.setAttribute("for", "historiography-period");
-                periodLabel.textContent = "Period";
-                periodGroup.appendChild(periodLabel);
-                var periodSelect = document.createElement("select");
-                periodSelect.className = "admin-input";
-                periodSelect.id = "historiography-period";
-                PERIOD_OPTIONS.forEach(function (pair) {
-                    var opt = document.createElement("option");
-                    opt.value = pair[0];
-                    opt.textContent = pair[1];
-                    if (pair[0] === (data.historiography_period || "")) {
-                        opt.selected = true;
-                    }
-                    periodSelect.appendChild(opt);
-                });
-                periodGroup.appendChild(periodSelect);
-                var periodHint = document.createElement("span");
-                periodHint.className = "admin-form-hint";
-                periodHint.textContent =
-                    "The fixed historical period this essay belongs to. Groups essays into cards on the public index page.";
-                periodGroup.appendChild(periodHint);
-                metaCard.appendChild(periodGroup);
+                        // Left column
+                        var mainCol = document.createElement("div");
+                        mainCol.className = "admin-form-grid__main";
+                        form.appendChild(mainCol);
 
-                metaCard.appendChild(
-                    formGroup(
-                        "Period Sort Order",
-                        "historiography-sort-order",
-                        "number",
-                        "e.g. 1",
-                        "Controls display order among periods (chronological is 1–8).",
-                        false,
-                        data.period_sort_order != null
-                            ? data.period_sort_order
-                            : "",
-                    ),
-                );
+                        var contentCard = document.createElement("div");
+                        contentCard.className = "admin-form-card";
+                        mainCol.appendChild(contentCard);
 
-                // Two-Column Layout checkbox
-                var twoColWrap = document.createElement("div");
-                twoColWrap.className = "admin-checkbox-group";
-                twoColWrap.style.marginTop = "var(--space-md)";
-                var twoColCheckbox = document.createElement("input");
-                twoColCheckbox.type = "checkbox";
-                twoColCheckbox.id = "historiography-two-column";
-                twoColCheckbox.checked = !!data.two_column;
-                twoColWrap.appendChild(twoColCheckbox);
-                var twoColLabel = document.createElement("label");
-                twoColLabel.setAttribute("for", "historiography-two-column");
-                twoColLabel.textContent = "Two-Column Layout";
-                twoColWrap.appendChild(twoColLabel);
-                metaCard.appendChild(twoColWrap);
-                var twoColHint = document.createElement("span");
-                twoColHint.className = "admin-form-hint";
-                twoColHint.textContent =
-                    "Render the article body in two columns on wide screens (see STYLE_GUIDE/content-patterns.md §9).";
-                metaCard.appendChild(twoColHint);
+                        var cardTitle = document.createElement("div");
+                        cardTitle.className = "admin-form-card__title";
+                        cardTitle.textContent = "Content";
+                        contentCard.appendChild(cardTitle);
 
-                metaCard.appendChild(
-                    formGroup(
-                        "DOI / Citation",
-                        "historiography-doi",
-                        "",
-                        "e.g. 10.1234/example",
-                        "Digital Object Identifier or formal citation string.",
-                        false,
-                        data.doi || "",
-                    ),
-                );
-                metaCard.appendChild(
-                    formGroup(
-                        "Author Bio",
-                        "historiography-author-bio",
-                        "",
-                        "Brief author biography…",
-                        "A short author biography displayed below the article title.",
-                        true,
-                        data.author_bio || "",
-                    ),
-                );
-
-                // Bibliography card
-                var mlaCard = document.createElement("div");
-                mlaCard.className = "admin-form-card";
-                mlaCard.style.marginTop = "var(--space-md)";
-                sidebar.appendChild(mlaCard);
-
-                var mlaTitle = document.createElement("div");
-                mlaTitle.className = "admin-form-card__title";
-                mlaTitle.textContent = "Bibliography";
-                mlaCard.appendChild(mlaTitle);
-
-                var mlaMount = document.createElement("div");
-                mlaMount.id = "mla-sources-mount";
-                mlaCard.appendChild(mlaMount);
-
-                // MLA Bibliography panel, seeded with this record's existing sources
-                var mlaSourcesPanel = AdminMlaSources.mount(mlaMount, {
-                    initialSourceIds: (data.mla_sources || []).map(
-                        function (link) {
-                            return link.id;
-                        },
-                    ),
-                });
-
-                // Formatting reference panel
-                AdminShortcodeHelp.mountFormattingReference(sidebar);
-
-                // Actions
-                var actions = document.createElement("div");
-                actions.className = "admin-form-actions";
-                main.appendChild(actions);
-                // Insert Image button
-                var insertBtn = document.createElement("button");
-                insertBtn.type = "button";
-                insertBtn.className =
-                    "admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn";
-                insertBtn.id = "insert-image-btn";
-                insertBtn.textContent = "Insert Image";
-                var contentField = document.getElementById(
-                    "historiography-content",
-                );
-                if (contentField && contentField.parentNode) {
-                    contentField.parentNode.insertBefore(
-                        insertBtn,
-                        contentField.nextSibling,
-                    );
-                }
-                if (typeof AdminInsertImage !== "undefined") {
-                    AdminInsertImage.wire(
-                        "#insert-image-btn",
-                        "#historiography-content",
-                    );
-                }
-
-                // Spellcheck: init the system and attach to the content textarea
-                await SpellcheckController.init();
-                SpellcheckController.attach(contentField);
-
-                var saveBtn = document.createElement("button");
-                saveBtn.type = "button";
-                saveBtn.className = "admin-btn admin-btn--primary";
-                saveBtn.textContent = "Save Changes";
-                actions.appendChild(saveBtn);
-
-                var publishBtn = document.createElement("button");
-                publishBtn.type = "button";
-                publishBtn.className = "admin-btn admin-btn--secondary";
-                publishBtn.textContent = data.published_draft
-                    ? "Unpublish"
-                    : "Publish";
-                actions.appendChild(publishBtn);
-
-                var cancelLink = document.createElement("a");
-                cancelLink.className = "admin-btn admin-btn--ghost";
-                cancelLink.href = "index.html";
-                cancelLink.textContent = "Cancel";
-                actions.appendChild(cancelLink);
-
-                var submitStatus = document.createElement("div");
-                submitStatus.id = "submit-status";
-                submitStatus.setAttribute("role", "status");
-                submitStatus.setAttribute("aria-live", "polite");
-                submitStatus.style.cssText =
-                    "margin-top:var(--space-md);text-align:center;";
-                main.appendChild(submitStatus);
-
-                // Delete section
-                var deleteSection = document.createElement("div");
-                deleteSection.className = "admin-delete-section";
-                var deleteBtn = document.createElement("button");
-                deleteBtn.type = "button";
-                deleteBtn.className = "admin-btn admin-btn--danger";
-                deleteBtn.textContent = "Delete Article";
-                deleteBtn.addEventListener("click", async function () {
-                    if (
-                        !confirm(
-                            "Are you sure you want to permanently delete this article? This cannot be undone.",
-                        )
-                    )
-                        return;
-                    deleteBtn.disabled = true;
-                    deleteBtn.textContent = "Deleting…";
-                    try {
-                        await Admin.api.del("/historiography/" + articleId);
-                        window.location.href = "index.html";
-                    } catch (err) {
-                        formError.textContent =
-                            "Failed to delete: " + err.message;
-                        formError.style.display = "block";
-                        deleteBtn.disabled = false;
-                        deleteBtn.textContent = "Delete Article";
-                    }
-                });
-                deleteSection.appendChild(deleteBtn);
-                main.appendChild(deleteSection);
-
-                // Validation and save
-                var titleInput = document.getElementById(
-                    "historiography-title",
-                );
-                var slugInput = document.getElementById("historiography-slug");
-                var titleErr = document.getElementById(
-                    "historiography-title-error",
-                );
-                var slugErr = document.getElementById(
-                    "historiography-slug-error",
-                );
-
-                var slugAuto = true;
-                titleInput.addEventListener("input", function () {
-                    if (slugAuto) {
-                        slugInput.value = titleInput.value
-                            .toLowerCase()
-                            .replace(/[^a-z0-9\s-]/g, "")
-                            .replace(/\s+/g, "-")
-                            .replace(/-+/g, "-")
-                            .replace(/^-|-$/g, "");
-                    }
-                });
-                slugInput.addEventListener("input", function () {
-                    slugAuto = false;
-                });
-
-                function clearErrors() {
-                    formError.style.display = "none";
-                    formError.textContent = "";
-                    if (titleErr) {
-                        titleErr.style.display = "none";
-                        titleErr.textContent = "";
-                    }
-                    if (slugErr) {
-                        slugErr.style.display = "none";
-                        slugErr.textContent = "";
-                    }
-                    if (titleInput)
-                        titleInput.classList.remove("admin-input--error");
-                    if (slugInput)
-                        slugInput.classList.remove("admin-input--error");
-                }
-
-                function validate() {
-                    clearErrors();
-                    var valid = true;
-                    if (!titleInput.value.trim()) {
-                        titleErr.textContent = "Title is required.";
-                        titleErr.style.display = "block";
-                        titleInput.classList.add("admin-input--error");
-                        valid = false;
-                    }
-                    if (!slugInput.value.trim()) {
-                        slugErr.textContent = "Slug is required.";
-                        slugErr.style.display = "block";
-                        slugInput.classList.add("admin-input--error");
-                        valid = false;
-                    }
-                    return valid;
-                }
-
-                function parseIdList(str) {
-                    if (!str || !str.trim()) return undefined;
-                    return str
-                        .split(",")
-                        .map(function (s) {
-                            return parseInt(s.trim(), 10);
-                        })
-                        .filter(function (n) {
-                            return !isNaN(n);
+                        AdminFormBuilder.addField(contentCard, {
+                            id: "historiography-title",
+                            label: "Title",
+                            required: true,
+                            placeholder: "e.g. The Historical Jesus",
+                            hint: "The article title shown in headings and search results.",
+                            value: data.essay_title || "",
                         });
-                }
+                        AdminFormBuilder.addField(contentCard, {
+                            id: "historiography-slug",
+                            label: "Slug",
+                            required: true,
+                            placeholder: "e.g. the-historical-jesus",
+                            hint: "URL-friendly identifier.",
+                            value: data.slug || "",
+                        });
+                        AdminFormBuilder.addField(contentCard, {
+                            id: "historiography-author",
+                            label: "Author",
+                            placeholder: "e.g. Luke Isham",
+                            hint: "The article author. Displayed below the title.",
+                            value: data.essay_author || "",
+                        });
+                        AdminFormBuilder.addField(contentCard, {
+                            id: "historiography-date",
+                            label: "Date",
+                            placeholder: "e.g. 2024",
+                            hint: "Publication or writing date.",
+                            value: data.essay_date || "",
+                        });
+                        AdminFormBuilder.addField(contentCard, {
+                            id: "historiography-publisher",
+                            label: "Publisher",
+                            placeholder: "e.g. Journal of Historical Studies",
+                            hint: "Publisher or journal name.",
+                            value: data.essay_publisher || "",
+                        });
+                        AdminFormBuilder.addField(contentCard, {
+                            id: "historiography-headings",
+                            label: "Headings",
+                            placeholder:
+                                "e.g. Introduction|Background|Analysis",
+                            hint: "Pipe-separated section headings for the table of contents.",
+                            value: data.essay_headings || "",
+                        });
+                        AdminFormBuilder.addTextarea(contentCard, {
+                            id: "historiography-content",
+                            label: "Article Content",
+                            placeholder: "Write your article here…",
+                            hint: "The full article body.",
+                            value: data.essay_content || "",
+                        });
 
-                function buildPayload() {
-                    return {
-                        essay_title: titleInput.value.trim(),
-                        slug: slugInput.value.trim(),
-                        essay_content:
-                            document
-                                .getElementById("historiography-content")
-                                .value.trim() || undefined,
-                        essay_author:
-                            document
-                                .getElementById("historiography-author")
-                                .value.trim() || undefined,
-                        essay_date:
-                            document
-                                .getElementById("historiography-date")
-                                .value.trim() || undefined,
-                        essay_publisher:
-                            document
-                                .getElementById("historiography-publisher")
-                                .value.trim() || undefined,
-                        essay_headings:
-                            document
-                                .getElementById("historiography-headings")
-                                .value.trim() || undefined,
-                        metadata_keywords:
-                            document
-                                .getElementById("historiography-keywords")
-                                .value.trim() || undefined,
-                        two_column: document.getElementById(
+                        // Right column
+                        var sidebar = document.createElement("div");
+                        sidebar.className = "admin-form-grid__sidebar";
+                        form.appendChild(sidebar);
+
+                        var metaCard = document.createElement("div");
+                        metaCard.className = "admin-form-card";
+                        sidebar.appendChild(metaCard);
+
+                        var metaTitle = document.createElement("div");
+                        metaTitle.className = "admin-form-card__title";
+                        metaTitle.textContent = "Metadata";
+                        metaCard.appendChild(metaTitle);
+
+                        AdminFormBuilder.addField(metaCard, {
+                            id: "historiography-keywords",
+                            label: "Keywords",
+                            placeholder: "e.g. historical jesus, resurrection",
+                            hint: "Comma-separated search keywords.",
+                            value: data.metadata_keywords || "",
+                        });
+                        AdminFormBuilder.addField(metaCard, {
+                            id: "historiography-evidence",
+                            label: "Linked Evidence IDs",
+                            placeholder: "e.g. 1, 3, 7",
+                            hint: "Comma-separated evidence IDs.",
+                            value: (data.links_evidence || [])
+                                .map(function (link) {
+                                    return link.target_evidence_id;
+                                })
+                                .join(", "),
+                        });
+
+                        // Period dropdown (fixed list — not part of the shared
+                        // timeline taxonomy used by evidence's era/period).
+                        var PERIOD_OPTIONS = [
+                            ["", "— Select a period —"],
+                            ["early-church", "Early Church (1st–5th c.)"],
+                            ["medieval", "Medieval (5th–15th c.)"],
+                            [
+                                "reformation-early-modern",
+                                "Reformation & Early Modern (16th–18th c.)",
+                            ],
+                            [
+                                "enlightenment-old-quest",
+                                "Enlightenment & Old Quest (1778–1906)",
+                            ],
+                            [
+                                "no-quest-period-of-silence",
+                                "No Quest / Period of Silence (1906–1953)",
+                            ],
+                            [
+                                "second-quest-new-quest",
+                                "Second Quest / New Quest (1953–1970s)",
+                            ],
+                            ["third-quest", "Third Quest (1980s–1990s)"],
+                            ["contemporary", "Contemporary (21st c.)"],
+                        ];
+                        AdminFormBuilder.addSelectField(metaCard, {
+                            id: "historiography-period",
+                            label: "Period",
+                            options: PERIOD_OPTIONS.map(function (pair) {
+                                return { value: pair[0], label: pair[1] };
+                            }),
+                            selected: data.historiography_period || "",
+                            hint: "The fixed historical period this essay belongs to. Groups essays into cards on the public index page.",
+                        });
+
+                        AdminFormBuilder.addField(metaCard, {
+                            id: "historiography-sort-order",
+                            label: "Period Sort Order",
+                            type: "number",
+                            placeholder: "e.g. 1",
+                            hint: "Controls display order among periods (chronological is 1–8).",
+                            value:
+                                data.period_sort_order != null
+                                    ? data.period_sort_order
+                                    : "",
+                        });
+
+                        // Two-Column Layout checkbox
+                        var twoColWrap = document.createElement("div");
+                        twoColWrap.className = "admin-checkbox-group";
+                        twoColWrap.style.marginTop = "var(--space-md)";
+                        var twoColCheckbox = document.createElement("input");
+                        twoColCheckbox.type = "checkbox";
+                        twoColCheckbox.id = "historiography-two-column";
+                        twoColCheckbox.checked = !!data.two_column;
+                        twoColWrap.appendChild(twoColCheckbox);
+                        var twoColLabel = document.createElement("label");
+                        twoColLabel.setAttribute(
+                            "for",
                             "historiography-two-column",
-                        ).checked
-                            ? 1
-                            : 0,
-                        doi:
-                            document
-                                .getElementById("historiography-doi")
-                                .value.trim() || undefined,
-                        author_bio:
-                            document
-                                .getElementById("historiography-author-bio")
-                                .value.trim() || undefined,
-                        historiography_period:
-                            document.getElementById("historiography-period")
-                                .value || undefined,
-                        period_sort_order:
-                            document.getElementById("historiography-sort-order")
-                                .value !== ""
-                                ? parseInt(
-                                      document.getElementById(
-                                          "historiography-sort-order",
-                                      ).value,
-                                      10,
-                                  )
-                                : undefined,
-                        published_draft: data.published_draft ? 1 : 0,
-                        link_evidence_ids: parseIdList(
-                            document.getElementById("historiography-evidence")
-                                .value,
-                        ),
-                        mla_source_ids: mlaSourcesPanel.getSelectedIds(),
-                    };
-                }
-
-                saveBtn.addEventListener("click", async function () {
-                    clearErrors();
-                    submitStatus.textContent = "";
-                    if (!validate()) {
-                        titleInput.focus();
-                        return;
-                    }
-                    saveBtn.disabled = true;
-                    publishBtn.disabled = true;
-                    submitStatus.textContent = "Saving…";
-                    try {
-                        await Admin.api.put(
-                            "/historiography/" + articleId,
-                            buildPayload(),
                         );
-                        submitStatus.innerHTML =
-                            '<span style="color:var(--admin-success)">Saved successfully.</span>';
-                    } catch (err) {
-                        formError.textContent =
-                            "Failed to save: " + err.message;
-                        formError.style.display = "block";
-                    } finally {
-                        saveBtn.disabled = false;
-                        publishBtn.disabled = false;
-                    }
-                });
+                        twoColLabel.textContent = "Two-Column Layout";
+                        twoColWrap.appendChild(twoColLabel);
+                        metaCard.appendChild(twoColWrap);
+                        var twoColHint = document.createElement("span");
+                        twoColHint.className = "admin-form-hint";
+                        twoColHint.textContent =
+                            "Render the article body in two columns on wide screens (see STYLE_GUIDE/content-patterns.md §9).";
+                        metaCard.appendChild(twoColHint);
 
-                publishBtn.addEventListener("click", async function () {
-                    clearErrors();
-                    submitStatus.textContent = "";
-                    publishBtn.disabled = true;
-                    saveBtn.disabled = true;
+                        AdminFormBuilder.addField(metaCard, {
+                            id: "historiography-doi",
+                            label: "DOI / Citation",
+                            placeholder: "e.g. 10.1234/example",
+                            hint: "Digital Object Identifier or formal citation string.",
+                            value: data.doi || "",
+                        });
+                        AdminFormBuilder.addTextarea(metaCard, {
+                            id: "historiography-author-bio",
+                            label: "Author Bio",
+                            placeholder: "Brief author biography…",
+                            hint: "A short author biography displayed below the article title.",
+                            value: data.author_bio || "",
+                        });
 
-                    try {
-                        await Admin.api.put(
-                            "/historiography/" + articleId,
-                            buildPayload(),
+                        // Bibliography card
+                        var mlaSourcesPanel = AdminEditorUtils.mountMlaPanel(
+                            sidebar,
+                            data.mla_sources,
                         );
-                    } catch (err) {
-                        formError.textContent =
-                            "Failed to save before publish: " + err.message;
-                        formError.style.display = "block";
-                        publishBtn.disabled = false;
-                        saveBtn.disabled = false;
-                        return;
-                    }
 
-                    try {
-                        if (data.published_draft) {
-                            await Admin.unpublishItem(
-                                "historiography",
-                                articleId,
-                            );
-                            data.published_draft = 0;
-                            publishBtn.textContent = "Publish";
-                        } else {
-                            await Admin.publishItem(
-                                "historiography",
-                                articleId,
-                            );
-                            data.published_draft = 1;
-                            publishBtn.textContent = "Unpublish";
+                        // Formatting reference panel
+                        AdminShortcodeHelp.mountFormattingReference(sidebar);
+
+                        // Actions
+                        var actions = document.createElement("div");
+                        actions.className = "admin-form-actions";
+                        main.appendChild(actions);
+
+                        // Insert Image button
+                        AdminEditorUtils.wireInsertImageButton(
+                            "historiography-content",
+                        );
+                        var contentField = document.getElementById(
+                            "historiography-content",
+                        );
+
+                        // Spellcheck: init the system and attach to the content textarea
+                        await SpellcheckController.init();
+                        SpellcheckController.attach(contentField);
+
+                        var saveBtn = document.createElement("button");
+                        saveBtn.type = "button";
+                        saveBtn.className = "admin-btn admin-btn--primary";
+                        saveBtn.textContent = "Save Changes";
+                        actions.appendChild(saveBtn);
+
+                        var publishBtn = document.createElement("button");
+                        publishBtn.type = "button";
+                        publishBtn.className = "admin-btn admin-btn--secondary";
+                        publishBtn.textContent = data.published_draft
+                            ? "Unpublish"
+                            : "Publish";
+                        actions.appendChild(publishBtn);
+
+                        var cancelLink = document.createElement("a");
+                        cancelLink.className = "admin-btn admin-btn--ghost";
+                        cancelLink.href = "index.html";
+                        cancelLink.textContent = "Cancel";
+                        actions.appendChild(cancelLink);
+
+                        var submitStatus = document.createElement("div");
+                        submitStatus.id = "submit-status";
+                        submitStatus.setAttribute("role", "status");
+                        submitStatus.setAttribute("aria-live", "polite");
+                        submitStatus.style.cssText =
+                            "margin-top:var(--space-md);text-align:center;";
+                        main.appendChild(submitStatus);
+
+                        // Delete section
+                        var deleteSection = document.createElement("div");
+                        deleteSection.className = "admin-delete-section";
+                        var deleteBtn = document.createElement("button");
+                        deleteBtn.type = "button";
+                        deleteBtn.className = "admin-btn admin-btn--danger";
+                        deleteBtn.textContent = "Delete Article";
+                        deleteSection.appendChild(deleteBtn);
+                        main.appendChild(deleteSection);
+
+                        // ── Validation + save/publish/delete wiring ──────────
+                        var titleInput = document.getElementById(
+                            "historiography-title",
+                        );
+                        var slugInput = document.getElementById(
+                            "historiography-slug",
+                        );
+                        var titleErr = document.getElementById(
+                            "historiography-title-error",
+                        );
+                        var slugErr = document.getElementById(
+                            "historiography-slug-error",
+                        );
+
+                        var slugAuto = true;
+                        titleInput.addEventListener("input", function () {
+                            if (slugAuto) {
+                                slugInput.value = titleInput.value
+                                    .toLowerCase()
+                                    .replace(/[^a-z0-9\s-]/g, "")
+                                    .replace(/\s+/g, "-")
+                                    .replace(/-+/g, "-")
+                                    .replace(/^-|-$/g, "");
+                            }
+                        });
+                        slugInput.addEventListener("input", function () {
+                            slugAuto = false;
+                        });
+
+                        function validateForm() {
+                            var valid = AdminEditorUtils.validate(formError, [
+                                {
+                                    input: titleInput,
+                                    errEl: titleErr,
+                                    label: "Title",
+                                },
+                                {
+                                    input: slugInput,
+                                    errEl: slugErr,
+                                    label: "Slug",
+                                },
+                            ]);
+                            if (!valid) titleInput.focus();
+                            return valid;
                         }
-                        submitStatus.innerHTML =
-                            '<span style="color:var(--admin-success)">' +
-                            (data.published_draft
-                                ? "Published!"
-                                : "Unpublished.") +
-                            "</span>";
-                    } catch (err) {
-                        formError.textContent =
-                            "Publish action failed: " + err.message;
-                        formError.style.display = "block";
-                    } finally {
-                        publishBtn.disabled = false;
-                        saveBtn.disabled = false;
-                    }
-                });
 
-                document.addEventListener("keydown", function (e) {
-                    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-                        e.preventDefault();
-                        saveBtn.click();
-                    }
+                        function buildPayload() {
+                            return {
+                                essay_title: titleInput.value.trim(),
+                                slug: slugInput.value.trim(),
+                                essay_content:
+                                    document
+                                        .getElementById(
+                                            "historiography-content",
+                                        )
+                                        .value.trim() || undefined,
+                                essay_author:
+                                    document
+                                        .getElementById(
+                                            "historiography-author",
+                                        )
+                                        .value.trim() || undefined,
+                                essay_date:
+                                    document
+                                        .getElementById(
+                                            "historiography-date",
+                                        )
+                                        .value.trim() || undefined,
+                                essay_publisher:
+                                    document
+                                        .getElementById(
+                                            "historiography-publisher",
+                                        )
+                                        .value.trim() || undefined,
+                                essay_headings:
+                                    document
+                                        .getElementById(
+                                            "historiography-headings",
+                                        )
+                                        .value.trim() || undefined,
+                                metadata_keywords:
+                                    document
+                                        .getElementById(
+                                            "historiography-keywords",
+                                        )
+                                        .value.trim() || undefined,
+                                two_column: document.getElementById(
+                                    "historiography-two-column",
+                                ).checked
+                                    ? 1
+                                    : 0,
+                                doi:
+                                    document
+                                        .getElementById(
+                                            "historiography-doi",
+                                        )
+                                        .value.trim() || undefined,
+                                author_bio:
+                                    document
+                                        .getElementById(
+                                            "historiography-author-bio",
+                                        )
+                                        .value.trim() || undefined,
+                                historiography_period:
+                                    document.getElementById(
+                                        "historiography-period",
+                                    ).value || undefined,
+                                period_sort_order:
+                                    document.getElementById(
+                                        "historiography-sort-order",
+                                    ).value !== ""
+                                        ? parseInt(
+                                              document.getElementById(
+                                                  "historiography-sort-order",
+                                              ).value,
+                                              10,
+                                          )
+                                        : undefined,
+                                published_draft: data.published_draft
+                                    ? 1
+                                    : 0,
+                                link_evidence_ids:
+                                    AdminEditorUtils.parseIdList(
+                                        document.getElementById(
+                                            "historiography-evidence",
+                                        ).value,
+                                    ),
+                                mla_source_ids:
+                                    mlaSourcesPanel.getSelectedIds(),
+                            };
+                        }
+
+                        AdminEditorScaffold.wireFormHandlers({
+                            formError: formError,
+                            submitStatus: submitStatus,
+                            saveBtn: saveBtn,
+                            publishBtn: publishBtn,
+                            validateForm: validateForm,
+                            buildPayload: buildPayload,
+                            putPath: "/historiography/" + articleId,
+                            publishType: "historiography",
+                            recordId: articleId,
+                            data: data,
+                            delete: {
+                                btn: deleteBtn,
+                                path: "/historiography/" + articleId,
+                                confirmMessage:
+                                    "Are you sure you want to permanently delete this article? This cannot be undone.",
+                                idleLabel: "Delete Article",
+                                redirectHref: "index.html",
+                            },
+                        });
+                    },
                 });
             });
         </script>
