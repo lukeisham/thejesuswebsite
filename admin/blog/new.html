@@ -278,33 +278,6 @@
 
                     <div class="admin-form-grid__sidebar">
                         <div class="admin-form-card">
-                            <div class="admin-form-card__title">Settings</div>
-
-                            <div class="admin-form-group">
-                                <div class="admin-checkbox-group">
-                                    <input
-                                        type="checkbox"
-                                        id="blog-landing"
-                                        name="landing_page_display"
-                                        value="1"
-                                    />
-                                    <label for="blog-landing"
-                                        >Show on Landing Page</label
-                                    >
-                                </div>
-                                <span
-                                    class="admin-form-hint"
-                                    style="margin-top: var(--space-xs)"
-                                    >When checked, this post will appear on the
-                                    homepage.</span
-                                >
-                            </div>
-                        </div>
-
-                        <div
-                            class="admin-form-card"
-                            style="margin-top: var(--space-md)"
-                        >
                             <div class="admin-form-card__title">Metadata</div>
 
                             <div class="admin-form-group">
@@ -547,11 +520,6 @@
                         slug: slugInput.value.trim(),
                         blog_content: contentInput.value.trim() || undefined,
                         blog_thumbnail: thumbnailPicker.getValue().image_path || undefined,
-                        landing_page_display: document.getElementById(
-                            "blog-landing",
-                        ).checked
-                            ? 1
-                            : 0,
                         metadata_keywords:
                             document
                                 .getElementById("blog-keywords")

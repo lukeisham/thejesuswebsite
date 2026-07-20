@@ -26,7 +26,6 @@ const WRITABLE_COLUMNS = [
   "hero_image",
   "hero_image_alt",
   "blog_thumbnail",
-  "landing_page_display",
   "published_draft",
   "metadata_keywords",
 ];
@@ -49,18 +48,6 @@ function getAllPublished() {
   return db
     .prepare(
       "SELECT * FROM blog_posts WHERE published_draft = 1 ORDER BY created_at DESC",
-    )
-    .all();
-}
-
-/**
- * Published blog posts marked for landing page display, newest first.
- * Used for featured/promoted posts on the home page.
- */
-function getLandingPagePosts() {
-  return db
-    .prepare(
-      "SELECT * FROM blog_posts WHERE published_draft = 1 AND landing_page_display = 1 ORDER BY created_at DESC",
     )
     .all();
 }
@@ -317,7 +304,6 @@ function updateComposite(id, data) {
 module.exports = {
   getAllPublished,
   getAllAdmin,
-  getLandingPagePosts,
   getBySlug,
   getById,
   getDetailBySlug,

@@ -565,25 +565,6 @@
 
                 rightCol.appendChild(mapCard);
 
-                // Publish card
-                var pubCard = document.createElement("div");
-                pubCard.className = "admin-form-card";
-                pubCard.style.marginTop = "var(--space-md)";
-
-                var pubGroup = document.createElement("div");
-                pubGroup.className = "admin-form-group";
-                pubGroup.innerHTML =
-                    '<div class="admin-checkbox-group">' +
-                    '<input type="checkbox" id="ev-publish" name="published_draft" value="1"' +
-                    (data.published_draft ? " checked" : "") +
-                    ">" +
-                    '<label for="ev-publish">Published</label>' +
-                    "</div>" +
-                    '<span class="admin-form-hint" style="margin-top:var(--space-xs)">Toggle to publish or unpublish.</span>';
-                pubCard.appendChild(pubGroup);
-
-                rightCol.appendChild(pubCard);
-
                 // Formatting reference panel
                 AdminShortcodeHelp.mountFormattingReference(rightCol);
 
@@ -827,10 +808,7 @@
                             document
                                 .getElementById("ev-keywords")
                                 .value.trim() || undefined,
-                        published_draft: document.getElementById("ev-publish")
-                            .checked
-                            ? 1
-                            : 0,
+                        published_draft: data.published_draft ? 1 : 0,
                         link_evidence_ids: parseIdList(
                             document.getElementById("ev-link-evidence").value,
                         ),
@@ -901,8 +879,6 @@
                             data.published_draft = 1;
                             publishBtn.textContent = "Unpublish";
                         }
-                        document.getElementById("ev-publish").checked =
-                            !!data.published_draft;
                         submitStatus.innerHTML =
                             '<span style="color:var(--admin-success)">' +
                             (data.published_draft

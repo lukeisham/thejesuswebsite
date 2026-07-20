@@ -325,36 +325,6 @@
 
     metaCard.appendChild(formGroup('Keywords', 'challenge-keywords', '', 'e.g. resurrection, minimal facts', 'Comma-separated search keywords.', false, data.metadata_keywords || ''));
 
-    var pubCard = document.createElement('div');
-    pubCard.className = 'admin-form-card';
-    pubCard.style.marginTop = 'var(--space-md)';
-    sidebar.appendChild(pubCard);
-
-    var pubGroup = document.createElement('div');
-    pubGroup.className = 'admin-form-group';
-    pubCard.appendChild(pubGroup);
-
-    var pubCheckboxWrap = document.createElement('div');
-    pubCheckboxWrap.className = 'admin-checkbox-group';
-
-    var pubCheckbox = document.createElement('input');
-    pubCheckbox.type = 'checkbox';
-    pubCheckbox.id = 'challenge-publish';
-    pubCheckbox.checked = !!data.published_draft;
-    pubCheckboxWrap.appendChild(pubCheckbox);
-
-    var pubLabel = document.createElement('label');
-    pubLabel.setAttribute('for', 'challenge-publish');
-    pubLabel.textContent = 'Published';
-    pubCheckboxWrap.appendChild(pubLabel);
-
-    pubGroup.appendChild(pubCheckboxWrap);
-    var pubHint = document.createElement('span');
-    pubHint.className = 'admin-form-hint';
-    pubHint.style.marginTop = 'var(--space-xs)';
-    pubHint.textContent = 'Toggle publish state.';
-    pubGroup.appendChild(pubHint);
-
     var actions = document.createElement('div');
     actions.className = 'admin-form-actions';
     main.appendChild(actions);
@@ -470,7 +440,7 @@
         challenge_url_d: document.getElementById('challenge-url-d').value.trim() || undefined,
         challenge_rank_number: rankVal ? parseInt(rankVal, 10) : undefined,
         metadata_keywords: document.getElementById('challenge-keywords').value.trim() || undefined,
-        published_draft: document.getElementById('challenge-publish').checked ? 1 : 0
+        published_draft: data.published_draft ? 1 : 0
       };
     }
 
@@ -519,7 +489,6 @@
           data.published_draft = 1;
           publishBtn.textContent = 'Unpublish';
         }
-        document.getElementById('challenge-publish').checked = !!data.published_draft;
         submitStatus.innerHTML = '<span style="color:var(--admin-success)">' + (data.published_draft ? 'Published!' : 'Unpublished.') + '</span>';
       } catch (err) {
         formError.textContent = 'Publish action failed: ' + err.message;

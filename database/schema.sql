@@ -140,6 +140,9 @@ CREATE TABLE blog_posts (
     hero_image           TEXT,
     hero_image_alt       TEXT,
     blog_thumbnail       TEXT,
+    -- Deprecated: no longer written by the admin UI or read by any query
+    -- (removed in remove-redundant-published-and-landing-page.md). Retained
+    -- for backward compatibility with existing rows only.
     landing_page_display INTEGER DEFAULT 0,
     published_draft      INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
     metadata_keywords    TEXT,
