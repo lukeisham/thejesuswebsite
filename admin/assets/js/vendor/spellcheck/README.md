@@ -5,49 +5,41 @@ loaded only by admin pages (never referenced from `frontend/`).
 
 ## Current approach
 
-The spellcheck worker (`spellcheck-worker.js`) ships with a built-in English
-dictionary (~5 000 common words) and rule-based grammar checks (passive voice,
-repeated words, indefinite articles). This provides functional spellcheck out
-of the box with zero npm dependencies.
+`spellcheck-worker.js` (a module Web Worker) imports the vendored `nspell.js`
+directly via a top-level ESM `import` and loads the Hunspell `dictionary-en`
+affix/dictionary files with `fetch()` at worker startup. Because the worker is
+created with `{ type: "module" }`, the import works from inside the worker
+script itself — no `<script>` tag is needed on the admin HTML pages.
 
-## Upgrading to nspell + retext
+If the nspell bundle or dictionary files fail to load (network error, parse
+error, 404), the worker logs a `console.warn` and falls back to the built-in
+~5,000-word `check()`/`checkGrammar()` engine in `spellcheck-engine.js` for
+that session (JS-2: never fail silently). The message protocol (`{ text,
+dictionaryWords }` in, `{ spellingErrors, grammarErrors }` out) is identical
+either way, so the controller and overlay need no changes.
 
-To replace the built-in checker with full nspell/retext (as described in the
-plan), follow these steps:
+## Files present here
 
-### 1. Obtain pre-built browser bundles
+- `nspell.js` — nspell@2.1.5 (MIT), rebuilt as an ESM browser bundle with
+  `esbuild --bundle --format=esm --platform=browser` from an entry module
+  re-exporting nspell's default export (nspell ships only a CommonJS build on
+  npm, so this project vendors a self-built ESM version rather than fetching
+  a prebuilt one — no such bundle is published to jsDelivr). Source:
+  https://github.com/wooorm/nspell. To regenerate: `npm install nspell
+  esbuild`, then `esbuild entry.js --bundle --format=esm --platform=browser
+  --outfile=nspell.js` where `entry.js` is `export { default } from "nspell"`.
+- `dictionary-en.aff` / `dictionary-en.dic` — dictionary-en@4.0.0
+  ((MIT AND BSD)), the `en_US` Hunspell dictionary from
+  https://github.com/wooorm/dictionaries. ~49,500 dictionary entries; Hunspell
+  affix rules expand this to roughly 170,000 recognized surface word forms.
+  Fetched at runtime by the worker relative to its own script location, so
+  they must stay alongside `nspell.js` in this directory.
 
-Since this project has no build step (no bundler, no npm in the project root),
-each library must be vendored as a standalone browser-compatible file:
+## Upgrading to retext (not yet done)
 
-**nspell** (spellcheck):
-- `nspell` itself: https://www.jsdelivr.com/package/npm/nspell
-- `dictionary-en`: https://www.jsdelivr.com/package/npm/dictionary-en
-  - The `.aff` and `.dic` files must be fetched at runtime; place them here
-    and reference with a relative URL in the worker.
-
-**retext** (grammar):
-- `retext` + plugins are ESM-only and expect a bundler. The plan acknowledges
-  this (see Notes § in `setup/PLANS/New/admin-spellcheck-widget.md`).
-- A practical approach: use a CDN ESM build (e.g. esm.sh or skypack) via
-  `import` in the worker, or pre-bundle with a one-time esbuild/rollup step
-  and commit the resulting bundle.
-
-### 2. Update the worker
-
-Edit `admin-spellcheck/spellcheck-worker.js` to import nspell/retext instead of
-using the built-in `BuiltinSpellchecker`. The message protocol (`{ text,
-dictionaryWords }` in, `{ spellingErrors, grammarErrors }` out) stays the same,
-so no other files need changes.
-
-### 3. Update admin page script tags
-
-Add `<script>` or `<script type="module">` tags for the vendored libraries
-before the worker script on each admin page.
-
-## Files expected here (once vendored)
-
-- `nspell.js` — nspell browser build
-- `dictionary-en.aff` — English hunspell affix file
-- `dictionary-en.dic` — English hunspell dictionary file
-- `retext.js` or `retext-bundle.js` — retext + plugin bundle
+Grammar checking still uses the rule-based `checkGrammar()` in
+`spellcheck-engine.js` (passive voice, repeated words, indefinite articles).
+`retext` + plugins are ESM-only and expect a bundler; the same vendoring
+approach used for nspell above (fetch the npm package, bundle with esbuild
+`--format=esm --platform=browser`, commit the output) would apply if this is
+picked up later.
