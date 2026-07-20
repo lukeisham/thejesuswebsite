@@ -110,10 +110,10 @@
     }
 
     try {
-      var data = await Admin.api.get('/academic-challenges');
+      var data = await Admin.api.get('/academic-challenges/admin');
       main.removeChild(loadingEl);
 
-      var items = data.items || [];
+      var items = Array.isArray(data) ? data : [];
 
       if (items.length === 0) {
         var emptyEl = document.createElement('div');

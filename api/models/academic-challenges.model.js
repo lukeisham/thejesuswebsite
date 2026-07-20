@@ -82,6 +82,22 @@ function getAllPublished() {
 }
 
 /**
+ * All academic challenges for the admin list — both draft and published,
+ * ranked by challenge_rank_number. Unlike getAllPublished() this applies no
+ * published_draft filter and returns raw column names (challenge_title,
+ * published_draft, …) so the admin table can render them directly. Citations
+ * are intentionally omitted here — the list view does not use them, and the
+ * per-record admin editor loads them separately via getAdminById().
+ */
+function getAllAdmin() {
+  return db
+    .prepare(
+      "SELECT * FROM challenges WHERE academic_popular = ? ORDER BY challenge_rank_number ASC",
+    )
+    .all("academic");
+}
+
+/**
  * Single published academic challenge by slug, or undefined if not found.
  */
 function getBySlug(slug) {
@@ -210,6 +226,7 @@ function getAdminById(id) {
 
 module.exports = {
   getAllPublished,
+  getAllAdmin,
   getBySlug,
   getById,
   getDetailBySlug,
