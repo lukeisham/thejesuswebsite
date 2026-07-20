@@ -400,6 +400,37 @@ function check(word, customWords) {
 }
 
 /**
+ * Common abbreviations whose trailing "." is not a sentence end, so a
+ * lowercase word right after them is correct, not a missing capital.
+ */
+const SENTENCE_ABBREVIATIONS = new Set([
+  "e.g", "i.e", "cf", "etc", "vs", "mr", "mrs", "ms", "dr", "st", "rev",
+  "no", "vol", "ch", "pp", "p", "fig", "ed", "eds", "trans", "al", "approx",
+]);
+
+/**
+ * Nouns that end in "s" but are grammatically singular, so "the/a <noun> is"
+ * is correct agreement, not a plural-subject/singular-verb mismatch.
+ */
+const SINGULAR_S_NOUNS = new Set([
+  "physics", "mathematics", "news", "politics", "economics", "ethics",
+  "species", "series", "means",
+]);
+
+/**
+ * Find the word immediately before `index` in `text`, stripping any
+ * trailing dots, for checking against SENTENCE_ABBREVIATIONS.
+ * @param {string} text
+ * @param {number} index
+ * @returns {string} lowercased token, e.g. "e.g" from "...see e.g. the..."
+ */
+function precedingToken(text, index) {
+  let start = index;
+  while (start > 0 && /[A-Za-z.]/.test(text[start - 1])) start--;
+  return text.slice(start, index).replace(/\.+$/, "").toLowerCase();
+}
+
+/**
  * Check grammar in text. Returns an array of { start, end, message } for
  * each grammar issue found.
  *
@@ -407,6 +438,15 @@ function check(word, customWords) {
  * - Passive voice (common patterns: "was/were/is/are/been/being + past participle")
  * - Repeated words ("the the", "is is", etc.)
  * - Indefinite article ("a" before vowel sound)
+ * - its/it's confusion ("its is/are/has/was" — never valid, means "it's")
+ * - your/you're confusion ("your going/coming/running/doing/being")
+ * - Repeated/mixed terminal punctuation ("??", "!!", ".!"), excluding "..."
+ * - Missing capital at the start of a sentence (skips known abbreviations)
+ * - Basic subject-verb agreement ("the dogs is" — plural noun, singular verb)
+ *
+ * All rules here are advisory heuristics, not a real parser — like the
+ * existing passive-voice check, messages are phrased as "Possible ..." so
+ * an occasional false positive reads as a hint, not an authoritative error.
  *
  * @param {string} text
  * @returns {{ start: number, end: number, message: string }[]}
@@ -457,6 +497,106 @@ function checkGrammar(text) {
         start: match.index,
         end: match.index + match[0].length,
         message: 'Use "an" instead of "a" before a vowel sound',
+      });
+    }
+  }
+
+  // ── its vs it's ──────────────────────────────────────────────────────
+  // Only the unambiguous direction: "its" directly followed by a verb
+  // ("its is/are/has/was") is never valid possessive usage. The reverse
+  // ("it's" + noun) is deliberately not checked — that pattern would match
+  // the vast majority of correct "it's" sentences ("it's cold.", "it's a
+  // shame."), so it would do more harm than good.
+  const itsVsIts = /\bits\s+(is|are|has|was)\b/gi;
+  while ((match = itsVsIts.exec(text)) !== null) {
+    const alreadyFlagged = issues.some(
+      (i) => match.index >= i.start && match.index < i.end,
+    );
+    if (!alreadyFlagged) {
+      issues.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        message: 'Possible mix-up: did you mean "it\'s" (it is/has) instead of "its"?',
+      });
+    }
+  }
+
+  // ── your vs you're ───────────────────────────────────────────────────
+  // "your" directly followed by a bare -ing verb is usually a mistyped
+  // "you're" ("your going" → "you're going"). Advisory only: "your V-ing"
+  // is occasionally correct as a possessive-gerund ("I appreciate your
+  // being here"), hence the hedged "Possible" phrasing.
+  const yourVsYoure = /\byour\s+(going|coming|running|doing|being)\b/gi;
+  while ((match = yourVsYoure.exec(text)) !== null) {
+    const alreadyFlagged = issues.some(
+      (i) => match.index >= i.start && match.index < i.end,
+    );
+    if (!alreadyFlagged) {
+      issues.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        message: 'Possible mix-up: did you mean "you\'re" (you are) instead of "your"?',
+      });
+    }
+  }
+
+  // ── Repeated/mixed terminal punctuation ─────────────────────────────
+  // Flags runs of 2+ terminal marks ("??", "!!", ".!"), except the
+  // standard three-dot ellipsis, which is intentional in prose.
+  const punctuationRun = /[.!?]{2,}/g;
+  while ((match = punctuationRun.exec(text)) !== null) {
+    if (match[0] === "...") continue;
+    const alreadyFlagged = issues.some(
+      (i) => match.index >= i.start && match.index < i.end,
+    );
+    if (!alreadyFlagged) {
+      issues.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        message: `Repeated punctuation: "${match[0]}"`,
+      });
+    }
+  }
+
+  // ── Missing capital at sentence start ───────────────────────────────
+  // Skips known abbreviations (e.g., i.e., cf., etc., Mr., ...) and an
+  // ellipsis ("...") where a lowercase continuation is correct, not a
+  // new sentence — an ellipsis usually trails off mid-thought.
+  const sentenceStart = /[.!?]\s+([a-z])/g;
+  while ((match = sentenceStart.exec(text)) !== null) {
+    if (match[0][0] === "." && text.slice(match.index - 2, match.index + 1) === "...") continue;
+    const token = precedingToken(text, match.index);
+    if (SENTENCE_ABBREVIATIONS.has(token)) continue;
+    const letterIndex = match.index + match[0].length - 1;
+    const alreadyFlagged = issues.some(
+      (i) => letterIndex >= i.start && letterIndex < i.end,
+    );
+    if (!alreadyFlagged) {
+      issues.push({
+        start: letterIndex,
+        end: letterIndex + 1,
+        message: "Sentence should start with a capital letter",
+      });
+    }
+  }
+
+  // ── Basic subject-verb agreement ────────────────────────────────────
+  // Flags "the/a/an <plural-looking noun> is/was" — a plural-shaped
+  // subject with a singular-only verb is almost always a mismatch. Only
+  // is/was are checked (not do/have, which plural subjects take
+  // correctly); a short exclusion list covers nouns that end in "s" but
+  // are grammatically singular ("physics is", "the news was").
+  const subjectVerbMismatch = /\b(?:the|a|an)\s+([a-z]+s)\s+(is|was)\b/gi;
+  while ((match = subjectVerbMismatch.exec(text)) !== null) {
+    if (SINGULAR_S_NOUNS.has(match[1].toLowerCase())) continue;
+    const alreadyFlagged = issues.some(
+      (i) => match.index >= i.start && match.index < i.end,
+    );
+    if (!alreadyFlagged) {
+      issues.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        message: `Possible subject-verb agreement error: "${match[1]} ${match[2]}"`,
       });
     }
   }
