@@ -87,6 +87,15 @@
     padding-top: var(--space-xs);
 }
 
+/* ── Context menu grammar message ─────────────────────────────────────────── */
+
+.admin-spellcheck-menu__message {
+    padding: var(--space-xs) var(--space-md);
+    color: var(--admin-text-secondary);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
 /* ── Context menu separator ───────────────────────────────────────────────── */
 
 .admin-spellcheck-menu__separator {

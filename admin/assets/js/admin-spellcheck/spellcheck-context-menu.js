@@ -91,6 +91,25 @@ const SpellcheckContextMenu = {
 
     const items = [];
 
+    // Grammar marks carry a rule message but, unlike spelling marks, had no
+    // way to show it — the flagged phrase was silently underlined with no
+    // explanation. Show it as a non-interactive label above the actions.
+    if (type === "grammar") {
+      const message = flaggedSpan.dataset.spellcheckMessage;
+      if (message) {
+        const label = document.createElement("div");
+        label.className = "admin-spellcheck-menu__message";
+        label.setAttribute("role", "presentation");
+        label.textContent = message;
+        menu.appendChild(label);
+
+        const messageSep = document.createElement("div");
+        messageSep.className = "admin-spellcheck-menu__separator";
+        messageSep.setAttribute("role", "separator");
+        menu.appendChild(messageSep);
+      }
+    }
+
     if (type === "spelling") {
       const suggestions = (flaggedSpan.dataset.spellcheckSuggestions || "")
         .split("\n")
@@ -130,10 +149,23 @@ const SpellcheckContextMenu = {
 
     // Ignore action
     const ignoreBtn = this._makeItem("Ignore", "admin-spellcheck-menu__item--action", async () => {
-      const word = flaggedSpan.dataset.spellcheckWord || textarea.value.slice(
-        parseInt(flaggedSpan.dataset.spellcheckStart, 10),
-        parseInt(flaggedSpan.dataset.spellcheckEnd, 10),
-      );
+      const start = parseInt(flaggedSpan.dataset.spellcheckStart, 10);
+      const end = parseInt(flaggedSpan.dataset.spellcheckEnd, 10);
+
+      if (type === "grammar") {
+        // The shared dictionary only ever matches single tokenized words
+        // (SpellcheckDictionary.ignoreWord -> tokenizeWords lookups), but a
+        // grammar mark's flagged range is a multi-word phrase. Persisting it
+        // there would add a permanently-unmatchable row every time someone
+        // dismisses a grammar flag. Just clear this occurrence locally;
+        // the rule may re-flag it on the next scan since there is no
+        // per-occurrence grammar-ignore list yet.
+        SpellcheckOverlay.invalidateRange(textarea, start, end, end - start);
+        this._remove();
+        return;
+      }
+
+      const word = flaggedSpan.dataset.spellcheckWord || textarea.value.slice(start, end);
       try {
         await SpellcheckDictionary.ignoreWord(word);
         textarea.dispatchEvent(new Event("input", { bubbles: true }));

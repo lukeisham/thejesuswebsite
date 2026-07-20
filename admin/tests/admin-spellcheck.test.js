@@ -657,6 +657,170 @@ describe("context menu — viewport clamping", () => {
   });
 });
 
+// ── Context menu: grammar message display & ignore behaviour ──────────────
+//   Regression coverage for issue #93: grammar marks showed no explanation
+//   and "Ignore" persisted the full flagged phrase into the shared
+//   single-word dictionary. Loads the real module via vm (same pattern as
+//   the viewport-clamping suite above) with a minimal fake DOM.
+
+describe("context menu — grammar message & ignore", () => {
+  const fs = require("fs");
+  const path = require("path");
+  const vm = require("vm");
+
+  const menuPath = path.resolve(
+    __dirname,
+    "..",
+    "assets",
+    "js",
+    "admin-spellcheck",
+    "spellcheck-context-menu.js",
+  );
+  const menuSource = fs.readFileSync(menuPath, "utf8");
+
+  function makeElement() {
+    const el = {
+      className: "",
+      style: {},
+      children: [],
+      listeners: {},
+      offsetWidth: 100,
+      offsetHeight: 40,
+      setAttribute(key, value) {
+        this[key] = value;
+      },
+      appendChild(child) {
+        this.children.push(child);
+      },
+      addEventListener(evt, fn) {
+        (this.listeners[evt] = this.listeners[evt] || []).push(fn);
+      },
+      focus() {},
+      contains() {
+        return false;
+      },
+      remove() {},
+    };
+    Object.defineProperty(el, "textContent", {
+      get() {
+        return this._text;
+      },
+      set(v) {
+        this._text = v;
+      },
+      configurable: true,
+    });
+    return el;
+  }
+
+  /** Builds a fake flagged <span> plus the textarea it reports back to. */
+  function makeFlaggedSpan({ type, message, word, start, end }) {
+    const textarea = { value: "The scholars is correct.", dispatchEvent() {} };
+    const wrapperDiv = { _textarea: textarea };
+    return {
+      dataset: {
+        spellcheckType: type,
+        spellcheckMessage: message,
+        spellcheckWord: word,
+        spellcheckStart: String(start),
+        spellcheckEnd: String(end),
+      },
+      closest() {
+        return wrapperDiv;
+      },
+      _textarea: textarea,
+    };
+  }
+
+  function loadMenu() {
+    const invalidateCalls = [];
+    const ignoreCalls = [];
+    const sandbox = {
+      window: {},
+      document: {
+        addEventListener() {},
+        createElement: () => makeElement(),
+        body: { appendChild() {} },
+      },
+      SpellcheckOverlay: {
+        invalidateRange(...args) {
+          invalidateCalls.push(args);
+        },
+      },
+      SpellcheckDictionary: {
+        async ignoreWord(word) {
+          ignoreCalls.push(word);
+        },
+        async learnWord() {},
+      },
+    };
+    const SpellcheckContextMenu = vm.runInNewContext(
+      menuSource + "\nSpellcheckContextMenu;",
+      sandbox,
+    );
+    return { SpellcheckContextMenu, invalidateCalls, ignoreCalls };
+  }
+
+  test("grammar mark shows its message as a non-interactive label", () => {
+    const { SpellcheckContextMenu } = loadMenu();
+    const span = makeFlaggedSpan({
+      type: "grammar",
+      message: "Subject/verb agreement: 'scholars' is plural.",
+      start: 4,
+      end: 17,
+    });
+
+    SpellcheckContextMenu._show(span, 10, 10);
+
+    const labels = SpellcheckContextMenu._menu.children.filter(
+      (c) => c.className === "admin-spellcheck-menu__message",
+    );
+    assert.equal(labels.length, 1);
+    assert.equal(labels[0].textContent, "Subject/verb agreement: 'scholars' is plural.");
+  });
+
+  test("grammar mark: Ignore clears the mark locally and never calls SpellcheckDictionary.ignoreWord", async () => {
+    const { SpellcheckContextMenu, invalidateCalls, ignoreCalls } = loadMenu();
+    const span = makeFlaggedSpan({
+      type: "grammar",
+      message: "Subject/verb agreement.",
+      start: 4,
+      end: 17,
+    });
+
+    SpellcheckContextMenu._show(span, 10, 10);
+    const ignoreBtn = SpellcheckContextMenu._items.find((i) => i.textContent === "Ignore");
+    assert.ok(ignoreBtn, "Ignore button should exist for grammar marks");
+    for (const fn of ignoreBtn.listeners.click) await fn();
+
+    assert.equal(
+      ignoreCalls.length,
+      0,
+      "grammar Ignore must not persist a multi-word phrase into the single-word dictionary",
+    );
+    assert.equal(invalidateCalls.length, 1);
+    assert.deepEqual(invalidateCalls[0], [span._textarea, 4, 17, 13]);
+  });
+
+  test("spelling mark: Ignore still calls SpellcheckDictionary.ignoreWord with the single word", async () => {
+    const { SpellcheckContextMenu, ignoreCalls, invalidateCalls } = loadMenu();
+    const span = makeFlaggedSpan({
+      type: "spelling",
+      word: "teh",
+      start: 0,
+      end: 3,
+    });
+
+    SpellcheckContextMenu._show(span, 10, 10);
+    const ignoreBtn = SpellcheckContextMenu._items.find((i) => i.textContent === "Ignore");
+    assert.ok(ignoreBtn, "Ignore button should exist for spelling marks");
+    for (const fn of ignoreBtn.listeners.click) await fn();
+
+    assert.deepEqual(ignoreCalls, ["teh"]);
+    assert.equal(invalidateCalls.length, 0, "spelling Ignore must not touch the overlay directly");
+  });
+});
+
 // ── nspell integration & fallback ───────────────────────────────────────────
 //   Replicates the loadNspell()/checkWord() logic from spellcheck-worker.js
 //   (see the file header comment: worker/DOM globals aren't available in
