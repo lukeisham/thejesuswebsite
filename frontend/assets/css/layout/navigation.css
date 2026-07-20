@@ -124,15 +124,21 @@
    Content Area (next to sidebar)
    ------------------------------------------------------------------------- */
 
+main,
+footer,
+.created-edited-line {
+    transition: margin-left var(--duration-base) var(--ease-in-out);
+}
+
 main {
     min-height: 100vh;
-    transition: margin-left var(--duration-base) var(--ease-in-out);
 }
 
 /* Desktop (≥ 768px): open sidebar pushes content right */
 @media (min-width: 768px) {
     .sidebar--open ~ main,
-    .sidebar--open ~ footer {
+    .sidebar--open ~ footer,
+    .sidebar--open ~ .created-edited-line {
         margin-left: calc(var(--sidebar-width) + var(--space-lg));
     }
 }
