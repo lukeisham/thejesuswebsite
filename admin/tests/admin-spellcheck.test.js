@@ -775,3 +775,190 @@ describe("nspell integration — load and fallback", () => {
     assert.equal(result.correct, true);
   });
 });
+
+// ── Grammar engine: checkGrammar() ──────────────────────────────────────────
+//   Unlike the DOM/Worker-dependent modules above, spellcheck-engine.js has
+//   no browser dependency, so these tests import and exercise the REAL
+//   checkGrammar() (dynamic import, since this file is CommonJS) rather than
+//   a replica — covering every rule added by grammar-flagging-fix.md plus
+//   the pre-existing repeated-word/passive-voice/article rules.
+
+describe("grammar engine — checkGrammar()", () => {
+  let checkGrammarPromise;
+  function loadCheckGrammar() {
+    if (!checkGrammarPromise) {
+      checkGrammarPromise = import("../assets/js/admin-spellcheck/spellcheck-engine.js").then(
+        (m) => m.checkGrammar,
+      );
+    }
+    return checkGrammarPromise;
+  }
+
+  function messagesFor(issues, text) {
+    return issues.map((i) => text.slice(i.start, i.end));
+  }
+
+  test("flags repeated words", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("This is the the best evidence.");
+    assert.ok(issues.some((i) => i.message.includes("Repeated word")));
+  });
+
+  test("does not flag distinct adjacent words", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("This is a fine day.");
+    assert.equal(issues.some((i) => i.message.includes("Repeated word")), false);
+  });
+
+  test("flags likely passive voice", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("The book was written by John.");
+    assert.ok(issues.some((i) => i.message === "Possible passive voice"));
+  });
+
+  test("flags 'a' before a vowel sound", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("She is a honest woman.");
+    assert.ok(issues.some((i) => i.message.includes('Use "an"')));
+  });
+
+  test("does not flag correct 'a' before a consonant", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("She is a good woman.");
+    assert.equal(issues.some((i) => i.message.includes('Use "an"')), false);
+  });
+
+  test("flags 'its' immediately followed by a verb", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const text = "The dog wagged its is happy.";
+    const issues = checkGrammar(text);
+    const hit = issues.find((i) => i.message.includes('"it\'s"'));
+    assert.ok(hit, "expected an its/it's mix-up flag");
+    assert.equal(text.slice(hit.start, hit.end), "its is");
+  });
+
+  test("does not flag correct possessive 'its'", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("The company changed its address last year.");
+    assert.equal(issues.some((i) => i.message.includes('"it\'s"')), false);
+  });
+
+  test("flags 'your' immediately followed by a bare -ing verb", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const text = "I hope your going to the store.";
+    const issues = checkGrammar(text);
+    const hit = issues.find((i) => i.message.includes('"you\'re"'));
+    assert.ok(hit, "expected a your/you're mix-up flag");
+    assert.equal(text.slice(hit.start, hit.end), "your going");
+  });
+
+  test("does not flag 'your' followed by an ordinary noun", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("This is your book.");
+    assert.equal(issues.some((i) => i.message.includes('"you\'re"')), false);
+  });
+
+  test("flags doubled question marks", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const text = "Really?? That can't be right.";
+    const issues = checkGrammar(text);
+    const hit = issues.find((i) => i.message.includes("Repeated punctuation"));
+    assert.ok(hit);
+    assert.equal(text.slice(hit.start, hit.end), "??");
+  });
+
+  test("flags mixed terminal punctuation", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("Stop it.!");
+    assert.ok(issues.some((i) => i.message.includes("Repeated punctuation")));
+  });
+
+  test("does not flag a standard three-dot ellipsis", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("And then... it happened.");
+    assert.equal(issues.some((i) => i.message.includes("Repeated punctuation")), false);
+  });
+
+  test("does not flag a single terminal mark", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("This is fine.");
+    assert.equal(issues.some((i) => i.message.includes("Repeated punctuation")), false);
+  });
+
+  test("flags a lowercase letter after a sentence boundary", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const text = "This is great. the next part is better.";
+    const issues = checkGrammar(text);
+    const hit = issues.find((i) => i.message.includes("capital letter"));
+    assert.ok(hit);
+    assert.equal(text.slice(hit.start, hit.end), "t");
+  });
+
+  test("does not flag a correctly capitalized sentence start", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("This is great. The next part is better.");
+    assert.equal(issues.some((i) => i.message.includes("capital letter")), false);
+  });
+
+  test("does not flag lowercase text after a known abbreviation", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("Coins, pottery, etc. survive from that era.");
+    assert.equal(issues.some((i) => i.message.includes("capital letter")), false);
+  });
+
+  test("does not flag lowercase text after an ellipsis", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("And then... it happened.");
+    assert.equal(issues.some((i) => i.message.includes("capital letter")), false);
+  });
+
+  test("flags a plural-looking subject with a singular verb", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const text = "The dogs is barking loudly.";
+    const issues = checkGrammar(text);
+    const hit = issues.find((i) => i.message.includes("subject-verb agreement"));
+    assert.ok(hit);
+    assert.equal(text.slice(hit.start, hit.end), "The dogs is");
+  });
+
+  test("does not flag correct plural agreement", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("The dogs are barking loudly.");
+    assert.equal(issues.some((i) => i.message.includes("subject-verb agreement")), false);
+  });
+
+  test("does not flag plural subjects with do/have (correct agreement)", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("The scholars have written extensively. The scholars do agree.");
+    assert.equal(issues.some((i) => i.message.includes("subject-verb agreement")), false);
+  });
+
+  test("does not flag singular nouns that end in 's'", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const issues = checkGrammar("Physics is a demanding subject. The news is troubling.");
+    assert.equal(issues.some((i) => i.message.includes("subject-verb agreement")), false);
+  });
+
+  test("does not double-flag a range already covered by an earlier rule", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    // "is is" trips both the repeated-word rule and would overlap a
+    // passive-voice-style scan; only one issue should cover this range.
+    const text = "The plan is is good.";
+    const issues = checkGrammar(text);
+    const overlapping = issues.filter((i) => i.start < 11 && i.end > 8);
+    assert.equal(overlapping.length, 1);
+  });
+
+  test("real-world mixed text flags each distinct issue once", async () => {
+    const checkGrammar = await loadCheckGrammar();
+    const text = "the dogs is running your going home.. again";
+    const issues = checkGrammar(text);
+    const found = messagesFor(issues, text);
+    // Sentence-start capital not checked here (no leading terminal mark),
+    // but subject-verb, your/you're, and punctuation rules should all fire.
+    assert.ok(issues.some((i) => i.message.includes("subject-verb agreement")));
+    assert.ok(issues.some((i) => i.message.includes('"you\'re"')));
+    assert.ok(issues.some((i) => i.message.includes("Repeated punctuation")));
+    assert.ok(found.length > 0);
+  });
+});
