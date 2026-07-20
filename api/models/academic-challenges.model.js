@@ -45,11 +45,38 @@ function generateUniqueSlug(baseSlug, excludeId = null) {
 
 /**
  * Published academic challenges, ranked by challenge_rank_number.
+ * Transforms field names for frontend consumption and enriches each
+ * challenge with its published response count via a LEFT JOIN.
  */
 function getAllPublished() {
   return db
     .prepare(
-      "SELECT * FROM challenges WHERE academic_popular = ? AND published_draft = 1 ORDER BY challenge_rank_number ASC",
+      `SELECT
+        c.id,
+        c.slug,
+        c.challenge_title AS title,
+        c.challenge_summary AS summary,
+        c.challenge_picture,
+        c.challenge_url_a,
+        c.challenge_url_b,
+        c.challenge_url_c,
+        c.challenge_url_d,
+        c.challenge_rank_number,
+        c.challenge_rank_pluses AS upvotes,
+        c.challenge_rank_minuses AS downvotes,
+        c.published_draft,
+        c.metadata_keywords,
+        c.academic_popular,
+        COALESCE(rc.response_count, 0) AS response_count
+      FROM challenges c
+      LEFT JOIN (
+        SELECT challenge_id, COUNT(*) AS response_count
+        FROM responses
+        WHERE published_draft = 1
+        GROUP BY challenge_id
+      ) rc ON c.id = rc.challenge_id
+      WHERE c.academic_popular = ? AND c.published_draft = 1
+      ORDER BY c.challenge_rank_number ASC`,
     )
     .all("academic");
 }
