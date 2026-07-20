@@ -8,9 +8,14 @@
         <link rel="stylesheet" href="../assets/css/admin-components/spellcheck.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/toasts.css" />
+        <link rel="stylesheet" href="../assets/css/admin-components/admin-editor-shared-forms.css" />
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-layout.js"></script>
+        <script defer src="../assets/js/admin-editor-utils.js"></script>
+        <script defer src="../assets/js/admin-editor-scaffold.js"></script>
+        <script defer src="../assets/js/admin-form-builder.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
@@ -19,718 +24,321 @@
         <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
         <script defer src="../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
-        <style>
-            .admin-form-actions {
-                display: flex;
-                gap: var(--space-sm);
-                margin-top: var(--space-lg);
-                padding-top: var(--space-md);
-                border-top: 1px solid var(--admin-border-light);
-            }
-            .admin-form-card {
-                background: var(--admin-surface);
-                border: 1px solid var(--admin-border-light);
-                border-radius: var(--admin-radius);
-                padding: var(--space-lg);
-            }
-            .admin-form-card__title {
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--admin-text-secondary);
-                text-transform: uppercase;
-                letter-spacing: 0.03em;
-                margin-bottom: var(--space-md);
-            }
-            .admin-checkbox-group {
-                display: flex;
-                align-items: center;
-                gap: var(--space-sm);
-            }
-            .admin-checkbox-group input[type="checkbox"] {
-                width: 18px;
-                height: 18px;
-                accent-color: var(--admin-accent);
-            }
-            .admin-checkbox-group label {
-                font-size: 14px;
-                color: var(--admin-text-primary);
-                cursor: pointer;
-            }
-            .admin-error {
-                padding: var(--space-md);
-                color: var(--admin-danger);
-                background: rgba(220, 53, 69, 0.08);
-                border: 1px solid rgba(220, 53, 69, 0.2);
-                border-radius: var(--admin-radius);
-                margin-bottom: var(--space-md);
-            }
-            .admin-loading {
-                padding: var(--space-xl);
-                text-align: center;
-                color: var(--admin-text-muted);
-                font-size: 14px;
-            }
-            .admin-delete-section {
-                margin-top: var(--space-xl);
-                padding-top: var(--space-md);
-                border-top: 1px solid var(--admin-danger);
-            }
-        </style>
     </head>
     <body>
-        <div class="admin-shell">
-            <nav class="admin-sidebar" aria-label="Admin navigation">
-                <div class="admin-sidebar__brand">⚡ Admin</div>
-                <div class="admin-sidebar__nav">
-                    <a class="admin-sidebar__link" href="../index.html">
-                        <span class="admin-sidebar__icon">📊</span> Dashboard
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../evidence/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📋</span> Evidence
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../collections/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📁</span> Collections
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../resources/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📚</span> Resources
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../wikipedia/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📖</span> Wikipedia
-                    </a>
-                    <a
-                        class="admin-sidebar__link admin-sidebar__link--active"
-                        href="index.html"
-                    >
-                        <span class="admin-sidebar__icon">✍️</span> Essays
-                    </a>
-                    <a class="admin-sidebar__link" href="../debate/index.html">
-                        <span class="admin-sidebar__icon">🗣️</span> Responses
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../debate/popular-challenges/index.html"
-                    >
-                        <span class="admin-sidebar__icon">📢</span> Popular
-                        Challenges
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../debate/academic-challenges/index.html"
-                    >
-                        <span class="admin-sidebar__icon">🎓</span> Academic
-                        Challenges
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../historiography/index.html"
-                    >
-                        <span class="admin-sidebar__icon">🏛️</span>
-                        Historiography
-                    </a>
-                    <a class="admin-sidebar__link" href="../blog/index.html">
-                        <span class="admin-sidebar__icon">📰</span> Blog
-                    </a>
-                    <a class="admin-sidebar__link" href="../news/index.html">
-                        <span class="admin-sidebar__icon">📡</span> News
-                    </a>
-                    <a class="admin-sidebar__link" href="../diagrams/maps.html">
-                        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
-                    </a>
-                    <a class="admin-sidebar__link" href="../diagrams/arbor.html">
-                        <span class="admin-sidebar__icon">🌳</span> Arbor Editor
-                    </a>
-                    <a class="admin-sidebar__link" href="../diagrams/timeline.html">
-                        <span class="admin-sidebar__icon">⏳</span> Timeline Editor
-                    </a>
-                    <a class="admin-sidebar__link" href="../analytics.html">
-                        <span class="admin-sidebar__icon">📈</span> Analytics
-                    </a>
-                    <a
-                        class="admin-sidebar__link"
-                        href="../settings/index.html"
-                    >
-                        <span class="admin-sidebar__icon">⚙️</span> Settings
-                    </a>
-                </div>
-                <div class="admin-sidebar__bottom">
-                    <a class="admin-sidebar__link" href="../auth/login.html">
-                        <span class="admin-sidebar__icon">🚪</span> Logout
-                    </a>
-                </div>
-            </nav>
-
-            <header class="admin-topbar">
-                <h1 class="admin-topbar__title">Edit Essay</h1>
-                <div class="admin-topbar__actions">
-                    <a
-                        class="admin-btn admin-btn--sm admin-btn--ghost"
-                        href="index.html"
-                        >← Back to Essays</a
-                    >
-                </div>
-            </header>
-
-            <main class="admin-main" id="edit-content">
-                <div class="admin-loading" role="status">Loading essay…</div>
-            </main>
-        </div>
+        <div class="admin-shell" id="admin-shell"></div>
 
         <script>
             document.addEventListener("DOMContentLoaded", async function () {
-                var main = document.getElementById("edit-content");
-
-                var ok = await AdminAuth.requireSession();
-                if (!ok) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">Unable to verify session.</div>';
-                    return;
-                }
-
-                var params = new URLSearchParams(window.location.search);
-                var essayId = params.get("id");
-
-                if (!essayId) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">No essay ID specified. <a href="index.html">Go back</a>.</div>';
-                    return;
-                }
-
-                var data;
-                try {
-                    data = await Admin.api.get("/essays/admin/" + essayId);
-                } catch (err) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">Failed to load essay: ' +
-                        err.message +
-                        "</div>";
-                    return;
-                }
-
-                if (!data) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">Essay not found. <a href="index.html">Go back</a>.</div>';
-                    return;
-                }
-
-                main.innerHTML = "";
-
-                var formError = document.createElement("div");
-                formError.className = "admin-error";
-                formError.style.display = "none";
-                formError.setAttribute("role", "alert");
-                formError.setAttribute("aria-live", "assertive");
-                formError.id = "form-error";
-                main.appendChild(formError);
-
-                var form = document.createElement("form");
-                form.className = "admin-form-grid";
-                form.setAttribute("novalidate", "");
-                main.appendChild(form);
-
-                // Left column
-                var mainCol = document.createElement("div");
-                mainCol.className = "admin-form-grid__main";
-                form.appendChild(mainCol);
-
-                var contentCard = document.createElement("div");
-                contentCard.className = "admin-form-card";
-                mainCol.appendChild(contentCard);
-
-                var cardTitle = document.createElement("div");
-                cardTitle.className = "admin-form-card__title";
-                cardTitle.textContent = "Content";
-                contentCard.appendChild(cardTitle);
-
-                function formGroup(
-                    label,
-                    id,
-                    type,
-                    placeholder,
-                    hint,
-                    isTextarea,
-                    value,
-                ) {
-                    var div = document.createElement("div");
-                    div.className = "admin-form-group";
-
-                    var lbl = document.createElement("label");
-                    lbl.className = "admin-form-group__label";
-                    lbl.setAttribute("for", id);
-                    lbl.innerHTML =
-                        label +
-                        (type === "required"
-                            ? ' <span aria-hidden="true">*</span>'
-                            : "");
-                    div.appendChild(lbl);
-
-                    var hintId = id + "-hint";
-                    var errId = id + "-error";
-
-                    var input;
-                    if (isTextarea) {
-                        input = document.createElement("textarea");
-                        input.className = "admin-textarea";
-                        input.rows = 20;
-                    } else {
-                        input = document.createElement("input");
-                        input.className = "admin-input";
-                        input.type =
-                            type === "url"
-                                ? "url"
-                                : type === "date"
-                                  ? "date"
-                                  : "text";
-                    }
-                    input.id = id;
-                    input.placeholder = placeholder || "";
-                    input.setAttribute(
-                        "aria-describedby",
-                        hintId + " " + errId,
-                    );
-                    if (value !== undefined && value !== null)
-                        input.value = value;
-                    div.appendChild(input);
-
-                    if (hint) {
-                        var hintEl = document.createElement("span");
-                        hintEl.className = "admin-form-hint";
-                        hintEl.id = hintId;
-                        hintEl.textContent = hint;
-                        div.appendChild(hintEl);
-                    }
-
-                    var errEl = document.createElement("span");
-                    errEl.className = "admin-form-hint";
-                    errEl.id = errId;
-                    errEl.style.display = "none";
-                    errEl.style.color = "var(--admin-danger)";
-                    errEl.setAttribute("role", "alert");
-                    div.appendChild(errEl);
-
-                    return div;
-                }
-
-                contentCard.appendChild(
-                    formGroup(
-                        "Title *",
-                        "essay-title",
-                        "required",
-                        "e.g. The Historical Jesus",
-                        "The essay title shown in headings and search results.",
-                        false,
-                        data.essay_title || "",
-                    ),
-                );
-                contentCard.appendChild(
-                    formGroup(
-                        "Slug *",
-                        "essay-slug",
-                        "required",
-                        "e.g. the-historical-jesus",
-                        "URL-friendly identifier.",
-                        false,
-                        data.slug || "",
-                    ),
-                );
-                contentCard.appendChild(
-                    formGroup(
-                        "Essay Content",
-                        "essay-content",
-                        "",
-                        "Write your essay here…",
-                        "The full essay body.",
-                        true,
-                        data.essay_content || "",
-                    ),
+                var shell = document.getElementById("admin-shell");
+                AdminLayout.injectSidebar(shell, "essays");
+                AdminLayout.injectTopbar(
+                    shell,
+                    "Edit Essay",
+                    "index.html",
+                    "Essays",
                 );
 
-                // Right column
-                var sidebar = document.createElement("div");
-                sidebar.className = "admin-form-grid__sidebar";
-                form.appendChild(sidebar);
+                var main = document.createElement("main");
+                main.className = "admin-main";
+                main.id = "edit-content";
+                main.innerHTML =
+                    '<div class="admin-loading" role="status">Loading essay…</div>';
+                shell.appendChild(main);
 
-                var metaCard = document.createElement("div");
-                metaCard.className = "admin-form-card";
-                sidebar.appendChild(metaCard);
+                await AdminEditorScaffold.initializeEditor({
+                    main: main,
+                    apiPath: "/essays/admin/",
+                    entityLabel: "essay",
+                    backHref: "index.html",
+                    onDataLoaded: async function (data, ctx) {
+                        var essayId = ctx.id;
 
-                var metaTitle = document.createElement("div");
-                metaTitle.className = "admin-form-card__title";
-                metaTitle.textContent = "Metadata";
-                metaCard.appendChild(metaTitle);
+                        var formError = document.createElement("div");
+                        formError.className = "admin-error";
+                        formError.style.display = "none";
+                        formError.setAttribute("role", "alert");
+                        formError.setAttribute("aria-live", "assertive");
+                        formError.id = "form-error";
+                        main.appendChild(formError);
 
-                metaCard.appendChild(
-                    formGroup(
-                        "Keywords",
-                        "essay-keywords",
-                        "",
-                        "e.g. historical jesus, resurrection",
-                        "Comma-separated search keywords.",
-                        false,
-                        data.metadata_keywords || "",
-                    ),
-                );
-                metaCard.appendChild(
-                    formGroup(
-                        "Linked Evidence IDs",
-                        "essay-evidence",
-                        "",
-                        "e.g. 1, 3, 7",
-                        "Comma-separated evidence IDs.",
-                        false,
-                        (data.links_evidence || [])
-                            .map(function (link) {
-                                return link.target_evidence_id;
-                            })
-                            .join(", "),
-                    ),
-                );
+                        var form = document.createElement("form");
+                        form.className = "admin-form-grid";
+                        form.setAttribute("novalidate", "");
+                        main.appendChild(form);
 
-                // Two-Column Layout checkbox
-                var twoColWrap = document.createElement("div");
-                twoColWrap.className = "admin-checkbox-group";
-                twoColWrap.style.marginTop = "var(--space-md)";
-                var twoColCheckbox = document.createElement("input");
-                twoColCheckbox.type = "checkbox";
-                twoColCheckbox.id = "essay-two-column";
-                twoColCheckbox.checked = !!data.two_column;
-                twoColWrap.appendChild(twoColCheckbox);
-                var twoColLabel = document.createElement("label");
-                twoColLabel.setAttribute("for", "essay-two-column");
-                twoColLabel.textContent = "Two-Column Layout";
-                twoColWrap.appendChild(twoColLabel);
-                metaCard.appendChild(twoColWrap);
-                var twoColHint = document.createElement("span");
-                twoColHint.className = "admin-form-hint";
-                twoColHint.textContent =
-                    "Render the article body in two columns on wide screens (see STYLE_GUIDE/content-patterns.md §9).";
-                metaCard.appendChild(twoColHint);
+                        // Left column
+                        var mainCol = document.createElement("div");
+                        mainCol.className = "admin-form-grid__main";
+                        form.appendChild(mainCol);
 
-                metaCard.appendChild(
-                    formGroup(
-                        "DOI / Citation",
-                        "essay-doi",
-                        "",
-                        "e.g. 10.1234/example",
-                        "Digital Object Identifier or formal citation string.",
-                        false,
-                        data.doi || "",
-                    ),
-                );
-                metaCard.appendChild(
-                    formGroup(
-                        "Author Bio",
-                        "essay-author-bio",
-                        "",
-                        "Brief author biography…",
-                        "A short author biography displayed below the article title.",
-                        true,
-                        data.author_bio || "",
-                    ),
-                );
+                        var contentCard = document.createElement("div");
+                        contentCard.className = "admin-form-card";
+                        mainCol.appendChild(contentCard);
 
-                // Bibliography card
-                var mlaCard = document.createElement("div");
-                mlaCard.className = "admin-form-card";
-                mlaCard.style.marginTop = "var(--space-md)";
-                sidebar.appendChild(mlaCard);
+                        var cardTitle = document.createElement("div");
+                        cardTitle.className = "admin-form-card__title";
+                        cardTitle.textContent = "Content";
+                        contentCard.appendChild(cardTitle);
 
-                var mlaTitle = document.createElement("div");
-                mlaTitle.className = "admin-form-card__title";
-                mlaTitle.textContent = "Bibliography";
-                mlaCard.appendChild(mlaTitle);
-
-                var mlaMount = document.createElement("div");
-                mlaMount.id = "mla-sources-mount";
-                mlaCard.appendChild(mlaMount);
-
-                // MLA Bibliography panel, seeded with this record's existing sources
-                var mlaSourcesPanel = AdminMlaSources.mount(mlaMount, {
-                    initialSourceIds: (data.mla_sources || []).map(
-                        function (link) {
-                            return link.id;
-                        },
-                    ),
-                });
-
-                // Formatting reference panel
-                AdminShortcodeHelp.mountFormattingReference(sidebar);
-
-                // Actions
-                var actions = document.createElement("div");
-                actions.className = "admin-form-actions";
-                main.appendChild(actions);
-                // Insert Image button
-                var insertBtn = document.createElement("button");
-                insertBtn.type = "button";
-                insertBtn.className =
-                    "admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn";
-                insertBtn.id = "insert-image-btn";
-                insertBtn.textContent = "Insert Image";
-                var contentField = document.getElementById("essay-content");
-                if (contentField && contentField.parentNode) {
-                    contentField.parentNode.insertBefore(
-                        insertBtn,
-                        contentField.nextSibling,
-                    );
-                }
-                if (typeof AdminInsertImage !== "undefined") {
-                    AdminInsertImage.wire(
-                        "#insert-image-btn",
-                        "#essay-content",
-                    );
-                }
-
-                // Spellcheck: init the system and attach to the content textarea
-                await SpellcheckController.init();
-                SpellcheckController.attach(contentField);
-
-                var saveBtn = document.createElement("button");
-                saveBtn.type = "button";
-                saveBtn.className = "admin-btn admin-btn--primary";
-                saveBtn.textContent = "Save Changes";
-                actions.appendChild(saveBtn);
-
-                var publishBtn = document.createElement("button");
-                publishBtn.type = "button";
-                publishBtn.className = "admin-btn admin-btn--secondary";
-                publishBtn.textContent = data.published_draft
-                    ? "Unpublish"
-                    : "Publish";
-                actions.appendChild(publishBtn);
-
-                var cancelLink = document.createElement("a");
-                cancelLink.className = "admin-btn admin-btn--ghost";
-                cancelLink.href = "index.html";
-                cancelLink.textContent = "Cancel";
-                actions.appendChild(cancelLink);
-
-                var submitStatus = document.createElement("div");
-                submitStatus.id = "submit-status";
-                submitStatus.setAttribute("role", "status");
-                submitStatus.setAttribute("aria-live", "polite");
-                submitStatus.style.cssText =
-                    "margin-top:var(--space-md);text-align:center;";
-                main.appendChild(submitStatus);
-
-                // Delete section
-                var deleteSection = document.createElement("div");
-                deleteSection.className = "admin-delete-section";
-                var deleteBtn = document.createElement("button");
-                deleteBtn.type = "button";
-                deleteBtn.className = "admin-btn admin-btn--danger";
-                deleteBtn.textContent = "Delete Essay";
-                deleteBtn.addEventListener("click", async function () {
-                    if (
-                        !confirm(
-                            "Are you sure you want to permanently delete this essay? This cannot be undone.",
-                        )
-                    )
-                        return;
-                    deleteBtn.disabled = true;
-                    deleteBtn.textContent = "Deleting…";
-                    try {
-                        await Admin.api.del("/essays/" + essayId);
-                        window.location.href = "index.html";
-                    } catch (err) {
-                        formError.textContent =
-                            "Failed to delete: " + err.message;
-                        formError.style.display = "block";
-                        deleteBtn.disabled = false;
-                        deleteBtn.textContent = "Delete Essay";
-                    }
-                });
-                deleteSection.appendChild(deleteBtn);
-                main.appendChild(deleteSection);
-
-                // Validation and save
-                var titleInput = document.getElementById("essay-title");
-                var slugInput = document.getElementById("essay-slug");
-                var titleErr = document.getElementById("essay-title-error");
-                var slugErr = document.getElementById("essay-slug-error");
-
-                var slugAuto = true;
-                titleInput.addEventListener("input", function () {
-                    if (slugAuto) {
-                        slugInput.value = titleInput.value
-                            .toLowerCase()
-                            .replace(/[^a-z0-9\s-]/g, "")
-                            .replace(/\s+/g, "-")
-                            .replace(/-+/g, "-")
-                            .replace(/^-|-$/g, "");
-                    }
-                });
-                slugInput.addEventListener("input", function () {
-                    slugAuto = false;
-                });
-
-                function clearErrors() {
-                    formError.style.display = "none";
-                    formError.textContent = "";
-                    if (titleErr) {
-                        titleErr.style.display = "none";
-                        titleErr.textContent = "";
-                    }
-                    if (slugErr) {
-                        slugErr.style.display = "none";
-                        slugErr.textContent = "";
-                    }
-                    if (titleInput)
-                        titleInput.classList.remove("admin-input--error");
-                    if (slugInput)
-                        slugInput.classList.remove("admin-input--error");
-                }
-
-                function validate() {
-                    clearErrors();
-                    var valid = true;
-                    if (!titleInput.value.trim()) {
-                        titleErr.textContent = "Title is required.";
-                        titleErr.style.display = "block";
-                        titleInput.classList.add("admin-input--error");
-                        valid = false;
-                    }
-                    if (!slugInput.value.trim()) {
-                        slugErr.textContent = "Slug is required.";
-                        slugErr.style.display = "block";
-                        slugInput.classList.add("admin-input--error");
-                        valid = false;
-                    }
-                    return valid;
-                }
-
-                function parseIdList(str) {
-                    if (!str || !str.trim()) return undefined;
-                    return str
-                        .split(",")
-                        .map(function (s) {
-                            return parseInt(s.trim(), 10);
-                        })
-                        .filter(function (n) {
-                            return !isNaN(n);
+                        AdminFormBuilder.addField(contentCard, {
+                            id: "essay-title",
+                            label: "Title",
+                            required: true,
+                            placeholder: "e.g. The Historical Jesus",
+                            hint: "The essay title shown in headings and search results.",
+                            value: data.essay_title || "",
                         });
-                }
+                        AdminFormBuilder.addField(contentCard, {
+                            id: "essay-slug",
+                            label: "Slug",
+                            required: true,
+                            placeholder: "e.g. the-historical-jesus",
+                            hint: "URL-friendly identifier.",
+                            value: data.slug || "",
+                        });
+                        AdminFormBuilder.addTextarea(contentCard, {
+                            id: "essay-content",
+                            label: "Essay Content",
+                            placeholder: "Write your essay here…",
+                            hint: "The full essay body.",
+                            value: data.essay_content || "",
+                        });
 
-                function buildPayload() {
-                    return {
-                        essay_title: titleInput.value.trim(),
-                        slug: slugInput.value.trim(),
-                        essay_content:
-                            document
-                                .getElementById("essay-content")
-                                .value.trim() || undefined,
-                        metadata_keywords:
-                            document
-                                .getElementById("essay-keywords")
-                                .value.trim() || undefined,
-                        two_column: document.getElementById("essay-two-column")
-                            .checked
-                            ? 1
-                            : 0,
-                        doi:
-                            document.getElementById("essay-doi").value.trim() ||
-                            undefined,
-                        author_bio:
-                            document
-                                .getElementById("essay-author-bio")
-                                .value.trim() || undefined,
-                        published_draft: data.published_draft ? 1 : 0,
-                        link_evidence_ids: parseIdList(
-                            document.getElementById("essay-evidence").value,
-                        ),
-                        mla_source_ids: mlaSourcesPanel.getSelectedIds(),
-                    };
-                }
+                        // Right column
+                        var sidebar = document.createElement("div");
+                        sidebar.className = "admin-form-grid__sidebar";
+                        form.appendChild(sidebar);
 
-                saveBtn.addEventListener("click", async function () {
-                    clearErrors();
-                    submitStatus.textContent = "";
-                    if (!validate()) {
-                        titleInput.focus();
-                        return;
-                    }
-                    saveBtn.disabled = true;
-                    publishBtn.disabled = true;
-                    submitStatus.textContent = "Saving…";
-                    try {
-                        await Admin.api.put(
-                            "/essays/" + essayId,
-                            buildPayload(),
+                        var metaCard = document.createElement("div");
+                        metaCard.className = "admin-form-card";
+                        sidebar.appendChild(metaCard);
+
+                        var metaTitle = document.createElement("div");
+                        metaTitle.className = "admin-form-card__title";
+                        metaTitle.textContent = "Metadata";
+                        metaCard.appendChild(metaTitle);
+
+                        AdminFormBuilder.addField(metaCard, {
+                            id: "essay-keywords",
+                            label: "Keywords",
+                            placeholder: "e.g. historical jesus, resurrection",
+                            hint: "Comma-separated search keywords.",
+                            value: data.metadata_keywords || "",
+                        });
+                        AdminFormBuilder.addField(metaCard, {
+                            id: "essay-evidence",
+                            label: "Linked Evidence IDs",
+                            placeholder: "e.g. 1, 3, 7",
+                            hint: "Comma-separated evidence IDs.",
+                            value: (data.links_evidence || [])
+                                .map(function (link) {
+                                    return link.target_evidence_id;
+                                })
+                                .join(", "),
+                        });
+
+                        // Two-Column Layout checkbox
+                        var twoColWrap = document.createElement("div");
+                        twoColWrap.className = "admin-checkbox-group";
+                        twoColWrap.style.marginTop = "var(--space-md)";
+                        var twoColCheckbox = document.createElement("input");
+                        twoColCheckbox.type = "checkbox";
+                        twoColCheckbox.id = "essay-two-column";
+                        twoColCheckbox.checked = !!data.two_column;
+                        twoColWrap.appendChild(twoColCheckbox);
+                        var twoColLabel = document.createElement("label");
+                        twoColLabel.setAttribute("for", "essay-two-column");
+                        twoColLabel.textContent = "Two-Column Layout";
+                        twoColWrap.appendChild(twoColLabel);
+                        metaCard.appendChild(twoColWrap);
+                        var twoColHint = document.createElement("span");
+                        twoColHint.className = "admin-form-hint";
+                        twoColHint.textContent =
+                            "Render the article body in two columns on wide screens (see STYLE_GUIDE/content-patterns.md §9).";
+                        metaCard.appendChild(twoColHint);
+
+                        AdminFormBuilder.addField(metaCard, {
+                            id: "essay-doi",
+                            label: "DOI / Citation",
+                            placeholder: "e.g. 10.1234/example",
+                            hint: "Digital Object Identifier or formal citation string.",
+                            value: data.doi || "",
+                        });
+                        AdminFormBuilder.addTextarea(metaCard, {
+                            id: "essay-author-bio",
+                            label: "Author Bio",
+                            placeholder: "Brief author biography…",
+                            hint: "A short author biography displayed below the article title.",
+                            value: data.author_bio || "",
+                        });
+
+                        // Bibliography card
+                        var mlaSourcesPanel = AdminEditorUtils.mountMlaPanel(
+                            sidebar,
+                            data.mla_sources,
                         );
-                        submitStatus.innerHTML =
-                            '<span style="color:var(--admin-success)">Saved successfully.</span>';
-                    } catch (err) {
-                        formError.textContent =
-                            "Failed to save: " + err.message;
-                        formError.style.display = "block";
-                    } finally {
-                        saveBtn.disabled = false;
-                        publishBtn.disabled = false;
-                    }
-                });
 
-                publishBtn.addEventListener("click", async function () {
-                    clearErrors();
-                    submitStatus.textContent = "";
-                    publishBtn.disabled = true;
-                    saveBtn.disabled = true;
+                        // Formatting reference panel
+                        AdminShortcodeHelp.mountFormattingReference(sidebar);
 
-                    try {
-                        await Admin.api.put(
-                            "/essays/" + essayId,
-                            buildPayload(),
+                        // Actions
+                        var actions = document.createElement("div");
+                        actions.className = "admin-form-actions";
+                        main.appendChild(actions);
+
+                        // Insert Image button
+                        AdminEditorUtils.wireInsertImageButton(
+                            "essay-content",
                         );
-                    } catch (err) {
-                        formError.textContent =
-                            "Failed to save before publish: " + err.message;
-                        formError.style.display = "block";
-                        publishBtn.disabled = false;
-                        saveBtn.disabled = false;
-                        return;
-                    }
+                        var contentField =
+                            document.getElementById("essay-content");
 
-                    try {
-                        if (data.published_draft) {
-                            await Admin.unpublishItem("essays", essayId);
-                            data.published_draft = 0;
-                            publishBtn.textContent = "Publish";
-                        } else {
-                            await Admin.publishItem("essays", essayId);
-                            data.published_draft = 1;
-                            publishBtn.textContent = "Unpublish";
+                        // Spellcheck: init the system and attach to the content textarea
+                        await SpellcheckController.init();
+                        SpellcheckController.attach(contentField);
+
+                        var saveBtn = document.createElement("button");
+                        saveBtn.type = "button";
+                        saveBtn.className = "admin-btn admin-btn--primary";
+                        saveBtn.textContent = "Save Changes";
+                        actions.appendChild(saveBtn);
+
+                        var publishBtn = document.createElement("button");
+                        publishBtn.type = "button";
+                        publishBtn.className = "admin-btn admin-btn--secondary";
+                        publishBtn.textContent = data.published_draft
+                            ? "Unpublish"
+                            : "Publish";
+                        actions.appendChild(publishBtn);
+
+                        var cancelLink = document.createElement("a");
+                        cancelLink.className = "admin-btn admin-btn--ghost";
+                        cancelLink.href = "index.html";
+                        cancelLink.textContent = "Cancel";
+                        actions.appendChild(cancelLink);
+
+                        var submitStatus = document.createElement("div");
+                        submitStatus.id = "submit-status";
+                        submitStatus.setAttribute("role", "status");
+                        submitStatus.setAttribute("aria-live", "polite");
+                        submitStatus.style.cssText =
+                            "margin-top:var(--space-md);text-align:center;";
+                        main.appendChild(submitStatus);
+
+                        // Delete section
+                        var deleteSection = document.createElement("div");
+                        deleteSection.className = "admin-delete-section";
+                        var deleteBtn = document.createElement("button");
+                        deleteBtn.type = "button";
+                        deleteBtn.className = "admin-btn admin-btn--danger";
+                        deleteBtn.textContent = "Delete Essay";
+                        deleteSection.appendChild(deleteBtn);
+                        main.appendChild(deleteSection);
+
+                        // ── Validation + save/publish/delete wiring ──────────
+                        var titleInput =
+                            document.getElementById("essay-title");
+                        var slugInput = document.getElementById("essay-slug");
+                        var titleErr = document.getElementById(
+                            "essay-title-error",
+                        );
+                        var slugErr = document.getElementById(
+                            "essay-slug-error",
+                        );
+
+                        var slugAuto = true;
+                        titleInput.addEventListener("input", function () {
+                            if (slugAuto) {
+                                slugInput.value = titleInput.value
+                                    .toLowerCase()
+                                    .replace(/[^a-z0-9\s-]/g, "")
+                                    .replace(/\s+/g, "-")
+                                    .replace(/-+/g, "-")
+                                    .replace(/^-|-$/g, "");
+                            }
+                        });
+                        slugInput.addEventListener("input", function () {
+                            slugAuto = false;
+                        });
+
+                        function validateForm() {
+                            var valid = AdminEditorUtils.validate(formError, [
+                                {
+                                    input: titleInput,
+                                    errEl: titleErr,
+                                    label: "Title",
+                                },
+                                {
+                                    input: slugInput,
+                                    errEl: slugErr,
+                                    label: "Slug",
+                                },
+                            ]);
+                            if (!valid) titleInput.focus();
+                            return valid;
                         }
-                        submitStatus.innerHTML =
-                            '<span style="color:var(--admin-success)">' +
-                            (data.published_draft
-                                ? "Published!"
-                                : "Unpublished.") +
-                            "</span>";
-                    } catch (err) {
-                        formError.textContent =
-                            "Publish action failed: " + err.message;
-                        formError.style.display = "block";
-                    } finally {
-                        publishBtn.disabled = false;
-                        saveBtn.disabled = false;
-                    }
-                });
 
-                document.addEventListener("keydown", function (e) {
-                    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-                        e.preventDefault();
-                        saveBtn.click();
-                    }
+                        function buildPayload() {
+                            return {
+                                essay_title: titleInput.value.trim(),
+                                slug: slugInput.value.trim(),
+                                essay_content:
+                                    document
+                                        .getElementById("essay-content")
+                                        .value.trim() || undefined,
+                                metadata_keywords:
+                                    document
+                                        .getElementById("essay-keywords")
+                                        .value.trim() || undefined,
+                                two_column: document.getElementById(
+                                    "essay-two-column",
+                                ).checked
+                                    ? 1
+                                    : 0,
+                                doi:
+                                    document
+                                        .getElementById("essay-doi")
+                                        .value.trim() || undefined,
+                                author_bio:
+                                    document
+                                        .getElementById("essay-author-bio")
+                                        .value.trim() || undefined,
+                                published_draft: data.published_draft
+                                    ? 1
+                                    : 0,
+                                link_evidence_ids:
+                                    AdminEditorUtils.parseIdList(
+                                        document.getElementById(
+                                            "essay-evidence",
+                                        ).value,
+                                    ),
+                                mla_source_ids:
+                                    mlaSourcesPanel.getSelectedIds(),
+                            };
+                        }
+
+                        AdminEditorScaffold.wireFormHandlers({
+                            formError: formError,
+                            submitStatus: submitStatus,
+                            saveBtn: saveBtn,
+                            publishBtn: publishBtn,
+                            validateForm: validateForm,
+                            buildPayload: buildPayload,
+                            putPath: "/essays/" + essayId,
+                            publishType: "essays",
+                            recordId: essayId,
+                            data: data,
+                            delete: {
+                                btn: deleteBtn,
+                                path: "/essays/" + essayId,
+                                confirmMessage:
+                                    "Are you sure you want to permanently delete this essay? This cannot be undone.",
+                                idleLabel: "Delete Essay",
+                                redirectHref: "index.html",
+                            },
+                        });
+                    },
                 });
             });
         </script>
