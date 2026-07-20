@@ -565,3 +565,122 @@ describe("context menu — viewport clamping", () => {
     assert.equal(pos.top, 8);
   });
 });
+
+// ── nspell integration & fallback ───────────────────────────────────────────
+//   Replicates the loadNspell()/checkWord() logic from spellcheck-worker.js
+//   (see the file header comment: worker/DOM globals aren't available in
+//   Node, so the pure control flow is reproduced here with a fake nspell
+//   instance standing in for the vendored bundle).
+
+describe("nspell integration — load and fallback", () => {
+  /**
+   * Mirrors spellcheck-worker.js's nspellReady wiring: resolves the loader,
+   * stores the instance on success, or warns and leaves it null on failure.
+   */
+  async function initNspell(loader, warn) {
+    try {
+      return await loader();
+    } catch (error) {
+      warn(
+        "[spellcheck-worker] nspell failed to load, falling back to the built-in dictionary:",
+        error,
+      );
+      return null;
+    }
+  }
+
+  /** Exact copy of checkWord() from spellcheck-worker.js. */
+  function checkWord(nspell, word, customWords, builtinCheck) {
+    const lower = word.toLowerCase();
+    if (customWords && customWords.has(lower)) {
+      return { correct: true, suggestions: [] };
+    }
+    if (!nspell) {
+      return builtinCheck(word, customWords);
+    }
+    if (nspell.correct(word)) {
+      return { correct: true, suggestions: [] };
+    }
+    return { correct: false, suggestions: nspell.suggest(word) };
+  }
+
+  function fakeNspell() {
+    return {
+      correct(word) {
+        return word.toLowerCase() !== "teh";
+      },
+      suggest(word) {
+        return word.toLowerCase() === "teh" ? ["ten", "the", "tech"] : [];
+      },
+    };
+  }
+
+  test("suggests corrections for a known misspelling once nspell loads", async () => {
+    const nspell = await initNspell(async () => fakeNspell(), () => {});
+    assert.notEqual(nspell, null);
+
+    const result = checkWord(nspell, "teh", new Set(), () => {
+      throw new Error("built-in fallback should not run when nspell is loaded");
+    });
+    assert.equal(result.correct, false);
+    assert.ok(result.suggestions.includes("the"));
+  });
+
+  test("recognizes correctly spelled words via nspell", async () => {
+    const nspell = await initNspell(async () => fakeNspell(), () => {});
+    const result = checkWord(nspell, "the", new Set(), () => {
+      throw new Error("built-in fallback should not run when nspell is loaded");
+    });
+    assert.equal(result.correct, true);
+    assert.deepStrictEqual(result.suggestions, []);
+  });
+
+  test("falls back to the built-in engine and logs a warning when nspell fails to load", async () => {
+    const warnings = [];
+    const failingLoader = async () => {
+      throw new Error("simulated fetch failure");
+    };
+    const nspell = await initNspell(failingLoader, (...args) => warnings.push(args));
+
+    assert.equal(nspell, null);
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0][0], /falling back to the built-in dictionary/);
+
+    let builtinCalled = false;
+    const result = checkWord(nspell, "teh", new Set(), (word) => {
+      builtinCalled = true;
+      return { correct: false, suggestions: ["the"] };
+    });
+    assert.equal(builtinCalled, true);
+    assert.equal(result.correct, false);
+  });
+
+  test("custom dictionary words short-circuit nspell entirely", async () => {
+    const nspell = await initNspell(async () => fakeNspell(), () => {});
+    let nspellQueried = false;
+    const spiedNspell = {
+      correct(word) {
+        nspellQueried = true;
+        return nspell.correct(word);
+      },
+      suggest(word) {
+        nspellQueried = true;
+        return nspell.suggest(word);
+      },
+    };
+
+    // "teh" is flagged by nspell, but it's in the custom dictionary here.
+    const result = checkWord(spiedNspell, "teh", new Set(["teh"]), () => {
+      throw new Error("built-in fallback should not run");
+    });
+    assert.equal(result.correct, true);
+    assert.equal(nspellQueried, false);
+  });
+
+  test("custom dictionary words short-circuit the built-in fallback too", () => {
+    const result = checkWord(null, "gloopy", new Set(["gloopy"]), () => {
+      throw new Error("built-in check should not run for a custom word");
+    });
+    assert.equal(result.correct, true);
+  });
+});
