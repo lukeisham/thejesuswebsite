@@ -14,6 +14,8 @@ CREATE TABLE evidence (
     description         TEXT,
     primary_verse       TEXT,
     secondary_verse     TEXT,
+    image               TEXT,
+    image_alt           TEXT,
 
     -- Categorization
     gospel_category     TEXT CHECK (gospel_category IN ('theme', 'events', 'parables', 'sayings-and-sermons', 'people', 'objects', 'places', 'miracles')),

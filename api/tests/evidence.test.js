@@ -473,6 +473,66 @@ describe("evidence: edge cases", () => {
   });
 });
 
+// Dedicated image field tests.
+describe("evidence: image and image_alt columns", () => {
+  beforeEach(() => {
+    db.exec("DELETE FROM evidence");
+  });
+
+  test("createComposite writes image and image_alt", () => {
+    const created = evidenceModel.createComposite({
+      title: "With Image",
+      slug: "with-image",
+      published_draft: 1,
+      image: "/uploads/evidence-hero.webp",
+      image_alt: "A photograph of the Jordan River.",
+    });
+
+    assert.equal(created.image, "/uploads/evidence-hero.webp");
+    assert.equal(created.image_alt, "A photograph of the Jordan River.");
+  });
+
+  test("updateComposite writes image and image_alt", () => {
+    const created = evidenceModel.createComposite({
+      title: "Image Update",
+      slug: "image-update",
+      published_draft: 1,
+    });
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      image: "/uploads/evidence-updated.webp",
+      image_alt: "Updated alt text.",
+    });
+
+    assert.equal(updated.image, "/uploads/evidence-updated.webp");
+    assert.equal(updated.image_alt, "Updated alt text.");
+  });
+
+  test("stray image fields are rejected by WRITABLE_COLUMNS", () => {
+    const created = evidenceModel.createComposite({
+      title: "Stray Field",
+      slug: "stray-field",
+      published_draft: 1,
+      some_other_image_field: "/uploads/should-not-save.webp",
+    });
+
+    assert.equal(created.some_other_image_field, undefined);
+  });
+
+  test("null image and image_alt are accepted (legacy records)", () => {
+    const created = evidenceModel.createComposite({
+      title: "Legacy Record",
+      slug: "legacy-record",
+      published_draft: 1,
+      image: null,
+      image_alt: null,
+    });
+
+    assert.equal(created.image, null);
+    assert.equal(created.image_alt, null);
+  });
+});
+
 // Slug fallback tests.
 describe("evidence: slug fallback on create", () => {
   beforeEach(() => {

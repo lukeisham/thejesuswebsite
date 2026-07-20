@@ -128,10 +128,12 @@ function renderDescription(item) {
   }
 }
 
-function renderPictures(description) {
+function renderPictures(description, primaryImage, primaryImageAlt) {
   // Pictures are now [figure] shortcodes in body text (migration 006 dropped
   // evidence_pictures). Extract them from the description for the dedicated
   // pictures section, and return the cleaned description for renderDescription.
+  // The dedicated primary image (migration 031) renders first, ahead of any
+  // inline [figure] shortcodes, so legacy records keep working unchanged.
   if (!$picturesSection || !$pictures) return description || "";
 
   const figureRegex =
@@ -144,12 +146,18 @@ function renderPictures(description) {
     figures.push({ src: match[1], caption: match[2] || "" });
   }
 
-  if (figures.length === 0) {
+  if (!primaryImage && figures.length === 0) {
     $picturesSection.hidden = true;
     return cleaned;
   }
 
   $picturesSection.hidden = false;
+
+  const primaryHTML = primaryImage
+    ? `<figure>
+        <img src="${html`${primaryImage}`}" alt="${html`${primaryImageAlt || ""}`}" loading="lazy" />
+      </figure>`
+    : "";
 
   const itemsHTML = figures
     .map((fig) => {
@@ -161,7 +169,7 @@ function renderPictures(description) {
     })
     .join("");
 
-  $pictures.innerHTML = itemsHTML;
+  $pictures.innerHTML = primaryHTML + itemsHTML;
   numberFigures($pictures);
 
   // Strip [figure] shortcodes from the description so renderDescription only
@@ -294,7 +302,11 @@ async function init() {
   renderHero(data);
   // Extract [figure] shortcodes from description for the pictures section;
   // renderPictures returns the cleaned description for renderDescription.
-  const cleanDescription = renderPictures(data.description);
+  const cleanDescription = renderPictures(
+    data.description,
+    data.image,
+    data.image_alt,
+  );
   renderDescription({ ...data, description: cleanDescription });
   renderSources(data.mla_sources);
   renderDates(data);

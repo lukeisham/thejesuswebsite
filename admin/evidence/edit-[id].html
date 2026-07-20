@@ -13,6 +13,7 @@
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-timeline-taxonomy.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
+        <script defer src="../assets/js/admin-image-picker.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
         <script defer src="../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
@@ -323,6 +324,22 @@
                     ),
                 );
 
+                var imageGroup = document.createElement("div");
+                imageGroup.className = "admin-form-group";
+                var imageLabel = document.createElement("label");
+                imageLabel.className = "admin-form-group__label";
+                imageLabel.textContent = "Primary Image";
+                imageGroup.appendChild(imageLabel);
+                var imageMount = document.createElement("div");
+                imageMount.id = "evidence-image-picker-mount";
+                imageGroup.appendChild(imageMount);
+                var imageHint = document.createElement("span");
+                imageHint.className = "admin-form-hint";
+                imageHint.textContent =
+                    "The featured image displayed at the top of the evidence detail page.";
+                imageGroup.appendChild(imageHint);
+                contentCard.appendChild(imageGroup);
+
                 contentCard.appendChild(
                     formGroup(
                         "Description",
@@ -617,6 +634,15 @@
                     },
                 );
 
+                // Primary image picker, pre-populated with the existing image
+                var imagePicker = AdminImagePicker.mount(
+                    document.getElementById("evidence-image-picker-mount"),
+                    {
+                        initialPath: data.image || "",
+                        initialAlt: data.image_alt || "",
+                    },
+                );
+
                 // Action buttons
                 var actions = document.createElement("div");
                 actions.className = "admin-form-actions";
@@ -781,6 +807,8 @@
                             document
                                 .getElementById("ev-secondary-verse")
                                 .value.trim() || undefined,
+                        image: imagePicker.getValue().image_path || undefined,
+                        image_alt: imagePicker.getValue().alt || undefined,
                         gospel_category:
                             document.getElementById("ev-gospel-cat").value ||
                             undefined,
