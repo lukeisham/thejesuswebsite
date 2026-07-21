@@ -283,13 +283,16 @@ function getDetailBySlug(slug) {
 /**
  * Admin read by id — includes mla_sources and identifiers regardless of publish state.
  * Keeps raw column names (challenge_title, challenge_body, etc.) for the admin editors.
+ * mla_sources resolves through the junction to full mla_sources rows (id = the
+ * actual source id) so the admin editor's AdminMlaSources panel can reload
+ * previously-linked sources by id — the same shape getDetailBySlug() returns.
  */
 function getAdminById(id) {
   const challenge = getById(id);
   if (!challenge) return undefined;
   return {
     ...challenge,
-    mla_sources: getLinked(
+    mla_sources: getLinkedMlaSources(
       "challenge_mla_sources",
       "challenge_id",
       "citation_order",

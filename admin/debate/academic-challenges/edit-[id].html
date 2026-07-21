@@ -12,6 +12,9 @@
   <script defer src="../../assets/js/auth.js"></script>
   <script defer src="../../assets/js/admin.js"></script>
   <script defer src="../../assets/js/admin-image-picker.js"></script>
+  <script defer src="../../assets/js/admin-insert-image.js"></script>
+  <script defer src="../../assets/js/admin-shortcode-help.js"></script>
+  <script defer src="../../assets/js/admin-mla-sources.js"></script>
   <script defer src="../../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
   <script defer src="../../assets/js/admin-spellcheck/spellcheck-dictionary-client.js"></script>
   <script defer src="../../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
@@ -264,6 +267,16 @@
     contentCard.appendChild(formGroup('Slug *', 'challenge-slug', 'required', 'e.g. criterion-of-embarrassment', 'URL-friendly identifier.', false, data.slug || ''));
     contentCard.appendChild(formGroup('Summary', 'challenge-summary', '', 'Write a brief summary…', 'A short overview of the challenge.', true, data.challenge_summary || ''));
     contentCard.appendChild((function() {
+        var bodyGroup = formGroup('Body', 'challenge-body', '', 'Write the full challenge here…', 'The full challenge shown on the challenge’s own page. Supports [figure] images and [mla:N] inline citations.', true, data.challenge_body || '');
+        var insertBtn = document.createElement('button');
+        insertBtn.type = 'button';
+        insertBtn.className = 'admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn';
+        insertBtn.id = 'insert-image-btn';
+        insertBtn.textContent = 'Insert Image';
+        bodyGroup.appendChild(insertBtn);
+        return bodyGroup;
+    })());
+    contentCard.appendChild((function() {
         var picGroup = document.createElement('div');
         picGroup.className = 'admin-form-group';
         var picLabel = document.createElement('label');
@@ -287,19 +300,18 @@
     sidebar.className = 'admin-form-grid__sidebar';
     form.appendChild(sidebar);
 
-    var urlCard = document.createElement('div');
-    urlCard.className = 'admin-form-card';
-    sidebar.appendChild(urlCard);
+    var mlaCard = document.createElement('div');
+    mlaCard.className = 'admin-form-card';
+    sidebar.appendChild(mlaCard);
 
-    var urlTitle = document.createElement('div');
-    urlTitle.className = 'admin-form-card__title';
-    urlTitle.textContent = 'Source URLs';
-    urlCard.appendChild(urlTitle);
+    var mlaTitle = document.createElement('div');
+    mlaTitle.className = 'admin-form-card__title';
+    mlaTitle.textContent = 'Bibliography';
+    mlaCard.appendChild(mlaTitle);
 
-    urlCard.appendChild(formGroup('Source URL A', 'challenge-url-a', '', 'https://…', 'Primary source link.', false, data.challenge_url_a || ''));
-    urlCard.appendChild(formGroup('Source URL B', 'challenge-url-b', '', 'https://…', '', false, data.challenge_url_b || ''));
-    urlCard.appendChild(formGroup('Source URL C', 'challenge-url-c', '', 'https://…', '', false, data.challenge_url_c || ''));
-    urlCard.appendChild(formGroup('Source URL D', 'challenge-url-d', '', 'https://…', '', false, data.challenge_url_d || ''));
+    var mlaMount = document.createElement('div');
+    mlaMount.id = 'mla-sources-mount';
+    mlaCard.appendChild(mlaMount);
 
     var rankCard = document.createElement('div');
     rankCard.className = 'admin-form-card';
@@ -382,10 +394,28 @@
     var titleErr = document.getElementById('challenge-title-error');
     var slugErr = document.getElementById('challenge-slug-error');
 
-    // Spellcheck: init the system and attach to the summary textarea
+    // Spellcheck: init the system and attach to the summary and body textareas
     var summaryField = document.getElementById('challenge-summary');
+    var bodyField = document.getElementById('challenge-body');
     await SpellcheckController.init();
     SpellcheckController.attach(summaryField);
+    SpellcheckController.attach(bodyField);
+
+    // Wire the Insert Image button into the body textarea
+    AdminInsertImage.wire('#insert-image-btn', '#challenge-body');
+
+    // MLA Bibliography panel — preload with this challenge's linked sources
+    var mlaSourcesPanel = AdminMlaSources.mount(
+      document.getElementById('mla-sources-mount'),
+      { initialSourceIds: (data.mla_sources || []).map(function (s) { return s.id; }) }
+    );
+
+    // Formatting Reference panel
+    var formattingRefMount = document.createElement('div');
+    if (sidebar) {
+      sidebar.appendChild(formattingRefMount);
+      AdminShortcodeHelp.mountFormattingReference(formattingRefMount);
+    }
 
     var slugAuto = true;
     titleInput.addEventListener('input', function () {
@@ -433,14 +463,12 @@
         challenge_title: titleInput.value.trim(),
         slug: slugInput.value.trim(),
         challenge_summary: document.getElementById('challenge-summary').value.trim() || undefined,
+        challenge_body: document.getElementById('challenge-body').value.trim() || undefined,
         challenge_picture: challengePicker ? challengePicker.getValue().image_path || undefined : undefined,
-        challenge_url_a: document.getElementById('challenge-url-a').value.trim() || undefined,
-        challenge_url_b: document.getElementById('challenge-url-b').value.trim() || undefined,
-        challenge_url_c: document.getElementById('challenge-url-c').value.trim() || undefined,
-        challenge_url_d: document.getElementById('challenge-url-d').value.trim() || undefined,
         challenge_rank_number: rankVal ? parseInt(rankVal, 10) : undefined,
         metadata_keywords: document.getElementById('challenge-keywords').value.trim() || undefined,
-        published_draft: data.published_draft ? 1 : 0
+        published_draft: data.published_draft ? 1 : 0,
+        mla_source_ids: mlaSourcesPanel.getSelectedIds()
       };
     }
 
