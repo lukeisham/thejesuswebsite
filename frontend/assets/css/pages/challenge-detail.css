@@ -1,0 +1,96 @@
+/* ==========================================================================
+   Challenge Detail
+   Popular Challenges & Academic Challenges — single-challenge pages.
+   Figure, citation, and reference visuals are handled by figures.css,
+   inline-citation.css, journal-body.css, and journal-footer.css.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Page Root
+   ------------------------------------------------------------------------- */
+
+.challenge-detail {
+    max-width: var(--measure-reading);
+    margin-left: auto;
+    margin-right: auto;
+    padding: var(--space-xl) var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Title & Category Badge
+   ------------------------------------------------------------------------- */
+
+#challenge-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-h1);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+}
+
+#challenge-category {
+    margin-bottom: var(--space-lg);
+}
+
+/* -------------------------------------------------------------------------
+   Body
+   ------------------------------------------------------------------------- */
+
+.challenge-detail-body {
+    font-size: var(--text-body);
+    line-height: var(--leading-long);
+    color: var(--text-primary);
+    margin-bottom: var(--space-xl);
+}
+
+.challenge-detail-body p {
+    margin-bottom: var(--space-md);
+}
+
+/* -------------------------------------------------------------------------
+   Responses
+   ------------------------------------------------------------------------- */
+
+.challenge-responses {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border);
+}
+
+.challenge-responses h2 {
+    font-family: var(--font-heading);
+    font-size: var(--text-h2);
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.response-card {
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.response-card-title {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.response-card-meta {
+    font-size: var(--text-small);
+    color: var(--text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   Mobile (CSS-3: breakpoints live with the component they affect)
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+    .challenge-detail {
+        padding: var(--space-lg) var(--space-md);
+    }
+
+    #challenge-title {
+        font-size: var(--text-h2);
+    }
+}

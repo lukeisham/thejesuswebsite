@@ -11,6 +11,9 @@ import { getSegment } from "./utils/router.js";
 import { setSEO } from "./seo.js";
 import { html } from "./utils/templates.js";
 import { showToast } from "./utils/toasts.js";
+import { parseContentBody } from "./utils/content-markers.js";
+import { numberFigures } from "./utils/figures.js";
+import { formatMlaCitation } from "./utils/mla.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -25,6 +28,8 @@ const $category = document.getElementById("challenge-category");
 const $body = document.getElementById("challenge-body");
 const $responses = document.getElementById("challenge-responses");
 const $responsesList = document.getElementById("challenge-responses-list");
+const $references = document.getElementById("challenge-references");
+const $referencesList = document.getElementById("challenge-references-list");
 
 // ─── Determine challenge type from URL ───────────────────────────────────────
 
@@ -107,14 +112,44 @@ function renderBodyContent(challenge) {
     return;
   }
 
-  const escaped = escapeHTML(challenge.body);
-  const paragraphs = escaped
-    .split(/\n\n+/)
-    .filter((p) => p.trim())
-    .map((p) => `<p>${p.trim().replace(/\n/g, "<br>")}</p>`)
-    .join("");
+  $body.innerHTML = parseContentBody(challenge.body, {
+    mlaSources: challenge.mla_sources || [],
+    identifiers: challenge.identifiers || [],
+    citationStyle: "superscript",
+  });
 
-  $body.innerHTML = paragraphs;
+  numberFigures($body);
+}
+
+function renderReferences(challenge) {
+  if (
+    !challenge.bibliography ||
+    !Array.isArray(challenge.bibliography) ||
+    challenge.bibliography.length === 0
+  ) {
+    if ($references) $references.hidden = true;
+    return;
+  }
+
+  const citations = challenge.bibliography
+    .map(formatMlaCitation)
+    .filter(Boolean);
+
+  if (citations.length === 0) {
+    if ($references) $references.hidden = true;
+    return;
+  }
+
+  if ($references) $references.hidden = false;
+  if ($referencesList) {
+    $referencesList.innerHTML = citations
+      .map((citation, i) => {
+        const ref = challenge.bibliography[i];
+        const idAttr = ref && ref.id ? ` id="mla-${ref.id}"` : "";
+        return `<li${idAttr}>${citation}</li>`;
+      })
+      .join("");
+  }
 }
 
 function renderResponses(challenge) {
@@ -178,18 +213,6 @@ function applySEO(challenge) {
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
 
-function escapeHTML(str) {
-  if (typeof str !== "string") return "";
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}
-
 function truncateText(text, maxLen) {
   if (text.length <= maxLen) return text;
   return text.slice(0, maxLen - 1).trimEnd() + "\u2026";
@@ -231,6 +254,7 @@ async function init() {
 
   renderHeader(data);
   renderBodyContent(data);
+  renderReferences(data);
   renderResponses(data);
 
   applySEO(data);
