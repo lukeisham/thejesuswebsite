@@ -254,7 +254,7 @@ router.post("/login/options", loginOptionsLimit, (req, res) => {
     // this handle, so a stale passkey left over from a credential reset is
     // never offered (and can't produce a confusing "Unknown credential.").
     const allowCredentials = credentialModel
-      .getByUserHandle(handle)
+      .getByUserHandleForLogin(handle)
       .map((credential) => ({
         type: "public-key",
         id: credential.credential_id,

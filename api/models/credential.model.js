@@ -29,6 +29,19 @@ function getByUserHandle(userHandle) {
 }
 
 /**
+ * Most-recently-used credentials for a user handle, capped at 64.
+ * WebAuthn browsers reject allowCredentials > 64 entries, so this
+ * function is the safe variant for login/assertion ceremonies.
+ */
+function getByUserHandleForLogin(userHandle) {
+  return db
+    .prepare(
+      "SELECT * FROM credentials WHERE user_handle = ? ORDER BY last_used_at DESC LIMIT 64",
+    )
+    .all(userHandle);
+}
+
+/**
  * All credentials for a user handle — metadata only (never includes public_key).
  * Used by the admin credential-management UI.
  */
@@ -101,6 +114,7 @@ function remove(credentialId) {
 module.exports = {
   getByCredentialId,
   getByUserHandle,
+  getByUserHandleForLogin,
   getAllByUserHandle,
   countAll,
   countByUserHandle,
