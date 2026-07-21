@@ -13,6 +13,8 @@
   <script defer src="../../assets/js/admin.js"></script>
   <script defer src="../../assets/js/admin-image-picker.js"></script>
   <script defer src="../../assets/js/admin-insert-image.js"></script>
+  <script defer src="../../assets/js/admin-shortcode-help.js"></script>
+  <script defer src="../../assets/js/admin-mla-sources.js"></script>
   <script defer src="../../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
   <script defer src="../../assets/js/admin-spellcheck/spellcheck-dictionary-client.js"></script>
   <script defer src="../../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
@@ -173,6 +175,15 @@
           </div>
 
           <div class="admin-form-group">
+            <label class="admin-form-group__label" for="challenge-body">Body</label>
+            <textarea class="admin-textarea" id="challenge-body" name="challenge_body" rows="16"
+                      aria-describedby="body-hint"
+                      placeholder="Write the full challenge here…"></textarea>
+            <span class="admin-form-hint" id="body-hint">The full challenge shown on the challenge's own page. Supports <code>[figure]</code> images and <code>[mla:N]</code> inline citations.</span>
+            <button type="button" class="admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn" id="insert-image-btn">Insert Image</button>
+          </div>
+
+          <div class="admin-form-group">
                             <label class="admin-form-group__label">Picture</label>
                             <div id="challenge-picker"></div>
                             <span class="admin-form-hint" id="picture-hint">Upload an image for this challenge.</span>
@@ -182,33 +193,8 @@
 
       <div class="admin-form-grid__sidebar">
         <div class="admin-form-card">
-          <div class="admin-form-card__title">Source URLs</div>
-
-          <div class="admin-form-group">
-            <label class="admin-form-group__label" for="challenge-url-a">Source URL A</label>
-            <input class="admin-input" id="challenge-url-a" name="challenge_url_a" type="text"
-                   placeholder="https://…"
-                   aria-describedby="url-a-hint">
-            <span class="admin-form-hint" id="url-a-hint">Primary source link.</span>
-          </div>
-
-          <div class="admin-form-group">
-            <label class="admin-form-group__label" for="challenge-url-b">Source URL B</label>
-            <input class="admin-input" id="challenge-url-b" name="challenge_url_b" type="text"
-                   placeholder="https://…">
-          </div>
-
-          <div class="admin-form-group">
-            <label class="admin-form-group__label" for="challenge-url-c">Source URL C</label>
-            <input class="admin-input" id="challenge-url-c" name="challenge_url_c" type="text"
-                   placeholder="https://…">
-          </div>
-
-          <div class="admin-form-group">
-            <label class="admin-form-group__label" for="challenge-url-d">Source URL D</label>
-            <input class="admin-input" id="challenge-url-d" name="challenge_url_d" type="text"
-                   placeholder="https://…">
-          </div>
+          <div class="admin-form-card__title">Bibliography</div>
+          <div id="mla-sources-mount"></div>
         </div>
 
         <div class="admin-form-card" style="margin-top:var(--space-md)">
@@ -267,10 +253,29 @@
     var slugError = document.getElementById('slug-error');
     var challengePicker = AdminImagePicker.mount(document.getElementById('challenge-picker'), { initialPath: '' });
 
-    // Spellcheck: init the system and attach to the summary textarea
+    // Spellcheck: init the system and attach to the summary and body textareas
     var summaryInput = document.getElementById('challenge-summary');
+    var bodyInput = document.getElementById('challenge-body');
     await SpellcheckController.init();
     SpellcheckController.attach(summaryInput);
+    SpellcheckController.attach(bodyInput);
+
+    // Wire the Insert Image button into the body textarea
+    AdminInsertImage.wire('#insert-image-btn', '#challenge-body');
+
+    // MLA Bibliography panel (new record starts with no sources)
+    var mlaSourcesPanel = AdminMlaSources.mount(
+      document.getElementById('mla-sources-mount'),
+      { initialSourceIds: [] }
+    );
+
+    // Formatting Reference panel
+    var formattingRefMount = document.createElement('div');
+    var sidebarEl = document.querySelector('.admin-form-grid__sidebar');
+    if (sidebarEl) {
+      sidebarEl.appendChild(formattingRefMount);
+      AdminShortcodeHelp.mountFormattingReference(formattingRefMount);
+    }
 
     var slugAuto = true;
     titleInput.addEventListener('input', function () {
@@ -325,14 +330,12 @@
         challenge_title: titleInput.value.trim(),
         slug: slugInput.value.trim(),
         challenge_summary: document.getElementById('challenge-summary').value.trim() || undefined,
+        challenge_body: document.getElementById('challenge-body').value.trim() || undefined,
                     challenge_picture: challengePicker ? challengePicker.getValue().image_path || undefined : undefined,
-        challenge_url_a: document.getElementById('challenge-url-a').value.trim() || undefined,
-        challenge_url_b: document.getElementById('challenge-url-b').value.trim() || undefined,
-        challenge_url_c: document.getElementById('challenge-url-c').value.trim() || undefined,
-        challenge_url_d: document.getElementById('challenge-url-d').value.trim() || undefined,
         challenge_rank_number: rankVal ? parseInt(rankVal, 10) : undefined,
         metadata_keywords: document.getElementById('challenge-keywords').value.trim() || undefined,
-        published_draft: publish ? 1 : 0
+        published_draft: publish ? 1 : 0,
+        mla_source_ids: mlaSourcesPanel.getSelectedIds()
       };
     }
 

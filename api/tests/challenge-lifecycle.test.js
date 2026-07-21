@@ -763,7 +763,10 @@ describe("Popular Challenge lifecycle", () => {
     assert.equal(created.challenge_body, "Body with linked MLA source.");
     assert.ok(Array.isArray(created.mla_sources), "mla_sources should be present on admin read");
     assert.equal(created.mla_sources.length, 1);
-    assert.equal(created.mla_sources[0].mla_source_id, mlaId);
+    // getAdminById resolves through the junction to full mla_sources rows
+    // (id = the source's own id), matching getDetailBySlug()'s shape — not
+    // raw junction rows (which would carry a separate mla_source_id column).
+    assert.equal(created.mla_sources[0].id, mlaId);
 
     // Verify junction row exists
     const junction = testDb
@@ -796,8 +799,8 @@ describe("Popular Challenge lifecycle", () => {
     });
 
     assert.equal(updated.mla_sources.length, 2);
-    assert.equal(updated.mla_sources[0].mla_source_id, mlaIdA);
-    assert.equal(updated.mla_sources[1].mla_source_id, mlaIdB);
+    assert.equal(updated.mla_sources[0].id, mlaIdA);
+    assert.equal(updated.mla_sources[1].id, mlaIdB);
 
     // Replace with empty
     const cleared = popularModel.updateComposite(created.id, {
