@@ -4,7 +4,12 @@
 
 const db = require("../config");
 const { pickWritable, runUpdate } = require("./model-helpers");
-const { getLinked } = require("./relations/junctions");
+const {
+  getLinked,
+  getLinkedMlaSources,
+  getLinkedIdentifiers,
+  replaceLinks,
+} = require("./relations/junctions");
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -12,17 +17,43 @@ const WRITABLE_COLUMNS = [
   "slug",
   "challenge_title",
   "challenge_summary",
+  "challenge_body",
   "challenge_picture",
-  "challenge_url_a",
-  "challenge_url_b",
-  "challenge_url_c",
-  "challenge_url_d",
   "challenge_rank_number",
   "challenge_rank_pluses",
   "challenge_rank_minuses",
   "published_draft",
   "metadata_keywords",
 ];
+
+/**
+ * Map a raw DB row to the public response shape.
+ * challenge_title → title, challenge_summary → summary,
+ * challenge_body → body, mla_sources → bibliography.
+ * Kept separate so the admin path (getAdminById) still returns raw keys
+ * the Plan 03 editors expect.
+ */
+function normalizeForPublic(row) {
+  if (!row) return row;
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.challenge_title,
+    summary: row.challenge_summary,
+    body: row.challenge_body,
+    challenge_picture: row.challenge_picture,
+    challenge_rank_number: row.challenge_rank_number,
+    upvotes: row.upvotes !== undefined ? row.upvotes : row.challenge_rank_pluses,
+    downvotes: row.downvotes !== undefined ? row.downvotes : row.challenge_rank_minuses,
+    published_draft: row.published_draft,
+    metadata_keywords: row.metadata_keywords,
+    academic_popular: row.academic_popular,
+    response_count: row.response_count,
+    mla_sources: row.mla_sources,
+    bibliography: row.mla_sources,
+    identifiers: row.identifiers,
+  };
+}
 
 /**
  * Build a slug that is guaranteed unique within popular challenges.
@@ -57,10 +88,6 @@ function getAllPublished() {
         c.challenge_title AS title,
         c.challenge_summary AS summary,
         c.challenge_picture,
-        c.challenge_url_a,
-        c.challenge_url_b,
-        c.challenge_url_c,
-        c.challenge_url_d,
         c.challenge_rank_number,
         c.challenge_rank_pluses AS upvotes,
         c.challenge_rank_minuses AS downvotes,
@@ -139,6 +166,30 @@ function create(data) {
 }
 
 /**
+ * Insert a new popular challenge with MLA source links in a transaction.
+ * Accepts an optional mla_source_ids array; links are persisted atomically
+ * with the challenge insert so a mid-write failure leaves nothing behind.
+ */
+function createComposite(data) {
+  const { mla_source_ids, ...challengeData } = data;
+  const txn = db.transaction(() => {
+    const created = create(challengeData);
+    if (mla_source_ids && mla_source_ids.length > 0) {
+      replaceLinks(
+        "challenge_mla_sources",
+        "challenge_id",
+        "mla_source_id",
+        "citation_order",
+        created.id,
+        mla_source_ids.map((id) => ({ mla_source_id: id })),
+      );
+    }
+    return getAdminById(created.id);
+  });
+  return txn();
+}
+
+/**
  * Update an existing popular challenge. Only writable fields present in `data` are changed.
  * If the slug changes it is re-de-duplicated. Returns the updated row,
  * or undefined if no row has that id.
@@ -153,6 +204,31 @@ function update(id, data) {
 
   if (!runUpdate(db, 'challenges', row, id)) return getById(id);
   return getById(id);
+}
+
+/**
+ * Update a popular challenge with MLA source links in a transaction.
+ * Accepts an optional mla_source_ids array; if absent, existing links are
+ * left alone. If present (including an empty array), links are replaced.
+ */
+function updateComposite(id, data) {
+  const { mla_source_ids, ...challengeData } = data;
+  const txn = db.transaction(() => {
+    const updated = update(id, challengeData);
+    if (!updated) return undefined;
+    if (mla_source_ids !== undefined) {
+      replaceLinks(
+        "challenge_mla_sources",
+        "challenge_id",
+        "mla_source_id",
+        "citation_order",
+        id,
+        mla_source_ids.map((id) => ({ mla_source_id: id })),
+      );
+    }
+    return getAdminById(id);
+  });
+  return txn();
 }
 
 /**
@@ -179,29 +255,33 @@ function getPublishedCount() {
 
 /**
  * Published popular challenge by slug with its mla_sources and identifiers attached.
+ * Returns a normalized public shape (title/summary/body/bibliography).
  */
 function getDetailBySlug(slug) {
   const challenge = getBySlug(slug);
   if (!challenge) return undefined;
-  return {
+  const mla_sources = getLinkedMlaSources(
+    "challenge_mla_sources",
+    "challenge_id",
+    "citation_order",
+    challenge.id,
+  );
+  const identifiers = getLinkedIdentifiers(
+    "challenge_identifiers",
+    "challenge_id",
+    "citation_order",
+    challenge.id,
+  );
+  return normalizeForPublic({
     ...challenge,
-    mla_sources: getLinked(
-      "challenge_mla_sources",
-      "challenge_id",
-      "citation_order",
-      challenge.id,
-    ),
-    identifiers: getLinked(
-      "challenge_identifiers",
-      "challenge_id",
-      "citation_order",
-      challenge.id,
-    ),
-  };
+    mla_sources,
+    identifiers,
+  });
 }
 
 /**
  * Admin read by id — includes mla_sources and identifiers regardless of publish state.
+ * Keeps raw column names (challenge_title, challenge_body, etc.) for the admin editors.
  */
 function getAdminById(id) {
   const challenge = getById(id);
@@ -232,6 +312,8 @@ module.exports = {
   getAdminById,
   getPublishedCount,
   create,
+  createComposite,
   update,
+  updateComposite,
   remove,
 };

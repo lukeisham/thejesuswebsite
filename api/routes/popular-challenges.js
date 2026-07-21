@@ -58,13 +58,13 @@ router.get("/:slug", (req, res) => {
   }
 });
 
-// POST /popular-challenges — create new popular challenge (admin only)
+// POST /popular-challenges — create new popular challenge with MLA links (admin only)
 router.post("/", requireAuth, (req, res) => {
   try {
     if (!req.body.slug) {
       return res.status(400).json({ error: "slug is required." });
     }
-    const created = challengeModel.create(req.body);
+    const created = challengeModel.createComposite(req.body);
     res.status(201).json(created);
   } catch (error) {
     console.error("POST /popular-challenges failed:", error);
@@ -72,10 +72,10 @@ router.post("/", requireAuth, (req, res) => {
   }
 });
 
-// PUT /popular-challenges/:id — update popular challenge (admin only)
+// PUT /popular-challenges/:id — update popular challenge with MLA links (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const updated = challengeModel.update(Number(req.params.id), req.body);
+    const updated = challengeModel.updateComposite(Number(req.params.id), req.body);
     if (!updated)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "popular challenge", id: req.params.id });
     res.json(updated);

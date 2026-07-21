@@ -21,11 +21,8 @@ testDb.exec(`
     academic_popular       TEXT CHECK (academic_popular IN ('academic', 'popular')),
     challenge_title        TEXT,
     challenge_summary      TEXT,
+    challenge_body         TEXT,
     challenge_picture      TEXT,
-    challenge_url_a        TEXT,
-    challenge_url_b        TEXT,
-    challenge_url_c        TEXT,
-    challenge_url_d        TEXT,
     challenge_rank_number  INTEGER,
     challenge_rank_pluses  INTEGER,
     challenge_rank_minuses INTEGER,
@@ -620,9 +617,8 @@ describe("Popular Challenge lifecycle", () => {
       slug: "lifecycle-test",
       challenge_title: "Lifecycle Smoke Test",
       challenge_summary: "Testing the full lifecycle.",
+      challenge_body: "Detailed body content for lifecycle testing.",
       challenge_rank_number: 42,
-      challenge_url_a: "https://example.com/source-a",
-      challenge_url_b: "https://example.com/source-b",
       published_draft: 0,
       metadata_keywords: "lifecycle, smoke, test",
     });
@@ -634,7 +630,7 @@ describe("Popular Challenge lifecycle", () => {
     // 2. READ (admin)
     let read = popularModel.getById(created.id);
     assert.equal(read.challenge_title, "Lifecycle Smoke Test");
-    assert.equal(read.challenge_url_a, "https://example.com/source-a");
+    assert.equal(read.challenge_body, "Detailed body content for lifecycle testing.");
     // Draft should not be visible publicly
     assert.equal(popularModel.getBySlug("lifecycle-test"), undefined);
 
@@ -708,6 +704,120 @@ describe("Popular Challenge lifecycle", () => {
       .prepare("SELECT COUNT(*) as count FROM challenge_mla_sources WHERE challenge_id = ?")
       .get(created.id);
     assert.equal(afterJunction.count, 0, "junction rows should be cascade-deleted");
+  });
+
+  // ── Normalized detail contract (Plan 02) ─────────────────────────────────
+
+  test("getDetailBySlug returns normalized title/summary/body/bibliography", () => {
+    const created = popularModel.create({
+      slug: "normalized-detail",
+      challenge_title: "Normalized Title",
+      challenge_summary: "Normalized summary.",
+      challenge_body: "Normalized body.",
+      published_draft: 1,
+    });
+
+    const detail = popularModel.getDetailBySlug("normalized-detail");
+    assert.ok(detail, "detail should be found");
+    assert.equal(detail.title, "Normalized Title");
+    assert.equal(detail.summary, "Normalized summary.");
+    assert.equal(detail.body, "Normalized body.");
+    assert.ok(Array.isArray(detail.mla_sources), "mla_sources should be an array");
+    assert.equal(detail.bibliography, detail.mla_sources, "bibliography should alias mla_sources");
+    // Raw DB column names must not leak to public
+    assert.equal(detail.challenge_title, undefined, "challenge_title must not leak");
+    assert.equal(detail.challenge_summary, undefined, "challenge_summary must not leak");
+    assert.equal(detail.challenge_body, undefined, "challenge_body must not leak");
+  });
+
+  test("challenge_body round-trips through create and update", () => {
+    const created = popularModel.create({
+      slug: "body-roundtrip",
+      challenge_title: "Body Roundtrip",
+      challenge_body: "long-form\nbody\ncontent",
+    });
+    assert.equal(created.challenge_body, "long-form\nbody\ncontent");
+
+    const updated = popularModel.update(created.id, {
+      challenge_body: "updated\nbody",
+    });
+    assert.equal(updated.challenge_body, "updated\nbody");
+  });
+
+  test("createComposite persists mla_source_ids and getAdminById returns them", () => {
+    // Seed an MLA source
+    testDb.prepare(
+      "INSERT INTO mla_sources (mla_book_title, mla_book_author, mla_book_date) VALUES (?, ?, ?)",
+    ).run("Composite Book", "Composite Author", "2025");
+    const mlaId = testDb.prepare("SELECT last_insert_rowid() as id").get().id;
+
+    const created = popularModel.createComposite({
+      slug: "composite-create",
+      challenge_title: "Composite Create",
+      challenge_body: "Body with linked MLA source.",
+      mla_source_ids: [mlaId],
+    });
+
+    assert.ok(created.id);
+    assert.equal(created.challenge_title, "Composite Create");
+    assert.equal(created.challenge_body, "Body with linked MLA source.");
+    assert.ok(Array.isArray(created.mla_sources), "mla_sources should be present on admin read");
+    assert.equal(created.mla_sources.length, 1);
+    assert.equal(created.mla_sources[0].mla_source_id, mlaId);
+
+    // Verify junction row exists
+    const junction = testDb
+      .prepare("SELECT * FROM challenge_mla_sources WHERE challenge_id = ?")
+      .all(created.id);
+    assert.equal(junction.length, 1);
+    assert.equal(junction[0].mla_source_id, mlaId);
+  });
+
+  test("updateComposite replaces mla_source_ids", () => {
+    const created = popularModel.createComposite({
+      slug: "composite-update",
+      challenge_title: "Composite Update",
+      mla_source_ids: [],
+    });
+
+    // Seed two MLA sources
+    testDb.prepare(
+      "INSERT INTO mla_sources (mla_book_title, mla_book_author, mla_book_date) VALUES (?, ?, ?)",
+    ).run("Update Book A", "Author A", "2025");
+    const mlaIdA = testDb.prepare("SELECT last_insert_rowid() as id").get().id;
+
+    testDb.prepare(
+      "INSERT INTO mla_sources (mla_book_title, mla_book_author, mla_book_date) VALUES (?, ?, ?)",
+    ).run("Update Book B", "Author B", "2025");
+    const mlaIdB = testDb.prepare("SELECT last_insert_rowid() as id").get().id;
+
+    const updated = popularModel.updateComposite(created.id, {
+      mla_source_ids: [mlaIdA, mlaIdB],
+    });
+
+    assert.equal(updated.mla_sources.length, 2);
+    assert.equal(updated.mla_sources[0].mla_source_id, mlaIdA);
+    assert.equal(updated.mla_sources[1].mla_source_id, mlaIdB);
+
+    // Replace with empty
+    const cleared = popularModel.updateComposite(created.id, {
+      mla_source_ids: [],
+    });
+    assert.equal(cleared.mla_sources.length, 0);
+  });
+
+  test("challenge_url_* columns are no longer writable", () => {
+    const created = popularModel.create({
+      slug: "no-url-columns",
+      challenge_title: "No URL Columns",
+      challenge_url_a: "https://should-be-ignored.com",
+    });
+
+    const read = popularModel.getById(created.id);
+    assert.equal(read.challenge_title, "No URL Columns");
+    // pickWritable ignores non-whitelisted keys — they must not reach the DB
+    assert.equal(read.challenge_url_a, undefined, "challenge_url_a must not be writable");
+    assert.equal(read.challenge_body, null);
   });
 });
 
