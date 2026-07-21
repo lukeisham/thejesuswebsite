@@ -301,12 +301,15 @@ Passkey.loginWithPasskey = async function () {
         rpId: serverOptions.rpId,
         timeout: serverOptions.timeout,
         userVerification: serverOptions.userVerification || "preferred",
-        allowCredentials: (serverOptions.allowCredentials || []).map(
-          (credential) => ({
+        // WebAuthn browsers reject allowCredentials > 64 entries outright.
+        // Cap on the client too as a safety net (the server also caps at 64,
+        // but this protects against an older server build or any edge case).
+        allowCredentials: (serverOptions.allowCredentials || [])
+          .slice(0, 64)
+          .map((credential) => ({
             type: credential.type,
             id: Passkey.base64urlToBuffer(credential.id),
-          }),
-        ),
+          })),
       },
     });
   } catch (error) {
