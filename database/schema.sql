@@ -752,17 +752,8 @@ CREATE TRIGGER evidence_fts_ad AFTER DELETE ON evidence BEGIN
     INSERT INTO evidence_fts(evidence_fts, rowid, title, description, primary_verse, metadata_keywords)
     VALUES ('delete', old.id, old.title, old.description, old.primary_verse, old.metadata_keywords);
 END;
-CREATE TRIGGER evidence_fts_au AFTER UPDATE ON evidence
-WHEN NEW.title IS NOT OLD.title
-   OR NEW.description IS NOT OLD.description
-   OR NEW.primary_verse IS NOT OLD.primary_verse
-   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
-BEGIN
-    INSERT INTO evidence_fts(evidence_fts, rowid, title, description, primary_verse, metadata_keywords)
-    VALUES ('delete', old.id, old.title, old.description, old.primary_verse, old.metadata_keywords);
-    INSERT INTO evidence_fts(rowid, title, description, primary_verse, metadata_keywords)
-    VALUES (new.id, new.title, new.description, new.primary_verse, new.metadata_keywords);
-END;
+-- NOTE: evidence_fts_au (AFTER UPDATE) is defined later, after the *_updated_at
+-- triggers, so it fires last. See the "FTS SYNC (AFTER UPDATE)" section below.
 
 CREATE VIRTUAL TABLE responses_fts USING fts5(
     response_title, response_content, metadata_keywords,
@@ -777,16 +768,8 @@ CREATE TRIGGER responses_fts_ad AFTER DELETE ON responses BEGIN
     INSERT INTO responses_fts(responses_fts, rowid, response_title, response_content, metadata_keywords)
     VALUES ('delete', old.id, old.response_title, old.response_content, old.metadata_keywords);
 END;
-CREATE TRIGGER responses_fts_au AFTER UPDATE ON responses
-WHEN NEW.response_title IS NOT OLD.response_title
-   OR NEW.response_content IS NOT OLD.response_content
-   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
-BEGIN
-    INSERT INTO responses_fts(responses_fts, rowid, response_title, response_content, metadata_keywords)
-    VALUES ('delete', old.id, old.response_title, old.response_content, old.metadata_keywords);
-    INSERT INTO responses_fts(rowid, response_title, response_content, metadata_keywords)
-    VALUES (new.id, new.response_title, new.response_content, new.metadata_keywords);
-END;
+-- NOTE: responses_fts_au (AFTER UPDATE) is defined later, after the *_updated_at
+-- triggers, so it fires last. See the "FTS SYNC (AFTER UPDATE)" section below.
 
 CREATE VIRTUAL TABLE context_essays_fts USING fts5(
     essay_title, essay_content, metadata_keywords,
@@ -801,16 +784,8 @@ CREATE TRIGGER context_essays_fts_ad AFTER DELETE ON context_essays BEGIN
     INSERT INTO context_essays_fts(context_essays_fts, rowid, essay_title, essay_content, metadata_keywords)
     VALUES ('delete', old.id, old.essay_title, old.essay_content, old.metadata_keywords);
 END;
-CREATE TRIGGER context_essays_fts_au AFTER UPDATE ON context_essays
-WHEN NEW.essay_title IS NOT OLD.essay_title
-   OR NEW.essay_content IS NOT OLD.essay_content
-   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
-BEGIN
-    INSERT INTO context_essays_fts(context_essays_fts, rowid, essay_title, essay_content, metadata_keywords)
-    VALUES ('delete', old.id, old.essay_title, old.essay_content, old.metadata_keywords);
-    INSERT INTO context_essays_fts(rowid, essay_title, essay_content, metadata_keywords)
-    VALUES (new.id, new.essay_title, new.essay_content, new.metadata_keywords);
-END;
+-- NOTE: context_essays_fts_au (AFTER UPDATE) is defined later, after the
+-- *_updated_at triggers, so it fires last. See "FTS SYNC (AFTER UPDATE)" below.
 
 CREATE VIRTUAL TABLE blog_posts_fts USING fts5(
     blog_title, blog_content, metadata_keywords,
@@ -825,16 +800,8 @@ CREATE TRIGGER blog_posts_fts_ad AFTER DELETE ON blog_posts BEGIN
     INSERT INTO blog_posts_fts(blog_posts_fts, rowid, blog_title, blog_content, metadata_keywords)
     VALUES ('delete', old.id, old.blog_title, old.blog_content, old.metadata_keywords);
 END;
-CREATE TRIGGER blog_posts_fts_au AFTER UPDATE ON blog_posts
-WHEN NEW.blog_title IS NOT OLD.blog_title
-   OR NEW.blog_content IS NOT OLD.blog_content
-   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
-BEGIN
-    INSERT INTO blog_posts_fts(blog_posts_fts, rowid, blog_title, blog_content, metadata_keywords)
-    VALUES ('delete', old.id, old.blog_title, old.blog_content, old.metadata_keywords);
-    INSERT INTO blog_posts_fts(rowid, blog_title, blog_content, metadata_keywords)
-    VALUES (new.id, new.blog_title, new.blog_content, new.metadata_keywords);
-END;
+-- NOTE: blog_posts_fts_au (AFTER UPDATE) is defined later, after the
+-- *_updated_at triggers, so it fires last. See "FTS SYNC (AFTER UPDATE)" below.
 
 -- =====================
 -- TRIGGERS
@@ -890,6 +857,65 @@ AFTER UPDATE ON credentials
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
     UPDATE credentials SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+-- =====================
+-- FTS SYNC (AFTER UPDATE)
+-- =====================
+-- These AFTER UPDATE triggers keep the FTS5 external-content indexes in sync.
+-- They MUST be defined AFTER the *_updated_at triggers above. SQLite fires
+-- triggers of the same event in creation order, and each *_updated_at trigger
+-- issues a SECOND UPDATE on the row (to bump updated_at). Under SQLite >= 3.53's
+-- stricter FTS5, if the FTS sync runs BEFORE that second UPDATE, the
+-- external-content index is left inconsistent and the next write to an
+-- otherwise-empty column fails with SQLITE_CORRUPT_VTAB ("database disk image is
+-- malformed"). Defining these last makes them fire last, after updated_at has
+-- settled, which keeps the index consistent. See migration 033 for the fix
+-- applied to existing databases.
+
+CREATE TRIGGER evidence_fts_au AFTER UPDATE ON evidence
+WHEN NEW.title IS NOT OLD.title
+   OR NEW.description IS NOT OLD.description
+   OR NEW.primary_verse IS NOT OLD.primary_verse
+   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
+BEGIN
+    INSERT INTO evidence_fts(evidence_fts, rowid, title, description, primary_verse, metadata_keywords)
+    VALUES ('delete', old.id, old.title, old.description, old.primary_verse, old.metadata_keywords);
+    INSERT INTO evidence_fts(rowid, title, description, primary_verse, metadata_keywords)
+    VALUES (new.id, new.title, new.description, new.primary_verse, new.metadata_keywords);
+END;
+
+CREATE TRIGGER responses_fts_au AFTER UPDATE ON responses
+WHEN NEW.response_title IS NOT OLD.response_title
+   OR NEW.response_content IS NOT OLD.response_content
+   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
+BEGIN
+    INSERT INTO responses_fts(responses_fts, rowid, response_title, response_content, metadata_keywords)
+    VALUES ('delete', old.id, old.response_title, old.response_content, old.metadata_keywords);
+    INSERT INTO responses_fts(rowid, response_title, response_content, metadata_keywords)
+    VALUES (new.id, new.response_title, new.response_content, new.metadata_keywords);
+END;
+
+CREATE TRIGGER context_essays_fts_au AFTER UPDATE ON context_essays
+WHEN NEW.essay_title IS NOT OLD.essay_title
+   OR NEW.essay_content IS NOT OLD.essay_content
+   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
+BEGIN
+    INSERT INTO context_essays_fts(context_essays_fts, rowid, essay_title, essay_content, metadata_keywords)
+    VALUES ('delete', old.id, old.essay_title, old.essay_content, old.metadata_keywords);
+    INSERT INTO context_essays_fts(rowid, essay_title, essay_content, metadata_keywords)
+    VALUES (new.id, new.essay_title, new.essay_content, new.metadata_keywords);
+END;
+
+CREATE TRIGGER blog_posts_fts_au AFTER UPDATE ON blog_posts
+WHEN NEW.blog_title IS NOT OLD.blog_title
+   OR NEW.blog_content IS NOT OLD.blog_content
+   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
+BEGIN
+    INSERT INTO blog_posts_fts(blog_posts_fts, rowid, blog_title, blog_content, metadata_keywords)
+    VALUES ('delete', old.id, old.blog_title, old.blog_content, old.metadata_keywords);
+    INSERT INTO blog_posts_fts(rowid, blog_title, blog_content, metadata_keywords)
+    VALUES (new.id, new.blog_title, new.blog_content, new.metadata_keywords);
 END;
 
 -- =====================
