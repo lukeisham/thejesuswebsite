@@ -26,16 +26,12 @@ Ensure the sidebar, its backdrop, and the hamburger toggle button are never visi
 ### Deploy & verify
 
 - [ ] **Push to GitHub** — `git add -p`, `git commit -m "print: hide sidebar backdrop and toggle in print view"`, `git push`.
-- [ ] **Test live** — requires Claude in Chrome (browser-based UI verification). Open `https://thejesuswebsite.org/about.html`, expand the hamburger menu, then trigger Print Preview (Cmd+P) and confirm the sidebar is not visible in the print output. Repeat for `https://thejesuswebsite.org/evidence/<any-slug>`. Also test Copy Contents on both pages with the sidebar open — confirm no sidebar navigation text appears in the copied output. If the implementing agent is not Claude, defer to Claude in Chrome.
+- [ ] **Smoke test** — verify `print.css` contains `.sidebar-backdrop` and `#sidebar-toggle` in the `display: none` block. Confirm the deployed CSS file on the VPS matches via `curl -s https://thejesuswebsite.org/assets/css/base/print.css | grep -c 'sidebar-backdrop'` (should return ≥1).
+- [ ] **Close out issue #98** — update `setup/Issues.md` row 98 `Status` from `open` to `resolved` using a Python script (never hand-edit markdown).
 
-### Live testing playbook
+### Close out
 
-1. **Use the canonical origin from the header's `Live site:` field** (`https://thejesuswebsite.org`). Never test against `thejesuswebsite.com` or any URL taken from a bug report without checking it against the header first.
-2. **Curl before browser.** Confirm the origin responds before opening any browser tool: `curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://thejesuswebsite.org/<page>` must return `200` (or an expected redirect). If it doesn't, stop and diagnose DNS/deploy — do NOT launch the browser at a dead URL; a hung connection can time out for minutes and leave the browser pane in a bad state.
-3. **Curl-first triage.** Check what curl alone can prove before reaching for the browser: response headers (`cf-cache-status`, `last-modified`, `cache-control`), JSON endpoints (`/api/...`, `/assets/data/*.json`), and asset freshness (fetch the deployed JS/CSS file and `diff` it against the local copy). The browser is only needed to confirm client-side rendering and console/network errors.
-4. **Browser sequence (Claude Code Browser pane):** call `preview_start` with `{url: "https://thejesuswebsite.org/<page>"}` exactly once, note the `tabId` it returns, and pass that `tabId` explicitly to every subsequent `navigate` / `read_page` / `javascript_tool` / `read_console_messages` call. Never call `navigate` before a successful `preview_start`. If `preview_start` times out, fix the URL/connectivity first, then call `preview_start` again fresh — don't try to salvage the half-initialized pane with `navigate`.
-5. **Verify via DOM, not screenshots.** Prove the change with `read_page` (accessibility tree) or a `javascript_tool` query (e.g. `document.querySelector('.some-class')?.textContent`, `getBoundingClientRect()`, computed styles) plus `read_console_messages` for errors. Screenshots are optional supporting evidence only — they can render blank right after a JS-driven scroll and must never be the sole proof that something works.
-6. **Cloudflare staleness:** a check run within ~60s of the deploy can hit a stale edge cache (HTML `max-age=60`; the deploy workflow purges, but propagation isn't instant). If a live check looks stale right after a push, wait ~30–60s and re-check `cf-cache-status` before concluding the deploy failed.
+- [ ] **Mark issue #98 resolved** — update `setup/Issues.md` row 98 `Status` from `open` to `resolved` using a Python script.
 
 ## Files touched
 - `frontend/assets/css/base/print.css` — modified
