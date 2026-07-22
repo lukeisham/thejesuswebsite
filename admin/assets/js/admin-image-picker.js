@@ -12,7 +12,7 @@ var AdminImagePicker = window.AdminImagePicker;
  * Build a picker and mount it into `container`.
  *
  * @param {Element} container
- * @param {{ initialPath?: string, initialAlt?: string, onChange?: function }?} opts
+ * @param {{ initialPath?: string, initialAlt?: string, initialThumb?: string, onChange?: function }?} opts
  * @returns {{ getValue: function, setValue: function }}
  */
 AdminImagePicker.mount = function (container, opts) {
@@ -24,6 +24,7 @@ AdminImagePicker.mount = function (container, opts) {
 
   var currentPath = opts.initialPath || "";
   var currentAlt = opts.initialAlt || "";
+  var currentThumb = opts.initialThumb || "";
 
   // ── Build DOM (JS-6: element factories, never innerHTML with user data) ──
 
@@ -109,7 +110,11 @@ AdminImagePicker.mount = function (container, opts) {
 
   function fireChange() {
     if (typeof opts.onChange === "function") {
-      opts.onChange({ image_path: currentPath, alt: currentAlt });
+      opts.onChange({
+        image_path: currentPath,
+        alt: currentAlt,
+        thumb_path: currentThumb,
+      });
     }
   }
 
@@ -129,6 +134,7 @@ AdminImagePicker.mount = function (container, opts) {
     try {
       var result = await Admin.uploadImage(file);
       currentPath = result.image_path;
+      currentThumb = result.thumb_path || "";
       thumbnail.src = currentPath;
       thumbnail.hidden = false;
       removeBtn.hidden = false;
@@ -153,6 +159,7 @@ AdminImagePicker.mount = function (container, opts) {
   removeBtn.addEventListener("click", function () {
     currentPath = "";
     currentAlt = "";
+    currentThumb = "";
     thumbnail.src = "";
     thumbnail.hidden = true;
     removeBtn.hidden = true;
@@ -172,11 +179,16 @@ AdminImagePicker.mount = function (container, opts) {
 
   return {
     getValue: function () {
-      return { image_path: currentPath, alt: currentAlt };
+      return {
+        image_path: currentPath,
+        alt: currentAlt,
+        thumb_path: currentThumb,
+      };
     },
-    setValue: function (path, alt) {
+    setValue: function (path, alt, thumb) {
       currentPath = path || "";
       currentAlt = alt || "";
+      currentThumb = thumb || "";
       if (currentPath) {
         thumbnail.src = currentPath;
         thumbnail.hidden = false;

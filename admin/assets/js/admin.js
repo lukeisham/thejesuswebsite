@@ -277,9 +277,10 @@ Admin.getAllChallenges = async function () {
 /**
  * Upload an image file to the server. Client-side size guard (reject > 5 MB
  * before encoding), reads the File via FileReader to base64, POSTs to /uploads.
- * Returns { image_path }.
+ * Returns { image_path, thumb_path } — thumb_path is null if thumbnail
+ * generation failed server-side.
  * @param {File} file
- * @returns {Promise<{ image_path: string }>}
+ * @returns {Promise<{ image_path: string, thumb_path: string|null }>}
  */
 Admin.uploadImage = async function (file) {
   if (!(file instanceof File)) {

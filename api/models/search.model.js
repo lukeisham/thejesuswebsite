@@ -8,7 +8,12 @@ const db = require("../config");
 // Which entities are searchable and how to join an FTS hit back to a public row.
 // `fts` is the virtual table; `table` the content table it mirrors.
 const SEARCHABLE = {
-  evidence: { fts: "evidence_fts", table: "evidence", titleColumn: "title" },
+  evidence: {
+    fts: "evidence_fts",
+    table: "evidence",
+    titleColumn: "title",
+    thumbnailColumn: "thumbnail_path",
+  },
   responses: {
     fts: "responses_fts",
     table: "responses",

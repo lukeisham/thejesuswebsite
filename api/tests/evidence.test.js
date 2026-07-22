@@ -84,7 +84,7 @@ describe("evidence: getAllPublished", () => {
     assert.equal(items[0].primary_verse, "John 3:16");
   });
 
-  test("thumbnail_path is null (pictures use [figure] shortcodes in description)", () => {
+  test("thumbnail_path is null when no thumbnail was generated on upload", () => {
     evidenceModel.create({
       title: "With Figure",
       slug: "with-figure",
@@ -94,9 +94,9 @@ describe("evidence: getAllPublished", () => {
 
     const items = evidenceModel.getAllPublished();
     assert.equal(items.length, 1);
-    // thumbnail_path is no longer included since evidence_pictures was dropped
-    // (migration 006); pictures are now [figure] shortcodes in body text
-    assert.equal(items[0].thumbnail_path, undefined);
+    // thumbnail_path (migration 034) is populated by the upload route when
+    // Sharp resizes an image; records created without an upload stay null.
+    assert.equal(items[0].thumbnail_path, null);
   });
 
   test("filters by gospel_category", () => {
