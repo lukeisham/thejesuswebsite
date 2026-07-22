@@ -359,6 +359,7 @@
                             {
                                 initialPath: data.image || "",
                                 initialAlt: data.image_alt || "",
+                                initialThumb: data.thumbnail_path || "",
                             },
                         );
 
@@ -470,6 +471,9 @@
                                     undefined,
                                 image_alt:
                                     imagePicker.getValue().alt || undefined,
+                                thumbnail_path:
+                                    imagePicker.getValue().thumb_path ||
+                                    undefined,
                                 gospel_category:
                                     document.getElementById("ev-gospel-cat")
                                         .value || undefined,

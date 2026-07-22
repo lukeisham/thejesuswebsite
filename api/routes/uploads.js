@@ -11,6 +11,18 @@ const { safeMkdir, safeWriteFile } = require("../lib/io-guard");
 const ERRORS = require("../lib/error-codes");
 const { sendError } = require("../lib/error-handler");
 
+// Sharp is optional at runtime (SR-2/JS-2): if it's missing or a resize
+// throws, the upload still succeeds with the full-size image and
+// thumb_path is null — never fail an upload over a thumbnail.
+let sharp;
+try {
+  sharp = require("sharp");
+} catch {
+  sharp = null;
+}
+
+const THUMBNAIL_WIDTH = 80;
+
 const router = express.Router();
 
 // This route needs its own 8 MB limit; the global limit on the rest of the app
@@ -48,7 +60,7 @@ function sniffExtension(buffer) {
 }
 
 // POST /uploads — accepts { filename, data } where data is base64-encoded bytes.
-router.post("/", requireAuth, (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
     const { filename, data } = req.body || {};
 
@@ -107,7 +119,22 @@ router.post("/", requireAuth, (req, res) => {
     // Public URL path (relative to the site root, served by express.static)
     const imagePath = `/uploads/${year}/${month}/${destName}`;
 
-    res.status(201).json({ image_path: imagePath });
+    // Thumbnail generation is best-effort: any failure here still lets the
+    // upload succeed with thumb_path: null (JS-2).
+    let thumbPath = null;
+    if (sharp) {
+      try {
+        const thumbName = `${uuid}_thumb.${ext}`;
+        const thumbDestPath = path.join(destDir, thumbName);
+        await sharp(buffer).resize(THUMBNAIL_WIDTH).toFile(thumbDestPath);
+        thumbPath = `/uploads/${year}/${month}/${thumbName}`;
+      } catch (err) {
+        console.warn("Thumbnail generation failed:", err.message);
+        thumbPath = null;
+      }
+    }
+
+    res.status(201).json({ image_path: imagePath, thumb_path: thumbPath });
   } catch (error) {
     console.error("POST /uploads failed:", error);
     sendError(res, ERRORS.FILE_WRITE_FAILURE);
