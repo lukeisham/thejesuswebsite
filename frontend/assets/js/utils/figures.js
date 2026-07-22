@@ -34,8 +34,9 @@ export function numberFigures(container) {
 
     const prefix = document.createElement('span');
     prefix.className = 'fig-number';
-    prefix.textContent = `Fig. ${count}. `;
+    prefix.textContent = `Fig. ${count}`;
 
     caption.prepend(prefix);
+    prefix.insertAdjacentText('afterend', ' \u2014 ');
   });
 }

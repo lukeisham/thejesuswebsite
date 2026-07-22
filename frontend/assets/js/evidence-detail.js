@@ -155,6 +155,7 @@ function renderPictures(description, primaryImage, primaryImageAlt) {
   const primaryHTML = primaryImage
     ? `<figure>
         <img src="${html`${primaryImage}`}" alt="${html`${primaryImageAlt || ""}`}" loading="lazy" />
+        ${primaryImageAlt ? `<figcaption>${html`${primaryImageAlt}`}</figcaption>` : ""}
       </figure>`
     : "";
 
