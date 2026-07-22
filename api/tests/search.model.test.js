@@ -85,14 +85,31 @@ function seedBlog(overrides = {}) {
   return db
     .prepare(
       `
-    INSERT INTO blog_posts (slug, blog_title, blog_content, published_draft)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO blog_posts (slug, blog_title, blog_content, blog_thumbnail, published_draft)
+    VALUES (?, ?, ?, ?, ?)
   `,
     )
     .run(
       overrides.slug || "test-blog",
       overrides.blog_title || "Test Blog Title",
       overrides.blog_content || "Full blog body content here.",
+      overrides.blog_thumbnail ?? null,
+      overrides.published_draft ?? 1,
+    ).lastInsertRowid;
+}
+
+function seedNews(overrides = {}) {
+  return db
+    .prepare(
+      `
+    INSERT INTO news_articles (slug, news_article_title, news_article_thumbnail, published_draft)
+    VALUES (?, ?, ?, ?)
+  `,
+    )
+    .run(
+      overrides.slug || "test-news",
+      overrides.news_article_title || "Test News Title",
+      overrides.news_article_thumbnail ?? null,
       overrides.published_draft ?? 1,
     ).lastInsertRowid;
 }
@@ -103,6 +120,7 @@ function clearAll() {
   db.exec("DELETE FROM responses");
   db.exec("DELETE FROM blog_posts");
   db.exec("DELETE FROM challenges");
+  db.exec("DELETE FROM news_articles");
 }
 
 // ── searchOne() title field ───────────────────────────────────────────────────
@@ -162,6 +180,53 @@ describe("searchOne returns title, not body", () => {
       !("blog_content" in results[0]),
       "blog_content must not be present",
     );
+  });
+});
+
+// ── thumbnail column ──────────────────────────────────────────────────────────
+
+describe("searchOne includes a thumbnail column", () => {
+  beforeEach(clearAll);
+
+  test("evidence: thumbnail comes from thumbnail_path", () => {
+    seedEvidence({ title: "Thumbnail Evidence" });
+    db.prepare("UPDATE evidence SET thumbnail_path = ? WHERE slug = ?").run(
+      "/uploads/2026/07/abc_thumb.jpg",
+      "test-evidence",
+    );
+    const results = searchModel.searchOne("evidence", "Thumbnail");
+    assert.equal(results[0].thumbnail, "/uploads/2026/07/abc_thumb.jpg");
+  });
+
+  test("blog: thumbnail comes from blog_thumbnail", () => {
+    seedBlog({
+      blog_title: "Thumbnail Blog",
+      blog_thumbnail: "/uploads/2026/07/blog_thumb.jpg",
+    });
+    const results = searchModel.searchOne("blog", "Thumbnail");
+    assert.equal(results[0].thumbnail, "/uploads/2026/07/blog_thumb.jpg");
+  });
+
+  test("news: thumbnail comes from news_article_thumbnail", () => {
+    seedNews({
+      news_article_title: "Thumbnail News",
+      news_article_thumbnail: "/uploads/2026/07/news_thumb.jpg",
+    });
+    const results = searchModel.searchOne("news", "Thumbnail");
+    assert.equal(results[0].thumbnail, "/uploads/2026/07/news_thumb.jpg");
+  });
+
+  test("essays: no thumbnail column configured, always null", () => {
+    seedEssay({ essay_title: "Thumbnail Essay" });
+    const results = searchModel.searchOne("essays", "Thumbnail");
+    assert.equal(results[0].thumbnail, null);
+  });
+
+  test("evidence: null thumbnail_path surfaces as null, not a missing key", () => {
+    seedEvidence({ title: "No Thumb Evidence" });
+    const results = searchModel.searchOne("evidence", "No Thumb");
+    assert.ok("thumbnail" in results[0]);
+    assert.equal(results[0].thumbnail, null);
   });
 });
 
