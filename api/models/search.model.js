@@ -28,11 +28,13 @@ const SEARCHABLE = {
     fts: "blog_posts_fts",
     table: "blog_posts",
     titleColumn: "blog_title",
+    thumbnailColumn: "blog_thumbnail",
   },
   news: {
     fts: "news_articles_fts",
     table: "news_articles",
     titleColumn: "news_article_title",
+    thumbnailColumn: "news_article_thumbnail",
   },
   "bible-verses": {
     fts: "resources_fts",
@@ -107,10 +109,14 @@ function searchOne(type, rawQuery, limit = 25) {
 
   const slugColumn = config.slugColumn || "slug";
   const extraWhere = config.extraWhere ? `AND ${config.extraWhere}` : "";
+  const thumbnailSelect = config.thumbnailColumn
+    ? `source.${config.thumbnailColumn} AS thumbnail`
+    : "NULL AS thumbnail";
 
   const sql = `
         SELECT source.id, source.${slugColumn} AS slug, source.${config.titleColumn} AS title, '${type}' AS result_type,
-               snippet(${config.fts}, -1, '<mark>', '</mark>', '…', 12) AS snippet
+               snippet(${config.fts}, -1, '<mark>', '</mark>', '…', 12) AS snippet,
+               ${thumbnailSelect}
         FROM ${config.fts}
         JOIN ${config.table} AS source ON source.id = ${config.fts}.rowid
         WHERE ${config.fts} MATCH ?

@@ -1,6 +1,6 @@
 /* ==========================================================================
    Search Results
-   Result groups, card grid, and individual result cards.
+   Result groups and row-based results (matching the evidence index page).
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -27,71 +27,83 @@
 }
 
 /* -------------------------------------------------------------------------
-   Search Results Cards Grid
+   Search Result Rows
    ------------------------------------------------------------------------- */
 
-.search-results__cards {
-    display: grid;
-    grid-template-columns: 1fr;
+.search-results__rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-result-row {
+    display: flex;
+    align-items: center;
     gap: var(--space-md);
-}
-
-@media (min-width: 768px) {
-    .search-results__cards {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .search-results__cards {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-/* -------------------------------------------------------------------------
-   Search Result Card
-   ------------------------------------------------------------------------- */
-
-.search-result-card {
-    display: block;
     padding: var(--space-md);
-    background: var(--bg-surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-card);
+    border-bottom: 1px solid var(--border);
     text-decoration: none;
     color: inherit;
-    transition:
-        transform var(--duration-fast) var(--ease-out),
-        box-shadow var(--duration-fast) var(--ease-out);
+    transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.search-result-card:hover {
-    transform: translateY(-2px);
-    box-shadow:
-        var(--shadow-card),
-        0 4px 12px rgba(0, 0, 0, 0.08);
+.search-result-row:first-child {
+    border-top: 1px solid var(--border);
 }
 
-.search-result-card__header {
+.search-result-row:hover {
+    background: var(--bg-surface-alt);
+}
+
+.search-result-row__thumbnail {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.search-result-row__thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.search-result-row__thumb-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-surface-alt);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.search-result-row__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    min-width: 0;
+    flex: 1;
+}
+
+.search-result-row__header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: var(--space-sm);
-    margin-bottom: var(--space-sm);
 }
 
-.search-result-card__title {
+.search-result-row__title {
     font-size: var(--text-body);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-primary);
-    margin: 0;
+    line-height: var(--leading-small);
 }
 
-.search-result-card__badge {
+.search-result-row__badge {
     flex-shrink: 0;
 }
 
-.search-result-card__snippet {
+.search-result-row__snippet {
     font-size: var(--text-small);
     color: var(--text-secondary);
     line-height: var(--leading-relaxed);
@@ -99,15 +111,20 @@
 }
 
 /* -------------------------------------------------------------------------
-   Mobile: single-column results, comfortable touch targets
+   Mobile: comfortable touch targets
    ------------------------------------------------------------------------- */
 
 @media (max-width: 767px) {
-    .search-results__cards {
-        grid-template-columns: 1fr;
+    .search-result-row {
+        padding: var(--space-sm) var(--space-md);
     }
 
-    .search-result-card {
-        padding: var(--space-sm);
+    .search-result-row__thumbnail {
+        width: 56px;
+        height: 56px;
+    }
+
+    .search-result-row__title {
+        font-size: var(--text-small);
     }
 }

@@ -97,8 +97,8 @@ function renderResults(items) {
 
   const sectionsHTML = Object.entries(grouped).map(([type, groupItems]) => {
     const label = groupLabels[type] || type;
-    const cardsHTML = safeJoin(
-      groupItems.map((item) => renderResultCard(item, type)),
+    const rowsHTML = safeJoin(
+      groupItems.map((item) => renderResultRow(item, type)),
     );
 
     return html`
@@ -106,7 +106,7 @@ function renderResults(items) {
         <h3 class="search-results__group-heading">
           ${label} (${groupItems.length})
         </h3>
-        <div class="search-results__cards">${cardsHTML}</div>
+        <div class="search-results__rows">${rowsHTML}</div>
       </div>
     `;
   });
@@ -114,19 +114,37 @@ function renderResults(items) {
   $results.innerHTML = safeJoin(sectionsHTML);
 }
 
-function renderResultCard(item, type) {
+function renderResultRow(item, type) {
   const title = item.title || "Untitled";
   const snippet = item.snippet || "";
   const url = getResultUrl(item, type);
   const badge = renderBadge(typeLabels[type] || type);
+  const thumbnail = item.thumbnail || "";
+
+  const thumbnailHTML = thumbnail
+    ? raw(`<img
+        class="search-result-row__thumb-img"
+        data-src="${thumbnail}"
+        src=""
+        alt=""
+        width="64"
+        height="64"
+        loading="lazy"
+      />`)
+    : raw(
+        '<div class="search-result-row__thumb-placeholder" aria-hidden="true"></div>',
+      );
 
   return html`
-    <a href="${url}" class="search-result-card">
-      <div class="search-result-card__header">
-        <h4 class="search-result-card__title">${title}</h4>
-        <span class="search-result-card__badge">${badge}</span>
+    <a href="${url}" class="search-result-row">
+      <div class="search-result-row__thumbnail">${thumbnailHTML}</div>
+      <div class="search-result-row__body">
+        <div class="search-result-row__header">
+          <span class="search-result-row__title">${title}</span>
+          <span class="search-result-row__badge">${badge}</span>
+        </div>
+        <p class="search-result-row__snippet">${raw(snippet)}</p>
       </div>
-      <p class="search-result-card__snippet">${raw(snippet)}</p>
     </a>
   `;
 }

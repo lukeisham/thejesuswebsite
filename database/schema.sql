@@ -209,6 +209,7 @@ CREATE TABLE news_articles (
     news_article_date      TEXT,
     news_article_author    TEXT,
     news_article_publisher TEXT,
+    news_article_thumbnail TEXT,
     landing_page_display   INTEGER DEFAULT 0,
     published_draft        INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
     metadata_keywords      TEXT
