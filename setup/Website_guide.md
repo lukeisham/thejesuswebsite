@@ -321,6 +321,48 @@ buildRow({
 - **Explicit dimensions.** Every content `<img>` gets `width`/`height` to prevent Cumulative Layout Shift. Thumbnails are sized by CSS (`80×80px` with `object-fit: cover`) so explicit dimensions are not needed on the `<img>` tag in that case.
 - **Empty thumbnail = placeholder div, not a broken `<img>`.** `buildRow()` renders an empty dashed-box `<div>` when `thumbnail` is `null`, so the browser never requests a missing image URL.
 
+## ESV API (Bible verse integration)
+
+The site fetches Scripture text from the Crossway ESV API via a server-side proxy so the `ESV_API_KEY` never reaches the browser. All verse citations are progressive-enhanced: the hardcoded fallback text stays visible if the API is unreachable.
+
+### Server proxy (`api/routes/esv.js`)
+
+- **Endpoint:** `GET /api/esv/passage?q=Luke+1:1-3`
+- **Upstream:** `https://api.esv.org/v3/passage/text/` — called with `Authorization: Token {ESV_API_KEY}`
+- **Validation:** reference must match `/^[\w\s.:,–-]+$/` and be ≤60 characters
+- **Cache:** in-memory `Map` — passage text never changes, so each reference is fetched once and served from cache thereafter
+- **Response:** `{ reference: "Luke 1:1-3", text: "Inasmuch as many have undertaken…" }`
+- **Errors:** 400 (invalid reference), 503 (key missing), upstream/network errors
+- **Mounted in `server.js`** under the public read rate-limit: `app.use("/esv", publicReadLimit, …)`
+
+### Client-side enhancement (`frontend/assets/js/esv_verse.js`)
+
+- Finds every element with a `data-esv-ref` attribute via `document.querySelectorAll('[data-esv-ref]')`
+- Calls `getEsvPassage(ref)` from `api.js` → `GET /api/esv/passage?q=…`
+- On success: replaces the element's `textContent` with the API-returned passage text
+- On failure: does nothing — the hardcoded inner text (already in the HTML) remains visible
+
+### HTML pattern
+
+```html
+<a class="esv-verse"
+   data-esv-ref="Luke 1:1-3"
+   href="https://www.esv.org/Luke+1:1-3/">
+  Hardcoded fallback text
+</a>
+```
+
+- The `href` points to the ESV.org page for that passage — clicking opens the full chapter on esv.org
+- The `data-esv-ref` attribute drives the API lookup; it must be a valid ESV passage reference
+- The inner text is a hardcoded fallback displayed before JS runs or if the API call fails
+- No custom CSS styles `.esv-verse` — it inherits the default link appearance from `typography.css`
+
+### Where verses appear
+
+- **Evidence, Essays, Responses, Blog posts:** verse citations are authored inside the body text as `<a class="esv-verse" …>` links. The body content passes through `parseContentBody()` (content-markers.js), which treats them as existing HTML and leaves them intact.
+- **Static pages (about.html):** hardcoded `<a class="esv-verse" …>` elements in the HTML source.
+- **`esv_verse.js` is loaded on every detail page** that may contain verse citations (evidence, essays, responses, blog, about).
+
 ## Accessibility
 
 Target: **WCAG** (W3C Web Accessibility Initiative — see the [WAI WCAG overview](https://www.w3.org/WAI/standards-guidelines/wcag/)). Test against it and implement fixes **without sacrificing speed, data integrity, or security** — semantic HTML and ARIA attributes cost nothing at runtime, so there is rarely a real trade-off. WCAG's four principles (**POUR**):
