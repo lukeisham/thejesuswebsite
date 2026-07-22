@@ -42,6 +42,8 @@
 
     .navigation,
     .sidebar,
+    .sidebar-backdrop,
+    #sidebar-toggle,
     body > footer,
     .page-info-row,
     .filters,
