@@ -85,6 +85,7 @@ function renderBlogRows(posts) {
     const row = buildRow({
       title: post.blog_title,
       meta: buildBlogMeta(post),
+      thumbnail: post.blog_thumbnail || null,
       excerpt: stripHtmlAndTruncate(post.blog_content, 150),
       url: `/news-and-blog/blog/${encodeURIComponent(post.slug || '')}`,
     });
