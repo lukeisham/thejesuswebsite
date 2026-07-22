@@ -43,6 +43,20 @@
     margin-bottom: var(--space-md);
 }
 
+/* Hide Pictures / Description section headings per design request.
+   The border-top divider between sections is produced by the
+   .evidence-section + .evidence-section rule above, which applies
+   to the section element itself — it stays intact. */
+#evidence-pictures-section .evidence-section__heading,
+#evidence-description-section .evidence-section__heading {
+    display: none;
+}
+
+/* Pull the pictures section closer to the verse block above it. */
+#evidence-pictures-section {
+    padding-top: var(--space-sm);
+}
+
 /* Dates line */
 .evidence-dates {
     font-size: var(--text-small);
