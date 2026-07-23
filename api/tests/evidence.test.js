@@ -519,6 +519,39 @@ describe("evidence: image and image_alt columns", () => {
     assert.equal(created.some_other_image_field, undefined);
   });
 
+  test("image_caption round-trips through create → getDetailBySlug → update", () => {
+    const created = evidenceModel.createComposite({
+      title: "With Caption",
+      slug: "with-caption",
+      published_draft: 1,
+      image: "/uploads/evidence-hero.webp",
+      image_alt: "A photograph of the Jordan River.",
+      image_caption: "The Jordan River near Bethany, 2024.",
+    });
+    assert.equal(created.image_caption, "The Jordan River near Bethany, 2024.");
+
+    const detail = evidenceModel.getDetailBySlug("with-caption");
+    assert.equal(detail.image_caption, "The Jordan River near Bethany, 2024.");
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      image_caption: "Updated caption.",
+    });
+    assert.equal(updated.image_caption, "Updated caption.");
+  });
+
+  test("a stray non-whitelisted field alongside image_caption is still stripped", () => {
+    const created = evidenceModel.createComposite({
+      title: "Caption Plus Stray",
+      slug: "caption-plus-stray",
+      published_draft: 1,
+      image_caption: "A real caption.",
+      not_a_real_column: "should not persist",
+    });
+
+    assert.equal(created.image_caption, "A real caption.");
+    assert.equal(created.not_a_real_column, undefined);
+  });
+
   test("null image and image_alt are accepted (legacy records)", () => {
     const created = evidenceModel.createComposite({
       title: "Legacy Record",

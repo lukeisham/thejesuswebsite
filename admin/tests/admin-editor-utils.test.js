@@ -60,7 +60,7 @@ function makeElement() {
  */
 function makeSandbox(elementsById) {
   var warnings = [];
-  var calls = { insertImageWire: null, mlaMount: null };
+  var calls = { insertImageWire: null, mlaMount: null, figureCaptionsMount: null };
 
   var fakeDocument = {
     getElementById: function (id) {
@@ -84,11 +84,19 @@ function makeSandbox(elementsById) {
     },
   };
 
+  var AdminFigureCaptions = {
+    mount: function (container, opts) {
+      calls.figureCaptionsMount = { container, opts };
+      return { rescan: function () {} };
+    },
+  };
+
   var sandbox = {
     window: {},
     document: fakeDocument,
     AdminInsertImage: AdminInsertImage,
     AdminMlaSources: AdminMlaSources,
+    AdminFigureCaptions: AdminFigureCaptions,
     console: {
       warn: function (msg) {
         warnings.push(msg);
@@ -252,5 +260,64 @@ describe("AdminEditorUtils.mountMlaPanel", () => {
     var { AdminEditorUtils, calls } = makeSandbox();
     AdminEditorUtils.mountMlaPanel(makeElement(), []);
     assert.equal("hintVariant" in calls.mlaMount.opts, false);
+  });
+});
+
+// ── mountFigureCaptionsPanel ──────────────────────────────────────────────────
+
+describe("AdminEditorUtils.mountFigureCaptionsPanel", () => {
+  test("builds the Images card and mounts the panel against the given textareaId", () => {
+    var { AdminEditorUtils, calls } = makeSandbox();
+    var container = makeElement();
+
+    AdminEditorUtils.mountFigureCaptionsPanel(container, "essay-content");
+
+    assert.equal(container.children.length, 1, "expected one card appended");
+    var card = container.children[0];
+    assert.equal(card.className, "admin-form-card");
+
+    var title = card.children.find((c) => c.textContent === "Images");
+    assert.notEqual(title, undefined, "expected an Images title element");
+
+    assert.notEqual(calls.figureCaptionsMount, null);
+    assert.equal(calls.figureCaptionsMount.opts.textareaId, "essay-content");
+  });
+
+  test("returns null and warns when containerEl is missing", () => {
+    var { AdminEditorUtils, warnings, calls } = makeSandbox();
+
+    var result = AdminEditorUtils.mountFigureCaptionsPanel(null, "essay-content");
+
+    assert.equal(result, null);
+    assert.equal(calls.figureCaptionsMount, null);
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /containerEl is required/);
+  });
+
+  test("returns null and warns when AdminFigureCaptions is not loaded", () => {
+    var warnings = [];
+    var fakeDocument = {
+      getElementById: function () { return null; },
+      createElement: function () { return makeElement(); },
+    };
+    var sandbox = {
+      window: {},
+      document: fakeDocument,
+      console: {
+        warn: function (msg) { warnings.push(msg); },
+        error: function () {},
+        log: function () {},
+      },
+    };
+    vm.runInNewContext(utilsSource, sandbox);
+
+    var result = sandbox.window.AdminEditorUtils.mountFigureCaptionsPanel(
+      makeElement(),
+      "essay-content",
+    );
+
+    assert.equal(result, null);
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /AdminFigureCaptions is not loaded/);
   });
 });

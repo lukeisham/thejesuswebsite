@@ -25,6 +25,7 @@ const $h1 = document.getElementById("page-h1");
 
 const $title = document.getElementById("challenge-title");
 const $category = document.getElementById("challenge-category");
+const $picture = document.getElementById("challenge-picture");
 const $body = document.getElementById("challenge-body");
 const $responses = document.getElementById("challenge-responses");
 const $responsesList = document.getElementById("challenge-responses-list");
@@ -104,6 +105,23 @@ function renderHeader(challenge) {
   }
 }
 
+function renderPicture(challenge) {
+  if (!$picture) return;
+
+  if (!challenge.challenge_picture) {
+    $picture.hidden = true;
+    $picture.innerHTML = "";
+    return;
+  }
+
+  const caption = challenge.challenge_picture_caption || "";
+  $picture.innerHTML = `<figure>
+      <img src="${html`${challenge.challenge_picture}`}" alt="${html`${challenge.challenge_picture_alt || ""}`}" loading="lazy" />
+      ${caption ? `<figcaption>${html`${caption}`}</figcaption>` : ""}
+    </figure>`;
+  $picture.hidden = false;
+}
+
 function renderBodyContent(challenge) {
   if (!$body) return;
 
@@ -118,7 +136,13 @@ function renderBodyContent(challenge) {
     citationStyle: "superscript",
   });
 
-  numberFigures($body);
+  // numberFigures runs over #challenge-content (not just #challenge-body) so
+  // the picture — rendered just above, inside the same container — and any
+  // inline [figure] shortcodes in the body share one continuous Fig. N
+  // sequence. numberFigures resets its counter on every call, so calling it
+  // separately on #challenge-picture as well would restart the body's
+  // figures at Fig. 1 too.
+  numberFigures($content);
 }
 
 function renderReferences(challenge) {
@@ -253,6 +277,7 @@ async function init() {
   if ($h1) $h1.textContent = data.title || "Challenge";
 
   renderHeader(data);
+  renderPicture(data);
   renderBodyContent(data);
   renderReferences(data);
   renderResponses(data);

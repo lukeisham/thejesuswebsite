@@ -66,6 +66,7 @@ const WRITABLE_COLUMNS = [
   "secondary_verse",
   "image",
   "image_alt",
+  "image_caption",
   "thumbnail_path",
   "gospel_category",
   "timeline_era",

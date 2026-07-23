@@ -17,6 +17,8 @@
         <script defer src="../assets/js/admin-editor-scaffold.js"></script>
         <script defer src="../assets/js/admin-form-builder.js"></script>
         <script defer src="../assets/js/admin-image-picker.js"></script>
+        <script defer src="../assets/js/admin-figure-shortcodes.js"></script>
+        <script defer src="../assets/js/admin-figure-captions.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
@@ -170,6 +172,21 @@
                             },
                         );
 
+                        // Images card (figure caption editing panel)
+                        var imagesCard = document.createElement("div");
+                        imagesCard.className = "admin-form-card";
+                        imagesCard.style.marginTop = "var(--space-md)";
+                        sidebar.appendChild(imagesCard);
+
+                        var imagesTitle = document.createElement("div");
+                        imagesTitle.className = "admin-form-card__title";
+                        imagesTitle.textContent = "Images";
+                        imagesCard.appendChild(imagesTitle);
+
+                        var imagesMount = document.createElement("div");
+                        imagesMount.id = "blog-images-mount";
+                        imagesCard.appendChild(imagesMount);
+
                         // Formatting reference panel
                         AdminShortcodeHelp.mountFormattingReference(sidebar);
 
@@ -183,6 +200,12 @@
                         );
                         var contentField =
                             document.getElementById("blog-content");
+
+                        // Images panel — mounted after the insert flow so
+                        // inserts and the panel share one textarea
+                        AdminFigureCaptions.mount(imagesMount, {
+                            textareaId: "blog-content",
+                        });
 
                         // Spellcheck: init the system and attach to the content textarea
                         await SpellcheckController.init();

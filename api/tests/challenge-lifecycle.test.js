@@ -23,6 +23,8 @@ testDb.exec(`
     challenge_summary      TEXT,
     challenge_body         TEXT,
     challenge_picture      TEXT,
+    challenge_picture_alt     TEXT,
+    challenge_picture_caption TEXT,
     challenge_rank_number  INTEGER,
     challenge_rank_pluses  INTEGER,
     challenge_rank_minuses INTEGER,
@@ -245,6 +247,52 @@ describe("Academic Challenge lifecycle", () => {
     academicModel.create({ slug: "c", challenge_title: "C", published_draft: 1 });
 
     assert.equal(academicModel.getPublishedCount(), 2);
+  });
+
+  test("picture alt/caption round-trip through create → update → getDetailBySlug", () => {
+    const created = academicModel.create({
+      slug: "picture-round-trip",
+      challenge_title: "Picture Round Trip",
+      challenge_picture: "/uploads/2026/01/a.webp",
+      challenge_picture_alt: "A fragment of papyrus",
+      challenge_picture_caption: "Fig. 1 — an early fragment",
+      published_draft: 1,
+    });
+    assert.equal(created.challenge_picture_alt, "A fragment of papyrus");
+    assert.equal(created.challenge_picture_caption, "Fig. 1 — an early fragment");
+
+    academicModel.update(created.id, {
+      challenge_picture_alt: "Updated alt",
+      challenge_picture_caption: "Updated caption",
+    });
+
+    const detail = academicModel.getDetailBySlug("picture-round-trip");
+    assert.equal(detail.challenge_picture_alt, "Updated alt");
+    assert.equal(detail.challenge_picture_caption, "Updated caption");
+  });
+
+  test("getAllPublished does not include picture alt/caption columns (list stays lean)", () => {
+    academicModel.create({
+      slug: "list-lean",
+      challenge_title: "List Lean",
+      challenge_picture: "/uploads/2026/01/a.webp",
+      challenge_picture_alt: "Some alt",
+      challenge_picture_caption: "Some caption",
+      challenge_rank_number: 1,
+      published_draft: 1,
+    });
+    const [item] = academicModel.getAllPublished();
+    assert.ok(item, "expected a published item");
+    assert.equal(
+      Object.hasOwn(item, "challenge_picture_alt"),
+      false,
+      "list response should not carry challenge_picture_alt",
+    );
+    assert.equal(
+      Object.hasOwn(item, "challenge_picture_caption"),
+      false,
+      "list response should not carry challenge_picture_caption",
+    );
   });
 
   test("READ — getAllAdmin returns BOTH draft and published, ranked, with raw column names", () => {
@@ -536,6 +584,28 @@ describe("Popular Challenge lifecycle", () => {
       assert.ok(item.response_count >= 0, "response_count should be >= 0");
       assert.equal(item.response_count, 0, "response_count should be 0 when no responses exist");
     }
+  });
+
+  test("picture alt/caption round-trip through create → update → getDetailBySlug", () => {
+    const created = popularModel.create({
+      slug: "pop-picture-round-trip",
+      challenge_title: "Popular Picture Round Trip",
+      challenge_picture: "/uploads/2026/01/b.webp",
+      challenge_picture_alt: "A statue",
+      challenge_picture_caption: "Fig. 1 — a statue",
+      published_draft: 1,
+    });
+    assert.equal(created.challenge_picture_alt, "A statue");
+    assert.equal(created.challenge_picture_caption, "Fig. 1 — a statue");
+
+    popularModel.update(created.id, {
+      challenge_picture_alt: "Updated alt",
+      challenge_picture_caption: "Updated caption",
+    });
+
+    const detail = popularModel.getDetailBySlug("pop-picture-round-trip");
+    assert.equal(detail.challenge_picture_alt, "Updated alt");
+    assert.equal(detail.challenge_picture_caption, "Updated caption");
   });
 
   test("READ — getAllAdmin returns BOTH draft and published popular challenges, ranked", () => {

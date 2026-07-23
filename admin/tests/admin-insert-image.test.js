@@ -1,19 +1,17 @@
 // AdminInsertImage pure helper unit tests
 // Run with: node --test admin/tests/admin-insert-image.test.js
-// Tests: buildShortcode and insertAtCursor — no DOM.
+// Tests: shortcode building (via the real shared module, SR-4) and
+// insertAtCursor (replicated here — it's local to admin-insert-image.js).
 
 const test = require('node:test');
 const assert = require('node:assert');
-
-// Replicate the pure helpers from admin-insert-image.js
+const AdminFigureShortcodes = require('../assets/js/admin-figure-shortcodes.js');
 
 function buildShortcode(imagePath, caption) {
-  var safeCaption = caption || "";
-  safeCaption = safeCaption.replace(/"/g, "&quot;");
-  if (safeCaption) {
-    return '[figure src="' + imagePath + '" caption="' + safeCaption + '"]';
-  }
-  return '[figure src="' + imagePath + '"]';
+  return AdminFigureShortcodes.buildFigureShortcode({
+    src: imagePath,
+    caption: caption,
+  });
 }
 
 function insertAtCursor(text, insertion, selectionStart, selectionEnd) {
