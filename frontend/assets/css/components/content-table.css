@@ -1,0 +1,60 @@
+/* ==========================================================================
+   Content Table
+   Markdown pipe tables rendered inside body content (blog, essays,
+   responses, historiography, challenges). Distinct from .table
+   (components/tables.css), which styles admin/data listings.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------------- */
+
+.content-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    margin-bottom: var(--space-md);
+}
+
+.content-table th,
+.content-table td {
+    border: 1px solid var(--border);
+    padding: var(--space-xs) var(--space-sm);
+}
+
+.content-table thead th {
+    background: var(--bg-surface-alt);
+    border-bottom: 2px solid var(--border-strong);
+    font-weight: 600;
+    text-align: left;
+}
+
+/* -------------------------------------------------------------------------
+   Multiline cell text
+   ------------------------------------------------------------------------- */
+
+.content-table th,
+.content-table td {
+    vertical-align: top;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    line-height: var(--leading-small);
+}
+
+/* -------------------------------------------------------------------------
+   Responsive — horizontal scroll on narrow viewports
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .content-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .content-table th,
+    .content-table td {
+        min-width: 120px;
+    }
+}

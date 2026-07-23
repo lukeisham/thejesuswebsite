@@ -84,6 +84,10 @@ AdminShortcodeHelp.mountFormattingReference = function (container) {
       code: "**bold text** *italic text*",
     },
     {
+      label: "Markdown: Paragraph break (forced line break)",
+      code: "First line\\\\\nSecond line",
+    },
+    {
       label: "Markdown: Unordered List",
       code: "- Item one\n- Item two\n  - Nested item",
     },

@@ -8,6 +8,7 @@
 import { getBlogPosts } from './api.js';
 import { showToast } from './utils/toasts.js';
 import { delegate } from './utils/dom.js';
+import { renderExcerpt } from './utils/excerpt.js';
 
 const SENTINEL_ID = 'scroll-sentinel';
 const CARD_GRID_ID = 'card-grid';
@@ -20,7 +21,10 @@ const RETRY_ID = 'retry-load';
 const PAGE_SIZE = 20;
 const SCROLL_THRESHOLD = 300;
 
-const STORAGE_KEY_ITEMS = 'blog_list_items';
+// v2: excerpt is now formatted HTML (renderExcerpt) rather than plain text —
+// bump the key so a v1 cache written before this change is never rendered
+// via innerHTML.
+const STORAGE_KEY_ITEMS = 'blog_list_items_v2';
 const STORAGE_KEY_SCROLL = 'blog_list_scroll';
 
 let currentPage = 1;
@@ -68,13 +72,6 @@ function formatDate(dateStr) {
   }
 }
 
-function stripHtmlAndTruncate(html, maxLength) {
-  if (!html || typeof html !== 'string') return '';
-  const plain = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-  if (plain.length <= maxLength) return plain;
-  return plain.slice(0, maxLength).replace(/\s+\S*$/, '') + '\u2026';
-}
-
 // ─── Data fetching (JS-5: async/await, centralized fetch) ─────────────────────
 
 async function loadPage() {
@@ -110,7 +107,7 @@ async function loadPage() {
     ...post,
     _title: post.blog_title,
     _date: post.blog_date || post.created_at,
-    _excerpt: stripHtmlAndTruncate(post.blog_content, 150),
+    _excerpt: renderExcerpt(post.blog_content, 150),
   }));
 
   const start = (currentPage - 1) * PAGE_SIZE;
@@ -191,7 +188,10 @@ function renderCards(items) {
     if (item._excerpt) {
       const excerpt = document.createElement('p');
       excerpt.className = 'news-blog-row-excerpt';
-      excerpt.textContent = item._excerpt;
+      // Safe: item._excerpt comes from renderExcerpt(), which HTML-escapes
+      // author text before adding <strong>/<em> — the only tags it can
+      // emit (JS-6).
+      excerpt.innerHTML = item._excerpt;
       body.appendChild(excerpt);
     }
 

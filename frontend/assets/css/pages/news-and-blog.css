@@ -129,6 +129,12 @@
   margin-top: var(--space-xs);
 }
 
+.news-blog-row-excerpt strong {
+  /* Cap at the row title's weight (600) — browser-default <strong> bold
+     (700) reads heavier than the title above it. */
+  font-weight: 600;
+}
+
 /* -------------------------------------------------------------------------
    Breadcrumb (back to landing page)
    ------------------------------------------------------------------------- */

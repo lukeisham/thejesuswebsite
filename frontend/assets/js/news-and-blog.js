@@ -8,6 +8,7 @@
 
 import { getBlogPosts, getNewsArticles } from './api.js';
 import { showToast } from './utils/toasts.js';
+import { renderExcerpt } from './utils/excerpt.js';
 
 // ─── DOM refs (JS-6: cached queries) ──────────────────────────────────────────
 
@@ -86,7 +87,7 @@ function renderBlogRows(posts) {
       title: post.blog_title,
       meta: buildBlogMeta(post),
       thumbnail: post.blog_thumbnail || null,
-      excerpt: stripHtmlAndTruncate(post.blog_content, 150),
+      excerpt: renderExcerpt(post.blog_content, 150),
       url: `/news-and-blog/blog/${encodeURIComponent(post.slug || '')}`,
     });
     row.setAttribute('target', '_blank');
@@ -138,7 +139,9 @@ function buildRow({ title, meta, thumbnail, excerpt, url }) {
   if (excerpt) {
     const excerptEl = document.createElement('p');
     excerptEl.className = 'news-blog-row-excerpt';
-    excerptEl.textContent = excerpt;
+    // Safe: excerpt comes from renderExcerpt(), which HTML-escapes author
+    // text before adding <strong>/<em> — the only tags it can emit (JS-6).
+    excerptEl.innerHTML = excerpt;
     body.appendChild(excerptEl);
   }
 
@@ -211,13 +214,6 @@ function formatDate(dateStr) {
   } catch {
     return dateStr;
   }
-}
-
-function stripHtmlAndTruncate(html, maxLength) {
-  if (!html || typeof html !== 'string') return '';
-  const plain = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-  if (plain.length <= maxLength) return plain;
-  return plain.slice(0, maxLength).replace(/\s+\S*$/, '') + '\u2026';
 }
 
 // ─── Event wiring ─────────────────────────────────────────────────────────────
