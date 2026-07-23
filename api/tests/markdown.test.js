@@ -48,7 +48,12 @@ function formatInline(line) {
   result = result.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, (_, text) => {
     return `<em>${escapePreservingMarkers(text)}</em>`;
   });
+  result = result.replace(/\\\\/g, "<br>");
   return result;
+}
+
+function stripTrailingBreaks(html) {
+  return html.replace(/(<br>)+$/, "");
 }
 
 function renderMarkdown(text) {
@@ -90,7 +95,7 @@ function renderMarkdown(text) {
             break;
           }
         }
-        let tableHtml = "<table><thead><tr>";
+        let tableHtml = '<table class="content-table"><thead><tr>';
         for (let ci = 0; ci < headerCells.length; ci++) {
           const align = alignments[ci];
           const style = align && align !== "left" ? ` style="text-align:${align}"` : "";
@@ -170,7 +175,8 @@ function renderMarkdown(text) {
     }
     if (paraLines.length > 0) {
       const paraText = paraLines.join("\n");
-      output.push(`<p>${formatInline(escapePreservingMarkers(paraText))}</p>`);
+      const inner = stripTrailingBreaks(formatInline(escapePreservingMarkers(paraText)));
+      output.push(`<p>${inner}</p>`);
     }
   }
 
@@ -227,7 +233,7 @@ describe("renderMarkdown", () => {
   test("pipe table with header, separator, and body rows", () => {
     const input = "| Name | Age |\n|------|-----|\n| Alice | 30 |\n| Bob | 25 |";
     const result = renderMarkdown(input);
-    assert.ok(result.includes("<table>"));
+    assert.ok(result.includes('<table class="content-table">'));
     assert.ok(result.includes("<thead>"));
     assert.ok(result.includes("<th>Name</th>"));
     assert.ok(result.includes("<th>Age</th>"));
@@ -245,6 +251,20 @@ describe("renderMarkdown", () => {
     assert.ok(result.includes('style="text-align:right"'), `expected text-align:right in output, got: ${result}`);
     // Verify it's on a <th>, not a <td>
     assert.ok(/<th[^>]*text-align:right/.test(result), `right alignment should be on a <th>, got: ${result}`);
+  });
+
+  test("pipe table with center alignment still emits style on cells", () => {
+    const input = "| A | B |\n|:---:|---:|\n| x | y |";
+    const result = renderMarkdown(input);
+    assert.ok(/<th[^>]*text-align:center/.test(result));
+    assert.ok(/<th[^>]*text-align:right/.test(result));
+  });
+
+  test("pipe table cell with long multi-word text is emitted verbatim (wrapping is CSS, not markup)", () => {
+    const longText = "This is a very long sentence that should wrap inside the table cell instead of forcing the table wide";
+    const input = `| Note |\n|------|\n| ${longText} |`;
+    const result = renderMarkdown(input);
+    assert.ok(result.includes(`<td>${longText}</td>`));
   });
 
   test("paragraph with multiple lines", () => {
@@ -285,5 +305,50 @@ describe("renderMarkdown", () => {
     assert.equal(renderMarkdown(null), "");
     assert.equal(renderMarkdown(undefined), "");
     assert.equal(renderMarkdown(123), "");
+  });
+});
+
+describe("renderMarkdown: paragraph break (\\\\)", () => {
+
+  test("\\\\ mid-paragraph produces <br>", () => {
+    const input = "First line\\\\\nSecond line";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes("First line<br>\nSecond line"), result);
+  });
+
+  test("\\\\ inside a list item produces <br>", () => {
+    const input = "- First item\\\\continued";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes("<li>First item<br>continued</li>"), result);
+  });
+
+  test("\\\\ inside a table cell produces <br>", () => {
+    const input = "| Note |\n|------|\n| Line one\\\\line two |";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes("<td>Line one<br>line two</td>"), result);
+  });
+
+  test("two consecutive \\\\ \\\\ produce two <br>s", () => {
+    const input = "First\\\\\\\\\nSecond";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes("First<br><br>\nSecond"), result);
+  });
+
+  test("trailing \\\\ at the end of a paragraph does not leave a stray <br></p>", () => {
+    const input = "Only line\\\\";
+    const result = renderMarkdown(input);
+    assert.equal(result, "<p>Only line</p>");
+  });
+
+  test("a single backslash renders literally", () => {
+    const input = "Path is C:\\Users\\test";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes("C:\\Users\\test"), result);
+  });
+
+  test("**bold**\\\\ still emits <strong> plus <br> (ordering regression)", () => {
+    const input = "**bold**\\\\\nnext line";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes("<strong>bold</strong><br>\nnext line"), result);
   });
 });

@@ -153,4 +153,19 @@
     figure {
         page-break-inside: avoid;
     }
+
+    /* -----------------------------------------------------------------------
+     Content tables — gridlines must survive printing (var(--border) can
+     print near-white); force solid black borders and cancel the mobile
+     horizontal-scroll layout.
+     ----------------------------------------------------------------------- */
+
+    .content-table {
+        display: table;
+    }
+
+    .content-table th,
+    .content-table td {
+        border: 1px solid var(--color-black);
+    }
 }

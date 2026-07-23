@@ -4,6 +4,9 @@
  * Supports the subset needed by blog body content:
  *   - # / ## / ### headings
  *   - **bold** and *italic*
+ *   - \\ forced line break (renders as <br>; works anywhere inline text is
+ *     processed — paragraphs, list items, headings, table cells. Two
+ *     consecutive \\ \\ produce a blank line's worth of gap.)
  *   - Unordered lists (- or * prefix)
  *   - Ordered lists (1. prefix)
  *   - Pipe tables
@@ -79,7 +82,23 @@ function formatInline(line) {
   result = result.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, (_, text) => {
     return `<em>${escapePreservingMarkers(text)}</em>`;
   });
+  // Forced line break: \\ (runs last so a token adjacent to **bold**\\ is
+  // not consumed by the emphasis regexes above). A single backslash is
+  // left untouched (literal).
+  result = result.replace(/\\\\/g, "<br>");
   return result;
+}
+
+/**
+ * Strip trailing <br> tag(s) from the end of a block's inner HTML. A \\
+ * token at the end of a paragraph/heading/list-item would otherwise leave
+ * a stray empty line right before the closing tag.
+ *
+ * @param {string} html
+ * @returns {string}
+ */
+function stripTrailingBreaks(html) {
+  return html.replace(/(<br>)+$/, "");
 }
 
 /**
@@ -145,7 +164,7 @@ export function renderMarkdown(text) {
         }
 
         // Build table HTML
-        let tableHtml = "<table><thead><tr>";
+        let tableHtml = '<table class="content-table"><thead><tr>';
         for (let ci = 0; ci < headerCells.length; ci++) {
           const align = alignments[ci];
           const style = align && align !== "left" ? ` style="text-align:${align}"` : "";
@@ -227,7 +246,8 @@ export function renderMarkdown(text) {
     }
     if (paraLines.length > 0) {
       const paraText = paraLines.join("\n");
-      output.push(`<p>${formatInline(escapePreservingMarkers(paraText))}</p>`);
+      const inner = stripTrailingBreaks(formatInline(escapePreservingMarkers(paraText)));
+      output.push(`<p>${inner}</p>`);
     }
   }
 
