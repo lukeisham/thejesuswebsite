@@ -16,6 +16,7 @@ CREATE TABLE evidence (
     secondary_verse     TEXT,
     image               TEXT,
     image_alt           TEXT,
+    image_caption       TEXT,
     thumbnail_path      TEXT,
 
     -- Categorization
@@ -92,6 +93,8 @@ CREATE TABLE challenges (
     challenge_summary      TEXT,
     challenge_body         TEXT,
     challenge_picture      TEXT,
+    challenge_picture_alt     TEXT,
+    challenge_picture_caption TEXT,
     challenge_rank_number  INTEGER,
     challenge_rank_pluses  INTEGER,
     challenge_rank_minuses INTEGER,

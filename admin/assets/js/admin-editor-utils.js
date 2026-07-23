@@ -128,6 +128,47 @@ AdminEditorUtils.wireInsertImageButton = function (contentFieldId) {
 };
 
 /**
+ * Build the "Images" card (title + mount point) and mount
+ * AdminFigureCaptions into it, tracking the given content textarea. Shared
+ * so every editor calls one line instead of hand-rolling the same card
+ * markup (SR-4) — mirrors mountMlaPanel's shape below.
+ *
+ * @param {HTMLElement} containerEl  element to append the Images card to
+ * @param {string} textareaId        id of the content textarea to track
+ * @returns {{rescan: function}|null} the mounted AdminFigureCaptions panel
+ */
+AdminEditorUtils.mountFigureCaptionsPanel = function (containerEl, textareaId) {
+  if (!containerEl) {
+    console.warn(
+      "AdminEditorUtils.mountFigureCaptionsPanel: containerEl is required.",
+    );
+    return null;
+  }
+  if (typeof AdminFigureCaptions === "undefined") {
+    console.warn(
+      "AdminEditorUtils.mountFigureCaptionsPanel: AdminFigureCaptions is not loaded.",
+    );
+    return null;
+  }
+
+  var imagesCard = document.createElement("div");
+  imagesCard.className = "admin-form-card";
+  imagesCard.style.marginTop = "var(--space-md)";
+
+  var imagesTitle = document.createElement("div");
+  imagesTitle.className = "admin-form-card__title";
+  imagesTitle.textContent = "Images";
+  imagesCard.appendChild(imagesTitle);
+
+  var imagesMount = document.createElement("div");
+  imagesCard.appendChild(imagesMount);
+
+  containerEl.appendChild(imagesCard);
+
+  return AdminFigureCaptions.mount(imagesMount, { textareaId: textareaId });
+};
+
+/**
  * Build the "Bibliography" card (title + mount point) and mount
  * AdminMlaSources into it, seeded from this record's existing MLA source
  * links. Always reads `link.id` — this is the field the mla_source_id ->

@@ -16,6 +16,8 @@
         <script defer src="../assets/js/admin-editor-utils.js"></script>
         <script defer src="../assets/js/admin-editor-scaffold.js"></script>
         <script defer src="../assets/js/admin-form-builder.js"></script>
+        <script defer src="../assets/js/admin-figure-shortcodes.js"></script>
+        <script defer src="../assets/js/admin-figure-captions.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
@@ -218,6 +220,13 @@
                             "response-content",
                         );
                         var contentField = document.getElementById(
+                            "response-content",
+                        );
+
+                        // Images panel — mounted after the insert flow so
+                        // inserts and the panel share one textarea
+                        AdminEditorUtils.mountFigureCaptionsPanel(
+                            sidebar,
                             "response-content",
                         );
 

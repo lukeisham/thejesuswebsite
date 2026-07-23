@@ -12,6 +12,9 @@
   <script defer src="../../assets/js/auth.js"></script>
   <script defer src="../../assets/js/admin.js"></script>
   <script defer src="../../assets/js/admin-image-picker.js"></script>
+  <script defer src="../../assets/js/admin-editor-utils.js"></script>
+  <script defer src="../../assets/js/admin-figure-shortcodes.js"></script>
+  <script defer src="../../assets/js/admin-figure-captions.js"></script>
   <script defer src="../../assets/js/admin-insert-image.js"></script>
   <script defer src="../../assets/js/admin-shortcode-help.js"></script>
   <script defer src="../../assets/js/admin-mla-sources.js"></script>
@@ -294,7 +297,7 @@
         return picGroup;
     })());
 
-    var challengePicker = AdminImagePicker.mount(document.getElementById('challenge-picker'), { initialPath: data.challenge_picture || '' });
+    var challengePicker = AdminImagePicker.mount(document.getElementById('challenge-picker'), { initialPath: data.challenge_picture || '', captionField: true, initialAlt: data.challenge_picture_alt || '', initialCaption: data.challenge_picture_caption || '' });
 
     var sidebar = document.createElement('div');
     sidebar.className = 'admin-form-grid__sidebar';
@@ -404,6 +407,12 @@
     // Wire the Insert Image button into the body textarea
     AdminInsertImage.wire('#insert-image-btn', '#challenge-body');
 
+    // Images panel — mounted after the insert flow so inserts and the
+    // panel share one textarea
+    if (typeof AdminEditorUtils !== 'undefined') {
+      AdminEditorUtils.mountFigureCaptionsPanel(sidebar, 'challenge-body');
+    }
+
     // MLA Bibliography panel — preload with this challenge's linked sources
     var mlaSourcesPanel = AdminMlaSources.mount(
       document.getElementById('mla-sources-mount'),
@@ -465,6 +474,8 @@
         challenge_summary: document.getElementById('challenge-summary').value.trim() || undefined,
         challenge_body: document.getElementById('challenge-body').value.trim() || undefined,
         challenge_picture: challengePicker ? challengePicker.getValue().image_path || undefined : undefined,
+        challenge_picture_alt: challengePicker ? challengePicker.getValue().alt || undefined : undefined,
+        challenge_picture_caption: challengePicker ? challengePicker.getValue().caption || undefined : undefined,
         challenge_rank_number: rankVal ? parseInt(rankVal, 10) : undefined,
         metadata_keywords: document.getElementById('challenge-keywords').value.trim() || undefined,
         published_draft: data.published_draft ? 1 : 0,

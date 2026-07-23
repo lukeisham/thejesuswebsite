@@ -1,3 +1,5 @@
+import { FIGURE_SHORTCODE_PATTERN } from "./figure-shortcodes.js";
+
 /**
  * Shared content-marker parser for body text across all five content types
  * (contextual essays, responses, historiography articles, blog posts, evidence)
@@ -89,7 +91,7 @@ export function parseContentBody(text, options = {}) {
 
   // ── Step 2: Figure shortcode (block-level, own paragraph) ────────────
   processed = processed.replace(
-    /\[figure\s+src="([^"]*)"(?:\s+caption="([^"]*)")?(?:\s+align="(left|right)")?\]/g,
+    FIGURE_SHORTCODE_PATTERN(),
     (_, src, caption, align) => {
       const cap = caption
         ? `<figcaption>${escapeHTML(caption)}</figcaption>`

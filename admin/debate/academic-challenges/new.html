@@ -12,6 +12,8 @@
   <script defer src="../../assets/js/auth.js"></script>
   <script defer src="../../assets/js/admin.js"></script>
   <script defer src="../../assets/js/admin-image-picker.js"></script>
+  <script defer src="../../assets/js/admin-figure-shortcodes.js"></script>
+  <script defer src="../../assets/js/admin-figure-captions.js"></script>
   <script defer src="../../assets/js/admin-insert-image.js"></script>
   <script defer src="../../assets/js/admin-shortcode-help.js"></script>
   <script defer src="../../assets/js/admin-mla-sources.js"></script>
@@ -198,6 +200,11 @@
         </div>
 
         <div class="admin-form-card" style="margin-top:var(--space-md)">
+          <div class="admin-form-card__title">Images</div>
+          <div id="challenge-images-mount"></div>
+        </div>
+
+        <div class="admin-form-card" style="margin-top:var(--space-md)">
           <div class="admin-form-card__title">Ranking</div>
 
           <div class="admin-form-group">
@@ -251,7 +258,7 @@
     var submitStatus = document.getElementById('submit-status');
     var titleError = document.getElementById('title-error');
     var slugError = document.getElementById('slug-error');
-    var challengePicker = AdminImagePicker.mount(document.getElementById('challenge-picker'), { initialPath: '' });
+    var challengePicker = AdminImagePicker.mount(document.getElementById('challenge-picker'), { initialPath: '', captionField: true });
 
     // Spellcheck: init the system and attach to the summary and body textareas
     var summaryInput = document.getElementById('challenge-summary');
@@ -262,6 +269,15 @@
 
     // Wire the Insert Image button into the body textarea
     AdminInsertImage.wire('#insert-image-btn', '#challenge-body');
+
+    // Images panel — mounted after the insert flow so inserts and the
+    // panel share one textarea
+    if (typeof AdminFigureCaptions !== 'undefined') {
+      AdminFigureCaptions.mount(
+        document.getElementById('challenge-images-mount'),
+        { textareaId: 'challenge-body' },
+      );
+    }
 
     // MLA Bibliography panel (new record starts with no sources)
     var mlaSourcesPanel = AdminMlaSources.mount(
@@ -332,6 +348,8 @@
         challenge_summary: document.getElementById('challenge-summary').value.trim() || undefined,
         challenge_body: document.getElementById('challenge-body').value.trim() || undefined,
                     challenge_picture: challengePicker ? challengePicker.getValue().image_path || undefined : undefined,
+        challenge_picture_alt: challengePicker ? challengePicker.getValue().alt || undefined : undefined,
+        challenge_picture_caption: challengePicker ? challengePicker.getValue().caption || undefined : undefined,
         challenge_rank_number: rankVal ? parseInt(rankVal, 10) : undefined,
         metadata_keywords: document.getElementById('challenge-keywords').value.trim() || undefined,
         published_draft: publish ? 1 : 0,

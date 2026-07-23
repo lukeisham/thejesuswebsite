@@ -12,7 +12,7 @@ var AdminImagePicker = window.AdminImagePicker;
  * Build a picker and mount it into `container`.
  *
  * @param {Element} container
- * @param {{ initialPath?: string, initialAlt?: string, initialThumb?: string, onChange?: function }?} opts
+ * @param {{ initialPath?: string, initialAlt?: string, initialThumb?: string, captionField?: boolean, initialCaption?: string, onChange?: function }?} opts
  * @returns {{ getValue: function, setValue: function }}
  */
 AdminImagePicker.mount = function (container, opts) {
@@ -21,10 +21,12 @@ AdminImagePicker.mount = function (container, opts) {
   }
 
   opts = opts || {};
+  var captionFieldEnabled = opts.captionField === true;
 
   var currentPath = opts.initialPath || "";
   var currentAlt = opts.initialAlt || "";
   var currentThumb = opts.initialThumb || "";
+  var currentCaption = opts.initialCaption || "";
 
   // ── Build DOM (JS-6: element factories, never innerHTML with user data) ──
 
@@ -91,6 +93,41 @@ AdminImagePicker.mount = function (container, opts) {
   altGroup.appendChild(altInput);
   altGroup.appendChild(altHint);
 
+  // Caption field — opt-in only (captionField: true). Thumbnail mounts
+  // never pass this option, so their DOM/return shape stays unchanged.
+  var captionGroup = null;
+  var captionInput = null;
+  if (captionFieldEnabled) {
+    captionGroup = document.createElement("div");
+    captionGroup.className = "admin-form-group";
+    captionGroup.style.marginTop = "var(--space-sm)";
+
+    var captionLabel = document.createElement("label");
+    captionLabel.className = "admin-form-group__label";
+    captionLabel.setAttribute(
+      "for",
+      "aimg-picker-caption-" + Math.random().toString(36).slice(2, 8),
+    );
+    captionLabel.textContent = "Caption";
+
+    captionInput = document.createElement("input");
+    captionInput.type = "text";
+    captionInput.className = "admin-input";
+    captionInput.id = captionLabel.getAttribute("for");
+    captionInput.value = currentCaption;
+    captionInput.setAttribute("aria-describedby", captionInput.id + "-hint");
+
+    var captionHint = document.createElement("span");
+    captionHint.className = "admin-form-hint";
+    captionHint.id = captionInput.id + "-hint";
+    captionHint.textContent =
+      "Shown beneath the image on the public page. Leave blank for no caption.";
+
+    captionGroup.appendChild(captionLabel);
+    captionGroup.appendChild(captionInput);
+    captionGroup.appendChild(captionHint);
+  }
+
   // Status message (for upload errors)
   var statusEl = document.createElement("span");
   statusEl.className = "aimg-picker__status";
@@ -103,18 +140,25 @@ AdminImagePicker.mount = function (container, opts) {
   root.appendChild(removeBtn);
   root.appendChild(statusEl);
   root.appendChild(altGroup);
+  if (captionGroup) root.appendChild(captionGroup);
 
   container.appendChild(root);
 
   // ── Events ──
 
+  function changePayload() {
+    var payload = {
+      image_path: currentPath,
+      alt: currentAlt,
+      thumb_path: currentThumb,
+    };
+    if (captionFieldEnabled) payload.caption = currentCaption;
+    return payload;
+  }
+
   function fireChange() {
     if (typeof opts.onChange === "function") {
-      opts.onChange({
-        image_path: currentPath,
-        alt: currentAlt,
-        thumb_path: currentThumb,
-      });
+      opts.onChange(changePayload());
     }
   }
 
@@ -160,10 +204,12 @@ AdminImagePicker.mount = function (container, opts) {
     currentPath = "";
     currentAlt = "";
     currentThumb = "";
+    currentCaption = "";
     thumbnail.src = "";
     thumbnail.hidden = true;
     removeBtn.hidden = true;
     altInput.value = "";
+    if (captionInput) captionInput.value = "";
     statusEl.textContent = "";
     statusEl.className = "aimg-picker__status";
     fileInput.value = "";
@@ -175,20 +221,24 @@ AdminImagePicker.mount = function (container, opts) {
     fireChange();
   });
 
+  if (captionInput) {
+    captionInput.addEventListener("input", function () {
+      currentCaption = captionInput.value;
+      fireChange();
+    });
+  }
+
   // ── Public API ──
 
   return {
     getValue: function () {
-      return {
-        image_path: currentPath,
-        alt: currentAlt,
-        thumb_path: currentThumb,
-      };
+      return changePayload();
     },
-    setValue: function (path, alt, thumb) {
+    setValue: function (path, alt, thumb, caption) {
       currentPath = path || "";
       currentAlt = alt || "";
       currentThumb = thumb || "";
+      currentCaption = caption || "";
       if (currentPath) {
         thumbnail.src = currentPath;
         thumbnail.hidden = false;
@@ -199,6 +249,7 @@ AdminImagePicker.mount = function (container, opts) {
         removeBtn.hidden = true;
       }
       altInput.value = currentAlt;
+      if (captionInput) captionInput.value = currentCaption;
       fireChange();
     },
   };

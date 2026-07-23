@@ -69,7 +69,7 @@ The required sections are:
 1. **Header** — `# Plan: <Feature Name>`, plus module, date, a **Status** field set to `Drafting`, and a **Live site** field giving the canonical production origin. Source that origin from the codebase (`README.md`, `api/config/load-env.js`, `frontend/assets/js/utils/site-meta.js` — currently `https://thejesuswebsite.org`), **never** from the wording of the user's request or a bug report: a plan was once written entirely against `thejesuswebsite.com`, an unrelated dead domain, wasting the whole diagnostic pass (see `setup/Issues.md` #78).
 2. **Goal** — one or two sentences describing what this plan delivers and why.
 3. **Coding rules to keep in mind** — list any Vibe Coding Rules that are especially relevant to this plan. Reference them by ID (e.g. `JS-5`, `CSS-2`).
-4. **Tasks** — grouped by layer (Database, API, Frontend, etc.) in dependency order, ending with a **Deploy & verify** group (see below).
+4. **Tasks** — grouped by layer (Database, API, Frontend, etc.) in dependency order, ending with a **Deploy & verify** group carrying the three-tier verification ladder (see below).
 5. **Files touched** — every file that will be created or modified, with `— created` or `— modified`.
 6. **Error notification** — answer two questions: **(a)** does this plan impact existing error handling (changes to a route, model, or frontend component that produces or displays errors)? If yes, list which `E-*` error codes are affected and whether new codes are needed. **(b)** Should the plan add, update, or remove any error notification behaviour (new error toast calls, new `sendError`/`sendValidationError` usage, changes to `error-fallback.js`, etc.)? Reference `setup/Website_guide.md` § Error Notification for the encoding architecture.
 7. **Notes** — edge cases, constraints, ordering dependencies, anything non-obvious.
@@ -88,21 +88,25 @@ Every plan must end with a `## Completion Protocol` section, addressed to *any* 
 
 ### Deploy & verify group (always last)
 
-Every plan ends with a **Deploy & verify** task group as the final group, after all implementation tasks:
+Every plan ends with a **Deploy & verify** group containing a **Push to GitHub** task plus verification, which is a **three-tier ladder**. Copy the group and the matching playbook blocks from `plan_template.md` verbatim.
 
-- **Always** include a **Push to GitHub** task: `git add -p`, `git commit -m "<feature name>"`, `git push`.
-- **Every plan must include a verification task** — which kind depends on what the plan touches:
+| Tier | Task | Tool | Include when |
+|---|---|---|---|
+| **1** | Smoke test | Bash — test suite, `curl`, run the script | **Always. Every plan, no exceptions.** |
+| **2** | Browser check | `mcp__Claude_Browser__*` on the local dev server, run *before* the push | Browser-visible **and** provable without real data or a login |
+| **3** | Chrome check | `mcp__claude-in-chrome__*` + the user's passkey sign-in, against the live site | Needs **real production data**, **or** touches `/admin/` UI/UX, **or** anything behind auth |
 
-  **If the plan is NOT a UI/UX change** (backend-only, schema, API, tooling, or otherwise non-browser-visible):
-  - A **Smoke test** is sufficient. Include a task: run the automated test suite plus a targeted check that exercises the changed behaviour end-to-end (e.g. curl the affected API route on the deployed server and assert the response shape, run a migration against a copy, or execute the script and inspect its output). Never omit verification entirely.
+**Route with two questions:** (1) Is any of it observable in a browser? No → Tier 1 only. (2) Does seeing it work correctly need production data or a logged-in session? Yes → Tier 3, no → Tier 2.
 
-  **If the plan IS a UI/UX change** (user-facing pages, admin UI, or any behaviour observable in a browser):
-  - A **Test live** task is **mandatory** — a UI/UX plan may not be marked Completed while its live test is unchecked. (History: issues recurred repeatedly when fixes were marked complete with live testing deferred.)
-  - **Include the Live testing playbook.** Copy the `### Live testing playbook` section from `plan_template.md` verbatim into any plan with a Test live task (delete it from plans without one). It prescribes: use the header's `Live site:` origin only; curl the URL for a `200` *before* opening the browser (a dead URL hangs `preview_start` for minutes and poisons the pane); do curl-triageable checks (headers, JSON endpoints, asset diffs) before browser checks; call `preview_start {url}` once and pass its returned `tabId` explicitly to every subsequent browser call; verify via `read_page`/`javascript_tool` DOM queries plus `read_console_messages`, treating screenshots as optional supporting evidence only; allow ~30–60s for Cloudflare edge propagation before concluding a deploy failed; and — for tests that need an authenticated `/admin/` page — follow the playbook's admin-auth step. **Two different browser tool families exist and they are NOT interchangeable:** `mcp__Claude_Browser__*` (`preview_start`, the sandboxed Browser pane) is for public unauthenticated pages only, per steps 1–6; `mcp__claude-in-chrome__*` (the real Chrome the user actually uses) is **mandatory** for any admin/passkey step, because WebAuthn platform authenticators are bound to the specific browser app they were registered in — a passkey enrolled in real Chrome is invisible to the sandboxed pane, which has no way to present Touch ID. An implementing agent that reaches for `preview_start` on an admin page (as happened once — see `Issues.md` #99) has to redo the step in `claude-in-chrome` once caught. Beyond that tool choice, the same isolation applies to `claude-in-chrome` itself: WebAuthn passkey login cannot be automated by any agent (Issues.md #33/#76), and the agent cannot reuse a tab the user already has open (the `claude-in-chrome` tools only see their own tab-group, and `sameSite:strict` blocks inherited sessions) — so the **one reliable flow** is: the agent opens a fresh admin tab in `claude-in-chrome`'s own group, asks the user to sign in with their passkey in *that* tab, waits, then drives the test there (cleaning up any test input, never clicking Save). If the user is unavailable or declines, the curl/tests checks still run but the Test live checkbox stays **unchecked as deferred** (with a note of what was and wasn't verified) and the plan stays in `PLANS/New/` — no `Issues.md` row is logged for the login constraint itself, since it's a known environment fact, not a defect.
-  - **If the live test touches `/admin/` pages, say so in the task.** When writing the Test live task for an admin-facing plan, state up front that the page requires passkey auth and describe the reliable flow (agent opens the tab → user signs in once → agent drives it), so the implementing agent pauses to ask the user *before* attempting the browser rather than discovering the redirect mid-test.
-  - **Gating on the implementing agent:**
-    - **If Claude is the agent running the plan** → Claude proceeds with the live test inside Chrome, following the Live testing playbook.
-    - **If the agent is NOT Claude** (e.g. DeepSeek in Zed) → the agent must **tell the user to open Claude in Chrome** (the Claude Code Browser extension) to perform the live test. Leave the checkbox unchecked with a note "Deferred to Claude in Chrome: <reason>" and do NOT move the plan to `PLANS/Completed/` until a live check has been performed and the task ticked.
+Rules:
+
+- **Tiers are cumulative, not alternatives.** A Tier 3 plan still carries Tier 1. Everything that can be smoke-tested is smoke-tested — never delete Tier 1 because a higher tier applies.
+- **Tier 3 supersedes Tier 2 for the same page**, but a plan touching both public and admin surfaces carries both, each scoped to its own pages.
+- **Copy only the playbook blocks the plan uses.** `plan_template.md` holds `### Tier 2 playbook` and `### Tier 3 playbook`; include the ones matching this plan's tiers and delete the rest. Do not paraphrase them — they exist verbatim so an agent that reads only the plan file gets the full procedure.
+- **The two browser tool families are NOT interchangeable.** `mcp__Claude_Browser__*` (the sandboxed pane) cannot authenticate — it has no access to a passkey registered in real Chrome. Any `/admin/` or logged-in page is `mcp__claude-in-chrome__*`, always. (— `Issues.md` #99)
+- **If a Tier 3 task touches `/admin/`, say so in the task text** — that the page needs passkey auth and the user must sign in mid-test — so the implementing agent pauses to ask *before* opening the browser rather than discovering the redirect mid-test.
+- **Tier 3 is the only tier that may be deferred.** If the user is unavailable, leave it unchecked and annotated; the plan stays in `PLANS/New/`. Tiers 1–2 need nobody's help and have no excuse. (History: issues recurred repeatedly when fixes were marked complete with live testing deferred.)
+- **Non-Claude agents** (e.g. DeepSeek in Zed) can't run Tiers 2–3: leave the box unchecked with "Deferred to Claude in Chrome: <reason>" and do not move the plan to `PLANS/Completed/`.
 
 ### Task writing rules
 
@@ -170,6 +174,12 @@ Review every file you created or edited in Steps 2–4 for these plan-level issu
 - Every implementation file listed in "Files touched" appears in at least one task. Config, dependency, and environment files (`package.json`, `.env`, etc.) that are implicitly updated by a task are exempt.
 - Tasks are in dependency order — nothing depends on a later task.
 - No task bundles unrelated changes (SR-1).
+
+**Verification tiers:**
+- A **Tier 1 — Smoke test** task is present. No exceptions, whatever other tiers apply.
+- The chosen tier matches the routing questions: nothing browser-visible is stuck at Tier 1; nothing depending on real production data or a login is left at Tier 2.
+- Every playbook block in the plan corresponds to a tier task that exists (no orphan Tier 3 playbook on a Tier 1+2 plan, and no tier task missing its playbook).
+- Any Tier 3 task touching `/admin/` says so in its task text.
 
 **Plan vs. coding rules:**
 - The "Coding rules to keep in mind" section lists every rule that this plan's implementation would need to respect. If the plan touches frontend HTML, `HTML-1` through `HTML-5` should be considered. If it touches CSS, `CSS-1` through `CSS-6` should be considered. Only list rules that are actually relevant — don't list all of them just to be safe.
@@ -273,7 +283,7 @@ After completing all steps, tell the user:
 3. What was added or changed in the sitemap.
 4. The path to the validation checklist file.
 5. Any issues logged to `Issues.md` (number of rows added, or "none").
-6. Confirm the plan ends with a **Deploy & verify** group — a **Push to GitHub** task (always) plus a verification task: **Test live** (mandatory for UI/UX or browser-checkable behaviour) or **Smoke test** (mandatory for everything else). No plan ships without one of the two.
+6. Confirm the plan ends with a **Deploy & verify** group, and state **which verification tiers it carries and why** — e.g. "Tiers 1+3: the admin editor UI can't be checked without a login." Tier 1 is present in every plan without exception.
 7. Confirm the plan includes a **Completion Protocol** section, and — if it fixes existing `Issues.md` row(s) — a task to mark those rows `resolved`.
 
 

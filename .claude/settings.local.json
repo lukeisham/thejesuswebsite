@@ -24,7 +24,10 @@
       "Bash(node api/scripts/generate-maps/index.js)",
       "Bash(git -C /Users/lukeishammacbookair/Developer/thejesuswebsite log --oneline -25)",
       "mcp__claude-in-chrome__tabs_context_mcp",
-      "WebFetch(domain:thejesuswebsite.com)"
+      "WebFetch(domain:thejesuswebsite.com)",
+      "mcp__claude-in-chrome__list_connected_browsers",
+      "mcp__claude-in-chrome__navigate",
+      "mcp__claude-in-chrome__tabs_create_mcp"
     ]
   }
 }

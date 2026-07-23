@@ -17,6 +17,8 @@
         <script defer src="../assets/js/admin-editor-scaffold.js"></script>
         <script defer src="../assets/js/admin-form-builder.js"></script>
         <script defer src="../assets/js/admin-timeline-taxonomy.js"></script>
+        <script defer src="../assets/js/admin-figure-shortcodes.js"></script>
+        <script defer src="../assets/js/admin-figure-captions.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-image-picker.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
@@ -360,6 +362,8 @@
                                 initialPath: data.image || "",
                                 initialAlt: data.image_alt || "",
                                 initialThumb: data.thumbnail_path || "",
+                                captionField: true,
+                                initialCaption: data.image_caption || "",
                             },
                         );
 
@@ -394,6 +398,13 @@
                         // Insert Image button
                         AdminEditorUtils.wireInsertImageButton("ev-desc");
                         var contentField = document.getElementById("ev-desc");
+
+                        // Images panel — mounted after the insert flow so
+                        // inserts and the panel share one textarea
+                        AdminEditorUtils.mountFigureCaptionsPanel(
+                            rightCol,
+                            "ev-desc",
+                        );
 
                         // Spellcheck: init the system and attach to the description textarea
                         await SpellcheckController.init();
@@ -471,6 +482,9 @@
                                     undefined,
                                 image_alt:
                                     imagePicker.getValue().alt || undefined,
+                                image_caption:
+                                    imagePicker.getValue().caption ||
+                                    undefined,
                                 thumbnail_path:
                                     imagePicker.getValue().thumb_path ||
                                     undefined,

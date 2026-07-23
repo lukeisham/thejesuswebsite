@@ -15,6 +15,10 @@ import {
   parseContentBody,
   getIdentifierLabel,
 } from "./utils/content-markers.js";
+import {
+  FIGURE_SHORTCODE_PATTERN,
+  parseFigureShortcodes,
+} from "./utils/figure-shortcodes.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -127,7 +131,7 @@ function renderDescription(item) {
   }
 }
 
-function renderPictures(description, primaryImage, primaryImageAlt) {
+function renderPictures(description, primaryImage, primaryImageAlt, primaryImageCaption) {
   // Pictures are now [figure] shortcodes in body text (migration 006 dropped
   // evidence_pictures). Extract them from the description for the dedicated
   // pictures section, and return the cleaned description for renderDescription.
@@ -135,15 +139,8 @@ function renderPictures(description, primaryImage, primaryImageAlt) {
   // inline [figure] shortcodes, so legacy records keep working unchanged.
   if (!$picturesSection || !$pictures) return description || "";
 
-  const figureRegex =
-    /\[figure\s+src="([^"]*)"(?:\s+caption="([^"]*)")?(?:\s+align="(left|right)")?\]/g;
-  const figures = [];
+  const figures = parseFigureShortcodes(description || "");
   let cleaned = description || "";
-
-  let match;
-  while ((match = figureRegex.exec(description || "")) !== null) {
-    figures.push({ src: match[1], caption: match[2] || "" });
-  }
 
   if (!primaryImage && figures.length === 0) {
     $picturesSection.hidden = true;
@@ -152,10 +149,16 @@ function renderPictures(description, primaryImage, primaryImageAlt) {
 
   $picturesSection.hidden = false;
 
+  // image_caption is the intended caption; when unset, fall back to
+  // image_alt so every existing published record keeps displaying exactly
+  // what it showed before this field existed. alt always comes from
+  // image_alt regardless — alt and caption are different jobs (HTML-2) and
+  // must not be conflated going forward.
+  const primaryCaption = primaryImageCaption || primaryImageAlt || "";
   const primaryHTML = primaryImage
     ? `<figure>
         <img src="${html`${primaryImage}`}" alt="${html`${primaryImageAlt || ""}`}" loading="lazy" />
-        ${primaryImageAlt ? `<figcaption>${html`${primaryImageAlt}`}</figcaption>` : ""}
+        ${primaryCaption ? `<figcaption>${html`${primaryCaption}`}</figcaption>` : ""}
       </figure>`
     : "";
 
@@ -175,7 +178,7 @@ function renderPictures(description, primaryImage, primaryImageAlt) {
   // Strip [figure] shortcodes from the description so renderDescription only
   // processes prose + inline markers (mla/id).
   cleaned = cleaned
-    .replace(figureRegex, "")
+    .replace(FIGURE_SHORTCODE_PATTERN(), "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
   return cleaned;
@@ -306,6 +309,7 @@ async function init() {
     data.description,
     data.image,
     data.image_alt,
+    data.image_caption,
   );
   renderDescription({ ...data, description: cleanDescription });
   renderSources(data.mla_sources);

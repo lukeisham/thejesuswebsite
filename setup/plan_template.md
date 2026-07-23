@@ -33,41 +33,56 @@ One or two sentences describing what this plan delivers and why.
 
 ### Deploy & verify
 
-<!-- Always include the push task. Then include ONE of the two verification tasks below:
-     - Smoke test — sufficient for non-UI/UX changes (backend, schema, API, tooling).
-     - Test live   — mandatory for UI/UX changes (user-facing pages, admin UI, browser behaviour).
-     Delete the task that does NOT apply and the playbook section below it if unused. -->
+<!-- Verification is a three-tier ladder. Tiers are CUMULATIVE, not alternatives:
+     pick the highest tier this plan reaches, and include every tier at or below it.
+     Delete the tasks and playbook blocks for tiers this plan doesn't use. -->
 
+| Tier | Task | Tool | Include when |
+|---|---|---|---|
+| **1** | Smoke test | Bash — test suite, `curl`, run the script | **Always. Every plan, no exceptions.** |
+| **2** | Browser check | `mcp__Claude_Browser__*` on the local dev server | Browser-visible **and** provable without real data or a login |
+| **3** | Chrome check | `mcp__claude-in-chrome__*` + the user's passkey sign-in | Needs **real production data**, **or** touches `/admin/` UI/UX, **or** anything behind auth |
+
+**Routing — two questions:**
+1. Is any of this observable in a browser? **No** → Tier 1 only.
+2. Does seeing it work *correctly* require production data or a logged-in session? **Yes** → Tier 3. **No** → Tier 2.
+
+Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public and admin surfaces carries both, each scoped to its own pages. Tier 1 is never dropped just because a higher tier applies.
+
+- [ ] **Tier 1 — Smoke test** — run the automated test suite plus a targeted check that exercises the changed behaviour: curl the affected API route and assert the response shape, run a migration against a copy, or execute the script and inspect its output.
+- [ ] **Tier 2 — Browser check (local)** — verify in the Claude Browser pane against the local dev server, **before** the push task below. Follow the **Tier 2 playbook**. Pages: `/<page>`.
 - [ ] **Push to GitHub** — stage, commit, and push the completed work. Run `git add -p`, `git commit -m "<feature name>"`, `git push`.
+- [ ] **Tier 3 — Chrome check (live, needs your sign-in)** — verify on the deployed site in the user's real Chrome. Follow the **Tier 3 playbook**. Pages: `https://thejesuswebsite.org/<page>`. <!-- If this touches /admin/, say so here: the page needs passkey auth and the user must sign in mid-test. -->
 
-- [ ] **Smoke test** — run the automated test suite plus a targeted check: e.g. curl the affected API route on the deployed server and assert the response shape, run a migration against a copy, or execute the script and inspect its output.
-- [ ] **Test live** — if the implementing agent is **Claude**, follow the **Live testing playbook** below to open the deployed site in Chrome and confirm the change works in production. URL: `https://thejesuswebsite.org/<page>`. If the implementing agent is **not Claude** (e.g. DeepSeek in Zed), **tell the user to open Claude in Chrome** (the Claude Code Browser extension) and perform the live test there — leave the checkbox unchecked but annotate it with a note: "Deferred to Claude in Chrome: <reason>." Do not move the plan to `PLANS/Completed/` until this box is ticked.
+<!-- Non-Claude agents (e.g. DeepSeek in Zed) cannot run Tiers 2–3: leave the box unchecked,
+     annotate "Deferred to Claude in Chrome: <reason>", and do not move the plan to Completed/. -->
 
-### Live testing playbook
+### Tier 2 playbook — local browser check
 
-<!-- Keep this section verbatim in every plan that has a Test live task; delete it otherwise.
-     It exists because live checks have repeatedly been derailed by wrong domains, half-initialized
-     browser panes, and blank screenshots (see setup/Issues.md #78). -->
+<!-- Keep verbatim in plans with a Tier 2 task; delete otherwise. -->
 
-1. **Use the canonical origin from the header's `Live site:` field** (`https://thejesuswebsite.org`). Never test against `thejesuswebsite.com` or any URL taken from a bug report without checking it against the header first.
-2. **Curl before browser.** Confirm the origin responds before opening any browser tool: `curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://thejesuswebsite.org/<page>` must return `200` (or an expected redirect). If it doesn't, stop and diagnose DNS/deploy — do NOT launch the browser at a dead URL; a hung connection can time out for minutes and leave the browser pane in a bad state.
-3. **Curl-first triage.** Check what curl alone can prove before reaching for the browser: response headers (`cf-cache-status`, `last-modified`, `cache-control`), JSON endpoints (`/api/...`, `/assets/data/*.json`), and asset freshness (fetch the deployed JS/CSS file and `diff` it against the local copy). The browser is only needed to confirm client-side rendering and console/network errors.
-4. **Browser sequence (Claude Code Browser pane):** call `preview_start` with `{url: "https://thejesuswebsite.org/<page>"}` exactly once, note the `tabId` it returns, and pass that `tabId` explicitly to every subsequent `navigate` / `read_page` / `javascript_tool` / `read_console_messages` call. Never call `navigate` before a successful `preview_start`. If `preview_start` times out, fix the URL/connectivity first, then call `preview_start` again fresh — don't try to salvage the half-initialized pane with `navigate`. **This tool family (`mcp__Claude_Browser__*`, the sandboxed Browser pane) is for public, unauthenticated pages only** — see step 7 for why admin/passkey checks must use a different tool family entirely, not just a different tab.
-5. **Verify via DOM, not screenshots.** Prove the change with `read_page` (accessibility tree) or a `javascript_tool` query (e.g. `document.querySelector('.some-class')?.textContent`, `getBoundingClientRect()`, computed styles) plus `read_console_messages` for errors. Screenshots are optional supporting evidence only — they can render blank right after a JS-driven scroll and must never be the sole proof that something works.
-6. **Cloudflare staleness:** a check run within ~60s of the deploy can hit a stale edge cache (HTML `max-age=60`; the deploy workflow purges, but propagation isn't instant). If a live check looks stale right after a push, wait ~30–60s and re-check `cf-cache-status` before concluding the deploy failed.
-7. **Admin pages require passkey auth the agent cannot perform.** The admin uses WebAuthn passkey sign-in, which needs the user's device authenticator — no agent can automate it (see `setup/Issues.md` #33/#76 for history). Three facts drive the procedure below:
-   - **MUST use `claude-in-chrome` (`mcp__claude-in-chrome__*`), never the Browser pane (`preview_start`/`mcp__Claude_Browser__*`), for this step.** This is not optional and not interchangeable with step 4's tool. WebAuthn platform authenticators (Touch ID) are bound to the specific browser application they were registered in. If the user's passkey lives in their real Chrome, only the actual Chrome app can present the Touch ID prompt — the Browser pane is a separate, sandboxed browser context with no access to that credential, and a sign-in attempt there will silently have no usable authenticator to offer (see `setup/Issues.md` #99, where an implementing agent used `preview_start` here and had to redo the step). Before running this step, confirm which browser holds the passkey if you don't already know.
-   - **The agent cannot reuse a tab the user already has open.** The `claude-in-chrome` tools operate on their *own* session tab-group; tabs the user opened outside that group are invisible to the agent, and `sameSite:strict` on the session cookie means agent-initiated navigations don't inherit the session anyway. There is no reliable "share my existing tab" path — do not ask the user to open a tab and log in *first*, it won't be usable.
-   - **This is extension isolation, not a site bug.** `www.thejesuswebsite.org` 301-redirects cleanly to the apex and the session cookie (set in `api/routes/passkey.js`, host-only, no `Domain`) is correct — verified 2026-07-20. Do **not** re-diagnose this as a split-origin/cookie-domain problem or log an `Issues.md` row for it.
+1. **Run against the local dev server, not production.** `preview_start {name: "frontend"}` (port 4179; `admin` and `api` configs also exist in `.claude/launch.json`). Note the returned `tabId` and pass it explicitly to every subsequent `navigate` / `read_page` / `javascript_tool` / `read_console_messages` call. Never call `navigate` before a successful `preview_start`.
+2. **The local database is empty** (see `CLAUDE.local.md`) — local pages render without real content. If your check depends on real records, it is a Tier 3 check, not Tier 2.
+3. **Verify via DOM, not screenshots.** Prove the change with `read_page` or a `javascript_tool` query (`document.querySelector(...)?.textContent`, `getBoundingClientRect()`, computed styles) plus `read_console_messages`. Screenshots are optional supporting evidence — they can render blank after a JS-driven scroll and must never be the sole proof.
+4. **Never use this tool family on `/admin/` or any logged-in page** — it cannot authenticate. That is Tier 3. (— `Issues.md` #99)
+5. If `preview_start` times out, fix the server/URL and call `preview_start` again fresh — don't salvage a half-initialized pane with `navigate`.
 
-   **The one reliable flow — agent opens the tab, user logs in once, agent drives it:**
-   1. **Pause and tell the user you're about to open an admin tab in their real Chrome (via `claude-in-chrome`) for them to authenticate.** Do not proceed silently.
-   2. Call `tabs_context_mcp {createIfEmpty: true}` then `navigate` (both `mcp__claude-in-chrome__*`) to the admin page — it will redirect to `/admin/auth/login.html`. (The pre-redirect flash of admin UI in a first screenshot is NOT proof of a session.)
-   3. **Ask the user to click "Sign in with Passkey" in that tab and complete Touch ID, then tell you when they're in.** Wait for their reply.
-   4. Re-navigate to the target admin page and drive the test in that now-authenticated tab (verify via `mcp__claude-in-chrome__javascript_tool`/`read_page` DOM queries + `read_console_messages` — same verification style as steps 4–5, different tool family).
-   5. **Clean up:** if the test wrote anything to a textarea/form, clear it and do not click Save — leave no test records in production. Avoid Ignore/Learn-style actions that mutate persistent state (e.g. the spellcheck dictionary).
+### Tier 3 playbook — live check in real Chrome
 
-   **If the user is unavailable or declines**, still do the non-interactive checks (curl the deployed assets and `diff` against local copies; run the automated tests) — but mark the Test live task as **deferred, not done**: leave its checkbox unchecked, annotate it with what *was* verified (code deployed, tests pass) and what remains (the interactive click-through), and per the plan lifecycle rules the plan stays in `PLANS/New/` until the deferred check is performed and ticked. Do **not** log an `Issues.md` row for the deferral — the passkey constraint is a known environment fact, not a new defect.
+<!-- Keep verbatim in plans with a Tier 3 task; delete otherwise. -->
+
+1. **Use the origin from the header's `Live site:` field** (`https://thejesuswebsite.org`) — never `.com`, never a URL copied unverified from a bug report. (— `Issues.md` #78)
+2. **Curl before browser.** `curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://thejesuswebsite.org/<page>` must return `200` or an expected redirect. A dead URL hangs the browser for minutes — diagnose DNS/deploy first.
+3. **Curl-first triage.** Prove what curl can prove before opening a browser: response headers (`cf-cache-status`, `last-modified`, `cache-control`), JSON endpoints (`/api/...`, `/assets/data/*.json`), and asset freshness (fetch the deployed JS/CSS and `diff` against local). The browser is only needed for client-side rendering and console/network errors.
+4. **Cloudflare staleness:** a check within ~60s of deploy can hit a stale edge cache. Wait ~30–60s and re-check `cf-cache-status` before concluding the deploy failed.
+5. **Use `mcp__claude-in-chrome__*` — the user's real Chrome. Not the Browser pane.** WebAuthn platform authenticators are bound to the browser app they were registered in, so only real Chrome can present Touch ID; the sandboxed pane has no access to that credential and no way to sign in. The agent also cannot reuse a tab the user already has open — `claude-in-chrome` sees only its own tab-group, and `sameSite:strict` blocks inherited sessions. (This is extension isolation, **not** a cookie-domain bug — verified 2026-07-20; do not re-diagnose or log it. — `Issues.md` #33/#76/#99)
+6. **The flow — agent opens the tab, user signs in once, agent drives it:**
+   1. **Pause and tell the user** you're opening a tab in their real Chrome for them to authenticate. Never proceed silently.
+   2. `tabs_context_mcp {createIfEmpty: true}`, then `navigate` to the target page (admin pages redirect to `/admin/auth/login.html`; a pre-redirect flash of admin UI is **not** proof of a session).
+   3. **Ask the user to sign in with their passkey in that tab and reply when they're in.** Wait.
+   4. Re-navigate to the target page and verify via `javascript_tool` / `read_page` DOM queries + `read_console_messages`.
+   5. **Clean up:** clear anything typed into a form, never click Save, and avoid actions that mutate persistent state (e.g. spellcheck Ignore/Learn). Leave no test records in production.
+7. **If the user is unavailable or declines:** run the non-interactive checks anyway (curl, asset diffs, test suite), then leave the Tier 3 box **unchecked and annotated** with what was and wasn't verified. The plan stays in `PLANS/New/`. Do **not** log an `Issues.md` row — the passkey constraint is a known environment fact, not a defect.
 
 ## Files touched
 - `path/to/file.ext` — created / modified

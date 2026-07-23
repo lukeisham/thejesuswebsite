@@ -5,28 +5,13 @@
 // Used by: Evidence, Blog, Essay, Historiography, and Response content forms.
 //
 // Note: Admin MUST be loaded before this script so Admin.uploadImage is available.
+// Note: admin-figure-shortcodes.js MUST be loaded before this script so
+// AdminFigureShortcodes.buildFigureShortcode is available (SR-4 — the
+// shortcode grammar lives in one module, never a second copy here).
 
 window.AdminInsertImage = {};
 
 var AdminInsertImage = window.AdminInsertImage;
-
-/**
- * Build a [figure] shortcode from an image path and caption.
- * Escapes any double-quotes in the caption so it can't break out of the shortcode.
- * Pure function — no DOM or side effects.
- *
- * @param {string} imagePath
- * @param {string} caption
- * @returns {string}
- */
-function buildShortcode(imagePath, caption) {
-  var safeCaption = caption || "";
-  safeCaption = safeCaption.replace(/"/g, "&quot;");
-  if (safeCaption) {
-    return '[figure src="' + imagePath + '" caption="' + safeCaption + '"]';
-  }
-  return '[figure src="' + imagePath + '"]';
-}
 
 /**
  * Insert text at a cursor position, replacing any selection.
@@ -136,7 +121,12 @@ AdminInsertImage.wire = function (buttonSelector, textareaSelector) {
       promptEl.hidden = false;
       captionInput.focus();
     } catch (err) {
-      alert("Upload failed: " + (err.message || "Unknown error"));
+      var msg = "Upload failed: " + (err.message || "Unknown error");
+      if (typeof showToast === "function") {
+        showToast(msg, "error");
+      } else {
+        alert(msg);
+      }
     } finally {
       btn.disabled = false;
       btn.textContent = "Insert Image";
@@ -148,7 +138,10 @@ AdminInsertImage.wire = function (buttonSelector, textareaSelector) {
   insertBtn.addEventListener("click", function () {
     if (!pendingPath) return;
 
-    var shortcode = buildShortcode(pendingPath, captionInput.value.trim());
+    var shortcode = AdminFigureShortcodes.buildFigureShortcode({
+      src: pendingPath,
+      caption: captionInput.value.trim(),
+    });
 
     var result = insertAtCursor(
       textarea.value,
