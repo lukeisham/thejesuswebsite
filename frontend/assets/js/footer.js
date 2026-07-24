@@ -113,7 +113,7 @@ function handleCopyUrl() {
  * Expected values: `print`, `copy-contents`, `copy-url`.
  */
 export function initFooter() {
-  const footer = document.querySelector(".site-footer");
+  const footer = document.querySelector("body > footer");
   if (!footer) return;
 
   const yearEl = footer.querySelector("#footer-year");

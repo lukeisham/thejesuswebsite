@@ -168,4 +168,16 @@
     .content-table td {
         border: 1px solid var(--color-black);
     }
+
+    /* -----------------------------------------------------------------------
+     Sidebar content shift — when the sidebar is open on desktop,
+     navigation.css pushes main/footer right via margin-left.
+     Zero it out so the printed page uses the full width.
+     ----------------------------------------------------------------------- */
+
+    .sidebar--open ~ main,
+    .sidebar--open ~ footer,
+    .sidebar--open ~ .created-edited-line {
+        margin-left: 0;
+    }
 }

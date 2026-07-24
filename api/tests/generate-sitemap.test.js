@@ -185,6 +185,21 @@ describe("sitemap includes section index pages", () => {
     }
   });
 
+  test("includes all debate section pages", () => {
+    const urls = buildSitemap();
+    const debatePages = [
+      "https://thejesuswebsite.org/debate/historiography/",
+      "https://thejesuswebsite.org/debate/popular-challenges.html",
+      "https://thejesuswebsite.org/debate/academic-challenges.html",
+    ];
+    for (const page of debatePages) {
+      assert.ok(
+        urls.some((u) => u.loc === page),
+        `missing sitemap entry for ${page}`,
+      );
+    }
+  });
+
   test("uses the apex domain, not www", () => {
     const urls = buildSitemap();
     assert.ok(urls.every((u) => !u.loc.includes("www.")));
@@ -279,8 +294,8 @@ describe("sitemap URL counts", () => {
 
   test("section pages are always present even with no content", () => {
     const urls = buildSitemap();
-    // Should have at least the 38 section pages (28 original + 10 map pages).
-    assert.ok(urls.length >= 38);
+    // Should have at least the 41 section pages (28 original + 10 map pages + 3 new debate pages).
+    assert.ok(urls.length >= 41);
   });
 
   test("each published row generates one detail URL", () => {
