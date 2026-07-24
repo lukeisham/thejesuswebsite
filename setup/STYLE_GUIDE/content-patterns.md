@@ -138,7 +138,7 @@ Responses share `journal.css` and render identically to Contextual Essays. Every
 **Historiography Pages (Journal Article Format)**:
 Historiography pages share `journal.css` and render identically to Contextual Essays in every structural and typographic respect. Apply every rule from the Contextual Essays section in full — page header/title block, reading column, two-column layout option, numbered section headings, body text, block quotes, figures, footnotes, bibliography, and print rules.
 
-- **Listing page**: the historiography index (`frontend/debate/historiography.html`) uses the **ranked-list card pattern** (§10 — same as `popular-challenges.html` and `academic-challenges.html`). The card-based ranked-list layout groups items by rank and renders each as a linked card with title and excerpt; it does **not** use `journal.css`. Only the individual *detail* pages use the journal-article format described below.
+- **Listing page**: the historiography index (`frontend/debate/historiography/index.html`) matches the Contextual Essays listing pattern exactly — a `journal-header` page header, then a flat `.card-grid.essays-card-grid` of cards (no rank numbers, no period sections), each card carrying a "Historiography" type badge (same pattern as the Essays "Essay" badge). It does **not** use `journal.css`. Only the individual *detail* pages use the journal-article format described below.
 
 - **Page header — title block**: centred, no hero image. Title (`h1`, serif, centred), byline, publication date, optional DOI/citation line, abstract block, keywords row — all in the same format and sizing as Essays.
 

@@ -45,7 +45,6 @@
   <link rel="stylesheet" href="/assets/css/components/infinite-scroll.css">
   <link rel="stylesheet" href="/assets/css/pages/journal-header.css">
   <link rel="stylesheet" href="/assets/css/pages/essays-list.css">
-  <link rel="stylesheet" href="/assets/css/pages/historiography-list.css">
 </head>
 <body>
   <!-- Visually-hidden header for SEO & a11y (HTML-3) -->
@@ -86,8 +85,7 @@
       <p class="journal-header__paragraph">Eight essays, one per period of historical-Jesus scholarship, tracing how the academic study of the historical Jesus has developed from the early church to the present day.</p>
       </header>
 
-      <!-- Period-grouped sections, each with its own .card-grid, injected by historiography-list.js -->
-      <div class="essays-card-grid" id="card-grid">
+      <div class="card-grid essays-card-grid" id="card-grid" role="list">
       <!-- Populated by historiography-list.js -->
       </div>
 
