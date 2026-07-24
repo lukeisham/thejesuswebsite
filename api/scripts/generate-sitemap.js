@@ -103,6 +103,21 @@ const SECTION_PAGES = [
   { loc: "/contextual-essays/", priority: "0.7", changefreq: "monthly" },
   { loc: "/debate/", priority: "0.8", changefreq: "monthly" },
   { loc: "/debate/wikipedia.html", priority: "0.7", changefreq: "weekly" },
+  {
+    loc: "/debate/historiography/",
+    priority: "0.7",
+    changefreq: "monthly",
+  },
+  {
+    loc: "/debate/popular-challenges.html",
+    priority: "0.7",
+    changefreq: "weekly",
+  },
+  {
+    loc: "/debate/academic-challenges.html",
+    priority: "0.7",
+    changefreq: "weekly",
+  },
   { loc: "/news-and-blog/", priority: "0.8", changefreq: "weekly" },
   { loc: "/news-and-blog/blog/", priority: "0.7", changefreq: "weekly" },
   { loc: "/news-and-blog/news/", priority: "0.7", changefreq: "weekly" },
