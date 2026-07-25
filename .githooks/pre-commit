@@ -1,0 +1,212 @@
+#!/bin/sh
+#
+# [pre-commit: Incomplete Plans Check]
+#
+# Purpose: reject commits that make the "Completed" plan directory's
+# unchecked-task situation worse. A plan may only carry Status: Completed
+# once every task box is checked ("- [x]") — see the Completion Protocol in
+# setup/Vibe_coding_rules.md. setup/ is gitignored, so Git cannot see plan
+# content on its own; this hook is the only local guardrail against shipping
+# a Completed plan whose verification tasks were never actually run.
+#
+# Baseline / grandfathering: setup/PLANS/.incomplete-plans-baseline lists
+# legacy plans that already had unchecked boxes ("- [ ]") at the time this
+# mechanism was introduced, one "<filename>\t<count>" per line. A commit is
+# blocked only when:
+#   (a) a Completed plan has unchecked boxes and is NOT listed in the
+#       baseline (i.e. a newly-introduced offender), or
+#   (b) a baselined plan's current unchecked count has INCREASED beyond the
+#       count recorded in the baseline (i.e. it got worse).
+# A baselined plan whose count has gone down or stayed the same passes —
+# this lets legacy plans be incrementally fixed without requiring the whole
+# file to be finished in one commit, and without retroactively rewriting
+# history by force-checking boxes that were never actually verified.
+#
+# If the baseline file is missing, this hook cannot tell legacy offenders
+# from new ones, so it falls back to warn-only: it prints the offender list
+# to stderr but exits 0. The hook must never be able to hard-lock a repo
+# that lacks its baseline.
+#
+# [pre-commit: Map SVG Integrity Check]
+#
+# Purpose: reject commits that replace hand-drawn map SVGs with
+# machine-generated export artifacts (the failure mode of commit 1a2313f,
+# where a 211-line hand-crafted SVG was replaced by a 1-line minified
+# machine export with wrong viewBox, no parchment filter, and auto-generated
+# clipPath hex IDs). The check runs on any staged change to a file under
+# frontend/assets/images/maps/ and validates:
+#   - File is at least 50 lines (hand-drawn maps are 200+)
+#   - viewBox is "0 0 1000 1000"
+#   - Contains the parchment texture filter
+#   - Does NOT contain machine-generated clipPath hex-ID markers
+#   - Is not a single line (minified export)
+#
+# Bypass in emergencies with `git commit --no-verify`.
+
+exec 1>&2
+
+blocked=0
+report=""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Incomplete Plans Check
+# ═══════════════════════════════════════════════════════════════════════════════
+
+completed_dir="setup/PLANS/Completed"
+baseline_file="setup/PLANS/.incomplete-plans-baseline"
+
+# Fresh clone / setup/ not present locally: skip plans check.
+if [ -d "$completed_dir" ]; then
+
+offenders=$(grep -l -E '^[[:space:]]*- \[ \]' "$completed_dir"/*.md 2>/dev/null)
+
+if [ -n "$offenders" ]; then
+
+if [ ! -f "$baseline_file" ]; then
+    echo "[pre-commit: Incomplete Plans Check] WARNING (not blocking):"
+    echo ""
+    echo "The following plan(s) in $completed_dir/ have unchecked task boxes"
+    echo "(\"- [ ]\") but no baseline file was found at $baseline_file"
+    echo "to grandfather known legacy offenders, so this check cannot tell"
+    echo "legacy plans from newly-introduced ones and is running in warn-only"
+    echo "mode."
+    echo ""
+    for file in $offenders; do
+        count=$(grep -c -E '^[[:space:]]*- \[ \]' "$file")
+        echo "  $file: $count unchecked task(s)"
+    done
+else
+    for file in $offenders; do
+        name=$(basename "$file")
+        count=$(grep -c -E '^[[:space:]]*- \[ \]' "$file")
+        baseline_count=$(awk -F '\t' -v n="$name" '$1 == n { print $2 }' "$baseline_file")
+
+        if [ -z "$baseline_count" ]; then
+            report="${report}  $file: $count unchecked task(s) (not in baseline — new offender)
+"
+            blocked=1
+        elif [ "$count" -gt "$baseline_count" ]; then
+            report="${report}  $file: $count unchecked task(s) (baseline was $baseline_count — increased)
+"
+            blocked=1
+        fi
+    done
+fi
+
+fi  # offenders
+fi  # completed_dir exists
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Map SVG Integrity Check
+# ═══════════════════════════════════════════════════════════════════════════════
+
+map_dir="frontend/assets/images/maps"
+map_blocked=0
+map_report=""
+
+# Get list of staged map SVG files (from the index, not the working tree).
+staged_maps=$(git diff --cached --name-only --diff-filter=ACMR -- "$map_dir/"*.svg 2>/dev/null)
+
+if [ -n "$staged_maps" ]; then
+    for svg in $staged_maps; do
+        failures=""
+
+        # Read the staged content (what will actually be committed).
+        content=$(git show ":$svg" 2>/dev/null)
+        if [ -z "$content" ]; then
+            continue
+        fi
+
+        line_count=$(echo "$content" | wc -l | tr -d ' ')
+
+        # Check 1 — minimum line count (hand-drawn maps are 200+ lines).
+        if [ "$line_count" -lt 50 ]; then
+            failures="${failures}    line count: $line_count (minimum 50 expected)
+"
+        fi
+
+        # Check 2 — single-line minified export artifact.
+        if [ "$line_count" -eq 1 ]; then
+            # Already covered by the <50 check, but call it out specifically.
+            failures="${failures}    single-line file (likely a minified machine export)
+"
+        fi
+
+        # Check 3 — correct viewBox.
+        if ! echo "$content" | head -5 | grep -q 'viewBox="0 0 1000 1000"'; then
+            vb=$(echo "$content" | grep -o 'viewBox="[^"]*"' | head -1)
+            failures="${failures}    viewBox: ${vb:-missing} (expected viewBox=\"0 0 1000 1000\")
+"
+        fi
+
+        # Check 4 — parchment texture filter (signature of hand-drawn maps).
+        if ! echo "$content" | grep -q '<filter id="parchment-texture"'; then
+            failures="${failures}    missing <filter id=\"parchment-texture\">
+"
+        fi
+
+        # Check 5 — no machine-generated clipPath hex IDs.
+        machine_ids=$(echo "$content" | grep -o 'clip-path="url(#[0-9a-f]\{8,\})"' | head -3)
+        if [ -n "$machine_ids" ]; then
+            failures="${failures}    machine-generated clipPath IDs detected (e.g. ${machine_ids%%$'\n'*})
+"
+        fi
+
+        if [ -n "$failures" ]; then
+            map_blocked=1
+            map_report="${map_report}  $svg:
+${failures}
+"
+        fi
+    done
+fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. Report & Exit
+# ═══════════════════════════════════════════════════════════════════════════════
+
+if [ $blocked -eq 0 ] && [ $map_blocked -eq 0 ]; then
+    exit 0
+fi
+
+echo "[pre-commit] Commit blocked."
+echo ""
+
+if [ $blocked -ne 0 ]; then
+    echo "── Incomplete Plans ──────────────────────────────────────────────"
+    echo ""
+    echo "The following plan(s) in $completed_dir/ have unchecked task boxes"
+    echo "(\"- [ ]\") beyond what is grandfathered in $baseline_file."
+    echo "Per the Completion Protocol, a plan may only be marked Completed once"
+    echo "every task box is checked (\"- [x]\")."
+    echo ""
+    printf '%s' "$report"
+    echo ""
+    echo "Fix: either check off the remaining tasks (reducing the count to at or"
+    echo "below the baseline), or move the plan back to setup/PLANS/New/ and"
+    echo "revert its Status header until it is truly done."
+    echo ""
+fi
+
+if [ $map_blocked -ne 0 ]; then
+    echo "── Map SVG Integrity ─────────────────────────────────────────────"
+    echo ""
+    echo "The following staged map SVG(s) failed structural checks and appear"
+    echo "to be machine-generated export artifacts rather than hand-drawn maps:"
+    echo ""
+    printf '%s' "$map_report"
+    echo "Hand-drawn maps must have:"
+    echo "  - at least 50 lines (typically 200+)"
+    echo "  - viewBox=\"0 0 1000 1000\""
+    echo "  - a <filter id=\"parchment-texture\"> element"
+    echo "  - no machine-generated clipPath hex IDs"
+    echo ""
+    echo "If you intended to replace a map SVG with a new hand-drawn version,"
+    echo "verify the file you staged is the correct hand-authored file, not an"
+    echo "export from a GIS tool or illustration app."
+    echo ""
+fi
+
+echo "To bypass in an emergency: git commit --no-verify"
+
+exit 1
