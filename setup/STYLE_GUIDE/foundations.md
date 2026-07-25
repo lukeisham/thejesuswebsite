@@ -130,6 +130,21 @@ Mobile-first: base styles target smallest screens; breakpoints add complexity up
 @media (min-width: 1536px) { }
 ```
 
+**Breakpoint tokens**: The canonical breakpoint values are defined as custom properties in
+`frontend/assets/css/base/variables.css` and should be referenced by name in all component
+CSS:
+
+- `--bp-sm`: 480px (large phones, landscape phones)
+- `--bp-md`: 768px (tablets portrait, sidebar in-flow)
+- `--bp-lg`: 1024px (tablets landscape, multi-column layouts)
+- `--bp-xl`: 1280px (desktops, max-width container)
+- `--bp-2xl`: 1536px (wide / high-res monitors)
+
+The `xs` / 360px breakpoint is a guideline-only reference (no actual media queries use it)
+and is not tokenised. Two additional undocumented values are used for specific responsive
+adjustments and are documented for reference as `--bp-md-max` (max-width: 767px) and
+`--bp-admin-sm` (max-width: 600px) in `variables.css`.
+
 **Key layout shifts**:
 - `< 768px`: single column, hamburger button visible, nav sidebar hidden off-canvas, cards full width
 - `768px–1023px`: 2-column cards, nav sidebar collapsed to icon-only rail, content takes remaining width

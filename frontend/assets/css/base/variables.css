@@ -96,6 +96,25 @@
     /* Sidebar */
     --sidebar-width: 260px;
 
+    /* -------------------------------------------------------------------------
+       Breakpoints
+       CSS custom properties cannot be used directly in @media query conditions
+       without @custom-media or a build step. These tokens document the canonical
+       values every component should reference. If a build step is added later,
+       these become the single source of truth for media-query thresholds.
+       ------------------------------------------------------------------------- */
+
+    --bp-sm: 480px;         /* large phones, landscape phones */
+    --bp-md: 768px;         /* tablets portrait, sidebar in-flow */
+    --bp-lg: 1024px;        /* tablets landscape, multi-column layouts */
+    --bp-xl: 1280px;        /* desktops, max-width container */
+    --bp-2xl: 1536px;       /* wide monitors, extra-wide layouts */
+
+    /* Undocumented breakpoints in active use (audit findings) */
+    --bp-sm-max: 480px;     /* max-width: 480px — specific component rules (2 instances) */
+    --bp-admin-sm: 600px;   /* max-width: 600px — admin responsive (10 instances) */
+    --bp-md-max: 767px;     /* max-width: 767px — mobile-tablet boundary (21 instances) */
+
     /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
