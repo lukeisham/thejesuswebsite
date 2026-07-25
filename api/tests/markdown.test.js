@@ -2,192 +2,18 @@
 // for headings, bold, italic, lists, tables, and paragraphs.
 // Uses node:test + node:assert.
 //
-// Since renderMarkdown lives in a frontend ES module (not require-able from
-// CommonJS), the function under test is reproduced inline here. Both copies
-// must stay in sync — any change to frontend/assets/js/utils/markdown.js
-// should be mirrored here.
-//
-// NOTE: this file is in api/tests/ because content-marker-payloads.test.js
-// already covers a frontend-shared util in the same directory, establishing
-// the convention.
+// The real renderMarkdown lives in a frontend ES module and is loaded
+// via dynamic import() so tests always run against the live implementation.
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
-
-// ── Markdown renderer (synced copy of frontend/assets/js/utils/markdown.js) ───
-
-function escapeHTML(str) {
-  if (typeof str !== "string") return "";
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}
-
-function escapePreservingMarkers(text) {
-  const markers = [];
-  const protected_ = text.replace(
-    /(\[(?:mla|id):\d+\]|\[figure[^\]]*\]|\[pullquote\][\s\S]*?\[\/pullquote\])/g,
-    (match) => {
-      markers.push(match);
-      return `\x00MARKER${markers.length - 1}\x00`;
-    },
-  );
-  const escaped = escapeHTML(protected_);
-  return escaped.replace(/\x00MARKER(\d+)\x00/g, (_, idx) => markers[parseInt(idx, 10)]);
-}
-
-function formatInline(line) {
-  let result = line.replace(/\*\*(.+?)\*\*/g, (_, text) => {
-    return `<strong>${escapePreservingMarkers(text)}</strong>`;
-  });
-  result = result.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, (_, text) => {
-    return `<em>${escapePreservingMarkers(text)}</em>`;
-  });
-  result = result.replace(/\\\\/g, "<br>");
-  return result;
-}
-
-function stripTrailingBreaks(html) {
-  return html.replace(/(<br>)+$/, "");
-}
-
-function renderMarkdown(text) {
-  if (typeof text !== "string") return "";
-
-  const lines = text.split("\n");
-  const output = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const rawLine = lines[i];
-    const trimmed = rawLine.trim();
-
-    if (trimmed === "") {
-      i++;
-      continue;
-    }
-
-    // Pipe table
-    if (trimmed.startsWith("|") && trimmed.endsWith("|") && (trimmed.match(/\|/g) || []).length >= 2) {
-      const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : "";
-      if (nextLine.startsWith("|") && /^\|[\s\-:|]+\|$/.test(nextLine)) {
-        const headerCells = trimmed.split("|").slice(1, -1).map((c) => c.trim());
-        const alignments = nextLine.split("|").slice(1, -1).map((c) => {
-          const cell = c.trim();
-          if (cell.startsWith(":") && cell.endsWith(":")) return "center";
-          if (cell.endsWith(":")) return "right";
-          return "left";
-        });
-        i += 2;
-        const bodyRows = [];
-        while (i < lines.length) {
-          const bodyLine = lines[i].trim();
-          if (bodyLine.startsWith("|") && bodyLine.endsWith("|")) {
-            const cells = bodyLine.split("|").slice(1, -1).map((c) => c.trim());
-            bodyRows.push(cells);
-            i++;
-          } else {
-            break;
-          }
-        }
-        let tableHtml = '<table class="content-table"><thead><tr>';
-        for (let ci = 0; ci < headerCells.length; ci++) {
-          const align = alignments[ci];
-          const style = align && align !== "left" ? ` style="text-align:${align}"` : "";
-          tableHtml += `<th${style}>${formatInline(escapePreservingMarkers(headerCells[ci]))}</th>`;
-        }
-        tableHtml += "</tr></thead><tbody>";
-        for (const row of bodyRows) {
-          tableHtml += "<tr>";
-          for (let ci = 0; ci < headerCells.length; ci++) {
-            const align = alignments[ci];
-            const style = align && align !== "left" ? ` style="text-align:${align}"` : "";
-            tableHtml += `<td${style}>${formatInline(escapePreservingMarkers(row[ci] || ""))}</td>`;
-          }
-          tableHtml += "</tr>";
-        }
-        tableHtml += "</tbody></table>";
-        output.push(tableHtml);
-        continue;
-      }
-    }
-
-    // Headings
-    if (trimmed.startsWith("### ")) {
-      output.push(`<h3>${formatInline(escapePreservingMarkers(trimmed.slice(4)))}</h3>`);
-      i++;
-      continue;
-    }
-    if (trimmed.startsWith("## ")) {
-      output.push(`<h2>${formatInline(escapePreservingMarkers(trimmed.slice(3)))}</h2>`);
-      i++;
-      continue;
-    }
-    if (trimmed.startsWith("# ")) {
-      output.push(`<h1>${formatInline(escapePreservingMarkers(trimmed.slice(2)))}</h1>`);
-      i++;
-      continue;
-    }
-
-    // Unordered list
-    if (/^[\-\*]\s/.test(trimmed)) {
-      output.push("<ul>");
-      while (i < lines.length && /^[\-\*]\s/.test(lines[i].trim())) {
-        const itemText = lines[i].trim().replace(/^[\-\*]\s+/, "");
-        output.push(`<li>${formatInline(escapePreservingMarkers(itemText))}</li>`);
-        i++;
-      }
-      output.push("</ul>");
-      continue;
-    }
-
-    // Ordered list
-    if (/^\d+\.\s/.test(trimmed)) {
-      output.push("<ol>");
-      while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
-        const itemText = lines[i].trim().replace(/^\d+\.\s+/, "");
-        output.push(`<li>${formatInline(escapePreservingMarkers(itemText))}</li>`);
-        i++;
-      }
-      output.push("</ol>");
-      continue;
-    }
-
-    // Paragraph
-    const paraLines = [];
-    while (i < lines.length && lines[i].trim() !== "") {
-      const line = lines[i].trim();
-      if (
-        line.startsWith("#") ||
-        /^[\-\*]\s/.test(line) ||
-        /^\d+\.\s/.test(line) ||
-        (line.startsWith("|") && line.endsWith("|"))
-      ) {
-        break;
-      }
-      paraLines.push(line);
-      i++;
-    }
-    if (paraLines.length > 0) {
-      const paraText = paraLines.join("\n");
-      const inner = stripTrailingBreaks(formatInline(escapePreservingMarkers(paraText)));
-      output.push(`<p>${inner}</p>`);
-    }
-  }
-
-  return output.join("\n");
-}
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe("renderMarkdown", () => {
 
-  test("headings — h1, h2, h3", () => {
+  test("headings — h1, h2, h3", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "# Top Heading\n\n## Section\n\n### Subsection\n\nSome text.";
     const result = renderMarkdown(input);
     assert.ok(result.includes("<h1>Top Heading</h1>"));
@@ -196,21 +22,24 @@ describe("renderMarkdown", () => {
     assert.ok(result.includes("<p>Some text.</p>"));
   });
 
-  test("bold and italic inline formatting", () => {
+  test("bold and italic inline formatting", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "This is **bold** and *italic* text.";
     const result = renderMarkdown(input);
     assert.ok(result.includes("<strong>bold</strong>"));
     assert.ok(result.includes("<em>italic</em>"));
   });
 
-  test("bold-italic nesting: **text with *italic* inside**", () => {
+  test("bold-italic nesting: **text with *italic* inside**", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "Outer **bold and *nested italic* here** end.";
     const result = renderMarkdown(input);
     assert.ok(result.includes("<strong>bold and"));
     assert.ok(result.includes("<em>nested italic</em>"));
   });
 
-  test("unordered list with dashes", () => {
+  test("unordered list with dashes", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "- First item\n- Second item\n- Third item";
     const result = renderMarkdown(input);
     assert.ok(result.includes("<ul>"));
@@ -220,7 +49,8 @@ describe("renderMarkdown", () => {
     assert.ok(result.includes("</ul>"));
   });
 
-  test("ordered list", () => {
+  test("ordered list", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "1. Alpha\n2. Beta\n3. Gamma";
     const result = renderMarkdown(input);
     assert.ok(result.includes("<ol>"));
@@ -230,7 +60,8 @@ describe("renderMarkdown", () => {
     assert.ok(result.includes("</ol>"));
   });
 
-  test("pipe table with header, separator, and body rows", () => {
+  test("pipe table with header, separator, and body rows", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "| Name | Age |\n|------|-----|\n| Alice | 30 |\n| Bob | 25 |";
     const result = renderMarkdown(input);
     assert.ok(result.includes('<table class="content-table">'));
@@ -244,7 +75,8 @@ describe("renderMarkdown", () => {
     assert.ok(result.includes("</table>"));
   });
 
-  test("pipe table with alignment — right-aligned column", () => {
+  test("pipe table with alignment — right-aligned column", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "| Item | Price |\n|------|------:|\n| Apple | 1.50 |";
     const result = renderMarkdown(input);
     // Verify right alignment is present on a table header cell
@@ -253,27 +85,31 @@ describe("renderMarkdown", () => {
     assert.ok(/<th[^>]*text-align:right/.test(result), `right alignment should be on a <th>, got: ${result}`);
   });
 
-  test("pipe table with center alignment still emits style on cells", () => {
+  test("pipe table with center alignment still emits style on cells", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "| A | B |\n|:---:|---:|\n| x | y |";
     const result = renderMarkdown(input);
     assert.ok(/<th[^>]*text-align:center/.test(result));
     assert.ok(/<th[^>]*text-align:right/.test(result));
   });
 
-  test("pipe table cell with long multi-word text is emitted verbatim (wrapping is CSS, not markup)", () => {
+  test("pipe table cell with long multi-word text is emitted verbatim (wrapping is CSS, not markup)", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const longText = "This is a very long sentence that should wrap inside the table cell instead of forcing the table wide";
     const input = `| Note |\n|------|\n| ${longText} |`;
     const result = renderMarkdown(input);
     assert.ok(result.includes(`<td>${longText}</td>`));
   });
 
-  test("paragraph with multiple lines", () => {
+  test("paragraph with multiple lines", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "Line one.\nLine two.\nLine three.";
     const result = renderMarkdown(input);
     assert.ok(result.includes("<p>Line one.\nLine two.\nLine three.</p>"));
   });
 
-  test("shortcode markers pass through untouched", () => {
+  test("shortcode markers pass through untouched", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = 'See [mla:1] for details and [figure src="/img.webp" caption="A caption"] here.';
     const result = renderMarkdown(input);
     assert.ok(result.includes("[mla:1]"));
@@ -282,7 +118,8 @@ describe("renderMarkdown", () => {
     assert.ok(result.startsWith("<p>"));
   });
 
-  test("HTML special characters are escaped", () => {
+  test("HTML special characters are escaped", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "Use <div> tags and & entities carefully.";
     const result = renderMarkdown(input);
     assert.ok(result.includes("&lt;div&gt;"));
@@ -290,18 +127,21 @@ describe("renderMarkdown", () => {
     assert.ok(!result.includes("<div>"));
   });
 
-  test("pullquote shortcode passes through", () => {
+  test("pullquote shortcode passes through", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "[pullquote]A memorable quote[/pullquote]";
     const result = renderMarkdown(input);
     assert.ok(result.includes("[pullquote]"));
     assert.ok(result.includes("[/pullquote]"));
   });
 
-  test("empty string returns empty string", () => {
+  test("empty string returns empty string", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     assert.equal(renderMarkdown(""), "");
   });
 
-  test("non-string returns empty string", () => {
+  test("non-string returns empty string", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     assert.equal(renderMarkdown(null), "");
     assert.equal(renderMarkdown(undefined), "");
     assert.equal(renderMarkdown(123), "");
@@ -310,43 +150,50 @@ describe("renderMarkdown", () => {
 
 describe("renderMarkdown: paragraph break (\\\\)", () => {
 
-  test("\\\\ mid-paragraph produces <br>", () => {
+  test("\\\\ mid-paragraph produces <br>", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "First line\\\\\nSecond line";
     const result = renderMarkdown(input);
     assert.ok(result.includes("First line<br>\nSecond line"), result);
   });
 
-  test("\\\\ inside a list item produces <br>", () => {
+  test("\\\\ inside a list item produces <br>", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "- First item\\\\continued";
     const result = renderMarkdown(input);
     assert.ok(result.includes("<li>First item<br>continued</li>"), result);
   });
 
-  test("\\\\ inside a table cell produces <br>", () => {
+  test("\\\\ inside a table cell produces <br>", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "| Note |\n|------|\n| Line one\\\\line two |";
     const result = renderMarkdown(input);
     assert.ok(result.includes("<td>Line one<br>line two</td>"), result);
   });
 
-  test("two consecutive \\\\ \\\\ produce two <br>s", () => {
+  test("two consecutive \\\\ \\\\ produce two <br>s", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "First\\\\\\\\\nSecond";
     const result = renderMarkdown(input);
     assert.ok(result.includes("First<br><br>\nSecond"), result);
   });
 
-  test("trailing \\\\ at the end of a paragraph does not leave a stray <br></p>", () => {
+  test("trailing \\\\ at the end of a paragraph does not leave a stray <br></p>", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "Only line\\\\";
     const result = renderMarkdown(input);
     assert.equal(result, "<p>Only line</p>");
   });
 
-  test("a single backslash renders literally", () => {
+  test("a single backslash renders literally", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "Path is C:\\Users\\test";
     const result = renderMarkdown(input);
     assert.ok(result.includes("C:\\Users\\test"), result);
   });
 
-  test("**bold**\\\\ still emits <strong> plus <br> (ordering regression)", () => {
+  test("**bold**\\\\ still emits <strong> plus <br> (ordering regression)", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "**bold**\\\\\nnext line";
     const result = renderMarkdown(input);
     assert.ok(result.includes("<strong>bold</strong><br>\nnext line"), result);
