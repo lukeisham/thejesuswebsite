@@ -9,3 +9,11 @@ This project includes an MCP (Model Context Protocol) server that exposes record
 **Hosted endpoint:** `https://www.thejesuswebsite.org/mcp`
 
 See [mcp-server/README.md](mcp-server/README.md) for setup and usage.
+
+## Development setup
+
+After cloning, run once to activate pre-commit hooks (incomplete-plans check, map SVG integrity):
+
+```sh
+sh tools/setup.sh
+```
