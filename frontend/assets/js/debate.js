@@ -188,7 +188,7 @@ function renderChallengeCards(items) {
         <span class="challenge-rank-number">${rank}</span>
         <div class="challenge-rank-content">
           <a class="challenge-rank-title" href="${detailUrl}">${item.title || 'Untitled'}</a>
-          ${item.summary ? html`<p class="challenge-rank-summary">${raw(renderMarkdown(item.summary))}</p>` : ''}
+          ${item.summary ? html`<div class="challenge-rank-summary">${raw(renderMarkdown(item.summary))}</div>` : ''}
         </div>
       </div>
       <div class="challenge-rank-footer">
