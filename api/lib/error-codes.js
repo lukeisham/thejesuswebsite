@@ -353,6 +353,15 @@ const CATEGORY_1 = {
     detail: "The list_key value did not match any of the known resource lists.",
     severity: "error",
   },
+
+  INVALID_RESOURCE_ITEM_TYPE: {
+    code: "E-INPUT-036",
+    category: 1,
+    httpStatus: 400,
+    message: "The resource item type is not recognised.",
+    detail: "The item_type value must be either 'item' or 'subheading'.",
+    severity: "error",
+  },
 };
 
 // ── Category 2: Transformation Boundaries (Data Processing) ─────────────────

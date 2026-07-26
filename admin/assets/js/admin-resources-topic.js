@@ -95,6 +95,13 @@
     addBtn.textContent = "+ Add Item";
     addBtn.id = "btn-add-item";
     header.appendChild(addBtn);
+
+    const addSubheadingBtn = document.createElement("button");
+    addSubheadingBtn.type = "button";
+    addSubheadingBtn.className = "admin-btn admin-btn--sm admin-btn--secondary";
+    addSubheadingBtn.textContent = "+ Add Subheading";
+    addSubheadingBtn.id = "btn-add-subheading";
+    header.appendChild(addSubheadingBtn);
     main.appendChild(header);
 
     const statusBar = document.createElement("div");
@@ -165,11 +172,30 @@
       resources.push({
         id: "new_" + Date.now(),
         list_key: currentListKey,
+        item_type: "item",
         resource_title: "",
         resource_url: "",
         resource_description: "",
         sort_order: resources.length,
         published_draft: 0,
+        _isNew: true,
+      });
+      isDirty = true;
+      render();
+    });
+
+    document.getElementById("btn-add-subheading").addEventListener("click", function () {
+      // Subheadings are created published (JS-2: an unpublished heading would
+      // silently swallow its section's grouping on the public page).
+      resources.push({
+        id: "new_" + Date.now(),
+        list_key: currentListKey,
+        item_type: "subheading",
+        resource_title: "",
+        resource_url: "",
+        resource_description: "",
+        sort_order: resources.length,
+        published_draft: 1,
         _isNew: true,
       });
       isDirty = true;
@@ -293,9 +319,10 @@
         const r = resources[i];
         const payload = {
           list_key: r.list_key,
+          item_type: r.item_type || "item",
           resource_title: r.resource_title || "Untitled",
-          resource_url: r.resource_url || undefined,
-          resource_description: r.resource_description || undefined,
+          resource_url: r.item_type === "subheading" ? undefined : r.resource_url || undefined,
+          resource_description: r.item_type === "subheading" ? undefined : r.resource_description || undefined,
           sort_order: r.sort_order,
           published_draft: r.published_draft,
         };
@@ -330,8 +357,10 @@
   }
 
   function buildRow(r) {
+    const isSubheading = r.item_type === "subheading";
+
     const row = document.createElement("div");
-    row.className = "draggable-row";
+    row.className = "draggable-row " + (isSubheading ? "draggable-row--subheading" : "draggable-row--item");
     row.dataset.id = r.id;
     row.setAttribute("role", "listitem");
 
@@ -350,25 +379,29 @@
     titleInput.type = "text";
     titleInput.className = "admin-input res-title";
     titleInput.value = r.resource_title || "";
-    titleInput.placeholder = "Title";
-    titleInput.setAttribute("aria-label", "Resource title");
+    titleInput.placeholder = isSubheading ? "Subheading" : "Title";
+    titleInput.setAttribute("aria-label", isSubheading ? "Subheading text" : "Resource title");
     fields.appendChild(titleInput);
 
-    const urlInput = document.createElement("input");
-    urlInput.type = "url";
-    urlInput.className = "admin-input res-url";
-    urlInput.value = r.resource_url || "";
-    urlInput.placeholder = "URL (optional)";
-    urlInput.setAttribute("aria-label", "Resource URL");
-    fields.appendChild(urlInput);
+    let urlInput = null;
+    let descInput = null;
+    if (!isSubheading) {
+      urlInput = document.createElement("input");
+      urlInput.type = "url";
+      urlInput.className = "admin-input res-url";
+      urlInput.value = r.resource_url || "";
+      urlInput.placeholder = "URL (optional)";
+      urlInput.setAttribute("aria-label", "Resource URL");
+      fields.appendChild(urlInput);
 
-    const descInput = document.createElement("input");
-    descInput.type = "text";
-    descInput.className = "admin-input res-desc";
-    descInput.value = r.resource_description || "";
-    descInput.placeholder = "Description (optional)";
-    descInput.setAttribute("aria-label", "Resource description");
-    fields.appendChild(descInput);
+      descInput = document.createElement("input");
+      descInput.type = "text";
+      descInput.className = "admin-input res-desc";
+      descInput.value = r.resource_description || "";
+      descInput.placeholder = "Description (optional)";
+      descInput.setAttribute("aria-label", "Resource description");
+      fields.appendChild(descInput);
+    }
 
     row.appendChild(fields);
 
@@ -408,6 +441,7 @@
     row.appendChild(actions);
 
     [titleInput, urlInput, descInput].forEach(function (inp) {
+      if (!inp) return;
       inp.addEventListener("input", function () { isDirty = true; });
     });
 

@@ -15,6 +15,11 @@ function isInvalidListKeyError(error) {
   return error && error.code === ERRORS.INVALID_LIST_KEY.code;
 }
 
+// Same mapping for an invalid item_type ('item'/'subheading' only).
+function isInvalidItemTypeError(error) {
+  return error && error.code === ERRORS.INVALID_RESOURCE_ITEM_TYPE.code;
+}
+
 // GET /resources — published resources, optionally narrowed to one list
 // e.g. /resources?list_key=sermons-and-sayings
 router.get("/", (req, res) => {
@@ -70,6 +75,9 @@ router.post("/", requireAuth, (req, res) => {
     if (isInvalidListKeyError(error)) {
       return sendValidationError(res, "list_key", ERRORS.INVALID_LIST_KEY);
     }
+    if (isInvalidItemTypeError(error)) {
+      return sendValidationError(res, "item_type", ERRORS.INVALID_RESOURCE_ITEM_TYPE);
+    }
     console.error("POST /resources failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
@@ -88,6 +96,9 @@ router.put("/:id", requireAuth, (req, res) => {
   } catch (error) {
     if (isInvalidListKeyError(error)) {
       return sendValidationError(res, "list_key", ERRORS.INVALID_LIST_KEY);
+    }
+    if (isInvalidItemTypeError(error)) {
+      return sendValidationError(res, "item_type", ERRORS.INVALID_RESOURCE_ITEM_TYPE);
     }
     console.error("PUT /resources/:id failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);

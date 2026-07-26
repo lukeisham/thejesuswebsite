@@ -34,7 +34,10 @@ const WRITABLE_COLUMNS = [
     'sort_order',
     'published_draft',
     'in_holding_pen',
+    'item_type',
 ];
+
+const VALID_ITEM_TYPES = ['item', 'subheading'];
 
 /**
  * Get all resources for a specific list, ordered by sort_order.
@@ -90,7 +93,7 @@ function getAllPublishedByListKey() {
             COUNT(*) AS count,
             GROUP_CONCAT(id) AS resource_ids
         FROM resources
-        WHERE published_draft = 1 AND in_holding_pen = 0
+        WHERE published_draft = 1 AND in_holding_pen = 0 AND item_type = 'item'
         GROUP BY list_key
         ORDER BY list_key
     `;
@@ -106,6 +109,12 @@ function create(data) {
     if (!VALID_LIST_KEYS.includes(row.list_key)) {
         const err = new Error(`Invalid list_key: ${row.list_key}`);
         err.code = ERRORS.INVALID_LIST_KEY.code;
+        throw err;
+    }
+
+    if (row.item_type !== undefined && !VALID_ITEM_TYPES.includes(row.item_type)) {
+        const err = new Error(`Invalid item_type: ${row.item_type}`);
+        err.code = ERRORS.INVALID_RESOURCE_ITEM_TYPE.code;
         throw err;
     }
 
@@ -131,6 +140,12 @@ function update(id, data) {
     if (row.list_key !== undefined && !VALID_LIST_KEYS.includes(row.list_key)) {
         const err = new Error(`Invalid list_key: ${row.list_key}`);
         err.code = ERRORS.INVALID_LIST_KEY.code;
+        throw err;
+    }
+
+    if (row.item_type !== undefined && !VALID_ITEM_TYPES.includes(row.item_type)) {
+        const err = new Error(`Invalid item_type: ${row.item_type}`);
+        err.code = ERRORS.INVALID_RESOURCE_ITEM_TYPE.code;
         throw err;
     }
 

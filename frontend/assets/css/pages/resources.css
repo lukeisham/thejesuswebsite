@@ -20,39 +20,21 @@
 }
 
 /* -------------------------------------------------------------------------
-   Category Navigation (horizontal chip links)
+   Resource Sections
+   One <section> per subheading (plus a leading, unlabelled section for
+   items before the first heading). Numbering restarts inside each <ol>.
    ------------------------------------------------------------------------- */
 
-.resources-categories {
-  display: flex;
-  gap: var(--space-xs);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-lg);
+.resources-section + .resources-section {
+  margin-top: var(--space-2xl);
 }
 
-.resources-category-link {
-  padding: 0.375rem 0.75rem;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  text-decoration: none;
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
-  background: transparent;
-}
-
-.resources-category-link:hover {
-  background: var(--bg-surface-alt);
-  text-decoration: none;
-}
-
-.resources-category-link.active {
-  background: var(--bg-surface-alt);
-  border-color: var(--accent);
-  color: var(--accent);
+.resource-subheading {
+  max-width: var(--measure-list);
+  margin: 0 auto var(--space-sm);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 /* -------------------------------------------------------------------------
