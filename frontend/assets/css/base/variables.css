@@ -96,6 +96,11 @@
     /* Sidebar */
     --sidebar-width: 260px;
 
+    /* Figure standard box (Evidence module — see Style Guide §8) */
+    --figure-standard-width: 720px;
+    --figure-standard-height: 480px;
+    --figure-mobile-max-height: 70vh;
+
     /* -------------------------------------------------------------------------
        Breakpoints
        CSS custom properties cannot be used directly in @media query conditions

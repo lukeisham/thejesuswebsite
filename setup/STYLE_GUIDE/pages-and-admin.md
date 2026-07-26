@@ -57,6 +57,7 @@ _Part of the [Style Guide](INDEX.md) — §10–13: UX patterns, accessibility &
 - Optimize images (WebP where possible)
 - Inline critical CSS only when necessary for above-the-fold content (HTML-4)
 - No external font requests — system font stacks only
+- **Upload standardisation**: every image accepted through `POST /uploads` (the single upload boundary for evidence, blog, news and challenge content) is standardised server-side to a `1440 × 960` bounding box — 2× the §8 standard figure display box, so it stays sharp on retina displays without storing camera-resolution originals. EXIF rotation is baked in (`.rotate()` before resize) so a phone portrait is never stored sideways. Smaller originals are never upscaled (`withoutEnlargement`) — they render slightly soft at display size rather than gaining invented pixels. GIFs are excepted (re-encoding would drop animation) and pass through untouched. A one-off backfill script (`npm run standardize-uploads`, dry-run by default) exists for images uploaded before this standardisation landed.
 
 **Content Structure**:
 - Use schema.org markup where relevant (Article, Event, etc.)

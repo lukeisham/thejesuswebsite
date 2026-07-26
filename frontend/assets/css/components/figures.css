@@ -73,3 +73,50 @@ figure.figure-full img {
     margin-bottom: var(--space-md);
   }
 }
+
+/* -------------------------------------------------------------------------
+   Standard figure box (Evidence module — Style Guide §8)
+   A predictable 720 × 480 display box, orientation-aware: landscape fills
+   the width, portrait is height-bound and comes out narrower. The width/
+   max-height pair alone is the orientation check (a portrait's width is
+   recomputed from its intrinsic ratio per CSS 2.1 §10.4) — correct before
+   any JS runs. figure-orientation.js stamps figure--portrait/--landscape
+   on top for the mobile rule and centring below.
+
+   Mutually exclusive with the side-float/breakout classes above
+   (.figure-align-left/-right, .figure-breakout-left/-right) — a figure is
+   either a standard box or a floated aside, never both.
+   ------------------------------------------------------------------------- */
+
+figure.figure-standard {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.figure-standard img {
+  width: min(100%, var(--figure-standard-width));
+  height: auto;
+  max-height: var(--figure-standard-height);
+}
+
+.figure-standard.figure--portrait img {
+  max-height: var(--figure-standard-height);
+}
+
+.figure-standard.figure--landscape img {
+  width: min(100%, var(--figure-standard-width));
+}
+
+@media (max-width: 767px) {
+  .figure-standard img {
+    width: 100%;
+    max-height: none;
+  }
+
+  .figure-standard.figure--portrait img,
+  .figure-standard.figure--square img {
+    width: auto;
+    max-height: var(--figure-mobile-max-height);
+  }
+}

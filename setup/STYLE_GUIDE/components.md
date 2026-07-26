@@ -32,6 +32,18 @@ _Part of the [Style Guide](INDEX.md) — §8: core components._
 - **Infinite scroll**: figure numbering must re-run after each new batch of content is inserted into the DOM — call the numbering function from the infinite scroll callback, not just on initial page load
 - **Print**: border removed, `9pt` italic, inline at full width — consistent with the academic paper print rules in §12
 
+#### Standard figure box (`.figure-standard`)
+A predictable display box for a figure's rendered size, currently opted into by the Evidence module only (see §9):
+
+- **Tokens**: `--figure-standard-width: 720px`, `--figure-standard-height: 480px`, `--figure-mobile-max-height: 70vh` (`variables.css`)
+- **The box**: `720 × 480` maximum. A 3:2 landscape lands exactly on `720 × 480`; a 2:3 portrait is height-bound and lands on `320 × 480` — both orientations occupy a similar vertical footprint rather than one towering over the other.
+- **How orientation is resolved without JS**: the CSS pair `width: min(100%, 720px)` + `max-height: 480px` on an `height: auto` image *is* the orientation check. Per CSS 2.1 §10.4's min/max constraint table, a portrait image that would violate `max-height` has its width recomputed from the intrinsic ratio rather than squashed — so landscape and portrait both size correctly before any JS runs, or if JS fails entirely (progressive enhancement, JS-2).
+- **Explicit orientation classes**: `figure-orientation.js`'s `applyFigureOrientation()` reads the loaded image's `naturalWidth`/`naturalHeight` and stamps `figure--landscape` / `figure--portrait` / `figure--square` on the parent `<figure>`. A square image counts as portrait for sizing (at `720px` wide it would be `720px` tall, violating the height cap, so it is height-bound like a portrait). This class is what the mobile rule below hooks onto.
+- **Mobile** (`≤767px`): the `720px` width cap is irrelevant once the column itself is narrower, so portraits (and squares) instead get the `--figure-mobile-max-height: 70vh` viewport-relative cap — a tall picture can never fill an entire phone screen.
+- **Mutually exclusive with side-floats**: `.figure-standard` and the breakout/align float classes (`.figure-align-left/-right`, `.figure-breakout-left/-right`) are never combined on the same `<figure>` — a figure is either a standard box or a floated aside, never both.
+- **Print**: the standard box is screen-only. Print output uses `width: auto; max-width: 100%; max-height: none` so paged figures are unconstrained by the display box (print.css loads before figures.css, so this rule must target `.figure-standard img` specifically — an unqualified `img` rule would lose the cascade, see Issues.md #108).
+- **Upload standard**: see §12 — every image accepted through `/uploads` is standardised server-side to a `1440 × 960` bounding box (2× the display box, for retina sharpness) before it ever reaches this component.
+
 ### News & Blog Row Layout
 The landing page and both endless-feed pages (News, Blog) share a consistent horizontal row layout. Each row is an `<a>` link containing an 80×80px thumbnail on the left and a text body on the right.
 

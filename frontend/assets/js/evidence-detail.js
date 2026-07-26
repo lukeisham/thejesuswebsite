@@ -11,6 +11,7 @@ import { setSEO } from "./seo.js";
 import { html } from "./utils/templates.js";
 import { formatDate, formatVerse } from "./utils/format.js";
 import { numberFigures } from "./utils/figures.js";
+import { applyFigureOrientation } from "./utils/figure-orientation.js";
 import { showToast } from "./utils/toasts.js";
 import { formatMlaCitation } from "./utils/mla.js";
 import {
@@ -129,8 +130,10 @@ function renderDescription(item) {
       mlaSources: item.mla_sources || [],
       identifiers: item.identifiers || [],
       citationStyle: "superscript",
+      standardFigures: true,
     });
     numberFigures($desc);
+    applyFigureOrientation($desc);
   }
 }
 
@@ -159,7 +162,7 @@ function renderPictures(description, primaryImage, primaryImageAlt, primaryImage
   // must not be conflated going forward.
   const primaryCaption = primaryImageCaption || primaryImageAlt || "";
   const primaryHTML = primaryImage
-    ? `<figure>
+    ? `<figure class="figure-standard">
         <img src="${html`${primaryImage}`}" alt="${html`${primaryImageAlt || ""}`}" loading="lazy" />
         ${primaryCaption ? `<figcaption>${html`${primaryCaption}`}</figcaption>` : ""}
       </figure>`
@@ -168,7 +171,13 @@ function renderPictures(description, primaryImage, primaryImageAlt, primaryImage
   const itemsHTML = figures
     .map((fig) => {
       const alt = fig.caption ? html`${fig.caption}` : "";
-      return `<figure>
+      const figClass =
+        fig.align === "left"
+          ? "figure-align-left"
+          : fig.align === "right"
+            ? "figure-align-right"
+            : "figure-standard";
+      return `<figure class="${figClass}">
         <img src="${html`${fig.src}`}" alt="${alt}" loading="lazy" />
         ${fig.caption ? `<figcaption>${html`${fig.caption}`}</figcaption>` : ""}
       </figure>`;
@@ -177,6 +186,7 @@ function renderPictures(description, primaryImage, primaryImageAlt, primaryImage
 
   $pictures.innerHTML = primaryHTML + itemsHTML;
   numberFigures($pictures);
+  applyFigureOrientation($pictures);
 
   // Strip [figure] shortcodes from the description so renderDescription only
   // processes prose + inline markers (mla/id).

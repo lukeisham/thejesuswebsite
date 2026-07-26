@@ -56,6 +56,7 @@ Pipe tables (`| A | B |`) are available in any body content rendered through `re
 - Sections in order: Description, Timeline Context, Pictures, Sources
 - **Page info row**: a full-width row above the footer containing metadata panels — related evidence, identifiers, map location, timeline period, categories. Uses a multi-column horizontal layout on desktop, stacked on mobile. Background: `--bg-surface-alt`, top border: `1px solid var(--border)`, padding: `var(--space-xl) var(--space-lg)`.
 - Arbor diagram rendered inline within the content column where relevant
+- **Pictures**: both the dedicated Pictures-section figures (primary image + non-aligned `[figure]` shortcodes) and non-aligned inline `[figure]` shortcodes within the Description use the §8 standard figure box (`.figure-standard`), centred within the `1280px` content column. Aligned figures (`align="left"`/`"right"`) keep their side-float behaviour instead and never receive the standard box. This module is currently the only content type opted into the standard box (see §8) — essays, responses, historiography, blog and challenge bodies share the same `[figure]` parser but render at their default (unboxed) size.
 
 **Contextual Essays (Journal Article Format)**:
 Essays render as professional peer-reviewed journal articles. Every essay page uses `<article>` as its root element (HTML-1) with `schema.org/ScholarlyArticle` markup for SEO and structured data (see §11).
