@@ -5,6 +5,7 @@
  */
 
 import { getEvidenceBySlug } from "./api.js";
+import { enhanceEsvVerses } from "./esv_verse.js";
 import { getSegment } from "./utils/router.js";
 import { setSEO } from "./seo.js";
 import { html } from "./utils/templates.js";
@@ -105,12 +106,13 @@ function renderHero(item) {
   if ($verse && item.primary_verse) {
     const verseText = formatVerse(item.primary_verse);
     $verse.innerHTML = html`
-      <p>${verseText}</p>
+      <p data-esv-ref="${verseText}">${verseText}</p>
       ${item.secondary_verse
-        ? html`<p>${formatVerse(item.secondary_verse)}</p>`
+        ? html`<p data-esv-ref="${formatVerse(item.secondary_verse)}">${formatVerse(item.secondary_verse)}</p>`
         : ""}
     `;
     $verse.hidden = false;
+    enhanceEsvVerses($verse);
   } else if ($verse) {
     $verse.hidden = true;
   }

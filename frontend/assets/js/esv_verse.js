@@ -16,8 +16,18 @@ async function enhanceVerse(el) {
   el.textContent = data.text.replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Enhance every `[data-esv-ref]` element within `root` (defaults to the
+ * whole document). Exported so pages that render verse markup dynamically
+ * (after `DOMContentLoaded` has already fired) can re-trigger enhancement
+ * for the elements they just inserted.
+ */
+export function enhanceEsvVerses(root = document) {
+  root.querySelectorAll('[data-esv-ref]').forEach(enhanceVerse);
+}
+
 function init() {
-  document.querySelectorAll('[data-esv-ref]').forEach(enhanceVerse);
+  enhanceEsvVerses(document);
 }
 
 if (document.readyState === 'loading') {
