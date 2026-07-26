@@ -77,11 +77,17 @@ figure.figure-full img {
 /* -------------------------------------------------------------------------
    Standard figure box (Evidence module — Style Guide §8)
    A predictable 720 × 480 display box, orientation-aware: landscape fills
-   the width, portrait is height-bound and comes out narrower. The width/
-   max-height pair alone is the orientation check (a portrait's width is
-   recomputed from its intrinsic ratio per CSS 2.1 §10.4) — correct before
-   any JS runs. figure-orientation.js stamps figure--portrait/--landscape
-   on top for the mobile rule and centring below.
+   the width, portrait is height-bound and comes out narrower. `width: auto`
+   + `max-width` together with `height: auto` + `max-height` is the
+   orientation check — with BOTH dimensions auto, the browser picks
+   whichever cap is binding and derives the other from the intrinsic ratio
+   (CSS 2.1 §10.4/§10.6.4), so it never distorts the image. (A definite
+   `width` alongside `max-height` does NOT do this — the used height gets
+   clipped to the cap while width stays fixed, stretching the image via the
+   default `object-fit: fill`. Verified live on a real portrait upload
+   during this plan's Tier 3 check.) Correct before any JS runs.
+   figure-orientation.js stamps figure--portrait/--landscape/--square on
+   top so the mobile rule below can target orientation directly.
 
    Mutually exclusive with the side-float/breakout classes above
    (.figure-align-left/-right, .figure-breakout-left/-right) — a figure is
@@ -95,28 +101,20 @@ figure.figure-standard {
 }
 
 .figure-standard img {
-  width: min(100%, var(--figure-standard-width));
+  width: auto;
+  max-width: min(100%, var(--figure-standard-width));
   height: auto;
   max-height: var(--figure-standard-height);
 }
 
-.figure-standard.figure--portrait img {
-  max-height: var(--figure-standard-height);
-}
-
-.figure-standard.figure--landscape img {
-  width: min(100%, var(--figure-standard-width));
-}
-
 @media (max-width: 767px) {
   .figure-standard img {
-    width: 100%;
+    max-width: 100%;
     max-height: none;
   }
 
   .figure-standard.figure--portrait img,
   .figure-standard.figure--square img {
-    width: auto;
     max-height: var(--figure-mobile-max-height);
   }
 }
