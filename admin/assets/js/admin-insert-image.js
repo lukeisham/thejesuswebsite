@@ -9,9 +9,13 @@
 // AdminFigureShortcodes.buildFigureShortcode is available (SR-4 — the
 // shortcode grammar lives in one module, never a second copy here).
 
-window.AdminInsertImage = {};
+// Runs as a classic script in the browser (window is the global) and via
+// node --test under CommonJS (no window) — fall back to `global` there.
+var globalScope = typeof window !== "undefined" ? window : global;
 
-var AdminInsertImage = window.AdminInsertImage;
+globalScope.AdminInsertImage = {};
+
+var AdminInsertImage = globalScope.AdminInsertImage;
 
 /**
  * Insert text at a cursor position, replacing any selection.
@@ -24,6 +28,12 @@ var AdminInsertImage = window.AdminInsertImage;
  * @returns {{ text: string, cursorPos: number }}
  */
 function insertAtCursor(text, insertion, selectionStart, selectionEnd) {
+  var before = text.slice(0, selectionStart);
+  var after = text.slice(selectionEnd);
+  var newText = before + insertion + after;
+  var cursorPos = (before + insertion).length;
+  return { text: newText, cursorPos: cursorPos };
+}
   var before = text.slice(0, selectionStart);
   var after = text.slice(selectionEnd);
   var newText = before + insertion + after;
@@ -176,3 +186,9 @@ AdminInsertImage.wire = function (buttonSelector, textareaSelector) {
     }
   });
 };
+
+// CommonJS export for Node.js test runner (JS-2 — test the real module).
+// The guard prevents errors in the browser where `module` is not defined.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { insertAtCursor: insertAtCursor };
+}

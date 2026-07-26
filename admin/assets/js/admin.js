@@ -5,8 +5,12 @@
 // Raw fetch stays here (JS-5); pages import just this module and call the
 // friendly wrappers.
 
-window.Admin = {};
-const Admin = window.Admin;
+// Runs as a classic script in the browser (window is the global) and via
+// node --test under CommonJS (no window) — fall back to `global` there.
+var globalScope = typeof window !== "undefined" ? window : global;
+
+globalScope.Admin = {};
+var Admin = globalScope.Admin;
 
 /* ─────────────────────────────────────────────────────────────────────────────
    API helpers
@@ -270,6 +274,9 @@ Admin.getAllChallenges = async function () {
   return mergeChallenges(popularItems, academicItems);
 };
 
+// Expose the pure mergeChallenges helper for tests (JS-2).
+Admin.mergeChallenges = mergeChallenges;
+
 /* ─────────────────────────────────────────────────────────────────────────────
    Image upload helper
    ───────────────────────────────────────────────────────────────────────────── */
@@ -315,3 +322,9 @@ Admin.uploadImage = async function (file) {
 
   return Admin.api.post("/uploads", { filename: file.name, data: data });
 };
+
+// CommonJS export for Node.js test runner (JS-2 — test the real module).
+// The guard prevents errors in the browser where `module` is not defined.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = Admin;
+}

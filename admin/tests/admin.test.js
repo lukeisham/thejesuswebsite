@@ -4,24 +4,15 @@
 
 const test = require("node:test");
 const assert = require("node:assert");
+const Admin = require("../assets/js/admin.js");
+const AdminAnalytics = require("../assets/js/analytics.js");
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Replicated pure helpers (these mirror the browser globals but run in Node)
+   DOM-creating helpers (kept copy-pasted — the real Admin.statusBadge() and
+   Admin.typeBadge() return HTMLSpanElement instances via document.createElement,
+   which is not available in Node. These simplified versions return plain objects
+   with the same shape for test assertions.
    ───────────────────────────────────────────────────────────────────────────── */
-
-function formatNumber(n) {
-  return Number(n).toLocaleString();
-}
-
-function formatDate(isoString) {
-  if (!isoString) return "\u2014";
-  const d = new Date(isoString);
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 function statusBadge(publishedDraft) {
   return {
@@ -39,34 +30,19 @@ function typeBadge(type) {
   };
 }
 
-function computeSparkline(values, width, height) {
-  if (!values || values.length === 0) return "";
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
-  const range = max - min || 1;
-  const stepX = width / (values.length - 1 || 1);
-  return values
-    .map(function (v, i) {
-      const x = (i * stepX).toFixed(1);
-      const y = (height - ((v - min) / range) * height).toFixed(1);
-      return x + "," + y;
-    })
-    .join(" ");
-}
-
 /* ─────────────────────────────────────────────────────────────────────────────
    Admin.formatNumber
    ───────────────────────────────────────────────────────────────────────────── */
 
 test("Admin.formatNumber formats with commas", function () {
-  assert.strictEqual(formatNumber(12345), "12,345");
-  assert.strictEqual(formatNumber(1000000), "1,000,000");
-  assert.strictEqual(formatNumber(0), "0");
-  assert.strictEqual(formatNumber(42), "42");
+  assert.strictEqual(Admin.formatNumber(12345), "12,345");
+  assert.strictEqual(Admin.formatNumber(1000000), "1,000,000");
+  assert.strictEqual(Admin.formatNumber(0), "0");
+  assert.strictEqual(Admin.formatNumber(42), "42");
 });
 
 test("Admin.formatNumber handles string input", function () {
-  assert.strictEqual(formatNumber("9876"), "9,876");
+  assert.strictEqual(Admin.formatNumber("9876"), "9,876");
 });
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -74,7 +50,7 @@ test("Admin.formatNumber handles string input", function () {
    ───────────────────────────────────────────────────────────────────────────── */
 
 test("Admin.formatDate returns readable date with year", function () {
-  const result = formatDate("2024-06-15T00:00:00Z");
+  const result = Admin.formatDate("2024-06-15T00:00:00Z");
   assert.ok(typeof result === "string");
   assert.ok(result.length > 0);
   assert.ok(
@@ -84,15 +60,15 @@ test("Admin.formatDate returns readable date with year", function () {
 });
 
 test("Admin.formatDate handles another date", function () {
-  const result = formatDate("2025-01-01T12:00:00Z");
+  const result = Admin.formatDate("2025-01-01T12:00:00Z");
   assert.ok(result.includes("2025"));
   assert.ok(result.includes("Jan"));
 });
 
 test("Admin.formatDate returns em-dash for null/undefined/empty", function () {
-  assert.strictEqual(formatDate(null), "\u2014");
-  assert.strictEqual(formatDate(undefined), "\u2014");
-  assert.strictEqual(formatDate(""), "\u2014");
+  assert.strictEqual(Admin.formatDate(null), "\u2014");
+  assert.strictEqual(Admin.formatDate(undefined), "\u2014");
+  assert.strictEqual(Admin.formatDate(""), "\u2014");
 });
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -149,24 +125,24 @@ test("Admin.typeBadge builds type badge with correct class and text", function (
    ───────────────────────────────────────────────────────────────────────────── */
 
 test("computeSparkline returns polyline points string", function () {
-  const points = computeSparkline([10, 20, 15, 30, 25], 100, 20);
+  const points = AdminAnalytics.computeSparkline([10, 20, 15, 30, 25], 100, 20);
   assert.ok(typeof points === "string");
   assert.ok(points.length > 0);
   assert.ok(points.includes(","), "Expected commas in point pairs");
 });
 
 test("computeSparkline with single value returns one point at origin x", function () {
-  const points = computeSparkline([5], 100, 20);
+  const points = AdminAnalytics.computeSparkline([5], 100, 20);
   assert.strictEqual(points, "0.0,0.0");
 });
 
 test("computeSparkline with empty array returns empty string", function () {
-  assert.strictEqual(computeSparkline([], 100, 20), "");
-  assert.strictEqual(computeSparkline(null, 100, 20), "");
+  assert.strictEqual(AdminAnalytics.computeSparkline([], 100, 20), "");
+  assert.strictEqual(AdminAnalytics.computeSparkline(null, 100, 20), "");
 });
 
 test("computeSparkline produces normalized y values within height", function () {
-  const points = computeSparkline([0, 50, 100], 200, 50);
+  const points = AdminAnalytics.computeSparkline([0, 50, 100], 200, 50);
   const pairs = points.split(" ");
   assert.strictEqual(pairs.length, 3);
 
@@ -184,7 +160,7 @@ test("computeSparkline produces normalized y values within height", function () 
 });
 
 test("computeSparkline with all-zero values maps all to bottom", function () {
-  const points = computeSparkline([0, 0, 0], 60, 30);
+  const points = AdminAnalytics.computeSparkline([0, 0, 0], 60, 30);
   // max=1 (clamped), min=0, range=1 => all map to bottom
   const pairs = points.split(" ");
   pairs.forEach(function (p) {
@@ -208,41 +184,12 @@ test("AdminAuth.getToken returns null (cookie auth)", function () {
 });
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   mergeChallenges (cross-type lookup helper)
+   Admin.mergeChallenges (cross-type lookup helper — imported from admin.js)
    ───────────────────────────────────────────────────────────────────────────── */
-
-function mergeChallenges(popularItems, academicItems) {
-  var merged = [];
-  if (Array.isArray(popularItems)) {
-    for (var i = 0; i < popularItems.length; i++) {
-      var item = popularItems[i];
-      item.type = "popular";
-      merged.push(item);
-    }
-  }
-  if (Array.isArray(academicItems)) {
-    for (var j = 0; j < academicItems.length; j++) {
-      var aItem = academicItems[j];
-      aItem.type = "academic";
-      merged.push(aItem);
-    }
-  }
-  return merged;
-}
-
-function slugify(text) {
-  if (!text) return "";
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 test("mergeChallenges tags popular items with type popular", function () {
   var popular = [{ id: 1, challenge_title: "Test" }];
-  var result = mergeChallenges(popular, []);
+  var result = Admin.mergeChallenges(popular, []);
   assert.strictEqual(result.length, 1);
   assert.strictEqual(result[0].type, "popular");
   assert.strictEqual(result[0].id, 1);
@@ -250,7 +197,7 @@ test("mergeChallenges tags popular items with type popular", function () {
 
 test("mergeChallenges tags academic items with type academic", function () {
   var academic = [{ id: 2, challenge_title: "Academic Test" }];
-  var result = mergeChallenges([], academic);
+  var result = Admin.mergeChallenges([], academic);
   assert.strictEqual(result.length, 1);
   assert.strictEqual(result[0].type, "academic");
   assert.strictEqual(result[0].id, 2);
@@ -259,7 +206,7 @@ test("mergeChallenges tags academic items with type academic", function () {
 test("mergeChallenges merges both lists and preserves contents", function () {
   var popular = [{ id: 1, challenge_title: "Pop" }];
   var academic = [{ id: 2, challenge_title: "Acad" }];
-  var result = mergeChallenges(popular, academic);
+  var result = Admin.mergeChallenges(popular, academic);
   assert.strictEqual(result.length, 2);
   assert.strictEqual(result[0].type, "popular");
   assert.strictEqual(result[0].challenge_title, "Pop");
@@ -268,13 +215,13 @@ test("mergeChallenges merges both lists and preserves contents", function () {
 });
 
 test("mergeChallenges with empty arrays returns empty array", function () {
-  var result = mergeChallenges([], []);
+  var result = Admin.mergeChallenges([], []);
   assert.strictEqual(Array.isArray(result), true);
   assert.strictEqual(result.length, 0);
 });
 
 test("mergeChallenges handles non-array inputs", function () {
-  var result = mergeChallenges(null, undefined);
+  var result = Admin.mergeChallenges(null, undefined);
   assert.strictEqual(Array.isArray(result), true);
   assert.strictEqual(result.length, 0);
 });
@@ -284,41 +231,41 @@ test("mergeChallenges handles non-array inputs", function () {
    ───────────────────────────────────────────────────────────────────────────── */
 
 test("Admin.slugify returns empty string for empty/falsy input", function () {
-  assert.strictEqual(slugify(""), "");
-  assert.strictEqual(slugify(null), "");
-  assert.strictEqual(slugify(undefined), "");
+  assert.strictEqual(Admin.slugify(""), "");
+  assert.strictEqual(Admin.slugify(null), "");
+  assert.strictEqual(Admin.slugify(undefined), "");
 });
 
 test("Admin.slugify lowercases text", function () {
-  assert.strictEqual(slugify("Hello World"), "hello-world");
-  assert.strictEqual(slugify("UPPERCASE"), "uppercase");
+  assert.strictEqual(Admin.slugify("Hello World"), "hello-world");
+  assert.strictEqual(Admin.slugify("UPPERCASE"), "uppercase");
 });
 
 test("Admin.slugify strips punctuation", function () {
-  assert.strictEqual(slugify("Hello, World!"), "hello-world");
-  assert.strictEqual(slugify("What's up?"), "whats-up");
-  assert.strictEqual(slugify('"Quoted"'), "quoted");
+  assert.strictEqual(Admin.slugify("Hello, World!"), "hello-world");
+  assert.strictEqual(Admin.slugify("What's up?"), "whats-up");
+  assert.strictEqual(Admin.slugify('"Quoted"'), "quoted");
 });
 
 test("Admin.slugify collapses whitespace to single hyphens", function () {
-  assert.strictEqual(slugify("hello   world"), "hello-world");
-  assert.strictEqual(slugify("  spaced  out  "), "spaced-out");
+  assert.strictEqual(Admin.slugify("hello   world"), "hello-world");
+  assert.strictEqual(Admin.slugify("  spaced  out  "), "spaced-out");
 });
 
 test("Admin.slugify deduplicates hyphens", function () {
-  assert.strictEqual(slugify("hello---world"), "hello-world");
-  assert.strictEqual(slugify("a -- b"), "a-b");
+  assert.strictEqual(Admin.slugify("hello---world"), "hello-world");
+  assert.strictEqual(Admin.slugify("a -- b"), "a-b");
 });
 
 test("Admin.slugify strips leading and trailing hyphens", function () {
-  assert.strictEqual(slugify("-hello-world-"), "hello-world");
-  assert.strictEqual(slugify("---hello---"), "hello");
+  assert.strictEqual(Admin.slugify("-hello-world-"), "hello-world");
+  assert.strictEqual(Admin.slugify("---hello---"), "hello");
 });
 
 test("Admin.slugify handles realistic Wikipedia titles", function () {
   assert.strictEqual(
-    slugify("Historical Jesus — Scholar Overview"),
+    Admin.slugify("Historical Jesus \u2014 Scholar Overview"),
     "historical-jesus-scholar-overview",
   );
-  assert.strictEqual(slugify("Resurrection of Jesus"), "resurrection-of-jesus");
+  assert.strictEqual(Admin.slugify("Resurrection of Jesus"), "resurrection-of-jesus");
 });

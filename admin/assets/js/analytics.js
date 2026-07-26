@@ -2,8 +2,12 @@
 // Pure vanilla JS (SR-2/SR-3).  Exported as global "AdminAnalytics".
 // Depends on Admin.api.get() for data fetching.
 
-window.AdminAnalytics = {};
-const AdminAnalytics = window.AdminAnalytics;
+// Runs as a classic script in the browser (window is the global) and via
+// node --test under CommonJS (no window) — fall back to `global` there.
+var globalScope = typeof window !== "undefined" ? window : global;
+
+globalScope.AdminAnalytics = {};
+var AdminAnalytics = globalScope.AdminAnalytics;
 
 // Current active days value, synced with the chip row.
 AdminAnalytics._activeDays = 30;
@@ -745,26 +749,36 @@ AdminAnalytics.render = async function (days) {
    Chip event delegation
    ───────────────────────────────────────────────────────────────────────────── */
 
-(function initChips() {
-  var row = document.querySelector(".analytics-chip-row");
-  if (!row) return;
+// Browser-only: chip delegation setup. Skipped in Node.js (test runner)
+// because document is not available.
+if (typeof module === "undefined") {
+  (function initChips() {
+    var row = document.querySelector(".analytics-chip-row");
+    if (!row) return;
 
-  row.addEventListener("click", function (e) {
-    var chip = e.target.closest(".analytics-chip");
-    if (!chip) return;
+    row.addEventListener("click", function (e) {
+      var chip = e.target.closest(".analytics-chip");
+      if (!chip) return;
 
-    var days = parseInt(chip.getAttribute("data-days"), 10);
-    if (!days) return;
+      var days = parseInt(chip.getAttribute("data-days"), 10);
+      if (!days) return;
 
-    // Update active state
-    var chips = row.querySelectorAll(".analytics-chip");
-    for (var i = 0; i < chips.length; i++) {
-      chips[i].classList.remove("analytics-chip--active");
-    }
-    chip.classList.add("analytics-chip--active");
+      // Update active state
+      var chips = row.querySelectorAll(".analytics-chip");
+      for (var i = 0; i < chips.length; i++) {
+        chips[i].classList.remove("analytics-chip--active");
+      }
+      chip.classList.add("analytics-chip--active");
 
-    // Track and re-render
-    AdminAnalytics._activeDays = days;
-    AdminAnalytics.render(days);
-  });
-})();
+      // Track and re-render
+      AdminAnalytics._activeDays = days;
+      AdminAnalytics.render(days);
+    });
+  })();
+}
+
+// CommonJS export for Node.js test runner (JS-2 — test the real module).
+// The guard prevents errors in the browser where `module` is not defined.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = AdminAnalytics;
+}
