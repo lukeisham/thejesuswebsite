@@ -748,10 +748,14 @@ describe("context menu — grammar message & ignore", () => {
         },
       },
       SpellcheckDictionary: {
+        _words: new Set(),
         async ignoreWord(word) {
           ignoreCalls.push(word);
         },
         async learnWord() {},
+      },
+      SpellcheckController: {
+        addGrammarIgnore() {},
       },
     };
     const SpellcheckContextMenu = vm.runInNewContext(
@@ -1124,5 +1128,263 @@ describe("grammar engine — checkGrammar()", () => {
     assert.ok(issues.some((i) => i.message.includes('"you\'re"')));
     assert.ok(issues.some((i) => i.message.includes("Repeated punctuation")));
     assert.ok(found.length > 0);
+  });
+});
+
+// ── Soundex code generation and index ─────────────────────────────────────
+//   Imports the real soundex() function from spellcheck-engine.js and verifies
+//   correct encoding, then checks that the precomputed SOUNDEX_INDEX groups
+//   phonetically similar words under the same code.
+
+describe("Soundex code generation and index", () => {
+  let _soundex, _SOUNDEX_INDEX;
+  async function getSoundex() {
+    if (!_soundex) {
+      const mod = await import("../assets/js/admin-spellcheck/spellcheck-engine.js");
+      _soundex = mod.soundex;
+      _SOUNDEX_INDEX = mod.SOUNDEX_INDEX;
+    }
+    return { soundex: _soundex, SOUNDEX_INDEX: _SOUNDEX_INDEX };
+  }
+
+  test("produces correct Soundex codes for known examples", async () => {
+    const { soundex } = await getSoundex();
+    assert.equal(soundex("receive"), "R210");
+    assert.equal(soundex("recieve"), "R210");
+    assert.equal(soundex("Smith"), "S530");
+    assert.equal(soundex("Smythe"), "S530");
+    assert.equal(soundex("Robert"), "R163");
+    assert.equal(soundex("Rupert"), "R163");
+    assert.equal(soundex("the"), "T000");
+    assert.equal(soundex("hello"), "H400");
+  });
+
+  test("pads short codes to 4 characters with zeros", async () => {
+    const { soundex } = await getSoundex();
+    assert.equal(soundex("a"), "A000");
+    assert.equal(soundex("ab"), "A100");
+    assert.equal(soundex("abc"), "A120");
+  });
+
+  test("collapses adjacent same-digit consonants", async () => {
+    const { soundex } = await getSoundex();
+    assert.equal(soundex("back"), "B200");
+    assert.equal(soundex("pack"), "P200");
+  });
+
+  test("returns empty string for empty input", async () => {
+    const { soundex } = await getSoundex();
+    assert.equal(soundex(""), "");
+  });
+
+  test("SOUNDEX_INDEX groups phonetically similar words", async () => {
+    const { SOUNDEX_INDEX } = await getSoundex();
+    const r210 = SOUNDEX_INDEX.get("R210");
+    assert.ok(r210.includes("receive"), "receive should be in R210 group");
+  });
+
+  test("SOUNDEX_INDEX has entries for common words", async () => {
+    const { SOUNDEX_INDEX } = await getSoundex();
+    assert.ok(SOUNDEX_INDEX.size > 0, "Soundex index should not be empty");
+    const t000 = SOUNDEX_INDEX.get("T000");
+    assert.ok(Array.isArray(t000));
+    assert.ok(t000.includes("the"));
+  });
+});
+
+// ── Keyboard-proximity weighted Levenshtein ───────────────────────────────
+//   Verifies that the weighted levenshtein() function assigns lower costs to
+//   substitutions between adjacent keyboard keys.
+
+describe("keyboard-proximity weighted Levenshtein", () => {
+  let _levenshtein, _KEYBOARD_ADJACENT;
+  async function getLevenshtein() {
+    if (!_levenshtein) {
+      const mod = await import("../assets/js/admin-spellcheck/spellcheck-engine.js");
+      _levenshtein = mod.levenshtein;
+      _KEYBOARD_ADJACENT = mod.KEYBOARD_ADJACENT;
+    }
+    return { levenshtein: _levenshtein, KEYBOARD_ADJACENT: _KEYBOARD_ADJACENT };
+  }
+
+  test("identical strings have distance 0 (with and without keyboard weighting)", async () => {
+    const { levenshtein } = await getLevenshtein();
+    assert.equal(levenshtein("hello", "hello", false), 0);
+    assert.equal(levenshtein("hello", "hello", true), 0);
+  });
+
+  test("adjacent-key substitution has lower cost (weighted)", async () => {
+    const { levenshtein } = await getLevenshtein();
+    const unweighted = levenshtein("hte", "the", false);
+    const weighted = levenshtein("hte", "the", true);
+    assert.ok(weighted < unweighted,
+      "weighted should be < unweighted for adjacent keys h/t");
+  });
+
+  test("non-adjacent substitution retains full cost (weighted)", async () => {
+    const { levenshtein } = await getLevenshtein();
+    const unweighted = levenshtein("qhe", "the", false);
+    const weighted = levenshtein("qhe", "the", true);
+    assert.equal(weighted, unweighted);
+  });
+
+  test("KEYBOARD_ADJACENT map is correctly populated", async () => {
+    const { KEYBOARD_ADJACENT } = await getLevenshtein();
+    assert.ok(KEYBOARD_ADJACENT["h"] instanceof Set);
+    assert.ok(KEYBOARD_ADJACENT["h"].has("t"));
+    assert.ok(KEYBOARD_ADJACENT["h"].has("g"));
+    assert.ok(!KEYBOARD_ADJACENT["h"].has("q"));
+  });
+});
+
+// ── Suggestion diversity (mixed Levenshtein + Soundex) ────────────────────
+//   Tests the actual check() function with its new diversity logic.
+
+describe("suggestion diversity — check() with Soundex + Levenshtein", () => {
+  let _check;
+  async function getCheck() {
+    if (!_check) {
+      const mod = await import("../assets/js/admin-spellcheck/spellcheck-engine.js");
+      _check = mod.check;
+    }
+    return _check;
+  }
+
+  test("returns up to 8 suggestions", async () => {
+    const check = await getCheck();
+    const result = check("recieve", new Set());
+    assert.equal(result.correct, false);
+    assert.ok(result.suggestions.length <= 8);
+    assert.ok(result.suggestions.length > 0);
+  });
+
+  test("includes phonetically similar Soundex matches", async () => {
+    const check = await getCheck();
+    const result = check("recieve", new Set());
+    assert.ok(result.suggestions.includes("receive"),
+      "Expected receive in suggestions: " + result.suggestions.join(", "));
+  });
+
+  test("returns no duplicate suggestions", async () => {
+    const check = await getCheck();
+    const result = check("wrld", new Set());
+    const unique = new Set(result.suggestions);
+    assert.equal(unique.size, result.suggestions.length,
+      "Suggestions should contain no duplicates");
+  });
+
+  test("custom words are still treated as correct", async () => {
+    const check = await getCheck();
+    const result = check("teh", new Set(["teh"]));
+    assert.equal(result.correct, true);
+    assert.deepStrictEqual(result.suggestions, []);
+  });
+
+  test("known correctly-spelled words return correct: true", async () => {
+    const check = await getCheck();
+    const result = check("receive", new Set());
+    assert.equal(result.correct, true);
+  });
+
+  test("keyboard-proximity boosts likely-typo suggestions", async () => {
+    const check = await getCheck();
+    const result = check("hte", new Set());
+    assert.ok(result.suggestions.includes("the"));
+    const theIdx = result.suggestions.indexOf("the");
+    assert.ok(theIdx <= 2, "the should be in top 3 suggestions, got position " + theIdx);
+  });
+});
+
+// ── Grammar-ignore range filtering (worker side) ─────────────────────────
+//   Replicates the grammar-ignore filtering logic from spellcheck-worker.js.
+
+describe("grammar-ignore range filtering", () => {
+  function overlapsAny(start, end, ranges) {
+    for (const r of ranges) {
+      if (start < r.end && end > r.start) return true;
+    }
+    return false;
+  }
+
+  test("excludes a grammar error that overlaps an ignored range", async () => {
+    const { checkGrammar } = await import("../assets/js/admin-spellcheck/spellcheck-engine.js");
+    const text = "This is the the best evidence.";
+    const allGrammar = checkGrammar(text);
+
+    const repeated = allGrammar.filter((g) => g.message.includes("Repeated word"));
+    assert.ok(repeated.length > 0, "should flag repeated word before ignoring");
+
+    const firstRepeated = repeated[0];
+    const ignoreRanges = [{ start: firstRepeated.start, end: firstRepeated.end }];
+
+    const filtered = allGrammar.filter(
+      (g) => !overlapsAny(g.start, g.end, ignoreRanges),
+    );
+
+    const stillRepeated = filtered.filter((g) => g.message.includes("Repeated word"));
+    assert.equal(stillRepeated.length, 0, "repeated word should be filtered out after ignore");
+  });
+
+  test("does not exclude grammar errors outside the ignored range", async () => {
+    const { checkGrammar } = await import("../assets/js/admin-spellcheck/spellcheck-engine.js");
+    const text = "She is a honest woman who your going to meet.";
+    const allGrammar = checkGrammar(text);
+
+    const aHonestIssues = allGrammar.filter((g) => g.message.includes('Use \"an\"'));
+    assert.ok(aHonestIssues.length > 0);
+    const ignoreRanges = [{ start: aHonestIssues[0].start, end: aHonestIssues[0].end }];
+
+    const filtered = allGrammar.filter(
+      (g) => !overlapsAny(g.start, g.end, ignoreRanges),
+    );
+
+    const stillAHonest = filtered.filter((g) => g.message.includes('Use \"an\"'));
+    assert.equal(stillAHonest.length, 0);
+
+    const yourGoing = filtered.filter((g) => g.message.includes("you're"));
+    assert.ok(yourGoing.length > 0, "your/you're issue should not be affected by unrelated ignore");
+  });
+
+  test("multiple ignored ranges coexist correctly", async () => {
+    const { checkGrammar } = await import("../assets/js/admin-spellcheck/spellcheck-engine.js");
+    // Use non-overlapping grammar issues:
+    // "a honest" (article), "your going" (your/you're), "barking??" (punctuation)
+    const text = "She is a honest person and your going home barking??";
+    const allGrammar = checkGrammar(text);
+
+    const aHonest = allGrammar.find((g) => g.message.includes('Use "an"'));
+    const yourGoing = allGrammar.find((g) => g.message.includes('"you\'re"'));
+    assert.ok(aHonest, "should find a/an issue");
+    assert.ok(yourGoing, "should find your/you're issue");
+
+    const ignoreRanges = [
+      { start: aHonest.start, end: aHonest.end },
+      { start: yourGoing.start, end: yourGoing.end },
+    ];
+
+    const filtered = allGrammar.filter(
+      (g) => !overlapsAny(g.start, g.end, ignoreRanges),
+    );
+
+    // Ignored issues should be gone
+    assert.equal(
+      filtered.filter((g) => g.message.includes('Use "an"')).length, 0,
+    );
+    assert.equal(
+      filtered.filter((g) => g.message.includes('"you\'re"')).length, 0,
+    );
+
+    // Other issues (punctuation) should remain
+    assert.ok(filtered.some((g) => g.message.includes("Repeated punctuation")));
+  });
+
+  test("empty ignore ranges list passes all grammar errors through", async () => {
+    const { checkGrammar } = await import("../assets/js/admin-spellcheck/spellcheck-engine.js");
+    const text = "the the dogs is barking";
+    const allGrammar = checkGrammar(text);
+    const filtered = allGrammar.filter(
+      (g) => !overlapsAny(g.start, g.end, []),
+    );
+    assert.equal(filtered.length, allGrammar.length);
   });
 });

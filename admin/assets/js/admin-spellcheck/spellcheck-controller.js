@@ -19,6 +19,12 @@ const SpellcheckController = {
   _timers: new Map(),
   /** @type {boolean} */
   _initialized: false,
+  /**
+   * Per-textarea grammar-ignore ranges (session-local, cleared on page reload).
+   * Each value is a Set of range-key strings ("start:end") for O(1) lookup.
+   * @type {Map<HTMLTextAreaElement, Set<string>>}
+   */
+  _grammarIgnores: new Map(),
 
   /**
    * Initialize the spellcheck system: sync the dictionary and start the worker.
@@ -113,9 +119,39 @@ const SpellcheckController = {
     // to render results
     this._worker._pendingTextarea = textarea;
 
+    // Collect grammar-ignore ranges for this textarea
+    const grammarIgnoreRanges = [];
+    const ignoreSet = this._grammarIgnores.get(textarea);
+    if (ignoreSet && ignoreSet.size > 0) {
+      for (const key of ignoreSet) {
+        const [start, end] = key.split(":").map(Number);
+        grammarIgnoreRanges.push({ start, end });
+      }
+    }
+
     this._worker.postMessage({
       text: text,
       dictionaryWords: SpellcheckDictionary.getWords(),
+      grammarIgnoreRanges: grammarIgnoreRanges,
     });
+  },
+
+  /**
+   * Register a grammar-ignore range for a textarea so subsequent scans
+   * skip this range. Called by the context menu when the user clicks
+   * "Ignore" on a grammar-flagged phrase.
+   * @param {HTMLTextAreaElement} textarea
+   * @param {number} start
+   * @param {number} end
+   */
+  addGrammarIgnore(textarea, start, end) {
+    if (!this._grammarIgnores.has(textarea)) {
+      this._grammarIgnores.set(textarea, new Set());
+    }
+    this._grammarIgnores.get(textarea).add(`${start}:${end}`);
+
+    // Re-scan immediately so the mark disappears without waiting for
+    // the next debounced input event.
+    this._scan(textarea);
   },
 };

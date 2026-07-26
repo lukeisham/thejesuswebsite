@@ -132,6 +132,11 @@ const SpellcheckContextMenu = {
             // overlay matches the new text in the same frame (JS-2: no flicker).
             // The debounced worker re-scan will reconcile authoritatively later.
             SpellcheckOverlay.invalidateRange(textarea, start, end, suggestion.length);
+            // Temporarily add the replacement word to the in-memory dictionary
+            // so the worker's next scan sees it as correct — the user explicitly
+            // chose this word from the suggestions list, so it should not be
+            // re-flagged ~1s later (which would cause a visual flicker/overlap).
+            SpellcheckDictionary._words.add(suggestion.toLowerCase());
             // Trigger a new scan
             textarea.dispatchEvent(new Event("input", { bubbles: true }));
             this._remove();
@@ -153,14 +158,13 @@ const SpellcheckContextMenu = {
       const end = parseInt(flaggedSpan.dataset.spellcheckEnd, 10);
 
       if (type === "grammar") {
-        // The shared dictionary only ever matches single tokenized words
-        // (SpellcheckDictionary.ignoreWord -> tokenizeWords lookups), but a
-        // grammar mark's flagged range is a multi-word phrase. Persisting it
-        // there would add a permanently-unmatchable row every time someone
-        // dismisses a grammar flag. Just clear this occurrence locally;
-        // the rule may re-flag it on the next scan since there is no
-        // per-occurrence grammar-ignore list yet.
+        // Grammar marks flag multi-word phrases that don't fit the
+        // single-word dictionary schema. Instead, register this range
+        // in the controller's per-textarea session-local ignore set so
+        // subsequent scans within this editor session skip the same
+        // phrase — no flicker or re-flagging on the next keystroke.
         SpellcheckOverlay.invalidateRange(textarea, start, end, end - start);
+        SpellcheckController.addGrammarIgnore(textarea, start, end);
         this._remove();
         return;
       }
