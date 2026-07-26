@@ -50,11 +50,11 @@ export function formatMlaCitation(source) {
     // Author.
     if (author) parts.push(html`${author}. `.toString());
 
-    // "Article Title."
-    parts.push(html`<em>${title}</em>. `.toString());
+    // 'Article Title.'
+    parts.push(html`'${title}.' `.toString());
 
     // Journal Title
-    if (journal) parts.push(html`${journal} `.toString());
+    if (journal) parts.push(html`<em>${journal}</em>, `.toString());
 
     // vol. X, no. Y
     if (volume || issue) {
@@ -129,11 +129,11 @@ export function formatMlaCitation(source) {
     // Author.
     if (author) parts.push(html`${author}. `.toString());
 
-    // "Page Title."
-    parts.push(html`<em>${title}</em>. `.toString());
+    // 'Page Title.'
+    parts.push(html`'${title}.' `.toString());
 
     // Publisher,
-    if (publisher) parts.push(html`${publisher}, `.toString());
+    if (publisher) parts.push(html`<em>${publisher}</em>, `.toString());
 
     // Date,
     if (date) parts.push(html`${date}, `.toString());

@@ -8,7 +8,7 @@
 import { getBlogPostBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
 import { setSEO } from "./seo.js";
-import { html } from "./utils/templates.js";
+import { html, raw } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
 import { parseContentBody } from "./utils/content-markers.js";
@@ -149,7 +149,7 @@ function renderBibliography(post) {
       .map(function (source) {
         const citation = formatMlaCitation(source);
         if (!citation) return "";
-        return html`<li id="mla-${source.id}">${citation}</li>`;
+        return html`<li id="mla-${source.id}">${raw(citation)}</li>`;
       })
       .filter(Boolean)
       .join("");

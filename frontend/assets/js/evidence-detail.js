@@ -11,6 +11,7 @@ import { html } from "./utils/templates.js";
 import { formatDate, formatVerse } from "./utils/format.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
+import { formatMlaCitation } from "./utils/mla.js";
 import {
   parseContentBody,
   getIdentifierLabel,
@@ -214,18 +215,12 @@ function renderSources(mlaSources) {
 
   const itemsHTML = mlaSources
     .map((src) => {
-      const label =
-        src.citation ||
-        src.title ||
-        src.mla_book_title ||
-        src.mla_website_title ||
-        src.mla_journal_article_title ||
-        "Untitled source";
-      if (src && src.id) {
-        return `<li class="source-list__item" id="mla-${src.id}">${html`${label}`}</li>`;
-      }
-      return html`<li class="source-list__item">${label}</li>`;
+      const citation = formatMlaCitation(src);
+      if (!citation) return "";
+      const idAttr = src && src.id ? ` id="mla-${src.id}"` : "";
+      return `<li class="source-list__item"${idAttr}>${citation}</li>`;
     })
+    .filter(Boolean)
     .join("");
 
   if ($sources) $sources.innerHTML = itemsHTML;
