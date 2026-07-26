@@ -4,6 +4,7 @@
 
 const db = require('../config');
 const { pickWritable, runUpdate } = require('./model-helpers');
+const ERRORS = require('../lib/error-codes');
 
 // Valid resource list keys as defined in schema.
 const VALID_LIST_KEYS = [
@@ -32,28 +33,42 @@ const WRITABLE_COLUMNS = [
     'resource_description',
     'sort_order',
     'published_draft',
+    'in_holding_pen',
 ];
 
 /**
  * Get all resources for a specific list, ordered by sort_order.
+ * Parked items are excluded — list_key alone is not proof of membership.
  */
 function getByListKey(listKey) {
     if (!VALID_LIST_KEYS.includes(listKey)) return [];
 
     return db
-        .prepare('SELECT * FROM resources WHERE list_key = ? AND published_draft = 1 ORDER BY sort_order, id')
+        .prepare(
+            'SELECT * FROM resources WHERE list_key = ? AND published_draft = 1 AND in_holding_pen = 0 ORDER BY sort_order, id'
+        )
         .all(listKey);
 }
 
 /**
  * Get all resources for a list, including unpublished (for admin).
+ * Parked items are excluded — they surface via getHoldingPen() instead.
  */
 function getByListKeyAdmin(listKey) {
     if (!VALID_LIST_KEYS.includes(listKey)) return [];
 
     return db
-        .prepare('SELECT * FROM resources WHERE list_key = ? ORDER BY sort_order, id')
+        .prepare('SELECT * FROM resources WHERE list_key = ? AND in_holding_pen = 0 ORDER BY sort_order, id')
         .all(listKey);
+}
+
+/**
+ * Get every parked resource, across all lists, ordered by title.
+ * Each row keeps its originating list_key so a pen chip can show where it
+ * came from.
+ */
+function getHoldingPen() {
+    return db.prepare('SELECT * FROM resources WHERE in_holding_pen = 1 ORDER BY resource_title').all();
 }
 
 /**
@@ -65,6 +80,8 @@ function getById(id) {
 
 /**
  * Get all resources grouped by list key, filtered to published only.
+ * Parked items are excluded — list_key alone is not proof of membership,
+ * so a parked-but-published item must not inflate its origin list's count.
  */
 function getAllPublishedByListKey() {
     const sql = `
@@ -73,7 +90,7 @@ function getAllPublishedByListKey() {
             COUNT(*) AS count,
             GROUP_CONCAT(id) AS resource_ids
         FROM resources
-        WHERE published_draft = 1
+        WHERE published_draft = 1 AND in_holding_pen = 0
         GROUP BY list_key
         ORDER BY list_key
     `;
@@ -87,7 +104,9 @@ function create(data) {
     const row = pickWritable(data, WRITABLE_COLUMNS);
 
     if (!VALID_LIST_KEYS.includes(row.list_key)) {
-        throw new Error(`Invalid list_key: ${row.list_key}`);
+        const err = new Error(`Invalid list_key: ${row.list_key}`);
+        err.code = ERRORS.INVALID_LIST_KEY.code;
+        throw err;
     }
 
     const columns = Object.keys(row);
@@ -108,6 +127,13 @@ function update(id, data) {
     if (!getById(id)) return undefined;
 
     const row = pickWritable(data, WRITABLE_COLUMNS);
+
+    if (row.list_key !== undefined && !VALID_LIST_KEYS.includes(row.list_key)) {
+        const err = new Error(`Invalid list_key: ${row.list_key}`);
+        err.code = ERRORS.INVALID_LIST_KEY.code;
+        throw err;
+    }
+
     if (!runUpdate(db, 'resources', row, id)) return getById(id);
     return getById(id);
 }
@@ -204,6 +230,7 @@ function reorderList(items) {
 module.exports = {
     getByListKey,
     getByListKeyAdmin,
+    getHoldingPen,
     getById,
     getAllPublishedByListKey,
     create,

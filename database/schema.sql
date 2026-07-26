@@ -290,8 +290,11 @@ CREATE TABLE resources (
     resource_url         TEXT,
     resource_description TEXT,
     sort_order           INTEGER,
-    published_draft      INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1))
+    published_draft      INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
+    in_holding_pen       INTEGER NOT NULL DEFAULT 0 CHECK (in_holding_pen IN (0, 1))
 );
+
+CREATE INDEX IF NOT EXISTS idx_resources_holding_pen ON resources (in_holding_pen);
 
 CREATE TABLE maps (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
