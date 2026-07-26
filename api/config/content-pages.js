@@ -104,7 +104,7 @@ const CONTENT_PAGES = {
     slugColumn: "slug",
     titleColumn: "blog_title",
     descriptionColumn: null,
-    imageColumn: "hero_image",
+    imageColumn: "blog_thumbnail",
     sectionLabel: "Blog",
     jsonLdType: "BlogPosting",
     dateColumn: "created_at",

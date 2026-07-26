@@ -23,8 +23,6 @@ const WRITABLE_COLUMNS = [
   "blog_title",
   "blog_date",
   "blog_content",
-  "hero_image",
-  "hero_image_alt",
   "blog_thumbnail",
   "published_draft",
   "metadata_keywords",
