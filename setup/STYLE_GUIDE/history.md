@@ -4,10 +4,12 @@ _Part of the [Style Guide](INDEX.md) — §14: version history._
 
 ## 14. Version History
 
-**Version**: 1.8
-**Last Updated**: 25 July 2026
+**Version**: 1.9
+**Last Updated**: 26 July 2026
 
 **Notes for Agents**: Reference this guide for every UI element. Maintain visual consistency across all sections. Prioritize scholarly clarity and ease of navigation through large historical datasets. Use vanilla HTML + CSS + JS only — no frameworks or build tools, except for the visual displays: maps, timeline, and arbor diagram. Journal-format pages (essays, responses, historiography) share `journal.css`.
+
+**1.9**: §9 Resources Lists — the per-category chip row (`.resources-categories`/`.resources-category-link`) is removed; the landing page's card grid already navigates between categories. Resource lists can now contain subheading rows (`item_type: 'subheading'`) that render as `<section>` + `<h3 class="resource-subheading">` groups, each with its own `<ol>` restarting item numbering at 1; subheadings are never numbered and an empty section renders no heading. Admin gains a "+ Add Subheading" action alongside "+ Add Item" (`.draggable-row--subheading` treatment: dashed border, muted background, title-only).
 
 **1.8**: §8 gains the standard figure box (`.figure-standard`): a 720×480 display box for Evidence-module pictures, orientation-aware via a CSS min/max constraint pair with no JS required, refined by `figure-orientation.js`'s explicit `figure--portrait`/`figure--landscape`/`figure--square` classes for the mobile `70vh` portrait cap. §9 notes the Evidence Detail Page's Pictures-section and inline description figures use this box. §11 documents that `/uploads` now standardises every accepted image to a `1440 × 960` bounding box with EXIF rotation baked in (GIFs excepted), site-wide across all content types.
 

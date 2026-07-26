@@ -256,13 +256,13 @@ A single ranked list page (`debate/wikipedia.html`) showing Wikipedia articles a
 Resources pages are curated ranked/sorted lists covering one category each (parables, manuscripts, people, sites, etc.).
 
 - **Landing page** (`resources/index.html`): `h2` "Resources", brief description, then a static card grid (§8 Cards, `.card-grid`) — one card per resource category, title + one-sentence description, whole card linking to that category's dedicated page (`/resources/<key>.html`). No chip row on the landing page and no fetch — the 15 categories are fixed by the schema `CHECK` constraint.
-- **Per-category pages** (`/resources/<key>.html`, one per `list_key`): `h1`/`h2` category title (e.g. "Parables", "External Witnesses"), brief description.
-- **Category navigation**: a horizontal row of ghost-style chip links above the header, one per resource list page, linking laterally between categories. Active chip: `1px solid var(--accent)` border, `--bg-surface-alt` background. Present only on the per-category pages, not on the landing page.
+- **Per-category pages** (`/resources/<key>.html`, one per `list_key`): `h1`/`h2` category title (e.g. "Parables", "External Witnesses"), brief description. No category-navigation chip row — the landing page's card grid already navigates laterally between categories.
+- **Subheadings**: a list can contain section-break rows (`item_type: 'subheading'`) that group items underneath them. Rendered as a `<section>` per subheading: an `<h3 class="resource-subheading">` followed by its own `<ol>`, so item numbering restarts at 1 inside each section. Items before the first subheading render in a leading, unlabelled section. Subheadings are never numbered themselves, and a subheading with nothing under it (trailing, or immediately followed by another subheading) renders no `<h3>` at all.
 - **List items**: ordered list (not a card grid). Each item:
   - Subtle ordinal number left of the title (`--text-muted`, `font-weight: 300`, `2rem`) — same visual weight as challenge/Wikipedia rank numbers
   - `resource_title` as primary text (`1rem`, `--text-primary`), linked if `resource_url` is present (Feather `external-link` icon inline for external URLs)
   - `resource_description` below: `0.875rem`, `--text-secondary`, max 3 lines
-- **Infinite scroll**: standard (§8)
+- **Infinite scroll**: standard (§8) — batches continue whichever section was last open rather than restarting the count.
 
 **Donation Portal**:
 The donation portal is a separately-provided widget dropped into `about.html` at a future stage. A `<div id="donation-portal">` placeholder in the HTML reserves the slot. Styles are provided by the widget — no further spec here.
