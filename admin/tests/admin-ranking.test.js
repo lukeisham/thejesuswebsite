@@ -4,26 +4,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
-
-// Replicate the pure function from admin-ranking.js
-function computeSortOrders(items, fromIndex, toIndex) {
-  const len = items.length;
-  if (len < 2 || fromIndex === toIndex) {
-    return items.map(function (item, i) { return { id: item.id, sort_order: i }; });
-  }
-
-  const clampedFrom = Math.max(0, Math.min(fromIndex, len - 1));
-  const clampedTo = Math.max(0, Math.min(toIndex, len - 1));
-  if (clampedFrom === clampedTo) {
-    return items.map(function (item, i) { return { id: item.id, sort_order: i }; });
-  }
-
-  const reordered = items.slice();
-  const moved = reordered.splice(clampedFrom, 1)[0];
-  reordered.splice(clampedTo, 0, moved);
-
-  return reordered.map(function (item, i) { return { id: item.id, sort_order: i }; });
-}
+const { computeSortOrders } = require('../assets/js/admin-ranking.js');
 
 test('reorder: move first to last', function () {
   const items = [{id:1},{id:2},{id:3},{id:4}];

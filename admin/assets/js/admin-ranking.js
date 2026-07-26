@@ -5,8 +5,12 @@
 //
 // Exported as global AdminRanking namespace.
 
-window.AdminRanking = {};
-const AdminRanking = window.AdminRanking;
+// Runs as a classic script in the browser (window is the global) and via
+// node --test under CommonJS (no window) — fall back to `global` there.
+var globalScope = typeof window !== "undefined" ? window : global;
+
+globalScope.AdminRanking = {};
+var AdminRanking = globalScope.AdminRanking;
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Pure helper: computeSortOrders
@@ -214,3 +218,9 @@ AdminRanking.init = function (containerSelector, options) {
     }
   });
 };
+
+// CommonJS export for Node.js test runner (JS-2 — test the real module).
+// The guard prevents errors in the browser where `module` is not defined.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = AdminRanking;
+}

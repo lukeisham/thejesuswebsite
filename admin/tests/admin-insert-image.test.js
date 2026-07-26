@@ -6,20 +6,13 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const AdminFigureShortcodes = require('../assets/js/admin-figure-shortcodes.js');
+const { insertAtCursor } = require('../assets/js/admin-insert-image.js');
 
 function buildShortcode(imagePath, caption) {
   return AdminFigureShortcodes.buildFigureShortcode({
     src: imagePath,
     caption: caption,
   });
-}
-
-function insertAtCursor(text, insertion, selectionStart, selectionEnd) {
-  var before = text.slice(0, selectionStart);
-  var after = text.slice(selectionEnd);
-  var newText = before + insertion + after;
-  var cursorPos = (before + insertion).length;
-  return { text: newText, cursorPos: cursorPos };
 }
 
 // ── buildShortcode ─────────────────────────────────────────────────────────────
