@@ -91,11 +91,11 @@ function renderBreadcrumbs(item) {
   if (!$breadcrumbs) return;
 
   $breadcrumbs.innerHTML = html`
-    <a href="/">Home</a>
-    <span class="breadcrumbs__sep">/</span>
-    <a href="/evidence/">Evidence</a>
-    <span class="breadcrumbs__sep">/</span>
-    <span class="breadcrumbs__current">${item.title}</span>
+    <span class="breadcrumb-item"><a href="/">Home</a></span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item"><a href="/evidence/">Evidence</a></span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item current">${item.title}</span>
   `;
 }
 

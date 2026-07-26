@@ -24,6 +24,7 @@ const $error = document.getElementById("error-state");
 const $empty = document.getElementById("empty-state");
 const $content = document.getElementById("essay-content");
 const $h1 = document.getElementById("page-h1");
+const $breadcrumbs = document.getElementById("breadcrumbs");
 
 // Title block
 const $titleBlock = document.getElementById("essay-title-block");
@@ -99,6 +100,20 @@ function showContent() {
 }
 
 // ─── Render functions ────────────────────────────────────────────────────────
+
+function renderBreadcrumbs(essay) {
+  if (!$breadcrumbs) return;
+
+  $breadcrumbs.innerHTML = html`
+    <span class="breadcrumb-item"><a href="/">Home</a></span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item"
+      ><a href="/contextual-essays/">Contextual Essays</a></span
+    >
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item current">${essay.title}</span>
+  `;
+}
 
 function renderTitleBlock(essay) {
   if ($title) $title.textContent = essay.title || "Untitled Essay";
@@ -311,6 +326,7 @@ async function init() {
   if ($h1) $h1.textContent = data.title || "Essay";
 
   // Render all sections
+  renderBreadcrumbs(data);
   renderTitleBlock(data);
   renderAbstract(data);
   renderKeywords(data);

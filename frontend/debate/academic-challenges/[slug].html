@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="/assets/css/components/figures.css">
   <link rel="stylesheet" href="/assets/css/components/inline-citation.css">
   <link rel="stylesheet" href="/assets/css/components/content-table.css">
+  <link rel="stylesheet" href="/assets/css/components/breadcrumbs.css">
   <link rel="stylesheet" href="/assets/css/pages/challenge-list.css">
   <link rel="stylesheet" href="/assets/css/pages/journal-body.css">
   <link rel="stylesheet" href="/assets/css/pages/journal-footer.css">
@@ -73,6 +74,9 @@
     </ul>
   </nav>
 
+  <main id="main-content">
+  <nav class="breadcrumbs" id="breadcrumbs" aria-label="Breadcrumb"></nav>
+
   <!-- Skeleton state (shown before data arrives — JS-5) -->
   <section id="skeleton-state" class="skeleton-state" aria-busy="true">
     <div class="skeleton challenge-detail">
@@ -95,7 +99,7 @@
   </section>
 
   <!-- Challenge detail content (hidden until loaded) -->
-  <main id="challenge-content" class="challenge-detail" hidden>
+  <div id="challenge-content" class="challenge-detail" hidden>
     <h2 id="challenge-title"></h2>
     <span class="badge" id="challenge-category"></span>
     <div id="challenge-picture" hidden>
@@ -120,6 +124,7 @@
         <!-- Populated by challenge-detail.js — compact response cards -->
       </div>
     </section>
+  </div>
   </main>
 
   <footer>

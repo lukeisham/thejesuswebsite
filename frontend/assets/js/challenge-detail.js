@@ -22,6 +22,7 @@ const $error = document.getElementById("error-state");
 const $empty = document.getElementById("empty-state");
 const $content = document.getElementById("challenge-content");
 const $h1 = document.getElementById("page-h1");
+const $breadcrumbs = document.getElementById("breadcrumbs");
 
 const $title = document.getElementById("challenge-title");
 const $category = document.getElementById("challenge-category");
@@ -91,6 +92,30 @@ function showContent() {
 }
 
 // ─── Render functions ────────────────────────────────────────────────────────
+
+function renderBreadcrumbs(challenge) {
+  if (!$breadcrumbs) return;
+
+  const isAcademic = getChallengeType() === "academic";
+  const sectionLabel = isAcademic
+    ? "Academic Challenges"
+    : "Popular Challenges";
+  const sectionHref = isAcademic
+    ? "/debate/academic-challenges.html"
+    : "/debate/popular-challenges.html";
+
+  $breadcrumbs.innerHTML = html`
+    <span class="breadcrumb-item"><a href="/">Home</a></span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item"><a href="/debate/">Debate</a></span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item"
+      ><a href="${sectionHref}">${sectionLabel}</a></span
+    >
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item current">${challenge.title}</span>
+  `;
+}
 
 function renderHeader(challenge) {
   if ($title) $title.textContent = challenge.title || "Untitled Challenge";
@@ -277,6 +302,7 @@ async function init() {
 
   if ($h1) $h1.textContent = data.title || "Challenge";
 
+  renderBreadcrumbs(data);
   renderHeader(data);
   renderPicture(data);
   renderBodyContent(data);

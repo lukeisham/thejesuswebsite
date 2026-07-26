@@ -22,6 +22,7 @@ const $skeleton = document.getElementById("skeleton-state");
 const $error = document.getElementById("error-state");
 const $empty = document.getElementById("empty-state");
 const $content = document.getElementById("blog-content");
+const $breadcrumbs = document.getElementById("breadcrumbs");
 // Content regions
 const $title = document.getElementById("page-h1");
 const $date = document.getElementById("blog-date");
@@ -82,6 +83,20 @@ function showContent() {
 }
 
 // ─── Render functions ────────────────────────────────────────────────────────
+
+function renderBreadcrumbs(post) {
+  if (!$breadcrumbs) return;
+
+  $breadcrumbs.innerHTML = html`
+    <span class="breadcrumb-item"><a href="/">Home</a></span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item"
+      ><a href="/news-and-blog/">News &amp; Blog</a></span
+    >
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item current">${post.blog_title}</span>
+  `;
+}
 
 function renderHeader(post) {
   // Title
@@ -217,6 +232,7 @@ async function init() {
   }
 
   // Render all sections
+  renderBreadcrumbs(data);
   renderHeader(data);
   renderBody(data);
   renderBibliography(data);
