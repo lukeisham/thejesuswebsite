@@ -9,7 +9,9 @@
  *     consecutive \\ \\ produce a blank line's worth of gap.)
  *   - Unordered lists (- or * prefix)
  *   - Ordered lists (1. prefix)
- *   - Pipe tables
+ *   - Pipe tables (optional `{w:N}` tokens in the separator row set
+ *     proportional column widths, e.g. `|{w:2}---|---|` — see
+ *     parseSeparatorCell())
  *   - Blockquotes (> prefix; consecutive > lines become one <blockquote>,
  *     each line its own paragraph — no nesting, no multi-line continuation)
  *   - Paragraphs (text blocks separated by blank lines)
@@ -104,6 +106,53 @@ function stripTrailingBreaks(html) {
 }
 
 /**
+ * Parse a pipe-table separator cell (e.g. `:---:`, `---:`, `{w:2}---`) into
+ * its alignment and optional column-width weight.
+ *
+ * The `{w:N}` token (N a positive number, decimals allowed) may appear
+ * anywhere in the cell alongside the usual `-`/`:` alignment markers.
+ * Non-numeric, negative, or zero weights are treated as absent (JS-2) —
+ * the column falls back to `auto` width.
+ *
+ * @param {string} cellText - Raw separator cell text (untrimmed).
+ * @returns {{align: 'left'|'center'|'right', weight: number|null}}
+ */
+function parseSeparatorCell(cellText) {
+  const cell = cellText.trim();
+
+  let weight = null;
+  const weightMatch = cell.match(/\{w:(\d+(?:\.\d+)?)\}/);
+  if (weightMatch) {
+    const parsed = parseFloat(weightMatch[1]);
+    if (Number.isFinite(parsed) && parsed > 0) weight = parsed;
+  }
+
+  // Strip any {w:...} token (valid or not) before reading alignment markers.
+  const withoutWeight = cell.replace(/\{w:[^}]*\}/, "").trim();
+
+  let align = "left";
+  if (withoutWeight.startsWith(":") && withoutWeight.endsWith(":")) align = "center";
+  else if (withoutWeight.endsWith(":")) align = "right";
+
+  return { align, weight };
+}
+
+/**
+ * Convert per-column weights into rounded percentage widths. Columns with
+ * no explicit weight share an implicit weight of 1. Returns `null` when no
+ * column has an explicit weight (i.e. no width hints were given at all).
+ *
+ * @param {Array<number|null>} weights
+ * @returns {Array<number>|null}
+ */
+function calculateColumnWidths(weights) {
+  if (!weights.some((w) => w !== null)) return null;
+  const effective = weights.map((w) => (w === null ? 1 : w));
+  const sum = effective.reduce((a, b) => a + b, 0);
+  return effective.map((w) => Math.round((w / sum) * 10000) / 100);
+}
+
+/**
  * Render a markdown string to HTML.
  *
  * @param {string} text - Raw markdown text
@@ -132,20 +181,17 @@ export function renderMarkdown(text) {
     if (trimmed.startsWith("|") && trimmed.endsWith("|") && (trimmed.match(/\|/g) || []).length >= 2) {
       // Must have a next line that is a separator row
       const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : "";
-      if (nextLine.startsWith("|") && /^\|[\s\-:|]+\|$/.test(nextLine)) {
+      if (nextLine.startsWith("|") && /^\|[\s\-:|{}.\w]+\|$/.test(nextLine)) {
         const headerCells = trimmed
           .split("|")
           .slice(1, -1)
           .map((c) => c.trim());
-        const alignments = nextLine
+        const separatorCells = nextLine
           .split("|")
           .slice(1, -1)
-          .map((c) => {
-            const cell = c.trim();
-            if (cell.startsWith(":") && cell.endsWith(":")) return "center";
-            if (cell.endsWith(":")) return "right";
-            return "left";
-          });
+          .map(parseSeparatorCell);
+        const alignments = separatorCells.map((c) => c.align);
+        const widths = calculateColumnWidths(separatorCells.map((c) => c.weight));
 
         i += 2; // Consume header + separator
 
@@ -166,19 +212,24 @@ export function renderMarkdown(text) {
         }
 
         // Build table HTML
-        let tableHtml = '<table class="content-table"><thead><tr>';
-        for (let ci = 0; ci < headerCells.length; ci++) {
+        const cellStyle = (ci) => {
+          const parts = [];
           const align = alignments[ci];
-          const style = align && align !== "left" ? ` style="text-align:${align}"` : "";
-          tableHtml += `<th${style}>${formatInline(escapePreservingMarkers(headerCells[ci]))}</th>`;
+          if (align && align !== "left") parts.push(`text-align:${align}`);
+          if (widths) parts.push(`width:${widths[ci]}%`);
+          return parts.length ? ` style="${parts.join(";")}"` : "";
+        };
+
+        const tableClass = widths ? "content-table content-table--fixed" : "content-table";
+        let tableHtml = `<table class="${tableClass}"><thead><tr>`;
+        for (let ci = 0; ci < headerCells.length; ci++) {
+          tableHtml += `<th${cellStyle(ci)}>${formatInline(escapePreservingMarkers(headerCells[ci]))}</th>`;
         }
         tableHtml += "</tr></thead><tbody>";
         for (const row of bodyRows) {
           tableHtml += "<tr>";
           for (let ci = 0; ci < headerCells.length; ci++) {
-            const align = alignments[ci];
-            const style = align && align !== "left" ? ` style="text-align:${align}"` : "";
-            tableHtml += `<td${style}>${formatInline(escapePreservingMarkers(row[ci] || ""))}</td>`;
+            tableHtml += `<td${cellStyle(ci)}>${formatInline(escapePreservingMarkers(row[ci] || ""))}</td>`;
           }
           tableHtml += "</tr>";
         }
