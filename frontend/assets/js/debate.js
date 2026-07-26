@@ -9,10 +9,11 @@
 
 import { getPopularChallenges, getAcademicChallenges } from './api.js';
 import { getParams, pushState } from './utils/router.js';
-import { html } from './utils/templates.js';
+import { html, raw } from './utils/templates.js';
 import { renderBadge } from './utils/templates.js';
 import { showToast } from './utils/toasts.js';
 import { delegate } from './utils/dom.js';
+import { renderMarkdown } from './utils/markdown.js';
 
 const SENTINEL_ID = 'scroll-sentinel';
 const LIST_ID = 'challenge-list';
@@ -187,7 +188,7 @@ function renderChallengeCards(items) {
         <span class="challenge-rank-number">${rank}</span>
         <div class="challenge-rank-content">
           <a class="challenge-rank-title" href="${detailUrl}">${item.title || 'Untitled'}</a>
-          ${item.summary ? html`<p class="challenge-rank-summary">${item.summary}</p>` : ''}
+          ${item.summary ? html`<p class="challenge-rank-summary">${raw(renderMarkdown(item.summary))}</p>` : ''}
         </div>
       </div>
       <div class="challenge-rank-footer">

@@ -181,6 +181,7 @@ function renderBody(article) {
     mlaSources: article.mla_sources || [],
     identifiers: article.identifiers || [],
     citationStyle: "superscript",
+    useMarkdown: true,
   });
   $body.innerHTML = htmlContent;
 

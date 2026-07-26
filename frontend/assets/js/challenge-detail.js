@@ -134,6 +134,7 @@ function renderBodyContent(challenge) {
     mlaSources: challenge.mla_sources || [],
     identifiers: challenge.identifiers || [],
     citationStyle: "superscript",
+    useMarkdown: true,
   });
 
   // numberFigures runs over #challenge-content (not just #challenge-body) so
