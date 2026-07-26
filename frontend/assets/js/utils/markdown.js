@@ -11,7 +11,9 @@
  *   - Ordered lists (1. prefix)
  *   - Pipe tables (optional `{w:N}` tokens in the separator row set
  *     proportional column widths, e.g. `|{w:2}---|---|` — see
- *     parseSeparatorCell())
+ *     parseSeparatorCell(); optional `{colspan:N}`/`{rowspan:N}` tokens on a
+ *     header/body cell merge it with adjacent `{continue}` cells — see
+ *     resolveTableGrid())
  *   - Blockquotes (> prefix; consecutive > lines become one <blockquote>,
  *     each line its own paragraph — no nesting, no multi-line continuation)
  *   - Paragraphs (text blocks separated by blank lines)
@@ -153,6 +155,161 @@ function calculateColumnWidths(weights) {
 }
 
 /**
+ * Parse a pipe-table header/body cell for merged-cell tokens: `{colspan:N}`,
+ * `{rowspan:N}`, and the bare `{continue}` placeholder that marks a grid
+ * position swallowed by an adjacent merge.
+ *
+ * N must be a positive integer greater than 1 to take effect; non-numeric,
+ * negative, zero, or `1` values degrade to no span (JS-2) — the same
+ * defensive pattern as `parseSeparatorCell()`'s `{w:N}` handling.
+ *
+ * @param {string} cellText - Raw cell text (untrimmed).
+ * @returns {{text: string, colspan: number, rowspan: number, isContinuation: boolean}}
+ */
+function parseCellSpanTokens(cellText) {
+  const cell = cellText.trim();
+  const isContinuation = cell === "{continue}";
+
+  let colspan = 1;
+  const colspanMatch = cell.match(/\{colspan:(\d+)\}/);
+  if (colspanMatch) {
+    const parsed = parseInt(colspanMatch[1], 10);
+    if (Number.isFinite(parsed) && parsed > 1) colspan = parsed;
+  }
+
+  let rowspan = 1;
+  const rowspanMatch = cell.match(/\{rowspan:(\d+)\}/);
+  if (rowspanMatch) {
+    const parsed = parseInt(rowspanMatch[1], 10);
+    if (Number.isFinite(parsed) && parsed > 1) rowspan = parsed;
+  }
+
+  const text = cell
+    .replace(/\{colspan:[^}]*\}/, "")
+    .replace(/\{rowspan:[^}]*\}/, "")
+    .replace(/\{continue\}/, "")
+    .trim();
+
+  return { text, colspan, rowspan, isContinuation };
+}
+
+/**
+ * Build a per-row array of "slots" (one per grid column) describing how a
+ * pipe-table row's raw cells resolve after the colspan pass. Each slot is
+ * one of:
+ *   - `{ kind: "owner", colIndex, colspan, rowspanIntent, text }` — a real
+ *     cell, possibly swallowing `{continue}` cells to its right.
+ *   - `{ kind: "absorbed-colspan", colIndex }` — a `{continue}` cell
+ *     consumed by an owner to its left.
+ *   - `{ kind: "continuation", colIndex }` — a `{continue}` cell not (yet)
+ *     claimed by colspan; a candidate for the rowspan pass, or a stray
+ *     placeholder that renders as an ordinary empty cell (JS-2).
+ *
+ * Rows shorter than `columnCount` are padded with empty cells, matching the
+ * table's pre-existing tolerance for short rows.
+ *
+ * @param {Array<string>} rawCells
+ * @param {number} columnCount
+ * @returns {Array<object>}
+ */
+function buildRowSlots(rawCells, columnCount) {
+  const parsed = Array.from({ length: columnCount }, (_, ci) =>
+    parseCellSpanTokens(rawCells[ci] || ""),
+  );
+  const slots = new Array(columnCount);
+  let ci = 0;
+  while (ci < columnCount) {
+    const cell = parsed[ci];
+    if (cell.isContinuation) {
+      slots[ci] = { kind: "continuation", colIndex: ci };
+      ci++;
+      continue;
+    }
+    let span = 1;
+    while (
+      span < cell.colspan &&
+      ci + span < columnCount &&
+      parsed[ci + span].isContinuation
+    ) {
+      span++;
+    }
+    // JS-3: colspan wins over rowspan when a cell declares both.
+    const rowspanIntent = cell.colspan > 1 && cell.rowspan > 1 ? 1 : cell.rowspan;
+    slots[ci] = { kind: "owner", colIndex: ci, colspan: span, rowspanIntent, text: cell.text };
+    for (let k = 1; k < span; k++) {
+      slots[ci + k] = { kind: "absorbed-colspan", colIndex: ci + k };
+    }
+    ci += span;
+  }
+  return slots;
+}
+
+/**
+ * Resolve a pipe table's header + body rows into their final merged-cell
+ * grid, in two passes: colspan (per row, via `buildRowSlots()`), then
+ * rowspan (per column, top to bottom, body rows only — there is only ever
+ * one header row, so a header rowspan is meaningless and ignored).
+ *
+ * A `{rowspan:N}` only takes effect over `{continue}` cells directly below
+ * it at the same column; it clamps to however many consecutive `{continue}`
+ * cells are actually present (JS-2), exactly like the colspan pass.
+ *
+ * @param {Array<string>} headerCells
+ * @param {Array<Array<string>>} bodyRows
+ * @returns {{header: Array<{text: string, colIndex: number, colspan: number}>,
+ *            body: Array<Array<{text: string, colIndex: number, colspan: number, rowspan: number}>>}}
+ */
+function resolveTableGrid(headerCells, bodyRows) {
+  const columnCount = headerCells.length;
+
+  const headerSlots = buildRowSlots(headerCells, columnCount);
+  const bodyRowSlots = bodyRows.map((row) => buildRowSlots(row, columnCount));
+
+  // Rowspan pass — per column, top to bottom, body rows only.
+  for (let colIndex = 0; colIndex < columnCount; colIndex++) {
+    for (let ri = 0; ri < bodyRowSlots.length; ri++) {
+      const slot = bodyRowSlots[ri][colIndex];
+      if (slot.kind !== "owner") continue;
+      let span = 1;
+      while (
+        span < slot.rowspanIntent &&
+        ri + span < bodyRowSlots.length &&
+        bodyRowSlots[ri + span][colIndex].kind === "continuation"
+      ) {
+        bodyRowSlots[ri + span][colIndex].kind = "absorbed-rowspan";
+        span++;
+      }
+      slot.rowspan = span;
+    }
+  }
+
+  const toRenderCells = (slots, includeRowspan) =>
+    slots
+      .filter((slot) => slot.kind === "owner" || slot.kind === "continuation")
+      .map((slot) =>
+        slot.kind === "owner"
+          ? {
+              text: slot.text,
+              colIndex: slot.colIndex,
+              colspan: slot.colspan,
+              ...(includeRowspan ? { rowspan: slot.rowspan } : {}),
+            }
+          : {
+              // Stray, unclaimed {continue} — renders as an ordinary empty cell.
+              text: "",
+              colIndex: slot.colIndex,
+              colspan: 1,
+              ...(includeRowspan ? { rowspan: 1 } : {}),
+            },
+      );
+
+  return {
+    header: toRenderCells(headerSlots, false),
+    body: bodyRowSlots.map((slots) => toRenderCells(slots, true)),
+  };
+}
+
+/**
  * Render a markdown string to HTML.
  *
  * @param {string} text - Raw markdown text
@@ -212,24 +369,38 @@ export function renderMarkdown(text) {
         }
 
         // Build table HTML
-        const cellStyle = (ci) => {
+        const grid = resolveTableGrid(headerCells, bodyRows);
+
+        // A colspanned cell's width is the sum of every column it spans.
+        const cellStyle = (colIndex, colspan) => {
           const parts = [];
-          const align = alignments[ci];
+          const align = alignments[colIndex];
           if (align && align !== "left") parts.push(`text-align:${align}`);
-          if (widths) parts.push(`width:${widths[ci]}%`);
+          if (widths) {
+            const w = widths.slice(colIndex, colIndex + colspan).reduce((a, b) => a + b, 0);
+            parts.push(`width:${w}%`);
+          }
           return parts.length ? ` style="${parts.join(";")}"` : "";
+        };
+
+        const cellAttrs = (colIndex, colspan, rowspan) => {
+          const spanAttrs = [];
+          if (colspan > 1) spanAttrs.push(`colspan="${colspan}"`);
+          if (rowspan > 1) spanAttrs.push(`rowspan="${rowspan}"`);
+          const prefix = spanAttrs.length ? ` ${spanAttrs.join(" ")}` : "";
+          return prefix + cellStyle(colIndex, colspan);
         };
 
         const tableClass = widths ? "content-table content-table--fixed" : "content-table";
         let tableHtml = `<table class="${tableClass}"><thead><tr>`;
-        for (let ci = 0; ci < headerCells.length; ci++) {
-          tableHtml += `<th${cellStyle(ci)}>${formatInline(escapePreservingMarkers(headerCells[ci]))}</th>`;
+        for (const cell of grid.header) {
+          tableHtml += `<th${cellAttrs(cell.colIndex, cell.colspan, 1)}>${formatInline(escapePreservingMarkers(cell.text))}</th>`;
         }
         tableHtml += "</tr></thead><tbody>";
-        for (const row of bodyRows) {
+        for (const row of grid.body) {
           tableHtml += "<tr>";
-          for (let ci = 0; ci < headerCells.length; ci++) {
-            tableHtml += `<td${cellStyle(ci)}>${formatInline(escapePreservingMarkers(row[ci] || ""))}</td>`;
+          for (const cell of row) {
+            tableHtml += `<td${cellAttrs(cell.colIndex, cell.colspan, cell.rowspan)}>${formatInline(escapePreservingMarkers(cell.text))}</td>`;
           }
           tableHtml += "</tr>";
         }

@@ -19,6 +19,28 @@ Pipe tables (`| A | B |`) are available in any body content rendered through `re
     |{w:1}---|{w:1}---|{w:2}---|
     | Bronze Age | 3300–1200 BC | Longest era by duration |
     ```
+- **Merged cells (`{colspan:N}` / `{rowspan:N}` tokens)**: authors may merge a header or body cell with adjacent cells by adding `{colspan:N}` (merge rightward, across columns) and/or `{rowspan:N}` (merge downward, across rows) to that cell, where `N` is a whole number greater than `1`.
+  - Every grid position being swallowed by the merge must contain the placeholder `{continue}` and nothing else. This keeps every row's cell count matching the header's column count at all times — there's no implicit cell-omission to miscount by hand.
+  - The declared `N` clamps to however many consecutive `{continue}` cells are actually present — `{colspan:5}` followed by only two `{continue}` cells produces an effective colspan of 3, not 5, and never swallows real content.
+  - **A single cell cannot use both tokens at once** (no rectangular block merges): if a cell declares `{colspan:N}` and `{rowspan:M}` together, the colspan applies and the rowspan is silently dropped.
+  - `{rowspan:N}` is body-rows-only — there is only ever one header row, so a header rowspan is meaningless and is ignored if present. `{colspan:N}` works on both header and body cells.
+  - A stray `{continue}` with no adjacent merge to claim it (e.g. a typo) simply renders as an ordinary empty cell — never broken markup.
+  - Combines with `{w:N}`: a colspanned cell's rendered width is the sum of the percentages of every column it spans.
+  - Example — a full-width section-header row inside a table:
+    ```
+    | Era | Years | Notes |
+    |---|---|---|
+    | {colspan:3}Bronze Age | {continue} | {continue} |
+    | Early | 3300–2100 BC | Copper-bronze transition |
+    | Late | 1550–1200 BC | Collapse and migration |
+    ```
+  - Example — a label spanning multiple rows:
+    ```
+    | Category | Item |
+    |---|---|
+    | {rowspan:2}Metals | Bronze |
+    | {continue} | Iron |
+    ```
 
 **Home / index.html**:
 - Single column, centre-aligned text throughout

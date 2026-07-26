@@ -164,6 +164,81 @@ describe("renderMarkdown", () => {
     assert.equal(result, '<table class="content-table"><thead><tr><th>Name</th><th>Age</th></tr></thead><tbody><tr><td>Alice</td><td>30</td></tr></tbody></table>');
   });
 
+  test("pipe table with {colspan:N} merges a full-width body row", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B | C |\n|---|---|---|\n| {colspan:3}Section header | {continue} | {continue} |\n| x | y | z |";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes('<td colspan="3">Section header</td>'), `expected a single colspan="3" cell, got: ${result}`);
+    assert.ok(!result.includes("{continue}"), `expected no leftover {continue} markers, got: ${result}`);
+    assert.ok(result.includes("<td>x</td><td>y</td><td>z</td>"), `expected the following row untouched, got: ${result}`);
+  });
+
+  test("pipe table with {colspan:N} on a header cell", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| {colspan:2}Group | {continue} | C |\n|---|---|---|\n| x | y | z |";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes('<th colspan="2">Group</th>'), `expected a colspan="2" <th>, got: ${result}`);
+  });
+
+  test("pipe table {colspan:N} clamps to the number of consecutive {continue} cells present", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B | C | D | E |\n|---|---|---|---|---|\n| {colspan:5}Wide | {continue} | {continue} | real | more |";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes('<td colspan="3">Wide</td>'), `expected colspan clamped to 3, got: ${result}`);
+    assert.ok(result.includes("<td>real</td>") && result.includes("<td>more</td>"), `expected real content preserved, got: ${result}`);
+  });
+
+  test("pipe table with {rowspan:N} merges a cell down two body rows", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B |\n|---|---|\n| {rowspan:3}Label | 1 |\n| {continue} | 2 |\n| {continue} | 3 |";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes('<td rowspan="3">Label</td>'), `expected a single rowspan="3" cell, got: ${result}`);
+    assert.ok(!result.includes("{continue}"), `expected no leftover {continue} markers, got: ${result}`);
+    assert.ok(
+      result.includes("<td>1</td>") && result.includes("<td>2</td>") && result.includes("<td>3</td>"),
+      `expected sibling cells in every row, got: ${result}`,
+    );
+  });
+
+  test("pipe table {rowspan:N} clamps to the number of consecutive {continue} rows present", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B |\n|---|---|\n| {rowspan:4}Label | 1 |\n| {continue} | 2 |\n| Real | 3 |";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes('<td rowspan="2">Label</td>'), `expected rowspan clamped to 2, got: ${result}`);
+    assert.ok(result.includes("<td>Real</td>"), `expected real content preserved, got: ${result}`);
+  });
+
+  test("pipe table cell declaring both {colspan:N} and {rowspan:N} keeps only the colspan", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B | C |\n|---|---|---|\n| {colspan:2}{rowspan:2}Both | {continue} | 1 |\n| x | y | z |";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes('<td colspan="2">Both</td>'), `expected colspan applied with no rowspan attribute, got: ${result}`);
+  });
+
+  test("pipe table with a stray unclaimed {continue} renders an ordinary empty cell", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B |\n|---|---|\n| x | {continue} |";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes("<td>x</td><td></td>"), `expected an empty cell, not broken markup, got: ${result}`);
+  });
+
+  test("pipe table {colspan:N} width sums the spanned columns' {w:N} percentages", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B | C |\n|{w:1}---|{w:1}---|{w:2}---|\n| {colspan:2}Wide | {continue} | z |";
+    const result = renderMarkdown(input);
+    assert.ok(
+      result.includes('<td colspan="2" style="width:50%">Wide</td>'),
+      `expected summed width of 50% (25%+25%), got: ${result}`,
+    );
+  });
+
+  test("pipe table with no merge tokens renders unchanged (no colspan/rowspan attributes)", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| Name | Age |\n|------|-----|\n| Alice | 30 |";
+    const result = renderMarkdown(input);
+    assert.equal(result, '<table class="content-table"><thead><tr><th>Name</th><th>Age</th></tr></thead><tbody><tr><td>Alice</td><td>30</td></tr></tbody></table>');
+  });
+
   test("paragraph with multiple lines", async () => {
     const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "Line one.\nLine two.\nLine three.";
