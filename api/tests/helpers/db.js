@@ -59,8 +59,9 @@ function createTestDb() {
   // columns + geoip_blocks already in schema.sql), 013 (site_settings
   // table + seed row already in schema.sql), 023 (news_article_thumbnail
   // already in schema.sql), 028 (arbor_edges.waypoints already in schema.sql),
-  // and 035 (evidence.image_caption / challenges.challenge_picture_alt+caption
-  // already in schema.sql).
+  // 035 (evidence.image_caption / challenges.challenge_picture_alt+caption
+  // already in schema.sql), and 036 (resources.in_holding_pen already in
+  // schema.sql).
   const migrationFiles = fs
     .readdirSync(MIGRATIONS_DIR)
     .filter(
@@ -81,7 +82,8 @@ function createTestDb() {
         !name.startsWith("027_") &&
         !name.startsWith("028_") &&
         !name.startsWith("032_") &&
-        !name.startsWith("035_"),
+        !name.startsWith("035_") &&
+        !name.startsWith("036_"),
     )
     .sort();
 

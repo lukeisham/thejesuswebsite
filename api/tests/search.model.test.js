@@ -121,6 +121,26 @@ function clearAll() {
   db.exec("DELETE FROM blog_posts");
   db.exec("DELETE FROM challenges");
   db.exec("DELETE FROM news_articles");
+  db.exec("DELETE FROM resources");
+}
+
+function seedResource(overrides = {}) {
+  return db
+    .prepare(
+      `
+    INSERT INTO resources (list_key, resource_title, resource_url, resource_description, sort_order, published_draft, in_holding_pen)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `,
+    )
+    .run(
+      overrides.list_key || "ot-verses",
+      overrides.resource_title || "Test Resource",
+      overrides.resource_url || null,
+      overrides.resource_description || "Test description.",
+      overrides.sort_order ?? 0,
+      overrides.published_draft ?? 1,
+      overrides.in_holding_pen ?? 0,
+    ).lastInsertRowid;
 }
 
 // ── searchOne() title field ───────────────────────────────────────────────────
@@ -263,6 +283,25 @@ describe("searchOne excludes unpublished rows", () => {
     const titles = results.map((r) => r.title);
     assert.ok(titles.includes("Published Essay"));
     assert.ok(!titles.includes("Draft Essay"));
+  });
+
+  test("does not return a parked (holding-pen) ot-verses resource", () => {
+    seedResource({
+      resource_title: "Filed Verse",
+      list_key: "ot-verses",
+      published_draft: 1,
+      in_holding_pen: 0,
+    });
+    seedResource({
+      resource_title: "Parked Verse",
+      list_key: "ot-verses",
+      published_draft: 1,
+      in_holding_pen: 1,
+    });
+    const results = searchModel.searchOne("bible-verses", "Verse");
+    const titles = results.map((r) => r.title);
+    assert.ok(titles.includes("Filed Verse"));
+    assert.ok(!titles.includes("Parked Verse"));
   });
 });
 

@@ -344,6 +344,15 @@ const CATEGORY_1 = {
       "The word field contains whitespace. The single-word tokenizer cannot match multi-word phrases, so only individual words may be added to the dictionary.",
     severity: "warn",
   },
+
+  INVALID_LIST_KEY: {
+    code: "E-INPUT-035",
+    category: 1,
+    httpStatus: 400,
+    message: "The resource list is not recognised.",
+    detail: "The list_key value did not match any of the known resource lists.",
+    severity: "error",
+  },
 };
 
 // ── Category 2: Transformation Boundaries (Data Processing) ─────────────────

@@ -131,6 +131,13 @@
     }
     main.appendChild(listContainer);
 
+    const penContainer = document.createElement("div");
+    penContainer.id = "resources-holding-pen";
+    main.appendChild(penContainer);
+    if (window.AdminResourcesPen) {
+      window.AdminResourcesPen.mount(penContainer);
+    }
+
     AdminRanking.init("#resource-list", {
       itemSelector: ".draggable-row",
       handleSelector: ".drag-handle",
@@ -172,6 +179,41 @@
     document.getElementById("btn-save-all").addEventListener("click", function () {
       saveAllChanges();
     });
+
+    document.getElementById("resource-list").addEventListener("change", function (e) {
+      const moveSelect = e.target.closest(".res-move-select");
+      if (!moveSelect) return;
+      const value = moveSelect.value;
+      if (!value) return;
+      const row = moveSelect.closest(".draggable-row");
+      if (!row) return;
+      const id = row.dataset.id;
+      const res = resources.find(function (r) { return String(r.id) === id; });
+      if (!res) return;
+      moveResource(res, row, value, moveSelect);
+    });
+
+    async function moveResource(res, rowEl, target, selectEl) {
+      clearError();
+      selectEl.disabled = true;
+      const payload = target === "__pen__"
+        ? { in_holding_pen: 1 }
+        : { list_key: target, in_holding_pen: 0 };
+      try {
+        await Admin.api.put("/resources/" + res.id, payload);
+        resources = resources.filter(function (r) { return r.id !== res.id; });
+        if (rowEl) rowEl.remove();
+        statusEl.textContent = target === "__pen__"
+          ? "Moved to the holding pen."
+          : "Moved to " + (CATEGORY_LABELS[target] || target) + ".";
+        statusEl.style.color = "var(--admin-success)";
+        if (window.AdminResourcesPen) window.AdminResourcesPen.reload();
+      } catch (err) {
+        selectEl.disabled = false;
+        selectEl.value = "";
+        showError("Failed to move “" + (res.resource_title || "untitled") + "”: " + err.message);
+      }
+    }
 
     document.getElementById("resource-list").addEventListener("click", function (e) {
       const pubBtn = e.target.closest(".btn-toggle-publish");
@@ -343,6 +385,20 @@
     pubBtn.style.color = "#fff";
     actions.appendChild(pubBtn);
 
+    if (!r._isNew) {
+      const moveSelect = document.createElement("select");
+      moveSelect.className = "admin-select res-move-select";
+      moveSelect.setAttribute("aria-label", "Move \u201c" + (r.resource_title || "untitled") + "\u201d to list");
+      let optionsHtml = '<option value="">Move to\u2026</option>';
+      VALID_LIST_KEYS.forEach(function (k) {
+        if (k === currentListKey) return;
+        optionsHtml += '<option value="' + k + '">' + (CATEGORY_LABELS[k] || k) + "</option>";
+      });
+      optionsHtml += '<option value="__pen__">Holding pen</option>';
+      moveSelect.innerHTML = optionsHtml;
+      actions.appendChild(moveSelect);
+    }
+
     const delBtn = document.createElement("button");
     delBtn.type = "button";
     delBtn.className = "admin-btn admin-btn--sm admin-btn--danger btn-delete-resource";
@@ -382,6 +438,17 @@
       await loadResources(currentListKey);
     }
     render();
+    if (currentListKey && window.AdminResourcesPen) {
+      window.AdminResourcesPen.init({
+        containerId: "resources-holding-pen",
+        listKey: currentListKey,
+        getNextSortOrder: function () { return resources.length; },
+        onFiled: function (resource) {
+          resources.push(resource);
+          render();
+        },
+      });
+    }
     window.addEventListener("beforeunload", function (e) {
       if (isDirty) {
         e.preventDefault();

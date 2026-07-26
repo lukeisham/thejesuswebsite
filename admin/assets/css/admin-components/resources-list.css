@@ -126,3 +126,67 @@
 .btn-toggle-publish:hover {
     opacity: 0.85;
 }
+
+.res-move-select {
+    max-width: 160px;
+}
+
+/* ── Holding pen (site-wide, mounted on every resource topic page) ───────── */
+/* Box chrome comes from .admin-holding-pen-panel (admin-diagrams/holding-pen-panel.css);
+   this file styles only the resources-specific heading + chip layout. */
+
+.admin-resources-pen__heading {
+    margin: 0 0 var(--space-sm);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--admin-text-primary);
+}
+
+.admin-resources-pen__empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--admin-text-muted);
+}
+
+.admin-resources-pen__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.admin-resources-pen__chip {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-sm);
+}
+
+.admin-resources-pen__chip-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.admin-resources-pen__chip-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--admin-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 220px;
+}
+
+.admin-resources-pen__chip-origin {
+    font-size: 11px;
+    color: var(--admin-text-muted);
+}
+
+.admin-resources-pen__file-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
