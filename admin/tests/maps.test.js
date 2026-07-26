@@ -664,6 +664,110 @@ function clampMenuPosition(screenX, screenY, menuWidth, menuHeight, viewW, viewH
   return { left: left, top: top };
 }
 
+// ── AdminMapsClusterPins bridge ─────────────────────────────────────────
+
+function loadEsmAsPlainScript(absPath, sandboxObj) {
+  const source = fs
+    .readFileSync(absPath, "utf8")
+    .replace(/^import\s+\{[^}]*\}\s+from\s+["'][^"']+["'];?$/gm, "")
+    .replace(/^export\s+const\s+/gm, "var ")
+    .replace(/^export\s+function\s+/gm, "function ")
+    .replace(/^export\s+\{[^}]*\};?$/gm, "");
+  vm.runInNewContext(source, sandboxObj);
+}
+
+const bridgeSandbox = { console: { error: function () {} } };
+
+loadEsmAsPlainScript(
+  path.resolve(
+    __dirname,
+    "..",
+    "..",
+    "frontend",
+    "assets",
+    "js",
+    "cluster-logic",
+    "cluster-density.js",
+  ),
+  bridgeSandbox,
+);
+loadEsmAsPlainScript(
+  path.resolve(
+    __dirname,
+    "..",
+    "..",
+    "frontend",
+    "assets",
+    "js",
+    "cluster-logic",
+    "cluster-labels.js",
+  ),
+  bridgeSandbox,
+);
+loadEsmAsPlainScript(
+  path.resolve(
+    __dirname,
+    "..",
+    "..",
+    "frontend",
+    "assets",
+    "js",
+    "cluster-logic",
+    "cluster-map-pins.js",
+  ),
+  bridgeSandbox,
+);
+
+// Build the bridge's window.AdminMapsClusterPins shape directly from the
+// canonical exports now sitting in bridgeSandbox — mirrors what
+// cluster-map-pins-bridge.js does via its ES module import.
+const AdminMapsClusterPins = {
+  PROXIMITY_THRESHOLD: bridgeSandbox.PROXIMITY_THRESHOLD,
+  detectClusters: bridgeSandbox.detectClusters,
+  getZoomScaledSpacing: bridgeSandbox.getZoomScaledSpacing,
+  computeRadialOffset: bridgeSandbox.computeRadialOffset,
+  computePinOffsets: bridgeSandbox.computePinOffsets,
+  computePinLabelModes: bridgeSandbox.computePinLabelModes,
+};
+
+describe("AdminMapsClusterPins bridge", function () {
+  test("returns the same fan offsets as the canonical module for equivalent input", function () {
+    var pins = [
+      { x: 50, y: 50 },
+      { x: 50, y: 50 },
+      { x: 10, y: 10 },
+    ];
+
+    var bridgeResult = AdminMapsClusterPins.computePinOffsets(pins, 1.0);
+    var canonicalResult = bridgeSandbox.computePinOffsets(pins, 1.0);
+
+    assert.deepEqual(bridgeResult, canonicalResult);
+  });
+
+  test("admin's fixed zoom default (1.0) produces the normal-tier spacing", function () {
+    var defaultSpacing = AdminMapsClusterPins.getZoomScaledSpacing();
+    var explicitNormalSpacing = AdminMapsClusterPins.getZoomScaledSpacing(1.0);
+    assert.equal(defaultSpacing, explicitNormalSpacing);
+
+    // Confirm it sits strictly between the tight (high-zoom) and wide
+    // (low-zoom) extremes, i.e. it really is the "normal" middle tier.
+    var tight = AdminMapsClusterPins.getZoomScaledSpacing(3.0);
+    var wide = AdminMapsClusterPins.getZoomScaledSpacing(0.5);
+    assert.ok(defaultSpacing < wide);
+    assert.ok(defaultSpacing > tight);
+  });
+
+  test("detectClusters groups pins at identical coordinates", function () {
+    var pins = [
+      { x: 20, y: 20 },
+      { x: 20, y: 20 },
+    ];
+    var clusters = AdminMapsClusterPins.detectClusters(pins);
+    assert.equal(clusters.length, 1);
+    assert.equal(clusters[0].length, 2);
+  });
+});
+
 describe("pin-menu position clamping", function () {
   test("positions menu at cursor when within viewport", function () {
     var result = clampMenuPosition(200, 300, 160, 100, 1024, 768);

@@ -89,21 +89,47 @@ Pins.renderPins = function () {
   if (!pinsLayer) return;
   pinsLayer.innerHTML = "";
 
+  const staged =
+    window.AdminMapsStaged ? window.AdminMapsStaged.getCreates() : [];
+
+  // Fan out any pins (saved + staged) that cluster at near-identical
+  // coordinates. Admin has no zoom concept, so the clustering module is
+  // called with its default zoomLevel (1.0 — "normal" spacing tier).
+  // Offsets are in the same percentage-space as pin.x/pin.y, so they fold
+  // straight into left/top with no DOM measurement needed.
+  const combined = pins.concat(staged);
+  const offsets = Pins._computeOffsets(combined);
+
   // Render existing (saved) pins
   for (let i = 0; i < pins.length; i++) {
     const pin = pins[i];
-    const el = Pins.createPinElement(pin);
+    const el = Pins.createPinElement(pin, offsets[i]);
     pinsLayer.appendChild(el);
   }
 
   // Render staged creates (holding-pen drops / staged add-mode clicks)
-  if (window.AdminMapsStaged) {
-    const staged = window.AdminMapsStaged.getCreates();
-    for (let j = 0; j < staged.length; j++) {
-      const s = staged[j];
-      const sel = Pins._createStagedPinElement(s);
-      pinsLayer.appendChild(sel);
-    }
+  for (let j = 0; j < staged.length; j++) {
+    const s = staged[j];
+    const sel = Pins._createStagedPinElement(s, offsets[pins.length + j]);
+    pinsLayer.appendChild(sel);
+  }
+};
+
+/**
+ * Compute per-pin fan-out offsets (percentage-space) for a combined list of
+ * saved + staged pins, via the AdminMapsClusterPins bridge. Degrades to no
+ * offsets (plain, possibly-overlapping positions) if the bridge isn't loaded.
+ *
+ * @param {Array<{x: number, y: number}>} points
+ * @returns {Array<{xOffset: number, yOffset: number}|undefined>}
+ */
+Pins._computeOffsets = function (points) {
+  if (!window.AdminMapsClusterPins) return [];
+
+  try {
+    return window.AdminMapsClusterPins.computePinOffsets(points);
+  } catch (e) {
+    return [];
   }
 };
 
@@ -111,9 +137,12 @@ Pins.renderPins = function () {
  * Create a DOM element for a single pin.
  *
  * @param {Object} pin
+ * @param {{xOffset: number, yOffset: number}} [offset] - fan-out offset in
+ *   percentage-space units, from Pins._computeOffsets(). Rendering-only —
+ *   never written back to pin.x/pin.y or the API payload.
  * @returns {HTMLElement}
  */
-Pins.createPinElement = function (pin) {
+Pins.createPinElement = function (pin, offset) {
   const el = document.createElement("button");
   el.className = "admin-map-pin";
   if (pin.timeline_era) {
@@ -135,8 +164,8 @@ Pins.createPinElement = function (pin) {
     el.setAttribute("title", pin.label || "");
   }
 
-  el.style.left = pin.x + "%";
-  el.style.top = pin.y + "%";
+  el.style.left = (offset ? pin.x + offset.xOffset : pin.x) + "%";
+  el.style.top = (offset ? pin.y + offset.yOffset : pin.y) + "%";
   el.setAttribute("aria-label", pin.label || "Map pin");
   el.dataset.pinId = String(pin.id);
   el.dataset.evidenceSlug = pin.evidence_slug || "";
@@ -185,9 +214,11 @@ Pins.createPinElement = function (pin) {
  * Styled with a dashed border to distinguish from saved pins.
  *
  * @param {Object} staged
+ * @param {{xOffset: number, yOffset: number}} [offset] - fan-out offset in
+ *   percentage-space units, from Pins._computeOffsets().
  * @returns {HTMLElement}
  */
-Pins._createStagedPinElement = function (staged) {
+Pins._createStagedPinElement = function (staged, offset) {
   const el = document.createElement("button");
   el.className = "admin-map-pin admin-map-pin--staged";
   if (staged.timeline_era) {
@@ -195,8 +226,8 @@ Pins._createStagedPinElement = function (staged) {
       "era--" + AdminMapsEraUtils.eraToKebab(staged.timeline_era),
     );
   }
-  el.style.left = staged.x + "%";
-  el.style.top = staged.y + "%";
+  el.style.left = (offset ? staged.x + offset.xOffset : staged.x) + "%";
+  el.style.top = (offset ? staged.y + offset.yOffset : staged.y) + "%";
   el.setAttribute("aria-label", staged.label || "Staged pin");
   el.title = staged.label || "";
   el.dataset.tempId = staged._tempId;
@@ -453,6 +484,11 @@ Pins.onPinMouseDown = function (e, pin) {
     startX: e.clientX,
     startY: e.clientY,
   };
+
+  // No fan-offset suppression needed here: onPinMouseMove sets el.style.left/
+  // top directly to the raw cursor-derived percentage, which already
+  // overwrites any fanned position from the last render. The fan offset
+  // returns naturally on the next Pins.renderPins() call in onPinMouseUp.
 
   document.addEventListener("mousemove", Pins.onPinMouseMove);
   document.addEventListener("mouseup", Pins.onPinMouseUp);

@@ -10,9 +10,10 @@
 import { createElement, batchWrite } from "../utils/dom.js";
 import { fetchMapByKey } from "./maps-data.js";
 import { readEmbeddedData } from "../api.js";
-import { setupInteractions } from "./maps-interactions.js";
+import { setupInteractions, getZoomLevel } from "./maps-interactions.js";
 import { showToast } from "../utils/toasts.js";
 import { revalidateInBackground } from "../utils/data-revalidation.js";
+import { computePinOffsets } from "../cluster-logic/cluster-map-pins.js";
 
 // ─── Overview render ──────────────────────────────────────────────────────────
 
@@ -155,11 +156,26 @@ export function renderRegion(map) {
     document.getElementById("map-page-title").textContent =
       map.map_name || "Map";
 
-    // Render pins
+    // Render pins, fanning out any that cluster at near-identical coordinates.
+    // Offsets are computed in the same percentage-space as pin.x/pin.y, so
+    // they need no knowledge of the image's rendered pixel size (which may
+    // not be known yet — mapImageEl.src above loads asynchronously) and
+    // automatically scale alongside the pins layer's own zoom
+    // scale()/translate() transform (see maps-interactions.js applyTransform()),
+    // since that transform scales this whole layer's coordinate space,
+    // left/top-positioned children included.
     pinsLayer.innerHTML = "";
     const pins = map.pins || [];
-    for (const pin of pins) {
-      const pinEl = createPinElement(pin);
+    let offsets = [];
+    try {
+      offsets = computePinOffsets(pins, getZoomLevel());
+    } catch (err) {
+      // Defensive fallback: degrade to unclustered/overlapping pins rather
+      // than blocking rendering (see plan's Error notification section).
+      offsets = [];
+    }
+    for (let i = 0; i < pins.length; i++) {
+      const pinEl = createPinElement(pins[i], offsets[i]);
       pinsLayer.appendChild(pinEl);
     }
 
@@ -191,9 +207,12 @@ function eraToKebab(era) {
  * Create a single pin element.
  *
  * @param {Object} pin
+ * @param {{xOffset: number, yOffset: number}} [offset] - fan-out offset in
+ *   percentage-space units, from computePinOffsets(). Rendering-only —
+ *   never affects pin.x/pin.y, which remain the true anchor coordinate.
  * @returns {HTMLElement}
  */
-function createPinElement(pin) {
+function createPinElement(pin, offset) {
   const hasEvidence = pin.evidence_slug && pin.evidence_title;
 
   let className = "map-pin";
@@ -209,9 +228,12 @@ function createPinElement(pin) {
     className += " dot-cat--object";
   }
 
+  const left = offset ? pin.x + offset.xOffset : pin.x;
+  const top = offset ? pin.y + offset.yOffset : pin.y;
+
   const el = createElement("button", {
     className: className,
-    style: `left:${pin.x}%;top:${pin.y}%`,
+    style: `left:${left}%;top:${top}%`,
     "aria-label": pin.label || "Map pin",
     title: pin.label || "",
     dataset: {

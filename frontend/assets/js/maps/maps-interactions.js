@@ -34,6 +34,16 @@ const ZOOM_STEP = 0.25;
 
 let zoomLevel = 1.0;
 
+/**
+ * Read the current zoom level. Used by maps-render.js to scale cluster
+ * fan-out spacing to match what's currently on screen.
+ *
+ * @returns {number}
+ */
+export function getZoomLevel() {
+  return zoomLevel;
+}
+
 // ─── Pan state ─────────────────────────────────────────────────────────────────
 
 let translateX = 0;
