@@ -41,10 +41,14 @@
      ----------------------------------------------------------------------- */
 
     .navigation,
+    body > nav.sidebar,
     .sidebar,
     .sidebar-backdrop,
     #sidebar-toggle,
+    .sidebar__toggle,
     body > footer,
+    body > footer.site-footer,
+    .site-footer,
     .page-info-row,
     .filters,
     .related-items,
