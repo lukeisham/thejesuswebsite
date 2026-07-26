@@ -174,6 +174,25 @@
     });
 
     document.getElementById("resource-list").addEventListener("click", function (e) {
+      const pubBtn = e.target.closest(".btn-toggle-publish");
+      if (pubBtn) {
+        e.preventDefault();
+        const row = pubBtn.closest(".draggable-row");
+        if (!row) return;
+        const id = row.dataset.id;
+        const res = resources.find(function (r) { return String(r.id) === id; });
+        if (!res) return;
+        res.published_draft = res.published_draft ? 0 : 1;
+        pubBtn.textContent = res.published_draft ? "Published" : "Draft";
+        pubBtn.dataset.pubState = res.published_draft ? "1" : "0";
+        pubBtn.style.background = res.published_draft ? "var(--admin-success)" : "var(--admin-text-muted)";
+        pubBtn.setAttribute("aria-label", res.published_draft ? "Unpublish resource" : "Publish resource");
+        isDirty = true;
+        statusEl.textContent = "Publish state changed \u2014 click Save All to persist.";
+        statusEl.style.color = "var(--admin-warning)";
+        return;
+      }
+
       const delBtn = e.target.closest(".btn-delete-resource");
       if (!delBtn) return;
       e.preventDefault();
@@ -251,7 +270,8 @@
           successCount++;
         } catch (err) {
           failCount++;
-          console.error("Save failed for resource:", r, err);
+          const label = r.resource_title || "untitled row " + (i + 1);
+          showError("Failed to save \u201c" + label + "\u201d: " + err.message);
         }
       }
 
@@ -312,6 +332,17 @@
 
     const actions = document.createElement("div");
     actions.className = "resource-actions";
+
+    const pubBtn = document.createElement("button");
+    pubBtn.type = "button";
+    pubBtn.className = "admin-btn admin-btn--sm btn-toggle-publish";
+    pubBtn.dataset.pubState = r.published_draft ? "1" : "0";
+    pubBtn.textContent = r.published_draft ? "Published" : "Draft";
+    pubBtn.setAttribute("aria-label", r.published_draft ? "Unpublish resource" : "Publish resource");
+    pubBtn.style.background = r.published_draft ? "var(--admin-success)" : "var(--admin-text-muted)";
+    pubBtn.style.color = "#fff";
+    actions.appendChild(pubBtn);
+
     const delBtn = document.createElement("button");
     delBtn.type = "button";
     delBtn.className = "admin-btn admin-btn--sm admin-btn--danger btn-delete-resource";
@@ -329,7 +360,7 @@
 
   async function loadResources(listKey) {
     try {
-      resources = await Admin.api.get("/resources?list_key=" + encodeURIComponent(listKey));
+      resources = await Admin.api.get("/resources/admin?list_key=" + encodeURIComponent(listKey));
       if (!Array.isArray(resources)) resources = [];
       resources.sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
       return true;

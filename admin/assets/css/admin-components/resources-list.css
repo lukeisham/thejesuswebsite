@@ -1,0 +1,128 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Resources List — shared styles for admin resource pages
+   Extracted from ~10k lines of duplicate inline <style> blocks across
+   16 admin/resources/*.html files (resources-p1-consolidation-draft-fix.md).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.admin-loading,
+.admin-empty,
+.admin-error {
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--admin-text-muted);
+    font-size: 14px;
+}
+
+.admin-error {
+    color: var(--admin-danger);
+}
+
+.admin-resources-header {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.admin-resources-header .admin-form-group {
+    margin-bottom: 0;
+    min-width: 220px;
+}
+
+.draggable-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border-light);
+    border-radius: var(--admin-radius);
+    margin-bottom: var(--space-xs);
+    transition:
+        box-shadow var(--admin-transition),
+        opacity var(--admin-transition);
+}
+
+.draggable-row.dragging {
+    opacity: 0.85;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.draggable-row.drop-target {
+    box-shadow: 0 0 0 2px var(--admin-accent);
+}
+
+.drag-handle {
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: var(--admin-text-muted);
+    font-size: 18px;
+    border-radius: var(--admin-radius-sm);
+    flex-shrink: 0;
+    user-select: none;
+    background: transparent;
+    border: none;
+    padding: 0;
+    touch-action: none;
+}
+
+.drag-handle:hover {
+    background: var(--admin-surface-hover);
+    color: var(--admin-text-primary);
+}
+
+.drag-handle:focus-visible {
+    outline: 2px solid var(--admin-accent);
+    outline-offset: 2px;
+}
+
+.draggable-row.dragging .drag-handle {
+    cursor: grabbing;
+}
+
+.resource-fields {
+    display: flex;
+    gap: var(--space-sm);
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.resource-fields input {
+    flex: 1;
+    min-width: 120px;
+}
+
+.resource-actions {
+    display: flex;
+    gap: var(--space-xs);
+    flex-shrink: 0;
+}
+
+.admin-save-bar {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    align-items: center;
+}
+
+#resource-status {
+    font-size: 13px;
+    color: var(--admin-text-secondary);
+}
+
+.btn-toggle-publish {
+    transition: background var(--admin-transition);
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-toggle-publish:hover {
+    opacity: 0.85;
+}

@@ -25,6 +25,7 @@
 @import "./admin-components/figure-captions.css";
 @import "./admin-components/credential-list.css";
 @import "./admin-components/mla-sources.css";
+@import "./admin-components/resources-list.css";
 
 /* ── Pages ────────────────────────────────────────────────────────────────── */
 @import "./analytics.css";
