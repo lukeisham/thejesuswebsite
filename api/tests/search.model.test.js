@@ -128,8 +128,8 @@ function seedResource(overrides = {}) {
   return db
     .prepare(
       `
-    INSERT INTO resources (list_key, resource_title, resource_url, resource_description, sort_order, published_draft, in_holding_pen)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO resources (list_key, resource_title, resource_url, resource_description, sort_order, published_draft, in_holding_pen, item_type)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `,
     )
     .run(
@@ -140,6 +140,7 @@ function seedResource(overrides = {}) {
       overrides.sort_order ?? 0,
       overrides.published_draft ?? 1,
       overrides.in_holding_pen ?? 0,
+      overrides.item_type || "item",
     ).lastInsertRowid;
 }
 
@@ -302,6 +303,25 @@ describe("searchOne excludes unpublished rows", () => {
     const titles = results.map((r) => r.title);
     assert.ok(titles.includes("Filed Verse"));
     assert.ok(!titles.includes("Parked Verse"));
+  });
+
+  test("does not return a subheading row as an ot-verses search result", () => {
+    seedResource({
+      resource_title: "Real Verse",
+      list_key: "ot-verses",
+      published_draft: 1,
+      item_type: "item",
+    });
+    seedResource({
+      resource_title: "Verse Section Heading",
+      list_key: "ot-verses",
+      published_draft: 1,
+      item_type: "subheading",
+    });
+    const results = searchModel.searchOne("bible-verses", "Verse");
+    const titles = results.map((r) => r.title);
+    assert.ok(titles.includes("Real Verse"));
+    assert.ok(!titles.includes("Verse Section Heading"));
   });
 });
 

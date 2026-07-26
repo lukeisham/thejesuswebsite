@@ -1,7 +1,7 @@
 /**
- * Resources list page: reads `key` URL param, fetches resources,
- * renders category nav chips and ordered list with ordinal numbers,
- * and infinite scroll.
+ * Resources list page: reads `key` URL param, fetches resources, and renders
+ * them as `<section>` groups — one per subheading, each with its own
+ * restarted `<ol>` numbering — with infinite scroll.
  *
  * @module resources
  */
@@ -57,7 +57,6 @@ const LOADING_ID = "loading-state";
 const EMPTY_ID = "empty-state";
 const ERROR_ID = "error-state";
 const END_ID = "end-of-list";
-const CATEGORY_NAV_ID = "category-nav";
 const TITLE_ID = "resources-title";
 const DESC_ID = "resources-description";
 const RETRY_ID = "retry-load";
@@ -65,26 +64,102 @@ const RETRY_ID = "retry-load";
 const PAGE_SIZE = 30;
 const SCROLL_THRESHOLD = 300;
 
-let currentPage = 1;
-let hasMore = true;
 let isLoading = false;
-let allItems = [];
+let hasMore = true;
 let activeKey = null;
 let observer = null;
 let retryTeardown = null;
 
-// ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// Rows fetched from the API (items + subheadings), the flattened render plan
+// built from them once per load, and how much of that plan has been rendered
+// so far (JS-6: pagination tracks this module state, not DOM element counts).
+let allRows = [];
+let renderPlan = [];
+let planIndex = 0;
+let itemCount = 0;
 
-const $list = document.getElementById(LIST_ID);
-const $sentinel = document.getElementById(SENTINEL_ID);
-const $loading = document.getElementById(LOADING_ID);
-const $empty = document.getElementById(EMPTY_ID);
-const $error = document.getElementById(ERROR_ID);
-const $end = document.getElementById(END_ID);
-const $categoryNav = document.getElementById(CATEGORY_NAV_ID);
-const $title = document.getElementById(TITLE_ID);
-const $desc = document.getElementById(DESC_ID);
-const $retry = document.getElementById(RETRY_ID);
+// The currently open section's <ol> — new item entries append here until a
+// new heading entry replaces it. Tracked in module state, not recomputed
+// from the DOM, so infinite-scroll batches continue the right section.
+let $currentSectionOl = null;
+
+// ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// Guarded so this module can be imported in a non-browser environment (e.g.
+// a Node test importing the pure grouping functions below) without throwing.
+
+let $list = null;
+let $sentinel = null;
+let $loading = null;
+let $empty = null;
+let $error = null;
+let $end = null;
+let $title = null;
+let $desc = null;
+let $retry = null;
+
+if (typeof document !== "undefined") {
+  $list = document.getElementById(LIST_ID);
+  $sentinel = document.getElementById(SENTINEL_ID);
+  $loading = document.getElementById(LOADING_ID);
+  $empty = document.getElementById(EMPTY_ID);
+  $error = document.getElementById(ERROR_ID);
+  $end = document.getElementById(END_ID);
+  $title = document.getElementById(TITLE_ID);
+  $desc = document.getElementById(DESC_ID);
+  $retry = document.getElementById(RETRY_ID);
+}
+
+// ─── Pure grouping logic (exported for tests) ───────────────────────────────
+
+/**
+ * Group a flat list of resource rows into sections, restarting item
+ * numbering under each subheading. Items before the first subheading form a
+ * leading, unlabelled section. A subheading with nothing under it (trailing,
+ * or immediately followed by another subheading) produces no section at all
+ * — an empty heading must never render on the public page.
+ *
+ * @param {Array<object>} rows
+ * @returns {Array<{heading: object|null, items: object[]}>}
+ */
+export function groupIntoSections(rows) {
+  const sections = [];
+  let current = { heading: null, items: [] };
+
+  rows.forEach((row) => {
+    if (row.item_type === "subheading") {
+      if (current.items.length > 0) sections.push(current);
+      current = { heading: row, items: [] };
+    } else {
+      current.items.push(row);
+    }
+  });
+
+  if (current.items.length > 0) sections.push(current);
+  return sections;
+}
+
+/**
+ * Flatten grouped sections into an ordered render plan: one "heading" entry
+ * per section (heading may be null for the leading section) followed by its
+ * "item" entries, each carrying the ordinal restarted for that section.
+ *
+ * @param {Array<object>} rows
+ * @returns {Array<{type: 'heading', sectionIndex: number, heading: object|null}
+ *                | {type: 'item', sectionIndex: number, ordinal: number, item: object}>}
+ */
+export function buildRenderPlan(rows) {
+  const sections = groupIntoSections(rows);
+  const plan = [];
+
+  sections.forEach((section, sectionIndex) => {
+    plan.push({ type: "heading", sectionIndex, heading: section.heading });
+    section.items.forEach((item, i) => {
+      plan.push({ type: "item", sectionIndex, ordinal: i + 1, item });
+    });
+  });
+
+  return plan;
+}
 
 // ─── State management ────────────────────────────────────────────────────────
 
@@ -123,142 +198,135 @@ async function loadResources(key) {
     return;
   }
 
-  if (!data || data.length === 0) {
-    if (allItems.length === 0) {
-      showState("empty");
-      const emptyMsg = document.querySelector(
-        "#empty-state .empty-state__message",
-      );
-      if (emptyMsg) emptyMsg.textContent = `No resources in this category yet.`;
-    }
+  allRows = Array.isArray(data) ? data : [];
+  renderPlan = buildRenderPlan(allRows);
+  itemCount = renderPlan.filter((entry) => entry.type === "item").length;
+  planIndex = 0;
+  $currentSectionOl = null;
+  hasMore = true;
+  if ($list) $list.innerHTML = "";
+
+  if (itemCount === 0) {
+    showState("empty");
+    const emptyMsg = document.querySelector(
+      "#empty-state .empty-state__message",
+    );
+    if (emptyMsg) emptyMsg.textContent = `No resources in this category yet.`;
     return;
   }
 
-  allItems = data;
-  currentPage = 1;
-  hasMore = data.length > PAGE_SIZE;
+  renderNextBatch();
+}
 
-  // Render first page
-  const pageItems = data.slice(0, PAGE_SIZE);
-  renderListItems(pageItems);
+function renderNextBatch() {
+  if (isLoading) return;
 
-  if (pageItems.length >= data.length) {
-    hasMore = false;
-    $sentinel && ($sentinel.hidden = true);
-    showState("end");
-    const total = allItems.length;
-    if ($end)
-      $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
+  if (planIndex >= renderPlan.length) {
+    finishLoading();
+    return;
+  }
+
+  isLoading = true;
+  showState("loading");
+
+  const batch = renderPlan.slice(planIndex, planIndex + PAGE_SIZE);
+  planIndex += batch.length;
+  renderPlanEntries(batch);
+
+  isLoading = false;
+
+  if (planIndex >= renderPlan.length) {
+    finishLoading();
   } else {
-    currentPage++;
+    hasMore = true;
     hideAllStates();
     $sentinel && ($sentinel.hidden = false);
     if (observer && $sentinel) observer.observe($sentinel);
   }
+}
+
+function finishLoading() {
+  hasMore = false;
+  $sentinel && ($sentinel.hidden = true);
+  showState("end");
+  if ($end)
+    $end.textContent = `All ${itemCount} item${itemCount !== 1 ? "s" : ""} loaded`;
 }
 
 function loadNextPage() {
   if (isLoading || !hasMore) return;
-  isLoading = true;
-  showState("loading");
-
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = allItems.slice(start, start + PAGE_SIZE);
-
-  isLoading = false;
-
-  if (pageItems.length === 0) {
-    hasMore = false;
-    $sentinel && ($sentinel.hidden = true);
-    showState("end");
-    const total = allItems.length;
-    if ($end)
-      $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
-    return;
-  }
-
-  renderListItems(pageItems);
-
-  if (start + pageItems.length >= allItems.length) {
-    hasMore = false;
-    $sentinel && ($sentinel.hidden = true);
-    showState("end");
-    const total = allItems.length;
-    if ($end)
-      $end.textContent = `All ${total} item${total !== 1 ? "s" : ""} loaded`;
-  } else {
-    currentPage++;
-    hideAllStates();
-    $sentinel && ($sentinel.hidden = false);
-    if (observer && $sentinel) observer.observe($sentinel);
-  }
+  renderNextBatch();
 }
 
 // ─── Rendering ───────────────────────────────────────────────────────────────
 
-function renderListItems(items) {
+function renderPlanEntries(entries) {
   if (!$list) return;
 
-  // Calculate starting ordinal from existing list items
-  const existingItems = $list.querySelectorAll(".resource-item");
-  const startOrdinal = existingItems.length;
+  entries.forEach((entry) => {
+    if (entry.type === "heading") {
+      const section = document.createElement("section");
+      section.className = "resources-section";
 
-  items.forEach((item, index) => {
-    const ordinal = startOrdinal + index + 1;
+      if (entry.heading) {
+        const h3 = document.createElement("h3");
+        h3.className = "resource-subheading";
+        h3.textContent = entry.heading.resource_title;
+        section.appendChild(h3);
+      }
 
-    const titleHTML = item.resource_url
-      ? html`<a
-          href="${item.resource_url}"
-          target="_blank"
-          rel="noopener noreferrer"
-          >${item.resource_title}
-          <svg
-            width="14"
-            height="14"
-            aria-hidden="true"
-            style="display:inline;vertical-align:middle;"
-          >
-            <use
-              href="/assets/images/feather-sprite.svg#icon-external-link"
-            /></svg
-        ></a>`
-      : html`${item.resource_title}`;
+      const ol = document.createElement("ol");
+      ol.className = "resources-list";
+      ol.setAttribute(
+        "aria-label",
+        entry.heading ? entry.heading.resource_title : "Resource items",
+      );
+      section.appendChild(ol);
 
-    const li = document.createElement("li");
-    li.className = "resource-item";
-    li.innerHTML = html`
-      <span class="resource-ordinal">${ordinal}</span>
-      <div class="resource-content">
-        <div class="resource-title">${titleHTML}</div>
-        ${item.resource_description
-          ? html`<p class="resource-description">
-              ${item.resource_description}
-            </p>`
-          : ""}
-      </div>
-    `;
-
-    $list.appendChild(li);
+      $list.appendChild(section);
+      $currentSectionOl = ol;
+    } else if ($currentSectionOl) {
+      $currentSectionOl.appendChild(
+        buildResourceItem(entry.item, entry.ordinal),
+      );
+    }
   });
 }
 
-function renderCategoryNav(activeKey) {
-  if (!$categoryNav) return;
+function buildResourceItem(item, ordinal) {
+  const titleHTML = item.resource_url
+    ? html`<a
+        href="${item.resource_url}"
+        target="_blank"
+        rel="noopener noreferrer"
+        >${item.resource_title}
+        <svg
+          width="14"
+          height="14"
+          aria-hidden="true"
+          style="display:inline;vertical-align:middle;"
+        >
+          <use
+            href="/assets/images/feather-sprite.svg#icon-external-link"
+          /></svg
+      ></a>`
+    : html`${item.resource_title}`;
 
-  $categoryNav.innerHTML = VALID_LIST_KEYS.map((key) => {
-    const label = LIST_KEY_LABELS[key] || key;
-    const isActive = key === activeKey;
-    const href = `/resources/${key}.html`;
+  const li = document.createElement("li");
+  li.className = "resource-item";
+  li.innerHTML = html`
+    <span class="resource-ordinal">${ordinal}</span>
+    <div class="resource-content">
+      <div class="resource-title">${titleHTML}</div>
+      ${item.resource_description
+        ? html`<p class="resource-description">
+            ${item.resource_description}
+          </p>`
+        : ""}
+    </div>
+  `;
 
-    return html`
-      <a
-        class="resources-category-link${isActive ? " active" : ""}"
-        href="${href}"
-        data-key="${key}"
-        >${label}</a
-      >
-    `;
-  }).join("");
+  return li;
 }
 
 function setPageTitle(key) {
@@ -299,8 +367,11 @@ function bindRetry() {
   if (retryTeardown) retryTeardown();
   retryTeardown = delegate(document.body, `#${RETRY_ID}`, "click", () => {
     if ($list) $list.innerHTML = "";
-    allItems = [];
-    currentPage = 1;
+    allRows = [];
+    renderPlan = [];
+    planIndex = 0;
+    itemCount = 0;
+    $currentSectionOl = null;
     hasMore = true;
     hideAllStates();
     $sentinel && ($sentinel.hidden = false);
@@ -323,9 +394,6 @@ function init() {
     document.body.dataset.category ||
     null;
 
-  // Render category nav with active state
-  renderCategoryNav(activeKey);
-
   if (!activeKey || !VALID_LIST_KEYS.includes(activeKey)) {
     showState("empty");
     return;
@@ -338,8 +406,10 @@ function init() {
   loadResources(activeKey);
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
-} else {
-  init();
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 }

@@ -41,7 +41,7 @@ const SEARCHABLE = {
     table: "resources",
     titleColumn: "resource_title",
     slugColumn: "list_key",
-    extraWhere: "source.list_key = 'ot-verses' AND source.in_holding_pen = 0",
+    extraWhere: "source.list_key = 'ot-verses' AND source.in_holding_pen = 0 AND source.item_type = 'item'",
   },
 };
 

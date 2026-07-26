@@ -39,6 +39,7 @@ function seedResource(overrides = {}) {
     sort_order: overrides.sort_order ?? 0,
     published_draft: overrides.published_draft ?? 1,
     in_holding_pen: overrides.in_holding_pen ?? 0,
+    item_type: overrides.item_type || "item",
   });
 }
 
@@ -202,6 +203,56 @@ describe("resource model: holding pen", () => {
   });
 });
 
+// ── Model: subheadings ─────────────────────────────────────────────────────────
+
+describe("resource model: subheadings", () => {
+  beforeEach(clearResources);
+
+  test("update() rejects an invalid item_type", () => {
+    const item = seedResource({ list_key: "sites" });
+    assert.throws(
+      () => resourceModel.update(item.id, { item_type: "not-a-real-type" }),
+      (err) => err.code === "E-INPUT-036",
+    );
+  });
+
+  test("create() rejects an invalid item_type", () => {
+    assert.throws(
+      () =>
+        resourceModel.create({
+          list_key: "sites",
+          resource_title: "Bad",
+          item_type: "not-a-real-type",
+        }),
+      (err) => err.code === "E-INPUT-036",
+    );
+  });
+
+  test("a subheading appears in the admin list", () => {
+    seedResource({ resource_title: "Section A", list_key: "sites", item_type: "subheading" });
+    seedResource({ resource_title: "Item under it", list_key: "sites" });
+
+    const items = resourceModel.getByListKeyAdmin("sites");
+    const types = items.map((r) => r.item_type);
+    assert.ok(types.includes("subheading"));
+    assert.ok(types.includes("item"));
+  });
+
+  test("a subheading is excluded from the public list count", () => {
+    seedResource({
+      resource_title: "Section A",
+      list_key: "sites",
+      item_type: "subheading",
+      published_draft: 1,
+    });
+    seedResource({ resource_title: "Item under it", list_key: "sites", published_draft: 1 });
+
+    const grouped = resourceModel.getAllPublishedByListKey();
+    const row = grouped.find((g) => g.list_key === "sites");
+    assert.equal(row.count, 1);
+  });
+});
+
 // ── Routes: admin read endpoints ────────────────────────────────────────────────
 
 describe("resources routes: admin read endpoints", () => {
@@ -268,6 +319,16 @@ describe("resources routes: admin read endpoints", () => {
     const res = await makeRequest(app, "PUT", `/resources/${item.id}`, {
       cookie: authCookie(),
       body: { list_key: "not-a-real-list" },
+    });
+    assert.equal(res.status, 400);
+    assert.ok(res.body.error);
+  });
+
+  test("PUT /resources/:id rejects an invalid item_type with 400", async () => {
+    const item = seedResource({ list_key: "sites" });
+    const res = await makeRequest(app, "PUT", `/resources/${item.id}`, {
+      cookie: authCookie(),
+      body: { item_type: "not-a-real-type" },
     });
     assert.equal(res.status, 400);
     assert.ok(res.body.error);

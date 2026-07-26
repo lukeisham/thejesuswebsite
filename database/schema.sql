@@ -291,7 +291,8 @@ CREATE TABLE resources (
     resource_description TEXT,
     sort_order           INTEGER,
     published_draft      INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
-    in_holding_pen       INTEGER NOT NULL DEFAULT 0 CHECK (in_holding_pen IN (0, 1))
+    in_holding_pen       INTEGER NOT NULL DEFAULT 0 CHECK (in_holding_pen IN (0, 1)),
+    item_type            TEXT NOT NULL DEFAULT 'item' CHECK (item_type IN ('item', 'subheading'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_resources_holding_pen ON resources (in_holding_pen);

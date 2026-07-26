@@ -49,6 +49,15 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
+.draggable-row--subheading {
+    background: var(--admin-surface-hover);
+    border-style: dashed;
+}
+
+.draggable-row--subheading .res-title {
+    font-weight: 600;
+}
+
 .draggable-row.drop-target {
     box-shadow: 0 0 0 2px var(--admin-accent);
 }
