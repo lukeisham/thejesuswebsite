@@ -462,48 +462,42 @@ describe("blog posts: composite CRUD", () => {
     assert.equal(detail.breakouts.length, 1);
   });
 
-  test("hero_image round-trips through createComposite and getDetailBySlug", () => {
+  test("blog_thumbnail round-trips through createComposite and getDetailBySlug", () => {
     blogPostModel.createComposite({
       slug: "hero-blog",
       published_draft: 1,
-      hero_image: "/uploads/2026/07/hero.jpg",
-      hero_image_alt: "A scenic view",
+      blog_thumbnail: "/uploads/2026/07/hero.jpg",
     });
 
     const detail = blogPostModel.getDetailBySlug("hero-blog");
     assert.ok(detail);
-    assert.equal(detail.hero_image, "/uploads/2026/07/hero.jpg");
-    assert.equal(detail.hero_image_alt, "A scenic view");
+    assert.equal(detail.blog_thumbnail, "/uploads/2026/07/hero.jpg");
   });
 
-  test("hero_image round-trips through updateComposite", () => {
+  test("blog_thumbnail round-trips through updateComposite", () => {
     const created = blogPostModel.createComposite({
       slug: "update-hero",
       published_draft: 1,
     });
 
     const updated = blogPostModel.updateComposite(created.id, {
-      hero_image: "/uploads/2026/07/updated.jpg",
-      hero_image_alt: "Updated alt",
+      blog_thumbnail: "/uploads/2026/07/updated.jpg",
     });
 
     assert.ok(updated);
-    assert.equal(updated.hero_image, "/uploads/2026/07/updated.jpg");
-    assert.equal(updated.hero_image_alt, "Updated alt");
+    assert.equal(updated.blog_thumbnail, "/uploads/2026/07/updated.jpg");
   });
 
-  test("hero_image appears in getAdminById", () => {
+  test("blog_thumbnail appears in getAdminById", () => {
     const created = blogPostModel.createComposite({
       slug: "admin-hero",
       published_draft: 0,
-      hero_image: "/uploads/2026/07/draft-hero.jpg",
-      hero_image_alt: "Draft alt",
+      blog_thumbnail: "/uploads/2026/07/draft-hero.jpg",
     });
 
     const admin = blogPostModel.getAdminById(created.id);
     assert.ok(admin);
-    assert.equal(admin.hero_image, "/uploads/2026/07/draft-hero.jpg");
-    assert.equal(admin.hero_image_alt, "Draft alt");
+    assert.equal(admin.blog_thumbnail, "/uploads/2026/07/draft-hero.jpg");
   });
 
   test("getAllAdmin returns drafts and published rows with raw column names", () => {
