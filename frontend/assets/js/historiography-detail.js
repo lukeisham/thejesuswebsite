@@ -23,6 +23,7 @@ const $error = document.getElementById("error-state");
 const $empty = document.getElementById("empty-state");
 const $content = document.getElementById("historiography-content");
 const $h1 = document.getElementById("page-h1");
+const $breadcrumbs = document.getElementById("breadcrumbs");
 
 // Title block
 const $title = document.getElementById("historiography-title");
@@ -99,6 +100,20 @@ function showContent() {
 }
 
 // ─── Render functions ────────────────────────────────────────────────────────
+
+function renderBreadcrumbs(article) {
+  if (!$breadcrumbs) return;
+
+  $breadcrumbs.innerHTML = html`
+    <span class="breadcrumb-item"><a href="/">Home</a></span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item"
+      ><a href="/debate/historiography/">Historiography</a></span
+    >
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item current">${article.title}</span>
+  `;
+}
 
 function renderTitleBlock(article) {
   if ($title) $title.textContent = article.title || "Untitled Article";
@@ -309,6 +324,7 @@ async function init() {
 
   if ($h1) $h1.textContent = data.title || "Historiography Article";
 
+  renderBreadcrumbs(data);
   renderTitleBlock(data);
   renderAbstract(data);
   renderKeywords(data);
