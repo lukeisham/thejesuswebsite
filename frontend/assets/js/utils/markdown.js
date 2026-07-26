@@ -10,6 +10,8 @@
  *   - Unordered lists (- or * prefix)
  *   - Ordered lists (1. prefix)
  *   - Pipe tables
+ *   - Blockquotes (> prefix; consecutive > lines become one <blockquote>,
+ *     each line its own paragraph — no nesting, no multi-line continuation)
  *   - Paragraphs (text blocks separated by blank lines)
  *
  * Shortcode markers ([figure ...], [mla:N], [pullquote], [id:N]) are
@@ -205,25 +207,39 @@ export function renderMarkdown(text) {
 
     // ── Unordered list ──────────────────────────────────────────────────
     if (/^[\-\*]\s/.test(trimmed)) {
-      output.push("<ul>");
+      const items = [];
       while (i < lines.length && /^[\-\*]\s/.test(lines[i].trim())) {
         const itemText = lines[i].trim().replace(/^[\-\*]\s+/, "");
-        output.push(`<li>${formatInline(escapePreservingMarkers(itemText))}</li>`);
+        items.push(`<li>${formatInline(escapePreservingMarkers(itemText))}</li>`);
         i++;
       }
-      output.push("</ul>");
+      output.push(`<ul>\n${items.join("\n")}\n</ul>`);
       continue;
     }
 
     // ── Ordered list ────────────────────────────────────────────────────
     if (/^\d+\.\s/.test(trimmed)) {
-      output.push("<ol>");
+      const items = [];
       while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
         const itemText = lines[i].trim().replace(/^\d+\.\s+/, "");
-        output.push(`<li>${formatInline(escapePreservingMarkers(itemText))}</li>`);
+        items.push(`<li>${formatInline(escapePreservingMarkers(itemText))}</li>`);
         i++;
       }
-      output.push("</ol>");
+      output.push(`<ol>\n${items.join("\n")}\n</ol>`);
+      continue;
+    }
+
+    // ── Blockquote ──────────────────────────────────────────────────────
+    // Consecutive lines starting with ">" (optionally preceded by
+    // whitespace) become one <blockquote>, each line its own paragraph.
+    if (/^>/.test(trimmed)) {
+      const quoteLines = [];
+      while (i < lines.length && /^>/.test(lines[i].trim())) {
+        const quoteText = lines[i].trim().replace(/^>\s?/, "");
+        quoteLines.push(`<p>${formatInline(escapePreservingMarkers(quoteText))}</p>`);
+        i++;
+      }
+      output.push(`<blockquote>\n${quoteLines.join("\n")}\n</blockquote>`);
       continue;
     }
 
@@ -232,11 +248,12 @@ export function renderMarkdown(text) {
     const paraLines = [];
     while (i < lines.length && lines[i].trim() !== "") {
       const line = lines[i].trim();
-      // Stop if we hit a heading, list, or table start
+      // Stop if we hit a heading, list, table, or blockquote start
       if (
         line.startsWith("#") ||
         /^[\-\*]\s/.test(line) ||
         /^\d+\.\s/.test(line) ||
+        /^>/.test(line) ||
         (line.startsWith("|") && line.endsWith("|"))
       ) {
         break;
@@ -251,5 +268,5 @@ export function renderMarkdown(text) {
     }
   }
 
-  return output.join("\n");
+  return output.join("\n\n");
 }

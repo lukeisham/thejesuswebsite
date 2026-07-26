@@ -222,6 +222,7 @@ function renderBody(response) {
     mlaSources: response.mla_sources || [],
     identifiers: response.identifiers || [],
     citationStyle: "superscript",
+    useMarkdown: true,
   });
   $body.innerHTML = htmlContent;
 

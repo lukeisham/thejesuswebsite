@@ -1,4 +1,5 @@
 import { FIGURE_SHORTCODE_PATTERN } from "./figure-shortcodes.js";
+import { renderMarkdown } from "./markdown.js";
 
 /**
  * Shared content-marker parser for body text across all five content types
@@ -56,6 +57,11 @@ import { FIGURE_SHORTCODE_PATTERN } from "./figure-shortcodes.js";
  * @param {Array<{id: number, label?: string, ...}>} [options.identifiers]
  * @param {'superscript'|'parenthetical'} [options.citationStyle='superscript']
  * @param {boolean} [options.pullQuotes=false] - Enable [pullquote] shortcode (blog only)
+ * @param {boolean} [options.useMarkdown=false] - Run text through renderMarkdown()
+ *   first, gaining bold/italic/headings/lists/tables/blockquotes. Shortcode
+ *   markers survive the round-trip (renderMarkdown preserves them via
+ *   escapePreservingMarkers), so [figure]/[mla:N]/[id:N] resolution below is
+ *   unaffected.
  * @returns {string} Safe HTML string
  */
 export function parseContentBody(text, options = {}) {
@@ -66,6 +72,7 @@ export function parseContentBody(text, options = {}) {
     identifiers = [],
     citationStyle = "superscript",
     pullQuotes = false,
+    useMarkdown = false,
   } = options;
 
   // Build lookup maps keyed by id for O(1) marker resolution
@@ -78,7 +85,7 @@ export function parseContentBody(text, options = {}) {
     if (id && typeof id.id === "number") idMap.set(id.id, id);
   }
 
-  let processed = text;
+  let processed = useMarkdown ? renderMarkdown(text) : text;
 
   // ── Step 1: Pull-quote shortcode (blog only) ─────────────────────────
   if (pullQuotes) {
