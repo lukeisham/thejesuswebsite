@@ -62,6 +62,12 @@ import { renderMarkdown } from "./markdown.js";
  *   markers survive the round-trip (renderMarkdown preserves them via
  *   escapePreservingMarkers), so [figure]/[mla:N]/[id:N] resolution below is
  *   unaffected.
+ * @param {boolean} [options.standardFigures=false] - Render non-aligned
+ *   [figure] shortcodes with class="figure-standard" (Style Guide §8's
+ *   720×480 standard box). Aligned figures (align="left"/"right") keep
+ *   their float classes alone and never gain this class. Defaults to false
+ *   because this parser is shared by essays, responses, historiography,
+ *   blog and challenge bodies — only Evidence opts in.
  * @returns {string} Safe HTML string
  */
 export function parseContentBody(text, options = {}) {
@@ -73,6 +79,7 @@ export function parseContentBody(text, options = {}) {
     citationStyle = "superscript",
     pullQuotes = false,
     useMarkdown = false,
+    standardFigures = false,
   } = options;
 
   // Build lookup maps keyed by id for O(1) marker resolution
@@ -108,6 +115,7 @@ export function parseContentBody(text, options = {}) {
       let figureClass = "";
       if (align === "left") figureClass = ' class="figure-align-left"';
       else if (align === "right") figureClass = ' class="figure-align-right"';
+      else if (standardFigures) figureClass = ' class="figure-standard"';
 
       const safeSrc = escapeHTML(src);
       return `<figure${figureClass}><img src="${safeSrc}" alt="${alt}" loading="lazy">${cap}</figure>`;

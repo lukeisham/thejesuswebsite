@@ -10,6 +10,7 @@ const requireAuth = require("../middleware/auth");
 const { safeMkdir, safeWriteFile } = require("../lib/io-guard");
 const ERRORS = require("../lib/error-codes");
 const { sendError } = require("../lib/error-handler");
+const { standardizeImage } = require("../lib/image-standardize");
 
 // Sharp is optional at runtime (SR-2/JS-2): if it's missing or a resize
 // throws, the upload still succeeds with the full-size image and
@@ -93,6 +94,11 @@ router.post("/", requireAuth, async (req, res) => {
       });
     }
 
+    // Standardise to the site's 1440x960 storage bounding box (best-effort —
+    // JS-2: on any Sharp failure the original buffer is used unchanged).
+    const standardizedResult = await standardizeImage(buffer, ext);
+    buffer = standardizedResult.buffer;
+
     // Build destination path: public/uploads/<yyyy>/<mm>/<uuid>.<ext>
     const now = new Date();
     const year = String(now.getFullYear());
@@ -134,7 +140,12 @@ router.post("/", requireAuth, async (req, res) => {
       }
     }
 
-    res.status(201).json({ image_path: imagePath, thumb_path: thumbPath });
+    res.status(201).json({
+      image_path: imagePath,
+      thumb_path: thumbPath,
+      width: standardizedResult.width,
+      height: standardizedResult.height,
+    });
   } catch (error) {
     console.error("POST /uploads failed:", error);
     sendError(res, ERRORS.FILE_WRITE_FAILURE);

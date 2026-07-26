@@ -86,6 +86,16 @@
         max-width: 100%;
     }
 
+    /* Neutralise the screen-only standard figure box (figures.css loads
+       after print.css, so an unqualified `img` rule here would lose the
+       cascade — see Issues.md #108). Paged output is unconstrained by the
+       720x480 display box. */
+    .figure-standard img {
+        width: auto;
+        max-width: 100%;
+        max-height: none;
+    }
+
     /* -----------------------------------------------------------------------
      Verse blocks
      ----------------------------------------------------------------------- */
