@@ -34,12 +34,6 @@ function insertAtCursor(text, insertion, selectionStart, selectionEnd) {
   var cursorPos = (before + insertion).length;
   return { text: newText, cursorPos: cursorPos };
 }
-  var before = text.slice(0, selectionStart);
-  var after = text.slice(selectionEnd);
-  var newText = before + insertion + after;
-  var cursorPos = (before + insertion).length;
-  return { text: newText, cursorPos: cursorPos };
-}
 
 /**
  * Wire an "Insert Image" button to a textarea.
