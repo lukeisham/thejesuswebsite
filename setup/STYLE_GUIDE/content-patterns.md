@@ -4,6 +4,22 @@ _Part of the [Style Guide](INDEX.md) — §9: content-specific patterns._
 
 ## 9. Content-Specific Patterns
 
+**Markdown Pipe Tables (Body Content)**:
+Pipe tables (`| A | B |`) are available in any body content rendered through `renderMarkdown()` — blog posts, and (via `parseContentBody({ useMarkdown: true })`) essays, responses, historiography, and academic/popular challenges. Rendered as `.content-table` (see §8 Tables for visual treatment).
+
+- **Column alignment**: standard markdown syntax in the separator row — `:---` left, `:---:` center, `---:` right.
+- **Column widths (`{w:N}` tokens)**: authors may optionally set proportional column widths by adding a `{w:N}` token to a separator cell, where `N` is a positive number (decimals allowed), e.g. `|{w:1}---|{w:3}---|`. The token can combine with an alignment marker in either order, e.g. `---:{w:2}` or `{w:2}---:`.
+  - Weights are converted to percentages proportional to their sum. Columns with no `{w:N}` token default to an implicit weight of `1` — e.g. `{w:2}---|---|---` across three columns gives 50% / 25% / 25%.
+  - Adding any `{w:N}` token to a table switches it to `table-layout: fixed` (class `.content-table--fixed`) so the percentages take effect; tables with no width tokens keep the default `table-layout: auto` and render exactly as before.
+  - Invalid tokens (non-numeric, negative, or zero) are ignored — that column falls back to `auto` width, same as if no token were present.
+  - **Mobile**: the existing `min-width: 120px` floor under `max-width: 767px` still applies regardless of layout mode — very narrow explicit weights on many columns may still produce horizontal scroll, which is expected.
+  - Example:
+    ```
+    | Era | Years | Notes |
+    |{w:1}---|{w:1}---|{w:2}---|
+    | Bronze Age | 3300–1200 BC | Longest era by duration |
+    ```
+
 **Home / index.html**:
 - Single column, centre-aligned text throughout
 - Hero image at the top (full-width, no border-radius, image fills the width)

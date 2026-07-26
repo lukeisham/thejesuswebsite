@@ -101,6 +101,69 @@ describe("renderMarkdown", () => {
     assert.ok(result.includes(`<td>${longText}</td>`));
   });
 
+  test("pipe table with {w:N} proportional widths", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B |\n|{w:1}---|{w:3}---|\n| x | y |";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes("content-table--fixed"), `expected content-table--fixed class, got: ${result}`);
+    assert.ok(/<th[^>]*style="width:25%"/.test(result), `expected 25% width on first <th>, got: ${result}`);
+    assert.ok(/<th[^>]*style="width:75%"/.test(result), `expected 75% width on second <th>, got: ${result}`);
+  });
+
+  test("pipe table with {w:N} mixed explicit and absent weights", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    // A explicit weight 2, B and C absent (implicit weight 1 each) — sum = 4 → 50/25/25
+    const input = "| A | B | C |\n|{w:2}---|---|---|\n| x | y | z |";
+    const result = renderMarkdown(input);
+    assert.ok(/<th[^>]*style="width:50%"/.test(result));
+    const quarterMatches = result.match(/style="width:25%"/g) || [];
+    assert.equal(quarterMatches.length, 4, `expected 4 occurrences (2 <th> + 2 <td>), got: ${result}`);
+  });
+
+  test("pipe table with {w:N} width combined with alignment", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B |\n|---:{w:1}|{w:2}---|\n| x | y |";
+    const result = renderMarkdown(input);
+    assert.ok(
+      /<th[^>]*style="text-align:right;width:33\.33%"/.test(result),
+      `expected right-align + 33.33% width on first <th>, got: ${result}`,
+    );
+    assert.ok(
+      /<th[^>]*style="width:66\.67%"/.test(result),
+      `expected 66.67% width (no alignment) on second <th>, got: ${result}`,
+    );
+  });
+
+  test("pipe table with {w:N} decimal weights", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B |\n|{w:1.5}---|{w:1.5}---|\n| x | y |";
+    const result = renderMarkdown(input);
+    const halfMatches = result.match(/style="width:50%"/g) || [];
+    assert.equal(halfMatches.length, 4, `expected 4 occurrences (2 <th> + 2 <td>) of 50%, got: ${result}`);
+  });
+
+  test("pipe table with invalid {w:N} token falls back to auto width", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B |\n|{w:abc}---|---|\n| x | y |";
+    const result = renderMarkdown(input);
+    assert.ok(!result.includes("content-table--fixed"), `expected no fixed class, got: ${result}`);
+    assert.ok(!result.includes("width:"), `expected no width style, got: ${result}`);
+  });
+
+  test("pipe table with negative or zero {w:N} tokens falls back to auto width", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| A | B |\n|{w:-1}---|{w:0}---|\n| x | y |";
+    const result = renderMarkdown(input);
+    assert.ok(!result.includes("content-table--fixed"), `expected no fixed class, got: ${result}`);
+  });
+
+  test("pipe table without {w:N} tokens renders unchanged (no width styles, no fixed class)", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "| Name | Age |\n|------|-----|\n| Alice | 30 |";
+    const result = renderMarkdown(input);
+    assert.equal(result, '<table class="content-table"><thead><tr><th>Name</th><th>Age</th></tr></thead><tbody><tr><td>Alice</td><td>30</td></tr></tbody></table>');
+  });
+
   test("paragraph with multiple lines", async () => {
     const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "Line one.\nLine two.\nLine three.";
