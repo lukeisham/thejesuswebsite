@@ -68,6 +68,8 @@ Used on evidence cards and detail pages to label category, timeline period, and 
 - Displayed inline, wrapping if multiple badges present
 - No hover state — badges are labels, not links
 
+**CSS `[hidden]` conflict warning**: Any component class that sets a non-none `display` value (e.g. `display: flex`, `display: inline-flex`) must include a matching `[hidden]` selector to restore the browser’s native hidden behavior: `.component[hidden] { display: none; }`. This prevents the class’s `display` value from overriding the `hidden` attribute via author-vs-user-agent cascade priority. See `badges.css` line 24 for an example.
+
 ### Timeline
 **Linear dot-style timeline with clustered events:**
 - **Main axis**: horizontal line (timeline spine) spanning the full viewport width, positioned at vertical center

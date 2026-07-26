@@ -17,42 +17,50 @@ import { showToast } from "./utils/toasts.js";
  * @returns {string} Cleaned body text.
  */
 function getStrippedBodyText() {
-  const clone = document.body.cloneNode(true);
+  try {
+    const clone = document.body.cloneNode(true);
 
-  // Remove nav, footer, sidebar, their toggles/backdrops, and transient
-  // overlays (toasts, cookie banner) that live directly in <body>
-  clone
-    .querySelectorAll(
-      [
-        "nav",
-        "footer",
-        ".sidebar",
-        ".sidebar__toggle",
-        ".sidebar-backdrop",
-        ".toast-container",
-        ".error-toast-container",
-        ".cookie-consent",
-      ].join(","),
-    )
-    .forEach((el) => el.remove());
+    // Remove nav, footer, sidebar, their toggles/backdrops, and transient
+    // overlays (toasts, cookie banner) that live directly in <body>
+    clone
+      .querySelectorAll(
+        [
+          "nav",
+          "footer",
+          ".sidebar",
+          ".sidebar__toggle",
+          ".sidebar-backdrop",
+          ".toast-container",
+          ".error-toast-container",
+          ".cookie-consent",
+        ].join(","),
+      )
+      .forEach((el) => el.remove());
 
-  // Remove interactive diagram-only containers so innerText is readable
-  clone
-    .querySelectorAll(
-      [
-        ".timeline-tooltip",
-        ".timeline-detail-panel",
-        ".map-tooltip",
-        ".map-controls",
-        ".arbor-tooltip",
-        ".arbor-controls",
-        ".arbor-edges",
-        ".map-pins-layer",
-      ].join(","),
-    )
-    .forEach((el) => el.remove());
+    // Remove interactive diagram-only containers so innerText is readable
+    clone
+      .querySelectorAll(
+        [
+          ".timeline-tooltip",
+          ".timeline-detail-panel",
+          ".map-tooltip",
+          ".map-controls",
+          ".arbor-tooltip",
+          ".arbor-controls",
+          ".arbor-edges",
+          ".map-pins-layer",
+        ].join(","),
+      )
+      .forEach((el) => el.remove());
 
-  return clone.innerText.trim();
+    return clone.innerText.trim();
+  } catch (err) {
+    console.warn(
+      "getStrippedBodyText: clone/strip failed, falling back to raw body text",
+      err,
+    );
+    return document.body.innerText.trim();
+  }
 }
 
 /**
