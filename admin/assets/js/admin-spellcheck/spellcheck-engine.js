@@ -322,12 +322,50 @@ const COMMON_WORDS = new Set([
  */
 
 /**
- * Compute Levenshtein distance between two strings.
+ * QWERTY keyboard adjacency map — maps each lowercase letter to the set of
+ * keys physically adjacent to it. Used by the weighted Levenshtein function
+ * to assign lower substitution costs to likely typing errors.
+ */
+const KEYBOARD_ADJACENT = {
+  q: new Set(["w", "a", "s"]),
+  w: new Set(["q", "e", "a", "s", "d"]),
+  e: new Set(["w", "r", "s", "d", "f"]),
+  r: new Set(["e", "t", "d", "f", "g"]),
+  t: new Set(["r", "y", "f", "g", "h"]),
+  y: new Set(["t", "u", "g", "h", "j"]),
+  u: new Set(["y", "i", "h", "j", "k"]),
+  i: new Set(["u", "o", "j", "k", "l"]),
+  o: new Set(["i", "p", "k", "l"]),
+  p: new Set(["o", "l"]),
+  a: new Set(["q", "w", "s", "z", "x"]),
+  s: new Set(["q", "w", "e", "a", "d", "z", "x", "c"]),
+  d: new Set(["w", "e", "r", "s", "f", "x", "c", "v"]),
+  f: new Set(["e", "r", "t", "d", "g", "c", "v", "b"]),
+  g: new Set(["r", "t", "y", "f", "h", "v", "b", "n"]),
+  h: new Set(["t", "y", "u", "g", "j", "b", "n", "m"]),
+  j: new Set(["y", "u", "i", "h", "k", "n", "m"]),
+  k: new Set(["u", "i", "o", "j", "l", "m"]),
+  l: new Set(["i", "o", "p", "k"]),
+  z: new Set(["a", "s", "x"]),
+  x: new Set(["a", "s", "d", "z", "c"]),
+  c: new Set(["s", "d", "f", "x", "v"]),
+  v: new Set(["d", "f", "g", "c", "b"]),
+  b: new Set(["f", "g", "h", "v", "n"]),
+  n: new Set(["g", "h", "j", "b", "m"]),
+  m: new Set(["h", "j", "k", "n"]),
+};
+
+/**
+ * Compute Levenshtein distance between two strings with optional
+ * keyboard-proximity weighting. Substitutions between adjacent keys
+ * cost 0.5 instead of 1.0 — they are more likely to be typos.
+ *
  * @param {string} a
  * @param {string} b
+ * @param {boolean} [keyboardWeighted=false]
  * @returns {number}
  */
-function levenshtein(a, b) {
+function levenshtein(a, b, keyboardWeighted = false) {
   const m = a.length;
   const n = b.length;
   if (m === 0) return n;
@@ -340,7 +378,17 @@ function levenshtein(a, b) {
   for (let i = 1; i <= m; i++) {
     curr[0] = i;
     for (let j = 1; j <= n; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      let cost;
+      if (a[i - 1] === b[j - 1]) {
+        cost = 0;
+      } else if (keyboardWeighted) {
+        const ca = a[i - 1].toLowerCase();
+        const cb = b[j - 1].toLowerCase();
+        const adj = KEYBOARD_ADJACENT[ca];
+        cost = adj && adj.has(cb) ? 0.5 : 1;
+      } else {
+        cost = 1;
+      }
       curr[j] = Math.min(
         prev[j] + 1,
         curr[j - 1] + 1,
@@ -353,6 +401,62 @@ function levenshtein(a, b) {
   }
   return prev[n];
 }
+
+/**
+ * Compute the standard Soundex code for a word (4-character code).
+ * Soundex encodes consonant groupings into digits, keeping the first
+ * letter, so phonetically similar words share the same code.
+ *
+ * @param {string} word
+ * @returns {string} 4-character Soundex code, e.g. "R210" for "receive"
+ */
+function soundex(word) {
+  if (!word) return "";
+
+  const upper = word.toUpperCase();
+  const first = upper[0];
+
+  // Soundex digit mappings
+  const map = {};
+  for (const ch of "BFPV") map[ch] = "1";
+  for (const ch of "CGJKQSXZ") map[ch] = "2";
+  for (const ch of "DT") map[ch] = "3";
+  for (const ch of "L") map[ch] = "4";
+  for (const ch of "MN") map[ch] = "5";
+  for (const ch of "R") map[ch] = "6";
+
+  let code = first;
+  let prev = map[first] || "";
+
+  for (let i = 1; i < upper.length; i++) {
+    const digit = map[upper[i]] || "";
+    if (digit && digit !== prev) {
+      code += digit;
+      if (code.length === 4) break;
+    }
+    prev = digit;
+  }
+
+  // Pad to 4 characters
+  while (code.length < 4) code += "0";
+  return code;
+}
+
+/**
+ * Precomputed Soundex index: maps Soundex codes to arrays of dictionary
+ * words that share that code. Built once at module init so suggestion
+ * lookups are O(1) rather than re-encoding every dictionary word.
+ * @type {Map<string, string[]>}
+ */
+const SOUNDEX_INDEX = (function buildSoundexIndex() {
+  const index = new Map();
+  for (const word of COMMON_WORDS) {
+    const code = soundex(word);
+    if (!index.has(code)) index.set(code, []);
+    index.get(code).push(word);
+  }
+  return index;
+})();
 
 /**
  * Check if a word is correctly spelled.
@@ -383,19 +487,54 @@ function check(word, customWords) {
   if (lower.endsWith("ly") && COMMON_WORDS.has(lower.slice(0, -2))) return { correct: true, suggestions: [] };
   if (lower.endsWith("'s") && COMMON_WORDS.has(lower.slice(0, -2))) return { correct: true, suggestions: [] };
 
-  // Generate suggestions via Levenshtein distance
+  // Generate suggestions via keyboard-proximity-weighted Levenshtein.
+  // Fractional costs for adjacent-key substitutions (0.5 vs 1.0) push
+  // likely typos (e.g. "hte" → "the") higher in the ranking.
   const suggestions = [];
   const threshold = Math.max(2, Math.floor(lower.length / 3));
   for (const dictWord of COMMON_WORDS) {
-    const dist = levenshtein(lower, dictWord);
+    const dist = levenshtein(lower, dictWord, true);
     if (dist <= threshold && dist > 0) {
       suggestions.push({ word: dictWord, dist });
     }
   }
   suggestions.sort((a, b) => a.dist - b.dist);
+
+  // ── Soundex phonetic suggestions ─────────────────────────────────────
+  const wordSoundex = soundex(lower);
+  const soundexMatches = (SOUNDEX_INDEX.get(wordSoundex) || [])
+    .filter((w) => w !== lower)
+    .map((w) => ({ word: w, dist: levenshtein(lower, w, true) }));
+  soundexMatches.sort((a, b) => a.dist - b.dist);
+
+  // ── Diversity merge: Levenshtein top-8 first, then inject up to 3
+  //    Soundex matches that didn't appear in the Levenshtein list,
+  //    capped at 8 total (with no duplicates).
+  const levWords = new Set();
+  const merged = [];
+
+  // Take up to 8 from the Levenshtein-ranked list
+  for (const s of suggestions) {
+    if (merged.length >= 8) break;
+    merged.push(s.word);
+    levWords.add(s.word);
+  }
+
+  // Inject up to 3 unique Soundex matches
+  let injected = 0;
+  for (const s of soundexMatches) {
+    if (merged.length >= 8) break;
+    if (injected >= 3) break;
+    if (!levWords.has(s.word)) {
+      merged.push(s.word);
+      levWords.add(s.word);
+      injected++;
+    }
+  }
+
   return {
     correct: false,
-    suggestions: suggestions.slice(0, 5).map((s) => s.word),
+    suggestions: merged,
   };
 }
 
@@ -604,4 +743,4 @@ function checkGrammar(text) {
   return issues;
 }
 
-export { check, checkGrammar };
+export { check, checkGrammar, soundex, levenshtein, SOUNDEX_INDEX, KEYBOARD_ADJACENT };

@@ -117,7 +117,7 @@ function overlapsAny(start, end, ranges) {
 }
 
 self.onmessage = async function (e) {
-  const { text, dictionaryWords } = e.data;
+  const { text, dictionaryWords, grammarIgnoreRanges } = e.data;
   const customWords = new Set((dictionaryWords || []).map((w) => w.toLowerCase()));
 
   // Wait for nspell to finish loading (or fail) before the first scan so
@@ -141,10 +141,13 @@ self.onmessage = async function (e) {
     }
   }
 
-  // ── Grammar pass (skip substrings already flagged by spelling) ───────────
+  // ── Grammar pass (skip substrings already flagged by spelling, and
+  //    skip ranges the user has explicitly ignored in this session) ──────
   const allGrammar = checkGrammar(text);
   const grammarErrors = allGrammar.filter(
-    (g) => !overlapsAny(g.start, g.end, spellingErrors),
+    (g) =>
+      !overlapsAny(g.start, g.end, spellingErrors) &&
+      !overlapsAny(g.start, g.end, grammarIgnoreRanges || []),
   );
 
   self.postMessage({ spellingErrors, grammarErrors });
