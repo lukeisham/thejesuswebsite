@@ -24,6 +24,7 @@ const $error = document.getElementById("error-state");
 const $empty = document.getElementById("empty-state");
 const $content = document.getElementById("response-content");
 const $h1 = document.getElementById("page-h1");
+const $breadcrumbs = document.getElementById("breadcrumbs");
 
 // Title block
 const $title = document.getElementById("response-title");
@@ -106,6 +107,22 @@ function showContent() {
 }
 
 // ─── Render functions ────────────────────────────────────────────────────────
+
+function renderBreadcrumbs(response) {
+  if (!$breadcrumbs) return;
+
+  $breadcrumbs.innerHTML = html`
+    <span class="breadcrumb-item"><a href="/">Home</a></span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item"><a href="/debate/">Debate</a></span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item"
+      ><a href="/debate/responses/">Responses</a></span
+    >
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-item current">${response.title}</span>
+  `;
+}
 
 function renderTitleBlock(response) {
   if ($title) $title.textContent = response.title || "Untitled Response";
@@ -347,6 +364,7 @@ async function init() {
 
   if ($h1) $h1.textContent = data.title || "Response";
 
+  renderBreadcrumbs(data);
   renderTitleBlock(data);
   renderAbstract(data);
   renderKeywords(data);
