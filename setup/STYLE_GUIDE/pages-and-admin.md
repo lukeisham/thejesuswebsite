@@ -152,7 +152,7 @@ Canvas-based visual editing interfaces. Each reuses the corresponding public ren
 - `maps.html`: map image canvas. Pins are draggable. Click to edit (label, linked evidence). "Add Pin" button + click-on-map to place. Map selector dropdown in the top bar to switch between map levels.
 
 **Resources** (`admin/resources/`):
-Per-category pages: drag-to-reorder list (`admin-ranking.js`). Each row: title (inline-editable), URL (inline-editable), description, drag handle left, delete button right. "Add Item" appends a blank row.
+Per-category pages: drag-to-reorder list (`admin-ranking.js`). Each row: title (inline-editable), URL (inline-editable), description, drag handle left, delete button right. "Add Item" appends a blank row. "+ Add Subheading" appends a section-break row (distinct `.draggable-row--subheading` treatment — dashed border, muted background, title field only, no URL/description) that groups the items below it into a section on the public page; it drags and moves-to-list like any other row.
 
 **Wikipedia** (`admin/wikipedia/index.html`):
 Drag-to-reorder ranked list. Columns: rank position, article title, URL, last revised date, plus/minus counts. Drag handle for reordering.
