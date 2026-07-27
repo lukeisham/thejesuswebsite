@@ -1,4 +1,23 @@
 (function(){
+  // --- Dormant fallback flags (§11.4 of the refactor spec) --------------------------------------
+  // Each vector family (balanced debate, confessional balance, Jesus Seminar, mythicist, OT-NT
+  // continuity, supernatural criticism, miracle criticism) keeps its old keyword/list detector in
+  // this file, gated off by default. Flip a family's flag to `true` to reactivate its dormant
+  // fallback — e.g. when that family's vector store (Plan 4/5) misses the 0.8 precision floor
+  // (§3.4.1). The detection logic below runs and is testable regardless of the flag; the flag only
+  // controls whether the field appears in the return object, so downstream code never mistakes a
+  // dormant field for an active one. Tests may override via window.__DORMANT_FALLBACKS__ before
+  // this script is evaluated.
+  var DORMANT_FALLBACKS = Object.assign({
+    balancedDebate: false,
+    confessionalBalance: false,
+    jesusSeminar: false,
+    mythicist: false,
+    otNtContinuity: false,
+    supernaturalCriticism: false,
+    miracleCriticism: false
+  }, (typeof window !== 'undefined' && window.__DORMANT_FALLBACKS__) || {});
+
   var text = document.body.innerText;
   var bibleBooks = "Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|Samuel|Kings|Chronicles|Ezra|Nehemiah|Esther|Job|Psalm|Psalms|Proverbs|Ecclesiastes|Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Matthew|Mark|Luke|John|Acts|Romans|Corinthians|Galatians|Ephesians|Philippians|Colossians|Thessalonians|Timothy|Titus|Philemon|Hebrews|James|Peter|Jude|Revelation";
   var verseRe = new RegExp("\\b(?:" + bibleBooks + ")\\s+\\d{1,3}:\\d{1,3}(?:[-–]\\d{1,3})?", "g");
@@ -18,7 +37,7 @@
   var iaaHit = /Israel Antiquities Authority|\bIAA\b/i.test(text);
   var archHit = /archaeolog/i.test(text);
   var archSiteHit = iaaHit || archHit || /excavat\w*|archaeological (site|find|discovery)|\bossuary\b|\binscription\b/i.test(text);
-  var historicalContextHit = /\bparallel(?:s|ed)?\b|comparable to|analogous|similar (?:artifact|inscription|custom|practice|find)s?|in the (?:broader|wider|historical|cultural) context|for comparison/i.test(text);
+
   var manuscriptNames = ["Codex Sinaiticus", "Codex Vaticanus", "Codex Alexandrinus", "Codex Bezae",
     "Codex Ephraemi", "Codex Washingtonianus", "Chester Beatty Papyri", "Bodmer Papyri",
     "Dead Sea Scrolls", "Papyrus 52", "Papyrus 66", "Papyrus 75"];
@@ -28,134 +47,37 @@
     return count;
   })();
 
-  // --- Section text buckets: data / interpretation / other ---------------------------------
-  // Wikipedia parser output is FLAT — h2/h3 headings are SIBLINGS of the paragraphs that follow
-  // them, never ancestors — so ancestor-walking cannot attribute text to a section. Instead,
-  // walk the content in document order, reclassifying the current bucket at each heading.
-  // The lede (before the first heading), references, infoboxes, etc. land in 'other'.
-  // A heading matching BOTH heading families (e.g. "Historical account") is 'other' — ambiguous
-  // placement must not trigger a doubling or a halving.
-  var narrativeHeadRe = /^(the |a )?(biblical |gospel |synoptic |matthean |markan |marcan |lukan |lucan |johannine )?(account|narrative|episode|story)s?\b|^narrative\b|^in the (gospel|gospels|synoptics?|new testament)\b|^(biblical|gospel|synoptic) accounts?\b/i;
-  var interpHeadRe = /interpret|theolog|significan|symbolis|scholar|historicity|historical|analys|criticis|exegesis|commentar|meaning|views|reception|debate|skeptic|naturalistic|authorship|composition/i;
-  // NOTE (Luke's standing rule, 2026-07-17): footnote/reference-list text COUNTS for every
-  // weight — it is ordinary 'other'-bucket content, same as the lede. Do not exempt it.
-  function classifyHeading(h){
-    var isNarr = narrativeHeadRe.test(h);
-    var isInterp = interpHeadRe.test(h);
-    if (isNarr && isInterp) return 'other';
-    if (isNarr) return 'data';
-    if (isInterp) return 'interp';
-    return 'other';
-  }
-  var buckets = {data: '', interp: '', other: ''};
-  var sawNarrativeHeading = false, sawInterpHeading = false;
-  (function(){
-    var root = document.querySelector('#mw-content-text .mw-parser-output') || document.querySelector('#mw-content-text') || document.body;
-    var current = 'other', h2class = 'other';
-    var walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
-    var node;
-    while ((node = walker.nextNode())) {
-      if (node.nodeType === 1) {
-        if (node.tagName === 'H2' || node.tagName === 'H3') {
-          var ht = node.textContent.replace(/\[edit\]/g, '').trim();
-          var cls = classifyHeading(ht);
-          if (cls === 'data') sawNarrativeHeading = true;
-          if (cls === 'interp') sawInterpHeading = true;
-          if (node.tagName === 'H2') { h2class = cls; current = cls; }
-          else { current = (cls === 'other') ? h2class : cls; } // unmatched h3 inherits its h2's class
-        }
-      } else {
-        var p = node.parentElement;
-        if (p && p.closest && p.closest('h2, h3')) continue; // heading text itself isn't section content
-        buckets[current] += ' ' + node.textContent;
-      }
-    }
-  })();
-  // Placement of a negative-weight author list across the buckets. Uses regexes so multi-form
-  // names ("Robert M. Price" / "Robert M Price") match. If no named author matches but the
-  // generic phrase does, the generic phrase's placement is used (count = 1, as before).
-  function placementOf(nameRes, genericRe){
-    var found = nameRes.filter(function(re){ return re.test(text); });
-    var probes = found.length ? found : (genericRe && genericRe.test(text) ? [genericRe] : []);
-    var out = {count: found.length ? found.length : (probes.length ? 1 : 0), inData: false, inInterp: false, inOther: false};
-    probes.forEach(function(re){
-      if (re.test(buckets.data)) out.inData = true;
-      if (re.test(buckets.interp)) out.inInterp = true;
-      if (re.test(buckets.other)) out.inOther = true;
-    });
-    // Edge case: the name appears in body innerText but in none of the walked buckets (e.g. only
-    // in a collapsed navbox rendered outside the parser output) — treat as 'other', never as a
-    // silent zero-placement that python would read as interp-only or data.
-    if (out.count > 0 && !out.inData && !out.inInterp && !out.inOther) out.inOther = true;
-    return out;
-  }
+  // --- Referencing quality, tiered (§9 row 24) --------------------------------------------------
+  // Absorbs the former separate "No references at all", "Poor referencing", and "Niche exposure
+  // bonus" signals into one tiered lookup on ref_count. The weight mapping (zero -> -9, niche -> +3,
+  // supported -> +1, wellsourced -> 0) is applied in rank_engine.py — this file exports only the
+  // raw tier. "Citation needed" / maintenance-banner detection is an independent boolean.
+  var refQualityTier = refCount === 0 ? "zero" : (refCount < 5 ? "niche" : (refCount < 10 ? "supported" : "wellsourced"));
+  var hasCitationNeeded = /citation needed|additional citations for verification|improve this article by adding citations|this article needs additional citations|unsourced material may be challenged/i.test(text);
 
-  // --- Balanced debate (interpretation sections only) ---------------------------------------
-  // Rewards genuine opposing-viewpoint discussion in the interpretation sections. Sentences that
-  // mention Islamic / Mormon / other-religion material are dropped BEFORE scanning, so interfaith
-  // "debate" never earns this credit. Count = number of DISTINCT patterns matched (cap in python).
-  // Shared other-religion matcher — drives BOTH the other-religion-sources penalty and the
-  // balanced-debate sentence exclusion, so the two can never drift apart.
-  var otherReligionRe = /Qur'an|Quran|Muhammad|Hadith|Surah|Book of Mormon|Joseph Smith|Latter-day Saint|\bLDS\b|Doctrine and Covenants|Pearl of Great Price|Islam\w*|Muslim\w*|Mormon\w*|Buddhis\w*|Hindu\w*|\bSikh\w*|\bJain\w*|Rastafari\w*|Bah[aá]['’]?[ií]\b|Bhagavad|\bVedas?\b/i;
+  // --- Maps & diagrams (§9 row 13) ----------------------------------------------------------------
+  var contentRoot = document.querySelector('#mw-content-text') || document.body;
+  var mapDiagramEls = contentRoot.querySelectorAll('.mw-kartographer-map, .mw-kartographer-container, .locmap, .location-map, svg.diagram, figure.diagram');
+  var captionEls = contentRoot.querySelectorAll('.thumbcaption, figcaption');
+  var captionMapHits = Array.from(captionEls).filter(function(el){
+    return /\bmaps?\b|\bdiagrams?\b|\bplans?\b|floor plan/i.test(el.textContent);
+  }).length;
+  var mapsAndDiagramsCount = Math.min(mapDiagramEls.length + captionMapHits, 2);
+  var hasDiagramOrMap = mapsAndDiagramsCount > 0;
 
-  var balancedDebateHits, balancedDebateNamedAuthors;
-  (function(){
-    var debateText = buckets.interp
-      .split(/(?<=[.!?])\s+/)
-      .filter(function(s){ return !otherReligionRe.test(s); })
-      .join(' ');
-    var debatePatterns = [
-      /\bothers? (?:argue|contend|suggest|maintain|hold|propose|counter|claim)/i,
-      /\bsome (?:scholars|commentators|interpreters|critics)\b[^.]{0,120}\b(?:while|whereas|but|however|others)\b/i,
-      /\b(?:scholars|commentators|interpreters|opinions?) (?:are divided|disagree|differ|dispute|debate)/i,
-      /\bcritics? (?:claim|argue|contend|maintain|counter|respond|object)/i,
-      /\bopponents? (?:maintain|argue|contend|claim|counter|object)/i,
-      /\bproponents? (?:counter|argue|contend|maintain|respond|claim)/i,
-      /\bon the other hand\b|\bby contrast\b|\bin contrast\b|\bconversely\b/i,
-      /\b(?:an? )?(?:alternative|opposing|competing|rival|minority|dissenting) (?:view|interpretation|explanation|position|reading|opinion|hypothesis|theor)/i,
-      /\ba different (?:perspective|view|reading|interpretation) (?:suggest|hold|propose|argue|maintain)/i,
-      /\bdebated?\b|\bdisputed\b|\bcontested\b|\bcontroversial\b/i,
-      /\b(?:defen[dc]|refut|rebut|counter-?argu)\w*/i,
-      /\bpoints? of (?:contention|disagreement)\b|\bno (?:scholarly )?consensus\b/i
-    ];
-    balancedDebateHits = debatePatterns.filter(function(p){ return p.test(debateText); }).length;
-    // Named-representative detection: a capitalized personal name (2+ name-parts, initials
-    // allowed) directly attributed a stance verb — e.g. "N. T. Wright argues", "Raymond Brown
-    // contends". Distinct matched name strings are counted; >= 2 distinct named representatives
-    // means the differing views each have a cited voice, which doubles the bonus in scoring.
-    var nameAttrRe = /\b((?:[A-Z](?:[a-z]+|\.)\s+){1,3}[A-Z][a-z]+)\s+(?:argue|contend|claim|maintain|counter|suggest|propose|respond|object|hold|dispute)/g;
-    var names = {};
-    var mAttr;
-    while ((mAttr = nameAttrRe.exec(debateText)) !== null) { names[mAttr[1]] = true; }
-    balancedDebateNamedAuthors = Object.keys(names).length;
-  })();
-
-  // --- Confessional balance -------------------------------------------------------------------
-  // Fires whenever a critical-biblical-scholarship historian (Bart Ehrman or similar) is cited
-  // ANYWHERE in the article — footnote/bibliography citations included (they live in the 'other'
-  // bucket, which counts as outside the interpretation sections). Only a citation confined to
-  // the interpretation sections reaches the milder tiers; the contrasting-Evangelical check
-  // (interpretation text only) decides between them.
-  var criticalScholarPlace = placementOf(
-    [/Bart (?:D\.? )?Ehrman/i, /\bEhrman\b/, /G(?:e|é)rd L(?:ü|u)demann/i, /Elaine Pagels/i,
-     /Paula Fredriksen/i, /Reza Aslan/i, /Maurice Casey/i, /Hector Avalos/i, /Dale B\.? Martin/i],
-    null
-  );
-  var evangelicalRe = /N\.?\s?T\.?\s?Wright|Tom Wright|Richard Bauckham|Craig (?:L\.? )?Blomberg|Craig (?:S\.? )?Keener|Craig (?:A\.? )?Evans|Darrell (?:L\.? )?Bock|Ben Witherington|Michael (?:R\.? )?Licona|Gary (?:R\.? )?Habermas|D\.?\s?A\.?\s?Carson|Douglas (?:J\.? )?Moo|F\.?\s?F\.?\s?Bruce|I\.? Howard Marshall|evangelical scholar/i;
-  var evangelicalInInterp = evangelicalRe.test(buckets.interp);
-
-  var jesusSeminarPlace = placementOf(
-    [/Robert Funk/, /John Dominic Crossan/, /Marcus Borg/],
-    /Jesus Seminar/i
-  );
-  var jesusSeminarCount = jesusSeminarPlace.count;
+  // --- Religious art picture test, both widths (§9 row 15) -----------------------------------------
+  // The choice between narrow and wide is a scoring decision (is_passion sensitivity, §3.9 row 15)
+  // made in rank_engine.py, not here. Extraction reports both booleans unconditionally.
+  var allImages = contentRoot.querySelectorAll('img');
+  var hasPictureWide = allImages.length > 0;
+  var hasPictureNarrow = Array.from(allImages).some(function(img){
+    return !(img.closest && (img.closest('.infobox') || img.closest('.gallery')));
+  });
 
   var blockquoteCount = document.querySelectorAll('#mw-content-text blockquote').length;
   var longQuoteMatches = (text.match(/"[^"\n]{40,}"/g) || []).length;
   var primarySourceQuoteCount = blockquoteCount + longQuoteMatches;
   var gnosticSourceHit = /\bGnostic\b|Nag Hammadi|Gospel of Thomas|Gospel of Judas|Gospel of Philip|Gospel of Mary|Valentinian|Sethian|Gospel of Truth/i.test(text);
-
-  var poorReferencingHit = /citation needed|additional citations for verification|improve this article by adding citations|this article needs additional citations|unsourced material may be challenged/i.test(text);
 
   var qualityIndicators = document.querySelectorAll('[id^="mw-indicator-"]');
   var wikiQualityHit = false;
@@ -173,51 +95,6 @@
     "Origen", "Clement of Alexandria", "Clement of Rome", "Eusebius", "Hippolytus", "Cyprian"];
   var anteNiceneCount = anteNiceneNames.filter(function(n){ return text.indexOf(n) !== -1; }).length;
 
-  var mythicistPlace = placementOf(
-    [/Richard Carrier/i, /Robert M\.? Price/i, /Earl Doherty/i],
-    /\bmythicis[tm]\b|Christ myth theory/i
-  );
-  var mythicistCount = mythicistPlace.count;
-
-  // Data/interpretation split now derives from the SAME classifier as the section buckets — one
-  // definition of "data section" and "interpretation section" for the +3 split reward AND the
-  // placement multipliers, so they can never disagree. (The old standalone regexes here were
-  // loose — bare "account" and "in the" matched headings like "In the arts".)
-  var narrativeHeading = sawNarrativeHeading;
-  var interpHeading = sawInterpHeading;
-
-  // "swoon theory" removed from general superCrit — handled by passionCriticismHits below
-  // OT–NT continuity criticism: fixed pattern list covering the four schools of critique in
-  // Reference.md (proof-texting / divergent messianic expectation / Law abrogation /
-  // intertestamental evolution) plus the original contradiction patterns. Count = number of
-  // DISTINCT patterns matched (cap applied in rank_engine.py).
-  var otntPatterns = [
-    // (a) contextual disconnection / proof-texting
-    /proof.?text\w*/i,
-    /(?:quot|taken|lift|used|ripp)\w*[^.]{0,60}out of (?:its )?(?:original )?context/i,
-    /\bpesher\b/i,
-    /\bmidrash\w*/i,
-    /original (?:historical )?context[^.]{0,80}(?:Isaiah|prophec\w*|Hebrew Bible|Old Testament)/i,
-    // (b) divergent messianic expectations
-    /(?:redefin|reinterpret|transform|re-?work)\w*[^.]{0,80}(?:messiah|messianic)/i,
-    /messianic expectation\w*[^.]{0,80}(?:differ|contrast|political|military|geopolitical|Davidic)/i,
-    /(?:political|military|geopolitical)[^.]{0,60}(?:messiah|Davidic king)/i,
-    // (c) abrogation of the Mosaic Law
-    /(?:abrogat|supersed|obsolet)\w*[^.]{0,80}(?:law|Torah|covenant|Mosaic)/i,
-    /(?:law|Torah|covenant|Mosaic)[^.]{0,80}(?:abrogat|supersed|obsolet|annul)\w*/i,
-    /supersessionis\w*/i,
-    // (d) intertestamental theological evolution
-    /intertestamental[^.]{0,80}(?:develop|influence|apocalyptic|evolution)\w*/i,
-    /(?:Hellenistic|Persian|Zoroastrian)[^.]{0,80}(?:influence|borrow|origin)\w*[^.]{0,80}(?:apocalyptic|resurrection|dualis|angel)/i,
-    /Second Temple[^.]{0,60}apocalyptic\w*/i,
-    // original contradiction/discrepancy patterns
-    /(contradict|discrepanc|inconsisten)\w*[^.]{0,100}(Old Testament|prophecy|prophecies|Hebrew Bible)/i,
-    /(Old Testament|prophecy|prophecies|Hebrew Bible)[^.]{0,100}(contradict|discrepanc|inconsisten)\w*/i
-  ];
-  var contOTNT = otntPatterns.filter(function(p){ return p.test(text); }).length;
-  // Supernatural criticism: per-instance count (cap applied in rank_engine.py)
-  var superCrit = (text.match(/mytholog\w*|legendary accretion|historicity[^.]{0,30}(question|doubt|dispute)\w*|skeptic\w*|naturalistic explanation|hallucinat\w*/gi) || []).length;
-
   // --- Article categories (from category strip) ---
   var categoryLinks = document.querySelectorAll('#mw-normal-catlinks a');
   var categories = Array.from(categoryLinks).map(function(a){ return a.textContent.trim(); });
@@ -228,11 +105,9 @@
     return /New Testament places|New Testament cities|Holy Land|Geography of Israel|Cities in Israel|Archaeological sites in Israel|Hebrew Bible places/i.test(c);
   });
   var pageTitle = document.title.replace(' - Wikipedia','');
-  // Teachings: sayings, idioms, discourses, doctrines-and-teachings category family
   var isTeaching = categories.some(function(c){
     return /Sayings of Jesus|teachings of Jesus|New Testament idioms|New Testament words and phrases|Sermon on the Mount/i.test(c);
   });
-  // Books of the Bible: the four canonical Gospels / NT-book articles
   var isBibleBook = categories.some(function(c){
     return /Books of the New Testament|Canonical Gospels|^Gospels$/i.test(c);
   }) || /^Gospel of (Matthew|Mark|Luke|John)$/i.test(pageTitle);
@@ -248,79 +123,152 @@
   var jewishContextHits = jewishContextTerms.filter(function(t){ return text.indexOf(t) !== -1; }).length;
 
   // --- Other-religion sources (Islamic, Mormon, Buddhist, Hindu, Sikh, Jain, Rastafari, Bahá'í…) ---
-  // Same shared matcher as the balanced-debate exclusion above.
+  // Shared matcher — also drives the balanced-debate sentence exclusion below.
+  var otherReligionRe = /Qur'an|Quran|Muhammad|Hadith|Surah|Book of Mormon|Joseph Smith|Latter-day Saint|\bLDS\b|Doctrine and Covenants|Pearl of Great Price|Islam\w*|Muslim\w*|Mormon\w*|Buddhis\w*|Hindu\w*|\bSikh\w*|\bJain\w*|Rastafari\w*|Bah[aá]['’]?[ií]\b|Bhagavad|\bVedas?\b/i;
   var otherReligionHit = otherReligionRe.test(text);
 
-  // --- Passion-specific criticism (scoped to Passion articles only) ---
-  var passionCritTerms = ["swoon theory", "stake theory", "torture stake", "impalement theory"];
-  var passionCriticismHits = 0;
-  if (isPassion) {
-    passionCriticismHits = passionCritTerms.filter(function(t){
-      return text.toLowerCase().indexOf(t.toLowerCase()) !== -1;
-    }).length;
+  // --- Dormant fallback: named-list count with generic-phrase fallback --------------------------
+  // Shared by the Jesus Seminar, mythicist, and confessional-balance (critical-scholar) families.
+  // Returns a raw count only — no section placement. Placement for a dormant family, when
+  // activated, is resolved in rank_engine.py against the §3.1.1 classifier's paragraph labels
+  // (Plan 4's bucket-labels.json), never against headings — see the refactor spec's "Open
+  // dependency" note. This file does not revive heading-based bucketing under any path.
+  function matchCount(nameRes, genericRe, scanText){
+    var found = nameRes.filter(function(re){ return re.test(scanText); });
+    if (found.length) return found.length;
+    return (genericRe && genericRe.test(scanText)) ? 1 : 0;
   }
 
-  // --- Miracle-specific criticism (scoped to Miracle articles, non-excluded sections only) ---
+  // --- Balanced debate (dormant fallback for §3.1.2) ----------------------------------------------
+  var balancedDebateHits = 0, balancedDebateNamedAuthors = 0;
+  if (DORMANT_FALLBACKS.balancedDebate) {
+    (function(){
+      // Interpretation-only scoping required section buckets, which are retired (§3.4.2); the
+      // dormant path scans the full article text instead, other-religion sentences still dropped.
+      var debateText = text
+        .split(/(?<=[.!?])\s+/)
+        .filter(function(s){ return !otherReligionRe.test(s); })
+        .join(' ');
+      var debatePatterns = [
+        /\bothers? (?:argue|contend|suggest|maintain|hold|propose|counter|claim)/i,
+        /\bsome (?:scholars|commentators|interpreters|critics)\b[^.]{0,120}\b(?:while|whereas|but|however|others)\b/i,
+        /\b(?:scholars|commentators|interpreters|opinions?) (?:are divided|disagree|differ|dispute|debate)/i,
+        /\bcritics? (?:claim|argue|contend|maintain|counter|respond|object)/i,
+        /\bopponents? (?:maintain|argue|contend|claim|counter|object)/i,
+        /\bproponents? (?:counter|argue|contend|maintain|respond|claim)/i,
+        /\bon the other hand\b|\bby contrast\b|\bin contrast\b|\bconversely\b/i,
+        /\b(?:an? )?(?:alternative|opposing|competing|rival|minority|dissenting) (?:view|interpretation|explanation|position|reading|opinion|hypothesis|theor)/i,
+        /\ba different (?:perspective|view|reading|interpretation) (?:suggest|hold|propose|argue|maintain)/i,
+        /\bdebated?\b|\bdisputed\b|\bcontested\b|\bcontroversial\b/i,
+        /\b(?:defen[dc]|refut|rebut|counter-?argu)\w*/i,
+        /\bpoints? of (?:contention|disagreement)\b|\bno (?:scholarly )?consensus\b/i
+      ];
+      balancedDebateHits = debatePatterns.filter(function(p){ return p.test(debateText); }).length;
+      var nameAttrRe = /\b((?:[A-Z](?:[a-z]+|\.)\s+){1,3}[A-Z][a-z]+)\s+(?:argue|contend|claim|maintain|counter|suggest|propose|respond|object|hold|dispute)/g;
+      var names = {};
+      var mAttr;
+      while ((mAttr = nameAttrRe.exec(debateText)) !== null) { names[mAttr[1]] = true; }
+      balancedDebateNamedAuthors = Object.keys(names).length;
+    })();
+  }
+
+  // --- Confessional balance (dormant fallback for §3.1.8) ------------------------------------------
+  var criticalScholarCount = 0, evangelicalHit = false;
+  if (DORMANT_FALLBACKS.confessionalBalance) {
+    criticalScholarCount = matchCount(
+      [/Bart (?:D\.? )?Ehrman/i, /\bEhrman\b/, /G(?:e|é)rd L(?:ü|u)demann/i, /Elaine Pagels/i,
+       /Paula Fredriksen/i, /Reza Aslan/i, /Maurice Casey/i, /Hector Avalos/i, /Dale B\.? Martin/i],
+      null, text
+    );
+    var evangelicalRe = /N\.?\s?T\.?\s?Wright|Tom Wright|Richard Bauckham|Craig (?:L\.? )?Blomberg|Craig (?:S\.? )?Keener|Craig (?:A\.? )?Evans|Darrell (?:L\.? )?Bock|Ben Witherington|Michael (?:R\.? )?Licona|Gary (?:R\.? )?Habermas|D\.?\s?A\.?\s?Carson|Douglas (?:J\.? )?Moo|F\.?\s?F\.?\s?Bruce|I\.? Howard Marshall|evangelical scholar/i;
+    evangelicalHit = evangelicalRe.test(text);
+  }
+
+  // --- Jesus Seminar (dormant fallback for §3.1.6) --------------------------------------------------
+  var jesusSeminarCount = 0;
+  if (DORMANT_FALLBACKS.jesusSeminar) {
+    jesusSeminarCount = matchCount([/Robert Funk/, /John Dominic Crossan/, /Marcus Borg/], /Jesus Seminar/i, text);
+  }
+
+  // --- Mythicist (dormant fallback for §3.1.5) ------------------------------------------------------
+  var mythicistCount = 0;
+  if (DORMANT_FALLBACKS.mythicist) {
+    mythicistCount = matchCount([/Richard Carrier/i, /Robert M\.? Price/i, /Earl Doherty/i], /\bmythicis[tm]\b|Christ myth theory/i, text);
+  }
+
+  // --- OT-NT continuity criticism (dormant fallback for §3.1.4) --------------------------------------
+  var contOTNT = 0;
+  if (DORMANT_FALLBACKS.otNtContinuity) {
+    var otntPatterns = [
+      // (a) contextual disconnection / proof-texting
+      /proof.?text\w*/i,
+      /(?:quot|taken|lift|used|ripp)\w*[^.]{0,60}out of (?:its )?(?:original )?context/i,
+      /\bpesher\b/i,
+      /\bmidrash\w*/i,
+      /original (?:historical )?context[^.]{0,80}(?:Isaiah|prophec\w*|Hebrew Bible|Old Testament)/i,
+      // (b) divergent messianic expectations
+      /(?:redefin|reinterpret|transform|re-?work)\w*[^.]{0,80}(?:messiah|messianic)/i,
+      /messianic expectation\w*[^.]{0,80}(?:differ|contrast|political|military|geopolitical|Davidic)/i,
+      /(?:political|military|geopolitical)[^.]{0,60}(?:messiah|Davidic king)/i,
+      // (c) abrogation of the Mosaic Law
+      /(?:abrogat|supersed|obsolet)\w*[^.]{0,80}(?:law|Torah|covenant|Mosaic)/i,
+      /(?:law|Torah|covenant|Mosaic)[^.]{0,80}(?:abrogat|supersed|obsolet|annul)\w*/i,
+      /supersessionis\w*/i,
+      // (d) intertestamental theological evolution
+      /intertestamental[^.]{0,80}(?:develop|influence|apocalyptic|evolution)\w*/i,
+      /(?:Hellenistic|Persian|Zoroastrian)[^.]{0,80}(?:influence|borrow|origin)\w*[^.]{0,80}(?:apocalyptic|resurrection|dualis|angel)/i,
+      /Second Temple[^.]{0,60}apocalyptic\w*/i,
+      // original contradiction/discrepancy patterns
+      /(contradict|discrepanc|inconsisten)\w*[^.]{0,100}(Old Testament|prophecy|prophecies|Hebrew Bible)/i,
+      /(Old Testament|prophecy|prophecies|Hebrew Bible)[^.]{0,100}(contradict|discrepanc|inconsisten)\w*/i
+    ];
+    contOTNT = otntPatterns.filter(function(p){ return p.test(text); }).length;
+  }
+
+  // --- Supernatural criticism (dormant fallback for §3.1.3) -----------------------------------------
+  var superCrit = 0;
+  if (DORMANT_FALLBACKS.supernaturalCriticism) {
+    superCrit = (text.match(/mytholog\w*|legendary accretion|historicity[^.]{0,30}(question|doubt|dispute)\w*|skeptic\w*|naturalistic explanation|hallucinat\w*/gi) || []).length;
+  }
+
+  // --- Miracle-specific criticism (dormant fallback for §3.1.7's miracle-scoped keyword set) --------
   var miracleCriticismHits = 0;
-  if (isMiracle) {
+  if (DORMANT_FALLBACKS.miracleCriticism && isMiracle) {
+    // The original section-exclusion (criticism/historical/scholarly/skeptical headings) required
+    // heading-based buckets, which are retired; the dormant path scans the full article text.
     var miracleCritTerms = [
       "naturalistic explanation", "psychosomatic", "mass hallucination",
       "mythological", "legendary development", "legendary accretion",
       "scientifically explain", "scientifically implausible"
     ];
-    // Scan only non-interpretation text: the shared section buckets (data + other) — text under
-    // interpretation-family headings (criticism/historical/scholarly/skeptical/etc.) is excluded.
-    // (The previous implementation walked ANCESTORS to find the section heading, but headings are
-    // siblings in the parser output, so it never actually excluded anything.)
-    var miracleText = buckets.data + ' ' + buckets.other;
+    var lowerText = text.toLowerCase();
     miracleCriticismHits = miracleCritTerms.filter(function(t){
-      return miracleText.toLowerCase().indexOf(t.toLowerCase()) !== -1;
+      return lowerText.indexOf(t.toLowerCase()) !== -1;
     }).length;
   }
 
-  return {
+  var result = {
     title: pageTitle,
     verseCount: uniqueVerses.length,
     refCount: refCount,
     journalCount: journalCount,
     bookCount: bookCount,
     commentaryCount: commentaryCount,
-    iaaHit: iaaHit,
-    archHit: archHit,
     archSiteHit: archSiteHit,
-    historicalContextHit: historicalContextHit,
     manuscriptCount: manuscriptCount,
-    jesusSeminarCount: jesusSeminarCount,
-    jesusSeminarInData: jesusSeminarPlace.inData,
-    jesusSeminarInInterp: jesusSeminarPlace.inInterp,
-    jesusSeminarInOther: jesusSeminarPlace.inOther,
+    refQualityTier: refQualityTier,
+    hasCitationNeeded: hasCitationNeeded,
+    mapsAndDiagramsCount: mapsAndDiagramsCount,
+    hasPictureNarrow: hasPictureNarrow,
+    hasPictureWide: hasPictureWide,
+    hasDiagramOrMap: hasDiagramOrMap,
     primarySourceQuoteCount: primarySourceQuoteCount,
     gnosticSourceHit: gnosticSourceHit,
-    poorReferencingHit: poorReferencingHit,
     wikiQualityHit: wikiQualityHit,
     ancientHistorianCount: ancientHistorianCount,
     anteNiceneCount: anteNiceneCount,
-    mythicistCount: mythicistCount,
-    mythicistInData: mythicistPlace.inData,
-    mythicistInInterp: mythicistPlace.inInterp,
-    mythicistInOther: mythicistPlace.inOther,
-    narrativeHeading: narrativeHeading,
-    interpHeading: interpHeading,
-    contOTNT: contOTNT,
-    superCrit: superCrit,
-    balancedDebateHits: balancedDebateHits,
-    balancedDebateNamedAuthors: balancedDebateNamedAuthors,
-    criticalScholarCount: criticalScholarPlace.count,
-    criticalScholarInData: criticalScholarPlace.inData,
-    criticalScholarInInterp: criticalScholarPlace.inInterp,
-    criticalScholarInOther: criticalScholarPlace.inOther,
-    evangelicalInInterp: evangelicalInInterp,
-    // New signals
     jewishContextHits: jewishContextHits,
     otherReligionHit: otherReligionHit,
-    passionCriticismHits: passionCriticismHits,
-    miracleCriticismHits: miracleCriticismHits,
-    // Article categories (for scoring conditionals)
     isPassion: isPassion,
     isMiracle: isMiracle,
     isParable: isParable,
@@ -328,4 +276,30 @@
     isTeaching: isTeaching,
     isBibleBook: isBibleBook
   };
+
+  if (DORMANT_FALLBACKS.balancedDebate) {
+    result.balancedDebateHits = balancedDebateHits;
+    result.balancedDebateNamedAuthors = balancedDebateNamedAuthors;
+  }
+  if (DORMANT_FALLBACKS.confessionalBalance) {
+    result.criticalScholarCount = criticalScholarCount;
+    result.evangelicalHit = evangelicalHit;
+  }
+  if (DORMANT_FALLBACKS.jesusSeminar) {
+    result.jesusSeminarCount = jesusSeminarCount;
+  }
+  if (DORMANT_FALLBACKS.mythicist) {
+    result.mythicistCount = mythicistCount;
+  }
+  if (DORMANT_FALLBACKS.otNtContinuity) {
+    result.contOTNT = contOTNT;
+  }
+  if (DORMANT_FALLBACKS.supernaturalCriticism) {
+    result.superCrit = superCrit;
+  }
+  if (DORMANT_FALLBACKS.miracleCriticism) {
+    result.miracleCriticismHits = miracleCriticismHits;
+  }
+
+  return result;
 })()
