@@ -95,6 +95,13 @@ def placement_mult(sig, prefix):
     return 1.0
 
 
+# §9 row -> weight lookups for the v2 refactor (Wikipedia_alogrithm_refractor.md). Only the four
+# non-vector items this plan (wikipedia-v2-02) owns are implemented here: referencing quality (row
+# 24), maps & diagrams (row 13), religious art (row 15), and the removal of the two weights that
+# left the rubric outright (historical/contextual info, passion-specific criticism — §3.7/§3.8).
+REF_QUALITY_WEIGHTS = {"zero": -9, "niche": 3, "supported": 1, "wellsourced": 0}
+
+
 def net_score_from_signals(sig):
     s = 0
     s += min(sig["verseCount"], 3) * 3
@@ -109,48 +116,68 @@ def net_score_from_signals(sig):
     # Location IAA bonus: +3 extra on top of existing +2
     if sig.get("isLocation") and sig["archSiteHit"]:
         s += 3
-    s += 2 if sig["historicalContextHit"] else 0
     # Named-manuscript credit: all articles; DOUBLED for teachings/sayings/idioms and books of
     # the Bible (applied to the capped points)
     s += min(sig.get("manuscriptCount", 0), 3) * 2 * (2 if (sig.get("isTeaching") or sig.get("isBibleBook")) else 1)
     s += min(sig.get("primarySourceQuoteCount", 0), 4) * 1
-    s += 3 if (sig["narrativeHeading"] and sig["interpHeading"]) else 0
+    # §9 row 3 (data/interpretation split) is vector-scored (§3.1.1) and not implemented by this
+    # plan — heading-based bucketing (narrativeHeading/interpHeading) is retired and extract.js no
+    # longer emits those fields. Pending Plan 4; scores 0 until then.
+    s += 3 if (sig.get("narrativeHeading") and sig.get("interpHeading")) else 0
     s += 1 if sig.get("wikiQualityHit") else 0
     # Parable exemption: ancient_historian scores as 0
     if not sig.get("isParable"):
         s += min(sig.get("ancientHistorianCount", 0), 3) * 1
     s += min(sig.get("anteNiceneCount", 0), 3) * 2
     s += -10 if sig["verseCount"] == 0 else 0
+    # §9 rows 5, 17, 19-23 (balanced debate, confessional balance, Jesus Seminar, OT-NT
+    # continuity, mythicist, supernatural/secular-materialist criticism) are vector families
+    # (§3.1.2-§3.1.8) not implemented by this plan. Their dormant keyword fallbacks (extract.js,
+    # §11.4) supply raw counts only, with no section placement — see Issues.md #138 — so the
+    # placement multiplier here degrades to x1 until Plan 4 supplies bucket-labels.json.
     s += int(min(sig.get("jesusSeminarCount", 0), 3) * -2 * placement_mult(sig, "jesusSeminar"))
     s += -1 if sig.get("gnosticSourceHit") else 0
-    s += -1 if sig.get("poorReferencingHit") else 0
     s += int(min(sig.get("mythicistCount", 0), 3) * -3 * placement_mult(sig, "mythicist"))
-    s += -8 if sig["refCount"] == 0 else 0
-    # Per Reference.md (the source of truth): −2 per instance, capped −6. contOTNT/superCrit are
-    # counts from extract.js; int() tolerates a legacy boolean (True==1) from pre-count signals.
-    s += min(int(sig["contOTNT"]), 3) * -2
-    s += min(int(sig["superCrit"]), 3) * -2
-    # New signals
+    s += min(sig.get("contOTNT", 0), 3) * -2
+    s += min(sig.get("superCrit", 0), 3) * -2
     s += min(sig.get("jewishContextHits", 0), 4) * 1
     # Balanced debate: +1 per pattern capped +3, DOUBLED when >=2 distinct named representatives
     # are cited for the differing views
     s += min(sig.get("balancedDebateHits", 0), 3) * (2 if sig.get("balancedDebateNamedAuthors", 0) >= 2 else 1)
     # Confessional balance: fires only when a critical-scholarship historian is cited.
     # Outside the interpretation sections -> -3; inside interpretation without a contrasting
-    # Evangelical author -> -1; inside interpretation WITH one -> 0.
+    # Evangelical author -> -1; inside interpretation WITH one -> 0. `criticalScholarInData`/
+    # `InOther` are no longer produced (see above), so this always resolves to the -1/0 branch
+    # pending Plan 4.
     if sig.get("criticalScholarCount", 0) > 0:
         if sig.get("criticalScholarInData") or sig.get("criticalScholarInOther"):
             s += -3
-        elif not sig.get("evangelicalInInterp"):
+        elif not sig.get("evangelicalHit", sig.get("evangelicalInInterp")):
             s += -1
     s += -3 if sig.get("otherReligionHit", sig.get("islamicMormonHit")) else 0
-    s += min(sig.get("passionCriticismHits", 0), 3) * -2
+    # passionCriticismHits (§3.7) is removed from the rubric outright — no replacement, nothing
+    # falls back to it.
     s += min(sig.get("miracleCriticismHits", 0), 3) * -2
-    # Niche exposure bonus (tiered): refCount < 5 → +3; 5–9 → +1
-    if sig["refCount"] < 5:
-        s += 3
-    elif sig["refCount"] < 10:
-        s += 1
+
+    # --- Referencing quality (§9 row 24) --------------------------------------------------------
+    # Absorbs the former separate "No references at all", "Poor referencing", and "Niche exposure
+    # bonus" signals into one tiered lookup on refQualityTier, plus an independent -1 for a
+    # "citation needed" / maintenance banner.
+    s += REF_QUALITY_WEIGHTS.get(sig.get("refQualityTier"), 0)
+    if sig.get("hasCitationNeeded"):
+        s += -1
+
+    # --- Maps and diagrams (§9 row 13) ----------------------------------------------------------
+    s += min(sig.get("mapsAndDiagramsCount", 0), 2) * 1
+
+    # --- Religious art (§9 row 15, context-conditional, §3.5.1) ----------------------------------
+    # Does not fire for parable/teaching articles. is_passion picks the raised-sensitivity (wide)
+    # picture test rather than the standard (narrow) one (§3.9 row 15).
+    if not sig.get("isParable") and not sig.get("isTeaching"):
+        has_picture = sig.get("hasPictureWide") if sig.get("isPassion") else sig.get("hasPictureNarrow")
+        if has_picture:
+            s += 1 if sig.get("hasDiagramOrMap") else -1
+
     return s
 
 
