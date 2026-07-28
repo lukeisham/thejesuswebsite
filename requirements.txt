@@ -1,0 +1,6 @@
+# Plan 4 (Section Classifier) — ONNX Runtime + FAISS + NumPy, no torch.
+# Pinned to minor versions. Do not add sentence-transformers, lancedb,
+# transformers, scikit-learn, or tokenizers — see the plan for rationale.
+onnxruntime>=1.17,<2.0
+faiss-cpu>=1.8,<2.0
+numpy>=1.24,<3.0
