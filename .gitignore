@@ -21,6 +21,16 @@ node_modules/
 __pycache__/
 *.pyc
 
+# Wikipedia v2 pipeline: large/binary, regenerable dev-machine artifacts —
+# placed after the /setup/Wikipedia algorithm re-inclusion block (line 10-11)
+# so these specific subpaths stay ignored even though their parent directory
+# is tracked. The vendored ONNX model (regenerate via classifier/download_model.py)
+# and FAISS indexes (regenerate via build_stores.py / families/export.py) ship
+# to the VPS via rsync (scripts/sync-vector-stores.sh), never via git, to keep
+# binary blobs out of repository history permanently (wikipedia-v2-04/05/09).
+/setup/Wikipedia algorithm/classifier/model/
+/setup/Wikipedia algorithm/vector-stores/
+
 # Environment
 .env
 
