@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated": "2026-07-30T08:46:28",
+  "generated": "2026-07-30T09:04:43",
   "article_count": 255,
   "ceiling": 255,
   "source": "Lukeatron !TheJesusWebsite-Wikipedia rank_engine.py",
@@ -634,7 +634,7 @@
   {
    "ranking": 8,
    "title": "Mary, mother of Jesus",
-   "url": "https://en.wikipedia.org/wiki/Mary,_mother_of_Jesus",
+   "url": "https://en.wikipedia.org/wiki/Mary%2C_mother_of_Jesus",
    "net_score": 38,
    "contributions": {
     "bible_verses": 12,
@@ -1628,7 +1628,7 @@
   {
    "ranking": 22,
    "title": "James, brother of Jesus",
-   "url": "https://en.wikipedia.org/wiki/James,_brother_of_Jesus",
+   "url": "https://en.wikipedia.org/wiki/James%2C_brother_of_Jesus",
    "net_score": 33,
    "contributions": {
     "bible_verses": 12,
@@ -5604,7 +5604,7 @@
   {
    "ranking": 78,
    "title": "Joanna, wife of Chuza",
-   "url": "https://en.wikipedia.org/wiki/Joanna,_wife_of_Chuza",
+   "url": "https://en.wikipedia.org/wiki/Joanna%2C_wife_of_Chuza",
    "net_score": 21,
    "contributions": {
     "bible_verses": 12,
@@ -6456,7 +6456,7 @@
   {
    "ranking": 90,
    "title": "Mary, mother of James",
-   "url": "https://en.wikipedia.org/wiki/Mary,_mother_of_James",
+   "url": "https://en.wikipedia.org/wiki/Mary%2C_mother_of_James",
    "net_score": 20,
    "contributions": {
     "bible_verses": 12,
@@ -8799,7 +8799,7 @@
   {
    "ranking": 123,
    "title": "James, son of Alphaeus",
-   "url": "https://en.wikipedia.org/wiki/James,_son_of_Alphaeus",
+   "url": "https://en.wikipedia.org/wiki/James%2C_son_of_Alphaeus",
    "net_score": 17,
    "contributions": {
     "bible_verses": 12,
@@ -9154,7 +9154,7 @@
   {
    "ranking": 128,
    "title": "Jude, brother of Jesus",
-   "url": "https://en.wikipedia.org/wiki/Jude,_brother_of_Jesus",
+   "url": "https://en.wikipedia.org/wiki/Jude%2C_brother_of_Jesus",
    "net_score": 17,
    "contributions": {
     "bible_verses": 12,
@@ -15331,7 +15331,7 @@
   {
    "ranking": 215,
    "title": "Elizabeth, mother of John the Baptist",
-   "url": "https://en.wikipedia.org/wiki/Elizabeth,_mother_of_John_the_Baptist",
+   "url": "https://en.wikipedia.org/wiki/Elizabeth%2C_mother_of_John_the_Baptist",
    "net_score": 10,
    "contributions": {
     "bible_verses": 12,

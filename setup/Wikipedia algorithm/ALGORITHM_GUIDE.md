@@ -1,4 +1,4 @@
-# Wikipedia Algorithm — Implementation Guide
+# 🧠 Wikipedia Algorithm — Implementation Guide
 
 **What it does:** Scores and ranks ~250 Wikipedia articles about Jesus and the
 Gospels against a 25-signal rubric, producing a ranked reliability list published
@@ -19,7 +19,7 @@ honesty-and-reproducibility plan is complete.
 
 ---
 
-## 1. Article Lifecycle
+## 🔄 1. Article Lifecycle
 
 ```
 STAGE 1 — CANDIDATE POOL
@@ -60,13 +60,13 @@ STAGE 6 — DEPLOY
     → frontend/debate/wikipedia.html renders the 5×5 grid widget
 ```
 
-**Key constraint:** Stages 1–5 run entirely on a dev machine. Stage 6 is the only step that touches the VPS. The VPS has no Python, no ML model, and no scoring runtime — it only imports a pre-computed JSON file.
+**⚠️ Key constraint:** Stages 1–5 run entirely on a dev machine. Stage 6 is the only step that touches the VPS. The VPS has no Python, no ML model, and no scoring runtime — it only imports a pre-computed JSON file.
 
 ---
 
-## 2. Architectural Decisions
+## 🏗️ 2. Architectural Decisions
 
-### 2.1 Offline/online split
+### 💻☁️ 2.1 Offline/online split
 
 ```
 DEV MACHINE (Python, ~265 MB ML deps)          VPS (Node, no Python scoring)
@@ -96,16 +96,16 @@ rank_engine.py ──► database/scoring-export.json ──git──► deploy.
                                             NOT part of the scoring path
 ```
 
-**Why:** The refactor spec §3.2 caps ML dependencies and forbids shipping a
+**💡 Why:** The refactor spec §3.2 caps ML dependencies and forbids shipping a
 scoring runtime to the VPS. The VPS has no Python, no model, no FAISS in the
 scoring path. Scoring is a developer action whose only output is a committed
 JSON file.
 
-**Consequence:** nothing on the VPS can detect that a score is wrong, stale, or
+**⚠️ Consequence:** nothing on the VPS can detect that a score is wrong, stale, or
 that the classifier that produced it was never run. The import script's
 validation is the only guard.
 
-### 2.2 Vector/keyword hybrid — the `vec()` fallback pattern
+### 🔀 2.2 Vector/keyword hybrid — the `vec()` fallback pattern
 
 Every vector-covered signal uses this pattern (rank_engine.py L205–211):
 
@@ -121,11 +121,11 @@ def vec(sig, signal_key, fallback):
   returns the dormant keyword-detector fallback.
 - Nine vector families map to signals via `VECTOR_FAMILY_TO_SIGNAL` (L55–65).
 
-**Current state:** All nine families have precision 0.0 (below the 0.80 floor),
+**🔵 Current state:** All nine families have precision 0.0 (below the 0.80 floor),
 so every family falls back to keyword. The system is architecturally correct;
 the vector intelligence just isn't producing live numbers yet.
 
-### 2.3 All-or-nothing import
+### 🔒 2.3 All-or-nothing import
 
 import-wikipedia-scoring.js validates every article before any DB write:
 
@@ -137,7 +137,7 @@ import-wikipedia-scoring.js validates every article before any DB write:
 - Writes happen in a single SQLite transaction — partial import never reaches
   the live site.
 
-### 2.4 Category flags — single source of truth
+### 🏷️ 2.4 Category flags — single source of truth
 
 Six boolean flags computed once by extract.js from the Wikipedia category
 strip (`#mw-normal-catlinks`). Every downstream signal reads these same six
@@ -152,9 +152,9 @@ booleans. A single flag error propagates to all gated signals silently.
 | `is_teaching` | 16.1% | Commentary signal, manuscript cap (doubled), literary analysis tier |
 | `is_bible_book` | 4.3% | Manuscript cap (doubled), literary analysis tier |
 
-**27.1% of articles carry no flag.**
+**📊 27.1% of articles carry no flag.**
 
-### 2.5 Pending signals — two of 25 score 0 by design
+### ⏳ 2.5 Pending signals — two of 25 score 0 by design
 
 `data_interp_split` (row 3, +10) and `literary_analysis` (row 10, +6/+4) are
 full members of the 25-signal rubric. Their caps count toward `max_possible`.
@@ -171,7 +171,7 @@ The pending state is tracked by:
 Pending cells render in the grid identically to ordinary unfired signals — no
 distinct styling or tooltip. The distinction lives only in documentation.
 
-### 2.6 Placement multipliers — structural proxies, not stance detection
+### 📐 2.6 Placement multipliers — structural proxies, not stance detection
 
 Jesus Seminar (row 19) and Mythicist (row 21) apply placement multipliers:
 
@@ -188,7 +188,7 @@ These are structural proxies for stance — the system does not attempt to detec
 whether an author is cited approvingly or critically (§11.3 of the refactor
 spec). Placement and balanced-debate presence are used as indirect signals.
 
-### 2.7 Gold set — frozen, single-rater, segmentation-mismatched
+### 🥇 2.7 Gold set — frozen, single-rater, segmentation-mismatched
 
 - **39 classifier articles** with per-paragraph data/interpretation/neither labels
 - **197 vector-family rows** across 10 families
@@ -204,7 +204,7 @@ spec). Placement and balanced-debate presence are used as indirect signals.
 
 ---
 
-## 3. Weights Table — Source of Truth & Key Files
+## ⚖️ 3. Weights Table — Source of Truth & Key Files
 
 Rows ordered by weight magnitude: strongest positive first, strongest negative
 last. This order is **load-bearing** — the frontend 5×5 grid renders cells in
@@ -241,16 +241,16 @@ last. This order is **load-bearing** — the frontend 5×5 grid renders cells in
 | 24 | **Referencing quality** | −9 (0 refs) / +3 (1–4) / +1 (5–9) / 0 (10+); plus −1 for poor referencing | Ref count tiering + DOM inspection for "citation needed" tags / maintenance banners | `rank_engine.py` L339–341 + `_ref_quality_weight()` L611–625, `extract.js` (refCount, hasCitationNeeded) |
 | 25 | **No Bible verse cited** | −10 flat | Bible verse regex count = 0 | `rank_engine.py` L344, `extract.js` (verseCount) |
 
-**Tie-break:** alphabetical by raw article title (before comma-to-hyphen substitution).
+**📌 Tie-break:** alphabetical by raw article title (before comma-to-hyphen substitution).
 No verse-count or reference-count secondary keys — this is a deliberate simplification
 (§12.2 of the refactor spec). Ties are expected; alphabetical ordering inside a
 score-cluster is arbitrary by design, not a claim about relative quality.
 
 ---
 
-## 4. Key Files — Complete Map
+## 📁 4. Key Files — Complete Map
 
-### Scoring pipeline
+### ⚙️ Scoring pipeline
 
 | File | Role |
 |---|---|
@@ -258,7 +258,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 | `setup/SKILLS/!TheJesusWebsite-Wikipedia/scripts/extract.js` | Harvest script. Injected into Wikipedia pages via Headless Chrome. DOM + regex extraction of ~40 raw signal fields. |
 | `database/scoring-export.json` | The shipped artifact. 253 articles × 25 signal contributions × signal dictionary. Committed to git, consumed by import script and frontend. |
 
-### Vector classifier
+### 🧪 Vector classifier
 
 | File | Role |
 |---|---|
@@ -268,7 +268,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 | `setup/Wikipedia algorithm/classifier/config.py` | Thresholds: t_data=0.50, t_interp=0.50, t_sep=0.60, N_min=3, TOP_K=5, NN_NEGATIVE_THRESHOLD=0.75. |
 | `setup/Wikipedia algorithm/classifier/export.py` | Batch export → bucket-labels.json. |
 
-### Vector families (9 families, each in `families/`)
+### 👪 Vector families (9 families, each in `families/`)
 
 | File | Signal |
 |---|---|
@@ -282,7 +282,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 | `families/literary_analysis.py` | Row 10 — Literary analysis |
 | `families/gnostic_over_emphasis.py` | Row 16 — Gnostic over-emphasis |
 
-### Exemplars and vector stores
+### 📚 Exemplars and vector stores
 
 | Path | Contents |
 |---|---|
@@ -291,7 +291,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 | `vector-family-thresholds.yaml` | Calibrated thresholds per family (currently all defaults: t_fire=0.55, precision=0.0) |
 | `calibration-sweep.json` | Grid-search results from calibrate.py |
 
-### Gold set (frozen ground truth)
+### 🥇 Gold set (frozen ground truth)
 
 | File | Contents |
 |---|---|
@@ -299,7 +299,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 | `gold-set-vector-families.csv` | 197 rows across 10 families: per-article signal-fires judgement |
 | `gold-set-negative-controls.csv` | 37 cases where old keyword detector misfired — regression test set |
 
-### Import and validation
+### 🛡️ Import and validation
 
 | File | Role |
 |---|---|
@@ -308,7 +308,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 | `api/tests/wikipedia-extraction.test.js` | Tests for extract.js signal harvesting (maps, religious art conditionals). |
 | `api/tests/wikipedia-routes.test.js` | Route tests asserting encoded `E-*` error shape. |
 
-### Frontend
+### 🎨 Frontend
 
 | File | Role |
 |---|---|
@@ -317,7 +317,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 | `frontend/assets/js/wikipedia.test.js` | Grid regression tests: cell classes, tooltip patterns, pending-cell treatment. |
 | `frontend/assets/js/utils/wikipedia-signals.test.js` | 25 entries, renamed key/label, §9 order preservation. |
 
-### Specification documents
+### 📄 Specification documents
 
 | File | Role |
 |---|---|
@@ -331,7 +331,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 | `CATEGORY_FLAGS_VALIDATION.md` | Category flag detection rules and behavioural effects. |
 | `extraction-signals.md` | Non-vector signal documentation from Plan 2 (extract.js). |
 
-### Data files
+### 💾 Data files
 
 | File | Contents |
 |---|---|
@@ -341,7 +341,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 
 ---
 
-## 5. Invariants
+## 🔐 5. Invariants
 
 - **Σcontributions = net_score** for all 253 articles. Verified on every export write; import script rejects on mismatch.
 - **25 signals always, 5×5 grid always.** No signal is removed even when pending. The grid geometry never changes.
@@ -350,3 +350,77 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 - **Import is all-or-nothing.** Validation happens before any DB write. A single invalid article aborts the entire import.
 - **The gold set is frozen.** Disagreement means the store gets revised, never the label.
 - **The VPS has no scoring runtime.** All ML work happens offline. The only thing that ships is a validated JSON file.
+
+---
+
+## 🚧 6. Pending Signals: Row 3 and Row 10
+
+Two of the 25 signals — `data_interp_split` (row 3) and `literary_analysis`
+(row 10) — are **structurally unable to score above 0** for any article.
+Neither has a keyword fallback. Both are purely vector/classifier signals.
+
+### 📊 Row 3 — Data/interpretation split (+10 / −3 / −5 / 0)
+
+**What it's supposed to do.** This is the dominant matrix signal — the axis the
+whole rubric is built on. A three-store classifier (MiniLM ONNX + FAISS)
+labels every body paragraph as `data`, `interpretation`, or `neither`, computes
+a separation ratio, and assigns a tier: +10 for a clean split between data and
+interpretation blocks, −3 when both are present but interleaved, −5 when only
+one side is present, 0 when there aren't enough class-bearing paragraphs.
+
+**Why it scores 0.** The classifier's tier accuracy is **0.303 (10/33)** against
+a required ≥0.85 gate (`VALIDATION_REPORT.md`, `Issues.md` #141). MiniLM cosine
+similarities against the exemplars cluster too tightly (0.45–0.65) to threshold
+cleanly. Three failure modes: data paragraphs undetected (~30%), separation
+ratio too low (~30%), too few class-bearing paragraphs (~20%). The two
+artifacts it depends on — `bucket-labels.json` (Plan 4) and
+`vector-family-scores.json` (Plan 5) — do not exist on disk.
+
+**What blocks activation.**
+- Produce `bucket-labels.json` via the classifier pipeline, clearing the §11.2
+  gate: ≥0.85 paragraph-level agreement AND ≥0.85 correct tier assignment on
+  the 40-article gold set.
+- This likely requires a stronger embedding model (MiniLM's 0.45–0.65 cluster
+  is too narrow), expanded exemplar sets, and re-labelling with matched
+  segmentation.
+
+### 📖 Row 10 — Literary analysis (+6 / +4)
+
+**What it's supposed to do.** A single vector-embedding store trained on
+literary-analysis passages — narrative criticism, rhetorical devices (inclusio,
+chiasm, parallelism), genre conventions, intertextual allusion, reader-response,
+form-critical segmentation. Tiered by article category: +6 for
+parable/teaching/Bible-book articles, +4 for all others.
+
+**Why it scores 0.** The literary-analysis vector store has never been run
+against the full article set. Its family reports precision 0.0 in
+`vector-family-thresholds.yaml` — below the 0.80 floor — so it falls back to
+keyword, but no keyword fallback exists (it's a genuinely new signal with no
+v1 equivalent). The artifact it depends on — `vector-family-scores.json` — does
+not exist on disk.
+
+**What blocks activation.**
+- Produce `vector-family-scores.json` with `literary_analysis` entries from the
+  family pipeline (Plan 5), clearing the §11.4 gate: ≥0.80 precision floor on
+  the literary-analysis gold set (20–30 articles).
+- The `rank_engine.py` loader already reads the artifact when present —
+  activation means producing the file, not rewriting the loader.
+
+### 🛠️ How the system handles both
+
+- Both keys remain full members of `KNOWN_SIGNAL_KEYS` (25 entries) and
+  `SIGNAL_DICTIONARY`.
+- Both are listed in `PENDING_SIGNAL_KEYS` in the import script, exempting them
+  from the all-zero integrity check (every other signal must have ≥1 non-zero
+  value across the corpus or the import aborts).
+- `data_interp_split`'s cap stays at **+10** while the `data_interp_pending`
+  flag is true — the real weight counts toward `max_possible` despite scoring 0.
+  `literary_analysis`'s cap is derived unconditionally from category flags
+  (pending or not) so its weight also counts toward the ceiling.
+- Both render as ordinary empty cells in the 5×5 grid — identical styling and
+  tooltip to any signal that simply didn't fire. The distinction between
+  "pending" and "measured, didn't fire" lives only in documentation.
+- The activation checklist in §9 of `Wikipedia_alogrithm_refractor.md` records
+  exactly what must happen before either signal produces real contributions.
+- `Issues.md` #141 (classifier accuracy) remains open — this plan does not fix
+  the classifier, it makes the pending state honest and reproducible.
