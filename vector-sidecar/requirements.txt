@@ -1,0 +1,11 @@
+# Vector sidecar — FastAPI serving layer over Plan 4/5's FAISS stores.
+# Pins match root requirements.txt (Plan 4's measured ~178MB
+# onnxruntime+numpy+faiss-cpu footprint) plus the FastAPI/uvicorn serving
+# layer (~20MB). Do not add sentence-transformers, lancedb, transformers,
+# scikit-learn, or tokenizers — see requirements.txt and
+# wikipedia-v2-09-vps-vector-store-serving.md for rationale.
+fastapi>=0.110,<1.0
+uvicorn>=0.29,<1.0
+onnxruntime>=1.17,<2.0
+faiss-cpu>=1.8,<2.0
+numpy>=1.24,<3.0
