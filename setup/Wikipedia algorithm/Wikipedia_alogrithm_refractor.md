@@ -303,7 +303,7 @@ The store distinguishes an article that *leans on* Gnostic sources from one that
 
 ### 3.2 Embedding & Retrieval Layer
 
-**Scoring is an offline, developer-machine activity. The VPS never runs scoring.** Verified 2026-07-27: `deploy.sh` and `.github/workflows/deploy.yml` execute Node only — `npm install`, schema + migrations, `npm run pages`, sitemap, pm2 restart. No Python, pip, or virtualenv is in the deploy path, and **this refactor adds none to it**.
+**Scoring is an offline, developer-machine activity. The VPS never runs scoring.** (The VPS *does* run a read-only FastAPI sidecar for live vector-store serving — see the subsection below. Scoring and serving are separate concerns: only `scoring-export.json` travels via git to the VPS's Node import step.) Verified 2026-07-27: `deploy.sh` and `.github/workflows/deploy.yml` execute Node only — `npm install`, schema + migrations, `npm run pages`, sitemap, pm2 restart. No Python, pip, or virtualenv is in the deploy path, and **this refactor adds none to it**.
 
 The scoring pipeline is: **embed and score locally (Python) → emit `scoring-export.json` → commit → the VPS's Node import step loads it into the database.** This mirrors how the v1 engine already works.
 
@@ -563,14 +563,14 @@ Rows are ranked by weight magnitude — strongest positive signal first, stronge
 |---|---|---|---|
 | 1 | Cites/mentions a specific manuscript | **+2** per distinct manuscript, capped at **+6**; max **+8** for teachings/Bible books | **Unchanged plain lookup** (§3.8) — fixed list of well-known manuscripts (Codex Sinaiticus, Vaticanus, Dead Sea Scrolls, etc.); generic "papyrus/codex/manuscript" mention counts as 1 |
 | 2 | Cites a specific Bible verse | **+3** per citation, capped at **+12** | **Unchanged plain lookup** (§3.8) — regex match on chapter:verse patterns in rendered text; deduplicated |
-| 3 | Data/interpretation split | **+10** clear split; **−3** both present but muddled; **−5** only one side present; **0** unclassifiable | **Vector** (§3.1.1) — **the dominant matrix.** Three stores (data bucket, interpretation bucket, linguistic register) label every body paragraph; a computed separation ratio decides the tier. Headings are not consulted. These labels **are** the section buckets for the entire rubric |
+| 3 | Data/interpretation split | **+10** clear split; **−3** both present but muddled; **−5** only one side present; **0** unclassifiable | **Vector** (§3.1.1) — **the dominant matrix.** Three stores (data bucket, interpretation bucket, linguistic register) label every body paragraph; a computed separation ratio decides the tier. Headings are not consulted. These labels **are** the section buckets for the entire rubric |<br>**Pending**: currently unable to score above 0 for any article — no keyword fallback exists. Unblocked by `bucket-labels.json` (Plan 4, §11.2 ≥0.85 gate) / `vector-family-scores.json` (Plan 5, §11.4 ≥0.80 precision floor). See `Issues.md` #141.
 | 4 | Cites a scholarly commentary | **+1** per citation, capped at **+6**; only fires for parable/teaching articles | **Plain list lookup** (§3.5) — fixed series name list (Word Biblical, Anchor Bible, Hermeneia, NICNT, etc.) or "commentary" keyword; gating unchanged |
 | 5 | Shows balanced debate in interpretation sections | **+2** per distinct debate pattern, capped at **+6**; **doubled** to max **+12** with 2+ named representatives | **Vector** (§3.1.2) — single store encoding longevity language, representative individuals, disagreement across both layers (data AND interpretation), and properly-anchored consensus. Replaces keyword-pattern matching |
 | 6 | Cites an ante-Nicene author | **+2** per author, capped at **+6** | **Plain list lookup** (§3.5) — fixed name list (Ignatius, Polycarp, Justin Martyr, Irenaeus, Tertullian, Origen, Clement, Eusebius, Hippolytus, Cyprian); logic unchanged |
 | 7 | Cites/mentions an archaeological site or artefact | **+2** flat; **+8** for location-category articles with an archaeology hit | **Associated term lookup** (§3.6) — IAA/"archaeolog-"/"excavat-"/"ossuary"/"inscription" keyword match; scores **+2** for parable articles; location bonus unchanged |
 | 8 | Discusses Jewish context | **+2** per distinct concept, capped at **+6** | **Plain list lookup** (§3.5) — fixed keyword list (Second Temple, Pharisees, Torah, Qumran, Passover, Mishnah, etc.); logic unchanged |
 | 9 | Cites/mentions a non-Christian ancient source | **+2** per source, capped at **+6**; scores **+3** for parable articles | **Plain list lookup** (§3.5) — fixed 8-name list (Josephus, Tacitus, Pliny, Suetonius, Mara bar Serapion, Lucian, Celsus, Phlegon); logic unchanged |
-| 10 | Literary analysis | **+6** for parable / teaching / Bible-book articles; **+4** for all other articles | **Vector** (§3.1.9) — single vector-embedding database trained on literary-analysis passages: narrative criticism, rhetorical devices (inclusio, chiasm, parallelism), genre conventions, intertextual allusion, reader-response, form-critical segmentation. Tiered by article category |
+| 10 | Literary analysis | **+6** for parable / teaching / Bible-book articles; **+4** for all other articles | **Vector** (§3.1.9) — single vector-embedding database trained on literary-analysis passages: narrative criticism, rhetorical devices (inclusio, chiasm, parallelism), genre conventions, intertextual allusion, reader-response, form-critical segmentation. Tiered by article category |<br>**Pending**: currently unable to score above 0 for any article — no keyword fallback exists. Unblocked by `bucket-labels.json` (Plan 4, §11.2 ≥0.85 gate) / `vector-family-scores.json` (Plan 5, §11.4 ≥0.80 precision floor). See `Issues.md` #141.
 | 11 | Quotes a primary source directly | **+1** per quote, capped at **+4** | **Unchanged plain lookup** (§3.8) — blockquote count + long (40+ char) quoted spans |
 | 12 | Cites a peer-reviewed journal article or scholarly book/monograph | **+1** per citation, capped at **+2** per type | **Associated term lookup** (§3.6) — reference-list entries matched against journal-ish markers (`journal`, `doi.org`, `jstor`, volume/issue patterns) or book-ish markers (`ISBN`, `University Press`, publisher patterns). No fixed journal or publisher list |
 | 13 | Maps and diagrams | **+1** per map/diagram, capped at **+2** | **Unchanged plain lookup** (§3.8) — simple presence search via DOM inspection for mapframe templates, location-map elements, diagram-style SVGs, or captions containing "map"/"diagram"/"plan"/"floor plan" |
@@ -586,6 +586,51 @@ Rows are ranked by weight magnitude — strongest positive signal first, stronge
 | 23 | Secular-materialist presuppositions | **−2** per distinct term, capped at **−8** | **Vector bias** (§3.1.7) — same 7-dimension system (§3.1.3), own vector-embedding database. Miracle- **and Passion-scoped**, section-aware (criticism-heading text excluded). Raised sensitivity on `is_passion` (§3.9). Placement multiplier does NOT apply |
 | 24 | Referencing quality | Tiered on `ref_count`: **−9** if 0 refs; **+3** if 1–4; **+1** if 5–9; **0** if 10+. Plus **−1**, independently, for poor referencing | **Unchanged plain lookup** (§3.8) — one signal spanning the whole reference-count spectrum, absorbing the former niche-exposure bonus. Zero references is a failure; *few* references on a genuinely niche topic is forgiven, so short well-sourced articles aren't punished by the count-based signals. The −1 poor-referencing penalty (DOM inspection for "citation needed" tags / maintenance banners) applies on top of whichever tier fires |
 | 25 | Cites no Bible verse anywhere | **−10** flat | **Unchanged plain lookup** (§3.8) — Bible verse regex count = 0 |
+
+
+*Scores last updated: 2026-07-27 — the date of the most recent full rescore that produced the ranks in `Wikipedia Articles.csv`.*
+
+### Activation Checklist (Pending Signals)
+
+Two signals in §9 are currently unable to score above 0 on any article.
+Neither has a keyword fallback — both are purely vector/classifier signals
+with nothing to fall back to. This section records exactly what must happen
+before either signal produces real contributions.
+
+---
+
+#### `data_interp_split` (row 3)
+
+| Property | Value |
+|---|---|
+| **Weight & tier rules** | +10 clear split; −3 muddled; −5 one-sided; 0 unclassifiable |
+| **Blocker** | `bucket-labels.json` does not exist — the §3.1.1 classifier has never been run against the full article set |
+| **Unblocked by** | `bucket-labels.json` produced by the classifier pipeline (Plan 4) |
+| **Acceptance bar** | §11.2: ≥0.85 paragraph-level agreement AND ≥0.85 correct tier assignment on the 40-article gold set. The classifier is the dominant matrix — it scores row 3 *and* supplies the section buckets every placement-sensitive signal reads — so this gate is the strictest in the rubric |
+| **Files an activation touches** | 1. Produce `bucket-labels.json` via the classifier (Plan 4)<br>2. Remove or keep the `data_interp_pending` flag in `rank_engine.py` based on whether the artifact exists<br>3. Update `import-wikipedia-scoring.js` (cap derivation: pending-cap → live tier-based cap)<br>4. Update `import-wikipedia-scoring.test.js` (tests for pending-cap logic)<br>5. Remove `data_interp_split` from `PENDING_SIGNAL_KEYS`<br>6. Regenerate `scoring-export.json` and re-import |
+
+Thorough coverage of the section classifier's specific design: §3.1.1 (design), §3.4.2 (authority), §11.2 (acceptance criteria), and `classifier/scorer.py` (separation ratio + tier assignment).
+
+---
+
+#### `literary_analysis` (row 10)
+
+| Property | Value |
+|---|---|
+| **Weight & tier rules** | +6 for parable / teaching / Bible-book articles; +4 for all other articles; both tiers conditional on the store firing |
+| **Blocker** | `vector-family-scores.json` does not exist — the literary-analysis vector store has never been run against the full article set |
+| **Unblocked by** | `vector-family-scores.json` produced by the vector-family pipeline (Plan 5) |
+| **Acceptance bar** | §11.4: ≥0.80 precision floor on the literary-analysis gold set (20–30 articles). The literary-analysis store is one of the nine signal families and ships family-by-family — it does not block other families |
+| **Files an activation touches** | 1. Produce `vector-family-scores.json` with `literary_analysis` entries (Plan 5)<br>2. `rank_engine.py`: the `_load_vector_family_scores()` path already reads the artifact when it exists — activation is producing the file, not rewriting the loader<br>3. `import-wikipedia-scoring.js`: the cap is already derived from category flags (no pending logic needed — see plan §Pending signals)<br>4. Remove `literary_analysis` from `PENDING_SIGNAL_KEYS`<br>5. Regenerate `scoring-export.json` and re-import |
+
+Thorough coverage: §3.1.9 (design), §3.4 function shape D (tiered presence), §11.1 (gold set construction), §11.4 (acceptance criteria).
+
+---
+
+**Important**: the activation checklist above may diverge from the task list in
+the plan it was authored from. The plan is a snapshot; this checklist is
+maintained. Always consult this section, not the plan, for the current
+activation path.
 
 
 ## 10. Theoretical max score by article category
@@ -725,7 +770,7 @@ Every article's score must be reconstructable from stored per-signal contributio
 | `extract.js` | `setup/SKILLS/!TheJesusWebsite-Wikipedia/scripts/extract.js` (331 lines) | Browser-side DOM extraction of ~30 signals from a live Wikipedia page. Contains the current section-bucketing logic (to be **replaced** by the §3.1.1 classifier) and every non-vector detector (to be **retained**) |
 | `rank_engine.py` | `setup/SKILLS/!TheJesusWebsite-Wikipedia/scripts/rank_engine.py` (696 lines) | Python orchestrator; drives extract.js via a headless-browser subprocess. Owns `rescore`, `exclude`, `remove`, `export` subcommands |
 | Skill definition | `setup/SKILLS/!TheJesusWebsite-Wikipedia/skill.md` | The operating procedure for the whole pipeline |
-| `import-wikipedia-scoring.js` | `api/scripts/import-wikipedia-scoring.js` | Exists, with a test at `api/tests/import-wikipedia-scoring.test.js`. Currently validates **28** signal keys — must be reduced to the 25 of §9 |
+| `import-wikipedia-scoring.js` | `api/scripts/import-wikipedia-scoring.js` | Exists, with a test at `api/tests/import-wikipedia-scoring.test.js`. Validates the 25 signal keys of §9 (migrated from 28 in commit `06329af`) |
 | `Wikipedia Articles - Reference.md` | `setup/Wikipedia algorithm v1/` | §9 of *this* file supersedes its weights table; its non-weights content must be ported (§13.4) |
 | Data + companion files | `setup/Wikipedia algorithm v1/` | `Wikipedia Articles.csv` (255 articles), `Wikipedia Articles - Scoring Detail.csv` (41 columns), `candidate-pool.tsv` (512 candidates), `excluded-titles.txt` (21 titles), `scoring-export.json`, `wiki-bulk-paste.txt` |
 | DB schema | `database/schema.sql` | Authoritative. `wikipedia_articles` (11 cols) + `wikipedia_article_signals` (5 cols, UNIQUE on article_id+signal_key) |

@@ -1,6 +1,6 @@
 """Separation ratio calculation and tier assignment for row 3.
 
-The separation ratio measures how cleanly an article separates data/narrative
+The separation ratio measures how cleanly an article separates data/interpretation
 paragraphs from interpretation/analysis paragraphs. A clean split (one
 contiguous block of data followed by one contiguous block of interpretation,
 or vice versa) scores near 1.0. An article that alternates throughout scores

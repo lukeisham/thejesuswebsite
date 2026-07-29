@@ -9,9 +9,11 @@
  *   node scripts/import-wikipedia-scoring.js [--export <path>] [--publish]
  *
  * Options:
- *   --export <path>  Override the default path to the scoring export JSON.
- *   --publish        Create new articles with published_draft = 1 (default: 0).
- *                    Intended for the local smoke-test; deploy.sh calls without it.
+ *   --export <path>   Override the default path to the scoring export JSON.
+ *   --publish         Create new articles with published_draft = 1 (default: 0).
+ *                     Intended for the local smoke-test; deploy.sh calls without it.
+ *   --purge-missing   DELETE articles from the DB whose URLs are absent from the
+ *                     export (default: warn only). Signals cascade via FK.
  *
  * Design: single transaction, all-or-nothing (JS-2). Validates every article
  * record before writing — URL present, all 25 contribution keys known,
@@ -46,7 +48,7 @@ const db = require("../config");
 
 const KNOWN_SIGNAL_KEYS = new Set([
   "bible_verses",
-  "narrative_interp_split",
+  "data_interp_split",
   "manuscripts",
   "ante_nicene",
   "arch_site",
@@ -70,6 +72,16 @@ const KNOWN_SIGNAL_KEYS = new Set([
   "maps_diagrams",
   "religious_art",
   "secular_materialist",
+]);
+
+// Pending signals (§9 activation checklist): these are documented subset of
+// KNOWN_SIGNAL_KEYS whose real data is not yet flowing from the pipeline.
+// They count toward max_possible as if scoring their full positive potential
+// so they don't silently drag scores down. The all-zero integrity check skips
+// them so a pipeline gap doesn't block the import.
+const PENDING_SIGNAL_KEYS = new Set([
+  "data_interp_split",
+  "literary_analysis",
 ]);
 
 // ── Cap derivation ──────────────────────────────────────────────────────────
@@ -104,9 +116,12 @@ function deriveCap(key, categories, rawSignals) {
     // ── Positive, conditional ─────────────────────────────────────────────
 
     // row 3: data/interpretation split — tiered on the classifier's row-3 tier
-    // (§3.1.1); +10 clear split, −3 muddled, −5 one side only, 0 unclassifiable
-    narrative_interp_split() {
-      const tier = rawSignals.narrative_interp_tier;
+    // (§3.1.1); +10 clear split, −3 muddled, −5 one side only, 0 unclassifiable.
+    // When data_interp_pending is true, return +10 unconditionally so the full
+    // weight counts toward max_possible while the real pipeline data is pending.
+    data_interp_split() {
+      if (rawSignals.data_interp_pending) return 10;
+      const tier = rawSignals.data_interp_tier;
       if (tier === "clear_split") return 10;
       if (tier === "muddled") return -3;
       if (tier === "one_sided") return -5;
@@ -373,6 +388,37 @@ function slugFromTitle(title) {
     .replace(/-{2,}/g, "-");
 }
 
+// ── Integrity checks ─────────────────────────────────────────────────────────
+
+/**
+ * Verify that every non-pending signal key has at least one article with a
+ * non-zero contribution. Returns an array of keys that are all-zero (empty on
+ * success). Pending keys are skipped because their real data isn't flowing yet.
+ *
+ * @param {Array<{article: Object}>} validatedArticles
+ * @param {Set<string>} pendingKeys
+ * @returns {string[]} Zeroed non-pending keys.
+ */
+function checkNonPendingSignalsNonZero(validatedArticles, pendingKeys) {
+  const keyHasNonZero = new Map();
+  for (const key of KNOWN_SIGNAL_KEYS) {
+    if (!pendingKeys.has(key)) keyHasNonZero.set(key, false);
+  }
+  for (const { article } of validatedArticles) {
+    const contributions = article.contributions;
+    for (const key of keyHasNonZero.keys()) {
+      if ((contributions[key] || 0) !== 0) {
+        keyHasNonZero.set(key, true);
+      }
+    }
+  }
+  const zeroKeys = [];
+  for (const [key, hasNonZero] of keyHasNonZero) {
+    if (!hasNonZero) zeroKeys.push(key);
+  }
+  return zeroKeys;
+}
+
 // ── Main import logic ───────────────────────────────────────────────────────
 
 /**
@@ -382,12 +428,14 @@ function slugFromTitle(title) {
  * @returns {{ exportPath: string, publish: boolean }}
  */
 function parseArgs(argv) {
-  const args = { exportPath: null, publish: false };
+  const args = { exportPath: null, publish: false, purgeMissing: false };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--export" && i + 1 < argv.length) {
       args.exportPath = argv[++i];
     } else if (argv[i] === "--publish") {
       args.publish = true;
+    } else if (argv[i] === "--purge-missing") {
+      args.purgeMissing = true;
     }
   }
   return args;
@@ -399,6 +447,10 @@ function parseArgs(argv) {
  */
 function main() {
   const args = parseArgs(process.argv.slice(2));
+
+  // SQLite disables foreign keys by default — re-confirm for safety so ON
+  // DELETE CASCADE actually fires during the --purge-missing path.
+  db.pragma("foreign_keys = ON");
 
   const exportPath =
     args.exportPath ||
@@ -463,6 +515,22 @@ function main() {
 
   console.log(`[wikipedia-import] All ${validated.length} articles valid.`);
 
+  // ── All-zero integrity check ─────────────────────────────────────────────
+  const zeroKeys = checkNonPendingSignalsNonZero(validated, PENDING_SIGNAL_KEYS);
+  if (zeroKeys.length > 0) {
+    console.error(
+      `\nIntegrity FAILED — ${zeroKeys.length} non-pending signal key(s) are all-zero across the entire corpus:`,
+    );
+    for (const key of zeroKeys) {
+      console.error(`  • ${key}`);
+    }
+    console.error(
+      "\nABORTING: a non-pending signal must not be all-zero. " +
+        "If this key truly has no data, mark it pending in PENDING_SIGNAL_KEYS.",
+    );
+    process.exit(1);
+  }
+
   // ── Upsert articles and replace signals (single transaction) ────────────
   console.log(`[wikipedia-import] Importing into database...`);
 
@@ -499,6 +567,10 @@ function main() {
   let updatedCount = 0;
   let createdCount = 0;
   let signalCount = 0;
+  let purgedCount = 0;
+
+  // URL set built before the transaction so the closure can reference it.
+  const exportUrls = new Set(validated.map((v) => v.article.url));
 
   const txn = db.transaction(() => {
     for (const { article, caps } of validated) {
@@ -541,29 +613,39 @@ function main() {
         signalCount++;
       }
     }
+
+    // ── Purge / warn about DB articles absent from the export ──────────────
+    const dbArticles = db
+      .prepare("SELECT id, wikipedia_article_title, wikipedia_article_url FROM wikipedia_articles")
+      .all();
+
+    const absent = dbArticles.filter((row) => !exportUrls.has(row.wikipedia_article_url));
+    if (absent.length > 0) {
+      if (args.purgeMissing) {
+        const purgeStmt = db.prepare("DELETE FROM wikipedia_articles WHERE id = ?");
+        for (const row of absent) {
+          console.warn(`  • Purging #${row.id}: ${row.wikipedia_article_title} (${row.wikipedia_article_url})`);
+          purgeStmt.run(row.id);
+          purgedCount++;
+        }
+        console.warn(`\n⚠  Purged ${purgedCount} article(s) absent from the export.`);
+      } else {
+        console.warn(
+          `\n⚠  ${absent.length} article(s) in the database are absent from the export (not deleted):`,
+        );
+        for (const row of absent) {
+          console.warn(`  • #${row.id}: ${row.wikipedia_article_title} (${row.wikipedia_article_url})`);
+        }
+      }
+    }
   });
 
   txn();
 
   console.log(
-    `[wikipedia-import] Updated: ${updatedCount} | Created: ${createdCount} | Signals written: ${signalCount}`,
+    `[wikipedia-import] Updated: ${updatedCount} | Created: ${createdCount} | Signals written: ${signalCount}` +
+      (purgedCount > 0 ? ` | Purged: ${purgedCount}` : ""),
   );
-
-  // ── Warn about DB articles absent from the export ───────────────────────
-  const exportUrls = new Set(validated.map((v) => v.article.url));
-  const dbArticles = db
-    .prepare("SELECT id, wikipedia_article_title, wikipedia_article_url FROM wikipedia_articles")
-    .all();
-
-  const absent = dbArticles.filter((row) => !exportUrls.has(row.wikipedia_article_url));
-  if (absent.length > 0) {
-    console.warn(
-      `\n⚠  ${absent.length} article(s) in the database are absent from the export (not deleted):`,
-    );
-    for (const row of absent) {
-      console.warn(`  • #${row.id}: ${row.wikipedia_article_title} (${row.wikipedia_article_url})`);
-    }
-  }
 
   console.log("\n[wikipedia-import] Done.");
 }
@@ -576,6 +658,9 @@ module.exports = {
   validateArticle,
   slugFromTitle,
   KNOWN_SIGNAL_KEYS,
+  PENDING_SIGNAL_KEYS,
+  checkNonPendingSignalsNonZero,
+  parseArgs,
 };
 
 // Only run main() when invoked directly (require.main === module).

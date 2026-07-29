@@ -476,3 +476,122 @@ The error toast (`frontend/assets/css/components/error-toast.css`, `frontend/ass
 3. On the frontend, call `handleApiError(error)` from `utils/error-display.js` — it extracts the code and shows the error toast automatically.
 4. If the error is client-side only, call `showErrorToast(message, details)` directly from `error-toast.js`.
 
+---
+
+## Wikipedia Ranking Pipeline
+
+The site's [Wikipedia debate rankings](/debate/wikipedia/) are powered by a hybrid vector-embedding scoring pipeline defined in `setup/Wikipedia algorithm v2/Wikipedia_alogrithm_refractor.md`. Scoring runs exclusively on the developer machine; the VPS only imports the final `scoring-export.json` via the existing import path.
+
+### Algorithm lifecycle
+
+The pipeline has five stages, executed by `scripts/rank_engine.py` and `scripts/extract.js` inside `setup/SKILLS/!TheJesusWebsite-Wikipedia/`:
+
+1. **Pool (Stage 1)** — Crawl Wikipedia seed categories (Jesus, Gospels, and their subcategories) to build a cache of candidate `title→url` pairs in `candidate-pool.tsv`. Fresh crawls use a headless browser via `!HeadlessChromeBrowser`; the cache is reused so subsequent top-ups avoid re-crawling.
+
+2. **Select (Stage 2)** — Apply inclusion/exclusion rules from `Wikipedia Articles - Reference.md` against the pool. Exclude talk pages, apocryphal/Gnostic gospels, theological/doctrinal topics, and pop-culture. Include every qualifying miracle, parable, Passion event, person, place, and scholarship article. Selection is agent judgment, not automated — the selected candidates are presented to Luke for review before scoring.
+
+3. **Score (Stage 3)** — The hybrid vector pipeline scores each article against **25 signals** (§9 weights table). A vector classifier (§3.1.1) runs first, labelling every body paragraph as `data`, `interpretation`, or `other` — these labels are the section buckets for the entire rubric (headings are not consulted). 10 conceptual signals (balanced debate, anti-supernatural bias, mythicist framing, etc.) use per-family FAISS vector stores; 15 signals (Bible verse citations, named manuscripts, archaeology keywords, etc.) use plain keyword/list lookups. Each signal produces a capped integer contribution; `net_score` is their plain sum.
+
+4. **Rank (Stage 4)** — Sort by `(−net_score, title)` descending. There is no tie-break signal: articles with equal `net_score` sort alphabetically by raw article title. The ranking is fully deterministic — same inputs always produce the same list.
+
+5. **Write (Stage 5)** — Regenerate `Wikipedia Articles.csv`, `Wikipedia Articles - Scoring Detail.csv`, `wiki-bulk-paste.txt`, and `scoring-export.json`. Output conventions: commas in titles become hyphens; commas in URLs become `%2C`. The export JSON is copied to `database/` for the frontend widget. The ceiling is the current article count (254), not a fixed constant.
+
+### Skill interaction
+
+The agent skill `!TheJesusWebsite-Wikipedia` (`setup/SKILLS/!TheJesusWebsite-Wikipedia/skill.md`) is the repeatable operating procedure. When Luke asks to "top up the Wikipedia list" or triggers the skill name, the agent:
+
+- Runs `rank_engine.py check` — read-only verification that `Wikipedia Articles.csv`, `Scoring Detail.csv`, and `wiki-bulk-paste.txt` agree on titles, rankings, and the exclusion list. If the row count meets the ceiling (254), the run ends here.
+- If below ceiling: pools candidates from the cache (or re-crawls), applies Stage 2 selection rules, presents the list to Luke for iterative review, and on approval runs `rank_engine.py add` — which invokes `extract.js` in a headless browser to harvest signals from live Wikipedia pages, scores and merges new rows, and rewrites all deliverable files.
+- Handles named exclusions (`rank_engine.py exclude`) and full rubric rescoring (`rank_engine.py rescore`, which re-harvests and re-scores every article under a changed weight table).
+- The skill's TRIGGER/LOGIC/OUTPUT sections document the exact commands, gate rules, and error paths. `Wikipedia Articles - Reference.md` in the v2 directory is the canonical source of truth for pool/selection criteria and scoring weights.
+
+**Scoring never runs on the VPS.** `deploy.sh` and the deploy workflow execute Node only — no Python, pip, or virtualenv. The developer machine runs the scoring pipeline; only `scoring-export.json` travels to production via git.
+
+### Vector embedding database
+
+The v2 hybrid refactor replaces keyword-pattern detectors for 10 conceptual signal families with small, specialised **FAISS vector stores**, all sharing a single ~90 MB MiniLM-class embedding model. Key properties:
+
+- **One store per family.** Each family (balanced debate, anti-supernatural bias, mythicist framing, Jesus Seminar, OT–NT discontinuity, secular-materialist, confessional balance, literary analysis, Gnostic over-emphasis, and the data/interpretation classifier) has its own FAISS index. Families differ by their curated example set, not by their model.
+
+- **Positive and negative exemplars.** Every store contains both: positives embody the signal; negatives are near-misses that must not fire. At query time, a span whose nearest neighbour is a negative exemplar scores **0 regardless of cosine value** — this is what gives the negative set real discriminative power.
+
+- **Calibrated thresholds.** Each family's `t_fire` (below which a span contributes nothing), `t_strong` (upper tier), `t_asym` (computed-metric asymmetry), and `t_sep` (data/interpretation separation ratio) are fitted against a **hand-labelled gold set** (§11), frozen once recorded. The calibration sweep maximises F1 subject to a **precision floor of 0.8** — a family whose best achievable precision falls short stays on its dormant keyword fallback rather than shipping.
+
+- **The classifier runs first and governs everything.** The §3.1.1 data/interpretation classifier labels every body paragraph before any signal is scored. Its labels *are* the section buckets for the entire rubric — every placement-sensitive signal reads them. It has no fallback (the old heading-pattern classifier is retired); if it fails its 0.85 agreement bar on a 40-article gold set, the refactor does not ship.
+
+- **Disk footprint: ~178 MB** total (`onnxruntime` + `numpy` + `faiss-cpu`), CPU-only, no GPU. Stores live under `setup/Wikipedia algorithm v2/vector-stores/` as regenerable build artefacts and are rsynced to the VPS for live semantic query serving only — the VPS never runs scoring.
+
+- **Dormant fallbacks.** Every replaced keyword detector stays in the codebase behind a per-family `DORMANT_FALLBACKS` flag. A family only activates its fallback if it fails the 0.8 precision floor, and the fallback reads the vector classifier's paragraph labels for placement (never the retired heading-based bucketing).
+
+- **Similarity → contribution mapping.** Continuous cosine scores map to discrete integer contributions via: nearest-neighbour-label gating → mean cosine of positive exemplars in top‑k → threshold comparison (`t_fire` / `t_strong`) → per-family combination function (one of four shapes A–D, §3.4) → cap → placement multiplier → truncation toward zero → final integer contribution.
+
+### Frontend widget
+
+The Wikipedia debate page at `/debate/wikipedia/` renders a colour-coded **5×5 grid** (25 cells in §9 row order, strongest positive first) per ranked article, replacing the old click-to-reveal "reliability stones" widget. Key properties:
+
+- **Data flow:** `scoring-export.json` → `api/scripts/import-wikipedia-scoring.js` → `wikipedia_articles` + `wikipedia_article_signals` tables → `GET /api/wikipedia` → `frontend/assets/js/wikipedia.js` renders the grid widget. No build step — the API response carries all 25 signal contributions per article.
+- **Colour encoding:** Four blue intensity tiers (CSS custom properties derived from `--info`) for positive contributions; error colour for negatives. Empty cells (unfired signals) get a light background outline. A document score panel (green ≥50, yellow 25–49, red ≤24) sits alongside the grid.
+- **Accessibility:** The grid is keyboard-navigable via roving tabindex (one Tab stop to enter, arrow keys within, one Tab to leave). Tooltips show signal name + contribution on hover/focus, gated behind `@media (hover: hover) and (pointer: fine)` to suppress on touch devices. Grid cells carry `role="gridcell"` with `aria-label`.
+- **Responsive:** The grid stays fixed at 5 columns at all widths (26px cells ≥768px, 22px below). Page layout switches from five-column row to stacked below 768px, but the grid itself never reflows to fewer columns.
+- **Performance:** No per-cell SVG, no inline styles — colour as CSS classes, 6,375 cells at full 255-article count, one delegated tooltip listener at document level.
+
+### DB schema & import path
+
+Two SQLite tables store Wikipedia rankings; the schema is authoritative at `database/schema.sql` and unchanged by the v2 refactor:
+
+- **`wikipedia_articles`** (11 columns): `id`, `slug`, `title`, `url`, `revision_date`, `rank_number`, `pluses`, `minuses`, `published_draft`, `keywords`, `created_at`. One row per ranked article.
+- **`wikipedia_article_signals`** (5 columns): `id`, `article_id`, `signal_key`, `contribution`, `cap`; `UNIQUE` on `(article_id, signal_key)`. 25 rows per article (one per §9 signal).
+- **Import script:** `api/scripts/import-wikipedia-scoring.js` reads `database/scoring-export.json`, validates all 25 signal keys against a `KNOWN_SIGNAL_KEYS` allowlist, derives caps per signal, verifies that Σcontributions exactly equals `net_score` for every article, and upserts via a delete-and-reinsert transaction (match by URL, purge old signal rows, insert new).
+- **Key migration:** The v1 import validated 28 signal keys; v2 reduces to exactly 25. Two signals were dropped outright (`historical_context`, `passion_criticism`), three referencing signals merged into one (`referencing_quality`), `journals`+`books` merged into `journal_or_book`, `location_bonus` folded into `arch_site`, `miracle_criticism` folded into `supernatural_criticism`, and four signals added (`literary_analysis`, `maps_diagrams`, `religious_art`, `secular_materialist`).
+- **Tests:** `api/tests/import-wikipedia-scoring.test.js` carries 57 automated tests covering key validation, cap derivation, sum invariant, and upsert correctness.
+
+### VPS vector store serving
+
+Built FAISS vector stores are deployed to the VPS for live semantic query serving, reversing the earlier "developer-machine only" stance per a user-approved 1 GB VPS budget (Plan 9). Scoring itself still never runs on the VPS — only pre-built stores travel:
+
+- **Sidecar architecture:** A Python FastAPI process (`thejesuswebsite-vector-sidecar`) loads the shared MiniLM ONNX model and all FAISS indexes at startup, exposes `POST /query` on `127.0.0.1` only (never a public interface). The Node API proxies requests through `api/lib/vector-sidecar-client.js` with a 2 s timeout and structured error mapping (`E-PERSIST-026` unreachable, `E-PERSIST-027` timeout, `E-TRANSFORM-016` malformed response).
+- **Public endpoint:** `POST /api/wikipedia/signal-check` (body `{ family, text }`) — **not** an article lookup. The FAISS stores hold hand-authored calibration exemplars per family, not per-article embeddings, so there is no "related articles" capability to serve; the endpoint is a live version of the offline scoring step instead, classifying arbitrary free text against a signal family and returning the nearest exemplar(s) plus a fire/no-fire verdict (nearest-neighbour-label rule). Validates `family` against an allowlist and `text` for presence/length, and is rate-limited at 20 req/min. Responses are cached in-memory (10 min TTL, `Map` keyed on `family+text+k`).
+- **Deployment:** `scripts/sync-vector-stores.sh` rsyncs `setup/Wikipedia algorithm v2/vector-stores/` (plus the classifier's ONNX model + vocab) to `/var/www/thejesuswebsite-vector-store/{vector-stores,model}/` on the VPS — a sibling path outside the git working tree, so `git reset --hard` deploys never touch it. The sidecar's own code (top-level `vector-sidecar/`) is an ordinary tracked repo directory that deploys via the normal git-based deploy, unlike the data; `scripts/sync-vector-sidecar.sh` only manages the venv + pm2 process in place, it does not rsync code.
+- **Footprint:** ~290 MB total on the VPS (`onnxruntime` 75 MB + `numpy` 34 MB + `faiss-cpu` 70 MB + model 90 MB + FastAPI/uvicorn 20 MB), well inside the 1 GB budget.
+- **pm2 supervision:** The sidecar runs as a third pm2 process alongside `thejesuswebsite-api` and `thejesuswebsite-mcp`. `deploy.sh` itself stays Node-only — the sidecar's venv is a one-time setup outside the deploy path.
+
+### File layout
+
+The Wikipedia pipeline spans three locations with different gitignore and deploy status:
+
+| Path | Git | Deploys to VPS? | Contents |
+|---|---|---|---|
+| `setup/Wikipedia algorithm v2/` | **Ignored** (`.gitignore` line 7: `/setup/*`, no re-inclusion for v2) | No (rsynced manually for stores) | Refactor spec, Reference.md, gold sets, exemplars, classifier + family Python code, vector stores, threshold config |
+| `setup/SKILLS/!TheJesusWebsite-Wikipedia/` | **Tracked** (`.gitignore` lines 8–9 re-include `/setup/SKILLS/**`) | No (dev-machine only) | `skill.md` (agent operating procedure), `scripts/extract.js` (browser-side DOM extraction), `scripts/rank_engine.py` (Python orchestrator) |
+| `database/scoring-export.json` | **Tracked** | **Yes** (via git) | Final ranked output — 254 articles, 25 signal contributions each, consumed by the import script on the VPS |
+| `api/scripts/import-wikipedia-scoring.js` | **Tracked** | **Yes** (via git) | Validates and upserts scoring data into SQLite at deploy time |
+| `frontend/assets/js/wikipedia.js` | **Tracked** | **Yes** (via git) | Renders the 5×5 grid widget on `/debate/wikipedia/` |
+| `/var/www/thejesuswebsite-vector-store/` | N/A (outside repo) | **Yes** (via rsync) | VPS-side vector stores + Python sidecar, never reset by deploys |
+
+**Key invariant:** scoring (Python + headless browser) is a developer-machine activity. The VPS deployment path is Node-only (`deploy.sh` runs `npm install`, migrations, `npm run pages`, sitemap, pm2 restart — no Python). The vector stores reach the VPS by rsync, never by git, keeping binary indexes out of repository history.
+
+### Category flags
+
+Six boolean flags are detected from each article's Wikipedia category strip (`#mw-normal-catlinks`) at harvest time and stored per article. They gate or modify multiple signals, so a single flag error propagates further than any single signal detector error:
+
+| Flag | Detection | Gates / modifies |
+|---|---|---|
+| `is_passion` | Category contains "Passion of Jesus" / "Crucifixion of Jesus" / "Resurrection of Jesus" | Sensitivity trigger for rows 15, 16, 21, 22, 23 (§3.9 Passion margin); scope gate for rows 22, 23 |
+| `is_miracle` | Category contains "Miracles of Jesus" | Scope gate for rows 22, 23 (anti-supernatural + secular-materialist) |
+| `is_parable` | Category contains "Parables of Jesus" | Row 4 gating (scholarly commentary); row 9 reduced cap; row 7 treatment; row 10 tier; row 15 suppression |
+| `is_teaching` | Category contains "Teachings of Jesus" / "Sermon on the Mount" etc. | Row 1 raised ceiling; row 4 gating; row 10 tier; row 15 suppression |
+| `is_bible_book` | Article title matches a canonical Gospel book name | Row 1 raised ceiling; row 10 tier |
+| `is_location` | Category contains "New Testament places" | Row 7 archaeology bonus (+2 → +8) |
+
+Flags are validated separately from signal detection since `is_parable` and `is_teaching` each affect five signals.
+
+### Gold set & validation
+
+Before any vector store is built, a hand-labelled gold set is created and frozen (Plan 3). Thresholds are fitted against these labels — never retroactively labelled to agree with store output:
+
+- **Classifier gold set:** 40 articles drawn from the ranked 255, spanning the full shape range (many headings, few headings, headings that actively contradict structure). Each article is hand-labelled twice: per-paragraph (`data` / `interpretation` / `neither`) and per-article (which row-3 tier it deserves). Acceptance: ≥0.85 paragraph-level agreement AND ≥0.85 tier accuracy. This is the **primary gate** — the classifier has no fallback; if it fails, the refactor does not ship.
+- **Per-family gold sets:** 20–30 articles per vector family, each hand-labelled for whether the signal genuinely fires and at what count or tier.
+- **Negative controls:** ≥5 per family, drawn from the candidate pool (NOT the ranked 255) — articles that trip the *old* keyword detector but should not fire under the vector rubric. These are the cases the refactor exists to fix and become negative exemplars in the stores.
+- **Calibration procedure:** Score every gold article at a sweep of candidate thresholds (`t_fire`, `t_strong`, `t_asym`). Choose the value maximising F1 against the frozen labels, subject to a **precision floor of 0.8**. A family whose best achievable precision falls short stays on its dormant keyword fallback.
+- **Labels are frozen once recorded** — they are never updated to agree with a store's output. Thresholds fitted to their own output are worthless.
+

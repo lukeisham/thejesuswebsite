@@ -14,7 +14,7 @@ const path = require("path");
 const EXPECTED_KEY_ORDER = [
   "manuscripts",
   "bible_verses",
-  "narrative_interp_split",
+  "data_interp_split",
   "commentaries",
   "balanced_debate",
   "ante_nicene",

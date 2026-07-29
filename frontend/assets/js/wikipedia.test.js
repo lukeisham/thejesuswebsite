@@ -13,7 +13,7 @@ const assert = require("node:assert/strict");
 const SIGNAL_DICTIONARY = [
   { key: "manuscripts", name: "Named manuscripts", capMagnitude: 8, polarity: "positive" },
   { key: "bible_verses", name: "Bible verses cited", capMagnitude: 12, polarity: "positive" },
-  { key: "narrative_interp_split", name: "Narrative/interpretation section split", capMagnitude: 10, polarity: "positive" },
+  { key: "data_interp_split", name: "Data/interpretation section split", capMagnitude: 10, polarity: "positive" },
   { key: "commentaries", name: "Commentary citations", capMagnitude: 6, polarity: "positive" },
   { key: "balanced_debate", name: "Balanced debate", capMagnitude: 12, polarity: "positive" },
   { key: "ante_nicene", name: "Ante-Nicene authors", capMagnitude: 6, polarity: "positive" },

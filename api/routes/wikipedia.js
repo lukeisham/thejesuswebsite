@@ -42,7 +42,7 @@ router.get('/', (req, res) => {
         res.json(items);
     } catch (error) {
         console.error('GET /wikipedia failed:', error);
-        res.status(500).json({ error: 'Failed to load Wikipedia articles.' });
+        sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }
 });
 
@@ -53,7 +53,7 @@ router.get('/admin', requireAuth, (req, res) => {
         res.json(items);
     } catch (error) {
         console.error('GET /wikipedia/admin failed:', error);
-        res.status(500).json({ error: 'Failed to load Wikipedia articles.' });
+        sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }
 });
 
@@ -61,11 +61,11 @@ router.get('/admin', requireAuth, (req, res) => {
 router.get('/:slug', (req, res) => {
     try {
         const item = wikipediaModel.getBySlug(req.params.slug);
-        if (!item) return res.status(404).json({ error: 'Wikipedia article not found.' });
+        if (!item) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
         res.json(item);
     } catch (error) {
         console.error('GET /wikipedia/:slug failed:', error);
-        res.status(500).json({ error: 'Failed to load Wikipedia article.' });
+        sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }
 });
 
@@ -112,13 +112,13 @@ router.post('/signal-check', signalCheckLimit, async (req, res) => {
 router.post('/', requireAuth, (req, res) => {
     try {
         if (!req.body.slug) {
-            return res.status(400).json({ error: 'slug is required.' });
+            return sendError(res, ERRORS.MISSING_BODY_FIELD, { field: 'slug' });
         }
         const created = wikipediaModel.create(req.body);
         res.status(201).json(created);
     } catch (error) {
         console.error('POST /wikipedia failed:', error);
-        res.status(500).json({ error: 'Failed to create Wikipedia article.' });
+        sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }
 });
 
@@ -126,11 +126,11 @@ router.post('/', requireAuth, (req, res) => {
 router.put('/:id', requireAuth, (req, res) => {
     try {
         const updated = wikipediaModel.update(Number(req.params.id), req.body);
-        if (!updated) return res.status(404).json({ error: 'Wikipedia article not found.' });
+        if (!updated) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
         res.json(updated);
     } catch (error) {
         console.error('PUT /wikipedia/:id failed:', error);
-        res.status(500).json({ error: 'Failed to update Wikipedia article.' });
+        sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }
 });
 
@@ -141,7 +141,7 @@ router.delete('/', requireAuth, (req, res) => {
         res.json({ deleted: count });
     } catch (error) {
         console.error('DELETE /wikipedia failed:', error);
-        res.status(500).json({ error: 'Failed to delete Wikipedia articles.' });
+        sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }
 });
 
@@ -149,11 +149,11 @@ router.delete('/', requireAuth, (req, res) => {
 router.delete('/:id', requireAuth, (req, res) => {
     try {
         const removed = wikipediaModel.remove(Number(req.params.id));
-        if (!removed) return res.status(404).json({ error: 'Wikipedia article not found.' });
+        if (!removed) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
         res.status(204).end();
     } catch (error) {
         console.error('DELETE /wikipedia/:id failed:', error);
-        res.status(500).json({ error: 'Failed to delete Wikipedia article.' });
+        sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }
 });
 
