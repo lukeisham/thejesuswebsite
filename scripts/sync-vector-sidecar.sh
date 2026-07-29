@@ -74,7 +74,7 @@ if pm2 describe "$PM2_APP_NAME" >/dev/null 2>&1; then
   pm2 restart "$PM2_APP_NAME"
 else
   echo "[sync-vector-sidecar] No existing pm2 process — starting it now (first run)."
-  pm2 start venv/bin/uvicorn --name "$PM2_APP_NAME" --cwd "$REMOTE_SIDECAR_DIR" -- app:app --host 127.0.0.1 --port $SIDECAR_PORT
+  pm2 start venv/bin/uvicorn --name "$PM2_APP_NAME" --cwd "$REMOTE_SIDECAR_DIR" --interpreter none -- app:app --host 127.0.0.1 --port $SIDECAR_PORT
   pm2 save
 fi
 REMOTE_SCRIPT
