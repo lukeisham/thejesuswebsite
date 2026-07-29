@@ -21,7 +21,7 @@ Category-flag reference (six boolean flags that gate/modify signals): `CATEGORY_
 ## Validation
 
 ```bash
-node --test "setup/Wikipedia algorithm v2/tests/validate-gold-set.test.js"
+node --test "setup/Wikipedia algorithm/tests/validate-gold-set.test.js"
 ```
 
 Checks structural integrity only (valid enums, no duplicate rows, title membership against

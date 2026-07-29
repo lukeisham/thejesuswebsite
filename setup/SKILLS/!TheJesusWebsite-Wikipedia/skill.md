@@ -38,7 +38,7 @@ the repeatable engine that follows it; read that file's Stage 1/2/3 sections bef
 of a session, since it is the source of truth for the pool/selection criteria and the scoring
 weights, not this skill.md. Note: the §9 weights table's *detection method*
 per signal (keyword lookup vs. vector store) is documented in the refactor
-spec (`Wikipedia_alogrithm_refractor.md` in `setup/Wikipedia algorithm v2/`),
+spec (`Wikipedia_alogrithm_refractor.md` in `setup/Wikipedia algorithm/`),
 not duplicated in Reference.md; when debugging a specific signal's
 *detection logic* (as opposed to its weight), consult the refactor spec too.
 
@@ -222,7 +222,7 @@ STEP 4 — HARVEST, SCORE, MERGE, WRITE (deterministic — the script does this 
 
   Vector-store VPS sync: in addition to the existing `scoring-export.json`
   copy to the thejesuswebsite repo's `database/` folder, the per-family
-  vector-store indexes under `setup/Wikipedia algorithm v2/vector-stores/`
+  vector-store indexes under `setup/Wikipedia algorithm/vector-stores/`
   are now rsync'd to the VPS as part of the pipeline (see the separate
   VPS-sync plan for the mechanics — not detailed here).
 

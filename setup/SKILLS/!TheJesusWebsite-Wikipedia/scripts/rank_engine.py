@@ -38,10 +38,12 @@ BULK_PASTE_TXT = os.path.join(PROJECT_DIR, "wiki-bulk-paste.txt")
 
 # The two v2 file-based interfaces this plan (wikipedia-v2-06) reads directly —
 # Plan 4's section classifier and Plan 5's vector family scorer. Both live in
-# the v2 working directory alongside this script's own deliverables.
+# the v2 working directory alongside this script's own deliverables. (Directory
+# renamed from "Wikipedia algorithm v2" to "Wikipedia algorithm" once v1 was
+# retired — see wikipedia-v2-09's close-out.)
 V2_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
-    "Wikipedia algorithm v2",
+    "Wikipedia algorithm",
 )
 BUCKET_LABELS_JSON = os.path.join(V2_DIR, "bucket-labels.json")
 VECTOR_FAMILY_SCORES_JSON = os.path.join(V2_DIR, "vector-family-scores.json")

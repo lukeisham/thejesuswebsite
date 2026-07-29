@@ -1,6 +1,6 @@
 """Self-contained MiniLM embedder for the vector sidecar.
 
-Vendored (not imported) from setup/Wikipedia algorithm v2/classifier/
+Vendored (not imported) from setup/Wikipedia algorithm/classifier/
 tokenizer.py + stores.py's Embedder class. This duplication is deliberate:
 setup/ is gitignored and developer-machine-only (see
 Wikipedia_alogrithm_refractor.md §3.2/§3.3) and never ships to the VPS, so
