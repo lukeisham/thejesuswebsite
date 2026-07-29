@@ -35,27 +35,117 @@ MAIN_CSV = os.path.join(PROJECT_DIR, "Wikipedia Articles.csv")
 DETAIL_CSV = os.path.join(PROJECT_DIR, "Wikipedia Articles - Scoring Detail.csv")
 EXCLUDED_TXT = os.path.join(PROJECT_DIR, "excluded-titles.txt")
 BULK_PASTE_TXT = os.path.join(PROJECT_DIR, "wiki-bulk-paste.txt")
-CEILING = 250
+
+# The two v2 file-based interfaces this plan (wikipedia-v2-06) reads directly —
+# Plan 4's section classifier and Plan 5's vector family scorer. Both live in
+# the v2 working directory alongside this script's own deliverables.
+V2_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
+    "Wikipedia algorithm v2",
+)
+BUCKET_LABELS_JSON = os.path.join(V2_DIR, "bucket-labels.json")
+VECTOR_FAMILY_SCORES_JSON = os.path.join(V2_DIR, "vector-family-scores.json")
+
+# Vector family name (Plan 5's registry.py keys) -> the §9 signal key it feeds.
+# confessional-balance's family score already encodes the -3/-1/0 tiering
+# (§3.1.8, reuses the balanced-debate store) so it maps straight across too.
+VECTOR_FAMILY_TO_SIGNAL = {
+    "balanced-debate": "balanced_debate",
+    "anti-supernatural": "supernatural_criticism",
+    "ot-nt-discontinuity": "ot_nt_criticism",
+    "mythicist-framing": "mythicist",
+    "jesus-seminar": "jesus_seminar",
+    "secular-materialist": "secular_materialist",
+    "confessional-balance": "confessional_balance",
+    "literary-analysis": "literary_analysis",
+    "gnostic-over-emphasis": "gnostic_over_emphasis",
+}
 
 DETAIL_FIELDS = [
     "ranking", "title", "net_score", "verse_count", "ref_count", "journal_hits", "book_hits",
-    "commentary_hits", "arch_site", "historical_context", "manuscript_hits",
-    "primary_source_quotes", "gnostic_source_quoted", "poor_referencing",
-    "wiki_quality", "ancient_historian_hits", "ante_nicene_hits", "mythicist_hits",
-    "narrative_and_interp_sections", "jesus_seminar_hits", "jesus_seminar_mult", "mythicist_mult",
-    "no_bible_verse", "no_references", "ot_nt_criticism", "supernatural_criticism",
-    "jewish_context_hits", "other_religion_hit", "passion_criticism_hits", "miracle_criticism_hits",
+    "commentary_hits", "arch_site", "manuscript_hits", "primary_source_quotes",
+    "poor_referencing", "wiki_quality", "ancient_historian_hits", "ante_nicene_hits",
+    "mythicist_hits", "narrative_interp_tier", "narrative_interp_split_contribution",
+    "jesus_seminar_hits", "jesus_seminar_mult", "jesus_seminar_contribution",
+    "mythicist_mult", "mythicist_contribution",
+    "no_bible_verse", "ot_nt_criticism_contribution", "supernatural_criticism_contribution",
+    "secular_materialist_contribution", "literary_analysis_contribution",
+    "gnostic_over_emphasis_contribution", "confessional_balance_contribution",
+    "balanced_debate_contribution",
+    "jewish_context_hits", "other_religion_hit",
     "balanced_debate_hits", "balanced_debate_named",
     "critical_scholar_hits", "critical_outside_interp", "evangelical_contrast",
+    "maps_diagrams_count", "has_picture_wide", "has_picture_narrow", "has_diagram_or_map",
     "is_passion", "is_miracle", "is_parable", "is_location",
     "is_teaching", "is_bible_book",
 ]
 
-# The set of keys row_from_signals() actually produces (DETAIL_FIELDS minus the two — ranking,
-# no_bible_verse, no_references — that are derived later, not stored on the row itself; plus "url"
-# which isn't a DETAIL_FIELD but is stored). Used to detect a schema-stale resume/progress entry
-# from before a weight-table change added new fields, so it never gets silently treated as "done".
-ROW_KEYS = (set(DETAIL_FIELDS) - {"ranking", "no_bible_verse", "no_references"}) | {"url"}
+
+def load_bucket_labels():
+    """Plan 4's classifier output — per-article paragraph labels and row-3
+    tier. Fails loudly (raises) if missing or malformed rather than silently
+    scoring narrative_interp_split as 0 for every article (JS-2 equivalent)."""
+    if not os.path.exists(BUCKET_LABELS_JSON):
+        raise FileNotFoundError(
+            f"bucket-labels.json not found at {BUCKET_LABELS_JSON} — Plan 4's "
+            "section classifier must be run before scoring/ranking (§11.4 "
+            "criterion 1: blocking for everything else)."
+        )
+    with open(BUCKET_LABELS_JSON, encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, dict):
+        raise ValueError(f"bucket-labels.json malformed: expected a JSON object, got {type(data)}")
+    return data
+
+
+def load_vector_family_scores():
+    """Plan 5's family-scorer output — one contribution per article per
+    vector family, keyed by article id. A family absent from an article's
+    record means that family fell back to its dormant keyword detector
+    (§11.4) — the caller, not this loader, resolves that fallback. Fails
+    loudly if the file is missing or malformed."""
+    if not os.path.exists(VECTOR_FAMILY_SCORES_JSON):
+        raise FileNotFoundError(
+            f"vector-family-scores.json not found at {VECTOR_FAMILY_SCORES_JSON} — "
+            "Plan 5's family export.py must be run before scoring/ranking."
+        )
+    with open(VECTOR_FAMILY_SCORES_JSON, encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, dict):
+        raise ValueError(f"vector-family-scores.json malformed: expected a JSON object, got {type(data)}")
+    return data
+
+
+TIER_TO_NARRATIVE_INTERP = {10: "clear_split", -3: "muddled", -5: "one_sided", 0: "unclassifiable"}
+
+
+def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
+    """Merge Plan 4's row-3 tier and Plan 5's vector-family contributions
+    onto a freshly-harvested `sig` dict, in place. `article_id` must match
+    the key convention the two upstream exports use (Wikipedia title).
+
+    Missing per-article entries in either file are themselves an error for
+    bucket-labels.json (every scored article must have been classified), but
+    a missing per-family entry in vector-family-scores.json means that
+    family fell back to its dormant keyword detector — `sig`'s existing
+    keyword-derived fields are left untouched in that case, which is exactly
+    the dormant-fallback path (§11.4)."""
+    bucket_entry = bucket_labels.get(article_id)
+    if bucket_entry is None:
+        raise KeyError(f'"{article_id}" missing from bucket-labels.json')
+    sig["narrativeInterpTier"] = TIER_TO_NARRATIVE_INTERP.get(bucket_entry.get("tier"), "unclassifiable")
+
+    family_entry = family_scores.get(article_id, {})
+    for family_name, signal_key in VECTOR_FAMILY_TO_SIGNAL.items():
+        if family_name not in family_entry:
+            continue  # dormant fallback — sig's keyword-derived value stands
+        sig[f"__vector_{signal_key}"] = family_entry[family_name]
+
+# The set of keys row_from_signals() actually produces (DETAIL_FIELDS minus "ranking" and
+# "no_bible_verse" — derived later, not stored on the row itself; plus "url" which isn't a
+# DETAIL_FIELD but is stored). Used to detect a schema-stale resume/progress entry from before a
+# weight-table change added new fields, so it never gets silently treated as "done".
+ROW_KEYS = (set(DETAIL_FIELDS) - {"ranking", "no_bible_verse"}) | {"url"}
 
 
 def load_main():
@@ -87,7 +177,11 @@ def placement_mult(sig, prefix):
     """Section-placement multiplier for a negative-weight-author signal: x2 if any hit sits in a
     data/narrative section, x0.5 if hits sit ONLY in interpretation sections, x1 otherwise
     (lede, references, mixed interp+other, or ambiguous headings). Applied to the CAPPED penalty;
-    the halved result truncates toward zero (int()), i.e. rounds leniently."""
+    the halved result truncates toward zero (int()), i.e. rounds leniently.
+
+    Degrades to x1 until the harvest side re-derives InData/InInterp/InOther from Plan 4's
+    per-paragraph bucket-labels.json (retired heading-based bucketing produced these flags
+    previously — see Issues.md #138)."""
     if sig.get(prefix + "InData"):
         return 2.0
     if sig.get(prefix + "InInterp") and not sig.get(prefix + "InOther"):
@@ -95,112 +189,226 @@ def placement_mult(sig, prefix):
     return 1.0
 
 
-# §9 row -> weight lookups for the v2 refactor (Wikipedia_alogrithm_refractor.md). Only the four
-# non-vector items this plan (wikipedia-v2-02) owns are implemented here: referencing quality (row
-# 24), maps & diagrams (row 13), religious art (row 15), and the removal of the two weights that
-# left the rubric outright (historical/contextual info, passion-specific criticism — §3.7/§3.8).
-REF_QUALITY_WEIGHTS = {"zero": -9, "niche": 3, "supported": 1, "wellsourced": 0}
+def vec(sig, signal_key, fallback):
+    """Read a vector-family contribution merged onto `sig` by
+    merge_upstream_signals() (as `__vector_<signal_key>`); fall back to the
+    dormant keyword-detector value when the family hasn't shipped or its
+    precision floor wasn't met for this article (§11.4)."""
+    v = sig.get(f"__vector_{signal_key}")
+    return v if v is not None else fallback
 
 
 def net_score_from_signals(sig):
+    """Sum all 25 §9 signal contributions. Mirrors contributions_from_row() exactly — the export
+    path verifies Σcontributions == net_score and refuses to write on mismatch (JS-2)."""
     s = 0
-    s += min(sig["verseCount"], 3) * 3
-    s += min(sig["journalCount"], 5) * 1
-    s += min(sig["bookCount"], 5) * 1
-    # Commentary credit only for parables / idioms / sayings / teachings articles
+
+    # Row 2: Bible verse citations — +3 per, capped +12
+    s += min(sig["verseCount"], 4) * 3
+
+    # Row 3: Data/interpretation split — vector (§3.1.1, Plan 4). No dormant fallback exists
+    # for this signal (the classifier has no fallback — §11.4); "unclassifiable" scores 0.
+    tier = sig.get("narrativeInterpTier", "unclassifiable")
+    s += {"clear_split": 10, "muddled": -3, "one_sided": -5}.get(tier, 0)
+
+    # Row 1: Named manuscripts — +2 per, capped +6; flat +8 (not doubled) for teachings/Bible books
+    manuscript_cap = 8 if (sig.get("isTeaching") or sig.get("isBibleBook")) else 6
+    s += min(sig.get("manuscriptCount", 0) * 2, manuscript_cap)
+
+    # Row 7: Archaeological site/artefact — +2 flat; +8 for location-category articles with a hit.
+    # Absorbs the old location_bonus key; no parable exception (row 7 scores +2 for parables too).
+    if sig.get("archSiteHit"):
+        s += 8 if sig.get("isLocation") else 2
+
+    # Row 12: Journal/book citations — merged single signal, +1 per citation capped +2 per type
+    s += min(sig.get("journalCount", 0), 2) + min(sig.get("bookCount", 0), 2)
+
+    # Row 11: Primary-source quotes — +1 per, capped +4
+    s += min(sig.get("primarySourceQuoteCount", 0), 4)
+
+    # Row 8: Jewish context terms — +2 per, capped +6
+    s += min(sig.get("jewishContextHits", 0), 3) * 2
+
+    # Row 5: Balanced debate — +2 per pattern capped +6; doubled to +12 with 2+ named reps.
+    # Vector family (§3.1.2); dormant fallback is the keyword-pattern count below.
+    balanced_debate_fallback = min(sig.get("balancedDebateHits", 0), 3) * 2 * (
+        2 if sig.get("balancedDebateNamedAuthors", 0) >= 2 else 1
+    )
+    balanced_debate_pts = vec(sig, "balanced_debate", balanced_debate_fallback)
+    s += balanced_debate_pts
+
+    # Row 4: Scholarly commentary — +1 per, capped +6, only parable/teaching articles
     if sig.get("isParable") or sig.get("isTeaching"):
-        s += min(sig.get("commentaryCount", 0), 3) * 1
-    # Parable exemption: arch_site and ancient_historian score as 0
-    if not sig.get("isParable"):
-        s += 2 if sig["archSiteHit"] else 0
-    # Location IAA bonus: +3 extra on top of existing +2
-    if sig.get("isLocation") and sig["archSiteHit"]:
-        s += 3
-    # Named-manuscript credit: all articles; DOUBLED for teachings/sayings/idioms and books of
-    # the Bible (applied to the capped points)
-    s += min(sig.get("manuscriptCount", 0), 3) * 2 * (2 if (sig.get("isTeaching") or sig.get("isBibleBook")) else 1)
-    s += min(sig.get("primarySourceQuoteCount", 0), 4) * 1
-    # §9 row 3 (data/interpretation split) is vector-scored (§3.1.1) and not implemented by this
-    # plan — heading-based bucketing (narrativeHeading/interpHeading) is retired and extract.js no
-    # longer emits those fields. Pending Plan 4; scores 0 until then.
-    s += 3 if (sig.get("narrativeHeading") and sig.get("interpHeading")) else 0
+        s += min(sig.get("commentaryCount", 0), 6)
+
+    # Row 9: Non-Christian ancient historians — +2 per, capped +6; capped +3 for parables
+    ancient_historian_cap = 3 if sig.get("isParable") else 6
+    s += min(sig.get("ancientHistorianCount", 0) * 2, ancient_historian_cap)
+
+    # Row 10: Literary analysis — vector (§3.1.9), no dormant fallback (genuinely new signal)
+    s += vec(sig, "literary_analysis", 0)
+
+    # Row 13: Maps and diagrams — +1 per, capped +2 (unchanged plain lookup, §3.8)
+    s += min(sig.get("mapsAndDiagramsCount", 0), 2)
+
+    # Row 14: Wikipedia Good/Featured Article — +1 flat
     s += 1 if sig.get("wikiQualityHit") else 0
-    # Parable exemption: ancient_historian scores as 0
-    if not sig.get("isParable"):
-        s += min(sig.get("ancientHistorianCount", 0), 3) * 1
-    s += min(sig.get("anteNiceneCount", 0), 3) * 2
-    s += -10 if sig["verseCount"] == 0 else 0
-    # §9 rows 5, 17, 19-23 (balanced debate, confessional balance, Jesus Seminar, OT-NT
-    # continuity, mythicist, supernatural/secular-materialist criticism) are vector families
-    # (§3.1.2-§3.1.8) not implemented by this plan. Their dormant keyword fallbacks (extract.js,
-    # §11.4) supply raw counts only, with no section placement — see Issues.md #138 — so the
-    # placement multiplier here degrades to x1 until Plan 4 supplies bucket-labels.json.
-    s += int(min(sig.get("jesusSeminarCount", 0), 3) * -2 * placement_mult(sig, "jesusSeminar"))
-    s += -1 if sig.get("gnosticSourceHit") else 0
-    s += int(min(sig.get("mythicistCount", 0), 3) * -3 * placement_mult(sig, "mythicist"))
-    s += min(sig.get("contOTNT", 0), 3) * -2
-    s += min(sig.get("superCrit", 0), 3) * -2
-    s += min(sig.get("jewishContextHits", 0), 4) * 1
-    # Balanced debate: +1 per pattern capped +3, DOUBLED when >=2 distinct named representatives
-    # are cited for the differing views
-    s += min(sig.get("balancedDebateHits", 0), 3) * (2 if sig.get("balancedDebateNamedAuthors", 0) >= 2 else 1)
-    # Confessional balance: fires only when a critical-scholarship historian is cited.
-    # Outside the interpretation sections -> -3; inside interpretation without a contrasting
-    # Evangelical author -> -1; inside interpretation WITH one -> 0. `criticalScholarInData`/
-    # `InOther` are no longer produced (see above), so this always resolves to the -1/0 branch
-    # pending Plan 4.
-    if sig.get("criticalScholarCount", 0) > 0:
-        if sig.get("criticalScholarInData") or sig.get("criticalScholarInOther"):
-            s += -3
-        elif not sig.get("evangelicalHit", sig.get("evangelicalInInterp")):
-            s += -1
-    s += -3 if sig.get("otherReligionHit", sig.get("islamicMormonHit")) else 0
-    # passionCriticismHits (§3.7) is removed from the rubric outright — no replacement, nothing
-    # falls back to it.
-    s += min(sig.get("miracleCriticismHits", 0), 3) * -2
 
-    # --- Referencing quality (§9 row 24) --------------------------------------------------------
-    # Absorbs the former separate "No references at all", "Poor referencing", and "Niche exposure
-    # bonus" signals into one tiered lookup on refQualityTier, plus an independent -1 for a
-    # "citation needed" / maintenance banner.
-    s += REF_QUALITY_WEIGHTS.get(sig.get("refQualityTier"), 0)
-    if sig.get("hasCitationNeeded"):
-        s += -1
-
-    # --- Maps and diagrams (§9 row 13) ----------------------------------------------------------
-    s += min(sig.get("mapsAndDiagramsCount", 0), 2) * 1
-
-    # --- Religious art (§9 row 15, context-conditional, §3.5.1) ----------------------------------
-    # Does not fire for parable/teaching articles. is_passion picks the raised-sensitivity (wide)
-    # picture test rather than the standard (narrow) one (§3.9 row 15).
+    # Row 15: Religious art — context-conditional (§3.5.1). Does not fire for parable/teaching
+    # articles. is_passion picks the raised-sensitivity (wide) picture test (§3.9 row 15).
     if not sig.get("isParable") and not sig.get("isTeaching"):
         has_picture = sig.get("hasPictureWide") if sig.get("isPassion") else sig.get("hasPictureNarrow")
         if has_picture:
             s += 1 if sig.get("hasDiagramOrMap") else -1
 
+    # Row 6: Ante-Nicene authors — +2 per, capped +6
+    s += min(sig.get("anteNiceneCount", 0), 3) * 2
+
+    # Row 16: Gnostic over-emphasis — vector (§3.1.10), −2/−4 tiered. Dormant fallback is the old
+    # boolean gnostic_quoted hit, read conservatively as the −2 "contextualised" tier (it can't
+    # distinguish a privileged use).
+    gnostic_fallback = -2 if sig.get("gnosticSourceHit") else 0
+    s += vec(sig, "gnostic_over_emphasis", gnostic_fallback)
+
+    # Row 17: Confessional balance — vector (§3.1.8, reuses row-5 store). −3 outside
+    # interpretation / −1 inside without an Evangelical contrast / 0 inside with one.
+    if sig.get("criticalScholarCount", 0) > 0:
+        if sig.get("criticalScholarInData") or sig.get("criticalScholarInOther"):
+            confessional_fallback = -3
+        elif not sig.get("evangelicalHit", sig.get("evangelicalInInterp")):
+            confessional_fallback = -1
+        else:
+            confessional_fallback = 0
+    else:
+        confessional_fallback = 0
+    s += vec(sig, "confessional_balance", confessional_fallback)
+
+    # Row 18: Other-religion sources — −3 flat
+    s += -3 if sig.get("otherReligionHit", sig.get("islamicMormonHit")) else 0
+
+    # Row 19: Jesus Seminar bias — −3 per author capped −6, × placement multiplier (truncated
+    # toward zero), then a further −2 if balanced debate (row 5) scored 0. Vector (§3.1.6).
+    jesus_seminar_capped = max(sig.get("jesusSeminarCount", 0) * -3, -6)
+    jesus_seminar_fallback = int(jesus_seminar_capped * placement_mult(sig, "jesusSeminar"))
+    if balanced_debate_pts == 0:
+        jesus_seminar_fallback += -2
+    s += vec(sig, "jesus_seminar", jesus_seminar_fallback)
+
+    # Row 20: OT–NT continuity criticism — −3 per pattern, capped −6. Vector (§3.1.4).
+    ot_nt_fallback = max(sig.get("contOTNT", 0) * -3, -6)
+    s += vec(sig, "ot_nt_criticism", ot_nt_fallback)
+
+    # Row 22: Criticism of the supernatural worldview — −2 per instance, capped −8. Absorbs the
+    # old miracle_criticism key; Miracle- AND Passion-scoped. Vector (§3.1.3).
+    if sig.get("isMiracle") or sig.get("isPassion"):
+        combined_hits = sig.get("superCrit", 0) + sig.get("miracleCriticismHits", 0)
+        supernatural_fallback = max(combined_hits * -2, -8)
+    else:
+        supernatural_fallback = 0
+    s += vec(sig, "supernatural_criticism", supernatural_fallback)
+
+    # Row 21: Mythicist bias — −3 per author capped −7, × placement multiplier (truncated toward
+    # zero), then a further −2 if balanced debate (row 5) scored 0. Vector (§3.1.5).
+    mythicist_capped = max(sig.get("mythicistCount", 0) * -3, -7)
+    mythicist_fallback = int(mythicist_capped * placement_mult(sig, "mythicist"))
+    if balanced_debate_pts == 0:
+        mythicist_fallback += -2
+    s += vec(sig, "mythicist", mythicist_fallback)
+
+    # Row 23: Secular-materialist presuppositions — −2 per term, capped −8. Miracle- and
+    # Passion-scoped like row 22, but no placement multiplier. Vector (§3.1.7); the registry's
+    # fallback for this family is the supernatural_criticism keyword detector (no legacy
+    # secular-materialist detector exists on its own).
+    s += vec(sig, "secular_materialist", supernatural_fallback)
+
+    # Row 24: Referencing quality — tiered on ref_count, absorbing the former no_references,
+    # poor_referencing, and niche_bonus signals; plus an independent −1 for poor referencing.
+    s += _ref_quality_weight(sig["refCount"])
+    if sig.get("hasCitationNeeded"):
+        s += -1
+
+    # Row 25: No Bible verse cited anywhere — −10 flat
+    s += -10 if sig["verseCount"] == 0 else 0
+
     return s
 
 
 def row_from_signals(title, url, sig):
+    """Build the internal row persisted to the Scoring Detail CSV and re-loaded on every later
+    run (detail_row_to_internal). Pure-formula (non-vector) signals store their raw, pre-cap
+    harvested counts — contributions_from_row() re-derives the capped points from these on export.
+    Vector-covered signals (§3.1.x) have no meaningful "raw pre-cap" value of their own (the
+    family module or its dormant keyword fallback already applies its own capping), so their
+    *resolved* contribution is stored directly under a `_contribution` field and passed straight
+    through by contributions_from_row() — this is what keeps Σcontributions == net_score exact
+    across a CSV round-trip."""
+    balanced_debate_fallback = min(sig.get("balancedDebateHits", 0), 3) * 2 * (
+        2 if sig.get("balancedDebateNamedAuthors", 0) >= 2 else 1
+    )
+    balanced_debate_contribution = vec(sig, "balanced_debate", balanced_debate_fallback)
+
+    gnostic_fallback = -2 if sig.get("gnosticSourceHit") else 0
+
+    if sig.get("criticalScholarCount", 0) > 0:
+        if sig.get("criticalScholarInData") or sig.get("criticalScholarInOther"):
+            confessional_fallback = -3
+        elif not sig.get("evangelicalHit", sig.get("evangelicalInInterp")):
+            confessional_fallback = -1
+        else:
+            confessional_fallback = 0
+    else:
+        confessional_fallback = 0
+
+    jesus_seminar_capped = max(sig.get("jesusSeminarCount", 0) * -3, -6)
+    jesus_seminar_fallback = int(jesus_seminar_capped * placement_mult(sig, "jesusSeminar"))
+    if balanced_debate_contribution == 0:
+        jesus_seminar_fallback += -2
+
+    ot_nt_fallback = max(sig.get("contOTNT", 0) * -3, -6)
+
+    if sig.get("isMiracle") or sig.get("isPassion"):
+        combined_hits = sig.get("superCrit", 0) + sig.get("miracleCriticismHits", 0)
+        supernatural_fallback = max(combined_hits * -2, -8)
+    else:
+        supernatural_fallback = 0
+
+    mythicist_capped = max(sig.get("mythicistCount", 0) * -3, -7)
+    mythicist_fallback = int(mythicist_capped * placement_mult(sig, "mythicist"))
+    if balanced_debate_contribution == 0:
+        mythicist_fallback += -2
+
+    tier = sig.get("narrativeInterpTier", "unclassifiable")
+    narrative_interp_contribution = {"clear_split": 10, "muddled": -3, "one_sided": -5}.get(tier, 0)
+
     return {
         "title": title, "url": url, "net_score": net_score_from_signals(sig),
         "verse_count": sig["verseCount"], "ref_count": sig["refCount"],
         "journal_hits": sig["journalCount"], "book_hits": sig["bookCount"],
         "commentary_hits": sig.get("commentaryCount", 0),
-        "arch_site": sig["archSiteHit"], "historical_context": sig["historicalContextHit"],
+        "arch_site": sig["archSiteHit"],
         "manuscript_hits": sig.get("manuscriptCount", 0),
         "primary_source_quotes": sig.get("primarySourceQuoteCount", 0),
-        "gnostic_source_quoted": sig.get("gnosticSourceHit", False),
-        "poor_referencing": sig.get("poorReferencingHit", False),
+        # extract.js only ever emits hasCitationNeeded — poorReferencingHit was never a real
+        # field (pre-existing dead mapping fixed while consolidating row 24 here).
+        "poor_referencing": sig.get("hasCitationNeeded", False),
         "wiki_quality": sig.get("wikiQualityHit", False),
         "ancient_historian_hits": sig.get("ancientHistorianCount", 0),
         "ante_nicene_hits": sig.get("anteNiceneCount", 0),
         "mythicist_hits": sig.get("mythicistCount", 0),
-        "narrative_and_interp_sections": sig["narrativeHeading"] and sig["interpHeading"],
+        "narrative_interp_tier": tier,
+        "narrative_interp_split_contribution": narrative_interp_contribution,
         "jesus_seminar_hits": sig.get("jesusSeminarCount", 0),
         "jesus_seminar_mult": placement_mult(sig, "jesusSeminar"),
+        "jesus_seminar_contribution": vec(sig, "jesus_seminar", jesus_seminar_fallback),
         "mythicist_mult": placement_mult(sig, "mythicist"),
-        "ot_nt_criticism": int(sig["contOTNT"]), "supernatural_criticism": int(sig["superCrit"]),
+        "mythicist_contribution": vec(sig, "mythicist", mythicist_fallback),
+        "ot_nt_criticism_contribution": vec(sig, "ot_nt_criticism", ot_nt_fallback),
+        "supernatural_criticism_contribution": vec(sig, "supernatural_criticism", supernatural_fallback),
+        "secular_materialist_contribution": vec(sig, "secular_materialist", supernatural_fallback),
+        "literary_analysis_contribution": vec(sig, "literary_analysis", 0),
+        "gnostic_over_emphasis_contribution": vec(sig, "gnostic_over_emphasis", gnostic_fallback),
+        "confessional_balance_contribution": vec(sig, "confessional_balance", confessional_fallback),
+        "balanced_debate_contribution": balanced_debate_contribution,
         "jewish_context_hits": sig.get("jewishContextHits", 0),
         "balanced_debate_hits": sig.get("balancedDebateHits", 0),
         "balanced_debate_named": sig.get("balancedDebateNamedAuthors", 0),
@@ -208,8 +416,10 @@ def row_from_signals(title, url, sig):
         "critical_outside_interp": bool(sig.get("criticalScholarInData") or sig.get("criticalScholarInOther")),
         "evangelical_contrast": bool(sig.get("evangelicalInInterp", False)),
         "other_religion_hit": sig.get("otherReligionHit", sig.get("islamicMormonHit", False)),
-        "passion_criticism_hits": sig.get("passionCriticismHits", 0),
-        "miracle_criticism_hits": sig.get("miracleCriticismHits", 0),
+        "maps_diagrams_count": sig.get("mapsAndDiagramsCount", 0),
+        "has_picture_wide": sig.get("hasPictureWide", False),
+        "has_picture_narrow": sig.get("hasPictureNarrow", False),
+        "has_diagram_or_map": sig.get("hasDiagramOrMap", False),
         "is_passion": sig.get("isPassion", False),
         "is_miracle": sig.get("isMiracle", False),
         "is_parable": sig.get("isParable", False),
@@ -247,7 +457,10 @@ def write_bulk_paste_file(rows):
 
 
 def write_files(rows):
-    rows.sort(key=lambda r: (-r["net_score"], -r["verse_count"], -r["ref_count"], r["title"].lower()))
+    # §12.2: sort by net_score descending; the only tie-break is the raw title, alphabetically —
+    # no verse_count/ref_count secondary keys. The rank order is fixed here, at rank-assignment
+    # time, from the raw (pre comma->hyphen) title.
+    rows.sort(key=lambda r: (-r["net_score"], r["title"].lower()))
     with open(MAIN_CSV, "w", encoding="utf-8", newline="\n") as f:
         lines = ["title,url,ranking"]
         for i, r in enumerate(rows, start=1):
@@ -262,29 +475,40 @@ def write_files(rows):
                 "verse_count": r["verse_count"], "ref_count": r["ref_count"],
                 "journal_hits": r["journal_hits"], "book_hits": r["book_hits"],
                 "commentary_hits": r["commentary_hits"],
-                "arch_site": r["arch_site"], "historical_context": r["historical_context"],
+                "arch_site": r["arch_site"],
                 "manuscript_hits": r["manuscript_hits"],
                 "primary_source_quotes": r["primary_source_quotes"],
-                "gnostic_source_quoted": r["gnostic_source_quoted"],
                 "poor_referencing": r["poor_referencing"],
                 "wiki_quality": r["wiki_quality"],
                 "ancient_historian_hits": r["ancient_historian_hits"],
                 "ante_nicene_hits": r["ante_nicene_hits"],
                 "mythicist_hits": r["mythicist_hits"],
-                "narrative_and_interp_sections": r["narrative_and_interp_sections"],
+                "narrative_interp_tier": r["narrative_interp_tier"],
+                "narrative_interp_split_contribution": r["narrative_interp_split_contribution"],
                 "jesus_seminar_hits": r["jesus_seminar_hits"],
-                "jesus_seminar_mult": r["jesus_seminar_mult"], "mythicist_mult": r["mythicist_mult"],
-                "no_bible_verse": r["verse_count"] == 0, "no_references": r["ref_count"] == 0,
-                "ot_nt_criticism": r["ot_nt_criticism"], "supernatural_criticism": r["supernatural_criticism"],
+                "jesus_seminar_mult": r["jesus_seminar_mult"],
+                "jesus_seminar_contribution": r["jesus_seminar_contribution"],
+                "mythicist_mult": r["mythicist_mult"],
+                "mythicist_contribution": r["mythicist_contribution"],
+                "no_bible_verse": r["verse_count"] == 0,
+                "ot_nt_criticism_contribution": r["ot_nt_criticism_contribution"],
+                "supernatural_criticism_contribution": r["supernatural_criticism_contribution"],
+                "secular_materialist_contribution": r["secular_materialist_contribution"],
+                "literary_analysis_contribution": r["literary_analysis_contribution"],
+                "gnostic_over_emphasis_contribution": r["gnostic_over_emphasis_contribution"],
+                "confessional_balance_contribution": r["confessional_balance_contribution"],
+                "balanced_debate_contribution": r["balanced_debate_contribution"],
                 "jewish_context_hits": r["jewish_context_hits"],
                 "other_religion_hit": r["other_religion_hit"],
-                "passion_criticism_hits": r["passion_criticism_hits"],
-                "miracle_criticism_hits": r["miracle_criticism_hits"],
                 "balanced_debate_hits": r["balanced_debate_hits"],
                 "balanced_debate_named": r["balanced_debate_named"],
                 "critical_scholar_hits": r["critical_scholar_hits"],
                 "critical_outside_interp": r["critical_outside_interp"],
                 "evangelical_contrast": r["evangelical_contrast"],
+                "maps_diagrams_count": r["maps_diagrams_count"],
+                "has_picture_wide": r["has_picture_wide"],
+                "has_picture_narrow": r["has_picture_narrow"],
+                "has_diagram_or_map": r["has_diagram_or_map"],
                 "is_passion": r["is_passion"], "is_miracle": r["is_miracle"],
                 "is_parable": r["is_parable"], "is_location": r["is_location"],
                 "is_teaching": r["is_teaching"], "is_bible_book": r["is_bible_book"],
@@ -293,87 +517,100 @@ def write_files(rows):
     write_export(rows)
 
 
-def _count_or_bool(v):
-    """Parse a detail-CSV cell that is an int count post-2026-07 but was "True"/"False" before."""
-    if v == "True":
-        return 1
-    if v in ("False", "", None):
-        return 0
-    return int(v)
-
-
 # --- JSON export (for The Jesus Website visualization widget) ---------------------------------
 EXPORT_JSON = os.path.join(PROJECT_DIR, "scoring-export.json")
 EXPORT_REPO_JSON = "/Users/lukeishammacbookair/Developer/thejesuswebsite/database/scoring-export.json"
 
-# label, weight description, caveat — the embedded data dictionary for the widget.
+# label, weight description, caveat — the embedded data dictionary for the widget. 25 signals,
+# §9 of Wikipedia_alogrithm_refractor.md.
 SIGNAL_DICTIONARY = {
-    "bible_verses":        {"label": "Bible verses cited", "weight": "+3 per, capped +9", "caveat": None},
-    "narrative_interp_split": {"label": "Data/interpretation section split", "weight": "+3 flat", "caveat": "raw data/narrative held apart from how it is understood and contextualized"},
-    "manuscripts":         {"label": "Named manuscripts", "weight": "+2 per, capped +6; doubled for teachings/books of the Bible", "caveat": "fixed list; generic mention counts as 1"},
+    "bible_verses":        {"label": "Bible verses cited", "weight": "+3 per, capped +12", "caveat": None},
+    "narrative_interp_split": {"label": "Data/interpretation section split", "weight": "+10 clear split / -3 muddled / -5 one-sided / 0 unclassifiable", "caveat": "vector-classified (§3.1.1); no keyword fallback"},
+    "manuscripts":         {"label": "Named manuscripts", "weight": "+2 per, capped +6; +8 flat for teachings/books of the Bible", "caveat": "fixed list; generic mention counts as 1"},
     "ante_nicene":         {"label": "Ante-Nicene authors", "weight": "+2 per, capped +6", "caveat": None},
-    "arch_site":           {"label": "Archaeological site/artefact", "weight": "+2 flat", "caveat": "scores 0 for parables"},
-    "location_bonus":      {"label": "Location + archaeology bonus", "weight": "+3 flat", "caveat": "location articles with an archaeology hit"},
-    "historical_context":  {"label": "Historical/contextual comparanda", "weight": "+2 flat", "caveat": None},
-    "journals":            {"label": "Journal citations", "weight": "+1 per, capped +5", "caveat": None},
-    "books":               {"label": "Book citations", "weight": "+1 per, capped +5", "caveat": None},
+    "arch_site":           {"label": "Archaeological site/artefact", "weight": "+2 flat; +8 for location articles", "caveat": "absorbs the old location bonus"},
+    "journal_or_book":     {"label": "Journal/book citations", "weight": "+1 per, capped +2 per type", "caveat": "merged signal — journal and book citations each cap independently at +2"},
     "primary_quotes":      {"label": "Primary-source quotes", "weight": "+1 per, capped +4", "caveat": "blunt proxy: any substantial quote"},
-    "jewish_context":      {"label": "Jewish context terms", "weight": "+1 per, capped +4", "caveat": None},
-    "balanced_debate":     {"label": "Balanced debate in interpretation sections", "weight": "+1 per, capped +3; doubled when 2+ named representatives cited", "caveat": "interpretation sections only; sentences mentioning other religions excluded"},
-    "confessional_balance": {"label": "Confessional balance", "weight": "0 / -1 / -3 conditional", "caveat": "fires when a critical-scholarship historian (Ehrman et al.) is cited anywhere, footnotes included: -3 outside interpretation sections (footnotes count as outside), -1 in interpretation without an Evangelical counterpart, 0 with one"},
-    "commentaries":        {"label": "Commentary citations", "weight": "+1 per, capped +3", "caveat": "only for parables/idioms/sayings/teachings"},
-    "ancient_historians":  {"label": "Non-Christian ancient historians", "weight": "+1 per, capped +3", "caveat": "scores 0 for parables; 8-name list incl. Mara bar Serapion, Lucian, Celsus, Phlegon"},
+    "jewish_context":      {"label": "Jewish context terms", "weight": "+2 per, capped +6", "caveat": None},
+    "balanced_debate":     {"label": "Balanced debate in interpretation sections", "weight": "+2 per, capped +6; doubled to +12 when 2+ named representatives cited", "caveat": "vector-classified (§3.1.2); dormant keyword fallback"},
+    "commentaries":        {"label": "Commentary citations", "weight": "+1 per, capped +6", "caveat": "only for parables/idioms/sayings/teachings"},
+    "ancient_historians":  {"label": "Non-Christian ancient historians", "weight": "+2 per, capped +6; capped +3 for parables", "caveat": "8-name list incl. Mara bar Serapion, Lucian, Celsus, Phlegon"},
     "wiki_quality":        {"label": "Wikipedia Good/Featured Article", "weight": "+1 flat", "caveat": None},
-    "niche_bonus":         {"label": "Niche exposure bonus", "weight": "+3 if <5 refs; +1 if 5-9 refs", "caveat": "tiered — protects short, well-researched niche topics"},
-    "gnostic_quoted":      {"label": "Gnostic source quoted", "weight": "-1 flat", "caveat": None},
-    "poor_referencing":    {"label": "Poor referencing", "weight": "-1 flat", "caveat": None},
-    "jesus_seminar":       {"label": "Jesus Seminar citations", "weight": "-2 per, capped -6; x2 in data sections, x0.5 if interpretation-only", "caveat": "stance-blind keyword match; placement multiplier applied to capped penalty"},
-    "ot_nt_criticism":     {"label": "OT-NT continuity criticism", "weight": "-2 per distinct pattern, capped -6", "caveat": "stance-blind keyword match"},
-    "supernatural_criticism": {"label": "Supernatural-worldview criticism", "weight": "-2 per, capped -6", "caveat": "stance-blind keyword match"},
-    "passion_criticism":   {"label": "Passion-specific criticism", "weight": "-2 per, capped -6", "caveat": "Passion articles only"},
-    "miracle_criticism":   {"label": "Miracle-specific criticism", "weight": "-2 per, capped -6", "caveat": "Miracle articles only; section-aware"},
+    "confessional_balance": {"label": "Confessional balance", "weight": "0 / -1 / -3 conditional", "caveat": "vector-classified (§3.1.8, reuses balanced-debate store); fires when a critical-scholarship historian is cited: -3 outside interpretation sections, -1 inside without an Evangelical counterpart, 0 with one"},
+    "gnostic_over_emphasis": {"label": "Gnostic over-emphasis", "weight": "-2 contextualised / -4 privileged", "caveat": "vector-classified (§3.1.10); dormant keyword fallback reads as the -2 tier"},
+    "jesus_seminar":       {"label": "Jesus Seminar citations", "weight": "-3 per, capped -6; x2 outside interpretation, x0.5 if interpretation-only; further -2 if balanced debate scored 0", "caveat": "vector-classified (§3.1.6); stance-blind — placement and balance act as structural proxies (§11.3)"},
+    "ot_nt_criticism":     {"label": "OT-NT continuity criticism", "weight": "-3 per distinct pattern, capped -6", "caveat": "vector-classified (§3.1.4); dormant keyword fallback"},
+    "supernatural_criticism": {"label": "Supernatural-worldview criticism", "weight": "-2 per, capped -8", "caveat": "vector-classified (§3.1.3); Miracle- and Passion-scoped, absorbs the old miracle-specific signal"},
     "other_religion":      {"label": "Other-religion sources", "weight": "-3 flat", "caveat": "Islamic, Mormon, Buddhist, Hindu, Sikh, Jain, Rastafari, Baha'i material cited as authoritative"},
-    "mythicist":           {"label": "Mythicist citations", "weight": "-3 per, capped -9; x2 in data sections, x0.5 if interpretation-only", "caveat": "stance-blind keyword match; placement multiplier applied to capped penalty"},
-    "no_references":       {"label": "No references at all", "weight": "-8 flat", "caveat": None},
+    "mythicist":           {"label": "Mythicist citations", "weight": "-3 per, capped -7; x2 outside interpretation, x0.5 if interpretation-only; further -2 if balanced debate scored 0", "caveat": "vector-classified (§3.1.5); stance-blind — placement and balance act as structural proxies (§11.3)"},
+    "referencing_quality": {"label": "Referencing quality", "weight": "-9 at 0 refs / +3 at 1-4 / +1 at 5-9 / 0 at 10+; further -1 for poor referencing", "caveat": "absorbs the former no-references, poor-referencing, and niche-exposure signals"},
     "no_bible_verse":      {"label": "No Bible verse cited", "weight": "-10 flat", "caveat": None},
+    "literary_analysis":   {"label": "Literary analysis", "weight": "+6 for parable/teaching/Bible-book articles; +4 for others", "caveat": "vector-classified (§3.1.9); no dormant fallback — genuinely new signal"},
+    "maps_diagrams":       {"label": "Maps and diagrams", "weight": "+1 per, capped +2", "caveat": None},
+    "religious_art":       {"label": "Religious art", "weight": "-1 picture without diagram/map / +1 picture with one", "caveat": "does not fire for parable/teaching articles; raised sensitivity on is_passion (§3.9)"},
+    "secular_materialist":  {"label": "Secular-materialist presuppositions", "weight": "-2 per, capped -8", "caveat": "vector-classified (§3.1.7); Miracle- and Passion-scoped, no placement multiplier; dormant fallback shares the supernatural-criticism keyword detector"},
 }
 
 
 def contributions_from_row(r):
     """Per-signal POINT contributions (caps and category conditionals applied) for one internal
     row. Must mirror net_score_from_signals exactly — cmd/auto export verifies the sum equals the
-    stored net_score for every article and refuses to write a mismatched export."""
+    stored net_score for every article and refuses to write a mismatched export.
+
+    Pure-formula (non-vector) signals are recomputed here from the row's raw stored fields.
+    Vector-covered signals were already resolved (vector contribution, or dormant keyword
+    fallback) at harvest time by row_from_signals() and are passed straight through — there is
+    no meaningful "raw pre-cap" value to recompute them from."""
     return {
-        "bible_verses": min(r["verse_count"], 3) * 3,
-        "narrative_interp_split": 3 if r["narrative_and_interp_sections"] else 0,
-        "manuscripts": min(r["manuscript_hits"], 3) * 2 * (2 if (r["is_teaching"] or r["is_bible_book"]) else 1),
+        "bible_verses": min(r["verse_count"], 4) * 3,
+        "narrative_interp_split": r["narrative_interp_split_contribution"],
+        "manuscripts": min(r["manuscript_hits"] * 2, 8 if (r["is_teaching"] or r["is_bible_book"]) else 6),
         "ante_nicene": min(r["ante_nicene_hits"], 3) * 2,
-        "arch_site": 0 if r["is_parable"] else (2 if r["arch_site"] else 0),
-        "location_bonus": 3 if (r["is_location"] and r["arch_site"]) else 0,
-        "historical_context": 2 if r["historical_context"] else 0,
-        "journals": min(r["journal_hits"], 5),
-        "books": min(r["book_hits"], 5),
+        "arch_site": (8 if r["is_location"] else 2) if r["arch_site"] else 0,
+        "journal_or_book": min(r["journal_hits"], 2) + min(r["book_hits"], 2),
         "primary_quotes": min(r["primary_source_quotes"], 4),
-        "jewish_context": min(r["jewish_context_hits"], 4),
-        "balanced_debate": min(r["balanced_debate_hits"], 3) * (2 if r["balanced_debate_named"] >= 2 else 1),
-        "confessional_balance": 0 if r["critical_scholar_hits"] == 0 else (
-            -3 if r["critical_outside_interp"] else (0 if r["evangelical_contrast"] else -1)),
-        "commentaries": min(r["commentary_hits"], 3) if (r["is_parable"] or r["is_teaching"]) else 0,
-        "ancient_historians": 0 if r["is_parable"] else min(r["ancient_historian_hits"], 3),
+        "jewish_context": min(r["jewish_context_hits"], 3) * 2,
+        "balanced_debate": r["balanced_debate_contribution"],
+        "commentaries": min(r["commentary_hits"], 6) if (r["is_parable"] or r["is_teaching"]) else 0,
+        "ancient_historians": min(r["ancient_historian_hits"] * 2, 3 if r["is_parable"] else 6),
         "wiki_quality": 1 if r["wiki_quality"] else 0,
-        "niche_bonus": 3 if r["ref_count"] < 5 else (1 if r["ref_count"] < 10 else 0),
-        "gnostic_quoted": -1 if r["gnostic_source_quoted"] else 0,
-        "poor_referencing": -1 if r["poor_referencing"] else 0,
-        "jesus_seminar": int(min(r["jesus_seminar_hits"], 3) * -2 * r["jesus_seminar_mult"]),
-        "ot_nt_criticism": min(r["ot_nt_criticism"], 3) * -2,
-        "supernatural_criticism": min(r["supernatural_criticism"], 3) * -2,
-        "passion_criticism": min(r["passion_criticism_hits"], 3) * -2,
-        "miracle_criticism": min(r["miracle_criticism_hits"], 3) * -2,
+        "confessional_balance": r["confessional_balance_contribution"],
+        "gnostic_over_emphasis": r["gnostic_over_emphasis_contribution"],
+        "jesus_seminar": r["jesus_seminar_contribution"],
+        "ot_nt_criticism": r["ot_nt_criticism_contribution"],
+        "supernatural_criticism": r["supernatural_criticism_contribution"],
         "other_religion": -3 if r["other_religion_hit"] else 0,
-        "mythicist": int(min(r["mythicist_hits"], 3) * -3 * r["mythicist_mult"]),
-        "no_references": -8 if r["ref_count"] == 0 else 0,
+        "mythicist": r["mythicist_contribution"],
+        "referencing_quality": _ref_quality_weight(r["ref_count"]) + (-1 if r["poor_referencing"] else 0),
         "no_bible_verse": -10 if r["verse_count"] == 0 else 0,
+        "literary_analysis": r["literary_analysis_contribution"],
+        "maps_diagrams": min(r["maps_diagrams_count"], 2),
+        "religious_art": _religious_art_contribution(r),
+        "secular_materialist": r["secular_materialist_contribution"],
     }
+
+
+def _ref_quality_weight(refs):
+    """referencing_quality's tier weight, derived from ref_count alone — the single source of
+    truth both net_score_from_signals() and contributions_from_row() call this with, so a
+    harvested article's refQualityTier string (extract.js) never needs to be trusted or
+    re-validated separately from the ref_count it was itself derived from."""
+    if refs == 0:
+        return -9
+    if refs < 5:
+        return 3
+    if refs < 10:
+        return 1
+    return 0
+
+
+def _religious_art_contribution(r):
+    if r["is_parable"] or r["is_teaching"]:
+        return 0
+    has_picture = r["has_picture_wide"] if r["is_passion"] else r["has_picture_narrow"]
+    if not has_picture:
+        return 0
+    return 1 if r["has_diagram_or_map"] else -1
 
 
 def write_export(rows):
@@ -387,6 +624,8 @@ def write_export(rows):
         contrib = contributions_from_row(r)
         if sum(contrib.values()) != r["net_score"]:
             mismatches.append(f'{r["title"]}: contributions sum {sum(contrib.values())} != net_score {r["net_score"]}')
+        # raw_signals field names here are the import script's contract (api/scripts/
+        # import-wikipedia-scoring.js deriveCap()) — keep them in lockstep with that file.
         articles.append({
             "ranking": i, "title": r["title"], "url": r["url"], "net_score": r["net_score"],
             "contributions": contrib,
@@ -394,26 +633,24 @@ def write_export(rows):
                 "verse_count": r["verse_count"], "ref_count": r["ref_count"],
                 "journal_hits": r["journal_hits"], "book_hits": r["book_hits"],
                 "commentary_hits": r["commentary_hits"], "arch_site": r["arch_site"],
-                "historical_context": r["historical_context"], "manuscript_hits": r["manuscript_hits"],
+                "manuscript_hits": r["manuscript_hits"],
                 "primary_source_quotes": r["primary_source_quotes"],
-                "gnostic_source_quoted": r["gnostic_source_quoted"],
                 "poor_referencing": r["poor_referencing"], "wiki_quality": r["wiki_quality"],
                 "ancient_historian_hits": r["ancient_historian_hits"],
                 "ante_nicene_hits": r["ante_nicene_hits"], "mythicist_hits": r["mythicist_hits"],
-                "narrative_and_interp_sections": r["narrative_and_interp_sections"],
+                "narrative_interp_tier": r["narrative_interp_tier"],
                 "jesus_seminar_hits": r["jesus_seminar_hits"],
                 "jesus_seminar_mult": r["jesus_seminar_mult"], "mythicist_mult": r["mythicist_mult"],
-                "ot_nt_criticism": r["ot_nt_criticism"],
-                "supernatural_criticism": r["supernatural_criticism"],
                 "jewish_context_hits": r["jewish_context_hits"],
                 "other_religion_hit": r["other_religion_hit"],
-                "passion_criticism_hits": r["passion_criticism_hits"],
-                "miracle_criticism_hits": r["miracle_criticism_hits"],
                 "balanced_debate_hits": r["balanced_debate_hits"],
                 "balanced_debate_named": r["balanced_debate_named"],
                 "critical_scholar_hits": r["critical_scholar_hits"],
                 "critical_outside_interp": r["critical_outside_interp"],
                 "evangelical_contrast": r["evangelical_contrast"],
+                "maps_diagrams_count": r["maps_diagrams_count"],
+                "has_picture": r["has_picture_wide"] if r["is_passion"] else r["has_picture_narrow"],
+                "has_diagram_or_map": r["has_diagram_or_map"],
             },
             "categories": {
                 "is_passion": r["is_passion"], "is_miracle": r["is_miracle"],
@@ -430,7 +667,10 @@ def write_export(rows):
         "meta": {
             "generated": datetime.datetime.now().isoformat(timespec="seconds"),
             "article_count": len(articles),
-            "ceiling": CEILING,
+            # No known consumer references meta.ceiling anywhere in frontend/, api/routes/, or
+            # admin/ (confirmed by search at v2 migration time) — it always equals article_count,
+            # the actual size of the ranked list (currently 254, not a fixed 250 or 255).
+            "ceiling": len(articles),
             "source": "Lukeatron !TheJesusWebsite-Wikipedia rank_engine.py",
             "note": "contributions are capped/conditional POINTS per signal (they sum to net_score); "
                     "raw_signals are the uncapped harvested values.",
@@ -456,7 +696,8 @@ def cmd_export():
     main_rows = load_main()
     url_lookup = {r["title"]: r["url"] for r in main_rows}
     internal = [detail_row_to_internal(d, url_lookup) for d in load_detail()]
-    internal.sort(key=lambda r: (-r["net_score"], -r["verse_count"], -r["ref_count"], r["title"].lower()))
+    # §12.2: no tie-break beyond the raw title, alphabetically.
+    internal.sort(key=lambda r: (-r["net_score"], r["title"].lower()))
     if not write_export(internal):
         sys.exit(1)
 
@@ -468,38 +709,44 @@ def detail_row_to_internal(d, url_lookup):
         "journal_hits": int(d["journal_hits"]), "book_hits": int(d["book_hits"]),
         "commentary_hits": int(d.get("commentary_hits", 0)),
         "arch_site": d.get("arch_site", d.get("iaa_or_arch", "False")) == "True",
-        "historical_context": d.get("historical_context", "False") == "True",
         # manuscript/jesus_seminar were flat booleans before per-instance counting was added;
         # a pre-upgrade detail row (not yet rescored) has the old column, not the new one —
         # fall back to reading it as a count of 1 rather than silently zeroing it out.
         "manuscript_hits": int(d["manuscript_hits"]) if "manuscript_hits" in d else (1 if d.get("manuscript") == "True" else 0),
         "primary_source_quotes": int(d.get("primary_source_quotes", 0)),
-        "gnostic_source_quoted": d.get("gnostic_source_quoted", "False") == "True",
         "poor_referencing": d.get("poor_referencing", "False") == "True",
         "wiki_quality": d.get("wiki_quality", "False") == "True",
         "ancient_historian_hits": int(d.get("ancient_historian_hits", 0)),
         "ante_nicene_hits": int(d.get("ante_nicene_hits", 0)),
         "mythicist_hits": int(d.get("mythicist_hits", 0)),
-        "narrative_and_interp_sections": d["narrative_and_interp_sections"] == "True",
+        "narrative_interp_tier": d.get("narrative_interp_tier", "unclassifiable"),
+        "narrative_interp_split_contribution": int(d.get("narrative_interp_split_contribution", 0)),
         "jesus_seminar_hits": int(d["jesus_seminar_hits"]) if "jesus_seminar_hits" in d else (1 if d.get("jesus_seminar_cited") == "True" else 0),
         # Placement multipliers (2026-07-17): pre-rescore rows lack the columns — default x1.
         "jesus_seminar_mult": float(d.get("jesus_seminar_mult") or 1.0),
+        "jesus_seminar_contribution": int(d.get("jesus_seminar_contribution", 0)),
         "mythicist_mult": float(d.get("mythicist_mult") or 1.0),
-        # Were flat booleans before per-instance counting (2026-07): a pre-rescore detail row
-        # holds "True"/"False" — read those as 1/0 rather than crashing on int().
-        "ot_nt_criticism": _count_or_bool(d["ot_nt_criticism"]),
-        "supernatural_criticism": _count_or_bool(d["supernatural_criticism"]),
+        "mythicist_contribution": int(d.get("mythicist_contribution", 0)),
+        "ot_nt_criticism_contribution": int(d.get("ot_nt_criticism_contribution", 0)),
+        "supernatural_criticism_contribution": int(d.get("supernatural_criticism_contribution", 0)),
+        "secular_materialist_contribution": int(d.get("secular_materialist_contribution", 0)),
+        "literary_analysis_contribution": int(d.get("literary_analysis_contribution", 0)),
+        "gnostic_over_emphasis_contribution": int(d.get("gnostic_over_emphasis_contribution", 0)),
+        "confessional_balance_contribution": int(d.get("confessional_balance_contribution", 0)),
+        "balanced_debate_contribution": int(d.get("balanced_debate_contribution", 0)),
         "jewish_context_hits": int(d.get("jewish_context_hits", 0)),
         "balanced_debate_hits": int(d.get("balanced_debate_hits") or 0),
         "balanced_debate_named": int(d.get("balanced_debate_named") or 0),
         "critical_scholar_hits": int(d.get("critical_scholar_hits") or 0),
         "critical_outside_interp": d.get("critical_outside_interp", "False") == "True",
         "evangelical_contrast": d.get("evangelical_contrast", "False") == "True",
+        "maps_diagrams_count": int(d.get("maps_diagrams_count", 0)),
+        "has_picture_wide": d.get("has_picture_wide", "False") == "True",
+        "has_picture_narrow": d.get("has_picture_narrow", "False") == "True",
+        "has_diagram_or_map": d.get("has_diagram_or_map", "False") == "True",
         # Renamed from islamic_mormon_hit (2026-07-17, list expanded to other religions) — a
         # pre-rescore detail row still has the old column name; read it as the same signal.
         "other_religion_hit": (d.get("other_religion_hit") or d.get("islamic_mormon_hit", "False")) == "True",
-        "passion_criticism_hits": int(d.get("passion_criticism_hits", 0)),
-        "miracle_criticism_hits": int(d.get("miracle_criticism_hits", 0)),
         "is_passion": d.get("is_passion", "False") == "True",
         "is_miracle": d.get("is_miracle", "False") == "True",
         "is_parable": d.get("is_parable", "False") == "True",
@@ -529,7 +776,7 @@ def cmd_check():
 
     url_lookup = {r["title"]: r["url"] for r in main_rows}
     internal = [detail_row_to_internal(d, url_lookup) for d in detail_rows]
-    internal.sort(key=lambda r: (-r["net_score"], -r["verse_count"], -r["ref_count"], r["title"].lower()))
+    internal.sort(key=lambda r: (-r["net_score"], r["title"].lower()))
     expected_rank = {r["title"]: i for i, r in enumerate(internal, start=1)}
     for r in main_rows:
         if expected_rank.get(r["title"]) != r["ranking"]:
@@ -606,7 +853,14 @@ def cmd_rescore():
     """Full re-harvest of every CURRENTLY-PRESENT article under the CURRENT weight table (not a
     merge of stale signals — use this after a weight-table change so every row is scored on the
     same, current rubric). Resumable: progress is written to .rescore-progress.jsonl as it goes,
-    so an interrupted run can just be re-invoked and will skip whatever's already done."""
+    so an interrupted run can just be re-invoked and will skip whatever's already done.
+
+    Requires Plan 4's bucket-labels.json and Plan 5's vector-family-scores.json (§9 row 3 has no
+    keyword fallback — §11.4 criterion 1 blocks everything else on the classifier). Fails loudly
+    before harvesting anything if either is missing or malformed."""
+    bucket_labels = load_bucket_labels()
+    family_scores = load_vector_family_scores()
+
     main_rows = load_main()
     total = len(main_rows)
 
@@ -640,6 +894,7 @@ def cmd_rescore():
             except Exception as e:
                 print(f"    HARVEST FAILED: {e} — skipping")
                 continue
+            merge_upstream_signals(r["title"], sig, bucket_labels, family_scores)
             row = row_from_signals(r["title"], r["url"], sig)
             done[r["title"]] = row
             prog.write(json.dumps(row) + "\n")
@@ -651,6 +906,11 @@ def cmd_rescore():
 
 
 def cmd_add(input_path):
+    """Requires Plan 4's bucket-labels.json and Plan 5's vector-family-scores.json — see
+    cmd_rescore()'s docstring."""
+    bucket_labels = load_bucket_labels()
+    family_scores = load_vector_family_scores()
+
     detail_rows = load_detail()
     main_rows = load_main()
     url_lookup = {r["title"]: r["url"] for r in main_rows}
@@ -675,6 +935,7 @@ def cmd_add(input_path):
         except Exception as e:
             print(f"    HARVEST FAILED: {e} — skipping")
             continue
+        merge_upstream_signals(title, sig, bucket_labels, family_scores)
         row = row_from_signals(title, url, sig)
         internal.append(row)
         existing_titles.add(title)

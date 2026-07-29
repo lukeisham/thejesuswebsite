@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Wikipedia scoring import — loads database/scoring-export.json (255 articles ×
- * 28 signal contributions) into wikipedia_articles + wikipedia_article_signals.
+ * 25 signal contributions, per Wikipedia_alogrithm_refractor.md §9) into
+ * wikipedia_articles + wikipedia_article_signals.
  *
  * Usage:
  *   cd api
@@ -13,7 +14,7 @@
  *                    Intended for the local smoke-test; deploy.sh calls without it.
  *
  * Design: single transaction, all-or-nothing (JS-2). Validates every article
- * record before writing — URL present, all 28 contribution keys known,
+ * record before writing — URL present, all 25 contribution keys known,
  * |contribution| ≤ |derived cap| with matching sign, Σcontributions = net_score.
  * Aborts loudly (non-zero exit) before any write if validation fails.
  *
@@ -33,7 +34,15 @@ const fs = require("fs");
 const path = require("path");
 const db = require("../config");
 
-// ── 28 known signal keys (order matches the plan cap-derivation table) ──────
+// ── 25 known signal keys (§9 of Wikipedia_alogrithm_refractor.md) ───────────
+//
+// Migrated from the 28-key v1 set: historical_context and passion_criticism
+// were dropped outright (weight left the rubric); location_bonus folded into
+// arch_site; miracle_criticism folded into supernatural_criticism;
+// no_references/poor_referencing/niche_bonus merged into referencing_quality;
+// journals/books merged into journal_or_book; gnostic_quoted renamed
+// gnostic_over_emphasis; literary_analysis/maps_diagrams/religious_art/
+// secular_materialist are new (vector or plain-lookup) signals.
 
 const KNOWN_SIGNAL_KEYS = new Set([
   "bible_verses",
@@ -41,29 +50,26 @@ const KNOWN_SIGNAL_KEYS = new Set([
   "manuscripts",
   "ante_nicene",
   "arch_site",
-  "location_bonus",
-  "historical_context",
-  "journals",
-  "books",
+  "journal_or_book",
   "primary_quotes",
   "jewish_context",
   "balanced_debate",
   "commentaries",
   "ancient_historians",
   "wiki_quality",
-  "niche_bonus",
   "confessional_balance",
-  "gnostic_quoted",
-  "poor_referencing",
+  "gnostic_over_emphasis",
   "jesus_seminar",
   "ot_nt_criticism",
   "supernatural_criticism",
-  "passion_criticism",
-  "miracle_criticism",
   "other_religion",
   "mythicist",
-  "no_references",
+  "referencing_quality",
   "no_bible_verse",
+  "literary_analysis",
+  "maps_diagrams",
+  "religious_art",
+  "secular_materialist",
 ]);
 
 // ── Cap derivation ──────────────────────────────────────────────────────────
@@ -87,108 +93,139 @@ const KNOWN_SIGNAL_KEYS = new Set([
  */
 function deriveCap(key, categories, rawSignals) {
   const rules = {
-    // ── Positive, unconditional ────────────────────────────────────────────
-    bible_verses: 9,
-    narrative_interp_split: 3,
-    ante_nicene: 6,
-    historical_context: 2,
-    journals: 5,
-    books: 5,
-    primary_quotes: 4,
-    jewish_context: 4,
-    ancient_historians: 3,
-    wiki_quality: 1,
+    // ── Positive, unconditional (§9 rows 2, 6, 9(base handled below), 11, 14) ─
+    bible_verses: 12, // row 2: +3 per citation, capped +12
+    ante_nicene: 6, // row 6: +2 per author, capped +6
+    primary_quotes: 4, // row 11: +1 per quote, capped +4
+    jewish_context: 6, // row 8: +2 per concept, capped +6
+    wiki_quality: 1, // row 14: flat
+    journal_or_book: 4, // row 12: +1 per citation, capped +2 per type (2 types)
 
     // ── Positive, conditional ─────────────────────────────────────────────
-    // manuscripts: base +6; ×2 (= +12) for teachings or Bible books
-    // (rubric: "doubled for teachings/books of the Bible")
+
+    // row 3: data/interpretation split — tiered on the classifier's row-3 tier
+    // (§3.1.1); +10 clear split, −3 muddled, −5 one side only, 0 unclassifiable
+    narrative_interp_split() {
+      const tier = rawSignals.narrative_interp_tier;
+      if (tier === "clear_split") return 10;
+      if (tier === "muddled") return -3;
+      if (tier === "one_sided") return -5;
+      return 0;
+    },
+
+    // row 1: manuscripts — base +6; +8 (not doubled) for teachings/Bible books
     manuscripts() {
-      const base = 6;
-      if (categories.is_teaching || categories.is_bible_book) return base * 2;
-      return base;
+      if (categories.is_teaching || categories.is_bible_book) return 8;
+      return 6;
     },
 
-    // arch_site: +2 flat, but scores 0 for parables (rubric: "scores 0 for parables")
+    // row 7: arch_site — +2 flat; +8 for location-category articles with an
+    // archaeology hit. Absorbs the old location_bonus key. No parable
+    // exception (row 7 scores +2 for parables, same as the default).
     arch_site() {
-      if (categories.is_parable) return 0;
-      return 2;
+      return categories.is_location ? 8 : 2;
     },
 
-    // location_bonus: +3 flat, but 0 unless the article is a location
-    // (rubric: "location articles with an archaeology hit")
-    location_bonus() {
-      if (!categories.is_location) return 0;
-      return 3;
-    },
-
-    // balanced_debate: base +3; ×2 (= +6) when 2+ named representatives cited
-    // (rubric: "doubled when 2+ named representatives cited")
+    // row 5: balanced_debate — base +6; doubled to +12 with 2+ named reps
     balanced_debate() {
-      const base = 3;
+      const base = 6;
       if ((rawSignals.balanced_debate_named || 0) >= 2) return base * 2;
       return base;
     },
 
-    // commentaries: +3 per, capped +3, but only for parables/teachings
-    // (rubric: "only for parables/idioms/sayings/teachings")
+    // row 4: commentaries — +1 per citation, capped +6, only parable/teaching
     commentaries() {
       if (!categories.is_parable && !categories.is_teaching) return 0;
-      return 3;
+      return 6;
     },
 
-    // niche_bonus: tiered — +3 if <5 refs; +1 if 5–9; 0 otherwise
-    // (rubric: "tiered — protects short, well-researched niche topics")
-    niche_bonus() {
-      const refs = rawSignals.ref_count;
-      if (refs == null) return 0;
-      if (refs < 5) return 3;
-      if (refs <= 9) return 1;
-      return 0;
+    // row 9: ancient_historians — +2 per source, capped +6; capped +3 for
+    // parable articles (a lower, not higher, cap)
+    ancient_historians() {
+      return categories.is_parable ? 3 : 6;
+    },
+
+    // row 10: literary_analysis — +6 for parable/teaching/Bible-book, +4 else
+    literary_analysis() {
+      if (categories.is_teaching || categories.is_bible_book || categories.is_parable) {
+        return 6;
+      }
+      return 4;
+    },
+
+    // row 13: maps_diagrams — +1 per, capped +2
+    maps_diagrams: 2,
+
+    // row 15: religious_art — does not fire for parable/teaching articles;
+    // −1 if a picture with no diagram/map, +1 if picture AND diagram/map
+    religious_art() {
+      if (categories.is_parable || categories.is_teaching) return 0;
+      if (!rawSignals.has_picture) return 0;
+      return rawSignals.has_diagram_or_map ? 1 : -1;
     },
 
     // ── Negative, unconditional ────────────────────────────────────────────
-    confessional_balance: -3,
-    gnostic_quoted: -1,
-    poor_referencing: -1,
-    ot_nt_criticism: -6,
-    supernatural_criticism: -6,
-    other_religion: -3,
-    no_references: -8,
-    no_bible_verse: -10,
+    ot_nt_criticism: -6, // row 20: −3 per pattern, capped −6
+    other_religion: -3, // row 18: flat
+    no_bible_verse: -10, // row 25: flat
+    gnostic_over_emphasis: -4, // row 16: −2 contextualised / −4 privileged, max −4
 
     // ── Negative, conditional ─────────────────────────────────────────────
 
-    // jesus_seminar: capped −6, × placement multiplier, truncated toward zero
-    // (rubric: "x2 in data sections, x0.5 if interpretation-only")
+    // row 17: confessional_balance — −3 outside interpretation sections,
+    // −1 inside without an Evangelical contrast, 0 inside with one; 0 if no
+    // critical scholar is cited at all
+    confessional_balance() {
+      if (!rawSignals.critical_scholar_hits) return 0;
+      if (rawSignals.critical_outside_interp) return -3;
+      if (rawSignals.evangelical_contrast) return 0;
+      return -1;
+    },
+
+    // row 19: jesus_seminar — capped −6, × placement multiplier (truncated
+    // toward zero), then a further −2 if balanced debate (row 5) scored 0
     jesus_seminar() {
       const base = -6;
       const mult = rawSignals.jesus_seminar_mult;
-      if (mult == null) return base;
-      // Truncate toward zero: Math.trunc handles negative numbers correctly
-      // e.g. Math.trunc(-6 * 0.5) = Math.trunc(-3) = -3
-      return Math.trunc(base * mult);
+      let capped = mult == null ? base : Math.trunc(base * mult);
+      if ((rawSignals.balanced_debate_hits || 0) === 0) capped += -2;
+      return capped;
     },
 
-    // passion_criticism: capped −6, but Passion articles only
-    passion_criticism() {
-      if (!categories.is_passion) return 0;
-      return -6;
+    // row 22: supernatural_criticism — −2 per instance, capped −8; absorbs
+    // the old miracle_criticism key — Miracle- and Passion-scoped
+    supernatural_criticism() {
+      if (!categories.is_miracle && !categories.is_passion) return 0;
+      return -8;
     },
 
-    // miracle_criticism: capped −6, but Miracle articles only
-    miracle_criticism() {
-      if (!categories.is_miracle) return 0;
-      return -6;
-    },
-
-    // mythicist: capped −9, × placement multiplier, truncated toward zero
-    // (rubric: "x2 in data sections, x0.5 if interpretation-only")
+    // row 21: mythicist — capped −7, × placement multiplier (truncated
+    // toward zero), then a further −2 if balanced debate (row 5) scored 0
     mythicist() {
-      const base = -9;
+      const base = -7;
       const mult = rawSignals.mythicist_mult;
-      if (mult == null) return base;
-      // Truncate toward zero (−9 × 0.5 = −4.5 → −4)
-      return Math.trunc(base * mult);
+      let capped = mult == null ? base : Math.trunc(base * mult);
+      if ((rawSignals.balanced_debate_hits || 0) === 0) capped += -2;
+      return capped;
+    },
+
+    // row 23: secular_materialist — −2 per term, capped −8; Miracle- and
+    // Passion-scoped like row 22, but no placement multiplier
+    secular_materialist() {
+      if (!categories.is_miracle && !categories.is_passion) return 0;
+      return -8;
+    },
+
+    // row 24: referencing_quality — tiered on ref_count, plus an independent
+    // −1 for poor referencing (citation-needed banners etc.)
+    referencing_quality() {
+      const refs = rawSignals.ref_count;
+      let tier = 0;
+      if (refs === 0) tier = -9;
+      else if (refs != null && refs <= 4) tier = 3;
+      else if (refs != null && refs <= 9) tier = 1;
+      const poorPenalty = rawSignals.poor_referencing ? -1 : 0;
+      return tier + poorPenalty;
     },
   };
 
@@ -284,7 +321,7 @@ function validateArticle(article) {
   const title = article.title;
   const contributions = article.contributions;
 
-  // Every contribution key must be one of the 28 known signals
+  // Every contribution key must be one of the 25 known signals
   for (const key of Object.keys(contributions)) {
     if (!KNOWN_SIGNAL_KEYS.has(key)) {
       errors.push(`${title}: unknown signal key "${key}" in contributions`);
