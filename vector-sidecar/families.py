@@ -1,6 +1,6 @@
 """Static family registry + classification thresholds for the vector sidecar.
 
-Mirrors setup/Wikipedia algorithm v2/families/config.py's FAMILY_STORE_MAP
+Mirrors setup/Wikipedia algorithm/families/config.py's FAMILY_STORE_MAP
 and classifier/config.py's STORE_NAMES/NN_NEGATIVE_THRESHOLD, vendored here
 (not imported) for the same reason as embedder.py: setup/ never ships to
 the VPS. If the offline family registry changes, mirror the change here too.

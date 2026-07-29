@@ -357,7 +357,7 @@ Rejected alternatives:
 - **sqlite-vss** — would keep vectors inside the existing database, but requires a platform-compiled extension on both the dev Mac and the VPS for no benefit at this scale.
 - **Chroma** — largest dependency surface of the three; rejected against the §3.2 ceiling.
 
-Stores live inside `setup/Wikipedia algorithm v2/` (§8), must be commit-able or regenerable from their example sets, and must run without GPU.
+Stores live inside `setup/Wikipedia algorithm/` (§8), must be commit-able or regenerable from their example sets, and must run without GPU.
 
 ### 3.4 Hybrid Scoring Logic
 
@@ -396,9 +396,9 @@ This is the mapping the whole spec depends on: how a continuous cosine score bec
 3. **Subject to a precision floor of 0.8** — where precision and recall trade off, take the higher-precision option. A signal that misses a real instance costs one article a few points; a signal that fires on a clean article corrupts the ranking and is invisible without inspection. Under-fire by preference.
 4. Record the chosen thresholds, their F1, and their precision alongside the store. A store whose best achievable precision is under 0.8 does not ship — that family stays on its existing keyword detector until its example set improves (retained dormant, §11.4).
 
-**Where thresholds live.** `t_fire`, `t_strong`, `t_asym`, `t_sep` and the Passion margin are **developer-machine calibration artefacts**, stored in a plain config file alongside the stores under `setup/Wikipedia algorithm v2/`. They do **not** go in the database — the production schema is unchanged (§6), and the VPS never runs scoring, so it has no use for them.
+**Where thresholds live.** `t_fire`, `t_strong`, `t_asym`, `t_sep` and the Passion margin are **developer-machine calibration artefacts**, stored in a plain config file alongside the stores under `setup/Wikipedia algorithm/`. They do **not** go in the database — the production schema is unchanged (§6), and the VPS never runs scoring, so it has no use for them.
 
-**Canonical store path:** `setup/Wikipedia algorithm v2/vector-stores/` — one subdirectory per family, for the classifier's three stores and the nine signal families alike.
+**Canonical store path:** `setup/Wikipedia algorithm/vector-stores/` — one subdirectory per family, for the classifier's three stores and the nine signal families alike.
 
 ### 3.4.2 Resolved: Section Classifier Authority
 
@@ -504,7 +504,7 @@ Applies to five signals:
 5. **Verify** the animation widget remains synchronised with the new rankings and signals.
 
 ## 5. Repository & Documentation Cleanup
-- `setup/Wikipedia algorithm v2/` retains **only** the files required by the multistage workflow above.
+- `setup/Wikipedia algorithm/` retains **only** the files required by the multistage workflow above.
 - All other historical, experimental, or redundant files are removed or archived.
 - `Wikipedia Articles - Reference.md` is aggressively trimmed to the precise essentials:
   - Signal list with weight, cap, and designation (keyword vs vector)
@@ -539,7 +539,7 @@ Applies to five signals:
 **Locked:**
 - **Vector storage technology** — file-based indexes (FAISS or LanceDB embedded). Locked; rationale in §3.3.
 - **Signal families and seed example sources** — see §3.1.
-- **Directory location of the vector stores** — inside `setup/Wikipedia algorithm v2/`.
+- **Directory location of the vector stores** — inside `setup/Wikipedia algorithm/`.
 - **Model size / dependency ceiling** — one shared MiniLM-class model (~90 MB) across all families, CPU-only, ~150 MB total weight ceiling. Locked; see §3.2.
 
 - **Section classifier authority** — the vector classifier replaces heading-based bucketing **everywhere**; headings are not consulted anywhere in the rubric. Locked; see §3.1.1 and §3.4.2.
@@ -712,9 +712,9 @@ Alphabetical comparison uses the **raw article title**, before the comma-to-hyph
 
 Every article's score must be reconstructable from stored per-signal contributions without re-running the scorer. For vector signals this additionally means recording, per fired signal: the matched exemplar ID, the similarity score, and the threshold it cleared. A contribution that cannot be traced back to a specific exemplar is not explainable and fails the §6 constraint.
 
-## 13. Self-Sufficiency: What `Wikipedia algorithm v2/` Must Contain
+## 13. Self-Sufficiency: What `Wikipedia algorithm/` Must Contain
 
-**This document is a design spec for the scoring layer, not a complete build spec for the pipeline.** It assumes several artefacts exist alongside it. `setup/Wikipedia algorithm v2/` currently contains only this file and the widget spec, so anything listed below that is not written into a plan will not exist there.
+**This document is a design spec for the scoring layer, not a complete build spec for the pipeline.** It assumes several artefacts exist alongside it. `setup/Wikipedia algorithm/` currently contains only this file and the widget spec, so anything listed below that is not written into a plan will not exist there.
 
 **Verified 2026-07-27.** The prior directory is now `setup/Wikipedia algorithm v1/` (renamed; `.rescore-progress.jsonl` no longer present). The pipeline scripts **do exist** — not in either algorithm directory, but under `setup/SKILLS/!TheJesusWebsite-Wikipedia/`. Plans 2 and 6 are therefore **port-and-adapt jobs, not greenfield builds**.
 

@@ -20,7 +20,7 @@ This document is the standing specification for the 250-article Wikipedia list o
 
 **Source of every title/URL:** live Wikipedia, browsed via `!HeadlessChromeBrowser` — never fabricated or recalled from memory.
 
-**Source of truth for weights:** §9 of `Wikipedia algorithm v2/Wikipedia_alogrithm_refractor.md` is the authoritative source for the 25-row weights table below. Where this Reference.md and the refactor spec ever disagree, the refactor spec wins. Do not run `rank_engine.py rescore` until this document has been brought into line — a rescore against a stale table would score every article under the old rubric.
+**Source of truth for weights:** §9 of `Wikipedia algorithm/Wikipedia_alogrithm_refractor.md` is the authoritative source for the 25-row weights table below. Where this Reference.md and the refactor spec ever disagree, the refactor spec wins. Do not run `rank_engine.py rescore` until this document has been brought into line — a rescore against a stale table would score every article under the old rubric.
 
 **Maintained by:** the Skillbank skill `!TheJesusWebsite-Wikipedia` (`System/Skillbank/Church/!TheJesusWebsite-Wikipedia/`), which applies Stage 1–3 below on demand — tops the list up toward the 250 ceiling when short, or runs a consistency check when it's already full.
 
