@@ -1,28 +1,34 @@
 #!/usr/bin/env bash
-# sync-vector-sidecar.sh — push the vector sidecar's own code (vector-sidecar/
-# at the repo root — an ordinary tracked directory, unlike setup/Wikipedia
-# algorithm v2/) to the VPS, reinstall its Python dependencies, and restart it
-# under pm2.
+# sync-vector-sidecar.sh — (re)install the vector sidecar's Python venv on the
+# VPS and (re)start it under pm2.
 #
-# Separate from sync-vector-stores.sh because the sidecar's Python code
-# changes far less often than the stores/model data.
+# The sidecar's CODE (top-level vector-sidecar/) is an ordinary tracked repo
+# directory — it already reaches the VPS on every push via the normal
+# .github/workflows/deploy.yml `git reset --hard origin/main` into
+# /var/www/thejesuswebsite. This script does NOT rsync code; it only manages
+# the Python venv + pm2 process, which `git reset --hard` never touches
+# (untracked directories survive a reset — only tracked files are reverted).
 #
-# FIRST-RUN (one-time) PROCEDURE — not part of every deploy, run manually:
-#   1. SSH into the VPS.
-#   2. mkdir -p /var/www/thejesuswebsite-vector-store/sidecar
-#   3. cd /var/www/thejesuswebsite-vector-store/sidecar && python3 -m venv venv
-#   4. Run ./scripts/sync-vector-sidecar.sh from your local machine (below) —
-#      it will rsync the code and install dependencies into that venv.
-#   5. On the VPS: pm2 start venv/bin/uvicorn --name thejesuswebsite-vector-sidecar \
-#        --cwd /var/www/thejesuswebsite-vector-store/sidecar \
-#        -- app:app --host 127.0.0.1 --port 8901
-#     then: pm2 save
-#   6. Run ./scripts/sync-vector-stores.sh (separate script) to push the
-#      actual vector-stores data + model before the sidecar can serve
-#      anything real.
+# The vector-stores DATA + ONNX model are NOT in git (setup/ is gitignored)
+# and are handled by the separate scripts/sync-vector-stores.sh, which rsyncs
+# them to a sibling path (/var/www/thejesuswebsite-vector-store/) outside the
+# git working tree, matching wikipedia-v2-09-vps-vector-store-serving.md's
+# safety rationale (they must never live somewhere `git reset --hard` reaches).
 #
-# SUBSEQUENT RUNS just re-run this script — it detects the existing pm2
-# process and restarts it instead of starting a new one.
+# FIRST-RUN (one-time) PROCEDURE:
+#   1. Make sure the sidecar code is already deployed: on the VPS,
+#      /var/www/thejesuswebsite/vector-sidecar/ should exist (created by the
+#      normal deploy once this repo's commit reached origin/main).
+#   2. Run ./scripts/sync-vector-stores.sh from your local machine first —
+#      the sidecar needs the vector-stores data + model to have anywhere to
+#      load from before it can start successfully.
+#   3. Run this script (./scripts/sync-vector-sidecar.sh) from your local
+#      machine. It SSHs in, creates the venv if missing, installs
+#      requirements.txt, and starts (or restarts) the pm2 process.
+#
+# SUBSEQUENT RUNS: just re-run this script after `requirements.txt` changes
+# or after a fresh deploy updated vector-sidecar/'s code — it detects the
+# existing pm2 process and restarts it instead of starting a new one.
 #
 # Env vars — same convention as sync-vector-stores.sh (read from shell env or
 # a local .env; this script is run manually, not through GitHub Actions):
@@ -31,10 +37,10 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-LOCAL_SIDECAR_DIR="$PROJECT_DIR/vector-sidecar"
-REMOTE_ROOT="/var/www/thejesuswebsite-vector-store"
-REMOTE_SIDECAR_DIR="$REMOTE_ROOT/sidecar"
+REMOTE_SIDECAR_DIR="/var/www/thejesuswebsite/vector-sidecar"
+REMOTE_DATA_ROOT="/var/www/thejesuswebsite-vector-store"
 PM2_APP_NAME="thejesuswebsite-vector-sidecar"
+SIDECAR_PORT="8901"
 
 if [ -f "$PROJECT_DIR/.env" ]; then
   set -a
@@ -49,29 +55,26 @@ fi
 
 SSH_CMD=(ssh -i "$VPS_SSH_KEY_PATH")
 
-echo "[sync-vector-sidecar] Syncing sidecar code ..."
-rsync -avz --delete \
-  --exclude '__pycache__' --exclude '*.pyc' --exclude '.venv' --exclude 'venv' \
-  -e "${SSH_CMD[*]}" \
-  "$LOCAL_SIDECAR_DIR/" \
-  "$VPS_USER@$VPS_HOST:$REMOTE_SIDECAR_DIR/"
-
-echo "[sync-vector-sidecar] Installing Python dependencies on the VPS ..."
+echo "[sync-vector-sidecar] Setting up venv + pm2 process on the VPS ..."
 "${SSH_CMD[@]}" "$VPS_USER@$VPS_HOST" bash -s <<REMOTE_SCRIPT
 set -euo pipefail
 cd "$REMOTE_SIDECAR_DIR"
+
 if [ ! -d venv ]; then
   echo "[sync-vector-sidecar] No venv found — creating one (first run)."
   python3 -m venv venv
 fi
 ./venv/bin/pip install -q -r requirements.txt
 
+export VECTOR_STORE_DIR="$REMOTE_DATA_ROOT/vector-stores"
+export MODEL_DIR="$REMOTE_DATA_ROOT/model"
+
 if pm2 describe "$PM2_APP_NAME" >/dev/null 2>&1; then
   echo "[sync-vector-sidecar] Restarting existing pm2 process..."
   pm2 restart "$PM2_APP_NAME"
 else
   echo "[sync-vector-sidecar] No existing pm2 process — starting it now (first run)."
-  pm2 start venv/bin/uvicorn --name "$PM2_APP_NAME" --cwd "$REMOTE_SIDECAR_DIR" -- app:app --host 127.0.0.1 --port 8901
+  pm2 start venv/bin/uvicorn --name "$PM2_APP_NAME" --cwd "$REMOTE_SIDECAR_DIR" -- app:app --host 127.0.0.1 --port $SIDECAR_PORT
   pm2 save
 fi
 REMOTE_SCRIPT
