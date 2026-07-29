@@ -2,7 +2,7 @@
 name: "!TheJesusWebsite-Wikipedia"
 description: >
   Maintain the ranked Wikipedia-article list for The Jesus Website
-  (Memory/Long-Term/The-Jesus-Website/Wikipedia/). If the list is below its 250-article ceiling,
+  (Memory/Long-Term/The-Jesus-Website/Wikipedia/). If the list is below the article-count ceiling (currently 255),
   crawl Wikipedia for more qualifying articles per the documented pool/selection criteria, score and
   rank the additions, and merge them in. If the ceiling is already met, skip collection entirely
   and just check the existing files for internal consistency. Also handles permanently excluding
@@ -15,9 +15,9 @@ description: >
 type: Skill
 status: Active
 domain: Church
-intent: "Keep The Jesus Website's 250-article Wikipedia list topped up and internally consistent without re-doing finished work — collect+score only what's missing, otherwise just verify; handle one-off named exclusions cleanly."
-version: 1.6.0
-dependencies: [scripts/rank_engine.py, scripts/extract.js, "Wikipedia Articles - Reference.md", excluded-titles.txt, candidate-pool.tsv, wiki-bulk-paste.txt, scoring-export.json]
+intent: "Keep The Jesus Website's 255-article Wikipedia list topped up and internally consistent without re-doing finished work — collect+score only what's missing, otherwise just verify; handle one-off named exclusions cleanly."
+version: 2.0.0
+dependencies: [scripts/rank_engine.py, scripts/extract.js, "Wikipedia Articles - Reference.md", vector-family-thresholds.yaml, gold-set-section-classifier.csv, gold-set-vector-families.csv, gold-set-negative-controls.csv, excluded-titles.txt, candidate-pool.tsv, wiki-bulk-paste.txt, scoring-export.json]
 calibration:
   context: Church
   level: Extended
@@ -36,7 +36,11 @@ Scope: that one folder only — `Memory/Long-Term/The-Jesus-Website/Popular Chal
 Full method and rationale live in `Wikipedia Articles - Reference.md` (same folder) — this skill is
 the repeatable engine that follows it; read that file's Stage 1/2/3 sections before the first run
 of a session, since it is the source of truth for the pool/selection criteria and the scoring
-weights, not this skill.md.
+weights, not this skill.md. Note: the §9 weights table's *detection method*
+per signal (keyword lookup vs. vector store) is documented in the refactor
+spec (`Wikipedia_alogrithm_refractor.md` in `setup/Wikipedia algorithm v2/`),
+not duplicated in Reference.md; when debugging a specific signal's
+*detection logic* (as opposed to its weight), consult the refactor spec too.
 
 ## 🛠️ LOGIC
 
@@ -55,10 +59,34 @@ STEP 0 — NAMED EXCLUSION REQUEST (separate from the top-up/check flow below; r
 STEP 0b — WEIGHT-TABLE CHANGE (run instead of the flow below when Luke changes the Stage 3
   scoring criteria itself — new signal, changed weight, removed signal — rather than asking about
   specific articles).
-  1. Update the weight table in `Wikipedia Articles - Reference.md` Stage 3, AND the matching
-     detection logic in `scripts/extract.js` and the scoring formula in `scripts/rank_engine.py`
-     (`net_score_from_signals`, `DETAIL_FIELDS`, `row_from_signals`, `detail_row_to_internal`) —
-     all three must move together or `check` will start comparing apples to oranges.
+  1. Update all six places a weight-table change touches before `rescore` is safe to run:
+     (a) the §9 weights table in the v2 `Wikipedia Articles - Reference.md`;
+     (b) the matching detection logic in `scripts/extract.js`;
+     (c) the scoring formula in `scripts/rank_engine.py`
+        (`net_score_from_signals`, `DETAIL_FIELDS`, `row_from_signals`,
+        `detail_row_to_internal`);
+     (d) the vector-store threshold config file (`vector-family-thresholds.yaml`:
+        `t_fire`, `t_strong`, `t_asym`, `t_sep`, and the Passion margin)
+        for any vector-scored signal being changed;
+     (e) the gold-set label files (the acceptance criteria in §11.4 must
+        be re-checked against the frozen labels before a rescore is
+        trusted — a weight change does not require re-labelling, but
+        the criteria must be re-verified);
+     (f) the per-family vector-store index itself, if the change alters
+        what the store should fire on (re-seeding/re-embedding, not
+        just re-weighting).
+     A change is not safe to `rescore` under until every applicable one
+     of these six has moved.
+     Note: heading-based section bucketing (the old heading-pattern
+     classifier in `scripts/extract.js`) is retired. The vector
+     classifier (§3.1.1 of the refactor spec, `setup/Wikipedia algorithm
+     v2/`) is the sole bucketing authority for the whole rubric; its
+     paragraph labels feed every placement-sensitive signal. It has
+     no per-signal detection logic to "move together" the way
+     individual weights do — it is calibrated once, separately,
+     against its own 40-article gold set (§11.2), and any change to
+     its behaviour requires re-validating every placement-sensitive
+     signal downstream, not just the classifier itself.
   2. RUN `python3 "System/Skillbank/Church/!TheJesusWebsite-Wikipedia/scripts/rank_engine.py" rescore`
      — this fully re-harvests and rescores EVERY currently-present article from scratch under the
      new rubric (it does not reuse old signals the way `add` does), so the whole list stays judged
@@ -71,16 +99,19 @@ STEP 1 — CHECK THE CEILING.
   RUN `python3 "System/Skillbank/Church/!TheJesusWebsite-Wikipedia/scripts/rank_engine.py" check`
   This reads `Wikipedia Articles.csv` + `Wikipedia Articles - Scoring Detail.csv`, confirms the two
   files agree on which titles exist and that `ranking` matches a fresh sort of the Scoring Detail
-  table by net score (then the tie-break rules), confirms no title on `excluded-titles.txt` has
+  table by the composite key `(−net_score, raw_title)` — descending net score,
+  ties broken alphabetically on the unmodified article title (no tie-break
+  signal; the three-rule tie-break of verse count → reference count →
+  alphabetical is retired per refactor spec §12.2), confirms no title on `excluded-titles.txt` has
   crept back in, AND confirms `wiki-bulk-paste.txt` — the pipeline's plain-text end point — matches
   what `Wikipedia Articles.csv` currently says. It is read-only — never writes.
 
   MATCH result:
-    CASE exit 0 AND row count >= 250 (ceiling met) →
+    CASE exit 0 AND row count >= 255 (ceiling met) →
       Report the check result to Luke. DONE — no collection needed. This is the "sufficient to
       meet the ceiling" path: skip straight to STEP 5.
-    CASE exit 0 AND row count < 250 (below ceiling) →
-      Continue to STEP 2 — top up the shortfall (target_new = 250 − current count).
+    CASE exit 0 AND row count < 255 (below ceiling) →
+      Continue to STEP 2 — top up the shortfall (target_new = 255 − current count).
     CASE exit 1 (inconsistency found) →
       STOP. Report every issue printed verbatim to Luke. Do NOT auto-repair, do NOT proceed to
       collection — a mismatch usually means a manual edit needs reconciling first. Fail closed.
@@ -131,18 +162,69 @@ STEP 3b — LUKE REVIEW GATE (mandatory — never proceed to STEP 4 without it).
 
 STEP 4 — HARVEST, SCORE, MERGE, WRITE (deterministic — the script does this part).
   RUN `python3 "System/Skillbank/Church/!TheJesusWebsite-Wikipedia/scripts/rank_engine.py" add --input <scratch file>`
-  This opens each new URL via `!HeadlessChromeBrowser`, extracts the Stage-3 signals (28 as of
-  v1.6.0 — Bible verses, section split, manuscripts, citations, archaeology, Jewish context,
-  balanced debate, the criticism/negative-author families with their data/interpretation
-  placement multipliers, etc. — the full list is Reference.md's Stage 3 weight table and its
-  end-of-document Weight-descriptions table), computes the net score per that weight table, merges the new rows
+  This opens each new URL via `!HeadlessChromeBrowser`, extracts the Stage-3 signals (25 as of
+  v2.0.0 — Bible verse citations and named manuscripts (unchanged keyword
+  lookups), the data/interpretation split (now the vector classifier's
+  tiered +10/−3/−5/0 output, replacing heading-based section split),
+  archaeology and Jewish context (unchanged keyword lookups), balanced
+  debate and the criticism/negative-author families (now vector-scored
+  per refactor spec §3.1.2–§3.1.10, still placement-multiplied using the
+  classifier's labels), plus three signals new or substantially refactored
+  from v1: literary analysis (§9 row 10, genuinely new), religious art
+  (§9 row 15, previously context-conditional, now refactored with Passion
+  sensitivity and narrow/wide picture gating), secular-materialist
+  presuppositions (§9 row 23, genuinely new — no v1 counterpart), and
+  maps and diagrams (§9 row 13, already existed but now explicitly named) — the full list is Reference.md's §9 weights table, with per-signal
+  detection methods (keyword vs. vector) documented in the refactor spec), computes the net score per that weight table, merges the new rows
   with the existing already-scored rows (reusing their stored signals — never re-harvests
-  what's already scored), resorts everyone by net score then the tie-break rules, renumbers
+  what's already scored).
+  Before any signal is scored, the §3.1.1 vector classifier runs once
+  per article and labels every body paragraph data/interpretation/other;
+  every other placement-sensitive signal (balanced debate, Jesus Seminar,
+  mythicist, OT–NT continuity, confessional balance, religious art
+  sensitivity) reads those labels rather than re-deriving them from
+  headings. If the classifier fails its own acceptance gate (§11.2/§11.4)
+  for an article, that article's whole score is invalid, not just the
+  split signal.
+  The pipeline then resorts everyone by the composite key `(−net_score, raw_title)`, renumbers
   `ranking` 1..N, and rewrites `Wikipedia Articles.csv` (comma-in-title → hyphen, comma-in-URL →
   `%2C`, per Reference.md's List Processing section), `Wikipedia Articles - Scoring Detail.csv`, AND
   `wiki-bulk-paste.txt` — the plain-text "title, url, rank" end point of the whole pipeline. All
   three are rewritten together on every `add` run (even a no-op one with nothing new to add) so
   they can never drift out of sync with each other.
+
+  Dormant keyword fallbacks: each vector-scored signal family keeps its
+  pre-refactor keyword detector in `scripts/extract.js` behind a
+  per-family flag (`DORMANT_FALLBACKS`), inactive by default. A family
+  only falls back to its dormant detector if it fails the 0.8 precision
+  floor on its gold set (§11.4); the fallback still reads the vector
+  classifier's paragraph labels for placement rather than reviving
+  heading-based bucketing.
+
+  Passion sensitivity trigger: `is_passion` no longer gates a standalone
+  signal (the old Passion-specific criticism weight is removed from the
+  rubric entirely, refactor spec §3.7). Instead it raises detection
+  *sensitivity* (not weight or cap) on five signals — religious art,
+  Gnostic over-emphasis, mythicist bias, criticism of the supernatural
+  worldview, and secular-materialist presuppositions (§9 rows
+  15/16/21/22/23) — via a single calibrated Passion margin that lowers
+  their firing thresholds, subject to the same 0.8 precision floor.
+
+  Threshold calibration and gold set: vector-scored signals do not fire
+  on a guessed similarity cutoff. Each family's `t_fire`/`t_strong`
+  thresholds (and `t_asym` for computed-metric signals) are fitted
+  against a hand-labelled gold set (refactor spec §11), frozen once
+  recorded, subject to a precision floor of 0.8 — a family whose best
+  achievable precision falls short stays on its dormant keyword fallback
+  rather than shipping. The section classifier is validated first and
+  separately (40-article gold set, §11.2) since every other family's
+  placement-sensitive results depend on its labels being correct.
+
+  Vector-store VPS sync: in addition to the existing `scoring-export.json`
+  copy to the thejesuswebsite repo's `database/` folder, the per-family
+  vector-store indexes under `setup/Wikipedia algorithm v2/vector-stores/`
+  are now rsync'd to the VPS as part of the pipeline (see the separate
+  VPS-sync plan for the mechanics — not detailed here).
 
 STEP 5 — LOG THE OUTCOME.
   Append one line to `Wikipedia Articles - Reference.md`'s Notes/caveats section recording what
@@ -157,10 +239,14 @@ exemption to anything else.
 
 ## ✅ OUTPUT
 State: `Wikipedia Articles.csv`, `Wikipedia Articles - Scoring Detail.csv`, and `wiki-bulk-paste.txt`
-  all agree with each other and with `excluded-titles.txt`; row count is the ceiling (250) or the
+  all agree with each other and with `excluded-titles.txt`; row count is the ceiling (255) or the
   documented shortfall if the pool couldn't supply enough qualifying candidates; `candidate-pool.tsv`
-  reflects any fresh crawl.
-Log: "[WORKER: !TheJesusWebsite-Wikipedia] [SUCCESS|FAIL] mode=<check|topup> before=[N] after=[N] ceiling=250" → `Memory/Long-Term/Logs/skills.log`.
+  reflects any fresh crawl. Note: the v2 Reference.md's §9 weights table, the threshold config file
+  (`vector-family-thresholds.yaml`), and the gold-set label files are additional artefacts a `check`
+  implicitly depends on being internally consistent (weight table matches rank_engine.py's formula,
+  thresholds match what's calibrated against the frozen labels) even though `rank_engine.py check`
+  does not verify those cross-file agreements automatically.
+Log: "[WORKER: !TheJesusWebsite-Wikipedia] [SUCCESS|FAIL] mode=<check|topup> before=[N] after=[N] ceiling=255" → `Memory/Long-Term/Logs/skills.log`.
 
 **Validation Check (Self-Test)**
 ```
