@@ -31,6 +31,12 @@ _Part of the [Style Guide](INDEX.md) — §1–5, §7: color palette, typography
 `--error: #8B3D3D`
 `--info: #3D4F6B`
 
+**Wikipedia quality grid — blue intensity ramp** (all derived from `--info`; see content-patterns.md §9.1)
+`--grid-blue-1: #50617A` (dimmest, 5.39:1 against `--bg-surface-alt`)
+`--grid-blue-2: #3D4F6B` (= `--info`, 7.11:1)
+`--grid-blue-3: #364760` (8.07:1)
+`--grid-blue-4: #314158` (brightest/boldest, 8.86:1)
+
 **Borders & Dividers**
 `--border: #D4C9B8`
 `--border-strong: #B8A48A`

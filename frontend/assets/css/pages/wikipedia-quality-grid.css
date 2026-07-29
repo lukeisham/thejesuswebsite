@@ -1,24 +1,88 @@
 /* ==========================================================================
-   Wikipedia Reliability Stones
-   Per-article signal glyph buttons + collapsible stone-wall widget on the
-   Wikipedia ranked list. See setup/STYLE_GUIDE/animation.md §6.
+   Wikipedia Quality Grid
+   Always-visible 5x5 per-signal contribution grid + document score panel on
+   the Wikipedia ranked list. See setup/STYLE_GUIDE/content-patterns.md §9.1
+   and setup/STYLE_GUIDE/animation.md §6.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
-   Header glyph buttons (copy-results, toggle stone-wall)
+   Grid
    ------------------------------------------------------------------------- */
 
-.wikipedia-rank-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
+.wikipedia-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 26px);
+  gap: 3px;
+  flex: 0 0 auto;
 }
 
-.wikipedia-rank-title-link {
-  flex: 1 1 auto;
-  min-width: 0;
+.wikipedia-cell {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-alt);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  cursor: default;
 }
+
+.wikipedia-cell:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+.wikipedia-cell--empty {
+  background: var(--bg-surface);
+  outline: 1px solid var(--border);
+  outline-offset: -1px;
+}
+
+.wikipedia-cell--blue-1 { color: var(--grid-blue-1); }
+.wikipedia-cell--blue-2 { color: var(--grid-blue-2); }
+.wikipedia-cell--blue-3 { color: var(--grid-blue-3); }
+.wikipedia-cell--blue-4 { color: var(--grid-blue-4); font-weight: 700; }
+
+.wikipedia-cell--negative {
+  color: var(--error);
+  font-weight: 700;
+}
+
+/* -------------------------------------------------------------------------
+   Document score panel
+   ------------------------------------------------------------------------- */
+
+.wikipedia-score-panel {
+  flex: 0 0 auto;
+  width: auto;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.wikipedia-score--green {
+  background: var(--success);
+  color: var(--color-white);
+}
+
+.wikipedia-score--yellow {
+  background: var(--warning);
+  color: var(--color-white);
+}
+
+.wikipedia-score--red {
+  background: var(--error);
+  color: var(--color-white);
+}
+
+/* -------------------------------------------------------------------------
+   Copy button (unchanged glyph, new grid context)
+   ------------------------------------------------------------------------- */
 
 .wikipedia-signal-btn {
   flex: 0 0 auto;
@@ -37,12 +101,6 @@
   text-decoration: none;
 }
 
-.wikipedia-signal-btn[aria-expanded='true'] {
-  background: var(--bg-surface-alt);
-  border-color: var(--border-strong);
-  color: var(--text-primary);
-}
-
 .wikipedia-signal-btn.is-copied {
   color: var(--success);
   border-color: var(--success);
@@ -50,104 +108,32 @@
 }
 
 /* -------------------------------------------------------------------------
-   Stone wall (collapsible)
+   Tooltip — one shared element, positioned by the delegated listener (JS-6).
+   Pointer devices only; touch readers get full detail via the copy button.
    ------------------------------------------------------------------------- */
 
-.wikipedia-stone-wrap {
-  flex-basis: 100%;
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height var(--duration-base) var(--ease-in-out);
-}
-
-.wikipedia-stone-wrap.is-open {
-  max-height: 900px;
-}
-
-/* Applied once the open transition finishes (JS), so stone-label tooltips on
-   the top row aren't clipped by this container's overflow. Removed again
-   before the collapse transition starts, so collapsing stones stay clipped. */
-.wikipedia-stone-wrap.is-settled {
-  overflow: visible;
-}
-
-.wikipedia-stone-inner {
-  padding-top: var(--space-md);
-}
-
-.wikipedia-stone-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-}
-
-.wikipedia-stone-gap {
-  width: var(--space-md);
-  flex: 0 0 auto;
-}
-
-.wikipedia-stone {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 auto;
-  align-self: flex-end;
-  opacity: 0;
-  transform: scale(0.5) translate(var(--stone-shuffle-x, 0px), var(--stone-shuffle-y, 0px));
-}
-
-.wikipedia-stone-wrap.is-open .wikipedia-stone.is-visible {
-  animation: wikipedia-stone-in var(--duration-fast) var(--ease-out) forwards;
-}
-
-/* Settles into place from its shuffle offset (--stone-shuffle-x/y, set per-stone
-   in JS) rather than growing straight in — a slight in-place shuffle on open. */
-@keyframes wikipedia-stone-in {
-  to {
-    opacity: var(--stone-target-opacity, 1);
-    transform: scale(1) translate(0, 0);
+@media (hover: hover) and (pointer: fine) {
+  .wikipedia-tooltip {
+    position: fixed;
+    z-index: 20;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    font-size: var(--text-2xs);
+    line-height: var(--leading-tight);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+    box-shadow: var(--shadow-md);
   }
-}
 
-.wikipedia-stone svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  overflow: visible;
-}
-
-.wikipedia-stone:hover,
-.wikipedia-stone:focus-visible {
-  outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
-}
-
-/* -------------------------------------------------------------------------
-   Stone tooltip (name-only)
-   ------------------------------------------------------------------------- */
-
-.wikipedia-stone-label {
-  position: absolute;
-  bottom: calc(100% + var(--space-sm));
-  left: 50%;
-  transform: translate(-50%, 4px);
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  font-size: var(--text-2xs);
-  line-height: var(--leading-tight);
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
-  box-shadow: var(--shadow-md);
-}
-
-.wikipedia-stone:hover .wikipedia-stone-label,
-.wikipedia-stone:focus-visible .wikipedia-stone-label {
-  opacity: 1;
-  transform: translate(-50%, 0);
+  .wikipedia-tooltip.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* -------------------------------------------------------------------------
@@ -155,8 +141,13 @@
    ------------------------------------------------------------------------- */
 
 @media (max-width: 767px) {
-  .wikipedia-stone {
-    width: 40px;
-    height: 40px;
+  .wikipedia-grid {
+    grid-template-columns: repeat(5, 22px);
+    gap: 2px;
+  }
+
+  .wikipedia-cell {
+    width: 22px;
+    height: 22px;
   }
 }

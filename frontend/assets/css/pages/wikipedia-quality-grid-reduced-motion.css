@@ -1,21 +1,12 @@
 /* ==========================================================================
-   Wikipedia Reliability Stones — Reduced Motion
+   Wikipedia Quality Grid — Reduced Motion
    Split out of wikipedia-quality-grid.css (CSS-1). Must be loaded AFTER
-   wikipedia-quality-grid.css so these rules win by cascade order rather
-   than by inflated selector specificity.
+   wikipedia-quality-grid.css so this rule wins by cascade order rather than
+   by inflated selector specificity.
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .wikipedia-stone-wrap,
-  .wikipedia-stone,
-  .wikipedia-stone-label,
-  .wikipedia-signal-btn {
+  .wikipedia-tooltip {
     transition: none;
-  }
-
-  .wikipedia-stone-wrap.is-open .wikipedia-stone.is-visible {
-    animation: none;
-    opacity: var(--stone-target-opacity, 1);
-    transform: scale(1);
   }
 }

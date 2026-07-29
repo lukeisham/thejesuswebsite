@@ -4,10 +4,10 @@
  * "Last updated" line (when the list was most recently uploaded to this
  * website) sits in the page header rather than per article. Infinite scroll.
  *
- * Also renders the "reliability stones" widget per article: a copy-results
- * button, a toggle that expands a stone wall (one stone per reliability
- * signal), and an invisible agent-readable JSON block describing the exact
- * scoring behind the stones.
+ * Also renders the Wikipedia quality grid per article: an always-visible 5x5
+ * grid of the 25 §9 signals (colour-intensity encoded), a colour-banded
+ * document score panel, a copy-results button, and an invisible
+ * agent-readable JSON block describing the exact scoring behind the grid.
  *
  * @module wikipedia
  */
@@ -29,15 +29,20 @@ const RETRY_ID = 'retry-load';
 const PAGE_SIZE = 20;
 const SCROLL_THRESHOLD = 300;
 
-// Stone animation tokens — mirror --duration-fast/--ease-out (variables.css, §6).
-const STONE_STAGGER_MS = 30;
-const STONE_COLLAPSE_STAGGER_MS = 40;
-const STONE_DURATION_MS = 150;
-const TIER_OPACITY = [0.32, 0.55, 0.78, 1];
 const COPY_SUCCESS_MS = 1500;
-// Mirrors --duration-base (variables.css) — fallback in case the wrap's
-// max-height transitionend never fires (JS-2: don't rely solely on an event).
-const WRAP_SETTLE_FALLBACK_MS = 300;
+
+// Fulfilment-ratio boundaries for the four blue intensity tiers (positive
+// signals only — negative signals render as a single --error tone
+// regardless of magnitude). Mirrors --grid-blue-1..4 (variables.css).
+const TIER_4_MIN = 0.95;
+const TIER_3_MIN = 0.6;
+const TIER_2_MIN = 0.3;
+
+// Document score panel colour-band boundaries.
+const SCORE_GREEN_MIN = 50;
+const SCORE_YELLOW_MIN = 25;
+
+const SOURCE_LINE = 'Source: thejesuswebsite.org/debate/wikipedia';
 
 let currentPage = 1;
 let hasMore = true;
@@ -45,8 +50,10 @@ let isLoading = false;
 let allItems = [];
 let observer = null;
 let retryTeardown = null;
-let toggleTeardown = null;
 let copyTeardown = null;
+let tooltipTeardowns = null;
+let gridKeyboardTeardown = null;
+let $tooltip = null;
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
 
@@ -158,138 +165,59 @@ async function loadPage() {
   }
 }
 
-// ─── Reliability stones: deterministic per-signal look ─────────────────────
+// ─── Quality grid: signal -> cell classification ───────────────────────────
 
-/** Deterministic 0..1 pseudo-random value derived from a string (stable per signal key). */
-function hashToUnit(str) {
-  if (typeof str !== 'string') return 0;
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) & 0xffff;
-  return h / 0xffff;
+/** Which of the four blue intensity tiers a fulfilment ratio falls in (1..4). */
+function blueIntensityTier(ratio) {
+  if (ratio >= TIER_4_MIN) return 4;
+  if (ratio >= TIER_3_MIN) return 3;
+  if (ratio >= TIER_2_MIN) return 2;
+  return 1;
 }
 
-/** Parses a '#rrggbb'-style hex color into an [r, g, b] triple; falls back to
- *  mid-grey for malformed input so a bad literal degrades a stone's color
- *  instead of breaking the whole widget. */
-function hexToRgb(hex) {
-  const parts = typeof hex === 'string' ? hex.match(/\w\w/g) : null;
-  if (!parts) return [128, 128, 128];
-  return parts.map((part) => parseInt(part, 16));
+/** Which of the three score-panel colour bands a net score falls in. */
+function scoreBand(netScore) {
+  if (netScore >= SCORE_GREEN_MIN) return 'green';
+  if (netScore >= SCORE_YELLOW_MIN) return 'yellow';
+  return 'red';
 }
 
-/** Linear-interpolate between two hex colors at t (0..1). */
-function mixColors(colorA, colorB, t) {
-  const a = hexToRgb(colorA);
-  const b = hexToRgb(colorB);
-  const mixed = a.map((channel, i) => Math.round(channel + (b[i] - channel) * t));
-  return '#' + mixed.map((channel) => channel.toString(16).padStart(2, '0')).join('');
-}
-
-/** 0 = untriggered, 1 = minimal, 2 = partial, 3 = maximum credit/penalty. */
-function fulfilmentTier(ratio) {
-  if (ratio <= 0) return 0;
-  if (ratio < 0.4) return 1;
-  if (ratio < 0.95) return 2;
-  return 3;
-}
-
-/**
- * Variant A (minimal flat) stone face: a limestone-toned rect with per-stone
- * tonal jitter, thin crack lines + an --error-blended tint for damaged
- * (negative, triggered) stones, and a near-invisible outline when untriggered.
- */
-function ashlarSvgMarkup(signalKey, tier, isNegative, rotationDeg) {
-  const r = hashToUnit(signalKey);
-  const r2 = hashToUnit(signalKey + 'x');
-  const r3 = hashToUnit('y' + signalKey);
-  const rotationStyle = `transform:rotate(${rotationDeg}deg)`;
-
-  if (tier === 0) {
-    return `<svg viewBox="0 0 48 48" style="opacity:${TIER_OPACITY[0]};${rotationStyle}"><rect x="2" y="2" width="44" height="44" fill="none" stroke="#b8a48a" stroke-width="0.8" stroke-opacity="0.4"/></svg>`;
-  }
-
-  // Limestone face tone: pale cream -> weathered gold, occasional olive.
-  let face = mixColors('#F5E6D3', '#D4AF6A', 0.15 + r * 0.6);
-  if (r2 > 0.7) face = mixColors(face, '#A89968', 0.15 + r3 * 0.35);
-  if (r3 > 0.75) face = mixColors(face, '#F5E6D3', 0.3);
-
-  let edgeColor = mixColors(face, '#C4B5A0', 0.4 + r2 * 0.2);
-
-  if (isNegative) {
-    const decay = 0.18 + tier * 0.14;
-    face = mixColors(face, '#8b3d3d', decay);
-    edgeColor = mixColors(edgeColor, '#8b3d3d', decay * 0.6);
-  }
-
-  let svg = `<svg viewBox="0 0 48 48" style="opacity:${TIER_OPACITY[tier]};${rotationStyle}"><rect x="1.5" y="1.5" width="45" height="45" fill="${face}" stroke="${edgeColor}" stroke-width="0.6"/>`;
-
-  if (isNegative) {
-    const crackColor = mixColors(face, '#5c2626', 0.7);
-    const crackCount = r > 0.6 ? 2 : 1;
-    svg += `<path d="M ${12 + r * 12} 6 L ${18 + r * 14} ${38 + r * 6}" stroke="${crackColor}" stroke-width="0.7" stroke-opacity="0.6"/>`;
-    if (crackCount >= 2) {
-      svg += `<path d="M ${32 + r * 8} 10 L ${28 + r * 10} 42" stroke="${crackColor}" stroke-width="0.6" stroke-opacity="0.4"/>`;
-    }
-  }
-
-  svg += '</svg>';
-  return svg;
-}
-
-/**
- * Build one stone's markup (SafeString): flat rect + faint outline, per-stone
- * size/rotation jitter, and a name-only hover/focus tooltip.
- */
-function buildStoneMarkup(dictEntry, contribution, cap) {
-  const isNegative = dictEntry.polarity === 'negative';
-  const ratio = fulfilmentRatio(contribution, cap);
-  const tier = fulfilmentTier(ratio);
-
-  const sizeJitter = hashToUnit(dictEntry.key + 'sz');
-  const rotationJitter = hashToUnit(dictEntry.key + 'rot');
-  const shuffleXJitter = hashToUnit(dictEntry.key + 'shx');
-  const shuffleYJitter = hashToUnit(dictEntry.key + 'shy');
-  const size = 48 + Math.round((sizeJitter - 0.5) * 5);
-  const rotation = ((rotationJitter - 0.5) * 2).toFixed(2);
-  const shuffleX = ((shuffleXJitter - 0.5) * 10).toFixed(1);
-  const shuffleY = ((shuffleYJitter - 0.5) * 10).toFixed(1);
-
-  const svgMarkup = ashlarSvgMarkup(dictEntry.key, tier, isNegative, rotation);
-
-  return html`
-    <div
-      class="wikipedia-stone"
-      data-signal-key="${dictEntry.key}"
-      style="width:${size}px;height:${size}px;--stone-target-opacity:${TIER_OPACITY[tier]};--stone-shuffle-x:${shuffleX}px;--stone-shuffle-y:${shuffleY}px;animation-delay:0ms;"
-      tabindex="0"
-    >
-      ${raw(svgMarkup)}
-      <div class="wikipedia-stone-label"><span>${dictEntry.name}</span></div>
-    </div>
-  `.toString();
-}
-
-/** Build the agent-readable JSON payload for one article's signals. */
+/** Build the agent-readable JSON payload for one article's signals: all 25
+ *  §9 signals, including ones with no database row (unfired, contribution 0). */
 function buildAgentData(title, signalRows) {
-  const rowsByKey = new Map(signalRows.map((row) => [row.signal_key, row]));
-  const netScore = signalRows.reduce((sum, row) => sum + row.contribution, 0);
+  const rowsByKey = new Map((signalRows || []).map((row) => [row.signal_key, row]));
 
-  const signals = SIGNAL_DICTIONARY.filter((entry) => rowsByKey.has(entry.key)).map((entry) => {
+  const signals = SIGNAL_DICTIONARY.map((entry) => {
     const row = rowsByKey.get(entry.key);
-    const weight = entry.polarity === 'positive' ? `capped +${entry.capMagnitude}` : `capped -${entry.capMagnitude}`;
-    return {
+    const contribution = row ? row.contribution : 0;
+    const cap = row ? row.cap : 0;
+    const fired = contribution !== 0;
+
+    const signal = {
       key: entry.key,
       name: entry.name,
-      weight,
-      cap: row.cap,
-      contribution: row.contribution,
-      fulfilment: fulfilmentRatio(row.contribution, row.cap),
       polarity: entry.polarity,
-      statement: buildStatement(entry, row.contribution, row.cap),
+      cap,
+      contribution,
+      fulfilment: fired ? fulfilmentRatio(contribution, cap) : 0,
+      fired,
+      statement: buildStatement(entry, contribution, cap),
     };
+
+    // §12.3 explainability fields — only present when the DB row carries them.
+    if (row && row.matched_exemplar_id != null) signal.matched_exemplar_id = row.matched_exemplar_id;
+    if (row && row.similarity != null) signal.similarity = row.similarity;
+
+    return signal;
   });
 
-  return { article: title, net_score: netScore, signals };
+  const netScore = signals.reduce((sum, signal) => sum + signal.contribution, 0);
+  // Theoretical max = every positive signal at its (category-derived) cap, every
+  // negative signal at 0 — reproduces the §10 per-category ceiling without
+  // needing a separate category field, since `cap` is already category-aware.
+  const maxPossible = signals.reduce((sum, signal) => sum + Math.max(signal.cap, 0), 0);
+
+  return { article: title, net_score: netScore, max_possible: maxPossible, signals };
 }
 
 /** Escape "</script" so the JSON payload can't prematurely close its <script> tag. */
@@ -297,58 +225,68 @@ function escapeForScriptTag(jsonString) {
   return jsonString.replace(/</g, '\\u003c');
 }
 
-/** Build the glyph buttons + collapsible stone wall for one article, or '' if unscored. */
-function buildStoneWidget(item, articleId) {
+/** Build one grid cell (SafeString) for a signal, in its fixed §9 row-order position. */
+function buildCellMarkup(entry, row, index) {
+  const contribution = row ? row.contribution : 0;
+  const cap = row ? row.cap : 0;
+  const isEmpty = contribution === 0;
+  const isNegative = contribution < 0;
+
+  let cellClass = 'wikipedia-cell';
+  if (isEmpty) {
+    cellClass += ' wikipedia-cell--empty';
+  } else if (isNegative) {
+    cellClass += ' wikipedia-cell--negative';
+  } else {
+    cellClass += ` wikipedia-cell--blue-${blueIntensityTier(fulfilmentRatio(contribution, cap))}`;
+  }
+
+  const displayText = isEmpty ? '' : String(contribution);
+  const accessibleName = isEmpty ? `${entry.name}: not scored` : `${entry.name}: ${contribution}`;
+  const tabindex = index === 0 ? '0' : '-1';
+
+  return html`<div class="${cellClass}" role="gridcell" tabindex="${tabindex}" data-signal-key="${entry.key}" data-tooltip="${accessibleName}" aria-label="${accessibleName}">${displayText}</div>`;
+}
+
+/** Build the signal grid + score panel + copy button for one article, or '' if unscored. */
+function buildGridWidget(item, articleId) {
   if (!Array.isArray(item.signals) || item.signals.length === 0) return '';
 
-  const wrapId = `wikipedia-stone-wrap-${articleId}`;
-  const agentData = buildAgentData(item.wikipedia_article_title || 'Untitled', item.signals);
+  const title = item.wikipedia_article_title || 'Untitled';
+  const agentData = buildAgentData(title, item.signals);
   const agentJson = escapeForScriptTag(JSON.stringify(agentData));
-
   const rowsByKey = new Map(item.signals.map((row) => [row.signal_key, row]));
-  const positiveEntries = SIGNAL_DICTIONARY.filter((entry) => entry.polarity === 'positive' && rowsByKey.has(entry.key));
-  const negativeEntries = SIGNAL_DICTIONARY.filter((entry) => entry.polarity === 'negative' && rowsByKey.has(entry.key));
+  const agentDataId = `wikipedia-agent-data-${articleId}`;
 
-  const positiveStones = safeJoin(
-    positiveEntries.map((entry) => raw(buildStoneMarkup(entry, rowsByKey.get(entry.key).contribution, rowsByKey.get(entry.key).cap)))
+  const cells = safeJoin(
+    SIGNAL_DICTIONARY.map((entry, index) => buildCellMarkup(entry, rowsByKey.get(entry.key), index))
   );
-  const negativeStones = safeJoin(
-    negativeEntries.map((entry) => raw(buildStoneMarkup(entry, rowsByKey.get(entry.key).contribution, rowsByKey.get(entry.key).cap)))
-  );
-  const gap = negativeEntries.length > 0 ? raw('<div class="wikipedia-stone-gap"></div>') : raw('');
+
+  const band = scoreBand(agentData.net_score);
+  const scoreTooltip = `Document score: ${agentData.net_score}`;
 
   return html`
-    <button
-      type="button"
-      class="btn btn--ghost wikipedia-signal-btn wikipedia-signal-copy"
-      title="Copy of the reliability information"
-      aria-label="Copy of the reliability information"
-      data-copy-target="${wrapId}"
-    >
-      <svg width="18" height="18" aria-hidden="true">
-        <use href="/assets/images/feather-sprite.svg#icon-copy" />
-      </svg>
-    </button>
-    <button
-      type="button"
-      class="btn btn--ghost wikipedia-signal-btn wikipedia-signal-toggle"
-      title="Reliability calculation"
-      aria-label="Reliability calculation"
-      aria-expanded="false"
-      aria-controls="${wrapId}"
-    >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="5" y="4" width="12" height="5" rx="0.5"></rect>
-        <rect x="3" y="9.5" width="12" height="5" rx="0.5"></rect>
-        <rect x="7" y="15" width="12" height="5" rx="0.5"></rect>
-      </svg>
-    </button>
-    <div class="wikipedia-stone-wrap" id="${wrapId}" aria-hidden="true">
-      <div class="wikipedia-stone-inner">
-        <div class="wikipedia-stone-row">${positiveStones}${gap}${negativeStones}</div>
-      </div>
+    <div class="wikipedia-rank-meta">
+      <div class="wikipedia-grid" role="table" aria-label="Reliability signal grid">${cells}</div>
+      <div
+        class="wikipedia-score-panel wikipedia-score--${band}"
+        data-tooltip="${scoreTooltip}"
+        aria-label="${scoreTooltip}"
+        tabindex="0"
+      >${agentData.net_score}</div>
+      <button
+        type="button"
+        class="btn btn--ghost wikipedia-signal-btn wikipedia-signal-copy"
+        title="Copy of the reliability information"
+        aria-label="Copy of the reliability information"
+        data-copy-target="${agentDataId}"
+      >
+        <svg width="18" height="18" aria-hidden="true">
+          <use href="/assets/images/feather-sprite.svg#icon-copy" />
+        </svg>
+      </button>
     </div>
-    <script type="application/json" class="agent-data" data-agent-readable="true">${raw(agentJson)}</script>
+    <script type="application/json" class="agent-data" id="${agentDataId}" data-agent-readable="true">${raw(agentJson)}</script>
   `.toString();
 }
 
@@ -372,113 +310,134 @@ function renderArticles(items) {
 
     li.innerHTML = html`
       <span class="wikipedia-rank-number">${rank}</span>
-      <div class="wikipedia-rank-content">
-        <div class="wikipedia-rank-title">
-          <a class="wikipedia-rank-title-link" href="${url}" target="_blank" rel="noopener noreferrer">
-            ${title}
-            <svg width="14" height="14" aria-hidden="true" style="display:inline;vertical-align:middle;">
-              <use href="/assets/images/feather-sprite.svg#icon-external-link"/>
-            </svg>
-          </a>
-          ${raw(buildStoneWidget(item, articleId))}
-        </div>
+      <div class="wikipedia-rank-title">
+        <a class="wikipedia-rank-title-link" href="${url}" target="_blank" rel="noopener noreferrer">
+          ${title}
+          <svg width="14" height="14" aria-hidden="true" style="display:inline;vertical-align:middle;">
+            <use href="/assets/images/feather-sprite.svg#icon-external-link"/>
+          </svg>
+        </a>
       </div>
+      ${raw(buildGridWidget(item, articleId))}
     `;
 
     $list.appendChild(li);
   });
 }
 
-// ─── Stone wall expand/collapse ─────────────────────────────────────────────
+// ─── Tooltip (delegated, pointer devices only) ──────────────────────────────
 
-function prefersReducedMotion() {
-  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function pointerFineHover() {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 }
 
-/** Marks the wrap as settled (overflow: visible) once its expand transition
- *  finishes, so top-row stone tooltips aren't clipped. Falls back to a timer
- *  in case max-height never actually changes (e.g. re-opening an already-open
- *  wrap) and transitionend never fires. */
-function settleWrapAfterOpen(wrap) {
-  let settled = false;
-  const markSettled = () => {
-    if (settled) return;
-    settled = true;
-    wrap.classList.add('is-settled');
-  };
-
-  wrap.addEventListener(
-    'transitionend',
-    (e) => {
-      if (e.target === wrap && e.propertyName === 'max-height') markSettled();
-    },
-    { once: true }
-  );
-  setTimeout(markSettled, WRAP_SETTLE_FALLBACK_MS);
-}
-
-function openStoneWrap(wrap) {
-  const stones = Array.from(wrap.querySelectorAll('.wikipedia-stone'));
-  wrap.classList.remove('is-settled');
-  wrap.classList.add('is-open');
-  wrap.setAttribute('aria-hidden', 'false');
-  settleWrapAfterOpen(wrap);
-
-  stones.forEach((stone, index) => {
-    stone.style.animationDelay = prefersReducedMotion() ? '0ms' : `${index * STONE_STAGGER_MS}ms`;
-    stone.classList.add('is-visible');
-  });
-}
-
-function closeStoneWrap(wrap) {
-  const stones = Array.from(wrap.querySelectorAll('.wikipedia-stone'));
-  const total = stones.length;
-
-  // Re-clip before the collapse transition starts, so shrinking stones don't
-  // paint outside the card.
-  wrap.classList.remove('is-settled');
-
-  if (prefersReducedMotion()) {
-    stones.forEach((stone) => stone.classList.remove('is-visible'));
-    wrap.classList.remove('is-open');
-    wrap.setAttribute('aria-hidden', 'true');
-    return;
+function getTooltipEl() {
+  if (!$tooltip) {
+    $tooltip = document.createElement('div');
+    $tooltip.className = 'wikipedia-tooltip';
+    $tooltip.setAttribute('role', 'presentation');
+    document.body.appendChild($tooltip);
   }
-
-  stones.forEach((stone, index) => {
-    const reverseDelay = (total - 1 - index) * STONE_COLLAPSE_STAGGER_MS;
-    setTimeout(() => stone.classList.remove('is-visible'), reverseDelay);
-  });
-
-  const totalDelay = total * STONE_COLLAPSE_STAGGER_MS + STONE_DURATION_MS;
-  setTimeout(() => {
-    wrap.classList.remove('is-open');
-    wrap.setAttribute('aria-hidden', 'true');
-  }, totalDelay);
+  return $tooltip;
 }
 
-function bindStoneToggle() {
-  if (toggleTeardown) toggleTeardown();
-  toggleTeardown = delegate(document.body, '.wikipedia-signal-toggle', 'click', (_e, target) => {
-    const wrapId = target.getAttribute('aria-controls');
-    const wrap = wrapId && document.getElementById(wrapId);
-    if (!wrap) return;
+function showTooltip(target) {
+  if (!pointerFineHover()) return;
+  const text = target.getAttribute('data-tooltip');
+  if (!text) return;
 
-    const isOpen = wrap.classList.contains('is-open');
-    if (isOpen) {
-      closeStoneWrap(wrap);
-    } else {
-      openStoneWrap(wrap);
-    }
-    target.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+  const tooltip = getTooltipEl();
+  tooltip.textContent = text;
+  tooltip.classList.add('is-visible');
+
+  const targetRect = target.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const left = targetRect.left + targetRect.width / 2 - tooltipRect.width / 2;
+  const top = targetRect.top - tooltipRect.height - 8;
+
+  tooltip.style.left = `${Math.max(4, left)}px`;
+  tooltip.style.top = `${Math.max(4, top)}px`;
+}
+
+function hideTooltip() {
+  if ($tooltip) $tooltip.classList.remove('is-visible');
+}
+
+function bindTooltips() {
+  if (tooltipTeardowns) tooltipTeardowns.forEach((teardown) => teardown());
+
+  const selector = '.wikipedia-cell, .wikipedia-score-panel';
+  tooltipTeardowns = [
+    delegate(document.body, selector, 'mouseover', (_e, target) => showTooltip(target)),
+    delegate(document.body, selector, 'mouseout', () => hideTooltip()),
+    delegate(document.body, selector, 'focusin', (_e, target) => showTooltip(target)),
+    delegate(document.body, selector, 'focusout', () => hideTooltip()),
+  ];
+}
+
+// ─── Grid keyboard navigation (roving tabindex) ─────────────────────────────
+
+const ARROW_STEP = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 5, ArrowUp: -5 };
+const GRID_COLUMNS = 5;
+
+function bindGridKeyboard() {
+  if (gridKeyboardTeardown) gridKeyboardTeardown();
+
+  gridKeyboardTeardown = delegate(document.body, '.wikipedia-cell', 'keydown', (e, target) => {
+    const step = ARROW_STEP[e.key];
+    if (!step) return;
+
+    const grid = target.closest('.wikipedia-grid');
+    if (!grid) return;
+
+    const cells = Array.from(grid.querySelectorAll('.wikipedia-cell'));
+    const index = cells.indexOf(target);
+    if (index === -1) return;
+
+    const col = index % GRID_COLUMNS;
+    if (e.key === 'ArrowRight' && col === GRID_COLUMNS - 1) return;
+    if (e.key === 'ArrowLeft' && col === 0) return;
+
+    const nextIndex = index + step;
+    if (nextIndex < 0 || nextIndex >= cells.length) return;
+
+    e.preventDefault();
+    cells[index].setAttribute('tabindex', '-1');
+    cells[nextIndex].setAttribute('tabindex', '0');
+    cells[nextIndex].focus();
   });
 }
 
 // ─── Copy-to-clipboard ───────────────────────────────────────────────────────
 
+function padSignalName(name, width) {
+  return name.length >= width ? name : name + ' '.repeat(width - name.length);
+}
+
 function buildClipboardText(agentData) {
-  const lines = [agentData.article, `Net score: ${agentData.net_score}`, ''];
-  agentData.signals.forEach((signal) => lines.push(`${signal.name}: ${signal.statement}`));
+  const scored = agentData.signals.filter((signal) => signal.contribution !== 0);
+  const unscored = agentData.signals.filter((signal) => signal.contribution === 0);
+
+  const nameWidth = scored.reduce((max, signal) => Math.max(max, signal.name.length), 0);
+  const scoredLines = scored.map((signal) => {
+    const sign = signal.contribution > 0 ? '+' : '';
+    return `${padSignalName(signal.name, nameWidth)}  ${sign}${signal.contribution}`;
+  });
+
+  const lines = [
+    `${agentData.article} — reliability score ${agentData.net_score}`,
+    '',
+    'Scored signals:',
+    ...scoredLines,
+    '',
+    'Not scored:',
+    ...unscored.map((signal) => signal.name),
+    '',
+    `Net score: ${agentData.net_score} of a possible ${agentData.max_possible}`,
+    '',
+    SOURCE_LINE,
+  ];
+
   return lines.join('\n');
 }
 
@@ -501,9 +460,8 @@ function showCopySuccess(button) {
 function bindCopyButton() {
   if (copyTeardown) copyTeardown();
   copyTeardown = delegate(document.body, '.wikipedia-signal-copy', 'click', async (_e, target) => {
-    const wrapId = target.getAttribute('data-copy-target');
-    const wrap = wrapId && document.getElementById(wrapId);
-    const script = wrap && wrap.parentElement.querySelector('script.agent-data');
+    const agentDataId = target.getAttribute('data-copy-target');
+    const script = agentDataId && document.getElementById(agentDataId);
     if (!script) {
       showToast('No reliability data available to copy', 'error');
       return;
@@ -560,7 +518,8 @@ function bindRetry() {
 
 function init() {
   bindRetry();
-  bindStoneToggle();
+  bindTooltips();
+  bindGridKeyboard();
   bindCopyButton();
   initInfiniteScroll();
   loadPage();
