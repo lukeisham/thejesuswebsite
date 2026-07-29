@@ -4,10 +4,12 @@ _Part of the [Style Guide](INDEX.md) — §14: version history._
 
 ## 14. Version History
 
-**Version**: 1.9
-**Last Updated**: 26 July 2026
+**Version**: 1.10
+**Last Updated**: 29 July 2026
 
 **Notes for Agents**: Reference this guide for every UI element. Maintain visual consistency across all sections. Prioritize scholarly clarity and ease of navigation through large historical datasets. Use vanilla HTML + CSS + JS only — no frameworks or build tools, except for the visual displays: maps, timeline, and arbor diagram. Journal-format pages (essays, responses, historiography) share `journal.css`.
+
+**1.10**: Widget replacement: 28-stone expand/collapse replaced with always-visible 5×5 grid of 25 cells (§9 row order) showing per-signal contributions and four-tier colour intensity; document score panel colour-coded by band; page layout restructured from single-column list (800px) to five-column row layout (1100px) with responsive stacking <768px; reduced-motion rules simplified to tooltip only. Date: 2026-07-27.
 
 **1.9**: §9 Resources Lists — the per-category chip row (`.resources-categories`/`.resources-category-link`) is removed; the landing page's card grid already navigates between categories. Resource lists can now contain subheading rows (`item_type: 'subheading'`) that render as `<section>` + `<h3 class="resource-subheading">` groups, each with its own `<ol>` restarting item numbering at 1; subheadings are never numbered and an empty section renders no heading. Admin gains a "+ Add Subheading" action alongside "+ Add Item" (`.draggable-row--subheading` treatment: dashed border, muted background, title-only).
 

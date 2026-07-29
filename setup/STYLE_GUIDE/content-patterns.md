@@ -245,12 +245,66 @@ News articles are curated external links. The individual `[slug].html` page pres
 A single ranked list page (`debate/wikipedia.html`) showing Wikipedia articles about Jesus, ranked for quality and relevance.
 
 - **Page header**: heading "Wikipedia Rankings", then a single **page-level** "Last revised: <date>" line (`.wikipedia-revised-line`, `--text-xs`, `--text-muted`) showing the most recent revision date across the whole dataset — hidden entirely if no article has a valid date. Brief explanatory paragraph follows.
-- **Ranked list**: single column, max-width `800px`, centred. Each card:
-  - **Rank number**: `2rem`, `--text-muted`, `font-weight: 300`, left-aligned
-  - **Article title** (`h3`), linked to the external Wikipedia URL with a Feather `external-link` icon inline, followed by the two reliability-stones glyph buttons (§6, "Inline Wikipedia Reliability Stones") for articles that have signal data
+- **Column header row**: `RANK | ARTICLE | SIGNALS | SCORE` (copy column unlabelled), `≥768px` only, sits outside the `<ol>` as an `aria-hidden` `<div>` matching the row grid's columns.
+- **Ranked list**: five-column row layout, max-width `1100px`, centred, with responsive stacking below `768px` (§9.1). Each row:
+  - **Rank number**: `2rem`, `--text-muted`, `font-weight: 300`, right-aligned
+  - **Article title** (`h3`), linked to the external Wikipedia URL with a Feather `external-link` icon inline
+  - **5×5 signal grid and document score panel** (§9.1, §6 "Wikipedia Quality Grid") for articles that have signal data, plus a copy button
   - No per-article date is shown — see the page-level line above
+  - Rank 1 renders with no visual emphasis — identical markup and styling at every rank
 - **Infinite scroll**: standard (§8)
 - **No filter bar** — all articles are homogeneous
+
+### 9.1 Wikipedia Grid Details
+
+Full spec for the 5×5 signal grid introduced above. See §6 "Wikipedia Quality Grid" for the tooltip/motion spec and colour tokens.
+
+**Layout**
+
+- Fixed 5×5 CSS Grid (`grid-template-columns: repeat(5, 1fr)`), never reflows to a different column count at any viewport.
+- Cell size: `26px` square, `3px` gap at `≥768px`; `22px` square, `2px` gap below `768px`. Only cell/gap size changes across breakpoints — column count is constant.
+- **Cell order is load-bearing.** Row-major, left-to-right, top-to-bottom, in exactly the §9 row order of the scoring rubric (strongest positive signal first, strongest negative signal last — `Wikipedia_alogrithm_refractor.md` §9). The grid reads as a gradient: top-left cells earn score, bottom-right cells lose it. The order is read once from `SIGNAL_DICTIONARY` (`frontend/assets/js/utils/wikipedia-signals.js`) and must never be re-sorted.
+- All 25 cells always render for every scored article, even when a signal never fired for that article — an unfired signal renders as an empty cell, not a missing one (JS-2).
+
+**Cell rendering**
+
+- **Positive, fired**: text colour is one of four blue intensity tiers (`--grid-blue-1` dimmest → `--grid-blue-4` boldest/bold-weight), chosen by fulfilment ratio (`|contribution| / |cap|`): tier 1 `< 0.30`, tier 2 `0.30–0.59`, tier 3 `0.60–0.94`, tier 4 `≥ 0.95`.
+- **Negative, fired**: `--error` text, bold, contribution shown with its minus sign — negative signals get one visual treatment regardless of magnitude, not four tiers.
+- **Empty** (`contribution: 0`, whether or not the signal was applicable): `--bg-surface` fill with a faint `--border` outline — visually present but clearly inert.
+- **No inline styles, no per-cell SVG.** Colour is applied as a class (`.wikipedia-cell--blue-1`…`--blue-4`, `--negative`, `--empty`) — see SR-3, CSS-2.
+- **Tooltips**: hover/focus on a cell shows `"<signal name>: <contribution>"` or `"<signal name>: not scored"` via the single shared tooltip element (§6). Pointer devices only.
+
+**Score panel**
+
+- One `.wikipedia-score-panel` per article, right of the grid: `net_score` in a solid colour band — green `≥ 50`, yellow `25–49`, red `≤ 24`. No suffix, no "/100" — the number and its band colour are the whole signal.
+
+**Copy format** (§6 "Wikipedia Quality Grid" for the button; format below)
+
+```
+<Article title> — reliability score <net_score>
+
+Scored signals:
+<name>  <+/-contribution>   (one line per non-zero signal, §9 order, name column aligned)
+
+Not scored:
+<name>                       (one line per unfired signal, §9 order)
+
+Net score: <net_score> of a possible <max>
+                              (max = every positive cap at full credit, every negative at 0 —
+                               already category-aware since `cap` is stored per article/signal)
+
+Source: thejesuswebsite.org/debate/wikipedia
+```
+
+**Accessibility**
+
+- Grid exposed as `role="table"`, cells as `role="gridcell"`, each with an `aria-label` of the same form as its tooltip text — exposed to assistive technology independent of the (pointer-only) tooltip layer.
+- **Roving tabindex**: one tab stop enters a given article's grid (`tabindex="0"` on its first cell only, `"-1"` on the rest); arrow keys move focus between that grid's own 25 cells; tabbing again leaves to the next focusable element. Keyboard users never hit 25 tab stops per row.
+- The page-level column header row (`RANK | ARTICLE | SIGNALS | SCORE`) is `aria-hidden` and sits outside the `<ol>` — it labels the row layout visually without affecting the list's semantics or the grid's own table structure.
+
+**Performance**
+
+- No per-cell SVG, no per-cell event listener. At the full 255-article dataset (6,375 cells), colour comes from a class on each cell and both the tooltip and keyboard-navigation listeners are single delegated listeners at the document level (JS-6), not one per cell.
 
 **Resources Lists**:
 Resources pages are curated ranked/sorted lists covering one category each (parables, manuscripts, people, sites, etc.).

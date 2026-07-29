@@ -1,6 +1,8 @@
 /* ==========================================================================
    Wikipedia Ranked List
-   Single ranked list of Wikipedia articles about Jesus.
+   Five-column row layout of Wikipedia articles about Jesus: rank, title,
+   signal grid, document score, copy button. See
+   setup/STYLE_GUIDE/content-patterns.md §9.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -32,9 +34,39 @@
    ------------------------------------------------------------------------- */
 
 .wikipedia-list {
-  max-width: var(--measure-list);
+  max-width: var(--measure-list-wide);
   margin-left: auto;
   margin-right: auto;
+}
+
+/* -------------------------------------------------------------------------
+   Column header row (outside the <ol>, aria-hidden, matches row columns)
+   ------------------------------------------------------------------------- */
+
+.wikipedia-header-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto auto 34px;
+  gap: var(--space-lg);
+  align-items: end;
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--border-strong);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1023px) {
+  .wikipedia-header-row {
+    grid-template-columns: 1.5rem 1fr auto auto 34px;
+  }
+}
+
+@media (max-width: 767px) {
+  .wikipedia-header-row {
+    display: none;
+  }
 }
 
 /* -------------------------------------------------------------------------
@@ -42,39 +74,81 @@
    ------------------------------------------------------------------------- */
 
 .wikipedia-rank-card {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto auto 34px;
   gap: var(--space-lg);
+  align-items: center;
   padding: var(--space-md) 0;
   border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 1023px) {
+  .wikipedia-rank-card {
+    grid-template-columns: 1.5rem 1fr auto auto 34px;
+  }
 }
 
 .wikipedia-rank-number {
   font-size: 2rem;
   font-weight: 300;
   color: var(--text-muted);
-  flex-shrink: 0;
-  width: 2.5rem;
   text-align: right;
   line-height: 1;
-}
-
-.wikipedia-rank-content {
-  flex: 1;
-  min-width: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .wikipedia-rank-title {
   font-size: var(--text-h3);
   font-weight: 600;
-  margin-bottom: var(--space-xs);
+  min-width: 0;
 }
 
-.wikipedia-rank-title a {
+.wikipedia-rank-title-link {
   color: var(--text-primary);
 }
 
-.wikipedia-rank-title a:hover {
+.wikipedia-rank-title-link:hover {
   color: var(--link-hover);
 }
 
+/* .wikipedia-rank-meta wraps the grid + score panel + copy button so mobile
+   can lay them out as one flex line. At >=768px it stays `display: contents`
+   so its three children act as direct grid items in .wikipedia-rank-card's
+   5-column template (columns 3-5) — no extra box, no extra column. */
+.wikipedia-rank-meta {
+  display: contents;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive stacking <768px — same 5 data points, two lines instead of one
+   row. The signal grid itself never reflows (stays 5x5, only cell size
+   changes — see wikipedia-quality-grid.css).
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .wikipedia-rank-card {
+    grid-template-columns: 1.5rem 1fr;
+    grid-template-areas:
+      'rank title'
+      'rank meta';
+    row-gap: var(--space-sm);
+    align-items: start;
+  }
+
+  .wikipedia-rank-number {
+    grid-area: rank;
+    align-self: start;
+  }
+
+  .wikipedia-rank-title {
+    grid-area: title;
+  }
+
+  .wikipedia-rank-meta {
+    grid-area: meta;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    justify-content: flex-start;
+  }
+}

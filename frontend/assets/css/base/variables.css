@@ -36,6 +36,15 @@
     --error: #8b3d3d;
     --info: #3d4f6b;
 
+    /* Wikipedia quality grid — four-tier blue intensity ramp, all derived from
+       --info (#3d4f6b). Text-on-surface-alt contrast (WCAG 2.1 §1.4.3):
+       blue-1 5.39:1, blue-2 (=--info) 7.11:1, blue-3 8.07:1, blue-4 8.86:1 —
+       all clear the 4.5:1 AA floor with headroom. */
+    --grid-blue-1: #50617a;
+    --grid-blue-2: #3d4f6b;
+    --grid-blue-3: #364760;
+    --grid-blue-4: #314158;
+
     /* Borders & Dividers */
     --border: #d4c9b8;
     --border-strong: #b8a48a;
@@ -73,6 +82,7 @@
     --measure-reading-wide: 720px;
     --measure-narrow: 760px;
     --measure-list: 800px;
+    --measure-list-wide: 1100px;
 
     /* -------------------------------------------------------------------------
      Layout & Spacing
