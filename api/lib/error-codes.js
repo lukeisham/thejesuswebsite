@@ -530,6 +530,16 @@ const CATEGORY_2 = {
       "A string truncation or length-bound operation failed — the input was not a valid string.",
     severity: "error",
   },
+
+  VECTOR_SIDECAR_MALFORMED_RESPONSE: {
+    code: "E-TRANSFORM-016",
+    category: 2,
+    httpStatus: 502,
+    message: "The signal-classification service returned an unexpected response.",
+    detail:
+      "The vector sidecar's JSON response did not match the expected shape (missing family/store/results/verdict).",
+    severity: "error",
+  },
 };
 
 // ── Category 3: Persistence & I/O Boundaries (External Integration) ──────────
@@ -810,6 +820,28 @@ const CATEGORY_3 = {
     detail:
       "pm2 or systemd reported a failure — the process may need manual intervention.",
     severity: "critical",
+  },
+
+  // ── Vector sidecar (localhost HTTP) ─────────────────────────────────────
+
+  VECTOR_SIDECAR_UNREACHABLE: {
+    code: "E-PERSIST-026",
+    category: 3,
+    httpStatus: 502,
+    message: "The signal-classification service is temporarily unavailable.",
+    detail:
+      "A fetch() to the localhost vector sidecar failed at the network level (connection refused).",
+    severity: "error",
+  },
+
+  VECTOR_SIDECAR_TIMEOUT: {
+    code: "E-PERSIST-027",
+    category: 3,
+    httpStatus: 504,
+    message: "The signal-classification service took too long to respond.",
+    detail:
+      "A fetch() to the localhost vector sidecar was aborted after exceeding its timeout.",
+    severity: "error",
   },
 };
 

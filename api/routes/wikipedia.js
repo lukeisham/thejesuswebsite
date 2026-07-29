@@ -4,8 +4,36 @@
 const express = require('express');
 const wikipediaModel = require('../models/wikipedia.model');
 const requireAuth = require('../middleware/auth');
+const rateLimit = require('../middleware/rate-limit');
+const ERRORS = require('../lib/error-codes');
+const { sendError } = require('../lib/error-handler');
+const vectorSidecarClient = require('../lib/vector-sidecar-client');
 
 const router = express.Router();
+
+// Public family names the vector sidecar knows how to classify against.
+// Mirrors vector-sidecar/families.py's FAMILY_STORE_MAP keys — keep in sync.
+const SIGNAL_FAMILY_WHITELIST = new Set([
+    'data-bucket',
+    'interpretation-bucket',
+    'register',
+    'balanced-debate',
+    'anti-supernatural',
+    'ot-nt-discontinuity',
+    'mythicist-framing',
+    'jesus-seminar',
+    'secular-materialist',
+    'confessional-balance',
+    'literary-analysis',
+    'gnostic-over-emphasis',
+]);
+
+const SIGNAL_CHECK_MAX_TEXT_LENGTH = 2000;
+
+// Public, unauthenticated, and triggers a Python-side embedding computation
+// per request — rate-limited on top of the shared public-read budget applied
+// in server.js.
+const signalCheckLimit = rateLimit({ maxAttempts: 20, windowMs: 60_000 });
 
 // GET /wikipedia — public list of published Wikipedia articles
 router.get('/', (req, res) => {
@@ -38,6 +66,45 @@ router.get('/:slug', (req, res) => {
     } catch (error) {
         console.error('GET /wikipedia/:slug failed:', error);
         res.status(500).json({ error: 'Failed to load Wikipedia article.' });
+    }
+});
+
+// POST /wikipedia/signal-check — classify free text against a signal family's
+// live vector store via the Python sidecar. Public, unauthenticated: this is
+// a live version of the offline scoring step (Wikipedia_alogrithm_refractor.md
+// §3.4.1's nearest-neighbour-label rule), not a lookup of any article data —
+// no admin-only fields, no slug, nothing article-specific is involved.
+router.post('/signal-check', signalCheckLimit, async (req, res) => {
+    const { family, text } = req.body || {};
+
+    if (typeof family !== 'string' || !SIGNAL_FAMILY_WHITELIST.has(family)) {
+        return sendError(res, ERRORS.MISSING_BODY_FIELD, {
+            field: 'family',
+            allowed: Array.from(SIGNAL_FAMILY_WHITELIST),
+        });
+    }
+
+    if (typeof text !== 'string' || text.trim().length === 0) {
+        return sendError(res, ERRORS.MISSING_BODY_FIELD, { field: 'text' });
+    }
+
+    if (text.length > SIGNAL_CHECK_MAX_TEXT_LENGTH) {
+        return sendError(res, ERRORS.PAYLOAD_TOO_LARGE, {
+            field: 'text',
+            maxLength: SIGNAL_CHECK_MAX_TEXT_LENGTH,
+        });
+    }
+
+    try {
+        const result = await vectorSidecarClient.queryFamily(family, text);
+        res.json(result);
+    } catch (error) {
+        if (error instanceof vectorSidecarClient.VectorSidecarError) {
+            console.error('POST /wikipedia/signal-check sidecar failure:', error.message);
+            return sendError(res, ERRORS[error.errorCode]);
+        }
+        console.error('POST /wikipedia/signal-check failed:', error);
+        sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }
 });
 
