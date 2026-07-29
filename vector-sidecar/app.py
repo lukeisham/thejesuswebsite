@@ -15,16 +15,21 @@ exist. What this sidecar actually serves is a live version of the offline
 scoring step: given free text and a family name, tell the caller which
 exemplar it's nearest to and whether that would fire the signal.
 
-Environment variables (all optional, sensible production defaults):
-  VECTOR_SIDECAR_HOST     default 127.0.0.1
-  VECTOR_SIDECAR_PORT     default 8901
+Environment variables — VECTOR_STORE_DIR and MODEL_DIR MUST be set
+explicitly in production. This code (vector-sidecar/) is a git-tracked
+directory that deploys to /var/www/thejesuswebsite/vector-sidecar/ via the
+normal git-based deploy; the vector-stores data + model are NOT in git
+(rsynced instead, see scripts/sync-vector-stores.sh) and live in a sibling
+path, /var/www/thejesuswebsite-vector-store/{vector-stores,model}/ — NOT a
+sibling of this file, so the relative defaults below are a local-dev
+convenience only. scripts/sync-vector-sidecar.sh sets both env vars
+explicitly when starting the pm2 process.
+  VECTOR_SIDECAR_PORT     default 8901 (informational only — actually set via
+                          the uvicorn --port flag at start time)
   VECTOR_STORE_DIR        default <this file's dir>/../vector-stores
-                          (matches the VPS layout: sidecar/ and
-                          vector-stores/ are siblings under
-                          /var/www/thejesuswebsite-vector-store/ — see
-                          scripts/sync-vector-stores.sh /
-                          scripts/sync-vector-sidecar.sh)
-  MODEL_DIR               default <this file's dir>/../model
+                          (a same-repo-checkout convenience default; NOT
+                          correct in production — see above)
+  MODEL_DIR               default <this file's dir>/../model (same caveat)
   MAX_TEXT_LENGTH         default 2000 (characters; bounds embedding cost)
 """
 
