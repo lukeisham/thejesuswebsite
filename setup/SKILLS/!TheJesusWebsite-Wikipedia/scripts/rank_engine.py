@@ -174,8 +174,14 @@ def load_main():
             # so main_rows carries the real title, matching every other in-memory title (detail
             # CSV, export, harvest) — an unreversed title here silently forked into two spellings
             # of the same article wherever a title contains a comma (e.g. "Mary, mother of Jesus").
+            # The URL is intentionally left %2C-encoded (NOT decoded to a literal comma): it must
+            # match to_output_url()'s encoding exactly, because api/scripts/import-wikipedia-
+            # scoring.js matches existing DB rows by url string, and every previously-imported
+            # comma-titled article has its url stored in the encoded form. Decoding here would
+            # silently break that match for every such row (update -> spurious insert -> UNIQUE
+            # constraint on slug, since the un-updated existing row already holds that slug).
             title = title.replace(" -", ",") if " -" in title else title
-            rows.append({"title": title, "url": url.replace("%2C", ","), "ranking": int(rank)})
+            rows.append({"title": title, "url": url, "ranking": int(rank)})
     return rows
 
 
