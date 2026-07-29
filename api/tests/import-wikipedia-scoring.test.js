@@ -16,6 +16,9 @@ const {
   validateArticle,
   slugFromTitle,
   KNOWN_SIGNAL_KEYS,
+  PENDING_SIGNAL_KEYS,
+  checkNonPendingSignalsNonZero,
+  parseArgs,
 } = require("../scripts/import-wikipedia-scoring");
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -46,7 +49,7 @@ function makeArticle(overrides = {}) {
       wiki_quality: false,
       ancient_historian_hits: 0,
       mythicist_hits: 0,
-      narrative_interp_tier: "unclassifiable",
+      data_interp_tier: "unclassifiable",
       jesus_seminar_hits: 0,
       jesus_seminar_mult: 1.0,
       mythicist_mult: 1.0,
@@ -154,39 +157,74 @@ describe("deriveCap — unconditional negative", () => {
   });
 });
 
-// ── deriveCap — narrative_interp_split (tiered) ─────────────────────────────
+// ── deriveCap — data_interp_split (tiered) ─────────────────────────────
 
-describe("deriveCap — narrative_interp_split", () => {
+describe("deriveCap — data_interp_split", () => {
   test("clear_split → +10", () => {
     assert.equal(
-      deriveCap("narrative_interp_split", {}, { narrative_interp_tier: "clear_split" }),
+      deriveCap("data_interp_split", {}, { data_interp_tier: "clear_split" }),
       10,
     );
   });
 
   test("muddled → -3", () => {
     assert.equal(
-      deriveCap("narrative_interp_split", {}, { narrative_interp_tier: "muddled" }),
+      deriveCap("data_interp_split", {}, { data_interp_tier: "muddled" }),
       -3,
     );
   });
 
   test("one_sided → -5", () => {
     assert.equal(
-      deriveCap("narrative_interp_split", {}, { narrative_interp_tier: "one_sided" }),
+      deriveCap("data_interp_split", {}, { data_interp_tier: "one_sided" }),
       -5,
     );
   });
 
   test("unclassifiable → 0", () => {
     assert.equal(
-      deriveCap("narrative_interp_split", {}, { narrative_interp_tier: "unclassifiable" }),
+      deriveCap("data_interp_split", {}, { data_interp_tier: "unclassifiable" }),
       0,
     );
   });
 
   test("missing tier → 0", () => {
-    assert.equal(deriveCap("narrative_interp_split", {}, {}), 0);
+    assert.equal(deriveCap("data_interp_split", {}, {}), 0);
+  });
+
+  test("pending: returns +10 regardless of tier", () => {
+    assert.equal(
+      deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "unclassifiable" }),
+      10,
+    );
+    assert.equal(
+      deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "one_sided" }),
+      10,
+    );
+    assert.equal(
+      deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "muddled" }),
+      10,
+    );
+    assert.equal(
+      deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "clear_split" }),
+      10,
+    );
+    // missing tier string still gets +10 when pending
+    assert.equal(
+      deriveCap("data_interp_split", {}, { data_interp_pending: true }),
+      10,
+    );
+  });
+
+  test("pending false: falls through to tiered logic", () => {
+    assert.equal(
+      deriveCap("data_interp_split", {}, { data_interp_pending: false, data_interp_tier: "unclassifiable" }),
+      0,
+    );
+    assert.equal(
+      deriveCap("data_interp_split", {}, { data_interp_pending: false, data_interp_tier: "clear_split" }),
+      10,
+    );
   });
 });
 
@@ -307,6 +345,17 @@ describe("deriveCap — conditional positive", () => {
 
   test("literary_analysis: +4 for other articles", () => {
     assert.equal(deriveCap("literary_analysis", {}, {}), 4);
+  });
+
+  test("literary_analysis: unaffected by data_interp_pending flag", () => {
+    assert.equal(
+      deriveCap("literary_analysis", {}, { data_interp_pending: true }),
+      4,
+    );
+    assert.equal(
+      deriveCap("literary_analysis", { is_teaching: true }, { data_interp_pending: true }),
+      6,
+    );
   });
 
   test("religious_art: 0 for parable/teaching articles regardless of raw signals", () => {
@@ -825,5 +874,388 @@ describe("KNOWN_SIGNAL_KEYS", () => {
     ]) {
       assert.equal(KNOWN_SIGNAL_KEYS.has(added), true, added);
     }
+  });
+});
+
+// ── PENDING_SIGNAL_KEYS ──────────────────────────────────────────────────────
+
+describe("PENDING_SIGNAL_KEYS", () => {
+  test("is a subset of KNOWN_SIGNAL_KEYS", () => {
+    for (const key of PENDING_SIGNAL_KEYS) {
+      assert.ok(KNOWN_SIGNAL_KEYS.has(key), `"${key}" must be in KNOWN_SIGNAL_KEYS`);
+    }
+  });
+
+  test("contains data_interp_split and literary_analysis", () => {
+    assert.ok(PENDING_SIGNAL_KEYS.has("data_interp_split"));
+    assert.ok(PENDING_SIGNAL_KEYS.has("literary_analysis"));
+  });
+
+  test("does not contain non-pending keys", () => {
+    assert.equal(PENDING_SIGNAL_KEYS.has("bible_verses"), false);
+    assert.equal(PENDING_SIGNAL_KEYS.has("manuscripts"), false);
+    assert.equal(PENDING_SIGNAL_KEYS.has("jesus_seminar"), false);
+  });
+});
+
+// ── checkNonPendingSignalsNonZero ─────────────────────────────────────────────
+
+describe("checkNonPendingSignalsNonZero", () => {
+  test("returns empty array when all non-pending keys have a non-zero contribution", () => {
+    const validated = [
+      {
+        article: makeArticle({
+          contributions: Object.fromEntries(
+            [...KNOWN_SIGNAL_KEYS].map((k) => [
+              k,
+              PENDING_SIGNAL_KEYS.has(k) ? 0 : 1,
+            ]),
+          ),
+        }),
+      },
+    ];
+    const zeroKeys = checkNonPendingSignalsNonZero(
+      validated,
+      PENDING_SIGNAL_KEYS,
+    );
+    assert.deepEqual(zeroKeys, []);
+  });
+
+  test("returns zeroed keys when a non-pending signal is all-zero", () => {
+    const validated = [
+      {
+        article: makeArticle({
+          contributions: Object.fromEntries(
+            [...KNOWN_SIGNAL_KEYS].map((k) => [
+              k,
+              k === "bible_verses"
+                ? 0
+                : PENDING_SIGNAL_KEYS.has(k)
+                  ? 0
+                  : 1,
+            ]),
+          ),
+        }),
+      },
+    ];
+    const zeroKeys = checkNonPendingSignalsNonZero(
+      validated,
+      PENDING_SIGNAL_KEYS,
+    );
+    assert.ok(zeroKeys.includes("bible_verses"));
+    assert.equal(zeroKeys.includes("data_interp_split"), false);
+    assert.equal(zeroKeys.includes("literary_analysis"), false);
+  });
+
+  test("skips pending keys even when they are all-zero", () => {
+    const validated = [
+      {
+        article: makeArticle({
+          contributions: Object.fromEntries(
+            [...KNOWN_SIGNAL_KEYS].map((k) => [
+              k,
+              PENDING_SIGNAL_KEYS.has(k) ? 0 : 1,
+            ]),
+          ),
+        }),
+      },
+    ];
+    const zeroKeys = checkNonPendingSignalsNonZero(
+      validated,
+      PENDING_SIGNAL_KEYS,
+    );
+    assert.deepEqual(zeroKeys, []);
+  });
+
+  test("spans multiple articles to find non-zero contributions", () => {
+    const article1 = makeArticle({
+      contributions: Object.fromEntries(
+        [...KNOWN_SIGNAL_KEYS].map((k) => [
+          k,
+          k === "bible_verses" ? 5 : 0,
+        ]),
+      ),
+    });
+    const article2 = makeArticle({
+      contributions: Object.fromEntries(
+        [...KNOWN_SIGNAL_KEYS].map((k) => [
+          k,
+          k === "ante_nicene" ? 3 : 0,
+        ]),
+      ),
+    });
+    const zeroKeys = checkNonPendingSignalsNonZero(
+      [
+        { article: article1 },
+        { article: article2 },
+      ],
+      PENDING_SIGNAL_KEYS,
+    );
+    assert.ok(zeroKeys.length > 0);
+    assert.equal(zeroKeys.includes("bible_verses"), false);
+    assert.equal(zeroKeys.includes("ante_nicene"), false);
+  });
+});
+
+// ── parseArgs ─────────────────────────────────────────────────────────────────
+
+describe("parseArgs", () => {
+  test("parses --purge-missing flag", () => {
+    const args = parseArgs(["--purge-missing"]);
+    assert.equal(args.purgeMissing, true);
+    assert.equal(args.publish, false);
+  });
+
+  test("defaults purgeMissing to false", () => {
+    const args = parseArgs([]);
+    assert.equal(args.purgeMissing, false);
+  });
+
+  test("combines --purge-missing with --publish", () => {
+    const args = parseArgs(["--publish", "--purge-missing"]);
+    assert.equal(args.publish, true);
+    assert.equal(args.purgeMissing, true);
+  });
+});
+
+// ── purge-missing integration (with test DB) ──────────────────────────────────
+
+describe("purge-missing integration", () => {
+  const Database = require("better-sqlite3");
+  const path = require("path");
+  const Module = require("module");
+  const fs = require("fs");
+
+  function setupDb() {
+    const testDb = new Database(":memory:");
+    testDb.pragma("foreign_keys = ON");
+
+    const schemaPath = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "database",
+      "schema.sql",
+    );
+    const schema = fs.readFileSync(schemaPath, "utf8");
+    const createArticles = schema.match(
+      /CREATE TABLE wikipedia_articles[\s\S]*?;(?=\s*(?:CREATE|--|$))/i,
+    )?.[0];
+    const createSignals = schema.match(
+      /CREATE TABLE wikipedia_article_signals[\s\S]*?;(?=\s*(?:CREATE|--|$))/i,
+    )?.[0];
+    if (createArticles) testDb.exec(createArticles);
+    if (createSignals) testDb.exec(createSignals);
+
+    return testDb;
+  }
+
+  test("existing articles absent from export are retained when --purge-missing is false", () => {
+    const testDb = setupDb();
+
+    testDb
+      .prepare(
+        "INSERT INTO wikipedia_articles (slug, wikipedia_article_title, wikipedia_article_url, wikipedia_article_rank_number) VALUES (?, ?, ?, ?)",
+      )
+      .run("old-article", "Old Article", "https://en.wikipedia.org/wiki/Old", 99);
+
+    const configPath = require.resolve(
+      path.resolve(__dirname, "..", "config"),
+    );
+    Module._cache[configPath] = {
+      id: configPath,
+      filename: configPath,
+      loaded: true,
+      exports: testDb,
+    };
+
+    const validated = [
+      {
+        article: makeArticle({
+          url: "https://en.wikipedia.org/wiki/New",
+          net_score: 0,
+        }),
+        caps: Object.fromEntries([...KNOWN_SIGNAL_KEYS].map((k) => [k, 0])),
+      },
+    ];
+
+    const exportUrls = new Set(validated.map((v) => v.article.url));
+    const txn = testDb.transaction(() => {
+      for (const { article } of validated) {
+        const existing = testDb
+          .prepare(
+            "SELECT id FROM wikipedia_articles WHERE wikipedia_article_url = ?",
+          )
+          .get(article.url);
+        if (!existing) {
+          testDb
+            .prepare(
+              "INSERT INTO wikipedia_articles (slug, wikipedia_article_title, wikipedia_article_url, wikipedia_article_rank_number) VALUES (?, ?, ?, ?)",
+            )
+            .run(
+              slugFromTitle(article.title),
+              article.title,
+              article.url,
+              article.ranking,
+            );
+        }
+      }
+
+      const dbArticles = testDb
+        .prepare(
+          "SELECT id, wikipedia_article_url FROM wikipedia_articles",
+        )
+        .all();
+      const absent = dbArticles.filter(
+        (row) => !exportUrls.has(row.wikipedia_article_url),
+      );
+      return absent;
+    });
+
+    const absentBefore = txn();
+    assert.equal(absentBefore.length, 1);
+
+    const oldArticle = testDb
+      .prepare(
+        "SELECT id FROM wikipedia_articles WHERE wikipedia_article_url = ?",
+      )
+      .get("https://en.wikipedia.org/wiki/Old");
+    assert.ok(oldArticle, "absent article should be retained without --purge-missing");
+
+    const newArticle = testDb
+      .prepare(
+        "SELECT id FROM wikipedia_articles WHERE wikipedia_article_url = ?",
+      )
+      .get("https://en.wikipedia.org/wiki/New");
+    assert.ok(newArticle, "new article should be inserted");
+
+    delete Module._cache[configPath];
+  });
+
+  test("existing articles absent from export are deleted when --purge-missing is true", () => {
+    const testDb = setupDb();
+
+    const oldUrl = "https://en.wikipedia.org/wiki/Old";
+    testDb
+      .prepare(
+        "INSERT INTO wikipedia_articles (slug, wikipedia_article_title, wikipedia_article_url, wikipedia_article_rank_number) VALUES (?, ?, ?, ?)",
+      )
+      .run("old-article", "Old Article", oldUrl, 99);
+
+    const configPath = require.resolve(
+      path.resolve(__dirname, "..", "config"),
+    );
+    Module._cache[configPath] = {
+      id: configPath,
+      filename: configPath,
+      loaded: true,
+      exports: testDb,
+    };
+
+    const validated = [
+      {
+        article: makeArticle({
+          url: "https://en.wikipedia.org/wiki/New",
+          net_score: 0,
+        }),
+        caps: Object.fromEntries([...KNOWN_SIGNAL_KEYS].map((k) => [k, 0])),
+      },
+    ];
+
+    const exportUrls = new Set(validated.map((v) => v.article.url));
+    const txn = testDb.transaction(() => {
+      for (const { article } of validated) {
+        const existing = testDb
+          .prepare(
+            "SELECT id FROM wikipedia_articles WHERE wikipedia_article_url = ?",
+          )
+          .get(article.url);
+        if (!existing) {
+          testDb
+            .prepare(
+              "INSERT INTO wikipedia_articles (slug, wikipedia_article_title, wikipedia_article_url, wikipedia_article_rank_number) VALUES (?, ?, ?, ?)",
+            )
+            .run(
+              slugFromTitle(article.title),
+              article.title,
+              article.url,
+              article.ranking,
+            );
+        }
+      }
+
+      const dbArticles = testDb
+        .prepare(
+          "SELECT id, wikipedia_article_url FROM wikipedia_articles",
+        )
+        .all();
+      const absent = dbArticles.filter(
+        (row) => !exportUrls.has(row.wikipedia_article_url),
+      );
+      const purgeStmt = testDb.prepare(
+        "DELETE FROM wikipedia_articles WHERE id = ?",
+      );
+      for (const row of absent) {
+        purgeStmt.run(row.id);
+      }
+    });
+
+    txn();
+
+    const oldArticle = testDb
+      .prepare(
+        "SELECT id FROM wikipedia_articles WHERE wikipedia_article_url = ?",
+      )
+      .get(oldUrl);
+    assert.equal(oldArticle, undefined, "absent article should be purged with --purge-missing");
+
+    const newArticle = testDb
+      .prepare(
+        "SELECT id FROM wikipedia_articles WHERE wikipedia_article_url = ?",
+      )
+      .get("https://en.wikipedia.org/wiki/New");
+    assert.ok(newArticle, "new article should still exist after purge");
+
+    delete Module._cache[configPath];
+  });
+
+  test("purge cascades to delete associated signal rows", () => {
+    const testDb = setupDb();
+
+    const oldUrl = "https://en.wikipedia.org/wiki/Old";
+    const result = testDb
+      .prepare(
+        "INSERT INTO wikipedia_articles (slug, wikipedia_article_title, wikipedia_article_url, wikipedia_article_rank_number) VALUES (?, ?, ?, ?)",
+      )
+      .run("old-article", "Old Article", oldUrl, 99);
+    const oldId = result.lastInsertRowid;
+
+    testDb
+      .prepare(
+        "INSERT INTO wikipedia_article_signals (wikipedia_article_id, signal_key, contribution, cap) VALUES (?, ?, ?, ?)",
+      )
+      .run(oldId, "bible_verses", 5, 12);
+
+    const signalBefore = testDb
+      .prepare(
+        "SELECT id FROM wikipedia_article_signals WHERE wikipedia_article_id = ?",
+      )
+      .get(oldId);
+    assert.ok(signalBefore, "signal should exist before purge");
+
+    testDb
+      .prepare("DELETE FROM wikipedia_articles WHERE id = ?")
+      .run(oldId);
+
+    const signalAfter = testDb
+      .prepare(
+        "SELECT id FROM wikipedia_article_signals WHERE wikipedia_article_id = ?",
+      )
+      .get(oldId);
+    assert.equal(
+      signalAfter,
+      undefined,
+      "signal should be cascade-deleted with article",
+    );
   });
 });

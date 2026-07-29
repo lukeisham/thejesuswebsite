@@ -100,7 +100,7 @@ function updateRevisedLine(items) {
   const latestMs = Math.max(...validDates);
 
   const dateStr = new Date(latestMs).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
-  $revisedLine.textContent = `Last updated: ${dateStr}`;
+  $revisedLine.textContent = `Scores last updated: ${dateStr}`;
   $revisedLine.hidden = false;
 }
 

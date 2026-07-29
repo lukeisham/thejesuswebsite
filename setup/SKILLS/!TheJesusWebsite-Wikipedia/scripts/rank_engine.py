@@ -26,27 +26,28 @@ script only does the deterministic part: harvest signals, compute the weighted s
 """
 import csv, json, subprocess, sys, os, argparse
 
-BASE = "/Users/lukeishammacbookair/Library/CloudStorage/Dropbox/_Lukeatron"
-PROJECT_DIR = os.path.join(BASE, "Memory/Long-Term/The-Jesus-Website/Wikipedia")
-BROWSER = os.path.join(BASE, ".claude/skills/!HeadlessChromeBrowser/scripts/browser.py")
-EXTRACT_JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extract.js")
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ALGORITHM_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPT_DIR))),
+    "Wikipedia algorithm",
+)
 
-MAIN_CSV = os.path.join(PROJECT_DIR, "Wikipedia Articles.csv")
-DETAIL_CSV = os.path.join(PROJECT_DIR, "Wikipedia Articles - Scoring Detail.csv")
-EXCLUDED_TXT = os.path.join(PROJECT_DIR, "excluded-titles.txt")
-BULK_PASTE_TXT = os.path.join(PROJECT_DIR, "wiki-bulk-paste.txt")
+# Headless Chrome browser skill path (Dropbox — external tool, not a deliverable).
+BROWSER = "/Users/lukeishammacbookair/Library/CloudStorage/Dropbox/_Lukeatron/.claude/skills/!HeadlessChromeBrowser/scripts/browser.py"
+EXTRACT_JS = os.path.join(_SCRIPT_DIR, "extract.js")
+
+MAIN_CSV = os.path.join(ALGORITHM_DIR, "Wikipedia Articles.csv")
+DETAIL_CSV = os.path.join(ALGORITHM_DIR, "Wikipedia Articles - Scoring Detail.csv")
+EXCLUDED_TXT = os.path.join(ALGORITHM_DIR, "excluded-titles.txt")
+BULK_PASTE_TXT = os.path.join(ALGORITHM_DIR, "wiki-bulk-paste.txt")
 
 # The two v2 file-based interfaces this plan (wikipedia-v2-06) reads directly —
 # Plan 4's section classifier and Plan 5's vector family scorer. Both live in
 # the v2 working directory alongside this script's own deliverables. (Directory
 # renamed from "Wikipedia algorithm v2" to "Wikipedia algorithm" once v1 was
 # retired — see wikipedia-v2-09's close-out.)
-V2_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
-    "Wikipedia algorithm",
-)
-BUCKET_LABELS_JSON = os.path.join(V2_DIR, "bucket-labels.json")
-VECTOR_FAMILY_SCORES_JSON = os.path.join(V2_DIR, "vector-family-scores.json")
+BUCKET_LABELS_JSON = os.path.join(ALGORITHM_DIR, "bucket-labels.json")
+VECTOR_FAMILY_SCORES_JSON = os.path.join(ALGORITHM_DIR, "vector-family-scores.json")
 
 # Vector family name (Plan 5's registry.py keys) -> the §9 signal key it feeds.
 # confessional-balance's family score already encodes the -3/-1/0 tiering
@@ -67,7 +68,7 @@ DETAIL_FIELDS = [
     "ranking", "title", "net_score", "verse_count", "ref_count", "journal_hits", "book_hits",
     "commentary_hits", "arch_site", "manuscript_hits", "primary_source_quotes",
     "poor_referencing", "wiki_quality", "ancient_historian_hits", "ante_nicene_hits",
-    "mythicist_hits", "narrative_interp_tier", "narrative_interp_split_contribution",
+    "mythicist_hits", "data_interp_tier", "data_interp_split_contribution", "data_interp_pending",
     "jesus_seminar_hits", "jesus_seminar_mult", "jesus_seminar_contribution",
     "mythicist_mult", "mythicist_contribution",
     "no_bible_verse", "ot_nt_criticism_contribution", "supernatural_criticism_contribution",
@@ -86,7 +87,7 @@ DETAIL_FIELDS = [
 def load_bucket_labels():
     """Plan 4's classifier output — per-article paragraph labels and row-3
     tier. Fails loudly (raises) if missing or malformed rather than silently
-    scoring narrative_interp_split as 0 for every article (JS-2 equivalent)."""
+    scoring data_interp_split as 0 for every article (JS-2 equivalent)."""
     if not os.path.exists(BUCKET_LABELS_JSON):
         raise FileNotFoundError(
             f"bucket-labels.json not found at {BUCKET_LABELS_JSON} — Plan 4's "
@@ -131,17 +132,27 @@ def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
     a missing per-family entry in vector-family-scores.json means that
     family fell back to its dormant keyword detector — `sig`'s existing
     keyword-derived fields are left untouched in that case, which is exactly
-    the dormant-fallback path (§11.4)."""
-    bucket_entry = bucket_labels.get(article_id)
-    if bucket_entry is None:
-        raise KeyError(f'"{article_id}" missing from bucket-labels.json')
-    sig["narrativeInterpTier"] = TIER_TO_NARRATIVE_INTERP.get(bucket_entry.get("tier"), "unclassifiable")
+    the dormant-fallback path (§11.4).
 
-    family_entry = family_scores.get(article_id, {})
-    for family_name, signal_key in VECTOR_FAMILY_TO_SIGNAL.items():
-        if family_name not in family_entry:
-            continue  # dormant fallback — sig's keyword-derived value stands
-        sig[f"__vector_{signal_key}"] = family_entry[family_name]
+    `bucket_labels`/`family_scores` may each be None — the file-absence case,
+    handled by the caller as the documented pending state rather than an
+    error (§9 activation checklist). A None `bucket_labels` marks `sig` as
+    pending instead of merging a tier; a None `family_scores` leaves every
+    vector-covered signal on its dormant keyword fallback."""
+    if bucket_labels is None:
+        sig["dataInterpPending"] = True
+    else:
+        bucket_entry = bucket_labels.get(article_id)
+        if bucket_entry is None:
+            raise KeyError(f'"{article_id}" missing from bucket-labels.json')
+        sig["dataInterpTier"] = TIER_TO_NARRATIVE_INTERP.get(bucket_entry.get("tier"), "unclassifiable")
+
+    if family_scores is not None:
+        family_entry = family_scores.get(article_id, {})
+        for family_name, signal_key in VECTOR_FAMILY_TO_SIGNAL.items():
+            if family_name not in family_entry:
+                continue  # dormant fallback — sig's keyword-derived value stands
+            sig[f"__vector_{signal_key}"] = family_entry[family_name]
 
 # The set of keys row_from_signals() actually produces (DETAIL_FIELDS minus "ranking" and
 # "no_bible_verse" — derived later, not stored on the row itself; plus "url" which isn't a
@@ -159,7 +170,12 @@ def load_main():
             if not line:
                 continue
             title, url, rank = line.rsplit(",", 2)
-            rows.append({"title": title, "url": url, "ranking": int(rank)})
+            # Reverse to_output_title()'s comma -> " -" encoding (write_files/write_bulk_paste_file)
+            # so main_rows carries the real title, matching every other in-memory title (detail
+            # CSV, export, harvest) — an unreversed title here silently forked into two spellings
+            # of the same article wherever a title contains a comma (e.g. "Mary, mother of Jesus").
+            title = title.replace(" -", ",") if " -" in title else title
+            rows.append({"title": title, "url": url.replace("%2C", ","), "ranking": int(rank)})
     return rows
 
 
@@ -210,7 +226,7 @@ def net_score_from_signals(sig):
 
     # Row 3: Data/interpretation split — vector (§3.1.1, Plan 4). No dormant fallback exists
     # for this signal (the classifier has no fallback — §11.4); "unclassifiable" scores 0.
-    tier = sig.get("narrativeInterpTier", "unclassifiable")
+    tier = sig.get("dataInterpTier", "unclassifiable")
     s += {"clear_split": 10, "muddled": -3, "one_sided": -5}.get(tier, 0)
 
     # Row 1: Named manuscripts — +2 per, capped +6; flat +8 (not doubled) for teachings/Bible books
@@ -379,8 +395,8 @@ def row_from_signals(title, url, sig):
     if balanced_debate_contribution == 0:
         mythicist_fallback += -2
 
-    tier = sig.get("narrativeInterpTier", "unclassifiable")
-    narrative_interp_contribution = {"clear_split": 10, "muddled": -3, "one_sided": -5}.get(tier, 0)
+    tier = sig.get("dataInterpTier", "unclassifiable")
+    data_interp_contribution = {"clear_split": 10, "muddled": -3, "one_sided": -5}.get(tier, 0)
 
     return {
         "title": title, "url": url, "net_score": net_score_from_signals(sig),
@@ -397,8 +413,11 @@ def row_from_signals(title, url, sig):
         "ancient_historian_hits": sig.get("ancientHistorianCount", 0),
         "ante_nicene_hits": sig.get("anteNiceneCount", 0),
         "mythicist_hits": sig.get("mythicistCount", 0),
-        "narrative_interp_tier": tier,
-        "narrative_interp_split_contribution": narrative_interp_contribution,
+        "data_interp_tier": tier,
+        "data_interp_split_contribution": data_interp_contribution,
+        # Global "the classifier hasn't run" state (bucket-labels.json absent), distinct from a
+        # genuine per-article "unclassifiable" outcome once Plan 4 ships (§9 activation checklist).
+        "data_interp_pending": sig.get("dataInterpPending", False),
         "jesus_seminar_hits": sig.get("jesusSeminarCount", 0),
         "jesus_seminar_mult": placement_mult(sig, "jesusSeminar"),
         "jesus_seminar_contribution": vec(sig, "jesus_seminar", jesus_seminar_fallback),
@@ -485,8 +504,9 @@ def write_files(rows):
                 "ancient_historian_hits": r["ancient_historian_hits"],
                 "ante_nicene_hits": r["ante_nicene_hits"],
                 "mythicist_hits": r["mythicist_hits"],
-                "narrative_interp_tier": r["narrative_interp_tier"],
-                "narrative_interp_split_contribution": r["narrative_interp_split_contribution"],
+                "data_interp_tier": r["data_interp_tier"],
+                "data_interp_split_contribution": r["data_interp_split_contribution"],
+                "data_interp_pending": r["data_interp_pending"],
                 "jesus_seminar_hits": r["jesus_seminar_hits"],
                 "jesus_seminar_mult": r["jesus_seminar_mult"],
                 "jesus_seminar_contribution": r["jesus_seminar_contribution"],
@@ -520,14 +540,15 @@ def write_files(rows):
 
 
 # --- JSON export (for The Jesus Website visualization widget) ---------------------------------
-EXPORT_JSON = os.path.join(PROJECT_DIR, "scoring-export.json")
-EXPORT_REPO_JSON = "/Users/lukeishammacbookair/Developer/thejesuswebsite/database/scoring-export.json"
+EXPORT_JSON = os.path.join(ALGORITHM_DIR, "scoring-export.json")
+_REPO_ROOT = os.path.dirname(os.path.dirname(ALGORITHM_DIR))
+EXPORT_REPO_JSON = os.path.join(_REPO_ROOT, "database", "scoring-export.json")
 
 # label, weight description, caveat — the embedded data dictionary for the widget. 25 signals,
 # §9 of Wikipedia_alogrithm_refractor.md.
 SIGNAL_DICTIONARY = {
     "bible_verses":        {"label": "Bible verses cited", "weight": "+3 per, capped +12", "caveat": None},
-    "narrative_interp_split": {"label": "Data/interpretation section split", "weight": "+10 clear split / -3 muddled / -5 one-sided / 0 unclassifiable", "caveat": "vector-classified (§3.1.1); no keyword fallback"},
+    "data_interp_split": {"label": "Data/interpretation section split", "weight": "+10 clear split / -3 muddled / -5 one-sided / 0 unclassifiable", "caveat": "vector-classified (§3.1.1); no keyword fallback"},
     "manuscripts":         {"label": "Named manuscripts", "weight": "+2 per, capped +6; +8 flat for teachings/books of the Bible", "caveat": "fixed list; generic mention counts as 1"},
     "ante_nicene":         {"label": "Ante-Nicene authors", "weight": "+2 per, capped +6", "caveat": None},
     "arch_site":           {"label": "Archaeological site/artefact", "weight": "+2 flat; +8 for location articles", "caveat": "absorbs the old location bonus"},
@@ -565,7 +586,7 @@ def contributions_from_row(r):
     no meaningful "raw pre-cap" value to recompute them from."""
     return {
         "bible_verses": min(r["verse_count"], 4) * 3,
-        "narrative_interp_split": r["narrative_interp_split_contribution"],
+        "data_interp_split": r["data_interp_split_contribution"],
         "manuscripts": min(r["manuscript_hits"] * 2, 8 if (r["is_teaching"] or r["is_bible_book"]) else 6),
         "ante_nicene": min(r["ante_nicene_hits"], 3) * 2,
         "arch_site": (8 if r["is_location"] else 2) if r["arch_site"] else 0,
@@ -640,7 +661,8 @@ def write_export(rows):
                 "poor_referencing": r["poor_referencing"], "wiki_quality": r["wiki_quality"],
                 "ancient_historian_hits": r["ancient_historian_hits"],
                 "ante_nicene_hits": r["ante_nicene_hits"], "mythicist_hits": r["mythicist_hits"],
-                "narrative_interp_tier": r["narrative_interp_tier"],
+                "data_interp_tier": r["data_interp_tier"],
+                "data_interp_pending": r["data_interp_pending"],
                 "jesus_seminar_hits": r["jesus_seminar_hits"],
                 "jesus_seminar_mult": r["jesus_seminar_mult"], "mythicist_mult": r["mythicist_mult"],
                 "jewish_context_hits": r["jewish_context_hits"],
@@ -675,7 +697,13 @@ def write_export(rows):
             "ceiling": len(articles),
             "source": "Lukeatron !TheJesusWebsite-Wikipedia rank_engine.py",
             "note": "contributions are capped/conditional POINTS per signal (they sum to net_score); "
-                    "raw_signals are the uncapped harvested values.",
+                    "raw_signals are the uncapped harvested values. data_interp_split (row 3) and "
+                    "literary_analysis (row 10) score 0 for every article: both are pending (no "
+                    "keyword fallback exists — §9 activation checklist), unblocked by "
+                    "bucket-labels.json (Plan 4) and vector-family-scores.json (Plan 5) — see "
+                    "raw_signals.data_interp_pending and setup/Issues.md #141. maps_diagrams "
+                    "(row 13) and religious_art (row 15) carry real harvested values as of this "
+                    "export.",
         },
         "signal_dictionary": SIGNAL_DICTIONARY,
         "articles": articles,
@@ -721,8 +749,9 @@ def detail_row_to_internal(d, url_lookup):
         "ancient_historian_hits": int(d.get("ancient_historian_hits", 0)),
         "ante_nicene_hits": int(d.get("ante_nicene_hits", 0)),
         "mythicist_hits": int(d.get("mythicist_hits", 0)),
-        "narrative_interp_tier": d.get("narrative_interp_tier", "unclassifiable"),
-        "narrative_interp_split_contribution": int(d.get("narrative_interp_split_contribution", 0)),
+        "data_interp_tier": d.get("data_interp_tier", "unclassifiable"),
+        "data_interp_split_contribution": int(d.get("data_interp_split_contribution", 0)),
+        "data_interp_pending": d.get("data_interp_pending", "False") == "True",
         "jesus_seminar_hits": int(d["jesus_seminar_hits"]) if "jesus_seminar_hits" in d else (1 if d.get("jesus_seminar_cited") == "True" else 0),
         # Placement multipliers (2026-07-17): pre-rescore rows lack the columns — default x1.
         "jesus_seminar_mult": float(d.get("jesus_seminar_mult") or 1.0),
@@ -857,11 +886,23 @@ def cmd_rescore():
     same, current rubric). Resumable: progress is written to .rescore-progress.jsonl as it goes,
     so an interrupted run can just be re-invoked and will skip whatever's already done.
 
-    Requires Plan 4's bucket-labels.json and Plan 5's vector-family-scores.json (§9 row 3 has no
-    keyword fallback — §11.4 criterion 1 blocks everything else on the classifier). Fails loudly
-    before harvesting anything if either is missing or malformed."""
-    bucket_labels = load_bucket_labels()
-    family_scores = load_vector_family_scores()
+    Plan 4's bucket-labels.json and Plan 5's vector-family-scores.json are read when present and
+    fail loudly when malformed — but their outright *absence* is the documented pending state
+    (§9 activation checklist, PENDING_SIGNAL_KEYS), not an error: every article is harvested with
+    data_interp_split explicitly marked pending (raw_signals.data_interp_pending) instead of the
+    whole rescore refusing to run."""
+    try:
+        bucket_labels = load_bucket_labels()
+    except FileNotFoundError:
+        print("bucket-labels.json not found — proceeding with data_interp_split marked pending "
+              "(§9 activation checklist).")
+        bucket_labels = None
+    try:
+        family_scores = load_vector_family_scores()
+    except FileNotFoundError:
+        print("vector-family-scores.json not found — vector-covered signals fall back to their "
+              "dormant keyword detectors.")
+        family_scores = None
 
     main_rows = load_main()
     total = len(main_rows)
@@ -908,10 +949,20 @@ def cmd_rescore():
 
 
 def cmd_add(input_path):
-    """Requires Plan 4's bucket-labels.json and Plan 5's vector-family-scores.json — see
-    cmd_rescore()'s docstring."""
-    bucket_labels = load_bucket_labels()
-    family_scores = load_vector_family_scores()
+    """Reads Plan 4's bucket-labels.json and Plan 5's vector-family-scores.json when present —
+    see cmd_rescore()'s docstring for the pending-state handling when either is absent."""
+    try:
+        bucket_labels = load_bucket_labels()
+    except FileNotFoundError:
+        print("bucket-labels.json not found — proceeding with data_interp_split marked pending "
+              "(§9 activation checklist).")
+        bucket_labels = None
+    try:
+        family_scores = load_vector_family_scores()
+    except FileNotFoundError:
+        print("vector-family-scores.json not found — vector-covered signals fall back to their "
+              "dormant keyword detectors.")
+        family_scores = None
 
     detail_rows = load_detail()
     main_rows = load_main()
@@ -952,7 +1003,7 @@ def cmd_add(input_path):
     print(f"Total: {len(internal)} articles.")
 
 
-RESCORE_PROGRESS = os.path.join(PROJECT_DIR, ".rescore-progress.jsonl")
+RESCORE_PROGRESS = os.path.join(ALGORITHM_DIR, ".rescore-progress.jsonl")
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()

@@ -110,7 +110,7 @@ SCORING_EXPORT="$PROJECT_DIR/database/scoring-export.json"
 if [ -f "$SCORING_EXPORT" ]; then
   echo "[deploy] Importing Wikipedia scoring data..."
   cd "$API_DIR"
-  npm run import-wikipedia-scoring
+  npm run import-wikipedia-scoring -- --purge-missing
 else
   echo "[deploy] WARNING: Wikipedia scoring export not found at $SCORING_EXPORT — Wikipedia reliability data will remain stale until the file is placed and a deploy re-runs."
 fi

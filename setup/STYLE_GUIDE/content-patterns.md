@@ -244,7 +244,7 @@ News articles are curated external links. The individual `[slug].html` page pres
 **Wikipedia Ranked List**:
 A single ranked list page (`debate/wikipedia.html`) showing Wikipedia articles about Jesus, ranked for quality and relevance.
 
-- **Page header**: heading "Wikipedia Rankings", then a single **page-level** "Last revised: <date>" line (`.wikipedia-revised-line`, `--text-xs`, `--text-muted`) showing the most recent revision date across the whole dataset — hidden entirely if no article has a valid date. Brief explanatory paragraph follows.
+- **Page header**: heading "Wikipedia Rankings", then a single **page-level** "Scores last updated: <date>" line (`.wikipedia-revised-line`, `--text-xs`, `--text-muted`) showing when the scoring data was most recently uploaded to this site (derived from the newest `created_at` across the dataset, not the Wikipedia articles' own revision dates) — hidden entirely if no article has a valid date. Brief explanatory paragraph follows.
 - **Column header row**: `RANK | ARTICLE | SIGNALS | SCORE` (copy column unlabelled), `≥768px` only, sits outside the `<ol>` as an `aria-hidden` `<div>` matching the row grid's columns.
 - **Ranked list**: five-column row layout, max-width `1100px`, centred, with responsive stacking below `768px` (§9.1). Each row:
   - **Rank number**: `2rem`, `--text-muted`, `font-weight: 300`, right-aligned

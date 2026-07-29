@@ -36,7 +36,7 @@ export const SIGNAL_DICTIONARY = [
   // magnitude dominates; a negative contribution here still renders correctly via
   // buildStatement()'s sign-agnostic ratio math, it just reads as "partial credit" rather
   // than "penalty" in the -3/-5 cases.
-  { key: 'narrative_interp_split', name: 'Narrative/interpretation section split', capMagnitude: 10, polarity: 'positive' },
+  { key: 'data_interp_split', name: 'Data/interpretation section split', capMagnitude: 10, polarity: 'positive' },
   { key: 'commentaries', name: 'Commentary citations', capMagnitude: 6, polarity: 'positive' },
   { key: 'balanced_debate', name: 'Balanced debate', capMagnitude: 12, polarity: 'positive' },
   { key: 'ante_nicene', name: 'Ante-Nicene authors', capMagnitude: 6, polarity: 'positive' },
