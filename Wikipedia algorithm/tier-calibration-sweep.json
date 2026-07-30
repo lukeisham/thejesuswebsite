@@ -1,0 +1,466 @@
+{
+  "bakeoff": [
+    {
+      "scoring_rule": "mean-cosine",
+      "separation_mode": "adjacency",
+      "t_data": 0.4,
+      "t_close": 0.65,
+      "t_interp": 0.4,
+      "t_sep": 0.7,
+      "t_register": 0.35,
+      "tier_accuracy": 0.6154,
+      "ci_lower": 0.4615,
+      "ci_upper": 0.7692,
+      "correct": 24,
+      "total": 39
+    },
+    {
+      "scoring_rule": "mean-cosine",
+      "separation_mode": "block",
+      "t_data": 0.4,
+      "t_close": 0.65,
+      "t_interp": 0.4,
+      "t_sep": 0.7,
+      "t_register": 0.35,
+      "tier_accuracy": 0.6154,
+      "ci_lower": 0.4615,
+      "ci_upper": 0.7692,
+      "correct": 24,
+      "total": 39
+    },
+    {
+      "scoring_rule": "centroid",
+      "separation_mode": "adjacency",
+      "t_data": 0.6,
+      "t_close": 0.6,
+      "t_interp": 0.45,
+      "t_sep": 0.5,
+      "t_register": 0.15,
+      "tier_accuracy": 0.641,
+      "ci_lower": 0.4872,
+      "ci_upper": 0.7949,
+      "correct": 25,
+      "total": 39
+    },
+    {
+      "scoring_rule": "centroid",
+      "separation_mode": "block",
+      "t_data": 0.6,
+      "t_close": 0.6,
+      "t_interp": 0.45,
+      "t_sep": 0.5,
+      "t_register": 0.15,
+      "tier_accuracy": 0.641,
+      "ci_lower": 0.4872,
+      "ci_upper": 0.7949,
+      "correct": 25,
+      "total": 39
+    }
+  ],
+  "winner": {
+    "scoring_rule": "centroid",
+    "separation_mode": "adjacency",
+    "t_data": 0.6,
+    "t_close": 0.6,
+    "t_interp": 0.45,
+    "t_sep": 0.5,
+    "t_register": 0.15,
+    "tier_accuracy": 0.641,
+    "ci_lower": 0.4872,
+    "ci_upper": 0.7949,
+    "correct": 25,
+    "total": 39
+  },
+  "details": [
+    {
+      "title": "Gospel of Mark",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.513,
+      "data_count": 8,
+      "close_count": 9,
+      "interp_count": 23,
+      "correct": true
+    },
+    {
+      "title": "Gospel of John",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.541,
+      "data_count": 1,
+      "close_count": 10,
+      "interp_count": 27,
+      "correct": true
+    },
+    {
+      "title": "Gospel of Luke",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.577,
+      "data_count": 4,
+      "close_count": 6,
+      "interp_count": 17,
+      "correct": true
+    },
+    {
+      "title": "Gospel of Matthew",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.586,
+      "data_count": 2,
+      "close_count": 12,
+      "interp_count": 16,
+      "correct": true
+    },
+    {
+      "title": "List of gospels",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.5,
+      "data_count": 1,
+      "close_count": 0,
+      "interp_count": 4,
+      "correct": true
+    },
+    {
+      "title": "Historicity of the Gospels",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.706,
+      "data_count": 7,
+      "close_count": 14,
+      "interp_count": 31,
+      "correct": true
+    },
+    {
+      "title": "Gospel harmony",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.75,
+      "data_count": 4,
+      "close_count": 2,
+      "interp_count": 19,
+      "correct": true
+    },
+    {
+      "title": "Four Evangelists",
+      "gold_tier": "clear_split",
+      "pred_tier": "muddled",
+      "separation": 0.429,
+      "data_count": 2,
+      "close_count": 2,
+      "interp_count": 4,
+      "correct": false
+    },
+    {
+      "title": "Synoptic Gospels",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.656,
+      "data_count": 1,
+      "close_count": 19,
+      "interp_count": 13,
+      "correct": false
+    },
+    {
+      "title": "Oral gospel traditions",
+      "gold_tier": "one_sided",
+      "pred_tier": "clear_split",
+      "separation": 0.895,
+      "data_count": 0,
+      "close_count": 1,
+      "interp_count": 19,
+      "correct": false
+    },
+    {
+      "title": "Crucifixion darkness",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.724,
+      "data_count": 5,
+      "close_count": 0,
+      "interp_count": 25,
+      "correct": true
+    },
+    {
+      "title": "Crucifixion of Jesus",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.631,
+      "data_count": 40,
+      "close_count": 10,
+      "interp_count": 54,
+      "correct": false
+    },
+    {
+      "title": "Resurrection of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.792,
+      "data_count": 14,
+      "close_count": 2,
+      "interp_count": 91,
+      "correct": true
+    },
+    {
+      "title": "Calvary",
+      "gold_tier": "muddled",
+      "pred_tier": "muddled",
+      "separation": 0.467,
+      "data_count": 9,
+      "close_count": 0,
+      "interp_count": 7,
+      "correct": true
+    },
+    {
+      "title": "Thirty pieces of silver",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.846,
+      "data_count": 1,
+      "close_count": 0,
+      "interp_count": 13,
+      "correct": true
+    },
+    {
+      "title": "Pilate's court",
+      "gold_tier": "muddled",
+      "pred_tier": "muddled",
+      "separation": 0.333,
+      "data_count": 4,
+      "close_count": 3,
+      "interp_count": 3,
+      "correct": true
+    },
+    {
+      "title": "Cleansing of the Temple",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.643,
+      "data_count": 4,
+      "close_count": 6,
+      "interp_count": 19,
+      "correct": true
+    },
+    {
+      "title": "Anointing of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.545,
+      "data_count": 5,
+      "close_count": 2,
+      "interp_count": 5,
+      "correct": true
+    },
+    {
+      "title": "Jesus predicts his death",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.567,
+      "data_count": 6,
+      "close_count": 13,
+      "interp_count": 12,
+      "correct": false
+    },
+    {
+      "title": "Women at the crucifixion",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.667,
+      "data_count": 3,
+      "close_count": 0,
+      "interp_count": 1,
+      "correct": false
+    },
+    {
+      "title": "Naked fugitive",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.5,
+      "data_count": 0,
+      "close_count": 2,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Triumphal entry into Jerusalem",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.533,
+      "data_count": 15,
+      "close_count": 5,
+      "interp_count": 11,
+      "correct": false
+    },
+    {
+      "title": "Sanhedrin trial of Jesus",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.5,
+      "data_count": 6,
+      "close_count": 3,
+      "interp_count": 6,
+      "correct": false
+    },
+    {
+      "title": "Kiss of Judas",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.6,
+      "data_count": 0,
+      "close_count": 2,
+      "interp_count": 9,
+      "correct": false
+    },
+    {
+      "title": "Last Supper",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.622,
+      "data_count": 9,
+      "close_count": 12,
+      "interp_count": 25,
+      "correct": false
+    },
+    {
+      "title": "Passion of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.707,
+      "data_count": 12,
+      "close_count": 8,
+      "interp_count": 39,
+      "correct": true
+    },
+    {
+      "title": "Bargain of Judas",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.8,
+      "data_count": 0,
+      "close_count": 1,
+      "interp_count": 5,
+      "correct": true
+    },
+    {
+      "title": "Jesus at Herod's court",
+      "gold_tier": "clear_split",
+      "pred_tier": "muddled",
+      "separation": 0.286,
+      "data_count": 3,
+      "close_count": 1,
+      "interp_count": 4,
+      "correct": false
+    },
+    {
+      "title": "Arrest of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.714,
+      "data_count": 4,
+      "close_count": 3,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Jesus' authority questioned",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.5,
+      "data_count": 1,
+      "close_count": 2,
+      "interp_count": 4,
+      "correct": false
+    },
+    {
+      "title": "Raising of Jairus' daughter",
+      "gold_tier": "clear_split",
+      "pred_tier": "muddled",
+      "separation": 0.462,
+      "data_count": 5,
+      "close_count": 3,
+      "interp_count": 6,
+      "correct": false
+    },
+    {
+      "title": "Rich man and Lazarus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.667,
+      "data_count": 4,
+      "close_count": 4,
+      "interp_count": 35,
+      "correct": true
+    },
+    {
+      "title": "Emmaus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.586,
+      "data_count": 17,
+      "close_count": 3,
+      "interp_count": 10,
+      "correct": true
+    },
+    {
+      "title": "Jesus and the woman taken in adultery",
+      "gold_tier": "muddled",
+      "pred_tier": "muddled",
+      "separation": 0.472,
+      "data_count": 9,
+      "close_count": 14,
+      "interp_count": 14,
+      "correct": true
+    },
+    {
+      "title": "Nativity of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.657,
+      "data_count": 17,
+      "close_count": 10,
+      "interp_count": 44,
+      "correct": true
+    },
+    {
+      "title": "Date of the birth of Jesus",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.675,
+      "data_count": 18,
+      "close_count": 0,
+      "interp_count": 23,
+      "correct": false
+    },
+    {
+      "title": "Transfiguration of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.778,
+      "data_count": 2,
+      "close_count": 1,
+      "interp_count": 25,
+      "correct": true
+    },
+    {
+      "title": "Galilee",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.576,
+      "data_count": 25,
+      "close_count": 0,
+      "interp_count": 9,
+      "correct": true
+    },
+    {
+      "title": "Matthew the Apostle",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.571,
+      "data_count": 10,
+      "close_count": 3,
+      "interp_count": 9,
+      "correct": true
+    }
+  ]
+}

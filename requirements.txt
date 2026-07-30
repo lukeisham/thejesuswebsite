@@ -4,3 +4,9 @@
 onnxruntime>=1.17,<2.0
 faiss-cpu>=1.8,<2.0
 numpy>=1.24,<3.0
+
+# Wikipedia Signal 3 LLM labelling (offline, dev-machine-only — see SR-2 in
+# wikipedia-signal-3-live-weight-and-llm-labelling.md). DeepSeek's API is
+# OpenAI-compatible, so the `openai` SDK is pointed at DeepSeek's base_url
+# rather than adding a DeepSeek-specific client.
+openai>=1.50,<3.0
