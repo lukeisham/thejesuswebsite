@@ -21,15 +21,13 @@ honesty-and-reproducibility plan is complete.
 
 ## 🔄 1. Article Lifecycle
 
-```
-STAGE 1 — CANDIDATE POOL
-    Wikipedia category crawl (1–2 hops from Category:Jesus, Category:Gospels)
-    → candidate-pool.tsv (513 titles)
+Stages 1–2 (pool creation and selection) are defined in
+[Wikipedia Articles - Reference.md](./Wikipedia%20Articles%20-%20Reference_the_what.md).
+This guide covers Stages 3–6, which are the technical pipeline.
 
-STAGE 2 — SELECTION
-    Apply inclusion/exclusion rules (§2 of Wikipedia Articles - Reference.md)
-    + check excluded-titles.txt (26 permanently blocked)
-    → 255 articles in the live list
+```
+STAGE 1 — CANDIDATE POOL   ⎤
+STAGE 2 — SELECTION        ⎦ See Wikipedia Articles - Reference.md
 
 STAGE 3 — HARVEST
     Headless Chrome opens each article in Wikipedia
@@ -149,8 +147,10 @@ import-wikipedia-scoring.js validates every article before any DB write:
 ### 🏷️ 2.4 Category flags — single source of truth
 
 Six boolean flags computed once by extract.js from the Wikipedia category
-strip (`#mw-normal-catlinks`). Every downstream signal reads these same six
-booleans. A single flag error propagates to all gated signals silently.
+strip (`#mw-normal-catlinks`). Detection rules for how each flag is determined
+live in [Wikipedia Articles - Reference.md](./Wikipedia%20Articles%20-%20Reference_the_what.md) §"Category flags".
+Every downstream signal reads these same six booleans. A single flag error
+propagates to all gated signals silently.
 
 | Flag | % of corpus | Gates |
 |---|---|---|
@@ -258,40 +258,43 @@ any other.
 
 ## ⚖️ 3. Weights Table — Source of Truth & Key Files
 
+**Canonical weight spec:** `Wikipedia_alogrithm_refractor.md` §9.
+The full 25-row weights table with behavioural rules lives in
+[Wikipedia Articles - Reference.md](./Wikipedia%20Articles%20-%20Reference_the_what.md) §"Stage 3".
+This section documents only the implementation details: detection methods and key
+files per signal.
+
 Rows ordered by weight magnitude: strongest positive first, strongest negative
 last. This order is **load-bearing** — the frontend 5×5 grid renders cells in
 §9 order (top-left = earn points, bottom-right = lose points). Do not re-sort.
 
-**Canonical weight spec:** `Wikipedia_alogrithm_refractor.md` §9.
-`Wikipedia Articles - Reference.md` mirrors it but defers to §9 on disagreement.
-
-| # | Signal | Weight | Detection | Key files |
-|---|--------|--------|-----------|-----------|
-| 1 | **Named manuscripts** | +2 per, capped +6; +8 flat for teachings/Bible books | Plain list lookup — 12-name fixed list (Codex Sinaiticus → Papyrus 75); generic "papyrus/codex/manuscript" mention = 1 | `rank_engine.py` L228–229, `extract.js` L41–48 |
-| 2 | **Bible verses cited** | +3 per, capped +12 | Regex match on Book Ch:V patterns; deduplicated via Set | `rank_engine.py` L220, `extract.js` L21–25 |
-| 3 | **Data/interpretation split** | +10 clear / −3 muddled / −5 one-sided / 0 unclassifiable ⚠ PENDING | Vector — 3 FAISS stores (data-bucket, interpretation-bucket, register) label every body paragraph; separation ratio → tier | `rank_engine.py` L224–225, `classifier/scorer.py`, `classifier/labeler.py`, `classifier/stores.py`, `classifier/config.py` |
-| 4 | **Commentary citations** | +1 per, capped +6; parable/teaching only | Plain list lookup — fixed series names (Anchor Bible, Hermeneia, NICNT, etc.) or "commentary" keyword | `rank_engine.py` L254–255, `extract.js` L33–35 |
-| 5 | **Balanced debate** | +2 per pattern, capped +6; doubled to +12 with 2+ named reps | Vector (§3.1.2) — store encoding longevity language, named representatives, disagreement across data AND interpretation layers | `rank_engine.py` L247–251, `families/balanced_debate.py`, `exemplars/balanced-debate-positive.jsonl` |
-| 6 | **Ante-Nicene authors** | +2 per, capped +6 | Plain list lookup — 10-name fixed list (Ignatius → Cyprian) | `rank_engine.py` L278, `extract.js` (anteNiceneCount) |
-| 7 | **Archaeological site/artefact** | +2 flat; +8 for location articles with a hit | Associated term lookup — IAA/archaeolog-/excavat-/ossuary/inscription keywords | `rank_engine.py` L233–234, `extract.js` L37–39 |
-| 8 | **Jewish context** | +2 per concept, capped +6 | Plain list lookup — 19-term keyword list (Second Temple, Pharisees, Qumran, Passover, Mishnah, etc.) | `rank_engine.py` L243, `extract.js` (jewishContextHits) |
-| 9 | **Non-Christian ancient historians** | +2 per, capped +6; capped +3 for parables | Plain list lookup — 8-name fixed list (Josephus → Phlegon) | `rank_engine.py` L258–259, `extract.js` (ancientHistorianCount) |
-| 10 | **Literary analysis** | +6 for parable/teaching/Bible-book; +4 for others ⚠ PENDING | Vector (§3.1.9) — store trained on narrative criticism, rhetorical devices, genre conventions, intertextual allusion | `rank_engine.py` L262, `families/literary_analysis.py` |
-| 11 | **Primary-source quotes** | +1 per quote, capped +4 | Blockquote count + long (40+ char) quoted spans | `rank_engine.py` L240, `extract.js` (primarySourceQuoteCount) |
-| 12 | **Journal/book citations** | +1 per citation, capped +2 per type (journal and book cap independently) | Reference-list inspection — journal-ish (DOI, JSTOR, volume/issue) vs book-ish (ISBN, University Press) markers | `rank_engine.py` L237, `extract.js` L31–32 |
-| 13 | **Maps and diagrams** | +1 per, capped +2 | DOM inspection — mapframe templates, location-map elements, SVG diagrams, captions with "map"/"diagram"/"plan"/"floor plan" | `rank_engine.py` L265, `extract.js` (mapsAndDiagramsCount) |
-| 14 | **Wikipedia Good/Featured Article** | +1 flat | DOM inspection for GA/FA indicators (`#mw-indicator-*`) | `rank_engine.py` L268, `extract.js` (wikiQualityHit) |
-| 15 | **Religious art** | −1 (picture, no diagram/map) / +1 (picture + diagram/map) / 0 (parable/teaching) | Context-conditional — evaluates image presence, diagram/map presence, and category together. Passion sensitivity uses wide-picture test | `rank_engine.py` L272–275, `extract.js` (hasPictureWide, hasPictureNarrow, hasDiagramOrMap) |
-| 16 | **Gnostic over-emphasis** | −2 contextualised / −4 privileged; max −4 ⚠ PENDING (dormant keyword fallback only reads the −2 tier) | Vector (§3.1.10) — trained on Gnostic-as-privileged-source passages. Scans all buckets (data, interpretation, footnotes). Placement feeds tier | `rank_engine.py` L283–284, `families/gnostic_over_emphasis.py` |
-| 17 | **Confessional balance** | −3 outside interpretation / −1 inside without Evangelical contrast / 0 inside with one | Vector (§3.1.8) — reuses balanced-debate store. Fires when critical scholars present but no Evangelical counterpart in interpretation sections | `rank_engine.py` L288–297, `families/confessional_balance.py` |
-| 18 | **Other-religion sources** | −3 flat | Plain list lookup — Islamic, Mormon, Buddhist, Hindu, Sikh, Jain, Rastafari, Bahá'í terms | `rank_engine.py` L300, `extract.js` (otherReligionHit) |
-| 19 | **Jesus Seminar bias** | −3 per author, capped −6; × placement multiplier; further −2 if balanced debate = 0. Worst case −14 | Vector (§3.1.6) — fixed list (Funk, Crossan, Borg) for count; §3.1.1 classifier for placement. Stance-blind | `rank_engine.py` L304–308, `families/jesus_seminar.py` |
-| 20 | **OT–NT continuity criticism** | −3 per pattern, capped −6 | Vector (§3.1.4) — 7-dimension bias detection on four schools (proof-texting, messianic divergence, Law abrogation, intertestamental evolution) | `rank_engine.py` L311–312, `families/ot_nt_discontinuity.py` |
-| 21 | **Mythicist bias** | −3 per author, capped −7; × placement multiplier; further −2 if balanced debate = 0. Worst case −16 | Vector (§3.1.5) — fixed list (Carrier, Price, Doherty) for count; §3.1.1 classifier for placement. Stance-blind. Raised sensitivity on is_passion | `rank_engine.py` L325–329, `families/mythicist_framing.py` |
-| 22 | **Supernatural-worldview criticism** | −2 per instance, capped −8 | Vector (§3.1.3) — 7-dimension system: embedding-detected markers + computed metrics. Miracle- AND Passion-scoped, section-aware | `rank_engine.py` L316–321, `families/anti_supernatural.py` |
-| 23 | **Secular-materialist presuppositions** | −2 per term, capped −8 | Vector (§3.1.7) — same 7-dimension system, own database. Miracle- AND Passion-scoped, section-aware. No placement multiplier | `rank_engine.py` L335, `families/secular_materialist.py` |
-| 24 | **Referencing quality** | −9 (0 refs) / +3 (1–4) / +1 (5–9) / 0 (10+); plus −1 for poor referencing | Ref count tiering + DOM inspection for "citation needed" tags / maintenance banners | `rank_engine.py` L339–341 + `_ref_quality_weight()` L611–625, `extract.js` (refCount, hasCitationNeeded) |
-| 25 | **No Bible verse cited** | −10 flat | Bible verse regex count = 0 | `rank_engine.py` L344, `extract.js` (verseCount) |
+| # | Signal | Detection | Key files |
+|---|--------|-----------|-----------|
+| 1 | **Named manuscripts** | Plain list lookup — 12-name fixed list (Codex Sinaiticus → Papyrus 75); generic "papyrus/codex/manuscript" mention = 1 | `rank_engine.py` L228–229, `extract.js` L41–48 |
+| 2 | **Bible verses cited** | Regex match on Book Ch:V patterns; deduplicated via Set | `rank_engine.py` L220, `extract.js` L21–25 |
+| 3 | **Data/interpretation split** ⚠ PENDING | Vector — 3 FAISS stores (data-bucket, interpretation-bucket, register) label every body paragraph; separation ratio → tier | `rank_engine.py` L224–225, `classifier/scorer.py`, `classifier/labeler.py`, `classifier/stores.py`, `classifier/config.py` |
+| 4 | **Commentary citations** | Plain list lookup — fixed series names (Anchor Bible, Hermeneia, NICNT, etc.) or "commentary" keyword | `rank_engine.py` L254–255, `extract.js` L33–35 |
+| 5 | **Balanced debate** | Vector (§3.1.2) — store encoding longevity language, named representatives, disagreement across data AND interpretation layers | `rank_engine.py` L247–251, `families/balanced_debate.py`, `exemplars/balanced-debate-positive.jsonl` |
+| 6 | **Ante-Nicene authors** | Plain list lookup — 10-name fixed list (Ignatius → Cyprian) | `rank_engine.py` L278, `extract.js` (anteNiceneCount) |
+| 7 | **Archaeological site/artefact** | Associated term lookup — IAA/archaeolog-/excavat-/ossuary/inscription keywords | `rank_engine.py` L233–234, `extract.js` L37–39 |
+| 8 | **Jewish context** | Plain list lookup — 19-term keyword list (Second Temple, Pharisees, Qumran, Passover, Mishnah, etc.) | `rank_engine.py` L243, `extract.js` (jewishContextHits) |
+| 9 | **Non-Christian ancient historians** | Plain list lookup — 8-name fixed list (Josephus → Phlegon) | `rank_engine.py` L258–259, `extract.js` (ancientHistorianCount) |
+| 10 | **Literary analysis** ⚠ PENDING | Vector (§3.1.9) — store trained on narrative criticism, rhetorical devices, genre conventions, intertextual allusion | `rank_engine.py` L262, `families/literary_analysis.py` |
+| 11 | **Primary-source quotes** | Blockquote count + long (40+ char) quoted spans | `rank_engine.py` L240, `extract.js` (primarySourceQuoteCount) |
+| 12 | **Journal/book citations** | Reference-list inspection — journal-ish (DOI, JSTOR, volume/issue) vs book-ish (ISBN, University Press) markers | `rank_engine.py` L237, `extract.js` L31–32 |
+| 13 | **Maps and diagrams** | DOM inspection — mapframe templates, location-map elements, SVG diagrams, captions with "map"/"diagram"/"plan"/"floor plan" | `rank_engine.py` L265, `extract.js` (mapsAndDiagramsCount) |
+| 14 | **Wikipedia Good/Featured Article** | DOM inspection for GA/FA indicators (`#mw-indicator-*`) | `rank_engine.py` L268, `extract.js` (wikiQualityHit) |
+| 15 | **Religious art** | Context-conditional — evaluates image presence, diagram/map presence, and category together. Passion sensitivity uses wide-picture test | `rank_engine.py` L272–275, `extract.js` (hasPictureWide, hasPictureNarrow, hasDiagramOrMap) |
+| 16 | **Gnostic over-emphasis** ⚠ PENDING (dormant keyword fallback only reads the −2 tier) | Vector (§3.1.10) — trained on Gnostic-as-privileged-source passages. Scans all buckets (data, interpretation, footnotes). Placement feeds tier | `rank_engine.py` L283–284, `families/gnostic_over_emphasis.py` |
+| 17 | **Confessional balance** | Vector (§3.1.8) — reuses balanced-debate store. Fires when critical scholars present but no Evangelical counterpart in interpretation sections | `rank_engine.py` L288–297, `families/confessional_balance.py` |
+| 18 | **Other-religion sources** | Plain list lookup — Islamic, Mormon, Buddhist, Hindu, Sikh, Jain, Rastafari, Bahá'í terms | `rank_engine.py` L300, `extract.js` (otherReligionHit) |
+| 19 | **Jesus Seminar bias** | Vector (§3.1.6) — fixed list (Funk, Crossan, Borg) for count; §3.1.1 classifier for placement. Stance-blind | `rank_engine.py` L304–308, `families/jesus_seminar.py` |
+| 20 | **OT–NT continuity criticism** | Vector (§3.1.4) — 7-dimension bias detection on four schools (proof-texting, messianic divergence, Law abrogation, intertestamental evolution) | `rank_engine.py` L311–312, `families/ot_nt_discontinuity.py` |
+| 21 | **Mythicist bias** | Vector (§3.1.5) — fixed list (Carrier, Price, Doherty) for count; §3.1.1 classifier for placement. Stance-blind. Raised sensitivity on is_passion | `rank_engine.py` L325–329, `families/mythicist_framing.py` |
+| 22 | **Supernatural-worldview criticism** | Vector (§3.1.3) — 7-dimension system: embedding-detected markers + computed metrics. Miracle- AND Passion-scoped, section-aware | `rank_engine.py` L316–321, `families/anti_supernatural.py` |
+| 23 | **Secular-materialist presuppositions** | Vector (§3.1.7) — same 7-dimension system, own database. Miracle- AND Passion-scoped, section-aware. No placement multiplier | `rank_engine.py` L335, `families/secular_materialist.py` |
+| 24 | **Referencing quality** | Ref count tiering + DOM inspection for "citation needed" tags / maintenance banners | `rank_engine.py` L339–341 + `_ref_quality_weight()` L611–625, `extract.js` (refCount, hasCitationNeeded) |
+| 25 | **No Bible verse cited** | Bible verse regex count = 0 | `rank_engine.py` L344, `extract.js` (verseCount) |
 
 **📌 Tie-break:** alphabetical by raw article title (before comma-to-hyphen substitution).
 No verse-count or reference-count secondary keys — this is a deliberate simplification

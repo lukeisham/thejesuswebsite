@@ -28,7 +28,7 @@ import csv, json, subprocess, sys, os, argparse
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ALGORITHM_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPT_DIR))),
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPT_DIR)))),
     "Wikipedia algorithm",
 )
 
