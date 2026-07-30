@@ -3,24 +3,35 @@
 Labels every body paragraph as data, interpretation, neither, or other
 (positional). Runs the three-store query, applies the nearest-neighbour-label
 rule, and assigns final labels.
+
+Scoring rules:
+  - mean-cosine (original): Threshold the mean cosine of positive exemplars.
+  - centroid (new, numpy-only): Classify by cosine distance to the centroid
+    of each class's positive exemplar embeddings, using the embeddings already
+    produced by the stores. No new dependency — operates on the embedding
+    vectors already returned by StoreManager.query_all_batch().
 """
 
 import logging
 import re
 from typing import Optional
 
+import numpy as np
+
 from .config import (
     t_data,
+    t_close,
     t_interp,
+    t_register,
     TOP_K,
     LABEL_DATA,
+    LABEL_CLOSE_ANALYSIS,
     LABEL_INTERPRETATION,
     LABEL_OTHER,
     LABEL_NEITHER,
     POSITIONAL_OTHER_PATTERNS,
     NN_NEGATIVE_THRESHOLD,
 )
-from .stores import StoreManager
 
 logger = logging.getLogger(__name__)
 
@@ -165,23 +176,167 @@ def _apply_nearest_neighbour_rule(results: list[dict]) -> float:
     return sum(positives) / len(positives)
 
 
+def _centroid_score(
+    query_embedding: np.ndarray,
+    results: list[dict],
+) -> float:
+    """Compute the centroid-based similarity score for one store's results.
+
+    Instead of thresholding mean cosine against positive exemplars, this
+    measures cosine similarity between the query embedding and the centroid
+    (mean vector) of the positive exemplar embeddings in the store's top-k
+    results. Negative exemplars are excluded from the centroid.
+
+    This is a numpy-only decision rule — no new dependency. It operates on
+    the same embeddings already produced by StoreManager.query_all_batch().
+
+    If the nearest neighbour is a negative exemplar whose similarity exceeds
+    NN_NEGATIVE_THRESHOLD, score = 0 (same gate as the mean-cosine rule).
+
+    Args:
+        query_embedding: The query paragraph's embedding vector.
+        results: List of exemplar result dicts, each with at least 'type',
+                 'similarity', and 'embedding'.
+
+    Returns:
+        Centroid similarity score in [0, 1]. Returns 0.0 if there are no
+        positive exemplar embeddings in the results.
+    """
+    if not results:
+        return 0.0
+
+    # Same negative-neighbour gate as the mean-cosine rule.
+    nearest = results[0]
+    if (nearest.get("type") == "negative"
+            and nearest.get("similarity", 0) >= NN_NEGATIVE_THRESHOLD):
+        return 0.0
+
+    # Collect positive exemplar embeddings.
+    pos_embeddings = []
+    for r in results:
+        if r.get("type") == "positive" and r.get("embedding") is not None:
+            emb = r["embedding"]
+            if isinstance(emb, np.ndarray) and emb.size > 0:
+                pos_embeddings.append(emb)
+
+    if not pos_embeddings:
+        return 0.0
+
+    # Centroid = mean of positive exemplar embeddings.
+    centroid = np.mean(pos_embeddings, axis=0)
+
+    # Cosine similarity between query embedding and centroid.
+    query_norm = np.linalg.norm(query_embedding)
+    centroid_norm = np.linalg.norm(centroid)
+
+    if query_norm == 0 or centroid_norm == 0:
+        return 0.0
+
+    cosine = float(np.dot(query_embedding, centroid) / (query_norm * centroid_norm))
+    # Clamp to [0, 1] — cosine can be negative for orthogonal vectors but
+    # we clamp to 0 as a lower bound since negative similarity is not
+    # meaningful in this classifier context.
+    return max(0.0, min(1.0, cosine))
+
+
+def _label_paragraph(
+    data_score: float,
+    close_score: float,
+    interp_score: float,
+    register_score: float,
+    t_data_threshold: float = 0.50,
+    t_close_threshold: float = 0.50,
+    t_interp_threshold: float = 0.50,
+    t_register_threshold: float = 0.50,
+    scoring_rule: str = "mean-cosine",
+    query_embedding: Optional[np.ndarray] = None,
+    data_results: Optional[list[dict]] = None,
+    close_results: Optional[list[dict]] = None,
+    interp_results: Optional[list[dict]] = None,
+    register_results: Optional[list[dict]] = None,
+) -> str:
+    """Assign a label to one paragraph given its four-store scores.
+
+    The register score is applied as a single class-independent prose-quality
+    gate: a paragraph must clear t_register to be considered class-bearing
+    at all. If the register score is below this threshold, the paragraph is
+    'neither' regardless of its other scores.
+
+    Three-tier classification (§3.1.1, Signal 3 activation plan):
+      - data (Tier 1): factual reporting, citation, description
+      - close (Tier 2): close analysis — synoptic comparison, Greek/Hebrew
+        analysis, text-critical evaluation, form-critical categorisation
+      - interpretation (Tier 3): historical Jesus reconstruction,
+        redaction-critical conclusions, theological interpretation
+
+    Args:
+        data_score: Score from the data bucket.
+        close_score: Score from the close-analysis store.
+        interp_score: Score from the interpretation bucket.
+        register_score: Score from the register store.
+        t_data_threshold: Data-bucket threshold (default 0.50).
+        t_close_threshold: Close-analysis threshold (default 0.50).
+        t_interp_threshold: Interpretation-bucket threshold (default 0.50).
+        t_register_threshold: Register gate threshold (default 0.50).
+        scoring_rule: "mean-cosine" or "centroid".
+        query_embedding: Query embedding (for centroid rule).
+        data_results: Raw results from data-bucket (for centroid).
+        close_results: Raw results from close-analysis store (for centroid).
+        interp_results: Raw results from interp-bucket (for centroid).
+        register_results: Raw results from register store (for centroid).
+
+    Returns:
+        One of LABEL_DATA, LABEL_CLOSE_ANALYSIS, LABEL_INTERPRETATION,
+        or LABEL_NEITHER.
+    """
+    if register_score < t_register_threshold:
+        return LABEL_NEITHER
+
+    is_data = data_score >= t_data_threshold
+    is_close = close_score >= t_close_threshold
+    is_interp = interp_score >= t_interp_threshold
+
+    # Collect all classes whose threshold is met.
+    met: list[tuple[str, float]] = []
+    if is_data:
+        met.append((LABEL_DATA, data_score))
+    if is_close:
+        met.append((LABEL_CLOSE_ANALYSIS, close_score))
+    if is_interp:
+        met.append((LABEL_INTERPRETATION, interp_score))
+
+    if not met:
+        return LABEL_NEITHER
+
+    if len(met) == 1:
+        return met[0][0]
+
+    # Multiple thresholds met — highest score wins.
+    met.sort(key=lambda x: x[1], reverse=True)
+    return met[0][0]
+
+
 def classify_paragraphs(
     article_text: str,
-    store_manager: StoreManager,
+    store_manager,
     top_k: int = TOP_K,
+    scoring_rule: str = "mean-cosine",
 ) -> list[dict]:
     """Label every body paragraph in an article.
 
     Workflow:
     1. Split article into paragraphs.
-    2. Embed and query all three stores per paragraph.
-    3. Apply nearest-neighbour-label rule per store.
-    4. Assign label: data, interpretation, neither, or other (positional).
+    2. Embed and query all four stores per paragraph.
+    3. Apply the selected scoring rule per store.
+    4. Assign label: data (Tier 1), close (Tier 2), interpretation (Tier 3),
+       neither, or other (positional).
 
     Args:
         article_text: Full article body text.
         store_manager: Initialised StoreManager with built stores.
         top_k: Number of nearest exemplars to retrieve per store per paragraph.
+        scoring_rule: "mean-cosine" (original) or "centroid" (numpy-only
+            centroid decision rule).
 
     Returns:
         List of dicts, one per paragraph, with keys:
@@ -195,8 +350,10 @@ def classify_paragraphs(
     # Extract text for batch embedding.
     texts = [p["text"] for p in paragraphs]
 
-    # Batch-query all stores.
-    batch_results = store_manager.query_all_batch(texts, k=top_k)
+    # Batch-query all stores; get embeddings when using centroid rule.
+    include_embeddings = (scoring_rule == "centroid")
+    batch_results = store_manager.query_all_batch(texts, k=top_k,
+                                                   include_embeddings=include_embeddings)
 
     labelled: list[dict] = []
     seen_reference_start = False
@@ -206,14 +363,38 @@ def classify_paragraphs(
         label_data["scores"] = {}
         label_data["is_positional"] = False
 
-        # Compute similarity scores per store using the NN-label rule.
-        data_score = _apply_nearest_neighbour_rule(results.get("data-bucket", []))
-        interp_score = _apply_nearest_neighbour_rule(
-            results.get("interpretation-bucket", [])
-        )
-        register_score = _apply_nearest_neighbour_rule(results.get("register", []))
+        # Compute similarity scores per store.
+        if scoring_rule == "centroid":
+            query_emb = results.get("_query_embedding")
+            data_score = _centroid_score(
+                query_emb, results.get("data-bucket", [])
+            ) if query_emb is not None else 0.0
+            close_score = _centroid_score(
+                query_emb, results.get("close-analysis", [])
+            ) if query_emb is not None else 0.0
+            interp_score = _centroid_score(
+                query_emb, results.get("interpretation-bucket", [])
+            ) if query_emb is not None else 0.0
+            register_score = _centroid_score(
+                query_emb, results.get("register", [])
+            ) if query_emb is not None else 0.0
+        else:
+            data_score = _apply_nearest_neighbour_rule(
+                results.get("data-bucket", [])
+            )
+            close_score = _apply_nearest_neighbour_rule(
+                results.get("close-analysis", [])
+            )
+            interp_score = _apply_nearest_neighbour_rule(
+                results.get("interpretation-bucket", [])
+            )
+            register_score = _apply_nearest_neighbour_rule(
+                results.get("register", [])
+            )
+
         label_data["scores"] = {
             "data": data_score,
+            "close": close_score,
             "interpretation": interp_score,
             "register": register_score,
         }
@@ -243,24 +424,14 @@ def classify_paragraphs(
             continue
 
         # --- Semantic classification ---
-
-        # A paragraph needs strong semantic match AND register match.
-        # The register store now has BOTH data-register and interpretation-register
-        # positive exemplars, so a clear passage of either type can pass.
-        is_data = data_score >= t_data and register_score >= t_data
-        is_interp = interp_score >= t_interp and register_score >= t_interp
-
-        if is_data and not is_interp:
-            label = LABEL_DATA
-        elif is_interp and not is_data:
-            label = LABEL_INTERPRETATION
-        elif is_data and is_interp:
-            # Both thresholds met — assign by the stronger score.
-            label = LABEL_DATA if data_score >= interp_score else LABEL_INTERPRETATION
-        else:
-            label = LABEL_NEITHER
-
-        label_data["label"] = label
+        label_data["label"] = _label_paragraph(
+            data_score, close_score, interp_score, register_score,
+            t_data_threshold=t_data,
+            t_close_threshold=t_close,
+            t_interp_threshold=t_interp,
+            t_register_threshold=t_register,
+            scoring_rule=scoring_rule,
+        )
         labelled.append(label_data)
 
     return labelled

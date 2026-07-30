@@ -283,16 +283,37 @@ class VectorStore:
     # Querying
     # ------------------------------------------------------------------
 
-    def search(self, query_vector: np.ndarray, k: int = TOP_K) -> list[dict]:
+    def reconstruct(self, idx: int) -> np.ndarray:
+        """Reconstruct the stored embedding vector at the given index.
+
+        FAISS stores vectors internally; this retrieves one for use in
+        centroid-based scoring (numpy-only, no new dependency).
+
+        Args:
+            idx: 0-based index into the FAISS index.
+
+        Returns:
+            The original embedding vector as a numpy array of shape (dim,).
+        """
+        return self._index.reconstruct(idx)
+
+    def search(
+        self, query_vector: np.ndarray, k: int = TOP_K,
+        include_embeddings: bool = False,
+    ) -> list[dict]:
         """Search for the k nearest exemplars.
 
         Args:
             query_vector: 1-D normalized query embedding of shape (dim,).
             k: Number of nearest neighbours to retrieve.
+            include_embeddings: If True, include the 'embedding' key in each
+                result dict with the reconstructed exemplar vector.
 
         Returns:
             List of dicts, each with keys from the sidecar metadata plus:
                 similarity (float): cosine similarity score.
+                embedding (np.ndarray, optional): Reconstructed vector if
+                    include_embeddings is True.
         """
         if self._index.ntotal == 0:
             return []
@@ -307,6 +328,8 @@ class VectorStore:
                 continue
             result = dict(self._metadata[idx])
             result["similarity"] = float(score)
+            if include_embeddings:
+                result["embedding"] = self.reconstruct(int(idx))
             results.append(result)
         return results
 
@@ -337,10 +360,10 @@ class VectorStore:
 
 
 class StoreManager:
-    """Manages the three classifier vector stores.
+    """Manages the four classifier vector stores.
 
     Provides a single interface for building stores from exemplar JSONL files
-    and for querying all three stores at once.
+    and for querying all four stores at once.
     """
 
     # Map store names to their exemplar file pairs.
@@ -348,6 +371,10 @@ class StoreManager:
         "data-bucket": (
             "data-bucket-positive.jsonl",
             "data-bucket-negative.jsonl",
+        ),
+        "close-analysis": (
+            "close-analysis-positive.jsonl",
+            "close-analysis-negative.jsonl",
         ),
         "interpretation-bucket": (
             "interpretation-bucket-positive.jsonl",
@@ -379,7 +406,7 @@ class StoreManager:
         return self._stores
 
     def build_all(self, exemplars_dir: Optional[Path] = None) -> None:
-        """Build all three stores from the exemplar JSONL files.
+        """Build all four stores from the exemplar JSONL files.
 
         If a store's index already exists on disk, it is re-loaded rather
         than rebuilt — use force_rebuild() to rebuild from scratch.
@@ -406,8 +433,17 @@ class StoreManager:
             exemplars_dir = EXEMPLARS_DIR
 
         for store_name in STORE_NAMES:
+            store_dir = self._stores[store_name]._store_dir
+            # Delete old index and sidecar so the new VectorStore
+            # constructor starts fresh rather than re-loading them.
+            old_index = store_dir / f"{store_name}.index"
+            old_sidecar = store_dir / f"{store_name}.jsonl"
+            for old_file in (old_index, old_sidecar):
+                if old_file.exists():
+                    old_file.unlink()
+
             self._stores[store_name] = VectorStore(
-                store_name, self._embedder.dim, self._stores[store_name]._store_dir
+                store_name, self._embedder.dim, store_dir
             )
 
         self.build_all(exemplars_dir)
@@ -431,27 +467,37 @@ class StoreManager:
         return results
 
     def query_all_batch(
-        self, texts: list[str], k: int = TOP_K
-    ) -> list[dict[str, list[dict]]]:
+        self, texts: list[str], k: int = TOP_K,
+        include_embeddings: bool = False,
+    ) -> list[dict[str, object]]:
         """Query all three stores with a batch of texts.
 
         Args:
             texts: List of paragraph texts.
             k: Number of nearest neighbours per store.
+            include_embeddings: If True, include the query embedding
+                ('_query_embedding') in each result dict and exemplar
+                embeddings in each store's results. Required for the
+                centroid scoring rule.
 
         Returns:
             List of dicts, one per input text, each mapping store name → results.
+            When include_embeddings is True, each dict also contains the key
+            '_query_embedding' with the query vector.
         """
         if not texts:
             return []
 
         vectors = self._embedder.embed_batch(texts)
 
-        batch_results: list[dict[str, list[dict]]] = []
+        batch_results: list[dict[str, object]] = []
         for vec in vectors:
-            results: dict[str, list[dict]] = {}
+            results: dict[str, object] = {}
             for name, store in self._stores.items():
-                results[name] = store.search(vec, k)
+                results[name] = store.search(vec, k,
+                                            include_embeddings=include_embeddings)
+            if include_embeddings:
+                results["_query_embedding"] = vec
             batch_results.append(results)
         return batch_results
 

@@ -317,10 +317,10 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 
 | File | Role |
 |---|---|
-| `Wikipedia algorithm/classifier/scorer.py` | Separation ratio computation + tier assignment (+10/-3/-5/0). |
+| `Wikipedia algorithm/classifier/scorer.py` | Separation ratio computation + tier assignment (+10/−5/0/0). Both adjacency and block-structure functionals. |
 | `Wikipedia algorithm/classifier/labeler.py` | Paragraph splitting, embedding, FAISS querying, label assignment (data/interp/neither/other). |
-| `Wikipedia algorithm/classifier/stores.py` | FAISS store management: Embedder (MiniLM ONNX), VectorStore, StoreManager (3 stores). |
-| `Wikipedia algorithm/classifier/config.py` | Thresholds: t_data=0.50, t_interp=0.50, t_sep=0.60, N_min=3, TOP_K=5, NN_NEGATIVE_THRESHOLD=0.75. |
+| `Wikipedia algorithm/classifier/stores.py` | FAISS store management: Embedder (MiniLM ONNX), VectorStore, StoreManager (4 stores). |
+| `Wikipedia algorithm/classifier/config.py` | Thresholds: t_data=0.50, t_interp=0.50, t_register=0.50, t_sep=0.60, N_min=3, TOP_K=5, NN_NEGATIVE_THRESHOLD=0.75. SEPARATION_MODE flag. |
 | `Wikipedia algorithm/classifier/export.py` | Batch export to bucket-labels.json. |
 
 ### 👪 Vector families (9 families, each in `families/`)
@@ -646,30 +646,30 @@ Two of the 25 signals — `data_interp_split` (row 3) and `literary_analysis`
 (row 10) — are **structurally unable to score above 0** for any article.
 Neither has a keyword fallback. Both are purely vector/classifier signals.
 
-### 📊 Row 3 — Data/interpretation split (+10 / −3 / −5 / 0)
+### 📊 Row 3 — Data/interpretation split (+10 / −5 / 0 / 0)
 
 **What it's supposed to do.** This is the dominant matrix signal — the axis the
 whole rubric is built on. A three-store classifier (MiniLM ONNX + FAISS)
 labels every body paragraph as `data`, `interpretation`, or `neither`, computes
 a separation ratio, and assigns a tier: +10 for a clean split between data and
-interpretation blocks, −3 when both are present but interleaved, −5 when only
-one side is present, 0 when there aren't enough class-bearing paragraphs.
+interpretation blocks, −5 when both are present but interleaved (the worst
+outcome), 0 when only one side is present or there aren't enough class-bearing
+paragraphs. Two separation functionals are available (adjacency and block-structure)
+and two scoring rules (mean-cosine and centroid).
 
-**Why it scores 0.** The classifier's tier accuracy is **0.303 (10/33)** against
-a required ≥0.85 gate (`VALIDATION_REPORT.md`, `Issues.md` #141). MiniLM cosine
-similarities against the exemplars cluster too tightly (0.45–0.65) to threshold
-cleanly. Three failure modes: data paragraphs undetected (~30%), separation
-ratio too low (~30%), too few class-bearing paragraphs (~20%). The two
-artifacts it depends on — `bucket-labels.json` (Plan 4) and
-`vector-family-scores.json` (Plan 5) — do not exist on disk.
+**Status.** A four-way bake-off (see `CLASSIFIER_DIAGNOSIS.md`) cross-compares
+{adjacency, block-structure} × {mean-cosine, centroid} to quantify the relative
+contribution of the separation metric, scoring rule, and embedding capacity to
+the 0.303 prior accuracy. The register-store gate and calibration sweep have
+been corrected. Architecture decisions are recorded in
+`CLASSIFIER_ARCHITECTURE_DECISION.md`.
 
 **What blocks activation.**
-- Produce `bucket-labels.json` via the classifier pipeline, clearing the §11.2
-  gate: ≥0.85 paragraph-level agreement AND ≥0.85 correct tier assignment on
-  the 40-article gold set.
-- This likely requires a stronger embedding model (MiniLM's 0.45–0.65 cluster
-  is too narrow), expanded exemplar sets, and re-labelling with matched
-  segmentation.
+- Clear the §11.2 gate: ≥0.85 tier accuracy on the gold set, with a bootstrap
+  confidence interval reported alongside.
+- The `CLASSIFIER_ARCHITECTURE_DECISION.md` Tier-2 store decision must be
+  addressed — the current two-store architecture cannot express the three-tier
+  distinction the rubric encodes.
 
 ### 📖 Row 10 — Literary analysis (+6 / +4)
 

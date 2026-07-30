@@ -6,9 +6,13 @@ work — Plans 5 (vector signals) and 6 (scoring/export) consume it.
 Schema:
 {
   "article_id": {
-    "paragraphs": ["data", "interpretation", "other", ...],
+    "paragraphs": ["data", "close", "interpretation", "other", ...],
     "separation": 0.85,
-    "tier": 10
+    "tier": 10,
+    "tier_state": "clear_split",
+    "data_count": 5,
+    "close_count": 3,
+    "interp_count": 7
   },
   ...
 }
@@ -59,7 +63,9 @@ def export_article(
         "paragraphs": labels,
         "separation": scored["separation"],
         "tier": scored["tier"],
+        "tier_state": scored["tier_state"],
         "data_count": scored["data_count"],
+        "close_count": scored["close_count"],
         "interp_count": scored["interp_count"],
         "other_count": scored["other_count"],
         "neither_count": scored["neither_count"],
@@ -92,6 +98,7 @@ def export_batch(
                 "paragraphs": record["paragraphs"],
                 "separation": record["separation"],
                 "tier": record["tier"],
+                "tier_state": record["tier_state"],
             }
             logger.info(
                 "Article '%s': tier=%+d, separation=%.3f, %d paragraphs",
@@ -176,15 +183,16 @@ def validate_bucket_labels(data: dict[str, dict]) -> list[str]:
             errors.append(f"'{article_id}': 'tier' is not an integer")
 
         # Validate label values.
-        valid_labels = {"data", "interpretation", "other", "neither"}
+        # Validate label values.
+        valid_labels = {"data", "close", "interpretation", "other", "neither"}
         for i, label in enumerate(paragraphs):
             if label not in valid_labels:
                 errors.append(
                     f"'{article_id}': paragraph {i} has invalid label '{label}'"
                 )
 
-        # Tier must be one of the defined values.
-        if isinstance(tier, int) and tier not in (10, -3, -5, 0):
+        # Tier must be one of the defined values (+10, -5, 0).
+        if isinstance(tier, int) and tier not in (10, -5, 0):
             errors.append(
                 f"'{article_id}': tier {tier} is not a valid row-3 contribution"
             )
