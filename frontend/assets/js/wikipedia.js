@@ -80,16 +80,16 @@ function hideAllStates() {
 }
 
 /**
- * Shows when the list was most recently uploaded to this website, as one
- * page-level line. This is the newest `created_at` (row upload time) across
- * the dataset — it has nothing to do with the Wikipedia articles' own revision
+ * Shows when scores were most recently (re-)imported, as one page-level line.
+ * This is the newest `scored_at` (last scoring-import time) across the
+ * dataset — it has nothing to do with the Wikipedia articles' own revision
  * dates. Stays hidden if no article has a valid date (JS-2).
  */
 function updateRevisedLine(items) {
   if (!$revisedLine || !Array.isArray(items)) return;
 
   const validDates = items
-    .map((item) => item.created_at && Date.parse(item.created_at))
+    .map((item) => item.scored_at && Date.parse(item.scored_at))
     .filter((parsed) => !Number.isNaN(parsed) && parsed);
 
   if (validDates.length === 0) {

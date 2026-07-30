@@ -543,13 +543,14 @@ function main() {
   const updateArticle = db.prepare(`
     UPDATE wikipedia_articles
     SET wikipedia_article_title = ?,
-        wikipedia_article_rank_number = ?
+        wikipedia_article_rank_number = ?,
+        scored_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
 
   const insertArticle = db.prepare(`
-    INSERT INTO wikipedia_articles (slug, wikipedia_article_title, wikipedia_article_url, wikipedia_article_rank_number, published_draft)
-    VALUES (@slug, @title, @url, @rank, @published)
+    INSERT INTO wikipedia_articles (slug, wikipedia_article_title, wikipedia_article_url, wikipedia_article_rank_number, published_draft, scored_at)
+    VALUES (@slug, @title, @url, @rank, @published, CURRENT_TIMESTAMP)
   `);
 
   const deleteSignals = db.prepare(`

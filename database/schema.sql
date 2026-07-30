@@ -230,8 +230,13 @@ CREATE TABLE wikipedia_articles (
     published_draft                        INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
     metadata_keywords                      TEXT,
     -- When the row was uploaded to this website (NOT the Wikipedia article's own
-    -- revision date). Drives the "Last updated" line on the public list.
-    created_at                             DATETIME DEFAULT CURRENT_TIMESTAMP
+    -- revision date). Set once at creation, never touched again.
+    created_at                             DATETIME DEFAULT CURRENT_TIMESTAMP,
+    -- When this row's signal contributions were last (re-)imported from
+    -- scoring-export.json. Set on both insert and update by the scoring
+    -- importer — unlike created_at, this changes every time scores are
+    -- refreshed. Drives the "Scores last updated" line on the public list.
+    scored_at                              DATETIME
 );
 
 -- One row per (article, signal) — 28 rows per published article. `signal_key`
