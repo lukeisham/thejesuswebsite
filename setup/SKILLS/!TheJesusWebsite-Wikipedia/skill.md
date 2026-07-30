@@ -236,6 +236,18 @@ folder for the visualization widget. Luke has explicitly exempted this one outbo
 `!Checkpoint` (standing instruction, 2026-07-16) — do not gate it, and do not generalize the
 exemption to anything else.
 
+## ⚠️ wiki-bulk-paste.txt is NOT a deploy step
+`wiki-bulk-paste.txt` is a human-readable cross-check artifact only (title, url, rank —
+no signal scores). The actual deploy path is: `scoring-export.json` → committed to
+`database/` → `git push` → `deploy.sh` runs `import-wikipedia-scoring.js --publish
+--purge-missing` on the VPS, which carries real signal contributions into the DB.
+Do NOT paste `wiki-bulk-paste.txt` into the admin "Bulk Upload Articles" form — that
+form creates title/url/rank-only rows with no scores and defaults them to draft,
+and it never updates or removes existing rows. (Incident, 2026-07-30: someone deleted
+all existing wikipedia_articles rows via "Delete All" and then bulk-pasted
+wiki-bulk-paste.txt believing it was the final publish step, wiping every article's
+signal scores and leaving the public page blank until a manual DB migration fixed it.)
+
 ## ✅ OUTPUT
 State: `Wikipedia Articles.csv`, `Wikipedia Articles - Scoring Detail.csv`, and `wiki-bulk-paste.txt`
   all agree with each other and with `excluded-titles.txt`; row count is the ceiling (255) or the

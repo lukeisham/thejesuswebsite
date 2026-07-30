@@ -547,7 +547,7 @@ def write_files(rows):
 
 # --- JSON export (for The Jesus Website visualization widget) ---------------------------------
 EXPORT_JSON = os.path.join(ALGORITHM_DIR, "scoring-export.json")
-_REPO_ROOT = os.path.dirname(os.path.dirname(ALGORITHM_DIR))
+_REPO_ROOT = os.path.dirname(ALGORITHM_DIR)
 EXPORT_REPO_JSON = os.path.join(_REPO_ROOT, "database", "scoring-export.json")
 
 # label, weight description, caveat — the embedded data dictionary for the widget. 25 signals,

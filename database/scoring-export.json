@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated": "2026-07-30T09:04:43",
+  "generated": "2026-07-30T11:52:21",
   "article_count": 255,
   "ceiling": 255,
   "source": "Lukeatron !TheJesusWebsite-Wikipedia rank_engine.py",
@@ -1130,6 +1130,77 @@
   },
   {
    "ranking": 15,
+   "title": "Caesarea Maritima",
+   "url": "https://en.wikipedia.org/wiki/Caesarea_Maritima",
+   "net_score": 35,
+   "contributions": {
+    "bible_verses": 12,
+    "data_interp_split": 0,
+    "manuscripts": 2,
+    "ante_nicene": 4,
+    "arch_site": 8,
+    "journal_or_book": 4,
+    "primary_quotes": 4,
+    "jewish_context": 4,
+    "balanced_debate": 0,
+    "commentaries": 0,
+    "ancient_historians": 2,
+    "wiki_quality": 0,
+    "confessional_balance": 0,
+    "gnostic_over_emphasis": 0,
+    "jesus_seminar": -2,
+    "ot_nt_criticism": 0,
+    "supernatural_criticism": 0,
+    "other_religion": -3,
+    "mythicist": -2,
+    "referencing_quality": -1,
+    "no_bible_verse": 0,
+    "literary_analysis": 0,
+    "maps_diagrams": 2,
+    "religious_art": 1,
+    "secular_materialist": 0
+   },
+   "raw_signals": {
+    "verse_count": 5,
+    "ref_count": 123,
+    "journal_hits": 12,
+    "book_hits": 26,
+    "commentary_hits": 1,
+    "arch_site": true,
+    "manuscript_hits": 1,
+    "primary_source_quotes": 39,
+    "poor_referencing": true,
+    "wiki_quality": false,
+    "ancient_historian_hits": 1,
+    "ante_nicene_hits": 2,
+    "mythicist_hits": 0,
+    "data_interp_tier": "unclassifiable",
+    "data_interp_pending": true,
+    "jesus_seminar_hits": 0,
+    "jesus_seminar_mult": 1.0,
+    "mythicist_mult": 1.0,
+    "jewish_context_hits": 2,
+    "other_religion_hit": true,
+    "balanced_debate_hits": 0,
+    "balanced_debate_named": 0,
+    "critical_scholar_hits": 0,
+    "critical_outside_interp": false,
+    "evangelical_contrast": false,
+    "maps_diagrams_count": 2,
+    "has_picture": true,
+    "has_diagram_or_map": true
+   },
+   "categories": {
+    "is_passion": false,
+    "is_miracle": false,
+    "is_parable": false,
+    "is_location": true,
+    "is_teaching": false,
+    "is_bible_book": false
+   }
+  },
+  {
+   "ranking": 16,
    "title": "Parable of the Good Samaritan",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Good_Samaritan",
    "net_score": 35,
@@ -1200,7 +1271,7 @@
    }
   },
   {
-   "ranking": 16,
+   "ranking": 17,
    "title": "Pontius Pilate",
    "url": "https://en.wikipedia.org/wiki/Pontius_Pilate",
    "net_score": 35,
@@ -1271,7 +1342,7 @@
    }
   },
   {
-   "ranking": 17,
+   "ranking": 18,
    "title": "Turning the other cheek",
    "url": "https://en.wikipedia.org/wiki/Turning_the_other_cheek",
    "net_score": 35,
@@ -1342,7 +1413,7 @@
    }
   },
   {
-   "ranking": 18,
+   "ranking": 19,
    "title": "Caesarea Philippi",
    "url": "https://en.wikipedia.org/wiki/Caesarea_Philippi",
    "net_score": 34,
@@ -1408,77 +1479,6 @@
     "is_miracle": false,
     "is_parable": false,
     "is_location": true,
-    "is_teaching": false,
-    "is_bible_book": false
-   }
-  },
-  {
-   "ranking": 19,
-   "title": "Christ myth theory",
-   "url": "https://en.wikipedia.org/wiki/Christ_myth_theory",
-   "net_score": 34,
-   "contributions": {
-    "bible_verses": 12,
-    "data_interp_split": 0,
-    "manuscripts": 2,
-    "ante_nicene": 6,
-    "arch_site": 2,
-    "journal_or_book": 4,
-    "primary_quotes": 4,
-    "jewish_context": 6,
-    "balanced_debate": 12,
-    "commentaries": 0,
-    "ancient_historians": 6,
-    "wiki_quality": 0,
-    "confessional_balance": 0,
-    "gnostic_over_emphasis": -2,
-    "jesus_seminar": 0,
-    "ot_nt_criticism": -6,
-    "supernatural_criticism": 0,
-    "other_religion": -3,
-    "mythicist": -7,
-    "referencing_quality": -1,
-    "no_bible_verse": 0,
-    "literary_analysis": 0,
-    "maps_diagrams": 0,
-    "religious_art": -1,
-    "secular_materialist": 0
-   },
-   "raw_signals": {
-    "verse_count": 19,
-    "ref_count": 579,
-    "journal_hits": 10,
-    "book_hits": 95,
-    "commentary_hits": 0,
-    "arch_site": true,
-    "manuscript_hits": 1,
-    "primary_source_quotes": 375,
-    "poor_referencing": true,
-    "wiki_quality": false,
-    "ancient_historian_hits": 3,
-    "ante_nicene_hits": 4,
-    "mythicist_hits": 3,
-    "data_interp_tier": "unclassifiable",
-    "data_interp_pending": true,
-    "jesus_seminar_hits": 0,
-    "jesus_seminar_mult": 1.0,
-    "mythicist_mult": 1.0,
-    "jewish_context_hits": 7,
-    "other_religion_hit": true,
-    "balanced_debate_hits": 6,
-    "balanced_debate_named": 10,
-    "critical_scholar_hits": 3,
-    "critical_outside_interp": false,
-    "evangelical_contrast": false,
-    "maps_diagrams_count": 0,
-    "has_picture": true,
-    "has_diagram_or_map": false
-   },
-   "categories": {
-    "is_passion": false,
-    "is_miracle": false,
-    "is_parable": false,
-    "is_location": false,
     "is_teaching": false,
     "is_bible_book": false
    }
@@ -1556,6 +1556,77 @@
   },
   {
    "ranking": 21,
+   "title": "Magdala",
+   "url": "https://en.wikipedia.org/wiki/Magdala",
+   "net_score": 34,
+   "contributions": {
+    "bible_verses": 12,
+    "data_interp_split": 0,
+    "manuscripts": 2,
+    "ante_nicene": 0,
+    "arch_site": 8,
+    "journal_or_book": 4,
+    "primary_quotes": 4,
+    "jewish_context": 6,
+    "balanced_debate": 0,
+    "commentaries": 0,
+    "ancient_historians": 2,
+    "wiki_quality": 0,
+    "confessional_balance": 0,
+    "gnostic_over_emphasis": 0,
+    "jesus_seminar": -2,
+    "ot_nt_criticism": 0,
+    "supernatural_criticism": 0,
+    "other_religion": -3,
+    "mythicist": -2,
+    "referencing_quality": 0,
+    "no_bible_verse": 0,
+    "literary_analysis": 0,
+    "maps_diagrams": 2,
+    "religious_art": 1,
+    "secular_materialist": 0
+   },
+   "raw_signals": {
+    "verse_count": 7,
+    "ref_count": 66,
+    "journal_hits": 2,
+    "book_hits": 3,
+    "commentary_hits": 0,
+    "arch_site": true,
+    "manuscript_hits": 1,
+    "primary_source_quotes": 31,
+    "poor_referencing": false,
+    "wiki_quality": false,
+    "ancient_historian_hits": 1,
+    "ante_nicene_hits": 0,
+    "mythicist_hits": 0,
+    "data_interp_tier": "unclassifiable",
+    "data_interp_pending": true,
+    "jesus_seminar_hits": 0,
+    "jesus_seminar_mult": 1.0,
+    "mythicist_mult": 1.0,
+    "jewish_context_hits": 4,
+    "other_religion_hit": true,
+    "balanced_debate_hits": 0,
+    "balanced_debate_named": 0,
+    "critical_scholar_hits": 0,
+    "critical_outside_interp": false,
+    "evangelical_contrast": false,
+    "maps_diagrams_count": 2,
+    "has_picture": true,
+    "has_diagram_or_map": true
+   },
+   "categories": {
+    "is_passion": false,
+    "is_miracle": false,
+    "is_parable": false,
+    "is_location": true,
+    "is_teaching": false,
+    "is_bible_book": false
+   }
+  },
+  {
+   "ranking": 22,
    "title": "Rich man and Lazarus",
    "url": "https://en.wikipedia.org/wiki/Rich_man_and_Lazarus",
    "net_score": 34,
@@ -1626,7 +1697,7 @@
    }
   },
   {
-   "ranking": 22,
+   "ranking": 23,
    "title": "James, brother of Jesus",
    "url": "https://en.wikipedia.org/wiki/James%2C_brother_of_Jesus",
    "net_score": 33,
@@ -1697,7 +1768,7 @@
    }
   },
   {
-   "ranking": 23,
+   "ranking": 24,
    "title": "The Garden Tomb",
    "url": "https://en.wikipedia.org/wiki/The_Garden_Tomb",
    "net_score": 33,
@@ -1768,7 +1839,7 @@
    }
   },
   {
-   "ranking": 24,
+   "ranking": 25,
    "title": "Bethsaida",
    "url": "https://en.wikipedia.org/wiki/Bethsaida",
    "net_score": 31,
@@ -1839,7 +1910,7 @@
    }
   },
   {
-   "ranking": 25,
+   "ranking": 26,
    "title": "Cana",
    "url": "https://en.wikipedia.org/wiki/Cana",
    "net_score": 31,
@@ -1910,7 +1981,7 @@
    }
   },
   {
-   "ranking": 26,
+   "ranking": 27,
    "title": "Josephus on Jesus",
    "url": "https://en.wikipedia.org/wiki/Josephus_on_Jesus",
    "net_score": 31,
@@ -1981,7 +2052,7 @@
    }
   },
   {
-   "ranking": 27,
+   "ranking": 28,
    "title": "Saint Joseph",
    "url": "https://en.wikipedia.org/wiki/Saint_Joseph",
    "net_score": 31,
@@ -2052,7 +2123,7 @@
    }
   },
   {
-   "ranking": 28,
+   "ranking": 29,
    "title": "Jerusalem",
    "url": "https://en.wikipedia.org/wiki/Jerusalem",
    "net_score": 30,
@@ -2123,7 +2194,7 @@
    }
   },
   {
-   "ranking": 29,
+   "ranking": 30,
    "title": "Bethlehem",
    "url": "https://en.wikipedia.org/wiki/Bethlehem",
    "net_score": 29,
@@ -2186,77 +2257,6 @@
    },
    "categories": {
     "is_passion": false,
-    "is_miracle": false,
-    "is_parable": false,
-    "is_location": true,
-    "is_teaching": false,
-    "is_bible_book": false
-   }
-  },
-  {
-   "ranking": 30,
-   "title": "Church of the Holy Sepulchre",
-   "url": "https://en.wikipedia.org/wiki/Church_of_the_Holy_Sepulchre",
-   "net_score": 29,
-   "contributions": {
-    "bible_verses": 3,
-    "data_interp_split": 0,
-    "manuscripts": 2,
-    "ante_nicene": 2,
-    "arch_site": 8,
-    "journal_or_book": 4,
-    "primary_quotes": 4,
-    "jewish_context": 4,
-    "balanced_debate": 4,
-    "commentaries": 0,
-    "ancient_historians": 6,
-    "wiki_quality": 0,
-    "confessional_balance": 0,
-    "gnostic_over_emphasis": 0,
-    "jesus_seminar": 0,
-    "ot_nt_criticism": 0,
-    "supernatural_criticism": -2,
-    "other_religion": -3,
-    "mythicist": -3,
-    "referencing_quality": -1,
-    "no_bible_verse": 0,
-    "literary_analysis": 0,
-    "maps_diagrams": 2,
-    "religious_art": 1,
-    "secular_materialist": -2
-   },
-   "raw_signals": {
-    "verse_count": 1,
-    "ref_count": 168,
-    "journal_hits": 6,
-    "book_hits": 34,
-    "commentary_hits": 0,
-    "arch_site": true,
-    "manuscript_hits": 1,
-    "primary_source_quotes": 117,
-    "poor_referencing": true,
-    "wiki_quality": false,
-    "ancient_historian_hits": 3,
-    "ante_nicene_hits": 1,
-    "mythicist_hits": 1,
-    "data_interp_tier": "unclassifiable",
-    "data_interp_pending": true,
-    "jesus_seminar_hits": 0,
-    "jesus_seminar_mult": 1.0,
-    "mythicist_mult": 1.0,
-    "jewish_context_hits": 2,
-    "other_religion_hit": true,
-    "balanced_debate_hits": 2,
-    "balanced_debate_named": 0,
-    "critical_scholar_hits": 0,
-    "critical_outside_interp": false,
-    "evangelical_contrast": false,
-    "maps_diagrams_count": 2,
-    "has_picture": true,
-    "has_diagram_or_map": true
-   },
-   "categories": {
-    "is_passion": true,
     "is_miracle": false,
     "is_parable": false,
     "is_location": true,
@@ -6526,6 +6526,77 @@
   },
   {
    "ranking": 91,
+   "title": "Mount Tabor",
+   "url": "https://en.wikipedia.org/wiki/Mount_Tabor",
+   "net_score": 20,
+   "contributions": {
+    "bible_verses": 6,
+    "data_interp_split": 0,
+    "manuscripts": 2,
+    "ante_nicene": 2,
+    "arch_site": 8,
+    "journal_or_book": 0,
+    "primary_quotes": 4,
+    "jewish_context": 2,
+    "balanced_debate": 0,
+    "commentaries": 0,
+    "ancient_historians": 2,
+    "wiki_quality": 0,
+    "confessional_balance": 0,
+    "gnostic_over_emphasis": 0,
+    "jesus_seminar": -2,
+    "ot_nt_criticism": 0,
+    "supernatural_criticism": 0,
+    "other_religion": -3,
+    "mythicist": -2,
+    "referencing_quality": -1,
+    "no_bible_verse": 0,
+    "literary_analysis": 0,
+    "maps_diagrams": 1,
+    "religious_art": 1,
+    "secular_materialist": 0
+   },
+   "raw_signals": {
+    "verse_count": 2,
+    "ref_count": 15,
+    "journal_hits": 0,
+    "book_hits": 0,
+    "commentary_hits": 0,
+    "arch_site": true,
+    "manuscript_hits": 1,
+    "primary_source_quotes": 4,
+    "poor_referencing": true,
+    "wiki_quality": false,
+    "ancient_historian_hits": 1,
+    "ante_nicene_hits": 1,
+    "mythicist_hits": 0,
+    "data_interp_tier": "unclassifiable",
+    "data_interp_pending": true,
+    "jesus_seminar_hits": 0,
+    "jesus_seminar_mult": 1.0,
+    "mythicist_mult": 1.0,
+    "jewish_context_hits": 1,
+    "other_religion_hit": true,
+    "balanced_debate_hits": 0,
+    "balanced_debate_named": 0,
+    "critical_scholar_hits": 0,
+    "critical_outside_interp": false,
+    "evangelical_contrast": false,
+    "maps_diagrams_count": 1,
+    "has_picture": true,
+    "has_diagram_or_map": true
+   },
+   "categories": {
+    "is_passion": false,
+    "is_miracle": false,
+    "is_parable": false,
+    "is_location": true,
+    "is_teaching": false,
+    "is_bible_book": false
+   }
+  },
+  {
+   "ranking": 92,
    "title": "Pool of Bethesda",
    "url": "https://en.wikipedia.org/wiki/Pool_of_Bethesda",
    "net_score": 20,
@@ -6596,7 +6667,7 @@
    }
   },
   {
-   "ranking": 92,
+   "ranking": 93,
    "title": "Resurrection of Jesus",
    "url": "https://en.wikipedia.org/wiki/Resurrection_of_Jesus",
    "net_score": 20,
@@ -6667,7 +6738,7 @@
    }
   },
   {
-   "ranking": 93,
+   "ranking": 94,
    "title": "Thirty pieces of silver",
    "url": "https://en.wikipedia.org/wiki/Thirty_pieces_of_silver",
    "net_score": 20,
@@ -6738,7 +6809,7 @@
    }
   },
   {
-   "ranking": 94,
+   "ranking": 95,
    "title": "Ascension of Jesus",
    "url": "https://en.wikipedia.org/wiki/Ascension_of_Jesus",
    "net_score": 19,
@@ -6809,7 +6880,7 @@
    }
   },
   {
-   "ranking": 95,
+   "ranking": 96,
    "title": "Caiaphas",
    "url": "https://en.wikipedia.org/wiki/Caiaphas",
    "net_score": 19,
@@ -6880,7 +6951,78 @@
    }
   },
   {
-   "ranking": 96,
+   "ranking": 97,
+   "title": "Chorazin",
+   "url": "https://en.wikipedia.org/wiki/Chorazin",
+   "net_score": 19,
+   "contributions": {
+    "bible_verses": 6,
+    "data_interp_split": 0,
+    "manuscripts": 0,
+    "ante_nicene": 0,
+    "arch_site": 8,
+    "journal_or_book": 4,
+    "primary_quotes": 2,
+    "jewish_context": 4,
+    "balanced_debate": 0,
+    "commentaries": 0,
+    "ancient_historians": 0,
+    "wiki_quality": 0,
+    "confessional_balance": 0,
+    "gnostic_over_emphasis": 0,
+    "jesus_seminar": -2,
+    "ot_nt_criticism": 0,
+    "supernatural_criticism": 0,
+    "other_religion": -3,
+    "mythicist": -2,
+    "referencing_quality": -1,
+    "no_bible_verse": 0,
+    "literary_analysis": 0,
+    "maps_diagrams": 2,
+    "religious_art": 1,
+    "secular_materialist": 0
+   },
+   "raw_signals": {
+    "verse_count": 2,
+    "ref_count": 16,
+    "journal_hits": 2,
+    "book_hits": 7,
+    "commentary_hits": 1,
+    "arch_site": true,
+    "manuscript_hits": 0,
+    "primary_source_quotes": 2,
+    "poor_referencing": true,
+    "wiki_quality": false,
+    "ancient_historian_hits": 0,
+    "ante_nicene_hits": 0,
+    "mythicist_hits": 0,
+    "data_interp_tier": "unclassifiable",
+    "data_interp_pending": true,
+    "jesus_seminar_hits": 0,
+    "jesus_seminar_mult": 1.0,
+    "mythicist_mult": 1.0,
+    "jewish_context_hits": 2,
+    "other_religion_hit": true,
+    "balanced_debate_hits": 0,
+    "balanced_debate_named": 0,
+    "critical_scholar_hits": 0,
+    "critical_outside_interp": false,
+    "evangelical_contrast": false,
+    "maps_diagrams_count": 2,
+    "has_picture": true,
+    "has_diagram_or_map": true
+   },
+   "categories": {
+    "is_passion": false,
+    "is_miracle": false,
+    "is_parable": false,
+    "is_location": true,
+    "is_teaching": false,
+    "is_bible_book": false
+   }
+  },
+  {
+   "ranking": 98,
    "title": "Galilee",
    "url": "https://en.wikipedia.org/wiki/Galilee",
    "net_score": 19,
@@ -6951,7 +7093,7 @@
    }
   },
   {
-   "ranking": 97,
+   "ranking": 99,
    "title": "Healing the paralytic at Bethesda",
    "url": "https://en.wikipedia.org/wiki/Healing_the_paralytic_at_Bethesda",
    "net_score": 19,
@@ -7022,7 +7164,7 @@
    }
   },
   {
-   "ranking": 98,
+   "ranking": 100,
    "title": "Jesus",
    "url": "https://en.wikipedia.org/wiki/Jesus",
    "net_score": 19,
@@ -7093,7 +7235,7 @@
    }
   },
   {
-   "ranking": 99,
+   "ranking": 101,
    "title": "Jesus healing the bleeding woman",
    "url": "https://en.wikipedia.org/wiki/Jesus_healing_the_bleeding_woman",
    "net_score": 19,
@@ -7164,7 +7306,7 @@
    }
   },
   {
-   "ranking": 100,
+   "ranking": 102,
    "title": "Mount of Olives",
    "url": "https://en.wikipedia.org/wiki/Mount_of_Olives",
    "net_score": 19,
@@ -7235,7 +7377,7 @@
    }
   },
   {
-   "ranking": 101,
+   "ranking": 103,
    "title": "New Commandment",
    "url": "https://en.wikipedia.org/wiki/New_Commandment",
    "net_score": 19,
@@ -7306,7 +7448,7 @@
    }
   },
   {
-   "ranking": 102,
+   "ranking": 104,
    "title": "Noli me tangere",
    "url": "https://en.wikipedia.org/wiki/Noli_me_tangere",
    "net_score": 19,
@@ -7377,7 +7519,7 @@
    }
   },
   {
-   "ranking": 103,
+   "ranking": 105,
    "title": "Olivet Discourse",
    "url": "https://en.wikipedia.org/wiki/Olivet_Discourse",
    "net_score": 19,
@@ -7448,7 +7590,7 @@
    }
   },
   {
-   "ranking": 104,
+   "ranking": 106,
    "title": "Parable of the Great Banquet",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Great_Banquet",
    "net_score": 19,
@@ -7519,7 +7661,7 @@
    }
   },
   {
-   "ranking": 105,
+   "ranking": 107,
    "title": "Parable of the Tares",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Tares",
    "net_score": 19,
@@ -7590,7 +7732,7 @@
    }
   },
   {
-   "ranking": 106,
+   "ranking": 108,
    "title": "Salome (disciple)",
    "url": "https://en.wikipedia.org/wiki/Salome_(disciple)",
    "net_score": 19,
@@ -7661,7 +7803,7 @@
    }
   },
   {
-   "ranking": 107,
+   "ranking": 109,
    "title": "Seventy disciples",
    "url": "https://en.wikipedia.org/wiki/Seventy_disciples",
    "net_score": 19,
@@ -7732,7 +7874,7 @@
    }
   },
   {
-   "ranking": 108,
+   "ranking": 110,
    "title": "Andrew the Apostle",
    "url": "https://en.wikipedia.org/wiki/Andrew_the_Apostle",
    "net_score": 18,
@@ -7803,7 +7945,7 @@
    }
   },
   {
-   "ranking": 109,
+   "ranking": 111,
    "title": "Baptism of Jesus",
    "url": "https://en.wikipedia.org/wiki/Baptism_of_Jesus",
    "net_score": 18,
@@ -7874,7 +8016,7 @@
    }
   },
   {
-   "ranking": 110,
+   "ranking": 112,
    "title": "Crown of thorns",
    "url": "https://en.wikipedia.org/wiki/Crown_of_thorns",
    "net_score": 18,
@@ -7945,7 +8087,7 @@
    }
   },
   {
-   "ranking": 111,
+   "ranking": 113,
    "title": "Gospel harmony",
    "url": "https://en.wikipedia.org/wiki/Gospel_harmony",
    "net_score": 18,
@@ -8016,7 +8158,7 @@
    }
   },
   {
-   "ranking": 112,
+   "ranking": 114,
    "title": "Healing the mother of Peter's wife",
    "url": "https://en.wikipedia.org/wiki/Healing_the_mother_of_Peter%27s_wife",
    "net_score": 18,
@@ -8087,7 +8229,7 @@
    }
   },
   {
-   "ranking": 113,
+   "ranking": 115,
    "title": "Jesus wept",
    "url": "https://en.wikipedia.org/wiki/Jesus_wept",
    "net_score": 18,
@@ -8158,7 +8300,7 @@
    }
   },
   {
-   "ranking": 114,
+   "ranking": 116,
    "title": "Jesus' authority questioned",
    "url": "https://en.wikipedia.org/wiki/Jesus%27_authority_questioned",
    "net_score": 18,
@@ -8229,7 +8371,7 @@
    }
   },
   {
-   "ranking": 115,
+   "ranking": 117,
    "title": "John the Apostle",
    "url": "https://en.wikipedia.org/wiki/John_the_Apostle",
    "net_score": 18,
@@ -8300,7 +8442,7 @@
    }
   },
   {
-   "ranking": 116,
+   "ranking": 118,
    "title": "Lord of the Sabbath",
    "url": "https://en.wikipedia.org/wiki/Lord_of_the_Sabbath",
    "net_score": 18,
@@ -8371,7 +8513,7 @@
    }
   },
   {
-   "ranking": 117,
+   "ranking": 119,
    "title": "Mary of Bethany",
    "url": "https://en.wikipedia.org/wiki/Mary_of_Bethany",
    "net_score": 18,
@@ -8442,7 +8584,7 @@
    }
   },
   {
-   "ranking": 118,
+   "ranking": 120,
    "title": "Ministry of Jesus",
    "url": "https://en.wikipedia.org/wiki/Ministry_of_Jesus",
    "net_score": 18,
@@ -8513,7 +8655,7 @@
    }
   },
   {
-   "ranking": 119,
+   "ranking": 121,
    "title": "Teachings of Jesus",
    "url": "https://en.wikipedia.org/wiki/Teachings_of_Jesus",
    "net_score": 18,
@@ -8584,7 +8726,7 @@
    }
   },
   {
-   "ranking": 120,
+   "ranking": 122,
    "title": "Cleopas",
    "url": "https://en.wikipedia.org/wiki/Cleopas",
    "net_score": 17,
@@ -8655,7 +8797,7 @@
    }
   },
   {
-   "ranking": 121,
+   "ranking": 123,
    "title": "Herod the Great",
    "url": "https://en.wikipedia.org/wiki/Herod_the_Great",
    "net_score": 17,
@@ -8726,7 +8868,7 @@
    }
   },
   {
-   "ranking": 122,
+   "ranking": 124,
    "title": "Historicity of the Gospels",
    "url": "https://en.wikipedia.org/wiki/Historicity_of_the_Gospels",
    "net_score": 17,
@@ -8797,7 +8939,7 @@
    }
   },
   {
-   "ranking": 123,
+   "ranking": 125,
    "title": "James, son of Alphaeus",
    "url": "https://en.wikipedia.org/wiki/James%2C_son_of_Alphaeus",
    "net_score": 17,
@@ -8868,7 +9010,7 @@
    }
   },
   {
-   "ranking": 124,
+   "ranking": 126,
    "title": "Jerusalem during the Second Temple period",
    "url": "https://en.wikipedia.org/wiki/Jerusalem_during_the_Second_Temple_period",
    "net_score": 17,
@@ -8939,7 +9081,7 @@
    }
   },
   {
-   "ranking": 125,
+   "ranking": 127,
    "title": "Jesus healing in the land of Gennesaret",
    "url": "https://en.wikipedia.org/wiki/Jesus_healing_in_the_land_of_Gennesaret",
    "net_score": 17,
@@ -9010,7 +9152,7 @@
    }
   },
   {
-   "ranking": 126,
+   "ranking": 128,
    "title": "Jesus predicts his death",
    "url": "https://en.wikipedia.org/wiki/Jesus_predicts_his_death",
    "net_score": 17,
@@ -9081,7 +9223,7 @@
    }
   },
   {
-   "ranking": 127,
+   "ranking": 129,
    "title": "Joses",
    "url": "https://en.wikipedia.org/wiki/Joses",
    "net_score": 17,
@@ -9152,7 +9294,7 @@
    }
   },
   {
-   "ranking": 128,
+   "ranking": 130,
    "title": "Jude, brother of Jesus",
    "url": "https://en.wikipedia.org/wiki/Jude%2C_brother_of_Jesus",
    "net_score": 17,
@@ -9223,7 +9365,7 @@
    }
   },
   {
-   "ranking": 129,
+   "ranking": 131,
    "title": "Marriage at Cana",
    "url": "https://en.wikipedia.org/wiki/Marriage_at_Cana",
    "net_score": 17,
@@ -9294,7 +9436,7 @@
    }
   },
   {
-   "ranking": 130,
+   "ranking": 132,
    "title": "Maundy (foot washing)",
    "url": "https://en.wikipedia.org/wiki/Maundy_(foot_washing)",
    "net_score": 17,
@@ -9365,7 +9507,7 @@
    }
   },
   {
-   "ranking": 131,
+   "ranking": 133,
    "title": "Parable of the Wedding Feast",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Wedding_Feast",
    "net_score": 17,
@@ -9436,7 +9578,7 @@
    }
   },
   {
-   "ranking": 132,
+   "ranking": 134,
    "title": "Pharisee and the Publican",
    "url": "https://en.wikipedia.org/wiki/Pharisee_and_the_Publican",
    "net_score": 17,
@@ -9507,7 +9649,7 @@
    }
   },
   {
-   "ranking": 133,
+   "ranking": 135,
    "title": "Sign of Jonah",
    "url": "https://en.wikipedia.org/wiki/Sign_of_Jonah",
    "net_score": 17,
@@ -9578,78 +9720,7 @@
    }
   },
   {
-   "ranking": 134,
-   "title": "Textual variants in the Gospel of John",
-   "url": "https://en.wikipedia.org/wiki/Textual_variants_in_the_Gospel_of_John",
-   "net_score": 17,
-   "contributions": {
-    "bible_verses": 6,
-    "data_interp_split": 0,
-    "manuscripts": 6,
-    "ante_nicene": 6,
-    "arch_site": 0,
-    "journal_or_book": 2,
-    "primary_quotes": 4,
-    "jewish_context": 0,
-    "balanced_debate": 0,
-    "commentaries": 0,
-    "ancient_historians": 0,
-    "wiki_quality": 0,
-    "confessional_balance": -3,
-    "gnostic_over_emphasis": 0,
-    "jesus_seminar": -2,
-    "ot_nt_criticism": 0,
-    "supernatural_criticism": 0,
-    "other_religion": 0,
-    "mythicist": -2,
-    "referencing_quality": 1,
-    "no_bible_verse": 0,
-    "literary_analysis": 0,
-    "maps_diagrams": 0,
-    "religious_art": -1,
-    "secular_materialist": 0
-   },
-   "raw_signals": {
-    "verse_count": 2,
-    "ref_count": 7,
-    "journal_hits": 0,
-    "book_hits": 3,
-    "commentary_hits": 0,
-    "arch_site": false,
-    "manuscript_hits": 7,
-    "primary_source_quotes": 6,
-    "poor_referencing": false,
-    "wiki_quality": false,
-    "ancient_historian_hits": 0,
-    "ante_nicene_hits": 3,
-    "mythicist_hits": 0,
-    "data_interp_tier": "unclassifiable",
-    "data_interp_pending": true,
-    "jesus_seminar_hits": 0,
-    "jesus_seminar_mult": 1.0,
-    "mythicist_mult": 1.0,
-    "jewish_context_hits": 0,
-    "other_religion_hit": false,
-    "balanced_debate_hits": 0,
-    "balanced_debate_named": 0,
-    "critical_scholar_hits": 2,
-    "critical_outside_interp": true,
-    "evangelical_contrast": false,
-    "maps_diagrams_count": 0,
-    "has_picture": true,
-    "has_diagram_or_map": false
-   },
-   "categories": {
-    "is_passion": false,
-    "is_miracle": false,
-    "is_parable": false,
-    "is_location": false,
-    "is_teaching": false,
-    "is_bible_book": false
-   }
-  },
-  {
-   "ranking": 135,
+   "ranking": 136,
    "title": "The Sheep and the Goats",
    "url": "https://en.wikipedia.org/wiki/The_Sheep_and_the_Goats",
    "net_score": 17,
@@ -9720,7 +9791,7 @@
    }
   },
   {
-   "ranking": 136,
+   "ranking": 137,
    "title": "Christ's discourse with Nicodemus",
    "url": "https://en.wikipedia.org/wiki/Christ%27s_discourse_with_Nicodemus",
    "net_score": 16,
@@ -9791,7 +9862,7 @@
    }
   },
   {
-   "ranking": 137,
+   "ranking": 138,
    "title": "Discourse on Defilement",
    "url": "https://en.wikipedia.org/wiki/Discourse_on_Defilement",
    "net_score": 16,
@@ -9862,7 +9933,7 @@
    }
   },
   {
-   "ranking": 138,
+   "ranking": 139,
    "title": "Healing of the centurion's servant",
    "url": "https://en.wikipedia.org/wiki/Healing_of_the_centurion%27s_servant",
    "net_score": 16,
@@ -9933,7 +10004,7 @@
    }
   },
   {
-   "ranking": 139,
+   "ranking": 140,
    "title": "Healing the deaf mute of Decapolis",
    "url": "https://en.wikipedia.org/wiki/Healing_the_deaf_mute_of_Decapolis",
    "net_score": 16,
@@ -10004,7 +10075,7 @@
    }
   },
   {
-   "ranking": 140,
+   "ranking": 141,
    "title": "Healing the man with a withered hand",
    "url": "https://en.wikipedia.org/wiki/Healing_the_man_with_a_withered_hand",
    "net_score": 16,
@@ -10075,7 +10146,7 @@
    }
   },
   {
-   "ranking": 141,
+   "ranking": 142,
    "title": "Healing the paralytic at Capernaum",
    "url": "https://en.wikipedia.org/wiki/Healing_the_paralytic_at_Capernaum",
    "net_score": 16,
@@ -10146,7 +10217,7 @@
    }
   },
   {
-   "ranking": 142,
+   "ranking": 143,
    "title": "Healing the royal official's son",
    "url": "https://en.wikipedia.org/wiki/Healing_the_royal_official%27s_son",
    "net_score": 16,
@@ -10217,7 +10288,7 @@
    }
   },
   {
-   "ranking": 143,
+   "ranking": 144,
    "title": "Last Supper",
    "url": "https://en.wikipedia.org/wiki/Last_Supper",
    "net_score": 16,
@@ -10288,7 +10359,7 @@
    }
   },
   {
-   "ranking": 144,
+   "ranking": 145,
    "title": "Letter of Pilate to Tiberius",
    "url": "https://en.wikipedia.org/wiki/Letter_of_Pilate_to_Tiberius",
    "net_score": 16,
@@ -10359,7 +10430,7 @@
    }
   },
   {
-   "ranking": 145,
+   "ranking": 146,
    "title": "Messengers from John the Baptist",
    "url": "https://en.wikipedia.org/wiki/Messengers_from_John_the_Baptist",
    "net_score": 16,
@@ -10430,7 +10501,7 @@
    }
   },
   {
-   "ranking": 146,
+   "ranking": 147,
    "title": "Parable of the Friend at Night",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Friend_at_Night",
    "net_score": 16,
@@ -10501,7 +10572,7 @@
    }
   },
   {
-   "ranking": 147,
+   "ranking": 148,
    "title": "Parable of the Lost Sheep",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Lost_Sheep",
    "net_score": 16,
@@ -10572,7 +10643,78 @@
    }
   },
   {
-   "ranking": 148,
+   "ranking": 149,
+   "title": "Praetorium",
+   "url": "https://en.wikipedia.org/wiki/Praetorium",
+   "net_score": 16,
+   "contributions": {
+    "bible_verses": 9,
+    "data_interp_split": 0,
+    "manuscripts": 0,
+    "ante_nicene": 0,
+    "arch_site": 8,
+    "journal_or_book": 1,
+    "primary_quotes": 3,
+    "jewish_context": 0,
+    "balanced_debate": 0,
+    "commentaries": 0,
+    "ancient_historians": 0,
+    "wiki_quality": 0,
+    "confessional_balance": 0,
+    "gnostic_over_emphasis": 0,
+    "jesus_seminar": -2,
+    "ot_nt_criticism": 0,
+    "supernatural_criticism": 0,
+    "other_religion": 0,
+    "mythicist": -2,
+    "referencing_quality": 0,
+    "no_bible_verse": 0,
+    "literary_analysis": 0,
+    "maps_diagrams": 0,
+    "religious_art": -1,
+    "secular_materialist": 0
+   },
+   "raw_signals": {
+    "verse_count": 3,
+    "ref_count": 11,
+    "journal_hits": 0,
+    "book_hits": 1,
+    "commentary_hits": 0,
+    "arch_site": true,
+    "manuscript_hits": 0,
+    "primary_source_quotes": 3,
+    "poor_referencing": false,
+    "wiki_quality": false,
+    "ancient_historian_hits": 0,
+    "ante_nicene_hits": 0,
+    "mythicist_hits": 0,
+    "data_interp_tier": "unclassifiable",
+    "data_interp_pending": true,
+    "jesus_seminar_hits": 0,
+    "jesus_seminar_mult": 1.0,
+    "mythicist_mult": 1.0,
+    "jewish_context_hits": 0,
+    "other_religion_hit": false,
+    "balanced_debate_hits": 0,
+    "balanced_debate_named": 0,
+    "critical_scholar_hits": 0,
+    "critical_outside_interp": false,
+    "evangelical_contrast": false,
+    "maps_diagrams_count": 0,
+    "has_picture": true,
+    "has_diagram_or_map": false
+   },
+   "categories": {
+    "is_passion": false,
+    "is_miracle": false,
+    "is_parable": false,
+    "is_location": true,
+    "is_teaching": false,
+    "is_bible_book": false
+   }
+  },
+  {
+   "ranking": 150,
    "title": "Salt and light",
    "url": "https://en.wikipedia.org/wiki/Salt_and_light",
    "net_score": 16,
@@ -10643,7 +10785,7 @@
    }
   },
   {
-   "ranking": 149,
+   "ranking": 151,
    "title": "Women at the crucifixion",
    "url": "https://en.wikipedia.org/wiki/Women_at_the_crucifixion",
    "net_score": 16,
@@ -10714,7 +10856,7 @@
    }
   },
   {
-   "ranking": 150,
+   "ranking": 152,
    "title": "Arrest of Jesus",
    "url": "https://en.wikipedia.org/wiki/Arrest_of_Jesus",
    "net_score": 15,
@@ -10785,7 +10927,7 @@
    }
   },
   {
-   "ranking": 151,
+   "ranking": 153,
    "title": "Calling of Matthew",
    "url": "https://en.wikipedia.org/wiki/Calling_of_Matthew",
    "net_score": 15,
@@ -10856,7 +10998,7 @@
    }
   },
   {
-   "ranking": 152,
+   "ranking": 154,
    "title": "Calming the storm",
    "url": "https://en.wikipedia.org/wiki/Calming_the_storm",
    "net_score": 15,
@@ -10927,7 +11069,7 @@
    }
   },
   {
-   "ranking": 153,
+   "ranking": 155,
    "title": "Ecce homo",
    "url": "https://en.wikipedia.org/wiki/Ecce_homo",
    "net_score": 15,
@@ -10998,7 +11140,7 @@
    }
   },
   {
-   "ranking": 154,
+   "ranking": 156,
    "title": "Feeding the multitude",
    "url": "https://en.wikipedia.org/wiki/Feeding_the_multitude",
    "net_score": 15,
@@ -11069,7 +11211,7 @@
    }
   },
   {
-   "ranking": 155,
+   "ranking": 157,
    "title": "Healing the ear of a servant",
    "url": "https://en.wikipedia.org/wiki/Healing_the_ear_of_a_servant",
    "net_score": 15,
@@ -11140,7 +11282,7 @@
    }
   },
   {
-   "ranking": 156,
+   "ranking": 158,
    "title": "Jesus and the rich young man",
    "url": "https://en.wikipedia.org/wiki/Jesus_and_the_rich_young_man",
    "net_score": 15,
@@ -11211,7 +11353,7 @@
    }
   },
   {
-   "ranking": 157,
+   "ranking": 159,
    "title": "Jesus at Herod's court",
    "url": "https://en.wikipedia.org/wiki/Jesus_at_Herod%27s_court",
    "net_score": 15,
@@ -11282,7 +11424,7 @@
    }
   },
   {
-   "ranking": 158,
+   "ranking": 160,
    "title": "Jesus cleansing a leper",
    "url": "https://en.wikipedia.org/wiki/Jesus_cleansing_a_leper",
    "net_score": 15,
@@ -11353,7 +11495,7 @@
    }
   },
   {
-   "ranking": 159,
+   "ranking": 161,
    "title": "Jesus walking on water",
    "url": "https://en.wikipedia.org/wiki/Jesus_walking_on_water",
    "net_score": 15,
@@ -11424,7 +11566,7 @@
    }
   },
   {
-   "ranking": 160,
+   "ranking": 162,
    "title": "Jesus's interactions with women",
    "url": "https://en.wikipedia.org/wiki/Jesus%27s_interactions_with_women",
    "net_score": 15,
@@ -11495,78 +11637,7 @@
    }
   },
   {
-   "ranking": 161,
-   "title": "List of gospels",
-   "url": "https://en.wikipedia.org/wiki/List_of_gospels",
-   "net_score": 15,
-   "contributions": {
-    "bible_verses": 9,
-    "data_interp_split": 0,
-    "manuscripts": 2,
-    "ante_nicene": 6,
-    "arch_site": 0,
-    "journal_or_book": 4,
-    "primary_quotes": 4,
-    "jewish_context": 2,
-    "balanced_debate": 0,
-    "commentaries": 0,
-    "ancient_historians": 2,
-    "wiki_quality": 0,
-    "confessional_balance": -3,
-    "gnostic_over_emphasis": -2,
-    "jesus_seminar": -2,
-    "ot_nt_criticism": 0,
-    "supernatural_criticism": 0,
-    "other_religion": -3,
-    "mythicist": -2,
-    "referencing_quality": -1,
-    "no_bible_verse": 0,
-    "literary_analysis": 0,
-    "maps_diagrams": 0,
-    "religious_art": -1,
-    "secular_materialist": 0
-   },
-   "raw_signals": {
-    "verse_count": 3,
-    "ref_count": 35,
-    "journal_hits": 3,
-    "book_hits": 7,
-    "commentary_hits": 1,
-    "arch_site": false,
-    "manuscript_hits": 1,
-    "primary_source_quotes": 8,
-    "poor_referencing": true,
-    "wiki_quality": false,
-    "ancient_historian_hits": 1,
-    "ante_nicene_hits": 4,
-    "mythicist_hits": 0,
-    "data_interp_tier": "unclassifiable",
-    "data_interp_pending": true,
-    "jesus_seminar_hits": 0,
-    "jesus_seminar_mult": 1.0,
-    "mythicist_mult": 1.0,
-    "jewish_context_hits": 1,
-    "other_religion_hit": true,
-    "balanced_debate_hits": 0,
-    "balanced_debate_named": 0,
-    "critical_scholar_hits": 1,
-    "critical_outside_interp": true,
-    "evangelical_contrast": false,
-    "maps_diagrams_count": 0,
-    "has_picture": true,
-    "has_diagram_or_map": false
-   },
-   "categories": {
-    "is_passion": false,
-    "is_miracle": false,
-    "is_parable": false,
-    "is_location": false,
-    "is_teaching": false,
-    "is_bible_book": true
-   }
-  },
-  {
-   "ranking": 162,
+   "ranking": 163,
    "title": "Miracles of Jesus",
    "url": "https://en.wikipedia.org/wiki/Miracles_of_Jesus",
    "net_score": 15,
@@ -11637,7 +11708,7 @@
    }
   },
   {
-   "ranking": 163,
+   "ranking": 164,
    "title": "Miraculous catch of fish",
    "url": "https://en.wikipedia.org/wiki/Miraculous_catch_of_fish",
    "net_score": 15,
@@ -11708,7 +11779,7 @@
    }
   },
   {
-   "ranking": 164,
+   "ranking": 165,
    "title": "Mount of Temptation",
    "url": "https://en.wikipedia.org/wiki/Mount_of_Temptation",
    "net_score": 15,
@@ -11779,7 +11850,7 @@
    }
   },
   {
-   "ranking": 165,
+   "ranking": 166,
    "title": "New Wine into Old Wineskins",
    "url": "https://en.wikipedia.org/wiki/New_Wine_into_Old_Wineskins",
    "net_score": 15,
@@ -11850,7 +11921,7 @@
    }
   },
   {
-   "ranking": 166,
+   "ranking": 167,
    "title": "Parable of the Mustard Seed",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Mustard_Seed",
    "net_score": 15,
@@ -11921,7 +11992,7 @@
    }
   },
   {
-   "ranking": 167,
+   "ranking": 168,
    "title": "Parable of the Sower",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Sower",
    "net_score": 15,
@@ -11992,7 +12063,7 @@
    }
   },
   {
-   "ranking": 168,
+   "ranking": 169,
    "title": "Parable of the Unjust Judge",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Unjust_Judge",
    "net_score": 15,
@@ -12063,7 +12134,7 @@
    }
   },
   {
-   "ranking": 169,
+   "ranking": 170,
    "title": "Passion of Jesus",
    "url": "https://en.wikipedia.org/wiki/Passion_of_Jesus",
    "net_score": 15,
@@ -12134,7 +12205,7 @@
    }
   },
   {
-   "ranking": 170,
+   "ranking": 171,
    "title": "Simon the Zealot",
    "url": "https://en.wikipedia.org/wiki/Simon_the_Zealot",
    "net_score": 15,
@@ -12205,7 +12276,7 @@
    }
   },
   {
-   "ranking": 171,
+   "ranking": 172,
    "title": "Tacitus on Jesus",
    "url": "https://en.wikipedia.org/wiki/Tacitus_on_Jesus",
    "net_score": 15,
@@ -12276,7 +12347,7 @@
    }
   },
   {
-   "ranking": 172,
+   "ranking": 173,
    "title": "Bargain of Judas",
    "url": "https://en.wikipedia.org/wiki/Bargain_of_Judas",
    "net_score": 14,
@@ -12347,7 +12418,7 @@
    }
   },
   {
-   "ranking": 173,
+   "ranking": 174,
    "title": "Commissioning of the Twelve Apostles",
    "url": "https://en.wikipedia.org/wiki/Commissioning_of_the_Twelve_Apostles",
    "net_score": 14,
@@ -12418,7 +12489,7 @@
    }
   },
   {
-   "ranking": 174,
+   "ranking": 175,
    "title": "Counting the cost",
    "url": "https://en.wikipedia.org/wiki/Counting_the_cost",
    "net_score": 14,
@@ -12489,7 +12560,7 @@
    }
   },
   {
-   "ranking": 175,
+   "ranking": 176,
    "title": "Great Commandment",
    "url": "https://en.wikipedia.org/wiki/Great_Commandment",
    "net_score": 14,
@@ -12560,7 +12631,7 @@
    }
   },
   {
-   "ranking": 176,
+   "ranking": 177,
    "title": "Jesus in the synagogue of Capernaum",
    "url": "https://en.wikipedia.org/wiki/Jesus_in_the_synagogue_of_Capernaum",
    "net_score": 14,
@@ -12631,7 +12702,7 @@
    }
   },
   {
-   "ranking": 177,
+   "ranking": 178,
    "title": "Malchus",
    "url": "https://en.wikipedia.org/wiki/Malchus",
    "net_score": 14,
@@ -12702,7 +12773,7 @@
    }
   },
   {
-   "ranking": 178,
+   "ranking": 179,
    "title": "Matthew the Apostle",
    "url": "https://en.wikipedia.org/wiki/Matthew_the_Apostle",
    "net_score": 14,
@@ -12773,7 +12844,7 @@
    }
   },
   {
-   "ranking": 179,
+   "ranking": 180,
    "title": "Road to Emmaus appearance",
    "url": "https://en.wikipedia.org/wiki/Road_to_Emmaus_appearance",
    "net_score": 14,
@@ -12844,7 +12915,7 @@
    }
   },
   {
-   "ranking": 180,
+   "ranking": 181,
    "title": "Sermon on the Plain",
    "url": "https://en.wikipedia.org/wiki/Sermon_on_the_Plain",
    "net_score": 14,
@@ -12915,7 +12986,7 @@
    }
   },
   {
-   "ranking": 181,
+   "ranking": 182,
    "title": "Woes of the Pharisees",
    "url": "https://en.wikipedia.org/wiki/Woes_of_the_Pharisees",
    "net_score": 14,
@@ -12986,7 +13057,7 @@
    }
   },
   {
-   "ranking": 182,
+   "ranking": 183,
    "title": "Agony in the Garden",
    "url": "https://en.wikipedia.org/wiki/Agony_in_the_Garden",
    "net_score": 13,
@@ -13057,7 +13128,7 @@
    }
   },
   {
-   "ranking": 183,
+   "ranking": 184,
    "title": "Beheading of John the Baptist",
    "url": "https://en.wikipedia.org/wiki/Beheading_of_John_the_Baptist",
    "net_score": 13,
@@ -13128,7 +13199,7 @@
    }
   },
   {
-   "ranking": 184,
+   "ranking": 185,
    "title": "Biblical Magi",
    "url": "https://en.wikipedia.org/wiki/Biblical_Magi",
    "net_score": 13,
@@ -13199,7 +13270,7 @@
    }
   },
   {
-   "ranking": 185,
+   "ranking": 186,
    "title": "Calling of the disciples",
    "url": "https://en.wikipedia.org/wiki/Calling_of_the_disciples",
    "net_score": 13,
@@ -13270,7 +13341,7 @@
    }
   },
   {
-   "ranking": 186,
+   "ranking": 187,
    "title": "James the Less",
    "url": "https://en.wikipedia.org/wiki/James_the_Less",
    "net_score": 13,
@@ -13341,7 +13412,7 @@
    }
   },
   {
-   "ranking": 187,
+   "ranking": 188,
    "title": "Kiss of Judas",
    "url": "https://en.wikipedia.org/wiki/Kiss_of_Judas",
    "net_score": 13,
@@ -13412,7 +13483,7 @@
    }
   },
   {
-   "ranking": 188,
+   "ranking": 189,
    "title": "Mocking of Jesus",
    "url": "https://en.wikipedia.org/wiki/Mocking_of_Jesus",
    "net_score": 13,
@@ -13483,7 +13554,7 @@
    }
   },
   {
-   "ranking": 189,
+   "ranking": 190,
    "title": "Nathanael (follower of Jesus)",
    "url": "https://en.wikipedia.org/wiki/Nathanael_(follower_of_Jesus)",
    "net_score": 13,
@@ -13554,7 +13625,7 @@
    }
   },
   {
-   "ranking": 190,
+   "ranking": 191,
    "title": "Parable of the barren fig tree",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_barren_fig_tree",
    "net_score": 13,
@@ -13625,7 +13696,7 @@
    }
   },
   {
-   "ranking": 191,
+   "ranking": 192,
    "title": "Parable of the Faithful Servant",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Faithful_Servant",
    "net_score": 13,
@@ -13696,7 +13767,7 @@
    }
   },
   {
-   "ranking": 192,
+   "ranking": 193,
    "title": "Parable of the Leaven",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Leaven",
    "net_score": 13,
@@ -13767,7 +13838,7 @@
    }
   },
   {
-   "ranking": 193,
+   "ranking": 194,
    "title": "Parable of the Pearl",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Pearl",
    "net_score": 13,
@@ -13838,7 +13909,7 @@
    }
   },
   {
-   "ranking": 194,
+   "ranking": 195,
    "title": "Parable of the Strong Man",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Strong_Man",
    "net_score": 13,
@@ -13909,7 +13980,7 @@
    }
   },
   {
-   "ranking": 195,
+   "ranking": 196,
    "title": "Parable of the Wise and the Foolish Builders",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Wise_and_the_Foolish_Builders",
    "net_score": 13,
@@ -13980,7 +14051,7 @@
    }
   },
   {
-   "ranking": 196,
+   "ranking": 197,
    "title": "Sanhedrin trial of Jesus",
    "url": "https://en.wikipedia.org/wiki/Sanhedrin_trial_of_Jesus",
    "net_score": 13,
@@ -14051,7 +14122,7 @@
    }
   },
   {
-   "ranking": 197,
+   "ranking": 198,
    "title": "True Vine",
    "url": "https://en.wikipedia.org/wiki/True_Vine",
    "net_score": 13,
@@ -14122,7 +14193,7 @@
    }
   },
   {
-   "ranking": 198,
+   "ranking": 199,
    "title": "Zacchaeus",
    "url": "https://en.wikipedia.org/wiki/Zacchaeus",
    "net_score": 13,
@@ -14193,7 +14264,7 @@
    }
   },
   {
-   "ranking": 199,
+   "ranking": 200,
    "title": "Gabbatha",
    "url": "https://en.wikipedia.org/wiki/Gabbatha",
    "net_score": 12,
@@ -14264,7 +14335,7 @@
    }
   },
   {
-   "ranking": 200,
+   "ranking": 201,
    "title": "Great Commission",
    "url": "https://en.wikipedia.org/wiki/Great_Commission",
    "net_score": 12,
@@ -14335,7 +14406,7 @@
    }
   },
   {
-   "ranking": 201,
+   "ranking": 202,
    "title": "Healing a man with dropsy",
    "url": "https://en.wikipedia.org/wiki/Healing_a_man_with_dropsy",
    "net_score": 12,
@@ -14406,7 +14477,7 @@
    }
   },
   {
-   "ranking": 202,
+   "ranking": 203,
    "title": "Light of the World",
    "url": "https://en.wikipedia.org/wiki/Light_of_the_World",
    "net_score": 12,
@@ -14477,7 +14548,7 @@
    }
   },
   {
-   "ranking": 203,
+   "ranking": 204,
    "title": "Matthias the Apostle",
    "url": "https://en.wikipedia.org/wiki/Matthias_the_Apostle",
    "net_score": 12,
@@ -14548,7 +14619,7 @@
    }
   },
   {
-   "ranking": 204,
+   "ranking": 205,
    "title": "Mount of Transfiguration",
    "url": "https://en.wikipedia.org/wiki/Mount_of_Transfiguration",
    "net_score": 12,
@@ -14619,7 +14690,7 @@
    }
   },
   {
-   "ranking": 205,
+   "ranking": 206,
    "title": "Parable of the Rich Fool",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Rich_Fool",
    "net_score": 12,
@@ -14690,7 +14761,7 @@
    }
   },
   {
-   "ranking": 206,
+   "ranking": 207,
    "title": "Parable of the Unforgiving Servant",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Unforgiving_Servant",
    "net_score": 12,
@@ -14761,7 +14832,7 @@
    }
   },
   {
-   "ranking": 207,
+   "ranking": 208,
    "title": "Restoration of Peter",
    "url": "https://en.wikipedia.org/wiki/Restoration_of_Peter",
    "net_score": 12,
@@ -14832,7 +14903,7 @@
    }
   },
   {
-   "ranking": 208,
+   "ranking": 209,
    "title": "Samaritan woman at the well",
    "url": "https://en.wikipedia.org/wiki/Samaritan_woman_at_the_well",
    "net_score": 12,
@@ -14903,7 +14974,7 @@
    }
   },
   {
-   "ranking": 209,
+   "ranking": 210,
    "title": "The Mote and the Beam",
    "url": "https://en.wikipedia.org/wiki/The_Mote_and_the_Beam",
    "net_score": 12,
@@ -14974,7 +15045,7 @@
    }
   },
   {
-   "ranking": 210,
+   "ranking": 211,
    "title": "Zebedee",
    "url": "https://en.wikipedia.org/wiki/Zebedee",
    "net_score": 12,
@@ -15045,7 +15116,7 @@
    }
   },
   {
-   "ranking": 211,
+   "ranking": 212,
    "title": "Lamp under a bushel",
    "url": "https://en.wikipedia.org/wiki/Lamp_under_a_bushel",
    "net_score": 11,
@@ -15116,7 +15187,7 @@
    }
   },
   {
-   "ranking": 212,
+   "ranking": 213,
    "title": "Naked fugitive",
    "url": "https://en.wikipedia.org/wiki/Naked_fugitive",
    "net_score": 11,
@@ -15187,7 +15258,7 @@
    }
   },
   {
-   "ranking": 213,
+   "ranking": 214,
    "title": "Parable of the Budding Fig Tree",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Budding_Fig_Tree",
    "net_score": 11,
@@ -15258,7 +15329,7 @@
    }
   },
   {
-   "ranking": 214,
+   "ranking": 215,
    "title": "Parable of the Hidden Treasure",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Hidden_Treasure",
    "net_score": 11,
@@ -15329,7 +15400,7 @@
    }
   },
   {
-   "ranking": 215,
+   "ranking": 216,
    "title": "Elizabeth, mother of John the Baptist",
    "url": "https://en.wikipedia.org/wiki/Elizabeth%2C_mother_of_John_the_Baptist",
    "net_score": 10,
@@ -15400,7 +15471,7 @@
    }
   },
   {
-   "ranking": 216,
+   "ranking": 217,
    "title": "Eye of a needle",
    "url": "https://en.wikipedia.org/wiki/Eye_of_a_needle",
    "net_score": 10,
@@ -15471,7 +15542,7 @@
    }
   },
   {
-   "ranking": 217,
+   "ranking": 218,
    "title": "Healing the blind near Jericho",
    "url": "https://en.wikipedia.org/wiki/Healing_the_blind_near_Jericho",
    "net_score": 10,
@@ -15542,7 +15613,7 @@
    }
   },
   {
-   "ranking": 218,
+   "ranking": 219,
    "title": "James the Great",
    "url": "https://en.wikipedia.org/wiki/James_the_Great",
    "net_score": 10,
@@ -15613,7 +15684,7 @@
    }
   },
   {
-   "ranking": 219,
+   "ranking": 220,
    "title": "Parable of the Growing Seed",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Growing_Seed",
    "net_score": 10,
@@ -15684,7 +15755,7 @@
    }
   },
   {
-   "ranking": 220,
+   "ranking": 221,
    "title": "The Tree and Its Fruits",
    "url": "https://en.wikipedia.org/wiki/The_Tree_and_Its_Fruits",
    "net_score": 10,
@@ -15755,7 +15826,7 @@
    }
   },
   {
-   "ranking": 221,
+   "ranking": 222,
    "title": "Blind man of Bethsaida",
    "url": "https://en.wikipedia.org/wiki/Blind_man_of_Bethsaida",
    "net_score": 9,
@@ -15826,7 +15897,7 @@
    }
   },
   {
-   "ranking": 222,
+   "ranking": 223,
    "title": "Coin in the fish's mouth",
    "url": "https://en.wikipedia.org/wiki/Coin_in_the_fish%27s_mouth",
    "net_score": 9,
@@ -15897,7 +15968,7 @@
    }
   },
   {
-   "ranking": 223,
+   "ranking": 224,
    "title": "Confession of Peter",
    "url": "https://en.wikipedia.org/wiki/Confession_of_Peter",
    "net_score": 9,
@@ -15968,7 +16039,7 @@
    }
   },
   {
-   "ranking": 224,
+   "ranking": 225,
    "title": "Denial of Peter",
    "url": "https://en.wikipedia.org/wiki/Denial_of_Peter",
    "net_score": 9,
@@ -16039,7 +16110,7 @@
    }
   },
   {
-   "ranking": 225,
+   "ranking": 226,
    "title": "Finding in the Temple",
    "url": "https://en.wikipedia.org/wiki/Finding_in_the_Temple",
    "net_score": 9,
@@ -16110,7 +16181,7 @@
    }
   },
   {
-   "ranking": 226,
+   "ranking": 227,
    "title": "Flight into Egypt",
    "url": "https://en.wikipedia.org/wiki/Flight_into_Egypt",
    "net_score": 9,
@@ -16181,7 +16252,7 @@
    }
   },
   {
-   "ranking": 227,
+   "ranking": 228,
    "title": "Healing the man blind from birth",
    "url": "https://en.wikipedia.org/wiki/Healing_the_man_blind_from_birth",
    "net_score": 9,
@@ -16252,7 +16323,7 @@
    }
   },
   {
-   "ranking": 228,
+   "ranking": 229,
    "title": "Parables of Jesus",
    "url": "https://en.wikipedia.org/wiki/Parables_of_Jesus",
    "net_score": 9,
@@ -16323,7 +16394,7 @@
    }
   },
   {
-   "ranking": 229,
+   "ranking": 230,
    "title": "Raising of the son of the widow of Nain",
    "url": "https://en.wikipedia.org/wiki/Raising_of_the_son_of_the_widow_of_Nain",
    "net_score": 9,
@@ -16394,7 +16465,7 @@
    }
   },
   {
-   "ranking": 230,
+   "ranking": 231,
    "title": "Simon the Leper",
    "url": "https://en.wikipedia.org/wiki/Simon_the_Leper",
    "net_score": 9,
@@ -16465,7 +16536,7 @@
    }
   },
   {
-   "ranking": 231,
+   "ranking": 232,
    "title": "Young man from Nain",
    "url": "https://en.wikipedia.org/wiki/Young_man_from_Nain",
    "net_score": 9,
@@ -16536,7 +16607,7 @@
    }
   },
   {
-   "ranking": 232,
+   "ranking": 233,
    "title": "City upon a Hill",
    "url": "https://en.wikipedia.org/wiki/City_upon_a_Hill",
    "net_score": 8,
@@ -16607,7 +16678,7 @@
    }
   },
   {
-   "ranking": 233,
+   "ranking": 234,
    "title": "Cleansing ten lepers",
    "url": "https://en.wikipedia.org/wiki/Cleansing_ten_lepers",
    "net_score": 8,
@@ -16678,7 +16749,7 @@
    }
   },
   {
-   "ranking": 234,
+   "ranking": 235,
    "title": "Four Evangelists",
    "url": "https://en.wikipedia.org/wiki/Four_Evangelists",
    "net_score": 8,
@@ -16749,7 +16820,7 @@
    }
   },
   {
-   "ranking": 235,
+   "ranking": 236,
    "title": "Parable of the Two Sons",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Two_Sons",
    "net_score": 8,
@@ -16820,7 +16891,7 @@
    }
   },
   {
-   "ranking": 236,
+   "ranking": 237,
    "title": "The Three Marys",
    "url": "https://en.wikipedia.org/wiki/The_Three_Marys",
    "net_score": 8,
@@ -16891,7 +16962,7 @@
    }
   },
   {
-   "ranking": 237,
+   "ranking": 238,
    "title": "Wolf in sheep's clothing",
    "url": "https://en.wikipedia.org/wiki/Wolf_in_sheep%27s_clothing",
    "net_score": 8,
@@ -16962,7 +17033,7 @@
    }
   },
   {
-   "ranking": 238,
+   "ranking": 239,
    "title": "Parable of the Lost Coin",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Lost_Coin",
    "net_score": 7,
@@ -17033,7 +17104,7 @@
    }
   },
   {
-   "ranking": 239,
+   "ranking": 240,
    "title": "Parable of the Master and Servant",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Master_and_Servant",
    "net_score": 7,
@@ -17104,149 +17175,7 @@
    }
   },
   {
-   "ranking": 240,
-   "title": "Gospel of James",
-   "url": "https://en.wikipedia.org/wiki/Gospel_of_James",
-   "net_score": 6,
-   "contributions": {
-    "bible_verses": 9,
-    "data_interp_split": 0,
-    "manuscripts": 2,
-    "ante_nicene": 4,
-    "arch_site": 0,
-    "journal_or_book": 1,
-    "primary_quotes": 4,
-    "jewish_context": 2,
-    "balanced_debate": 0,
-    "commentaries": 0,
-    "ancient_historians": 0,
-    "wiki_quality": 0,
-    "confessional_balance": -3,
-    "gnostic_over_emphasis": -2,
-    "jesus_seminar": -2,
-    "ot_nt_criticism": -3,
-    "supernatural_criticism": 0,
-    "other_religion": -3,
-    "mythicist": -2,
-    "referencing_quality": 0,
-    "no_bible_verse": 0,
-    "literary_analysis": 0,
-    "maps_diagrams": 0,
-    "religious_art": -1,
-    "secular_materialist": 0
-   },
-   "raw_signals": {
-    "verse_count": 3,
-    "ref_count": 43,
-    "journal_hits": 0,
-    "book_hits": 1,
-    "commentary_hits": 0,
-    "arch_site": false,
-    "manuscript_hits": 1,
-    "primary_source_quotes": 6,
-    "poor_referencing": false,
-    "wiki_quality": false,
-    "ancient_historian_hits": 0,
-    "ante_nicene_hits": 2,
-    "mythicist_hits": 0,
-    "data_interp_tier": "unclassifiable",
-    "data_interp_pending": true,
-    "jesus_seminar_hits": 0,
-    "jesus_seminar_mult": 1.0,
-    "mythicist_mult": 1.0,
-    "jewish_context_hits": 1,
-    "other_religion_hit": true,
-    "balanced_debate_hits": 0,
-    "balanced_debate_named": 0,
-    "critical_scholar_hits": 1,
-    "critical_outside_interp": true,
-    "evangelical_contrast": false,
-    "maps_diagrams_count": 0,
-    "has_picture": true,
-    "has_diagram_or_map": false
-   },
-   "categories": {
-    "is_passion": false,
-    "is_miracle": false,
-    "is_parable": false,
-    "is_location": false,
-    "is_teaching": false,
-    "is_bible_book": false
-   }
-  },
-  {
    "ranking": 241,
-   "title": "Gospel of Philip",
-   "url": "https://en.wikipedia.org/wiki/Gospel_of_Philip",
-   "net_score": 6,
-   "contributions": {
-    "bible_verses": 12,
-    "data_interp_split": 0,
-    "manuscripts": 2,
-    "ante_nicene": 0,
-    "arch_site": 0,
-    "journal_or_book": 2,
-    "primary_quotes": 4,
-    "jewish_context": 0,
-    "balanced_debate": 0,
-    "commentaries": 0,
-    "ancient_historians": 0,
-    "wiki_quality": 0,
-    "confessional_balance": -3,
-    "gnostic_over_emphasis": -2,
-    "jesus_seminar": -2,
-    "ot_nt_criticism": 0,
-    "supernatural_criticism": 0,
-    "other_religion": -3,
-    "mythicist": -2,
-    "referencing_quality": -1,
-    "no_bible_verse": 0,
-    "literary_analysis": 0,
-    "maps_diagrams": 0,
-    "religious_art": -1,
-    "secular_materialist": 0
-   },
-   "raw_signals": {
-    "verse_count": 8,
-    "ref_count": 22,
-    "journal_hits": 0,
-    "book_hits": 2,
-    "commentary_hits": 0,
-    "arch_site": false,
-    "manuscript_hits": 1,
-    "primary_source_quotes": 38,
-    "poor_referencing": true,
-    "wiki_quality": false,
-    "ancient_historian_hits": 0,
-    "ante_nicene_hits": 0,
-    "mythicist_hits": 0,
-    "data_interp_tier": "unclassifiable",
-    "data_interp_pending": true,
-    "jesus_seminar_hits": 0,
-    "jesus_seminar_mult": 1.0,
-    "mythicist_mult": 1.0,
-    "jewish_context_hits": 0,
-    "other_religion_hit": true,
-    "balanced_debate_hits": 0,
-    "balanced_debate_named": 0,
-    "critical_scholar_hits": 2,
-    "critical_outside_interp": true,
-    "evangelical_contrast": false,
-    "maps_diagrams_count": 0,
-    "has_picture": true,
-    "has_diagram_or_map": false
-   },
-   "categories": {
-    "is_passion": false,
-    "is_miracle": false,
-    "is_parable": false,
-    "is_location": false,
-    "is_teaching": false,
-    "is_bible_book": false
-   }
-  },
-  {
-   "ranking": 242,
    "title": "Doubting Thomas",
    "url": "https://en.wikipedia.org/wiki/Doubting_Thomas",
    "net_score": 5,
@@ -17317,7 +17246,7 @@
    }
   },
   {
-   "ranking": 243,
+   "ranking": 242,
    "title": "Parable of the Ten Virgins",
    "url": "https://en.wikipedia.org/wiki/Parable_of_the_Ten_Virgins",
    "net_score": 5,
@@ -17388,7 +17317,7 @@
    }
   },
   {
-   "ranking": 244,
+   "ranking": 243,
    "title": "Healing the two blind men in Galilee",
    "url": "https://en.wikipedia.org/wiki/Healing_the_two_blind_men_in_Galilee",
    "net_score": 4,
@@ -17459,7 +17388,7 @@
    }
   },
   {
-   "ranking": 245,
+   "ranking": 244,
    "title": "Synoptic Gospels",
    "url": "https://en.wikipedia.org/wiki/Synoptic_Gospels",
    "net_score": 2,
@@ -17530,7 +17459,7 @@
    }
   },
   {
-   "ranking": 246,
+   "ranking": 245,
    "title": "The blind leading the blind",
    "url": "https://en.wikipedia.org/wiki/The_blind_leading_the_blind",
    "net_score": 2,
@@ -17601,7 +17530,7 @@
    }
   },
   {
-   "ranking": 247,
+   "ranking": 246,
    "title": "Jesus' true relatives",
    "url": "https://en.wikipedia.org/wiki/Jesus%27_true_relatives",
    "net_score": 1,
@@ -17672,7 +17601,7 @@
    }
   },
   {
-   "ranking": 248,
+   "ranking": 247,
    "title": "Parable of Drawing in the Net",
    "url": "https://en.wikipedia.org/wiki/Parable_of_Drawing_in_the_Net",
    "net_score": 1,
@@ -17743,7 +17672,7 @@
    }
   },
   {
-   "ranking": 249,
+   "ranking": 248,
    "title": "Oral gospel traditions",
    "url": "https://en.wikipedia.org/wiki/Oral_gospel_traditions",
    "net_score": 0,
@@ -17814,7 +17743,7 @@
    }
   },
   {
-   "ranking": 250,
+   "ranking": 249,
    "title": "True Cross",
    "url": "https://en.wikipedia.org/wiki/True_Cross",
    "net_score": 0,
@@ -17877,6 +17806,77 @@
    },
    "categories": {
     "is_passion": true,
+    "is_miracle": false,
+    "is_parable": false,
+    "is_location": false,
+    "is_teaching": false,
+    "is_bible_book": false
+   }
+  },
+  {
+   "ranking": 250,
+   "title": "Mara bar Serapion on Jesus",
+   "url": "https://en.wikipedia.org/wiki/Mara_bar_Serapion_on_Jesus",
+   "net_score": -3,
+   "contributions": {
+    "bible_verses": 0,
+    "data_interp_split": 0,
+    "manuscripts": 2,
+    "ante_nicene": 0,
+    "arch_site": 2,
+    "journal_or_book": 2,
+    "primary_quotes": 4,
+    "jewish_context": 0,
+    "balanced_debate": 0,
+    "commentaries": 0,
+    "ancient_historians": 6,
+    "wiki_quality": 0,
+    "confessional_balance": 0,
+    "gnostic_over_emphasis": 0,
+    "jesus_seminar": -2,
+    "ot_nt_criticism": 0,
+    "supernatural_criticism": 0,
+    "other_religion": -3,
+    "mythicist": -2,
+    "referencing_quality": -1,
+    "no_bible_verse": -10,
+    "literary_analysis": 0,
+    "maps_diagrams": 0,
+    "religious_art": -1,
+    "secular_materialist": 0
+   },
+   "raw_signals": {
+    "verse_count": 0,
+    "ref_count": 12,
+    "journal_hits": 0,
+    "book_hits": 10,
+    "commentary_hits": 0,
+    "arch_site": true,
+    "manuscript_hits": 1,
+    "primary_source_quotes": 9,
+    "poor_referencing": true,
+    "wiki_quality": false,
+    "ancient_historian_hits": 4,
+    "ante_nicene_hits": 0,
+    "mythicist_hits": 0,
+    "data_interp_tier": "unclassifiable",
+    "data_interp_pending": true,
+    "jesus_seminar_hits": 0,
+    "jesus_seminar_mult": 1.0,
+    "mythicist_mult": 1.0,
+    "jewish_context_hits": 0,
+    "other_religion_hit": true,
+    "balanced_debate_hits": 0,
+    "balanced_debate_named": 0,
+    "critical_scholar_hits": 0,
+    "critical_outside_interp": false,
+    "evangelical_contrast": false,
+    "maps_diagrams_count": 0,
+    "has_picture": true,
+    "has_diagram_or_map": false
+   },
+   "categories": {
+    "is_passion": false,
     "is_miracle": false,
     "is_parable": false,
     "is_location": false,
