@@ -119,7 +119,12 @@ def load_vector_family_scores():
     return data
 
 
-TIER_TO_NARRATIVE_INTERP = {10: "clear_split", -3: "muddled", -5: "one_sided", 0: "unclassifiable"}
+TIER_TO_NARRATIVE_INTERP = {10: "clear_split", -5: "muddled", 0: "one_sided"}
+
+# Tier state overrides for the 0-contribution case, where one_sided and
+# unclassifiable collide on the integer. bucket-labels.json carries a
+# tier_state field that disambiguates them.
+_TIER_STATE_OVERRIDE = {"one_sided": "one_sided", "unclassifiable": "unclassifiable"}
 
 
 def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
@@ -145,7 +150,15 @@ def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
         bucket_entry = bucket_labels.get(article_id)
         if bucket_entry is None:
             raise KeyError(f'"{article_id}" missing from bucket-labels.json')
-        sig["dataInterpTier"] = TIER_TO_NARRATIVE_INTERP.get(bucket_entry.get("tier"), "unclassifiable")
+        tier_int = bucket_entry.get("tier", 0)
+        tier_state = bucket_entry.get("tier_state")
+        # When tier is 0, prefer the explicit tier_state from the classifier
+        # (one_sided vs unclassifiable). When tier is non-zero, use the
+        # integer-to-state mapping.
+        if tier_int == 0 and tier_state in _TIER_STATE_OVERRIDE:
+            sig["dataInterpTier"] = tier_state
+        else:
+            sig["dataInterpTier"] = TIER_TO_NARRATIVE_INTERP.get(tier_int, "unclassifiable")
 
     if family_scores is not None:
         family_entry = family_scores.get(article_id, {})
@@ -199,17 +212,14 @@ def load_excluded():
 
 def placement_mult(sig, prefix):
     """Section-placement multiplier for a negative-weight-author signal: x2 if any hit sits in a
-    data/narrative section, x0.5 if hits sit ONLY in interpretation sections, x1 otherwise
-    (lede, references, mixed interp+other, or ambiguous headings). Applied to the CAPPED penalty;
-    the halved result truncates toward zero (int()), i.e. rounds leniently.
+    data/narrative section, x0.5 if hits sit ONLY in interpretation sections, x1 otherwise.
+    Applied to the CAPPED penalty; the halved result truncates toward zero (int()).
 
-    Degrades to x1 until the harvest side re-derives InData/InInterp/InOther from Plan 4's
-    per-paragraph bucket-labels.json (retired heading-based bucketing produced these flags
-    previously — see Issues.md #138)."""
-    if sig.get(prefix + "InData"):
-        return 2.0
-    if sig.get(prefix + "InInterp") and not sig.get(prefix + "InOther"):
-        return 0.5
+    Currently always returns 1.0 for dormant keyword fallbacks: extract.js no longer computes
+    InData/InInterp/InOther placement fields (heading-based bucketing was retired — see
+    Issues.md #138). When Plan 4's bucket-labels.json ships, placement resolution will move
+    into the vector-family path; this function will then only be called for the vector
+    contribution, where placement is already baked into __vector_<key>."""
     return 1.0
 
 
@@ -232,8 +242,9 @@ def net_score_from_signals(sig):
 
     # Row 3: Data/interpretation split — vector (§3.1.1, Plan 4). No dormant fallback exists
     # for this signal (the classifier has no fallback — §11.4); "unclassifiable" scores 0.
+    # Weight values mirror classifier/config.py (source of truth) — see TIER_CLEAR/TIER_MUDDLED.
     tier = sig.get("dataInterpTier", "unclassifiable")
-    s += {"clear_split": 10, "muddled": -3, "one_sided": -5}.get(tier, 0)
+    s += {"clear_split": 3, "muddled": 0, "one_sided": 0}.get(tier, 0)
 
     # Row 1: Named manuscripts — +2 per, capped +6; flat +8 (not doubled) for teachings/Bible books
     manuscript_cap = 8 if (sig.get("isTeaching") or sig.get("isBibleBook")) else 6
@@ -296,13 +307,13 @@ def net_score_from_signals(sig):
 
     # Row 17: Confessional balance — vector (§3.1.8, reuses row-5 store). −3 outside
     # interpretation / −1 inside without an Evangelical contrast / 0 inside with one.
+    # Dormant fallback: since extract.js no longer computes per-section placement
+    # (Issues.md #138), the −3 outside-interpretation tier is unreachable. The fallback
+    # reaches −1 when a critical scholar is cited without an Evangelical contrast, 0
+    # otherwise. Full placement resolution (including the −3 tier) requires Plan 4's
+    # bucket-labels.json integrated into the vector-family path.
     if sig.get("criticalScholarCount", 0) > 0:
-        if sig.get("criticalScholarInData") or sig.get("criticalScholarInOther"):
-            confessional_fallback = -3
-        elif not sig.get("evangelicalHit", sig.get("evangelicalInInterp")):
-            confessional_fallback = -1
-        else:
-            confessional_fallback = 0
+        confessional_fallback = -1 if not sig.get("evangelicalHit") else 0
     else:
         confessional_fallback = 0
     s += vec(sig, "confessional_balance", confessional_fallback)
@@ -374,12 +385,7 @@ def row_from_signals(title, url, sig):
     gnostic_fallback = -2 if sig.get("gnosticSourceHit") else 0
 
     if sig.get("criticalScholarCount", 0) > 0:
-        if sig.get("criticalScholarInData") or sig.get("criticalScholarInOther"):
-            confessional_fallback = -3
-        elif not sig.get("evangelicalHit", sig.get("evangelicalInInterp")):
-            confessional_fallback = -1
-        else:
-            confessional_fallback = 0
+        confessional_fallback = -1 if not sig.get("evangelicalHit") else 0
     else:
         confessional_fallback = 0
 
@@ -402,7 +408,8 @@ def row_from_signals(title, url, sig):
         mythicist_fallback += -2
 
     tier = sig.get("dataInterpTier", "unclassifiable")
-    data_interp_contribution = {"clear_split": 10, "muddled": -3, "one_sided": -5}.get(tier, 0)
+    # Weight values mirror classifier/config.py (source of truth).
+    data_interp_contribution = {"clear_split": 3, "muddled": 0, "one_sided": 0}.get(tier, 0)
 
     return {
         "title": title, "url": url, "net_score": net_score_from_signals(sig),
@@ -440,8 +447,8 @@ def row_from_signals(title, url, sig):
         "balanced_debate_hits": sig.get("balancedDebateHits", 0),
         "balanced_debate_named": sig.get("balancedDebateNamedAuthors", 0),
         "critical_scholar_hits": sig.get("criticalScholarCount", 0),
-        "critical_outside_interp": bool(sig.get("criticalScholarInData") or sig.get("criticalScholarInOther")),
-        "evangelical_contrast": bool(sig.get("evangelicalInInterp", False)),
+        "critical_outside_interp": False,  # unreachable until Plan 4 (Issues.md #138)
+        "evangelical_contrast": bool(sig.get("evangelicalHit", False)),
         "other_religion_hit": sig.get("otherReligionHit", sig.get("islamicMormonHit", False)),
         "maps_diagrams_count": sig.get("mapsAndDiagramsCount", 0),
         "has_picture_wide": sig.get("hasPictureWide", False),
@@ -554,7 +561,7 @@ EXPORT_REPO_JSON = os.path.join(_REPO_ROOT, "database", "scoring-export.json")
 # §9 of Wikipedia_alogrithm_refractor.md.
 SIGNAL_DICTIONARY = {
     "bible_verses":        {"label": "Bible verses cited", "weight": "+3 per, capped +12", "caveat": None},
-    "data_interp_split": {"label": "Data/interpretation section split", "weight": "+10 clear split / -3 muddled / -5 one-sided / 0 unclassifiable", "caveat": "vector-classified (§3.1.1); no keyword fallback"},
+    "data_interp_split": {"label": "Data/interpretation section split", "weight": "+10 clear split / -5 muddled / 0 one-sided / 0 unclassifiable", "caveat": "vector-classified (§3.1.1); no keyword fallback"},
     "manuscripts":         {"label": "Named manuscripts", "weight": "+2 per, capped +6; +8 flat for teachings/books of the Bible", "caveat": "fixed list; generic mention counts as 1"},
     "ante_nicene":         {"label": "Ante-Nicene authors", "weight": "+2 per, capped +6", "caveat": None},
     "arch_site":           {"label": "Archaeological site/artefact", "weight": "+2 flat; +8 for location articles", "caveat": "absorbs the old location bonus"},

@@ -32,11 +32,11 @@ export const SIGNAL_DICTIONARY = [
   // ─── §9 row order — do not re-sort ──────────────────────────────────────
   { key: 'manuscripts', name: 'Named manuscripts', capMagnitude: 8, polarity: 'positive' },
   { key: 'bible_verses', name: 'Bible verses cited', capMagnitude: 12, polarity: 'positive' },
-  // Bidirectional (+10/-3/-5/0, §9 row 3) — listed under 'positive' since its best-case
-  // magnitude dominates; a negative contribution here still renders correctly via
-  // buildStatement()'s sign-agnostic ratio math, it just reads as "partial credit" rather
-  // than "penalty" in the -3/-5 cases.
-  { key: 'data_interp_split', name: 'Data/interpretation section split', capMagnitude: 10, polarity: 'positive' },
+  // Unidirectional positive (+3/0/0/0, §9 row 3) — the muddled arm is held at 0 because
+  // its precision is 0.500 / recall 0.231 (a coin flip on 3 of 13 gold cases). The +3
+  // weight is deliberately conservative; re-run the ranking-diff script before any change.
+  // Weights mirror classifier/config.py (source of truth).
+  { key: 'data_interp_split', name: 'Data/interpretation section split', capMagnitude: 3, polarity: 'positive' },
   { key: 'commentaries', name: 'Commentary citations', capMagnitude: 6, polarity: 'positive' },
   { key: 'balanced_debate', name: 'Balanced debate', capMagnitude: 12, polarity: 'positive' },
   { key: 'ante_nicene', name: 'Ante-Nicene authors', capMagnitude: 6, polarity: 'positive' },

@@ -80,7 +80,6 @@ const KNOWN_SIGNAL_KEYS = new Set([
 // so they don't silently drag scores down. The all-zero integrity check skips
 // them so a pipeline gap doesn't block the import.
 const PENDING_SIGNAL_KEYS = new Set([
-  "data_interp_split",
   "literary_analysis",
 ]);
 
@@ -116,15 +115,22 @@ function deriveCap(key, categories, rawSignals) {
     // ── Positive, conditional ─────────────────────────────────────────────
 
     // row 3: data/interpretation split — tiered on the classifier's row-3 tier
-    // (§3.1.1); +10 clear split, −3 muddled, −5 one side only, 0 unclassifiable.
-    // When data_interp_pending is true, return +10 unconditionally so the full
-    // weight counts toward max_possible while the real pipeline data is pending.
+    // (§3.1.1). Weights mirror classifier/config.py (source of truth — see
+    // TIER_CLEAR / TIER_MUDDLED / TIER_ONE_SIDED / TIER_UNCLASSIFIABLE).
+    // +3 clear split, 0 muddled, 0 one-sided, 0 unclassifiable.
+    //
+    // Rationale (2026-07-30 live reduced-weight activation): clear_split
+    // precision is 0.667 on the 39-article gold set — the only measurable arm.
+    // muddled precision is 0.500 / recall 0.231 (catches 3 of 13 gold muddled
+    // articles and half its predictions are wrong), so its penalty is withheld
+    // at 0. The +3 weight is deliberately conservative; re-run the ranking-diff
+    // script before any change.
     data_interp_split() {
-      if (rawSignals.data_interp_pending) return 10;
+      if (rawSignals.data_interp_pending) return 3;
       const tier = rawSignals.data_interp_tier;
-      if (tier === "clear_split") return 10;
-      if (tier === "muddled") return -3;
-      if (tier === "one_sided") return -5;
+      if (tier === "clear_split") return 3;
+      if (tier === "muddled") return 0;
+      if (tier === "one_sided") return 0;
       return 0;
     },
 

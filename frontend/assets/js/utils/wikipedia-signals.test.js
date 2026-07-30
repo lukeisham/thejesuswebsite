@@ -92,6 +92,14 @@ describe("SIGNAL_DICTIONARY: dictionary integrity", () => {
       "SIGNAL_DICTIONARY keys and KNOWN_SIGNAL_KEYS must be identical sets — a mismatch renders a permanently empty grid cell with no error thrown",
     );
   });
+
+  test("data_interp_split: +3 cap, positive polarity (live reduced-weight 2026-07-30)", async () => {
+    const { SIGNAL_DICTIONARY } = await loadSignalsModule();
+    const entry = SIGNAL_DICTIONARY.find((e) => e.key === "data_interp_split");
+    assert.ok(entry, "data_interp_split must exist in SIGNAL_DICTIONARY");
+    assert.equal(entry.capMagnitude, 3, "cap must be +3 (reduced from +10)");
+    assert.equal(entry.polarity, "positive", "must be unidirectional positive (muddled arm held at 0)");
+  });
 });
 
 describe("fulfilmentRatio: edge cases", () => {

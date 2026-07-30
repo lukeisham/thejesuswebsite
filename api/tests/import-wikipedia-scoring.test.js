@@ -160,24 +160,24 @@ describe("deriveCap — unconditional negative", () => {
 // ── deriveCap — data_interp_split (tiered) ─────────────────────────────
 
 describe("deriveCap — data_interp_split", () => {
-  test("clear_split → +10", () => {
+  test("clear_split → +3", () => {
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_tier: "clear_split" }),
-      10,
+      3,
     );
   });
 
-  test("muddled → -3", () => {
+  test("muddled → 0 (penalty withheld — precision 0.500 / recall 0.231)", () => {
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_tier: "muddled" }),
-      -3,
+      0,
     );
   });
 
-  test("one_sided → -5", () => {
+  test("one_sided → 0", () => {
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_tier: "one_sided" }),
-      -5,
+      0,
     );
   });
 
@@ -192,27 +192,27 @@ describe("deriveCap — data_interp_split", () => {
     assert.equal(deriveCap("data_interp_split", {}, {}), 0);
   });
 
-  test("pending: returns +10 regardless of tier", () => {
+  test("pending: returns +3 regardless of tier", () => {
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "unclassifiable" }),
-      10,
+      3,
     );
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "one_sided" }),
-      10,
+      3,
     );
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "muddled" }),
-      10,
+      3,
     );
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "clear_split" }),
-      10,
+      3,
     );
-    // missing tier string still gets +10 when pending
+    // missing tier string still gets +3 when pending
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true }),
-      10,
+      3,
     );
   });
 
@@ -223,7 +223,7 @@ describe("deriveCap — data_interp_split", () => {
     );
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: false, data_interp_tier: "clear_split" }),
-      10,
+      3,
     );
   });
 });
@@ -886,15 +886,19 @@ describe("PENDING_SIGNAL_KEYS", () => {
     }
   });
 
-  test("contains data_interp_split and literary_analysis", () => {
-    assert.ok(PENDING_SIGNAL_KEYS.has("data_interp_split"));
+  test("contains literary_analysis (still pending)", () => {
     assert.ok(PENDING_SIGNAL_KEYS.has("literary_analysis"));
+  });
+
+  test("data_interp_split is no longer pending (activated 2026-07-30)", () => {
+    assert.equal(PENDING_SIGNAL_KEYS.has("data_interp_split"), false);
   });
 
   test("does not contain non-pending keys", () => {
     assert.equal(PENDING_SIGNAL_KEYS.has("bible_verses"), false);
     assert.equal(PENDING_SIGNAL_KEYS.has("manuscripts"), false);
     assert.equal(PENDING_SIGNAL_KEYS.has("jesus_seminar"), false);
+    assert.equal(PENDING_SIGNAL_KEYS.has("data_interp_split"), false);
   });
 });
 
@@ -994,6 +998,86 @@ describe("checkNonPendingSignalsNonZero", () => {
     assert.ok(zeroKeys.length > 0);
     assert.equal(zeroKeys.includes("bible_verses"), false);
     assert.equal(zeroKeys.includes("ante_nicene"), false);
+  });
+});
+
+// ── Signal 3: data_interp_split is still pending (gate not yet met) ─────────
+
+describe("data_interp_split (activated 2026-07-30)", () => {
+  test("is NO LONGER in PENDING_SIGNAL_KEYS (all-zero guard now applies)", () => {
+    assert.equal(PENDING_SIGNAL_KEYS.has("data_interp_split"), false);
+  });
+
+  test("clear_split → +3 cap, valid contribution imports", () => {
+    const cap = deriveCap(
+      "data_interp_split",
+      {},
+      { data_interp_tier: "clear_split" },
+    );
+    assert.equal(cap, 3);
+    const result = validateContribution("data_interp_split", 3, cap, "Test");
+    assert.ok(result.valid);
+  });
+
+  test("muddled → 0 cap, valid contribution imports", () => {
+    const cap = deriveCap(
+      "data_interp_split",
+      {},
+      { data_interp_tier: "muddled" },
+    );
+    assert.equal(cap, 0);
+    const result = validateContribution("data_interp_split", 0, cap, "Test");
+    assert.ok(result.valid);
+  });
+
+  test("contribution outside [0, +3] range aborts", () => {
+    const result = validateContribution(
+      "data_interp_split",
+      5,
+      3,
+      "Test Article",
+    );
+    assert.equal(result.valid, false);
+    assert.ok(result.error.includes("exceeds cap"));
+  });
+
+  test("negative contribution on positive-only signal aborts", () => {
+    const result = validateContribution(
+      "data_interp_split",
+      -3,
+      3,
+      "Test Article",
+    );
+    assert.equal(result.valid, false);
+    assert.ok(result.error.includes("wrong sign"));
+  });
+
+  test("all-zero on activated key is REJECTED by guard (no longer pending)", () => {
+    const validated = [
+      {
+        article: makeArticle({
+          contributions: Object.fromEntries(
+            [...KNOWN_SIGNAL_KEYS].map((k) => [
+              k,
+              k === "data_interp_split"
+                ? 0
+                : PENDING_SIGNAL_KEYS.has(k)
+                ? 0
+                : 1,
+            ]),
+          ),
+        }),
+      },
+    ];
+    const zeroKeys = checkNonPendingSignalsNonZero(
+      validated,
+      PENDING_SIGNAL_KEYS,
+    );
+    assert.equal(
+      zeroKeys.includes("data_interp_split"),
+      true,
+      "data_interp_split is no longer pending — all-zero corpus must abort the import",
+    );
   });
 });
 
