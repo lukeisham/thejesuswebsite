@@ -1,13 +1,19 @@
 """Unit tests for the tier assignment logic.
 
-Tests cover the seven cases specified in the plan:
-  1. Both classes, high separation → +10
-  2. Both classes, low separation → -3
-  3. Only data class → -5
-  4. Only interpretation class → -5
-  5. Fewer than N_min paragraphs → 0
-  6. No data class but high interpretation presence → -5
-  7. Single paragraph → cannot compute transitions → 0
+Tests cover the live reduced-weight tier scheme (2026-07-30):
+  +3   clear split (both descriptive and interpretive present AND separation >= t_sep)
+   0   muddled split (both present BUT separation < t_sep — penalty withheld,
+       precision 0.500/recall 0.231)
+   0   one-sided (only descriptive or only interpretive present)
+   0   unclassifiable (fewer than N_min class-bearing paragraphs)
+
+Three-tier semantics (Signal 3 activation):
+  - data (Tier 1) and close (Tier 2) are collapsed as "descriptive".
+  - interpretation (Tier 3) is "interpretive".
+
+Since clear_split is now the only non-zero tier state, the burden of
+verifying that muddled, one_sided, and unclassifiable are distinguishable
+falls on tier_state string checks, not contribution integer checks.
 """
 
 import unittest
@@ -17,8 +23,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from classifier.scorer import assign_tier, TIER_CLEAR, TIER_MUDDLED, \
-    TIER_ONE_SIDED, TIER_UNCLASSIFIABLE
+from classifier.scorer import (
+    assign_tier,
+    score_article,
+    TIER_CLEAR,
+    TIER_MUDDLED,
+    TIER_ONE_SIDED,
+    TIER_UNCLASSIFIABLE,
+)
 
 
 class TestTierAssignment(unittest.TestCase):
@@ -28,83 +40,149 @@ class TestTierAssignment(unittest.TestCase):
     N_MIN = 2
     T_SEP = 0.70
 
+    # --- Settled tier constant assertions ---
+    def test_tier_constants_settled_ordering(self) -> None:
+        """Assert the live reduced-weight tier contributions (2026-07-30).
+
+        clear=+3, muddled=0, one_sided=0, unclassifiable=0.
+        """
+        self.assertEqual(TIER_CLEAR, 3)
+        self.assertEqual(TIER_MUDDLED, 0)
+        self.assertEqual(TIER_ONE_SIDED, 0)
+        self.assertEqual(TIER_UNCLASSIFIABLE, 0)
+
+    def test_muddled_is_now_neutral(self) -> None:
+        """Muddled is held at 0 (penalty withheld — precision 0.500 / recall 0.231).
+
+        This is a deliberate weight decision, not a bug: a coin-flip penalty
+        does more harm than good. The muddled tier_state is still recorded
+        so articles that fire it are distinguishable in diagnostics."""
+        self.assertEqual(TIER_MUDDLED, 0)
+        self.assertEqual(TIER_ONE_SIDED, 0)
+        self.assertEqual(TIER_UNCLASSIFIABLE, 0)
+        # All three are 0, but tier_state strings must differ.
+        # Verify muddled has a distinct tier_state from one_sided.
+        muddled_labels = ["data", "interpretation", "data", "interpretation"]
+        one_sided_labels = ["data", "data", "data"]
+        result_m = score_article(muddled_labels, n_min=2)
+        result_o = score_article(one_sided_labels, n_min=2)
+        self.assertEqual(result_m["tier_state"], "muddled")
+        self.assertEqual(result_o["tier_state"], "one_sided")
+        self.assertNotEqual(result_m["tier_state"], result_o["tier_state"])
+
+    def test_one_sided_and_unclassifiable_both_zero(self) -> None:
+        """Both one_sided and unclassifiable map to 0, but are distinct states."""
+        self.assertEqual(TIER_ONE_SIDED, 0)
+        self.assertEqual(TIER_UNCLASSIFIABLE, 0)
+        # They must be distinguishable via tier_state.
+        self.assertNotEqual(
+            score_article(["data", "data", "data"])["tier_state"],
+            score_article(["data"])["tier_state"],
+            "one_sided and unclassifiable must have different tier_state strings"
+        )
+
+    # --- Both classes present ---
     def test_both_classes_high_separation(self) -> None:
-        """Both classes present AND separation >= t_sep → +10."""
+        """Both classes present AND separation >= t_sep → +3 (clear_split)."""
         labels = ["data", "data", "data", "interpretation", "interpretation"]
         # n=5, 1 transition, separation = 0.75 >= 0.70
         tier = assign_tier(labels, 0.75, t_sep_threshold=self.T_SEP,
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_CLEAR)
 
+        result = score_article(labels, t_sep_threshold=self.T_SEP,
+                               n_min=self.N_MIN)
+        self.assertEqual(result["tier_state"], "clear_split")
+
     def test_both_classes_low_separation(self) -> None:
-        """Both classes present BUT separation < t_sep → -3."""
+        """Both classes present BUT separation < t_sep → 0 (muddled)."""
         labels = ["data", "interpretation", "data", "interpretation", "data"]
         # n=5, 4 transitions, separation = 0.0 < 0.70
         tier = assign_tier(labels, 0.0, t_sep_threshold=self.T_SEP,
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_MUDDLED)
 
+        result = score_article(labels, t_sep_threshold=self.T_SEP,
+                               n_min=self.N_MIN)
+        self.assertEqual(result["tier_state"], "muddled")
+
     def test_both_classes_boundary_separation(self) -> None:
-        """Separation exactly at t_sep → +10 (>= check)."""
+        """Separation exactly at t_sep → +3 (>= check)."""
         labels = ["data", "data", "interpretation", "interpretation"]
-        # n=4, 1 transition, separation = 0.666...; need >= 0.70
-        # So this should be < t_sep, not >=.
+        # n=4, 1 transition, separation = 0.666... < 0.70
         tier = assign_tier(labels, 0.6667, t_sep_threshold=self.T_SEP,
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_MUDDLED)
 
+    # --- One-sided ---
     def test_only_data_class(self) -> None:
-        """Only 'data' paragraphs → -5."""
+        """Only 'data' paragraphs → 0 (one_sided)."""
         labels = ["data", "data", "data", "data", "data"]
         tier = assign_tier(labels, 1.0, t_sep_threshold=self.T_SEP,
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_ONE_SIDED)
 
+        result = score_article(labels, t_sep_threshold=self.T_SEP,
+                               n_min=self.N_MIN)
+        self.assertEqual(result["tier"], 0)
+        self.assertEqual(result["tier_state"], "one_sided")
+
     def test_only_interpretation_class(self) -> None:
-        """Only 'interpretation' paragraphs → -5."""
+        """Only 'interpretation' paragraphs → 0 (one_sided)."""
         labels = ["interpretation", "interpretation", "interpretation"]
         tier = assign_tier(labels, 1.0, t_sep_threshold=self.T_SEP,
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_ONE_SIDED)
 
+        result = score_article(labels, t_sep_threshold=self.T_SEP,
+                               n_min=self.N_MIN)
+        self.assertEqual(result["tier_state"], "one_sided")
+
     def test_only_interpretation_with_other(self) -> None:
-        """No 'data' class but high interpretation presence + other → -5."""
+        """No 'data' class but high interpretation presence + other → 0 (one_sided)."""
         labels = ["other", "interpretation", "interpretation",
                    "interpretation", "other"]
         tier = assign_tier(labels, 1.0, t_sep_threshold=self.T_SEP,
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_ONE_SIDED)
 
+    # --- Unclassifiable ---
     def test_fewer_than_n_min(self) -> None:
-        """Fewer than N_min class-bearing paragraphs → 0."""
+        """Fewer than N_min class-bearing paragraphs → 0 (unclassifiable)."""
         labels = ["data", "other", "other", "other"]
         tier = assign_tier(labels, 1.0, t_sep_threshold=self.T_SEP,
                            n_min=3)
         self.assertEqual(tier, TIER_UNCLASSIFIABLE)
 
+        result = score_article(labels, n_min=3)
+        self.assertEqual(result["tier_state"], "unclassifiable")
+
     def test_single_paragraph_unclassifiable(self) -> None:
-        """Single paragraph → cannot compute transitions → 0."""
+        """Single paragraph → 0 (unclassifiable)."""
         labels = ["data"]
         tier = assign_tier(labels, 0.0, t_sep_threshold=self.T_SEP,
                            n_min=self.N_MIN)
-        # n_min=2, only 1 class-bearing → unclassifiable.
         self.assertEqual(tier, TIER_UNCLASSIFIABLE)
 
+        result = score_article(labels, n_min=self.N_MIN)
+        self.assertEqual(result["tier_state"], "unclassifiable")
+
     def test_empty_labels_unclassifiable(self) -> None:
-        """Empty label list → 0."""
+        """Empty label list → 0 (unclassifiable)."""
         tier = assign_tier([], 0.0, t_sep_threshold=self.T_SEP,
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_UNCLASSIFIABLE)
 
     def test_all_other_and_neither(self) -> None:
-        """All paragraphs are 'other' or 'neither' → 0."""
+        """All paragraphs are 'other' or 'neither' → 0 (unclassifiable)."""
         labels = ["other", "neither", "other", "other", "neither"]
         tier = assign_tier(labels, 0.0, t_sep_threshold=self.T_SEP,
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_UNCLASSIFIABLE)
 
+    # --- Boundary cases ---
     def test_high_separation_exactly_at_threshold(self) -> None:
-        """separation == t_sep → +10."""
+        """separation == t_sep → +3."""
         labels = ["data", "data", "data", "interpretation", "interpretation",
                    "interpretation"]
         # n=6, 1 transition, separation = 0.80
@@ -114,14 +192,123 @@ class TestTierAssignment(unittest.TestCase):
 
     def test_default_thresholds_from_config(self) -> None:
         """Verify defaults are used when thresholds are not passed."""
-        # With both classes and high separation, should get +10.
         labels = ["data", "data", "data", "data", "interpretation",
                    "interpretation", "interpretation"]
-        # separation = 1 - 1/6 ≈ 0.833, which exceeds default t_sep=0.70.
         tier = assign_tier(labels, 0.833)
         # Default N_min=3 (from config), we have 7 class-bearing → should work.
         self.assertIn(tier, (TIER_CLEAR, TIER_MUDDLED, TIER_ONE_SIDED,
                              TIER_UNCLASSIFIABLE))
+
+    # --- tier_state distinctness: the two 0-cases ---
+    def test_one_sided_vs_unclassifiable_distinct(self) -> None:
+        """one_sided and unclassifiable both score 0 but have distinct tier_state."""
+        one_sided_labels = ["data", "data", "data"]  # 3 class-bearing, only data
+        unclass_labels = ["data"]  # 1 class-bearing, < N_min=2
+
+        result_one = score_article(one_sided_labels, n_min=self.N_MIN)
+        result_uncl = score_article(unclass_labels, n_min=self.N_MIN)
+
+        self.assertEqual(result_one["tier"], 0)
+        self.assertEqual(result_uncl["tier"], 0)
+        self.assertEqual(result_one["tier_state"], "one_sided")
+        self.assertEqual(result_uncl["tier_state"], "unclassifiable")
+        self.assertNotEqual(result_one["tier_state"], result_uncl["tier_state"])
+
+    # --- Three-tier: close (Tier 2) handling ---
+
+    def test_score_article_includes_close_count(self) -> None:
+        """score_article output includes close_count field for Tier 2 tracking."""
+        labels = ["data", "close", "interpretation", "close", "data"]
+        result = score_article(labels, n_min=self.N_MIN)
+        self.assertIn("close_count", result)
+        self.assertEqual(result["close_count"], 2)
+        self.assertEqual(result["data_count"], 2)
+        self.assertEqual(result["interp_count"], 1)
+
+    def test_only_close_class_is_one_sided(self) -> None:
+        """Only 'close' (Tier 2) paragraphs → 0 (one_sided)."""
+        labels = ["close", "close", "close", "close"]
+        tier = assign_tier(labels, 1.0, t_sep_threshold=self.T_SEP,
+                           n_min=self.N_MIN)
+        self.assertEqual(tier, TIER_ONE_SIDED)
+
+        result = score_article(labels, t_sep_threshold=self.T_SEP,
+                               n_min=self.N_MIN)
+        self.assertEqual(result["tier_state"], "one_sided")
+
+    def test_data_plus_close_is_descriptive_class(self) -> None:
+        """Data (Tier 1) and close (Tier 2) are collapsed as 'descriptive'.
+
+        An article with only data and close (no interpretation) is one-sided."""
+        labels = ["data", "close", "data", "close", "data"]
+        tier = assign_tier(labels, 1.0, t_sep_threshold=self.T_SEP,
+                           n_min=self.N_MIN)
+        self.assertEqual(tier, TIER_ONE_SIDED)
+
+    def test_descriptive_vs_interpretive_clear_split(self) -> None:
+        """Data+Close block separated from Interpretation block → +3."""
+        # Descriptive block (data+close) followed by interpretive block.
+        labels = ["data", "data", "close", "close",
+                   "interpretation", "interpretation", "interpretation"]
+        # 7 class-bearing, 1 transition (desc→interp), sep = 0.833 >= 0.70
+        tier = assign_tier(labels, 0.833, t_sep_threshold=self.T_SEP,
+                           n_min=self.N_MIN)
+        self.assertEqual(tier, TIER_CLEAR)
+
+        result = score_article(labels, t_sep_threshold=self.T_SEP,
+                               n_min=self.N_MIN)
+        self.assertEqual(result["tier_state"], "clear_split")
+
+    def test_close_and_interpretation_interleaved_is_muddled(self) -> None:
+        """Close (Tier 2) interleaved with Interpretation (Tier 3) → 0 (muddled).
+
+        This is the load-bearing assertion: an article interleaving
+        Tier 2 and Tier 3 scores 0 and never +3."""
+        labels = ["close", "interpretation", "close", "interpretation",
+                   "close", "interpretation"]
+        # 6 class-bearing, 5 transitions, sep = 0.0 < 0.70
+        tier = assign_tier(labels, 0.0, t_sep_threshold=self.T_SEP,
+                           n_min=self.N_MIN)
+        self.assertEqual(tier, TIER_MUDDLED)
+        self.assertNotEqual(tier, TIER_CLEAR,
+                           "close+interp interleaving must not score +3")
+
+        result = score_article(labels, t_sep_threshold=self.T_SEP,
+                               n_min=self.N_MIN)
+        self.assertEqual(result["tier_state"], "muddled")
+
+    def test_boundary_data_heavy_with_close_analysis(self) -> None:
+        """Boundary case: mostly data with scattered close-analysis paragraphs.
+
+        From Action:Refining the data interpretation split.md — an article
+        that is predominantly Tier 1 data but includes close analysis
+        (synoptic comparison, text-critical notes) without interpretation
+        is one-sided (descriptive only)."""
+        labels = ["data", "data", "close", "data", "close", "data", "data"]
+        tier = assign_tier(labels, 1.0, t_sep_threshold=self.T_SEP,
+                           n_min=self.N_MIN)
+        self.assertEqual(tier, TIER_ONE_SIDED)
+
+    def test_boundary_close_heavy_with_interpretation(self) -> None:
+        """Boundary case: an article interleaving close analysis with
+        theological interpretation — muddled."""
+        labels = ["close", "interpretation", "close", "interpretation",
+                   "close", "close", "interpretation"]
+        # 7 class-bearing, many transitions, sep is low.
+        tier = assign_tier(labels, 0.167, t_sep_threshold=self.T_SEP,
+                           n_min=self.N_MIN)
+        self.assertEqual(tier, TIER_MUDDLED)
+
+    def test_boundary_all_three_tiers_present_clear(self) -> None:
+        """Boundary case: data, close, interpretation all present but cleanly
+        separated into descriptive vs interpretive blocks."""
+        labels = ["data", "data", "data", "close", "close",
+                   "interpretation", "interpretation", "interpretation",
+                   "interpretation"]
+        # 9 class-bearing, 1 transition (desc→interp), sep = 0.875 >= 0.70
+        tier = assign_tier(labels, 0.875, t_sep_threshold=self.T_SEP,
+                           n_min=self.N_MIN)
+        self.assertEqual(tier, TIER_CLEAR)
 
 
 if __name__ == "__main__":
