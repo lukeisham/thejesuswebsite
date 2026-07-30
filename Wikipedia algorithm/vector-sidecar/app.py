@@ -16,7 +16,7 @@ scoring step: given free text and a family name, tell the caller which
 exemplar it's nearest to and whether that would fire the signal.
 
 Environment variables — VECTOR_STORE_DIR and MODEL_DIR MUST be set
-explicitly in production. This code (vector-sidecar/) is a git-tracked
+explicitly in production. This code (Wikipedia algorithm/vector-sidecar/) is a git-tracked
 directory that deploys to /var/www/thejesuswebsite/vector-sidecar/ via the
 normal git-based deploy; the vector-stores data + model are NOT in git
 (rsynced instead, see scripts/sync-vector-stores.sh) and live in a sibling
@@ -35,8 +35,9 @@ explicitly when starting the pm2 process.
 
 import logging
 import os
+
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -56,7 +57,7 @@ MAX_SEQ_LENGTH = 256  # Must match the value used when the stores were built.
 
 app = FastAPI(title="thejesuswebsite vector sidecar")
 
-_embedder: Optional[Embedder] = None
+_embedder: Embedder | None = None
 _stores: dict[str, VectorStore] = {}
 
 

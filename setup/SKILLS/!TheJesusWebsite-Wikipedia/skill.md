@@ -38,7 +38,7 @@ the repeatable engine that follows it; read that file's Stage 1/2/3 sections bef
 of a session, since it is the source of truth for the pool/selection criteria and the scoring
 weights, not this skill.md. Note: the §9 weights table's *detection method*
 per signal (keyword lookup vs. vector store) is documented in the refactor
-spec (`Wikipedia_alogrithm_refractor.md` in `setup/Wikipedia algorithm/`),
+spec (`Wikipedia_alogrithm_refractor.md` in `Wikipedia algorithm/`),
 not duplicated in Reference.md; when debugging a specific signal's
 *detection logic* (as opposed to its weight), consult the refactor spec too.
 
@@ -79,8 +79,7 @@ STEP 0b — WEIGHT-TABLE CHANGE (run instead of the flow below when Luke changes
      of these six has moved.
      Note: heading-based section bucketing (the old heading-pattern
      classifier in `scripts/extract.js`) is retired. The vector
-     classifier (§3.1.1 of the refactor spec, `setup/Wikipedia algorithm
-     v2/`) is the sole bucketing authority for the whole rubric; its
+     classifier (section 3.1.1 of the refactor spec, `Wikipedia algorithm/`) is the sole bucketing authority for the whole rubric; its
      paragraph labels feed every placement-sensitive signal. It has
      no per-signal detection logic to "move together" the way
      individual weights do — it is calibrated once, separately,
@@ -222,7 +221,7 @@ STEP 4 — HARVEST, SCORE, MERGE, WRITE (deterministic — the script does this 
 
   Vector-store VPS sync: in addition to the existing `scoring-export.json`
   copy to the thejesuswebsite repo's `database/` folder, the per-family
-  vector-store indexes under `setup/Wikipedia algorithm/vector-stores/`
+  vector-store indexes under `Wikipedia algorithm/vector-stores/`
   are now rsync'd to the VPS as part of the pipeline (see the separate
   VPS-sync plan for the mechanics — not detailed here).
 

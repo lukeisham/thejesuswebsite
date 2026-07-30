@@ -699,7 +699,7 @@ def write_export(rows):
             "article_count": len(articles),
             # No known consumer references meta.ceiling anywhere in frontend/, api/routes/, or
             # admin/ (confirmed by search at v2 migration time) — it always equals article_count,
-            # the actual size of the ranked list (currently 254, not a fixed 250 or 255).
+            # the actual size of the ranked list (currently 255, not a fixed 250 or 255).
             "ceiling": len(articles),
             "source": "Lukeatron !TheJesusWebsite-Wikipedia rank_engine.py",
             "note": "contributions are capped/conditional POINTS per signal (they sum to net_score); "

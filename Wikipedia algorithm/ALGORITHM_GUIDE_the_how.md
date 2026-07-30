@@ -24,12 +24,12 @@ honesty-and-reproducibility plan is complete.
 ```
 STAGE 1 — CANDIDATE POOL
     Wikipedia category crawl (1–2 hops from Category:Jesus, Category:Gospels)
-    → candidate-pool.tsv (512 titles)
+    → candidate-pool.tsv (513 titles)
 
 STAGE 2 — SELECTION
     Apply inclusion/exclusion rules (§2 of Wikipedia Articles - Reference.md)
-    + check excluded-titles.txt (22 permanently blocked)
-    → 253 articles in the live list
+    + check excluded-titles.txt (26 permanently blocked)
+    → 255 articles in the live list
 
 STAGE 3 — HARVEST
     Headless Chrome opens each article in Wikipedia
@@ -48,14 +48,14 @@ STAGE 4 — CLASSIFY (OFFLINE, DEV MACHINE ONLY)
 STAGE 5 — SCORE
     rank_engine.py merges upstream artifacts + keyword fallbacks
     → computes net_score = Σ 25 signal contributions
-    → sorts by net_score (ties broken alphabetically), numbers 1–253
+    → sorts by net_score (ties broken alphabetically), numbers 1–255
     → writes database/scoring-export.json
     → writes Wikipedia Articles.csv, Scoring Detail.csv, wiki-bulk-paste.txt
 
 STAGE 6 — DEPLOY
     git push database/scoring-export.json → GitHub
     deploy.sh runs import-wikipedia-scoring.js
-    → validates all 253 × 25 signals in a single transaction
+    → validates all 255 × 25 signals in a single transaction
     → writes wikipedia_articles + wikipedia_article_signals to SQLite
     → frontend/debate/wikipedia.html renders the 5×5 grid widget
 ```
@@ -106,12 +106,12 @@ that the classifier that produced it was never run. The import script's
 validation is the only guard.
 
 **🖥️ Vector-sidecar serving endpoint:** the VPS *does* host the vector stores for
-live query serving (separate from scoring). `vector-sidecar/` runs as a FastAPI
-process on port 8901, loopback-only. `POST /wikipedia/signal-check` takes free
-text + a family name and returns the nearest exemplar(s) plus a fire/no-fire
-verdict using the same nearest-neighbour-label rule as offline scoring. This is
-for live editorial spot-checks only — it is NOT part of the scoring path. Stores
-reach the VPS by rsync, never by git (`setup/` is gitignored). Stores live
+live query serving (separate from scoring). `Wikipedia algorithm/vector-sidecar/`
+runs as a FastAPI process on port 8901, loopback-only. `POST /wikipedia/signal-check`
+takes free text + a family name and returns the nearest exemplar(s) plus a
+fire/no-fire verdict using the same nearest-neighbour-label rule as offline
+scoring. This is for live editorial spot-checks only — it is NOT part of the
+scoring path. Stores reach the VPS by rsync, never by git. Stores live
 outside the git working tree so deploys don't destroy them.
 
 ### 🔀 2.2 Vector/keyword hybrid — the `vec()` fallback pattern
@@ -140,7 +140,7 @@ import-wikipedia-scoring.js validates every article before any DB write:
 
 - Every contribution key must be in `KNOWN_SIGNAL_KEYS` (25 keys).
 - `|contribution| ≤ |derived cap|` with matching sign.
-- `Σcontributions = net_score` for all 253 articles.
+- `Σcontributions = net_score` for all 255 articles.
 - All-zero integrity check: every non-pending signal must have ≥1 non-zero
   value across the corpus, or the import aborts.
 - Writes happen in a single SQLite transaction — partial import never reaches
@@ -168,7 +168,7 @@ booleans. A single flag error propagates to all gated signals silently.
 `data_interp_split` (row 3, +10) and `literary_analysis` (row 10, +6/+4) are
 full members of the 25-signal rubric. Their caps count toward `max_possible`.
 Neither has a keyword fallback — both are purely vector/classifier signals.
-They score 0 for all 253 articles until Plans 4/5 produce real artifacts.
+They score 0 for all 255 articles until Plans 4/5 produce real artifacts.
 
 The pending state is tracked by:
 - `PENDING_SIGNAL_KEYS` in import-wikipedia-scoring.js (exempts them from the
@@ -269,20 +269,20 @@ last. This order is **load-bearing** — the frontend 5×5 grid renders cells in
 |---|--------|--------|-----------|-----------|
 | 1 | **Named manuscripts** | +2 per, capped +6; +8 flat for teachings/Bible books | Plain list lookup — 12-name fixed list (Codex Sinaiticus → Papyrus 75); generic "papyrus/codex/manuscript" mention = 1 | `rank_engine.py` L228–229, `extract.js` L41–48 |
 | 2 | **Bible verses cited** | +3 per, capped +12 | Regex match on Book Ch:V patterns; deduplicated via Set | `rank_engine.py` L220, `extract.js` L21–25 |
-| 3 | **Data/interpretation split** | +10 clear / −3 muddled / −5 one-sided / 0 unclassifiable | Vector — 3 FAISS stores (data-bucket, interpretation-bucket, register) label every body paragraph; separation ratio → tier | `rank_engine.py` L224–225, `classifier/scorer.py`, `classifier/labeler.py`, `classifier/stores.py`, `classifier/config.py` |
+| 3 | **Data/interpretation split** | +10 clear / −3 muddled / −5 one-sided / 0 unclassifiable ⚠ PENDING | Vector — 3 FAISS stores (data-bucket, interpretation-bucket, register) label every body paragraph; separation ratio → tier | `rank_engine.py` L224–225, `classifier/scorer.py`, `classifier/labeler.py`, `classifier/stores.py`, `classifier/config.py` |
 | 4 | **Commentary citations** | +1 per, capped +6; parable/teaching only | Plain list lookup — fixed series names (Anchor Bible, Hermeneia, NICNT, etc.) or "commentary" keyword | `rank_engine.py` L254–255, `extract.js` L33–35 |
 | 5 | **Balanced debate** | +2 per pattern, capped +6; doubled to +12 with 2+ named reps | Vector (§3.1.2) — store encoding longevity language, named representatives, disagreement across data AND interpretation layers | `rank_engine.py` L247–251, `families/balanced_debate.py`, `exemplars/balanced-debate-positive.jsonl` |
 | 6 | **Ante-Nicene authors** | +2 per, capped +6 | Plain list lookup — 10-name fixed list (Ignatius → Cyprian) | `rank_engine.py` L278, `extract.js` (anteNiceneCount) |
 | 7 | **Archaeological site/artefact** | +2 flat; +8 for location articles with a hit | Associated term lookup — IAA/archaeolog-/excavat-/ossuary/inscription keywords | `rank_engine.py` L233–234, `extract.js` L37–39 |
 | 8 | **Jewish context** | +2 per concept, capped +6 | Plain list lookup — 19-term keyword list (Second Temple, Pharisees, Qumran, Passover, Mishnah, etc.) | `rank_engine.py` L243, `extract.js` (jewishContextHits) |
 | 9 | **Non-Christian ancient historians** | +2 per, capped +6; capped +3 for parables | Plain list lookup — 8-name fixed list (Josephus → Phlegon) | `rank_engine.py` L258–259, `extract.js` (ancientHistorianCount) |
-| 10 | **Literary analysis** | +6 for parable/teaching/Bible-book; +4 for others | Vector (§3.1.9) — store trained on narrative criticism, rhetorical devices, genre conventions, intertextual allusion | `rank_engine.py` L262, `families/literary_analysis.py` |
+| 10 | **Literary analysis** | +6 for parable/teaching/Bible-book; +4 for others ⚠ PENDING | Vector (§3.1.9) — store trained on narrative criticism, rhetorical devices, genre conventions, intertextual allusion | `rank_engine.py` L262, `families/literary_analysis.py` |
 | 11 | **Primary-source quotes** | +1 per quote, capped +4 | Blockquote count + long (40+ char) quoted spans | `rank_engine.py` L240, `extract.js` (primarySourceQuoteCount) |
 | 12 | **Journal/book citations** | +1 per citation, capped +2 per type (journal and book cap independently) | Reference-list inspection — journal-ish (DOI, JSTOR, volume/issue) vs book-ish (ISBN, University Press) markers | `rank_engine.py` L237, `extract.js` L31–32 |
 | 13 | **Maps and diagrams** | +1 per, capped +2 | DOM inspection — mapframe templates, location-map elements, SVG diagrams, captions with "map"/"diagram"/"plan"/"floor plan" | `rank_engine.py` L265, `extract.js` (mapsAndDiagramsCount) |
 | 14 | **Wikipedia Good/Featured Article** | +1 flat | DOM inspection for GA/FA indicators (`#mw-indicator-*`) | `rank_engine.py` L268, `extract.js` (wikiQualityHit) |
 | 15 | **Religious art** | −1 (picture, no diagram/map) / +1 (picture + diagram/map) / 0 (parable/teaching) | Context-conditional — evaluates image presence, diagram/map presence, and category together. Passion sensitivity uses wide-picture test | `rank_engine.py` L272–275, `extract.js` (hasPictureWide, hasPictureNarrow, hasDiagramOrMap) |
-| 16 | **Gnostic over-emphasis** | −2 contextualised / −4 privileged; max −4 | Vector (§3.1.10) — trained on Gnostic-as-privileged-source passages. Scans all buckets (data, interpretation, footnotes). Placement feeds tier | `rank_engine.py` L283–284, `families/gnostic_over_emphasis.py` |
+| 16 | **Gnostic over-emphasis** | −2 contextualised / −4 privileged; max −4 ⚠ PENDING (dormant keyword fallback only reads the −2 tier) | Vector (§3.1.10) — trained on Gnostic-as-privileged-source passages. Scans all buckets (data, interpretation, footnotes). Placement feeds tier | `rank_engine.py` L283–284, `families/gnostic_over_emphasis.py` |
 | 17 | **Confessional balance** | −3 outside interpretation / −1 inside without Evangelical contrast / 0 inside with one | Vector (§3.1.8) — reuses balanced-debate store. Fires when critical scholars present but no Evangelical counterpart in interpretation sections | `rank_engine.py` L288–297, `families/confessional_balance.py` |
 | 18 | **Other-religion sources** | −3 flat | Plain list lookup — Islamic, Mormon, Buddhist, Hindu, Sikh, Jain, Rastafari, Bahá'í terms | `rank_engine.py` L300, `extract.js` (otherReligionHit) |
 | 19 | **Jesus Seminar bias** | −3 per author, capped −6; × placement multiplier; further −2 if balanced debate = 0. Worst case −14 | Vector (§3.1.6) — fixed list (Funk, Crossan, Borg) for count; §3.1.1 classifier for placement. Stance-blind | `rank_engine.py` L304–308, `families/jesus_seminar.py` |
@@ -308,17 +308,17 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 |---|---|
 | `setup/SKILLS/!TheJesusWebsite-Wikipedia/scripts/rank_engine.py` | Scoring engine. Computes net_score from signals, writes all deliverable files, generates scoring-export.json. |
 | `setup/SKILLS/!TheJesusWebsite-Wikipedia/scripts/extract.js` | Harvest script. Injected into Wikipedia pages via Headless Chrome. DOM + regex extraction of ~40 raw signal fields. |
-| `database/scoring-export.json` | The shipped artifact. 253 articles × 25 signal contributions × signal dictionary. Committed to git, consumed by import script and frontend. |
+| `database/scoring-export.json` | The shipped artifact. 255 articles x 25 signal contributions x signal dictionary. Committed to git, consumed by import script and frontend. |
 
 ### 🧪 Vector classifier
 
 | File | Role |
 |---|---|
-| `setup/Wikipedia algorithm/classifier/scorer.py` | Separation ratio computation + tier assignment (+10/−3/−5/0). |
-| `setup/Wikipedia algorithm/classifier/labeler.py` | Paragraph splitting, embedding, FAISS querying, label assignment (data/interp/neither/other). |
-| `setup/Wikipedia algorithm/classifier/stores.py` | FAISS store management: Embedder (MiniLM ONNX), VectorStore, StoreManager (3 stores). |
-| `setup/Wikipedia algorithm/classifier/config.py` | Thresholds: t_data=0.50, t_interp=0.50, t_sep=0.60, N_min=3, TOP_K=5, NN_NEGATIVE_THRESHOLD=0.75. |
-| `setup/Wikipedia algorithm/classifier/export.py` | Batch export → bucket-labels.json. |
+| `Wikipedia algorithm/classifier/scorer.py` | Separation ratio computation + tier assignment (+10/-3/-5/0). |
+| `Wikipedia algorithm/classifier/labeler.py` | Paragraph splitting, embedding, FAISS querying, label assignment (data/interp/neither/other). |
+| `Wikipedia algorithm/classifier/stores.py` | FAISS store management: Embedder (MiniLM ONNX), VectorStore, StoreManager (3 stores). |
+| `Wikipedia algorithm/classifier/config.py` | Thresholds: t_data=0.50, t_interp=0.50, t_sep=0.60, N_min=3, TOP_K=5, NN_NEGATIVE_THRESHOLD=0.75. |
+| `Wikipedia algorithm/classifier/export.py` | Batch export to bucket-labels.json. |
 
 ### 👪 Vector families (9 families, each in `families/`)
 
@@ -387,15 +387,15 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 
 | File | Contents |
 |---|---|
-| `candidate-pool.tsv` | 512 candidate articles (title, URL, ranking). |
-| `excluded-titles.txt` | 22 permanently excluded titles. |
-| `Wikipedia Articles.csv` | 253 ranked articles (title, URL, ranking) — comma→hyphen substituted, %2C-encoded URLs. |
+| `candidate-pool.tsv` | 513 candidate articles (title, URL, ranking). |
+| `excluded-titles.txt` | 26 permanently excluded titles. |
+| `Wikipedia Articles.csv` | 255 ranked articles (title, URL, ranking) — comma→hyphen substituted, %2C-encoded URLs. |
 
 ---
 
 ## 🔐 5. Invariants
 
-- **Σcontributions = net_score** for all 253 articles. Verified on every export write; import script rejects on mismatch.
+- **Σcontributions = net_score** for all 255 articles. Verified on every export write; import script rejects on mismatch.
 - **25 signals always, 5×5 grid always.** No signal is removed even when pending. The grid geometry never changes.
 - **§9 row order is load-bearing.** Signal dictionary, grid cell order, and the visual gradient (earn → lose) all depend on it.
 - **Category flags are computed once per article.** Every downstream signal reads the same six booleans. A single flag error propagates silently.
@@ -426,7 +426,7 @@ the pipeline is a bug.
 ### 6.2 Sort order and tie-break
 
 Articles are sorted by `net_score` **descending**. Rank 1 = highest score; the
-last rank equals the article count (currently 253).
+last rank equals the article count (currently 255).
 
 **There is no tie-break signal.** Articles with equal `net_score` are ranked
 alphabetically by raw article title (before the comma-to-hyphen substitution
@@ -580,7 +580,7 @@ including unfired ones (`"fired": false`, `"contribution": 0`). Key fields:
 |---|---|
 | `article` | Article title |
 | `url` | Wikipedia URL |
-| `rank` | Numerical rank (1–253) |
+| `rank` | Numerical rank (1–255) |
 | `net_score` | Plain sum of all 25 contributions |
 | `score_band` | `"green"` / `"yellow"` / `"red"` (so agents never re-implement the §7.3 boundary rule) |
 | `category_maximum` | Category-dependent ceiling (§6.3) |

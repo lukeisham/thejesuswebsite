@@ -16,7 +16,7 @@
 #
 # Update path (after rebuilding stores locally):
 #   1. Rebuild the stores under
-#      "setup/Wikipedia algorithm/vector-stores/" (dev-machine only).
+#      "Wikipedia algorithm/vector-stores/" (dev-machine only).
 #   2. Run ./scripts/sync-vector-stores.sh
 #   3. Run ./scripts/sync-vector-stores.sh --verify
 #      to confirm the local and remote file counts match.
@@ -37,8 +37,8 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-LOCAL_STORES_DIR="$PROJECT_DIR/setup/Wikipedia algorithm/vector-stores"
-LOCAL_MODEL_DIR="$PROJECT_DIR/setup/Wikipedia algorithm/classifier/model"
+LOCAL_STORES_DIR="$PROJECT_DIR/Wikipedia algorithm/vector-stores"
+LOCAL_MODEL_DIR="$PROJECT_DIR/Wikipedia algorithm/classifier/model"
 REMOTE_ROOT="/var/www/thejesuswebsite-vector-store"
 
 if [ -f "$PROJECT_DIR/.env" ]; then

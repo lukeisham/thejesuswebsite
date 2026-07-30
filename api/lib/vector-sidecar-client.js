@@ -1,7 +1,7 @@
 // Centralized helper for calling the Python vector sidecar (JS-5: one place
 // for this fetch, not ad-hoc calls scattered across routes). The sidecar
 // serves Plan 4/5's FAISS stores for live signal classification — see
-// vector-sidecar/app.py and setup/PLANS/.../wikipedia-v2-09-vps-vector-store-serving.md.
+// Wikipedia algorithm/vector-sidecar/app.py and setup/PLANS/.../wikipedia-v2-09-vps-vector-store-serving.md.
 //
 // Sidecar is localhost-only (127.0.0.1), so this module never needs auth.
 

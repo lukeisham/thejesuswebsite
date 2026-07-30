@@ -16,13 +16,13 @@ last_updated: 2026-07-27
 
 # Wikipedia Article List — Criteria & Scoring Reference (v2)
 
-This document is the standing specification for the 250-article Wikipedia list on Jesus / the four Gospels: what goes into the candidate pool, what makes the cut, and how the cut is ranked. It consolidates the weights table from `Wikipedia_alogrithm_refractor.md` §9 (the source of truth for all weights and caps) with the selection criteria, category-flag detection rules, and pipeline documentation carried forward from v1.
+This document is the standing specification for the 255-article Wikipedia list on Jesus / the four Gospels: what goes into the candidate pool, what makes the cut, and how the cut is ranked. It consolidates the weights table from `Wikipedia_alogrithm_refractor.md` §9 (the source of truth for all weights and caps) with the selection criteria, category-flag detection rules, and pipeline documentation carried forward from v1.
 
 **Source of every title/URL:** live Wikipedia, browsed via `!HeadlessChromeBrowser` — never fabricated or recalled from memory.
 
-**Source of truth for weights:** §9 of `Wikipedia algorithm/Wikipedia_alogrithm_refractor.md` is the authoritative source for the 25-row weights table below. Where this Reference.md and the refactor spec ever disagree, the refactor spec wins. Do not run `rank_engine.py rescore` until this document has been brought into line — a rescore against a stale table would score every article under the old rubric.
+**Source of truth for weights:** section 9 of `Wikipedia_alogrithm_refractor.md` is the authoritative source for the 25-row weights table below. Where this Reference.md and the refactor spec ever disagree, the refactor spec wins. Do not run `rank_engine.py rescore` until this document has been brought into line — a rescore against a stale table would score every article under the old rubric.
 
-**Maintained by:** the Skillbank skill `!TheJesusWebsite-Wikipedia` (`System/Skillbank/Church/!TheJesusWebsite-Wikipedia/`), which applies Stage 1–3 below on demand — tops the list up toward the 250 ceiling when short, or runs a consistency check when it's already full.
+**Maintained by:** the Skillbank skill `!TheJesusWebsite-Wikipedia` (`System/Skillbank/Church/!TheJesusWebsite-Wikipedia/`), which applies Stage 1–3 below on demand — tops the list up toward the 255 ceiling when short, or runs a consistency check when it's already full.
 
 ## Stage 1 — Pool creation criteria
 
@@ -63,9 +63,9 @@ Applied to every candidate in the pool to decide whether it makes the list.
 
 ## Stage 3 — Ranking criteria
 
-Ranking is separate from selection: a title is on the *list* because it passed Stage 2; its *rank number* is set by a weighted score based on how the article sources and substantiates its content. Rank 1 = highest net score, 250 = lowest.
+Ranking is separate from selection: a title is on the *list* because it passed Stage 2; its *rank number* is set by a weighted score based on how the article sources and substantiates its content. Rank 1 = highest net score, 255 = lowest.
 
-**Method:** score every listed article against the weights below, sum to a net score, sort all 250 by net score (highest first), apply the tie-break rules on ties, and number 1–250.
+**Method:** score every listed article against the weights below, sum to a net score, sort all 255 by net score (highest first), apply the tie-break rules on ties, and number 1–255.
 
 **Source of truth:** The weights table below is drawn from `Wikipedia_alogrithm_refractor.md` §9, which is authoritative. Where this Reference.md and §9 disagree, §9 wins. After any change to this table, run `rank_engine.py rescore` so every article is re-scored under the corrected rubric.
 
@@ -115,7 +115,7 @@ Rows are ranked by weight magnitude — strongest positive signal first, stronge
 | Passion | Category strip contains "Passion of Jesus" / "Crucifixion of Jesus" / "Resurrection of Jesus" | Passion-specific criticism signal fires (swoon/stake theory) |
 | Miracle | Category strip contains "Miracles of Jesus" | Miracle-specific criticism signal fires (secular-materialist keywords); section-aware scan excludes text under criticism/historical/naturalistic/scholarly/skeptical headings |
 | Parable | Category strip contains "Parables of Jesus" | `archaeological site/artefact` and `ancient historian` signals score as 0 (harvested but exempted — parables are narrative teachings, not historical/archaeological claims) |
-| Location | Category strip contains "New Testament places" / "New Testament cities" / "Holy Land" / "Geography of Israel" / "Cities in Israel" / "Archaeological sites in Israel" / "Hebrew Bible places" | If `archaeological site/artefact` fires, an extra **+3** is added on top of the standard **+2** (total **+5**) |
+| Location | Category strip contains "New Testament places" / "New Testament cities" / "Holy Land" / "Geography of Israel" / "Cities in Israel" / "Archaeological sites in Israel" / "Hebrew Bible places" | If `archaeological site/artefact` fires, an extra **+6** is added on top of the standard **+2** (total **+8**) |
 | Teaching | Category strip contains "Sayings of Jesus" / "teachings of Jesus" / "New Testament idioms" / "New Testament words and phrases" / "Sermon on the Mount" | Gates the commentary-citation signal; **doubles** the named-manuscript signal |
 | Bible book | Category strip contains "Books of the New Testament" / "Canonical Gospels" / "Gospels", or title is "Gospel of Matthew/Mark/Luke/John" | **Doubles** the named-manuscript signal |
 
@@ -187,7 +187,7 @@ The schema is authoritative at `database/schema.sql` and this document does not 
 | `wikipedia_article_title` | TEXT | The article title as it appears on Wikipedia |
 | `wikipedia_article_url` | TEXT | Full Wikipedia URL |
 | `wikipedia_article_latest_revision_date` | TEXT | Date of the most recent Wikipedia revision when harvested |
-| `wikipedia_article_rank_number` | INTEGER | Rank 1–250 (1 = highest net score) |
+| `wikipedia_article_rank_number` | INTEGER | Rank 1–255 (1 = highest net score) |
 | `wikipedia_rank_pluses` | INTEGER | Sum of all positive signal contributions |
 | `wikipedia_rank_minuses` | INTEGER | Sum of all negative signal contributions |
 | `published_draft` | INTEGER DEFAULT 0 | 0 = draft, 1 = published |
@@ -210,6 +210,6 @@ UNIQUE constraint on `(wikipedia_article_id, signal_key)`.
 
 ## Data/scope notes
 
-- Apocrypha/Gnostic gospels are excluded wholesale under Stage 2's current criteria; miracles, parables, and obscure Passion events are included in full. If the live data in `Wikipedia Articles.csv` doesn't yet reflect a criteria change made here, that's a separate step — this document defines the target state, applying it to the actual 250-article list is a run of the skill.
+- Apocrypha/Gnostic gospels are excluded wholesale under Stage 2's current criteria; miracles, parables, and obscure Passion events are included in full. If the live data in `Wikipedia Articles.csv` doesn't yet reflect a criteria change made here, that's a separate step — this document defines the target state, applying it to the actual 255-article list is a run of the skill.
 - Place-article coverage (Bethlehem, Nazareth, Jerusalem, Capernaum, Gethsemane, and similar) needs deliberate attention at Stage 1 — a category-only crawl has previously missed it entirely.
 - A few Stage 2 calls sit at a judgment margin: narrated gospel scenes with doctrinal-sounding titles (e.g. *Great Commission*, *Olivet Discourse*, *Temptation of Christ*) are treated as narrative, not "purely theological," and are included; church-building/architecture articles (e.g. *Church of the Holy Sepulchre*, *Church of the Nativity*) are treated as leaning toward architecture/pilgrimage-site rather than gospel content, and are excluded.

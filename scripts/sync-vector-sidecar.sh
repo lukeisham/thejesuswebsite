@@ -2,7 +2,7 @@
 # sync-vector-sidecar.sh — (re)install the vector sidecar's Python venv on the
 # VPS and (re)start it under pm2.
 #
-# The sidecar's CODE (top-level vector-sidecar/) is an ordinary tracked repo
+# The sidecar's CODE (Wikipedia algorithm/vector-sidecar/) is an ordinary tracked repo
 # directory — it already reaches the VPS on every push via the normal
 # .github/workflows/deploy.yml `git reset --hard origin/main` into
 # /var/www/thejesuswebsite. This script does NOT rsync code; it only manages
@@ -17,7 +17,7 @@
 #
 # FIRST-RUN (one-time) PROCEDURE:
 #   1. Make sure the sidecar code is already deployed: on the VPS,
-#      /var/www/thejesuswebsite/vector-sidecar/ should exist (created by the
+#      /var/www/thejesuswebsite/Wikipedia algorithm/vector-sidecar/ should exist (created by the
 #      normal deploy once this repo's commit reached origin/main).
 #   2. Run ./scripts/sync-vector-stores.sh from your local machine first —
 #      the sidecar needs the vector-stores data + model to have anywhere to
@@ -37,7 +37,7 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-REMOTE_SIDECAR_DIR="/var/www/thejesuswebsite/vector-sidecar"
+REMOTE_SIDECAR_DIR="/var/www/thejesuswebsite/Wikipedia algorithm/vector-sidecar"
 REMOTE_DATA_ROOT="/var/www/thejesuswebsite-vector-store"
 PM2_APP_NAME="thejesuswebsite-vector-sidecar"
 SIDECAR_PORT="8901"

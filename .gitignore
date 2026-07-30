@@ -7,8 +7,6 @@ node_modules/
 /setup/*
 !/setup/SKILLS
 !/setup/SKILLS/**
-!/setup/Wikipedia algorithm
-!/setup/Wikipedia algorithm/**
 !/setup/Vibe_coding_rules.md
 !/setup/STYLE_GUIDE
 !/setup/STYLE_GUIDE/**
@@ -22,15 +20,13 @@ __pycache__/
 *.pyc
 
 # Wikipedia v2 pipeline: large/binary, regenerable dev-machine artifacts —
-# placed after the /setup/Wikipedia algorithm re-inclusion block (line 10-11)
-# so these specific subpaths stay ignored even though their parent directory
-# is tracked. The vendored ONNX model (87 MB; regenerate via
+# the vendored ONNX model (87 MB; regenerate via
 # scripts/fetch-classifier-model.sh) is the only excluded asset. FAISS indexes
 # and JSONL sidecars in vector-stores/ (~700 KB) are tracked in git. The ONNX
 # model ships to the VPS via rsync (scripts/sync-vector-stores.sh), never via
 # git, to keep the 87 MB blob out of repository history permanently
 # (wikipedia-v2-04/05/09).
-/setup/Wikipedia algorithm/classifier/model/model.onnx
+/Wikipedia algorithm/classifier/model/model.onnx
 
 # Environment
 .env
