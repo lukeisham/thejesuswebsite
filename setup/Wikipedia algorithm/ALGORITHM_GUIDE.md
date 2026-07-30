@@ -105,6 +105,15 @@ JSON file.
 that the classifier that produced it was never run. The import script's
 validation is the only guard.
 
+**🖥️ Vector-sidecar serving endpoint:** the VPS *does* host the vector stores for
+live query serving (separate from scoring). `vector-sidecar/` runs as a FastAPI
+process on port 8901, loopback-only. `POST /wikipedia/signal-check` takes free
+text + a family name and returns the nearest exemplar(s) plus a fire/no-fire
+verdict using the same nearest-neighbour-label rule as offline scoring. This is
+for live editorial spot-checks only — it is NOT part of the scoring path. Stores
+reach the VPS by rsync, never by git (`setup/` is gitignored). Stores live
+outside the git working tree so deploys don't destroy them.
+
 ### 🔀 2.2 Vector/keyword hybrid — the `vec()` fallback pattern
 
 Every vector-covered signal uses this pattern (rank_engine.py L205–211):
@@ -201,6 +210,49 @@ spec). Placement and balanced-debate presence are used as indirect signals.
   mismatches by construction)
 - Labels are frozen once recorded — the gold set is never retrofitted to agree
   with its own output
+
+### 🧩 2.8 Hybrid function shapes — four patterns cover all 25 signals
+
+Every signal follows one of four architectural patterns. Understanding these
+shapes is the fastest way to reason about how a signal produces its contribution:
+
+| Shape | Signals | How it works |
+|---|---|---|
+| **A — Distinct-pattern count** | Balanced debate (row 5), OT–NT continuity (row 20) | The vector store alone produces the count: number of distinct query spans clearing `t_fire`. No list involved. Count times per-hit weight, then cap |
+| **B — List counts, placement and balance modify** | Jesus Seminar (row 19), mythicist bias (row 21) | The fixed name list produces the count (reliable citation counter). Two modifiers then apply in order: the placement multiplier (x2 for any hit outside interpretation sections, x0.5 interpretation-only), then an imbalance surcharge of -2 where balanced debate (row 5) scored 0. Stance-blind (see section 2.6) |
+| **C — Structural boolean** | Data/interpretation split (row 3), confessional balance (row 17) | Two or more stores must fire together for the signal to resolve true; the weight is flat. For confessional balance, fixed name lists identify who is cited and the store judges whether both sides are represented |
+| **D — Tiered presence** | Literary analysis (row 10), Gnostic over-emphasis (row 16), anti-supernatural (row 22), secular-materialist (row 23) | The store fires or does not; if it fires, the tier is chosen by category flags (literary analysis) or by the store's own strength verdict plus placement (Gnostic). Anti-supernatural and secular-materialist use the 7-dimension bias system split into embedding-detected markers and computed metrics |
+
+Placement multipliers (shapes B and D) read the classifier's paragraph labels.
+Every contribution remains an integer respecting its cap in section 9.
+
+### 🎯 2.9 Passion sensitivity trigger
+
+The `is_passion` category flag (10.6% of corpus) no longer gates a signal of its
+own. It now acts as a **sensitivity trigger**: Passion articles are where
+anti-supernatural framing, mythicist citation, and Gnostic over-emphasis are
+most likely and most consequential, so the detectors for those signals are tuned
+to fire more readily.
+
+**Sensitivity raises detection likelihood; it does not change weights or caps.**
+A Passion article and a non-Passion article that both fire a signal score
+identically. The trigger only makes firing easier.
+
+Applies to five signals:
+
+| Row | Signal | What raised sensitivity means |
+|---|---|---|
+| 15 | Religious art | Picture test counts **any** rendered image (including infobox/gallery), not just substantive in-body pictures |
+| 16 | Gnostic over-emphasis | `t_fire` and `t_strong` both lowered by the calibrated Passion margin so Gnostic passion/resurrection material reaches the privileged tier on weaker evidence |
+| 21 | Mythicist bias | `t_fire` lowered so generic mythicist framing without a named author reaches the count threshold more readily. Placement multiplier and imbalance surcharge are unaffected |
+| 22 | Supernatural-worldview criticism | `t_fire` and `t_asym` lowered so a computed dimension fires on a smaller asymmetry ratio |
+| 23 | Secular-materialist presuppositions | `t_fire` lowered; scope already extended to Passion articles |
+
+The Passion margin is **one calibrated number**, not five. It is fitted on the
+Passion subset of the gold set under the same 0.80 precision floor that governs
+the base thresholds. If lowering thresholds on Passion articles cannot hold that
+floor, the margin is zero and these signals score Passion articles exactly like
+any other.
 
 ---
 
@@ -353,7 +405,239 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 
 ---
 
-## 🚧 6. Pending Signals: Row 3 and Row 10
+## 📊 6. Ranking Mechanics
+
+### 6.1 Net score computation
+
+`net_score` = **plain integer sum** of all 25 signal contributions. No further
+weighting, normalisation, or scaling. Every contribution is already capped and
+already multiplied by any category conditional or placement multiplier that
+applies before it enters the sum.
+
+**Multiplier truncation:** where a placement multiplier produces a fraction, the
+result **truncates toward zero** (a halved single mythicist hit is −1, not −2
+and not −1.5). Truncation happens once, immediately after the multiplier, before
+the contribution enters the sum.
+
+Σcontributions must equal `net_score` exactly — verified at write time by the
+export path and re-verified by the import script. A rounding step anywhere in
+the pipeline is a bug.
+
+### 6.2 Sort order and tie-break
+
+Articles are sorted by `net_score` **descending**. Rank 1 = highest score; the
+last rank equals the article count (currently 253).
+
+**There is no tie-break signal.** Articles with equal `net_score` are ranked
+alphabetically by raw article title (before the comma-to-hyphen substitution
+applied to output files). The sort uses the composite key `(−net_score, title)`
+so ranking is fully deterministic — it does not depend on row order in the
+source data, dictionary iteration order, or sort stability.
+
+Ties are expected; alphabetical ordering inside a score-cluster is arbitrary by
+design, not a claim about relative quality.
+
+### 6.3 Category-dependent maximum scores
+
+Every article has a theoretical maximum determined by its category flags — the
+highest score it could reach if every positive signal fired at its cap and every
+negative scored 0. This is what the copy button's *"X of a possible Y"* line
+reports.
+
+| Category | Max | Key differences |
+|---|---|---|
+| **Teaching** | **85** | +8 manuscripts, +6 commentary, +6 literary analysis |
+| **Location** | **82** | +8 archaeology (location bonus) |
+| **Book (Bible)** | **80** | +8 manuscripts, +6 literary analysis; no commentary |
+| **Parable** | **80** | +6 commentary, +6 literary analysis; reduced ancient-historian cap (+3) |
+| **Other** | **76** | No category-specific bonuses |
+
+Row 3 contributes +10 in all categories. Row 24 contributes 0 to the
+theoretical maximum — reaching the commentary cap (+6, six citations) plus the
+journal/book cap (+4) requires roughly ten or more references, which puts the
+article in the 10+ tier at 0. The niche tiers (+3 at 1–4 refs, +1 at 5–9) exist
+to lift *short* articles toward the ceiling, not to raise the ceiling itself.
+
+---
+
+## 🎨 7. Frontend Widget
+
+The frontend renders every article's score as a **5×5 grid widget** on
+`debate/wikipedia.html`. This section describes the widget's visual behaviour,
+layout, and data contracts — all of which are current, implemented code.
+
+### 7.1 5×5 grid rendering
+
+- **25 cells always, 5×5 grid always.** One cell per signal, in §9 row order:
+  left-to-right, top-to-bottom. Row 1 of the weights table is the top-left cell;
+  row 25 is the bottom-right.
+- The order is load-bearing: because §9 orders by weight magnitude (strongest
+  positive first, strongest negative last), the grid reads as a visual gradient —
+  top-left = earn points, bottom-right = lose points.
+- The grid is a CSS Grid: `grid-template-columns: repeat(5, 1fr)`. It never
+  reflows to a different column count. Only cell size changes by viewport.
+- Cells are square with `var(--radius-sm)` corners; numbers use `--text-2xs`
+  with tabular figures (`font-variant-numeric: tabular-nums`).
+
+| Viewport | Cell | Gap | Grid total |
+|---|---|---|---|
+| ≥768px | 26px square | 3px | ~142px |
+| <768px | 22px square | 2px | ~118px |
+
+### 7.2 Cell display rules
+
+**Positive cells** — show the number (no `+` sign). Blue intensity encodes
+fulfilment via four CSS class tiers:
+
+| Fulfilment | Intensity | Meaning |
+|---|---|---|
+| `≥ 0.95` | Brightest blue, `font-weight: 600` | Signal fired at its cap |
+| `0.60 – 0.94` | Strong blue | Most available credit earned |
+| `0.30 – 0.59` | Mid blue | Partial credit |
+| `> 0 – 0.29` | Dimmest blue (still ≥4.5:1 contrast) | Minimal credit |
+
+Fulfilment = `|contribution| / |cap|`, clamped 0..1. The brightness ramp is a
+lightness/alpha ramp on a single hue (`--info`, `#3D4F6B`), not four unrelated
+colours. Four tokens (`--grid-blue-1` … `--grid-blue-4`, dimmest → brightest)
+are defined in `variables.css`.
+
+**Negative cells** — show the number **with** its minus sign, in `--error`
+(`#8B3D3D`) at a single intensity (no fulfilment ramp). `font-weight: 600` so
+they draw the eye. A penalty is a penalty; graduating it by fulfilment would
+imply a partial penalty is visually milder, which is the wrong reading.
+
+**Empty cells** — no number displayed. Background one step darker than the
+surrounding surface (`--bg-surface-alt`) with a faint `--border` outline.
+Tooltip still fires on hover/focus showing the signal's name. A reader must be
+able to discover what a cell *would* have measured, even when the article scored
+nothing for it.
+
+### 7.3 Document score panel
+
+Sits immediately right of the grid, showing `net_score` — the plain sum of all
+25 contributions. The number alone, no label, no suffix, `--text-lg`,
+`font-weight: 600`, tabular figures.
+
+Colour bands:
+
+| Band | Score | Colour |
+|---|---|---|
+| **Green** | `≥ 50` | `--success` (`#3D5A3D`) |
+| **Yellow** | `25 – 49` | `--warning` (`#8B6F3D`) |
+| **Red** | `≤ 24` | `--error` (`#8B3D3D`) |
+
+Colour applies to the number with a subtle tinted background at ~8% alpha and a
+1px border at ~30% — a quiet chip, not a filled badge. The scholarly tone of the
+site rules out a saturated block of colour. Colour is never the only signal
+(WCAG): the number is always present and always legible.
+
+Tooltip on hover/focus: `"Document score: <n>"`.
+
+### 7.4 Tooltips
+
+- **Content:** the signal's official name only. No weight, cap, count, or
+  "not triggered" text. Full detail lives in the copy text and agent JSON.
+- Styling: dark background (`--text-primary`), light text (`--bg-primary`),
+  `var(--radius-sm)`, `var(--text-2xs)`, `--shadow-md`.
+- Positioned above the cell; fades in with `translateY(4px) → 0`.
+- Fires on **hover and keyboard focus** alike — every cell is keyboard reachable.
+- **Touch devices get no tooltips** — gated on `@media (hover: hover) and
+  (pointer: fine)`, not on viewport width. No tap-to-reveal, no long-press.
+  The copy button provides more detail than any tooltip on one tap.
+
+### 7.5 Copy format
+
+The copy button (Feather `copy` icon, `.wikipedia-signal-copy`) produces plain
+text with no markdown:
+
+```
+Pool of Bethesda — reliability score 54
+
+Scored signals:
+  Bible verses cited .................. +12  (full credit, cap +12)
+  Data/interpretation split ............ +10  (clear split)
+  ...
+
+Not scored: Ante-Nicene authors, Scholarly commentary, ...
+
+Net score: 54 of a possible 82 for this article type.
+Source: thejesuswebsite.org/debate/wikipedia
+```
+
+Rules:
+- Scored signals first, in §9 row order, contributions aligned.
+- Unscored signals listed together at the end by name.
+- The "possible" figure is the category maximum from §6.3.
+- Success state: checkmark + `.is-copied` for 1.5s.
+
+### 7.6 Agent JSON
+
+An invisible `<script type="application/json" class="agent-data"
+data-agent-readable="true">` block per article. **All 25 signals are present**,
+including unfired ones (`"fired": false`, `"contribution": 0`). Key fields:
+
+| Field | Description |
+|---|---|
+| `article` | Article title |
+| `url` | Wikipedia URL |
+| `rank` | Numerical rank (1–253) |
+| `net_score` | Plain sum of all 25 contributions |
+| `score_band` | `"green"` / `"yellow"` / `"red"` (so agents never re-implement the §7.3 boundary rule) |
+| `category_maximum` | Category-dependent ceiling (§6.3) |
+| `category_flags` | Array of active flags (e.g. `["is_location"]`) |
+| `grid` | `{ "rows": 5, "columns": 5, "order": "weights_table_row_order" }` |
+| `signals[]` | Array of 25 objects, each with `row`, `grid_position`, `key`, `name`, `contribution`, `cap`, `fulfilment`, `polarity`, `fired`, `statement` |
+
+Contributions must sum exactly to `net_score` — verified at render time. A
+mismatch is a bug and fails loudly in tests.
+
+### 7.7 Page layout
+
+The page uses a **row-based layout**: one row per article, with five CSS Grid
+columns that align vertically down the whole page so grids form continuous
+visual columns for at-a-glance comparison:
+
+| Column | Width | Content |
+|---|---|---|
+| Rank | `2.5rem` fixed | Rank number, `--text-muted`, right-aligned |
+| Title | `1fr` | Article title, linked, with external-link icon; truncates with ellipsis |
+| Grid | `auto` fixed | The 5×5 signal grid (§7.1) |
+| Score | `auto` fixed | Document score panel (§7.3) |
+| Copy | `34px` fixed | Copy button |
+
+Container: `max-width: 1100px`, centred.
+
+**Column header row:** a single header sits above the first article row (`Rank` ·
+`Article` · `Signals` · `Score`; copy column unlabelled). Renders at ≥768px only;
+hidden below. Sits **outside** the `<ol>` (as a sibling `<div>`) so it doesn't
+become list item 1. Marked `aria-hidden="true"` — it's a visual affordance only.
+
+**Responsive breakpoints:**
+
+| ≥1024px | Full five-column row |
+| 768–1023px | Compressed row; title absorbs the loss; 22px cells |
+| <768px | Stacked: title on line 1, grid + score + copy on line 2; grid stays 5×5 at 22px |
+
+### 7.8 Accessibility
+
+- The grid is a **table of values**, not decoration. Rendered with `role="table"`
+  / `role="row"` / `role="gridcell"`, or as a real `<table>` with visually-hidden
+  headers. A screen reader must be able to walk it.
+- Each cell exposes an accessible name: `"<signal name>: <contribution>"`, or
+  `"<signal name>: not scored"` when empty.
+- **Roving tabindex:** one tab stop per grid; arrow-key navigation within.
+  Keyboard users aren't forced through 25 stops per article.
+- Colour is never the sole carrier of meaning: numbers are always printed, the
+  band is always accompanied by its number, negatives always carry a minus sign.
+- Every number at every intensity tier clears WCAG AA 4.5:1 contrast.
+- `prefers-reduced-motion`: tooltip fades become instant. No other motion exists
+  in the widget.
+- The list remains semantically an `<ol>` — rank order survives for screen
+  readers regardless of visual layout.
+
+---
+
+## 🚧 8. Pending Signals: Row 3 and Row 10
 
 Two of the 25 signals — `data_interp_split` (row 3) and `literary_analysis`
 (row 10) — are **structurally unable to score above 0** for any article.
