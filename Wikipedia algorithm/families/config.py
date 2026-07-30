@@ -12,7 +12,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 FAMILIES_DIR = Path(__file__).resolve().parent
 COMBINATION_DIR = FAMILIES_DIR / "combination_functions"
-V2_DIR = FAMILIES_DIR.parent  # setup/Wikipedia algorithm/
+V2_DIR = FAMILIES_DIR.parent  # Wikipedia algorithm/
 VECTOR_STORES_DIR = V2_DIR / "vector-stores"
 EXEMPLARS_DIR = V2_DIR / "exemplars"
 SCRIPTS_DIR = V2_DIR / "scripts"

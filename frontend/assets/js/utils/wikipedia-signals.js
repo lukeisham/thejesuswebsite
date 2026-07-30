@@ -6,7 +6,7 @@
  * plain-English statement logic.
  *
  * Order: exactly the §9 row order of
- * `setup/Wikipedia algorithm/Wikipedia_alogrithm_refractor.md` — strongest
+ * `Wikipedia algorithm/Wikipedia_alogrithm_refractor.md` — strongest
  * positive signal first, strongest negative signal last. This is the same
  * order the 5×5 grid renders in (row-major, left to right, top to bottom) and
  * must never be re-sorted; the grid's gradient reading (top-left = earn
