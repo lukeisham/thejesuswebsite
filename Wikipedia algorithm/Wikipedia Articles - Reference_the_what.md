@@ -101,10 +101,10 @@ Rows are ranked by weight magnitude — strongest positive signal first, stronge
 | 24 | Referencing quality | Tiered on `ref_count`: **−9** if 0 refs; **+3** if 1–4; **+1** if 5–9; **0** if 10+. Plus **−1**, independently, for poor referencing | **Unchanged plain lookup** (§3.8) — one signal spanning the whole reference-count spectrum, absorbing the former niche-exposure bonus. Zero references is a failure; *few* references on a genuinely niche topic is forgiven, so short well-sourced articles aren't punished by the count-based signals. The −1 poor-referencing penalty (DOM inspection for "citation needed" tags / maintenance banners) applies on top of whichever tier fires |
 | 25 | Cites no Bible verse anywhere | **−10** flat | **Unchanged plain lookup** (§3.8) — Bible verse regex count = 0 |
 
-**Tie-break (in order):**
-1. Higher number of Bible verses cited wins.
-2. If still tied, higher number of total references wins.
-3. If still tied, alphabetical order by title.
+**Tie-break:** alphabetical by raw article title (before comma-to-hyphen substitution).
+No verse-count or reference-count secondary keys — this is a deliberate simplification
+(§12.2 of the refactor spec). Ties are expected; alphabetical ordering inside a
+score-cluster is arbitrary by design, not a claim about relative quality.
 
 ## Category flags
 
