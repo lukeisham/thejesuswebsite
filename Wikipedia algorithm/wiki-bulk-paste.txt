@@ -4,9 +4,9 @@ Gospel of Mark, https://en.wikipedia.org/wiki/Gospel_of_Mark, 3
 Gospel of Luke, https://en.wikipedia.org/wiki/Gospel_of_Luke, 4
 Jesus and the woman taken in adultery, https://en.wikipedia.org/wiki/Jesus_and_the_woman_taken_in_adultery, 5
 Nativity of Jesus, https://en.wikipedia.org/wiki/Nativity_of_Jesus, 6
-Church of the Nativity, https://en.wikipedia.org/wiki/Church_of_the_Nativity, 7
-Mary - mother of Jesus, https://en.wikipedia.org/wiki/Mary%2C_mother_of_Jesus, 8
-Gospel of Matthew, https://en.wikipedia.org/wiki/Gospel_of_Matthew, 9
+Mary - mother of Jesus, https://en.wikipedia.org/wiki/Mary%2C_mother_of_Jesus, 7
+Gospel of Matthew, https://en.wikipedia.org/wiki/Gospel_of_Matthew, 8
+Al-Maghtas, https://en.wikipedia.org/wiki/Al-Maghtas, 9
 Crucifixion of Jesus, https://en.wikipedia.org/wiki/Crucifixion_of_Jesus, 10
 Emmaus, https://en.wikipedia.org/wiki/Emmaus, 11
 Exorcism of the Gerasene demoniac, https://en.wikipedia.org/wiki/Exorcism_of_the_Gerasene_demoniac, 12
@@ -33,60 +33,60 @@ Cleansing of the Temple, https://en.wikipedia.org/wiki/Cleansing_of_the_Temple, 
 Joseph of Arimathea, https://en.wikipedia.org/wiki/Joseph_of_Arimathea, 33
 Lazarus of Bethany, https://en.wikipedia.org/wiki/Lazarus_of_Bethany, 34
 Raising of Lazarus, https://en.wikipedia.org/wiki/Raising_of_Lazarus, 35
-Calvary, https://en.wikipedia.org/wiki/Calvary, 36
-Capernaum, https://en.wikipedia.org/wiki/Capernaum, 37
-John the Baptist, https://en.wikipedia.org/wiki/John_the_Baptist, 38
-Judas Iscariot, https://en.wikipedia.org/wiki/Judas_Iscariot, 39
-Parable of the Unjust Steward, https://en.wikipedia.org/wiki/Parable_of_the_Unjust_Steward, 40
-Raising of Jairus' daughter, https://en.wikipedia.org/wiki/Raising_of_Jairus%27_daughter, 41
-Saint Peter, https://en.wikipedia.org/wiki/Saint_Peter, 42
-Sermon on the Mount, https://en.wikipedia.org/wiki/Sermon_on_the_Mount, 43
-Thomas the Apostle, https://en.wikipedia.org/wiki/Thomas_the_Apostle, 44
-Census of Quirinius, https://en.wikipedia.org/wiki/Census_of_Quirinius, 45
-Herod Antipas, https://en.wikipedia.org/wiki/Herod_Antipas, 46
-Jesus at the home of Martha and Mary, https://en.wikipedia.org/wiki/Jesus_at_the_home_of_Martha_and_Mary, 47
-Jordan River, https://en.wikipedia.org/wiki/Jordan_River, 48
-Mary Magdalene, https://en.wikipedia.org/wiki/Mary_Magdalene, 49
-Parable of the Wicked Husbandmen, https://en.wikipedia.org/wiki/Parable_of_the_Wicked_Husbandmen, 50
-Transfiguration of Jesus, https://en.wikipedia.org/wiki/Transfiguration_of_Jesus, 51
-Beatitudes, https://en.wikipedia.org/wiki/Beatitudes, 52
-Bread of Life Discourse, https://en.wikipedia.org/wiki/Bread_of_Life_Discourse, 53
-Crucifixion darkness, https://en.wikipedia.org/wiki/Crucifixion_darkness, 54
-Herodians, https://en.wikipedia.org/wiki/Herodians, 55
-Anointing of Jesus, https://en.wikipedia.org/wiki/Anointing_of_Jesus, 56
-Genealogy of Jesus, https://en.wikipedia.org/wiki/Genealogy_of_Jesus, 57
-Jesus preaches in a ship, https://en.wikipedia.org/wiki/Jesus_preaches_in_a_ship, 58
-Parable of the Workers in the Vineyard, https://en.wikipedia.org/wiki/Parable_of_the_Workers_in_the_Vineyard, 59
-Penitent thief, https://en.wikipedia.org/wiki/Penitent_thief, 60
-Pilate's court, https://en.wikipedia.org/wiki/Pilate%27s_court, 61
-Temptation of Christ, https://en.wikipedia.org/wiki/Temptation_of_Christ, 62
-Date of the birth of Jesus, https://en.wikipedia.org/wiki/Date_of_the_birth_of_Jesus, 63
-Decapolis, https://en.wikipedia.org/wiki/Decapolis, 64
-Gethsemane, https://en.wikipedia.org/wiki/Gethsemane, 65
-Martha, https://en.wikipedia.org/wiki/Martha, 66
-Mary of Clopas, https://en.wikipedia.org/wiki/Mary_of_Clopas, 67
-Parable of the Two Debtors, https://en.wikipedia.org/wiki/Parable_of_the_Two_Debtors, 68
-Sea of Galilee, https://en.wikipedia.org/wiki/Sea_of_Galilee, 69
-Sources for the historicity of Jesus, https://en.wikipedia.org/wiki/Sources_for_the_historicity_of_Jesus, 70
-Woes to the unrepentant cities, https://en.wikipedia.org/wiki/Woes_to_the_unrepentant_cities, 71
-Brothers of Jesus, https://en.wikipedia.org/wiki/Brothers_of_Jesus, 72
-Parable of the Prodigal Son, https://en.wikipedia.org/wiki/Parable_of_the_Prodigal_Son, 73
-Parable of the Talents, https://en.wikipedia.org/wiki/Parable_of_the_Talents, 74
-Philip the Apostle, https://en.wikipedia.org/wiki/Philip_the_Apostle, 75
-The four woes of Jesus, https://en.wikipedia.org/wiki/The_four_woes_of_Jesus, 76
-Disciple whom Jesus loved, https://en.wikipedia.org/wiki/Disciple_whom_Jesus_loved, 77
-Joanna - wife of Chuza, https://en.wikipedia.org/wiki/Joanna%2C_wife_of_Chuza, 78
-Jude Thaddeus the Apostle, https://en.wikipedia.org/wiki/Jude_Thaddeus_the_Apostle, 79
-Nicodemus, https://en.wikipedia.org/wiki/Nicodemus, 80
-Triumphal entry into Jerusalem, https://en.wikipedia.org/wiki/Triumphal_entry_into_Jerusalem, 81
-Clopas, https://en.wikipedia.org/wiki/Clopas, 82
-Cursing of the fig tree, https://en.wikipedia.org/wiki/Cursing_of_the_fig_tree, 83
-Exorcism of the Syrophoenician woman's daughter, https://en.wikipedia.org/wiki/Exorcism_of_the_Syrophoenician_woman's_daughter, 84
-Farewell Discourse, https://en.wikipedia.org/wiki/Farewell_Discourse, 85
-Good Shepherd, https://en.wikipedia.org/wiki/Good_Shepherd, 86
-Jesus healing an infirm woman, https://en.wikipedia.org/wiki/Jesus_healing_an_infirm_woman, 87
-Lesson of the widow's mite, https://en.wikipedia.org/wiki/Lesson_of_the_widow%27s_mite, 88
-Life of Jesus, https://en.wikipedia.org/wiki/Life_of_Jesus, 89
+Shechem (Sychar), https://en.wikipedia.org/wiki/Shechem, 36
+Calvary, https://en.wikipedia.org/wiki/Calvary, 37
+Capernaum, https://en.wikipedia.org/wiki/Capernaum, 38
+John the Baptist, https://en.wikipedia.org/wiki/John_the_Baptist, 39
+Judas Iscariot, https://en.wikipedia.org/wiki/Judas_Iscariot, 40
+Parable of the Unjust Steward, https://en.wikipedia.org/wiki/Parable_of_the_Unjust_Steward, 41
+Raising of Jairus' daughter, https://en.wikipedia.org/wiki/Raising_of_Jairus%27_daughter, 42
+Saint Peter, https://en.wikipedia.org/wiki/Saint_Peter, 43
+Sermon on the Mount, https://en.wikipedia.org/wiki/Sermon_on_the_Mount, 44
+Thomas the Apostle, https://en.wikipedia.org/wiki/Thomas_the_Apostle, 45
+Census of Quirinius, https://en.wikipedia.org/wiki/Census_of_Quirinius, 46
+Herod Antipas, https://en.wikipedia.org/wiki/Herod_Antipas, 47
+Jesus at the home of Martha and Mary, https://en.wikipedia.org/wiki/Jesus_at_the_home_of_Martha_and_Mary, 48
+Jordan River, https://en.wikipedia.org/wiki/Jordan_River, 49
+Mary Magdalene, https://en.wikipedia.org/wiki/Mary_Magdalene, 50
+Parable of the Wicked Husbandmen, https://en.wikipedia.org/wiki/Parable_of_the_Wicked_Husbandmen, 51
+Transfiguration of Jesus, https://en.wikipedia.org/wiki/Transfiguration_of_Jesus, 52
+Beatitudes, https://en.wikipedia.org/wiki/Beatitudes, 53
+Bread of Life Discourse, https://en.wikipedia.org/wiki/Bread_of_Life_Discourse, 54
+Crucifixion darkness, https://en.wikipedia.org/wiki/Crucifixion_darkness, 55
+Herodians, https://en.wikipedia.org/wiki/Herodians, 56
+Anointing of Jesus, https://en.wikipedia.org/wiki/Anointing_of_Jesus, 57
+Genealogy of Jesus, https://en.wikipedia.org/wiki/Genealogy_of_Jesus, 58
+Jesus preaches in a ship, https://en.wikipedia.org/wiki/Jesus_preaches_in_a_ship, 59
+Parable of the Workers in the Vineyard, https://en.wikipedia.org/wiki/Parable_of_the_Workers_in_the_Vineyard, 60
+Penitent thief, https://en.wikipedia.org/wiki/Penitent_thief, 61
+Pilate's court, https://en.wikipedia.org/wiki/Pilate%27s_court, 62
+Temptation of Christ, https://en.wikipedia.org/wiki/Temptation_of_Christ, 63
+Date of the birth of Jesus, https://en.wikipedia.org/wiki/Date_of_the_birth_of_Jesus, 64
+Decapolis, https://en.wikipedia.org/wiki/Decapolis, 65
+Gethsemane, https://en.wikipedia.org/wiki/Gethsemane, 66
+Martha, https://en.wikipedia.org/wiki/Martha, 67
+Mary of Clopas, https://en.wikipedia.org/wiki/Mary_of_Clopas, 68
+Parable of the Two Debtors, https://en.wikipedia.org/wiki/Parable_of_the_Two_Debtors, 69
+Sea of Galilee, https://en.wikipedia.org/wiki/Sea_of_Galilee, 70
+Sources for the historicity of Jesus, https://en.wikipedia.org/wiki/Sources_for_the_historicity_of_Jesus, 71
+Woes to the unrepentant cities, https://en.wikipedia.org/wiki/Woes_to_the_unrepentant_cities, 72
+Brothers of Jesus, https://en.wikipedia.org/wiki/Brothers_of_Jesus, 73
+Parable of the Prodigal Son, https://en.wikipedia.org/wiki/Parable_of_the_Prodigal_Son, 74
+Parable of the Talents, https://en.wikipedia.org/wiki/Parable_of_the_Talents, 75
+Philip the Apostle, https://en.wikipedia.org/wiki/Philip_the_Apostle, 76
+The four woes of Jesus, https://en.wikipedia.org/wiki/The_four_woes_of_Jesus, 77
+Disciple whom Jesus loved, https://en.wikipedia.org/wiki/Disciple_whom_Jesus_loved, 78
+Joanna - wife of Chuza, https://en.wikipedia.org/wiki/Joanna%2C_wife_of_Chuza, 79
+Jude Thaddeus the Apostle, https://en.wikipedia.org/wiki/Jude_Thaddeus_the_Apostle, 80
+Nicodemus, https://en.wikipedia.org/wiki/Nicodemus, 81
+Triumphal entry into Jerusalem, https://en.wikipedia.org/wiki/Triumphal_entry_into_Jerusalem, 82
+Clopas, https://en.wikipedia.org/wiki/Clopas, 83
+Cursing of the fig tree, https://en.wikipedia.org/wiki/Cursing_of_the_fig_tree, 84
+Exorcism of the Syrophoenician woman's daughter, https://en.wikipedia.org/wiki/Exorcism_of_the_Syrophoenician_woman's_daughter, 85
+Farewell Discourse, https://en.wikipedia.org/wiki/Farewell_Discourse, 86
+Good Shepherd, https://en.wikipedia.org/wiki/Good_Shepherd, 87
+Jesus healing an infirm woman, https://en.wikipedia.org/wiki/Jesus_healing_an_infirm_woman, 88
+Lesson of the widow's mite, https://en.wikipedia.org/wiki/Lesson_of_the_widow%27s_mite, 89
 Mary - mother of James, https://en.wikipedia.org/wiki/Mary%2C_mother_of_James, 90
 Mount Tabor, https://en.wikipedia.org/wiki/Mount_Tabor, 91
 Pool of Bethesda, https://en.wikipedia.org/wiki/Pool_of_Bethesda, 92
@@ -217,22 +217,22 @@ Elizabeth - mother of John the Baptist, https://en.wikipedia.org/wiki/Elizabeth%
 Eye of a needle, https://en.wikipedia.org/wiki/Eye_of_a_needle, 217
 Healing the blind near Jericho, https://en.wikipedia.org/wiki/Healing_the_blind_near_Jericho, 218
 James the Great, https://en.wikipedia.org/wiki/James_the_Great, 219
-Parable of the Growing Seed, https://en.wikipedia.org/wiki/Parable_of_the_Growing_Seed, 220
-The Tree and Its Fruits, https://en.wikipedia.org/wiki/The_Tree_and_Its_Fruits, 221
-Blind man of Bethsaida, https://en.wikipedia.org/wiki/Blind_man_of_Bethsaida, 222
-Coin in the fish's mouth, https://en.wikipedia.org/wiki/Coin_in_the_fish%27s_mouth, 223
-Confession of Peter, https://en.wikipedia.org/wiki/Confession_of_Peter, 224
-Denial of Peter, https://en.wikipedia.org/wiki/Denial_of_Peter, 225
-Finding in the Temple, https://en.wikipedia.org/wiki/Finding_in_the_Temple, 226
-Flight into Egypt, https://en.wikipedia.org/wiki/Flight_into_Egypt, 227
-Healing the man blind from birth, https://en.wikipedia.org/wiki/Healing_the_man_blind_from_birth, 228
-Parables of Jesus, https://en.wikipedia.org/wiki/Parables_of_Jesus, 229
-Raising of the son of the widow of Nain, https://en.wikipedia.org/wiki/Raising_of_the_son_of_the_widow_of_Nain, 230
-Simon the Leper, https://en.wikipedia.org/wiki/Simon_the_Leper, 231
-Young man from Nain, https://en.wikipedia.org/wiki/Young_man_from_Nain, 232
-City upon a Hill, https://en.wikipedia.org/wiki/City_upon_a_Hill, 233
-Cleansing ten lepers, https://en.wikipedia.org/wiki/Cleansing_ten_lepers, 234
-Four Evangelists, https://en.wikipedia.org/wiki/Four_Evangelists, 235
+Nain - Israel, https://en.wikipedia.org/wiki/Nain%2C_Israel, 220
+Parable of the Growing Seed, https://en.wikipedia.org/wiki/Parable_of_the_Growing_Seed, 221
+The Tree and Its Fruits, https://en.wikipedia.org/wiki/The_Tree_and_Its_Fruits, 222
+Blind man of Bethsaida, https://en.wikipedia.org/wiki/Blind_man_of_Bethsaida, 223
+Coin in the fish's mouth, https://en.wikipedia.org/wiki/Coin_in_the_fish%27s_mouth, 224
+Confession of Peter, https://en.wikipedia.org/wiki/Confession_of_Peter, 225
+Denial of Peter, https://en.wikipedia.org/wiki/Denial_of_Peter, 226
+Finding in the Temple, https://en.wikipedia.org/wiki/Finding_in_the_Temple, 227
+Flight into Egypt, https://en.wikipedia.org/wiki/Flight_into_Egypt, 228
+Healing the man blind from birth, https://en.wikipedia.org/wiki/Healing_the_man_blind_from_birth, 229
+Parables of Jesus, https://en.wikipedia.org/wiki/Parables_of_Jesus, 230
+Raising of the son of the widow of Nain, https://en.wikipedia.org/wiki/Raising_of_the_son_of_the_widow_of_Nain, 231
+Simon the Leper, https://en.wikipedia.org/wiki/Simon_the_Leper, 232
+Young man from Nain, https://en.wikipedia.org/wiki/Young_man_from_Nain, 233
+City upon a Hill, https://en.wikipedia.org/wiki/City_upon_a_Hill, 234
+Cleansing ten lepers, https://en.wikipedia.org/wiki/Cleansing_ten_lepers, 235
 Parable of the Two Sons, https://en.wikipedia.org/wiki/Parable_of_the_Two_Sons, 236
 The Three Marys, https://en.wikipedia.org/wiki/The_Three_Marys, 237
 Wolf in sheep's clothing, https://en.wikipedia.org/wiki/Wolf_in_sheep%27s_clothing, 238
@@ -241,7 +241,7 @@ Parable of the Master and Servant, https://en.wikipedia.org/wiki/Parable_of_the_
 Doubting Thomas, https://en.wikipedia.org/wiki/Doubting_Thomas, 241
 Parable of the Ten Virgins, https://en.wikipedia.org/wiki/Parable_of_the_Ten_Virgins, 242
 Healing the two blind men in Galilee, https://en.wikipedia.org/wiki/Healing_the_two_blind_men_in_Galilee, 243
-Synoptic Gospels, https://en.wikipedia.org/wiki/Synoptic_Gospels, 244
+Judas the Zealot, https://en.wikipedia.org/wiki/Judas_the_Zealot, 244
 The blind leading the blind, https://en.wikipedia.org/wiki/The_blind_leading_the_blind, 245
 Jesus' true relatives, https://en.wikipedia.org/wiki/Jesus%27_true_relatives, 246
 Parable of Drawing in the Net, https://en.wikipedia.org/wiki/Parable_of_Drawing_in_the_Net, 247
