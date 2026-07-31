@@ -34,6 +34,7 @@ from classifier.scorer import (
     compute_separation_ratio,
     compute_separation_blocks,
     assign_tier,
+    _tier_state_name,
 )
 from scripts.doc_sections import upsert_section
 from scripts.paragraph_eval import (
@@ -79,25 +80,23 @@ TIER_CONTRIBUTION = {
 def _contribution_to_state(tier: int, labels: list[str] = None) -> str:
     """Map a tier contribution integer to its state name.
 
-    Since both one_sided and unclassifiable map to 0, this function
-    determines which one applies by context when labels are provided.
+    Thin wrapper over classifier.scorer._tier_state_name — this used to
+    duplicate that logic with a hardcoded `tier == 10` / `tier == -5` check
+    for TIER_CLEAR/TIER_MUDDLED. When the live reduced-weight scheme
+    (2026-07-30) changed TIER_CLEAR to +3 and TIER_MUDDLED to 0 in
+    classifier/config.py, this hardcoded copy was never updated: every
+    genuine clear_split (tier=3) fell through to the final `return
+    "unclassifiable"`, and the disambiguation branch ignored `close_count`
+    entirely (pre-dating the three-tier data/close/interpretation
+    architecture). That silently collapsed tier accuracy across the whole
+    gold set — found while investigating a 0.026 accuracy regression
+    (2026-07-31). Delegating here keeps the two in sync going forward.
     """
-    if tier == 10:
-        return "clear_split"
-    elif tier == -5:
-        return "muddled"
-    elif tier == 0:
-        # Distinguish one_sided vs unclassifiable when possible.
-        if labels is not None:
-            data_count = labels.count("data") if labels else 0
-            interp_count = labels.count("interpretation") if labels else 0
-            class_count = data_count + interp_count
-            if class_count < N_min:
-                return "unclassifiable"
-            elif data_count == 0 or interp_count == 0:
-                return "one_sided"
-        return "unclassifiable"
-    return "unclassifiable"
+    labels = labels or []
+    data_count = labels.count("data")
+    close_count = labels.count("close")
+    interp_count = labels.count("interpretation")
+    return _tier_state_name(tier, data_count, close_count, interp_count, N_min)
 
 
 class ParagraphExtractor(HTMLParser):

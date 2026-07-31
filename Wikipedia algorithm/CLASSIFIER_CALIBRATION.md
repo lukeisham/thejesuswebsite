@@ -112,7 +112,7 @@ Best t_sep = 0.60 with tier accuracy 0.303.
 
 ## Calibration Results
 
-**Date:** 2026-07-30
+**Date:** 2026-07-31
 
 ### Methodology
 

@@ -51,25 +51,40 @@ For each paragraph, assign exactly one of these three labels:
   significance, doctrinal implications, or what a passage "means" for faith.
   It engages with the content's truth, message, or spiritual import.
 
-Return ONLY the label for each paragraph, one per line, in the same order
-as the paragraphs were provided."""
+Respond with a JSON object only: {"labels": [...]}, one label per paragraph,
+in the same order as the paragraphs were provided. Do not include any
+reasoning, explanation, or text outside the JSON object."""
 
 # Paragraph labelling rubric (sent as the user message preamble).
 RUBRIC = """Label each of the following paragraphs as "data", "close", or "interpretation" using these criteria:
 
-DATA — reports verifiable facts, events, geography, dates, manuscript evidence,
-or archaeological findings. Describes what is known or what sources say,
-without evaluating theological meaning.
+DATA — reports a single verifiable fact, event, geography, date, or finding
+as settled, without comparing it against another source or account. E.g. "The
+crucifixion occurred in Judaea, most likely in AD 30 or AD 33."
 
-CLOSE — performs literary, textual, or source-critical analysis. Compares
-manuscripts, notes narrative structure, discusses authorship or redaction,
-analyses language or genre. Examines HOW the text works.
+CLOSE — compares two or more manuscripts, gospels, or textual witnesses
+against each other, or discusses authorship, redaction, structure, or genre.
+The key signal is COMPARISON or textual mechanics, not just multiple facts:
+"The Synoptics place the event near Bethsaida, while John locates it on the
+eastern shore" is CLOSE (comparing what different gospel accounts say),
+even though both halves individually read like data. "Matthew and Luke agree
+that Jesus was born in Bethlehem... but differ on many details" is CLOSE for
+the same reason. If a paragraph names two-or-more sources/gospels and states
+where they agree or disagree, that is CLOSE even if no interpretive language
+appears.
 
 INTERPRETATION — discusses theological meaning, religious significance,
 doctrinal implications, or what a passage "means" for faith. Engages with
-content's truth, message, or spiritual import.
+content's truth, message, or spiritual import. This includes paragraphs that
+report scholarly debate, disagreement, or uncertainty about what a passage
+means or whether an event is historical (e.g. "scholars debate...",
+"the historicity of X is questioned...", "most theologians view X as...") —
+reporting that a meaning or historicity claim is contested is itself an
+interpretive move, not a data statement, even though it describes what
+sources say rather than asserting the claim directly.
 
-Return exactly one label per paragraph, one per line, with no additional text."""
+Respond with a JSON object: {"labels": ["data", "close", ...]} — exactly one
+label per paragraph, in order, with no additional text or explanation."""
 
 
 def load_gold_paragraphs() -> list[dict]:
@@ -116,29 +131,33 @@ def label_paragraphs_batch(
         user_message = "\n".join(lines)
 
         try:
-            response = client.chat.completions.create(
-                model=model_id,
-                max_tokens=1024,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_message},
-                ],
-            )
-
-            # Parse the response: each line should be one label.
-            raw = (response.choices[0].message.content or "").strip()
-            pred_labels = [
-                line.strip().strip('",').lower()
-                for line in raw.split("\n")
-                if line.strip()
-            ]
+            pred_labels: list[str] = []
+            for retry_attempt in range(2):  # one retry on empty/unparseable response
+                response = client.chat.completions.create(
+                    model=model_id,
+                    # deepseek-v4-flash/pro are reasoning models; hidden reasoning_content
+                    # shares this budget with the visible JSON answer (see llm_label_corpus.py).
+                    max_tokens=4096,
+                    response_format={"type": "json_object"},
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": user_message},
+                    ],
+                )
+                raw = (response.choices[0].message.content or "").strip()
+                try:
+                    parsed = json.loads(raw)
+                    pred_labels = [str(x).strip().lower() for x in parsed.get("labels", [])]
+                except (json.JSONDecodeError, AttributeError):
+                    pred_labels = []
+                if len(pred_labels) == len(batch):
+                    break
 
             # Normalise and validate.
             valid_labels = {"data", "close", "interpretation"}
             for j, pred in enumerate(pred_labels):
                 if j >= len(batch):
                     break
-                # Accept variations like "Data", "\"data\"", etc.
                 pred_clean = pred.strip('"').strip("'").lower()
                 if pred_clean not in valid_labels:
                     pred_clean = "other"  # unparseable

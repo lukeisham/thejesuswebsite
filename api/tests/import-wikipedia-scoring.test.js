@@ -886,15 +886,19 @@ describe("PENDING_SIGNAL_KEYS", () => {
     }
   });
 
-  test("contains data_interp_split and literary_analysis (both still pending)", () => {
-    assert.ok(PENDING_SIGNAL_KEYS.has("data_interp_split"));
+  test("contains literary_analysis (still pending)", () => {
     assert.ok(PENDING_SIGNAL_KEYS.has("literary_analysis"));
+  });
+
+  test("data_interp_split is no longer pending (activated 2026-07-30)", () => {
+    assert.equal(PENDING_SIGNAL_KEYS.has("data_interp_split"), false);
   });
 
   test("does not contain non-pending keys", () => {
     assert.equal(PENDING_SIGNAL_KEYS.has("bible_verses"), false);
     assert.equal(PENDING_SIGNAL_KEYS.has("manuscripts"), false);
     assert.equal(PENDING_SIGNAL_KEYS.has("jesus_seminar"), false);
+    assert.equal(PENDING_SIGNAL_KEYS.has("data_interp_split"), false);
   });
 });
 
@@ -999,12 +1003,12 @@ describe("checkNonPendingSignalsNonZero", () => {
 
 // ── Signal 3: data_interp_split is still pending (gate not yet met) ─────────
 
-describe("pending data_interp_split", () => {
-  test("is STILL in PENDING_SIGNAL_KEYS (exempt from all-zero guard)", () => {
-    assert.ok(PENDING_SIGNAL_KEYS.has("data_interp_split"));
+describe("data_interp_split (activated 2026-07-30)", () => {
+  test("is NO LONGER in PENDING_SIGNAL_KEYS (all-zero guard now applies)", () => {
+    assert.equal(PENDING_SIGNAL_KEYS.has("data_interp_split"), false);
   });
 
-  test("clear_split → +3 cap, valid contribution imports (ready when activated)", () => {
+  test("clear_split → +3 cap, valid contribution imports", () => {
     const cap = deriveCap(
       "data_interp_split",
       {},
@@ -1048,14 +1052,16 @@ describe("pending data_interp_split", () => {
     assert.ok(result.error.includes("wrong sign"));
   });
 
-  test("all-zero on pending key is allowed (guard skips it)", () => {
+  test("all-zero on activated key is REJECTED by guard (no longer pending)", () => {
     const validated = [
       {
         article: makeArticle({
           contributions: Object.fromEntries(
             [...KNOWN_SIGNAL_KEYS].map((k) => [
               k,
-              PENDING_SIGNAL_KEYS.has(k)
+              k === "data_interp_split"
+                ? 0
+                : PENDING_SIGNAL_KEYS.has(k)
                 ? 0
                 : 1,
             ]),
@@ -1069,8 +1075,8 @@ describe("pending data_interp_split", () => {
     );
     assert.equal(
       zeroKeys.includes("data_interp_split"),
-      false,
-      "data_interp_split is pending and must be skipped by all-zero guard",
+      true,
+      "data_interp_split is no longer pending — all-zero corpus must abort the import",
     );
   });
 });

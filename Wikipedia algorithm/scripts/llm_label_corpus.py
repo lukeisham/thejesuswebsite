@@ -68,24 +68,39 @@ For each paragraph, assign exactly one of these three labels:
   significance, doctrinal implications, or what a passage "means" for faith.
   It engages with the content's truth, message, or spiritual import.
 
-Return ONLY the label for each paragraph, one per line, in the same order
-as the paragraphs were provided."""
+Respond with a JSON object only: {"labels": [...]}, one label per paragraph,
+in the same order as the paragraphs were provided. Do not include any
+reasoning, explanation, or text outside the JSON object."""
 
 RUBRIC = """Label each of the following paragraphs as "data", "close", or "interpretation" using these criteria:
 
-DATA — reports verifiable facts, events, geography, dates, manuscript evidence,
-or archaeological findings. Describes what is known or what sources say,
-without evaluating theological meaning.
+DATA — reports a single verifiable fact, event, geography, date, or finding
+as settled, without comparing it against another source or account. E.g. "The
+crucifixion occurred in Judaea, most likely in AD 30 or AD 33."
 
-CLOSE — performs literary, textual, or source-critical analysis. Compares
-manuscripts, notes narrative structure, discusses authorship or redaction,
-analyses language or genre. Examines HOW the text works.
+CLOSE — compares two or more manuscripts, gospels, or textual witnesses
+against each other, or discusses authorship, redaction, structure, or genre.
+The key signal is COMPARISON or textual mechanics, not just multiple facts:
+"The Synoptics place the event near Bethsaida, while John locates it on the
+eastern shore" is CLOSE (comparing what different gospel accounts say),
+even though both halves individually read like data. "Matthew and Luke agree
+that Jesus was born in Bethlehem... but differ on many details" is CLOSE for
+the same reason. If a paragraph names two-or-more sources/gospels and states
+where they agree or disagree, that is CLOSE even if no interpretive language
+appears.
 
 INTERPRETATION — discusses theological meaning, religious significance,
 doctrinal implications, or what a passage "means" for faith. Engages with
-content's truth, message, or spiritual import.
+content's truth, message, or spiritual import. This includes paragraphs that
+report scholarly debate, disagreement, or uncertainty about what a passage
+means or whether an event is historical (e.g. "scholars debate...",
+"the historicity of X is questioned...", "most theologians view X as...") —
+reporting that a meaning or historicity claim is contested is itself an
+interpretive move, not a data statement, even though it describes what
+sources say rather than asserting the claim directly.
 
-Return exactly one label per paragraph, one per line, with no additional text."""
+Respond with a JSON object: {"labels": ["data", "close", ...]} — exactly one
+label per paragraph, in order, with no additional text or explanation."""
 
 # Max paragraphs per request (~500 tokens each, well under context limits).
 MAX_PARAGRAPHS_PER_REQUEST = 100
@@ -191,12 +206,17 @@ def prepare_requests(model_id: str, output_path: Path) -> dict:
                     lines.append(f"[{j}] {text}")
                 user_message = "\n".join(lines)
 
+                # max_tokens=16000: deepseek-v4-flash is a reasoning model whose hidden
+                # reasoning_content consumes the same budget as the visible JSON answer.
+                # 4096 was measured to truncate mid-reasoning on ~100-paragraph chunks,
+                # producing empty/short label arrays with finish_reason="length".
                 custom_id = f"{title}::chunk{chunk_idx // MAX_PARAGRAPHS_PER_REQUEST}"
                 request = {
                     "custom_id": custom_id,
                     "model": model_id,
-                    "max_tokens": 4096,
+                    "max_tokens": 16000,
                     "user_message": user_message,
+                    "n_paragraphs": len(chunk),
                 }
                 fh.write(json.dumps(request) + "\n")
                 total_requests += 1
@@ -223,24 +243,34 @@ def prepare_requests(model_id: str, output_path: Path) -> dict:
 
 
 def _run_one_request(client, request: dict) -> dict:
-    """Execute a single labelling request with retries. Returns a result dict."""
+    """Execute a single labelling request with retries. Returns a result dict.
+
+    Retries when the response's label count doesn't match the paragraph
+    count sent (empty/malformed JSON, or the model dropping paragraphs),
+    not just on hard exceptions — an early corpus run found 44 articles
+    with 0 labels because only exception-based retry existed.
+    """
     last_exc = None
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             response = client.chat.completions.create(
                 model=request["model"],
                 max_tokens=request["max_tokens"],
+                response_format={"type": "json_object"},
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": request["user_message"]},
                 ],
             )
             text = (response.choices[0].message.content or "").strip()
-            labels = [
-                line.strip().strip('",').lower()
-                for line in text.split("\n")
-                if line.strip()
-            ]
+            try:
+                parsed = json.loads(text)
+                labels = [str(x).strip().lower() for x in parsed.get("labels", [])]
+            except (json.JSONDecodeError, AttributeError):
+                labels = []
+            if len(labels) != request["n_paragraphs"] and attempt < MAX_RETRIES:
+                time.sleep(2 ** attempt)
+                continue
             usage = response.usage
             cache_hit = getattr(usage, "prompt_cache_hit_tokens", 0) or 0
             cache_miss = getattr(usage, "prompt_cache_miss_tokens", None)

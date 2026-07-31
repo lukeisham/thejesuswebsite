@@ -173,7 +173,7 @@ matching paragraph segmentation.
 
 ## Tier Accuracy Results
 
-Calibrated 2026-07-30 at **t_data=0.60, t_close=0.60, t_interp=0.45, t_register=0.15, t_sep=0.50**
+Calibrated 2026-07-31 at **t_data=0.60, t_close=0.60, t_interp=0.45, t_register=0.15, t_sep=0.50**
 (scoring rule: centroid, separation mode: adjacency)
 against 39 gold-set articles.
 
@@ -196,11 +196,11 @@ against 39 gold-set articles.
 | Historicity of the Gospels | clear_split | clear_split | 0.706 | ✓ |
 | Gospel harmony | clear_split | clear_split | 0.750 | ✓ |
 | Four Evangelists | clear_split | muddled | 0.429 | ✗ |
-| Synoptic Gospels | muddled | clear_split | 0.656 | ✗ |
+| Synoptic Gospels | muddled | clear_split | 0.633 | ✗ |
 | Oral gospel traditions | one_sided | clear_split | 0.895 | ✗ |
 | Crucifixion darkness | clear_split | clear_split | 0.724 | ✓ |
-| Crucifixion of Jesus | muddled | clear_split | 0.631 | ✗ |
-| Resurrection of Jesus | clear_split | clear_split | 0.792 | ✓ |
+| Crucifixion of Jesus | muddled | clear_split | 0.624 | ✗ |
+| Resurrection of Jesus | clear_split | clear_split | 0.790 | ✓ |
 | Calvary | muddled | muddled | 0.467 | ✓ |
 | Thirty pieces of silver | clear_split | clear_split | 0.846 | ✓ |
 | Pilate's court | muddled | muddled | 0.333 | ✓ |
@@ -212,7 +212,7 @@ against 39 gold-set articles.
 | Triumphal entry into Jerusalem | muddled | clear_split | 0.533 | ✗ |
 | Sanhedrin trial of Jesus | muddled | clear_split | 0.500 | ✗ |
 | Kiss of Judas | muddled | clear_split | 0.600 | ✗ |
-| Last Supper | muddled | clear_split | 0.622 | ✗ |
+| Last Supper | muddled | clear_split | 0.659 | ✗ |
 | Passion of Jesus | clear_split | clear_split | 0.707 | ✓ |
 | Bargain of Judas | clear_split | clear_split | 0.800 | ✓ |
 | Jesus at Herod's court | clear_split | muddled | 0.286 | ✗ |
@@ -222,7 +222,7 @@ against 39 gold-set articles.
 | Rich man and Lazarus | clear_split | clear_split | 0.667 | ✓ |
 | Emmaus | clear_split | clear_split | 0.586 | ✓ |
 | Jesus and the woman taken in adultery | muddled | muddled | 0.472 | ✓ |
-| Nativity of Jesus | clear_split | clear_split | 0.657 | ✓ |
+| Nativity of Jesus | clear_split | clear_split | 0.652 | ✓ |
 | Date of the birth of Jesus | muddled | clear_split | 0.675 | ✗ |
 | Transfiguration of Jesus | clear_split | clear_split | 0.778 | ✓ |
 | Galilee | clear_split | clear_split | 0.576 | ✓ |

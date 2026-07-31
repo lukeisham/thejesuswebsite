@@ -80,8 +80,16 @@ const KNOWN_SIGNAL_KEYS = new Set([
 // so they don't silently drag scores down. The all-zero integrity check skips
 // them so a pipeline gap doesn't block the import.
 const PENDING_SIGNAL_KEYS = new Set([
-  "data_interp_split",
   "literary_analysis",
+  // Temporary (2026-07-31, Issues.md #161): harvest_one() in rank_engine.py
+  // no longer computes the keyword-detector fields these five signals fall
+  // back to, so they score 0 for every article. Unrelated to Signal 3 — do
+  // not remove until #161 is fixed and a rescore shows real, varied values.
+  "balanced_debate",
+  "confessional_balance",
+  "ot_nt_criticism",
+  "supernatural_criticism",
+  "secular_materialist",
 ]);
 
 // ── Cap derivation ──────────────────────────────────────────────────────────
