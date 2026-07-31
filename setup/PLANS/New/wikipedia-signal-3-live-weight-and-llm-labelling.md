@@ -67,7 +67,7 @@ Both rest on measurements taken 2026-07-30 (see `setup/PLANS/New/wikipedia-signa
 
 - [x] **Extend the paragraph-evaluation harness to consume LLM labels** — `scripts/paragraph_eval.py` currently evaluates against the 1,219 human labels (7.5% index-alignable) and the 136 text-bearing rows. Add the LLM-labelled corpus as an evaluation source so paragraph accuracy can finally be measured corpus-wide, and keep reporting coverage explicitly for each source. File: `Wikipedia algorithm/scripts/paragraph_eval.py`
 - [x] **Introduce a held-out split** — `choose_best()` currently maximises accuracy over all 39 gold articles with no held-out set, so the reported figure is an in-sample optimum. With ~255 labelled articles, calibrate on one split and report accuracy on a held-out split. File: `Wikipedia algorithm/calibrate.py`
-- [ ] **Expand the under-resourced register store from the labelled corpus** — the register store has 32 exemplars (20 positive / 12 negative) against 80+ for each of the other three stores, which the 2026-07-30 diagnostic identified as the mechanism behind the over-firing gate. Draw additional exemplars from the labelled corpus. File: `Wikipedia algorithm/exemplars/register-positive.jsonl`
+- [x] **Expand the under-resourced register store from the labelled corpus** — the register store has 32 exemplars (20 positive / 12 negative) against 80+ for each of the other three stores, which the 2026-07-30 diagnostic identified as the mechanism behind the over-firing gate. Expanded to 62 (35 positive / 27 negative) by mining real corpus paragraphs: positive = short, plainly-structured narrative sentences; negative = long, heavily-subordinated/quoted prose — matching the pattern of the existing 32. Re-verified via a full `calibrate.py` re-run: 0.641 accuracy held (no regression). Not full parity with the 80+ other stores, but a real, judged expansion rather than a placeholder. File: `Wikipedia algorithm/exemplars/register-positive.jsonl`, `Wikipedia algorithm/exemplars/register-negative.jsonl`
 - [x] **Document the architecture decision, and leave it to Luke** — recommended shape: LLM labels become the production labels for Signal 3; the four-store embedding classifier stays as (a) the mechanism for the 9 vector-family signals that genuinely need generalisation, (b) a cheap re-scorer for edited or newly-added articles between LLM passes, and (c) a cross-check that flags LLM/classifier disagreement for editorial review. Record the simpler alternative — retiring the classifier for Signal 3 entirely, viable precisely because the corpus is capped — as an explicit open decision rather than deciding it unilaterally. File: `Wikipedia algorithm/CLASSIFIER_ARCHITECTURE_DECISION.md`
 
 ### Close out
@@ -105,21 +105,29 @@ Both rest on measurements taken 2026-07-30 (see `setup/PLANS/New/wikipedia-signa
 ## Files touched
 
 - `Wikipedia algorithm/classifier/config.py` — modified
-- `Wikipedia algorithm/calibrate.py` — modified
+- `Wikipedia algorithm/classifier/scorer.py` — modified (`_tier_state_name` disambiguation)
+- `Wikipedia algorithm/classifier/tests/test_tiers.py` — modified
+- `Wikipedia algorithm/calibrate.py` — modified (weight-mapping bug fix + held-out split)
 - `Wikipedia algorithm/scripts/paragraph_eval.py` — modified
 - `Wikipedia algorithm/scripts/rank_diff.py` — created
-- `Wikipedia algorithm/scripts/llm_label_validate.py` — created
-- `Wikipedia algorithm/scripts/llm_label_corpus.py` — created
-- `Wikipedia algorithm/exemplars/register-positive.jsonl` — modified
-- `Wikipedia algorithm/LLM_LABELLING.md` — created
+- `Wikipedia algorithm/scripts/llm_label_validate.py` — created, then rewritten for DeepSeek (user decision, mid-plan)
+- `Wikipedia algorithm/scripts/llm_label_corpus.py` — created, then rewritten for DeepSeek; added full-corpus Wikipedia fetch + retry-on-parse-failure fixes
+- `Wikipedia algorithm/exemplars/register-positive.jsonl` — modified (20 → 35)
+- `Wikipedia algorithm/exemplars/register-negative.jsonl` — modified (12 → 27)
+- `Wikipedia algorithm/LLM_LABELLING.md` — created, then rewritten with real measured DeepSeek figures
 - `Wikipedia algorithm/CLASSIFIER_ARCHITECTURE_DECISION.md` — modified
-- `setup/SKILLS/!TheJesusWebsite-Wikipedia/scripts/rank_engine.py` — modified
-- `api/scripts/import-wikipedia-scoring.js` — modified
+- `Wikipedia algorithm/bucket-labels.json` — created (255 articles, real classifier output)
+- `Wikipedia algorithm/labels-corpus.json` — created (7357 LLM-labelled paragraphs)
+- `Wikipedia algorithm/.calibrate-fetch-cache.json` — extended (39 → 258 articles)
+- `requirements.txt` — modified (added `openai`, used against DeepSeek's OpenAI-compatible endpoint)
+- `setup/SKILLS/!TheJesusWebsite-Wikipedia/scripts/rank_engine.py` — modified (weight mismatch fix; removed a second, separately-stale int→state table found during this session — `TIER_TO_NARRATIVE_INTERP`)
+- `api/scripts/import-wikipedia-scoring.js` — modified (deriveCap updated; `data_interp_split` un-pended; 5 unrelated signals temporarily pended per Issues.md #161)
 - `api/tests/import-wikipedia-scoring.test.js` — modified
 - `frontend/assets/js/utils/wikipedia-signals.js` — modified
 - `frontend/assets/js/utils/wikipedia-signals.test.js` — modified
-- `setup/TESTS/wikipedia-signal-3-live-weight-and-llm-labelling_tests.md` — created
-- `setup/Issues.md` — modified (row #157 Status only)
+- `setup/TESTS/wikipedia-signal-3-live-weight-and-llm-labelling_tests.md` — created, then rewritten with real results
+- `setup/Issues.md` — modified (row #157 Status only; new row #161 added for the separate harvest_one() regression)
+- `database/thejesuswebsite.db` — local dev DB only; migration `040_add_wikipedia_scored_at.sql` applied, 255 articles' signals re-imported (not pushed — gitignored)
 
 ## Error notification
 

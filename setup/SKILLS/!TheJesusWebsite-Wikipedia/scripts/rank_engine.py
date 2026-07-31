@@ -119,14 +119,6 @@ def load_vector_family_scores():
     return data
 
 
-TIER_TO_NARRATIVE_INTERP = {10: "clear_split", -5: "muddled", 0: "one_sided"}
-
-# Tier state overrides for the 0-contribution case, where one_sided and
-# unclassifiable collide on the integer. bucket-labels.json carries a
-# tier_state field that disambiguates them.
-_TIER_STATE_OVERRIDE = {"one_sided": "one_sided", "unclassifiable": "unclassifiable"}
-
-
 def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
     """Merge Plan 4's row-3 tier and Plan 5's vector-family contributions
     onto a freshly-harvested `sig` dict, in place. `article_id` must match
@@ -150,15 +142,18 @@ def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
         bucket_entry = bucket_labels.get(article_id)
         if bucket_entry is None:
             raise KeyError(f'"{article_id}" missing from bucket-labels.json')
-        tier_int = bucket_entry.get("tier", 0)
-        tier_state = bucket_entry.get("tier_state")
-        # When tier is 0, prefer the explicit tier_state from the classifier
-        # (one_sided vs unclassifiable). When tier is non-zero, use the
-        # integer-to-state mapping.
-        if tier_int == 0 and tier_state in _TIER_STATE_OVERRIDE:
-            sig["dataInterpTier"] = tier_state
-        else:
-            sig["dataInterpTier"] = TIER_TO_NARRATIVE_INTERP.get(tier_int, "unclassifiable")
+        # bucket-labels.json's tier_state field is written directly by
+        # classifier/scorer.py's _tier_state_name() and is unambiguous
+        # (clear_split/muddled/one_sided/unclassifiable) — use it directly
+        # rather than reconstructing state from the bare tier integer. A
+        # prior int->state table here (`{10: "clear_split", -5: "muddled",
+        # 0: "one_sided"}`) hardcoded the pre-2026-07-30 weight scheme and
+        # was never updated when TIER_CLEAR became +3 and TIER_MUDDLED
+        # became 0 (classifier/config.py) — every clear_split article's
+        # tier=3 missed that table's keys entirely and silently fell back
+        # to "unclassifiable" (0 contribution) for the whole corpus. Found
+        # 2026-07-31 investigating an all-zero data_interp_split rescore.
+        sig["dataInterpTier"] = bucket_entry.get("tier_state", "unclassifiable")
 
     if family_scores is not None:
         family_entry = family_scores.get(article_id, {})

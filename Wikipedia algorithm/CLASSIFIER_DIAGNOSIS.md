@@ -98,8 +98,8 @@ At n=39 gold-set articles, a Wilson-score 95% CI band for a proportion near 0.5 
 
 | Separation metric | Scoring rule | Best t_data | Best t_close | Best t_interp | Best t_register | Best t_sep | Tier accuracy | 95% CI |
 |---|---|---|---|---|---|---|---|---|
-| Adjacency (current) | Mean-cosine (current) | 0.40 | 0.65 | 0.40 | 0.35 | 0.70 | 0.615 | [0.462, 0.769] |
-| Block-structure (new) | Mean-cosine (current) | 0.40 | 0.65 | 0.40 | 0.35 | 0.70 | 0.615 | [0.462, 0.769] |
+| Adjacency (current) | Mean-cosine (current) | 0.40 | 0.65 | 0.40 | 0.40 | 0.65 | 0.615 | [0.462, 0.769] |
+| Block-structure (new) | Mean-cosine (current) | 0.40 | 0.65 | 0.40 | 0.40 | 0.65 | 0.615 | [0.462, 0.769] |
 | Adjacency (current) | Centroid | 0.60 | 0.60 | 0.45 | 0.15 | 0.50 | 0.641 | [0.487, 0.795] |
 | Block-structure (new) | Centroid | 0.60 | 0.60 | 0.45 | 0.15 | 0.50 | 0.641 | [0.487, 0.795] |
 
@@ -117,13 +117,13 @@ Covers all 1359 classified paragraphs across the gold-set articles (no gold alig
 
 | Label | Count |
 |---|---|
-| data | 278 |
-| close | 188 |
-| interpretation | 683 |
-| neither | 171 |
+| data | 276 |
+| close | 185 |
+| interpretation | 681 |
+| neither | 178 |
 | other | 39 |
 
-`neither` rate: **12.6%** (171/1359) vs. human baseline **2.3%** (28/1,219).
+`neither` rate: **13.1%** (178/1359) vs. human baseline **2.3%** (28/1,219).
 
 ### C.2 — Aligned-6 confusion matrix (index-aligned gold paragraphs)
 
@@ -153,29 +153,29 @@ Raw (pre-collapse) predicted-label distribution on this slice:
 
 | Label | Count |
 |---|---|
-| data | 56 |
+| data | 55 |
 | close | 20 |
 | interpretation | 50 |
-| neither | 10 |
+| neither | 11 |
 | other | 0 |
 
 Collapsed confusion matrix (gold rows x predicted columns):
 
 | Gold \ Pred | data | interpretation | neither |
 |---|---|---|---|
-| data | 65 | 26 | 6 |
+| data | 64 | 26 | 7 |
 | interpretation | 11 | 24 | 4 |
 | neither | 0 | 0 | 0 |
 
 | Class | Precision | Recall | F1 | Support |
 |---|---|---|---|---|
-| data | 0.855 | 0.670 | 0.751 | 97 |
+| data | 0.853 | 0.660 | 0.744 | 97 |
 | interpretation | 0.480 | 0.615 | 0.539 | 39 |
 | neither | 0.000 | 0.000 | 0.000 | 0 |
 
-**Data-vs-interpretation accuracy (restricted to classified paragraphs):** 0.706 (89/126).
+**Data-vs-interpretation accuracy (restricted to classified paragraphs):** 0.704 (88/125).
 
-`neither` rate on this slice: **7.3%** (10/136).
+`neither` rate on this slice: **8.1%** (11/136).
 
 ### C.4 — Why the full 1,219-label corpus can't be measured directly
 
