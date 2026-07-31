@@ -20,7 +20,7 @@ scoring pipeline. Describes the current codebase as-is.
 
 ## 🔄 1. Article Lifecycle
 
-Stages 1–3 (pool creation, selection, and the §9 weights table) are defined in
+Stages 1–3 (pool creation, selection, and the weights table) are defined in
 `ALGORITHM_GUIDE_the_what.md`. This guide covers Stages 4–6, the technical
 pipeline.
 
@@ -38,7 +38,7 @@ STAGE 4 — CLASSIFY (OFFLINE, DEV MACHINE ONLY)
     classifier/ pipeline (MiniLM ONNX + FAISS)
     → bucket-labels.json (per-paragraph data/close/interpretation/other labels)
       LIVE as of 2026-07-31 for data_interp_split (row 3); the classifier's
-      own tier accuracy (0.641) is still below its §11.2 gate (0.85) — see
+      own tier accuracy (0.641) is still below the ≥0.85 accuracy gate — see
       setup/issues.md #163 for the open question of whether it should be
       replaced by the separately-validated LLM labelling pipeline instead.
     families/ pipeline (9 vector-embedding stores)
@@ -220,7 +220,7 @@ Applied to the **capped** penalty, then truncated toward zero (`int()`).
 An additional **−2 surcharge** applies if balanced debate (row 5) scored 0.
 
 These are structural proxies for stance — the system does not attempt to detect
-whether an author is cited approvingly or critically (§11.3). Placement and
+whether an author is cited approvingly or critically (the stance-blind structural-proxy rationale). Placement and
 balanced-debate presence are used as indirect signals.
 
 ### 🥇 2.7 Gold set — frozen, single-rater, segmentation-mismatched
@@ -284,46 +284,46 @@ any other.
 
 ## ⚖️ 3. Weights Table — Source of Truth & Key Files
 
-**Canonical weight spec:** `ALGORITHM_GUIDE_the_what.md` §9 ("Stage 3 — Ranking
+**Canonical weight spec:** `ALGORITHM_GUIDE_the_what.md` the weights table ("Stage 3 — Ranking
 criteria") holds the full 25-row weights table with weight/cap values — that
 table is authoritative and is not duplicated here. This section documents
 only the implementation details: detection methods and key files per signal.
 
 Rows ordered by weight magnitude: strongest positive first, strongest negative
 last. This order is **load-bearing** — the frontend 5×5 grid renders cells in
-§9 order (top-left = earn points, bottom-right = lose points). Do not re-sort.
+the weights table order (top-left = earn points, bottom-right = lose points). Do not re-sort.
 
 | # | Signal | Detection | Key files |
 |---|--------|-----------|-----------|
 | 1 | **Named manuscripts** | Plain list lookup — 12-name fixed list (Codex Sinaiticus → Papyrus 75); generic "papyrus/codex/manuscript" mention = 1 | `rank_engine.py` L228–229, `extract.js` L41–48 |
 | 2 | **Bible verses cited** | Regex match on Book Ch:V patterns; deduplicated via Set | `rank_engine.py` L220, `extract.js` L21–25 |
-| 3 | **Data/interpretation split** — live | Vector — 4 FAISS stores (data-bucket, close-analysis, interpretation-bucket, register) label every body paragraph; separation ratio → tier. Classifier's own tier accuracy (0.641) is below its §11.2 gate — see setup/issues.md #163 | `rank_engine.py` L224–225, `classifier/scorer.py`, `classifier/labeler.py`, `classifier/stores.py`, `classifier/config.py` |
+| 3 | **Data/interpretation split** — live | Vector — 4 FAISS stores (data-bucket, close-analysis, interpretation-bucket, register) label every body paragraph; separation ratio → tier. Classifier's own tier accuracy (0.641) is below the ≥0.85 accuracy gate — see setup/issues.md #163 | `rank_engine.py` L224–225, `classifier/scorer.py`, `classifier/labeler.py`, `classifier/stores.py`, `classifier/config.py` |
 | 4 | **Commentary citations** | Plain list lookup — fixed series names (Anchor Bible, Hermeneia, NICNT, etc.) or "commentary" keyword | `rank_engine.py` L254–255, `extract.js` L33–35 |
-| 5 | **Balanced debate** | Vector (§3.1.2) — store encoding longevity language, named representatives, disagreement across data AND interpretation layers | `rank_engine.py` L247–251, `families/balanced_debate.py`, `exemplars/balanced-debate-positive.jsonl` |
+| 5 | **Balanced debate** | Vector (the balanced-debate vector store) — store encoding longevity language, named representatives, disagreement across data AND interpretation layers | `rank_engine.py` L247–251, `families/balanced_debate.py`, `exemplars/balanced-debate-positive.jsonl` |
 | 6 | **Ante-Nicene authors** | Plain list lookup — 10-name fixed list (Ignatius → Cyprian) | `rank_engine.py` L278, `extract.js` (anteNiceneCount) |
 | 7 | **Archaeological site/artefact** | Associated term lookup — IAA/archaeolog-/excavat-/ossuary/inscription keywords | `rank_engine.py` L233–234, `extract.js` L37–39 |
 | 8 | **Jewish context** | Plain list lookup — 19-term keyword list (Second Temple, Pharisees, Qumran, Passover, Mishnah, etc.) | `rank_engine.py` L243, `extract.js` (jewishContextHits) |
 | 9 | **Non-Christian ancient historians** | Plain list lookup — 8-name fixed list (Josephus → Phlegon) | `rank_engine.py` L258–259, `extract.js` (ancientHistorianCount) |
-| 10 | **Literary analysis** ⚠ PENDING | Vector (§3.1.9) — store trained on narrative criticism, rhetorical devices, genre conventions, intertextual allusion | `rank_engine.py` L262, `families/literary_analysis.py` |
+| 10 | **Literary analysis** ⚠ PENDING | Vector (the literary-analysis vector store) — store trained on narrative criticism, rhetorical devices, genre conventions, intertextual allusion | `rank_engine.py` L262, `families/literary_analysis.py` |
 | 11 | **Primary-source quotes** | Blockquote count + long (40+ char) quoted spans | `rank_engine.py` L240, `extract.js` (primarySourceQuoteCount) |
 | 12 | **Journal/book citations** | Reference-list inspection — journal-ish (DOI, JSTOR, volume/issue) vs book-ish (ISBN, University Press) markers | `rank_engine.py` L237, `extract.js` L31–32 |
 | 13 | **Maps and diagrams** | DOM inspection — mapframe templates, location-map elements, SVG diagrams, captions with "map"/"diagram"/"plan"/"floor plan" | `rank_engine.py` L265, `extract.js` (mapsAndDiagramsCount) |
 | 14 | **Wikipedia Good/Featured Article** | DOM inspection for GA/FA indicators (`#mw-indicator-*`) | `rank_engine.py` L268, `extract.js` (wikiQualityHit) |
 | 15 | **Religious art** | Context-conditional — evaluates image presence, diagram/map presence, and category together. Passion sensitivity uses wide-picture test | `rank_engine.py` L272–275, `extract.js` (hasPictureWide, hasPictureNarrow, hasDiagramOrMap) |
-| 16 | **Gnostic over-emphasis** (dormant keyword fallback only reads the −2 tier) | Vector (§3.1.10) — trained on Gnostic-as-privileged-source passages. Scans all buckets (data, interpretation, footnotes). Placement feeds tier | `rank_engine.py` L283–284, `families/gnostic_over_emphasis.py` |
-| 17 | **Confessional balance** | Vector (§3.1.8) — reuses balanced-debate store. Fires when critical scholars present but no Evangelical counterpart in interpretation sections | `rank_engine.py` L288–297, `families/confessional_balance.py` |
+| 16 | **Gnostic over-emphasis** (dormant keyword fallback only reads the −2 tier) | Vector (the Gnostic-over-emphasis vector store) — trained on Gnostic-as-privileged-source passages. Scans all buckets (data, interpretation, footnotes). Placement feeds tier | `rank_engine.py` L283–284, `families/gnostic_over_emphasis.py` |
+| 17 | **Confessional balance** | Vector (the confessional-balance vector store) — reuses balanced-debate store. Fires when critical scholars present but no Evangelical counterpart in interpretation sections | `rank_engine.py` L288–297, `families/confessional_balance.py` |
 | 18 | **Other-religion sources** | Plain list lookup — Islamic, Mormon, Buddhist, Hindu, Sikh, Jain, Rastafari, Bahá'í terms | `rank_engine.py` L300, `extract.js` (otherReligionHit) |
-| 19 | **Jesus Seminar bias** | Vector (§3.1.6) — fixed list (Funk, Crossan, Borg) for count; §3.1.1 classifier for placement. Stance-blind | `rank_engine.py` L304–308, `families/jesus_seminar.py` |
-| 20 | **OT–NT continuity criticism** | Vector (§3.1.4) — 7-dimension bias detection on four schools (proof-texting, messianic divergence, Law abrogation, intertestamental evolution) | `rank_engine.py` L311–312, `families/ot_nt_discontinuity.py` |
-| 21 | **Mythicist bias** | Vector (§3.1.5) — fixed list (Carrier, Price, Doherty) for count; §3.1.1 classifier for placement. Stance-blind. Raised sensitivity on is_passion | `rank_engine.py` L325–329, `families/mythicist_framing.py` |
-| 22 | **Supernatural-worldview criticism** | Vector (§3.1.3) — 7-dimension system: embedding-detected markers + computed metrics. Miracle- AND Passion-scoped, section-aware | `rank_engine.py` L316–321, `families/anti_supernatural.py` |
-| 23 | **Secular-materialist presuppositions** | Vector (§3.1.7) — same 7-dimension system, own database. Miracle- AND Passion-scoped, section-aware. No placement multiplier | `rank_engine.py` L335, `families/secular_materialist.py` |
-| 24 | **Referencing quality** | Ref count tiering + DOM inspection for "citation needed" tags / maintenance banners | `rank_engine.py` L339–341 + `_ref_quality_weight()` L611–625, `extract.js` (refCount, hasCitationNeeded) |
+| 19 | **Jesus Seminar bias** | Vector (the Jesus Seminar vector store) — fixed list (Funk, Crossan, Borg) for count; the section classifier for placement. Stance-blind | `rank_engine.py` L304–308, `families/jesus_seminar.py` |
+| 20 | **OT–NT continuity criticism** | Vector (the OT–NT discontinuity vector store) — 7-dimension bias detection on four schools (proof-texting, messianic divergence, Law abrogation, intertestamental evolution) | `rank_engine.py` L311–312, `families/ot_nt_discontinuity.py` |
+| 21 | **Mythicist bias** | Vector (the mythicist-framing vector store) — fixed list (Carrier, Price, Doherty) for count; the section classifier for placement. Stance-blind. Raised sensitivity on is_passion | `rank_engine.py` L325–329, `families/mythicist_framing.py` |
+| 22 | **Supernatural-worldview criticism** | Vector (the supernatural-worldview 7-dimension vector system) — 7-dimension system: embedding-detected markers + computed metrics. Miracle- AND Passion-scoped, section-aware | `rank_engine.py` L316–321, `families/anti_supernatural.py` |
+| 23 | **Secular-materialist presuppositions** | Vector (the secular-materialist vector store) — same 7-dimension system, own database. Miracle- AND Passion-scoped, section-aware. No placement multiplier | `rank_engine.py` L335, `families/secular_materialist.py` |
+| 24 | **Wikipedia referencing** | Ref count tiering + DOM inspection for "citation needed" tags / maintenance banners | `rank_engine.py` L339–341 + `_ref_quality_weight()` L611–625, `extract.js` (refCount, hasCitationNeeded) |
 | 25 | **No Bible verse cited** | Bible verse regex count = 0 | `rank_engine.py` L344, `extract.js` (verseCount) |
 
 **📌 Tie-break:** alphabetical by raw article title (before comma-to-hyphen substitution).
 No verse-count or reference-count secondary keys — this is a deliberate simplification
-(§12.2). Ties are expected; alphabetical ordering inside a
+(see §6.2 above for the tie-break rule). Ties are expected; alphabetical ordering inside a
 score-cluster is arbitrary by design, not a claim about relative quality.
 
 ---
@@ -392,16 +392,16 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 
 | File | Role |
 |---|---|
-| `frontend/assets/js/utils/wikipedia-signals.js` | SIGNAL_DICTIONARY (25 entries in §9 order), fulfilmentRatio, buildStatement. |
+| `frontend/assets/js/utils/wikipedia-signals.js` | SIGNAL_DICTIONARY (25 entries in the weights table order), fulfilmentRatio, buildStatement. |
 | `frontend/assets/js/wikipedia.js` | Grid rendering (buildGridWidget, 5×5 cells, colour intensity tiers), freshness line, copy button, keyboard navigation. |
 | `frontend/assets/js/wikipedia.test.js` | Grid regression tests: cell classes, tooltip patterns, pending-cell treatment. |
-| `frontend/assets/js/utils/wikipedia-signals.test.js` | 25 entries, renamed key/label, §9 order preservation. |
+| `frontend/assets/js/utils/wikipedia-signals.test.js` | 25 entries, renamed key/label, the weights table order preservation. |
 
 ### 📄 Specification documents
 
 | File | Role |
 |---|---|
-| `ALGORITHM_GUIDE_the_what.md` | Three-stage pipeline spec (pool → select → rank) and the authoritative §9 weights table. This document (`_the_how.md`) covers the technical pipeline; where the two disagree on a detection detail, fix the drift rather than assuming either wins by default. |
+| `ALGORITHM_GUIDE_the_what.md` | Three-stage pipeline spec (pool → select → rank) and the authoritative the weights table weights table. This document (`_the_how.md`) covers the technical pipeline; where the two disagree on a detection detail, fix the drift rather than assuming either wins by default. |
 | `DATA_INTERPRETATION_TIERS.md` | The linguistic definition of the three tiers (data/close/interpretation) that Signal 3 and the LLM labeller are both built from. |
 | `CLASSIFIER_SPEC.md` | Classifier design: stores, algorithm, schema. |
 | `CLASSIFIER_CALIBRATION.md` | Auto-generated calibration measurement record (not hand-maintained) — current tier accuracy 0.641, still below the 0.85 gate. |
@@ -426,7 +426,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 
 - **Σcontributions = net_score** for all 255 articles. Verified on every export write; import script rejects on mismatch.
 - **25 signals always, 5×5 grid always.** No signal is removed even when pending. The grid geometry never changes.
-- **§9 row order is load-bearing.** Signal dictionary, grid cell order, and the visual gradient (earn → lose) all depend on it.
+- **the weights table row order is load-bearing.** Signal dictionary, grid cell order, and the visual gradient (earn → lose) all depend on it.
 - **Category flags are computed once per article.** Every downstream signal reads the same six booleans. A single flag error propagates silently.
 - **Import is all-or-nothing.** Validation happens before any DB write. A single invalid article aborts the entire import.
 - **The gold set is frozen.** Disagreement means the store gets revised, never the label.
@@ -497,10 +497,10 @@ layout, and data contracts — all of which are current, implemented code.
 
 ### 7.1 5×5 grid rendering
 
-- **25 cells always, 5×5 grid always.** One cell per signal, in §9 row order:
+- **25 cells always, 5×5 grid always.** One cell per signal, in the weights table row order:
   left-to-right, top-to-bottom. Row 1 of the weights table is the top-left cell;
   row 25 is the bottom-right.
-- The order is load-bearing: because §9 orders by weight magnitude (strongest
+- The order is load-bearing: because the weights table orders by weight magnitude (strongest
   positive first, strongest negative last), the grid reads as a visual gradient —
   top-left = earn points, bottom-right = lose points.
 - The grid is a CSS Grid: `grid-template-columns: repeat(5, 1fr)`. It never
@@ -594,7 +594,7 @@ Source: thejesuswebsite.org/debate/wikipedia
 ```
 
 Rules:
-- Scored signals first, in §9 row order, contributions aligned.
+- Scored signals first, in the weights table row order, contributions aligned.
 - Unscored signals listed together at the end by name.
 - The "possible" figure is the category maximum from §6.3.
 - Success state: checkmark + `.is-copied` for 1.5s.
@@ -684,7 +684,7 @@ full corpus, `bucket-labels.json` holds real per-article tiers, and
 `rank_engine.py`/`import-wikipedia-scoring.js` score it correctly (previously
 a stale int→state table silently zeroed every `clear_split` article — fixed,
 see setup/issues.md #162). However, the classifier's own tier accuracy
-(0.641, `CLASSIFIER_CALIBRATION.md`) is still below the §11.2 gate (≥0.85). A
+(0.641, `CLASSIFIER_CALIBRATION.md`) is still below the ≥0.85 accuracy gate. A
 separately-built and separately-validated LLM labelling pipeline
 (`scripts/llm_label_corpus.py`, DeepSeek `deepseek-v4-flash`) reaches 0.926
 agreement against human gold labels — well above the gate — and has already
