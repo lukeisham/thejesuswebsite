@@ -10,8 +10,10 @@ count and identity of articles whose rank moves.
 Usage:
     python3 scripts/rank_diff.py [--weight WEIGHT]
 
-    Default weight is 3 (the current live value). Pass --weight 10 to
-    compare against the prior +10/−5 scheme for verification.
+    Default weight is 10 (the settled target, propagated 2026-07-31). Pass
+    --weight 3 to compare against the interim reduced-weight scheme that
+    shipped 2026-07-30, for verification that propagation didn't silently
+    change more than the tier weights themselves.
 """
 
 from __future__ import annotations
@@ -27,13 +29,10 @@ ALGO_DIR = Path(__file__).resolve().parent.parent
 SCORING_CSV = ALGO_DIR / "Wikipedia Articles - Scoring Detail.csv"
 EXPORT_JSON = ALGO_DIR / "scoring-export.json"
 
-# Weights under the current (live reduced-weight) scheme and the prior scheme.
-# All tier states except clear_split are 0 in both schemes:
-#   - muddled: precision 0.500 / recall 0.231 → withheld at 0
-#   - one_sided: 1 gold instance, misclassified → 0
-#   - unclassifiable: no gold instances → 0
-CURRENT_WEIGHTS = {"clear_split": 3, "muddled": 0, "one_sided": 0, "unclassifiable": 0}
-PRIOR_WEIGHTS = {"clear_split": 10, "muddled": -5, "one_sided": -5, "unclassifiable": 0}
+# Weights under the current (settled target, propagated 2026-07-31) scheme
+# and the interim scheme it replaced (live 2026-07-30 to 2026-07-31).
+CURRENT_WEIGHTS = {"clear_split": 10, "muddled": -5, "one_sided": 0, "unclassifiable": 0}
+PRIOR_WEIGHTS = {"clear_split": 3, "muddled": 0, "one_sided": 0, "unclassifiable": 0}
 
 
 def load_scoring_detail() -> list[dict]:
@@ -198,13 +197,13 @@ def main() -> None:
     parser.add_argument(
         "--weight",
         type=int,
-        default=3,
-        help="Candidate clear_split weight (default: 3, the live value).",
+        default=10,
+        help="Candidate clear_split weight (default: 10, the live target value).",
     )
     parser.add_argument(
         "--prior",
         action="store_true",
-        help="Diff against the prior +10/−5 scheme instead of the current live weights.",
+        help="Diff against the interim +3/0/0/0 scheme instead of the current target weights.",
     )
     parser.add_argument(
         "--json",

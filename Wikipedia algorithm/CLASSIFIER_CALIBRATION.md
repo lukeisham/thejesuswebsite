@@ -1,5 +1,11 @@
 # Classifier Calibration Record
 
+> Measurement record, largely auto-generated/updated by `calibrate.py`'s
+> `write_docs()` on each calibration run. For current operational facts
+> (how to run a calibration, what the live thresholds are), see
+> `ALGORITHM_GUIDE_the_how.md` instead — this file is historical/diagnostic,
+> not a maintained reference.
+
 ## Dependency Footprint Measurement
 
 **Measured date:** 2026-07-28

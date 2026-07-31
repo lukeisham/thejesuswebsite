@@ -1,5 +1,9 @@
 # Classifier Diagnosis
 
+> Measurement record, partially auto-generated/updated by `calibrate.py`.
+> For current operational facts, see `ALGORITHM_GUIDE_the_how.md` instead —
+> this file is historical/diagnostic, not a maintained reference.
+
 **Date:** (see git log)
 **Gold set articles:** 39
 **Articles with human labels:** 39

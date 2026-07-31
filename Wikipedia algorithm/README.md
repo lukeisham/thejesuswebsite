@@ -4,6 +4,18 @@ Offline Python tool that semantically labels every Wikipedia article body
 paragraph as **data**, **interpretation**, or **neither**, computes the
 separation ratio, and assigns the row-3 tier contribution.
 
+> **Entry point note (2026-07-31):** the operational entry point for the
+> whole Wikipedia list (check/add/exclude/rescore) is the skill
+> `setup/SKILLS/!TheJesusWebsite-Wikipedia/skill.md`, which remains active
+> and was rewritten to match the current fixed-canonical-list lifecycle. The
+> criteria/pipeline reference docs are `ALGORITHM_GUIDE_the_what.md` (what
+> qualifies for the list and the authoritative §9 weights table) and
+> `ALGORITHM_GUIDE_the_how.md` (the technical pipeline and per-signal
+> detection methods) in this folder — the old `Wikipedia Articles -
+> Reference.md` no longer exists. For plain "what do I say to make X happen"
+> instructions (adjust a weight, add/remove an article, report a scoring
+> error), see `OPERATOR_GUIDE.md`.
+
 ## Quickstart
 
 ### 1. Create a virtual environment and install dependencies

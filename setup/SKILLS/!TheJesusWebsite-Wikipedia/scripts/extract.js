@@ -1,10 +1,10 @@
 (function(){
-  // --- Dormant fallback flags (§11.4 of the refactor spec) --------------------------------------
+  // --- Dormant fallback flags (§11.4 of ALGORITHM_GUIDE_the_how.md) ------------------------------
   // Each vector family (balanced debate, confessional balance, Jesus Seminar, mythicist, OT-NT
   // continuity, supernatural criticism, miracle criticism) keeps its old keyword/list detector in
   // this file, gated off by default. Flip a family's flag to `true` to reactivate its dormant
-  // fallback — e.g. when that family's vector store (Plan 4/5) misses the 0.8 precision floor
-  // (§3.4.1). The detection logic below runs and is testable regardless of the flag; the flag only
+  // fallback — e.g. when that family's vector store misses the 0.8 precision floor (§3.4.1). The
+  // detection logic below runs and is testable regardless of the flag; the flag only
   // controls whether the field appears in the return object, so downstream code never mistakes a
   // dormant field for an active one. Tests may override via window.__DORMANT_FALLBACKS__ before
   // this script is evaluated.
@@ -131,7 +131,7 @@
   // Shared by the Jesus Seminar, mythicist, and confessional-balance (critical-scholar) families.
   // Returns a raw count only — no section placement. Placement for a dormant family, when
   // activated, is resolved in rank_engine.py against the §3.1.1 classifier's paragraph labels
-  // (Plan 4's bucket-labels.json), never against headings — see the refactor spec's "Open
+  // (bucket-labels.json), never against headings — see ALGORITHM_GUIDE_the_how.md's "Open
   // dependency" note. This file does not revive heading-based bucketing under any path.
   function matchCount(nameRes, genericRe, scanText){
     var found = nameRes.filter(function(re){ return re.test(scanText); });

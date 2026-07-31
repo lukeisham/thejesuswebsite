@@ -93,12 +93,12 @@ describe("SIGNAL_DICTIONARY: dictionary integrity", () => {
     );
   });
 
-  test("data_interp_split: +3 cap, positive polarity (live reduced-weight 2026-07-30)", async () => {
+  test("data_interp_split: +10 cap, positive polarity (target weight, propagated 2026-07-31)", async () => {
     const { SIGNAL_DICTIONARY } = await loadSignalsModule();
     const entry = SIGNAL_DICTIONARY.find((e) => e.key === "data_interp_split");
     assert.ok(entry, "data_interp_split must exist in SIGNAL_DICTIONARY");
-    assert.equal(entry.capMagnitude, 3, "cap must be +3 (reduced from +10)");
-    assert.equal(entry.polarity, "positive", "must be unidirectional positive (muddled arm held at 0)");
+    assert.equal(entry.capMagnitude, 10, "cap must be +10 (the dominant/positive extreme)");
+    assert.equal(entry.polarity, "positive", "dominant extreme is positive (+10), even though muddled scores -5");
   });
 });
 

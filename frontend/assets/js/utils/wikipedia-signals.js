@@ -6,7 +6,7 @@
  * plain-English statement logic.
  *
  * Order: exactly the §9 row order of
- * `Wikipedia algorithm/Wikipedia_alogrithm_refractor.md` — strongest
+ * `Wikipedia algorithm/ALGORITHM_GUIDE_the_what.md` §9 — strongest
  * positive signal first, strongest negative signal last. This is the same
  * order the 5×5 grid renders in (row-major, left to right, top to bottom) and
  * must never be re-sorted; the grid's gradient reading (top-left = earn
@@ -32,11 +32,13 @@ export const SIGNAL_DICTIONARY = [
   // ─── §9 row order — do not re-sort ──────────────────────────────────────
   { key: 'manuscripts', name: 'Named manuscripts', capMagnitude: 8, polarity: 'positive' },
   { key: 'bible_verses', name: 'Bible verses cited', capMagnitude: 12, polarity: 'positive' },
-  // Unidirectional positive (+3/0/0/0, §9 row 3) — the muddled arm is held at 0 because
-  // its precision is 0.500 / recall 0.231 (a coin flip on 3 of 13 gold cases). The +3
-  // weight is deliberately conservative; re-run the ranking-diff script before any change.
-  // Weights mirror classifier/config.py (source of truth).
-  { key: 'data_interp_split', name: 'Data/interpretation section split', capMagnitude: 3, polarity: 'positive' },
+  // Bidirectional (+10 clear split / -5 muddled / 0 one-sided / 0 unclassifiable,
+  // §9 row 3) — muddled is the worst outcome, not neutral: an article mixing
+  // description and interpretation without a clean separation scores worse than
+  // one that never attempts the split. capMagnitude/polarity reflect the
+  // dominant (largest-magnitude) extreme, same convention as referencing_quality
+  // below. Weights mirror classifier/config.py (source of truth).
+  { key: 'data_interp_split', name: 'Data/interpretation section split', capMagnitude: 10, polarity: 'positive' },
   { key: 'commentaries', name: 'Commentary citations', capMagnitude: 6, polarity: 'positive' },
   { key: 'balanced_debate', name: 'Balanced debate', capMagnitude: 12, polarity: 'positive' },
   { key: 'ante_nicene', name: 'Ante-Nicene authors', capMagnitude: 6, polarity: 'positive' },

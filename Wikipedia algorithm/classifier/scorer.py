@@ -155,17 +155,19 @@ def _tier_state_name(tier: int, data_count: int = 0, close_count: int = 0,
                     n_min: Optional[int] = None) -> str:
     """Map a tier contribution integer to its state name.
 
-    Since TIER_MUDDLED, TIER_ONE_SIDED, and TIER_UNCLASSIFIABLE all map to 0
-    under the live reduced-weight scheme (2026-07-30), this function uses
-    the paragraph counts to disambiguate them when the tier is 0:
-      - clear_split: tier == TIER_CLEAR (+3).
-      - muddled: both descriptive and interpretive present (tier=0,
-        class_count >= n_min, multiple tiers present).
-      - one_sided: only one tier present (tier=0, class_count >= n_min).
+    Any tier other than TIER_CLEAR is disambiguated from paragraph counts,
+    not from the integer value itself — this holds regardless of what
+    TIER_MUDDLED/TIER_ONE_SIDED/TIER_UNCLASSIFIABLE are currently set to
+    (they collide at 0 for one_sided/unclassifiable even under the settled
+    +10/−5/0/0 weighting):
+      - clear_split: tier == TIER_CLEAR (+10).
+      - muddled: both descriptive and interpretive present (class_count
+        >= n_min, multiple tiers present).
+      - one_sided: only one tier present (class_count >= n_min).
       - unclassifiable: class_count < n_min or no class paragraphs.
 
     Args:
-        tier: Tier contribution integer (+3 or 0).
+        tier: Tier contribution integer (+10, −5, or 0).
         data_count: Number of 'data' paragraphs.
         close_count: Number of 'close' paragraphs.
         interp_count: Number of 'interpretation' paragraphs.
@@ -176,7 +178,8 @@ def _tier_state_name(tier: int, data_count: int = 0, close_count: int = 0,
     """
     if tier == TIER_CLEAR:
         return "clear_split"
-    # tier == 0: disambiguate muddled / one_sided / unclassifiable.
+    # Not clear_split: disambiguate muddled / one_sided / unclassifiable from
+    # paragraph counts rather than the tier integer (TIER_MUDDLED may not be 0).
     if n_min is None:
         n_min = N_min
     class_count = data_count + close_count + interp_count
@@ -187,7 +190,7 @@ def _tier_state_name(tier: int, data_count: int = 0, close_count: int = 0,
     if present <= 1:
         return "one_sided"
     # Multiple tiers present → both descriptive and interpretive must be
-    # present (assign_tier returns TIER_MUDDLED=0 when both are present
+    # present (assign_tier returns TIER_MUDDLED when both are present
     # but separation < t_sep).
     desc_count = data_count + close_count
     if desc_count > 0 and interp_count > 0:
