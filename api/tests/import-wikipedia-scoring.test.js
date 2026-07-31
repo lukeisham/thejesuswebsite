@@ -455,6 +455,38 @@ describe("deriveCap — conditional negative", () => {
     );
   });
 
+    // Plan 4 — paragraph-label reuse: -3 tier is now reachable via the dormant fallback (2026-07-31)
+
+    test('confessional_balance: -3 tier imports correctly when critical_outside_interp is true', () => {
+      const article = makeArticle({
+        net_score: -3,
+        raw_signals: {
+          critical_scholar_hits: 1,
+          critical_outside_interp: true,
+          evangelical_contrast: false,
+        },
+      });
+      article.contributions.confessional_balance = -3;
+      const result = validateArticle(article);
+      assert.equal(result.errors.length, 0, result.errors.join(', '));
+      assert.equal(result.caps.confessional_balance, -3);
+    });
+
+    test('confessional_balance: -3 tier with evangelical_contrast still -3 (outside interp overrides)', () => {
+      const article = makeArticle({
+        net_score: -3,
+        raw_signals: {
+          critical_scholar_hits: 1,
+          critical_outside_interp: true,
+          evangelical_contrast: true,
+        },
+      });
+      article.contributions.confessional_balance = -3;
+      const result = validateArticle(article);
+      assert.equal(result.errors.length, 0, result.errors.join(', '));
+      assert.equal(result.caps.confessional_balance, -3);
+    });
+
   test("jesus_seminar: base -6 with mult 1.0 and balanced debate present", () => {
     assert.equal(
       deriveCap(
@@ -517,6 +549,99 @@ describe("deriveCap — conditional negative", () => {
       -14,
     );
   });
+
+    // Placement multiplier verification: ×2 and ×0.5 caps now import correctly
+    // (Plan 4 — paragraph-label reuse, 2026-07-31)
+
+    test('jesus_seminar: ×2 multiplier (hit in data paragraph) imports correctly', () => {
+      const article = makeArticle({
+        net_score: -12,
+        raw_signals: {
+          jesus_seminar_hits: 2,
+          jesus_seminar_mult: 2,
+          balanced_debate_hits: 7,
+        },
+      });
+      article.contributions.jesus_seminar = -12;
+      const result = validateArticle(article);
+      assert.equal(result.errors.length, 0, result.errors.join(', '));
+      assert.equal(result.caps.jesus_seminar, -12);
+    });
+
+    test('jesus_seminar: ×0.5 multiplier (hit only in interpretation) imports correctly', () => {
+      const article = makeArticle({
+        net_score: -3,
+        raw_signals: {
+          jesus_seminar_hits: 2,
+          jesus_seminar_mult: 0.5,
+          balanced_debate_hits: 7,
+        },
+      });
+      article.contributions.jesus_seminar = -3;
+      const result = validateArticle(article);
+      assert.equal(result.errors.length, 0, result.errors.join(', '));
+      assert.equal(result.caps.jesus_seminar, -3);
+    });
+
+    test('jesus_seminar: ×2 multiplier with balanced_debate=0 adds surcharge → -14', () => {
+      const article = makeArticle({
+        net_score: -14,
+        raw_signals: {
+          jesus_seminar_hits: 2,
+          jesus_seminar_mult: 2,
+          balanced_debate_hits: 0,
+        },
+      });
+      article.contributions.jesus_seminar = -14;
+      const result = validateArticle(article);
+      assert.equal(result.errors.length, 0, result.errors.join(', '));
+      assert.equal(result.caps.jesus_seminar, -14);
+    });
+
+    test('mythicist: ×2 multiplier imports correctly', () => {
+      const article = makeArticle({
+        net_score: -14,
+        raw_signals: {
+          mythicist_hits: 2,
+          mythicist_mult: 2,
+          balanced_debate_hits: 5,
+        },
+      });
+      article.contributions.mythicist = -14;
+      const result = validateArticle(article);
+      assert.equal(result.errors.length, 0, result.errors.join(', '));
+      assert.equal(result.caps.mythicist, -14);
+    });
+
+    test('mythicist: ×0.5 multiplier imports correctly', () => {
+      const article = makeArticle({
+        net_score: -3,
+        raw_signals: {
+          mythicist_hits: 2,
+          mythicist_mult: 0.5,
+          balanced_debate_hits: 5,
+        },
+      });
+      article.contributions.mythicist = -3;
+      const result = validateArticle(article);
+      assert.equal(result.errors.length, 0, result.errors.join(', '));
+      assert.equal(result.caps.mythicist, -3);
+    });
+
+    test('mythicist: ×2 multiplier with balanced_debate=0 → -16 (worst case)', () => {
+      const article = makeArticle({
+        net_score: -16,
+        raw_signals: {
+          mythicist_hits: 2,
+          mythicist_mult: 2,
+          balanced_debate_hits: 0,
+        },
+      });
+      article.contributions.mythicist = -16;
+      const result = validateArticle(article);
+      assert.equal(result.errors.length, 0, result.errors.join(', '));
+      assert.equal(result.caps.mythicist, -16);
+    });
 
   test("supernatural_criticism: 0 unless is_miracle or is_passion", () => {
     assert.equal(

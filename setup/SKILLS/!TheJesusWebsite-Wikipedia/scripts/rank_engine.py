@@ -24,7 +24,10 @@ Does not decide WHICH candidates to add or exclude — the pool-building (Stage 
 exclusion judgment (Stage 2) in ALGORITHM_GUIDE_the_what.md are the calling agent's job. This
 script only does the deterministic part: harvest signals, compute the weighted score, sort, write files.
 """
-import csv, json, subprocess, sys, os, argparse
+import csv, json, re as _re, subprocess, sys, os, argparse, time as _time
+from html.parser import HTMLParser
+from urllib.request import urlopen, Request
+from urllib.parse import unquote
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ALGORITHM_DIR = os.path.join(
@@ -156,6 +159,94 @@ def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
                 continue  # dormant fallback — sig's keyword-derived value stands
             sig[f"__vector_{signal_key}"] = family_entry[family_name]
 
+
+def _resolve_placement_into_sig(sig, article_id, bucket_labels):
+    """Pre-compute placement-aware multipliers and flags into sig.
+    Stores bucket_labels reference and article_id so placement_mult() and
+    per-signal gating can access placement data without threading through
+    every function signature.
+    """
+    sig["_bucket_labels"] = bucket_labels
+    sig["_article_id"] = article_id
+
+    if bucket_labels is None or article_id is None:
+        return
+    bl_entry = bucket_labels.get(article_id)
+    if bl_entry is None:
+        return
+    labels = bl_entry.get("paragraphs")
+    if labels is None:
+        return
+    paragraph_hits = sig.get("paragraph_hits", {})
+
+    sig["_js_placement_mult"] = _compute_placement(
+        labels, paragraph_hits.get("jesus_seminar"))
+    sig["_myth_placement_mult"] = _compute_placement(
+        labels, paragraph_hits.get("mythicist"))
+
+    crit_hits = paragraph_hits.get("critical_scholar")
+    sig["_critical_outside_interp"] = (
+        _is_outside_interpretation(labels, crit_hits)
+        if crit_hits and any(crit_hits) else False)
+
+    otnt_hits = paragraph_hits.get("ot_nt")
+    sig["_otnt_in_data"] = _any_hit_in_labels(
+        labels, otnt_hits, {"data", "close"}) if otnt_hits else False
+    super_hits = paragraph_hits.get("supernatural")
+    sig["_super_in_data"] = _any_hit_in_labels(
+        labels, super_hits, {"data", "close"}) if super_hits else False
+    miracle_hits = paragraph_hits.get("miracle_criticism")
+    sig["_miracle_in_data"] = _any_hit_in_labels(
+        labels, miracle_hits, {"data", "close"}) if miracle_hits else False
+
+
+def _compute_placement(labels, hits):
+    """x2 if any hit in data/close, x0.5 if all hits in interpretation, else x1."""
+    if hits is None or not any(hits) or labels is None:
+        return 1.0
+    n = min(len(hits), len(labels))
+    has_data_or_close = False
+    all_interp = True
+    any_hit = False
+    for i in range(n):
+        if not hits[i]:
+            continue
+        any_hit = True
+        if labels[i] in ("data", "close"):
+            has_data_or_close = True
+            all_interp = False
+        elif labels[i] != "interpretation":
+            all_interp = False
+    if not any_hit:
+        return 1.0
+    if has_data_or_close:
+        return 2.0
+    if all_interp:
+        return 0.5
+    return 1.0
+
+
+def _is_outside_interpretation(labels, hits):
+    """True if any hit falls outside interpretation paragraphs."""
+    if hits is None or labels is None:
+        return False
+    n = min(len(hits), len(labels))
+    for i in range(n):
+        if hits[i] and labels[i] not in ("interpretation",):
+            return True
+    return False
+
+
+def _any_hit_in_labels(labels, hits, target_labels):
+    """True if any hit falls in a paragraph with one of the target labels."""
+    if hits is None or labels is None:
+        return False
+    n = min(len(hits), len(labels))
+    for i in range(n):
+        if hits[i] and labels[i] in target_labels:
+            return True
+    return False
+
 # The set of keys row_from_signals() actually produces (DETAIL_FIELDS minus "ranking" and
 # "no_bible_verse" — derived later, not stored on the row itself; plus "url" which isn't a
 # DETAIL_FIELD but is stored). Used to detect a schema-stale resume/progress entry from before a
@@ -199,16 +290,63 @@ def load_excluded():
         return {line.strip() for line in f if line.strip()}
 
 
-def placement_mult(sig, prefix):
-    """Section-placement multiplier for a negative-weight-author signal: x2 if any hit sits in a
-    data/narrative section, x0.5 if hits sit ONLY in interpretation sections, x1 otherwise.
+def placement_mult(sig, prefix, bucket_labels=None, article_id=None):
+    """Section-placement multiplier for a negative-weight-author signal.
+
+    Uses per-paragraph keyword-hit positions (from harvest_one_with_paragraphs)
+    and bucket-labels.json's label sequence to compute the multiplier:
+      - x2 if any hit falls in a data or close-analysis paragraph.
+      - x0.5 if ALL hits are in interpretation paragraphs.
+      - x1 otherwise (no paragraph hits, no labels, mixed distribution).
+
     Applied to the CAPPED penalty; the halved result truncates toward zero (int()).
 
-    Always returns 1.0 for dormant keyword fallbacks: extract.js no longer computes
-    InData/InInterp/InOther placement fields (heading-based bucketing is retired —
-    see setup/issues.md). Placement for the vector-scored path is resolved separately,
-    already baked into __vector_<key> — this function only ever affects the dormant
-    keyword-fallback contribution, not the vector contribution."""
+    When paragraph-level hit data is unavailable, returns 1.0 (neutral default).
+    Placement for the vector-scored path is resolved separately.
+    """
+    hit_keys = {"jesusSeminar": "jesus_seminar", "mythicist": "mythicist",
+                "confessionalBalance": "critical_scholar"}
+    hit_key = hit_keys.get(prefix)
+    if hit_key is None:
+        return 1.0
+
+    paragraph_hits = sig.get("paragraph_hits", {})
+    hits = paragraph_hits.get(hit_key)
+    if hits is None or not any(hits):
+        return 1.0
+
+    labels = None
+    if bucket_labels is not None and article_id is not None:
+        bl_entry = bucket_labels.get(article_id)
+        if bl_entry is not None:
+            labels = bl_entry.get("paragraphs")
+    if labels is None:
+        return 1.0
+
+    n = min(len(hits), len(labels))
+    has_data_or_close = False
+    all_interpretation = True
+    any_hit = False
+
+    for i in range(n):
+        if not hits[i]:
+            continue
+        any_hit = True
+        label = labels[i]
+        if label in ("data", "close"):
+            has_data_or_close = True
+            all_interpretation = False
+        elif label == "interpretation":
+            pass
+        else:
+            all_interpretation = False
+
+    if not any_hit:
+        return 1.0
+    if has_data_or_close:
+        return 2.0
+    if all_interpretation:
+        return 0.5
     return 1.0
 
 
@@ -288,19 +426,21 @@ def net_score_from_signals(sig):
     # Row 6: Ante-Nicene authors — +2 per, capped +6
     s += min(sig.get("anteNiceneCount", 0), 3) * 2
 
-    # Row 16: Gnostic over-emphasis — vector (§3.1.10), −2/−4 tiered. Dormant fallback is the old
-    # boolean gnostic_quoted hit, read conservatively as the −2 "contextualised" tier (it can't
-    # distinguish a privileged use).
+    # Row 16: Gnostic over-emphasis — vector (§3.1.10), -2/-4 tiered. Dormant fallback
+    # reads the boolean gnostic_quoted hit conservatively as the -2 "contextualised"
+    # tier. Paragraph placement was considered but deferred: (a) the vector path is
+    # the intended long-term mechanism for this signal and (b) the fallback is already
+    # conservative (reads the boolean hit at -2, never the -4 privileged tier).
     gnostic_fallback = -2 if sig.get("gnosticSourceHit") else 0
     s += vec(sig, "gnostic_over_emphasis", gnostic_fallback)
 
-    # Row 17: Confessional balance — vector (§3.1.8, reuses row-5 store). −3 outside
-    # interpretation / −1 inside without an Evangelical contrast / 0 inside with one.
-    # Dormant fallback: since extract.js no longer computes per-section placement
-    # (see setup/issues.md), the −3 outside-interpretation tier is unreachable via the
-    # fallback. The fallback reaches −1 when a critical scholar is cited without an
-    # Evangelical contrast, 0 otherwise; the −3 tier is only reachable via the vector path.
-    if sig.get("criticalScholarCount", 0) > 0:
+    # Row 17: Confessional balance — uses pre-computed _critical_outside_interp flag
+    # when paragraph placement is available; falls back to the old logic otherwise.
+    if sig.get("_critical_outside_interp", False):
+        confessional_fallback = -3
+    elif sig.get("criticalScholarCount", 0) > 0 or any(
+        sig.get("paragraph_hits", {}).get("critical_scholar", [])
+    ):
         confessional_fallback = -1 if not sig.get("evangelicalHit") else 0
     else:
         confessional_fallback = 0
@@ -309,31 +449,49 @@ def net_score_from_signals(sig):
     # Row 18: Other-religion sources — −3 flat
     s += -3 if sig.get("otherReligionHit", sig.get("islamicMormonHit")) else 0
 
-    # Row 19: Jesus Seminar bias — −3 per author capped −6, × placement multiplier (truncated
-    # toward zero), then a further −2 if balanced debate (row 5) scored 0. Vector (§3.1.6).
+    # Row 19: Jesus Seminar — uses pre-computed _js_placement_mult when available
+    js_mult = sig.get("_js_placement_mult", placement_mult(sig, "jesusSeminar"))
     jesus_seminar_capped = max(sig.get("jesusSeminarCount", 0) * -3, -6)
-    jesus_seminar_fallback = int(jesus_seminar_capped * placement_mult(sig, "jesusSeminar"))
+    jesus_seminar_fallback = int(jesus_seminar_capped * js_mult)
     if balanced_debate_pts == 0:
         jesus_seminar_fallback += -2
     s += vec(sig, "jesus_seminar", jesus_seminar_fallback)
 
-    # Row 20: OT–NT continuity criticism — −3 per pattern, capped −6. Vector (§3.1.4).
-    ot_nt_fallback = max(sig.get("contOTNT", 0) * -3, -6)
+    # Row 20: OT-NT continuity — exclude hits in data/close paragraphs when placement is available
+    if sig.get("_otnt_in_data") is not None:
+        # Paragraph placement available — count hits excluding data/close paragraphs
+        otnt_hits = sig.get("paragraph_hits", {}).get("ot_nt", [])
+        labels = sig.get("_bucket_labels", {}).get(sig.get("_article_id", ""), {}).get("paragraphs", [])
+        n = min(len(otnt_hits), len(labels))
+        ot_nt_count = sum(1 for i in range(n) if otnt_hits[i] and labels[i] not in ("data", "close"))
+        ot_nt_fallback = max(ot_nt_count * -3, -6)
+    else:
+        ot_nt_fallback = max(sig.get("contOTNT", 0) * -3, -6)
     s += vec(sig, "ot_nt_criticism", ot_nt_fallback)
 
-    # Row 22: Criticism of the supernatural worldview — −2 per instance, capped −8. Absorbs the
-    # old miracle_criticism key; Miracle- AND Passion-scoped. Vector (§3.1.3).
+    # Row 22: Supernatural criticism — exclude hits in data/close paragraphs when placement is available
     if sig.get("isMiracle") or sig.get("isPassion"):
-        combined_hits = sig.get("superCrit", 0) + sig.get("miracleCriticismHits", 0)
-        supernatural_fallback = max(combined_hits * -2, -8)
+        if sig.get("_super_in_data") is not None:
+            super_hits = sig.get("paragraph_hits", {}).get("supernatural", [])
+            miracle_hits = sig.get("paragraph_hits", {}).get("miracle_criticism", [])
+            labels = sig.get("_bucket_labels", {}).get(sig.get("_article_id", ""), {}).get("paragraphs", [])
+            n_super = min(len(super_hits), len(labels))
+            n_miracle = min(len(miracle_hits), len(labels))
+            super_count = sum(1 for i in range(n_super) if super_hits[i] and labels[i] not in ("data", "close"))
+            miracle_count = sum(1 for i in range(n_miracle) if miracle_hits[i] and labels[i] not in ("data", "close"))
+            combined_hits = super_count + miracle_count
+            supernatural_fallback = max(combined_hits * -2, -8)
+        else:
+            combined_hits = sig.get("superCrit", 0) + sig.get("miracleCriticismHits", 0)
+            supernatural_fallback = max(combined_hits * -2, -8)
     else:
         supernatural_fallback = 0
     s += vec(sig, "supernatural_criticism", supernatural_fallback)
 
-    # Row 21: Mythicist bias — −3 per author capped −7, × placement multiplier (truncated toward
-    # zero), then a further −2 if balanced debate (row 5) scored 0. Vector (§3.1.5).
+    # Row 21: Mythicist — uses pre-computed _myth_placement_mult when available
+    myth_mult = sig.get("_myth_placement_mult", placement_mult(sig, "mythicist"))
     mythicist_capped = max(sig.get("mythicistCount", 0) * -3, -7)
-    mythicist_fallback = int(mythicist_capped * placement_mult(sig, "mythicist"))
+    mythicist_fallback = int(mythicist_capped * myth_mult)
     if balanced_debate_pts == 0:
         mythicist_fallback += -2
     s += vec(sig, "mythicist", mythicist_fallback)
@@ -372,26 +530,50 @@ def row_from_signals(title, url, sig):
 
     gnostic_fallback = -2 if sig.get("gnosticSourceHit") else 0
 
-    if sig.get("criticalScholarCount", 0) > 0:
+    if sig.get("_critical_outside_interp", False):
+        confessional_fallback = -3
+    elif sig.get("criticalScholarCount", 0) > 0 or any(
+        sig.get("paragraph_hits", {}).get("critical_scholar", [])
+    ):
         confessional_fallback = -1 if not sig.get("evangelicalHit") else 0
     else:
         confessional_fallback = 0
 
+    js_mult = sig.get("_js_placement_mult", placement_mult(sig, "jesusSeminar"))
     jesus_seminar_capped = max(sig.get("jesusSeminarCount", 0) * -3, -6)
-    jesus_seminar_fallback = int(jesus_seminar_capped * placement_mult(sig, "jesusSeminar"))
+    jesus_seminar_fallback = int(jesus_seminar_capped * js_mult)
     if balanced_debate_contribution == 0:
         jesus_seminar_fallback += -2
 
-    ot_nt_fallback = max(sig.get("contOTNT", 0) * -3, -6)
+    if sig.get("_otnt_in_data") is not None:
+        otnt_hits = sig.get("paragraph_hits", {}).get("ot_nt", [])
+        labels = sig.get("_bucket_labels", {}).get(sig.get("_article_id", ""), {}).get("paragraphs", [])
+        n = min(len(otnt_hits), len(labels))
+        ot_nt_count = sum(1 for i in range(n) if otnt_hits[i] and labels[i] not in ("data", "close"))
+        ot_nt_fallback = max(ot_nt_count * -3, -6)
+    else:
+        ot_nt_fallback = max(sig.get("contOTNT", 0) * -3, -6)
 
     if sig.get("isMiracle") or sig.get("isPassion"):
-        combined_hits = sig.get("superCrit", 0) + sig.get("miracleCriticismHits", 0)
-        supernatural_fallback = max(combined_hits * -2, -8)
+        if sig.get("_super_in_data") is not None:
+            super_hits = sig.get("paragraph_hits", {}).get("supernatural", [])
+            miracle_hits = sig.get("paragraph_hits", {}).get("miracle_criticism", [])
+            labels = sig.get("_bucket_labels", {}).get(sig.get("_article_id", ""), {}).get("paragraphs", [])
+            n_super = min(len(super_hits), len(labels))
+            n_miracle = min(len(miracle_hits), len(labels))
+            super_count = sum(1 for i in range(n_super) if super_hits[i] and labels[i] not in ("data", "close"))
+            miracle_count = sum(1 for i in range(n_miracle) if miracle_hits[i] and labels[i] not in ("data", "close"))
+            combined_hits = super_count + miracle_count
+            supernatural_fallback = max(combined_hits * -2, -8)
+        else:
+            combined_hits = sig.get("superCrit", 0) + sig.get("miracleCriticismHits", 0)
+            supernatural_fallback = max(combined_hits * -2, -8)
     else:
         supernatural_fallback = 0
 
+    myth_mult = sig.get("_myth_placement_mult", placement_mult(sig, "mythicist"))
     mythicist_capped = max(sig.get("mythicistCount", 0) * -3, -7)
-    mythicist_fallback = int(mythicist_capped * placement_mult(sig, "mythicist"))
+    mythicist_fallback = int(mythicist_capped * myth_mult)
     if balanced_debate_contribution == 0:
         mythicist_fallback += -2
 
@@ -420,9 +602,9 @@ def row_from_signals(title, url, sig):
         # genuine per-article "unclassifiable" outcome (§9 activation checklist).
         "data_interp_pending": sig.get("dataInterpPending", False),
         "jesus_seminar_hits": sig.get("jesusSeminarCount", 0),
-        "jesus_seminar_mult": placement_mult(sig, "jesusSeminar"),
+        "jesus_seminar_mult": sig.get("_js_placement_mult", placement_mult(sig, "jesusSeminar")),
         "jesus_seminar_contribution": vec(sig, "jesus_seminar", jesus_seminar_fallback),
-        "mythicist_mult": placement_mult(sig, "mythicist"),
+        "mythicist_mult": sig.get("_myth_placement_mult", placement_mult(sig, "mythicist")),
         "mythicist_contribution": vec(sig, "mythicist", mythicist_fallback),
         "ot_nt_criticism_contribution": vec(sig, "ot_nt_criticism", ot_nt_fallback),
         "supernatural_criticism_contribution": vec(sig, "supernatural_criticism", supernatural_fallback),
@@ -435,7 +617,7 @@ def row_from_signals(title, url, sig):
         "balanced_debate_hits": sig.get("balancedDebateHits", 0),
         "balanced_debate_named": sig.get("balancedDebateNamedAuthors", 0),
         "critical_scholar_hits": sig.get("criticalScholarCount", 0),
-        "critical_outside_interp": False,  # only reachable via the vector path, not the dormant fallback
+        "critical_outside_interp": sig.get("_critical_outside_interp", False),
         "evangelical_contrast": bool(sig.get("evangelicalHit", False)),
         "other_religion_hit": sig.get("otherReligionHit", sig.get("islamicMormonHit", False)),
         "maps_diagrams_count": sig.get("mapsAndDiagramsCount", 0),
@@ -451,11 +633,288 @@ def row_from_signals(title, url, sig):
     }
 
 
+# --- Paragraph extraction for placement-aware scoring (Plan 4 — paragraph-label reuse) -----
+# Reuses the same parse-API fetch pattern as calibrate.py's fetch_article_paragraphs()
+# (SR-2: no new HTTP client) but is self-contained here to avoid a cross-package import.
+
+class _ParagraphExtractor(HTMLParser):
+    """Extract and clean <p> tag text from Wikipedia rendered HTML."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.paragraphs: list[str] = []
+        self._current: list[str] = []
+        self._in_p = False
+
+    def handle_starttag(self, tag: str, attrs: list) -> None:
+        if tag == "p":
+            self._in_p = True
+            self._current = []
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "p":
+            self._in_p = False
+            text = " ".join(self._current)
+            text = self._clean(text)
+            if text and len(text.split()) >= 5:
+                self.paragraphs.append(text)
+
+    def handle_data(self, data: str) -> None:
+        if self._in_p:
+            self._current.append(data)
+
+    @staticmethod
+    def _clean(text: str) -> str:
+        """Remove HTML citation artifacts and normalize whitespace."""
+        text = _re.sub(r"\[\s*[a-z0-9]+\s*\]", "", text)
+        text = _re.sub(r"\[\s*note\s+\d+\s*\]", "", text, flags=_re.IGNORECASE)
+        text = _re.sub(r"\s+'", "'", text)
+        text = _re.sub(r"\s+\.", ".", text)
+        text = _re.sub(r"\s+,", ",", text)
+        text = _re.sub(r"\s+\)", ")", text)
+        text = _re.sub(r"\(\s+", "(", text)
+        text = _re.sub(r"\s+;", ";", text)
+        text = _re.sub(r"\s+:", ":", text)
+        text = _re.sub(r"\s+", " ", text).strip()
+        return text
+
+
+def _fetch_article_paragraphs(url: str) -> list[str]:
+    """Fetch cleaned prose paragraphs from a Wikipedia article via the parse API.
+
+    Identical logic to calibrate.py's fetch_article_paragraphs() — duplicated
+    here per SR-2 (no new cross-package dependencies) rather than importing
+    across a repo subtree boundary.
+    """
+    title_match = _re.search(r"/wiki/(.+)$", url)
+    if title_match is None:
+        raise ValueError(f"Cannot extract Wikipedia title from URL: {url}")
+    title = unquote(title_match.group(1))
+
+    api_url = (
+        "https://en.wikipedia.org/w/api.php"
+        f"?action=parse&page={title}"
+        "&prop=text&format=json&disableeditsection=1"
+    )
+    req = Request(api_url, headers={"User-Agent": "thejesuswebsite-classifier/0.1"})
+
+    data = None
+    for attempt in range(3):
+        try:
+            with urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode())
+            break
+        except Exception as e:
+            if attempt < 2:
+                wait = 2 ** (attempt + 1)
+                print(f"    fetch_paragraphs attempt {attempt + 1}: {e}; retrying in {wait}s ...")
+                _time.sleep(wait)
+            else:
+                raise
+
+    if data is None:
+        raise RuntimeError(f"Failed to fetch paragraphs for {url} after 3 attempts")
+    html_text = data.get("parse", {}).get("text", {}).get("*", "")
+    parser = _ParagraphExtractor()
+    parser.feed(html_text)
+    return parser.paragraphs
+
+
+# --- Per-paragraph keyword detectors (ported from extract.js dormant fallbacks) ----------
+# Each detector takes a paragraph text and returns True if the signal's keywords match.
+# These are the same patterns as extract.js's DORMANT_FALLBACKS detectors, but run
+# per-paragraph so placement_mult() can determine whether each hit sits in a
+# data/close/interpretation paragraph.
+
+# Row 19: Jesus Seminar authors
+_JESUS_SEMINAR_RES = [
+    _re.compile(r"Robert Funk"),
+    _re.compile(r"John Dominic Crossan"),
+    _re.compile(r"Marcus Borg"),
+]
+_JESUS_SEMINAR_GENERIC = _re.compile(r"Jesus Seminar", _re.IGNORECASE)
+
+# Row 21: Mythicist authors
+_MYTHICIST_RES = [
+    _re.compile(r"Richard Carrier", _re.IGNORECASE),
+    _re.compile(r"Robert M\.?\s?Price", _re.IGNORECASE),
+    _re.compile(r"Earl Doherty", _re.IGNORECASE),
+]
+_MYTHICIST_GENERIC = _re.compile(r"\bmythicis[tm]\b|Christ myth theory", _re.IGNORECASE)
+
+# Row 17: Critical scholars (confessional balance)
+_CRITICAL_SCHOLAR_RES = [
+    _re.compile(r"Bart (?:D\.?\s?)?Ehrman", _re.IGNORECASE),
+    _re.compile(r"\bEhrman\b"),
+    _re.compile(r"G(?:e|é)rd L(?:ü|u)demann", _re.IGNORECASE),
+    _re.compile(r"Elaine Pagels", _re.IGNORECASE),
+    _re.compile(r"Paula Fredriksen", _re.IGNORECASE),
+    _re.compile(r"Reza Aslan", _re.IGNORECASE),
+    _re.compile(r"Maurice Casey", _re.IGNORECASE),
+    _re.compile(r"Hector Avalos", _re.IGNORECASE),
+    _re.compile(r"Dale B\.?\s?Martin", _re.IGNORECASE),
+]
+_EVANGELICAL_RE = _re.compile(
+    r"N\.?\s?T\.?\s?Wright|Tom Wright|Richard Bauckham|Craig (?:L\.?\s?)?Blomberg|"
+    r"Craig (?:S\.?\s?)?Keener|Craig (?:A\.?\s?)?Evans|Darrell (?:L\.?\s?)?Bock|"
+    r"Ben Witherington|Michael (?:R\.?\s?)?Licona|Gary (?:R\.?\s?)?Habermas|"
+    r"D\.?\s?A\.?\s?Carson|Douglas (?:J\.?\s?)?Moo|F\.?\s?F\.?\s?Bruce|"
+    r"I\.? Howard Marshall|evangelical scholar",
+    _re.IGNORECASE,
+)
+
+# Row 20: OT-NT continuity criticism patterns
+_OTNT_PATTERNS = [
+    _re.compile(r"proof.?text\w*", _re.IGNORECASE),
+    _re.compile(r"(?:quot|taken|lift|used|ripp)\w*[^.]{0,60}out of (?:its )?(?:original )?context", _re.IGNORECASE),
+    _re.compile(r"\bpesher\b", _re.IGNORECASE),
+    _re.compile(r"\bmidrash\w*", _re.IGNORECASE),
+    _re.compile(r"original (?:historical )?context[^.]{0,80}(?:Isaiah|prophec\w*|Hebrew Bible|Old Testament)", _re.IGNORECASE),
+    _re.compile(r"(?:redefin|reinterpret|transform|re-?work)\w*[^.]{0,80}(?:messiah|messianic)", _re.IGNORECASE),
+    _re.compile(r"messianic expectation\w*[^.]{0,80}(?:differ|contrast|political|military|geopolitical|Davidic)", _re.IGNORECASE),
+    _re.compile(r"(?:political|military|geopolitical)[^.]{0,60}(?:messiah|Davidic king)", _re.IGNORECASE),
+    _re.compile(r"(?:abrogat|supersed|obsolet)\w*[^.]{0,80}(?:law|Torah|covenant|Mosaic)", _re.IGNORECASE),
+    _re.compile(r"(?:law|Torah|covenant|Mosaic)[^.]{0,80}(?:abrogat|supersed|obsolet|annul)\w*", _re.IGNORECASE),
+    _re.compile(r"supersessionis\w*", _re.IGNORECASE),
+    _re.compile(r"intertestamental[^.]{0,80}(?:develop|influence|apocalyptic|evolution)\w*", _re.IGNORECASE),
+    _re.compile(r"(?:Hellenistic|Persian|Zoroastrian)[^.]{0,80}(?:influence|borrow|origin)\w*[^.]{0,80}(?:apocalyptic|resurrection|dualis|angel)", _re.IGNORECASE),
+    _re.compile(r"Second Temple[^.]{0,60}apocalyptic\w*", _re.IGNORECASE),
+    _re.compile(r"(contradict|discrepanc|inconsisten)\w*[^.]{0,100}(Old Testament|prophecy|prophecies|Hebrew Bible)", _re.IGNORECASE),
+    _re.compile(r"(Old Testament|prophecy|prophecies|Hebrew Bible)[^.]{0,100}(contradict|discrepanc|inconsisten)\w*", _re.IGNORECASE),
+]
+
+# Row 22: Supernatural-worldview criticism
+_SUPERNATURAL_RE = _re.compile(
+    r"mytholog\w*|legendary accretion|historicity[^.]{0,30}(question|doubt|dispute)\w*|"
+    r"skeptic\w*|naturalistic explanation|hallucinat\w*",
+    _re.IGNORECASE,
+)
+
+# Row 22/23 absorbed: Miracle-specific criticism terms
+_MIRACLE_CRITICISM_TERMS = [
+    "naturalistic explanation", "psychosomatic", "mass hallucination",
+    "mythological", "legendary development", "legendary accretion",
+    "scientifically explain", "scientifically implausible",
+]
+
+
+def _detect_keyword_hits_per_paragraph(paragraphs: list[str]) -> dict:
+    """Run dormant-fallback keyword detectors against each paragraph.
+
+    Returns a dict with per-paragraph hit lists (one bool per paragraph).
+    Each signal appears as a list of bool, e.g.:
+        {"jesus_seminar": [False, True, False, ...], ...}
+    """
+    n = len(paragraphs)
+    result = {
+        "jesus_seminar": [False] * n,
+        "mythicist": [False] * n,
+        "critical_scholar": [False] * n,
+        "evangelical": [False] * n,
+        "ot_nt": [False] * n,
+        "supernatural": [False] * n,
+        "miracle_criticism": [False] * n,
+    }
+
+    for i, para in enumerate(paragraphs):
+        # Jesus Seminar
+        found_named = any(r.search(para) for r in _JESUS_SEMINAR_RES)
+        found_generic = bool(_JESUS_SEMINAR_GENERIC.search(para))
+        result["jesus_seminar"][i] = found_named or found_generic
+
+        # Mythicist
+        found_named = any(r.search(para) for r in _MYTHICIST_RES)
+        found_generic = bool(_MYTHICIST_GENERIC.search(para))
+        result["mythicist"][i] = found_named or found_generic
+
+        # Critical scholars
+        result["critical_scholar"][i] = any(r.search(para) for r in _CRITICAL_SCHOLAR_RES)
+
+        # Evangelical
+        result["evangelical"][i] = bool(_EVANGELICAL_RE.search(para))
+
+        # OT-NT criticism
+        result["ot_nt"][i] = any(p.search(para) for p in _OTNT_PATTERNS)
+
+        # Supernatural criticism
+        result["supernatural"][i] = bool(_SUPERNATURAL_RE.search(para))
+
+        # Miracle criticism
+        lower = para.lower()
+        result["miracle_criticism"][i] = any(
+            t in lower for t in _MIRACLE_CRITICISM_TERMS
+        )
+
+    return result
+
+
 def harvest_one(url):
     subprocess.run(["python3", BROWSER, "open", "--url", url], capture_output=True, text=True, timeout=30)
     js = open(EXTRACT_JS, encoding="utf-8").read()
     r = subprocess.run(["python3", BROWSER, "eval", "--js", js], capture_output=True, text=True, timeout=30)
     return json.loads(r.stdout)
+
+
+def harvest_one_with_paragraphs(url, bucket_labels=None, article_id=None):
+    """Harvest an article with both Headless Chrome signals AND per-paragraph keyword detection.
+
+    Extends harvest_one() by also fetching the article's paragraphs via the parse API,
+    running dormant-fallback keyword detectors per-paragraph, and returning paragraph-level
+    hit positions that placement_mult() can use.
+
+    If bucket_labels is provided and contains paragraph_texts for the article, the
+    paragraph count from the harvest is validated against the stored count — a mismatch
+    aborts with a clear error (JS-2: never silently misalign hits).
+
+    Args:
+        url: Wikipedia article URL.
+        bucket_labels: Loaded bucket-labels.json dict (optional, for validation).
+        article_id: Article title (optional, used in error messages).
+
+    Returns:
+        dict with base signals (from harvest_one) PLUS:
+            paragraph_count: int,
+            paragraph_hits: dict of signal_name -> list[bool]
+    """
+    # Base harvest via Headless Chrome (verse counts, ref counts, categories, etc.)
+    sig = harvest_one(url)
+
+    # Fetch paragraphs via the parse API (same source the classifier uses for labelling)
+    try:
+        paragraphs = _fetch_article_paragraphs(url)
+    except Exception as e:
+        print(f"    WARNING: paragraph fetch failed ({e}); placement-aware signals "
+              "will use neutral x1 multipliers.")
+        sig["paragraph_count"] = 0
+        sig["paragraph_hits"] = {}
+        return sig
+
+    sig["paragraph_count"] = len(paragraphs)
+
+    # Paragraph-count mismatch guard (JS-2): compare harvest paragraph count against
+    # bucket-labels.json's paragraph count if available. The two pipelines use different
+    # segmentation (parse-API <p> tags vs. newline-split), so a small difference is
+    # expected — but a large mismatch signals a segmentation divergence that would
+    # silently misalign hits.
+    if bucket_labels is not None and article_id is not None:
+        bl_entry = bucket_labels.get(article_id)
+        if bl_entry is not None:
+            bl_paragraphs = bl_entry.get("paragraphs", [])
+            bl_count = len(bl_paragraphs)
+            if bl_count > 0 and abs(len(paragraphs) - bl_count) > max(3, bl_count * 0.15):
+                # More than 3 paragraphs or 15% difference = hard abort (JS-2)
+                print(
+                    f"PARAGRAPH MISMATCH: '{article_id}' — "
+                    f"harvest produced {len(paragraphs)} paragraphs but "
+                    f"bucket-labels.json has {bl_count}. "
+                    f"Cannot align placement hits; aborting."
+                )
+                sys.exit(1)
+
+    # Run keyword detectors per paragraph
+    sig["paragraph_hits"] = _detect_keyword_hits_per_paragraph(paragraphs)
+
+    return sig
 
 
 def to_output_title(title):
@@ -560,19 +1019,19 @@ SIGNAL_DICTIONARY = {
     "commentaries":        {"label": "Commentary citations", "weight": "+1 per, capped +6", "caveat": "only for parables/idioms/sayings/teachings"},
     "ancient_historians":  {"label": "Non-Christian ancient historians", "weight": "+2 per, capped +6; capped +3 for parables", "caveat": "8-name list incl. Mara bar Serapion, Lucian, Celsus, Phlegon"},
     "wiki_quality":        {"label": "Wikipedia Good/Featured Article", "weight": "+1 flat", "caveat": None},
-    "confessional_balance": {"label": "Confessional balance", "weight": "0 / -1 / -3 conditional", "caveat": "vector-classified (§3.1.8, reuses balanced-debate store); fires when a critical-scholarship historian is cited: -3 outside interpretation sections, -1 inside without an Evangelical counterpart, 0 with one"},
+    "confessional_balance": {"label": "Confessional balance", "weight": "0 / -1 / -3 conditional", "caveat": "vector-classified; dormant keyword fallback now reaches the -3 tier via paragraph placement (2026-07-31)"},
     "gnostic_over_emphasis": {"label": "Gnostic over-emphasis", "weight": "-2 contextualised / -4 privileged", "caveat": "vector-classified (§3.1.10); dormant keyword fallback reads as the -2 tier"},
-    "jesus_seminar":       {"label": "Jesus Seminar citations", "weight": "-3 per, capped -6; x2 outside interpretation, x0.5 if interpretation-only; further -2 if balanced debate scored 0", "caveat": "vector-classified (§3.1.6); stance-blind — placement and balance act as structural proxies (§11.3)"},
-    "ot_nt_criticism":     {"label": "OT-NT continuity criticism", "weight": "-3 per distinct pattern, capped -6", "caveat": "vector-classified (§3.1.4); dormant keyword fallback"},
-    "supernatural_criticism": {"label": "Supernatural-worldview criticism", "weight": "-2 per, capped -8", "caveat": "vector-classified (§3.1.3); Miracle- and Passion-scoped, absorbs the old miracle-specific signal"},
+    "jesus_seminar":       {"label": "Jesus Seminar citations", "weight": "-3 per, capped -6; x2 in data/close sections, x0.5 if interpretation-only; further -2 if balanced debate scored 0", "caveat": "vector-classified; dormant fallback now computes placement from paragraph labels (2026-07-31)"},
+    "ot_nt_criticism":     {"label": "OT-NT continuity criticism", "weight": "-3 per distinct pattern, capped -6", "caveat": "vector-classified; dormant fallback now excludes hits in data/close paragraphs (2026-07-31)"},
+    "supernatural_criticism": {"label": "Supernatural-worldview criticism", "weight": "-2 per, capped -8", "caveat": "vector-classified; Miracle- and Passion-scoped; dormant fallback now excludes hits in data/close paragraphs (2026-07-31)"},
     "other_religion":      {"label": "Other-religion sources", "weight": "-3 flat", "caveat": "Islamic, Mormon, Buddhist, Hindu, Sikh, Jain, Rastafari, Baha'i material cited as authoritative"},
-    "mythicist":           {"label": "Mythicist citations", "weight": "-3 per, capped -7; x2 outside interpretation, x0.5 if interpretation-only; further -2 if balanced debate scored 0", "caveat": "vector-classified (§3.1.5); stance-blind — placement and balance act as structural proxies (§11.3)"},
+    "mythicist":           {"label": "Mythicist citations", "weight": "-3 per, capped -7; x2 in data/close sections, x0.5 if interpretation-only; further -2 if balanced debate scored 0", "caveat": "vector-classified; dormant fallback now computes placement from paragraph labels (2026-07-31)"},
     "referencing_quality": {"label": "Referencing quality", "weight": "-9 at 0 refs / +3 at 1-4 / +1 at 5-9 / 0 at 10+; further -1 for poor referencing", "caveat": "absorbs the former no-references, poor-referencing, and niche-exposure signals"},
     "no_bible_verse":      {"label": "No Bible verse cited", "weight": "-10 flat", "caveat": None},
     "literary_analysis":   {"label": "Literary analysis", "weight": "+6 for parable/teaching/Bible-book articles; +4 for others", "caveat": "vector-classified (§3.1.9); no dormant fallback — genuinely new signal"},
     "maps_diagrams":       {"label": "Maps and diagrams", "weight": "+1 per, capped +2", "caveat": None},
     "religious_art":       {"label": "Religious art", "weight": "-1 picture without diagram/map / +1 picture with one", "caveat": "does not fire for parable/teaching articles; raised sensitivity on is_passion (§3.9)"},
-    "secular_materialist":  {"label": "Secular-materialist presuppositions", "weight": "-2 per, capped -8", "caveat": "vector-classified (§3.1.7); Miracle- and Passion-scoped, no placement multiplier; dormant fallback shares the supernatural-criticism keyword detector"},
+    "secular_materialist":  {"label": "Secular-materialist presuppositions", "weight": "-2 per, capped -8", "caveat": "vector-classified; Miracle- and Passion-scoped; dormant fallback now excludes hits in data/close paragraphs (2026-07-31)"}
 }
 
 
@@ -932,11 +1391,12 @@ def cmd_rescore():
         for i, r in enumerate(remaining, start=1):
             print(f"  [{already_done + i}/{total}] {r['title']}")
             try:
-                sig = harvest_one(r["url"])
+                sig = harvest_one_with_paragraphs(r["url"], bucket_labels, r["title"])
             except Exception as e:
                 print(f"    HARVEST FAILED: {e} — skipping")
                 continue
             merge_upstream_signals(r["title"], sig, bucket_labels, family_scores)
+            _resolve_placement_into_sig(sig, r["title"], bucket_labels)
             row = row_from_signals(r["title"], r["url"], sig)
             done[r["title"]] = row
             prog.write(json.dumps(row) + "\n")
@@ -983,11 +1443,12 @@ def cmd_add(input_path):
             continue
         print(f'  [{new_count + 1}] {title}')
         try:
-            sig = harvest_one(url)
+            sig = harvest_one_with_paragraphs(url, bucket_labels, title)
         except Exception as e:
             print(f"    HARVEST FAILED: {e} — skipping")
             continue
         merge_upstream_signals(title, sig, bucket_labels, family_scores)
+        _resolve_placement_into_sig(sig, title, bucket_labels)
         row = row_from_signals(title, url, sig)
         internal.append(row)
         existing_titles.add(title)
