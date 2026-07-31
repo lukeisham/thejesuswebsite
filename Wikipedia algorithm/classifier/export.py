@@ -7,6 +7,7 @@ Schema:
 {
   "article_id": {
     "paragraphs": ["data", "close", "interpretation", "other", ...],
+    "paragraph_texts": ["In the beginning...", "Scholars have long...", ...],
     "separation": 0.85,
     "tier": 10,
     "tier_state": "clear_split",
@@ -16,6 +17,13 @@ Schema:
   },
   ...
 }
+
+paragraph_texts is the same length and order as paragraphs — one raw
+paragraph text per label.  It carries the paragraph content so downstream
+consumers (the scoring/ranking engine's placement_mult) can compute
+placement-aware multipliers without re-fetching or re-segmenting the article.
+The texts come from the classifier's own paragraph segmentation (labeler.py's
+split_paragraphs), so they are automatically aligned with the label sequence.
 """
 
 import json
@@ -47,6 +55,7 @@ def export_article(
         Dict with keys:
             article_id (str),
             paragraphs (list[str]),
+            paragraph_texts (list[str]),
             separation (float),
             tier (int),
             data_count (int),
@@ -56,11 +65,15 @@ def export_article(
     """
     labelled = classify_paragraphs(article_text, store_manager)
     labels = get_labels_only(labelled)
+    # Paragraph texts come from the classifier's own segmentation so they are
+    # always aligned with the label sequence — no separate fetch needed.
+    paragraph_texts = [p["text"] for p in labelled]
     scored = score_article(labels)
 
     return {
         "article_id": article_id,
         "paragraphs": labels,
+        "paragraph_texts": paragraph_texts,
         "separation": scored["separation"],
         "tier": scored["tier"],
         "tier_state": scored["tier_state"],
@@ -96,6 +109,7 @@ def export_batch(
             record = export_article(article_id, text, store_manager)
             output[article_id] = {
                 "paragraphs": record["paragraphs"],
+                "paragraph_texts": record["paragraph_texts"],
                 "separation": record["separation"],
                 "tier": record["tier"],
                 "tier_state": record["tier_state"],
@@ -111,6 +125,7 @@ def export_batch(
             logger.exception("Failed to classify article '%s'; skipping.", article_id)
             output[article_id] = {
                 "paragraphs": [],
+                "paragraph_texts": [],
                 "separation": 0.0,
                 "tier": 0,
                 "error": True,
@@ -174,6 +189,18 @@ def validate_bucket_labels(data: dict[str, dict]) -> list[str]:
         if not isinstance(paragraphs, list):
             errors.append(f"'{article_id}': 'paragraphs' is not a list")
 
+        # paragraph_texts is optional (added 2026-07-31 for placement-aware scoring);
+        # when present, it must match paragraphs in length.
+        paragraph_texts = record.get("paragraph_texts")
+        if paragraph_texts is not None:
+            if not isinstance(paragraph_texts, list):
+                errors.append(f"'{article_id}': 'paragraph_texts' is not a list")
+            elif len(paragraph_texts) != len(paragraphs):
+                errors.append(
+                    f"'{article_id}': 'paragraph_texts' length {len(paragraph_texts)} "
+                    f"!= 'paragraphs' length {len(paragraphs)}"
+                )
+
         separation = record.get("separation")
         if not isinstance(separation, (int, float)):
             errors.append(f"'{article_id}': 'separation' is not a number")
@@ -182,7 +209,6 @@ def validate_bucket_labels(data: dict[str, dict]) -> list[str]:
         if not isinstance(tier, int):
             errors.append(f"'{article_id}': 'tier' is not an integer")
 
-        # Validate label values.
         # Validate label values.
         valid_labels = {"data", "close", "interpretation", "other", "neither"}
         for i, label in enumerate(paragraphs):
