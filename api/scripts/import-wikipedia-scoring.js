@@ -81,15 +81,10 @@ const KNOWN_SIGNAL_KEYS = new Set([
 // them so a pipeline gap doesn't block the import.
 const PENDING_SIGNAL_KEYS = new Set([
   "literary_analysis",
-  // Temporary (2026-07-31, Issues.md #161): harvest_one() in rank_engine.py
-  // no longer computes the keyword-detector fields these five signals fall
-  // back to, so they score 0 for every article. Unrelated to Signal 3 — do
-  // not remove until #161 is fixed and a rescore shows real, varied values.
+  // balanced_debate: DORMANT_FALLBACKS.balancedDebate is off in extract.js
+  // and no Python per-paragraph detector exists yet (the complex sentence-level
+  // debate patterns don't map cleanly to per-paragraph booleans).
   "balanced_debate",
-  "confessional_balance",
-  "ot_nt_criticism",
-  "supernatural_criticism",
-  "secular_materialist",
 ]);
 
 // ── Cap derivation ──────────────────────────────────────────────────────────
@@ -206,7 +201,10 @@ function deriveCap(key, categories, rawSignals) {
     // −1 inside without an Evangelical contrast, 0 inside with one; 0 if no
     // critical scholar is cited at all
     confessional_balance() {
-      if (!rawSignals.critical_scholar_hits) return 0;
+      // critical_outside_interp may be set by paragraph placement even when
+      // critical_scholar_hits is 0 (the extract.js DORMANT_FALLBACKS are off;
+      // paragraph_hits supplies the placement data instead).
+      if (!rawSignals.critical_scholar_hits && !rawSignals.critical_outside_interp) return 0;
       if (rawSignals.critical_outside_interp) return -3;
       if (rawSignals.evangelical_contrast) return 0;
       return -1;
@@ -218,7 +216,9 @@ function deriveCap(key, categories, rawSignals) {
       const base = -6;
       const mult = rawSignals.jesus_seminar_mult;
       let capped = mult == null ? base : Math.trunc(base * mult);
-      if ((rawSignals.balanced_debate_hits || 0) === 0) capped += -2;
+      // Imbalance surcharge only applies when the signal actually fired
+      // (matches rank_engine.py's conditional: adds -2 only when fallback != 0)
+      if ((rawSignals.balanced_debate_hits || 0) === 0 && capped !== 0) capped += -2;
       return capped;
     },
 
@@ -235,7 +235,7 @@ function deriveCap(key, categories, rawSignals) {
       const base = -7;
       const mult = rawSignals.mythicist_mult;
       let capped = mult == null ? base : Math.trunc(base * mult);
-      if ((rawSignals.balanced_debate_hits || 0) === 0) capped += -2;
+      if ((rawSignals.balanced_debate_hits || 0) === 0 && capped !== 0) capped += -2;
       return capped;
     },
 

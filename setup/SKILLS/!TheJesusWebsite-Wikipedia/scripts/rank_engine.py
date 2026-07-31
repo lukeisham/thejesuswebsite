@@ -188,6 +188,10 @@ def _resolve_placement_into_sig(sig, article_id, bucket_labels):
     sig["_critical_outside_interp"] = (
         _is_outside_interpretation(labels, crit_hits)
         if crit_hits and any(crit_hits) else False)
+    # Also set evangelicalHit from paragraph_hits when extract.js has it gated off
+    ev_hits = paragraph_hits.get("evangelical", [])
+    if ev_hits and any(ev_hits) and not sig.get("evangelicalHit"):
+        sig["evangelicalHit"] = True
 
     otnt_hits = paragraph_hits.get("ot_nt")
     sig["_otnt_in_data"] = _any_hit_in_labels(
@@ -449,11 +453,16 @@ def net_score_from_signals(sig):
     # Row 18: Other-religion sources — −3 flat
     s += -3 if sig.get("otherReligionHit", sig.get("islamicMormonHit")) else 0
 
-    # Row 19: Jesus Seminar — uses pre-computed _js_placement_mult when available
+    # Row 19: Jesus Seminar — base count from paragraph_hits (when extract.js
+    # DORMANT_FALLBACKS are off) or from extract.js (when enabled). Placement
+    # multiplier from pre-computed _js_placement_mult when available.
+    js_hits = sig.get("paragraph_hits", {}).get("jesus_seminar", [])
+    js_count = sig.get("jesusSeminarCount", 0) or sum(1 for h in js_hits if h)
     js_mult = sig.get("_js_placement_mult", placement_mult(sig, "jesusSeminar"))
-    jesus_seminar_capped = max(sig.get("jesusSeminarCount", 0) * -3, -6)
+    jesus_seminar_capped = max(js_count * -3, -6)
     jesus_seminar_fallback = int(jesus_seminar_capped * js_mult)
-    if balanced_debate_pts == 0:
+    # Imbalance surcharge only applies when the signal actually fired
+    if balanced_debate_pts == 0 and jesus_seminar_fallback != 0:
         jesus_seminar_fallback += -2
     s += vec(sig, "jesus_seminar", jesus_seminar_fallback)
 
@@ -489,10 +498,13 @@ def net_score_from_signals(sig):
     s += vec(sig, "supernatural_criticism", supernatural_fallback)
 
     # Row 21: Mythicist — uses pre-computed _myth_placement_mult when available
+    # Row 21: Mythicist — base count from paragraph_hits or extract.js
+    myth_hits = sig.get("paragraph_hits", {}).get("mythicist", [])
+    myth_count = sig.get("mythicistCount", 0) or sum(1 for h in myth_hits if h)
     myth_mult = sig.get("_myth_placement_mult", placement_mult(sig, "mythicist"))
-    mythicist_capped = max(sig.get("mythicistCount", 0) * -3, -7)
+    mythicist_capped = max(myth_count * -3, -7)
     mythicist_fallback = int(mythicist_capped * myth_mult)
-    if balanced_debate_pts == 0:
+    if balanced_debate_pts == 0 and mythicist_fallback != 0:
         mythicist_fallback += -2
     s += vec(sig, "mythicist", mythicist_fallback)
 
@@ -539,10 +551,12 @@ def row_from_signals(title, url, sig):
     else:
         confessional_fallback = 0
 
+    js_hits = sig.get("paragraph_hits", {}).get("jesus_seminar", [])
+    js_count = sig.get("jesusSeminarCount", 0) or sum(1 for h in js_hits if h)
     js_mult = sig.get("_js_placement_mult", placement_mult(sig, "jesusSeminar"))
-    jesus_seminar_capped = max(sig.get("jesusSeminarCount", 0) * -3, -6)
+    jesus_seminar_capped = max(js_count * -3, -6)
     jesus_seminar_fallback = int(jesus_seminar_capped * js_mult)
-    if balanced_debate_contribution == 0:
+    if balanced_debate_contribution == 0 and jesus_seminar_fallback != 0:
         jesus_seminar_fallback += -2
 
     if sig.get("_otnt_in_data") is not None:
@@ -571,10 +585,12 @@ def row_from_signals(title, url, sig):
     else:
         supernatural_fallback = 0
 
+    myth_hits = sig.get("paragraph_hits", {}).get("mythicist", [])
+    myth_count = sig.get("mythicistCount", 0) or sum(1 for h in myth_hits if h)
     myth_mult = sig.get("_myth_placement_mult", placement_mult(sig, "mythicist"))
-    mythicist_capped = max(sig.get("mythicistCount", 0) * -3, -7)
+    mythicist_capped = max(myth_count * -3, -7)
     mythicist_fallback = int(mythicist_capped * myth_mult)
-    if balanced_debate_contribution == 0:
+    if balanced_debate_contribution == 0 and mythicist_fallback != 0:
         mythicist_fallback += -2
 
     tier = sig.get("dataInterpTier", "unclassifiable")
@@ -595,13 +611,17 @@ def row_from_signals(title, url, sig):
         "wiki_quality": sig.get("wikiQualityHit", False),
         "ancient_historian_hits": sig.get("ancientHistorianCount", 0),
         "ante_nicene_hits": sig.get("anteNiceneCount", 0),
-        "mythicist_hits": sig.get("mythicistCount", 0),
+        "mythicist_hits": sig.get("mythicistCount", 0) or sum(
+        1 for h in sig.get("paragraph_hits", {}).get("mythicist", []) if h
+    ),
         "data_interp_tier": tier,
         "data_interp_split_contribution": data_interp_contribution,
         # Global "the classifier hasn't run" state (bucket-labels.json absent), distinct from a
         # genuine per-article "unclassifiable" outcome (§9 activation checklist).
         "data_interp_pending": sig.get("dataInterpPending", False),
-        "jesus_seminar_hits": sig.get("jesusSeminarCount", 0),
+        "jesus_seminar_hits": sig.get("jesusSeminarCount", 0) or sum(
+        1 for h in sig.get("paragraph_hits", {}).get("jesus_seminar", []) if h
+    ),
         "jesus_seminar_mult": sig.get("_js_placement_mult", placement_mult(sig, "jesusSeminar")),
         "jesus_seminar_contribution": vec(sig, "jesus_seminar", jesus_seminar_fallback),
         "mythicist_mult": sig.get("_myth_placement_mult", placement_mult(sig, "mythicist")),
@@ -616,9 +636,15 @@ def row_from_signals(title, url, sig):
         "jewish_context_hits": sig.get("jewishContextHits", 0),
         "balanced_debate_hits": sig.get("balancedDebateHits", 0),
         "balanced_debate_named": sig.get("balancedDebateNamedAuthors", 0),
-        "critical_scholar_hits": sig.get("criticalScholarCount", 0),
+        "critical_scholar_hits": sig.get("criticalScholarCount", 0) or sum(
+        1 for h in sig.get("paragraph_hits", {}).get("critical_scholar", []) if h
+    ),
         "critical_outside_interp": sig.get("_critical_outside_interp", False),
-        "evangelical_contrast": bool(sig.get("evangelicalHit", False)),
+        "evangelical_contrast": bool(
+        sig.get("evangelicalHit", False) or any(
+            sig.get("paragraph_hits", {}).get("evangelical", [])
+        )
+    ),
         "other_religion_hit": sig.get("otherReligionHit", sig.get("islamicMormonHit", False)),
         "maps_diagrams_count": sig.get("mapsAndDiagramsCount", 0),
         "has_picture_wide": sig.get("hasPictureWide", False),
@@ -679,17 +705,26 @@ class _ParagraphExtractor(HTMLParser):
         return text
 
 
-def _fetch_article_paragraphs(url: str) -> list[str]:
+def _fetch_article_paragraphs(url: str, article_id: str = None) -> list[str]:
     """Fetch cleaned prose paragraphs from a Wikipedia article via the parse API.
 
-    Identical logic to calibrate.py's fetch_article_paragraphs() — duplicated
-    here per SR-2 (no new cross-package dependencies) rather than importing
-    across a repo subtree boundary.
+    Tries the calibrator's fetch cache first (if article_id is provided) to avoid
+    hitting Wikipedia's rate-limited parse API for articles already cached during
+    classifier calibration.
     """
     title_match = _re.search(r"/wiki/(.+)$", url)
     if title_match is None:
         raise ValueError(f"Cannot extract Wikipedia title from URL: {url}")
     title = unquote(title_match.group(1))
+
+    # Try fetch cache first (article_id may differ from URL-derived title for
+    # comma-containing titles — prefer the provided article_id).
+    cache_key = article_id or title
+    cache = _load_fetch_cache()
+    if cache is not None and cache_key in cache:
+        return cache[cache_key]
+    if cache is not None and title in cache:
+        return cache[title]
 
     api_url = (
         "https://en.wikipedia.org/w/api.php"
@@ -718,6 +753,23 @@ def _fetch_article_paragraphs(url: str) -> list[str]:
     parser = _ParagraphExtractor()
     parser.feed(html_text)
     return parser.paragraphs
+
+
+# Lazy-loaded fetch cache so it's read once and reused across the rescore run.
+_FETCH_CACHE = None
+
+
+def _load_fetch_cache():
+    """Load the calibrator's paragraph fetch cache (lazy, once per process)."""
+    global _FETCH_CACHE
+    if _FETCH_CACHE is not None:
+        return _FETCH_CACHE
+    cache_path = os.path.join(ALGORITHM_DIR, ".calibrate-fetch-cache.json")
+    if os.path.exists(cache_path):
+        with open(cache_path, encoding="utf-8") as f:
+            _FETCH_CACHE = json.load(f)
+        return _FETCH_CACHE
+    return None
 
 
 # --- Per-paragraph keyword detectors (ported from extract.js dormant fallbacks) ----------
@@ -881,7 +933,7 @@ def harvest_one_with_paragraphs(url, bucket_labels=None, article_id=None):
 
     # Fetch paragraphs via the parse API (same source the classifier uses for labelling)
     try:
-        paragraphs = _fetch_article_paragraphs(url)
+        paragraphs = _fetch_article_paragraphs(url, article_id)
     except Exception as e:
         print(f"    WARNING: paragraph fetch failed ({e}); placement-aware signals "
               "will use neutral x1 multipliers.")
@@ -984,7 +1036,7 @@ def write_files(rows):
                 "other_religion_hit": r["other_religion_hit"],
                 "balanced_debate_hits": r["balanced_debate_hits"],
                 "balanced_debate_named": r["balanced_debate_named"],
-                "critical_scholar_hits": r["critical_scholar_hits"],
+                "critical_scholar_hits": r.get("critical_scholar_hits", 0),
                 "critical_outside_interp": r["critical_outside_interp"],
                 "evangelical_contrast": r["evangelical_contrast"],
                 "maps_diagrams_count": r["maps_diagrams_count"],
@@ -1129,7 +1181,7 @@ def write_export(rows):
                 "other_religion_hit": r["other_religion_hit"],
                 "balanced_debate_hits": r["balanced_debate_hits"],
                 "balanced_debate_named": r["balanced_debate_named"],
-                "critical_scholar_hits": r["critical_scholar_hits"],
+                "critical_scholar_hits": r.get("critical_scholar_hits", 0),
                 "critical_outside_interp": r["critical_outside_interp"],
                 "evangelical_contrast": r["evangelical_contrast"],
                 "maps_diagrams_count": r["maps_diagrams_count"],
