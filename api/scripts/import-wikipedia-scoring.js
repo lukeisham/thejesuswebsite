@@ -402,6 +402,30 @@ function slugFromTitle(title) {
     .replace(/-{2,}/g, "-");
 }
 
+/**
+ * Derive a UNIQUE URL-safe slug from a Wikipedia article title by appending a
+ * numeric suffix when the base slug already exists in wikipedia_articles.
+ *
+ * Uses the supplied prepared statement (which runs inside the caller's
+ * transaction) so previously-inserted rows in the same batch are visible.
+ *
+ * @param {string} title
+ * @param {import("better-sqlite3").Statement} slugExistsStmt - Prepared
+ *   statement that accepts a slug and returns a row if it exists.
+ * @returns {string} A slug guaranteed not to exist in wikipedia_articles
+ *   at the time of the call.
+ */
+function uniqueSlug(title, slugExistsStmt) {
+  const base = slugFromTitle(title);
+  let candidate = base;
+  let suffix = 1;
+  while (slugExistsStmt.get(candidate)) {
+    candidate = base + "-" + suffix;
+    suffix++;
+  }
+  return candidate;
+}
+
 // ── Integrity checks ─────────────────────────────────────────────────────────
 
 /**
@@ -567,6 +591,10 @@ function main() {
     VALUES (@slug, @title, @url, @rank, @published, CURRENT_TIMESTAMP)
   `);
 
+  const slugExists = db.prepare(`
+    SELECT 1 FROM wikipedia_articles WHERE slug = ?
+  `);
+
   const deleteSignals = db.prepare(`
     DELETE FROM wikipedia_article_signals
     WHERE wikipedia_article_id = ?
@@ -598,8 +626,9 @@ function main() {
         articleId = existing.id;
         updatedCount++;
       } else {
-        // Create new
-        const slug = slugFromTitle(article.title);
+        // Create new — ensure slug is unique (different titles can map to
+        // the same slug after lowercasing/punctuation-stripping).
+        const slug = uniqueSlug(article.title, slugExists);
         const result = insertArticle.run({
           slug,
           title: article.title,
@@ -672,6 +701,7 @@ module.exports = {
   validateContribution,
   validateArticle,
   slugFromTitle,
+  uniqueSlug,
   KNOWN_SIGNAL_KEYS,
   PENDING_SIGNAL_KEYS,
   checkNonPendingSignalsNonZero,
