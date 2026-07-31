@@ -173,20 +173,15 @@ propagates to all gated signals silently.
 
 **📊 27.1% of articles carry no flag.**
 
-### ⏳ 2.5 Pending signals — six of 25 currently score 0
+### ⏳ 2.5 Pending signals — five of 25 currently score 0
 
 All 25 signals are full members of the rubric; their caps always count toward
-`max_possible`. Six currently score 0 for every article, for two different
-reasons:
+`max_possible`. Five currently score 0 for every article:
 
-- `literary_analysis` (row 10, +6/+4) — genuinely blocked. No keyword
-  fallback exists (it's a new signal with no v1 equivalent) and its vector
-  family is below the 0.80 precision floor. Blocked on `vector-family-scores.json`
-  actually being produced.
 - `balanced_debate` (row 5), `confessional_balance` (row 17),
   `ot_nt_criticism` (row 20), `supernatural_criticism` (row 22),
   `secular_materialist` (row 23) — temporarily pending. Their vector families
-  are also below the precision floor, so they should be running on their
+  are below the precision floor, so they should be running on their
   dormant keyword fallbacks, but `harvest_one()` in `rank_engine.py` no
   longer computes the fields those fallbacks read (see setup/issues.md
   #161). Re-pended as a stopgap so Signal 3's activation didn't have to wait
@@ -196,6 +191,10 @@ reasons:
 `data_interp_split` (row 3, target +10/−5/0/0) is **not** pending — it went
 live 2026-07-31 (see setup/issues.md #163 for the caveat that it's currently
 scored by the classifier, not the higher-accuracy LLM labels).
+
+`literary_analysis` (row 10, +6/+4) is **not** pending — it went live
+2026-07-31 via the vector family store (80 positive + 60 negative exemplars),
+calibrated at t_fire=0.56, firing on ~19% of the corpus.
 
 The pending state is tracked by:
 - `PENDING_SIGNAL_KEYS` in `api/scripts/import-wikipedia-scoring.js` (exempts
@@ -708,25 +707,16 @@ currently on disk still reflects the interim weight for every article.
 
 ### 📖 Row 10 — Literary analysis (+6 / +4)
 
-**What it's supposed to do.** A single vector-embedding store trained on
-literary-analysis passages — narrative criticism, rhetorical devices (inclusio,
-chiasm, parallelism), genre conventions, intertextual allusion, reader-response,
-form-critical segmentation. Tiered by article category: +6 for
-parable/teaching/Bible-book articles, +4 for all others.
+**Activated 2026-07-31.** Uses the vector family store: 80 positive + 60 negative
+exemplars, calibrated at t_fire=0.56, firing on ~19% of the corpus. A single
+vector-embedding store trained on literary-analysis passages — narrative criticism,
+rhetorical devices (inclusio, chiasm, parallelism), genre conventions, intertextual
+allusion, reader-response, form-critical segmentation. Tiered by article category:
++6 for parable/teaching/Bible-book articles, +4 for all others.
 
-**Why it scores 0.** The literary-analysis vector store has never been run
-against the full article set. Its family reports precision 0.0 in
-`vector-family-thresholds.yaml` — below the 0.80 floor — so it falls back to
-keyword, but no keyword fallback exists (it's a genuinely new signal with no
-v1 equivalent). The artifact it depends on — `vector-family-scores.json` — does
-not exist on disk.
-
-**What blocks activation.**
-- Produce `vector-family-scores.json` with `literary_analysis` entries from the
-  family pipeline, clearing the §11.4 gate: ≥0.80 precision floor on
-  the literary-analysis gold set (20–30 articles).
-- The `rank_engine.py` loader already reads the artifact when present —
-  activation means producing the file, not rewriting the loader.
+The `rank_engine.py` loader reads `vector-family-scores.json` for this signal;
+activation required the family pipeline to clear the ≥0.80 precision floor on
+the literary-analysis gold set.
 
 ### 🛠️ How the system handles a pending signal
 
