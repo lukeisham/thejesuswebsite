@@ -34,7 +34,7 @@ const SIGNAL_DICTIONARY = [
   { key: "mythicist", name: "Mythicist citations", capMagnitude: 16, polarity: "negative" },
   { key: "supernatural_criticism", name: "Supernatural-worldview criticism", capMagnitude: 8, polarity: "negative" },
   { key: "secular_materialist", name: "Secular-materialist presuppositions", capMagnitude: 8, polarity: "negative" },
-  { key: "referencing_quality", name: "Referencing quality", capMagnitude: 9, polarity: "negative" },
+  { key: "referencing_quality", name: "Wikipedia referencing", capMagnitude: 9, polarity: "negative" },
   { key: "no_bible_verse", name: "No Bible verse cited", capMagnitude: 10, polarity: "negative" },
 ];
 
@@ -226,7 +226,7 @@ describe("buildClipboardText: §6 format", () => {
     const scoredSection = text.split("Scored signals:\n")[1].split("\n\nNot scored:")[0];
     const listedNames = scoredSection.split("\n").map((line) => line.trim().split(/\s{2,}/)[0]);
 
-    assert.deepEqual(listedNames, ["Named manuscripts", "Bible verses cited", "Mythicist citations", "Referencing quality"]);
+    assert.deepEqual(listedNames, ["Named manuscripts", "Bible verses cited", "Mythicist citations", "Wikipedia referencing"]);
   });
 
   test("not-scored section lists unfired signal names", () => {

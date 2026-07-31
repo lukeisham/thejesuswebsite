@@ -18,11 +18,25 @@
     miracleCriticism: false
   }, (typeof window !== 'undefined' && window.__DORMANT_FALLBACKS__) || {});
 
-  var text = document.body.innerText;
-  var bibleBooks = "Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|Samuel|Kings|Chronicles|Ezra|Nehemiah|Esther|Job|Psalm|Psalms|Proverbs|Ecclesiastes|Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Matthew|Mark|Luke|John|Acts|Romans|Corinthians|Galatians|Ephesians|Philippians|Colossians|Thessalonians|Timothy|Titus|Philemon|Hebrews|James|Peter|Jude|Revelation";
-  var verseRe = new RegExp("\\b(?:" + bibleBooks + ")\\s+\\d{1,3}:\\d{1,3}(?:[-–]\\d{1,3})?", "g");
-  var verseMatches = text.match(verseRe) || [];
-  var uniqueVerses = Array.from(new Set(verseMatches));
+	  var text = document.body.innerText;
+	  // Verse scan is scoped to #mw-content-text (article body) to exclude
+	  // footer navigation boxes whose internal verse references would
+	  // otherwise inflate verseCount with content-area noise.
+	  var contentRoot = document.querySelector('#mw-content-text') || document.body;
+	  // Clone the content root and strip the reference list so footnote
+	  // bibliographic entries don't count as body-text verse citations.
+	  var verseRoot = contentRoot.cloneNode(true);
+	  var refLists = verseRoot.querySelectorAll('.reflist, ol.references, .references');
+	  for (var ri = 0; ri < refLists.length; ri++) { refLists[ri].remove(); }
+	  var verseText = verseRoot.innerText || verseRoot.textContent || '';
+	  var bibleBooks = "Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|Samuel|Kings|Chronicles|Ezra|Nehemiah|Esther|Job|Psalm|Psalms|Proverbs|Ecclesiastes|Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Matthew|Mark|Luke|John|Acts|Romans|Corinthians|Galatians|Ephesians|Philippians|Colossians|Thessalonians|Timothy|Titus|Philemon|Hebrews|James|Peter|Jude|Revelation";
+	  // Pattern A — standard: "Matthew 13:51–53" and parenthesised: "John (1:45–51)"
+	  var verseRe = new RegExp("\\b(?:" + bibleBooks + ")\\s*\\(?\\s*\\d{1,3}:\\d{1,3}(?:[-–]\\d{1,3})?", "gi");
+	  // Pattern B — Wikipedia prose: "Matthew, chapter 13, verses 51–53"
+	  var verseProseRe = new RegExp("\\b(?:" + bibleBooks + "),?\\s*chapter\\s+\\d{1,3},?\\s*verses?\\s+\\d{1,3}(?:[-–]\\d{1,3})?", "gi");
+	  var verseMatches = (verseText.match(verseRe) || []);
+	  var proseMatches = (verseText.match(verseProseRe) || []);
+	  var uniqueVerses = Array.from(new Set(verseMatches.concat(proseMatches)));
 
   var refNodes = document.querySelectorAll('.references li, ol.references li, .reflist li');
   var refTexts = Array.from(refNodes).map(function(n){ return n.textContent; });

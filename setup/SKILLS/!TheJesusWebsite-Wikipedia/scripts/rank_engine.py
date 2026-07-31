@@ -126,12 +126,12 @@ def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
     contributions onto a freshly-harvested `sig` dict, in place. `article_id` must match
     the key convention the two upstream exports use (Wikipedia title).
 
-    Missing per-article entries in either file are themselves an error for
-    bucket-labels.json (every scored article must have been classified), but
-    a missing per-family entry in vector-family-scores.json means that
-    family fell back to its dormant keyword detector — `sig`'s existing
-    keyword-derived fields are left untouched in that case, which is exactly
-    the dormant-fallback path (§11.4).
+    A per-article entry missing from bucket-labels.json (newly-added article that
+    hasn't been classified yet) marks data_interp_split as pending — same as the
+    entire-file-absent case. A missing per-family entry in vector-family-scores.json
+    means that family fell back to its dormant keyword detector — `sig`'s existing
+    keyword-derived fields are left untouched in that case, which is exactly the
+    dormant-fallback path (§11.4).
 
     `bucket_labels`/`family_scores` may each be None — the file-absence case,
     handled by the caller as the documented pending state rather than an
@@ -143,14 +143,20 @@ def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
     else:
         bucket_entry = bucket_labels.get(article_id)
         if bucket_entry is None:
-            raise KeyError(f'"{article_id}" missing from bucket-labels.json')
-        # bucket-labels.json's tier_state field is written directly by
-        # classifier/scorer.py's _tier_state_name() and is unambiguous
-        # (clear_split/muddled/one_sided/unclassifiable) — use it directly
-        # rather than reconstructing state from the bare tier integer, which
-        # silently breaks (see setup/issues.md) whenever the tier weight
-        # scheme in classifier/config.py changes.
-        sig["dataInterpTier"] = bucket_entry.get("tier_state", "unclassifiable")
+            # New article not yet passed through the section classifier — mark
+            # data_interp_split as pending (scores 0), same as the entire-file-missing
+            # case above. The caller (cmd_add) adds new articles that by definition
+            # haven't been classified yet; crashing here would force a classifier
+            # re-run for every single-article top-up.
+            sig["dataInterpPending"] = True
+        else:
+            # bucket-labels.json's tier_state field is written directly by
+            # classifier/scorer.py's _tier_state_name() and is unambiguous
+            # (clear_split/muddled/one_sided/unclassifiable) — use it directly
+            # rather than reconstructing state from the bare tier integer, which
+            # silently breaks (see setup/issues.md) whenever the tier weight
+            # scheme in classifier/config.py changes.
+            sig["dataInterpTier"] = bucket_entry.get("tier_state", "unclassifiable")
 
     if family_scores is not None:
         family_entry = family_scores.get(article_id, {})
@@ -954,14 +960,19 @@ def harvest_one_with_paragraphs(url, bucket_labels=None, article_id=None):
             bl_paragraphs = bl_entry.get("paragraphs", [])
             bl_count = len(bl_paragraphs)
             if bl_count > 0 and abs(len(paragraphs) - bl_count) > max(3, bl_count * 0.15):
-                # More than 3 paragraphs or 15% difference = hard abort (JS-2)
+                # More than 3 paragraphs or 15% difference — the two pipelines use
+                # different segmentation (parse-API <p> tags vs. newline-split).
+                # Rather than aborting, fall back to neutral placement multipliers
+                # (same as the paragraph-fetch-failed path above).
                 print(
-                    f"PARAGRAPH MISMATCH: '{article_id}' — "
+                    f"    WARNING: paragraph mismatch for '{article_id}' — "
                     f"harvest produced {len(paragraphs)} paragraphs but "
                     f"bucket-labels.json has {bl_count}. "
-                    f"Cannot align placement hits; aborting."
+                    f"Using neutral x1 placement multipliers."
                 )
-                sys.exit(1)
+                sig["paragraph_count"] = 0
+                sig["paragraph_hits"] = {}
+                return sig
 
     # Run keyword detectors per paragraph
     sig["paragraph_hits"] = _detect_keyword_hits_per_paragraph(paragraphs)
@@ -1078,7 +1089,7 @@ SIGNAL_DICTIONARY = {
     "supernatural_criticism": {"label": "Supernatural-worldview criticism", "weight": "-2 per, capped -8", "caveat": "vector-classified; Miracle- and Passion-scoped; dormant fallback now excludes hits in data/close paragraphs (2026-07-31)"},
     "other_religion":      {"label": "Other-religion sources", "weight": "-3 flat", "caveat": "Islamic, Mormon, Buddhist, Hindu, Sikh, Jain, Rastafari, Baha'i material cited as authoritative"},
     "mythicist":           {"label": "Mythicist citations", "weight": "-3 per, capped -7; x2 in data/close sections, x0.5 if interpretation-only; further -2 if balanced debate scored 0", "caveat": "vector-classified; dormant fallback now computes placement from paragraph labels (2026-07-31)"},
-    "referencing_quality": {"label": "Referencing quality", "weight": "-9 at 0 refs / +3 at 1-4 / +1 at 5-9 / 0 at 10+; further -1 for poor referencing", "caveat": "absorbs the former no-references, poor-referencing, and niche-exposure signals"},
+    "referencing_quality": {"label": "Wikipedia referencing", "weight": "-9 at 0 refs / +3 at 1-4 / +1 at 5-9 / 0 at 10+; further -1 for poor referencing", "caveat": "absorbs the former no-references, poor-referencing, and niche-exposure signals"},
     "no_bible_verse":      {"label": "No Bible verse cited", "weight": "-10 flat", "caveat": None},
     "literary_analysis":   {"label": "Literary analysis", "weight": "+6 for parable/teaching/Bible-book articles; +4 for others", "caveat": "vector-classified (§3.1.9); no dormant fallback — genuinely new signal"},
     "maps_diagrams":       {"label": "Maps and diagrams", "weight": "+1 per, capped +2", "caveat": None},
