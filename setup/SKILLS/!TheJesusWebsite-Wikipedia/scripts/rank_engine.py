@@ -21,7 +21,7 @@ Modes:
                            via .rescore-progress.jsonl if interrupted.
 
 Does not decide WHICH candidates to add or exclude — the pool-building (Stage 1) and inclusion/
-exclusion judgment (Stage 2) in Wikipedia Articles - Reference.md are the calling agent's job. This
+exclusion judgment (Stage 2) in ALGORITHM_GUIDE_the_what.md are the calling agent's job. This
 script only does the deterministic part: harvest signals, compute the weighted score, sort, write files.
 """
 import csv, json, subprocess, sys, os, argparse
@@ -41,15 +41,14 @@ DETAIL_CSV = os.path.join(ALGORITHM_DIR, "Wikipedia Articles - Scoring Detail.cs
 EXCLUDED_TXT = os.path.join(ALGORITHM_DIR, "excluded-titles.txt")
 BULK_PASTE_TXT = os.path.join(ALGORITHM_DIR, "wiki-bulk-paste.txt")
 
-# The two v2 file-based interfaces this plan (wikipedia-v2-06) reads directly —
-# Plan 4's section classifier and Plan 5's vector family scorer. Both live in
-# the v2 working directory alongside this script's own deliverables. (Directory
-# renamed from "Wikipedia algorithm v2" to "Wikipedia algorithm" once v1 was
-# retired — see wikipedia-v2-09's close-out.)
+# Two file-based interfaces this script reads directly: the section
+# classifier's per-paragraph labels and the vector family scorer's
+# per-signal contributions. Both live in ALGORITHM_DIR alongside this
+# script's own deliverables.
 BUCKET_LABELS_JSON = os.path.join(ALGORITHM_DIR, "bucket-labels.json")
 VECTOR_FAMILY_SCORES_JSON = os.path.join(ALGORITHM_DIR, "vector-family-scores.json")
 
-# Vector family name (Plan 5's registry.py keys) -> the §9 signal key it feeds.
+# Vector family name (the family scorer's registry.py keys) -> the §9 signal key it feeds.
 # confessional-balance's family score already encodes the -3/-1/0 tiering
 # (§3.1.8, reuses the balanced-debate store) so it maps straight across too.
 VECTOR_FAMILY_TO_SIGNAL = {
@@ -85,12 +84,12 @@ DETAIL_FIELDS = [
 
 
 def load_bucket_labels():
-    """Plan 4's classifier output — per-article paragraph labels and row-3
+    """Section classifier output — per-article paragraph labels and row-3
     tier. Fails loudly (raises) if missing or malformed rather than silently
     scoring data_interp_split as 0 for every article (JS-2 equivalent)."""
     if not os.path.exists(BUCKET_LABELS_JSON):
         raise FileNotFoundError(
-            f"bucket-labels.json not found at {BUCKET_LABELS_JSON} — Plan 4's "
+            f"bucket-labels.json not found at {BUCKET_LABELS_JSON} — the "
             "section classifier must be run before scoring/ranking (§11.4 "
             "criterion 1: blocking for everything else)."
         )
@@ -102,15 +101,15 @@ def load_bucket_labels():
 
 
 def load_vector_family_scores():
-    """Plan 5's family-scorer output — one contribution per article per
-    vector family, keyed by article id. A family absent from an article's
-    record means that family fell back to its dormant keyword detector
-    (§11.4) — the caller, not this loader, resolves that fallback. Fails
-    loudly if the file is missing or malformed."""
+    """Family-scorer output — one contribution per article per vector
+    family, keyed by article id. A family absent from an article's record
+    means that family fell back to its dormant keyword detector (§11.4) —
+    the caller, not this loader, resolves that fallback. Fails loudly if
+    the file is missing or malformed."""
     if not os.path.exists(VECTOR_FAMILY_SCORES_JSON):
         raise FileNotFoundError(
             f"vector-family-scores.json not found at {VECTOR_FAMILY_SCORES_JSON} — "
-            "Plan 5's family export.py must be run before scoring/ranking."
+            "the family export.py must be run before scoring/ranking."
         )
     with open(VECTOR_FAMILY_SCORES_JSON, encoding="utf-8") as f:
         data = json.load(f)
@@ -120,8 +119,8 @@ def load_vector_family_scores():
 
 
 def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
-    """Merge Plan 4's row-3 tier and Plan 5's vector-family contributions
-    onto a freshly-harvested `sig` dict, in place. `article_id` must match
+    """Merge the section classifier's row-3 tier and the vector-family
+    contributions onto a freshly-harvested `sig` dict, in place. `article_id` must match
     the key convention the two upstream exports use (Wikipedia title).
 
     Missing per-article entries in either file are themselves an error for
@@ -145,14 +144,9 @@ def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
         # bucket-labels.json's tier_state field is written directly by
         # classifier/scorer.py's _tier_state_name() and is unambiguous
         # (clear_split/muddled/one_sided/unclassifiable) — use it directly
-        # rather than reconstructing state from the bare tier integer. A
-        # prior int->state table here (`{10: "clear_split", -5: "muddled",
-        # 0: "one_sided"}`) hardcoded the pre-2026-07-30 weight scheme and
-        # was never updated when TIER_CLEAR became +3 and TIER_MUDDLED
-        # became 0 (classifier/config.py) — every clear_split article's
-        # tier=3 missed that table's keys entirely and silently fell back
-        # to "unclassifiable" (0 contribution) for the whole corpus. Found
-        # 2026-07-31 investigating an all-zero data_interp_split rescore.
+        # rather than reconstructing state from the bare tier integer, which
+        # silently breaks (see setup/issues.md) whenever the tier weight
+        # scheme in classifier/config.py changes.
         sig["dataInterpTier"] = bucket_entry.get("tier_state", "unclassifiable")
 
     if family_scores is not None:
@@ -210,11 +204,11 @@ def placement_mult(sig, prefix):
     data/narrative section, x0.5 if hits sit ONLY in interpretation sections, x1 otherwise.
     Applied to the CAPPED penalty; the halved result truncates toward zero (int()).
 
-    Currently always returns 1.0 for dormant keyword fallbacks: extract.js no longer computes
-    InData/InInterp/InOther placement fields (heading-based bucketing was retired — see
-    Issues.md #138). When Plan 4's bucket-labels.json ships, placement resolution will move
-    into the vector-family path; this function will then only be called for the vector
-    contribution, where placement is already baked into __vector_<key>."""
+    Always returns 1.0 for dormant keyword fallbacks: extract.js no longer computes
+    InData/InInterp/InOther placement fields (heading-based bucketing is retired —
+    see setup/issues.md). Placement for the vector-scored path is resolved separately,
+    already baked into __vector_<key> — this function only ever affects the dormant
+    keyword-fallback contribution, not the vector contribution."""
     return 1.0
 
 
@@ -235,11 +229,11 @@ def net_score_from_signals(sig):
     # Row 2: Bible verse citations — +3 per, capped +12
     s += min(sig["verseCount"], 4) * 3
 
-    # Row 3: Data/interpretation split — vector (§3.1.1, Plan 4). No dormant fallback exists
+    # Row 3: Data/interpretation split — vector (§3.1.1). No dormant fallback exists
     # for this signal (the classifier has no fallback — §11.4); "unclassifiable" scores 0.
     # Weight values mirror classifier/config.py (source of truth) — see TIER_CLEAR/TIER_MUDDLED.
     tier = sig.get("dataInterpTier", "unclassifiable")
-    s += {"clear_split": 3, "muddled": 0, "one_sided": 0}.get(tier, 0)
+    s += {"clear_split": 10, "muddled": -5, "one_sided": 0}.get(tier, 0)
 
     # Row 1: Named manuscripts — +2 per, capped +6; flat +8 (not doubled) for teachings/Bible books
     manuscript_cap = 8 if (sig.get("isTeaching") or sig.get("isBibleBook")) else 6
@@ -303,10 +297,9 @@ def net_score_from_signals(sig):
     # Row 17: Confessional balance — vector (§3.1.8, reuses row-5 store). −3 outside
     # interpretation / −1 inside without an Evangelical contrast / 0 inside with one.
     # Dormant fallback: since extract.js no longer computes per-section placement
-    # (Issues.md #138), the −3 outside-interpretation tier is unreachable. The fallback
-    # reaches −1 when a critical scholar is cited without an Evangelical contrast, 0
-    # otherwise. Full placement resolution (including the −3 tier) requires Plan 4's
-    # bucket-labels.json integrated into the vector-family path.
+    # (see setup/issues.md), the −3 outside-interpretation tier is unreachable via the
+    # fallback. The fallback reaches −1 when a critical scholar is cited without an
+    # Evangelical contrast, 0 otherwise; the −3 tier is only reachable via the vector path.
     if sig.get("criticalScholarCount", 0) > 0:
         confessional_fallback = -1 if not sig.get("evangelicalHit") else 0
     else:
@@ -404,7 +397,7 @@ def row_from_signals(title, url, sig):
 
     tier = sig.get("dataInterpTier", "unclassifiable")
     # Weight values mirror classifier/config.py (source of truth).
-    data_interp_contribution = {"clear_split": 3, "muddled": 0, "one_sided": 0}.get(tier, 0)
+    data_interp_contribution = {"clear_split": 10, "muddled": -5, "one_sided": 0}.get(tier, 0)
 
     return {
         "title": title, "url": url, "net_score": net_score_from_signals(sig),
@@ -424,7 +417,7 @@ def row_from_signals(title, url, sig):
         "data_interp_tier": tier,
         "data_interp_split_contribution": data_interp_contribution,
         # Global "the classifier hasn't run" state (bucket-labels.json absent), distinct from a
-        # genuine per-article "unclassifiable" outcome once Plan 4 ships (§9 activation checklist).
+        # genuine per-article "unclassifiable" outcome (§9 activation checklist).
         "data_interp_pending": sig.get("dataInterpPending", False),
         "jesus_seminar_hits": sig.get("jesusSeminarCount", 0),
         "jesus_seminar_mult": placement_mult(sig, "jesusSeminar"),
@@ -442,7 +435,7 @@ def row_from_signals(title, url, sig):
         "balanced_debate_hits": sig.get("balancedDebateHits", 0),
         "balanced_debate_named": sig.get("balancedDebateNamedAuthors", 0),
         "critical_scholar_hits": sig.get("criticalScholarCount", 0),
-        "critical_outside_interp": False,  # unreachable until Plan 4 (Issues.md #138)
+        "critical_outside_interp": False,  # only reachable via the vector path, not the dormant fallback
         "evangelical_contrast": bool(sig.get("evangelicalHit", False)),
         "other_religion_hit": sig.get("otherReligionHit", sig.get("islamicMormonHit", False)),
         "maps_diagrams_count": sig.get("mapsAndDiagramsCount", 0),
@@ -553,7 +546,7 @@ _REPO_ROOT = os.path.dirname(ALGORITHM_DIR)
 EXPORT_REPO_JSON = os.path.join(_REPO_ROOT, "database", "scoring-export.json")
 
 # label, weight description, caveat — the embedded data dictionary for the widget. 25 signals,
-# §9 of Wikipedia_alogrithm_refractor.md.
+# §9 of ALGORITHM_GUIDE_the_how.md.
 SIGNAL_DICTIONARY = {
     "bible_verses":        {"label": "Bible verses cited", "weight": "+3 per, capped +12", "caveat": None},
     "data_interp_split": {"label": "Data/interpretation section split", "weight": "+10 clear split / -5 muddled / 0 one-sided / 0 unclassifiable", "caveat": "vector-classified (§3.1.1); no keyword fallback"},
@@ -705,13 +698,11 @@ def write_export(rows):
             "ceiling": len(articles),
             "source": "Lukeatron !TheJesusWebsite-Wikipedia rank_engine.py",
             "note": "contributions are capped/conditional POINTS per signal (they sum to net_score); "
-                    "raw_signals are the uncapped harvested values. data_interp_split (row 3) and "
-                    "literary_analysis (row 10) score 0 for every article: both are pending (no "
-                    "keyword fallback exists — §9 activation checklist), unblocked by "
-                    "bucket-labels.json (Plan 4) and vector-family-scores.json (Plan 5) — see "
-                    "raw_signals.data_interp_pending and setup/Issues.md #141. maps_diagrams "
-                    "(row 13) and religious_art (row 15) carry real harvested values as of this "
-                    "export.",
+                    "raw_signals are the uncapped harvested values. Signal keys currently marked "
+                    "pending (no real data flowing yet) are listed in PENDING_SIGNAL_KEYS in "
+                    "api/scripts/import-wikipedia-scoring.js — see raw_signals.data_interp_pending "
+                    "for data_interp_split's own pending flag and setup/issues.md for why each "
+                    "pending key is pending.",
         },
         "signal_dictionary": SIGNAL_DICTIONARY,
         "articles": articles,
@@ -894,7 +885,7 @@ def cmd_rescore():
     same, current rubric). Resumable: progress is written to .rescore-progress.jsonl as it goes,
     so an interrupted run can just be re-invoked and will skip whatever's already done.
 
-    Plan 4's bucket-labels.json and Plan 5's vector-family-scores.json are read when present and
+    bucket-labels.json and vector-family-scores.json are read when present and
     fail loudly when malformed — but their outright *absence* is the documented pending state
     (§9 activation checklist, PENDING_SIGNAL_KEYS), not an error: every article is harvested with
     data_interp_split explicitly marked pending (raw_signals.data_interp_pending) instead of the
@@ -957,7 +948,7 @@ def cmd_rescore():
 
 
 def cmd_add(input_path):
-    """Reads Plan 4's bucket-labels.json and Plan 5's vector-family-scores.json when present —
+    """Reads bucket-labels.json and vector-family-scores.json when present —
     see cmd_rescore()'s docstring for the pending-state handling when either is absent."""
     try:
         bucket_labels = load_bucket_labels()

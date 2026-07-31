@@ -103,31 +103,33 @@ N_min: int = 3
 # The four-way bake-off crosses this flag with the scoring-rule choice.
 SEPARATION_MODE: str = "adjacency"
 
-# Row-3 tier contributions (§9 row 3), live reduced-weight values (2026-07-30).
+# Row-3 tier contributions (§9 row 3), settled target weights (2026-07-31).
 # Source of truth — rank_engine.py and api/scripts/import-wikipedia-scoring.js
-# must import from here or mirror these values exactly; see the weight-dial
-# rationale in classifer/config.py -> wikipedia-signal-3-diagnostic-report.md.
+# must import from here or mirror these values exactly.
 #
-#   +3   both classes present AND separation >= t_sep  (clear split)
-#          Rationale: precision 0.667 on the 39-article gold set —
-#          the only arm with measurable signal. Held at +3 (not +10) because
-#          1/3 of gold clear_split articles are misclassified, so a full
-#          +10 weight would inflate roughly one article in three.
-#    0   both classes present BUT separation < t_sep   (muddled)
-#          Rationale: precision 0.500 / recall 0.231 — the classifier
-#          catches only 3 of 13 gold muddled articles and half of its
-#          muddled predictions are wrong. A penalty from a coin-flip arm
-#          does more harm than good; withheld until precision improves.
-#    0   only one class present                        (one-sided — no split to judge)
+#  +10   both classes present AND separation >= t_sep  (clear split)
+#   -5   both classes present BUT separation < t_sep   (muddled — the worst
+#          outcome: an article that mixes description and interpretation
+#          without a clean separation is judged worse than one that simply
+#          never attempts the split)
+#    0   only one class present                        (one-sided — no split
+#          to judge; short single-tier parable/place articles are
+#          legitimately one-sided and are not penalised for it)
 #    0   unclassifiable (fewer than N_min paragraphs)
 #
-# The +3 weight is a starting point, not a settled value — it is deliberately
-# conservative. Re-run scripts/rank_diff.py before any change.
+# Interim history: shipped 2026-07-30 at a conservative +3/0/0/0 while the
+# classifier's own precision on each arm was still being measured (see
+# setup/issues.md #162 for the bug that shipped from mixing weight schemes
+# across files). Propagated to these target values 2026-07-31 per
+# OPERATOR_GUIDE.md's propagation checklist — the classifier's own tier
+# accuracy (0.641) is still below the §11.2-equivalent 0.85 gate; see
+# setup/issues.md #163 for the open question of whether classifier-derived
+# tiers or the separately-validated LLM labels should drive this signal.
 #
 # Note: one-sided and unclassifiable both map to 0, but their distinct
 # tier_state strings are preserved in score_article() output for debugging.
-TIER_CLEAR: int = 3
-TIER_MUDDLED: int = 0
+TIER_CLEAR: int = 10
+TIER_MUDDLED: int = -5
 TIER_ONE_SIDED: int = 0
 TIER_UNCLASSIFIABLE: int = 0
 

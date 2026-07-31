@@ -80,17 +80,10 @@ TIER_CONTRIBUTION = {
 def _contribution_to_state(tier: int, labels: list[str] = None) -> str:
     """Map a tier contribution integer to its state name.
 
-    Thin wrapper over classifier.scorer._tier_state_name — this used to
-    duplicate that logic with a hardcoded `tier == 10` / `tier == -5` check
-    for TIER_CLEAR/TIER_MUDDLED. When the live reduced-weight scheme
-    (2026-07-30) changed TIER_CLEAR to +3 and TIER_MUDDLED to 0 in
-    classifier/config.py, this hardcoded copy was never updated: every
-    genuine clear_split (tier=3) fell through to the final `return
-    "unclassifiable"`, and the disambiguation branch ignored `close_count`
-    entirely (pre-dating the three-tier data/close/interpretation
-    architecture). That silently collapsed tier accuracy across the whole
-    gold set — found while investigating a 0.026 accuracy regression
-    (2026-07-31). Delegating here keeps the two in sync going forward.
+    Thin wrapper over classifier.scorer._tier_state_name — delegates rather
+    than duplicating the tier→state table, so this stays in sync when
+    TIER_CLEAR/TIER_MUDDLED change in classifier/config.py (see
+    setup/issues.md #162 for what happens when a copy of this table drifts).
     """
     labels = labels or []
     data_count = labels.count("data")

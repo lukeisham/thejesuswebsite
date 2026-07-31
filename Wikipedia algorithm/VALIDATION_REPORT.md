@@ -1,5 +1,12 @@
 # Classifier Validation Report
 
+> Measurement record, partially auto-generated/updated by `calibrate.py`'s
+> `write_docs()`. For current operational facts, see `ALGORITHM_GUIDE_the_how.md`
+> instead — this file is historical/diagnostic, not a maintained reference.
+> As of the last calibration run the ≥0.85 gate is still unmet (0.641), yet
+> this classifier's own tier assignment is what Signal 3 currently ships
+> live from — see setup/issues.md #163.
+
 ## Acceptance Criteria (§11.2)
 
 | Criterion | Target | Actual | Status |

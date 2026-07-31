@@ -5,24 +5,37 @@ type: Reference
 status: Active
 maintained_by: "!TheJesusWebsite-Wikipedia"
 related_files:
+  - OPERATOR_GUIDE.md
   - Wikipedia Articles.csv
   - Wikipedia Articles - Scoring Detail.csv
   - wiki-bulk-paste.txt
   - excluded-titles.txt
   - candidate-pool.tsv
   - scoring-export.json
-last_updated: 2026-07-27
+last_updated: 2026-07-31
 ---
 
 # Wikipedia Article List — Criteria & Scoring Reference (v2)
 
-This document is the standing specification for the 255-article Wikipedia list on Jesus / the four Gospels: what goes into the candidate pool, what makes the cut, and how the cut is ranked. It consolidates the weights table from `Wikipedia_alogrithm_refractor.md` §9 (the source of truth for all weights and caps) with the selection criteria, category-flag detection rules, and pipeline documentation carried forward from v1.
+This document is the standing specification for the fixed, canonical Wikipedia list on Jesus / the four Gospels (255 articles as of 2026-07-31): what goes into the candidate pool, what makes the cut, and how the cut is ranked. It consolidates the weights table (the source of truth for all weights and caps) with the selection criteria, category-flag detection rules, and pipeline documentation.
 
 **Source of every title/URL:** live Wikipedia, browsed via `!HeadlessChromeBrowser` — never fabricated or recalled from memory.
 
-**Source of truth for weights:** section 9 of `Wikipedia_alogrithm_refractor.md` is the authoritative source for the 25-row weights table below. Where this Reference.md and the refactor spec ever disagree, the refactor spec wins. Do not run `rank_engine.py rescore` until this document has been brought into line — a rescore against a stale table would score every article under the old rubric.
+**Source of truth for weights:** the §9 weights table below is this document's own copy and is authoritative — do not duplicate it into another file. Do not run `rank_engine.py rescore` until this table has been brought into line with the actual code (`classifier/config.py`, `rank_engine.py`, `scripts/extract.js`) — a rescore against a stale table would score every article under the old rubric.
 
-**Maintained by:** the Skillbank skill `!TheJesusWebsite-Wikipedia` (`System/Skillbank/Church/!TheJesusWebsite-Wikipedia/`), which applies Stage 1–3 below on demand — tops the list up toward the 255 ceiling when short, or runs a consistency check when it's already full.
+**Maintained by:** the skill `!TheJesusWebsite-Wikipedia` (`setup/SKILLS/!TheJesusWebsite-Wikipedia/`), which runs a consistency check on demand and adds/removes/rescores only on explicit request — the list is fixed, not auto-topped-up toward a ceiling. See that skill's `skill.md` for the current lifecycle.
+
+**List status (confirmed 2026-07-31):** `Wikipedia Articles.csv` holds 255 rows.
+Nothing in `rank_engine.py` — `check`, `add`, `remove`, `exclude`, or `rescore`
+— gates on or targets a specific count; 255 is simply the list's current size,
+not a hardcoded ceiling the code enforces. `check` (the default action) is
+read-only and never crawls, adds, or removes anything regardless of row
+count. The list only grows or shrinks via an explicit `add`/`remove`/`exclude`
+request naming specific article(s) — see `OPERATOR_GUIDE.md` §2. Stage 1's
+crawl mechanism below still exists and still works (`candidate-pool.tsv`
+currently holds 513 cached candidates, `excluded-titles.txt` 37 permanent
+exclusions) — it's just no longer invoked automatically on every run; it only
+runs when an add request needs more candidates than the cached pool supplies.
 
 ## Stage 1 — Pool creation criteria
 
@@ -67,7 +80,7 @@ Ranking is separate from selection: a title is on the *list* because it passed S
 
 **Method:** score every listed article against the weights below, sum to a net score, sort all 255 by net score (highest first), apply the tie-break rules on ties, and number 1–255.
 
-**Source of truth:** The weights table below is drawn from `Wikipedia_alogrithm_refractor.md` §9, which is authoritative. Where this Reference.md and §9 disagree, §9 wins. After any change to this table, run `rank_engine.py rescore` so every article is re-scored under the corrected rubric.
+**Source of truth:** the weights table below is authoritative for weight/cap values; `ALGORITHM_GUIDE_the_how.md` §3 is authoritative for detection method and code location per signal. After any change to this table, run `rank_engine.py rescore` so every article is re-scored under the corrected rubric.
 
 **Weight-cell convention:** a cell reading "+N per X, capped at ±M" means the underlying signal is a real count, multiplied and capped as stated. A cell with a bare "+N"/"−N" and no "per"/"capped" language means the signal is flat and binary — it either fires once or not at all, regardless of how many times the underlying condition is true in the article.
 
@@ -103,7 +116,7 @@ Rows are ranked by weight magnitude — strongest positive signal first, stronge
 
 **Tie-break:** alphabetical by raw article title (before comma-to-hyphen substitution).
 No verse-count or reference-count secondary keys — this is a deliberate simplification
-(§12.2 of the refactor spec). Ties are expected; alphabetical ordering inside a
+(§12.2 of `ALGORITHM_GUIDE_the_how.md`). Ties are expected; alphabetical ordering inside a
 score-cluster is arbitrary by design, not a claim about relative quality.
 
 ## Category flags
@@ -213,5 +226,5 @@ UNIQUE constraint on `(wikipedia_article_id, signal_key)`.
 - Apocrypha/Gnostic gospels are excluded wholesale under Stage 2's current criteria; miracles, parables, and obscure Passion events are included in full. If the live data in `Wikipedia Articles.csv` doesn't yet reflect a criteria change made here, that's a separate step — this document defines the target state, applying it to the actual 255-article list is a run of the skill.
 - Place-article coverage (Bethlehem, Nazareth, Jerusalem, Capernaum, Gethsemane, and similar) needs deliberate attention at Stage 1 — a category-only crawl has previously missed it entirely.
 - A few Stage 2 calls sit at a judgment margin: narrated gospel scenes with doctrinal-sounding titles (e.g. *Great Commission*, *Olivet Discourse*, *Temptation of Christ*) are treated as narrative, not "purely theological," and are included; church-building/architecture articles (e.g. *Church of the Holy Sepulchre*, *Church of the Nativity*) are treated as leaning toward architecture/pilgrimage-site rather than gospel content, and are excluded.
-- 2026-07-30 run: mode=exclude+topup. Excluded 7 titles (*Christ myth theory*, *Church of the Holy Sepulchre*, *Textual variants in the Gospel of John*, *List of gospels*, *Gospel of Philip*, *Gospel of James*, then separately *Shroud of Turin* after it was added and reconsidered). Replaced with 6: *Mount Tabor*, *Praetorium*, *Mara bar Serapion on Jesus*, *Caesarea Maritima*, *Chorazin*, *Magdala*. Before/after: 255 → 255. No shortfall. Also fixed a `rank_engine.py` bug found mid-run: `_REPO_ROOT` had one extra `dirname()` call, resolving to the parent of the repo instead of the repo root, which silently broke the `scoring-export.json` → `database/` copy.
-- 2026-07-30 run (second pass, same day): mode=exclude+topup. Excluded 4 titles (*Church of the Nativity*, *Life of Jesus*, *Four Evangelists*, *Synoptic Gospels* — general-overview/architecture articles, consistent with this document's existing church-building guidance). Replaced with 4: *Shechem (Sychar)*, *Al-Maghtas*, *Judas the Zealot*, *Nain, Israel*. Before/after: 255 → 255. No shortfall.
+
+Run history (exclude/topup dates, counts, incidental fixes) lives in `setup/issues.md`, not here — this document describes the target state, not a log of when it was applied.

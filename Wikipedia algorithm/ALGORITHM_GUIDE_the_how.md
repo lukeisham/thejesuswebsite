@@ -14,34 +14,44 @@ contributions, bottom-right cells are the strongest negatives — so a reader ca
 see at a glance *why* an article earned its rank, not just what rank it got.
 
 **Purpose of this document:** reference for anyone maintaining or extending the
-scoring pipeline. Describes the current codebase as-is; assumes the
-honesty-and-reproducibility plan is complete.
+scoring pipeline. Describes the current codebase as-is.
 
 ---
 
 ## 🔄 1. Article Lifecycle
 
-Stages 1–2 (pool creation and selection) are defined in
-[Wikipedia Articles - Reference.md](./Wikipedia%20Articles%20-%20Reference_the_what.md).
-This guide covers Stages 3–6, which are the technical pipeline.
+Stages 1–3 (pool creation, selection, and the §9 weights table) are defined in
+`ALGORITHM_GUIDE_the_what.md`. This guide covers Stages 4–6, the technical
+pipeline.
 
 ```
 STAGE 1 — CANDIDATE POOL   ⎤
-STAGE 2 — SELECTION        ⎦ See Wikipedia Articles - Reference.md
+STAGE 2 — SELECTION        ⎦ See ALGORITHM_GUIDE_the_what.md
+STAGE 3 — RANK (weights table)
 
-STAGE 3 — HARVEST
+STAGE 3.5 — HARVEST
     Headless Chrome opens each article in Wikipedia
     injects extract.js → raw signals (DOM + regex)
     → per-article signal dict (verse counts, keyword hits, category flags)
 
 STAGE 4 — CLASSIFY (OFFLINE, DEV MACHINE ONLY)
     classifier/ pipeline (MiniLM ONNX + FAISS)
-    → bucket-labels.json (per-paragraph data/interp/other labels)   ⚠ PENDING
+    → bucket-labels.json (per-paragraph data/close/interpretation/other labels)
+      LIVE as of 2026-07-31 for data_interp_split (row 3); the classifier's
+      own tier accuracy (0.641) is still below its §11.2 gate (0.85) — see
+      setup/issues.md #163 for the open question of whether it should be
+      replaced by the separately-validated LLM labelling pipeline instead.
     families/ pipeline (9 vector-embedding stores)
     → vector-family-scores.json (per-family contributions)         ⚠ PENDING
+      (all 9 families still under the 0.80 precision floor — vector-family-thresholds.yaml)
 
-    While both artifacts are absent, the system uses dormant keyword
-    fallbacks for all 9 vector families, and rows 3 + 10 score 0.
+    While vector-family-scores.json is absent, the system uses dormant
+    keyword fallbacks for all 9 vector families. literary_analysis (row 10)
+    has no fallback and scores 0. Five further signals (balanced_debate,
+    confessional_balance, ot_nt_criticism, supernatural_criticism,
+    secular_materialist) are also temporarily pending — see setup/issues.md
+    #161 — because their keyword-fallback detectors were found broken, not
+    because their vector families are ready.
 
 STAGE 5 — SCORE
     rank_engine.py merges upstream artifacts + keyword fallbacks
@@ -94,8 +104,8 @@ rank_engine.py ──► database/scoring-export.json ──git──► deploy.
                                             NOT part of the scoring path
 ```
 
-**💡 Why:** The refactor spec §3.2 caps ML dependencies and forbids shipping a
-scoring runtime to the VPS. The VPS has no Python, no model, no FAISS in the
+**💡 Why:** this document's design constraint caps ML dependencies and forbids
+shipping a scoring runtime to the VPS. The VPS has no Python, no model, no FAISS in the
 scoring path. Scoring is a developer action whose only output is a committed
 JSON file.
 
@@ -148,7 +158,7 @@ import-wikipedia-scoring.js validates every article before any DB write:
 
 Six boolean flags computed once by extract.js from the Wikipedia category
 strip (`#mw-normal-catlinks`). Detection rules for how each flag is determined
-live in [Wikipedia Articles - Reference.md](./Wikipedia%20Articles%20-%20Reference_the_what.md) §"Category flags".
+live in `ALGORITHM_GUIDE_the_what.md` §"Category flags".
 Every downstream signal reads these same six booleans. A single flag error
 propagates to all gated signals silently.
 
@@ -163,19 +173,36 @@ propagates to all gated signals silently.
 
 **📊 27.1% of articles carry no flag.**
 
-### ⏳ 2.5 Pending signals — two of 25 score 0 by design
+### ⏳ 2.5 Pending signals — six of 25 currently score 0
 
-`data_interp_split` (row 3, +10) and `literary_analysis` (row 10, +6/+4) are
-full members of the 25-signal rubric. Their caps count toward `max_possible`.
-Neither has a keyword fallback — both are purely vector/classifier signals.
-They score 0 for all 255 articles until Plans 4/5 produce real artifacts.
+All 25 signals are full members of the rubric; their caps always count toward
+`max_possible`. Six currently score 0 for every article, for two different
+reasons:
+
+- `literary_analysis` (row 10, +6/+4) — genuinely blocked. No keyword
+  fallback exists (it's a new signal with no v1 equivalent) and its vector
+  family is below the 0.80 precision floor. Blocked on `vector-family-scores.json`
+  actually being produced.
+- `balanced_debate` (row 5), `confessional_balance` (row 17),
+  `ot_nt_criticism` (row 20), `supernatural_criticism` (row 22),
+  `secular_materialist` (row 23) — temporarily pending. Their vector families
+  are also below the precision floor, so they should be running on their
+  dormant keyword fallbacks, but `harvest_one()` in `rank_engine.py` no
+  longer computes the fields those fallbacks read (see setup/issues.md
+  #161). Re-pended as a stopgap so Signal 3's activation didn't have to wait
+  on an unrelated fix; remove from the pending list once #161 is fixed and a
+  rescore shows real, varied values.
+
+`data_interp_split` (row 3, target +10/−5/0/0) is **not** pending — it went
+live 2026-07-31 (see setup/issues.md #163 for the caveat that it's currently
+scored by the classifier, not the higher-accuracy LLM labels).
 
 The pending state is tracked by:
-- `PENDING_SIGNAL_KEYS` in import-wikipedia-scoring.js (exempts them from the
-  all-zero integrity check).
-- `data_interp_pending` flag in rank_engine.py (keeps the row-3 cap at +10
-  rather than collapsing to 0 on the placeholder tier).
-- §9 activation checklist in Wikipedia_alogrithm_refractor.md.
+- `PENDING_SIGNAL_KEYS` in `api/scripts/import-wikipedia-scoring.js` (exempts
+  pending keys from the all-zero integrity check).
+- `data_interp_pending` flag in `rank_engine.py` (keeps a signal's cap at its
+  real weight rather than collapsing it to 0 while pending).
+- The activation checklist in §8 below.
 
 Pending cells render in the grid identically to ordinary unfired signals — no
 distinct styling or tooltip. The distinction lives only in documentation.
@@ -194,8 +221,8 @@ Applied to the **capped** penalty, then truncated toward zero (`int()`).
 An additional **−2 surcharge** applies if balanced debate (row 5) scored 0.
 
 These are structural proxies for stance — the system does not attempt to detect
-whether an author is cited approvingly or critically (§11.3 of the refactor
-spec). Placement and balanced-debate presence are used as indirect signals.
+whether an author is cited approvingly or critically (§11.3). Placement and
+balanced-debate presence are used as indirect signals.
 
 ### 🥇 2.7 Gold set — frozen, single-rater, segmentation-mismatched
 
@@ -258,11 +285,10 @@ any other.
 
 ## ⚖️ 3. Weights Table — Source of Truth & Key Files
 
-**Canonical weight spec:** `Wikipedia_alogrithm_refractor.md` §9.
-The full 25-row weights table with behavioural rules lives in
-[Wikipedia Articles - Reference.md](./Wikipedia%20Articles%20-%20Reference_the_what.md) §"Stage 3".
-This section documents only the implementation details: detection methods and key
-files per signal.
+**Canonical weight spec:** `ALGORITHM_GUIDE_the_what.md` §9 ("Stage 3 — Ranking
+criteria") holds the full 25-row weights table with weight/cap values — that
+table is authoritative and is not duplicated here. This section documents
+only the implementation details: detection methods and key files per signal.
 
 Rows ordered by weight magnitude: strongest positive first, strongest negative
 last. This order is **load-bearing** — the frontend 5×5 grid renders cells in
@@ -272,7 +298,7 @@ last. This order is **load-bearing** — the frontend 5×5 grid renders cells in
 |---|--------|-----------|-----------|
 | 1 | **Named manuscripts** | Plain list lookup — 12-name fixed list (Codex Sinaiticus → Papyrus 75); generic "papyrus/codex/manuscript" mention = 1 | `rank_engine.py` L228–229, `extract.js` L41–48 |
 | 2 | **Bible verses cited** | Regex match on Book Ch:V patterns; deduplicated via Set | `rank_engine.py` L220, `extract.js` L21–25 |
-| 3 | **Data/interpretation split** ⚠ PENDING | Vector — 3 FAISS stores (data-bucket, interpretation-bucket, register) label every body paragraph; separation ratio → tier | `rank_engine.py` L224–225, `classifier/scorer.py`, `classifier/labeler.py`, `classifier/stores.py`, `classifier/config.py` |
+| 3 | **Data/interpretation split** — live | Vector — 4 FAISS stores (data-bucket, close-analysis, interpretation-bucket, register) label every body paragraph; separation ratio → tier. Classifier's own tier accuracy (0.641) is below its §11.2 gate — see setup/issues.md #163 | `rank_engine.py` L224–225, `classifier/scorer.py`, `classifier/labeler.py`, `classifier/stores.py`, `classifier/config.py` |
 | 4 | **Commentary citations** | Plain list lookup — fixed series names (Anchor Bible, Hermeneia, NICNT, etc.) or "commentary" keyword | `rank_engine.py` L254–255, `extract.js` L33–35 |
 | 5 | **Balanced debate** | Vector (§3.1.2) — store encoding longevity language, named representatives, disagreement across data AND interpretation layers | `rank_engine.py` L247–251, `families/balanced_debate.py`, `exemplars/balanced-debate-positive.jsonl` |
 | 6 | **Ante-Nicene authors** | Plain list lookup — 10-name fixed list (Ignatius → Cyprian) | `rank_engine.py` L278, `extract.js` (anteNiceneCount) |
@@ -285,7 +311,7 @@ last. This order is **load-bearing** — the frontend 5×5 grid renders cells in
 | 13 | **Maps and diagrams** | DOM inspection — mapframe templates, location-map elements, SVG diagrams, captions with "map"/"diagram"/"plan"/"floor plan" | `rank_engine.py` L265, `extract.js` (mapsAndDiagramsCount) |
 | 14 | **Wikipedia Good/Featured Article** | DOM inspection for GA/FA indicators (`#mw-indicator-*`) | `rank_engine.py` L268, `extract.js` (wikiQualityHit) |
 | 15 | **Religious art** | Context-conditional — evaluates image presence, diagram/map presence, and category together. Passion sensitivity uses wide-picture test | `rank_engine.py` L272–275, `extract.js` (hasPictureWide, hasPictureNarrow, hasDiagramOrMap) |
-| 16 | **Gnostic over-emphasis** ⚠ PENDING (dormant keyword fallback only reads the −2 tier) | Vector (§3.1.10) — trained on Gnostic-as-privileged-source passages. Scans all buckets (data, interpretation, footnotes). Placement feeds tier | `rank_engine.py` L283–284, `families/gnostic_over_emphasis.py` |
+| 16 | **Gnostic over-emphasis** (dormant keyword fallback only reads the −2 tier) | Vector (§3.1.10) — trained on Gnostic-as-privileged-source passages. Scans all buckets (data, interpretation, footnotes). Placement feeds tier | `rank_engine.py` L283–284, `families/gnostic_over_emphasis.py` |
 | 17 | **Confessional balance** | Vector (§3.1.8) — reuses balanced-debate store. Fires when critical scholars present but no Evangelical counterpart in interpretation sections | `rank_engine.py` L288–297, `families/confessional_balance.py` |
 | 18 | **Other-religion sources** | Plain list lookup — Islamic, Mormon, Buddhist, Hindu, Sikh, Jain, Rastafari, Bahá'í terms | `rank_engine.py` L300, `extract.js` (otherReligionHit) |
 | 19 | **Jesus Seminar bias** | Vector (§3.1.6) — fixed list (Funk, Crossan, Borg) for count; §3.1.1 classifier for placement. Stance-blind | `rank_engine.py` L304–308, `families/jesus_seminar.py` |
@@ -298,7 +324,7 @@ last. This order is **load-bearing** — the frontend 5×5 grid renders cells in
 
 **📌 Tie-break:** alphabetical by raw article title (before comma-to-hyphen substitution).
 No verse-count or reference-count secondary keys — this is a deliberate simplification
-(§12.2 of the refactor spec). Ties are expected; alphabetical ordering inside a
+(§12.2). Ties are expected; alphabetical ordering inside a
 score-cluster is arbitrary by design, not a claim about relative quality.
 
 ---
@@ -320,7 +346,7 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 | `Wikipedia algorithm/classifier/scorer.py` | Separation ratio computation + tier assignment (+10/−5/0/0). Both adjacency and block-structure functionals. |
 | `Wikipedia algorithm/classifier/labeler.py` | Paragraph splitting, embedding, FAISS querying, label assignment (data/interp/neither/other). |
 | `Wikipedia algorithm/classifier/stores.py` | FAISS store management: Embedder (MiniLM ONNX), VectorStore, StoreManager (4 stores). |
-| `Wikipedia algorithm/classifier/config.py` | Thresholds: t_data=0.50, t_interp=0.50, t_register=0.50, t_sep=0.60, N_min=3, TOP_K=5, NN_NEGATIVE_THRESHOLD=0.75. SEPARATION_MODE flag. |
+| `Wikipedia algorithm/classifier/config.py` | Thresholds (current calibration): t_data=0.60, t_interp=0.45, t_register=0.15, t_sep=0.50, N_min=3, TOP_K=5, NN_NEGATIVE_THRESHOLD=0.75. SEPARATION_MODE flag. Values drift with each calibration run — see CLASSIFIER_CALIBRATION.md for the latest measured configuration rather than trusting this row long-term. |
 | `Wikipedia algorithm/classifier/export.py` | Batch export to bucket-labels.json. |
 
 ### 👪 Vector families (9 families, each in `families/`)
@@ -376,15 +402,16 @@ score-cluster is arbitrary by design, not a claim about relative quality.
 
 | File | Role |
 |---|---|
-| `Wikipedia_alogrithm_refractor.md` | Hybrid tech spec. **Source of truth for §9 weights table**, architecture (§3), validation criteria (§11). |
-| `Wikipedia Articles - Reference.md` | Three-stage pipeline spec (pool → select → rank). Mirrors §9; defers to refactor spec on disagreement. |
+| `ALGORITHM_GUIDE_the_what.md` | Three-stage pipeline spec (pool → select → rank) and the authoritative §9 weights table. This document (`_the_how.md`) covers the technical pipeline; where the two disagree on a detection detail, fix the drift rather than assuming either wins by default. |
+| `DATA_INTERPRETATION_TIERS.md` | The linguistic definition of the three tiers (data/close/interpretation) that Signal 3 and the LLM labeller are both built from. |
 | `CLASSIFIER_SPEC.md` | Classifier design: stores, algorithm, schema. |
-| `CLASSIFIER_CALIBRATION.md` | How thresholds were fitted: two-phase sweep, tier accuracy 0.303. |
-| `VALIDATION_REPORT.md` | Calibration outcome: 0.303 vs 0.85 target, three failure modes, recommendation to proceed anyway. |
+| `CLASSIFIER_CALIBRATION.md` | Auto-generated calibration measurement record (not hand-maintained) — current tier accuracy 0.641, still below the 0.85 gate. |
+| `VALIDATION_REPORT.md` | Auto-updated validation history — accuracy progression from the 0.303 baseline to the current 0.641, three original failure modes, disposition. |
+| `CLASSIFIER_DIAGNOSIS.md` | Auto-generated diagnostic measurements (register-gate audit, bake-off results, paragraph-level confusion matrices). |
 | `GOLD_SET_README.md` | Gold set structure and content. |
 | `GOLD_SET_LABELLING_PROCEDURE.md` | How the gold set was built: 14 agents, single-rater, frozen labels. |
 | `CATEGORY_FLAGS_VALIDATION.md` | Category flag detection rules and behavioural effects. |
-| `extraction-signals.md` | Non-vector signal documentation from Plan 2 (extract.js). |
+| `extraction-signals.md` | Non-vector signal documentation for `extract.js`. |
 
 ### 💾 Data files
 
@@ -640,36 +667,44 @@ become list item 1. Marked `aria-hidden="true"` — it's a visual affordance onl
 
 ---
 
-## 🚧 8. Pending Signals: Row 3 and Row 10
-
-Two of the 25 signals — `data_interp_split` (row 3) and `literary_analysis`
-(row 10) — are **structurally unable to score above 0** for any article.
-Neither has a keyword fallback. Both are purely vector/classifier signals.
+## 🚧 8. Row 3's Activation State, and Row 10's Pending State
 
 ### 📊 Row 3 — Data/interpretation split (+10 / −5 / 0 / 0)
 
 **What it's supposed to do.** This is the dominant matrix signal — the axis the
-whole rubric is built on. A three-store classifier (MiniLM ONNX + FAISS)
-labels every body paragraph as `data`, `interpretation`, or `neither`, computes
-a separation ratio, and assigns a tier: +10 for a clean split between data and
-interpretation blocks, −5 when both are present but interleaved (the worst
-outcome), 0 when only one side is present or there aren't enough class-bearing
-paragraphs. Two separation functionals are available (adjacency and block-structure)
-and two scoring rules (mean-cosine and centroid).
+whole rubric is built on. A four-store classifier (MiniLM ONNX + FAISS) labels
+every body paragraph as `data`, `close`, `interpretation`, or `neither`,
+computes a separation ratio (data+close collapsed as "descriptive" vs.
+interpretation), and assigns a tier: +10 for a clean split, −5 when both are
+present but interleaved (the worst outcome), 0 when only one side is present
+or there aren't enough class-bearing paragraphs.
 
-**Status.** A four-way bake-off (see `CLASSIFIER_DIAGNOSIS.md`) cross-compares
-{adjacency, block-structure} × {mean-cosine, centroid} to quantify the relative
-contribution of the separation metric, scoring rule, and embedding capacity to
-the 0.303 prior accuracy. The register-store gate and calibration sweep have
-been corrected. Architecture decisions are recorded in
-`CLASSIFIER_ARCHITECTURE_DECISION.md`.
+**Status — live, but on the weaker of two available label sources.** As of
+2026-07-31 `data_interp_split` is genuinely live: the classifier ran on the
+full corpus, `bucket-labels.json` holds real per-article tiers, and
+`rank_engine.py`/`import-wikipedia-scoring.js` score it correctly (previously
+a stale int→state table silently zeroed every `clear_split` article — fixed,
+see setup/issues.md #162). However, the classifier's own tier accuracy
+(0.641, `CLASSIFIER_CALIBRATION.md`) is still below the §11.2 gate (≥0.85). A
+separately-built and separately-validated LLM labelling pipeline
+(`scripts/llm_label_corpus.py`, DeepSeek `deepseek-v4-flash`) reaches 0.926
+agreement against human gold labels — well above the gate — and has already
+labelled the full corpus into `labels-corpus.json`. Nothing currently converts
+those LLM labels into `bucket-labels.json`'s schema, so Signal 3 ships from
+the lower-accuracy classifier output, not the validated LLM labels — see
+setup/issues.md #163. Deciding whether to wire the LLM labels in (or replace
+the classifier's role for this signal outright) is a scope decision, not a
+documentation gap.
 
-**What blocks activation.**
-- Clear the §11.2 gate: ≥0.85 tier accuracy on the gold set, with a bootstrap
-  confidence interval reported alongside.
-- The `CLASSIFIER_ARCHITECTURE_DECISION.md` Tier-2 store decision must be
-  addressed — the current two-store architecture cannot express the three-tier
-  distinction the rubric encodes.
+**Weight propagation status.** The tier weights above (+10/−5/0/0) are the
+settled target and, as of 2026-07-31, are what the code actually implements
+end to end (`classifier/config.py`, `rank_engine.py`, `import-wikipedia-scoring.js`,
+the frontend signal dictionary, and the corresponding tests — see
+`OPERATOR_GUIDE.md`'s propagation checklist for the file list). Interim
+history: shipped 2026-07-30 at a conservative `TIER_CLEAR = +3` / everything
+else `0`; propagated to target the following day. **Not yet done:** a full
+`rank_engine.py rescore` under the new weights has not been run — the export
+currently on disk still reflects the interim weight for every article.
 
 ### 📖 Row 10 — Literary analysis (+6 / +4)
 
@@ -688,26 +723,30 @@ not exist on disk.
 
 **What blocks activation.**
 - Produce `vector-family-scores.json` with `literary_analysis` entries from the
-  family pipeline (Plan 5), clearing the §11.4 gate: ≥0.80 precision floor on
+  family pipeline, clearing the §11.4 gate: ≥0.80 precision floor on
   the literary-analysis gold set (20–30 articles).
 - The `rank_engine.py` loader already reads the artifact when present —
   activation means producing the file, not rewriting the loader.
 
-### 🛠️ How the system handles both
+### 🛠️ How the system handles a pending signal
 
-- Both keys remain full members of `KNOWN_SIGNAL_KEYS` (25 entries) and
-  `SIGNAL_DICTIONARY`.
-- Both are listed in `PENDING_SIGNAL_KEYS` in the import script, exempting them
-  from the all-zero integrity check (every other signal must have ≥1 non-zero
-  value across the corpus or the import aborts).
-- `data_interp_split`'s cap stays at **+10** while the `data_interp_pending`
-  flag is true — the real weight counts toward `max_possible` despite scoring 0.
-  `literary_analysis`'s cap is derived unconditionally from category flags
-  (pending or not) so its weight also counts toward the ceiling.
-- Both render as ordinary empty cells in the 5×5 grid — identical styling and
-  tooltip to any signal that simply didn't fire. The distinction between
-  "pending" and "measured, didn't fire" lives only in documentation.
-- The activation checklist in §9 of `Wikipedia_alogrithm_refractor.md` records
-  exactly what must happen before either signal produces real contributions.
-- `Issues.md` #141 (classifier accuracy) remains open — this plan does not fix
-  the classifier, it makes the pending state honest and reproducible.
+- Every signal, pending or not, remains a full member of `KNOWN_SIGNAL_KEYS`
+  (25 entries) and `SIGNAL_DICTIONARY`.
+- Pending keys are listed in `PENDING_SIGNAL_KEYS` in the import script,
+  exempting them from the all-zero integrity check (every other signal must
+  have ≥1 non-zero value across the corpus or the import aborts). See §2.5
+  above for the current list and why each key is on it.
+- `data_interp_split`'s cap stays at its real weight while the
+  `data_interp_pending` flag is true (only true when `bucket-labels.json`
+  itself is absent, not while it's merely below its accuracy gate — see §8
+  above). Every category-flag-derived cap counts toward `max_possible`
+  regardless of pending status, so a pending signal's weight still counts
+  toward the ceiling.
+- Pending signals render as ordinary empty cells in the 5×5 grid — identical
+  styling and tooltip to any signal that simply didn't fire. The distinction
+  between "pending" and "measured, didn't fire" lives only in documentation.
+- setup/issues.md tracks the open items blocking each pending signal (#141
+  classifier accuracy, #156 all vector families under the precision floor,
+  #161 the broken keyword-fallback fields, #163 the LLM-vs-classifier
+  discrepancy) — this document records the mechanism, issues.md records what's
+  actually blocking activation today.

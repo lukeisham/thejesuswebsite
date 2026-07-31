@@ -1,9 +1,8 @@
 """Unit tests for the tier assignment logic.
 
-Tests cover the live reduced-weight tier scheme (2026-07-30):
-  +3   clear split (both descriptive and interpretive present AND separation >= t_sep)
-   0   muddled split (both present BUT separation < t_sep — penalty withheld,
-       precision 0.500/recall 0.231)
+Tests cover the settled target tier scheme (2026-07-31):
+ +10   clear split (both descriptive and interpretive present AND separation >= t_sep)
+  -5   muddled split (both present BUT separation < t_sep — the worst outcome)
    0   one-sided (only descriptive or only interpretive present)
    0   unclassifiable (fewer than N_min class-bearing paragraphs)
 
@@ -11,9 +10,9 @@ Three-tier semantics (Signal 3 activation):
   - data (Tier 1) and close (Tier 2) are collapsed as "descriptive".
   - interpretation (Tier 3) is "interpretive".
 
-Since clear_split is now the only non-zero tier state, the burden of
-verifying that muddled, one_sided, and unclassifiable are distinguishable
-falls on tier_state string checks, not contribution integer checks.
+one_sided and unclassifiable both collide at 0, so the burden of verifying
+they're distinguishable falls on tier_state string checks, not contribution
+integer checks.
 """
 
 import unittest
@@ -42,25 +41,29 @@ class TestTierAssignment(unittest.TestCase):
 
     # --- Settled tier constant assertions ---
     def test_tier_constants_settled_ordering(self) -> None:
-        """Assert the live reduced-weight tier contributions (2026-07-30).
+        """Assert the settled target tier contributions (2026-07-31).
 
-        clear=+3, muddled=0, one_sided=0, unclassifiable=0.
+        clear=+10, muddled=-5, one_sided=0, unclassifiable=0.
         """
-        self.assertEqual(TIER_CLEAR, 3)
-        self.assertEqual(TIER_MUDDLED, 0)
+        self.assertEqual(TIER_CLEAR, 10)
+        self.assertEqual(TIER_MUDDLED, -5)
         self.assertEqual(TIER_ONE_SIDED, 0)
         self.assertEqual(TIER_UNCLASSIFIABLE, 0)
 
-    def test_muddled_is_now_neutral(self) -> None:
-        """Muddled is held at 0 (penalty withheld — precision 0.500 / recall 0.231).
+    def test_muddled_is_worst_outcome(self) -> None:
+        """Muddled is the worst outcome (-5): an article that mixes description
+        and interpretation without a clean separation is judged worse than one
+        that never attempts the split (one_sided/unclassifiable, both 0).
 
-        This is a deliberate weight decision, not a bug: a coin-flip penalty
-        does more harm than good. The muddled tier_state is still recorded
-        so articles that fire it are distinguishable in diagnostics."""
-        self.assertEqual(TIER_MUDDLED, 0)
+        This is a deliberate weight decision: short single-tier articles are
+        legitimately one-sided and shouldn't be penalised for it, but a mixed,
+        undifferentiated article should be. The muddled tier_state is still
+        recorded so articles that fire it are distinguishable in diagnostics."""
+        self.assertEqual(TIER_MUDDLED, -5)
         self.assertEqual(TIER_ONE_SIDED, 0)
         self.assertEqual(TIER_UNCLASSIFIABLE, 0)
-        # All three are 0, but tier_state strings must differ.
+        # muddled is negative, one_sided/unclassifiable are both 0, but
+        # tier_state strings must still differ between the latter two.
         # Verify muddled has a distinct tier_state from one_sided.
         muddled_labels = ["data", "interpretation", "data", "interpretation"]
         one_sided_labels = ["data", "data", "data"]
@@ -83,7 +86,7 @@ class TestTierAssignment(unittest.TestCase):
 
     # --- Both classes present ---
     def test_both_classes_high_separation(self) -> None:
-        """Both classes present AND separation >= t_sep → +3 (clear_split)."""
+        """Both classes present AND separation >= t_sep → +10 (clear_split)."""
         labels = ["data", "data", "data", "interpretation", "interpretation"]
         # n=5, 1 transition, separation = 0.75 >= 0.70
         tier = assign_tier(labels, 0.75, t_sep_threshold=self.T_SEP,
@@ -95,7 +98,7 @@ class TestTierAssignment(unittest.TestCase):
         self.assertEqual(result["tier_state"], "clear_split")
 
     def test_both_classes_low_separation(self) -> None:
-        """Both classes present BUT separation < t_sep → 0 (muddled)."""
+        """Both classes present BUT separation < t_sep → -5 (muddled)."""
         labels = ["data", "interpretation", "data", "interpretation", "data"]
         # n=5, 4 transitions, separation = 0.0 < 0.70
         tier = assign_tier(labels, 0.0, t_sep_threshold=self.T_SEP,
@@ -107,7 +110,7 @@ class TestTierAssignment(unittest.TestCase):
         self.assertEqual(result["tier_state"], "muddled")
 
     def test_both_classes_boundary_separation(self) -> None:
-        """Separation exactly at t_sep → +3 (>= check)."""
+        """Separation exactly at t_sep → +10 (>= check)."""
         labels = ["data", "data", "interpretation", "interpretation"]
         # n=4, 1 transition, separation = 0.666... < 0.70
         tier = assign_tier(labels, 0.6667, t_sep_threshold=self.T_SEP,
@@ -182,7 +185,7 @@ class TestTierAssignment(unittest.TestCase):
 
     # --- Boundary cases ---
     def test_high_separation_exactly_at_threshold(self) -> None:
-        """separation == t_sep → +3."""
+        """separation == t_sep → +10."""
         labels = ["data", "data", "data", "interpretation", "interpretation",
                    "interpretation"]
         # n=6, 1 transition, separation = 0.80
@@ -246,7 +249,7 @@ class TestTierAssignment(unittest.TestCase):
         self.assertEqual(tier, TIER_ONE_SIDED)
 
     def test_descriptive_vs_interpretive_clear_split(self) -> None:
-        """Data+Close block separated from Interpretation block → +3."""
+        """Data+Close block separated from Interpretation block → +10."""
         # Descriptive block (data+close) followed by interpretive block.
         labels = ["data", "data", "close", "close",
                    "interpretation", "interpretation", "interpretation"]
@@ -260,10 +263,10 @@ class TestTierAssignment(unittest.TestCase):
         self.assertEqual(result["tier_state"], "clear_split")
 
     def test_close_and_interpretation_interleaved_is_muddled(self) -> None:
-        """Close (Tier 2) interleaved with Interpretation (Tier 3) → 0 (muddled).
+        """Close (Tier 2) interleaved with Interpretation (Tier 3) → -5 (muddled).
 
         This is the load-bearing assertion: an article interleaving
-        Tier 2 and Tier 3 scores 0 and never +3."""
+        Tier 2 and Tier 3 scores -5, never +10."""
         labels = ["close", "interpretation", "close", "interpretation",
                    "close", "interpretation"]
         # 6 class-bearing, 5 transitions, sep = 0.0 < 0.70
@@ -271,7 +274,7 @@ class TestTierAssignment(unittest.TestCase):
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_MUDDLED)
         self.assertNotEqual(tier, TIER_CLEAR,
-                           "close+interp interleaving must not score +3")
+                           "close+interp interleaving must not score +10")
 
         result = score_article(labels, t_sep_threshold=self.T_SEP,
                                n_min=self.N_MIN)

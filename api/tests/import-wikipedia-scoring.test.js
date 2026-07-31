@@ -160,17 +160,17 @@ describe("deriveCap — unconditional negative", () => {
 // ── deriveCap — data_interp_split (tiered) ─────────────────────────────
 
 describe("deriveCap — data_interp_split", () => {
-  test("clear_split → +3", () => {
+  test("clear_split → +10", () => {
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_tier: "clear_split" }),
-      3,
+      10,
     );
   });
 
-  test("muddled → 0 (penalty withheld — precision 0.500 / recall 0.231)", () => {
+  test("muddled → -5 (the worst outcome)", () => {
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_tier: "muddled" }),
-      0,
+      -5,
     );
   });
 
@@ -192,27 +192,27 @@ describe("deriveCap — data_interp_split", () => {
     assert.equal(deriveCap("data_interp_split", {}, {}), 0);
   });
 
-  test("pending: returns +3 regardless of tier", () => {
+  test("pending: returns +10 regardless of tier", () => {
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "unclassifiable" }),
-      3,
+      10,
     );
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "one_sided" }),
-      3,
+      10,
     );
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "muddled" }),
-      3,
+      10,
     );
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true, data_interp_tier: "clear_split" }),
-      3,
+      10,
     );
-    // missing tier string still gets +3 when pending
+    // missing tier string still gets +10 when pending
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: true }),
-      3,
+      10,
     );
   });
 
@@ -223,7 +223,7 @@ describe("deriveCap — data_interp_split", () => {
     );
     assert.equal(
       deriveCap("data_interp_split", {}, { data_interp_pending: false, data_interp_tier: "clear_split" }),
-      3,
+      10,
     );
   });
 });
@@ -1001,51 +1001,73 @@ describe("checkNonPendingSignalsNonZero", () => {
   });
 });
 
-// ── Signal 3: data_interp_split is still pending (gate not yet met) ─────────
+// ── Signal 3: data_interp_split — activated, target weight +10/-5/0/0 ───────
 
-describe("data_interp_split (activated 2026-07-30)", () => {
+describe("data_interp_split (activated 2026-07-30, propagated to target weight 2026-07-31)", () => {
   test("is NO LONGER in PENDING_SIGNAL_KEYS (all-zero guard now applies)", () => {
     assert.equal(PENDING_SIGNAL_KEYS.has("data_interp_split"), false);
   });
 
-  test("clear_split → +3 cap, valid contribution imports", () => {
+  test("clear_split → +10 cap, valid contribution imports", () => {
     const cap = deriveCap(
       "data_interp_split",
       {},
       { data_interp_tier: "clear_split" },
     );
-    assert.equal(cap, 3);
-    const result = validateContribution("data_interp_split", 3, cap, "Test");
+    assert.equal(cap, 10);
+    const result = validateContribution("data_interp_split", 10, cap, "Test");
     assert.ok(result.valid);
   });
 
-  test("muddled → 0 cap, valid contribution imports", () => {
+  test("muddled → -5 cap, valid contribution imports", () => {
     const cap = deriveCap(
       "data_interp_split",
       {},
       { data_interp_tier: "muddled" },
     );
-    assert.equal(cap, 0);
-    const result = validateContribution("data_interp_split", 0, cap, "Test");
+    assert.equal(cap, -5);
+    const result = validateContribution("data_interp_split", -5, cap, "Test");
     assert.ok(result.valid);
   });
 
-  test("contribution outside [0, +3] range aborts", () => {
+  test("contribution outside [0, +10] range aborts on a clear_split cap", () => {
     const result = validateContribution(
       "data_interp_split",
-      5,
-      3,
+      15,
+      10,
       "Test Article",
     );
     assert.equal(result.valid, false);
     assert.ok(result.error.includes("exceeds cap"));
   });
 
-  test("negative contribution on positive-only signal aborts", () => {
+  test("contribution outside [-5, 0] range aborts on a muddled cap", () => {
+    const result = validateContribution(
+      "data_interp_split",
+      -8,
+      -5,
+      "Test Article",
+    );
+    assert.equal(result.valid, false);
+    assert.ok(result.error.includes("exceeds cap"));
+  });
+
+  test("positive contribution on a muddled (negative) cap aborts — wrong sign", () => {
+    const result = validateContribution(
+      "data_interp_split",
+      3,
+      -5,
+      "Test Article",
+    );
+    assert.equal(result.valid, false);
+    assert.ok(result.error.includes("wrong sign"));
+  });
+
+  test("negative contribution on a clear_split (positive) cap aborts — wrong sign", () => {
     const result = validateContribution(
       "data_interp_split",
       -3,
-      3,
+      10,
       "Test Article",
     );
     assert.equal(result.valid, false);

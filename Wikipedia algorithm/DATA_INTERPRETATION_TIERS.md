@@ -1,11 +1,12 @@
-# The Ideal Three Tiers of Linguistic Clues in Academic Writing
+# The Three Tiers of Linguistic Clues in Academic Writing
 
 This document defines the linguistic boundary between data presentation and
-interpretation — the axis the Wikipedia scoring rubric is built on (row 3,
-§3.1.1 of the refactor spec). The classifier must distinguish paragraphs that
-merely *present* what primary sources say from paragraphs that *analyse,
-evaluate, or draw conclusions from* those sources. Getting this boundary right
-is the single most important classification task in the pipeline.
+interpretation — the axis Signal 3 (row 3, §3.1.1 of `ALGORITHM_GUIDE_the_how.md`)
+is built on. The classifier and the LLM labeller must both distinguish
+paragraphs that merely *present* what primary sources say from paragraphs
+that *analyse, evaluate, or draw conclusions from* those sources. Getting
+this boundary right is the single most important classification task in
+the pipeline.
 
 **Domain focus:** Wikipedia articles about Jesus and the four Gospels. Primary
 texts means the Bible (Gospels, OT quotations/allusions), ancient historians
@@ -14,9 +15,19 @@ Phlegon), Ante-Nicene authors (Ignatius through Cyprian), named manuscripts
 (Sinaiticus, Vaticanus, P52, P66, P75, Bezae, etc.), and archaeological
 reports about New-Testament-period sites.
 
-## Very Important determination and weighting note. 
+## Determination and weighting principle
 
-The algorithm should be be looking for a distrinction between tiers 1 & 2, and tier 3. Every Wikipedia article is about *something*, the quesiton is does that article's content split between describing that *thing*, and *interpreting* or contextulaising the thing. Visually tier one will often be present in the lede or opening paragaph. Sometimes tier 2 and tier 3 will be mixed up together. I want to punish articles that mix tier 2 and tier 3, even if the paragraphs or headings aren't tidy. (The decision will be made based on content.) - Articles that no discernable difference between any of the tiers shouldbe punished most of all. However this means the detection needs to be accurate. 
+The classifier looks for a distinction between tiers 1 & 2 (descriptive) and
+tier 3 (interpretive). Every Wikipedia article is about *something*; the
+question is whether its content splits between describing that thing and
+interpreting or contextualising it. Tier 1 is often concentrated in the lede
+or opening paragraphs. Tiers 2 and 3 sometimes mix together, and articles
+that mix them without a clean separation should be scored worse than
+articles with a clean split — that decision is made on content, not on
+whether the paragraphs or headings are tidy. Articles with no discernible
+separation between tiers are the hardest case for the detector, since
+getting the +10/−5/0/0 weighting right (`ALGORITHM_GUIDE_the_how.md` §9)
+depends on the detection itself being accurate.
 
 ---
 
