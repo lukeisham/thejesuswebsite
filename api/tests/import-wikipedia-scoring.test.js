@@ -1011,8 +1011,14 @@ describe("PENDING_SIGNAL_KEYS", () => {
     }
   });
 
-  test("contains literary_analysis (still pending)", () => {
-    assert.ok(PENDING_SIGNAL_KEYS.has("literary_analysis"));
+  test("literary_analysis is no longer pending (activated 2026-07-31)", () => {
+    assert.ok(!PENDING_SIGNAL_KEYS.has("literary_analysis"),
+      "literary_analysis should not be pending after signal-10 activation");
+  });
+
+  test("balanced_debate is the only remaining pending key", () => {
+    assert.equal(PENDING_SIGNAL_KEYS.size, 1);
+    assert.ok(PENDING_SIGNAL_KEYS.has("balanced_debate"));
   });
 
   test("data_interp_split is no longer pending (activated 2026-07-30)", () => {
@@ -1225,6 +1231,89 @@ describe("data_interp_split (activated 2026-07-30, propagated to target weight 2
       true,
       "data_interp_split is no longer pending — all-zero corpus must abort the import",
     );
+  });
+});
+
+// ── Signal 10: literary_analysis — activated 2026-07-31 ───────────────────────
+
+describe("literary_analysis (activated 2026-07-31)", () => {
+  test("is NO LONGER in PENDING_SIGNAL_KEYS (all-zero guard now applies)", () => {
+    assert.ok(!PENDING_SIGNAL_KEYS.has("literary_analysis"));
+  });
+
+  test("deriveCap returns +6 for parable articles", () => {
+    const cap = deriveCap("literary_analysis", {
+      is_parable: true, is_teaching: false, is_bible_book: false,
+    }, {});
+    assert.equal(cap, 6);
+  });
+
+  test("deriveCap returns +6 for teaching articles", () => {
+    const cap = deriveCap("literary_analysis", {
+      is_parable: false, is_teaching: true, is_bible_book: false,
+    }, {});
+    assert.equal(cap, 6);
+  });
+
+  test("deriveCap returns +6 for bible_book articles", () => {
+    const cap = deriveCap("literary_analysis", {
+      is_parable: false, is_teaching: false, is_bible_book: true,
+    }, {});
+    assert.equal(cap, 6);
+  });
+
+  test("deriveCap returns +4 for other articles", () => {
+    const cap = deriveCap("literary_analysis", {
+      is_parable: false, is_teaching: false, is_bible_book: false,
+    }, {});
+    assert.equal(cap, 4);
+  });
+
+  test("+6 contribution imports for a parable article", () => {
+    const article = makeArticle({
+      net_score: 6,
+      contributions: { literary_analysis: 6 },
+      categories: { is_parable: true },
+    });
+    const result = validateArticle(article);
+    assert.equal(result.errors.length, 0, result.errors.join(', '));
+    assert.equal(result.caps.literary_analysis, 6);
+  });
+
+  test("+4 contribution imports for a non-parable article", () => {
+    const article = makeArticle({
+      net_score: 4,
+      contributions: { literary_analysis: 4 },
+      categories: { is_parable: false },
+    });
+    const result = validateArticle(article);
+    assert.equal(result.errors.length, 0, result.errors.join(', '));
+    assert.equal(result.caps.literary_analysis, 4);
+  });
+
+  test("contribution exceeding +6 cap aborts", () => {
+    const article = makeArticle({
+      net_score: 7,
+      contributions: { literary_analysis: 7 },
+      categories: { is_parable: true },
+    });
+    const result = validateArticle(article);
+    assert.ok(result.errors.length > 0);
+  });
+
+  test("all-zero on activated key is REJECTED by guard (no longer pending)", () => {
+    const validated = [
+      {
+        article: makeArticle({
+          contributions: { literary_analysis: 0, bible_verses: 3 },
+          net_score: 3,
+        }),
+        caps: { literary_analysis: 6 },
+      },
+    ];
+    const zeroKeys = checkNonPendingSignalsNonZero(validated, PENDING_SIGNAL_KEYS);
+    assert.ok(zeroKeys.includes("literary_analysis"),
+      "literary_analysis should be caught by all-zero guard now that it's activated");
   });
 });
 

@@ -80,7 +80,6 @@ const KNOWN_SIGNAL_KEYS = new Set([
 // so they don't silently drag scores down. The all-zero integrity check skips
 // them so a pipeline gap doesn't block the import.
 const PENDING_SIGNAL_KEYS = new Set([
-  "literary_analysis",
   // balanced_debate: DORMANT_FALLBACKS.balancedDebate is off in extract.js
   // and no Python per-paragraph detector exists yet (the complex sentence-level
   // debate patterns don't map cleanly to per-paragraph booleans).
