@@ -84,18 +84,8 @@ print(f"Labels: {labels}")
 
 ### 6. Export bucket labels
 
-```python
-from classifier.stores import StoreManager
-from classifier.export import export_batch
-
-mgr = StoreManager()
-mgr.build_all()
-
-articles = {
-    "Jesus": open("articles/Jesus.txt").read(),
-    "Paul_the_Apostle": open("articles/Paul_the_Apostle.txt").read(),
-}
-export_batch(articles, mgr)
+```
+python3 scripts/export_bucket_labels.py
 ```
 
 ## Directory structure
@@ -151,8 +141,13 @@ mgr.force_rebuild()
 - `onnxruntime` ~75 MB
 - `numpy` ~34 MB
 - `faiss-cpu` ~69 MB
-- Vendored model ~23 MB
-- **Total ~201 MB** — see `CLASSIFIER_CALIBRATION.md` for the measured figure.
+- Vendored model ~23 MB **if quantized** (the currently vendored export is
+  full FP32, ~87–96 MB — see below)
+- **This table's ~201 MB total assumes a quantized model and is not the
+  measured figure.** For the actual dev-machine install size, see
+  `CLASSIFIER_CALIBRATION.md`'s "Dependency Footprint Measurement" section,
+  which reports ~235–265 MB (two measurements, different methodology/dates,
+  reconciled there).
 
 No `torch`, `sentence-transformers`, `lancedb`, `scikit-learn`, or
 `tokenizers` are installed.
