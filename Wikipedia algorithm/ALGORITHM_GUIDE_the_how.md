@@ -37,10 +37,11 @@ STAGE 3.5 — HARVEST
 STAGE 4 — CLASSIFY (OFFLINE, DEV MACHINE ONLY)
     classifier/ pipeline (MiniLM ONNX + FAISS)
     → bucket-labels.json (per-paragraph data/close/interpretation/other labels)
-      LIVE as of 2026-07-31 for data_interp_split (row 3); the classifier's
-      own tier accuracy (0.641) is still below the ≥0.85 accuracy gate — see
-      setup/issues.md #163 for the open question of whether it should be
-      replaced by the separately-validated LLM labelling pipeline instead.
+      LIVE as of 2026-07-31 for data_interp_split (row 3). The primary
+      source is now the LLM-labelled corpus (labels-corpus.json, 0.926
+      human-agreement, gate cleared). The embedding classifier (0.641 tier
+      accuracy) is retained as a secondary cross-check — see
+      setup/issues.md #141 and #163 (both resolved by this wiring).
     families/ pipeline (9 vector-embedding stores)
     → vector-family-scores.json (per-family contributions)         ⚠ PENDING
       (all 9 families still under the 0.80 precision floor — vector-family-thresholds.yaml)
@@ -189,8 +190,9 @@ All 25 signals are full members of the rubric; their caps always count toward
   rescore shows real, varied values.
 
 `data_interp_split` (row 3, target +10/−5/0/0) is **not** pending — it went
-live 2026-07-31 (see setup/issues.md #163 for the caveat that it's currently
-scored by the classifier, not the higher-accuracy LLM labels).
+live 2026-07-31. As of the LLM-label activation (2026-07-31), the
+primary source is the LLM-labelled corpus (0.926 human-agreement,
+gate cleared); the embedding classifier is retained as a cross-check.
 
 `literary_analysis` (row 10, +6/+4) is **not** pending — it went live
 2026-07-31 via the vector family store (80 positive + 60 negative exemplars),

@@ -193,6 +193,21 @@ def export_batch(
     # Load thresholds.
     thresholds = _load_thresholds(thresholds_path)
 
+    # Surface, once and loudly, how many families are currently dormant
+    # (precision below PRECISION_FLOOR, silently falling back to their
+    # keyword detector per-family below) — this used to be indistinguishable
+    # from "everything is calibrated and simply not firing" (Issues.md #156).
+    dormant = [
+        name for name in FAMILIES
+        if thresholds.get(name, {}).get("precision", 0.0) < PRECISION_FLOOR
+    ]
+    if dormant:
+        logger.warning(
+            "%d/%d vector families are BELOW the %.2f precision floor and "
+            "will score via keyword fallback, not the vector store: %s",
+            len(dormant), len(FAMILIES), PRECISION_FLOOR, ", ".join(sorted(dormant)),
+        )
+
     # Initialise embedder (shared across all families).
     logger.info("Loading MiniLM ONNX model...")
     embedder = Embedder()
@@ -243,6 +258,13 @@ def export_batch(
         json.dump(output, fh, ensure_ascii=False, indent=2)
 
     logger.info("Exported %d article(s) to %s", len(output), output_path)
+    if dormant:
+        logger.warning(
+            "Reminder: %d/%d vector families were dormant this run (see "
+            "above) — Signal scores for those families came from keyword "
+            "fallback, not the vector store.",
+            len(dormant), len(FAMILIES),
+        )
     return output_path
 
 

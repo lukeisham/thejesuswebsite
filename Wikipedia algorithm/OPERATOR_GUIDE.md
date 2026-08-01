@@ -14,7 +14,7 @@ all of them — name the files if you want to be explicit:
 
 1. 📖 **`ALGORITHM_GUIDE_the_what.md` §9** — the weight value. Single source of truth.
 2. 🔍 **`scripts/extract.js`** — only if the change alters what counts as a hit.
-3. 🧮 **`scripts/rank_engine.py`** — the scoring formula. For row 3, also `classifier/config.py`.
+3. 🧮 **`scripts/rank_engine.py`** — the scoring formula. For row 3, also `classifier/config.py`, `classifier/llm_labels.py` (LLM-to-bucket-labels conversion), and `labels-corpus.json` (the LLM-labelled corpus). Regenerate bucket labels with `python3 scripts/export_bucket_labels.py`.
 4. 📐 **`vector-family-thresholds.yaml`** — for any vector-scored signal.
 5. 🏅 **Gold-set CSVs** — re-verify acceptance gates against frozen labels.
 6. 🗂️ **`vector-stores/`** — only if the store's firing criteria change, not just its weight.

@@ -1,8 +1,8 @@
 {
   "model_id": "deepseek-v4-flash",
-  "articles": 249,
-  "total_paragraphs": 7356,
-  "total_requests": 259,
+  "articles": 270,
+  "total_paragraphs": 7870,
+  "total_requests": 280,
   "paragraphs_per_request": 100,
   "article_index": [
     {
@@ -69,6 +69,11 @@
       "title": "Bethlehem",
       "paragraph_count": 69,
       "content_hash": "713d6f463899340b"
+    },
+    {
+      "title": "Bethphage",
+      "paragraph_count": 9,
+      "content_hash": "08a22c0b980388e2"
     },
     {
       "title": "Bethsaida",
@@ -266,6 +271,11 @@
       "content_hash": "a72c62cfb93a1adf"
     },
     {
+      "title": "Ephraim in the wilderness",
+      "paragraph_count": 5,
+      "content_hash": "bedd5abffae194e6"
+    },
+    {
       "title": "Exorcism of the Gerasene demoniac",
       "paragraph_count": 43,
       "content_hash": "f575f4ca580def16"
@@ -319,6 +329,11 @@
       "title": "Genealogy of Jesus",
       "paragraph_count": 72,
       "content_hash": "10bf20546d4f18b8"
+    },
+    {
+      "title": "Gennesaret (Kinneret archaeological site)",
+      "paragraph_count": 21,
+      "content_hash": "c2253404d1235fee"
     },
     {
       "title": "Gethsemane",
@@ -426,6 +441,11 @@
       "content_hash": "d36d444ba5a433f0"
     },
     {
+      "title": "Heli (biblical figure)",
+      "paragraph_count": 10,
+      "content_hash": "ecaf636db39478e4"
+    },
+    {
       "title": "Herod Antipas",
       "paragraph_count": 25,
       "content_hash": "7b9857a48328d3f1"
@@ -449,6 +469,11 @@
       "title": "Historicity of the Gospels",
       "paragraph_count": 56,
       "content_hash": "ca8bc8eb40cd4acf"
+    },
+    {
+      "title": "I am (biblical term)",
+      "paragraph_count": 8,
+      "content_hash": "af73a9ed7aa08c4e"
     },
     {
       "title": "James - brother of Jesus",
@@ -616,6 +641,11 @@
       "content_hash": "7c7e6806f18b6d05"
     },
     {
+      "title": "Kidron Valley",
+      "paragraph_count": 26,
+      "content_hash": "9a4872003a5edb01"
+    },
+    {
       "title": "Kiss of Judas",
       "paragraph_count": 14,
       "content_hash": "74e9bb23bd3c31ff"
@@ -649,6 +679,11 @@
       "title": "List of gospels",
       "paragraph_count": 6,
       "content_hash": "b87afa17ef0726a4"
+    },
+    {
+      "title": "Logos (Christianity)",
+      "paragraph_count": 64,
+      "content_hash": "63a8b94f1e6d9198"
     },
     {
       "title": "Lord of the Sabbath",
@@ -776,6 +811,11 @@
       "content_hash": "9a43712d34486dd7"
     },
     {
+      "title": "Names and titles of Jesus in the New Testament",
+      "paragraph_count": 98,
+      "content_hash": "cc080f25e4401eab"
+    },
+    {
       "title": "Nathanael (follower of Jesus)",
       "paragraph_count": 7,
       "content_hash": "40ffe218bfbc4f09"
@@ -786,6 +826,11 @@
       "content_hash": "7637d78d70dff95b"
     },
     {
+      "title": "Nazarene (title)",
+      "paragraph_count": 59,
+      "content_hash": "b59afbf89c64329b"
+    },
+    {
       "title": "Nazareth",
       "paragraph_count": 83,
       "content_hash": "f3008393db412c0c"
@@ -794,6 +839,11 @@
       "title": "New Commandment",
       "paragraph_count": 16,
       "content_hash": "16085e6450b3f3e6"
+    },
+    {
+      "title": "New Testament places associated with Jesus",
+      "paragraph_count": 7,
+      "content_hash": "565da29f519b1f8f"
     },
     {
       "title": "New Wine into Old Wineskins",
@@ -819,6 +869,11 @@
       "title": "Oral gospel traditions",
       "paragraph_count": 23,
       "content_hash": "d0f9e926db8ccec3"
+    },
+    {
+      "title": "Outer darkness",
+      "paragraph_count": 8,
+      "content_hash": "58c75397880ae42f"
     },
     {
       "title": "Parable of Drawing in the Net",
@@ -1031,6 +1086,16 @@
       "content_hash": "4e7dc29b6d6bf7a4"
     },
     {
+      "title": "Prayers of Jesus",
+      "paragraph_count": 6,
+      "content_hash": "b2c42cdac1d3bc59"
+    },
+    {
+      "title": "Pre-existence of Christ",
+      "paragraph_count": 28,
+      "content_hash": "2177627072d7df07"
+    },
+    {
       "title": "Raising of Jairus' daughter",
       "paragraph_count": 16,
       "content_hash": "7867f8672c0662e4"
@@ -1046,9 +1111,19 @@
       "content_hash": "99e0b59c3196c405"
     },
     {
+      "title": "Resurrection",
+      "paragraph_count": 57,
+      "content_hash": "a1727d5d65b32480"
+    },
+    {
       "title": "Resurrection of Jesus",
       "paragraph_count": 110,
       "content_hash": "5c3cdbe16c847c30"
+    },
+    {
+      "title": "Return of Jesus to Galilee",
+      "paragraph_count": 8,
+      "content_hash": "74e734e563ecf444"
     },
     {
       "title": "Rich man and Lazarus",
@@ -1131,6 +1206,11 @@
       "content_hash": "2aa73ee52619c7ed"
     },
     {
+      "title": "Son of man (Christianity)",
+      "paragraph_count": 34,
+      "content_hash": "1596e48d649e5baa"
+    },
+    {
       "title": "Sources for the historicity of Jesus",
       "paragraph_count": 77,
       "content_hash": "259a26478042c74f"
@@ -1149,6 +1229,21 @@
       "title": "Temptation of Christ",
       "paragraph_count": 43,
       "content_hash": "080b0e84d68422c6"
+    },
+    {
+      "title": "That they all may be one",
+      "paragraph_count": 9,
+      "content_hash": "3180ff12ebbd32b2"
+    },
+    {
+      "title": "The Birds of the Air",
+      "paragraph_count": 10,
+      "content_hash": "75e8d1d8d79d0777"
+    },
+    {
+      "title": "The Grain of Wheat",
+      "paragraph_count": 10,
+      "content_hash": "eebb6a04564950a2"
     },
     {
       "title": "The Mote and the Beam",
@@ -1179,6 +1274,16 @@
       "title": "The four woes of Jesus",
       "paragraph_count": 8,
       "content_hash": "0d7615ad3f371111"
+    },
+    {
+      "title": "The gospel",
+      "paragraph_count": 29,
+      "content_hash": "2660dee02d25c0ba"
+    },
+    {
+      "title": "The truth will set you free",
+      "paragraph_count": 8,
+      "content_hash": "4bc7cda584e320c5"
     },
     {
       "title": "Thirty pieces of silver",

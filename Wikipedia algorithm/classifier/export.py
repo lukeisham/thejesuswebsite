@@ -11,6 +11,8 @@ Schema:
     "separation": 0.85,
     "tier": 10,
     "tier_state": "clear_split",
+    "label_source": "llm" | "embedding_fallback",
+    "embedding_tier_state": "clear_split" | null,
     "data_count": 5,
     "close_count": 3,
     "interp_count": 7
@@ -19,11 +21,21 @@ Schema:
 }
 
 paragraph_texts is the same length and order as paragraphs — one raw
-paragraph text per label.  It carries the paragraph content so downstream
+paragraph text per label. It carries the paragraph content so downstream
 consumers (the scoring/ranking engine's placement_mult) can compute
 placement-aware multipliers without re-fetching or re-segmenting the article.
-The texts come from the classifier's own paragraph segmentation (labeler.py's
-split_paragraphs), so they are automatically aligned with the label sequence.
+For LLM-labelled articles, paragraph_texts is sliced from the fetch cache;
+for embedding-classifier articles, it comes from labeler.py's split_paragraphs.
+
+label_source records which source produced the labels: "llm" when
+labels-corpus.json provided a valid, hash-verified entry; "embedding_fallback"
+when the embedding classifier is the primary source (corpus missing,
+article stale, or paragraph-count mismatch).
+
+embedding_tier_state is the tier_state the embedding classifier would have
+assigned to this article — kept for cross-check diagnostics even when the
+LLM source is active. Null when label_source is "embedding_fallback" (the
+main record already carries the embedding state).
 """
 
 import json
@@ -33,8 +45,10 @@ from typing import Optional
 
 from .config import BUCKET_LABELS_PATH
 from .labeler import classify_paragraphs, get_labels_only
+from .llm_labels import build_llm_bucket_entry, load_llm_corpus
 from .scorer import score_article
 from .stores import StoreManager
+from scripts.llm_label_corpus import load_fetch_cache
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +106,13 @@ def export_batch(
 ) -> Path:
     """Classify a batch of articles and write bucket-labels.json.
 
+    For each article, the embedding classifier is always run (as the
+    secondary/cross-check). If a fresh, hash-verified LLM label entry exists
+    in labels-corpus.json for the article, it replaces the embedding-derived
+    record with label_source: "llm" and preserves the embedding tier_state
+    for diagnostics. Otherwise the embedding-derived record is written with
+    label_source: "embedding_fallback".
+
     Args:
         articles: Dict mapping article_id → article_text.
         store_manager: Initialised StoreManager with built stores.
@@ -103,19 +124,60 @@ def export_batch(
     if output_path is None:
         output_path = BUCKET_LABELS_PATH
 
+    # Load LLM-labelled corpus once before the per-article loop.
+    # A missing labels-corpus.json is a clean degradation: every article
+    # gets label_source: "embedding_fallback".
+    llm_entries = load_llm_corpus()
+    fetch_cache = load_fetch_cache() if llm_entries else {}
+
+    llm_count = 0
+    fallback_count = 0
+
     output: dict[str, dict] = {}
     for article_id, text in articles.items():
         try:
             record = export_article(article_id, text, store_manager)
+            embedding_tier_state = record["tier_state"]
+
+            # Try the LLM-labelled source first.
+            llm_labels = llm_entries.get(article_id)
+            if llm_labels is not None and fetch_cache:
+                llm_entry = build_llm_bucket_entry(
+                    article_id, llm_labels, fetch_cache
+                )
+                if llm_entry is not None:
+                    output[article_id] = {
+                        "paragraphs": llm_entry["paragraphs"],
+                        "paragraph_texts": llm_entry["paragraph_texts"],
+                        "separation": llm_entry["separation"],
+                        "tier": llm_entry["tier"],
+                        "tier_state": llm_entry["tier_state"],
+                        "label_source": "llm",
+                        "embedding_tier_state": embedding_tier_state,
+                    }
+                    llm_count += 1
+                    logger.info(
+                        "Article '%s' [llm]: tier=%+d, separation=%.3f, %d paragraphs",
+                        article_id,
+                        llm_entry["tier"],
+                        llm_entry["separation"],
+                        len(llm_entry["paragraphs"]),
+                    )
+                    continue
+
+            # Fall back to embedding-classifier record.
             output[article_id] = {
                 "paragraphs": record["paragraphs"],
                 "paragraph_texts": record["paragraph_texts"],
                 "separation": record["separation"],
                 "tier": record["tier"],
                 "tier_state": record["tier_state"],
+                "label_source": "embedding_fallback",
+                "embedding_tier_state": None,
             }
+            fallback_count += 1
             logger.info(
-                "Article '%s': tier=%+d, separation=%.3f, %d paragraphs",
+                "Article '%s' [embedding]: tier=%+d, separation=%.3f, %d paragraphs",
                 article_id,
                 record["tier"],
                 record["separation"],
@@ -123,13 +185,28 @@ def export_batch(
             )
         except Exception:
             logger.exception("Failed to classify article '%s'; skipping.", article_id)
+            fallback_count += 1
             output[article_id] = {
                 "paragraphs": [],
                 "paragraph_texts": [],
                 "separation": 0.0,
                 "tier": 0,
                 "error": True,
+                "label_source": "embedding_fallback",
+                "embedding_tier_state": None,
             }
+
+    # Aggregate label-source summary — a silent full-fallback (e.g.
+    # labels-corpus.json missing) must never be indistinguishable from
+    # a healthy LLM-driven run.
+    total = llm_count + fallback_count
+    logger.info(
+        "Label source summary: %d/%d articles scored via LLM labels, "
+        "%d via embedding-classifier fallback.",
+        llm_count,
+        total,
+        fallback_count,
+    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as fh:
