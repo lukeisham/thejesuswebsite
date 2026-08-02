@@ -61,7 +61,8 @@ function createTestDb() {
   // already in schema.sql), 028 (arbor_edges.waypoints already in schema.sql),
   // 035 (evidence.image_caption / challenges.challenge_picture_alt+caption
   // already in schema.sql), 036 (resources.in_holding_pen already in
-  // schema.sql), and 037 (resources.item_type already in schema.sql).
+  // schema.sql), 037 (resources.item_type already in schema.sql), and 040
+  // (wikipedia_articles.scored_at already in schema.sql).
   const migrationFiles = fs
     .readdirSync(MIGRATIONS_DIR)
     .filter(
@@ -84,7 +85,8 @@ function createTestDb() {
         !name.startsWith("032_") &&
         !name.startsWith("035_") &&
         !name.startsWith("036_") &&
-        !name.startsWith("037_"),
+        !name.startsWith("037_") &&
+        !name.startsWith("040_"),
     )
     .sort();
 

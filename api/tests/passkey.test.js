@@ -6,6 +6,46 @@
 
 const { test, describe, before, after, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
+
+// The in-memory database must replace api/config in the module cache BEFORE
+// anything requires ../routes/passkey — that route pulls in credential.model,
+// which resolves and caches its db handle at require time. Requiring the route
+// first bound the model to the real database/thejesuswebsite.db, so the
+// integration test below queried the live dev DB and 500'd on a column that
+// only exists there after migration 002 (TEST-4: never point a test at the
+// real database).
+const http = require("http");
+const pathMod = require("path");
+const Module = require("module");
+const Database = require("better-sqlite3");
+const express = require("express");
+
+// In-memory database for server-based tests.
+const testDb = new Database(":memory:");
+testDb.pragma("foreign_keys = ON");
+testDb.exec(`
+  CREATE TABLE credentials (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    credential_id  TEXT UNIQUE NOT NULL,
+    public_key     TEXT NOT NULL,
+    user_handle    TEXT NOT NULL,
+    sign_count     INTEGER DEFAULT 0,
+    last_used_at   TEXT,
+    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX idx_credentials_user_handle ON credentials(user_handle);
+`);
+
+const configPath = require.resolve(pathMod.resolve(__dirname, "..", "config"));
+Module._cache[configPath] = {
+  id: configPath,
+  filename: configPath,
+  loaded: true,
+  exports: testDb,
+};
+
+const credentialModel = require("../models/credential.model");
 const passkey = require("../routes/passkey");
 
 const validateHandle = passkey.validateHandle;
@@ -246,39 +286,9 @@ describe("challenge sweep", () => {
 
 // ── Integration: authData length check ────────────────────────────────────────
 
-// Re-use the same server pattern as credential-management.test.js.
-const http = require("http");
-const pathMod = require("path");
-const Module = require("module");
-const Database = require("better-sqlite3");
-const express = require("express");
-
-// In-memory database for server-based tests.
-const testDb = new Database(":memory:");
-testDb.pragma("foreign_keys = ON");
-testDb.exec(`
-  CREATE TABLE credentials (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    credential_id  TEXT UNIQUE NOT NULL,
-    public_key     TEXT NOT NULL,
-    user_handle    TEXT NOT NULL,
-    sign_count     INTEGER DEFAULT 0,
-    last_used_at   TEXT,
-    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-  CREATE INDEX idx_credentials_user_handle ON credentials(user_handle);
-`);
-
-const configPath = require.resolve(pathMod.resolve(__dirname, "..", "config"));
-Module._cache[configPath] = {
-  id: configPath,
-  filename: configPath,
-  loaded: true,
-  exports: testDb,
-};
-
-const credentialModel = require("../models/credential.model");
+// Re-uses the same server pattern as credential-management.test.js. The test
+// database and its module-cache injection are set up at the top of this file,
+// ahead of the ../routes/passkey require.
 
 let intServer;
 let intBaseUrl;

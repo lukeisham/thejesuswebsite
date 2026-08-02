@@ -26,26 +26,51 @@ function makeQueryable(registry) {
   };
 }
 
+/** Deep-clones a selector->elements registry so a clone's .remove() calls don't mutate the
+ * original (mirrors real cloneNode(true) detaching the copy from the source tree). */
+function cloneRegistry(registry, deep) {
+  const out = {};
+  for (const sel of Object.keys(registry)) {
+    out[sel] = deep
+      ? registry[sel].map((child) => (typeof child.cloneNode === "function" ? child.cloneNode(true) : child))
+      : registry[sel].slice();
+  }
+  return out;
+}
+
 /** A fake element. `closest` matches against the `closestSel` list; `query` is its own nested
  * selector->elements map for calls like el.querySelector('[title]'). */
 function el(textContent, { attrs = {}, closestSel = [], query = {} } = {}) {
   const q = makeQueryable(query);
-  return Object.assign({
+  const node = Object.assign({
     textContent,
     getAttribute(name) {
       return Object.prototype.hasOwnProperty.call(attrs, name) ? attrs[name] : null;
     },
     closest(sel) { return closestSel.includes(sel) ? this : null; },
+    remove() { node.__removed = true; },
+    cloneNode(deep) {
+      return el(textContent, { attrs, closestSel, query: deep ? cloneRegistry(query, true) : query });
+    },
   }, q);
+  return node;
 }
 
 /** query: selector string -> array of el() stubs, shared by document AND document.body (extract.js
  * falls back to document.body when '#mw-content-text' isn't registered). */
 function makeFakeDocument({ innerText = "", title = "Test Article - Wikipedia", query = {} } = {}) {
   const q = makeQueryable(query);
+  const body = Object.assign({
+    innerText,
+    remove() {},
+    cloneNode(deep) {
+      const clonedQuery = deep ? cloneRegistry(query, true) : query;
+      return Object.assign({ innerText, remove() {} }, makeQueryable(clonedQuery));
+    },
+  }, q);
   return Object.assign({
     title,
-    body: Object.assign({ innerText }, makeQueryable(query)),
+    body,
   }, q);
 }
 
