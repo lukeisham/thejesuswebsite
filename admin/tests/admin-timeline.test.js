@@ -156,8 +156,8 @@ const {
   totalWidth,
 } = axisSandbox.window.AdminTimelineAxis;
 
-const DEFAULT_PX_PER_PERIOD =
-  axisSandbox.window.AdminTimelineGeometry.DEFAULT_PX_PER_PERIOD;
+const BASE_PX_PER_PERIOD =
+  axisSandbox.window.AdminTimelineGeometry.BASE_PX_PER_PERIOD;
 const periodToXCentered =
   axisSandbox.window.AdminTimelineGeometry.periodToXCentered;
 
@@ -209,29 +209,19 @@ describe("eraOrdinal", function () {
 
 describe("periodToX", function () {
   test("maps the first period to x = 50 at default scale (centred in slot)", function () {
-    // PreIncarnation at index 0 with scale 100: 0*100 + 100/2 + 0 = 50
-    var x = periodToX("PreIncarnation", 100, 0);
+    // PreIncarnation at index 0 with scale 100: 0*100 + 100/2 = 50
+    var x = periodToX("PreIncarnation", 100);
     assert.equal(x, 50);
   });
 
-  test("scales with pxPerUnit", function () {
-    // OldTestament at index 1 with scale 100: 1*100 + 100/2 + 0 = 150
-    var x = periodToX("OldTestament", 100, 0);
+  test("scales with basePx", function () {
+    // OldTestament at index 1 with scale 100: 1*100 + 100/2 = 150
+    var x = periodToX("OldTestament", 100);
     assert.equal(x, 150);
 
-    // Same period at scale 160: 1*160 + 160/2 + 0 = 240
-    x = periodToX("OldTestament", 160, 0);
+    // Same period at scale 160: 1*160 + 160/2 = 240
+    x = periodToX("OldTestament", 160);
     assert.equal(x, 240);
-  });
-
-  test("adds the pan offset", function () {
-    // PreIncarnation with offset 100: 0*100 + 50 + 100 = 150
-    var x = periodToX("PreIncarnation", 100, 100);
-    assert.equal(x, 150);
-
-    // OldTestament with offset -50: 1*100 + 50 + (-50) = 100
-    x = periodToX("OldTestament", 100, -50);
-    assert.equal(x, 100);
   });
 
   test("defaults to 100 px/period when no scale given", function () {
@@ -240,15 +230,28 @@ describe("periodToX", function () {
     assert.equal(x, 150);
   });
 
-  test("DEFAULT_PX_PER_PERIOD is 100", function () {
-    assert.equal(DEFAULT_PX_PER_PERIOD, 100);
+  test("BASE_PX_PER_PERIOD is 100", function () {
+    assert.equal(BASE_PX_PER_PERIOD, 100);
   });
 
   test("periodToXCentered matches periodX formula", function () {
-    // periodIndex * scale + scale/2 + offset
-    assert.equal(periodToXCentered(0, 100, 0), 50);
-    assert.equal(periodToXCentered(5, 100, 0), 550);
-    assert.equal(periodToXCentered(5, 80, 50), 490);
+    // periodIndex * basePx + basePx/2
+    assert.equal(periodToXCentered(0, 100), 50);
+    assert.equal(periodToXCentered(5, 100), 550);
+    assert.equal(periodToXCentered(5, 80), 440);
+  });
+
+  test("dot and era label at same period index resolve to same transformed position", function () {
+    // Since zoom is now a CSS transform (not a coordinate change), both
+    // periodToX and eraStartX always use the same fixed world scale.
+    // A dot at GalileeCallingTwelve and the GalileeMinistry era label
+    // (which starts at the same period) must map to identical X.
+    var dotX = periodToX("GalileeCallingTwelve", 100);
+    var eraX = eraStartX("GalileeMinistry", 100);
+    assert.equal(dotX, eraX);
+    // Same property holds at any scale.
+    assert.equal(periodToX("GalileeCallingTwelve", 80), eraStartX("GalileeMinistry", 80));
+    assert.equal(periodToX("GalileeCallingTwelve", 120), eraStartX("GalileeMinistry", 120));
   });
 });
 
@@ -257,37 +260,30 @@ describe("periodToX", function () {
 describe("xToPeriod", function () {
   test("maps x = 50 to PreIncarnation at default scale (centred snap)", function () {
     // With centering: period 0 centre is at 50, snap range for period 0 is x ∈ [0, 100)
-    var period = xToPeriod(50, 100, 0);
+    var period = xToPeriod(50, 100);
     assert.equal(period, "PreIncarnation");
   });
 
   test("maps x = 150 to OldTestament at default scale", function () {
-    var period = xToPeriod(150, 100, 0);
+    var period = xToPeriod(150, 100);
     assert.equal(period, "OldTestament");
   });
 
   test("snaps to the nearest period", function () {
     // x = 110 is between OldTestament (centre 150) and EarlyLifeUnborn (centre 250) → closer to OldTestament
-    var period = xToPeriod(110, 100, 0);
+    var period = xToPeriod(110, 100);
     assert.equal(period, "OldTestament");
 
     // x = 200 is closer to EarlyLifeUnborn (centre 250)
-    period = xToPeriod(200, 100, 0);
+    period = xToPeriod(200, 100);
     assert.equal(period, "EarlyLifeUnborn");
   });
 
-  test("accounts for pan offset", function () {
-    // With offset 200: periodToX(PreIncarnation, 100, 200) = 0*100 + 50 + 200 = 250
-    // xToPeriod(250, 100, 200): index = round((250 - 200 - 50)/100) = round(0) = 0
-    var period = xToPeriod(250, 100, 200);
-    assert.equal(period, "PreIncarnation");
-  });
-
   test("clamps to the valid range", function () {
-    var period = xToPeriod(-1000, 100, 0);
+    var period = xToPeriod(-1000, 100);
     assert.equal(period, "PreIncarnation");
 
-    period = xToPeriod(999999, 100, 0);
+    period = xToPeriod(999999, 100);
     // Should be the last period (ReturnOfJesus)
     assert.ok(typeof period === "string");
     assert.ok(period.length > 0);
@@ -301,8 +297,8 @@ describe("xToPeriod", function () {
   test("boundary between adjacent periods handles centring correctly", function () {
     // At scale 100, period 0 centre = 50, period 1 centre = 150, boundary = 100.
     // x = 99 should snap to period 0, x = 101 should snap to period 1.
-    assert.equal(xToPeriod(99, 100, 0), "PreIncarnation");
-    assert.equal(xToPeriod(101, 100, 0), "OldTestament");
+    assert.equal(xToPeriod(99, 100), "PreIncarnation");
+    assert.equal(xToPeriod(101, 100), "OldTestament");
   });
 });
 
@@ -310,20 +306,20 @@ describe("xToPeriod", function () {
 
 describe("periodToX ↔ xToPeriod round-trip", function () {
   test("round-trips the first period", function () {
-    var x = periodToX("PreIncarnation", 100, 50);
-    var period = xToPeriod(x, 100, 50);
+    var x = periodToX("PreIncarnation", 100);
+    var period = xToPeriod(x, 100);
     assert.equal(period, "PreIncarnation");
   });
 
   test("round-trips a middle period", function () {
-    var x = periodToX("GalileeSermonMount", 100, 30);
-    var period = xToPeriod(x, 100, 30);
+    var x = periodToX("GalileeSermonMount", 100);
+    var period = xToPeriod(x, 100);
     assert.equal(period, "GalileeSermonMount");
   });
 
   test("round-trips the last period", function () {
-    var x = periodToX("ReturnOfJesus", 100, 0);
-    var period = xToPeriod(x, 100, 0);
+    var x = periodToX("ReturnOfJesus", 100);
+    var period = xToPeriod(x, 100);
     assert.equal(period, "ReturnOfJesus");
   });
 
@@ -337,8 +333,8 @@ describe("periodToX ↔ xToPeriod round-trip", function () {
     var scales = [50, 80, 120, 200];
     for (var s = 0; s < scales.length; s++) {
       for (var p = 0; p < periods.length; p++) {
-        var x = periodToX(periods[p], scales[s], 0);
-        var period = xToPeriod(x, scales[s], 0);
+        var x = periodToX(periods[p], scales[s]);
+        var period = xToPeriod(x, scales[s]);
         assert.equal(
           period,
           periods[p],
@@ -353,23 +349,23 @@ describe("periodToX ↔ xToPeriod round-trip", function () {
 
 describe("eraStartX", function () {
   test("maps PreIncarnation era to PreIncarnation position", function () {
-    var x = eraStartX("PreIncarnation", 100, 0);
-    assert.equal(x, periodToX("PreIncarnation", 100, 0));
+    var x = eraStartX("PreIncarnation", 100);
+    assert.equal(x, periodToX("PreIncarnation", 100));
   });
 
   test("maps GalileeMinistry era to GalileeCallingTwelve position", function () {
-    var x = eraStartX("GalileeMinistry", 100, 0);
-    assert.equal(x, periodToX("GalileeCallingTwelve", 100, 0));
+    var x = eraStartX("GalileeMinistry", 100);
+    assert.equal(x, periodToX("GalileeCallingTwelve", 100));
   });
 
   test("maps PassionWeek era to PassionPalmSunday position", function () {
-    var x = eraStartX("PassionWeek", 100, 0);
-    assert.equal(x, periodToX("PassionPalmSunday", 100, 0));
+    var x = eraStartX("PassionWeek", 100);
+    assert.equal(x, periodToX("PassionPalmSunday", 100));
   });
 
-  test("handles scales and offsets", function () {
-    var x = eraStartX("GalileeMinistry", 120, 50);
-    var expected = periodToX("GalileeCallingTwelve", 120, 50);
+  test("handles different basePx values", function () {
+    var x = eraStartX("GalileeMinistry", 120);
+    var expected = periodToX("GalileeCallingTwelve", 120);
     assert.equal(x, expected);
   });
 });
@@ -490,7 +486,8 @@ describe("era-for-period mapping matches schema CHECK groupings", function () {
 
 describe("drag-snap round-trip identity for every period", function () {
   test("periodToX then xToPeriod returns the same period for all periods", function () {
-    // Verify round-trip for ALL periods at various scales
+    // Verify round-trip for ALL periods — zoom is now a CSS transform,
+    // so world coordinates are always at the fixed BASE_PX_PER_PERIOD = 100.
     var periods = [
       "PreIncarnation",
       "OldTestament",
@@ -532,18 +529,15 @@ describe("drag-snap round-trip identity for every period", function () {
       "ReturnOfJesus",
     ];
 
-    var offsets = [0, 50, -30];
-    for (var o = 0; o < offsets.length; o++) {
-      for (var p = 0; p < periods.length; p++) {
-        var period = periods[p];
-        var x = periodToX(period, 100, offsets[o]);
-        var result = xToPeriod(x, 100, offsets[o]);
-        assert.equal(
-          result,
-          period,
-          "round-trip failed for " + period + " at offset " + offsets[o],
-        );
-      }
+    for (var p = 0; p < periods.length; p++) {
+      var period = periods[p];
+      var x = periodToX(period, 100);
+      var result = xToPeriod(x, 100);
+      assert.equal(
+        result,
+        period,
+        "round-trip failed for " + period,
+      );
     }
   });
 });

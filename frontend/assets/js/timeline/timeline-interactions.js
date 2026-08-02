@@ -2,8 +2,11 @@
  * Timeline interactions module.
  *
  * Handles dot hover → tooltip, dot click → detail panel, era filter chips,
- * cluster hover highlight, drag/momentum horizontal scroll, and panel dismiss.
- * Uses event delegation (JS-6).
+ * cluster hover highlight, zoom/pan (delegated to timeline-zoom), and panel
+ * dismiss. Uses event delegation (JS-6).
+ *
+ * The old drag/momentum horizontal scroll is removed — zoom and pan are now
+ * handled by the Arbor-style transform model in timeline-zoom.js.
  *
  * @module timeline/timeline-interactions
  */
@@ -20,7 +23,6 @@ import {
   applyEraFilter,
   initialEra,
   isVerticalMode,
-  getPxPerPeriod,
 } from "./timeline-render.js";
 import { fetchTimelineEvents, groupEventsByPeriod } from "./timeline-data.js";
 import { showToast } from "../utils/toasts.js";
@@ -213,123 +215,6 @@ function setEraFilter(era) {
   hideDetailPanel();
 }
 
-// ─── Drag / Momentum Scroll ────────────────────────────────────────────────────
-
-let isDragging = false;
-let dragStartX = 0;
-let scrollStartX = 0;
-let velocityX = 0;
-let lastX = 0;
-let lastTime = 0;
-let momentumRaf = null;
-
-/**
- * Whether the user has requested reduced motion (Style guide §6) — momentum
- * decay is a JS-driven animation the global CSS reduced-motion rule can't
- * reach, so it's checked explicitly here.
- *
- * @returns {boolean}
- */
-function prefersReducedMotion() {
-  return (
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-}
-
-/**
- * Clamp a horizontal scroll target to the container's valid scroll range,
- * so drag/momentum can never push it past either end.
- *
- * @param {number} target
- * @returns {number}
- */
-function clampScrollLeft(target) {
-  const max = Math.max(0, container.scrollWidth - container.clientWidth);
-  return Math.max(0, Math.min(max, target));
-}
-
-/**
- * Start drag. Only active in horizontal (desktop/tablet) mode — vertical
- * mode defers entirely to native page scroll.
- */
-function onDragStart(e) {
-  if (isVerticalMode()) return;
-  // Only handle left mouse button
-  if (e.button !== 0) return;
-  isDragging = true;
-  dragStartX = e.clientX;
-  scrollStartX = container.scrollLeft;
-  lastX = e.clientX;
-  lastTime = performance.now();
-  velocityX = 0;
-
-  if (momentumRaf) {
-    cancelAnimationFrame(momentumRaf);
-    momentumRaf = null;
-  }
-
-  container.style.cursor = "grabbing";
-  container.style.userSelect = "none";
-}
-
-/**
- * Drag move.
- */
-function onDragMove(e) {
-  if (!isDragging) return;
-
-  const dx = e.clientX - dragStartX;
-  container.scrollLeft = clampScrollLeft(scrollStartX - dx);
-
-  // Calculate velocity
-  const now = performance.now();
-  const dt = now - lastTime;
-  if (dt > 0) {
-    velocityX = (e.clientX - lastX) / dt; // px/ms
-  }
-  lastX = e.clientX;
-  lastTime = now;
-}
-
-/**
- * End drag — apply momentum.
- */
-function onDragEnd() {
-  if (!isDragging) return;
-  isDragging = false;
-
-  container.style.cursor = "";
-  container.style.removeProperty("user-select");
-
-  // Apply momentum if velocity is significant (skipped under reduced motion)
-  if (Math.abs(velocityX) > 0.05 && !prefersReducedMotion()) {
-    momentumScroll();
-  }
-}
-
-/**
- * Decaying momentum animation. Stops as soon as the scroll position hits
- * either edge, rather than continuing to decay against a clamped value.
- */
-function momentumScroll() {
-  const friction = 0.95;
-  const minVelocity = 0.02;
-
-  momentumRaf = requestAnimationFrame(() => {
-    const raw = container.scrollLeft - velocityX * 16;
-    const next = clampScrollLeft(raw);
-    const hitEdge = next !== raw;
-    container.scrollLeft = next;
-    velocityX *= friction;
-
-    if (!hitEdge && Math.abs(velocityX) > minVelocity) {
-      momentumScroll();
-    } else {
-      momentumRaf = null;
-    }
-  });
-}
 
 // ─── Initialisation ────────────────────────────────────────────────────────────
 
@@ -469,38 +354,8 @@ async function init() {
       });
     });
 
-    // ── Drag / momentum scroll ───────────────────────────────────────────
-    container.addEventListener("mousedown", onDragStart);
-    window.addEventListener("mousemove", onDragMove);
-    window.addEventListener("mouseup", onDragEnd);
-
-    // Touch support (horizontal mode only — vertical mode uses native scroll)
-    container.addEventListener(
-      "touchstart",
-      (e) => {
-        if (isVerticalMode()) return;
-        if (e.touches.length === 1) {
-          onDragStart({
-            button: 0,
-            clientX: e.touches[0].clientX,
-          });
-        }
-      },
-      { passive: false },
-    );
-
-    container.addEventListener(
-      "touchmove",
-      (e) => {
-        if (isDragging && e.touches.length === 1) {
-          e.preventDefault();
-          onDragMove({ clientX: e.touches[0].clientX });
-        }
-      },
-      { passive: false },
-    );
-
-    container.addEventListener("touchend", onDragEnd);
+    // Zoom and pan are handled by the timeline-zoom module (mounted during
+    // renderTimeline via mountZoomControls). No separate drag wiring needed.
   }
 
   // ── Wire era filter chips (JS-6: event delegation) ────────────────────

@@ -2,10 +2,13 @@
  * Shared timeline geometry module.
  *
  * Pure, DOM-free math functions for translating timeline period indices to
- * pixel positions. This is the single canonical source for the centring math
- * and stagger offsets — both the public frontend (ES modules) and the admin
- * editor (plain `<script>` via the admin-timeline shim) must agree on every
- * value defined here.
+ * pixel positions using a fixed base scale. Zoom is now applied entirely by
+ * a CSS transform on a wrapper element (matching the arbor diagram model),
+ * so these functions always return world-coordinate pixels at scale 1.
+ *
+ * This is the single canonical source for the centring math and stagger
+ * offsets — both the public frontend (ES modules) and the admin editor
+ * (plain `<script>` via the admin-timeline shim) must agree on every value.
  *
  * Period indexing and stagger logic:
  * - The database defines 8 timeline eras (PreIncarnation, OldTestament, EarlyLife,
@@ -24,9 +27,15 @@
  * See also:
  * - `database/schema.sql` lines 21–39 (era and period enums)
  * - `frontend/assets/js/timeline/timeline-data.js` (period display labels)
+ * - `frontend/assets/js/timeline/timeline-zoom.js` (zoom scale applied as transform)
  *
  * @module timeline/timeline-geometry
  */
+
+/** Base pixels per period at scale 1. This is the fixed world-coordinate
+ * constant — zoom is applied by the CSS transform wrapper, not by changing
+ * this value. */
+export const BASE_PX_PER_PERIOD = 100;
 
 /**
  * Stagger tiers for events sharing the same period, ordered by increasing
@@ -41,26 +50,25 @@ export const STAGGER_OFFSETS = [0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40];
 
 /**
  * Compute the pixel X position for a period by its canonical index
- * (horizontal mode). Centres the dot within its slot: the dot lands at
- * `periodIndex * slotWidth + slotWidth / 2`, so it sits in the middle of
- * its period column rather than at the left edge.
+ * (horizontal mode, world coordinates at scale 1). Centres the dot within
+ * its slot: `periodIndex * BASE_PX_PER_PERIOD + BASE_PX_PER_PERIOD / 2`.
+ * Zoom is applied by the transform wrapper — do not pass a variable slotWidth.
  *
  * @param {number} periodIndex - zero-based index in the canonical period order
- * @param {number} slotWidth   - pixels per period slot
- * @returns {number} pixel X coordinate
+ * @returns {number} pixel X coordinate in world space
  */
-export function periodX(periodIndex, slotWidth) {
-  return periodIndex * slotWidth + slotWidth / 2;
+export function periodX(periodIndex) {
+  return periodIndex * BASE_PX_PER_PERIOD + BASE_PX_PER_PERIOD / 2;
 }
 
 /**
  * Compute the pixel Y position for a period by its canonical index
- * (vertical/mobile mode). Mirrors `periodX` for the vertical axis.
+ * (vertical/mobile mode, world coordinates at scale 1). Mirrors `periodX`
+ * for the vertical axis.
  *
  * @param {number} periodIndex - zero-based index in the canonical period order
- * @param {number} slotHeight  - pixels per period slot
- * @returns {number} pixel Y coordinate
+ * @returns {number} pixel Y coordinate in world space
  */
-export function periodY(periodIndex, slotHeight) {
-  return periodIndex * slotHeight + slotHeight / 2;
+export function periodY(periodIndex) {
+  return periodIndex * BASE_PX_PER_PERIOD + BASE_PX_PER_PERIOD / 2;
 }

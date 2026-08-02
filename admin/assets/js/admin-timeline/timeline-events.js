@@ -3,7 +3,10 @@
  *
  * Loads timeline events from the API, renders them as draggable markers along
  * the axis, and supports an edit panel for title/date/era.
- * Positions are derived from each event's timeline_period via AdminTimelineAxis.
+ * Positions are derived from each event's timeline_period via AdminTimelineAxis
+ * using fixed world coordinates (BASE_PX_PER_PERIOD = 100). Zoom is applied
+ * by the CSS transform wrapper — all dot and era-label positions exist in a
+ * single transformed coordinate system.
  *
  * Left-click drag (at any zoom level) repositions dots via AdminTimelineNodeDrag
  * with a 4px threshold to disambiguate from click-to-select.
@@ -80,6 +83,7 @@ Events.getEventById = function (id) {
 
 /**
  * Render all event markers onto the timeline axis.
+ * Uses fixed world coordinates — zoom is applied by the CSS transform wrapper.
  * Applies stored/staged offsets on top of cluster-computed positions.
  */
 Events.renderEvents = function () {
@@ -92,11 +96,6 @@ Events.renderEvents = function () {
     existing[i].remove();
   }
 
-  const pxPerPeriod = window.AdminTimelineAxis.getPxPerPeriod();
-  const offsetX = window.AdminTimelineZoom
-    ? window.AdminTimelineZoom.getPanOffset()
-    : 0;
-
   // Group events by period for clustering
   var byPeriod = {};
   for (var j = 0; j < events.length; j++) {
@@ -106,14 +105,20 @@ Events.renderEvents = function () {
     byPeriod[periodGroup].push(evGroup);
   }
 
-  // Use clustering modules for placement and label modes
+  // Use clustering modules for placement and label modes.
+  // They expect a pxPerPeriod value — pass the effective px-per-period
+  // (BASE_PX_PER_PERIOD * current zoom scale) so density tiers work correctly.
+  var effectivePx = window.AdminTimelineZoom
+    ? window.AdminTimelineZoom.effectivePxPerPeriod()
+    : 100;
+
   var positions = window.AdminTimelineClusterPlacement.computeDotPositions(
     byPeriod,
-    pxPerPeriod,
+    100, // base world px — cluster placement uses this for spacing calc
   );
   var densityTier = window.AdminTimelineClusterDensity.getClusterDensity(
     null,
-    pxPerPeriod,
+    effectivePx,
   );
 
   // Build flat descriptor list for label modes
@@ -138,11 +143,7 @@ Events.renderEvents = function () {
   for (var pk2 = 0; pk2 < periodPosKeys.length; pk2++) {
     var period2 = periodPosKeys[pk2];
     var periodPositions2 = positions[period2];
-    var baseX = window.AdminTimelineAxis.periodToX(
-      period2,
-      pxPerPeriod,
-      offsetX,
-    );
+    var baseX = window.AdminTimelineAxis.periodToX(period2, 100);
 
     for (var pi2 = 0; pi2 < periodPositions2.length; pi2++) {
       var pos = periodPositions2[pi2];
@@ -165,7 +166,7 @@ Events.renderEvents = function () {
         var offsetXPixels = window.AdminTimelineNodeBounds
           ? window.AdminTimelineNodeBounds.offsetXToPixel(
               stagedOffset.timeline_offset_x,
-              pxPerPeriod,
+              100, // world px scale
             )
           : 0;
         finalX = baseX + offsetXPixels;
@@ -174,11 +175,11 @@ Events.renderEvents = function () {
         ev2.timeline_offset_x != null ||
         ev2.timeline_offset_y != null
       ) {
-        // API offsets (no staged override) — use != null to handle offset of 0
+        // API offsets (no staged override)
         var apiOffsetXPixels = window.AdminTimelineNodeBounds
           ? window.AdminTimelineNodeBounds.offsetXToPixel(
               ev2.timeline_offset_x != null ? ev2.timeline_offset_x : 0,
-              pxPerPeriod,
+              100,
             )
           : 0;
         finalX = baseX + apiOffsetXPixels;
@@ -188,11 +189,8 @@ Events.renderEvents = function () {
       }
 
       // Match the frontend's vertical positioning: dots sit at
-      // top: ${50 + finalY / 2}% of the timeline container, which
-      // has min-height: 280px (see frontend/assets/js/timeline/timeline-render.js
-      // buildHorizontalLayout). Convert percentage to absolute px for the
-      // admin's fixed-height canvas.
-      var y = (280 * (50 + finalY / 2)) / 100;
+      // top: ${50 + finalY / 2}% of the timeline container.
+      var y = 50 + finalY / 2 + "%";
       var mode = modeByEventId[ev2.id] || "full";
       var el2 = Events.createEventElement(ev2, finalX, y, finalY, mode);
       axisEl.appendChild(el2);
@@ -209,8 +207,8 @@ Events.renderEvents = function () {
  * Create a DOM element for a single timeline event marker.
  *
  * @param {Object} ev
- * @param {number} x        - x position on the axis
- * @param {number} y        - y position (percentage-converted, see renderEvents)
+ * @param {number} x        - x position on the axis, in world pixels
+ * @param {string} y        - y position as a CSS percentage string, e.g. "62%"
  * @param {number} yOffset  - stagger offset from cluster placement
  * @param {string} labelMode - "full"|"truncated"|"hidden"
  * @returns {HTMLElement}
@@ -240,7 +238,7 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
     .join(" ");
   el.style.position = "absolute";
   el.style.left = x + "px";
-  el.style.top = y + "px";
+  el.style.top = y;
   el.setAttribute("aria-label", ev.title || "Timeline event");
   el.title = ev.title || "";
   el.dataset.eventId = String(ev.id);
@@ -270,9 +268,6 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
       label.style.left = "-50px";
       label.style.width = "100px";
       label.style.textAlign = "center";
-      // Label is a child of the absolutely-positioned dot, so its
-      // left/top are relative offsets from the dot’s origin, not
-      // canvas coordinates.
       if (yOffset <= 0) {
         label.style.top = "-22px";
       } else {
@@ -293,12 +288,6 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
     }
     Events.selectEvent(ev.id);
   });
-
-  // Left-drag is handled by AdminTimelineNodeDrag with a 4px threshold:
-  // sub-threshold pointerup fires this click handler (opens the edit panel);
-  // supra-threshold movement activates a drag that writes timeline_offset_x/y
-  // via the staged-changes system. Right-click drag is unchanged (SPREAD only).
-  // See attachDragListeners in renderEvents.
 
   return el;
 };
@@ -416,15 +405,6 @@ Events.onSaveEvent = async function () {
 Events.eraForPeriod = function (period) {
   const ord = window.AdminTimelineAxis.periodOrdinal(period);
 
-  // Map period ordinal ranges to the eight new eras
-  // PreIncarnation: index 0
-  // OldTestament: index 1
-  // EarlyLife: indices 2-5
-  // Life: indices 6-8
-  // GalileeMinistry: indices 9-12
-  // JudeanMinistry: indices 13-17
-  // PassionWeek: indices 18-33
-  // Post-Passion: indices 34+
   if (ord <= 0) return "PreIncarnation";
   if (ord <= 1) return "OldTestament";
   if (ord <= 5) return "EarlyLife";
@@ -434,8 +414,3 @@ Events.eraForPeriod = function (period) {
   if (ord <= 33) return "PassionWeek";
   return "Post-Passion";
 };
-
-
-
-
-

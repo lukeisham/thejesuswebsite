@@ -36,16 +36,14 @@
 }
 
 /* -------------------------------------------------------------------------
-   Timeline Container — Horizontal Scroll
+   Timeline Container — Zoom/Pan Canvas (Arbor-style)
    ------------------------------------------------------------------------- */
 
 .timeline-container {
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: hidden;
     position: relative;
     cursor: grab;
     padding: var(--space-xl) 0 var(--space-3xl);
-    -webkit-overflow-scrolling: touch;
     background-color: var(--bg-primary);
     background-image: radial-gradient(
         circle,
@@ -60,12 +58,40 @@
 }
 
 /* -------------------------------------------------------------------------
-   Timeline Inner — Positioned Canvas
+   Timeline World — Transform Wrapper (for Arbor-style zoom/pan)
+   ------------------------------------------------------------------------- */
+
+.timeline-world {
+    position: absolute;
+    transform-origin: 0 0;
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* -------------------------------------------------------------------------
+   Timeline Inner — Positioned Canvas (child of .timeline-world)
    ------------------------------------------------------------------------- */
 
 .timeline-inner {
     position: relative;
     min-height: 280px;
+}
+
+/* -------------------------------------------------------------------------
+   Zoom Controls (matching .arbor-controls)
+   ------------------------------------------------------------------------- */
+
+.timeline-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    padding: var(--space-sm) var(--space-md);
 }
 
 /* -------------------------------------------------------------------------

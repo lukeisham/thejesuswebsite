@@ -6,6 +6,9 @@
  * `frontend/assets/js/timeline/timeline-render.js`) so the admin timeline
  * editor renders dots, labels, and era markers with identical dimensions.
  *
+ * All positions now use the fixed BASE_PX_PER_PERIOD (100) world coordinate.
+ * Zoom is applied via the CSS transform wrapper — no variable slot width needed.
+ *
  * Keep this file in sync with the public timeline modules — they must agree
  * on every value.
  *
@@ -93,22 +96,20 @@ window.AdminTimelineGeometry = {
   /** Stagger offsets (pixels) for events sharing the same period. */
   STAGGER_OFFSETS: [0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40],
 
-  /** Pixels per period unit on the default scale.
-   * Must match frontend's getPxPerPeriod() default (100). */
-  DEFAULT_PX_PER_PERIOD: 100,
+  /** Fixed base pixels per period at world scale (zoom is applied by CSS transform). */
+  BASE_PX_PER_PERIOD: 100,
 
   /**
    * Compute the pixel X position for a period by its canonical index,
    * centering the dot within its slot (matches frontend periodX).
+   * Uses fixed world pixels — zoom is applied by the transform wrapper.
    *
    * @param {number} periodIndex - zero-based index in PERIOD_ORDER
-   * @param {number} pxPerUnit   - pixels per period slot
-   * @param {number} offsetX     - horizontal pan offset in pixels
-   * @returns {number} pixel X coordinate
+   * @param {number} [basePx=100] - base pixels per period
+   * @returns {number} pixel X coordinate in world space
    */
-  periodToXCentered: function (periodIndex, pxPerUnit, offsetX) {
-    var scale = pxPerUnit || this.DEFAULT_PX_PER_PERIOD;
-    var off = offsetX || 0;
-    return periodIndex * scale + scale / 2 + off;
+  periodToXCentered: function (periodIndex, basePx) {
+    var scale = basePx || this.BASE_PX_PER_PERIOD;
+    return periodIndex * scale + scale / 2;
   },
 };
