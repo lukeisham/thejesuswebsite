@@ -224,6 +224,16 @@ function querySelectorAllRaw(root, selector) {
   return out;
 }
 
+function deepCloneRawNode(node) {
+  const clone = { tagName: node.tagName, attrs: Object.assign({}, node.attrs), text: node.text, children: [], parentElement: null };
+  clone.children = node.children.map((c) => {
+    const cc = deepCloneRawNode(c);
+    cc.parentElement = clone;
+    return cc;
+  });
+  return clone;
+}
+
 function wrap(node) {
   if (node.__wrapped) return node.__wrapped;
   const w = {
@@ -245,6 +255,18 @@ function wrap(node) {
     },
     querySelectorAll(selector) {
       return querySelectorAllRaw(node, selector).map(wrap);
+    },
+    remove() {
+      if (node.parentElement) {
+        const idx = node.parentElement.children.indexOf(node);
+        if (idx !== -1) node.parentElement.children.splice(idx, 1);
+      }
+    },
+    cloneNode(deep) {
+      const cloned = deep
+        ? deepCloneRawNode(node)
+        : { tagName: node.tagName, attrs: Object.assign({}, node.attrs), text: node.text, children: [], parentElement: null };
+      return wrap(cloned);
     },
   };
   node.__wrapped = w;

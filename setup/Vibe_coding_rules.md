@@ -32,6 +32,34 @@ Use `async/await` + `try/catch` for all async code. Show loading states before f
 **JS-6** — Safe DOM Handling  
 Use event delegation for dynamic elements. Remove listeners when elements are removed. Never use `innerHTML` with user data. Cache repeated DOM queries.
 
+## Test Rules
+**TEST-1** — `node:test` Only, No External Runners  
+Write tests with `node:test` + `node:assert/strict` exclusively (SR-2: no new deps for non-visual code). No Jest, Mocha, Vitest, Sinon, or mocking libraries — build fakes by hand, as `admin/tests/admin-editor-utils.test.js` does with its minimal fake DOM object.
+
+**TEST-2** — Smoke, Not Exhaustive  
+These are smoke tests: prove each module loads without throwing and does its core job, not every edge case. At minimum assert (1) the module imports/requires cleanly, (2) the happy path produces the right output, and (3) one representative guard or failure path behaves correctly. Stop there — chasing full branch coverage belongs in a real unit-test suite this project doesn't run.
+
+**TEST-3** — File Naming & Location  
+Place tests in `<area>/tests/<module>.test.js` (or `<area>/assets/js/<subdir>/tests/<module>.test.js` for nested frontend modules, mirroring the file being tested — see `frontend/assets/js/arbor/tests/arbor-render.test.js`). One test file per source module; name it after the module, not the feature.
+
+**TEST-4** — Isolated, In-Memory, No Network  
+API tests get a fresh database via `createTestDb()` (`api/tests/helpers/db.js`), which builds an in-memory SQLite instance from `database/schema.sql` — never point a test at the real `database/thejesuswebsite.db`. Never make real network requests. Reset any shared module state (e.g. `clearSessions()`) in `afterEach` so one test's state can't leak into the next.
+
+**TEST-5** — Deterministic, No Sleeps  
+Tests must not rely on `setTimeout`/sleep-based waiting to pass. Await the real async operation (a promise, an HTTP response, a DB write) instead of guessing a delay. The whole suite (`npm test`) should run in seconds — a slow test is usually one doing more than a smoke test needs.
+
+**TEST-6** — Assert on Behavior, Not Absence of a Throw  
+A test that only checks "it didn't crash" is not a smoke test — it's a false sense of coverage. Assert on the actual output, returned value, HTTP status, or DOM/state change the code is supposed to produce, per JS-2's "never fail silently."
+
+**TEST-7** — Auth Routes Get an Unauthenticated-Access Test  
+Every route mounted behind `middleware/auth` must have a test proving it returns 401 without a session cookie, and a companion test proving a valid session passes through (see `api/tests/auth-guard.test.js`). New routes are not done until both exist.
+
+**TEST-8** — DOM-Dependent Modules: Fake DOM, Not a DOM Library  
+For admin/frontend modules that touch `document`, load the real source into a `vm` context (or call it directly) against a small hand-built fake DOM object exposing only the methods/properties the module actually uses — as `admin/tests/admin-editor-utils.test.js` does. Do not add `jsdom` or similar (SR-2).
+
+**TEST-9** — Mirror the Logic, Don't Duplicate the Bug  
+Always import the real module when you can. When a test must recreate a small piece of source logic instead of importing it directly (e.g. `announce.test.js`'s `arborAriaLabel` helper), comment that it mirrors a named source file/function, and update the test if that logic changes — a passing test against a stale copy proves nothing.
+
 ## CSS Rules
 **CSS-1** — One File, One Job  
 Each CSS file styles exactly one component, layout, or page. Keep files under 150 lines. Split when they grow. No unrelated styles.

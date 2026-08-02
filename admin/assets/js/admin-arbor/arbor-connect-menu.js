@@ -96,23 +96,17 @@ window.AdminArborConnectMenu = {};
       // Position the menu, clamping to viewport
       var menuWidth = 140;
       var menuHeight = VALID_TYPES.length * 36 + 16;
-      var viewW = window.innerWidth;
-      var viewH = window.innerHeight;
+      var pos = _clampMenuPosition(
+        screenX,
+        screenY,
+        menuWidth,
+        menuHeight,
+        window.innerWidth,
+        window.innerHeight,
+      );
 
-      var left = screenX;
-      var top = screenY;
-
-      if (left + menuWidth > viewW) {
-        left = viewW - menuWidth - 8;
-      }
-      if (top + menuHeight > viewH) {
-        top = viewH - menuHeight - 8;
-      }
-      if (left < 0) left = 8;
-      if (top < 0) top = 8;
-
-      menuEl.style.left = left + "px";
-      menuEl.style.top = top + "px";
+      menuEl.style.left = pos.left + "px";
+      menuEl.style.top = pos.top + "px";
       menuEl.classList.add("admin-arbor-connect-menu--open");
 
       if (backdropEl) {
@@ -213,4 +207,30 @@ window.AdminArborConnectMenu = {};
       }
     }
   };
+
+  /* ── Pure helpers ───────────────────────────────────────────────────────────── */
+
+  /**
+   * Clamp a menu position to the viewport. Exported for testing.
+   *
+   * @param {number} screenX
+   * @param {number} screenY
+   * @param {number} menuWidth
+   * @param {number} menuHeight
+   * @param {number} viewW
+   * @param {number} viewH
+   * @returns {{left: number, top: number}}
+   */
+  function _clampMenuPosition(screenX, screenY, menuWidth, menuHeight, viewW, viewH) {
+    var left = screenX;
+    var top = screenY;
+    if (left + menuWidth > viewW) left = viewW - menuWidth - 8;
+    if (top + menuHeight > viewH) top = viewH - menuHeight - 8;
+    if (left < 0) left = 8;
+    if (top < 0) top = 8;
+    return { left: left, top: top };
+  }
+
+  // Expose for tests
+  ConnectMenu._clampMenuPosition = _clampMenuPosition;
 })();
