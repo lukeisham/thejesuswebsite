@@ -52,6 +52,8 @@ main {
     position: relative;
     border-top: 1px solid var(--admin-border);
     cursor: grab;
+    /* Padding parity with frontend timeline-container: var(--space-xl) top/bottom */
+    padding: var(--space-xl) 0 var(--space-3xl);
 }
 
 /* Horizontal spine line at vertical center */

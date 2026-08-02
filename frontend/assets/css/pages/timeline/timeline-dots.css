@@ -77,3 +77,12 @@
 .timeline-dot.dot-cat--object {
     background: var(--text-muted);
 }
+
+/* -------------------------------------------------------------------------
+   Cluster Glow
+   Toggled by JS when hovering a dot to highlight its period-siblings.
+   ------------------------------------------------------------------------- */
+
+.timeline-dot--cluster-glow {
+    box-shadow: var(--timeline-hover-shadow);
+}

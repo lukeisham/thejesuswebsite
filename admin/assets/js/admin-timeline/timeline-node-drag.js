@@ -286,9 +286,19 @@ window.AdminTimelineNodeDrag = {};
     var finalY = offsetY * 280;
     dot.style.top = 50 + finalY / 2 + "%";
 
-    var label = dot.querySelector(".admin-timeline-event-label");
-    if (label) {
-      label.style.top = (offsetY <= 0 ? "-22px" : "8px");
+    // Label is now a sibling of the dot (not a child). Update its
+    // position to track the dot's new position after drag.
+    var eventId = dot.dataset.eventId;
+    if (eventId) {
+      var label = document.querySelector(
+        '.admin-timeline-event-label[data-event-id="' + eventId + '"]'
+      );
+      if (label) {
+        label.style.left = dot.style.left;
+        label.style.top = (offsetY <= 0
+          ? (50 + finalY / 2 - 10) + "%"
+          : (50 + finalY / 2 + 10) + "%");
+      }
     }
   }
 

@@ -37,6 +37,7 @@ import {
 } from "../cluster-logic/cluster-labels.js";
 import { periodX, periodY, BASE_PX_PER_PERIOD } from "./timeline-geometry.js";
 import { getScale, mountZoomControls } from "./timeline-zoom.js";
+import { resolveLabelCollisions as resolveCollisionsShared } from "../cluster-logic/cluster-label-collision.js";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -569,104 +570,44 @@ function buildVerticalLayout(groupedEvents, activeEra) {
 }
 
 /**
- * Attempt to push a single label descriptor to a higher tier when its
- * bounding rect overlaps a previously placed sibling on the same axis.
- *
- * @param {Object} desc
- * @param {number} tier
- * @param {Array} placedRects
- * @param {'x'|'y'} axis
- * @param {number} maxTier
- */
-function applyTier(desc, tier, placedRects, axis, maxTier) {
-  const el = desc.el;
-  if (!el) return;
-
-  const primaryDiff = axis === "x" ? TIER_STEP_PCT : TIER_STEP_PX;
-  const primaryKey = axis === "x" ? "left" : "top";
-
-  el.style[primaryKey] = desc.originalTop;
-  const rect = el.getBoundingClientRect();
-  for (let i = 0; i < placedRects.length; i++) {
-    if (rectsOverlap(rect, placedRects[i])) {
-      const currentVal = parseFloat(el.style[primaryKey]);
-      el.style[primaryKey] =
-        (Number.isFinite(currentVal) ? currentVal : 0) +
-        (el.dataset._tierSign === "negative" ? -primaryDiff : primaryDiff);
-      break;
-    }
-  }
-  el.dataset._tierSign = el.dataset._tierSign || "positive";
-}
-
-/**
- * Check whether two bounding rectangles overlap with a gap allowance.
- * @param {DOMRect} a
- * @param {DOMRect} b
- * @returns {boolean}
- */
-function rectsOverlap(a, b) {
-  if (!a || !b) return false;
-  return (
-    a.right + LABEL_GAP_PX > b.left &&
-    b.right + LABEL_GAP_PX > a.left &&
-    a.bottom + LABEL_GAP_PX > b.top &&
-    b.bottom + LABEL_GAP_PX > a.top
-  );
-}
-
-/**
- * Resolve label collisions after layout: iterate through descriptors sorted
- * by tier within each axis, detect bounding-box overlap, and push labels to
- * higher tiers until they no longer collide.
+ * Adapter: measure DOM label elements, delegate collision resolution
+ * to the shared cluster-label-collision.js module, and apply results.
  *
  * @param {Array} descriptors — array of { el, tierIndex, axis, originalTop }
  */
 function resolveLabelCollisions(descriptors) {
   if (!descriptors || descriptors.length === 0) return;
+
   const axis = descriptors[0].axis;
-  const maxTier = 10;
-
-  // Group by tier within the same axis
-  const items = descriptors.map((d) => ({
-    eventId: d.el.dataset.eventId,
-    originalStyle: d.originalTop || d.originalLeft || "",
-    rect: d.el.getBoundingClientRect(),
-    el: d.el,
-    tierIndex: d.tierIndex,
-  }));
-
-  // Sort by tierIndex ascending
-  items.sort((a, b) => a.tierIndex - b.tierIndex);
-
-  const primaryDiff = axis === "x" ? TIER_STEP_PCT : TIER_STEP_PX;
+  const primaryStep = axis === "x" ? TIER_STEP_PCT : TIER_STEP_PX;
   const primaryKey = axis === "x" ? "left" : "top";
 
-  const placedRects = [];
+  // Build collision descriptors with measured DOM rects
+  const collisionDescs = descriptors.map((d) => {
+    const rect = d.el.getBoundingClientRect();
+    return {
+      el: d.el,
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      width: rect.width,
+      height: rect.height,
+      tierIndex: d.tierIndex,
+      axis: axis,
+      primaryStep: primaryStep,
+    };
+  });
 
-  for (const item of items) {
-    let tier = item.tierIndex;
-    let rect = item.el.getBoundingClientRect();
-    let collides = false;
+  // Run the shared collision resolver
+  const resolved = resolveCollisionsShared(collisionDescs);
 
-    do {
-      collides = false;
-      for (const pr of placedRects) {
-        if (rectsOverlap(rect, pr)) {
-          collides = true;
-          tier++;
-          // Push label further
-          const currentVal = parseFloat(item.el.style[primaryKey]);
-          item.el.style[primaryKey] =
-            (Number.isFinite(currentVal) ? currentVal : 0) +
-            (tier % 2 === 1 ? -primaryDiff : primaryDiff);
-          rect = item.el.getBoundingClientRect();
-          break;
-        }
-      }
-    } while (collides && tier < maxTier);
-
-    placedRects.push(rect);
+  // Apply resolved positions back to the DOM.
+  for (const item of resolved) {
+    if (item.tierIndex <= 0) continue;
+    const direction = item.tierIndex % 2 === 1 ? -1 : 1;
+    const shift = direction * primaryStep * Math.ceil(item.tierIndex / 2);
+    const currentVal = parseFloat(item.el.style[primaryKey]);
+    const newVal = (Number.isFinite(currentVal) ? currentVal : 0) + shift;
+    item.el.style[primaryKey] = newVal + (axis === "x" ? "%" : "px");
   }
 }
 
