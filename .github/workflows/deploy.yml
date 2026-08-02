@@ -9,18 +9,34 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /var/www/thejesuswebsite
-            git fetch origin main
-            git reset --hard origin/main
-            PROCESS_MANAGER=pm2 ./deploy.sh
+      # Deploy over HTTPS, not SSH: GitHub-hosted Actions runners live on
+      # Azure datacenter IP ranges that get silently dropped by this VPS
+      # host's network-edge protection on port 22 (see setup/Issues.md), even
+      # though SSH works fine from every other network. HTTPS/443 does not
+      # have this problem. This endpoint runs the identical git-reset +
+      # deploy.sh sequence the old SSH step ran (api/routes/deploy-webhook.js),
+      # synchronously, so this step still fails the job when the deploy fails.
+      - name: Deploy via webhook
+        run: |
+          set -euo pipefail
+
+          http_code=$(curl -sS -w '%{http_code}' -o response.json -X POST \
+            "https://thejesuswebsite.org/api/deploy-webhook" \
+            -H "X-Deploy-Token: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}" \
+            --max-time 280)
+
+          body=$(cat response.json)
+          echo "$body"
+
+          if [[ "$http_code" != "200" ]]; then
+            {
+              echo "❌ Deploy webhook FAILED — HTTP $http_code"
+              echo "Response body: $body"
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "✅ Deploy webhook succeeded" | tee -a "$GITHUB_STEP_SUMMARY"
 
       # Purge Cloudflare's edge cache so the deploy is visible immediately,
       # instead of waiting out the HTML edge cache's max-age=60 window. Must
