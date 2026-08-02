@@ -72,6 +72,12 @@
     margin-bottom: var(--space-sm);
 }
 
+.blog-body .text-highlight {
+    background: color-mix(in srgb, var(--accent-gold) 30%, transparent);
+    border-radius: var(--radius-sm);
+    padding: 0.05em 0.3em;
+}
+
 /* -------------------------------------------------------------------------
    Pull Quotes (distinct from block quotes)
    ------------------------------------------------------------------------- */

@@ -3,7 +3,7 @@
  *
  * Supports the subset needed by blog body content:
  *   - # / ## / ### headings
- *   - **bold** and *italic*
+ *   - **bold**, *italic*, and `highlight`
  *   - \\ forced line break (renders as <br>; works anywhere inline text is
  *     processed — paragraphs, list items, headings, table cells. Two
  *     consecutive \\ \\ produce a blank line's worth of gap.)
@@ -72,9 +72,9 @@ function escapePreservingMarkers(text) {
 }
 
 /**
- * Process inline formatting inside a line: **bold** and *italic*.
- * Handles bold first (double asterisk) so bold-italic nesting works.
- * Escapes text inside tags.
+ * Process inline formatting inside a line: **bold**, *italic*, and
+ * `highlight`. Handles bold first (double asterisk) so bold-italic nesting
+ * works. Escapes text inside tags.
  *
  * @param {string} line - A single line of text (already escaped)
  * @returns {string} HTML with inline formatting applied
@@ -87,6 +87,10 @@ function formatInline(line) {
   // Italic: *text* (but not **)
   result = result.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, (_, text) => {
     return `<em>${escapePreservingMarkers(text)}</em>`;
+  });
+  // Highlight: `text`
+  result = result.replace(/`(.+?)`/g, (_, text) => {
+    return `<span class="text-highlight">${escapePreservingMarkers(text)}</span>`;
   });
   // Forced line break: \\ (runs last so a token adjacent to **bold**\\ is
   // not consumed by the emphasis regexes above). A single backslash is
