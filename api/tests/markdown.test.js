@@ -30,6 +30,13 @@ describe("renderMarkdown", () => {
     assert.ok(result.includes("<em>italic</em>"));
   });
 
+  test("highlight: `text`", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const input = "This is a `highlighted` word.";
+    const result = renderMarkdown(input);
+    assert.ok(result.includes('<span class="text-highlight">highlighted</span>'), result);
+  });
+
   test("bold-italic nesting: **text with *italic* inside**", async () => {
     const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = "Outer **bold and *nested italic* here** end.";
