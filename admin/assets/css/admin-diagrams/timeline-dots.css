@@ -75,7 +75,7 @@
     background: var(--text-muted);
 }
 
-/* ── Event Labels ──────────────────────────────────────────────────────── */
+/* ── Event Labels (sibling-positioned, matching frontend .timeline-label) ─ */
 
 .admin-timeline-event-label {
     position: absolute;
@@ -86,6 +86,9 @@
     pointer-events: none;
     user-select: none;
     line-height: var(--leading-small);
+    max-width: 100px;
+    text-align: center;
+    transform: translateX(-50%);
 }
 
 /* Clustering label modes */

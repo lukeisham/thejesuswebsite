@@ -324,7 +324,6 @@ async function init() {
     });
 
     // ── Cluster hover highlight ─────────────────────────────────────────
-    const CLUSTER_GLOW = "0 0 0 4px rgba(92, 64, 51, 0.15)";
 
     delegate(container, ".timeline-dot", "mouseenter", (_e, dot) => {
       const period = dot.dataset.period;
@@ -335,7 +334,7 @@ async function init() {
           `.timeline-dot[data-period="${CSS.escape(period)}"]`,
         );
         siblings.forEach((s) => {
-          s.style.boxShadow = CLUSTER_GLOW;
+          s.classList.add("timeline-dot--cluster-glow");
         });
       });
     });
@@ -349,7 +348,7 @@ async function init() {
           `.timeline-dot[data-period="${CSS.escape(period)}"]`,
         );
         siblings.forEach((s) => {
-          s.style.boxShadow = "";
+          s.classList.remove("timeline-dot--cluster-glow");
         });
       });
     });

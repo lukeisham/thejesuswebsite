@@ -194,12 +194,58 @@ Events.renderEvents = function () {
       var mode = modeByEventId[ev2.id] || "full";
       var el2 = Events.createEventElement(ev2, finalX, y, finalY, mode);
       axisEl.appendChild(el2);
+
+      // Create label as sibling element (matching frontend DOM shape)
+      if (mode !== "hidden") {
+        var labelText = ev2.title || "";
+        if (mode === "truncated" && labelText.length > 28) {
+          labelText = labelText.slice(0, 26) + "\u2026";
+        }
+        if (labelText) {
+          var label = document.createElement("span");
+          var labelClasses = ["admin-timeline-event-label"];
+          if (mode === "truncated") labelClasses.push("label--truncated");
+          label.className = labelClasses.join(" ");
+          label.style.position = "absolute";
+          label.style.left = finalX + "px";
+          label.style.top = yOffset <= 0
+            ? (50 + finalY / 2 - 10) + "%"
+            : (50 + finalY / 2 + 10) + "%";
+          label.style.transform = "translateX(-50%)";
+          label.style.maxWidth = "100px";
+          label.style.textAlign = "center";
+          label.style.fontSize = "var(--text-2xs)";
+          label.style.fontFamily = "var(--font-sans)";
+          label.style.color = "var(--text-primary)";
+          label.style.whiteSpace = "nowrap";
+          label.style.pointerEvents = "none";
+          label.style.userSelect = "none";
+          label.style.lineHeight = "var(--leading-small)";
+          label.textContent = labelText;
+          label.dataset.eventId = String(ev2.id);
+          label.dataset.tierIndex = "0";
+          label.dataset.originalTop = (yOffset <= 0
+            ? (50 + finalY / 2 - 10)
+            : (50 + finalY / 2 + 10)) + "%";
+          axisEl.appendChild(label);
+        }
+      }
     }
   }
 
   // Attach left- and right-click drag listeners to all dots
   if (window.AdminTimelineNodeDrag && window.AdminTimelineNodeDrag.attachDragListeners) {
     window.AdminTimelineNodeDrag.attachDragListeners();
+  }
+
+  // Run collision resolution on all sibling labels
+  if (window.AdminTimelineClusterLabelCollision && window.AdminTimelineClusterLabelCollision.resolve) {
+    var labelEls = axisEl.querySelectorAll(".admin-timeline-event-label");
+    window.AdminTimelineClusterLabelCollision.resolve(
+      Array.prototype.slice.call(labelEls),
+      "x",
+      12 // TIER_STEP_PCT matching frontend
+    );
   }
 };
 
@@ -248,35 +294,9 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
     el.classList.add("admin-timeline-event--selected");
   }
 
-  // Label above the dot (truncated title) — respects clustering labelMode
-  var mode = labelMode || "full";
-  if (mode !== "hidden") {
-    var labelText = ev.title || "";
-    if (mode === "truncated" && labelText.length > 28) {
-      labelText = labelText.slice(0, 26) + "\u2026";
-    }
-    if (labelText) {
-      var label = document.createElement("span");
-      label.className = [
-        "admin-timeline-event-label",
-        mode === "truncated" ? "label--truncated" : "",
-      ]
-        .filter(Boolean)
-        .join(" ");
-      label.style.position = "absolute";
-      // Centre the label horizontally over the dot.
-      label.style.left = "-50px";
-      label.style.width = "100px";
-      label.style.textAlign = "center";
-      if (yOffset <= 0) {
-        label.style.top = "-22px";
-      } else {
-        label.style.top = "8px";
-      }
-      label.textContent = labelText;
-      el.appendChild(label);
-    }
-  }
+  // Labels are now rendered as sibling elements in renderEvents
+  // (matching frontend DOM shape for shared collision resolution).
+  // createEventElement no longer creates labels.
 
   el.addEventListener("click", function (e) {
     e.stopPropagation();
