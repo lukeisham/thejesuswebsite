@@ -154,6 +154,9 @@ def load_family_store(family_name: str, embedder: Embedder) -> Optional[VectorSt
     Returns:
         A loaded VectorStore, or None if the store doesn't exist on disk.
     """
+    if embedder is None:
+        return None
+
     store_name = FAMILY_STORE_MAP.get(family_name, family_name)
     store_dir = get_family_store_path(store_name)
     index_path = store_dir / f"{family_name}.index"
