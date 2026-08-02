@@ -41,8 +41,7 @@ main {
 .admin-timeline-canvas {
     flex: 1;
     min-height: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: hidden;
     background-color: var(--bg-primary);
     background-image: radial-gradient(
         circle,
@@ -53,7 +52,6 @@ main {
     position: relative;
     border-top: 1px solid var(--admin-border);
     cursor: grab;
-    -webkit-overflow-scrolling: touch;
 }
 
 /* Horizontal spine line at vertical center */
@@ -68,6 +66,52 @@ main {
     pointer-events: none;
     z-index: 0;
     transform: translateY(-50%);
+}
+
+/* -------------------------------------------------------------------------
+   Admin Timeline World — Transform Wrapper (Arbor-style zoom/pan)
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-world {
+    position: absolute;
+    transform-origin: 0 0;
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* -------------------------------------------------------------------------
+   Zoom Controls (matching .arbor-controls, two buttons only)
+   ------------------------------------------------------------------------- */
+
+.admin-timeline-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    padding: var(--space-sm) var(--space-md);
+}
+
+.admin-timeline-controls__btn {
+    padding: var(--space-xs) var(--space-md);
+    font-size: 1rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    min-height: 36px;
+    min-width: 44px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    transition: background var(--duration-fast);
+}
+
+.admin-timeline-controls__btn:hover {
+    background: var(--border);
 }
 
 /* ── Axis ──────────────────────────────────────────────────────────────── */

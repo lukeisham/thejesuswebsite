@@ -6,14 +6,15 @@
  * disambiguates click-to-select (sub-threshold) from drag.
  *
  * Right-click drag (button === 2) repositions dots only when zoomed in to
- * SPREAD density (pxPerPeriod >= 120) — unchanged from the original behaviour.
+ * SPREAD density — unchanged from the original behaviour.
+ *
+ * Coordinates now use the fixed world scale (BASE_PX_PER_PERIOD = 100).
+ * Zoom is applied by a CSS transform on the wrapper — drag deltas are
+ * screen-space pixels converted to offset fractions using the fixed scale.
  *
  * Pointer-event based (captures, prevents default, cleans up properly per JS-6).
  * Clamps movement via AdminTimelineNodeBounds; stages offset changes via
  * AdminTimelineStaged.stageOffset().
- *
- * Contextmenu default is suppressed for dot elements so right-click doesn't show
- * a browser menu.
  *
  * @module admin-timeline/timeline-node-drag
  */
@@ -28,6 +29,9 @@ window.AdminTimelineNodeDrag = {};
   /** Minimum pointer movement (px) before a left-click becomes a drag. */
   var CANDIDATE_DRAG_PX = 4;
 
+  /** Fixed base pixels per period at world scale. */
+  var BASE_PX = 100;
+
   /* ── State ─────────────────────────────────────────────────────────────────── */
 
   /** @type {Object|null} Current drag state. */
@@ -37,7 +41,6 @@ window.AdminTimelineNodeDrag = {};
 
   /**
    * Attach left- and right-click drag listeners to all timeline event dots.
-   * Called after dots are rendered or whenever the DOM is updated.
    *
    * @returns {void}
    */
@@ -45,10 +48,8 @@ window.AdminTimelineNodeDrag = {};
     var dots = document.querySelectorAll(".admin-timeline-event");
     for (var i = 0; i < dots.length; i++) {
       var dot = dots[i];
-      // Remove old listeners if reattaching
       dot.removeEventListener("pointerdown", onDotPointerDown);
       dot.removeEventListener("contextmenu", onDotContextMenu);
-      // Attach fresh listeners
       dot.addEventListener("pointerdown", onDotPointerDown);
       dot.addEventListener("contextmenu", onDotContextMenu);
     }
@@ -56,25 +57,10 @@ window.AdminTimelineNodeDrag = {};
 
   /* ── Pointer event handlers ─────────────────────────────────────────────────── */
 
-  /**
-   * Contextmenu handler — prevent the browser context menu on dots.
-   *
-   * @param {PointerEvent} e
-   */
   function onDotContextMenu(e) {
     e.preventDefault();
   }
 
-  /**
-   * Pointerdown on a dot.
-   *
-   * Right-click (button 2): immediate drag start if SPREAD density (unchanged).
-   * Left-click (button 0):  records a candidate drag; the drag only activates
-   * after the pointer moves >4px from the down position.  Sub-threshold
-   * pointerup lets the normal click event fire through to open the edit panel.
-   *
-   * @param {PointerEvent} e
-   */
   function onDotPointerDown(e) {
     var dot = e.currentTarget;
     var eventId = parseInt(dot.dataset.eventId, 10);
@@ -85,21 +71,20 @@ window.AdminTimelineNodeDrag = {};
       : null;
     if (!ev) return;
 
-    var pxPerPeriod = window.AdminTimelineAxis
-      ? window.AdminTimelineAxis.getPxPerPeriod()
-      : 100;
-
-    // ── Right-click drag (unchanged) ──────────────────────────────────────
+    // ── Right-click drag ────────────────────────────────────────────────────
 
     if (e.button === 2) {
       e.preventDefault();
       e.stopPropagation();
 
+      var effectivePx = window.AdminTimelineZoom
+        ? window.AdminTimelineZoom.effectivePxPerPeriod()
+        : BASE_PX;
+
       var density = window.AdminTimelineClusterDensity
-        ? window.AdminTimelineClusterDensity.getClusterDensity(null, pxPerPeriod)
+        ? window.AdminTimelineClusterDensity.getClusterDensity(null, effectivePx)
         : "normal";
 
-      // Only allow right-drag in SPREAD density
       if (
         density !==
         (window.AdminTimelineClusterDensity
@@ -109,7 +94,6 @@ window.AdminTimelineNodeDrag = {};
         return;
       }
 
-      // Capture pointer and start drag immediately
       dot.setPointerCapture(e.pointerId);
 
       var currentLeft = parseFloat(dot.style.left) || 0;
@@ -118,7 +102,7 @@ window.AdminTimelineNodeDrag = {};
       var startOffsetXCombined = (ev.timeline_offset_x || 0) +
         (self.getStagedOffsetX(eventId) || 0);
       var startOffsetXToPixels = window.AdminTimelineNodeBounds
-        ? window.AdminTimelineNodeBounds.offsetXToPixel(startOffsetXCombined, pxPerPeriod)
+        ? window.AdminTimelineNodeBounds.offsetXToPixel(startOffsetXCombined, BASE_PX)
         : 0;
 
       dragState = {
@@ -131,11 +115,10 @@ window.AdminTimelineNodeDrag = {};
         startOffsetX: startOffsetXCombined,
         startOffsetY: (ev.timeline_offset_y || 0) +
           (self.getStagedOffsetY(eventId) || 0),
-        pxPerPeriod: pxPerPeriod,
         baseLeftPx: currentLeft - startOffsetXToPixels,
         baseTopPx: 140,
         button: 2,
-        _active: true, // right-drag is active immediately
+        _active: true,
       };
 
       dot.classList.add("admin-timeline-event--dragging");
@@ -146,12 +129,10 @@ window.AdminTimelineNodeDrag = {};
       return;
     }
 
-    // ── Left-click candidate drag ─────────────────────────────────────────
+    // ── Left-click candidate drag ───────────────────────────────────────────
 
     if (e.button !== 0) return;
 
-    // Record candidate state — don't capture the pointer yet so the
-    // click event can still fire if the user doesn't drag.
     dragState = {
       eventId: eventId,
       event: ev,
@@ -159,10 +140,8 @@ window.AdminTimelineNodeDrag = {};
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
-      pxPerPeriod: pxPerPeriod,
       button: 0,
-      _active: false, // becomes true once pointer moves > CANDIDATE_DRAG_PX
-      // Filled in when the drag activates
+      _active: false,
       startOffsetX: null,
       startOffsetY: null,
       baseLeftPx: null,
@@ -174,18 +153,10 @@ window.AdminTimelineNodeDrag = {};
     document.addEventListener("pointercancel", onDocPointerUp, true);
   }
 
-  /**
-   * Pointermove during drag or candidate drag.
-   *
-   * For left-drag candidates that haven't activated yet, checks the 4px
-   * threshold and transitions to active drag when exceeded.
-   *
-   * @param {PointerEvent} e
-   */
   function onDocPointerMove(e) {
     if (!dragState || e.pointerId !== dragState.pointerId) return;
 
-    // ── Threshold check for left-drag candidates ──────────────────────────
+    // ── Threshold check for left-drag candidates ────────────────────────────
 
     if (!dragState._active) {
       if (dragState.button !== 0) return;
@@ -201,21 +172,18 @@ window.AdminTimelineNodeDrag = {};
       var dot = dragState.dot;
       var eventId = dragState.eventId;
       var ev = dragState.event;
-      var pxPerPeriod = dragState.pxPerPeriod;
 
       dragState._active = true;
-      dot._timelineDragActive = true;        // signal the click handler to skip selection
+      dot._timelineDragActive = true;
 
-      // Capture pointer (stops the click from firing)
       dot.setPointerCapture(e.pointerId);
       dot.classList.add("admin-timeline-event--dragging");
 
-      // Initialise offset state (same as right-drag)
       var currentLeft = parseFloat(dot.style.left) || 0;
       var startOffsetXCombined = (ev.timeline_offset_x || 0) +
         (self.getStagedOffsetX(eventId) || 0);
       var startOffsetXToPixels = window.AdminTimelineNodeBounds
-        ? window.AdminTimelineNodeBounds.offsetXToPixel(startOffsetXCombined, pxPerPeriod)
+        ? window.AdminTimelineNodeBounds.offsetXToPixel(startOffsetXCombined, BASE_PX)
         : 0;
 
       dragState.startOffsetX = startOffsetXCombined;
@@ -224,27 +192,24 @@ window.AdminTimelineNodeDrag = {};
       dragState.baseLeftPx = currentLeft - startOffsetXToPixels;
       dragState.baseTopPx = 140;
 
-      return; // Apply movement on the next frame
+      return;
     }
 
-    // ── Active drag movement ──────────────────────────────────────────────
+    // ── Active drag movement ────────────────────────────────────────────────
 
-    var dx = e.clientX - dragState.startX;
-    var dy = e.clientY - dragState.startY;
+    var dx2 = e.clientX - dragState.startX;
+    var dy2 = e.clientY - dragState.startY;
 
-    // Convert pixel deltas to offset fractions
     var deltaOffsetX = window.AdminTimelineNodeBounds
-      ? window.AdminTimelineNodeBounds.pixelToOffsetX(dx, dragState.pxPerPeriod)
+      ? window.AdminTimelineNodeBounds.pixelToOffsetX(dx2, BASE_PX)
       : 0;
     var deltaOffsetY = window.AdminTimelineNodeBounds
-      ? window.AdminTimelineNodeBounds.pixelToOffsetY(dy, 280)
+      ? window.AdminTimelineNodeBounds.pixelToOffsetY(dy2, 280)
       : 0;
 
-    // Compute new offsets
     var newOffsetX = dragState.startOffsetX + deltaOffsetX;
     var newOffsetY = dragState.startOffsetY + deltaOffsetY;
 
-    // Clamp to safe bounds
     newOffsetX = window.AdminTimelineNodeBounds
       ? window.AdminTimelineNodeBounds.clampOffsetX(newOffsetX)
       : newOffsetX;
@@ -252,46 +217,32 @@ window.AdminTimelineNodeDrag = {};
       ? window.AdminTimelineNodeBounds.clampOffsetY(newOffsetY)
       : newOffsetY;
 
-    // Apply offset to visual position
     updateDotPosition(dragState.dot, newOffsetX, newOffsetY);
   }
 
-  /**
-   * Pointerup — finalize active drag and stage the offset change, or cancel
-   * a sub-threshold candidate drag (letting the click event fire).
-   *
-   * @param {PointerEvent} e
-   */
   function onDocPointerUp(e) {
     if (!dragState || e.pointerId !== dragState.pointerId) return;
 
-    // Clean up document listeners
     document.removeEventListener("pointermove", onDocPointerMove, true);
     document.removeEventListener("pointerup", onDocPointerUp, true);
     document.removeEventListener("pointercancel", onDocPointerUp, true);
 
-    // ── Sub-threshold left-click — cancel the candidate ───────────────────
-
     if (!dragState._active) {
       dragState = null;
-      return; // Let the click event fire through to selectEvent
+      return;
     }
 
-    // ── Active drag finalisation ──────────────────────────────────────────
-
-    // Release pointer capture and visual state
     if (dragState.dot) {
       dragState.dot.releasePointerCapture(e.pointerId);
       dragState.dot.classList.remove("admin-timeline-event--dragging");
       delete dragState.dot._timelineDragActive;
     }
 
-    // Compute final offset
     var dx = e.clientX - dragState.startX;
     var dy = e.clientY - dragState.startY;
 
     var deltaOffsetX = window.AdminTimelineNodeBounds
-      ? window.AdminTimelineNodeBounds.pixelToOffsetX(dx, dragState.pxPerPeriod)
+      ? window.AdminTimelineNodeBounds.pixelToOffsetX(dx, BASE_PX)
       : 0;
     var deltaOffsetY = window.AdminTimelineNodeBounds
       ? window.AdminTimelineNodeBounds.pixelToOffsetY(dy, 280)
@@ -307,7 +258,6 @@ window.AdminTimelineNodeDrag = {};
       ? window.AdminTimelineNodeBounds.clampOffsetY(finalOffsetY)
       : finalOffsetY;
 
-    // Stage the change
     if (
       window.AdminTimelineStaged &&
       window.AdminTimelineStaged.stageOffset
@@ -324,42 +274,18 @@ window.AdminTimelineNodeDrag = {};
 
   /* ── Visual position update ───────────────────────────────────────────────── */
 
-  /**
-   * Update the visual position of a dot and its label based on offset fractions.
-   *
-   * Uses a base position captured at pointerdown (not the live mutated
-   * style.left) to prevent cumulative horizontal drift. The top formula
-   * matches renderEvents exactly (280 * (50 + finalY / 2) / 100 where
-   * finalY = offsetY * 280), so there is no vertical jump when dragging
-   * starts.
-   *
-   * @param {HTMLElement} dot
-   * @param {number} offsetX - fraction of period slot
-   * @param {number} offsetY - fraction of canvas height
-   */
   function updateDotPosition(dot, offsetX, offsetY) {
     if (!dot || !dragState) return;
 
-    var pxPerPeriod = dragState.pxPerPeriod;
     var pixelOffsetX = window.AdminTimelineNodeBounds
-      ? window.AdminTimelineNodeBounds.offsetXToPixel(offsetX, pxPerPeriod)
+      ? window.AdminTimelineNodeBounds.offsetXToPixel(offsetX, BASE_PX)
       : 0;
 
-    // Compute absolute position from the captured base, not from the
-    // live (already-mutated) style.left. This stops the cumulative
-    // pxPerPeriod/2 leftward drift that the old code produced.
     dot.style.left = (dragState.baseLeftPx + pixelOffsetX) + "px";
 
-    // Match the renderEvents vertical formula exactly:
-    //   y = (280 * (50 + finalY / 2)) / 100   where finalY = offsetY * 280
-    // This prevents the vertical jump that the old code (50 + offsetY * 280 / 2)
-    // caused because it used a different coordinate system than render.
     var finalY = offsetY * 280;
-    dot.style.top = (280 * (50 + finalY / 2)) / 100 + "px";
+    dot.style.top = 50 + finalY / 2 + "%";
 
-    // The label is a child of the dot with position:absolute and left:-50px,
-    // so its horizontal position is already relative to the dot — no left
-    // update needed. Only flip the label above/below based on the new offset.
     var label = dot.querySelector(".admin-timeline-event-label");
     if (label) {
       label.style.top = (offsetY <= 0 ? "-22px" : "8px");

@@ -54,6 +54,10 @@
         ></script>
         <script
             defer
+            src="../assets/js/admin-canvas-zoom.js"
+        ></script>
+        <script
+            defer
             src="../assets/js/admin-timeline/timeline-zoom.js"
         ></script>
         <script
@@ -107,7 +111,33 @@
         <!-- ── Timeline Editor Canvas ─────────────────────────────────────────────── -->
         <main>
             <div id="timeline-canvas" class="admin-timeline-canvas">
-                <div id="timeline-axis"></div>
+                <div class="admin-timeline-world" id="admin-timeline-world">
+                    <div id="timeline-axis"></div>
+                </div>
+                <!-- Zoom controls: zoom in and out only (matching arbor, no reset) -->
+                <div
+                    class="admin-timeline-controls"
+                    id="admin-timeline-controls"
+                    role="toolbar"
+                    aria-label="Zoom controls"
+                >
+                    <button
+                        type="button"
+                        id="timeline-zoom-out"
+                        class="admin-timeline-controls__btn"
+                        aria-label="Zoom out"
+                    >
+                        −
+                    </button>
+                    <button
+                        type="button"
+                        id="timeline-zoom-in"
+                        class="admin-timeline-controls__btn"
+                        aria-label="Zoom in"
+                    >
+                        +
+                    </button>
+                </div>
             </div>
         </main>
 
@@ -211,34 +241,6 @@
             class="admin-timeline-panel-backdrop"
             hidden
         ></div>
-
-        <!-- ── Zoom Controls ───────────────────────────────────────────────────────── -->
-        <footer class="admin-timeline-zoom-bar">
-            <button
-                type="button"
-                id="timeline-zoom-out"
-                class="admin-timeline-zoom-btn"
-                aria-label="Zoom out"
-            >
-                −
-            </button>
-            <button
-                type="button"
-                id="timeline-zoom-reset"
-                class="admin-timeline-zoom-btn"
-                aria-label="Reset zoom"
-            >
-                Reset
-            </button>
-            <button
-                type="button"
-                id="timeline-zoom-in"
-                class="admin-timeline-zoom-btn"
-                aria-label="Zoom in"
-            >
-                +
-            </button>
-        </footer>
 
         <!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
         <script>

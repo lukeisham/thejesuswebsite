@@ -1,210 +1,104 @@
 /**
  * Admin timeline zoom module.
  *
- * Handles zoom in/out, pan, and scale controls for the timeline editor canvas.
- * Coordinates with AdminTimelineAxis to update the axis rendering when scale
- * changes, and with AdminTimelineEvents to re-render event markers.
+ * Delegates to the shared AdminCanvasZoom module for zoom/pan via
+ * CSS transform — the same model used by the frontend timeline and
+ * admin arbor canvas: translate(panX,panY) scale(scale) with
+ * transform-origin: 0 0, drag deltas added directly to pan (no scale
+ * division), two-button controls only (no reset).
+ *
+ * This replaces the old pxPerPeriod/panOffset/scrollLeft conflation
+ * entirely. There is now only one coordinate system: fixed
+ * BASE_PX_PER_PERIOD world coordinates, with zoom applied as a
+ * CSS transform on an `.admin-timeline-world` wrapper.
  *
  * @module admin-timeline/timeline-zoom
  */
 
 window.AdminTimelineZoom = {};
-const Zoom = window.AdminTimelineZoom;
 
-/* ── State ─────────────────────────────────────────────────────────────────── */
+(function () {
+  var Zoom = window.AdminTimelineZoom;
 
-/** @type {number}  Current horizontal pan offset in pixels. */
-let panOffset = 0;
+  /** @type {Object|null} The AdminCanvasZoom instance. */
+  var canvasZoom = null;
 
-/** @type {boolean} */
-let panning = false;
+  /**
+   * Initialise zoom/pan controls for the admin timeline editor.
+   * Creates an AdminCanvasZoom instance bound to the `.admin-timeline-world`
+   * element and wires the zoom-in / zoom-out toolbar buttons.
+   *
+   * @param {HTMLElement} viewportEl  - the canvas viewport container
+   */
+  Zoom.init = function (viewportEl) {
+    if (!viewportEl) {
+      console.warn("AdminTimelineZoom.init: viewport element not provided");
+      return;
+    }
 
-/** @type {{ startX: number, origOffset: number }|null} */
-let panState = null;
+    var worldEl = viewportEl.querySelector(".admin-timeline-world");
+    if (!worldEl) {
+      console.warn("AdminTimelineZoom.init: .admin-timeline-world not found in viewport");
+      return;
+    }
 
-/** @type {HTMLElement|null} */
-let scrollContainer = null;
+    canvasZoom = window.AdminCanvasZoom.create({
+      worldEl: worldEl,
+      viewportEl: viewportEl,
+      minScale: 0.3,
+      maxScale: 3.0,
+      step: 1.25,
+      onChange: function () {
+        // Notify any listener that zoom/pan changed
+      },
+    });
 
-/* ── Initialisation ────────────────────────────────────────────────────────── */
+    // Wire toolbar zoom buttons
+    var zoomInBtn = document.getElementById("timeline-zoom-in");
+    if (zoomInBtn) {
+      zoomInBtn.addEventListener("click", function () {
+        if (canvasZoom) canvasZoom.zoomIn();
+      });
+    }
 
-/**
- * Wire zoom buttons, pan events, and the scroll container.
- *
- * @param {HTMLElement} container  - the scrollable container wrapping the axis
- */
-Zoom.init = function (container) {
-  scrollContainer = container;
-  if (!scrollContainer) return;
+    var zoomOutBtn = document.getElementById("timeline-zoom-out");
+    if (zoomOutBtn) {
+      zoomOutBtn.addEventListener("click", function () {
+        if (canvasZoom) canvasZoom.zoomOut();
+      });
+    }
 
-  var zoomInBtn = document.getElementById("timeline-zoom-in");
-  if (zoomInBtn) zoomInBtn.addEventListener("click", Zoom.zoomIn);
-
-  var zoomOutBtn = document.getElementById("timeline-zoom-out");
-  if (zoomOutBtn) zoomOutBtn.addEventListener("click", Zoom.zoomOut);
-
-  var resetBtn = document.getElementById("timeline-zoom-reset");
-  if (resetBtn) resetBtn.addEventListener("click", Zoom.resetZoom);
-
-  // Pan via mouse drag on the scroll container
-  scrollContainer.addEventListener("mousedown", Zoom.onPanStart);
-  document.addEventListener("mousemove", Zoom.onPanMove);
-  document.addEventListener("mouseup", Zoom.onPanEnd);
-
-  // Touch pan support
-  scrollContainer.addEventListener("touchstart", Zoom.onTouchStart, { passive: false });
-  document.addEventListener("touchmove", Zoom.onTouchMove, { passive: false });
-  document.addEventListener("touchend", Zoom.onTouchEnd);
-};
-
-/* ── Pan offset accessor ───────────────────────────────────────────────────── */
-
-/**
- * Return the current horizontal pan offset.
- *
- * @returns {number}
- */
-Zoom.getPanOffset = function () {
-  return panOffset;
-};
-
-/* ── Zoom ──────────────────────────────────────────────────────────────────── */
-
-/**
- * Zoom in: increase pixels per period, keep the centre of the view stable.
- */
-Zoom.zoomIn = function () {
-  var currentScale = window.AdminTimelineAxis.getPxPerPeriod();
-  var newScale = currentScale * 1.25;
-  applyZoom(newScale);
-};
-
-/**
- * Zoom out: decrease pixels per period, keep the centre of the view stable.
- */
-Zoom.zoomOut = function () {
-  var currentScale = window.AdminTimelineAxis.getPxPerPeriod();
-  var newScale = currentScale / 1.25;
-  applyZoom(newScale);
-};
-
-/**
- * Reset zoom and pan to defaults.
- */
-Zoom.resetZoom = function () {
-  window.AdminTimelineAxis.setPxPerPeriod(80);
-  panOffset = 0;
-  window.AdminTimelineAxis.refresh();
-  Zoom.applyScrollPosition();
-
-  if (window.AdminTimelineEvents && window.AdminTimelineEvents.renderEvents) {
-    window.AdminTimelineEvents.renderEvents();
-  }
-};
-
-/* ── Internal zoom logic ───────────────────────────────────────────────────── */
-
-/**
- * Apply a new scale, adjusting pan so the view centre stays stable.
- *
- * @param {number} newScale
- */
-function applyZoom(newScale) {
-  newScale = Math.max(30, Math.min(300, newScale));
-  var oldScale = window.AdminTimelineAxis.getPxPerPeriod();
-  if (newScale === oldScale) return;
-
-  // Keep the centre of the visible area stable
-  if (scrollContainer) {
-    var viewCentre = scrollContainer.scrollLeft + scrollContainer.clientWidth / 2;
-    panOffset = viewCentre - (viewCentre - panOffset) * (newScale / oldScale);
-  }
-
-  window.AdminTimelineAxis.setPxPerPeriod(newScale);
-  window.AdminTimelineAxis.refresh();
-  Zoom.applyScrollPosition();
-
-  if (window.AdminTimelineEvents && window.AdminTimelineEvents.renderEvents) {
-    window.AdminTimelineEvents.renderEvents();
-  }
-}
-
-/**
- * Apply the current panOffset to the scroll container.
- */
-Zoom.applyScrollPosition = function () {
-  if (!scrollContainer) return;
-  scrollContainer.scrollLeft = panOffset;
-};
-
-/* ── Mouse pan ─────────────────────────────────────────────────────────────── */
-
-/**
- * Mouse-down on the scroll container starts panning.
- *
- * @param {MouseEvent} e
- */
-Zoom.onPanStart = function (e) {
-  // Don't start pan if we clicked on an event marker
-  if (e.target.closest(".admin-timeline-event")) return;
-
-  panning = true;
-  panState = {
-    startX: e.clientX,
-    origOffset: panOffset,
+    // Note: no reset button — two-button controls only, matching arbor.
   };
-  scrollContainer.style.cursor = "grabbing";
-};
 
-/**
- * Mouse-move during pan.
- *
- * @param {MouseEvent} e
- */
-Zoom.onPanMove = function (e) {
-  if (!panning || !panState) return;
-  panOffset = panState.origOffset - (e.clientX - panState.startX);
-  Zoom.applyScrollPosition();
-};
-
-/**
- * Mouse-up ends panning.
- */
-Zoom.onPanEnd = function () {
-  panning = false;
-  panState = null;
-  if (scrollContainer) scrollContainer.style.cursor = "";
-};
-
-/* ── Touch pan ─────────────────────────────────────────────────────────────── */
-
-/**
- * @param {TouchEvent} e
- */
-Zoom.onTouchStart = function (e) {
-  if (e.touches.length !== 1) return;
-  if (e.target.closest(".admin-timeline-event")) return;
-
-  panning = true;
-  panState = {
-    startX: e.touches[0].clientX,
-    origOffset: panOffset,
+  /**
+   * Return the current zoom scale (delegates to canvasZoom).
+   * Returns 1 if zoom has not been initialised.
+   *
+   * @returns {number}
+   */
+  Zoom.getScale = function () {
+    return canvasZoom ? canvasZoom.getScale() : 1;
   };
-};
 
-/**
- * @param {TouchEvent} e
- */
-Zoom.onTouchMove = function (e) {
-  if (!panning || !panState || e.touches.length !== 1) return;
-  e.preventDefault();
-  panOffset = panState.origOffset - (e.touches[0].clientX - panState.startX);
-  Zoom.applyScrollPosition();
-};
+  /**
+   * Return the current pan offset (delegates to canvasZoom).
+   * Returns {x:0, y:0} if zoom has not been initialised.
+   *
+   * @returns {{ x: number, y: number }}
+   */
+  Zoom.getPan = function () {
+    return canvasZoom ? canvasZoom.getPan() : { x: 0, y: 0 };
+  };
 
-/**
- * @param {TouchEvent} e
- */
-Zoom.onTouchEnd = function () {
-  panning = false;
-  panState = null;
-};
+  /**
+   * Return the effective px-per-period at the current zoom scale.
+   * This is BASE_PX_PER_PERIOD (100) * current scale.
+   * Replaces the old getPxPerPeriod() / getPanOffset() pattern.
+   *
+   * @returns {number}
+   */
+  Zoom.effectivePxPerPeriod = function () {
+    return 100 * Zoom.getScale();
+  };
+})();

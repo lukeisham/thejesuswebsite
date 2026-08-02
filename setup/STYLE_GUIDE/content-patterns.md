@@ -123,6 +123,10 @@ Essays render as professional peer-reviewed journal articles. Every essay page u
   - Full height `200px` or `280px` (accounting for label space above/below dots)
   - Background: `var(--bg-primary)` with subtle dot grid (see Arbor Diagram pattern for grid overlay)
   - Vertical center line: `1px solid var(--border)` representing chronological progression
+- **Zoom controls**: interactive Arbor-style zoom replacing the old static zoom-variant pages. See the **Arbor Diagram** entry above for the shared mechanism — same `transform: scale()` model applied to the timeline container. Key differences from the Arbor Diagram:
+  - 2 buttons only: zoom in (`+`) and zoom out (`−`); no reset button.
+  - Drag-pan via mouse drag or touch drag on the canvas.
+  - Scale range: `0.3×` to `3.0×`, matching the [30, 300] effective px-per-period range. Increment step: `1.25×` per click.
 - **Event dots**: positioned along the center line
   - Standard: `12px` diameter, centered on timeline spine
   - Clustered events: dots stack vertically at small offsets (e.g., ±8px, ±16px from center) to avoid overlap

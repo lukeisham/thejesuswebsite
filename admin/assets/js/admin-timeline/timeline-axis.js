@@ -1,10 +1,13 @@
 /**
  * Admin timeline axis module.
  *
- * Renders the horizontal time-scale axis and era bands for the timeline editor,
- * and exposes pure helpers to convert between dates and x-axis positions.
- * All math functions are DOM-free and exported so tests can verify round-trip
- * stability and era-boundary mapping (see admin/tests/admin-timeline.test.js).
+ * Renders the horizontal time-scale axis and era labels for the timeline
+ * editor using fixed world coordinates (BASE_PX_PER_PERIOD = 100). Zoom
+ * is applied by a CSS transform on the `.admin-timeline-world` wrapper
+ * — the axis itself always renders at scale 1.
+ *
+ * All math functions are DOM-free and exported so tests can verify
+ * round-trip stability and era-boundary mapping.
  *
  * @module admin-timeline/timeline-axis
  */
@@ -18,25 +21,23 @@ const ERA_ORDER = window.AdminTimelineGeometry.ERA_ORDER;
 const PERIOD_ORDER = window.AdminTimelineGeometry.TIMELINE_PERIODS;
 const ERA_LABELS = window.AdminTimelineGeometry.ERA_LABELS;
 const ERA_STARTS = window.AdminTimelineGeometry.ERA_STARTS;
-const DEFAULT_PX_PER_PERIOD =
-  window.AdminTimelineGeometry.DEFAULT_PX_PER_PERIOD;
+
+/** Fixed world-coordinate base — zoom is applied by the transform wrapper. */
+const BASE_PX_PER_PERIOD = 100;
 
 /* ── State ─────────────────────────────────────────────────────────────────── */
 
 /** @type {HTMLElement|null} */
 let axisContainer = null;
 
-/** @type {number}  Total width of the timeline in pixels at current scale. */
+/** @type {number}  Total width of the timeline in world pixels. */
 let totalWidth = 0;
 
-/** @type {number}  Current pixels-per-period scale. */
-let pxPerPeriod = DEFAULT_PX_PER_PERIOD;
-
-/* ── Pure scale helpers ────────────────────────────────────────────────────── */
+/* ── Pure helpers ──────────────────────────────────────────────────────────── */
 
 /**
  * Return the ordinal index of a period within the canonical order.
- * Unknown values sort last (consistent with the API model).
+ * Unknown values sort last.
  *
  * @param {string} period
  * @returns {number}
@@ -58,90 +59,57 @@ Axis.eraOrdinal = function (era) {
 };
 
 /**
- * Convert a timeline period to an x-position on the timeline axis.
+ * Convert a timeline period to an x-position in world pixels.
+ * Zoom is NOT applied here — positions are always at scale 1.
  *
  * @param {string} period       - the timeline_period value
- * @param {number} pxPerUnit    - pixels per period unit
- * @param {number} offsetX      - horizontal pan offset in pixels
- * @returns {number}  x-position in pixels
+ * @param {number} [basePx=100] - base pixels per period (world scale)
+ * @returns {number}  x-position in world pixels
  */
-Axis.periodToX = function (period, pxPerUnit, offsetX) {
+Axis.periodToX = function (period, basePx) {
   var index = Axis.periodOrdinal(period);
-  // Use the shared centred helper so dots land in the middle of their
-  // period slot, matching the frontend's periodX (periodIndex * scale + scale/2).
-  return window.AdminTimelineGeometry.periodToXCentered(
-    index,
-    pxPerUnit,
-    offsetX,
-  );
+  var scale = basePx || BASE_PX_PER_PERIOD;
+  return index * scale + scale / 2;
 };
 
 /**
- * Convert an x-position on the timeline axis to the nearest period.
+ * Convert an x-position (world pixels) to the nearest period.
  *
- * @param {number} x           - x-position in pixels
- * @param {number} pxPerUnit   - pixels per period unit
- * @param {number} offsetX     - horizontal pan offset in pixels
+ * @param {number} x           - x-position in world pixels
+ * @param {number} [basePx=100] - base pixels per period
  * @returns {string}  the nearest timeline_period value
  */
-Axis.xToPeriod = function (x, pxPerUnit, offsetX) {
-  var scale = pxPerUnit || DEFAULT_PX_PER_PERIOD;
-  var off = offsetX || 0;
-  // Subtract scale/2 so the snap boundary aligns with the centred dot
-  // position produced by periodToXCentered. Without this correction,
-  // a dot at x=40 (centred in period 0 at scale 80) would round to
-  // Math.round(40/80)=0.5→1 (period 1), breaking the round-trip.
-  var index = Math.round((x - off - scale / 2) / scale);
+Axis.xToPeriod = function (x, basePx) {
+  var scale = basePx || BASE_PX_PER_PERIOD;
+  var index = Math.round((x - scale / 2) / scale);
   if (index < 0) index = 0;
   if (index >= PERIOD_ORDER.length) index = PERIOD_ORDER.length - 1;
   return PERIOD_ORDER[index];
 };
 
 /**
- * Convert a timeline era to the x-position where its band starts.
+ * Convert a timeline era to the x-position where its band starts (world pixels).
  *
  * @param {string} era
- * @param {number} pxPerUnit
- * @param {number} offsetX
+ * @param {number} [basePx=100]
  * @returns {number}
  */
-Axis.eraStartX = function (era, pxPerUnit, offsetX) {
-  var scale = pxPerUnit || DEFAULT_PX_PER_PERIOD;
-  var off = offsetX || 0;
-
+Axis.eraStartX = function (era, basePx) {
+  var scale = basePx || BASE_PX_PER_PERIOD;
   var firstPeriod = ERA_STARTS[era];
   if (!firstPeriod) return 0;
-  return Axis.periodToX(firstPeriod, scale, off);
+  return Axis.periodToX(firstPeriod, scale);
 };
 
 /**
- * Calculate the total width of the timeline at the given scale.
+ * Calculate the total width of the timeline at world scale.
  *
- * @param {number} pxPerUnit
+ * @param {number} [basePx=100]
  * @returns {number}
  */
-Axis.totalWidth = function (pxPerUnit) {
-  var scale = pxPerUnit || DEFAULT_PX_PER_PERIOD;
+Axis.totalWidth = function (basePx) {
+  var scale = basePx || BASE_PX_PER_PERIOD;
   return PERIOD_ORDER.length * scale;
-};
-
-/**
- * Return the current pixels-per-period scale.
- *
- * @returns {number}
- */
-Axis.getPxPerPeriod = function () {
-  return pxPerPeriod;
-};
-
-/**
- * Set the pixels-per-period scale and recalculate width.
- *
- * @param {number} newScale
- */
-Axis.setPxPerPeriod = function (newScale) {
-  pxPerPeriod = Math.max(30, Math.min(300, newScale));
-  totalWidth = Axis.totalWidth(pxPerPeriod);
 };
 
 /* ── Rendering ─────────────────────────────────────────────────────────────── */
@@ -154,13 +122,14 @@ Axis.setPxPerPeriod = function (newScale) {
 Axis.init = function (container) {
   axisContainer = container;
   if (!axisContainer) return;
-  totalWidth = Axis.totalWidth(pxPerPeriod);
+  totalWidth = Axis.totalWidth(BASE_PX_PER_PERIOD);
   Axis.renderAxis();
 };
 
 /**
  * Render the horizontal axis line and era labels (matching frontend exactly).
- * Era bands and tick marks are removed for parity with the frontend timeline.
+ * Positions use fixed world pixels at scale 1. Era bands and tick marks are
+ * removed for parity with the frontend timeline.
  */
 Axis.renderAxis = function () {
   if (!axisContainer) return;
@@ -176,10 +145,10 @@ Axis.renderAxis = function () {
   var eraData = [];
   for (var e = 0; e < ERA_ORDER.length; e++) {
     var era = ERA_ORDER[e];
-    var startX = Axis.eraStartX(era, pxPerPeriod, 0);
+    var startX = Axis.eraStartX(era, BASE_PX_PER_PERIOD);
     var endX;
     if (e < ERA_ORDER.length - 1) {
-      endX = Axis.eraStartX(ERA_ORDER[e + 1], pxPerPeriod, 0);
+      endX = Axis.eraStartX(ERA_ORDER[e + 1], BASE_PX_PER_PERIOD);
     } else {
       endX = totalWidth;
     }
@@ -187,8 +156,7 @@ Axis.renderAxis = function () {
     eraData.push({ era: era, startX: startX, endX: endX, midX: midX });
   }
 
-  // Build a list of which eras need alternating labels (adjacent midpoints
-  // too close together, matching the frontend BASE_TOP / ALT_TOP pattern).
+  // Build a list of which eras need alternating labels
   var MIN_ERA_LABEL_GAP = 80;
   var needsAlt = [];
   for (var i = 0; i < eraData.length; i++) {
@@ -197,13 +165,12 @@ Axis.renderAxis = function () {
     needsAlt.push(prevClose);
   }
 
-  // Render era labels (without band backgrounds), alternating tops when adjacent eras are too close
+  // Render era labels
   var altToggle = false;
   for (var j = 0; j < eraData.length; j++) {
     var d = eraData[j];
     var era = d.era;
 
-    // Determine label top: alternate when this era overlaps the previous one
     if (needsAlt[j]) {
       altToggle = !altToggle;
     } else {
@@ -223,7 +190,7 @@ Axis.renderAxis = function () {
     axisContainer.appendChild(label);
   }
 
-  // ── Era divider lines (matching frontend era-marker) ───────────────────
+  // ── Era divider lines ──────────────────────────────────────────────────
   for (var d2 = 1; d2 < eraData.length; d2++) {
     var dividerX = eraData[d2].startX;
     var divider = document.createElement("div");
@@ -247,9 +214,9 @@ Axis.renderAxis = function () {
 };
 
 /**
- * Re-render the axis (called after zoom changes scale).
+ * Re-render the axis (called after init or external changes).
  */
 Axis.refresh = function () {
-  totalWidth = Axis.totalWidth(pxPerPeriod);
+  totalWidth = Axis.totalWidth(BASE_PX_PER_PERIOD);
   Axis.renderAxis();
 };

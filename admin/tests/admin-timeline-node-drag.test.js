@@ -84,25 +84,25 @@ describe("AdminTimelineNodeDrag — position math", () => {
 
   describe("dragLeft (horizontal, base-anchored)", () => {
     test("zero offset returns the base position", () => {
-      assert.strictEqual(dragLeft(200, 0, 120), 200);
+      assert.strictEqual(dragLeft(200, 0, 100), 200);
     });
 
     test("positive offset moves right proportionally", () => {
-      // At 120 px/period, offsetX=0.25 = 30px right of base
-      assert.strictEqual(dragLeft(200, 0.25, 120), 230);
-      assert.strictEqual(dragLeft(200, 0.5, 120), 260);
+      // At 100 px/period, offsetX=0.25 = 25px right of base
+      assert.strictEqual(dragLeft(200, 0.25, 100), 225);
+      assert.strictEqual(dragLeft(200, 0.5, 100), 250);
     });
 
     test("negative offset moves left proportionally", () => {
-      assert.strictEqual(dragLeft(200, -0.25, 120), 170);
-      assert.strictEqual(dragLeft(200, -0.5, 120), 140);
+      assert.strictEqual(dragLeft(200, -0.25, 100), 175);
+      assert.strictEqual(dragLeft(200, -0.5, 100), 150);
     });
 
     test("monotonic — larger offset always means larger left", () => {
-      assert.ok(dragLeft(200, -0.3, 120) < dragLeft(200, -0.1, 120));
-      assert.ok(dragLeft(200, -0.1, 120) < dragLeft(200, 0, 120));
-      assert.ok(dragLeft(200, 0, 120) < dragLeft(200, 0.1, 120));
-      assert.ok(dragLeft(200, 0.1, 120) < dragLeft(200, 0.3, 120));
+      assert.ok(dragLeft(200, -0.3, 100) < dragLeft(200, -0.1, 100));
+      assert.ok(dragLeft(200, -0.1, 100) < dragLeft(200, 0, 100));
+      assert.ok(dragLeft(200, 0, 100) < dragLeft(200, 0.1, 100));
+      assert.ok(dragLeft(200, 0.1, 100) < dragLeft(200, 0.3, 100));
     });
 
     test("no drift — same offset always gives same position", () => {
@@ -111,32 +111,32 @@ describe("AdminTimelineNodeDrag — position math", () => {
       // formula depends only on the captured base, not on live style values.
       var base = 350;
       for (var i = 0; i < 10; i++) {
-        assert.strictEqual(dragLeft(base, 0.15, 120), 350 + 0.15 * 120);
+        assert.strictEqual(dragLeft(base, 0.15, 100), 350 + 0.15 * 100);
       }
     });
 
     test("base capture formula — recovers slot centre from dot position", () => {
-      // Given a dot at left=380 with offsetX=0.25 at pxPerPeriod=120:
-      // baseLeftPx = 380 - 0.25 * 120 = 380 - 30 = 350
+      // Given a dot at left=380 with offsetX=0.25 at pxPerPeriod=100:
+      // baseLeftPx = 380 - 0.25 * 100 = 380 - 25 = 355
       var dotLeft = 380;
       var currentOffset = 0.25;
-      var pxPerPeriod = 120;
+      var pxPerPeriod = 100;
       var baseLeftPx = dotLeft - currentOffset * pxPerPeriod;
-      assert.strictEqual(baseLeftPx, 350);
-      // Then dragging to offsetX=-0.1 should give 350 + (-0.1 * 120) = 338
-      assert.strictEqual(dragLeft(baseLeftPx, -0.1, pxPerPeriod), 338);
+      assert.strictEqual(baseLeftPx, 355);
+      // Then dragging to offsetX=-0.1 should give 355 + (-0.1 * 100) = 345
+      assert.strictEqual(dragLeft(baseLeftPx, -0.1, pxPerPeriod), 345);
     });
 
     test("base capture handles negative current offset", () => {
-      // Dot at left=152 with offsetX=-0.4 at pxPerPeriod=120:
-      // baseLeftPx = 152 - (-0.4 * 120) = 152 + 48 = 200
+      // Dot at left=152 with offsetX=-0.4 at pxPerPeriod=100:
+      // baseLeftPx = 152 - (-0.4 * 100) = 152 + 40 = 192
       var dotLeft = 152;
       var currentOffset = -0.4;
-      var pxPerPeriod = 120;
+      var pxPerPeriod = 100;
       var baseLeftPx = dotLeft - currentOffset * pxPerPeriod;
-      assert.strictEqual(baseLeftPx, 200);
-      // Dragging back to zero offset: 200 + 0 = 200
-      assert.strictEqual(dragLeft(baseLeftPx, 0, pxPerPeriod), 200);
+      assert.strictEqual(baseLeftPx, 192);
+      // Dragging back to zero offset: 192 + 0 = 192
+      assert.strictEqual(dragLeft(baseLeftPx, 0, pxPerPeriod), 192);
     });
   });
 });

@@ -84,6 +84,16 @@
         cursor: default;
     }
 
+    /* Force transform off in vertical/mobile mode (matches arbor's mobile disablement) */
+    .timeline-world {
+        transform: none;
+        transition: none;
+    }
+
+    .timeline-controls {
+        display: none;
+    }
+
     .timeline-inner--vertical {
         width: 100%;
         min-height: 0;

@@ -403,7 +403,7 @@ When multiple events (timeline dots) or evidence items share the same spatial co
 
 **Timelines:** Clustering solves the problem of multiple events in one period overlapping into illegibility. Three shared modules (frontend and admin, kept byte-identical) compute positions before rendering:
 
-- **Density tiers** (`timeline-cluster-density.js`): Based on zoom level (`--px-per-period`), clustering picks one of three modes — `compact` (≤55px), `normal` (56–119px), or `spread` (≥120px). More pixels per period = more breathing room.
+- **Density tiers** (`timeline-cluster-density.js`): Based on zoom level (BASE_PX_PER_PERIOD × current zoom scale, where zoom is applied via a CSS transform wrapper), clustering picks one of three modes — `compact` (≤55px), `normal` (56–119px), or `spread` (≥120px). More pixels per period = more breathing room.
 - **Dot placement** (`timeline-cluster-placement.js`): Events in a period stack vertically, centred on the spine. For N events, spacing is 12px (compact), 16px (normal), or 22px (spread). At spread density, dots fan horizontally (±6px) for extra clarity.
 - **Label modes** (`timeline-cluster-labels.js`): Based on tier and cluster size, each label is shown full, truncated, or hidden. Compact + 4+ events = hidden; compact + 2–3 = truncated; otherwise full.
 
