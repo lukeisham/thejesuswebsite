@@ -2,9 +2,15 @@
 //
 // Exists because inbound SSH (port 22) from GitHub-hosted Actions runners is
 // unreliable on this host (see setup/Issues.md) while HTTPS (443) is not.
-// The GitHub Actions workflow calls this route instead of SSHing in; the
-// route runs the same git-reset + deploy.sh sequence the SSH step used to run,
-// synchronously, so the workflow step still fails when the deploy fails.
+// The GitHub Actions workflow calls this route instead of SSHing in.
+//
+// deploy.sh's own pm2-restart step would kill this very Express process
+// mid-response (it's the process serving this request), so the git-reset +
+// deploy.sh sequence below runs with SKIP_RESTART=1 — its exit code still
+// reflects the real build/migration/import steps, which is what actually
+// tends to fail. The restart is issued separately, only after the HTTP
+// response has finished sending, as a detached process that survives this
+// one dying.
 //
 // Auth: a shared secret sent as X-Deploy-Token, compared with
 // crypto.timingSafeEqual (same pattern as routes/passkey.js).
@@ -34,6 +40,34 @@ function isAuthorized(req) {
   );
 }
 
+function logToFile(message) {
+  fs.appendFileSync(LOG_FILE, message);
+}
+
+// Restarts pm2 as a detached, unref'd process so it outlives this one (it is
+// about to be killed by the very restart it issues). Only called after the
+// HTTP response has finished sending — see the 'finish' handler below.
+function restartServers() {
+  const restart = spawn(
+    "bash",
+    ["-c", "pm2 restart thejesuswebsite-api && pm2 restart thejesuswebsite-mcp && pm2 save"],
+    { cwd: PROJECT_DIR, detached: true, stdio: ["ignore", "pipe", "pipe"] },
+  );
+  let restartOutput = "";
+  restart.stdout.on("data", (chunk) => {
+    restartOutput += chunk;
+  });
+  restart.stderr.on("data", (chunk) => {
+    restartOutput += chunk;
+  });
+  restart.on("close", (code) => {
+    logToFile(
+      `--- restart ${new Date().toISOString()} exit=${code} ---\n${restartOutput}\n`,
+    );
+  });
+  restart.unref();
+}
+
 router.post("/", (req, res) => {
   if (!process.env.DEPLOY_WEBHOOK_SECRET) {
     console.error(
@@ -50,7 +84,7 @@ router.post("/", (req, res) => {
     "bash",
     [
       "-c",
-      "set -euo pipefail; git fetch origin main && git reset --hard origin/main && PROCESS_MANAGER=pm2 ./deploy.sh",
+      "set -euo pipefail; git fetch origin main && git reset --hard origin/main && SKIP_RESTART=1 PROCESS_MANAGER=pm2 ./deploy.sh",
     ],
     { cwd: PROJECT_DIR },
   );
@@ -64,8 +98,7 @@ router.post("/", (req, res) => {
   });
 
   child.on("error", (err) => {
-    fs.appendFileSync(
-      LOG_FILE,
+    logToFile(
       `\n--- deploy ${new Date().toISOString()} spawn error ---\n${err.stack}\n`,
     );
     if (!res.headersSent) {
@@ -74,16 +107,22 @@ router.post("/", (req, res) => {
   });
 
   child.on("close", (code) => {
-    fs.appendFileSync(
-      LOG_FILE,
+    logToFile(
       `\n--- deploy ${new Date().toISOString()} exit=${code} ---\n${output}\n`,
     );
     if (res.headersSent) return;
-    if (code === 0) {
-      res.status(200).json({ status: "ok", output });
-    } else {
+
+    if (code !== 0) {
       res.status(500).json({ status: "failed", exitCode: code, output });
+      return;
     }
+
+    // Restart only after the response has actually finished sending — this
+    // process is about to be killed by that restart.
+    res.once("finish", () => {
+      setTimeout(restartServers, 250);
+    });
+    res.status(200).json({ status: "ok", output });
   });
 });
 

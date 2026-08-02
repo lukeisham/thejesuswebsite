@@ -133,40 +133,50 @@ echo "[deploy] Stamping asset references with deploy version..."
 npm run version-assets
 
 # ---- 6. Start / restart the API and MCP servers -----------------------------
+# SKIP_RESTART=1 skips this step entirely (used by routes/deploy-webhook.js:
+# that endpoint runs on the very API process a pm2 restart would kill, which
+# would sever the HTTP connection to the caller mid-response. The webhook
+# runs deploy.sh with SKIP_RESTART=1 so this script can still report a real
+# exit code for the build steps above, then issues the restart itself as a
+# separate detached step after the HTTP response has been sent.)
 
-case "$PROCESS_MANAGER" in
-  pm2)
-    echo "[deploy] Managing API (pm2)..."
-    cd "$API_DIR"
-    if pm2 list | grep -q "$APP_NAME"; then
-      pm2 restart "$APP_NAME"
-    else
-      pm2 start server.js --name "$APP_NAME"
-    fi
+if [ "${SKIP_RESTART:-}" = "1" ]; then
+  echo "[deploy] SKIP_RESTART=1 — leaving process restart to the caller."
+else
+  case "$PROCESS_MANAGER" in
+    pm2)
+      echo "[deploy] Managing API (pm2)..."
+      cd "$API_DIR"
+      if pm2 list | grep -q "$APP_NAME"; then
+        pm2 restart "$APP_NAME"
+      else
+        pm2 start server.js --name "$APP_NAME"
+      fi
 
-    echo "[deploy] Managing MCP server (pm2)..."
-    cd "$MCP_DIR"
-    if pm2 list | grep -q "$MCP_APP_NAME"; then
-      pm2 restart "$MCP_APP_NAME"
-    else
-      pm2 start server.js --name "$MCP_APP_NAME"
-    fi
-    pm2 save
-    ;;
-  systemd)
-    echo "[deploy] Restarting systemd service..."
-    sudo systemctl restart "$APP_NAME"
-    ;;
-  none)
-    echo "[deploy] Starting API server directly (Ctrl+C to stop)..."
-    cd "$API_DIR"
-    node server.js
-    ;;
-  *)
-    echo "[deploy] Unknown PROCESS_MANAGER: $PROCESS_MANAGER"
-    exit 1
-    ;;
-esac
+      echo "[deploy] Managing MCP server (pm2)..."
+      cd "$MCP_DIR"
+      if pm2 list | grep -q "$MCP_APP_NAME"; then
+        pm2 restart "$MCP_APP_NAME"
+      else
+        pm2 start server.js --name "$MCP_APP_NAME"
+      fi
+      pm2 save
+      ;;
+    systemd)
+      echo "[deploy] Restarting systemd service..."
+      sudo systemctl restart "$APP_NAME"
+      ;;
+    none)
+      echo "[deploy] Starting API server directly (Ctrl+C to stop)..."
+      cd "$API_DIR"
+      node server.js
+      ;;
+    *)
+      echo "[deploy] Unknown PROCESS_MANAGER: $PROCESS_MANAGER"
+      exit 1
+      ;;
+  esac
+fi
 
 # ---- 7. Reload nginx so committed config changes take effect -----------------
 # This reload only re-reads whatever file already sits at
