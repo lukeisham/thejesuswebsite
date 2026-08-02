@@ -72,6 +72,11 @@ app.use("/analytics", require("./routes/analytics"));
 app.use("/auth", require("./routes/auth"));
 app.use("/passkey", require("./routes/passkey"));
 app.use("/spellcheck-dictionary", require("./routes/spellcheck-dictionary"));
+app.use(
+  "/deploy-webhook",
+  rateLimit({ maxAttempts: 5, windowMs: 60_000 }),
+  require("./routes/deploy-webhook"),
+);
 
 // Dev-only auth bypass: only mount the route when the flag is explicitly set.
 // Hard-refuse in production regardless of the flag — load-env.js already
