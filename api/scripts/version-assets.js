@@ -7,6 +7,17 @@
 // browser cache and Cloudflare's edge cache (whose default cache key
 // includes the query string) the instant a new commit lands.
 //
+// It also walks every .js file under frontend/ and admin/ and stamps local
+// `from "...js"` import/export specifiers the same way. HTML stamping alone
+// only busts the *entry* script's URL — any module it imports (e.g.
+// content-markers.js) keeps an unversioned URL forever, so a browser that
+// cached it under the old immutable, max-age=1yr Cache-Control header would
+// never refetch it, even after the entry script changes. Stamping the
+// import specifier itself changes that URL too, so every deploy forces a
+// fresh fetch of the whole dependency graph, not just the entry point.
+// Test files (`*.test.js`) are skipped — they run under Node via
+// `require()`, never served to a browser.
+//
 // version defaults to `git rev-parse --short HEAD`, overridable via
 // ASSET_VERSION (useful for local testing without a git commit).
 //
@@ -57,17 +68,40 @@ function stampHtml(html, version) {
   });
 }
 
+// Matches `from "path.js"` / `from 'path.js'` in `import ... from "..."`
+// and `export ... from "..."` statements — the only import form used in
+// this codebase (no bare side-effect imports, no bundler-style specifiers).
+const JS_IMPORT_RE = /\bfrom\s+(['"])([^'"]+\.js)(?:\?[^'"]*)?\1/g;
+
 /**
- * List every .html file under a directory, recursively.
+ * Rewrite every local `from "...js"` import/export specifier in a JS source
+ * string to carry `?v=<version>`, replacing any existing query string.
  */
-function listHtmlFiles(dir) {
+function stampJs(js, version) {
+  return js.replace(JS_IMPORT_RE, (match, quote, refPath) => {
+    if (isExternal(refPath)) return match;
+    return `from ${quote}${refPath}?v=${version}${quote}`;
+  });
+}
+
+/**
+ * List every file under a directory, recursively, whose name ends with
+ * `suffix` — used for both `.html` and `.js` file discovery. `.test.js`
+ * files are always skipped regardless of suffix: they run under Node via
+ * `require()` and are never served to a browser.
+ */
+function listFiles(dir, suffix) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   let files = [];
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      files = files.concat(listHtmlFiles(fullPath));
-    } else if (entry.isFile() && entry.name.endsWith(".html")) {
+      files = files.concat(listFiles(fullPath, suffix));
+    } else if (
+      entry.isFile() &&
+      entry.name.endsWith(suffix) &&
+      !entry.name.endsWith(".test.js")
+    ) {
       files.push(fullPath);
     }
   }
@@ -75,26 +109,31 @@ function listHtmlFiles(dir) {
 }
 
 /**
- * Stamp every .html file under a single directory. Exits the process
- * non-zero on any read/write failure (JS-2: never half-write, fail loudly).
+ * Stamp every file of one kind (HTML or JS) under a single directory.
+ * Exits the process non-zero on any read/write failure (JS-2: never
+ * half-write, fail loudly).
  *
+ * @param {string} dir
+ * @param {string} version
+ * @param {string} suffix - ".html" or ".js"
+ * @param {(source: string, version: string) => string} stampFn
  * @returns {{ scanned: number, stamped: number }}
  */
-function stampDirectory(dir, version) {
-  const files = listHtmlFiles(dir);
+function stampDirectory(dir, version, suffix, stampFn) {
+  const files = listFiles(dir, suffix);
   let stamped = 0;
 
   for (const filePath of files) {
-    let html;
+    let source;
     try {
-      html = fs.readFileSync(filePath, "utf8");
+      source = fs.readFileSync(filePath, "utf8");
     } catch (err) {
       console.error(`[version-assets] Failed to read ${filePath}:`, err.message);
       process.exit(1);
     }
 
-    const updated = stampHtml(html, version);
-    if (updated !== html) {
+    const updated = stampFn(source, version);
+    if (updated !== source) {
       try {
         fs.writeFileSync(filePath, updated, "utf8");
       } catch (err) {
@@ -109,7 +148,8 @@ function stampDirectory(dir, version) {
 }
 
 /**
- * Stamp every target directory (frontend/, admin/) under rootDir.
+ * Stamp every target directory (frontend/, admin/) under rootDir: HTML
+ * script/link references, then JS import/export specifiers.
  */
 function run(rootDir, version, targetDirs = TARGET_DIRS) {
   let totalScanned = 0;
@@ -122,12 +162,18 @@ function run(rootDir, version, targetDirs = TARGET_DIRS) {
       continue;
     }
 
-    const { scanned, stamped } = stampDirectory(dir, version);
+    const html = stampDirectory(dir, version, ".html", stampHtml);
     console.log(
-      `[version-assets] ${dirName}/: ${scanned} HTML files scanned, ${stamped} stamped`,
+      `[version-assets] ${dirName}/: ${html.scanned} HTML files scanned, ${html.stamped} stamped`,
     );
-    totalScanned += scanned;
-    totalStamped += stamped;
+
+    const js = stampDirectory(dir, version, ".js", stampJs);
+    console.log(
+      `[version-assets] ${dirName}/: ${js.scanned} JS files scanned, ${js.stamped} stamped`,
+    );
+
+    totalScanned += html.scanned + js.scanned;
+    totalStamped += html.stamped + js.stamped;
   }
 
   console.log(
@@ -148,9 +194,10 @@ if (require.main === module) {
 
 module.exports = {
   stampHtml,
+  stampJs,
   isExternal,
   resolveVersion,
-  listHtmlFiles,
+  listFiles,
   stampDirectory,
   run,
 };
