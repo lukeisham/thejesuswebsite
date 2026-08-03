@@ -42,6 +42,10 @@
 .timeline-container {
     overflow: hidden;
     position: relative;
+    /* .timeline-world is absolutely positioned, so without a reserved
+       min-height overflow:hidden clips content and .timeline-controls
+       overlaps it. Mirrors .arbor-canvas. */
+    min-height: 600px;
     cursor: grab;
     padding: var(--space-xl) 0 var(--space-3xl);
     background-color: var(--bg-primary);
