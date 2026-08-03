@@ -8,7 +8,7 @@ import { getEvidenceBySlug } from "./api.js";
 import { enhanceEsvVerses } from "./esv_verse.js";
 import { getSegment } from "./utils/router.js";
 import { setSEO } from "./seo.js";
-import { html } from "./utils/templates.js";
+import { html, raw } from "./utils/templates.js";
 import { formatDate, formatVerse } from "./utils/format.js";
 import { numberFigures } from "./utils/figures.js";
 import { applyFigureOrientation } from "./utils/figure-orientation.js";
@@ -17,6 +17,7 @@ import { formatMlaCitation } from "./utils/mla.js";
 import {
   parseContentBody,
   getIdentifierLabel,
+  EXTERNAL_LINK_ICON,
 } from "./utils/content-markers.js";
 import {
   FIGURE_SHORTCODE_PATTERN,
@@ -45,6 +46,12 @@ const $pictures = document.getElementById("evidence-pictures");
 
 // Dates
 const $dates = document.getElementById("evidence-dates");
+
+// Page info row — identifiers panel
+const $infoRow = document.getElementById("evidence-info-row");
+const $identifiersPanel = document.getElementById(
+  "evidence-identifiers-panel",
+);
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
 
@@ -238,6 +245,46 @@ function renderSources(mlaSources) {
   if ($sources) $sources.innerHTML = itemsHTML;
 }
 
+/**
+ * Build a single `<li>` for the identifiers panel: label (title, falling
+ * back to type-specific fields via getIdentifierLabel) wrapped in a link
+ * with an external-link icon when the identifier has an external_url.
+ */
+function buildIdentifierItem(identifier) {
+  const label = getIdentifierLabel(identifier);
+  if (!label) return "";
+
+  const badge = html`<span class="inline-identifier">${label}</span>`;
+
+  const content = identifier.external_url
+    ? html`<a
+        href="${identifier.external_url}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="identifier-link"
+        >${badge}${raw(EXTERNAL_LINK_ICON)}</a
+      >`
+    : badge;
+
+  return html`<li class="info-panel__item">${content}</li>`;
+}
+
+function renderIdentifiersPanel(identifiers) {
+  if (!$infoRow || !$identifiersPanel) return;
+
+  const items = (identifiers || [])
+    .map(buildIdentifierItem)
+    .filter(Boolean);
+
+  if (items.length === 0) {
+    $infoRow.hidden = true;
+    return;
+  }
+
+  $identifiersPanel.innerHTML = items.join("");
+  $infoRow.hidden = false;
+}
+
 // ─── SEO ─────────────────────────────────────────────────────────────────────
 
 function applySEO(item) {
@@ -321,6 +368,7 @@ async function init() {
   renderDescription({ ...data, description: cleanDescription });
   renderSources(data.mla_sources);
   renderDates(data);
+  renderIdentifiersPanel(data.identifiers);
 
   // Apply SEO metadata
   applySEO(data);

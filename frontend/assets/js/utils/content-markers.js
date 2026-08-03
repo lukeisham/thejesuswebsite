@@ -298,7 +298,10 @@ function resolveMlaMarker(n, mlaMap, citationStyle) {
 }
 
 /**
- * Resolve an [id:N] marker against the identifiers lookup.
+ * Resolve an [id:N] marker against the identifiers lookup. When the
+ * identifier has an `external_url`, the badge is wrapped in a link (opens
+ * in a new tab) with a small external-link icon — the badge still renders
+ * as a plain label when there's no URL to link to.
  */
 function resolveIdMarker(n, idMap) {
   const identifier = idMap.get(n);
@@ -307,19 +310,30 @@ function resolveIdMarker(n, idMap) {
   const label = getIdentifierLabel(identifier);
   if (!label) return "";
 
+  const badge = `<span class="inline-identifier">${escapeHTML(label)}</span>`;
+  const content = identifier.external_url
+    ? `<a href="${escapeHTML(identifier.external_url)}" target="_blank" rel="noopener noreferrer" class="identifier-link">${badge}${EXTERNAL_LINK_ICON}</a>`
+    : badge;
+
   return (
     `<span class="sr-only">&hairsp;</span>` +
-    `<span class="inline-identifier">${escapeHTML(label)}</span>` +
+    content +
     `<span class="sr-only">&hairsp;</span>`
   );
 }
+
+// Small external-link icon appended after linked identifier badges, shared
+// by resolveIdMarker() and the evidence-detail identifiers panel.
+export const EXTERNAL_LINK_ICON =
+  '<svg width="10" height="10" aria-hidden="true" class="identifier-link__icon"><use href="/assets/images/feather-sprite.svg#icon-external-link"/></svg>';
 
 // ─── Identifier label formatting ─────────────────────────────────────────────
 
 /**
  * Derive the most meaningful human-readable label from an identifier row.
- * Priority: manuscript_number, iaa_number, pleiades_name, source_title,
- * event_name, individual, isbn_book_title.
+ * Priority: title (the admin-set display label), then the existing
+ * type-specific fallbacks: manuscript_number, iaa_number, pleiades_name,
+ * source_title, event_name, individual, isbn_book_title.
  *
  * Mirrors the label logic used in evidence-detail.js info-row rendering
  * so inline [id:N] badges read the same as the identifiers panel.
@@ -330,6 +344,7 @@ function resolveIdMarker(n, idMap) {
 export function getIdentifierLabel(identifier) {
   if (!identifier) return "";
   return (
+    identifier.title ||
     identifier.manuscript_number ||
     identifier.iaa_number ||
     identifier.pleiades_name ||
