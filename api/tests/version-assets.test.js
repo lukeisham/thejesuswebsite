@@ -14,8 +14,10 @@ const os = require("os");
 
 const {
   stampHtml,
+  stampJs,
   isExternal,
   resolveVersion,
+  listFiles,
   stampDirectory,
   run,
 } = require("../scripts/version-assets");
@@ -97,6 +99,76 @@ describe("stampHtml", () => {
   });
 });
 
+// ── stampJs (pure string transform) ──────────────────────────────────────────
+
+describe("stampJs", () => {
+  test("stamps a relative import specifier", () => {
+    const js = 'import { html } from "./utils/templates.js";';
+    const out = stampJs(js, "abc123");
+    assert.equal(out, 'import { html } from "./utils/templates.js?v=abc123";');
+  });
+
+  test("stamps a site-root-absolute import specifier", () => {
+    const js = 'import { showToast } from "/assets/js/utils/toasts.js";';
+    const out = stampJs(js, "abc123");
+    assert.equal(
+      out,
+      'import { showToast } from "/assets/js/utils/toasts.js?v=abc123";',
+    );
+  });
+
+  test("stamps a re-export specifier", () => {
+    const js = 'export { getIdentifierLabel } from "./content-markers.js";';
+    const out = stampJs(js, "abc123");
+    assert.equal(
+      out,
+      'export { getIdentifierLabel } from "./content-markers.js?v=abc123";',
+    );
+  });
+
+  test("supports single-quoted specifiers", () => {
+    const js = "import { delegate } from './utils/dom.js';";
+    const out = stampJs(js, "abc123");
+    assert.equal(out, "import { delegate } from './utils/dom.js?v=abc123';");
+  });
+
+  test("replaces an existing ?v=old buster instead of doubling it", () => {
+    const js = 'import { html } from "./utils/templates.js?v=2";';
+    const out = stampJs(js, "def456");
+    assert.equal(out, 'import { html } from "./utils/templates.js?v=def456";');
+    assert.ok(!out.includes("?v=2"));
+  });
+
+  test("idempotent: stamping twice with the same version is a no-op change", () => {
+    const js = 'import { html } from "./utils/templates.js";';
+    const once = stampJs(js, "abc123");
+    const twice = stampJs(once, "abc123");
+    assert.equal(once, twice);
+  });
+
+  test("leaves external https:// import specifiers untouched", () => {
+    const js = 'import lib from "https://example.com/lib.js";';
+    const out = stampJs(js, "abc123");
+    assert.equal(out, js);
+  });
+
+  test("stamps every import in a multi-import file", () => {
+    const js = [
+      'import { html } from "./utils/templates.js";',
+      'import { showToast } from "./utils/toasts.js";',
+    ].join("\n");
+    const out = stampJs(js, "abc123");
+    assert.ok(out.includes("templates.js?v=abc123"));
+    assert.ok(out.includes("toasts.js?v=abc123"));
+  });
+
+  test("does not touch a JSDoc @type import() annotation (no from-clause, no .js)", () => {
+    const js = '/** @type {import("nspell")|null} */';
+    const out = stampJs(js, "abc123");
+    assert.equal(out, js);
+  });
+});
+
 // ── isExternal ────────────────────────────────────────────────────────────────
 
 describe("isExternal", () => {
@@ -167,12 +239,44 @@ describe("stampDirectory", () => {
     const { scanned, stamped } = stampDirectory(
       path.join(tmpDir, "frontend"),
       "cafe123",
+      ".html",
+      stampHtml,
     );
 
     assert.equal(scanned, 1);
     assert.equal(stamped, 1);
     const out = fs.readFileSync(path.join(nested, "life.html"), "utf8");
     assert.ok(out.includes("timeline.js?v=cafe123"));
+  });
+
+  test("run() also stamps JS import specifiers, recursively, skipping *.test.js", () => {
+    const utilsDir = path.join(tmpDir, "frontend", "assets", "js", "utils");
+    fs.mkdirSync(utilsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, "frontend", "assets", "js", "evidence-detail.js"),
+      'import { getIdentifierLabel } from "./utils/content-markers.js";',
+    );
+    fs.writeFileSync(
+      path.join(utilsDir, "content-markers.test.js"),
+      'import { getIdentifierLabel } from "./content-markers.js";',
+    );
+
+    const result = run(tmpDir, "cafe123");
+
+    const entryOut = fs.readFileSync(
+      path.join(tmpDir, "frontend", "assets", "js", "evidence-detail.js"),
+      "utf8",
+    );
+    const testOut = fs.readFileSync(
+      path.join(utilsDir, "content-markers.test.js"),
+      "utf8",
+    );
+
+    assert.ok(entryOut.includes("content-markers.js?v=cafe123"));
+    // .test.js files are never touched — they run under Node via require(),
+    // not served to a browser, and query strings would break resolution.
+    assert.equal(testOut, 'import { getIdentifierLabel } from "./content-markers.js";');
+    assert.equal(result.stamped, 1);
   });
 
   test("run() skips a target directory that does not exist", () => {
