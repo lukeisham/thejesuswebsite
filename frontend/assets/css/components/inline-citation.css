@@ -49,6 +49,31 @@
   white-space: nowrap;
 }
 
+/* Linked identifier — wraps the badge + external-link icon when the
+   identifier has an external_url. Shared by inline [id:N] markers
+   (content-markers.js) and the evidence detail page-info-row identifiers
+   panel (evidence-detail.js). */
+.identifier-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  text-decoration: none;
+}
+
+.identifier-link:hover .inline-identifier {
+  color: var(--link-hover);
+  border-color: var(--link-hover);
+}
+
+.identifier-link__icon {
+  color: var(--link);
+  flex-shrink: 0;
+}
+
+.identifier-link:hover .identifier-link__icon {
+  color: var(--link-hover);
+}
+
 /* -------------------------------------------------------------------------
    Floated Figures (≥1024px)
    Breakout behaviour per Style guide §9 Figures. Full-width below 1024px.
