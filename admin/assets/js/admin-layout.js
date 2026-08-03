@@ -53,6 +53,12 @@ var NAV_ITEMS = [
   },
   { key: "historiography", icon: "🏛️", label: "Historiography", self: true },
   { key: "blog", icon: "📰", label: "Blog", self: true },
+  {
+    key: "identifiers",
+    icon: "🏷️",
+    label: "Identifiers",
+    href: "../identifiers/index.html",
+  },
   { key: "news", icon: "📡", label: "News", href: "../news/index.html" },
   {
     key: "maps",

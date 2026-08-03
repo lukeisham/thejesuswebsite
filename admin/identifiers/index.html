@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" class="admin-app">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Identifiers — Admin</title>
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <script defer src="../assets/js/admin-http.js"></script>
+  <script defer src="../assets/js/auth.js"></script>
+  <script defer src="../assets/js/admin.js"></script>
+  <script type="module" src="../assets/js/admin-toasts.js"></script>
+  <script defer src="../assets/js/admin-identifiers.js"></script>
+  <style>
+    .admin-loading,
+    .admin-empty,
+    .admin-error {
+      padding: var(--space-xl);
+      text-align: center;
+      color: var(--admin-text-muted);
+      font-size: 14px;
+    }
+    .admin-error {
+      color: var(--admin-danger);
+    }
+    .admin-section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--admin-text-primary);
+      margin-bottom: var(--space-md);
+    }
+    /* Type groups in the create/edit form — only one group is filled per record. */
+    .identifier-fieldset {
+      border: 1px solid var(--admin-border);
+      border-radius: var(--admin-radius-sm);
+      padding: var(--space-md);
+      margin-bottom: var(--space-md);
+    }
+    .identifier-fieldset__legend {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--admin-text-primary);
+      padding: 0 var(--space-xs);
+    }
+    .identifier-field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-md);
+    }
+    .identifier-url {
+      color: var(--admin-accent);
+      word-break: break-all;
+    }
+    .identifier-type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: var(--admin-bg);
+      border: 1px solid var(--admin-border);
+      color: var(--admin-text-secondary);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .identifier-actions {
+      display: flex;
+      gap: var(--space-xs);
+    }
+  </style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+  <nav class="admin-sidebar" aria-label="Admin navigation">
+    <div class="admin-sidebar__brand">⚡ Admin</div>
+    <div class="admin-sidebar__nav">
+      <a class="admin-sidebar__link" href="../index.html">
+        <span class="admin-sidebar__icon">📊</span> Dashboard
+      </a>
+      <a class="admin-sidebar__link" href="../evidence/index.html">
+        <span class="admin-sidebar__icon">📋</span> Evidence
+      </a>
+      <a class="admin-sidebar__link" href="../collections/index.html">
+        <span class="admin-sidebar__icon">📁</span> Collections
+      </a>
+      <a class="admin-sidebar__link" href="../resources/index.html">
+        <span class="admin-sidebar__icon">📚</span> Resources
+      </a>
+      <a class="admin-sidebar__link" href="../wikipedia/index.html">
+        <span class="admin-sidebar__icon">📖</span> Wikipedia
+      </a>
+      <a class="admin-sidebar__link" href="../essays/index.html">
+        <span class="admin-sidebar__icon">✍️</span> Essays
+      </a>
+      <a class="admin-sidebar__link" href="../debate/index.html">
+        <span class="admin-sidebar__icon">🗣️</span> Responses
+      </a>
+      <a class="admin-sidebar__link" href="../debate/popular-challenges/index.html">
+        <span class="admin-sidebar__icon">📢</span> Popular Challenges
+      </a>
+      <a class="admin-sidebar__link" href="../debate/academic-challenges/index.html">
+        <span class="admin-sidebar__icon">🎓</span> Academic Challenges
+      </a>
+      <a class="admin-sidebar__link" href="../historiography/index.html">
+        <span class="admin-sidebar__icon">🏛️</span> Historiography
+      </a>
+      <a class="admin-sidebar__link" href="../blog/index.html">
+        <span class="admin-sidebar__icon">📰</span> Blog
+      </a>
+      <a class="admin-sidebar__link admin-sidebar__link--active" href="index.html">
+        <span class="admin-sidebar__icon">🏷️</span> Identifiers
+      </a>
+      <a class="admin-sidebar__link" href="../news/index.html">
+        <span class="admin-sidebar__icon">📡</span> News
+      </a>
+      <a class="admin-sidebar__link" href="../diagrams/maps.html">
+        <span class="admin-sidebar__icon">🗺️</span> Maps Editor
+      </a>
+      <a class="admin-sidebar__link" href="../diagrams/arbor.html">
+          <span class="admin-sidebar__icon">🌳</span> Arbor Editor
+      </a>
+      <a class="admin-sidebar__link" href="../diagrams/timeline.html">
+          <span class="admin-sidebar__icon">⏳</span> Timeline Editor
+      </a>
+      <a class="admin-sidebar__link" href="../analytics.html">
+        <span class="admin-sidebar__icon">📈</span> Analytics
+      </a>
+      <a class="admin-sidebar__link" href="../settings/index.html">
+        <span class="admin-sidebar__icon">⚙️</span> Settings
+      </a>
+    </div>
+    <div class="admin-sidebar__bottom">
+      <a class="admin-sidebar__link" href="../auth/login.html">
+        <span class="admin-sidebar__icon">🚪</span> Logout
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── Topbar ───────────────────────────────────────────────────────── -->
+  <header class="admin-topbar">
+    <h1 class="admin-topbar__title">Identifiers</h1>
+    <div class="admin-topbar__actions">
+      <button class="admin-btn admin-btn--primary admin-btn--sm" id="btn-new-identifier" type="button">+ New Identifier</button>
+    </div>
+  </header>
+
+  <!-- ── Main Content ─────────────────────────────────────────────────── -->
+  <main class="admin-main">
+    <div class="admin-error" id="identifiers-error" role="alert" aria-live="assertive" style="display:none"></div>
+    <div class="admin-loading" id="identifiers-loading" role="status">Loading identifiers…</div>
+
+    <!-- Create/edit form — one form reused for both operations. -->
+    <section class="admin-card" id="identifier-form" style="display:none;margin-bottom:var(--space-lg)" aria-labelledby="identifier-form-title">
+      <h2 class="admin-section-title" id="identifier-form-title">New Identifier</h2>
+
+      <div class="identifier-field-grid">
+        <div class="admin-form-group">
+          <label class="admin-form-group__label" for="ident-title">Title</label>
+          <input class="admin-input" id="ident-title" name="title" type="text" placeholder="Human-readable label">
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-group__label" for="ident-external-url">External URL</label>
+          <input class="admin-input" id="ident-external-url" name="external_url" type="url" placeholder="https://example.org/record">
+        </div>
+      </div>
+
+      <!-- Type-specific field groups, built by admin-identifiers.js. -->
+      <div id="identifier-type-sections"></div>
+
+      <div class="admin-form-group">
+        <div style="display:flex;align-items:center;gap:var(--space-sm)">
+          <input type="checkbox" id="ident-published" name="published_draft" value="1" style="width:18px;height:18px;accent-color:var(--admin-accent)">
+          <label for="ident-published" style="font-size:14px;cursor:pointer">Published</label>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-md)">
+        <button class="admin-btn admin-btn--primary" id="btn-save-identifier" type="button">Create Identifier</button>
+        <button class="admin-btn admin-btn--ghost" id="btn-cancel-identifier" type="button">Cancel</button>
+      </div>
+    </section>
+
+    <div class="admin-empty" id="identifiers-empty" role="status" style="display:none">No identifiers yet.</div>
+
+    <div class="admin-table-wrapper" id="identifiers-table-wrapper" style="display:none">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Title</th>
+            <th scope="col">External URL</th>
+            <th scope="col">Type</th>
+            <th scope="col">Published</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="identifiers-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+
+</div>
+</body>
+</html>
