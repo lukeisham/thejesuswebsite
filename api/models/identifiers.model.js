@@ -27,6 +27,8 @@ const WRITABLE_COLUMNS = [
     'manuscript_number',
     'manuscript_title',
     'manuscript_location',
+    'title',
+    'external_url',
     'published_draft',
 ];
 
@@ -35,6 +37,13 @@ const WRITABLE_COLUMNS = [
  */
 function getAllPublished() {
     return db.prepare('SELECT * FROM identifiers WHERE published_draft = 1 ORDER BY id DESC').all();
+}
+
+/**
+ * Get all identifiers regardless of publish state — for the admin management page.
+ */
+function getAllAdmin() {
+    return db.prepare('SELECT * FROM identifiers ORDER BY id DESC').all();
 }
 
 /**
@@ -83,4 +92,4 @@ function remove(id) {
 
 
 
-module.exports = { getAllPublished, getById, create, update, remove };
+module.exports = { getAllPublished, getAllAdmin, getById, create, update, remove };

@@ -82,6 +82,8 @@ CREATE TABLE identifiers (
     manuscript_number TEXT,
     manuscript_title TEXT,
     manuscript_location TEXT,
+    title TEXT,
+    external_url TEXT,
     published_draft INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1))
 );
 

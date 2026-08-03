@@ -18,6 +18,17 @@ router.get("/", (req, res) => {
   }
 });
 
+// GET /identifiers/admin — list all identifiers regardless of publish state (admin only)
+router.get("/admin", requireAuth, (req, res) => {
+  try {
+    const items = identifiersModel.getAllAdmin();
+    res.json(items);
+  } catch (error) {
+    console.error("GET /identifiers/admin failed:", error);
+    res.status(500).json({ error: "Failed to load identifiers." });
+  }
+});
+
 // GET /identifiers/:id — single identifier by id
 router.get("/:id", (req, res) => {
   try {
