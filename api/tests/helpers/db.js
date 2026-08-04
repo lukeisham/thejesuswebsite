@@ -54,7 +54,8 @@ function createTestDb() {
   db.exec(schema);
 
   // Apply migrations not yet folded into schema.sql.
-  // Skip 001 (duplicate of schema.sql), 005 and 009 (columns already in schema.sql),
+  // Skip 001 (duplicate of schema.sql), 004 (news_articles_fts and resources_fts
+  // now in schema.sql), 005 and 009 (columns already in schema.sql),
   // 010 (arbor_nodes already in schema.sql), 012 (analytics device/geo
   // columns + geoip_blocks already in schema.sql), 013 (site_settings
   // table + seed row already in schema.sql), 023 (news_article_thumbnail
@@ -69,6 +70,7 @@ function createTestDb() {
       (name) =>
         name.endsWith(".sql") &&
         !name.startsWith("001_") &&
+        !name.startsWith("004_") &&
         !name.startsWith("005_") &&
         !name.startsWith("009_") &&
         !name.startsWith("010_") &&
@@ -83,10 +85,12 @@ function createTestDb() {
         !name.startsWith("027_") &&
         !name.startsWith("028_") &&
         !name.startsWith("032_") &&
+        !name.startsWith("042_") &&
         !name.startsWith("035_") &&
         !name.startsWith("036_") &&
         !name.startsWith("037_") &&
-        !name.startsWith("040_"),
+        !name.startsWith("040_") &&
+        !name.startsWith("041_"),
     )
     .sort();
 

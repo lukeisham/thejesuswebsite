@@ -491,3 +491,111 @@ describe("hostile input returns [] or results without throwing", () => {
     assert.deepEqual(results, []);
   });
 });
+
+// ── FTS update propagation ────────────────────────────────────────────────────
+
+describe("FTS update triggers propagate title changes to index", () => {
+  beforeEach(clearAll);
+
+  test("resource title update propagates to FTS index", () => {
+    const id = seedResource({
+      resource_title: "Original Resource Title",
+      list_key: "ot-verses",
+    });
+
+    // Verify the original title is searchable.
+    let results = searchModel.searchOne("bible-verses", "Original");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Original Resource Title");
+
+    // Update the title.
+    db.prepare("UPDATE resources SET resource_title = ? WHERE id = ?").run(
+      "Updated Resource Title",
+      id,
+    );
+
+    // Old title should no longer be searchable.
+    results = searchModel.searchOne("bible-verses", "Original");
+    assert.equal(results.length, 0, "old title should no longer be indexed");
+
+    // New title should be searchable.
+    results = searchModel.searchOne("bible-verses", "Updated");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Updated Resource Title");
+  });
+
+  test("news article title update propagates to FTS index", () => {
+    const id = seedNews({
+      news_article_title: "Original News Title",
+      slug: "original-news",
+    });
+
+    // Verify the original title is searchable.
+    let results = searchModel.searchOne("news", "Original");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Original News Title");
+
+    // Update the title.
+    db.prepare(
+      "UPDATE news_articles SET news_article_title = ? WHERE id = ?",
+    ).run("Updated News Title", id);
+
+    // Old title should no longer be searchable.
+    results = searchModel.searchOne("news", "Original");
+    assert.equal(results.length, 0, "old title should no longer be indexed");
+
+    // New title should be searchable.
+    results = searchModel.searchOne("news", "Updated");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Updated News Title");
+  });
+
+  test("news article metadata_keywords update propagates to FTS index", () => {
+    const id = seedNews({
+      news_article_title: "Keyword Test News",
+      slug: "keyword-news",
+    });
+
+    // Seed with empty keywords, verify title is still searchable.
+    let results = searchModel.searchOne("news", "Keyword");
+    assert.ok(results.length > 0);
+
+    // Update keywords with a unique value.
+    db.prepare(
+      "UPDATE news_articles SET metadata_keywords = ? WHERE id = ?",
+    ).run("unique_kw_xyz_123", id);
+
+    // The unique keyword should now be searchable.
+    results = searchModel.searchOne("news", "unique_kw_xyz");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Keyword Test News");
+  });
+});
+
+// ── Fresh-schema search smoke test ────────────────────────────────────────────
+
+describe("search returns results for news and bible-verses on fresh schema", () => {
+  beforeEach(clearAll);
+
+  test("news search returns results on fresh db", () => {
+    seedNews({
+      news_article_title: "Breaking News Story",
+      slug: "breaking-news",
+    });
+    const results = searchModel.searchOne("news", "Breaking");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Breaking News Story");
+    assert.equal(results[0].result_type, "news");
+  });
+
+  test("bible-verses search returns results on fresh db", () => {
+    seedResource({
+      resource_title: "Psalm Twenty Three",
+      list_key: "ot-verses",
+    });
+    const results = searchModel.searchOne("bible-verses", "Psalm");
+    assert.ok(results.length > 0);
+    assert.equal(results[0].title, "Psalm Twenty Three");
+    assert.equal(results[0].result_type, "bible-verses");
+  });
+});

@@ -662,18 +662,6 @@ CREATE TABLE collection_evidence (
 );
 
 -- =====================
--- RESOURCE JUNCTION
--- =====================
-
-CREATE TABLE evidence_resource_lists (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    evidence_id INTEGER NOT NULL REFERENCES evidence(id) ON DELETE CASCADE,
-    resource_id INTEGER NOT NULL REFERENCES resources(id) ON DELETE CASCADE,
-    sort_order  INTEGER,
-    UNIQUE(evidence_id, resource_id)
-);
-
--- =====================
 -- INDEXES
 -- =====================
 
@@ -745,7 +733,6 @@ CREATE INDEX idx_blog_breakouts            ON blog_breakouts (blog_post_id);
 CREATE INDEX idx_historiography_breakouts  ON historiography_breakouts (historiography_id);
 
 -- Resource lists
-CREATE INDEX idx_evidence_resource_lists   ON evidence_resource_lists (resource_id);
 CREATE INDEX idx_resources_list_key             ON resources (list_key);
 CREATE INDEX idx_collection_evidence_collection ON collection_evidence (collection_id);
 CREATE INDEX idx_collection_evidence_evidence   ON collection_evidence (evidence_id);
@@ -817,6 +804,38 @@ CREATE TRIGGER blog_posts_fts_ad AFTER DELETE ON blog_posts BEGIN
     VALUES ('delete', old.id, old.blog_title, old.blog_content, old.metadata_keywords);
 END;
 -- NOTE: blog_posts_fts_au (AFTER UPDATE) is defined later, after the
+-- *_updated_at triggers, so it fires last. See "FTS SYNC (AFTER UPDATE)" below.
+
+CREATE VIRTUAL TABLE news_articles_fts USING fts5(
+    news_article_title, news_article_author, news_article_publisher, metadata_keywords,
+    content='news_articles', content_rowid='id'
+);
+
+CREATE TRIGGER news_articles_fts_ai AFTER INSERT ON news_articles BEGIN
+    INSERT INTO news_articles_fts(rowid, news_article_title, news_article_author, news_article_publisher, metadata_keywords)
+    VALUES (new.id, new.news_article_title, new.news_article_author, new.news_article_publisher, new.metadata_keywords);
+END;
+CREATE TRIGGER news_articles_fts_ad AFTER DELETE ON news_articles BEGIN
+    INSERT INTO news_articles_fts(news_articles_fts, rowid, news_article_title, news_article_author, news_article_publisher, metadata_keywords)
+    VALUES ('delete', old.id, old.news_article_title, old.news_article_author, old.news_article_publisher, old.metadata_keywords);
+END;
+-- NOTE: news_articles_fts_au (AFTER UPDATE) is defined later, after the
+-- *_updated_at triggers, so it fires last. See "FTS SYNC (AFTER UPDATE)" below.
+
+CREATE VIRTUAL TABLE resources_fts USING fts5(
+    resource_title, resource_description,
+    content='resources', content_rowid='id'
+);
+
+CREATE TRIGGER resources_fts_ai AFTER INSERT ON resources BEGIN
+    INSERT INTO resources_fts(rowid, resource_title, resource_description)
+    VALUES (new.id, new.resource_title, new.resource_description);
+END;
+CREATE TRIGGER resources_fts_ad AFTER DELETE ON resources BEGIN
+    INSERT INTO resources_fts(resources_fts, rowid, resource_title, resource_description)
+    VALUES ('delete', old.id, old.resource_title, old.resource_description);
+END;
+-- NOTE: resources_fts_au (AFTER UPDATE) is defined later, after the
 -- *_updated_at triggers, so it fires last. See "FTS SYNC (AFTER UPDATE)" below.
 
 -- =====================
@@ -932,6 +951,28 @@ BEGIN
     VALUES ('delete', old.id, old.blog_title, old.blog_content, old.metadata_keywords);
     INSERT INTO blog_posts_fts(rowid, blog_title, blog_content, metadata_keywords)
     VALUES (new.id, new.blog_title, new.blog_content, new.metadata_keywords);
+END;
+
+CREATE TRIGGER news_articles_fts_au AFTER UPDATE ON news_articles
+WHEN NEW.news_article_title IS NOT OLD.news_article_title
+   OR NEW.news_article_author IS NOT OLD.news_article_author
+   OR NEW.news_article_publisher IS NOT OLD.news_article_publisher
+   OR NEW.metadata_keywords IS NOT OLD.metadata_keywords
+BEGIN
+    INSERT INTO news_articles_fts(news_articles_fts, rowid, news_article_title, news_article_author, news_article_publisher, metadata_keywords)
+    VALUES ('delete', old.id, old.news_article_title, old.news_article_author, old.news_article_publisher, old.metadata_keywords);
+    INSERT INTO news_articles_fts(rowid, news_article_title, news_article_author, news_article_publisher, metadata_keywords)
+    VALUES (new.id, new.news_article_title, new.news_article_author, new.news_article_publisher, new.metadata_keywords);
+END;
+
+CREATE TRIGGER resources_fts_au AFTER UPDATE ON resources
+WHEN NEW.resource_title IS NOT OLD.resource_title
+   OR NEW.resource_description IS NOT OLD.resource_description
+BEGIN
+    INSERT INTO resources_fts(resources_fts, rowid, resource_title, resource_description)
+    VALUES ('delete', old.id, old.resource_title, old.resource_description);
+    INSERT INTO resources_fts(rowid, resource_title, resource_description)
+    VALUES (new.id, new.resource_title, new.resource_description);
 END;
 
 -- =====================
