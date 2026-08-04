@@ -7,6 +7,16 @@
  * without a browser (see admin/tests/admin-arbor.test.js).
  *
  * @module admin-arbor/arbor-canvas
+ *
+ * Zoom/pan here is a separate, independent implementation from the shared
+ * `admin/assets/js/admin-canvas-zoom.js` module used by admin-timeline. This
+ * duplication is deliberate and accepted, not pending consolidation
+ * (Issues.md #171/#185) - arbor's zoom is confirmed working, and migrating
+ * it was judged too risky for no user-visible gain. Because the two
+ * implementations can drift, any zoom/pan bug fixed here MUST also be
+ * checked against admin-canvas-zoom.js, and vice versa. If arbor's zoom
+ * BEHAVIOUR ever changes (bounds, step, wheel handling), do the migration
+ * onto the shared module then, since the file is already being edited.
  */
 
 window.AdminArborCanvas = {};

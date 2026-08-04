@@ -6,8 +6,11 @@
  * scale(scale) with transform-origin: 0 0, drag deltas added directly to pan
  * (no scale division), two button controls (zoom-in/zoom-out, no reset).
  *
- * Created for the admin timeline editor as first consumer; admin arbor may
- * adopt it later but that migration is out of scope (arbor is confirmed working).
+ * Created for the admin timeline editor as first consumer; admin arbor keeps
+ * its own separate zoom/pan implementation (admin/assets/js/admin-arbor/arbor-canvas.js)
+ * as accepted duplication, not pending consolidation (Issues.md #171/#185) -
+ * any zoom/pan bug fixed here MUST also be checked against arbor-canvas.js,
+ * and vice versa.
  *
  * @module admin-canvas-zoom
  */

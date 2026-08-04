@@ -90,7 +90,7 @@ Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public an
 
 ## Error notification
 
-<!-- Answer both questions. Reference setup/Website_guide.md § Error Notification for the encoding architecture. -->
+<!-- Answer both questions. Reference setup/ARCHITECTURE/Website_guide.md § Error Notification for the encoding architecture. -->
 
 **a) Does this plan impact existing error handling?**
 
