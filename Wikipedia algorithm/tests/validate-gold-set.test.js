@@ -22,7 +22,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const GOLD_DIR = path.join(__dirname, "..");
-const REPO_ROOT = path.join(__dirname, "..", "..", "..");
+const REPO_ROOT = path.join(__dirname, "..", "..");
 
 const CLASSIFIER_CSV = path.join(GOLD_DIR, "gold-set-section-classifier.csv");
 const VECTOR_FAMILIES_CSV = path.join(GOLD_DIR, "gold-set-vector-families.csv");
