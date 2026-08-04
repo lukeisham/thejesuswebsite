@@ -9,6 +9,12 @@
 
 figure {
   margin: var(--space-lg) 0;
+  /* Shrink-wrap the figure to its image width so captions never
+     spill wider than the picture they describe. `.figure-full`
+     overrides `width` to `100%`; floated figures carry their own
+     explicit widths and are unaffected. */
+  width: fit-content;
+  max-width: 100%;
 }
 
 figure img,
