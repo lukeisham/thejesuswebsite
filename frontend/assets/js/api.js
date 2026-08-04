@@ -149,6 +149,12 @@ export async function getResponseBySlug(slug) {
 }
 
 /** @param {Object} [params] */
+export async function getResponses(params) {
+  const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+  return request(`/responses${qs}`);
+}
+
+/** @param {Object} [params] */
 export async function getHistoriography(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/historiography${qs}`);

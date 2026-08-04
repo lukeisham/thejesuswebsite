@@ -72,6 +72,7 @@ frontend/contextual-essays/*.html
 !frontend/contextual-essays/index.html
 frontend/debate/responses/*.html
 !frontend/debate/responses/\[slug\].html
+!frontend/debate/responses/index.html
 frontend/debate/historiography/*.html
 !frontend/debate/historiography/\[slug\].html
 !frontend/debate/historiography/index.html

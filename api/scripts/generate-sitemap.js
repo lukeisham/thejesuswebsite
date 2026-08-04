@@ -109,6 +109,11 @@ const SECTION_PAGES = [
     changefreq: "monthly",
   },
   {
+    loc: "/debate/responses/",
+    priority: "0.7",
+    changefreq: "monthly",
+  },
+  {
     loc: "/debate/popular-challenges.html",
     priority: "0.7",
     changefreq: "weekly",
