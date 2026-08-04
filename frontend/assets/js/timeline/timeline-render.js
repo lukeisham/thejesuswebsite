@@ -56,6 +56,9 @@ const MOBILE_QUERY = "(max-width: 767px)";
 /** Minimum pixel gap enforced between adjacent label bounding boxes. */
 const LABEL_GAP_PX = 8;
 
+/** Matches .timeline-container min-height in timeline.css (Style Guide §9, Issue #172). */
+const CONTAINER_MIN_HEIGHT = 600;
+
 /**
  * Compute the effective px-per-period at the current zoom level.
  * cluster-density.js thresholds work against this value just as they did
@@ -660,6 +663,19 @@ export function renderTimeline(groupedEvents, activeEra) {
     // Mount zoom controls into the viewport (only in horizontal mode)
     if (!vertical && !container.querySelector(".timeline-controls")) {
       mountZoomControls(container);
+    }
+  });
+
+  // Follow-up read-phase pass, scheduled after the batchWrite() callback
+  // above so it runs once the batched writes have flushed (JS-2/SR-3).
+  requestAnimationFrame(() => {
+    const world = container && container.querySelector(".timeline-world");
+    if (!world || container.hidden) return;
+    const contentHeight = world.getBoundingClientRect().height;
+    if (contentHeight > CONTAINER_MIN_HEIGHT) {
+      console.warn(
+        `Timeline content height (${Math.round(contentHeight)}px) exceeds container min-height (${CONTAINER_MIN_HEIGHT}px); content may clip. Consider increasing .timeline-container min-height in timeline.css.`,
+      );
     }
   });
 }

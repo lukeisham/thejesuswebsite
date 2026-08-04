@@ -354,7 +354,11 @@ The About page is a simple, warm informational page — no academic formatting, 
 - Edges (connecting lines): SVG `<line>` or `<path>`, `1.5px` stroke, `--border-strong` color. Drawn behind nodes using SVG `z-index` layering.
 - Flow direction: top-to-bottom and left-to-right. Root node at top-centre; child nodes arranged below and to the right.
 - **Bottom bar**: fixed strip at the bottom of the diagram canvas (above the page footer). Contains zoom in (`+`), zoom out (`−`), and reset buttons. Background `--bg-surface`, top border `1px solid var(--border)`, padding `var(--space-sm) var(--space-md)`. Buttons use the secondary button style.
-- Zoom: transform `scale()` on the diagram container; min `0.25×`, max `3×`, step `0.25`. Pan via mouse drag or touch drag on the canvas.
+- Zoom: transform `scale()` on the diagram container.
+  - **Frontend** (`arbor-interactions.js`): min `0.05×`, max `1.0×`, button step `×1.25` per click (`+`/`−`).
+  - **Admin editor** (`admin-arbor/arbor-canvas.js`): same bounds, min `0.05×`, max `1.0×`; buttons step `×1.25`; mouse-wheel zoom also available, factor `×1.1` per scroll-in tick, `×0.9` per scroll-out tick.
+  - Pan via mouse drag or touch drag on the canvas.
+  - Note: these ranges are deliberately different from the Timeline's zoom range (`0.3×`–`3.0×`, see Timeline View above) — Arbor and Timeline are separate diagram types with independently tuned zoom bounds, not a shared constant. Do not treat one as the source of truth for the other.
 - Hover on a node: shadow strengthens, cursor changes to `pointer`; tooltip shows full description.
 - Click a node: navigates to that evidence detail page.
 

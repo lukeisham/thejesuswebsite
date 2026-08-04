@@ -28,6 +28,9 @@ import { computeEdgePath } from "../cluster-logic/edge-path.js";
 // Node dimensions, spacing, and margins are imported from arbor-geometry.js
 // so the admin editor renders with the same values.
 
+// Matches .arbor-canvas min-height in arbor.css (Style Guide §9, Issue #172).
+const CONTAINER_MIN_HEIGHT = 600;
+
 // ─── Cached references (SR-3) ─────────────────────────────────────────────────
 
 /** @type {HTMLElement|null} */
@@ -435,6 +438,18 @@ export function renderArbor(nodes, edges) {
     if (loadingEl) loadingEl.hidden = true;
     canvasEl.hidden = false;
     if (emptyEl) emptyEl.hidden = true;
+  });
+
+  // Follow-up read-phase pass, scheduled after the batchWrite() callback
+  // above so it runs once the batched writes have flushed (JS-2/SR-3).
+  requestAnimationFrame(() => {
+    if (!canvasEl || !diagramEl || canvasEl.hidden) return;
+    const contentHeight = diagramEl.getBoundingClientRect().height;
+    if (contentHeight > CONTAINER_MIN_HEIGHT) {
+      console.warn(
+        `Arbor diagram content height (${Math.round(contentHeight)}px) exceeds container min-height (${CONTAINER_MIN_HEIGHT}px); content may clip. Consider increasing .arbor-canvas min-height in arbor.css.`,
+      );
+    }
   });
 }
 
