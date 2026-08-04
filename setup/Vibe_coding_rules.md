@@ -4,21 +4,24 @@
 **SR-1** — One file per function  
 Only combine functions in the same file if they form a single linear sequence **or** are tightly related by type/purpose.
 
-**SR-2** — Dependencies  
-Use external dependencies **only** for visual/display libraries. Exception: client-side spelling/grammar-checking libraries (e.g. `nspell`, `typo.js`, `retext`) may be used exclusively inside `admin/`, loaded only on admin pages, and never shipped to `frontend/`.
+**SR-2** — Dependencies Are Case-by-Case, Never Default  
+Write it yourself unless the case is already approved. Approved: visual/display libraries; client-side spell/grammar checkers (`nspell`, `typo.js`, `retext`) inside `admin/` only, never shipped to `frontend/`. Anything else needs explicit sign-off before it enters the repo — and never for something the stdlib or a short module already does.
 
 **SR-3** — Performance First  
-Website loading speed is non-negotiable. Optimize for it at every step.
+Loading speed is non-negotiable. Ship no blocking script, no unused CSS, no unbounded query. If a change adds bytes to `frontend/`, it must justify them.
 
-**SR-4** — Share, don't copy-paste across admin editors  
-Before adding logic to any `admin/<type>/` editor page, check whether the same block already exists in another editor; if so, extract it into a shared module under `admin/assets/js/` and have all editors call it, rather than adding another copy. When a bug is found in one editor, grep the other editors for the same pattern before closing the fix — the same defect has historically shipped in up to five editors at once (the `mla_source_id` incident).
+**SR-4** — Share, Don't Copy-Paste  
+Before adding logic to an `admin/<type>/` editor, grep the other editors for it — if it exists, extract to `admin/assets/js/` and have all of them call it. Fixing a bug in one editor means grepping the rest for the same pattern before closing it (the `mla_source_id` incident shipped one defect in five editors).
+
+**SR-5** — Secrets Never Enter the Repo  
+Credentials, tokens, and keys live in `.env` and are read at runtime — never hardcoded, never in a test fixture, never in a comment. Confirm `.gitignore` covers a new secret file before writing to it.
 
 ## JS Rules
 **JS-1** — Self-documenting > Comments  
 Use clear, intention-revealing names for everything. Write code that is readable without comments.
 
 **JS-2** — Robust & Predictable > Clever  
-Validate inputs, handle errors explicitly, prefer early returns and defensive programming. Never fail silently. Defensive early returns that guard a "shouldn't happen" state (uninitialized module state, missing required element, malformed data) must `console.warn` with enough context to identify the call site — only *expected* absences (e.g. an optional element genuinely not present on this page) may return silently. A guard that swallows an impossible state without logging hides real bugs (see the spellcheck `invalidateRange()` no-op incident).
+Validate inputs, handle errors explicitly, prefer early returns. Never fail silently: a guard against a "shouldn't happen" state must `console.warn` with enough context to locate the call site. Only genuinely optional absences may return quietly (the spellcheck `invalidateRange()` no-op hid a real bug this way).
 
 **JS-3** — Modern & Simple > Over-engineered  
 Use current JS features. Keep functions small and focused. Avoid unnecessary classes, abstractions, or layers.
@@ -32,33 +35,64 @@ Use `async/await` + `try/catch` for all async code. Show loading states before f
 **JS-6** — Safe DOM Handling  
 Use event delegation for dynamic elements. Remove listeners when elements are removed. Never use `innerHTML` with user data. Cache repeated DOM queries.
 
+## Python Rules
+**PY-1** — Standard Library Only  
+Python is for local scripts and tooling, never for anything the site serves. Stdlib only (`pathlib`, `json`, `csv`, `sqlite3`, `argparse`) — no `pip install`, no venv, no `requirements.txt` (SR-2). If a script needs a third-party package, write it in Node instead.
+
+**PY-2** — One Script, One Job  
+A script does one thing, named by its filename. Shared logic goes in a plain importable module beside it — never copy-pasted between scripts (SR-4).
+
+**PY-3** — Import Is Free  
+Real work lives in named functions behind `if __name__ == "__main__":`. Importing a script must never read files, write, hit the database, or take measurable time.
+
+**PY-4** — Typed Signatures  
+Annotate every parameter and return. Modern generics only: `list[str]`, `dict[str, int]`, `str | None` — never `typing.List` or `Optional`.
+
+**PY-5** — `pathlib`, Never String Paths  
+Join with `Path` and `/`. Never `os.path.join` or manual separators. Anchor project paths to `Path(__file__).resolve().parents[n]`, never the working directory.
+
+**PY-6** — Explicit Exceptions, Non-Zero Exit  
+Catch the specific exception you expect. Never a bare `except:` or a silent `except Exception:`. Raise with context and exit non-zero so callers and CI see the failure (JS-2).
+
+**PY-7** — Context Managers for Every Resource  
+Open files, connections, and subprocesses with `with`. Never leave a close or commit to the garbage collector.
+
+**PY-8** — `sqlite3`: `?` Placeholders, `mode=ro` by Default  
+The SQL Rules apply: `cursor.execute(sql, (value,))`, never f-string or `%` interpolation. Scripts that only read open read-only: `sqlite3.connect("file:...?mode=ro", uri=True)`.
+
+**PY-9** — Stream and Batch, Don't Load Everything  
+Iterate the cursor or file handle; avoid `.fetchall()` and `.read()` on anything unbounded. Wrap bulk writes in one transaction with `executemany` — never a loop of single `execute` + commit.
+
+**PY-10** — PEP 8 by Hand  
+`snake_case`, `UPPER_SNAKE` constants, 4-space indent. No Black, Ruff, or linter config in the repo.
+
 ## Test Rules
 **TEST-1** — `node:test` Only, No External Runners  
-Write tests with `node:test` + `node:assert/strict` exclusively (SR-2: no new deps for non-visual code). No Jest, Mocha, Vitest, Sinon, or mocking libraries — build fakes by hand, as `admin/tests/admin-editor-utils.test.js` does with its minimal fake DOM object.
+`node:test` + `node:assert/strict`, nothing else (SR-2). No Jest, Mocha, Vitest, Sinon, or mocking libraries — hand-build fakes, as `admin/tests/admin-editor-utils.test.js` does.
 
 **TEST-2** — Smoke, Not Exhaustive  
-These are smoke tests: prove each module loads without throwing and does its core job, not every edge case. At minimum assert (1) the module imports/requires cleanly, (2) the happy path produces the right output, and (3) one representative guard or failure path behaves correctly. Stop there — chasing full branch coverage belongs in a real unit-test suite this project doesn't run.
+Assert three things per module: it imports cleanly, the happy path produces the right output, one guard or failure path behaves. Stop there — full branch coverage belongs in a suite this project doesn't run.
 
 **TEST-3** — File Naming & Location  
-Place tests in `<area>/tests/<module>.test.js` (or `<area>/assets/js/<subdir>/tests/<module>.test.js` for nested frontend modules, mirroring the file being tested — see `frontend/assets/js/arbor/tests/arbor-render.test.js`). One test file per source module; name it after the module, not the feature.
+One test file per source module, named after the module, not the feature. Put it in `<area>/tests/<module>.test.js` — or beside nested modules, mirroring the source tree (`frontend/assets/js/arbor/tests/arbor-render.test.js`).
 
 **TEST-4** — Isolated, In-Memory, No Network  
-API tests get a fresh database via `createTestDb()` (`api/tests/helpers/db.js`), which builds an in-memory SQLite instance from `database/schema.sql` — never point a test at the real `database/thejesuswebsite.db`. Never make real network requests. Reset any shared module state (e.g. `clearSessions()`) in `afterEach` so one test's state can't leak into the next.
+API tests build a fresh in-memory database with `createTestDb()` (`api/tests/helpers/db.js`) — never touch the real `database/thejesuswebsite.db`. No real network requests. Reset shared module state (e.g. `clearSessions()`) in `afterEach`.
 
 **TEST-5** — Deterministic, No Sleeps  
-Tests must not rely on `setTimeout`/sleep-based waiting to pass. Await the real async operation (a promise, an HTTP response, a DB write) instead of guessing a delay. The whole suite (`npm test`) should run in seconds — a slow test is usually one doing more than a smoke test needs.
+Await the real operation — a promise, a response, a write — never a guessed `setTimeout` delay. `npm test` runs in seconds; a slow test is usually doing more than a smoke test needs.
 
 **TEST-6** — Assert on Behavior, Not Absence of a Throw  
-A test that only checks "it didn't crash" is not a smoke test — it's a false sense of coverage. Assert on the actual output, returned value, HTTP status, or DOM/state change the code is supposed to produce, per JS-2's "never fail silently."
+"It didn't crash" is not coverage. Assert the actual output, return value, HTTP status, or state change (JS-2).
 
 **TEST-7** — Auth Routes Get an Unauthenticated-Access Test  
-Every route mounted behind `middleware/auth` must have a test proving it returns 401 without a session cookie, and a companion test proving a valid session passes through (see `api/tests/auth-guard.test.js`). New routes are not done until both exist.
+Every route behind `middleware/auth` needs two tests: 401 without a session cookie, pass-through with a valid one (see `api/tests/auth-guard.test.js`). The route isn't done until both exist.
 
 **TEST-8** — DOM-Dependent Modules: Fake DOM, Not a DOM Library  
-For admin/frontend modules that touch `document`, load the real source into a `vm` context (or call it directly) against a small hand-built fake DOM object exposing only the methods/properties the module actually uses — as `admin/tests/admin-editor-utils.test.js` does. Do not add `jsdom` or similar (SR-2).
+Run the real source against a small hand-built fake DOM exposing only what the module uses, as `admin/tests/admin-editor-utils.test.js` does. No `jsdom` or similar (SR-2).
 
 **TEST-9** — Mirror the Logic, Don't Duplicate the Bug  
-Always import the real module when you can. When a test must recreate a small piece of source logic instead of importing it directly (e.g. `announce.test.js`'s `arborAriaLabel` helper), comment that it mirrors a named source file/function, and update the test if that logic changes — a passing test against a stale copy proves nothing.
+Import the real module whenever possible. If a test must recreate source logic (e.g. `announce.test.js`'s `arborAriaLabel`), comment which file/function it mirrors — a passing test against a stale copy proves nothing.
 
 ## CSS Rules
 **CSS-1** — One File, One Job  
@@ -111,28 +145,59 @@ Use `<rect>`, `<circle>`, `<ellipse>`, `<line>`, `<polygon>` for simple geometry
 **SVG-5** — DOM Styling: `fill` & `stroke`  
 SVG elements live in the DOM — target them with CSS classes/IDs. Use `fill` for color (not `background-color`) and `stroke` for outlines (not `border`). Attributes can be inline or applied via external stylesheet.
 
+## API Rules
+**API-1** — Routes Are a Thin Layer  
+A handler parses input, calls a model, shapes the response. No SQL and no business logic in `routes/` — all SQL lives in `models/<type>.model.js`.
+
+**API-2** — One Route File Per Resource  
+`routes/<resource>.js` serves one mounted path and one model. Never add an endpoint for one resource to another resource's file (SR-1).
+
+**API-3** — Errors Come From the Registry  
+Every failure response goes through `sendError()` / `sendValidationError()` with a code from `lib/error-codes.js`. No inline `res.status(500).json({...})`. A new failure mode earns a new registry entry in the right category, not a one-off message.
+
+**API-4** — Validate Before the Model  
+Check required fields, types, and enums in the handler and return 400 naming the offending field. Models assume valid input; they are not the validation layer.
+
+**API-5** — Write Routes Require Auth  
+Every POST, PUT, PATCH, and DELETE mounts `requireAuth`, as does any GET exposing unpublished content (`/admin*`). Public GETs return published rows only, and the model decides that — never a flag from the query string. Not done until TEST-7's two tests exist.
+
+**API-6** — Catch, Log, Respond  
+Every handler wraps its work in `try/catch`. Log the cause with method and path (`console.error("GET /resources failed:", error)`), then send a registry error. No raw exception or stack trace ever reaches the client.
+
+**API-7** — Static Route Paths Before Dynamic  
+Register `/admin/holding-pen` before `/admin/:list_key` — Express matches in order, so the parameter would swallow it. Comment the constraint where it's load-bearing.
+
+**API-8** — Bounded Responses  
+List endpoints return named columns with a `LIMIT`, never an unbounded table dump (SR-3, SQL-9). Paginate anything that grows without limit.
+
 ## SQL Rules
 **SQL-1** — Prepared Statements Always  
-Every SQL query must use `db.prepare(sql)` followed by `.get()`, `.all()`, or `.run()`. Never execute raw SQL strings. Cache prepared statements in module scope for reuse (better-sqlite3 compiles once per prepare call).
+Every query goes through `db.prepare(sql)` then `.get()`, `.all()`, or `.run()`. Never execute a raw SQL string. Cache statements in module scope — better-sqlite3 compiles on every `prepare` call.
 
 **SQL-2** — User Input Only via `?`  
-Use `?` placeholders for all user-supplied data (params, filters, search queries). Never interpolate or concatenate user input into SQL strings, even partially. Pass an array of values after the query: `.all(sql, userParam)`.
+All user-supplied data — params, filters, search terms — goes in as a `?` placeholder with values passed after the query. Never interpolate or concatenate it into SQL, even partially.
 
 **SQL-3** — Named Parameters for Clarity  
-Use named parameters (`@column`) for multi-column INSERT/UPDATE statements built from object key/value pairs. Convert column names via `Object.keys()` restricted to a whitelisted array (JS-2: never let stray fields reach the database).
+Multi-column INSERT/UPDATE built from an object uses named parameters (`@column`), with keys filtered through a whitelist so stray fields can't reach the database (JS-2).
 
 **SQL-4** — Identifiers from Whitelists Only  
-Table names, column names, and index names must come from hardcoded constants, validated enums, or config objects — never from user input. Example: derive allowed filters from `VALID_FILTERS = ["gospel_category", "timeline_era", ...]`, apply them with `conditions.push(key + " = ?")`.
+Table, column, and index names come from hardcoded constants or validated enums — never user input. Derive filters from a list like `VALID_FILTERS = ["gospel_category", "timeline_era"]`, then `conditions.push(key + " = ?")`.
 
 **SQL-5** — FTS Queries: Sanitize User Search  
-Full-text search queries must be sanitized: wrap tokens in double quotes to neutralise FTS operators (`AND`, `OR`, `NOT`, `*`, etc.) that could throw syntax errors. Never pass raw user input to `MATCH ?`. Example: `toMatchExpression(rawQuery)` tokenizes and quotes before `.all(match, params)`.
+Never pass raw input to `MATCH ?`. Tokenize and double-quote first (`toMatchExpression()`) so FTS operators (`AND`, `OR`, `NOT`, `*`) can't throw or change the query.
 
 **SQL-6** — UPDATE Triggers: WHEN Guard Required  
-Every `AFTER UPDATE` trigger must include a `WHEN` clause to prevent infinite recursion and redundant writes. Example: `WHEN NEW.updated_at = OLD.updated_at` fires only if the caller did not explicitly set a new timestamp. Without a guard, an UPDATE inside a trigger can fire the same trigger again.
+Every `AFTER UPDATE` trigger needs a `WHEN` clause, or its own write re-fires it. `WHEN NEW.updated_at = OLD.updated_at` fires only when the caller didn't set a timestamp.
 
 **SQL-7** — FTS Triggers: WHEN Guard & Index Sync  
-FTS (virtual table) synchronization triggers must include a `WHEN` clause that lists the specific content columns monitored. Prevents reindexing on unrelated updates. Insert into the FTS table with the magic `'delete'` directive to remove stale entries: `INSERT INTO fts_table(fts_table, rowid, ...) VALUES ('delete', old.id, ...)`.
+FTS sync triggers list the exact content columns in their `WHEN` clause, so unrelated updates don't reindex. Remove stale rows with the `'delete'` directive: `INSERT INTO fts_table(fts_table, rowid, ...) VALUES ('delete', old.id, ...)`.
 
 **SQL-8** — Foreign Key Pragmas  
-Enable foreign key constraints on every database connection: `db.pragma('foreign_keys = ON')` (done once in api/config.js). Verify the pragma in tests and deploys to ensure referential integrity is active. SQLite disables foreign keys by default.
+`db.pragma('foreign_keys = ON')` on every connection (done in `api/config.js`) — SQLite disables it by default. Verify it in tests and on deploy.
+
+**SQL-9** — Query in Sets, Not Loops  
+One query returns what a request needs; never run a query per row of a previous result. Select named columns, not `SELECT *`, and bound anything user-facing with `LIMIT`.
+
+**SQL-10** — Every Filter and Join Has an Index  
+Columns used in `WHERE`, `JOIN`, or `ORDER BY` are indexed in `schema.sql`. Check new queries against the schema, and confirm with `EXPLAIN QUERY PLAN` that a hot query isn't scanning the table.
 
