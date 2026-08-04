@@ -1,4 +1,4 @@
-// Resource data access — all SQL for the `resources` and `evidence_resource_lists` tables lives here.
+// Resource data access — all SQL for the `resources` table lives here.
 // Functions are synchronous (better-sqlite3) and return plain objects/arrays.
 // No HTTP concerns in this file: no req, no res, no status codes.
 
@@ -162,74 +162,8 @@ function remove(id) {
 }
 
 /**
- * Link a resource to evidence. Returns the created link.
- */
-function addToEvidence(evidenceId, resourceId, sortOrder = 0) {
-    const result = db
-        .prepare('INSERT INTO evidence_resource_lists (evidence_id, resource_id, sort_order) VALUES (?, ?, ?)')
-        .run(evidenceId, resourceId, sortOrder);
-
-    return db.prepare('SELECT * FROM evidence_resource_lists WHERE id = ?').get(result.lastInsertRowid);
-}
-
-/**
- * Remove a resource from evidence. Returns true if removed.
- */
-function removeFromEvidence(evidenceId, resourceId) {
-    const result = db
-        .prepare('DELETE FROM evidence_resource_lists WHERE evidence_id = ? AND resource_id = ?')
-        .run(evidenceId, resourceId);
-
-    return result.changes > 0;
-}
-
-/**
- * Get all resources linked to a specific evidence item.
- */
-function getResourcesForEvidence(evidenceId) {
-    return db
-        .prepare(
-            `
-        SELECT
-            r.id,
-            r.list_key,
-            r.resource_title,
-            r.resource_url,
-            r.resource_description,
-            r.sort_order,
-            r.published_draft,
-            erl.sort_order AS evidence_sort_order
-        FROM evidence_resource_lists erl
-        JOIN resources r ON erl.resource_id = r.id
-        WHERE erl.evidence_id = ?
-        ORDER BY erl.sort_order, r.id
-    `
-        )
-        .all(evidenceId);
-}
-
-/**
- * Reorder resources within an evidence item (drag-to-reorder).
- * Accepts an array of {resourceId, sortOrder} objects.
- */
-function reorderEvidenceResources(evidenceId, items) {
-    const stmt = db.prepare(
-        'UPDATE evidence_resource_lists SET sort_order = @sort_order WHERE evidence_id = ? AND resource_id = @resource_id'
-    );
-
-    const transaction = db.transaction(() => {
-        for (const item of items) {
-            stmt.run(evidenceId, item);
-        }
-    });
-
-    transaction();
-    return items.length;
-}
-
-/**
  * Reorder resources within a list (drag-to-reorder).
- * Accepts an array of {id, sortOrder} objects.
+ * Accepts an array of {id, sort_order} objects.
  */
 function reorderList(items) {
     const stmt = db.prepare('UPDATE resources SET sort_order = @sort_order WHERE id = @id');
@@ -251,9 +185,5 @@ module.exports = {
     create,
     update,
     remove,
-    addToEvidence,
-    removeFromEvidence,
-    getResourcesForEvidence,
-    reorderEvidenceResources,
     reorderList,
 };

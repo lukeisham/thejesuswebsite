@@ -334,3 +334,116 @@ describe("resources routes: admin read endpoints", () => {
     assert.ok(res.body.error);
   });
 });
+
+// ── Model: reorderList() bulk transaction ──────────────────────────────────────
+
+describe("resource model: reorderList() bulk transaction", () => {
+  beforeEach(clearResources);
+
+  test("reorderList updates sort_order for multiple rows in one transaction", () => {
+    const a = seedResource({ resource_title: "A", list_key: "sites", sort_order: 0 });
+    const b = seedResource({ resource_title: "B", list_key: "sites", sort_order: 1 });
+    const c = seedResource({ resource_title: "C", list_key: "sites", sort_order: 2 });
+
+    const count = resourceModel.reorderList([
+      { id: a.id, sort_order: 2 },
+      { id: b.id, sort_order: 0 },
+      { id: c.id, sort_order: 1 },
+    ]);
+
+    assert.equal(count, 3);
+
+    const rows = db
+      .prepare("SELECT id, sort_order FROM resources WHERE list_key = ? ORDER BY sort_order")
+      .all("sites");
+    assert.equal(rows[0].id, b.id);
+    assert.equal(rows[0].sort_order, 0);
+    assert.equal(rows[1].id, c.id);
+    assert.equal(rows[1].sort_order, 1);
+    assert.equal(rows[2].id, a.id);
+    assert.equal(rows[2].sort_order, 2);
+  });
+
+  test("reorderList with empty array returns 0", () => {
+    const count = resourceModel.reorderList([]);
+    assert.equal(count, 0);
+  });
+});
+
+// ── Routes: POST /resources/reorder ────────────────────────────────────────────
+
+describe("resources routes: POST /resources/reorder", () => {
+  let app;
+  beforeEach(() => {
+    clearResources();
+    app = express();
+    app.use(express.json());
+    app.use("/resources", require("../routes/resources"));
+  });
+
+  test("POST /resources/reorder returns 401 without a session", async () => {
+    const res = await makeRequest(app, "POST", "/resources/reorder", {
+      body: { items: [{ id: 1, sort_order: 0 }] },
+    });
+    assert.equal(res.status, 401);
+  });
+
+  test("POST /resources/reorder succeeds with valid payload when authed", async () => {
+    const a = seedResource({ resource_title: "First", list_key: "sites", sort_order: 0 });
+    const b = seedResource({ resource_title: "Second", list_key: "sites", sort_order: 1 });
+
+    const res = await makeRequest(app, "POST", "/resources/reorder", {
+      cookie: authCookie(),
+      body: { items: [{ id: a.id, sort_order: 1 }, { id: b.id, sort_order: 0 }] },
+    });
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.success, true);
+    assert.equal(res.body.count, 2);
+
+    // Verify sort_order actually changed.
+    const rows = db
+      .prepare("SELECT id, sort_order FROM resources WHERE list_key = ? ORDER BY sort_order")
+      .all("sites");
+    assert.equal(rows[0].id, b.id);
+    assert.equal(rows[0].sort_order, 0);
+    assert.equal(rows[1].id, a.id);
+    assert.equal(rows[1].sort_order, 1);
+  });
+
+  test("POST /resources/reorder returns 400 for missing items field", async () => {
+    const res = await makeRequest(app, "POST", "/resources/reorder", {
+      cookie: authCookie(),
+      body: {},
+    });
+    assert.equal(res.status, 400);
+    assert.ok(res.body.error);
+  });
+
+  test("POST /resources/reorder returns 400 for empty items array", async () => {
+    const res = await makeRequest(app, "POST", "/resources/reorder", {
+      cookie: authCookie(),
+      body: { items: [] },
+    });
+    assert.equal(res.status, 400);
+    assert.ok(res.body.error);
+  });
+
+  test("POST /resources/reorder returns 400 for non-integer id", async () => {
+    const res = await makeRequest(app, "POST", "/resources/reorder", {
+      cookie: authCookie(),
+      body: { items: [{ id: "abc", sort_order: 0 }] },
+    });
+    assert.equal(res.status, 400);
+    assert.ok(res.body.error);
+  });
+
+  test("POST /resources/reorder returns 400 for non-integer sort_order", async () => {
+    const res = await makeRequest(app, "POST", "/resources/reorder", {
+      cookie: authCookie(),
+      body: { items: [{ id: 1, sort_order: "high" }] },
+    });
+    assert.equal(res.status, 400);
+    assert.ok(res.body.error);
+  });
+});

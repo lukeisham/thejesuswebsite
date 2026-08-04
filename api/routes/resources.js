@@ -83,6 +83,35 @@ router.post("/", requireAuth, (req, res) => {
   }
 });
 
+// POST /resources/reorder — bulk reorder (admin only).
+// Accepts { items: [{id, sort_order}, ...] } and runs a single transaction.
+router.post("/reorder", requireAuth, (req, res) => {
+  try {
+    const { items } = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return sendValidationError(res, "items", ERRORS.INVALID_REORDER_PAYLOAD);
+    }
+
+    for (const item of items) {
+      if (
+        typeof item !== "object" ||
+        item === null ||
+        !Number.isInteger(item.id) ||
+        !Number.isInteger(item.sort_order)
+      ) {
+        return sendValidationError(res, "items", ERRORS.INVALID_REORDER_PAYLOAD);
+      }
+    }
+
+    const count = resourceModel.reorderList(items);
+    res.json({ success: true, count });
+  } catch (error) {
+    console.error("POST /resources/reorder failed:", error);
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
+  }
+});
+
 // PUT /resources/:id — update resource (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {

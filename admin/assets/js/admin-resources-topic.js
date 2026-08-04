@@ -314,6 +314,27 @@
         res.sort_order = idx;
       });
 
+      // Bulk-reorder existing rows in one call before per-row field saves.
+      const reorderItems = [];
+      for (let i = 0; i < resources.length; i++) {
+        const r = resources[i];
+        if (!r._isNew && typeof r.id === "number") {
+          reorderItems.push({ id: r.id, sort_order: r.sort_order });
+        }
+      }
+      if (reorderItems.length > 0) {
+        try {
+          await Admin.api.post("/resources/reorder", { items: reorderItems });
+        } catch (err) {
+          // Bulk reorder failed — do not block per-row saves, but surface the
+          // error on the status line so the user knows order wasn't persisted.
+          statusEl.textContent = "Reorder failed: " + err.message;
+          statusEl.style.color = "var(--admin-danger)";
+          // Continue with per-row saves — title/URL/description changes are
+          // independent of sort_order and should still persist.
+        }
+      }
+
       const tempIdMap = {};
       for (let i = 0; i < resources.length; i++) {
         const r = resources[i];

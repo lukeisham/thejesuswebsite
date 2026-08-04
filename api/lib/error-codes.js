@@ -362,6 +362,15 @@ const CATEGORY_1 = {
     detail: "The item_type value must be either 'item' or 'subheading'.",
     severity: "error",
   },
+
+  INVALID_REORDER_PAYLOAD: {
+    code: "E-INPUT-037",
+    category: 1,
+    httpStatus: 400,
+    message: "The reorder payload is malformed.",
+    detail: "The items field must be a non-empty array of objects, each with an integer id and integer sort_order.",
+    severity: "error",
+  },
 };
 
 // ── Category 2: Transformation Boundaries (Data Processing) ─────────────────
