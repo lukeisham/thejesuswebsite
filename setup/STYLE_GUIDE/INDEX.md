@@ -24,6 +24,7 @@ The guide is split across files in this directory (`setup/STYLE_GUIDE/`). Sectio
 | [animation.md](animation.md) | §6 | Animation & transition timing, easing curves, reduced-motion rules | Adding or changing any hover state, transition, or animation |
 | [components.md](components.md) | §8 | Buttons, cards, badges, timeline, map, filters, modals, tables, forms, toasts, breadcrumbs, infinite scroll | Building or styling a reusable UI component |
 | [content-patterns.md](content-patterns.md) | §9 | Per-page-type layout rules: home, evidence detail, essays/responses/historiography, blog, news, Wikipedia list, resources, about, arbor diagram, verse blocks | Building or editing a specific page template |
+| [Content_shortcodes.md](Content_shortcodes.md) | §9 | Inline-marker syntax for body text: `[figure]`, `[mla:N]`, `[id:N]`, `[pullquote]` — parser contract, junction-table rules, rendering behaviour per content type | Authoring body content with markers, or changing the shortcode parser |
 | [pages-and-admin.md](pages-and-admin.md) | §10–13 | UX interaction patterns, accessibility/technical notes, print styles, admin page layouts | Working on UX flows, a11y, print CSS, or any admin page |
 | [history.md](history.md) | §14 | Version history | Bumping the guide version after a change |
 
