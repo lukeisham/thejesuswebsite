@@ -312,11 +312,11 @@ describe("gold-set file integrity", { skip: !filesExist && "gold-set CSVs not ye
   });
 
   // Started at 40; "Historical reliability of the Gospels" was removed as a confirmed Wikipedia-side
-  // duplicate of "Historicity of the Gospels" (Issues.md #140) — both the ranked-255 source
-  // (database/scoring-export.json) and this classifier set were updated together, so 39 is now the
-  // correct count, not a shortfall.
-  test("row-count sanity: classifier set has exactly 39 rows", () => {
-    assert.equal(classifierRows.length, 39);
+  // duplicate of "Historicity of the Gospels" (Issues.md #140), then three more articles were removed
+  // on 2026-08-04 as they were excluded from the ranked-255 set in July top-up runs (Issues.md #165/
+  // #183): "List of gospels", "Four Evangelists", "Synoptic Gospels".
+  test("row-count sanity: classifier set has exactly 36 rows", () => {
+    assert.equal(classifierRows.length, 36);
   });
 
   test("row-count sanity: classifier set includes all 11 is_bible_book articles", () => {
