@@ -201,3 +201,28 @@ One query returns what a request needs; never run a query per row of a previous 
 **SQL-10** — Every Filter and Join Has an Index  
 Columns used in `WHERE`, `JOIN`, or `ORDER BY` are indexed in `schema.sql`. Check new queries against the schema, and confirm with `EXPLAIN QUERY PLAN` that a hot query isn't scanning the table.
 
+## Migration Rules
+**MIG-1** — Numbered, Sequential, One Per Number  
+`NNN_short_description.sql`, zero-padded, next number up. Never a suffix like `004b`, never two files sharing a number — the runner applies them in `sort` order, so duplicates make that order ambiguous.
+
+**MIG-2** — Applied Migrations Are Immutable  
+Never edit a migration once it's pushed. `schema_migrations` keys on filename, so the VPS has already recorded it and your edit will never run there — local and production silently diverge. Fix a bad migration with a new one (042 fixes 032).
+
+**MIG-3** — Idempotent and Re-runnable  
+`IF EXISTS` / `IF NOT EXISTS` on every drop and create. Running a migration twice must not error.
+
+**MIG-4** — `schema.sql` Updated in the Same Commit  
+`database/schema.sql` is authoritative and builds fresh databases. A structural change that skips it leaves new and migrated databases out of sync.
+
+**MIG-5** — Header Comment: Why, What, How to Run  
+Open with the bug or need, the fix, and the run command — the style of `042_restore_fts_news_resource_triggers.sql`. It's the only place a schema decision gets explained.
+
+**MIG-6** — Verify Before You Drop  
+Check `schema.sql` and the migration history for what actually exists before dropping a table, trigger, or column. Migration 032 dropped two FTS triggers that were still in use, silently breaking search re-indexing until 042 restored them.
+
+**MIG-7** — Destructive Changes Need Explicit Confirmation  
+`DROP TABLE`, `DROP COLUMN`, and bulk `DELETE`/`UPDATE` reach real production content on the next push. Confirm with the user first — the empty local database is no guide to what's there.
+
+**MIG-8** — Never Special-Case the Runner  
+Don't fix a broken migration by adding a skip to `deploy.sh`. The `001_`/`005_` skips are legacy, not a pattern — new exceptions make deploy behavior unreproducible locally.
+

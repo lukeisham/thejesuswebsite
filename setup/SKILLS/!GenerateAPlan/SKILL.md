@@ -22,7 +22,7 @@ Always read these three files so every task you write respects the project's rul
 ```
 /Users/lukeishammacbookair/Developer/thejesuswebsite/setup/Vibe_coding_rules.md
 /Users/lukeishammacbookair/Developer/thejesuswebsite/database/schema.sql
-/Users/lukeishammacbookair/Developer/thejesuswebsite/setup/Website_guide.md
+/Users/lukeishammacbookair/Developer/thejesuswebsite/setup/ARCHITECTURE/Website_guide.md
 ```
 
 The style guide is split by section under `setup/STYLE_GUIDE/`. Always read the
@@ -40,7 +40,24 @@ template needs `content-patterns.md` and probably `components.md`; a purely
 backend/API plan may need none beyond the index. If the plan is broad (a new
 page type, a site-wide visual change), read all of them.
 
+The architecture reference (`setup/ARCHITECTURE/`) records how individual
+subsystems *mechanically* work — per-feature deep dives that sit below the
+Website guide's decision-level overview. Always check its index to see if the
+feature being planned already has an architecture doc:
+
+```
+/Users/lukeishammacbookair/Developer/thejesuswebsite/setup/ARCHITECTURE/INDEX.md
+```
+
+If this plan touches a subsystem listed in that index (e.g. image display,
+ESV API, error notification, caching, Wikipedia pipeline), read the
+corresponding file so the plan respects the existing mechanics rather than
+re-inventing or accidentally breaking them. If the plan spans multiple
+subsystems, read all the matching files — the cost is a few seconds, the
+payoff is catching design collisions before they become code.
+
 Keep these in mind for the rest of the plan:
+- **Architecture reference**: subsystem-level mechanics — how features currently work under the hood.
 - **Style guide**: UI/UX patterns, component specs, layout, print styles.
 - **Vibe Coding Rules**: file structure, JS/CSS/HTML conventions, performance, accessibility.
 - **Schema**: table definitions, column types, constraints, FK relationships.
@@ -66,12 +83,12 @@ Use the structure defined in the plan template:
 
 The required sections are:
 
-1. **Header** — `# Plan: <Feature Name>`, plus module, date, a **Status** field set to `Drafting`, and a **Live site** field giving the canonical production origin. Source that origin from the codebase (`README.md`, `api/config/load-env.js`, `frontend/assets/js/utils/site-meta.js` — currently `https://thejesuswebsite.org`), **never** from the wording of the user's request or a bug report: a plan was once written entirely against `thejesuswebsite.com`, an unrelated dead domain, wasting the whole diagnostic pass (see `setup/Issues.md` #78).
+1. **Header** — `# Plan: <Feature Name>`, plus module, date, a **Status** field set to `Drafting`, and a **Live site** field giving the canonical production origin. Source that origin from the codebase (`README.md`, `api/config/load-env.js`, `frontend/assets/js/utils/site-meta.js` — currently `https://thejesuswebsite.org`), **never** from the wording of the user's request or a bug report: a plan was once written entirely against `thejesuswebsite.com`, an unrelated dead domain, wasting the whole diagnostic pass (see `setup/ISSUES/Issues.md` #78).
 2. **Goal** — one or two sentences describing what this plan delivers and why.
 3. **Coding rules to keep in mind** — list any Vibe Coding Rules that are especially relevant to this plan. Reference them by ID (e.g. `JS-5`, `CSS-2`).
 4. **Tasks** — grouped by layer (Database, API, Frontend, etc.) in dependency order, ending with a **Deploy & verify** group carrying the three-tier verification ladder (see below).
 5. **Files touched** — every file that will be created or modified, with `— created` or `— modified`.
-6. **Error notification** — answer two questions: **(a)** does this plan impact existing error handling (changes to a route, model, or frontend component that produces or displays errors)? If yes, list which `E-*` error codes are affected and whether new codes are needed. **(b)** Should the plan add, update, or remove any error notification behaviour (new error toast calls, new `sendError`/`sendValidationError` usage, changes to `error-fallback.js`, etc.)? Reference `setup/Website_guide.md` § Error Notification for the encoding architecture.
+6. **Error notification** — answer two questions: **(a)** does this plan impact existing error handling (changes to a route, model, or frontend component that produces or displays errors)? If yes, list which `E-*` error codes are affected and whether new codes are needed. **(b)** Should the plan add, update, or remove any error notification behaviour (new error toast calls, new `sendError`/`sendValidationError` usage, changes to `error-fallback.js`, etc.)? Reference `setup/ARCHITECTURE/Website_guide.md` § Error Notification for the encoding architecture.
 7. **Notes** — edge cases, constraints, ordering dependencies, anything non-obvious.
 8. **Completion Protocol** — always present, copied/adapted from `plan_template.md`'s own Completion Protocol section (see below). Every plan carries this verbatim so an implementing agent that only reads the plan file — not this skill — still knows how to finish it correctly.
 
@@ -79,9 +96,9 @@ The required sections are:
 
 Every plan must end with a `## Completion Protocol` section, addressed to *any* implementing agent (not just Claude), covering:
 
-- **Markdown edits happen via a Python script, never manual find/replace.** State plainly that hand-edited markdown/HTML is a known source of corruption in this codebase (cite `setup/Issues.md` if it has relevant rows) and that whoever implements this plan should write a small script to parse-and-rewrite rather than hand-edit checkboxes, status fields, or `Issues.md` rows.
+- **Markdown edits happen via a Python script, never manual find/replace.** State plainly that hand-edited markdown/HTML is a known source of corruption in this codebase (cite `setup/ISSUES/Issues.md` if it has relevant rows) and that whoever implements this plan should write a small script to parse-and-rewrite rather than hand-edit checkboxes, status fields, or `Issues.md` rows.
 - **Tick checkboxes as tasks complete** (`- [ ]` → `- [x]`).
-- **Mark related Issues.md rows resolved, if applicable** — only if this plan's Goal is to fix issue(s) already logged in `setup/Issues.md` by an earlier plan. Add a corresponding task earlier in the Tasks list (a "Close out" group just before "Deploy & verify" is the natural home) that updates only the `Status` cell for those specific row(s) from `open` to `resolved`, once the fix is verified. Do not add this if the plan doesn't resolve any existing Issues.md rows.
+- **Mark related Issues.md rows resolved, if applicable** — only if this plan's Goal is to fix issue(s) already logged in `setup/ISSUES/Issues.md` by an earlier plan. Add a corresponding task earlier in the Tasks list (a "Close out" group just before "Deploy & verify" is the natural home) that updates only the `Status` cell for those specific row(s) from `open` to `resolved`, once the fix is verified. Do not add this if the plan doesn't resolve any existing Issues.md rows.
 - **Shipped-artifact audit before completion** — before flipping Status to Completed, verify every file listed in **Files touched** actually exists with the *planned content*, not a stub or placeholder (e.g. `ls` created directories and open key files; a vendored library directory containing only a README is a failed audit). If any planned artifact is missing or smaller than specced, the plan stays in `PLANS/New/` with a note describing the gap. (History: a dictionary upgrade was once marked done with only a README shipped.)
 - **Plan lifecycle**: once every task is checked *and the shipped-artifact audit passes*, flip the header's **Status** to `✅ Completed` and move the file from `PLANS/New/` to `PLANS/Completed/`.
 - **Push everything to GitHub as the final step** — code changes, any `Issues.md` update, and the plan file's own edits/move, all in the same push described in "Deploy & verify".
@@ -129,7 +146,7 @@ Read `sitemap.xml`:
 `frontend/sitemap.xml` is the XML sitemap that tells search engines which pages exist.
 If the plan adds new **HTML pages** (e.g. a new evidence detail page, a new list page),
 add their `<url>` entries in the correct place. Preserve the existing formatting exactly.
-Do **not** modify `setup/Website_guide.md`.
+Do **not** modify `setup/ARCHITECTURE/Website_guide.md`.
 
 ---
 
@@ -204,7 +221,7 @@ Fix any issues you find in files you just created. If you find pre-existing issu
 
 ## Step 6 — Log unresolved issues to Issues.md
 
-Open `/Users/lukeishammacbookair/Developer/thejesuswebsite/setup/Issues.md` and append any
+Open `/Users/lukeishammacbookair/Developer/thejesuswebsite/setup/ISSUES/Issues.md` and append any
 issues found in Step 5 that were **not fixed** — pre-existing problems, ambiguities you
 cannot resolve in this session, or anything that needs a separate decision.
 
