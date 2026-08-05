@@ -69,16 +69,18 @@ The landing page and both endless-feed pages (News, Blog) share a consistent hor
 - "View Details" button
 
 ### Content Badges (public-facing)
-Used on evidence cards and detail pages to label category, timeline period, and map location. Distinct from admin Status Badges.
+Used on evidence cards and detail pages to label category, timeline period, and map location. Distinct from admin Status Badges — see the Chip Type Classification table below for how all chip variants compare.
 
+- Display: `inline-flex`, items centered
 - Background: `--bg-surface-alt` (`#F1EDE4`)
 - Border: `1px solid var(--border)`
-- Text: `--text-secondary`, `0.75rem`, weight 500
-- Border radius: `4px`
+- Text: `--text-secondary`, `0.75rem` (`--text-2xs`), weight 500
+- Border radius: `4px` (`--radius-sm`)
 - Padding: `2px 8px`
 - No uppercase — use the value as-is from the database (e.g. "Galilee", "beginning", "event")
 - Displayed inline, wrapping if multiple badges present
 - No hover state — badges are labels, not links
+- No era colour highlight — era tints are reserved for Filter Chips, below
 
 **CSS `[hidden]` conflict warning**: Any component class that sets a non-none `display` value (e.g. `display: flex`, `display: inline-flex`) must include a matching `[hidden]` selector to restore the browser’s native hidden behavior: `.component[hidden] { display: none; }`. This prevents the class’s `display` value from overriding the `hidden` attribute via author-vs-user-agent cascade priority. See `badges.css` line 24 for an example.
 
@@ -121,6 +123,26 @@ Used on evidence cards and detail pages to label category, timeline period, and 
 - Clear filters button (ghost style, only visible when a filter is active)
 - Live results count updates as filters change
 
+### Filter Chips
+Used on both frontend and admin to filter timeline events, evidence, and other lists by category or era. Distinct from Content Badges: chips are interactive (clickable, hoverable, focusable); badges are static labels.
+
+- Display: `inline-flex`, items centered, `white-space: nowrap`
+- Padding: `0.375rem 0.75rem` (frontend) / `var(--space-xs) var(--space-sm)` = `4px 8px` (admin)
+- Font-size: `--text-xs` (`0.8125rem`)
+- Font-weight: `500` normal, `600` active/selected
+- Border-radius: `999px` (pill) — both frontend and admin filter chips, including the admin timeline era filter (standardised from admin's prior `6px` convention to match the frontend pill shape)
+- Min-height: `36px` (touch-target minimum for keyboard/pointer interaction)
+- Border: `1px solid` a neutral border token, changing to the accent colour on active
+- **States**:
+  - Hover: background shifts to the surface-alt/hover token, `150ms ease-out` transition (admin: `var(--admin-transition)`)
+  - Active/selected: background shifts to surface-alt (admin: hover surface), border and text become the accent colour, font-weight `600`
+  - Focus-visible: `2px solid` accent-colour outline, `2px` offset
+- **Era colour highlight** (timeline era filters only, both systems):
+  - Inactive: `3px` left border tinted with the matching `--era-*` token; the rest of the chip stays neutral
+  - Active: the full era-token colour fills the chip background, and the border (including the left edge) also becomes the era colour
+  - Applied via an `.era--<kebab-era>` class alongside `.filter-chip` (frontend) / `.admin-timeline-era-filter__chip` (admin) — e.g. `.era--passion-week`. Never the sole signal of the era — label text still carries the meaning (WCAG)
+  - Implementations: `frontend/assets/css/components/filters/filter-chips.css` and `admin/assets/css/admin-diagrams/timeline-era-filter.css`. Each system hooks the same `.era--*` classes into its own token set — they do not share a stylesheet (see the No Cross-Import rule in the Website Guide)
+
 ### Modals / Drawers
 - Centered modal for evidence details
 - Slide-in drawer for mobile
@@ -141,12 +163,26 @@ Used on evidence cards and detail pages to label category, timeline period, and 
 - Placeholder text: `--text-muted`
 
 ### Status Badges (Admin only — frontend only shows published content)
-Admin-use only — the public frontend never shows draft or publish state.
+Admin-use only — the public frontend never shows draft or publish state. One shared colour scheme across every admin surface that shows publish state — arbor's holding-pen/canvas badges previously used a separate brown/grey scheme; both now match the table badge below.
 
-- **Published**: `--success` green background (light tint), dark green text, `0.75rem` font, `4px` rounded
-- **Draft**: `--admin-border` gray background, `--admin-text-secondary` text, same sizing
-- Badge padding: `2px 8px`
-- Used in: admin tables, draft lists, publish confirmation UI
+- **Published**: green background (light tint, `rgba(40, 167, 69, 0.12)`), `--admin-success` text
+- **Draft**: `--admin-draft-bg` background, `--admin-draft-color` text (yellow-grey)
+- Font-size: `--text-xs` (`0.8125rem`)
+- Font-weight: `600`
+- Border radius: `6px`
+- Padding: `2px 8px`
+- No uppercase text-transform
+- Used in: admin tables (`.admin-badge--*`), arbor holding pen (`.admin-arbor-pen__badge--*`), draft lists, publish confirmation UI
+
+#### Chip Type Classification
+All four chip/badge variants at a glance — see the individual sections above for full detail.
+
+| Type | Font-size | Padding | Radius | Font-weight | Frontend selector | Admin selector |
+|---|---|---|---|---|---|---|
+| Content badge | `0.75rem` (`--text-2xs`) | `2px 8px` | `4px` | `500` | `.badge` | — (frontend-only) |
+| Filter chip | `0.8125rem` (`--text-xs`) | `0.375rem 0.75rem` (frontend) / `4px 8px` (admin) | `999px` (pill) | `500` / `600` active | `.filter-chip` | `.admin-timeline-era-filter__chip` |
+| Pen / holding chip | `0.875rem` (`--text-small`) | `4px 8px` | `4px` | `500` | — (admin-only) | `.admin-arbor-pen__chip`, `.holding-pen__chip`, `.admin-resources-pen__chip` |
+| Status badge | `0.8125rem` (`--text-xs`) | `2px 8px` | `6px` | `600` | — (admin-only) | `.admin-badge--*`, `.admin-arbor-pen__badge--*` |
 
 ### Breadcrumbs
 - Font size: `0.875rem` (small)

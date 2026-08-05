@@ -181,7 +181,7 @@
 }
 
 .admin-resources-pen__chip-title {
-    font-size: 13px;
+    font-size: var(--text-small);
     font-weight: 500;
     color: var(--admin-text-primary);
     overflow: hidden;

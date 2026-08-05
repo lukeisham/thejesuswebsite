@@ -30,7 +30,7 @@ EraFilter.init = function () {
 
   /* ── "All Eras" chip ────────────────────────────────────────────────── */
   var allChip = document.createElement("button");
-  allChip.className = "admin-timeline-era-filter__chip era-filter--active";
+  allChip.className = "admin-timeline-era-filter__chip admin-timeline-era-filter__chip--active";
   allChip.textContent = "All Eras";
   allChip.type = "button";
   allChip.addEventListener("click", function () {
@@ -115,17 +115,17 @@ EraFilter.applyFilter = function (era) {
 EraFilter._highlightChip = function (container, era) {
   var chips = container.querySelectorAll(".admin-timeline-era-filter__chip");
   for (var i = 0; i < chips.length; i++) {
-    chips[i].classList.remove("era-filter--active");
+    chips[i].classList.remove("admin-timeline-era-filter__chip--active");
   }
   if (!era) {
     // First chip is "All Eras"
-    chips[0].classList.add("era-filter--active");
+    chips[0].classList.add("admin-timeline-era-filter__chip--active");
   } else {
     var eraKebab = era
       .replace(/([a-z])([A-Z])/g, "$1-$2")
       .replace(/\s+/g, "-")
       .toLowerCase();
     var target = container.querySelector(".era--" + eraKebab);
-    if (target) target.classList.add("era-filter--active");
+    if (target) target.classList.add("admin-timeline-era-filter__chip--active");
   }
 };
