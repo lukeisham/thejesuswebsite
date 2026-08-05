@@ -12,6 +12,28 @@
  * BASE_PX_PER_PERIOD world coordinates, with zoom applied as a
  * CSS transform on an `.admin-timeline-world` wrapper.
  *
+ * Line stability: the era-divider lines (.admin-timeline-era-divider,
+ * timeline-canvas.css) live inside `.admin-timeline-world` and so get
+ * inflated by the same transform's scale() — the onChange callback below
+ * publishes the live scale as --timeline-zoom-scale on worldEl on every
+ * update, and the CSS divides declared width by it to counter that,
+ * mirroring the frontend's timeline-zoom.js/timeline-line-stability.css.
+ * The property is injected here (not inside the shared AdminCanvasZoom
+ * module) so that module stays DOM-class-agnostic for its other consumers.
+ * The spine (`.admin-timeline-canvas::after`) deliberately does NOT get this
+ * treatment — it's a pseudo-element of the viewport, not a descendant of
+ * `.admin-timeline-world`, so it never inherits the scale transform and
+ * already renders at a constant 2px regardless of zoom.
+ *
+ * Not yet done: AdminCanvasZoom (see admin-canvas-zoom.js) wires mouse/touch
+ * drag-pan on `viewportEl` whenever one is supplied, same as it's supplied
+ * here — so this editor already has live drag-to-pan, not button-only zoom.
+ * It doesn't get the frontend's roundToGrid() sub-pixel rounding or a
+ * `.admin-timeline-world--panning` transition-suppression class in this
+ * pass; both would need adding state to the shared AdminCanvasZoom module,
+ * which is a bigger change than this pass's line-stability scope (see
+ * setup/ISSUES/Issues.md #194).
+ *
  * @module admin-timeline/timeline-zoom
  */
 
@@ -49,7 +71,13 @@ window.AdminTimelineZoom = {};
       maxScale: 3.0,
       step: 1.25,
       onChange: function () {
-        // Notify any listener that zoom/pan changed
+        // Live-bind the scale for CSS counter-scaling of era-divider lines
+        // (see module doc comment above).
+        if (!worldEl) {
+          console.warn("AdminTimelineZoom: worldEl missing, cannot set --timeline-zoom-scale");
+          return;
+        }
+        worldEl.style.setProperty("--timeline-zoom-scale", String(canvasZoom.getScale()));
       },
     });
 

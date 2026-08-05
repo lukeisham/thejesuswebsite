@@ -8,6 +8,22 @@
  *
  * Disabled below 768px (vertical/mobile mode), matching arbor.
  *
+ * Line stability under zoom/pan (see timeline/timeline-line-stability.css):
+ * - `.timeline-spine` / `.timeline-era-marker` live inside `.timeline-world`,
+ *   so `scale()` inflates their declared thickness along with everything else
+ *   (a 2px spine renders 6px wide at scale 3.0). `applyTransform()` publishes
+ *   the live scale as the `--timeline-zoom-scale` custom property on
+ *   `.timeline-world` on every update; the CSS divides declared thickness by
+ *   it to cancel the inflation out, so apparent thickness stays constant.
+ * - Fractional pan values (e.g. panX = 142.5333...px) land on sub-pixel
+ *   offsets that browsers antialias inconsistently frame-to-frame, which
+ *   reads as shimmer while dragging. `roundToGrid()` snaps panX/panY to the
+ *   nearest 0.5px before the transform is applied — coarse enough to kill
+ *   the shimmer, fine enough to stay visually imperceptible.
+ * - The 150ms transform transition (timeline.css) is desirable for button
+ *   zoom (smooth, reassuring) but makes drag-pan lag behind the pointer.
+ *   `.timeline-world--panning` (added only while `isPanning`) suppresses it.
+ *
  * @module timeline/timeline-zoom
  */
 
@@ -44,6 +60,11 @@ let panStartClientY = 0;
 let panStartPanX = 0;
 let panStartPanY = 0;
 
+/** Last known-good transform state, restored if panX/panY/scale go non-finite (JS-2). */
+let lastValidPanX = 0;
+let lastValidPanY = 0;
+let lastValidScale = 1.0;
+
 // ─── Public API ────────────────────────────────────────────────────────────────
 
 /**
@@ -63,6 +84,19 @@ export function getPan() {
 }
 
 /**
+ * Round a value to the nearest multiple of gridSize.
+ * Used to snap pan values to a coarse pixel grid, avoiding the sub-pixel
+ * offsets that cause line shimmer while dragging (see module doc comment).
+ *
+ * @param {number} value
+ * @param {number} [gridSize=0.5]
+ * @returns {number}
+ */
+export function roundToGrid(value, gridSize = 0.5) {
+  return Math.round(value / gridSize) * gridSize;
+}
+
+/**
  * Apply the current transform to the world element.
  * No-ops in vertical/mobile mode.
  */
@@ -72,7 +106,29 @@ function applyTransform() {
     return;
   }
   if (isVerticalMode()) return;
-  worldEl.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+
+  // JS-2: fail visibly and recover rather than writing NaN/Infinity into a
+  // live transform, which would silently blank the timeline.
+  if (!Number.isFinite(panX) || !Number.isFinite(panY) || !Number.isFinite(scale)) {
+    console.warn(
+      "TimelineZoom.applyTransform: non-finite transform state, restoring last valid state",
+      { panX, panY, scale },
+    );
+    panX = lastValidPanX;
+    panY = lastValidPanY;
+    scale = lastValidScale;
+  }
+
+  const roundedX = roundToGrid(panX);
+  const roundedY = roundToGrid(panY);
+
+  // Live-bind the scale for CSS counter-scaling (timeline-line-stability.css).
+  worldEl.style.setProperty("--timeline-zoom-scale", String(scale));
+  worldEl.style.transform = `translate(${roundedX}px, ${roundedY}px) scale(${scale})`;
+
+  lastValidPanX = panX;
+  lastValidPanY = panY;
+  lastValidScale = scale;
 }
 
 /**
@@ -135,6 +191,13 @@ function onPanStart(point, originalEvent) {
   panStartPanX = panX;
   panStartPanY = panY;
 
+  // Suppress the button-zoom transition so drag-pan tracks the pointer
+  // immediately instead of lagging behind it (mouse and touch both funnel
+  // through this shared onPanStart, so one class toggle covers both).
+  if (worldEl) {
+    worldEl.classList.add("timeline-world--panning");
+  }
+
   if (viewportEl) {
     viewportEl.style.cursor = "grabbing";
   }
@@ -161,6 +224,9 @@ const onPanMove = throttle((clientX, clientY) => {
 function onPanEnd() {
   if (!isPanning) return;
   isPanning = false;
+  if (worldEl) {
+    worldEl.classList.remove("timeline-world--panning");
+  }
   if (viewportEl) {
     viewportEl.style.cursor = "";
   }
