@@ -10,21 +10,21 @@
     gap: var(--space-sm);
     width: 100%;
     padding: var(--space-xs) var(--space-sm);
-    background: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-sm);
     cursor: grab;
-    font-family: var(--font-sans);
+    font-family: var(--admin-font-sans);
     font-size: var(--text-small);
-    color: var(--text-primary);
+    color: var(--admin-text-primary);
     text-align: left;
     transition:
-        border-color var(--duration-fast) var(--ease-out),
-        box-shadow var(--duration-fast) var(--ease-out);
+        border-color var(--admin-transition),
+        box-shadow var(--admin-transition);
 }
 
 .admin-arbor-pen__chip:hover {
-    border-color: var(--accent);
+    border-color: var(--admin-accent);
     box-shadow: var(--shadow-xs);
 }
 

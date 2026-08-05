@@ -43,10 +43,10 @@
 .admin-badge {
     display: inline-block;
     padding: 2px 8px;
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 600;
     line-height: 1.6;
-    border-radius: 12px;
+    border-radius: 6px;
     white-space: nowrap;
 }
 

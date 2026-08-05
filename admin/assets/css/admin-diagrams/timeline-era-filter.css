@@ -25,14 +25,14 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
-    font-size: var(--text-2xs, 0.625rem);
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--text-xs);
     font-family: var(--admin-font-sans);
     color: var(--admin-text-secondary);
     background: var(--admin-surface);
     border: 1px solid var(--admin-border);
     border-left: 3px solid var(--admin-border);
-    border-radius: var(--admin-radius);
+    border-radius: 999px;
     cursor: pointer;
     user-select: none;
     transition:

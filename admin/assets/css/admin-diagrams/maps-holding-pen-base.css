@@ -17,7 +17,7 @@
 
 .holding-pen__empty {
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--admin-text-secondary);
     font-size: 0.875rem;
     font-style: italic;
 }
@@ -31,18 +31,16 @@
     align-items: center;
     gap: var(--space-xs);
     padding: var(--space-xs) var(--space-sm);
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-sm);
     cursor: grab;
     font-size: 0.8125rem;
     line-height: 1.4;
     min-height: 44px;
     min-width: 44px;
     white-space: nowrap;
-    transition:
-        box-shadow var(--duration-fast) var(--ease-out),
-        transform var(--duration-fast) var(--ease-out);
+    transition: box-shadow var(--admin-transition), transform var(--admin-transition);
     user-select: none;
     -webkit-user-drag: element;
 }
@@ -103,7 +101,7 @@
     height: 1.375rem;
     padding: 0 var(--space-xs);
     background: var(--white-overlay);
-    border-radius: var(--radius-sm);
+    border-radius: var(--admin-radius-sm);
     font-size: 0.75rem;
     font-weight: 700;
     line-height: 1;

@@ -15,8 +15,8 @@
 .analytics-chip {
     display: inline-flex;
     align-items: center;
-    padding: 6px 14px;
-    font-size: 13px;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--text-small);
     font-weight: 500;
     color: var(--admin-text-secondary);
     background: var(--admin-surface);

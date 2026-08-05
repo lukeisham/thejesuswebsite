@@ -34,10 +34,44 @@
     color: var(--accent);
     background: var(--bg-surface-alt);
     border-color: var(--accent);
+    font-weight: 600;
 }
 
 .filter-chip--active {
     color: var(--accent);
     background: var(--bg-surface-alt);
     border-color: var(--accent);
+    font-weight: 600;
 }
+
+/* -------------------------------------------------------------------------
+   Era Highlight (Timeline Filter Chips Only)
+   Left-border tint identifies the era category. Active state fills the
+   chip with the full era colour instead of the neutral accent.
+   ------------------------------------------------------------------------- */
+
+.filter-chip.era--pre-incarnation  { border-left: 3px solid var(--era-pre-incarnation); }
+.filter-chip.era--old-testament    { border-left: 3px solid var(--era-old-testament); }
+.filter-chip.era--early-life       { border-left: 3px solid var(--era-early-life); }
+.filter-chip.era--life             { border-left: 3px solid var(--era-life); }
+.filter-chip.era--galilee-ministry { border-left: 3px solid var(--era-galilee-ministry); }
+.filter-chip.era--judean-ministry  { border-left: 3px solid var(--era-judean-ministry); }
+.filter-chip.era--passion-week     { border-left: 3px solid var(--era-passion-week); }
+.filter-chip.era--post-passion     { border-left: 3px solid var(--era-post-passion); }
+
+.filter-chip.active.era--pre-incarnation,
+.filter-chip--active.era--pre-incarnation  { background: var(--era-pre-incarnation); border-color: var(--era-pre-incarnation); }
+.filter-chip.active.era--old-testament,
+.filter-chip--active.era--old-testament    { background: var(--era-old-testament); border-color: var(--era-old-testament); }
+.filter-chip.active.era--early-life,
+.filter-chip--active.era--early-life       { background: var(--era-early-life); border-color: var(--era-early-life); }
+.filter-chip.active.era--life,
+.filter-chip--active.era--life             { background: var(--era-life); border-color: var(--era-life); }
+.filter-chip.active.era--galilee-ministry,
+.filter-chip--active.era--galilee-ministry { background: var(--era-galilee-ministry); border-color: var(--era-galilee-ministry); }
+.filter-chip.active.era--judean-ministry,
+.filter-chip--active.era--judean-ministry  { background: var(--era-judean-ministry); border-color: var(--era-judean-ministry); }
+.filter-chip.active.era--passion-week,
+.filter-chip--active.era--passion-week     { background: var(--era-passion-week); border-color: var(--era-passion-week); }
+.filter-chip.active.era--post-passion,
+.filter-chip--active.era--post-passion     { background: var(--era-post-passion); border-color: var(--era-post-passion); }
