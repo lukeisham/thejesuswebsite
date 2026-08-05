@@ -156,3 +156,103 @@ describe("TimelineZoom — transform string format", () => {
     assert.strictEqual(transform, "translate(0px, 0px) scale(1)");
   });
 });
+
+// ── Line stability (counter-scaling + rounding) ────────────────────────────
+// Mirrors timeline-zoom.js's roundToGrid() and the counter-scaling formula
+// applied in timeline-line-stability.css:
+//   height: max(1px, calc(2px / var(--timeline-zoom-scale, 1)))
+//   width:  max(1px, calc(1px / var(--timeline-zoom-scale, 1)))
+
+/**
+ * Round a value to the nearest multiple of gridSize (mirrors
+ * timeline-zoom.js's exported roundToGrid).
+ * @param {number} value
+ * @param {number} [gridSize=0.5]
+ * @returns {number}
+ */
+function roundToGrid(value, gridSize = 0.5) {
+  return Math.round(value / gridSize) * gridSize;
+}
+
+/**
+ * Mirrors the CSS counter-scaling calc: max(1px, basePx / scale).
+ * @param {number} basePx
+ * @param {number} scale
+ * @returns {number}
+ */
+function counterScaledThickness(basePx, scale) {
+  return Math.max(1, basePx / scale);
+}
+
+describe("TimelineZoom — counter-scaling calculation", () => {
+  const SCALES = [0.3, 0.5, 1.0, 1.5, 2.0, 3.0];
+
+  test("--timeline-zoom-scale round-trips losslessly through the CSSOM string", () => {
+    // applyTransform() does worldEl.style.setProperty("--timeline-zoom-scale", String(scale)).
+    // A custom property is always a string in the CSSOM, so a value that
+    // doesn't survive String() -> parseFloat() would silently corrupt the
+    // counter-scaling calc() on the CSS side.
+    for (const scale of SCALES) {
+      assert.strictEqual(parseFloat(String(scale)), scale);
+    }
+  });
+
+  test("spine thickness (2px base) scales inversely with zoom at each level", () => {
+    assert.strictEqual(counterScaledThickness(2, 0.3), 2 / 0.3);
+    assert.strictEqual(counterScaledThickness(2, 1.0), 2);
+    // At scale=3.0, 2px / 3.0 ≈ 0.67px is below the 1px floor.
+    assert.strictEqual(counterScaledThickness(2, 3.0), 1);
+  });
+
+  test("era-marker thickness (1px base) scales inversely with zoom at each level", () => {
+    for (const scale of SCALES) {
+      assert.strictEqual(counterScaledThickness(1, scale), Math.max(1, 1 / scale));
+    }
+  });
+
+  test("max(1px, ...) floors thickness so high-zoom lines never vanish", () => {
+    // At scale=3.0 (max zoom-in), 1px / 3.0 ≈ 0.33px — must be floored to 1px, not left sub-pixel.
+    assert.strictEqual(counterScaledThickness(1, 3.0), 1);
+    // At scale=2.0, 2px / 2.0 = 1px exactly — right at the floor, still valid.
+    assert.strictEqual(counterScaledThickness(2, 2.0), 1);
+  });
+
+  test("at scale=1.0 (no zoom), thickness equals the unscaled base value", () => {
+    assert.strictEqual(counterScaledThickness(2, 1.0), 2);
+    assert.strictEqual(counterScaledThickness(1, 1.0), 1);
+  });
+});
+
+describe("TimelineZoom — roundToGrid", () => {
+  test("rounds down to the nearest 0.5px grid line", () => {
+    assert.strictEqual(roundToGrid(0.24, 0.5), 0);
+    assert.strictEqual(roundToGrid(12.24, 0.5), 12);
+  });
+
+  test("rounds up to the nearest 0.5px grid line", () => {
+    assert.strictEqual(roundToGrid(0.26, 0.5), 0.5);
+    assert.strictEqual(roundToGrid(12.37, 0.5), 12.5);
+  });
+
+  test("exact grid values are unchanged", () => {
+    assert.strictEqual(roundToGrid(12.5, 0.5), 12.5);
+    assert.strictEqual(roundToGrid(0, 0.5), 0);
+  });
+
+  test("handles negative values symmetrically", () => {
+    assert.strictEqual(roundToGrid(-0.26, 0.5), -0.5);
+    assert.strictEqual(roundToGrid(-12.24, 0.5), -12);
+  });
+
+  test("defaults gridSize to 0.5 when omitted", () => {
+    assert.strictEqual(roundToGrid(0.26), 0.5);
+  });
+
+  test("visual impact of rounding stays well under 1px", () => {
+    // Worst case is exactly half the grid size away from the nearest line.
+    for (const value of [0.1, 5.3, 100.49, 1000.01]) {
+      const rounded = roundToGrid(value, 0.5);
+      assert.ok(Math.abs(rounded - value) <= 0.25);
+    }
+  });
+});

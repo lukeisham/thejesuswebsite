@@ -56,7 +56,12 @@ main {
     padding: var(--space-xl) 0 var(--space-3xl);
 }
 
-/* Horizontal spine line at vertical center */
+/* Horizontal spine line at vertical center.
+   Not counter-scaled: this pseudo-element belongs to .admin-timeline-canvas
+   (the viewport), not .admin-timeline-world (the element zoom scale()'s) —
+   it never inherits the transform, so it already renders at a constant 2px
+   at every zoom level. Dividing by --timeline-zoom-scale here would actively
+   thin it out at high zoom instead of keeping it stable. */
 .admin-timeline-canvas::after {
     content: "";
     position: absolute;
@@ -139,9 +144,16 @@ main {
     word-break: break-word;
 }
 
-/* Matches frontend .timeline-era-marker: solid 1px line, faded */
+/* Matches frontend .timeline-era-marker: solid 1px line, faded.
+   Counter-scaled: dividers are children of #timeline-axis, which lives
+   inside .admin-timeline-world, so they inherit its scale() transform and
+   would otherwise grow/shrink with zoom (3px at scale 3.0). Dividing by the
+   live --timeline-zoom-scale (set in admin-timeline/timeline-zoom.js's
+   onChange) cancels that out; max(1px, ...) stops it collapsing to nothing
+   at high zoom (e.g. scale 3.0: 1px / 3 ≈ 0.33px). Only width is affected —
+   background and opacity are unchanged by this. */
 .admin-timeline-era-divider {
-    width: 1px;
+    width: max(1px, calc(1px / var(--timeline-zoom-scale, 1)));
     background: var(--border);
     opacity: 0.6;
     pointer-events: none;

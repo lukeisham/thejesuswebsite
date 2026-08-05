@@ -20,6 +20,12 @@
       "port": 4174
     },
     {
+      "name": "admin-alt",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["dev-proxy.js", "admin", "4175"],
+      "port": 4175
+    },
+    {
       "name": "api",
       "runtimeExecutable": "node",
       "runtimeArgs": ["server.js"],

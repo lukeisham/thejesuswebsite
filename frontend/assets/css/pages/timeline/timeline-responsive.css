@@ -84,7 +84,11 @@
         cursor: default;
     }
 
-    /* Force transform off in vertical/mobile mode (matches arbor's mobile disablement) */
+    /* Force transform off in vertical/mobile mode (matches arbor's mobile
+       disablement). Since .timeline-world is never scaled here, the
+       counter-scaling in timeline-line-stability.css divides by the
+       var(--timeline-zoom-scale, 1) fallback — spine stays a flat 2px,
+       era markers 1px, with no JS-set property required on mobile. */
     .timeline-world {
         transform: none;
         transition: none;
