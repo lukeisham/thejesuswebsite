@@ -11,7 +11,12 @@ const router = express.Router();
 // e.g. /timeline?timeline_era=beginning
 router.get("/", (req, res) => {
   try {
-    res.json(timelineModel.getTimelineEvents(req.query));
+    // Forward only the era filter. Spreading req.query here would let an
+    // anonymous caller set includeDrafts and unpublish the draft guard
+    // (API-5: the model decides published-only, never the query string).
+    res.json(
+      timelineModel.getTimelineEvents({ timeline_era: req.query.timeline_era }),
+    );
   } catch (error) {
     console.error("GET /timeline failed:", error);
     res.status(500).json({ error: "Failed to load timeline." });
