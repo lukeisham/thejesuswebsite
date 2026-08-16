@@ -65,6 +65,8 @@
    ------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
+  /* !important is intentional here: this accessibility override must win
+     over any component-level animation/transition duration. */
   *,
   *::before,
   *::after {

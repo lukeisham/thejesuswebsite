@@ -74,7 +74,8 @@ def measure_gate_failure_mode(store_manager: StoreManager) -> dict:
     from classifier.labeler import split_paragraphs, _apply_nearest_neighbour_rule
     from classifier.config import TOP_K
 
-    cache = json.load(open(CACHE_PATH))
+    with open(CACHE_PATH) as f:
+        cache = json.load(f)
     zeroed_by_nn = 0
     below_threshold = 0
     passed = 0
@@ -115,7 +116,8 @@ def measure_gate_failure_mode(store_manager: StoreManager) -> dict:
 def measure_confusion(store_manager: StoreManager, scoring_rule: str, cfg: dict,
                        gold: dict[str, list[str]]) -> dict:
     """Corpus-wide neither rate + aligned-6 data/interp confusion matrix."""
-    cache = json.load(open(CACHE_PATH))
+    with open(CACHE_PATH) as f:
+        cache = json.load(f)
     records = [{"title": t, "paragraphs": p} for t, p in cache.items()]
     pre = calibrate.precompute_classifications(records, store_manager, scoring_rule=scoring_rule)
 
