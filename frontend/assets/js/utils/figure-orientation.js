@@ -27,13 +27,22 @@ export function resolveOrientation(width, height) {
   return width > height ? "landscape" : "portrait";
 }
 
-function classify(img) {
+export function classify(img) {
   const fig = img.closest("figure.figure-standard");
   if (!fig) return;
 
   fig.classList.remove("figure--portrait", "figure--landscape", "figure--square");
   const orientation = resolveOrientation(img.naturalWidth, img.naturalHeight);
   fig.classList.add(`figure--${orientation}`);
+
+  // Set explicit width/height attributes so fit-content sizing resolves to
+  // the image's intrinsic dimensions rather than the max-width cap (see
+  // setup/PLANS/New/fix-evidence-figure-caption-alignment.md). This also
+  // satisfies the image-display.md invariant and prevents CLS.
+  if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+    img.setAttribute("width", img.naturalWidth);
+    img.setAttribute("height", img.naturalHeight);
+  }
 }
 
 /**

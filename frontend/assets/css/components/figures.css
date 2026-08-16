@@ -83,15 +83,14 @@ figure.figure-full img {
 /* -------------------------------------------------------------------------
    Standard figure box (Evidence module — Style Guide §8)
    A predictable 720 × 480 display box, orientation-aware: landscape fills
-   the width, portrait is height-bound and comes out narrower. `width: auto`
-   + `max-width` together with `height: auto` + `max-height` is the
-   orientation check — with BOTH dimensions auto, the browser picks
-   whichever cap is binding and derives the other from the intrinsic ratio
-   (CSS 2.1 §10.4/§10.6.4), so it never distorts the image. (A definite
-   `width` alongside `max-height` does NOT do this — the used height gets
-   clipped to the cap while width stays fixed, stretching the image via the
-   default `object-fit: fill`. Verified live on a real portrait upload
-   during this plan's Tier 3 check.) Correct before any JS runs.
+   the width, portrait is height-bound and comes out narrower. The figure
+   container shrink-wraps to the image's intrinsic width via `fit-content`
+   while clipping excess height with `max-height` + `overflow: hidden`.
+   The image renders at natural aspect ratio constrained only by
+   `max-width: 720px`, and `fit-content` on the figure resolves to the
+   image's intrinsic width (aided by explicit width/height attributes set
+   by figure-orientation.js on load), so captions always match the rendered
+   image width.
    figure-orientation.js stamps figure--portrait/--landscape/--square on
    top so the mobile rule below can target orientation directly.
 
@@ -103,20 +102,25 @@ figure.figure-full img {
 figure.figure-standard {
   width: fit-content;
   max-width: 100%;
+  max-height: var(--figure-standard-height);
+  overflow: hidden;
   margin-inline: auto;
 }
 
 .figure-standard img {
   width: auto;
-  max-width: min(100%, var(--figure-standard-width));
+  max-width: var(--figure-standard-width);
   height: auto;
-  max-height: var(--figure-standard-height);
 }
 
 @media (max-width: 767px) {
+  figure.figure-standard {
+    max-height: none;
+    overflow: visible;
+  }
+
   .figure-standard img {
     max-width: 100%;
-    max-height: none;
   }
 
   .figure-standard.figure--portrait img,

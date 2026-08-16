@@ -118,7 +118,7 @@ export function parseContentBody(text, options = {}) {
       else if (standardFigures) figureClass = ' class="figure-standard"';
 
       const safeSrc = escapeHTML(src);
-      return `<figure${figureClass}><img src="${safeSrc}" alt="${alt}" loading="lazy">${cap}</figure>`;
+      return `<figure${figureClass}><img src="${safeSrc}" alt="${alt}" loading="lazy" width="720" height="480">${cap}</figure>`;
     },
   );
 

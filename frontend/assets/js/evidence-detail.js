@@ -170,7 +170,7 @@ function renderPictures(description, primaryImage, primaryImageAlt, primaryImage
   const primaryCaption = primaryImageCaption || primaryImageAlt || "";
   const primaryHTML = primaryImage
     ? `<figure class="figure-standard">
-        <img src="${html`${primaryImage}`}" alt="${html`${primaryImageAlt || ""}`}" loading="lazy" />
+        <img src="${html`${primaryImage}`}" alt="${html`${primaryImageAlt || ""}`}" loading="lazy" width="720" height="480" />
         ${primaryCaption ? `<figcaption>${html`${primaryCaption}`}</figcaption>` : ""}
       </figure>`
     : "";
@@ -185,7 +185,7 @@ function renderPictures(description, primaryImage, primaryImageAlt, primaryImage
             ? "figure-align-right"
             : "figure-standard";
       return `<figure class="${figClass}">
-        <img src="${html`${fig.src}`}" alt="${alt}" loading="lazy" />
+        <img src="${html`${fig.src}`}" alt="${alt}" loading="lazy" width="720" height="480" />
         ${fig.caption ? `<figcaption>${html`${fig.caption}`}</figcaption>` : ""}
       </figure>`;
     })
