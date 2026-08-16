@@ -113,6 +113,18 @@ figure.figure-standard {
   height: auto;
 }
 
+/* figcaption is a block auto-width child, so its own max-content
+   contribution (the caption text laid out on one unbroken line) feeds
+   into the figure's `fit-content` sizing just like the image's does —
+   a long caption can out-size a narrow portrait image and drag the
+   figure wider than the picture it describes. Capping it at the same
+   standard width keeps the figure's fit-content driven by whichever
+   child is actually widest at that cap, never by the caption's
+   unwrapped length. */
+.figure-standard figcaption {
+  max-width: var(--figure-standard-width);
+}
+
 @media (max-width: 767px) {
   figure.figure-standard {
     max-height: none;
