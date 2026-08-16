@@ -61,7 +61,12 @@ main {
    (the viewport), not .admin-timeline-world (the element zoom scale()'s) —
    it never inherits the transform, so it already renders at a constant 2px
    at every zoom level. Dividing by --timeline-zoom-scale here would actively
-   thin it out at high zoom instead of keeping it stable. */
+   thin it out at high zoom instead of keeping it stable.
+   Deviation from plan task 106: the plan assumed the spine was inside
+   .admin-timeline-world and prescribed counter-scaling; that was incorrect
+   — the DOM hierarchy places it on the viewport, so no counter-scaling is
+   needed. Verified at scale 3.0 on production during Tier 3: spine renders
+   at a crisp 2px without any counter-scaling. */
 .admin-timeline-canvas::after {
     content: "";
     position: absolute;
@@ -83,6 +88,15 @@ main {
     position: absolute;
     transform-origin: 0 0;
     transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* Suppress the button-zoom transition while a drag-pan gesture is active so
+   the canvas tracks the pointer immediately instead of lagging behind it.
+   The class is added/removed by AdminCanvasZoom (opt-in via panningClass),
+   mirroring the frontend's .timeline-world--panning in
+   timeline-line-stability.css. */
+.admin-timeline-world--panning {
+    transition: none;
 }
 
 /* -------------------------------------------------------------------------
