@@ -28,8 +28,8 @@
         background: var(--text-muted);
     }
 
-    .timeline-era-label {
-        color: var(--color-black);
+    .timeline-era-heading {
+        color: var(--color-black) !important;
     }
 
     .timeline-dot {
@@ -118,15 +118,6 @@
         right: 0;
         width: auto;
         height: 1px;
-    }
-
-    .timeline-era-label--vertical {
-        left: calc(50% + 16px);
-        right: var(--space-sm);
-        transform: none;
-        text-align: left;
-        white-space: normal;
-        max-width: none;
     }
 
     .timeline-label.left,

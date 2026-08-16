@@ -132,7 +132,8 @@ Essays render as professional peer-reviewed journal articles. Every essay page u
   - Clustered events: dots stack vertically at small offsets (e.g., ±8px, ±16px from center) to avoid overlap
   - Each dot is clickable; cursor becomes pointer on hover
   - Tooltip on hover shows: event title, date range, location badge
-- **Era markers**: vertical dividing lines at major era boundaries with era label (`h4` size, `--accent` color) positioned above the spine
+- **Era markers**: vertical dividing lines at major era boundaries (no attached label — labelling moved to Era Headings below)
+- **Era Headings**: each era's name renders as an `h3` anchored at the **top-left** of that era's spatial region (not centred above the spine). Scales with zoom (`--text-h4` base, clamped `--text-small`–`--text-h3`) and nudges away from event nodes on collision, without leaving its own era's span. On mobile (<768px, vertical mode) headings reposition to the **left of the vertical spine** instead of above it. See the **Timeline** entry in `components.md` §8 for the full collision/zoom model.
 - **Bottom detail panel** (optional, revealed on hover or click):
   - Appears below the timeline as a floating card
   - Shows selected event's title, date, location, primary verse, and "View Details" button

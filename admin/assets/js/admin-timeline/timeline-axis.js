@@ -19,7 +19,6 @@ const Axis = window.AdminTimelineAxis;
 
 const ERA_ORDER = window.AdminTimelineGeometry.ERA_ORDER;
 const PERIOD_ORDER = window.AdminTimelineGeometry.TIMELINE_PERIODS;
-const ERA_LABELS = window.AdminTimelineGeometry.ERA_LABELS;
 const ERA_STARTS = window.AdminTimelineGeometry.ERA_STARTS;
 
 /** Fixed world-coordinate base — zoom is applied by the transform wrapper. */
@@ -139,9 +138,10 @@ Axis.renderAxis = function () {
   axisContainer.style.width = totalWidth + "px";
   axisContainer.style.minHeight = "120px";
 
-  // ── Era labels (no band backgrounds) ───────────────────────────────────
-
-  // Pre-compute era midpoints for overlap detection (matching frontend logic)
+  // ── Era labels ───────────────────────────────────────────────────────
+  // Superseded by top-left .admin-timeline-era-heading elements rendered in
+  // timeline-events.js (shared placement module, SR-4). Era boundary data
+  // is still needed for the divider lines below.
   var eraData = [];
   for (var e = 0; e < ERA_ORDER.length; e++) {
     var era = ERA_ORDER[e];
@@ -154,40 +154,6 @@ Axis.renderAxis = function () {
     }
     var midX = (startX + endX) / 2;
     eraData.push({ era: era, startX: startX, endX: endX, midX: midX });
-  }
-
-  // Build a list of which eras need alternating labels
-  var MIN_ERA_LABEL_GAP = 80;
-  var needsAlt = [];
-  for (var i = 0; i < eraData.length; i++) {
-    var prevClose =
-      i > 0 && eraData[i].midX - eraData[i - 1].midX < MIN_ERA_LABEL_GAP;
-    needsAlt.push(prevClose);
-  }
-
-  // Render era labels
-  var altToggle = false;
-  for (var j = 0; j < eraData.length; j++) {
-    var d = eraData[j];
-    var era = d.era;
-
-    if (needsAlt[j]) {
-      altToggle = !altToggle;
-    } else {
-      altToggle = false;
-    }
-    var labelTop = needsAlt[j] ? (altToggle ? "28px" : "4px") : "4px";
-
-    var label = document.createElement("span");
-    label.className = "admin-timeline-era-label";
-    label.textContent = ERA_LABELS[era] || era;
-    label.style.position = "absolute";
-    label.style.left = d.midX + "px";
-    label.style.top = labelTop;
-    label.style.transform = "translateX(-50%)";
-    label.setAttribute("data-era", era);
-
-    axisContainer.appendChild(label);
   }
 
   // ── Era divider lines ──────────────────────────────────────────────────

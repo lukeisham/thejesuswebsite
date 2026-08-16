@@ -1,0 +1,58 @@
+/* ==========================================================================
+   Timeline Era Headings
+   Prominent era headings anchored at the top-left of each era's region.
+   Scales with zoom; nudges away from event nodes via collision avoidance.
+   Replaces the old centred .timeline-era-label elements.
+   ========================================================================== */
+
+/* Headings live inside .timeline-world, which timeline-zoom.js scales via
+   `transform: scale()` and publishes as the live --timeline-zoom-scale
+   custom property (same mechanism as timeline-line-stability.css). Since
+   heading positions/sizes are computed once in JS and never recomputed as
+   the user zooms (SR-3), font-size can't be set from that one-shot JS
+   value without going stale the moment zoom changes — it must instead
+   track the live scale continuously via CSS: clamp the *visual* target
+   size to a readable range, then counter-divide by the same live scale so
+   the ancestor transform's later multiplication lands back on the clamped
+   target instead of compounding it. */
+.timeline-era-heading {
+    position: absolute;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 5; /* below timeline dots (z-index: 10) */
+    line-height: 1.3;
+    padding: var(--space-xs) var(--space-sm); /* 4px 8px */
+    transition: none; /* positions set in JS; no animation for responsiveness */
+    font-size: calc(
+        clamp(0.875rem, calc(1.125rem * var(--timeline-zoom-scale, 1)), 1.375rem)
+        / var(--timeline-zoom-scale, 1)
+    );
+}
+
+/* ── Tier classes (CSS hooks for JS-tier-based nudging) ──────────────────── */
+.timeline-era-heading.tier-0 { /* primary position — no shift */ }
+.timeline-era-heading.tier-1 { /* nudged left or right by JS */ }
+.timeline-era-heading.tier-2 { /* nudged further */ }
+
+/* ── Era colour tokens ──────────────────────────────────────────────────── */
+
+.timeline-era-heading.era--pre-incarnation    { color: var(--era-pre-incarnation); }
+.timeline-era-heading.era--old-testament     { color: var(--era-old-testament); }
+.timeline-era-heading.era--early-life        { color: var(--era-early-life); }
+.timeline-era-heading.era--life              { color: var(--era-life); }
+.timeline-era-heading.era--galilee-ministry  { color: var(--era-galilee-ministry); }
+.timeline-era-heading.era--judean-ministry   { color: var(--era-judean-ministry); }
+.timeline-era-heading.era--passion-week      { color: var(--era-passion-week); }
+.timeline-era-heading.era--post-passion      { color: var(--era-post-passion); }
+
+/* ── Mobile vertical mode (< 768px) ─────────────────────────────────────── */
+@media (max-width: 767px) {
+    .timeline-era-heading {
+        /* In vertical mode, headings reposition to the left of the spine.
+           JS handles the positioning; CSS is mode-agnostic with no overrides. */
+    }
+}
