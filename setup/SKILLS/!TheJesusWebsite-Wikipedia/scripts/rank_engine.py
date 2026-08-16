@@ -906,9 +906,10 @@ def _detect_keyword_hits_per_paragraph(paragraphs: list[str]) -> dict:
     return result
 
 
-def harvest_one(url):
+def harvest_one(url: str) -> dict:
     subprocess.run(["python3", BROWSER, "open", "--url", url], capture_output=True, text=True, timeout=30)
-    js = open(EXTRACT_JS, encoding="utf-8").read()
+    with open(EXTRACT_JS, encoding="utf-8") as f:
+        js = f.read()
     r = subprocess.run(["python3", BROWSER, "eval", "--js", js], capture_output=True, text=True, timeout=30)
     return json.loads(r.stdout)
 
