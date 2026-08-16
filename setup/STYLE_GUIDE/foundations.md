@@ -153,8 +153,7 @@ adjustments and are documented for reference as `--bp-md-max` (max-width: 767px)
 
 **Key layout shifts**:
 - `< 768px`: single column, hamburger button visible, nav sidebar hidden off-canvas, cards full width
-- `768px–1023px`: 2-column cards, nav sidebar collapsed to icon-only rail, content takes remaining width
-- `≥ 1024px`: full multi-column, nav sidebar expanded with labels, content flows alongside
+- `≥ 768px`: nav sidebar in-flow and expanded with labels (no separate icon-only tier — a single sidebar behavior spans tablet portrait through desktop; see `Issues.md` #219), card columns and overall density increase with width
 - `≥ 1280px`: max-width container kicks in, no further layout changes
 
 **Touch targets**: minimum `44px × 44px` for all interactive elements on touch devices.
