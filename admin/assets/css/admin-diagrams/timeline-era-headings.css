@@ -1,0 +1,43 @@
+/* ==========================================================================
+   Admin Timeline Era Headings
+   Mirrors the frontend era headings: top-left anchoring, zoom-aware font
+   size, era-colour tokens, pointer-events:none for drag safety.
+   ========================================================================== */
+
+/* Headings live inside .admin-timeline-world, which timeline-zoom.js scales
+   via `transform: scale()` and publishes as --timeline-zoom-scale (same
+   property/mechanism as the frontend). Font-size counter-divides by the
+   live scale so the ancestor transform doesn't compound the clamp — see
+   the longer comment in frontend/assets/css/components/timeline-era-headings.css. */
+.admin-timeline-era-heading {
+    position: absolute;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    pointer-events: none; /* critical: never block drag on event dots */
+    z-index: 1; /* below event dots (z-index: 2–3) */
+    color: var(--text-primary);
+    line-height: 1.3;
+    padding: var(--space-xs) var(--space-sm); /* 4px 8px */
+    transition: none;
+    font-size: calc(
+        clamp(0.875rem, calc(1.125rem * var(--timeline-zoom-scale, 1)), 1.375rem)
+        / var(--timeline-zoom-scale, 1)
+    );
+}
+
+/* ── Tier classes (CSS hooks only) ──────────────────────────────────────── */
+.admin-timeline-era-heading.tier-0 { }
+.admin-timeline-era-heading.tier-1 { }
+.admin-timeline-era-heading.tier-2 { }
+
+/* ── Era colour tokens ──────────────────────────────────────────────────── */
+.admin-timeline-era-heading.era--pre-incarnation    { color: var(--era-pre-incarnation); }
+.admin-timeline-era-heading.era--old-testament     { color: var(--era-old-testament); }
+.admin-timeline-era-heading.era--early-life        { color: var(--era-early-life); }
+.admin-timeline-era-heading.era--life              { color: var(--era-life); }
+.admin-timeline-era-heading.era--galilee-ministry  { color: var(--era-galilee-ministry); }
+.admin-timeline-era-heading.era--judean-ministry   { color: var(--era-judean-ministry); }
+.admin-timeline-era-heading.era--passion-week      { color: var(--era-passion-week); }
+.admin-timeline-era-heading.era--post-passion      { color: var(--era-post-passion); }

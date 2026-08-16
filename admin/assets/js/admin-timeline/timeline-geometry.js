@@ -147,7 +147,7 @@ window.AdminTimelineGeometry = {
     } else {
       endIdx = periods.length - 1;
     }
-    bounds[era] = { start: startIdx, end: endIdx };
+    bounds[era] = { start: startIdx, end: endIdx, label: G.ERA_LABELS[era] };
   }
   G.ERA_BOUNDARIES = bounds;
 })();

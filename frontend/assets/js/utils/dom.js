@@ -25,6 +25,8 @@ export function createElement(tag, attrs = {}, children = []) {
       el.addEventListener(key.slice(2).toLowerCase(), value);
     } else if (key === 'className') {
       el.className = value;
+    } else if (key === 'textContent') {
+      el.textContent = value;
     } else if (key === 'dataset') {
       Object.assign(el.dataset, value);
     } else if (value !== false && value != null) {

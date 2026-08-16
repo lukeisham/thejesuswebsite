@@ -90,10 +90,14 @@ Events.renderEvents = function () {
   const axisEl = document.getElementById("timeline-axis");
   if (!axisEl) return;
 
-  // Remove existing event markers
+  // Remove existing event markers and era headings
   const existing = axisEl.querySelectorAll(".admin-timeline-event");
   for (let i = 0; i < existing.length; i++) {
     existing[i].remove();
+  }
+  const existingHeadings = axisEl.querySelectorAll(".admin-timeline-era-heading");
+  for (let i = 0; i < existingHeadings.length; i++) {
+    existingHeadings[i].remove();
   }
 
   // Group events by period for clustering
@@ -139,6 +143,10 @@ Events.renderEvents = function () {
   for (var lm = 0; lm < labelModes.length; lm++) {
     modeByEventId[labelModes[lm].event.id] = labelModes[lm].mode;
   }
+
+  // Event bounding boxes in world coordinates, for era heading collision
+  // avoidance (matches frontend's approach — see timeline-render.js).
+  var eventBounds = [];
 
   for (var pk2 = 0; pk2 < periodPosKeys.length; pk2++) {
     var period2 = periodPosKeys[pk2];
@@ -195,6 +203,14 @@ Events.renderEvents = function () {
       var el2 = Events.createEventElement(ev2, finalX, y, finalY, mode);
       axisEl.appendChild(el2);
 
+      eventBounds.push({
+        era: ev2.timeline_era || "",
+        x: finalX,
+        y: 0,
+        width: 10,
+        height: 10,
+      });
+
       // Create label as sibling element (matching frontend DOM shape)
       if (mode !== "hidden") {
         var labelText = ev2.title || "";
@@ -230,6 +246,40 @@ Events.renderEvents = function () {
           axisEl.appendChild(label);
         }
       }
+    }
+  }
+
+  // Render era headings (SR-4: shared placement module, see
+  // cluster-logic-bridge/timeline-era-heading-placement-bridge.js).
+  // Admin is desktop-only — isMobile is always false.
+  if (window.AdminTimelineEraHeadingPlacement && window.AdminTimelineEraHeadingPlacement.compute) {
+    var eraBoundaries = window.AdminTimelineGeometry.ERA_BOUNDARIES;
+    var eraScale = window.AdminTimelineZoom ? window.AdminTimelineZoom.getScale() : 1.0;
+    var canvasWidth = window.AdminTimelineAxis.totalWidth(100);
+    var canvasHeight = 280;
+
+    var headings = window.AdminTimelineEraHeadingPlacement.compute(
+      eraBoundaries,
+      eventBounds,
+      eraScale,
+      canvasWidth,
+      canvasHeight,
+      false,
+    );
+
+    for (var hi = 0; hi < (headings || []).length; hi++) {
+      var h = headings[hi];
+      var eraKebab = h.era
+        .replace(/([a-z])([A-Z])/g, "$1-$2")
+        .replace(/\s+/g, "-")
+        .toLowerCase();
+      var headingEl = document.createElement("h3");
+      headingEl.className = "admin-timeline-era-heading era--" + eraKebab + " tier-" + h.tier;
+      headingEl.style.position = "absolute";
+      headingEl.style.left = h.x + "px";
+      headingEl.style.top = h.y + "px";
+      headingEl.textContent = window.AdminTimelineGeometry.ERA_LABELS[h.era] || h.era;
+      axisEl.appendChild(headingEl);
     }
   }
 

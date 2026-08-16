@@ -38,8 +38,81 @@ import {
 import { periodX, periodY, BASE_PX_PER_PERIOD } from "./timeline-geometry.js";
 import { getScale, mountZoomControls } from "./timeline-zoom.js";
 import { resolveLabelCollisions as resolveCollisionsShared } from "../cluster-logic/cluster-label-collision.js";
+import { computeEraHeadingPositions } from "./timeline-era-heading-placement.js";
 
-// ─── Configuration ────────────────────────────────────────────────────────────
+// ─── Era Headings ───────────────────────────────────────────────────────────
+
+/**
+ * Render era headings after dots are placed.
+ * Collects event bounding boxes, calls the placement module, and creates
+ * <h3> heading elements positioned absolutely within the inner container.
+ *
+ * @param {HTMLElement} inner — the .timeline-inner element
+ * @param {Map} positions — clustered dot positions from computeDotPositions
+ * @param {number} effectivePx — effective px-per-period
+ * @param {boolean} isMobile — true for vertical/mobile mode
+ */
+function renderEraHeadings(inner, positions, effectivePx, isMobile) {
+  if (!computeEraHeadingPositions) return;
+
+  // ── Collect event bounding boxes in world coordinates ────────────────
+  const eventBounds = [];
+  for (const [period, periodPositions] of positions) {
+    const periodIdx = getPeriodIndex(period);
+    if (periodIdx < 0) continue;
+
+    for (const pos of periodPositions) {
+      const event = pos.event;
+      const era = event.timeline_era || "";
+      const dotX = isMobile ? 0 : periodX(periodIdx);
+      const dotY = isMobile ? periodY(periodIdx) : 0;
+      // Dots are positioned with percentage-based tops in horizontal mode
+      // and pixel-based tops in vertical mode.  Use approximate values.
+      eventBounds.push({
+        era: era,
+        x: dotX,
+        y: dotY,
+        width: 10,
+        height: 10,
+      });
+    }
+  }
+
+  // ── Compute heading positions ─────────────────────────────────────────
+  const zoomScale = typeof getScale === "function" ? getScale() : 1.0;
+  const containerWidth = isMobile
+    ? 3800 // vertical mode: height becomes the primary axis
+    : 3800;
+  const containerHeight = 280;
+
+  const headings = computeEraHeadingPositions(
+    ERA_BOUNDARIES,
+    eventBounds,
+    zoomScale,
+    containerWidth,
+    containerHeight,
+    isMobile,
+  );
+
+  if (!headings || headings.length === 0) return;
+
+  // ── Create heading elements ───────────────────────────────────────────
+  for (const h of headings) {
+    const eraKebab = h.era
+      .replace(/([a-z])([A-Z])/g, "$1-$2")
+      .replace(/\s+/g, "-")
+      .toLowerCase();
+
+    const heading = createElement("h3", {
+      className: `timeline-era-heading era--${eraKebab} tier-${h.tier}`,
+      style: `left:${h.x}px;top:${h.y}px`,
+      textContent: ERA_LABELS[h.era] || h.era,
+    });
+    inner.appendChild(heading);
+  }
+}
+
+// ─── Layout Functions ───────────────────────────────────────────────────────
 
 /**
  * Read the initial era from body dataset attributes.
@@ -302,48 +375,22 @@ function createLabel(event, posClass, style, isFiltered) {
  * @param {HTMLElement} innerEl
  * @param {number} slotWidth
  */
-function layoutEraLabelsHorizontal(inner, slotWidth) {
+/**
+ * Layout era divider markers in horizontal mode (no labels — era headings
+ * are rendered separately by renderEraHeadings after dot placement).
+ * @param {HTMLElement} innerEl
+ * @param {number} slotWidth
+ */
+function layoutEraMarkersHorizontal(inner, slotWidth) {
   const eraKeys = Object.keys(ERA_BOUNDARIES);
-
-  let prevMidX = 0;
-  let prevHalfSpan = 0;
-  let alternate = false;
-
-  const BASE_TOP = "4px";
-  const ALT_TOP = "28px";
-
   for (const era of eraKeys) {
     const bounds = ERA_BOUNDARIES[era];
     const markerX = bounds.start * slotWidth;
-
-    // Era divider at era start
     const divider = createElement("div", {
       className: "timeline-era-marker",
       style: `left:${markerX}px`,
     });
     inner.appendChild(divider);
-
-    const eraStartX = bounds.start * slotWidth;
-    const eraEndX = (bounds.end + 1) * slotWidth;
-    const eraMidX = (eraStartX + eraEndX) / 2;
-    const span = eraEndX - eraStartX;
-    const halfSpan = span / 2;
-
-    const tooClose =
-      alternate > 0 && eraMidX - halfSpan < prevMidX + prevHalfSpan;
-    const labelTop = tooClose ? ALT_TOP : BASE_TOP;
-    if (tooClose) alternate = !alternate;
-
-    const labelMaxW = Math.min(140, span);
-    const eraLabel = createElement("span", {
-      className: "timeline-era-label",
-      style: `left:${eraMidX}px;top:${labelTop};max-width:${labelMaxW}px`,
-      textContent: ERA_LABELS[era] || era,
-    });
-    inner.appendChild(eraLabel);
-
-    prevMidX = eraMidX;
-    prevHalfSpan = halfSpan;
   }
 }
 
@@ -352,28 +399,21 @@ function layoutEraLabelsHorizontal(inner, slotWidth) {
  * @param {HTMLElement} innerEl
  * @param {number} slotHeight
  */
-function layoutEraLabelsVertical(inner, slotHeight) {
+/**
+ * Layout era divider markers in vertical mode (no labels).
+ * @param {HTMLElement} innerEl
+ * @param {number} slotHeight
+ */
+function layoutEraMarkersVertical(inner, slotHeight) {
   const eraKeys = Object.keys(ERA_BOUNDARIES);
-
   for (const era of eraKeys) {
     const bounds = ERA_BOUNDARIES[era];
     const markerY = bounds.start * slotHeight;
-
-    // Era divider
     const divider = createElement("div", {
       className: "timeline-era-marker timeline-era-marker--vertical",
       style: `top:${markerY}px`,
     });
     inner.appendChild(divider);
-
-    const eraStartY = (bounds.start + bounds.end) / 2 * slotHeight;
-
-    const eraLabel = createElement("div", {
-      className: "timeline-era-label timeline-era-label--vertical",
-      style: `top:${eraStartY}px`,
-      textContent: ERA_LABELS[era] || era,
-    });
-    inner.appendChild(eraLabel);
   }
 }
 
@@ -403,7 +443,7 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
     }),
   );
 
-  layoutEraLabelsHorizontal(inner, BASE_PX_PER_PERIOD);
+  layoutEraMarkersHorizontal(inner, BASE_PX_PER_PERIOD);
 
   // Compute cluster-placement positions and label modes
   const positions = computeDotPositions(groupedEvents, BASE_PX_PER_PERIOD);
@@ -474,6 +514,9 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
     });
   }
 
+  // ── Render era headings after dots are placed ──────────────────────────
+  renderEraHeadings(inner, positions, effectivePx, false);
+
   return { innerEl: inner, hasEvents, labelDescriptors };
 }
 
@@ -501,7 +544,7 @@ function buildVerticalLayout(groupedEvents, activeEra) {
     }),
   );
 
-  layoutEraLabelsVertical(inner, BASE_PX_PER_PERIOD);
+  layoutEraMarkersVertical(inner, BASE_PX_PER_PERIOD);
 
   const positions = computeDotPositions(groupedEvents, BASE_PX_PER_PERIOD);
   const densityTier = getClusterDensity(null, effectivePx);
@@ -568,6 +611,9 @@ function buildVerticalLayout(groupedEvents, activeEra) {
       hasEvents = true;
     });
   }
+
+  // ── Render era headings (mobile: pass true for vertical mode) ─────────
+  renderEraHeadings(inner, positions, effectivePx, true);
 
   return { innerEl: inner, hasEvents, labelDescriptors };
 }
