@@ -112,6 +112,8 @@ Reference `--color-*`, `--space-*`, `--font-*` etc. from `variables.css`. Never 
 **CSS-3** — Mobile Inside Component Files  
 Put all `@media (max-width)` rules in the same file as the component. Use breakpoints from `variables.css`. No separate mobile files.
 
+Accepted trade-off: "use breakpoints from `variables.css`" means match their documented pixel values, not reference them via `var()` — CSS custom properties cannot be read inside an `@media` condition without a build step, and this project deliberately has none (SR-2, `ARCHITECTURE/Website_guide.md`). The ~60 `@media` rules across the codebase each hardcode the literal breakpoint number as a result; this is accepted as a permanent consequence of the no-build-step architecture, not a defect to chase. If a component's breakpoint drifts from `variables.css`'s documented value, that's the real bug — not the duplication itself.
+
 **CSS-4** — Semantic Class Names  
 Class names describe *what* something is (`.card-grid`, `.popular-challenges`), never *how* it looks. Use kebab-case, consistent with filenames.
 
@@ -140,6 +142,8 @@ Every form control has a proper `<label>`. Use `aria-describedby` for error mess
 ## SVG Rules
 **SVG-1** — Coordinate System & `viewBox`  
 Origin (0,0) is top-left. x→right, y→down. Always define `viewBox` — it sets the internal coordinate space and aspect ratio for resolution-independent scaling. Case-sensitive: `viewBox`, never `viewbox`.
+
+Exception: `admin/assets/js/admin-arbor/arbor-canvas.js`'s `<svg>` is exempt. Arbor's zoom/pan is a deliberate, working, `viewBox`-free architecture — CSS `transform` on a `<g>`, screen-pixel math throughout — chosen instead of `viewBox`-based scaling. Adding a `viewBox` now would mean reworking that coordinate math end-to-end for a system that already works and has nothing visibly broken; not worth the rewrite. Named here so this doesn't keep getting re-flagged as a violation.
 
 **SVG-2** — Strict XML Syntax  
 Self-close empty tags (`<circle />`, not `<circle>`). Tag and attribute names are case-sensitive. Always quote attribute values (`width="50"`).
