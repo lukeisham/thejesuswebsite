@@ -104,6 +104,8 @@ Import the real module whenever possible. If a test must recreate source logic (
 **CSS-1** — One File, One Job  
 Each CSS file styles exactly one component, layout, or page. Keep files under 150 lines. Split when they grow. No unrelated styles.
 
+Exception: `variables.css`, the project's single canonical design-token source, is exempt from the line cap. Its one job is holding every token (CSS-2 depends on there being exactly one place to look); splitting it to satisfy the line count would fragment token discovery across files, working against the rule it exists to serve. A page or component file that happens to sit a few lines over 150 while covering one genuinely cohesive concern (e.g. one page's full set of related classes) is not automatically a violation either — split when a file mixes *unrelated* things, not merely when it crosses the number.
+
 **CSS-2** — Custom Properties Only  
 Reference `--color-*`, `--space-*`, `--font-*` etc. from `variables.css`. Never hardcode values that belong in variables.
 
