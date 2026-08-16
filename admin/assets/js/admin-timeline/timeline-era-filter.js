@@ -37,6 +37,12 @@ EraFilter.init = function () {
     activeEra = null;
     EraFilter.applyFilter(null);
     EraFilter._highlightChip(container, null);
+    if (
+      window.AdminTimelineNav &&
+      typeof window.AdminTimelineNav.jumpToEra === "function"
+    ) {
+      window.AdminTimelineNav.jumpToEra("all");
+    }
   });
   container.appendChild(allChip);
 
@@ -62,6 +68,12 @@ EraFilter.init = function () {
         activeEra = e;
         EraFilter.applyFilter(e);
         EraFilter._highlightChip(container, e);
+        if (
+          window.AdminTimelineNav &&
+          typeof window.AdminTimelineNav.jumpToEra === "function"
+        ) {
+          window.AdminTimelineNav.jumpToEra(e);
+        }
       };
     })(era));
 

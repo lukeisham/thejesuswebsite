@@ -93,6 +93,18 @@ window.AdminTimelineGeometry = {
     "Post-Passion": "PostResurrectionAppearances",
   },
 
+  /**
+   * Era boundaries as period indices: each era's first and last period
+   * index (inclusive) in TIMELINE_PERIODS.  Derived from ERA_STARTS by
+   * looking up each start period's index and using the next era's start
+   * minus 1 as the end (or array length - 1 for the final era).
+   * Mirrors frontend timeline-data.js ERA_BOUNDARIES.
+   *
+   * NOTE: populated below the main object literal so the IIFE can
+   * reference TIMELINE_PERIODS / ERA_STARTS / ERA_ORDER.
+   */
+  ERA_BOUNDARIES: null,
+
   /** Stagger offsets (pixels) for events sharing the same period. */
   STAGGER_OFFSETS: [0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40],
 
@@ -113,3 +125,29 @@ window.AdminTimelineGeometry = {
     return periodIndex * scale + scale / 2;
   },
 };
+
+// Compute ERA_BOUNDARIES after the object is fully defined so the IIFE
+// can reference the properties it depends on (TIMELINE_PERIODS,
+// ERA_STARTS, ERA_ORDER).  Mirrors frontend timeline-data.js.
+(function () {
+  var G = window.AdminTimelineGeometry;
+  var periods = G.TIMELINE_PERIODS;
+  var starts = G.ERA_STARTS;
+  var order = G.ERA_ORDER;
+  var bounds = {};
+  for (var i = 0; i < order.length; i++) {
+    var era = order[i];
+    var startPeriod = starts[era];
+    var startIdx = periods.indexOf(startPeriod);
+    if (startIdx === -1) continue;
+    var endIdx;
+    if (i < order.length - 1) {
+      var nextStartPeriod = starts[order[i + 1]];
+      endIdx = periods.indexOf(nextStartPeriod) - 1;
+    } else {
+      endIdx = periods.length - 1;
+    }
+    bounds[era] = { start: startIdx, end: endIdx };
+  }
+  G.ERA_BOUNDARIES = bounds;
+})();

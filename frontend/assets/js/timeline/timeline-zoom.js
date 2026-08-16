@@ -28,6 +28,7 @@
  */
 
 import { throttle } from "../utils/debounce.js";
+import { clampPan } from "./timeline-transform.js";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -345,4 +346,70 @@ export function mountZoomControls(viewport) {
   viewport.addEventListener("touchstart", onTouchStart, { passive: false });
   window.addEventListener("touchmove", onTouchMove, { passive: false });
   window.addEventListener("touchend", onTouchEnd);
+}
+
+/**
+ * Programmatic transform setter — used by chip-jump navigation
+ * (timeline-nav.js) and any future feature that needs to set pan/zoom
+ * without going through the button or drag handlers.
+ *
+ * Clamps pan via clampPan() so the world stays at least partially
+ * visible, assigns to the module-scope state, applies the transform,
+ * and fires `timeline:transformed` on `.timeline-world` so other
+ * modules can listen for viewport changes.
+ *
+ * @param {number}  newPanX
+ * @param {number}  newPanY
+ * @param {number}  newScale
+ * @param {string}  [eraKey] — era key for the custom event detail
+ */
+export function setTransform(newPanX, newPanY, newScale, eraKey) {
+  if (isVerticalMode()) return;
+
+  // Guard: ensure all inputs are finite numbers
+  if (
+    !Number.isFinite(newPanX) ||
+    !Number.isFinite(newPanY) ||
+    !Number.isFinite(newScale)
+  ) {
+    console.warn("TimelineZoom.setTransform: non-finite input, ignoring", {
+      newPanX,
+      newPanY,
+      newScale,
+    });
+    return;
+  }
+
+  // Derive total world width from the last period index (ERA_BOUNDARIES
+  // end + 1 periods at BASE_PX_PER_PERIOD each).
+  // This is a reasonable approximation — the exact value isn't critical
+  // because clampPan allows up to 90% overflow.
+  var worldWidth = 0;
+  // We import clampPan from timeline-transform but that module also
+  // knows the world bounds; pass a reasonable default.
+  worldWidth = 3800; // 38 periods * 100px, the known total
+
+  // Clamp pan to keep the world in view
+  var clamped = clampPan(newPanX, newPanY, newScale, worldWidth);
+
+  // Clamp scale to valid range
+  var clampedScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, newScale));
+
+  panX = clamped.panX;
+  panY = clamped.panY;
+  scale = clampedScale;
+
+  applyTransform();
+
+  // Fire custom event so other modules can react to programmatic transforms
+  if (worldEl) {
+    var eventDetail = { panX: panX, panY: panY, scale: scale };
+    if (eraKey) eventDetail.era = eraKey;
+    worldEl.dispatchEvent(
+      new CustomEvent("timeline:transformed", {
+        bubbles: false,
+        detail: eventDetail,
+      }),
+    );
+  }
 }

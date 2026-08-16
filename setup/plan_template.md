@@ -66,6 +66,7 @@ Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public an
 3. **Verify via DOM, not screenshots.** Prove the change with `read_page` or a `javascript_tool` query (`document.querySelector(...)?.textContent`, `getBoundingClientRect()`, computed styles) plus `read_console_messages`. Screenshots are optional supporting evidence — they can render blank after a JS-driven scroll and must never be the sole proof.
 4. **Never use this tool family on `/admin/` or any logged-in page** — it cannot authenticate. That is Tier 3. (— `Issues.md` #99)
 5. If `preview_start` times out, fix the server/URL and call `preview_start` again fresh — don't salvage a half-initialized pane with `navigate`.
+6. **Front the tab before asserting on rendered DOM.** Diagram/canvas pages (timeline, arbor, maps) build their DOM inside `batchWrite()` (`frontend/assets/js/utils/dom.js`), which schedules the write via `requestAnimationFrame` — browsers throttle rAF to near-zero in a backgrounded or hidden tab, so the page can sit in its pre-render state indefinitely even though nothing is wrong. Confirm the tab is actually visible (`tabs_select`, or check `document.visibilityState !== "hidden"` via `javascript_tool`) before treating "nothing rendered yet" as a bug — otherwise a correctly-working page reads as a stalled `init()`. (— `Issues.md` #184, the root cause behind #182 being misdiagnosed as a live outage)
 
 ### Tier 3 playbook — live check in real Chrome
 
