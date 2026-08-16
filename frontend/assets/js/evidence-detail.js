@@ -236,8 +236,9 @@ function renderSources(mlaSources) {
     .map((src) => {
       const citation = formatMlaCitation(src);
       if (!citation) return "";
-      const idAttr = src && src.id ? ` id="mla-${src.id}"` : "";
-      return `<li class="source-list__item"${idAttr}>${citation}</li>`;
+      return src && src.id
+        ? html`<li class="source-list__item" id="mla-${src.id}">${raw(citation)}</li>`
+        : html`<li class="source-list__item">${raw(citation)}</li>`;
     })
     .filter(Boolean)
     .join("");

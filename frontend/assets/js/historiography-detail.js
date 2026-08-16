@@ -9,7 +9,7 @@
 import { getHistoriographyBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
 import { setSEO } from "./seo.js";
-import { html } from "./utils/templates.js";
+import { html, raw } from "./utils/templates.js";
 import { renderBadge } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
@@ -243,8 +243,9 @@ function renderBibliography(article) {
     $referencesList.innerHTML = citations
       .map((citation, i) => {
         const ref = article.bibliography[i];
-        const idAttr = ref && ref.id ? ` id="mla-${ref.id}"` : "";
-        return `<li${idAttr}>${citation}</li>`;
+        return ref && ref.id
+          ? html`<li id="mla-${ref.id}">${raw(citation)}</li>`
+          : html`<li>${raw(citation)}</li>`;
       })
       .join("");
   }
