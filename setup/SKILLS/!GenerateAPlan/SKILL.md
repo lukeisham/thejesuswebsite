@@ -83,7 +83,7 @@ Use the structure defined in the plan template:
 
 The required sections are:
 
-1. **Header** — `# Plan: <Feature Name>`, plus module, date, a **Status** field set to `Drafting`, and a **Live site** field giving the canonical production origin. Source that origin from the codebase (`README.md`, `api/config/load-env.js`, `frontend/assets/js/utils/site-meta.js` — currently `https://thejesuswebsite.org`), **never** from the wording of the user's request or a bug report: a plan was once written entirely against `thejesuswebsite.com`, an unrelated dead domain, wasting the whole diagnostic pass (see `setup/ISSUES/Issues.md` #78).
+1. **Header** — `# Plan: <Feature Name>`, plus module, date, a **Status** field set to `Drafting`, and a **Live site** field giving the canonical production origin. Source that origin from the codebase (`README.md`, `api/config/load-env.js`, `frontend/assets/js/utils/site-meta.js` — currently `https://thejesuswebsite.org`), **never** from the wording of the user's request or a bug report: a plan was once written entirely against `thejesuswebsite.com`, an unrelated dead domain, wasting the whole diagnostic pass (see `setup/ISSUES/Issues_30_to_110.md` #78).
 2. **Goal** — one or two sentences describing what this plan delivers and why.
 3. **Coding rules to keep in mind** — list any Vibe Coding Rules that are especially relevant to this plan. Reference them by ID (e.g. `JS-5`, `CSS-2`).
 4. **Tasks** — grouped by layer (Database, API, Frontend, etc.) in dependency order, ending with a **Deploy & verify** group carrying the three-tier verification ladder (see below).
@@ -96,12 +96,12 @@ The required sections are:
 
 Every plan must end with a `## Completion Protocol` section, addressed to *any* implementing agent (not just Claude), covering:
 
-- **Markdown edits happen via a Python script, never manual find/replace.** State plainly that hand-edited markdown/HTML is a known source of corruption in this codebase (cite `setup/ISSUES/Issues.md` if it has relevant rows) and that whoever implements this plan should write a small script to parse-and-rewrite rather than hand-edit checkboxes, status fields, or `Issues.md` rows.
+- **Markdown edits happen via a Python script, never manual find/replace.** State plainly that hand-edited markdown/HTML is a known source of corruption in this codebase (cite `setup/ISSUES/issues.md` if it has relevant rows) and that whoever implements this plan should write a small script to parse-and-rewrite rather than hand-edit checkboxes, status fields, or issue-log rows.
 - **Tick checkboxes as tasks complete** (`- [ ]` → `- [x]`).
-- **Mark related Issues.md rows resolved, if applicable** — only if this plan's Goal is to fix issue(s) already logged in `setup/ISSUES/Issues.md` by an earlier plan. Add a corresponding task earlier in the Tasks list (a "Close out" group just before "Deploy & verify" is the natural home) that updates only the `Status` cell for those specific row(s) from `open` to `resolved`, once the fix is verified. Do not add this if the plan doesn't resolve any existing Issues.md rows.
+- **Mark related issue-log rows resolved, if applicable** — only if this plan's Goal is to fix issue(s) already logged by an earlier plan. The active log is `setup/ISSUES/issues.md`; if a cited row number isn't there, it's been archived to `setup/ISSUES/Issues_111_to_200.md` (rows 111–200) or `setup/ISSUES/Issues_30_to_110.md` (rows 30–110) — check the row's number to know which file, and don't assume an archived row is already resolved, since archival doesn't imply that. Add a corresponding task earlier in the Tasks list (a "Close out" group just before "Deploy & verify" is the natural home) that updates only the `Status` cell for those specific row(s) from `open` to `resolved`, once the fix is verified. Do not add this if the plan doesn't resolve any existing rows.
 - **Shipped-artifact audit before completion** — before flipping Status to Completed, verify every file listed in **Files touched** actually exists with the *planned content*, not a stub or placeholder (e.g. `ls` created directories and open key files; a vendored library directory containing only a README is a failed audit). If any planned artifact is missing or smaller than specced, the plan stays in `PLANS/New/` with a note describing the gap. (History: a dictionary upgrade was once marked done with only a README shipped.)
 - **Plan lifecycle**: once every task is checked *and the shipped-artifact audit passes*, flip the header's **Status** to `✅ Completed` and move the file from `PLANS/New/` to `PLANS/Completed/`.
-- **Push everything to GitHub as the final step** — code changes, any `Issues.md` update, and the plan file's own edits/move, all in the same push described in "Deploy & verify".
+- **Push everything to GitHub as the final step** — code changes, any `setup/ISSUES/issues.md` update, and the plan file's own edits/move, all in the same push described in "Deploy & verify".
 
 ### Deploy & verify group (always last)
 
@@ -120,7 +120,7 @@ Rules:
 - **Tiers are cumulative, not alternatives.** A Tier 3 plan still carries Tier 1. Everything that can be smoke-tested is smoke-tested — never delete Tier 1 because a higher tier applies.
 - **Tier 3 supersedes Tier 2 for the same page**, but a plan touching both public and admin surfaces carries both, each scoped to its own pages.
 - **Copy only the playbook blocks the plan uses.** `plan_template.md` holds `### Tier 2 playbook` and `### Tier 3 playbook`; include the ones matching this plan's tiers and delete the rest. Do not paraphrase them — they exist verbatim so an agent that reads only the plan file gets the full procedure.
-- **The two browser tool families are NOT interchangeable.** `mcp__Claude_Browser__*` (the sandboxed pane) cannot authenticate — it has no access to a passkey registered in real Chrome. Any `/admin/` or logged-in page is `mcp__claude-in-chrome__*`, always. (— `Issues.md` #99)
+- **The two browser tool families are NOT interchangeable.** `mcp__Claude_Browser__*` (the sandboxed pane) cannot authenticate — it has no access to a passkey registered in real Chrome. Any `/admin/` or logged-in page is `mcp__claude-in-chrome__*`, always. (— `setup/ISSUES/Issues_30_to_110.md` #99)
 - **If a Tier 3 task touches `/admin/`, say so in the task text** — that the page needs passkey auth and the user must sign in mid-test — so the implementing agent pauses to ask *before* opening the browser rather than discovering the redirect mid-test.
 - **Tier 3 is the only tier that may be deferred.** If the user is unavailable, leave it unchecked and annotated; the plan stays in `PLANS/New/`. Tiers 1–2 need nobody's help and have no excuse. (History: issues recurred repeatedly when fixes were marked complete with live testing deferred.)
 - **Non-Claude agents** (e.g. DeepSeek in Zed) can't run Tiers 2–3: leave the box unchecked with "Deferred to Claude in Chrome: <reason>" and do not move the plan to `PLANS/Completed/`.
@@ -219,11 +219,19 @@ Fix any issues you find in files you just created. If you find pre-existing issu
 
 ---
 
-## Step 6 — Log unresolved issues to Issues.md
+## Step 6 — Log unresolved issues to issues.md
 
-Open `/Users/lukeishammacbookair/Developer/thejesuswebsite/setup/ISSUES/Issues.md` and append any
-issues found in Step 5 that were **not fixed** — pre-existing problems, ambiguities you
-cannot resolve in this session, or anything that needs a separate decision.
+Open `/Users/lukeishammacbookair/Developer/thejesuswebsite/setup/ISSUES/issues.md` (the active
+log — lowercase filename; not `Issues.md`, which no longer exists) and append any issues found
+in Step 5 that were **not fixed** — pre-existing problems, ambiguities you cannot resolve in
+this session, or anything that needs a separate decision.
+
+**Note on the archive split:** `setup/ISSUES/` holds three files. `issues.md` is the active log
+— always append new rows here. `Issues_30_to_110.md` (rows 30–110) and `Issues_111_to_200.md`
+(rows 111–200) are periodic archives of older row ranges — read-only for new appends, but you
+may still need to open them to check or resolve an old row number. Archival is periodic
+by row range, not a guarantee that every archived row is resolved — some archived rows are
+still `open`, so don't assume otherwise.
 
 **Scope:** only log issues **discovered while generating this plan** (or later, during its
 implementation). Do **not** log the problem the plan was created to fix in the first place —
@@ -231,7 +239,7 @@ that is the plan's Goal, not a new issue.
 
 If there are no unresolved issues, skip this step.
 
-If the `Issues.md` file doesn't have a table yet, create one with this header:
+If the `issues.md` file doesn't have a table yet, create one with this header:
 
 ```markdown
 | # | File | Issue | Rule | Plan | Date | Status |
@@ -242,7 +250,7 @@ Append one row per issue. Do not remove or edit existing rows — only add new o
 
 | Column | What to put there |
 |---|---|
-| `#` | Auto-increment from the last row in the table |
+| `#` | Auto-increment from the last row across all three `setup/ISSUES/` files (check the highest `#` in `issues.md`, which holds the current tail) |
 | `File` | Path relative to the project root (e.g. `frontend/evidence/index.html`) |
 | `Issue` | One-sentence description of the problem |
 | `Rule` | The Vibe Coding Rule ID if applicable (e.g. `JS-6`, `CSS-2`, `HTML-1`), or `bug` / `warning` |
@@ -250,7 +258,7 @@ Append one row per issue. Do not remove or edit existing rows — only add new o
 | `Date` | Today's date |
 | `Status` | Always `open` when first added |
 
-**If this plan instead *fixes* row(s) already logged in `Issues.md` by an earlier plan**, don't add new rows for them — add a task to this plan's Tasks list (and its Completion Protocol section, see Step 7) that marks those specific rows' `Status` as `resolved` once the fix is verified. Never edit a row's `Issue`/`File`/`Rule` text, only its `Status`.
+**If this plan instead *fixes* row(s) already logged by an earlier plan**, don't add new rows for them — first check `issues.md` for the row number; if it's not there, it's archived (rows 30–110 → `Issues_30_to_110.md`, rows 111–200 → `Issues_111_to_200.md`). Add a task to this plan's Tasks list (and its Completion Protocol section, see Step 7) that marks those specific rows' `Status` as `resolved`, in whichever file currently holds them, once the fix is verified. Never edit a row's `Issue`/`File`/`Rule` text, only its `Status`.
 
 ---
 
@@ -276,16 +284,17 @@ this skill file, exactly how to finish and close it out.
 
 This is what the plan's own Completion Protocol section instructs; it's restated here for
 reference:
-1. Update markdown (checkboxes, Status fields, `Issues.md` rows) via a small Python script,
+1. Update markdown (checkboxes, Status fields, issue-log rows) via a small Python script,
    never manual find/replace — hand edits are how this codebase got stray/duplicated tags in
    its markup in the first place.
 2. Tick all remaining checkboxes (`- [ ]` → `- [x]`).
-3. If the plan fixes row(s) already logged in `Issues.md`, mark only those rows' `Status` as
-   `resolved`.
+3. If the plan fixes row(s) already logged (check `issues.md` first, then the
+   `Issues_30_to_110.md`/`Issues_111_to_200.md` archives if the row number isn't in the active
+   log), mark only those rows' `Status` as `resolved`, in whichever file currently holds them.
 4. Change the **Status** field in the header to `✅ Completed`.
 5. Move the plan file from `PLANS/New/` to `PLANS/Completed/`.
-6. Push everything — code, any `Issues.md` update, and the plan file's own edits/move — to
-   GitHub as the final step.
+6. Push everything — code, any `setup/ISSUES/issues.md` update, and the plan file's own
+   edits/move — to GitHub as the final step.
 
 The plan stays in `PLANS/New/` until implementation is finished — do not move it early.
 
@@ -299,9 +308,9 @@ After completing all steps, tell the user:
 2. A short summary of the tasks in the plan (bullet list, one line each).
 3. What was added or changed in the sitemap.
 4. The path to the validation checklist file.
-5. Any issues logged to `Issues.md` (number of rows added, or "none").
+5. Any issues logged to `setup/ISSUES/issues.md` (number of rows added, or "none").
 6. Confirm the plan ends with a **Deploy & verify** group, and state **which verification tiers it carries and why** — e.g. "Tiers 1+3: the admin editor UI can't be checked without a login." Tier 1 is present in every plan without exception.
-7. Confirm the plan includes a **Completion Protocol** section, and — if it fixes existing `Issues.md` row(s) — a task to mark those rows `resolved`.
+7. Confirm the plan includes a **Completion Protocol** section, and — if it fixes existing issue-log row(s) — a task to mark those rows `resolved`.
 
 
 

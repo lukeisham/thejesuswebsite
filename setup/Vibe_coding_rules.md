@@ -16,6 +16,9 @@ Before adding logic to an `admin/<type>/` editor, grep the other editors for it 
 **SR-5** — Secrets Never Enter the Repo  
 Credentials, tokens, and keys live in `.env` and are read at runtime — never hardcoded, never in a test fixture, never in a comment. Confirm `.gitignore` covers a new secret file before writing to it.
 
+**SR-6** — Code Is Self-Explanatory; Guides Are for the Rest  
+Code should read clearly enough that it doesn't need a guide to explain what it does. Guides (style guide, website guide, architecture notes) exist for architectural decisions, lightweight navigation, cross-module behaviour, and purpose statements — not as a substitute for readable code.
+
 ## JS Rules
 **JS-1** — Self-documenting > Comments  
 Use clear, intention-revealing names for everything. Write code that is readable without comments.
