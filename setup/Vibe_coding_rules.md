@@ -39,6 +39,12 @@ Use event delegation for dynamic elements. Remove listeners when elements are re
 **PY-1** — Standard Library Only  
 Python is for local scripts and tooling, never for anything the site serves. Stdlib only (`pathlib`, `json`, `csv`, `sqlite3`, `argparse`) — no `pip install`, no venv, no `requirements.txt` (SR-2). If a script needs a third-party package, write it in Node instead.
 
+Exception: a Python service may serve the site, with third-party dependencies and its own `requirements.txt`, when it is the most effective, robust, and safe solution available — not merely convenient. This means: no Node equivalent exists at comparable maturity for the problem (e.g. FAISS/ONNX-based approximate nearest-neighbor search and local embedding inference), the service is isolated as its own process (own venv, own pm2 process) rather than imported into the main app, and callers degrade gracefully if it's unavailable (timeout + fallback, never a hard dependency). Each exception must be named explicitly here, not inferred:
+
+- `Wikipedia algorithm/vector-sidecar/` — FastAPI/uvicorn, pm2-managed as `thejesuswebsite-vector-sidecar` on `127.0.0.1:8901`, synced via `scripts/sync-vector-sidecar.sh`. Called from `api/lib/vector-sidecar-client.js` with a 2s timeout and graceful degradation on failure. No Node-native equivalent for FAISS-based ANN search + local embedding inference exists at comparable maturity.
+
+Offline tooling (`Wikipedia algorithm/classifier/`, `families/`, `scripts/`, `setup/scripts/`) that `deploy.sh` never invokes may also carry a `requirements.txt` for the same reason — it never serves a live request, so SR-2 doesn't apply to it the way it applies to anything in the request path.
+
 **PY-2** — One Script, One Job  
 A script does one thing, named by its filename. Shared logic goes in a plain importable module beside it — never copy-pasted between scripts (SR-4).
 
