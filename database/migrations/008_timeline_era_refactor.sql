@@ -1,5 +1,11 @@
 -- Migration 008: Refactor timeline_era from 3 broad eras to 8 granular eras
 --
+-- Known, deliberate MIG-1 exception: this number collides with the sibling
+-- 008_fix_fts_update_trigger_recursion.sql (both committed separately, both
+-- already applied — schema_migrations keys on filename, so apply order
+-- doesn't matter for idempotency). Not being renumbered per MIG-2 (applied
+-- migrations are immutable). See vibe-coding-review-2026-08-08.md §4.
+--
 -- Changes:
 --   timeline_era  — CHECK expanded from 3 values ('beginning','middle','end')
 --                   to 8 semantically-meaningful values that map 1:1 onto the

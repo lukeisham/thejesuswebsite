@@ -670,6 +670,15 @@ CREATE INDEX idx_evidence_published        ON evidence (published_draft);
 CREATE INDEX idx_evidence_timeline_era     ON evidence (timeline_era);
 CREATE INDEX idx_evidence_timeline_period  ON evidence (timeline_period);
 CREATE INDEX idx_evidence_map_location     ON evidence (map_location);
+-- Published-content filters on other content tables (migration 044, SQL-10)
+CREATE INDEX idx_blog_posts_published         ON blog_posts (published_draft, created_at);
+CREATE INDEX idx_historiography_published     ON historiography (published_draft, period_sort_order, created_at);
+CREATE INDEX idx_context_essays_published     ON context_essays (published_draft, created_at);
+CREATE INDEX idx_responses_published          ON responses (published_draft, created_at);
+CREATE INDEX idx_challenges_published         ON challenges (published_draft, academic_popular, challenge_rank_number);
+CREATE INDEX idx_wikipedia_articles_published ON wikipedia_articles (published_draft, wikipedia_article_rank_number);
+CREATE INDEX idx_collections_published        ON collections (published_draft, created_at);
+CREATE INDEX idx_identifiers_published        ON identifiers (published_draft, id);
 -- Arbor edges
 CREATE INDEX idx_arbor_edges_source        ON arbor_edges (source_id);
 CREATE INDEX idx_arbor_edges_target        ON arbor_edges (target_id);

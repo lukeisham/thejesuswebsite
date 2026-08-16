@@ -4,6 +4,12 @@
 -- from the sibling 004_news_and_resource_search.sql (see Issues.md #11).
 -- Content unchanged — historical migrations are never edited, only relabeled.
 --
+-- Known, deliberate MIG-1 exception: the "004b" suffix is the pattern MIG-1
+-- itself names as prohibited. This migration is already applied, so per
+-- MIG-2 (applied migrations are immutable) it is not being renamed to a
+-- clean "005_"-style number — doing so would desync schema_migrations
+-- between local and the VPS. See vibe-coding-review-2026-08-08.md §4.
+--
 -- Changes:
 --   gospel_category  — replaced CHECK values with form's event-based categories
 --   timeline_era     — replaced CHECK values with form's timeline eras

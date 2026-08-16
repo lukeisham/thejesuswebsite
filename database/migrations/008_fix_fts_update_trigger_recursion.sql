@@ -1,5 +1,11 @@
 -- Migration 008: Fix FTS trigger recursion corrupting UPDATE on content tables
 --
+-- Known, deliberate MIG-1 exception: this number collides with the sibling
+-- 008_timeline_era_refactor.sql (both committed separately, both already
+-- applied — schema_migrations keys on filename, so apply order doesn't
+-- matter for idempotency). Not being renumbered per MIG-2 (applied
+-- migrations are immutable). See vibe-coding-review-2026-08-08.md §4.
+--
 -- Bug: each of evidence, responses, context_essays, and blog_posts has both an
 -- `_updated_at` trigger (which self-UPDATEs the row to bump updated_at when the
 -- caller didn't set it) and an `_fts_au` trigger (which re-syncs the FTS5
