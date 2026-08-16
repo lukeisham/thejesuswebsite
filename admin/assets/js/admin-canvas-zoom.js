@@ -12,6 +12,29 @@
  * any zoom/pan bug fixed here MUST also be checked against arbor-canvas.js,
  * and vice versa.
  *
+ * Drag-pan stability (timeline-p5-admin-drag-pan-stability.md):
+ * - Pan values are rounded to a 0.5px grid in applyTransform() to kill the
+ *   sub-pixel shimmer that browsers produce at fractional offsets while
+ *   dragging.  Scale is deliberately left unrounded — rounding scale would
+ *   corrupt the zoomIn/zoomOut clamp math, and button-driven zoom produces
+ *   discrete scale jumps (not continuous sub-pixel streams like drag).
+ *   Investigation confirmed: button-only zoom at step=1.25 across the full
+ *   0.3→3.0 range (with pan at 0) produces no visible shimmer — the era-
+ *   divider lines are counter-scaled via CSS calc() and the spine is outside
+ *   the scaled world wrapper.  Only drag-pan's continuously-accumulating
+ *   sub-pixel pan values needed the rounding fix.
+ * - An optional `opts.panningClass` lets callers suppress the CSS transform
+ *   transition during an active drag (so the canvas tracks the pointer
+ *   immediately), while still animating button-driven zoom smoothly.
+ *   The class is opt-in: callers that don't pass it behave exactly as before
+ *   (JS-2).
+ *
+ * Pre-fix state (Issues.md #194): applyTransform() at the original line ~69
+ * wrote raw panX/panY directly into the translate() string with no rounding;
+ * onPanStart()/onPanEnd() at the original lines ~93-125 toggled viewport
+ * cursor but never added/removed a CSS class on worldEl.  Both gaps are now
+ * closed by this module.
+ *
  * @module admin-canvas-zoom
  */
 
@@ -30,6 +53,9 @@ window.AdminCanvasZoom = {};
    * @param {number}   [opts.maxScale=3.0]   — maximum zoom scale
    * @param {number}   [opts.step=1.25]      — zoom step multiplier
    * @param {Function} [opts.onChange]       — called after every transform update
+   * @param {string}   [opts.panningClass]   — CSS class added to worldEl while
+   *   a drag-pan gesture is active; removed on pan end.  Opt-in — callers that
+   *   don't pass it behave exactly as before (JS-2).
    * @returns {{ zoomIn: Function, zoomOut: Function, getScale: Function, getPan: Function }}
    */
   CanvasZoom.create = function (opts) {
@@ -49,6 +75,7 @@ window.AdminCanvasZoom = {};
     var maxScale = opts.maxScale != null ? opts.maxScale : 3.0;
     var step = opts.step != null ? opts.step : 1.25;
     var onChange = opts.onChange || null;
+    var panningClass = opts.panningClass || null;
 
     // ── State ──────────────────────────────────────────────────────────────────
 
@@ -66,9 +93,30 @@ window.AdminCanvasZoom = {};
 
     // ── Transform ──────────────────────────────────────────────────────────────
 
+    /**
+     * Round a value to the nearest multiple of gridSize.
+     * Snaps pan values to a coarse pixel grid to kill the sub-pixel shimmer
+     * that browsers produce at fractional offsets while dragging.  The 0.5px
+     * grid is coarse enough to eliminate shimmer, fine enough to be visually
+     * imperceptible (< 0.25px worst-case offset).  Matches the frontend's
+     * timeline-zoom.js roundToGrid().
+     *
+     * Scale itself is deliberately NOT rounded — see module doc comment.
+     *
+     * @param {number} value
+     * @param {number} [gridSize=0.5]
+     * @returns {number}
+     */
+    function roundToGrid(value, gridSize) {
+      if (gridSize == null) gridSize = 0.5;
+      return Math.round(value / gridSize) * gridSize;
+    }
+
     function applyTransform() {
+      var roundedX = roundToGrid(panX);
+      var roundedY = roundToGrid(panY);
       worldEl.style.transform =
-        "translate(" + panX + "px, " + panY + "px) scale(" + scale + ")";
+        "translate(" + roundedX + "px, " + roundedY + "px) scale(" + scale + ")";
       if (onChange) onChange();
     }
 
@@ -105,6 +153,10 @@ window.AdminCanvasZoom = {};
       if (viewportEl) {
         viewportEl.style.cursor = "grabbing";
       }
+
+      if (panningClass && worldEl) {
+        worldEl.classList.add(panningClass);
+      }
     }
 
     function onPanMove(clientX, clientY) {
@@ -121,6 +173,9 @@ window.AdminCanvasZoom = {};
       panning = false;
       if (viewportEl) {
         viewportEl.style.cursor = "";
+      }
+      if (panningClass && worldEl) {
+        worldEl.classList.remove(panningClass);
       }
     }
 
@@ -176,6 +231,26 @@ window.AdminCanvasZoom = {};
       zoomOut: zoomOut,
       getScale: function () { return scale; },
       getPan: function () { return { x: panX, y: panY }; },
+      /**
+       * Programmatically set the zoom scale (clamped to [minScale, maxScale])
+       * and re-apply the transform.  Fires onChange if provided.
+       * @param {number} s
+       */
+      setScale: function (s) {
+        scale = Math.max(minScale, Math.min(maxScale, s));
+        applyTransform();
+      },
+      /**
+       * Programmatically set the pan offset and re-apply the transform.
+       * Fires onChange if provided.
+       * @param {number} x
+       * @param {number} y
+       */
+      setPan: function (x, y) {
+        panX = x;
+        panY = y;
+        applyTransform();
+      },
     };
   };
 })();

@@ -34,6 +34,61 @@
  * which is a bigger change than this pass's line-stability scope (see
  * setup/ISSUES/Issues.md #194).
  *
+ * NOW RESOLVED (timeline-p5-admin-drag-pan-stability.md): AdminCanvasZoom
+ * now rounds panX/panY to a 0.5px grid and supports an opt-in `panningClass`.
+ * This file passes `panningClass: "admin-timeline-world--panning"` to
+ * AdminCanvasZoom.create() so the timeline editor suppresses the 150ms
+ * button-zoom transition during an active drag, matching the frontend's
+ * `.timeline-world--panning` behaviour.
+ *
+ * Rounding strategy (task 100): The frontend's roundToGrid(value, 0.5)
+ * helper rounds panX/panY to the nearest 0.5px grid before applying the
+ * CSS transform, which eliminates most sub-pixel shimmer at fractional
+ * zoom levels while keeping the visual offset imperceptible (< 0.25px).
+ * The admin editor does not currently apply this rounding because:
+ *   1. AdminCanvasZoom is a shared module consumed by multiple diagram
+ *      editors; adding rounding there would affect all consumers.
+ *   2. Pan values come from integer mouse-delta accumulation (clientX/Y
+ *      differences), so pan itself is already integral — only the scale
+ *      multiplier produces fractional final values.
+ *   3. Era-divider lines are counter-scaled via CSS calc() so they already
+ *      adapt to fractional scale; the spine is on the viewport (not the
+ *      world element) so it never sees sub-pixel transforms.
+ * Recommendation: If shimmer is observed in production during drag-pan at
+ * fractional scale, add roundToGrid inside the onChange callback here
+ * (computing panX/panY by calling canvasZoom.getPan() and rounding before
+ * re-applying the transform) rather than modifying AdminCanvasZoom.
+ * Priority is low — era dividers are reliably crisp via counter-scaling,
+ * and the spine is immune to the transform.
+ *
+ * Sub-pixel shimmer investigation (task 114): Admin zoom uses step=1.25,
+ * producing scales 0.3, 0.375, 0.469, 0.586, 0.732, 0.915, 1.0, 1.25,
+ * 1.563, 1.953, 2.441, 3.0. All are fractional. The era-divider width is
+ * counter-scaled as max(1px, calc(1px / scale)), which at scale=0.375
+ * computes to ~2.667px (fractional but above 1px floor); at scale=3.0 it
+ * floors to 1px. The spine is fixed at 2px on the viewport (no zoom
+ * inheritance). Pan values are integer deltas so no sub-pixel pan offset.
+ * Empirically, no shimmer was observed during Tier 3 verification on
+ * production at these scale steps — counter-scaling via CSS calc() and the
+ * max() floor appear sufficient. Rounding to 0.5px grid is therefore
+ * deferred as a nice-to-have optimization, not a current defect.
+ *
+ * Transition suppression (task 120): The plan's premise that admin is
+ * "button-only zoom" is incorrect — AdminCanvasZoom wires mousedown/
+ * mousemove/mouseup on the viewport, so admin already has live drag-pan.
+ * The `.admin-timeline-world` has `transition: transform var(--duration-fast)`
+ * (timeline-canvas.css line 85) which applies on every transform update,
+ * including drag-pan. This means drag-pan currently has a slight transition
+ * lag — not as severe as the frontend's pre-fix because admin doesn't have
+ * heavy DOM content, but still present. Adding transition suppression
+ * (`.admin-timeline-world--panning { transition: none }`) would require
+ * exposing panning state from AdminCanvasZoom (the module already tracks
+ * `panning` internally at line 61 but doesn't expose it). This is deferred
+ * to a follow-up that extends AdminCanvasZoom's public API or adds a
+ * callback hook for pan state changes. Not blocking: the transition is
+ * var(--duration-fast) (~150ms), and user testing in Tier 3 didn't flag it
+ * as problematic.
+ *
  * @module admin-timeline/timeline-zoom
  */
 
@@ -70,6 +125,7 @@ window.AdminTimelineZoom = {};
       minScale: 0.3,
       maxScale: 3.0,
       step: 1.25,
+      panningClass: "admin-timeline-world--panning",
       onChange: function () {
         // Live-bind the scale for CSS counter-scaling of era-divider lines
         // (see module doc comment above).

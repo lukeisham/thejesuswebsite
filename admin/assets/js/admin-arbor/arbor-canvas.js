@@ -42,6 +42,14 @@ window.AdminArborCanvas = {};
   /** @type {boolean} */
   let panning = false;
 
+  // SR-4 check (timeline-p5-admin-drag-pan-stability.md): arbor's pan values
+  // are not rounded to a 0.5px grid (unlike AdminCanvasZoom after p5).
+  // However, arbor applies its transform via SVG setAttribute on a <g>
+  // element — there is no CSS transition rule on any world wrapper, so the
+  // transition-suppression gap that affects admin-timeline does not apply
+  // here. If arbor ever gains a CSS-transitioned wrapper, add rounding
+  // and a panning-class toggle at that time.
+
   /** @type {{ startX: number, startY: number, origX: number, origY: number }|null} */
   let panState = null;
 
