@@ -185,4 +185,70 @@ window.AdminTimelineZoom = {};
   Zoom.effectivePxPerPeriod = function () {
     return 100 * Zoom.getScale();
   };
+
+  /**
+   * Programmatic transform setter — used by chip-jump navigation
+   * (timeline-nav.js) to centre an era at normal zoom.
+   *
+   * Clamps pan via AdminTimelineTransform.clampPan() so the world stays
+   * at least partially visible, delegates to canvasZoom.setScale() /
+   * setPan(), and fires `timeline:transformed` on .admin-timeline-world.
+   *
+   * @param {number} newPanX
+   * @param {number} newPanY
+   * @param {number} newScale
+   * @param {string} [eraKey] — era key for the custom event detail
+   */
+  Zoom.setTransform = function (newPanX, newPanY, newScale, eraKey) {
+    if (!canvasZoom) {
+      console.warn("AdminTimelineZoom.setTransform: zoom not initialised");
+      return;
+    }
+
+    // Guard: ensure all inputs are finite numbers
+    if (
+      !Number.isFinite(newPanX) ||
+      !Number.isFinite(newPanY) ||
+      !Number.isFinite(newScale)
+    ) {
+      console.warn("AdminTimelineZoom.setTransform: non-finite input, ignoring", {
+        newPanX: newPanX,
+        newPanY: newPanY,
+        newScale: newScale,
+      });
+      return;
+    }
+
+    // Derive total world width from the geometry module
+    var worldWidth = 3800; // 38 periods * 100px
+    if (
+      window.AdminTimelineTransform &&
+      typeof window.AdminTimelineTransform.clampPan === "function"
+    ) {
+      var clamped = window.AdminTimelineTransform.clampPan(
+        newPanX,
+        newPanY,
+        newScale,
+        worldWidth,
+      );
+      newPanX = clamped.panX;
+      newPanY = clamped.panY;
+    }
+
+    canvasZoom.setScale(newScale);
+    canvasZoom.setPan(newPanX, newPanY);
+
+    // Fire custom event
+    var worldEl = document.querySelector(".admin-timeline-world");
+    if (worldEl) {
+      var detail = { panX: newPanX, panY: newPanY, scale: newScale };
+      if (eraKey) detail.era = eraKey;
+      worldEl.dispatchEvent(
+        new CustomEvent("timeline:transformed", {
+          bubbles: false,
+          detail: detail,
+        }),
+      );
+    }
+  };
 })();

@@ -105,6 +105,7 @@ Used on evidence cards and detail pages to label category, timeline period, and 
 - **Filter/zoom**: 
   - Era filter chips above the timeline to isolate periods (e.g., "All Eras", "Ministry Begins", "Passion Week")
   - Timeline remains continuous; filtered eras show their dots while others fade to `opacity: 0.3`
+  - **Chip clicks have a dual effect**: filter/fade (as above) AND navigate — the chip also jumps the viewport to centre that era at normal zoom (`scale=1.0`), via `jumpToEra()` (`timeline-nav.js` / pure math in `timeline-transform.js`). The "All Eras" chip resets to `scale=1.0, pan=(0,0)`. Programmatic navigation uses the same `--duration-fast` / `--ease-out` timing as the manual zoom controls, and respects `prefers-reduced-motion: reduce` (transform applied instantly, no transition, when the user has requested reduced motion). On mobile (<768px), zoom/pan is disabled entirely, so a chip click instead scrolls the era's first dot horizontally into view (`scrollIntoView()`). Mirrored in the admin diagram editor (`admin-timeline/timeline-nav.js`) minus reduced-motion and mobile handling, since admin is desktop-only and transforms are always instantaneous there.
   - Draggable scroll on mobile; horizontal scroll bar on desktop if timeline overflows viewport
 - **Scrolling**: timeline extends beyond viewport width; use `overflow-x: auto` with momentum scrolling on mobile
 - **Empty state**: if no events in selected era, show centered message "No events in this period"

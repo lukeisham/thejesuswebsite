@@ -30,6 +30,7 @@
         <link rel="stylesheet" href="/assets/css/components/loading.css" />
         <link rel="stylesheet" href="/assets/css/components/empty-states.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
+        <link rel="stylesheet" href="/assets/css/components/timeline-era-headings.css" />
         <link rel="stylesheet" href="/assets/css/pages/timeline.css" />
         <link rel="stylesheet" href="/assets/css/pages/timeline/timeline-line-stability.css" />
         <link rel="stylesheet" href="/assets/css/pages/timeline/timeline-dots.css" />
@@ -91,29 +92,29 @@
 
             <!-- Era filter chips -->
             <nav class="timeline-era-filters" id="era-filters" aria-label="Filter by era">
-                <button class="filter-chip active" data-era="all">
+                <button class="filter-chip active" data-era="all" aria-label="Show all eras and reset to default view">
                     All Eras
                 </button>
-                <button class="filter-chip era--pre-incarnation" data-era="PreIncarnation">
+                <button class="filter-chip era--pre-incarnation" data-era="PreIncarnation" aria-label="Show Pre-Incarnation events and jump to era">
                     Pre-Incarnation
                 </button>
-                <button class="filter-chip era--old-testament" data-era="OldTestament">
+                <button class="filter-chip era--old-testament" data-era="OldTestament" aria-label="Show Old Testament events and jump to era">
                     Old Testament
                 </button>
-                <button class="filter-chip era--early-life" data-era="EarlyLife">
+                <button class="filter-chip era--early-life" data-era="EarlyLife" aria-label="Show Early Life events and jump to era">
                     Early Life
                 </button>
-                <button class="filter-chip era--life" data-era="Life">Life</button>
-                <button class="filter-chip era--galilee-ministry" data-era="GalileeMinistry">
+                <button class="filter-chip era--life" data-era="Life" aria-label="Show Life events and jump to era">Life</button>
+                <button class="filter-chip era--galilee-ministry" data-era="GalileeMinistry" aria-label="Show Galilee Ministry events and jump to era">
                     Galilee Ministry
                 </button>
-                <button class="filter-chip era--judean-ministry" data-era="JudeanMinistry">
+                <button class="filter-chip era--judean-ministry" data-era="JudeanMinistry" aria-label="Show Judean Ministry events and jump to era">
                     Judean Ministry
                 </button>
-                <button class="filter-chip era--passion-week" data-era="PassionWeek">
+                <button class="filter-chip era--passion-week" data-era="PassionWeek" aria-label="Show Passion Week events and jump to era">
                     Passion Week
                 </button>
-                <button class="filter-chip era--post-passion" data-era="Post-Passion">
+                <button class="filter-chip era--post-passion" data-era="Post-Passion" aria-label="Show Post-Passion events and jump to era">
                     Post-Passion
                 </button>
             </nav>
@@ -183,9 +184,6 @@
             </div>
         </footer>
 
-        <script type="module" src="/assets/js/timeline/timeline-data.js" defer></script>
-        <script type="module" src="/assets/js/timeline/timeline-render.js" defer></script>
-        <script type="module" src="/assets/js/timeline/timeline-zoom.js" defer></script>
         <script type="module" src="/assets/js/timeline/timeline-interactions.js" defer></script>
         <script type="module" src="/assets/js/main.js" defer></script>
         <script type="module" src="/assets/js/utils/site-meta.js" defer></script>

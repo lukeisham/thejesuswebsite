@@ -29,6 +29,7 @@ import { showToast } from "../utils/toasts.js";
 import { readEmbeddedData } from "../api.js";
 import { announce } from "../utils/announce.js";
 import { revalidateInBackground } from "../utils/data-revalidation.js";
+import { jumpToEra } from "./timeline-nav.js";
 
 // ─── DOM references ────────────────────────────────────────────────────────────
 
@@ -360,7 +361,9 @@ async function init() {
   // ── Wire era filter chips (JS-6: event delegation) ────────────────────
   if (filtersEl) {
     delegate(filtersEl, ".filter-chip", "click", (_e, chip) => {
-      setEraFilter(chip.dataset.era);
+      var era = chip.dataset.era;
+      setEraFilter(era);
+      jumpToEra(era);
     });
   }
 
