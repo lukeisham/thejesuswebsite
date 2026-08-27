@@ -1,0 +1,95 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin News Page (CSS-1)
+   List-page furniture lives in the shared admin-list-page.css component;
+   this file holds only the page's unique remainder. The .admin-modal* rules
+   here duplicate (with different class names) the shared
+   admin-components/modals.css — see Issues.md for the follow-up on
+   migrating this page onto the shared modal classes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.admin-landing-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 11px;
+    border-radius: 10px;
+    background: var(--admin-accent);
+    color: #fff;
+    font-weight: 500;
+}
+
+.admin-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.admin-modal {
+    background: var(--admin-surface);
+    border-radius: var(--admin-radius);
+    padding: var(--space-xl);
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.admin-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.admin-modal__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--admin-text-primary);
+}
+
+.admin-modal__close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--admin-text-muted);
+    padding: var(--space-xs);
+}
+
+.admin-modal__close:hover {
+    color: var(--admin-text-primary);
+}
+
+.admin-modal .admin-form-group {
+    margin-bottom: var(--space-md);
+}
+
+.admin-modal .admin-checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.admin-modal .admin-checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--admin-accent);
+}
+
+.admin-modal .admin-checkbox-group label {
+    font-size: var(--text-small);
+    cursor: pointer;
+}
+
+.admin-modal-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+}

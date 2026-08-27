@@ -1,0 +1,31 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Evidence Editor — Relation Tags (CSS-1)
+   Evidence-only rules — everything shared with the other four editors lives
+   in admin-editor-shared-forms.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.admin-relation-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px var(--space-sm);
+    font-size: 12px;
+    background: var(--admin-surface-hover);
+    border: 1px solid var(--admin-border-light);
+    border-radius: 12px;
+    margin: 2px 4px 2px 0;
+}
+
+.admin-relation-tag button {
+    background: none;
+    border: none;
+    color: var(--admin-text-muted);
+    font-size: var(--text-small);
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+}
+
+.admin-relation-tag button:hover {
+    color: var(--admin-danger);
+}

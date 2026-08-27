@@ -1,0 +1,10 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Evidence List Page (CSS-1)
+   Already fully tokenized — extracted verbatim from the inline block.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.admin-evidence-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}

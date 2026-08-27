@@ -1,0 +1,26 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin List-Page Furniture (CSS-1)
+   Rules duplicated byte-for-byte across the inline <style> blocks of the
+   admin list pages (dashboard, blog, debate, essays, historiography,
+   collections, identifiers, news, wikipedia, evidence bulk).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.admin-loading,
+.admin-empty,
+.admin-error {
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--admin-text-muted);
+    font-size: var(--text-small);
+}
+
+.admin-error {
+    color: var(--admin-danger);
+}
+
+.admin-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    margin-bottom: var(--space-md);
+}
