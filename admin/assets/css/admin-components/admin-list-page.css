@@ -11,7 +11,7 @@
     padding: var(--space-xl);
     text-align: center;
     color: var(--admin-text-muted);
-    font-size: var(--text-small);
+    font-size: 14px;
 }
 
 .admin-error {

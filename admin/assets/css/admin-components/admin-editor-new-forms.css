@@ -22,7 +22,7 @@
 }
 
 .admin-form-card__title {
-    font-size: var(--text-xs);
+    font-size: 13px;
     font-weight: 600;
     color: var(--admin-text-secondary);
     text-transform: uppercase;
@@ -43,7 +43,7 @@
 }
 
 .admin-checkbox-group label {
-    font-size: var(--text-small);
+    font-size: 14px;
     color: var(--admin-text-primary);
     cursor: pointer;
 }
