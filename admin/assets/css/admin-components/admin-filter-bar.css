@@ -1,0 +1,22 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Filter Bar (CSS-1)
+   Rule bodies duplicated byte-for-byte under different selector names across
+   the dashboard and evidence list pages. Selectors are combined, not
+   renamed, so no HTML/JS class references need to change.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.admin-dashboard-filters,
+.admin-evidence-filters {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.admin-dashboard-filters .admin-form-group,
+.admin-evidence-filters .admin-form-group {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 140px;
+}

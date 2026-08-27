@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/admin-editor-shared-forms.css" />
+        <link rel="stylesheet" href="../assets/css/admin-components/evidence-editor-relations.css" />
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
@@ -28,33 +29,6 @@
         <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
         <script defer src="../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
-        <style>
-            /* Evidence-only rules — everything shared with the other four
-               editors lives in admin-editor-shared-forms.css. */
-            .admin-relation-tag {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                padding: 2px 8px;
-                font-size: 12px;
-                background: var(--admin-surface-hover);
-                border: 1px solid var(--admin-border-light);
-                border-radius: 12px;
-                margin: 2px 4px 2px 0;
-            }
-            .admin-relation-tag button {
-                background: none;
-                border: none;
-                color: var(--admin-text-muted);
-                font-size: 14px;
-                cursor: pointer;
-                padding: 0 2px;
-                line-height: 1;
-            }
-            .admin-relation-tag button:hover {
-                color: var(--admin-danger);
-            }
-        </style>
     </head>
     <body>
         <div class="admin-shell" id="admin-shell"></div>

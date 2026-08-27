@@ -5,66 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Identifiers — Admin</title>
   <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/identifiers.css">
   <script defer src="../assets/js/admin-http.js"></script>
   <script defer src="../assets/js/auth.js"></script>
   <script defer src="../assets/js/admin.js"></script>
   <script type="module" src="../assets/js/admin-toasts.js"></script>
   <script defer src="../assets/js/admin-identifiers.js"></script>
-  <style>
-    .admin-loading,
-    .admin-empty,
-    .admin-error {
-      padding: var(--space-xl);
-      text-align: center;
-      color: var(--admin-text-muted);
-      font-size: 14px;
-    }
-    .admin-error {
-      color: var(--admin-danger);
-    }
-    .admin-section-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--admin-text-primary);
-      margin-bottom: var(--space-md);
-    }
-    /* Type groups in the create/edit form — only one group is filled per record. */
-    .identifier-fieldset {
-      border: 1px solid var(--admin-border);
-      border-radius: var(--admin-radius-sm);
-      padding: var(--space-md);
-      margin-bottom: var(--space-md);
-    }
-    .identifier-fieldset__legend {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--admin-text-primary);
-      padding: 0 var(--space-xs);
-    }
-    .identifier-field-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: var(--space-md);
-    }
-    .identifier-url {
-      color: var(--admin-accent);
-      word-break: break-all;
-    }
-    .identifier-type-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 10px;
-      background: var(--admin-bg);
-      border: 1px solid var(--admin-border);
-      color: var(--admin-text-secondary);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-    .identifier-actions {
-      display: flex;
-      gap: var(--space-xs);
-    }
-  </style>
 </head>
 <body>
 <div class="admin-shell">

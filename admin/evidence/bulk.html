@@ -5,42 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bulk Evidence — Admin</title>
   <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/evidence-bulk.css">
   <script defer src="../assets/js/admin-http.js"></script>
   <script defer src="../assets/js/auth.js"></script>
   <script defer src="../assets/js/admin.js"></script>
-  <style>
-    .admin-bulk-actions {
-      display: flex;
-      gap: var(--space-sm);
-      margin-bottom: var(--space-md);
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .admin-bulk-actions .admin-btn--danger {
-      margin-left: auto;
-    }
-    .admin-loading,
-    .admin-empty,
-    .admin-error {
-      padding: var(--space-xl);
-      text-align: center;
-      color: var(--admin-text-muted);
-      font-size: 14px;
-    }
-    .admin-error {
-      color: var(--admin-danger);
-    }
-    .admin-check-cell {
-      width: 40px;
-      text-align: center;
-    }
-    .admin-check-cell input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--admin-accent);
-      cursor: pointer;
-    }
-  </style>
 </head>
 <body>
 <div class="admin-shell">

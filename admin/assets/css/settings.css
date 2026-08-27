@@ -1,0 +1,55 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Settings Page (CSS-1)
+   Standalone extraction — this page's inline block had no chunk shared with
+   any other page.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.settings-form {
+    max-width: 600px;
+}
+
+.settings-message {
+    margin-top: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--admin-radius-sm);
+    font-size: var(--text-small);
+    line-height: 1.5;
+}
+
+.settings-message--success {
+    color: var(--admin-success-color);
+    background: var(--admin-success-bg);
+    border: 1px solid var(--admin-success-border);
+}
+
+.settings-message--error {
+    color: var(--admin-error-color);
+    background: var(--admin-error-bg);
+    border: 1px solid var(--admin-error-border);
+}
+
+.settings-char-counter {
+    display: block;
+    margin-top: var(--space-xs);
+    font-size: 11px;
+    color: var(--admin-text-muted);
+}
+
+.settings-char-counter--over {
+    color: var(--admin-danger);
+}
+
+.settings-image-preview {
+    display: block;
+    width: 120px;
+    margin-top: var(--space-sm);
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-light);
+}
+
+.settings-passkeys {
+    max-width: 600px;
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--admin-border-light);
+}

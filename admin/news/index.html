@@ -5,91 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>News Articles — Admin</title>
   <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/news.css">
   <script defer src="../assets/js/admin-http.js"></script>
   <script defer src="../assets/js/auth.js"></script>
   <script defer src="../assets/js/admin.js"></script>
   <script defer src="../assets/js/admin-image-picker.js"></script>
-  <style>
-    .admin-loading,
-    .admin-empty,
-    .admin-error {
-      padding: var(--space-xl);
-      text-align: center;
-      color: var(--admin-text-muted);
-      font-size: 14px;
-    }
-    .admin-error { color: var(--admin-danger); }
-    .admin-landing-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      font-size: 11px;
-      border-radius: 10px;
-      background: var(--admin-accent);
-      color: #fff;
-      font-weight: 500;
-    }
-    .admin-modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .admin-modal {
-      background: var(--admin-surface);
-      border-radius: var(--admin-radius);
-      padding: var(--space-xl);
-      max-width: 600px;
-      width: 90%;
-      max-height: 85vh;
-      overflow-y: auto;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    }
-    .admin-modal__header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--space-md);
-    }
-    .admin-modal__title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--admin-text-primary);
-    }
-    .admin-modal__close {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      color: var(--admin-text-muted);
-      padding: var(--space-xs);
-    }
-    .admin-modal__close:hover { color: var(--admin-text-primary); }
-    .admin-modal .admin-form-group {
-      margin-bottom: var(--space-md);
-    }
-    .admin-modal .admin-checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-    .admin-modal .admin-checkbox-group input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--admin-accent);
-    }
-    .admin-modal .admin-checkbox-group label {
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .admin-modal-actions {
-      display: flex;
-      gap: var(--space-sm);
-      margin-top: var(--space-md);
-    }
-  </style>
 </head>
 <body>
 <div class="admin-shell">

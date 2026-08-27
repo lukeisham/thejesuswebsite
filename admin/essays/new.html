@@ -8,6 +8,7 @@
         <link rel="stylesheet" href="../assets/css/admin-components/spellcheck.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/toasts.css" />
+        <link rel="stylesheet" href="../assets/css/admin-components/admin-editor-new-forms.css" />
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
@@ -20,52 +21,6 @@
         <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
         <script defer src="../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
-        <style>
-            .admin-form-actions {
-                display: flex;
-                gap: var(--space-sm);
-                margin-top: var(--space-lg);
-                padding-top: var(--space-md);
-                border-top: 1px solid var(--admin-border-light);
-            }
-            .admin-form-card {
-                background: var(--admin-surface);
-                border: 1px solid var(--admin-border-light);
-                border-radius: var(--admin-radius);
-                padding: var(--space-lg);
-            }
-            .admin-form-card__title {
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--admin-text-secondary);
-                text-transform: uppercase;
-                letter-spacing: 0.03em;
-                margin-bottom: var(--space-md);
-            }
-            .admin-checkbox-group {
-                display: flex;
-                align-items: center;
-                gap: var(--space-sm);
-            }
-            .admin-checkbox-group input[type="checkbox"] {
-                width: 18px;
-                height: 18px;
-                accent-color: var(--admin-accent);
-            }
-            .admin-checkbox-group label {
-                font-size: 14px;
-                color: var(--admin-text-primary);
-                cursor: pointer;
-            }
-            .admin-error {
-                padding: var(--space-md);
-                color: var(--admin-danger);
-                background: rgba(220, 53, 69, 0.08);
-                border: 1px solid rgba(220, 53, 69, 0.2);
-                border-radius: var(--admin-radius);
-                margin-bottom: var(--space-md);
-            }
-        </style>
     </head>
     <body>
         <div class="admin-shell">

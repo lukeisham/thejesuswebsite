@@ -1,0 +1,48 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Identifiers Page (CSS-1)
+   List-page furniture and .admin-section-title live in the shared
+   admin-list-page.css component; this file holds only the page's unique
+   remainder.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Type groups in the create/edit form — only one group is filled per record. */
+.identifier-fieldset {
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.identifier-fieldset__legend {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    padding: 0 var(--space-xs);
+}
+
+.identifier-field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-md);
+}
+
+.identifier-url {
+    color: var(--admin-accent);
+    word-break: break-all;
+}
+
+.identifier-type-badge {
+    display: inline-block;
+    padding: 2px var(--space-sm);
+    border-radius: 10px;
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.identifier-actions {
+    display: flex;
+    gap: var(--space-xs);
+}
