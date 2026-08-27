@@ -14,7 +14,7 @@
 }
 
 .identifier-fieldset__legend {
-    font-size: var(--text-xs);
+    font-size: 13px;
     font-weight: 600;
     color: var(--admin-text-primary);
     padding: 0 var(--space-xs);
