@@ -3,6 +3,8 @@
 
 const express = require("express");
 const auth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -17,7 +19,7 @@ router.get("/me", (req, res) => {
     res.json({ authenticated: true, handle: session.userHandle });
   } catch (error) {
     console.error("GET /auth/me failed:", error);
-    res.status(500).json({ error: "Failed to read session." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -30,7 +32,7 @@ router.post("/logout", (req, res) => {
     res.status(204).end();
   } catch (error) {
     console.error("POST /auth/logout failed:", error);
-    res.status(500).json({ error: "Failed to log out." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

@@ -133,6 +133,20 @@ describe("GET /timeline", () => {
   });
 });
 
+// ── GET /timeline/:era ──────────────────────────────────────────────────────
+
+describe("GET /timeline/:era", () => {
+  test("returns 400 with E-INPUT-007 for an unknown era", async () => {
+    const result = await request(createApp(), {
+      method: "GET",
+      path: "/timeline/not-a-real-era",
+    });
+
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-007");
+  });
+});
+
 // ── GET /timeline/admin (auth-guarded) ─────────────────────────────────────
 
 describe("GET /timeline/admin", () => {

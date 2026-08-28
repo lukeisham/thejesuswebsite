@@ -137,12 +137,12 @@ function validateHandle(handle) {
  */
 function requireSetupToken(req, res, next) {
   const expected = process.env.SETUP_TOKEN;
-  if (!expected) return res.status(404).json({ error: "Not found." });
+  if (!expected) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
   if (credentialModel.countAll() > 0)
-    return res.status(404).json({ error: "Not found." });
+    return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
 
   const token = req.headers["x-setup-token"] || req.query.setupToken || "";
-  if (token !== expected) return res.status(404).json({ error: "Not found." });
+  if (token !== expected) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
 
   next();
 }

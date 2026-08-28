@@ -4,6 +4,8 @@
 const express = require('express');
 const siteSettingsModel = require('../models/site-settings.model');
 const requireAuth = require('../middleware/auth');
+const ERRORS = require('../lib/error-codes');
+const { sendError } = require('../lib/error-handler');
 
 const router = express.Router();
 
@@ -13,7 +15,7 @@ router.get('/', (req, res) => {
     res.json(siteSettingsModel.get());
   } catch (error) {
     console.error('GET /site-settings failed:', error);
-    res.status(500).json({ error: 'Failed to load site settings.' });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -21,11 +23,11 @@ router.get('/', (req, res) => {
 router.put('/', requireAuth, (req, res) => {
   try {
     const updated = siteSettingsModel.update(req.body);
-    if (!updated) return res.status(400).json({ error: 'No valid fields provided.' });
+    if (!updated) return sendError(res, ERRORS.MISSING_BODY_FIELD, { fields: [] });
     res.json(updated);
   } catch (error) {
     console.error('PUT /site-settings failed:', error);
-    res.status(500).json({ error: 'Failed to update site settings.' });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

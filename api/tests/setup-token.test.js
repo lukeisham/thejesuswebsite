@@ -178,7 +178,8 @@ describe("middleware: requireSetupToken", () => {
       headers: { "x-setup-token": SETUP_TOKEN },
     });
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, "Not found.");
+    assert.equal(res.body.error.code, "E-PERSIST-004");
+    assert.equal(res.body.error.context, undefined);
 
     process.env.SETUP_TOKEN = SETUP_TOKEN;
   });
@@ -191,7 +192,8 @@ describe("middleware: requireSetupToken", () => {
       headers: { "x-setup-token": SETUP_TOKEN },
     });
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, "Not found.");
+    assert.equal(res.body.error.code, "E-PERSIST-004");
+    assert.equal(res.body.error.context, undefined);
   });
 
   test("returns 404 with the wrong token in header", async () => {
@@ -200,7 +202,8 @@ describe("middleware: requireSetupToken", () => {
       headers: { "x-setup-token": "wrong-token" },
     });
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, "Not found.");
+    assert.equal(res.body.error.code, "E-PERSIST-004");
+    assert.equal(res.body.error.context, undefined);
   });
 
   test("returns 404 with the wrong token in query param", async () => {
@@ -210,7 +213,8 @@ describe("middleware: requireSetupToken", () => {
       { body: { handle: "admin" } },
     );
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, "Not found.");
+    assert.equal(res.body.error.code, "E-PERSIST-004");
+    assert.equal(res.body.error.context, undefined);
   });
 
   test("returns 404 with no token at all", async () => {
@@ -218,7 +222,8 @@ describe("middleware: requireSetupToken", () => {
       body: { handle: "admin" },
     });
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, "Not found.");
+    assert.equal(res.body.error.code, "E-PERSIST-004");
+    assert.equal(res.body.error.context, undefined);
   });
 
   test("passes through with the correct token via header and empty DB", async () => {
@@ -250,7 +255,8 @@ describe("middleware: requireSetupToken", () => {
       headers: { "x-setup-token": SETUP_TOKEN },
     });
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, "Not found.");
+    assert.equal(res.body.error.code, "E-PERSIST-004");
+    assert.equal(res.body.error.context, undefined);
 
     process.env.SETUP_TOKEN = SETUP_TOKEN;
   });

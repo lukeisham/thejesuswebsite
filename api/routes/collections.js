@@ -4,6 +4,8 @@
 const express = require('express');
 const collectionModel = require('../models/collection.model');
 const requireAuth = require('../middleware/auth');
+const ERRORS = require('../lib/error-codes');
+const { sendError } = require('../lib/error-handler');
 
 const router = express.Router();
 
@@ -14,7 +16,7 @@ router.get('/', (req, res) => {
         res.json(items);
     } catch (error) {
         console.error('GET /collections failed:', error);
-        res.status(500).json({ error: 'Failed to load collections.' });
+        sendError(res, ERRORS.SQL_QUERY_FAILURE);
     }
 });
 
@@ -22,11 +24,11 @@ router.get('/', (req, res) => {
 router.get('/:slug', (req, res) => {
     try {
         const item = collectionModel.getBySlug(req.params.slug);
-        if (!item) return res.status(404).json({ error: 'Collection not found.' });
+        if (!item) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'collection', slug: req.params.slug });
         res.json(item);
     } catch (error) {
         console.error('GET /collections/:slug failed:', error);
-        res.status(500).json({ error: 'Failed to load collection.' });
+        sendError(res, ERRORS.SQL_QUERY_FAILURE);
     }
 });
 
@@ -34,13 +36,13 @@ router.get('/:slug', (req, res) => {
 router.post('/', requireAuth, (req, res) => {
     try {
         if (!req.body.slug || !req.body.title) {
-            return res.status(400).json({ error: 'slug and title are required.' });
+            return sendError(res, ERRORS.MISSING_BODY_FIELD, { fields: ['slug', 'title'] });
         }
         const created = collectionModel.create(req.body);
         res.status(201).json(created);
     } catch (error) {
         console.error('POST /collections failed:', error);
-        res.status(500).json({ error: 'Failed to create collection.' });
+        sendError(res, ERRORS.SQL_QUERY_FAILURE);
     }
 });
 
@@ -48,11 +50,11 @@ router.post('/', requireAuth, (req, res) => {
 router.put('/:id', requireAuth, (req, res) => {
     try {
         const updated = collectionModel.update(Number(req.params.id), req.body);
-        if (!updated) return res.status(404).json({ error: 'Collection not found.' });
+        if (!updated) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'collection', id: req.params.id });
         res.json(updated);
     } catch (error) {
         console.error('PUT /collections/:id failed:', error);
-        res.status(500).json({ error: 'Failed to update collection.' });
+        sendError(res, ERRORS.SQL_QUERY_FAILURE);
     }
 });
 
@@ -60,11 +62,11 @@ router.put('/:id', requireAuth, (req, res) => {
 router.delete('/:id', requireAuth, (req, res) => {
     try {
         const removed = collectionModel.remove(Number(req.params.id));
-        if (!removed) return res.status(404).json({ error: 'Collection not found.' });
+        if (!removed) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'collection', id: req.params.id });
         res.status(204).end();
     } catch (error) {
         console.error('DELETE /collections/:id failed:', error);
-        res.status(500).json({ error: 'Failed to delete collection.' });
+        sendError(res, ERRORS.SQL_QUERY_FAILURE);
     }
 });
 

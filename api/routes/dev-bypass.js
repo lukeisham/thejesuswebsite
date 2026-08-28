@@ -12,6 +12,8 @@
 
 const express = require("express");
 const auth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -30,7 +32,7 @@ router.get("/dev-login", async (req, res) => {
     // Even if ADMIN_DEV_BYPASS is accidentally set on the VPS, this gate
     // returns 404 so the route appears to not exist from the outside.
     if (process.env.NODE_ENV === "production") {
-      return res.status(404).json({ error: "Not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
     }
 
     // ── Gate 2: Refuse when the bypass flag is not explicitly enabled ─────
@@ -38,7 +40,7 @@ router.get("/dev-login", async (req, res) => {
     // gate doubles as a runtime assertion in case of future refactoring that
     // changes the conditional mount.
     if (process.env.ADMIN_DEV_BYPASS !== "1") {
-      return res.status(404).json({ error: "Not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
     }
 
     // ── Gate 3: Refuse any proxied request ────────────────────────────────

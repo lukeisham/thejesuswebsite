@@ -271,6 +271,32 @@ describe("GET /auth/dev-login", () => {
     });
   });
 
+  // ── Opacity: gates 1 & 2 must be indistinguishable (API-3 registry conversion) ──
+  // Both gates return the same registry code with no context object, so an
+  // unauthenticated caller can't tell which one denied the request.
+
+  describe("gate 1 & 2 opacity", () => {
+    test("gate 1 (NODE_ENV=production) carries no context — same code as passkey.js's gate", async () => {
+      setValidDevEnv();
+      process.env.NODE_ENV = "production";
+      const res = await makeGet(createApp(), "/auth/dev-login");
+
+      assert.strictEqual(res.status, 404);
+      assert.strictEqual(res.body.error.code, "E-PERSIST-004");
+      assert.strictEqual(res.body.error.context, undefined);
+    });
+
+    test("gate 2 (ADMIN_DEV_BYPASS unset) carries no context — identical shape to gate 1", async () => {
+      setValidDevEnv();
+      delete process.env.ADMIN_DEV_BYPASS;
+      const res = await makeGet(createApp(), "/auth/dev-login");
+
+      assert.strictEqual(res.status, 404);
+      assert.strictEqual(res.body.error.code, "E-PERSIST-004");
+      assert.strictEqual(res.body.error.context, undefined);
+    });
+  });
+
   // ── Edge cases ─────────────────────────────────────────────────────────────
 
   describe("edge cases", () => {

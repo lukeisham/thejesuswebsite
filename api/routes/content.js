@@ -6,6 +6,8 @@
 const express = require("express");
 const contentModel = require("../models/content.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -15,7 +17,7 @@ router.get("/", requireAuth, (req, res) => {
     res.json(contentModel.getAllContent());
   } catch (error) {
     console.error("GET /content failed:", error);
-    res.status(500).json({ error: "Failed to load content." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

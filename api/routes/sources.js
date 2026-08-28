@@ -5,6 +5,8 @@
 const express = require('express');
 const mlaSourceModel = require('../models/mla-source.model');
 const requireAuth = require('../middleware/auth');
+const ERRORS = require('../lib/error-codes');
+const { sendError } = require('../lib/error-handler');
 
 const router = express.Router();
 
@@ -15,7 +17,7 @@ router.get('/', requireAuth, (req, res) => {
     res.json(items);
   } catch (error) {
     console.error('GET /sources failed:', error);
-    res.status(500).json({ error: 'Failed to load sources.' });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -23,11 +25,11 @@ router.get('/', requireAuth, (req, res) => {
 router.get('/:id', requireAuth, (req, res) => {
   try {
     const item = mlaSourceModel.getById(Number(req.params.id));
-    if (!item) return res.status(404).json({ error: 'Source not found.' });
+    if (!item) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'source', id: req.params.id });
     res.json(item);
   } catch (error) {
     console.error('GET /sources/:id failed:', error);
-    res.status(500).json({ error: 'Failed to load source.' });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -35,11 +37,11 @@ router.get('/:id', requireAuth, (req, res) => {
 router.post('/', requireAuth, (req, res) => {
   try {
     const created = mlaSourceModel.create(req.body);
-    if (!created) return res.status(400).json({ error: 'No valid fields provided.' });
+    if (!created) return sendError(res, ERRORS.MISSING_BODY_FIELD, { fields: [] });
     res.status(201).json(created);
   } catch (error) {
     console.error('POST /sources failed:', error);
-    res.status(500).json({ error: 'Failed to create source.' });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -47,11 +49,11 @@ router.post('/', requireAuth, (req, res) => {
 router.put('/:id', requireAuth, (req, res) => {
   try {
     const updated = mlaSourceModel.update(Number(req.params.id), req.body);
-    if (!updated) return res.status(404).json({ error: 'Source not found.' });
+    if (!updated) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'source', id: req.params.id });
     res.json(updated);
   } catch (error) {
     console.error('PUT /sources/:id failed:', error);
-    res.status(500).json({ error: 'Failed to update source.' });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -59,11 +61,11 @@ router.put('/:id', requireAuth, (req, res) => {
 router.delete('/:id', requireAuth, (req, res) => {
   try {
     const removed = mlaSourceModel.remove(Number(req.params.id));
-    if (!removed) return res.status(404).json({ error: 'Source not found.' });
+    if (!removed) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'source', id: req.params.id });
     res.status(204).end();
   } catch (error) {
     console.error('DELETE /sources/:id failed:', error);
-    res.status(500).json({ error: 'Failed to delete source.' });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
