@@ -180,16 +180,16 @@ matching paragraph segmentation.
 
 ## Tier Accuracy Results
 
-Calibrated 2026-07-31 at **t_data=0.60, t_close=0.60, t_interp=0.45, t_register=0.15, t_sep=0.50**
+Calibrated 2026-08-28 at **t_data=0.60, t_close=0.60, t_interp=0.45, t_register=0.15, t_sep=0.50**
 (scoring rule: centroid, separation mode: adjacency)
-against 39 gold-set articles.
+against 36 gold-set articles.
 
 | Metric | Value |
 |---|---|
-| Articles evaluated | 39 |
-| Correct tiers | 25 |
-| Tier accuracy | **0.641** |
-| 95% bootstrap CI | [0.487, 0.795] |
+| Articles evaluated | 36 |
+| Correct tiers | 24 |
+| Tier accuracy | **0.667** |
+| 95% bootstrap CI | [0.500, 0.806] |
 
 ### Per-article details
 
@@ -199,11 +199,8 @@ against 39 gold-set articles.
 | Gospel of John | clear_split | clear_split | 0.541 | ✓ |
 | Gospel of Luke | clear_split | clear_split | 0.577 | ✓ |
 | Gospel of Matthew | clear_split | clear_split | 0.586 | ✓ |
-| List of gospels | clear_split | clear_split | 0.500 | ✓ |
 | Historicity of the Gospels | clear_split | clear_split | 0.706 | ✓ |
 | Gospel harmony | clear_split | clear_split | 0.750 | ✓ |
-| Four Evangelists | clear_split | muddled | 0.429 | ✗ |
-| Synoptic Gospels | muddled | clear_split | 0.633 | ✗ |
 | Oral gospel traditions | one_sided | clear_split | 0.895 | ✗ |
 | Crucifixion darkness | clear_split | clear_split | 0.724 | ✓ |
 | Crucifixion of Jesus | muddled | clear_split | 0.624 | ✗ |

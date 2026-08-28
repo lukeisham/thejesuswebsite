@@ -260,131 +260,17 @@ class TestSeparationBlocks(unittest.TestCase):
         self.assertAlmostEqual(adj_ratio, blk_ratio, places=4)
 
     def test_block_vs_adjacency_difference(self) -> None:
-        """Case where block-structure and adjacency differ meaningfully.
+        """Adjacency and block formulas coincide on this fixture.
 
-        D,I,D,I,I,I,D,D,D,D has 4 blocks but adjacency sees 3 transitions:
-        actually wait — let's construct a case where the two differ:
-        D,D,D,I,I,I,D,D,D = 3 blocks, 2 transitions → both = 1-2/8=0.75
-
-        For them to differ we need a block of size 1. E.g.:
-        D,D,I,D,D → adjacency: D→I (1), I→D (2) = 2 transitions in 4 pairs,
-        n=5, adj_ratio = 1 - 2/4 = 0.5
-        blocks: D(2), I(1), D(2) = 3 blocks, blk_ratio = 1 - 2/4 = 0.5
-        Still the same.
-
-        Actually the two measures are equivalent when there are no consecutive
-        transitions. They only differ when blocks are separated by single
-        paragraphs of the other class. Wait, they're always the same formula
-        because the number of transitions equals block_count - 1 in any sequence
-        as long as all blocks are > 1 paragraph.
-
-        The key difference: when there are single-paragraph blocks. A single
-        interp paragraph between two data blocks creates 2 transitions but only
-        1 block. Example:
-        D,D,D,I,D,D,D → adjacency: D→I (1), I→D (2) = 2 transitions in 6 pairs
-        n=7, adj_ratio = 1 - 2/6 ≈ 0.667
-        blocks: D(3), I(1), D(3) = 3 blocks, blk_ratio = 1 - 2/6 ≈ 0.667
-        STILL the same!
-
-        Ok, the two formulas are mathematically equivalent: number of transitions
-        = number of blocks - 1, for any sequence where each adjacent pair is
-        checked. So compute_separation_blocks() = 1 - (B-1)/(n-1)
-        And since B-1 = number of transitions T, we get 1 - T/(n-1) which is
-        exactly compute_separation_ratio().
-
-        Wait, that's not right. Let me re-read the block count algorithm:
-        It increments block_count when class_labels[i] != class_labels[i-1].
-        So block_count = 1 + number_of_transitions.
-        Therefore block_count - 1 = number_of_transitions.
-        So 1 - (block_count - 1)/(n-1) = 1 - transitions/(n-1).
-
-        They are mathematically identical! So the block-structure measure as
-        currently defined is the same as the adjacency measure.
-
-        For a truly different measure, we'd need something else — e.g. measure
-        the fraction of class-bearing paragraphs that are in the largest block,
-        or some other block-structure measure.
-
-        Let me reconsider. The plan says:
-        > block_separation = 1 − (block_count − 1) / (n − 1), where block_count is
-           the number of contiguous runs of 'data' or 'interpretation' labels
-           (ignoring 'other' and 'neither').
-
-        This is indeed identical to the adjacency measure. The plan seems to have
-        made a mathematical error — or I'm misunderstanding. Let me re-read...
-
-        Actually, the plan says:
-        > Human labellers think in blocks, not in adjacent pairs. The Gospel of Mark
-          gold set encodes 3 contiguous blocks (D-block → I-block → D/I mixed), and
-          the adjacency metric penalises it for having transitions between blocks.
-
-        But if the adjacency metric is 1 - T/(n-1) and T = block_count - 1, then the
-        adjacency metric IS 1 - (block_count - 1)/(n-1). They're the same.
-
-        The issue isn't the formula — it's what we count as a transition. Maybe the
-        difference is that the adjacency metric counts transitions between adjacent
-        PAIRS, whereas the block metric should count something different.
-
-        Actually wait — re-reading the plan more carefully:
-
-        > A pure adjacency measure scores a sequence like D,D,I,I,D,I,I (4 transitions
-          in 7 class-bearing paragraphs, sep ≈ 0.33) identically to a sequence that is
-          genuinely interleaved throughout.
-
-        Let me check: D,D,I,I,D,I,I
-        - Class-bearing: D,D,I,I,D,I,I (7 items)
-        - Adjacent pairs: D→D(no), D→I(yes,1), I→I(no), I→D(yes,2), D→I(yes,3), I→I(no)
-        - Transitions = 3 (not 4, hmm). n=7, ratio = 1 - 3/6 = 0.50
-        - Blocks: D(2), I(2), D(1), I(2) = 4 blocks
-        - Block ratio = 1 - 3/6 = 0.50. Same.
-
-        So the block measure and adjacency measure ARE the same. The plan made a
-        mathematical error. But I should still implement it as specified since the
-        plan says to... 
-
-        Actually, I think the intent is for a DIFFERENT functional that actually
-        measures block structure in a way that differs from adjacency. The
-        Gospel of Mark example has 3 blocks. The adjacency metric measures 1-T/(n-1)
-        which equals 1-(B-1)/(n-1). They're truly the same.
-
-        I think the plan intended a different formula. Let me think about what would
-        actually distinguish block structure from pure adjacency...
-
-        One option: measure what fraction of the class-bearing paragraphs are
-        in the largest block.
-        - block_coherence = max_block_size / n
-        
-        Another option: measure the average block size relative to n.
-        
-        Or perhaps: block_separation = 1 - (block_count - 1) / (max_possible_blocks - 1)
-        where max_possible_blocks = n (every paragraph its own block)
-        = 1 - (B - 1) / (n - 1)
-        Which is exactly the same as the adjacency formula again...
-
-        Hmm. Actually the formula IS the same. The benefit the plan describes is
-        about interpretation, not mathematics. Let me just implement it as specified
-        and note in the docstring that it's mathematically equivalent to the
-        adjacency measure. The test should verify this equivalence.
-
-        Actually wait — there IS a case where they differ: when you count blocks
-        VS transitions DIFFERENTLY. Maybe the block measure should NOT exclude
-        'other' and 'neither'? That would make it different.
-
-        Let me re-read the plan specification:
-        > block_separation = 1 − (block_count − 1) / (n − 1), where block_count is
-           the number of contiguous runs of 'data' or 'interpretation' labels
-           (ignoring 'other' and 'neither').
-
-        It says to ignore other/neither, same as the adjacency measure. So they ARE
-        the same.
-
-        Let me just implement it as specified. The docstring should explain that it's
-        mathematically equivalent but conceptually different (block-oriented thinking).
-
-        Actually, I realize now that the test "Gospel of Mark shape" should verify that
-        the two formulas give the same result. Let me write the tests and implementation
-        honestly — acknowledging the mathematical equivalence while providing the
-        separate function as the plan requires.
+        For any label sequence, block_count - 1 equals the number of
+        adjacent transitions (each block boundary is exactly one
+        transition), so compute_separation_blocks() = 1 - (B-1)/(n-1)
+        and compute_separation_ratio() = 1 - T/(n-1) are mathematically
+        the same functional. This test pins that equivalence on a
+        single-paragraph-block fixture (D,D,I,D,D): both formulas return
+        0.5 — the two functions differ in how they *describe* the split
+        (blocks vs transitions), not in their numeric result on this
+        sequence shape.
         """
         labels = ["data", "data", "interpretation", "data", "data"]
         # Class-bearing: D,D,I,D,D (n=5)

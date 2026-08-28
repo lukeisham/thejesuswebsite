@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from classifier.labeler import split_paragraphs, _is_reference_section, _is_reference_heading
+from classifier.labeler import split_paragraphs, _is_reference_heading
 from classifier.config import LABEL_OTHER, LABEL_DATA, LABEL_INTERPRETATION
 
 
@@ -66,7 +66,7 @@ class TestSplitParagraphs(unittest.TestCase):
 
 
 class TestReferenceDetection(unittest.TestCase):
-    """Tests for _is_reference_heading() and _is_reference_section()."""
+    """Tests for _is_reference_heading()."""
 
     # --- _is_reference_heading tests ---
 
@@ -119,43 +119,6 @@ class TestReferenceDetection(unittest.TestCase):
         )
         self.assertFalse(_is_reference_heading(text))
 
-    # --- _is_reference_section tests (content after heading) ---
-
-    def test_reference_content_with_citations(self) -> None:
-        """Paragraphs with 3+ citation-like lines are detected."""
-        text = (
-            "1. Smith, John (2020). The Title. Oxford University Press.\n"
-            "2. Jones, Mary (2019). Another Book. Cambridge University Press.\n"
-            "3. Brown, A. (2018). 'Article Title.' Journal of Studies 45(2): 123-145."
-        )
-        self.assertTrue(_is_reference_section(text))
-
-    def test_reference_content_with_urls(self) -> None:
-        """Paragraphs with 3+ URLs are detected as references."""
-        text = (
-            "http://example.com/article1\n"
-            "https://doi.org/10.1234/example\n"
-            "ISBN 978-0-123-45678-9\n"
-        )
-        self.assertTrue(_is_reference_section(text))
-
-    def test_body_text_not_reference(self) -> None:
-        """Normal body paragraphs are not detected as reference content."""
-        text = (
-            "Jesus of Nazareth was a first-century Jewish preacher and "
-            "religious leader. He is the central figure of Christianity, "
-            "the world's largest religion."
-        )
-        self.assertFalse(_is_reference_section(text))
-
-    def test_body_text_with_year_not_reference(self) -> None:
-        """Body text with a single year is not reference content."""
-        text = (
-            "In 70 CE, the Romans destroyed the Second Temple. This event "
-            "had profound consequences for both Judaism and Christianity."
-        )
-        self.assertFalse(_is_reference_section(text))
-
 
 class TestPositionalAssignment(unittest.TestCase):
     """Integration-style tests for positional assignment logic.
@@ -187,20 +150,6 @@ class TestPositionalAssignment(unittest.TestCase):
         from classifier.config import POSITIONAL_OTHER_PATTERNS
         for pattern in POSITIONAL_OTHER_PATTERNS:
             self.assertIn(pattern, expected)
-
-    def test_body_paragraph_not_detected_as_reference(self) -> None:
-        """A typical body paragraph about the topic is not a reference section."""
-        body_paragraphs = [
-            "The historicity of Jesus is the question of whether Jesus of Nazareth "
-            "was a historical figure. Virtually all scholars of antiquity agree that "
-            "Jesus existed.",
-            "Most scholars agree that Jesus was a Galilean Jew who was baptised by "
-            "John the Baptist and crucified by order of Roman prefect Pontius Pilate.",
-            "The Synoptic Gospels are the primary sources for the life of Jesus.",
-        ]
-        for para in body_paragraphs:
-            with self.subTest(paragraph=para[:50]):
-                self.assertFalse(_is_reference_section(para))
 
 
 if __name__ == "__main__":

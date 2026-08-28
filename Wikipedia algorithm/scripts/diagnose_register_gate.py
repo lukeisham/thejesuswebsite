@@ -57,7 +57,7 @@ def load_gold_paragraphs() -> dict[str, list[str]]:
     return load_gold_paragraph_labels()
 
 
-def measure_gate_failure_mode(store_manager: StoreManager) -> dict:
+def measure_gate_failure_mode(store_manager: StoreManager, cache: dict) -> dict:
     """Split register-gate failures into NN-negative-rule zeroing vs.
     plain below-threshold mean-cosine, at the CURRENT config.py t_register.
 
@@ -70,12 +70,15 @@ def measure_gate_failure_mode(store_manager: StoreManager) -> dict:
       miscalibrated threshold or a positive-exemplar coverage gap — the
       register store has only 32 exemplars total, the smallest of the
       four stores, vs 80+ for data/close/interpretation).
+
+    Args:
+        store_manager: Built StoreManager.
+        cache: The parsed .calibrate-fetch-cache.json dict (loaded once in
+            main() so each measurement doesn't re-read/parse the 3.6MB file).
     """
     from classifier.labeler import split_paragraphs, _apply_nearest_neighbour_rule
     from classifier.config import TOP_K
 
-    with open(CACHE_PATH) as f:
-        cache = json.load(f)
     zeroed_by_nn = 0
     below_threshold = 0
     passed = 0
@@ -114,10 +117,13 @@ def measure_gate_failure_mode(store_manager: StoreManager) -> dict:
 
 
 def measure_confusion(store_manager: StoreManager, scoring_rule: str, cfg: dict,
-                       gold: dict[str, list[str]]) -> dict:
-    """Corpus-wide neither rate + aligned-6 data/interp confusion matrix."""
-    with open(CACHE_PATH) as f:
-        cache = json.load(f)
+                       gold: dict[str, list[str]], cache: dict) -> dict:
+    """Corpus-wide neither rate + aligned-6 data/interp confusion matrix.
+
+    Args:
+        cache: The parsed .calibrate-fetch-cache.json dict (loaded once in
+            main() so each measurement doesn't re-read/parse the 3.6MB file).
+    """
     records = [{"title": t, "paragraphs": p} for t, p in cache.items()]
     pre = calibrate.precompute_classifications(records, store_manager, scoring_rule=scoring_rule)
 
@@ -278,9 +284,14 @@ def main() -> None:
     sm = StoreManager()
     sm.build_all()
 
+    # Load the 3.6MB fetch cache once and share it across all three
+    # measurements below (each used to re-read and JSON-parse it itself).
+    with open(CACHE_PATH) as f:
+        fetch_cache = json.load(f)
+
     print("\nMeasuring register-gate failure mode at current config "
           f"(t_register={t_register}) ...")
-    gate_failure = measure_gate_failure_mode(sm)
+    gate_failure = measure_gate_failure_mode(sm, fetch_cache)
     print(f"  total body paragraphs: {gate_failure['total']}")
     print(f"  passed: {gate_failure['passed']} "
           f"({gate_failure['passed'] / gate_failure['total']:.1%})")
@@ -291,14 +302,16 @@ def main() -> None:
 
     print("\nMeasuring pre-fix confusion (mean-cosine, t_register=0.40) ...")
     pre_fix = measure_confusion(sm, "mean-cosine",
-        dict(t_data=0.40, t_close=0.65, t_interp=0.40, t_register=0.40), gold)
+        dict(t_data=0.40, t_close=0.65, t_interp=0.40, t_register=0.40), gold,
+        fetch_cache)
     print(f"  neither rate: {pre_fix['neither_rate']:.1%}")
     print(f"  data-vs-interp accuracy: {pre_fix['data_interp_accuracy']:.3f} "
           f"(n={pre_fix['data_interp_n']})")
 
     print("\nMeasuring post-fix confusion (centroid, current config) ...")
     post_fix = measure_confusion(sm, "centroid",
-        dict(t_data=t_data, t_close=t_close, t_interp=t_interp, t_register=t_register), gold)
+        dict(t_data=t_data, t_close=t_close, t_interp=t_interp, t_register=t_register),
+        gold, fetch_cache)
     print(f"  neither rate: {post_fix['neither_rate']:.1%}")
     print(f"  data-vs-interp accuracy: {post_fix['data_interp_accuracy']:.3f} "
           f"(n={post_fix['data_interp_n']})")

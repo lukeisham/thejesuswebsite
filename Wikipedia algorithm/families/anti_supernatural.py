@@ -89,6 +89,10 @@ def score(
     # Stage A: Label spans (simplified — in a full implementation, this would
     # split the article into sentence-level spans and classify each).
     # For the MVP, we score the full article text against the store.
+    # NOTE: this whole-article embedding cannot be reused for the two
+    # positional-bias half-article calls below — Embedder.embed() mean-pools
+    # the token sequence (truncated at MAX_SEQ_LENGTH), so a span's vector is
+    # not derivable from another span's vector; each span needs its own embed.
     span_result = score_span(article_text, store, embedder, k=TOP_K,
                              t_fire=t_fire)
 
@@ -131,6 +135,10 @@ def score(
     first_half_text = " ".join(paragraphs[:half])
     second_half_text = " ".join(paragraphs[half:])
     if store and store.is_built:
+        # Two fresh embeddings here (plus the whole-article one above): each
+        # half is mean-pooled over its own token sequence, so neither half's
+        # vector can be derived from the whole-article vector — 3 calls is
+        # inherent to per-span embedding, not a caching oversight.
         first_score = score_span(first_half_text, store, embedder,
                                  k=TOP_K, t_fire=t_fire)
         second_score = score_span(second_half_text, store, embedder,

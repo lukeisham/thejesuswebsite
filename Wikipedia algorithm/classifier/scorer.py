@@ -29,6 +29,7 @@ from typing import Optional
 from .config import (
     t_sep,
     N_min,
+    SEPARATION_MODE,
     TIER_CLEAR,
     TIER_MUDDLED,
     TIER_ONE_SIDED,
@@ -266,6 +267,7 @@ def score_article(
     labels: list[str],
     t_sep_threshold: Optional[float] = None,
     n_min: Optional[int] = None,
+    separation_mode: Optional[str] = None,
 ) -> dict:
     """Full article scoring: compute separation ratio and assign tier.
 
@@ -273,6 +275,10 @@ def score_article(
         labels: List of paragraph labels from classify_paragraphs().
         t_sep_threshold: Clean-split threshold.
         n_min: Minimum labelled paragraphs.
+        separation_mode: Which separation functional to use — "adjacency"
+            (compute_separation_ratio) or "block" (compute_separation_blocks).
+            Defaults to config.SEPARATION_MODE so the bake-off's winning mode
+            takes effect once calibrate.py persists it to config.py.
 
     Returns:
         Dict with keys:
@@ -290,7 +296,12 @@ def score_article(
             neither_count (int): Number of 'neither' paragraphs.
             total_count (int): Total paragraph count.
     """
-    separation = compute_separation_ratio(labels)
+    if separation_mode is None:
+        separation_mode = SEPARATION_MODE
+    if separation_mode == "block":
+        separation = compute_separation_blocks(labels)
+    else:
+        separation = compute_separation_ratio(labels)
     tier = assign_tier(labels, separation, t_sep_threshold, n_min)
 
     data_count = labels.count(LABEL_DATA)

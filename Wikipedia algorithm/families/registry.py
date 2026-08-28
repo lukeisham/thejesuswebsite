@@ -22,6 +22,13 @@ from . import (
 logger = logging.getLogger(__name__)
 
 # Map family name → module.
+#
+# ORDERING CONSTRAINT: "balanced-debate" must stay FIRST. export.py's scoring
+# loop records balanced_debate_score only when it encounters the
+# "balanced-debate" entry, and "mythicist-framing"/"jesus-seminar" consume that
+# score — dict iteration order in Python 3.7+ is insertion order, so moving
+# "balanced-debate" later would silently zero out the score those two
+# families read.
 FAMILIES: dict[str, object] = {
     "balanced-debate": balanced_debate,
     "anti-supernatural": anti_supernatural,
