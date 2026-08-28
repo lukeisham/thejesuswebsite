@@ -99,6 +99,16 @@ figure.figure-full img {
    either a standard box or a floated aside, never both.
    ------------------------------------------------------------------------- */
 
+/* Aligned figures (.figure-align-left/-right) have no dedicated img sizing
+   rule elsewhere — they rely on the generic `figure img` max-width/height:auto
+   above plus the raw 720×480 width/height attributes. Reserve the same box
+   here too, and cap width so they can't overflow a narrow mobile viewport. */
+.figure-align-left img,
+.figure-align-right img {
+  max-width: 100%;
+  aspect-ratio: auto 720 / 480;
+}
+
 figure.figure-standard {
   width: fit-content;
   max-width: 100%;
@@ -111,6 +121,12 @@ figure.figure-standard {
   width: auto;
   max-width: var(--figure-standard-width);
   height: auto;
+  /* Reserves the 720×480 box the width/height attributes already imply,
+     preventing CLS while the image loads. The "auto" prefix means this
+     ratio is only a fallback — once the real (possibly portrait/square)
+     image loads, its natural ratio wins instead, so this never distorts
+     non-landscape figures. */
+  aspect-ratio: auto 720 / 480;
 }
 
 /* figcaption is a block auto-width child, so its own max-content
