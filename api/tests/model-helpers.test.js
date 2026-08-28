@@ -5,7 +5,8 @@
 const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
 const { createTestDb } = require("./helpers/db");
-const { pickWritable, generateUniqueSlug, runUpdate } = require("../models/model-helpers");
+const { pickWritable, generateUniqueSlug, runUpdate, paginate } = require("../models/model-helpers");
+const ERRORS = require("../lib/error-codes");
 
 const WRITABLE = ["slug", "title", "content", "published_draft"];
 
@@ -140,5 +141,91 @@ describe("runUpdate", () => {
     const updated = db.prepare("SELECT * FROM test_table WHERE id = 1").get();
     assert.equal(updated.title, "X");
     assert.equal(updated.body, "Y");
+  });
+});
+
+// ── paginate() ────────────────────────────────────────────────────────────────
+
+describe("paginate", () => {
+  let db;
+  const ITEMS_SQL = "SELECT * FROM paginate_items ORDER BY id ASC";
+  const COUNT_SQL = "SELECT COUNT(*) AS total FROM paginate_items";
+
+  beforeEach(() => {
+    db = createTestDb();
+    db.exec(`
+      CREATE TABLE paginate_items (
+        id    INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT
+      );
+    `);
+    const insert = db.prepare("INSERT INTO paginate_items (title) VALUES (?)");
+    for (let i = 1; i <= 5; i += 1) insert.run(`Item ${i}`);
+  });
+
+  test("returns a flat array when page/limit are absent", () => {
+    const result = paginate(db, ITEMS_SQL, COUNT_SQL, []);
+    assert.ok(Array.isArray(result));
+    assert.equal(result.length, 5);
+  });
+
+  test("returns the envelope shape when page/limit are given", () => {
+    const result = paginate(db, ITEMS_SQL, COUNT_SQL, [], { page: 1, limit: 2 });
+    assert.deepStrictEqual(Object.keys(result).sort(), [
+      "items",
+      "limit",
+      "page",
+      "total",
+      "totalPages",
+    ]);
+    assert.equal(result.items.length, 2);
+    assert.equal(result.total, 5);
+    assert.equal(result.page, 1);
+    assert.equal(result.limit, 2);
+    assert.equal(result.totalPages, 3);
+  });
+
+  test("clamps a limit above 100 down to 100", () => {
+    const result = paginate(db, ITEMS_SQL, COUNT_SQL, [], { page: 1, limit: 500 });
+    assert.equal(result.limit, 100);
+  });
+
+  test("clamps a negative limit up to 1", () => {
+    // Note: limit: 0 is falsy, so `Number(limit) || 20` treats it as "not
+    // given" and defaults to 20 — matching evidence.model.js's original
+    // behavior. A genuinely out-of-range value like -5 exercises the clamp.
+    const result = paginate(db, ITEMS_SQL, COUNT_SQL, [], { page: 1, limit: -5 });
+    assert.equal(result.limit, 1);
+  });
+
+  test("page: 0 throws with the INVALID_NUMERIC_PARAM code", () => {
+    assert.throws(
+      () => paginate(db, ITEMS_SQL, COUNT_SQL, [], { page: 0, limit: 2 }),
+      (err) => {
+        assert.equal(err.code, ERRORS.INVALID_NUMERIC_PARAM.code);
+        assert.equal(err.field, "page");
+        return true;
+      },
+    );
+  });
+
+  test("page: -1 throws with the INVALID_NUMERIC_PARAM code", () => {
+    assert.throws(
+      () => paginate(db, ITEMS_SQL, COUNT_SQL, [], { page: -1, limit: 2 }),
+      (err) => {
+        assert.equal(err.code, ERRORS.INVALID_NUMERIC_PARAM.code);
+        return true;
+      },
+    );
+  });
+
+  test("a non-numeric page throws with the INVALID_NUMERIC_PARAM code", () => {
+    assert.throws(
+      () => paginate(db, ITEMS_SQL, COUNT_SQL, [], { page: "abc", limit: 2 }),
+      (err) => {
+        assert.equal(err.code, ERRORS.INVALID_NUMERIC_PARAM.code);
+        return true;
+      },
+    );
   });
 });

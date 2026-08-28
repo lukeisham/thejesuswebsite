@@ -18,6 +18,11 @@ router.get("/", (req, res) => {
     const result = evidenceModel.getAllPublished(req.query);
     res.json(result);
   } catch (error) {
+    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
+      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
+        received: req.query.page,
+      });
+    }
     console.error("GET /evidence failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }

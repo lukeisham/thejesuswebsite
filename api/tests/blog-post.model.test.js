@@ -84,6 +84,31 @@ assert(
   "update() persists changed blog_thumbnail",
 );
 
+// ── Pagination (API-8) ──
+
+const paginationSlugs = ["test-blog-page-1", "test-blog-page-2", "test-blog-page-3"];
+const paginationIds = paginationSlugs.map((slug, i) =>
+  model.create({
+    blog_title: `Pagination Test ${i + 1}`,
+    slug,
+    blog_content: "Pagination test content.",
+    published_draft: 1,
+  }).id,
+);
+
+const flatResult = model.getAllPublished();
+assert(Array.isArray(flatResult), "getAllPublished() with no page/limit returns a flat array");
+
+const pagedResult = model.getAllPublished({ page: 1, limit: 1 });
+assert(
+  !Array.isArray(pagedResult) && Array.isArray(pagedResult.items),
+  "getAllPublished({page, limit}) returns the paginated envelope",
+);
+assert(pagedResult.items.length <= 1, "paginated items respects the limit");
+assert(typeof pagedResult.total === "number", "paginated envelope includes a numeric total");
+
+for (const id of paginationIds) model.remove(id);
+
 // ── Cleanup ──
 
 model.remove(createdId);

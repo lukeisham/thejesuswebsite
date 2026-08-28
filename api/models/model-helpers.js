@@ -126,4 +126,66 @@ function runUpdate(db, table, row, id) {
   return true;
 }
 
-module.exports = { pickWritable, generateUniqueSlug, runUpdate, validateSlug };
+/**
+ * Shared bounded-list pattern for public `getAllPublished`-style model
+ * functions (API-8). Extracted from evidence.model.js's original inline
+ * implementation so every list endpoint clamps its response the same way
+ * instead of copy-pasting the logic (SR-4).
+ *
+ * No `page`/`limit` in `options` → runs `itemsSql` unmodified and returns a
+ * flat array (backward compatible with every existing caller). `page`/`limit`
+ * given → validates `page`, clamps `limit` to 1–100, and returns
+ * `{ items, total, page, limit, totalPages }`.
+ *
+ * @param {object} db        - better-sqlite3 database instance.
+ * @param {string} itemsSql  - SELECT statement (no LIMIT/OFFSET) for the page of rows.
+ * @param {string} countSql  - SELECT COUNT(*) AS total statement matching itemsSql's WHERE clause.
+ * @param {Array} params     - Positional params shared by itemsSql and countSql.
+ * @param {object} [options]
+ * @param {*} [options.page]  - 1-based page number. Omit (with limit) for a flat array.
+ * @param {*} [options.limit] - Page size, clamped to 1–100. Defaults to 20 when page is given.
+ * @throws {Error} with `.code === ERRORS.INVALID_NUMERIC_PARAM.code` and
+ *                 `.field === "page"` when `page` is not a positive integer.
+ */
+function paginate(db, itemsSql, countSql, params, options = {}) {
+  const { page, limit } = options;
+
+  if (page === undefined && limit === undefined) {
+    return db.prepare(itemsSql).all(...params);
+  }
+
+  let pageNum = 1;
+  if (page !== undefined) {
+    pageNum = Number(page);
+    if (!Number.isInteger(pageNum) || pageNum < 1) {
+      const err = new Error(ERRORS.INVALID_NUMERIC_PARAM.message);
+      err.code = ERRORS.INVALID_NUMERIC_PARAM.code;
+      err.field = "page";
+      throw err;
+    }
+  }
+
+  const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100);
+
+  const { total } = db.prepare(countSql).get(...params);
+  const offset = (pageNum - 1) * limitNum;
+  const items = db
+    .prepare(`${itemsSql} LIMIT ? OFFSET ?`)
+    .all(...params, limitNum, offset);
+
+  return {
+    items,
+    total,
+    page: pageNum,
+    limit: limitNum,
+    totalPages: Math.ceil(total / limitNum),
+  };
+}
+
+module.exports = {
+  pickWritable,
+  generateUniqueSlug,
+  runUpdate,
+  validateSlug,
+  paginate,
+};

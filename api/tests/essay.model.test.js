@@ -285,6 +285,46 @@ describe("essay: public vs admin read filtering", () => {
   });
 });
 
+// ── Pagination (API-8) ──────────────────────────────────────────────────────
+
+describe("essay: getAllPublished pagination", () => {
+  beforeEach(clearAll);
+
+  function seedThree() {
+    for (let i = 1; i <= 3; i += 1) {
+      essayModel.create({
+        slug: `page-essay-${i}`,
+        essay_title: `Page Essay ${i}`,
+        published_draft: 1,
+      });
+    }
+  }
+
+  test("no page/limit returns a flat array (backward compatible)", () => {
+    seedThree();
+    const result = essayModel.getAllPublished();
+    assert.ok(Array.isArray(result));
+    assert.equal(result.length, 3);
+  });
+
+  test("page/limit given returns the paginated envelope, still normalized", () => {
+    seedThree();
+    const result = essayModel.getAllPublished({ page: 1, limit: 2 });
+    assert.deepStrictEqual(Object.keys(result).sort(), [
+      "items",
+      "limit",
+      "page",
+      "total",
+      "totalPages",
+    ]);
+    assert.equal(result.items.length, 2);
+    assert.equal(result.total, 3);
+    // Normalization (essay_title -> title) still applies to paginated items.
+    assert.ok(result.items[0].title);
+    assert.equal(result.items[0].essay_title, undefined);
+  });
+});
+
 // ── Named-column reads (SQL-9: no SELECT * drift) ──────────────────────────
 
 describe("essay: named-column reads return exactly the expected keys", () => {

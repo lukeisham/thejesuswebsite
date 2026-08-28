@@ -60,7 +60,27 @@ const ROUTES = [
   { mount: "/collections", file: "../routes/collections" },
   { mount: "/resources", file: "../routes/resources" },
   { mount: "/identifiers", file: "../routes/identifiers" },
+  { mount: "/wikipedia", file: "../routes/wikipedia" },
 ];
+
+// Every route whose model now accepts optional page/limit pagination
+// (API-8, setup/PLANS/New/api-8-bounded-responses-pagination.md). Maps mount
+// to the exact request path exercising that opt-in — /resources only accepts
+// page/limit on its ?list_key= branch (see the model task in that plan), so
+// its entry supplies a list_key alongside page/limit.
+const PAGINATION_TEST_PATHS = {
+  "/evidence": "/evidence?page=1&limit=1",
+  "/essays": "/essays?page=1&limit=1",
+  "/popular-challenges": "/popular-challenges?page=1&limit=1",
+  "/academic-challenges": "/academic-challenges?page=1&limit=1",
+  "/historiography": "/historiography?page=1&limit=1",
+  "/responses": "/responses?page=1&limit=1",
+  "/blog-posts": "/blog-posts?page=1&limit=1",
+  "/collections": "/collections?page=1&limit=1",
+  "/resources": "/resources?list_key=parables&page=1&limit=1",
+  "/identifiers": "/identifiers?page=1&limit=1",
+  "/wikipedia": "/wikipedia?page=1&limit=1",
+};
 
 // All routes now return bare arrays. The challenge routes were the last
 // holdouts, fixed by setup/PLANS/New/challenge-data-structure-frontend-sync.md.
@@ -121,6 +141,10 @@ const FIELD_MANIFESTS = {
   "/resources": [],
 
   "/identifiers": ["isbn"],
+
+  // frontend/assets/js/wikipedia.js: item.wikipedia_article_title,
+  // item.wikipedia_article_url
+  "/wikipedia": ["slug", "wikipedia_article_title"],
 };
 
 // ── App + HTTP helpers (mirrors analytics-route.test.js) ───────────────────
@@ -196,6 +220,7 @@ function seedAll() {
   const collectionModel = require("../models/collection.model");
   const resourceModel = require("../models/resource.model");
   const identifiersModel = require("../models/identifiers.model");
+  const wikipediaModel = require("../models/wikipedia.model");
 
   evidenceModel.create({
     title: "Test Evidence",
@@ -265,6 +290,14 @@ function seedAll() {
   identifiersModel.create({
     isbn: "978-3-16-148410-0",
     isbn_book_title: "Test Book",
+    published_draft: 1,
+  });
+
+  wikipediaModel.create({
+    slug: "test-wikipedia-article",
+    wikipedia_article_title: "Test Wikipedia Article",
+    wikipedia_article_url: "https://en.wikipedia.org/wiki/Test",
+    wikipedia_article_rank_number: 1,
     published_draft: 1,
   });
 
@@ -338,5 +371,37 @@ describe("public GET list route contracts", () => {
       assert.ok(Object.hasOwn(result.body[0], "list_key"));
       assert.ok(Object.hasOwn(result.body[0], "count"));
     }
+  });
+
+  // ── Pagination opt-in (API-8) ──────────────────────────────────────────────
+  //
+  // Every route in PAGINATION_TEST_PATHS keeps its bare-array default (already
+  // asserted above) but, when a caller opts in with ?page=&limit=, switches to
+  // the bounded { items, total, page, limit, totalPages } envelope.
+  for (const [mount, path] of Object.entries(PAGINATION_TEST_PATHS)) {
+    test(`${mount}: ?page=1&limit=1 returns a bounded envelope`, async () => {
+      const app = createApp();
+      const result = await get(app, path);
+
+      assert.equal(result.status, 200);
+      assert.ok(
+        !Array.isArray(result.body),
+        `${mount} should return an envelope, not a bare array, when page/limit are given`,
+      );
+      assert.ok(Array.isArray(result.body.items));
+      assert.ok(result.body.items.length <= 1);
+      assert.equal(typeof result.body.total, "number");
+      assert.equal(result.body.page, 1);
+      assert.equal(result.body.limit, 1);
+      assert.equal(typeof result.body.totalPages, "number");
+    });
+  }
+
+  test("/evidence?page=0: invalid page returns 400 with E-INPUT-005", async () => {
+    const app = createApp();
+    const result = await get(app, "/evidence?page=0");
+
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-005");
   });
 });

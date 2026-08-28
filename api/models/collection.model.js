@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require('../config');
-const { pickWritable, generateUniqueSlug, runUpdate } = require('./model-helpers');
+const { pickWritable, generateUniqueSlug, runUpdate, paginate } = require('./model-helpers');
 
 // Columns the admin is allowed to write for collection creation/updates.
 const WRITABLE_COLUMNS = [
@@ -15,9 +15,16 @@ const WRITABLE_COLUMNS = [
 
 /**
  * Get all published collections with their evidence counts.
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible). The
+ * count query is a separate, simpler statement — counting post-JOIN rows
+ * would inflate the total since collection_evidence fans out per collection.
  */
-function getAllPublished() {
-    const sql = `
+function getAllPublished(filters = {}) {
+    const { page, limit } = filters;
+    const itemsSql = `
         SELECT
             c.id,
             c.slug,
@@ -33,7 +40,8 @@ function getAllPublished() {
         GROUP BY c.id
         ORDER BY c.created_at DESC
     `;
-    return db.prepare(sql).all();
+    const countSql = `SELECT COUNT(*) AS total FROM collections WHERE published_draft = 1`;
+    return paginate(db, itemsSql, countSql, [], { page, limit });
 }
 
 /**

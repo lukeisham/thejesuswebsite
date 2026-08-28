@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require('../config');
-const { pickWritable, generateUniqueSlug, runUpdate } = require('./model-helpers');
+const { pickWritable, generateUniqueSlug, runUpdate, paginate } = require('./model-helpers');
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -62,14 +62,23 @@ function attachSignals(articles) {
 /**
  * Published Wikipedia articles, ranked by wikipedia_article_rank_number.
  * Each article carries a `signals` array (see attachSignals).
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible). Either
+ * way, attachSignals() runs only on the returned page's rows, not the whole
+ * table.
  */
-function getAllPublished() {
-    const articles = db
-        .prepare(
-            'SELECT * FROM wikipedia_articles WHERE published_draft = 1 ORDER BY wikipedia_article_rank_number ASC'
-        )
-        .all();
-    return attachSignals(articles);
+function getAllPublished(filters = {}) {
+    const { page, limit } = filters;
+    const itemsSql =
+        'SELECT * FROM wikipedia_articles WHERE published_draft = 1 ORDER BY wikipedia_article_rank_number ASC';
+    const countSql =
+        'SELECT COUNT(*) AS total FROM wikipedia_articles WHERE published_draft = 1';
+    const result = paginate(db, itemsSql, countSql, [], { page, limit });
+
+    if (Array.isArray(result)) return attachSignals(result);
+    return { ...result, items: attachSignals(result.items) };
 }
 
 /**

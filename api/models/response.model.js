@@ -7,6 +7,7 @@ const {
   pickWritable,
   generateUniqueSlug,
   runUpdate,
+  paginate,
 } = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const {
@@ -40,20 +41,20 @@ const WRITABLE_COLUMNS = [
  * key can reach the SQL).
  */
 function getAllPublished(filters = {}) {
+  const { page, limit, ...filterKeys } = filters;
   const conditions = ["published_draft = 1"];
   const params = [];
 
-  if (filters.challenge_id) {
+  if (filterKeys.challenge_id) {
     conditions.push("challenge_id = ?");
-    params.push(filters.challenge_id);
+    params.push(filterKeys.challenge_id);
   }
 
-  const sql = `
-        SELECT * FROM responses
-        WHERE ${conditions.join(" AND ")}
-        ORDER BY created_at ASC
-    `;
-  return db.prepare(sql).all(...params);
+  const whereClause = conditions.join(" AND ");
+  const itemsSql = `SELECT * FROM responses WHERE ${whereClause} ORDER BY created_at ASC`;
+  const countSql = `SELECT COUNT(*) AS total FROM responses WHERE ${whereClause}`;
+
+  return paginate(db, itemsSql, countSql, params, { page, limit });
 }
 
 /**

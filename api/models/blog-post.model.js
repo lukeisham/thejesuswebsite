@@ -7,6 +7,7 @@ const {
   pickWritable,
   generateUniqueSlug,
   runUpdate,
+  paginate,
 } = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const {
@@ -41,13 +42,18 @@ function getAllAdmin() {
 
 /**
  * Published blog posts for the public site, newest first.
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible).
  */
-function getAllPublished() {
-  return db
-    .prepare(
-      "SELECT * FROM blog_posts WHERE published_draft = 1 ORDER BY created_at DESC",
-    )
-    .all();
+function getAllPublished(filters = {}) {
+  const { page, limit } = filters;
+  const itemsSql =
+    "SELECT * FROM blog_posts WHERE published_draft = 1 ORDER BY created_at DESC";
+  const countSql =
+    "SELECT COUNT(*) AS total FROM blog_posts WHERE published_draft = 1";
+  return paginate(db, itemsSql, countSql, [], { page, limit });
 }
 
 /**

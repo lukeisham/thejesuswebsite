@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require('../config');
-const { pickWritable, runUpdate } = require('./model-helpers');
+const { pickWritable, runUpdate, paginate } = require('./model-helpers');
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -34,9 +34,16 @@ const WRITABLE_COLUMNS = [
 
 /**
  * Get all published identifiers. Returns all identifiers marked as published.
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible).
  */
-function getAllPublished() {
-    return db.prepare('SELECT * FROM identifiers WHERE published_draft = 1 ORDER BY id DESC').all();
+function getAllPublished(filters = {}) {
+    const { page, limit } = filters;
+    const itemsSql = 'SELECT * FROM identifiers WHERE published_draft = 1 ORDER BY id DESC';
+    const countSql = 'SELECT COUNT(*) AS total FROM identifiers WHERE published_draft = 1';
+    return paginate(db, itemsSql, countSql, [], { page, limit });
 }
 
 /**

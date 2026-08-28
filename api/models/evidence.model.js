@@ -14,6 +14,7 @@ const {
   pickWritable,
   generateUniqueSlug,
   runUpdate,
+  paginate,
 } = require("./model-helpers");
 
 /**
@@ -110,45 +111,15 @@ function getAllPublished(filters = {}) {
 
   const whereClause = conditions.join(" AND ");
 
-  // Backward-compatible: no page/limit → flat array
-  if (page === undefined && limit === undefined) {
-    const sql = `
-          SELECT e.*
-          FROM evidence e
-          WHERE ${whereClause}
-          ORDER BY e.created_at DESC
-      `;
-    return db.prepare(sql).all(...params);
-  }
-
-  // Paginated: validate and return structured response
-  const pageNum = Number(page) || 1;
-  const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100);
-
-  if (pageNum < 1) {
-    throw new Error("page must be >= 1");
-  }
-
-  const countSql = `SELECT COUNT(*) AS total FROM evidence e WHERE ${whereClause}`;
-  const { total } = db.prepare(countSql).get(...params);
-
-  const offset = (pageNum - 1) * limitNum;
   const itemsSql = `
         SELECT e.*
         FROM evidence e
         WHERE ${whereClause}
         ORDER BY e.created_at DESC
-        LIMIT ? OFFSET ?
     `;
-  const items = db.prepare(itemsSql).all(...params, limitNum, offset);
+  const countSql = `SELECT COUNT(*) AS total FROM evidence e WHERE ${whereClause}`;
 
-  return {
-    items,
-    total,
-    page: pageNum,
-    limit: limitNum,
-    totalPages: Math.ceil(total / limitNum),
-  };
+  return paginate(db, itemsSql, countSql, params, { page, limit });
 }
 
 /** Single published item by its public slug, or undefined if not found. */

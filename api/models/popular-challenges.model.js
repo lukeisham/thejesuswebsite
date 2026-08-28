@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require("../config");
-const { pickWritable, runUpdate } = require("./model-helpers");
+const { pickWritable, runUpdate, paginate } = require("./model-helpers");
 const {
   getLinked,
   getLinkedMlaSources,
@@ -82,11 +82,17 @@ function generateUniqueSlug(baseSlug, excludeId = null) {
  * Published popular challenges, ranked by challenge_rank_number.
  * Transforms field names for frontend consumption and enriches each
  * challenge with its published response count via a LEFT JOIN.
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible). The
+ * count query is a separate, simpler statement — a LEFT JOIN count would
+ * still be correct here (one row per challenge_id in the subquery), but a
+ * plain COUNT(*) is clearer and avoids relying on that not changing.
  */
-function getAllPublished() {
-  return db
-    .prepare(
-      `SELECT
+function getAllPublished(filters = {}) {
+  const { page, limit } = filters;
+  const itemsSql = `SELECT
         c.id,
         c.slug,
         c.challenge_title AS title,
@@ -107,9 +113,10 @@ function getAllPublished() {
         GROUP BY challenge_id
       ) rc ON c.id = rc.challenge_id
       WHERE c.academic_popular = ? AND c.published_draft = 1
-      ORDER BY c.challenge_rank_number ASC`,
-    )
-    .all("popular");
+      ORDER BY c.challenge_rank_number ASC`;
+  const countSql = `SELECT COUNT(*) AS total FROM challenges WHERE academic_popular = ? AND published_draft = 1`;
+
+  return paginate(db, itemsSql, countSql, ["popular"], { page, limit });
 }
 
 /**

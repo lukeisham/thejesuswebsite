@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require('../config');
-const { pickWritable, runUpdate } = require('./model-helpers');
+const { pickWritable, runUpdate, paginate } = require('./model-helpers');
 const ERRORS = require('../lib/error-codes');
 
 // Valid resource list keys as defined in schema.
@@ -42,15 +42,21 @@ const VALID_ITEM_TYPES = ['item', 'subheading'];
 /**
  * Get all resources for a specific list, ordered by sort_order.
  * Parked items are excluded — list_key alone is not proof of membership.
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible).
  */
-function getByListKey(listKey) {
+function getByListKey(listKey, filters = {}) {
     if (!VALID_LIST_KEYS.includes(listKey)) return [];
 
-    return db
-        .prepare(
-            'SELECT * FROM resources WHERE list_key = ? AND published_draft = 1 AND in_holding_pen = 0 ORDER BY sort_order, id'
-        )
-        .all(listKey);
+    const { page, limit } = filters;
+    const itemsSql =
+        'SELECT * FROM resources WHERE list_key = ? AND published_draft = 1 AND in_holding_pen = 0 ORDER BY sort_order, id';
+    const countSql =
+        'SELECT COUNT(*) AS total FROM resources WHERE list_key = ? AND published_draft = 1 AND in_holding_pen = 0';
+
+    return paginate(db, itemsSql, countSql, [listKey], { page, limit });
 }
 
 /**
