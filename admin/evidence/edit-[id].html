@@ -31,7 +31,7 @@
         <script type="module" src="../assets/js/admin-toasts.js"></script>
     </head>
     <body>
-        <h1 class="sr-only">Edit Evidence</h1>
+        <h1 class="sr-only" id="static-title">Edit Evidence</h1>
         <div class="admin-shell" id="admin-shell">
             <main class="admin-main" id="edit-content">
                 <div class="admin-loading" role="status">Loading evidence…</div>
@@ -48,6 +48,7 @@
                     "index.html",
                     "Evidence",
                 );
+                document.getElementById("static-title").remove();
 
                 var main = document.getElementById("edit-content");
                 shell.appendChild(main);
