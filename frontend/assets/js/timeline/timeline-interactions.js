@@ -309,6 +309,20 @@ async function init() {
       }
     });
 
+    // Touch tooltip for mobile (long-press shows tooltip before navigation)
+    delegate(container, ".timeline-dot", "touchstart", (e, dot) => {
+      tooltipTimer = setTimeout(() => showTooltip(e, dot), 200);
+    });
+
+    delegate(container, ".timeline-dot", "touchend", () => {
+      hideTooltip();
+    });
+
+    // Cancel tooltip timer on scroll
+    delegate(container, ".timeline-dot", "touchmove", () => {
+      hideTooltip();
+    });
+
     // ── Wire click → detail panel ────────────────────────────────────────
     delegate(container, ".timeline-dot", "click", (_e, dot) => {
       showDetailPanel(dot);

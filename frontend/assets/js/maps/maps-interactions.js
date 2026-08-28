@@ -231,6 +231,26 @@ export function setupInteractions(container) {
       }),
     );
 
+    // Touch tooltip for mobile (long-press shows tooltip before navigation)
+    teardowns.push(
+      delegate(pinsLayer, ".map-pin", "touchstart", (e, pinEl) => {
+        tooltipTimer = setTimeout(() => showTooltip(e, pinEl), 200);
+      }),
+    );
+
+    teardowns.push(
+      delegate(pinsLayer, ".map-pin", "touchend", () => {
+        hideTooltip();
+      }),
+    );
+
+    // Cancel tooltip timer on scroll
+    teardowns.push(
+      delegate(pinsLayer, ".map-pin", "touchmove", () => {
+        hideTooltip();
+      }),
+    );
+
     // ── Pin click → open evidence detail ───────────────────────────────────
     teardowns.push(
       delegate(pinsLayer, ".map-pin", "click", (_e, pinEl) => {
