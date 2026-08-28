@@ -120,3 +120,46 @@ li {
 .text-small {
     font-size: var(--text-small);
 }
+
+/* -------------------------------------------------------------------------
+   Print — reset to black-on-white academic style
+   ------------------------------------------------------------------------- */
+
+@media print {
+    body {
+        background: var(--color-white);
+        color: var(--color-black);
+        font-family: Georgia, serif;
+        font-size: 11pt;
+        line-height: 1.5;
+        margin: 2cm;
+    }
+
+    h1 {
+        font-size: 14pt;
+    }
+    h2,
+    h3 {
+        font-size: 12pt;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: var(--color-black);
+        font-weight: bold;
+    }
+
+    /* Links — plain text, no underlines, no URLs */
+    a {
+        color: var(--color-black);
+        text-decoration: none;
+    }
+
+    a[href]::after {
+        content: none;
+    }
+}

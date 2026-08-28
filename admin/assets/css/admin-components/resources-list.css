@@ -120,7 +120,7 @@
     align-items: center;
 }
 
-#resource-status {
+.resource-status {
     font-size: 13px;
     color: var(--admin-text-secondary);
 }

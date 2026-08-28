@@ -62,3 +62,33 @@
         min-width: 120px;
     }
 }
+
+/* -------------------------------------------------------------------------
+   Print — gridlines must survive printing (var(--border) can print
+   near-white); force solid black borders and cancel the mobile
+   horizontal-scroll layout.
+
+   Also carries .page-break-before/.page-break-inside-avoid, generic
+   print utility classes usable on any element (not content-table-
+   specific — they live here because they were grouped with the table
+   page-break rules in the print stylesheet this was split from).
+   ------------------------------------------------------------------------- */
+
+@media print {
+    .content-table {
+        display: table;
+    }
+
+    .content-table th,
+    .content-table td {
+        border: 1px solid var(--color-black);
+    }
+
+    .page-break-before {
+        page-break-before: always;
+    }
+
+    .page-break-inside-avoid {
+        page-break-inside: avoid;
+    }
+}
