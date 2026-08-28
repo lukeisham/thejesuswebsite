@@ -31,7 +31,12 @@ const {
   getChildren,
   replaceChildren,
 } = require("../models/relations/child-rows");
-const { getLinked, replaceLinks } = require("../models/relations/junctions");
+const {
+  getLinked,
+  getLinkedMlaSources,
+  getLinkedIdentifiers,
+  replaceLinks,
+} = require("../models/relations/junctions");
 
 // ── Seed helpers ────────────────────────────────────────────────────────────
 // Each helper uses a counter so slugs/titles stay unique across tests.
@@ -82,6 +87,22 @@ function seedEvidenceMlaLink(evidenceId, mlaId, order) {
     .run(evidenceId, mlaId, order);
 }
 
+let identifierCounter = 0;
+function seedIdentifier() {
+  identifierCounter++;
+  return db
+    .prepare("INSERT INTO identifiers (isbn) VALUES (?)")
+    .run("isbn-" + identifierCounter).lastInsertRowid;
+}
+
+function seedEvidenceIdentifierLink(evidenceId, identifierId, order) {
+  return db
+    .prepare(
+      "INSERT INTO evidence_identifiers (evidence_id, identifier_id, citation_order) VALUES (?, ?, ?)",
+    )
+    .run(evidenceId, identifierId, order);
+}
+
 // ── Child Rows ──────────────────────────────────────────────────────────────
 
 describe("child-rows: getChildren", () => {
@@ -122,6 +143,36 @@ describe("child-rows: getChildren", () => {
     const children = getChildren("essay_breakouts", "context_essay_id", ev1);
     assert.equal(children.length, 1);
     assert.equal(children[0].title, "EV1 Title");
+  });
+});
+
+describe("child-rows: getChildren() prepared statement cache", () => {
+  test("repeated calls with the same (table, fkColumn) return equal results", () => {
+    const essayId = seedContextEssay();
+    seedEssayBreakout(essayId, 0, "Cached", "Cached content");
+
+    const first = getChildren("essay_breakouts", "context_essay_id", essayId);
+    const second = getChildren("essay_breakouts", "context_essay_id", essayId);
+    assert.deepStrictEqual(first, second);
+  });
+
+  test("different (table, fkColumn) combinations don't collide in the cache", () => {
+    const essayId = seedContextEssay();
+    seedEssayBreakout(essayId, 0, "Essay Breakout", "Essay content");
+
+    const essayBreakouts = getChildren(
+      "essay_breakouts",
+      "context_essay_id",
+      essayId,
+    );
+    const blogBreakouts = getChildren(
+      "blog_breakouts",
+      "blog_post_id",
+      essayId,
+    );
+    assert.equal(essayBreakouts.length, 1);
+    assert.equal(essayBreakouts[0].title, "Essay Breakout");
+    assert.equal(blogBreakouts.length, 0);
   });
 });
 
@@ -241,6 +292,103 @@ describe("junctions: getLinked", () => {
     assert.equal(links.length, 2);
     assert.equal(links[0].citation_order, 0);
     assert.equal(links[1].citation_order, 2);
+  });
+});
+
+describe("junctions: prepared statement cache", () => {
+  test("getLinked() repeated calls with the same (table, sourceColumn, orderColumn) return equal results", () => {
+    const evidenceId = seedEvidence();
+    const mlaId = seedMlaSource();
+    seedEvidenceMlaLink(evidenceId, mlaId, 0);
+
+    const first = getLinked(
+      "evidence_mla_sources",
+      "evidence_id",
+      "citation_order",
+      evidenceId,
+    );
+    const second = getLinked(
+      "evidence_mla_sources",
+      "evidence_id",
+      "citation_order",
+      evidenceId,
+    );
+    assert.deepStrictEqual(first, second);
+  });
+
+  test("getLinked() different (table, sourceColumn) combinations don't collide in the cache", () => {
+    const evidenceId = seedEvidence();
+    const mlaId = seedMlaSource();
+    seedEvidenceMlaLink(evidenceId, mlaId, 0);
+
+    const mlaLinks = getLinked(
+      "evidence_mla_sources",
+      "evidence_id",
+      "citation_order",
+      evidenceId,
+    );
+    const identifierLinks = getLinked(
+      "evidence_identifiers",
+      "evidence_id",
+      "citation_order",
+      evidenceId,
+    );
+    assert.equal(mlaLinks.length, 1);
+    assert.equal(mlaLinks[0].mla_source_id, mlaId);
+    assert.equal(identifierLinks.length, 0);
+  });
+
+  test("getLinkedMlaSources() repeated calls return equal results and don't collide with getLinkedIdentifiers()", () => {
+    const evidenceId = seedEvidence();
+    const mlaId = seedMlaSource();
+    const identifierId = seedIdentifier();
+    seedEvidenceMlaLink(evidenceId, mlaId, 0);
+    seedEvidenceIdentifierLink(evidenceId, identifierId, 0);
+
+    const firstMla = getLinkedMlaSources(
+      "evidence_mla_sources",
+      "evidence_id",
+      "citation_order",
+      evidenceId,
+    );
+    const secondMla = getLinkedMlaSources(
+      "evidence_mla_sources",
+      "evidence_id",
+      "citation_order",
+      evidenceId,
+    );
+    assert.deepStrictEqual(firstMla, secondMla);
+    assert.equal(firstMla.length, 1);
+    assert.equal(firstMla[0].id, mlaId);
+
+    const identifiers = getLinkedIdentifiers(
+      "evidence_identifiers",
+      "evidence_id",
+      "citation_order",
+      evidenceId,
+    );
+    assert.equal(identifiers.length, 1);
+    assert.equal(identifiers[0].id, identifierId);
+  });
+
+  test("getLinkedIdentifiers() repeated calls with the same arguments return equal results", () => {
+    const evidenceId = seedEvidence();
+    const identifierId = seedIdentifier();
+    seedEvidenceIdentifierLink(evidenceId, identifierId, 0);
+
+    const first = getLinkedIdentifiers(
+      "evidence_identifiers",
+      "evidence_id",
+      "citation_order",
+      evidenceId,
+    );
+    const second = getLinkedIdentifiers(
+      "evidence_identifiers",
+      "evidence_id",
+      "citation_order",
+      evidenceId,
+    );
+    assert.deepStrictEqual(first, second);
   });
 });
 

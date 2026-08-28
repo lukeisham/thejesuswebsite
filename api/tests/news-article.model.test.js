@@ -271,6 +271,72 @@ describe("news-article: getBySlug() public filtering", () => {
   });
 });
 
+// ── Named-column reads (SQL-9: no SELECT * drift) ──────────────────────────
+
+describe("news-article: named-column reads return exactly the expected keys", () => {
+  beforeEach(clearAll);
+
+  const COLUMNS = [
+    "id",
+    "slug",
+    "news_article_title",
+    "news_article_url",
+    "news_article_date",
+    "news_article_author",
+    "news_article_publisher",
+    "news_article_thumbnail",
+    "landing_page_display",
+    "published_draft",
+    "metadata_keywords",
+  ].sort();
+
+  test("getAllPublished() rows have exactly the expected keys", () => {
+    newsArticleModel.create({
+      slug: "cols-published",
+      news_article_title: "Cols Published",
+      published_draft: 1,
+    });
+
+    const rows = newsArticleModel.getAllPublished();
+    assert.ok(rows.length > 0);
+    assert.deepStrictEqual(Object.keys(rows[0]).sort(), COLUMNS);
+  });
+
+  test("getLandingPageArticles() rows have exactly the expected keys", () => {
+    newsArticleModel.create({
+      slug: "cols-landing",
+      news_article_title: "Cols Landing",
+      published_draft: 1,
+      landing_page_display: 1,
+    });
+
+    const rows = newsArticleModel.getLandingPageArticles();
+    assert.ok(rows.length > 0);
+    assert.deepStrictEqual(Object.keys(rows[0]).sort(), COLUMNS);
+  });
+
+  test("getBySlug() row has exactly the expected keys", () => {
+    newsArticleModel.create({
+      slug: "cols-slug",
+      news_article_title: "Cols Slug",
+      published_draft: 1,
+    });
+
+    const row = newsArticleModel.getBySlug("cols-slug");
+    assert.deepStrictEqual(Object.keys(row).sort(), COLUMNS);
+  });
+
+  test("getById() row has exactly the expected keys", () => {
+    const created = newsArticleModel.create({
+      slug: "cols-byid",
+      news_article_title: "Cols By Id",
+    });
+
+    const row = newsArticleModel.getById(created.id);
+    assert.deepStrictEqual(Object.keys(row).sort(), COLUMNS);
+  });
+});
+
 // ── Guard/failure paths ─────────────────────────────────────────────────────
 
 describe("news-article: guard paths", () => {

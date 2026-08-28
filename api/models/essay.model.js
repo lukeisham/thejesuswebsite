@@ -33,6 +33,12 @@ const WRITABLE_COLUMNS = [
   "author_bio",
 ];
 
+// SQL-9: named columns instead of SELECT * — the full WRITABLE_COLUMNS set
+// plus id/created_at/updated_at, matching what every SELECT * caller reads today.
+const ALL_COLUMNS = ["id", ...WRITABLE_COLUMNS, "created_at", "updated_at"].join(
+  ", ",
+);
+
 /**
  * Map DB-native column names to the names the frontend JS expects. Admin
  * reads (getAdminById) skip this so admin forms keep using the raw DB names.
@@ -67,7 +73,7 @@ function normalizeForPublic(item) {
  */
 function getAllAdmin() {
   return db
-    .prepare("SELECT * FROM context_essays ORDER BY created_at DESC")
+    .prepare(`SELECT ${ALL_COLUMNS} FROM context_essays ORDER BY created_at DESC`)
     .all();
 }
 
@@ -77,7 +83,7 @@ function getAllAdmin() {
 function getAllPublished() {
   return db
     .prepare(
-      "SELECT * FROM context_essays WHERE published_draft = 1 ORDER BY created_at DESC",
+      `SELECT ${ALL_COLUMNS} FROM context_essays WHERE published_draft = 1 ORDER BY created_at DESC`,
     )
     .all()
     .map(normalizeForPublic);
@@ -89,7 +95,7 @@ function getAllPublished() {
 function getBySlug(slug) {
   return db
     .prepare(
-      "SELECT * FROM context_essays WHERE slug = ? AND published_draft = 1",
+      `SELECT ${ALL_COLUMNS} FROM context_essays WHERE slug = ? AND published_draft = 1`,
     )
     .get(slug);
 }
@@ -98,7 +104,7 @@ function getBySlug(slug) {
  * Single essay by id regardless of publish state — for the admin panel.
  */
 function getById(id) {
-  return db.prepare("SELECT * FROM context_essays WHERE id = ?").get(id);
+  return db.prepare(`SELECT ${ALL_COLUMNS} FROM context_essays WHERE id = ?`).get(id);
 }
 
 /**
