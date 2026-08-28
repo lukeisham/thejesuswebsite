@@ -22,6 +22,18 @@ const db = require("../config");
 const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
 db.exec(schema);
 
+// Migration 003 adds two_column/doi/author_bio to context_essays and responses
+// (schema.sql already has these on historiography, so that table is skipped
+// here — same split applied by tests/helpers/db.js).
+db.exec(`
+  ALTER TABLE context_essays ADD COLUMN two_column INTEGER DEFAULT 0 CHECK (two_column IN (0,1));
+  ALTER TABLE context_essays ADD COLUMN doi TEXT;
+  ALTER TABLE context_essays ADD COLUMN author_bio TEXT;
+  ALTER TABLE responses ADD COLUMN two_column INTEGER DEFAULT 0 CHECK (two_column IN (0,1));
+  ALTER TABLE responses ADD COLUMN doi TEXT;
+  ALTER TABLE responses ADD COLUMN author_bio TEXT;
+`);
+
 const evidenceModel = require("../models/evidence.model");
 const essayModel = require("../models/essay.model");
 const responseModel = require("../models/response.model");

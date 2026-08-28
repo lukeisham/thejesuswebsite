@@ -32,6 +32,16 @@ function assertWhitelisted(value, allowedSet, label) {
   }
 }
 
+// SQL-1: prepared statements are compiled on every db.prepare() call, so each
+// helper below caches its compiled statement in a module-scope Map keyed by
+// the validated (table, column...) combination — built lazily on first use
+// since the whitelist-validated combinations aren't known until called with
+// real arguments. Whitelist assertions still run on every call, unchanged,
+// before the cache is consulted.
+const getChildrenStatements = new Map();
+const deleteChildrenStatements = new Map();
+const insertChildStatements = new Map();
+
 /**
  * Fetch all child rows for a given parent, ordered by sort_order then id.
  *
@@ -48,8 +58,15 @@ function getChildren(table, fkColumn, parentId) {
   assertWhitelisted(table, CHILD_TABLES, 'child table');
   assertWhitelisted(fkColumn, CHILD_FK_COLUMNS, 'child FK column');
 
-  const sql = `SELECT * FROM ${table} WHERE ${fkColumn} = ? ORDER BY sort_order ASC, id ASC`;
-  return db.prepare(sql).all(parentId);
+  const key = `${table}|${fkColumn}`;
+  let stmt = getChildrenStatements.get(key);
+  if (!stmt) {
+    stmt = db.prepare(
+      `SELECT * FROM ${table} WHERE ${fkColumn} = ? ORDER BY sort_order ASC, id ASC`
+    );
+    getChildrenStatements.set(key, stmt);
+  }
+  return stmt.all(parentId);
 }
 
 /**
@@ -74,16 +91,26 @@ function replaceChildren(table, fkColumn, parentId, rows, columns) {
   }
 
   // Delete existing children.
-  db.prepare(`DELETE FROM ${table} WHERE ${fkColumn} = ?`).run(parentId);
+  const deleteKey = `${table}|${fkColumn}`;
+  let deleteStmt = deleteChildrenStatements.get(deleteKey);
+  if (!deleteStmt) {
+    deleteStmt = db.prepare(`DELETE FROM ${table} WHERE ${fkColumn} = ?`);
+    deleteChildrenStatements.set(deleteKey, deleteStmt);
+  }
+  deleteStmt.run(parentId);
 
   if (!rows || rows.length === 0) return;
 
   const colNames = [fkColumn, 'sort_order', ...columns];
-  const placeholders = colNames.map((c) => `@${c}`);
-
-  const insert = db.prepare(
-    `INSERT INTO ${table} (${colNames.join(', ')}) VALUES (${placeholders.join(', ')})`
-  );
+  const insertKey = `${table}|${colNames.join(',')}`;
+  let insert = insertChildStatements.get(insertKey);
+  if (!insert) {
+    const placeholders = colNames.map((c) => `@${c}`);
+    insert = db.prepare(
+      `INSERT INTO ${table} (${colNames.join(', ')}) VALUES (${placeholders.join(', ')})`
+    );
+    insertChildStatements.set(insertKey, insert);
+  }
 
   for (let i = 0; i < rows.length; i++) {
     const row = { [fkColumn]: parentId, sort_order: i };

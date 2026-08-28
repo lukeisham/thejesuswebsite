@@ -285,6 +285,79 @@ describe("essay: public vs admin read filtering", () => {
   });
 });
 
+// ── Named-column reads (SQL-9: no SELECT * drift) ──────────────────────────
+
+describe("essay: named-column reads return exactly the expected keys", () => {
+  beforeEach(clearAll);
+
+  const RAW_COLUMNS = [
+    "id",
+    "slug",
+    "essay_title",
+    "essay_content",
+    "essay_author",
+    "essay_date",
+    "essay_publisher",
+    "essay_headings",
+    "published_draft",
+    "metadata_keywords",
+    "two_column",
+    "doi",
+    "author_bio",
+    "created_at",
+    "updated_at",
+  ].sort();
+
+  const NORMALIZED_COLUMNS = [
+    "id",
+    "slug",
+    "essay_date",
+    "essay_publisher",
+    "essay_headings",
+    "published_draft",
+    "two_column",
+    "doi",
+    "author_bio",
+    "created_at",
+    "updated_at",
+    "title",
+    "author",
+    "body",
+    "keywords",
+    "mla_sources",
+  ].sort();
+
+  test("getAllAdmin() rows have exactly the raw column keys", () => {
+    essayModel.create({ slug: "admin-cols", essay_title: "Admin Cols" });
+
+    const rows = essayModel.getAllAdmin();
+    assert.ok(rows.length > 0);
+    assert.deepStrictEqual(Object.keys(rows[0]).sort(), RAW_COLUMNS);
+  });
+
+  test("getById() row has exactly the raw column keys", () => {
+    const created = essayModel.create({
+      slug: "byid-cols",
+      essay_title: "By Id Cols",
+    });
+
+    const row = essayModel.getById(created.id);
+    assert.deepStrictEqual(Object.keys(row).sort(), RAW_COLUMNS);
+  });
+
+  test("getAllPublished() rows have exactly the normalized public keys", () => {
+    essayModel.create({
+      slug: "published-cols",
+      essay_title: "Published Cols",
+      published_draft: 1,
+    });
+
+    const rows = essayModel.getAllPublished();
+    assert.ok(rows.length > 0);
+    assert.deepStrictEqual(Object.keys(rows[0]).sort(), NORMALIZED_COLUMNS);
+  });
+});
+
 // ── Guard/failure paths ─────────────────────────────────────────────────────
 
 describe("essay: guard paths", () => {

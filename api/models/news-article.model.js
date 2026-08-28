@@ -20,13 +20,17 @@ const WRITABLE_COLUMNS = [
     'metadata_keywords',
 ];
 
+// SQL-9: named columns instead of SELECT * — the full WRITABLE_COLUMNS set
+// plus id, matching what every SELECT * caller reads today.
+const ALL_COLUMNS = ['id', ...WRITABLE_COLUMNS].join(', ');
+
 /**
  * Published news articles for the public site, newest first.
  */
 function getAllPublished() {
     return db
         .prepare(
-            'SELECT * FROM news_articles WHERE published_draft = 1 ORDER BY news_article_date DESC, id DESC'
+            `SELECT ${ALL_COLUMNS} FROM news_articles WHERE published_draft = 1 ORDER BY news_article_date DESC, id DESC`
         )
         .all();
 }
@@ -38,7 +42,7 @@ function getAllPublished() {
 function getLandingPageArticles() {
     return db
         .prepare(
-            'SELECT * FROM news_articles WHERE published_draft = 1 AND landing_page_display = 1 ORDER BY news_article_date DESC, id DESC'
+            `SELECT ${ALL_COLUMNS} FROM news_articles WHERE published_draft = 1 AND landing_page_display = 1 ORDER BY news_article_date DESC, id DESC`
         )
         .all();
 }
@@ -48,7 +52,7 @@ function getLandingPageArticles() {
  */
 function getBySlug(slug) {
     return db
-        .prepare('SELECT * FROM news_articles WHERE slug = ? AND published_draft = 1')
+        .prepare(`SELECT ${ALL_COLUMNS} FROM news_articles WHERE slug = ? AND published_draft = 1`)
         .get(slug);
 }
 
@@ -56,7 +60,7 @@ function getBySlug(slug) {
  * Single news article by id regardless of publish state — for admin.
  */
 function getById(id) {
-    return db.prepare('SELECT * FROM news_articles WHERE id = ?').get(id);
+    return db.prepare(`SELECT ${ALL_COLUMNS} FROM news_articles WHERE id = ?`).get(id);
 }
 
 /**

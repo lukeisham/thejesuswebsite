@@ -66,6 +66,16 @@ function assertWhitelisted(value, allowedSet, label) {
   }
 }
 
+// SQL-1: prepared statements are compiled on every db.prepare() call, so each
+// helper below caches its compiled statement in a module-scope Map keyed by
+// the validated (table, column...) combination — built lazily on first use
+// since the whitelist-validated combinations aren't known until called with
+// real arguments. Whitelist assertions still run on every call, unchanged,
+// before the cache is consulted.
+const getLinkedStatements = new Map();
+const getLinkedMlaSourcesStatements = new Map();
+const getLinkedIdentifiersStatements = new Map();
+
 /**
  * Fetch all linked rows for a given source, ordered by the order column then id.
  *
@@ -84,8 +94,15 @@ function getLinked(table, sourceColumn, orderColumn, sourceId) {
   assertWhitelisted(sourceColumn, JUNCTION_SOURCE_COLUMNS, "junction source column");
   assertWhitelisted(orderColumn, JUNCTION_ORDER_COLUMNS, "junction order column");
 
-  const sql = `SELECT * FROM ${table} WHERE ${sourceColumn} = ? ORDER BY ${orderColumn} ASC, id ASC`;
-  return db.prepare(sql).all(sourceId);
+  const key = `${table}|${sourceColumn}|${orderColumn}`;
+  let stmt = getLinkedStatements.get(key);
+  if (!stmt) {
+    stmt = db.prepare(
+      `SELECT * FROM ${table} WHERE ${sourceColumn} = ? ORDER BY ${orderColumn} ASC, id ASC`,
+    );
+    getLinkedStatements.set(key, stmt);
+  }
+  return stmt.all(sourceId);
 }
 
 /**
@@ -110,8 +127,15 @@ function getLinkedMlaSources(table, sourceColumn, orderColumn, sourceId) {
   assertWhitelisted(sourceColumn, JUNCTION_SOURCE_COLUMNS, "junction source column");
   assertWhitelisted(orderColumn, JUNCTION_ORDER_COLUMNS, "junction order column");
 
-  const sql = `SELECT m.* FROM ${table} j JOIN mla_sources m ON j.mla_source_id = m.id WHERE j.${sourceColumn} = ? ORDER BY j.${orderColumn} ASC, j.id ASC`;
-  return db.prepare(sql).all(sourceId);
+  const key = `${table}|${sourceColumn}|${orderColumn}`;
+  let stmt = getLinkedMlaSourcesStatements.get(key);
+  if (!stmt) {
+    stmt = db.prepare(
+      `SELECT m.* FROM ${table} j JOIN mla_sources m ON j.mla_source_id = m.id WHERE j.${sourceColumn} = ? ORDER BY j.${orderColumn} ASC, j.id ASC`,
+    );
+    getLinkedMlaSourcesStatements.set(key, stmt);
+  }
+  return stmt.all(sourceId);
 }
 
 /**
@@ -135,8 +159,15 @@ function getLinkedIdentifiers(table, sourceColumn, orderColumn, sourceId) {
   assertWhitelisted(sourceColumn, JUNCTION_SOURCE_COLUMNS, "junction source column");
   assertWhitelisted(orderColumn, JUNCTION_ORDER_COLUMNS, "junction order column");
 
-  const sql = `SELECT i.* FROM ${table} j JOIN identifiers i ON j.identifier_id = i.id WHERE j.${sourceColumn} = ? ORDER BY j.${orderColumn} ASC, j.id ASC`;
-  return db.prepare(sql).all(sourceId);
+  const key = `${table}|${sourceColumn}|${orderColumn}`;
+  let stmt = getLinkedIdentifiersStatements.get(key);
+  if (!stmt) {
+    stmt = db.prepare(
+      `SELECT i.* FROM ${table} j JOIN identifiers i ON j.identifier_id = i.id WHERE j.${sourceColumn} = ? ORDER BY j.${orderColumn} ASC, j.id ASC`,
+    );
+    getLinkedIdentifiersStatements.set(key, stmt);
+  }
+  return stmt.all(sourceId);
 }
 
 /**
