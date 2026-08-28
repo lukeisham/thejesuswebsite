@@ -180,6 +180,47 @@ describe("collection: getAllPublished() with evidence count", () => {
   });
 });
 
+// ── Pagination (API-8) ──────────────────────────────────────────────────────
+
+describe("collection: getAllPublished() pagination", () => {
+  beforeEach(clearAll);
+
+  test("no page/limit returns a flat array (backward compatible)", () => {
+    for (let i = 1; i <= 3; i += 1) {
+      collectionModel.create({
+        slug: `page-col-${i}`,
+        title: `Page Collection ${i}`,
+        published_draft: 1,
+      });
+    }
+
+    const result = collectionModel.getAllPublished();
+    assert.ok(Array.isArray(result));
+    assert.equal(result.length, 3);
+  });
+
+  test("total reflects distinct collections, not post-JOIN evidence rows", () => {
+    // One collection with 3 evidence rows (a LEFT JOIN count would report 3
+    // here); two other collections with none. The correct total is 3
+    // collections, not 5 joined rows.
+    const multiEvidenceCol = collectionModel.create({
+      slug: "multi-evidence-col",
+      title: "Multi Evidence Collection",
+      published_draft: 1,
+    });
+    for (let i = 1; i <= 3; i += 1) {
+      collectionModel.addEvidence(multiEvidenceCol.id, seedEvidence({ slug: `pag-ev-${i}` }));
+    }
+    collectionModel.create({ slug: "solo-col-1", title: "Solo 1", published_draft: 1 });
+    collectionModel.create({ slug: "solo-col-2", title: "Solo 2", published_draft: 1 });
+
+    const result = collectionModel.getAllPublished({ page: 1, limit: 2 });
+    assert.equal(result.total, 3);
+    assert.equal(result.items.length, 2);
+    assert.equal(result.totalPages, 2);
+  });
+});
+
 // ── Evidence reordering in transaction ──────────────────────────────────────
 
 describe("collection: reorderEvidence() transaction", () => {

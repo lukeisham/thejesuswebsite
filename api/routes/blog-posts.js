@@ -12,9 +12,14 @@ const router = express.Router();
 // GET /blog-posts — public list of published blog posts
 router.get("/", (req, res) => {
   try {
-    const items = blogPostModel.getAllPublished();
+    const items = blogPostModel.getAllPublished(req.query);
     res.json(items);
   } catch (error) {
+    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
+      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
+        received: req.query.page,
+      });
+    }
     console.error("GET /blog-posts failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }

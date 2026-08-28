@@ -25,10 +25,15 @@ function isInvalidItemTypeError(error) {
 router.get("/", (req, res) => {
   try {
     const items = req.query.list_key
-      ? resourceModel.getByListKey(req.query.list_key)
+      ? resourceModel.getByListKey(req.query.list_key, req.query)
       : resourceModel.getAllPublishedByListKey();
     res.json(items);
   } catch (error) {
+    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
+      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
+        received: req.query.page,
+      });
+    }
     console.error("GET /resources failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }

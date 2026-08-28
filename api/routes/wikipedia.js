@@ -6,7 +6,7 @@ const wikipediaModel = require('../models/wikipedia.model');
 const requireAuth = require('../middleware/auth');
 const rateLimit = require('../middleware/rate-limit');
 const ERRORS = require('../lib/error-codes');
-const { sendError } = require('../lib/error-handler');
+const { sendError, sendValidationError } = require('../lib/error-handler');
 const vectorSidecarClient = require('../lib/vector-sidecar-client');
 
 const router = express.Router();
@@ -38,9 +38,14 @@ const signalCheckLimit = rateLimit({ maxAttempts: 20, windowMs: 60_000 });
 // GET /wikipedia — public list of published Wikipedia articles
 router.get('/', (req, res) => {
     try {
-        const items = wikipediaModel.getAllPublished();
+        const items = wikipediaModel.getAllPublished(req.query);
         res.json(items);
     } catch (error) {
+        if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
+            return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
+                received: req.query.page,
+            });
+        }
         console.error('GET /wikipedia failed:', error);
         sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }

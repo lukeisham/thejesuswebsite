@@ -7,6 +7,7 @@ const {
   pickWritable,
   generateUniqueSlug,
   runUpdate,
+  paginate,
 } = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const {
@@ -79,14 +80,19 @@ function getAllAdmin() {
 
 /**
  * Published essays for the public site, newest first.
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible).
  */
-function getAllPublished() {
-  return db
-    .prepare(
-      `SELECT ${ALL_COLUMNS} FROM context_essays WHERE published_draft = 1 ORDER BY created_at DESC`,
-    )
-    .all()
-    .map(normalizeForPublic);
+function getAllPublished(filters = {}) {
+  const { page, limit } = filters;
+  const itemsSql = `SELECT ${ALL_COLUMNS} FROM context_essays WHERE published_draft = 1 ORDER BY created_at DESC`;
+  const countSql = `SELECT COUNT(*) AS total FROM context_essays WHERE published_draft = 1`;
+  const result = paginate(db, itemsSql, countSql, [], { page, limit });
+
+  if (Array.isArray(result)) return result.map(normalizeForPublic);
+  return { ...result, items: result.items.map(normalizeForPublic) };
 }
 
 /**

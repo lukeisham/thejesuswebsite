@@ -5,16 +5,21 @@ const express = require("express");
 const identifiersModel = require("../models/identifiers.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
-const { sendError } = require("../lib/error-handler");
+const { sendError, sendValidationError } = require("../lib/error-handler");
 
 const router = express.Router();
 
 // GET /identifiers — list all identifiers
 router.get("/", (req, res) => {
   try {
-    const items = identifiersModel.getAllPublished();
+    const items = identifiersModel.getAllPublished(req.query);
     res.json(items);
   } catch (error) {
+    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
+      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
+        received: req.query.page,
+      });
+    }
     console.error("GET /identifiers failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }

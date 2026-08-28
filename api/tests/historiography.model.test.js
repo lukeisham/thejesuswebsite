@@ -225,6 +225,41 @@ describe("historiography.model: getAllPublished normalization", () => {
   });
 });
 
+// ── Pagination (API-8) ──────────────────────────────────────────────────────
+
+describe("historiography.model: getAllPublished pagination", () => {
+  beforeEach(clearTable);
+
+  function seedThree() {
+    for (let i = 1; i <= 3; i += 1) {
+      seedMinimalHistoriography({ slug: `page-essay-${i}`, essay_title: `Page Essay ${i}` });
+    }
+  }
+
+  test("no page/limit returns a flat array (backward compatible)", () => {
+    seedThree();
+    const result = historiographyModel.getAllPublished();
+    assert.ok(Array.isArray(result));
+    assert.equal(result.length, 3);
+  });
+
+  test("page/limit given returns the paginated envelope, still normalized", () => {
+    seedThree();
+    const result = historiographyModel.getAllPublished({ page: 1, limit: 2 });
+    assert.deepStrictEqual(Object.keys(result).sort(), [
+      "items",
+      "limit",
+      "page",
+      "total",
+      "totalPages",
+    ]);
+    assert.equal(result.items.length, 2);
+    assert.equal(result.total, 3);
+    assert.ok(result.items[0].title);
+    assert.equal(result.items[0].essay_title, undefined);
+  });
+});
+
 // ── Composite create with child/junction rows ───────────────────────────────
 
 describe("historiography.model: createComposite()", () => {

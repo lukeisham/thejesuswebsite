@@ -292,6 +292,69 @@ describe("response.model: getAllPublished filtering", () => {
   });
 });
 
+// ── Pagination (API-8) ──────────────────────────────────────────────────────
+
+describe("response.model: getAllPublished pagination", () => {
+  beforeEach(clearTables);
+
+  test("no page/limit returns a flat array (backward compatible)", () => {
+    const challenge = seedChallenge();
+    for (let i = 1; i <= 3; i += 1) {
+      responseModel.create({
+        slug: `page-resp-${i}`,
+        response_title: `Page Resp ${i}`,
+        response_content: "C",
+        challenge_id: challenge.id,
+        published_draft: 1,
+      });
+    }
+
+    const result = responseModel.getAllPublished();
+    assert.ok(Array.isArray(result));
+    assert.equal(result.length, 3);
+  });
+
+  test("page/limit combined with challenge_id filter returns a scoped envelope", () => {
+    const c1 = seedChallenge({ slug: "challenge-1" });
+    const c2 = seedChallenge({ slug: "challenge-2" });
+
+    for (let i = 1; i <= 3; i += 1) {
+      responseModel.create({
+        slug: `c1-resp-${i}`,
+        response_title: `C1 Resp ${i}`,
+        response_content: "C",
+        challenge_id: c1.id,
+        published_draft: 1,
+      });
+    }
+    responseModel.create({
+      slug: "c2-resp-1",
+      response_title: "C2 Resp 1",
+      response_content: "C",
+      challenge_id: c2.id,
+      published_draft: 1,
+    });
+
+    const result = responseModel.getAllPublished({
+      challenge_id: c1.id,
+      page: 1,
+      limit: 2,
+    });
+
+    assert.deepStrictEqual(Object.keys(result).sort(), [
+      "items",
+      "limit",
+      "page",
+      "total",
+      "totalPages",
+    ]);
+    assert.equal(result.items.length, 2);
+    // total reflects only c1's 3 responses, not all 4 in the table.
+    assert.equal(result.total, 3);
+    assert.ok(result.items.every((r) => r.challenge_id === c1.id));
+  });
+});
+
 // ── Composite create with child/junction rows ───────────────────────────────
 
 describe("response.model: createComposite()", () => {

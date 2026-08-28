@@ -14,6 +14,7 @@ const {
   pickWritable,
   generateUniqueSlug,
   runUpdate,
+  paginate,
 } = require("./model-helpers");
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
@@ -67,14 +68,21 @@ function normalizeForPublic(item) {
 /**
  * Published historiography essays for the public site, grouped by period
  * (period_sort_order ascending), newest first within a period.
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible).
  */
-function getAllPublished() {
-  return db
-    .prepare(
-      "SELECT * FROM historiography WHERE published_draft = 1 ORDER BY period_sort_order ASC, created_at DESC",
-    )
-    .all()
-    .map(normalizeForPublic);
+function getAllPublished(filters = {}) {
+  const { page, limit } = filters;
+  const itemsSql =
+    "SELECT * FROM historiography WHERE published_draft = 1 ORDER BY period_sort_order ASC, created_at DESC";
+  const countSql =
+    "SELECT COUNT(*) AS total FROM historiography WHERE published_draft = 1";
+  const result = paginate(db, itemsSql, countSql, [], { page, limit });
+
+  if (Array.isArray(result)) return result.map(normalizeForPublic);
+  return { ...result, items: result.items.map(normalizeForPublic) };
 }
 
 /**
