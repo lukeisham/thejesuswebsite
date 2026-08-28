@@ -1,7 +1,9 @@
 // Startup environment validation.
 // Fails fast with a clear message listing every missing required variable
 // instead of letting the server boot and crash later with an obscure error
-// deep inside some module.
+// deep inside some module. Third-party keys (e.g. ESV_API_KEY) are consumed
+// server-side only — a missing one must stop the boot here, not surface
+// mid-request.
 //
 // JS-2: never fail silently — throw immediately so the process manager
 // (pm2 / systemd) can restart the process and the operator sees the problem.

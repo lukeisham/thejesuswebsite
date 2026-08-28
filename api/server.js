@@ -61,6 +61,8 @@ app.use("/resources", publicReadLimit, require("./routes/resources"));
 app.use("/timeline", publicReadLimit, require("./routes/timeline"));
 app.use("/search", publicReadLimit, require("./routes/search"));
 app.use("/sources", publicReadLimit, require("./routes/sources"));
+// Unauthenticated, and every request costs a real upstream ESV call — the
+// public read limiter is load-bearing here, not incidental.
 app.use("/esv", publicReadLimit, require("./routes/esv"));
 app.use("/site-settings", publicReadLimit, require("./routes/site-settings"));
 
@@ -79,7 +81,9 @@ app.use(
 );
 
 // Dev-only auth bypass: only mount the route when the flag is explicitly set.
-// Hard-refuse in production regardless of the flag — load-env.js already
+// Hard-exit in production regardless of the flag — this guard is load-bearing
+// and must never be relaxed: without it, a stray env var would mount an
+// unauthenticated admin route on the live site. load-env.js already
 // guarantees NODE_ENV is one of exactly two explicit values, so this check
 // cannot be bypassed by an unset/typo'd NODE_ENV.
 if (process.env.ADMIN_DEV_BYPASS === "1") {
@@ -182,8 +186,10 @@ app.use((error, req, res, _next) => {
     throw error;
   }
 
-  // Production: never leak stack traces. Only return the error code and
-  // sanitised message. The full error is logged server-side.
+  // Production: never leak stack traces. Stack traces are an
+  // information-disclosure risk — internal paths and code shape must never
+  // reach the client outside development. Only the error code and sanitised
+  // message are returned; the full error is logged server-side.
   const isProduction = process.env.NODE_ENV === "production";
 
   if (isProduction) {

@@ -1,11 +1,11 @@
-// MCP Server entry point — instantiates the MCP server, registers all seven
-// read-only tools, and serves via Streamable HTTP transport (the 2025 MCP spec
-// addition). The server can also run in stdio mode for local development — see
-// the --stdio flag below. The API base URL is read from the API_BASE_URL
-// environment variable with a localhost default.
-//
-// Each tool module exports { name, description, inputSchema, handler } so the
-// server registration loop is declarative and easy to extend.
+// MCP Server entry point — instantiates the MCP server and registers every
+// read-only tool declaratively: each tool module exports
+// { name, description, inputSchema, handler }, and the registration loop below
+// derives the tool list from that shape, so adding a tool never touches the
+// loop itself. Serves via Streamable HTTP transport (the 2025 MCP spec
+// addition), with a stdio mode for local development — see the --stdio flag
+// below. The API base URL is read from the API_BASE_URL environment variable
+// with a localhost default.
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";

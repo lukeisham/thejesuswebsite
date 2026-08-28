@@ -376,7 +376,10 @@ function validateArticle(article) {
     sum += contribution;
   }
 
-  // Σcontributions must equal net_score
+  // Σcontributions must equal net_score — the pipeline's own internal
+  // consistency check. A signal changed without updating the row total still
+  // produces an export that "looks" valid but is wrong; this check is what
+  // catches it.
   if (sum !== article.net_score) {
     errors.push(
       `${title}: sum of contributions (${sum}) ≠ net_score (${article.net_score})`,

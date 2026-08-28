@@ -1,8 +1,10 @@
 // page-generator.js — static page generator service.
 //
-// Reads the shared content-pages config, queries the DB for a published row,
-// renders an escaped <head> SEO block, replaces the template's <!-- SEO -->
-// placeholder, and writes the output file. No HTTP concerns — pure data layer.
+// Renders SEO <head> blocks into `[slug].html` templates at publish/unpublish
+// time, driven by config/content-pages.js: reads the shared content-pages
+// config, queries the DB for a published row, renders an escaped <head> SEO
+// block, replaces the template's <!-- SEO --> placeholder, and writes the
+// output file. No HTTP concerns — pure data layer.
 //
 // Exports: { generatePage(type, slug), removePage(type, slug), generateAll() }
 

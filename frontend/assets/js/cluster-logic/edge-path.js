@@ -50,6 +50,9 @@ const EDGE_PARALLEL_OFFSET = 12;
  * @returns {string} SVG path `d` attribute
  */
 export function computeEdgePath(sx, sy, tx, ty, offsetIndex, waypoints) {
+  // Waypoints are the admin's manual-correction escape hatch: when present,
+  // they must override the computed route entirely. A change to this function
+  // that forgets to check them first silently discards admin re-routing edits.
   if (Array.isArray(waypoints) && waypoints.length > 0) {
     var d = "M " + sx + " " + sy;
     for (var w = 0; w < waypoints.length; w++) {

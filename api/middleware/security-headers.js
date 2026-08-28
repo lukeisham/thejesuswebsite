@@ -17,13 +17,15 @@ function securityHeaders(req, res, next) {
 
   // Content-Security-Policy — protects direct API/JSON consumers.
   // 'unsafe-inline' for script-src and style-src is a deliberate allowance:
-  // the site's page-boot <script> blocks and zoom-variant inline <style>
-  // overrides across 40+ HTML files in frontend/ and admin/ require it;
-  // tightening these would need a nonce-based migration that spans dozens
-  // of files. The API server does not serve those HTML pages directly, so
-  // this CSP only applies to direct API consumers — real page-level
-  // protection requires a <meta> tag or reverse-proxy header on the HTML
-  // documents themselves.
+  // HTML files across the site use inline boot <script> blocks and
+  // zoom-variant inline <style> overrides, which a stricter CSP would block.
+  // img-src 'self' data: means every image must be same-origin
+  // (frontend/assets/images/ or public/uploads/) — this directive is what
+  // blocks remote images, so one silently fails in production while appearing
+  // to work in a permissive local setup. The API server does not serve the
+  // site's HTML pages directly, so this CSP only applies to direct API
+  // consumers — real page-level protection requires a <meta> tag or
+  // reverse-proxy header on the HTML documents themselves.
   res.setHeader(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",

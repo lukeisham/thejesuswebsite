@@ -12,7 +12,10 @@ async function enhanceVerse(el) {
   const { data, error } = await getEsvPassage(el.dataset.esvRef);
   if (error || !data || !data.text) return;
 
-  // Collapse the API's line breaks — the verse sits inside flowing prose.
+  // Only a successful fetch reaches this swap, and only textContent is
+  // replaced — never cleared. On any failure the authored fallback text stays
+  // untouched, so an API outage degrades to the fallback, never a blank
+  // element. Collapse the API's line breaks — the verse sits in flowing prose.
   el.textContent = data.text.replace(/\s+/g, ' ').trim();
 }
 
