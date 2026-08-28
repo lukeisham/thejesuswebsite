@@ -90,7 +90,7 @@ A paragraph must clear `t_register` to be considered class-bearing at all; if it
 
 `calibrate.py`'s `sweep_t_data_interp_from_cache()` sweeps `t_data`, `t_close`, `t_interp`, and `t_register` as four **independent** grids (nested loops, each over its own `np.arange(...)`), not a tied pair — asymmetric thresholds (e.g. `t_data=0.60, t_interp=0.45`) are explored and are in fact what the current winning configuration uses. (An earlier version of this diagnostic, when the sweep really was 1-D and the classes were swept as a tied pair, is what this section originally described — verify against the current function body before trusting this claim on a future rerun, since the sweep implementation can change independently of this doc.)
 
-`calibrate.py`'s `choose_best()` maximises accuracy over all 39 gold-set articles with **no held-out set** — the reported tier accuracy (see §D.4) is an in-sample optimum, and the true out-of-sample accuracy could be lower.
+`calibrate.py`'s `choose_best()` maximises accuracy over all 39 gold-set articles with **no held-out set** — the reported tier accuracy (see §D.4) is an in-sample optimum, and the true out-of-sample accuracy could be lower. See §D.5 for the honest out-of-sample estimate against the LLM-labelled corpus.
 
 ## A.5 — Bootstrap confidence interval
 
@@ -110,6 +110,46 @@ At n=39 gold-set articles, a Wilson-score 95% CI band for a proportion near 0.5 
 **Interpretation:** The row with the highest accuracy identifies the dominant fix. If the block-structure row substantially outperforms the adjacency row, the separation metric is the primary error source. If the centroid rows outperform the mean-cosine rows, the scoring rule is primary. If none reaches the 0.85 gate, embedding capacity is the binding constraint.
 
 **Bake-off interpretation:** The best configuration (adjacency × centroid) achieves 0.641 accuracy (CI [0.487, 0.795]). This does NOT clear the ≥0.85 gate. The adjacency metric matches or outperforms block-structure, suggesting the separation functional is not the primary bottleneck. The centroid scoring rule outperforms mean-cosine, indicating the scoring rule is a meaningful error source. Since neither fix alone crosses the 0.85 gate, embedding capacity (MiniLM discriminative power) is likely the binding constraint — a larger ONNX model or expanded exemplar sets may be necessary.
+
+## D.5 — Held-out validation (LLM-labelled corpus)
+
+Validates `calibrate.py`'s `calibrate_with_held_out()` against the
+270-article LLM-labelled corpus (`labels-corpus.json`), replacing §D.4's
+in-sample-only estimate with an honest 70/30 train/test split (seed=42).
+Thresholds are swept on the train split only; the reported test accuracy
+below is measured on articles the sweep never saw.
+
+| Setting | Value |
+|---|---|
+| Scoring rule | centroid |
+| Separation mode | adjacency |
+| Train articles | 189 |
+| Test articles | 81 |
+
+| Metric | Value |
+|---|---|
+| Train accuracy (in-sample, train split) | 0.640 |
+| Test accuracy (held-out) | 0.593 |
+| Train − test gap | 0.048 |
+| Test accuracy 95% CI (bootstrap) | [0.481, 0.704] |
+
+### Best train-split configuration
+
+| Parameter | Value |
+|---|---|
+| t_data | 0.45 |
+| t_close | 0.40 |
+| t_interp | 0.60 |
+| t_sep | 0.50 |
+| t_register | 0.15 |
+
+**Interpretation:** the train-test gap measures overfitting to the threshold
+sweep; a large gap means the in-sample bake-off numbers in §D.4 overstate
+true accuracy. This run's `best_config` is **not** applied to
+`classifier/config.py` — promoting held-out-derived thresholds to production
+is a separate decision requiring its own re-verification against the
+existing bake-off, not an automatic side effect of adding this validation
+report.
 
 ## C — Paragraph-level evaluation harness (Phase 2)
 

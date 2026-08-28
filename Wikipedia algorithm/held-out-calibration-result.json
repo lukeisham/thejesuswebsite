@@ -1,0 +1,833 @@
+{
+  "status": "complete",
+  "scoring_rule": "centroid",
+  "separation_mode": "adjacency",
+  "train_n": 189,
+  "test_n": 81,
+  "train_accuracy": 0.6402,
+  "test_accuracy": 0.5926,
+  "train_test_gap": 0.0476,
+  "best_config": {
+    "t_data": 0.45,
+    "t_close": 0.4,
+    "t_interp": 0.6,
+    "t_sep": 0.5,
+    "t_register": 0.15
+  },
+  "test_details": [
+    {
+      "title": "Jerusalem",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 38,
+      "close_count": 16,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Chronology of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.902,
+      "data_count": 52,
+      "close_count": 7,
+      "interp_count": 3,
+      "correct": true
+    },
+    {
+      "title": "Historicity of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.7,
+      "data_count": 10,
+      "close_count": 0,
+      "interp_count": 21,
+      "correct": true
+    },
+    {
+      "title": "New Testament places associated with Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.6,
+      "data_count": 5,
+      "close_count": 0,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Jesus walking on water",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.652,
+      "data_count": 13,
+      "close_count": 4,
+      "interp_count": 7,
+      "correct": true
+    },
+    {
+      "title": "Sign of Jonah",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.8,
+      "data_count": 2,
+      "close_count": 7,
+      "interp_count": 2,
+      "correct": true
+    },
+    {
+      "title": "Salome (disciple)",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.727,
+      "data_count": 15,
+      "close_count": 5,
+      "interp_count": 3,
+      "correct": true
+    },
+    {
+      "title": "Census of Quirinius",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 17,
+      "close_count": 1,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Finding in the Temple",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.636,
+      "data_count": 9,
+      "close_count": 0,
+      "interp_count": 3,
+      "correct": true
+    },
+    {
+      "title": "Philip the Apostle",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "one_sided",
+      "separation": 1.0,
+      "data_count": 15,
+      "close_count": 0,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Healing of the centurion's servant",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.583,
+      "data_count": 8,
+      "close_count": 2,
+      "interp_count": 3,
+      "correct": true
+    },
+    {
+      "title": "Parable of the Unjust Steward",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.812,
+      "data_count": 6,
+      "close_count": 9,
+      "interp_count": 2,
+      "correct": false
+    },
+    {
+      "title": "Farewell Discourse",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.757,
+      "data_count": 9,
+      "close_count": 23,
+      "interp_count": 6,
+      "correct": true
+    },
+    {
+      "title": "Parable of a scribe",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "unclassifiable",
+      "separation": 0.0,
+      "data_count": 1,
+      "close_count": 0,
+      "interp_count": 0,
+      "correct": true
+    },
+    {
+      "title": "Return of Jesus to Galilee",
+      "gold_tier": "clear_split",
+      "pred_tier": "muddled",
+      "separation": 0.333,
+      "data_count": 4,
+      "close_count": 1,
+      "interp_count": 2,
+      "correct": false
+    },
+    {
+      "title": "Calling of Matthew",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.778,
+      "data_count": 5,
+      "close_count": 4,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Parable of the Hidden Treasure",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.733,
+      "data_count": 6,
+      "close_count": 6,
+      "interp_count": 4,
+      "correct": true
+    },
+    {
+      "title": "Elizabeth - mother of John the Baptist",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 15,
+      "close_count": 4,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Maundy (foot washing)",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.833,
+      "data_count": 15,
+      "close_count": 8,
+      "interp_count": 2,
+      "correct": true
+    },
+    {
+      "title": "James the Great",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.867,
+      "data_count": 15,
+      "close_count": 0,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Nathanael (follower of Jesus)",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.6,
+      "data_count": 5,
+      "close_count": 0,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "New Commandment",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.846,
+      "data_count": 3,
+      "close_count": 10,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Gospel harmony",
+      "gold_tier": "clear_split",
+      "pred_tier": "muddled",
+      "separation": 0.462,
+      "data_count": 10,
+      "close_count": 7,
+      "interp_count": 10,
+      "correct": false
+    },
+    {
+      "title": "Mary - mother of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.903,
+      "data_count": 82,
+      "close_count": 25,
+      "interp_count": 7,
+      "correct": true
+    },
+    {
+      "title": "Brothers of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.926,
+      "data_count": 20,
+      "close_count": 7,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "James - son of Alphaeus",
+      "gold_tier": "clear_split",
+      "pred_tier": "one_sided",
+      "separation": 1.0,
+      "data_count": 27,
+      "close_count": 0,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Capernaum",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 21,
+      "close_count": 4,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Mary - mother of James",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "one_sided",
+      "separation": 1.0,
+      "data_count": 6,
+      "close_count": 0,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Jordan River",
+      "gold_tier": "clear_split",
+      "pred_tier": "one_sided",
+      "separation": 1.0,
+      "data_count": 23,
+      "close_count": 0,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Parable of the Strong Man",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.727,
+      "data_count": 3,
+      "close_count": 5,
+      "interp_count": 4,
+      "correct": true
+    },
+    {
+      "title": "Bartholomew the Apostle",
+      "gold_tier": "clear_split",
+      "pred_tier": "one_sided",
+      "separation": 1.0,
+      "data_count": 24,
+      "close_count": 0,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Son of man (Christianity)",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.562,
+      "data_count": 1,
+      "close_count": 18,
+      "interp_count": 14,
+      "correct": true
+    },
+    {
+      "title": "Galilee",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "clear_split",
+      "separation": 0.964,
+      "data_count": 52,
+      "close_count": 3,
+      "interp_count": 1,
+      "correct": false
+    },
+    {
+      "title": "Naked fugitive",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.667,
+      "data_count": 0,
+      "close_count": 3,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Herod Antipas",
+      "gold_tier": "clear_split",
+      "pred_tier": "one_sided",
+      "separation": 1.0,
+      "data_count": 24,
+      "close_count": 0,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Triumphal entry into Jerusalem",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.688,
+      "data_count": 20,
+      "close_count": 7,
+      "interp_count": 6,
+      "correct": true
+    },
+    {
+      "title": "James - brother of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.927,
+      "data_count": 98,
+      "close_count": 9,
+      "interp_count": 4,
+      "correct": true
+    },
+    {
+      "title": "Christ's discourse with Nicodemus",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.6,
+      "data_count": 4,
+      "close_count": 4,
+      "interp_count": 3,
+      "correct": false
+    },
+    {
+      "title": "Herod the Great",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.943,
+      "data_count": 35,
+      "close_count": 0,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Bethlehem",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 33,
+      "close_count": 10,
+      "interp_count": 0,
+      "correct": true
+    },
+    {
+      "title": "Cleansing ten lepers",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 2,
+      "close_count": 2,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Herodians",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.667,
+      "data_count": 6,
+      "close_count": 0,
+      "interp_count": 1,
+      "correct": false
+    },
+    {
+      "title": "Parable of the Unforgiving Servant",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 4,
+      "close_count": 6,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Four Evangelists",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 2,
+      "close_count": 6,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Crucifixion of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.745,
+      "data_count": 66,
+      "close_count": 19,
+      "interp_count": 18,
+      "correct": true
+    },
+    {
+      "title": "Pontius Pilate",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "clear_split",
+      "separation": 0.928,
+      "data_count": 75,
+      "close_count": 6,
+      "interp_count": 3,
+      "correct": false
+    },
+    {
+      "title": "I am (biblical term)",
+      "gold_tier": "clear_split",
+      "pred_tier": "one_sided",
+      "separation": 1.0,
+      "data_count": 0,
+      "close_count": 6,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Jesus healing an infirm woman",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.5,
+      "data_count": 3,
+      "close_count": 2,
+      "interp_count": 2,
+      "correct": true
+    },
+    {
+      "title": "Nazareth",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "clear_split",
+      "separation": 0.969,
+      "data_count": 59,
+      "close_count": 6,
+      "interp_count": 1,
+      "correct": false
+    },
+    {
+      "title": "Decapolis",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 14,
+      "close_count": 1,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Penitent thief",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 13,
+      "close_count": 10,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Parable of the Unjust Judge",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.714,
+      "data_count": 2,
+      "close_count": 11,
+      "interp_count": 2,
+      "correct": true
+    },
+    {
+      "title": "Agony in the Garden",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.643,
+      "data_count": 4,
+      "close_count": 8,
+      "interp_count": 3,
+      "correct": true
+    },
+    {
+      "title": "Pre-existence of Christ",
+      "gold_tier": "muddled",
+      "pred_tier": "clear_split",
+      "separation": 0.833,
+      "data_count": 2,
+      "close_count": 21,
+      "interp_count": 2,
+      "correct": false
+    },
+    {
+      "title": "Parables of Jesus",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.759,
+      "data_count": 6,
+      "close_count": 18,
+      "interp_count": 6,
+      "correct": true
+    },
+    {
+      "title": "Zacchaeus",
+      "gold_tier": "clear_split",
+      "pred_tier": "one_sided",
+      "separation": 1.0,
+      "data_count": 6,
+      "close_count": 0,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Miraculous catch of fish",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 12,
+      "close_count": 6,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Zebedee",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 2,
+      "close_count": 1,
+      "interp_count": 0,
+      "correct": true
+    },
+    {
+      "title": "Eye of a needle",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.833,
+      "data_count": 4,
+      "close_count": 7,
+      "interp_count": 2,
+      "correct": true
+    },
+    {
+      "title": "Jesus healing the bleeding woman",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.529,
+      "data_count": 7,
+      "close_count": 7,
+      "interp_count": 4,
+      "correct": true
+    },
+    {
+      "title": "Martha",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 24,
+      "close_count": 3,
+      "interp_count": 0,
+      "correct": true
+    },
+    {
+      "title": "Oral gospel traditions",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "clear_split",
+      "separation": 0.789,
+      "data_count": 1,
+      "close_count": 3,
+      "interp_count": 16,
+      "correct": false
+    },
+    {
+      "title": "Olivet Discourse",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.586,
+      "data_count": 11,
+      "close_count": 13,
+      "interp_count": 6,
+      "correct": true
+    },
+    {
+      "title": "Parable of the Leaven",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.636,
+      "data_count": 3,
+      "close_count": 7,
+      "interp_count": 2,
+      "correct": true
+    },
+    {
+      "title": "Ecce homo",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.75,
+      "data_count": 4,
+      "close_count": 11,
+      "interp_count": 2,
+      "correct": true
+    },
+    {
+      "title": "Mary of Bethany",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.871,
+      "data_count": 29,
+      "close_count": 1,
+      "interp_count": 2,
+      "correct": true
+    },
+    {
+      "title": "Caiaphas",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.7,
+      "data_count": 17,
+      "close_count": 1,
+      "interp_count": 3,
+      "correct": true
+    },
+    {
+      "title": "John the Baptist",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.696,
+      "data_count": 47,
+      "close_count": 38,
+      "interp_count": 28,
+      "correct": true
+    },
+    {
+      "title": "Jesus' authority questioned",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "clear_split",
+      "separation": 0.714,
+      "data_count": 2,
+      "close_count": 4,
+      "interp_count": 2,
+      "correct": false
+    },
+    {
+      "title": "Ephraim in the wilderness",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 2,
+      "close_count": 1,
+      "interp_count": 0,
+      "correct": true
+    },
+    {
+      "title": "Bethany",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 26,
+      "close_count": 4,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Calling of the disciples",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.857,
+      "data_count": 6,
+      "close_count": 1,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Restoration of Peter",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.667,
+      "data_count": 2,
+      "close_count": 11,
+      "interp_count": 3,
+      "correct": true
+    },
+    {
+      "title": "Crucifixion darkness",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.667,
+      "data_count": 14,
+      "close_count": 4,
+      "interp_count": 13,
+      "correct": true
+    },
+    {
+      "title": "Exorcism of the Syrophoenician woman's daughter",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.556,
+      "data_count": 6,
+      "close_count": 2,
+      "interp_count": 2,
+      "correct": true
+    },
+    {
+      "title": "Healing the deaf mute of Decapolis",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.818,
+      "data_count": 4,
+      "close_count": 7,
+      "interp_count": 1,
+      "correct": true
+    },
+    {
+      "title": "Historicity of the Gospels",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.694,
+      "data_count": 8,
+      "close_count": 15,
+      "interp_count": 27,
+      "correct": true
+    },
+    {
+      "title": "Kidron Valley",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 15,
+      "close_count": 4,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Logos (Christianity)",
+      "gold_tier": "clear_split",
+      "pred_tier": "clear_split",
+      "separation": 0.59,
+      "data_count": 7,
+      "close_count": 40,
+      "interp_count": 15,
+      "correct": true
+    },
+    {
+      "title": "Blind man of Bethsaida",
+      "gold_tier": "clear_split",
+      "pred_tier": "unclassifiable",
+      "separation": 1.0,
+      "data_count": 3,
+      "close_count": 1,
+      "interp_count": 0,
+      "correct": false
+    },
+    {
+      "title": "Gabbatha",
+      "gold_tier": "unclassifiable",
+      "pred_tier": "one_sided",
+      "separation": 1.0,
+      "data_count": 7,
+      "close_count": 0,
+      "interp_count": 0,
+      "correct": false
+    }
+  ],
+  "test_correct": 48,
+  "test_total": 81,
+  "test_ci_lower": 0.4815,
+  "test_ci_upper": 0.7037
+}
