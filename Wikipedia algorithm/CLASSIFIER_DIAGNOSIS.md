@@ -5,8 +5,10 @@
 > this file is historical/diagnostic, not a maintained reference.
 
 **Date:** (see git log)
-**Gold set articles:** 39
-**Articles with human labels:** 39
+**Gold set articles:** 36
+**Articles with human labels:** 36
+
+> **Note on counts:** "Gold set articles" / "human labels" above is the row count of `gold-set-section-classifier.csv` (36, after commit b916045 removed 3 domain-excluded rows on 2026-08-04; the historical figure of 39 predates that cleanup). Elsewhere in this doc, a count like "33" refers to a *different* thing: articles that were successfully fetched from the Wikipedia API during calibration, not a row count — see CLASSIFIER_CALIBRATION.md ("Fetched 33/39 gold-set articles"). Do not conflate the two.
 
 ## A.1 — Separation-metric diagnostic (human labels only)
 
@@ -17,13 +19,15 @@ adjacency-based metric measure what the human labels encode?
 | Metric | Value |
 |---|---|
 | t_sep threshold | 0.60 |
-| Articles with `clear_split` human tier | 25 |
+| Articles with `clear_split` human tier | 23 |
 | `clear_split` articles that fail t_sep on own gold labels | 0 |
-| Metric/label mismatch rate | 0.0% (0/25) |
+| Metric/label mismatch rate | 0.0% (0/23) |
 
 **Finding:** All human `clear_split` articles pass the current t_sep=0.60 threshold on their own gold labels. The metric and the labelling construct are consistent — whatever accuracy gap remains is downstream of this metric (embedding or thresholding). See §D.4 for the currently measured tier accuracy.
 
 ### Per-article details
+
+> **Stale-table caveat:** the table below still lists three articles ("List of gospels", "Four Evangelists", "Synoptic Gospels") removed from the gold set by commit b916045. They are left in place rather than deleted here because removing rows without recomputing the metrics derived from them would silently change the accuracy/coverage figures elsewhere in this document; a full refresh requires re-running `calibrate.py`.
 
 | Article | Human tier | Separation | Transitions | Data | Interp | Total | Metric failure? |
 |---|---|---|---|---|---|---|---|
@@ -90,13 +94,13 @@ A paragraph must clear `t_register` to be considered class-bearing at all; if it
 
 `calibrate.py`'s `sweep_t_data_interp_from_cache()` sweeps `t_data`, `t_close`, `t_interp`, and `t_register` as four **independent** grids (nested loops, each over its own `np.arange(...)`), not a tied pair — asymmetric thresholds (e.g. `t_data=0.60, t_interp=0.45`) are explored and are in fact what the current winning configuration uses. (An earlier version of this diagnostic, when the sweep really was 1-D and the classes were swept as a tied pair, is what this section originally described — verify against the current function body before trusting this claim on a future rerun, since the sweep implementation can change independently of this doc.)
 
-`calibrate.py`'s `choose_best()` maximises accuracy over all 39 gold-set articles with **no held-out set** — the reported tier accuracy (see §D.4) is an in-sample optimum, and the true out-of-sample accuracy could be lower. See §D.5 for the honest out-of-sample estimate against the LLM-labelled corpus.
+`calibrate.py`'s `choose_best()` maximises accuracy over all 36 gold-set articles with **no held-out set** — the reported tier accuracy (see §D.4) is an in-sample optimum, and the true out-of-sample accuracy could be lower. See §D.5 for the honest out-of-sample estimate against the LLM-labelled corpus.
 
 ## A.5 — Bootstrap confidence interval
 
-At n=39 gold-set articles, a Wilson-score 95% CI band for a proportion near 0.5 is roughly ±0.15 — the sample is small enough that tier accuracy alone is a noisy signal. §D.4 reports the actual bootstrap 95% CI for the current calibrated configuration (computed directly by `calibrate.py`'s `bootstrap_ci()`, which is more precise than this generic approximation); read the accuracy number there alongside its CI rather than as a point estimate.
+At n=36 gold-set articles, a Wilson-score 95% CI band for a proportion near 0.5 is roughly ±0.15 — the sample is small enough that tier accuracy alone is a noisy signal. §D.4 reports the actual bootstrap 95% CI for the current calibrated configuration (computed directly by `calibrate.py`'s `bootstrap_ci()`, which is more precise than this generic approximation); read the accuracy number there alongside its CI rather than as a point estimate.
 
-**Implication for the ≥0.85 gate:** even a future calibration run that reports 0.85 should be read against its own CI at this sample size (n=39) — the 0.85 gate should be interpreted alongside the CI, and gold-set expansion should be scoped as a prerequisite for any activation decision.
+**Implication for the ≥0.85 gate:** even a future calibration run that reports 0.85 should be read against its own CI at this sample size (n=36) — the 0.85 gate should be interpreted alongside the CI, and gold-set expansion should be scoped as a prerequisite for any activation decision.
 
 ## D.4 — Four-way bake-off results
 
@@ -114,7 +118,7 @@ At n=39 gold-set articles, a Wilson-score 95% CI band for a proportion near 0.5 
 ## D.5 — Held-out validation (LLM-labelled corpus)
 
 Validates `calibrate.py`'s `calibrate_with_held_out()` against the
-270-article LLM-labelled corpus (`labels-corpus.json`), replacing §D.4's
+266-article LLM-labelled corpus (`labels-corpus.json`, 4 articles excluded for empty label arrays — see issue #226), replacing §D.4's
 in-sample-only estimate with an honest 70/30 train/test split (seed=42).
 Thresholds are swept on the train split only; the reported test accuracy
 below is measured on articles the sweep never saw.
@@ -123,23 +127,23 @@ below is measured on articles the sweep never saw.
 |---|---|
 | Scoring rule | centroid |
 | Separation mode | adjacency |
-| Train articles | 189 |
-| Test articles | 81 |
+| Train articles | 186 |
+| Test articles | 80 |
 
 | Metric | Value |
 |---|---|
-| Train accuracy (in-sample, train split) | 0.640 |
-| Test accuracy (held-out) | 0.593 |
-| Train − test gap | 0.048 |
-| Test accuracy 95% CI (bootstrap) | [0.481, 0.704] |
+| Train accuracy (in-sample, train split) | 0.586 |
+| Test accuracy (held-out) | 0.450 |
+| Train − test gap | 0.136 |
+| Test accuracy 95% CI (bootstrap) | [0.338, 0.562] |
 
 ### Best train-split configuration
 
 | Parameter | Value |
 |---|---|
-| t_data | 0.45 |
+| t_data | 0.55 |
 | t_close | 0.40 |
-| t_interp | 0.60 |
+| t_interp | 0.65 |
 | t_sep | 0.50 |
 | t_register | 0.15 |
 
@@ -171,7 +175,7 @@ Covers all 1301 classified paragraphs across the gold-set articles (no gold alig
 
 ### C.2 — Aligned-6 confusion matrix (index-aligned gold paragraphs)
 
-Covers 91 of the 1,219 gold-set-section-classifier.csv paragraph labels (91/1219 = 7.5%) — the only paragraphs where the classifier's own segmentation exactly matches gold's paragraph count (6/39 articles: Gospel of Luke, Gospel of Matthew, Women at the crucifixion, Naked fugitive, Jesus at Herod's court, Arrest of Jesus). The remaining gold labels cannot be index-aligned; see §C.4 for why.
+Covers 91 of the 1,219 gold-set-section-classifier.csv paragraph labels (91/1219 = 7.5%) — the only paragraphs where the classifier's own segmentation exactly matches gold's paragraph count (6/36 articles: Gospel of Luke, Gospel of Matthew, Women at the crucifixion, Naked fugitive, Jesus at Herod's court, Arrest of Jesus). The remaining gold labels cannot be index-aligned; see §C.4 for why.
 
 Collapsed confusion matrix (gold rows x predicted columns; 'close' predictions collapsed into 'data', 'other' into 'neither'):
 
@@ -191,7 +195,7 @@ Collapsed confusion matrix (gold rows x predicted columns; 'close' predictions c
 
 ### C.3 — Three-tier standalone confusion matrix
 
-Covers all 136 paragraphs in `gold-set-three-tier.csv` (45 articles), classified standalone with no surrounding article context (no alignment needed — the gold file carries the actual paragraph text). This is the only measurement in the codebase that validates the close-analysis (Tier 2) store directly against a human label, since gold-set-section-classifier.csv only distinguishes data/interpretation/neither. Coverage caveat: only 9 of gold-set-three-tier.csv's 45 article titles overlap with the 39-article gold-set-section-classifier.csv, and 130/136 rows are paragraph_index 0-2 (ledes/openings) — this is a different, opening-skewed sample, not a text-bearing subset of the 1,219-label corpus.
+Covers all 136 paragraphs in `gold-set-three-tier.csv` (45 articles), classified standalone with no surrounding article context (no alignment needed — the gold file carries the actual paragraph text). This is the only measurement in the codebase that validates the close-analysis (Tier 2) store directly against a human label, since gold-set-section-classifier.csv only distinguishes data/interpretation/neither. Coverage caveat: only 9 of gold-set-three-tier.csv's 45 article titles overlap with the 36-article gold-set-section-classifier.csv, and 130/136 rows are paragraph_index 0-2 (ledes/openings) — this is a different, opening-skewed sample, not a text-bearing subset of the 1,219-label corpus.
 
 Raw (pre-collapse) predicted-label distribution on this slice:
 
@@ -223,14 +227,14 @@ Collapsed confusion matrix (gold rows x predicted columns):
 
 ### C.4 — Why the full 1,219-label corpus can't be measured directly
 
-`gold-set-section-classifier.csv`'s `per_paragraph_labels` column carries labels only, no paragraph text — so there is nothing to text-match against for the 33/39 articles whose classifier-side paragraph count doesn't match gold's (see CLASSIFIER_DIAGNOSIS.md §A.1, VALIDATION_REPORT.md). Re-deriving the original labellers' paragraph segmentation is not reproducible after the fact: `GOLD_SET_LABELLING_PROCEDURE.md` describes labelling against the *visually rendered* Wikipedia page, while the classifier (and this harness) reads the parse-API HTML extract — the two pipelines split paragraphs at different points (e.g. infobox/caption text, collapsed sections) with no recorded mapping between them. `gold-set-three-tier.csv` (§C.3) was checked as a text-matching bridge — it carries `paragraph_text` — but for the 9 article titles it shares with the 39-article gold set, none of its 31 paragraph texts appear verbatim, as a substring, or as a close fuzzy match (difflib, cutoff=0.6) in the corresponding live-fetched paragraphs; Wikipedia article text has drifted since the gold set was labelled and/or the recorded text was paraphrased rather than extracted verbatim. Expanding coverage further requires new data — either re-labelling against the classifier's own parse-API segmentation, or a scripted, versioned re-extraction with a recorded index mapping — not something this harness can produce honestly from the files that exist today. §C.1-C.3 therefore report their own coverage explicitly rather than presenting the aligned/standalone slices as corpus-wide.
+`gold-set-section-classifier.csv`'s `per_paragraph_labels` column carries labels only, no paragraph text — so there is nothing to text-match against for the articles (33/39 before the 2026-08-04 gold-set cleanup; not recomputed against the current 36-row set — see the counts note near the top of this file) whose classifier-side paragraph count doesn't match gold's (see CLASSIFIER_DIAGNOSIS.md §A.1, VALIDATION_REPORT.md). Re-deriving the original labellers' paragraph segmentation is not reproducible after the fact: `GOLD_SET_LABELLING_PROCEDURE.md` describes labelling against the *visually rendered* Wikipedia page, while the classifier (and this harness) reads the parse-API HTML extract — the two pipelines split paragraphs at different points (e.g. infobox/caption text, collapsed sections) with no recorded mapping between them. `gold-set-three-tier.csv` (§C.3) was checked as a text-matching bridge — it carries `paragraph_text` — but for the 9 article titles it shares with the 36-article gold set, none of its 31 paragraph texts appear verbatim, as a substring, or as a close fuzzy match (difflib, cutoff=0.6) in the corresponding live-fetched paragraphs; Wikipedia article text has drifted since the gold set was labelled and/or the recorded text was paraphrased rather than extracted verbatim. Expanding coverage further requires new data — either re-labelling against the classifier's own parse-API segmentation, or a scripted, versioned re-extraction with a recorded index mapping — not something this harness can produce honestly from the files that exist today. §C.1-C.3 therefore report their own coverage explicitly rather than presenting the aligned/standalone slices as corpus-wide.
 ## B — Register-gate coverage diagnostic (2026-07-30)
 
 Measures the register gate's paragraph-level cost directly against the 1,219 gold-set paragraph labels (`gold-set-section-classifier.csv`, `per_paragraph_labels`), rather than inferring it from article-level tier accuracy. See `scripts/diagnose_register_gate.py`.
 
 ### B.1 — Root cause: threshold coverage, not mislabelled exemplars
 
-At the pre-fix config (`t_register=0.40`), of 1320 body paragraphs across all 39 gold articles, the register gate failed on 28 (2.1%):
+At the pre-fix config (`t_register=0.40`), of 1320 body paragraphs across all 36 gold articles, the register gate failed on 28 (2.1%):
 
 - **13** (1.0%) were zeroed by the nearest-neighbour-negative rule (nearest register-store match is a 'negative' exemplar at cosine ≥ 0.75) — this rules out mislabelled/overly-broad negative exemplars as the dominant cause.
 
@@ -244,7 +248,7 @@ At the pre-fix config (`t_register=0.40`), of 1320 body paragraphs across all 39
 
 | Metric | Pre-fix (mean-cosine, t_register=0.40) | Post-fix (centroid, t_register=0.15) |
 |---|---|---|
-| Corpus-wide `neither` rate (39 articles) | 49.7% | 12.6% |
+| Corpus-wide `neither` rate (36 articles) | 49.7% | 12.6% |
 | Gold `neither` rate (human labellers) | 2.3% (28/1,219) | 2.3% (28/1,219) |
 | False `neither` on real data/interp paragraphs (aligned-6 slice) | 28/88 (31.8%) | 11/88 (12.5%) |
 | Data-vs-interpretation accuracy on classified paragraphs (aligned-6) | 0.700 (n=60) | 0.662 (n=77) |

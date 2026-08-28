@@ -96,6 +96,14 @@ def load_llm_corpus(path: Optional[Path] = None) -> dict[str, list[str]]:
                 current_hash,
             )
             continue
+        if not article.get("labels"):
+            logger.warning(
+                "LLM-labelled article '%s': empty labels array despite a "
+                "recorded successful chunk run; excluding from LLM source "
+                "(falling back to embedding classifier).",
+                title,
+            )
+            continue
         result[title] = article["labels"]
 
     logger.info(

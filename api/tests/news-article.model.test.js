@@ -242,6 +242,52 @@ describe("news-article: getAllPublished() date ordering DESC", () => {
   });
 });
 
+// ── Pagination (API-8) ──────────────────────────────────────────────────────
+
+describe("news-article: getAllPublished() pagination", () => {
+  beforeEach(clearAll);
+
+  function seedThree() {
+    for (let i = 1; i <= 3; i += 1) {
+      newsArticleModel.create({
+        slug: `page-article-${i}`,
+        news_article_title: `Page Article ${i}`,
+        published_draft: 1,
+        news_article_date: `2024-01-0${i}`,
+      });
+    }
+  }
+
+  test("no page/limit returns a flat array (backward compatible)", () => {
+    seedThree();
+    const result = newsArticleModel.getAllPublished();
+    assert.ok(Array.isArray(result));
+    assert.equal(result.length, 3);
+  });
+
+  test("page/limit given returns the paginated envelope", () => {
+    seedThree();
+    const result = newsArticleModel.getAllPublished({ page: 1, limit: 2 });
+    assert.deepStrictEqual(Object.keys(result).sort(), [
+      "items",
+      "limit",
+      "page",
+      "total",
+      "totalPages",
+    ]);
+    assert.equal(result.items.length, 2);
+    assert.equal(result.total, 3);
+    assert.equal(result.totalPages, 2);
+  });
+
+  test("invalid page throws INVALID_NUMERIC_PARAM", () => {
+    seedThree();
+    assert.throws(() => newsArticleModel.getAllPublished({ page: 0 }), {
+      code: "E-INPUT-005",
+    });
+  });
+});
+
 // ── Public slug-based reads ─────────────────────────────────────────────────
 
 describe("news-article: getBySlug() public filtering", () => {

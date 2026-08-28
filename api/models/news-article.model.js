@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require('../config');
-const { pickWritable, generateUniqueSlug, runUpdate } = require('./model-helpers');
+const { pickWritable, generateUniqueSlug, runUpdate, paginate } = require('./model-helpers');
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -26,13 +26,16 @@ const ALL_COLUMNS = ['id', ...WRITABLE_COLUMNS].join(', ');
 
 /**
  * Published news articles for the public site, newest first.
+ *
+ * When `page` and `limit` are provided, returns a paginated response:
+ *   { items: [...], total: N, page: N, limit: N, totalPages: N }
+ * When they are absent, returns a flat array (backward compatible).
  */
-function getAllPublished() {
-    return db
-        .prepare(
-            `SELECT ${ALL_COLUMNS} FROM news_articles WHERE published_draft = 1 ORDER BY news_article_date DESC, id DESC`
-        )
-        .all();
+function getAllPublished(filters = {}) {
+    const { page, limit } = filters;
+    const itemsSql = `SELECT ${ALL_COLUMNS} FROM news_articles WHERE published_draft = 1 ORDER BY news_article_date DESC, id DESC`;
+    const countSql = `SELECT COUNT(*) AS total FROM news_articles WHERE published_draft = 1`;
+    return paginate(db, itemsSql, countSql, [], { page, limit });
 }
 
 /**

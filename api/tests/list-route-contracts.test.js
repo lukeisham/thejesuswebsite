@@ -76,6 +76,7 @@ const PAGINATION_TEST_PATHS = {
   "/historiography": "/historiography?page=1&limit=1",
   "/responses": "/responses?page=1&limit=1",
   "/blog-posts": "/blog-posts?page=1&limit=1",
+  "/news-articles": "/news-articles?page=1&limit=1",
   "/collections": "/collections?page=1&limit=1",
   "/resources": "/resources?list_key=parables&page=1&limit=1",
   "/identifiers": "/identifiers?page=1&limit=1",
