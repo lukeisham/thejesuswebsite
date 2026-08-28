@@ -4,6 +4,8 @@
 const express = require("express");
 const draftsModel = require("../models/drafts.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -13,7 +15,7 @@ router.get("/", requireAuth, (req, res) => {
     res.json(draftsModel.getAllDrafts());
   } catch (error) {
     console.error("GET /drafts failed:", error);
-    res.status(500).json({ error: "Failed to load drafts." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -23,7 +25,7 @@ router.get("/counts", requireAuth, (req, res) => {
     res.json(draftsModel.getDraftCounts());
   } catch (error) {
     console.error("GET /drafts/counts failed:", error);
-    res.status(500).json({ error: "Failed to load draft counts." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

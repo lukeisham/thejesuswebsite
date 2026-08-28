@@ -16,7 +16,7 @@ router.get("/", (req, res) => {
     res.json(items);
   } catch (error) {
     console.error("GET /popular-challenges failed:", error);
-    res.status(500).json({ error: "Failed to load popular challenges." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -28,7 +28,7 @@ router.get("/admin", requireAuth, (req, res) => {
     res.json(items);
   } catch (error) {
     console.error("GET /popular-challenges/admin failed:", error);
-    res.status(500).json({ error: "Failed to load popular challenges." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -41,7 +41,7 @@ router.get("/admin/:id", requireAuth, (req, res) => {
     res.json(item);
   } catch (error) {
     console.error("GET /popular-challenges/admin/:id failed:", error);
-    res.status(500).json({ error: "Failed to load challenge detail." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -54,7 +54,7 @@ router.get("/:slug", (req, res) => {
     res.json(item);
   } catch (error) {
     console.error("GET /popular-challenges/:slug failed:", error);
-    res.status(500).json({ error: "Failed to load challenge." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -62,13 +62,13 @@ router.get("/:slug", (req, res) => {
 router.post("/", requireAuth, (req, res) => {
   try {
     if (!req.body.slug) {
-      return res.status(400).json({ error: "slug is required." });
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, { fields: ["slug"] });
     }
     const created = challengeModel.createComposite(req.body);
     res.status(201).json(created);
   } catch (error) {
     console.error("POST /popular-challenges failed:", error);
-    res.status(500).json({ error: "Failed to create popular challenge." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -81,7 +81,7 @@ router.put("/:id", requireAuth, (req, res) => {
     res.json(updated);
   } catch (error) {
     console.error("PUT /popular-challenges/:id failed:", error);
-    res.status(500).json({ error: "Failed to update popular challenge." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -94,7 +94,7 @@ router.delete("/:id", requireAuth, (req, res) => {
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /popular-challenges/:id failed:", error);
-    res.status(500).json({ error: "Failed to delete popular challenge." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

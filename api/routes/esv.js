@@ -4,7 +4,7 @@
 
 const express = require("express");
 const ERRORS = require("../lib/error-codes");
-const { sendError } = require("../lib/error-handler");
+const { sendError, sendValidationError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -21,13 +21,13 @@ router.get("/passage", async (req, res) => {
   // book names, chapter:verse, ranges only. Without this gate the `q` param
   // would make this route an open proxy for arbitrary upstream requests.
   if (!reference || reference.length > 60 || !/^[\w\s.:,–-]+$/.test(reference)) {
-    return res.status(400).json({ error: "Invalid passage reference." });
+    return sendValidationError(res, "q", ERRORS.INVALID_PASSAGE_FORMAT, {
+      received: reference,
+    });
   }
 
   if (!process.env.ESV_API_KEY) {
-    return res
-      .status(503)
-      .json({ error: "ESV API is not configured (ESV_API_KEY missing)." });
+    return sendError(res, ERRORS.MISSING_ENV_VARIABLE);
   }
 
   const cached = cache.get(reference);

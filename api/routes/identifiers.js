@@ -4,6 +4,8 @@
 const express = require("express");
 const identifiersModel = require("../models/identifiers.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -14,7 +16,7 @@ router.get("/", (req, res) => {
     res.json(items);
   } catch (error) {
     console.error("GET /identifiers failed:", error);
-    res.status(500).json({ error: "Failed to load identifiers." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -25,7 +27,7 @@ router.get("/admin", requireAuth, (req, res) => {
     res.json(items);
   } catch (error) {
     console.error("GET /identifiers/admin failed:", error);
-    res.status(500).json({ error: "Failed to load identifiers." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -33,11 +35,11 @@ router.get("/admin", requireAuth, (req, res) => {
 router.get("/:id", (req, res) => {
   try {
     const item = identifiersModel.getById(Number(req.params.id));
-    if (!item) return res.status(404).json({ error: "Identifier not found." });
+    if (!item) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "identifier", id: req.params.id });
     res.json(item);
   } catch (error) {
     console.error("GET /identifiers/:id failed:", error);
-    res.status(500).json({ error: "Failed to load identifier." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -48,7 +50,7 @@ router.post("/", requireAuth, (req, res) => {
     res.status(201).json(created);
   } catch (error) {
     console.error("POST /identifiers failed:", error);
-    res.status(500).json({ error: "Failed to create identifier." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -57,11 +59,11 @@ router.put("/:id", requireAuth, (req, res) => {
   try {
     const updated = identifiersModel.update(Number(req.params.id), req.body);
     if (!updated)
-      return res.status(404).json({ error: "Identifier not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "identifier", id: req.params.id });
     res.json(updated);
   } catch (error) {
     console.error("PUT /identifiers/:id failed:", error);
-    res.status(500).json({ error: "Failed to update identifier." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -70,11 +72,11 @@ router.delete("/:id", requireAuth, (req, res) => {
   try {
     const removed = identifiersModel.remove(Number(req.params.id));
     if (!removed)
-      return res.status(404).json({ error: "Identifier not found." });
+      return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "identifier", id: req.params.id });
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /identifiers/:id failed:", error);
-    res.status(500).json({ error: "Failed to delete identifier." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

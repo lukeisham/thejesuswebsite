@@ -16,7 +16,7 @@ router.get("/", (req, res) => {
     res.json(items);
   } catch (error) {
     console.error("GET /blog-posts failed:", error);
-    res.status(500).json({ error: "Failed to load blog posts." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -29,7 +29,7 @@ router.get("/admin", requireAuth, (req, res) => {
     res.json(items);
   } catch (error) {
     console.error("GET /blog-posts/admin failed:", error);
-    res.status(500).json({ error: "Failed to load blog posts." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -42,7 +42,7 @@ router.get("/admin/:id", requireAuth, (req, res) => {
     res.json(item);
   } catch (error) {
     console.error("GET /blog-posts/admin/:id failed:", error);
-    res.status(500).json({ error: "Failed to load blog post." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -55,7 +55,7 @@ router.get("/:slug", (req, res) => {
     res.json(item);
   } catch (error) {
     console.error("GET /blog-posts/:slug failed:", error);
-    res.status(500).json({ error: "Failed to load blog post." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -63,7 +63,7 @@ router.get("/:slug", (req, res) => {
 router.post("/", requireAuth, (req, res) => {
   try {
     if (!req.body.slug) {
-      return res.status(400).json({ error: "slug is required." });
+      return sendError(res, ERRORS.MISSING_BODY_FIELD, { fields: ["slug"] });
     }
     const created = blogPostModel.createComposite(req.body);
     res.status(201).json(created);
@@ -72,7 +72,7 @@ router.post("/", requireAuth, (req, res) => {
       return sendValidationError(res, "slug", ERRORS.INVALID_SLUG);
     }
     console.error("POST /blog-posts failed:", error);
-    res.status(500).json({ error: "Failed to create blog post." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -91,7 +91,7 @@ router.put("/:id", requireAuth, (req, res) => {
       return sendValidationError(res, "slug", ERRORS.INVALID_SLUG);
     }
     console.error("PUT /blog-posts/:id failed:", error);
-    res.status(500).json({ error: "Failed to update blog post." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -104,7 +104,7 @@ router.delete("/:id", requireAuth, (req, res) => {
     res.status(204).end();
   } catch (error) {
     console.error("DELETE /blog-posts/:id failed:", error);
-    res.status(500).json({ error: "Failed to delete blog post." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

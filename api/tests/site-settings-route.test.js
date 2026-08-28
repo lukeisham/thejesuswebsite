@@ -122,6 +122,7 @@ describe("PUT /site-settings", () => {
     });
 
     assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-001");
   });
 
   test("returns 200 and persists a valid payload", async () => {

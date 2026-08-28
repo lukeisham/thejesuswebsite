@@ -4,6 +4,8 @@
 const express = require("express");
 const timelineModel = require("../models/timeline.model");
 const requireAuth = require("../middleware/auth");
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
 
 const router = express.Router();
 
@@ -19,7 +21,7 @@ router.get("/", (req, res) => {
     );
   } catch (error) {
     console.error("GET /timeline failed:", error);
-    res.status(500).json({ error: "Failed to load timeline." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -35,7 +37,7 @@ router.get("/admin", requireAuth, (req, res) => {
     );
   } catch (error) {
     console.error("GET /timeline/admin failed:", error);
-    res.status(500).json({ error: "Failed to load timeline." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 
@@ -43,12 +45,12 @@ router.get("/admin", requireAuth, (req, res) => {
 router.get("/:era", (req, res) => {
   try {
     if (!timelineModel.ERA_ORDER.includes(req.params.era)) {
-      return res.status(400).json({ error: "Unknown era." });
+      return sendError(res, ERRORS.INVALID_URL_PARAM, { field: "era", received: req.params.era });
     }
     res.json(timelineModel.getByEra(req.params.era));
   } catch (error) {
     console.error("GET /timeline/:era failed:", error);
-    res.status(500).json({ error: "Failed to load timeline era." });
+    sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
 });
 

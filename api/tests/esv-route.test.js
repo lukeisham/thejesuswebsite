@@ -109,7 +109,7 @@ describe('GET /esv/passage', () => {
   test('GET /passage with invalid characters in q returns 400', async () => {
     const res = await makeRequest(app, 'GET', '/esv/passage?q=Luke!1@1');
     assert.equal(res.status, 400);
-    assert.ok(res.body.error);
+    assert.equal(res.body.error.code, 'E-INPUT-011');
   });
 
   test('GET /passage with missing q returns 400', async () => {
@@ -137,10 +137,7 @@ describe('GET /esv/passage', () => {
 
     const res = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1');
     assert.equal(res.status, 503);
-    assert.ok(res.body.error);
-    // The route returns { error: "message string" } for this check
-    const errorMsg = typeof res.body.error === 'string' ? res.body.error : res.body.error.message || '';
-    assert.match(errorMsg, /not configured|ESV_API_KEY/i);
+    assert.equal(res.body.error.code, 'E-PERSIST-008');
   });
 
   // ── Upstream error handling ───────────────────────────────────────────────
