@@ -98,47 +98,6 @@ def _is_reference_heading(paragraph_text: str) -> bool:
     return False
 
 
-def _is_reference_section(paragraph_text: str) -> bool:
-    """Check whether a paragraph is reference-list content (not a heading).
-
-    Used for paragraphs AFTER the reference section has already been
-    detected via _is_reference_heading. Requires at least 3 citation-like
-    lines to avoid false positives from body paragraphs.
-
-    Args:
-        paragraph_text: The paragraph text.
-
-    Returns:
-        True if this looks like reference-list content.
-    """
-    text_lower = paragraph_text.lower().strip()
-    lines = text_lower.split("\n")
-
-    citation_lines = 0
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-        # Heuristic: citation lines are short (< 300 chars) and contain
-        # author-year patterns, URLs, DOIs, or ISBNs.
-        if len(line) < 300 and (
-            re.search(r"\b\d{4}\b", line)
-            or "http" in line
-            or "doi" in line
-            or "isbn" in line
-            or re.search(r"^[\^↑]\s", line)
-        ):
-            citation_lines += 1
-
-    # Require at least 3 citation-like lines AND > 50% of non-empty lines.
-    non_empty = [l for l in lines if l.strip()]
-    if len(non_empty) >= 3 and citation_lines >= 3:
-        if citation_lines / len(non_empty) > 0.5:
-            return True
-
-    return False
-
-
 def _apply_nearest_neighbour_rule(results: list[dict]) -> float:
     """Compute the similarity score for one store's query results.
 

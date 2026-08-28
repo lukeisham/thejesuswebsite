@@ -2,7 +2,11 @@
 
 Two or more stores must fire for the signal to resolve true; weight is flat.
 
-Used by: the data/interpretation split (Plan 4) and confessional-balance.
+Designated by ALGORITHM_GUIDE_the_how.md §2.8 for the data/interpretation
+split (row 3) and confessional-balance (row 17). Not yet wired into those
+families — the D/I split currently lives in classifier/scorer.py and
+confessional-balance implements its checks inline — so this module is
+spec-scaffolding, kept so the designed shape stays available for the refactor.
 """
 
 from typing import Optional

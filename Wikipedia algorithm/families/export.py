@@ -110,15 +110,6 @@ def _dispatch_family(
     """Dispatch to the correct family score function based on family name."""
     import re
 
-    # Families that only need article_text + store.
-    simple_families = {"balanced-debate", "ot-nt-discontinuity"}
-
-    # Families that need category_flags + passion_margin.
-    scoped_families = {"anti-supernatural", "secular-materialist"}
-
-    # Families that need balanced_debate_score.
-    debate_dependent = {"mythicist-framing", "jesus-seminar"}
-
     if family_name == "balanced-debate":
         # Extract interpretation paragraphs from labels.
         interp_texts = _extract_interpretation_paragraphs(article_text, paragraph_labels)
@@ -245,6 +236,10 @@ def export_batch(
                     article_scores[family_name] = contribution
 
                 # Track balanced-debate score for imbalance surcharge.
+                # Depends on registry.FAMILIES listing "balanced-debate" FIRST
+                # (dict order == scoring order) — the downstream families
+                # "mythicist-framing"/"jesus-seminar" read this score on their
+                # own iteration, so it must already be computed by then.
                 if family_name == "balanced-debate":
                     balanced_debate_score = contribution
 

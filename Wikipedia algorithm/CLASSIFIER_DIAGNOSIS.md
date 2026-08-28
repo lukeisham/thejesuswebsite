@@ -102,14 +102,14 @@ At n=39 gold-set articles, a Wilson-score 95% CI band for a proportion near 0.5 
 
 | Separation metric | Scoring rule | Best t_data | Best t_close | Best t_interp | Best t_register | Best t_sep | Tier accuracy | 95% CI |
 |---|---|---|---|---|---|---|---|---|
-| Adjacency (current) | Mean-cosine (current) | 0.40 | 0.65 | 0.40 | 0.40 | 0.65 | 0.615 | [0.462, 0.769] |
-| Block-structure (new) | Mean-cosine (current) | 0.40 | 0.65 | 0.40 | 0.40 | 0.65 | 0.615 | [0.462, 0.769] |
-| Adjacency (current) | Centroid | 0.60 | 0.60 | 0.45 | 0.15 | 0.50 | 0.641 | [0.487, 0.795] |
-| Block-structure (new) | Centroid | 0.60 | 0.60 | 0.45 | 0.15 | 0.50 | 0.641 | [0.487, 0.795] |
+| Adjacency (current) | Mean-cosine (current) | 0.40 | 0.65 | 0.40 | 0.40 | 0.65 | 0.639 | [0.472, 0.806] |
+| Block-structure (new) | Mean-cosine (current) | 0.40 | 0.65 | 0.40 | 0.40 | 0.65 | 0.639 | [0.472, 0.806] |
+| Adjacency (current) | Centroid | 0.60 | 0.60 | 0.45 | 0.15 | 0.50 | 0.667 | [0.500, 0.806] |
+| Block-structure (new) | Centroid | 0.60 | 0.60 | 0.45 | 0.15 | 0.50 | 0.667 | [0.500, 0.806] |
 
 **Interpretation:** The row with the highest accuracy identifies the dominant fix. If the block-structure row substantially outperforms the adjacency row, the separation metric is the primary error source. If the centroid rows outperform the mean-cosine rows, the scoring rule is primary. If none reaches the 0.85 gate, embedding capacity is the binding constraint.
 
-**Bake-off interpretation:** The best configuration (adjacency × centroid) achieves 0.641 accuracy (CI [0.487, 0.795]). This does NOT clear the ≥0.85 gate. The adjacency metric matches or outperforms block-structure, suggesting the separation functional is not the primary bottleneck. The centroid scoring rule outperforms mean-cosine, indicating the scoring rule is a meaningful error source. Since neither fix alone crosses the 0.85 gate, embedding capacity (MiniLM discriminative power) is likely the binding constraint — a larger ONNX model or expanded exemplar sets may be necessary.
+**Bake-off interpretation:** The best configuration (adjacency × centroid) achieves 0.667 accuracy (CI [0.500, 0.806]). This does NOT clear the ≥0.85 gate. The adjacency metric matches or outperforms block-structure, suggesting the separation functional is not the primary bottleneck. The centroid scoring rule outperforms mean-cosine, indicating the scoring rule is a meaningful error source. Since neither fix alone crosses the 0.85 gate, embedding capacity (MiniLM discriminative power) is likely the binding constraint — a larger ONNX model or expanded exemplar sets may be necessary.
 
 ## D.5 — Held-out validation (LLM-labelled corpus)
 
@@ -157,17 +157,17 @@ Generated automatically by `calibrate.py` on every run, at the winning bake-off 
 
 ### C.1 — Corpus-wide raw label distribution and `neither` rate
 
-Covers all 1359 classified paragraphs across the gold-set articles (no gold alignment required for this slice).
+Covers all 1301 classified paragraphs across the gold-set articles (no gold alignment required for this slice).
 
 | Label | Count |
 |---|---|
-| data | 276 |
-| close | 185 |
-| interpretation | 681 |
-| neither | 178 |
-| other | 39 |
+| data | 272 |
+| close | 165 |
+| interpretation | 661 |
+| neither | 167 |
+| other | 36 |
 
-`neither` rate: **13.1%** (178/1359) vs. human baseline **2.3%** (28/1,219).
+`neither` rate: **12.8%** (167/1301) vs. human baseline **2.3%** (28/1,219).
 
 ### C.2 — Aligned-6 confusion matrix (index-aligned gold paragraphs)
 

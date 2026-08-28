@@ -118,7 +118,7 @@ Best t_sep = 0.60 with tier accuracy 0.303.
 
 ## Calibration Results
 
-**Date:** 2026-07-31
+**Date:** 2026-08-28
 
 ### Methodology
 
@@ -143,10 +143,10 @@ three-tier slices are the closest paragraph-level proxies available.
 
 | t_data | t_interp | Tier accuracy | 95% CI |
 |---|---|---|---|
-| 0.60 | 0.45 | 0.641 | [0.487, 0.795] |
-| 0.60 | 0.45 | 0.641 | [0.487, 0.795] |
-| 0.40 | 0.40 | 0.615 | [0.462, 0.769] |
-| 0.40 | 0.40 | 0.615 | [0.462, 0.769] |
+| 0.60 | 0.45 | 0.667 | [0.500, 0.806] |
+| 0.60 | 0.45 | 0.667 | [0.500, 0.806] |
+| 0.40 | 0.40 | 0.639 | [0.472, 0.806] |
+| 0.40 | 0.40 | 0.639 | [0.472, 0.806] |
 
 ### Best configuration
 
@@ -159,23 +159,23 @@ three-tier slices are the closest paragraph-level proxies available.
 | t_interp | 0.45 |
 | t_register | 0.15 |
 | t_sep | 0.50 |
-| Tier accuracy | 0.641 |
-| 95% CI | [0.487, 0.795] |
-| Articles correct | 25/39 |
+| Tier accuracy | 0.667 |
+| 95% CI | [0.500, 0.806] |
+| Articles correct | 24/36 |
 
 ### Tier-level stats (by state name)
 
 | Tier | Precision | Recall | F1 |
 |---|---|---|---|
-| clear_split | 0.667 | 0.880 | 0.759 |
-| muddled | 0.500 | 0.231 | 0.316 |
+| clear_split | 0.677 | 0.913 | 0.778 |
+| muddled | 0.600 | 0.250 | 0.353 |
 | one_sided | 0.000 | 0.000 | 0.000 |
 | unclassifiable | 0.000 | 0.000 | 0.000 |
 
 **Note on `one_sided`/`unclassifiable` showing 0.000/0.000:** this is a
 degenerate-class artifact of gold-set size, not a broken code path. The gold
 set contains exactly **1** `one_side_only` article(s) and
-**0** `unclassifiable` article(s) out of 39
+**0** `unclassifiable` article(s) out of 36
 total — essentially unmeasurable classes at this n. (`calibrate.py`'s
 `GOLD_TIER_STATE` mapping correctly maps the gold CSV's `"one_side_only"`
 string to the internal `"one_sided"` state, so this is not a string-mismatch
@@ -187,7 +187,7 @@ expansion.
 
 | Criterion | Threshold | Actual | 95% CI | Status |
 |---|---|---|---|---|
-| Tier accuracy | ≥ 0.85 | 0.641 | [0.487, 0.795] | ❌ FAIL |
+| Tier accuracy | ≥ 0.85 | 0.667 | [0.500, 0.806] | ❌ FAIL |
 
 ### Dev-machine install footprint
 

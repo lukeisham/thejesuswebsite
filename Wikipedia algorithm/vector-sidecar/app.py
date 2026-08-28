@@ -35,6 +35,7 @@ explicitly when starting the pm2 process.
 
 import logging
 import os
+import threading
 
 from pathlib import Path
 from typing import Literal
@@ -60,34 +61,44 @@ app = FastAPI(title="thejesuswebsite vector sidecar")
 _embedder: Embedder | None = None
 _stores: dict[str, VectorStore] = {}
 
+# Guards the lazy singleton check-then-set below. The /query route is a sync
+# def, so FastAPI/Starlette runs it in a threadpool — concurrent first
+# requests during cold start could otherwise race past the `is None`/`not in`
+# checks and construct duplicate InferenceSessions/FAISS indexes in parallel.
+# One lock around the whole check-and-maybe-construct body is sufficient at
+# this request volume (a held lock costs microseconds after warm-up).
+_init_lock = threading.Lock()
+
 
 def get_embedder() -> Embedder:
     global _embedder
-    if _embedder is None:
-        logger.info("Loading embedding model from %s ...", MODEL_DIR)
-        _embedder = Embedder(
-            model_path=MODEL_DIR / "model.onnx",
-            vocab_path=MODEL_DIR / "vocab.txt",
-            max_seq_length=MAX_SEQ_LENGTH,
-        )
-        logger.info("Embedding model loaded (dim=%d).", _embedder.dim)
-    return _embedder
+    with _init_lock:
+        if _embedder is None:
+            logger.info("Loading embedding model from %s ...", MODEL_DIR)
+            _embedder = Embedder(
+                model_path=MODEL_DIR / "model.onnx",
+                vocab_path=MODEL_DIR / "vocab.txt",
+                max_seq_length=MAX_SEQ_LENGTH,
+            )
+            logger.info("Embedding model loaded (dim=%d).", _embedder.dim)
+        return _embedder
 
 
 def get_store(store_name: str) -> VectorStore:
     """Lazily load a store on first request for it (per the plan's task)."""
-    if store_name not in _stores:
-        if store_name in FLAT_STORES:
-            index_path = VECTOR_STORE_DIR / f"{store_name}.index"
-            sidecar_path = VECTOR_STORE_DIR / f"{store_name}.jsonl"
-        else:
-            index_path = VECTOR_STORE_DIR / store_name / f"{store_name}.index"
-            sidecar_path = VECTOR_STORE_DIR / store_name / f"{store_name}.jsonl"
+    with _init_lock:
+        if store_name not in _stores:
+            if store_name in FLAT_STORES:
+                index_path = VECTOR_STORE_DIR / f"{store_name}.index"
+                sidecar_path = VECTOR_STORE_DIR / f"{store_name}.jsonl"
+            else:
+                index_path = VECTOR_STORE_DIR / store_name / f"{store_name}.index"
+                sidecar_path = VECTOR_STORE_DIR / store_name / f"{store_name}.jsonl"
 
-        logger.info("Loading store '%s' from %s ...", store_name, index_path)
-        _stores[store_name] = VectorStore(index_path, sidecar_path)
-        logger.info("Store '%s' loaded: %d vectors.", store_name, _stores[store_name].size)
-    return _stores[store_name]
+            logger.info("Loading store '%s' from %s ...", store_name, index_path)
+            _stores[store_name] = VectorStore(index_path, sidecar_path)
+            logger.info("Store '%s' loaded: %d vectors.", store_name, _stores[store_name].size)
+        return _stores[store_name]
 
 
 class QueryRequest(BaseModel):

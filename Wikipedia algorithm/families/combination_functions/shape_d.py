@@ -3,7 +3,11 @@
 Store fires or not; tier chosen by category flags or store strength + placement.
 Handles the 7-dimension system's two-stage splits.
 
-Used by: literary-analysis, gnostic-over-emphasis, anti-supernatural, secular-materialist.
+Designated by ALGORITHM_GUIDE_the_how.md §2.8 for literary-analysis (row 10),
+Gnostic over-emphasis (row 16), anti-supernatural (row 22) and
+secular-materialist (row 23). shape_d_tiered is wired into literary-analysis;
+shape_d_boolean is spec-scaffolding — no family imports it yet, so it is kept
+so the designed shape stays available for the refactor.
 """
 
 from typing import Optional

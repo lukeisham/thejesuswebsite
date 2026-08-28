@@ -8,11 +8,11 @@
       "t_interp": 0.4,
       "t_sep": 0.65,
       "t_register": 0.4,
-      "tier_accuracy": 0.6154,
-      "ci_lower": 0.4615,
-      "ci_upper": 0.7692,
-      "correct": 24,
-      "total": 39
+      "tier_accuracy": 0.6389,
+      "ci_lower": 0.4722,
+      "ci_upper": 0.8056,
+      "correct": 23,
+      "total": 36
     },
     {
       "scoring_rule": "mean-cosine",
@@ -22,11 +22,11 @@
       "t_interp": 0.4,
       "t_sep": 0.65,
       "t_register": 0.4,
-      "tier_accuracy": 0.6154,
-      "ci_lower": 0.4615,
-      "ci_upper": 0.7692,
-      "correct": 24,
-      "total": 39
+      "tier_accuracy": 0.6389,
+      "ci_lower": 0.4722,
+      "ci_upper": 0.8056,
+      "correct": 23,
+      "total": 36
     },
     {
       "scoring_rule": "centroid",
@@ -36,11 +36,11 @@
       "t_interp": 0.45,
       "t_sep": 0.5,
       "t_register": 0.15,
-      "tier_accuracy": 0.641,
-      "ci_lower": 0.4872,
-      "ci_upper": 0.7949,
-      "correct": 25,
-      "total": 39
+      "tier_accuracy": 0.6667,
+      "ci_lower": 0.5,
+      "ci_upper": 0.8056,
+      "correct": 24,
+      "total": 36
     },
     {
       "scoring_rule": "centroid",
@@ -50,11 +50,11 @@
       "t_interp": 0.45,
       "t_sep": 0.5,
       "t_register": 0.15,
-      "tier_accuracy": 0.641,
-      "ci_lower": 0.4872,
-      "ci_upper": 0.7949,
-      "correct": 25,
-      "total": 39
+      "tier_accuracy": 0.6667,
+      "ci_lower": 0.5,
+      "ci_upper": 0.8056,
+      "correct": 24,
+      "total": 36
     }
   ],
   "winner": {
@@ -65,11 +65,11 @@
     "t_interp": 0.45,
     "t_sep": 0.5,
     "t_register": 0.15,
-    "tier_accuracy": 0.641,
-    "ci_lower": 0.4872,
-    "ci_upper": 0.7949,
-    "correct": 25,
-    "total": 39
+    "tier_accuracy": 0.6667,
+    "ci_lower": 0.5,
+    "ci_upper": 0.8056,
+    "correct": 24,
+    "total": 36
   },
   "details": [
     {
@@ -113,16 +113,6 @@
       "correct": true
     },
     {
-      "title": "List of gospels",
-      "gold_tier": "clear_split",
-      "pred_tier": "clear_split",
-      "separation": 0.5,
-      "data_count": 1,
-      "close_count": 0,
-      "interp_count": 4,
-      "correct": true
-    },
-    {
       "title": "Historicity of the Gospels",
       "gold_tier": "clear_split",
       "pred_tier": "clear_split",
@@ -141,26 +131,6 @@
       "close_count": 2,
       "interp_count": 19,
       "correct": true
-    },
-    {
-      "title": "Four Evangelists",
-      "gold_tier": "clear_split",
-      "pred_tier": "muddled",
-      "separation": 0.429,
-      "data_count": 2,
-      "close_count": 2,
-      "interp_count": 4,
-      "correct": false
-    },
-    {
-      "title": "Synoptic Gospels",
-      "gold_tier": "muddled",
-      "pred_tier": "clear_split",
-      "separation": 0.633,
-      "data_count": 1,
-      "close_count": 18,
-      "interp_count": 12,
-      "correct": false
     },
     {
       "title": "Oral gospel traditions",

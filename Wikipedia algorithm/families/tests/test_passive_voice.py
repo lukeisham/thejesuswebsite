@@ -34,13 +34,10 @@ class TestPassivePatterns(unittest.TestCase):
 
     def test_active_voice_not_passive(self) -> None:
         text = "The scholars argued that the dating was early."
-        # "argued" is active here — no auxiliary before it.
-        # "was early" is a copula, not passive.
-        # But "was early" matches the pattern? Let's check.
-        # "was\s+early" — "early" doesn't end in -ed/en/t... Hmm.
-        # Actually pattern 1: \w+(?:ed|en|[aeiou]t|...)
-        # "early" ends in "ly" — no match. Good.
-        # "was argued" — no, "argued" follows "scholars" not an auxiliary.
+        # Active-voice "argued" has no auxiliary before it, and the copula
+        # "was early" must not match — a passive pattern needs a past
+        # participle, and "early" isn't one. Guard against both false
+        # positives (copula-as-passive, bare past tense) in one sentence.
         self.assertEqual(count_passive_patterns(text), 0)
 
     def test_by_agent_pattern(self) -> None:

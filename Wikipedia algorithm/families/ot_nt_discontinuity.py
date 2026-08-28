@@ -93,6 +93,11 @@ def score(
     first_half_text = " ".join(paragraphs[:half])
     second_half_text = " ".join(paragraphs[half:])
     if store and store.is_built:
+        # Two fresh embeddings for the two halves: each is mean-pooled over
+        # its own token sequence (truncated at MAX_SEQ_LENGTH), so neither
+        # half's vector is derivable from the other's or from any of the
+        # per-paragraph embeddings above — separate calls are inherent to
+        # per-span embedding, not a caching oversight.
         fs = score_span(first_half_text, store, embedder, k=TOP_K, t_fire=t_fire)
         ss = score_span(second_half_text, store, embedder, k=TOP_K, t_fire=t_fire)
         positional_bias = abs(fs["score"] - ss["score"])

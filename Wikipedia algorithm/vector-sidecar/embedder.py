@@ -15,7 +15,6 @@ If the offline tokenizer/embedder logic changes, mirror the change here too.
 import re
 import unicodedata
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 
