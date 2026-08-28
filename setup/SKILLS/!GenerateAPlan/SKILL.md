@@ -197,6 +197,7 @@ Review every file you created or edited in Steps 2–4 for these plan-level issu
 - The chosen tier matches the routing questions: nothing browser-visible is stuck at Tier 1; nothing depending on real production data or a login is left at Tier 2.
 - Every playbook block in the plan corresponds to a tier task that exists (no orphan Tier 3 playbook on a Tier 1+2 plan, and no tier task missing its playbook).
 - Any Tier 3 task touching `/admin/` says so in its task text.
+- Verify the **Tier 1 — Smoke test** command is real before finalising — confirm it's in the module's `package.json` scripts, or matches the project convention (`node --test <dir>/tests/*.test.js`), rather than assumed (past plans cited non-existent commands like `cd admin && npm test`).
 
 **Plan vs. coding rules:**
 - The "Coding rules to keep in mind" section lists every rule that this plan's implementation would need to respect. If the plan touches frontend HTML, `HTML-1` through `HTML-5` should be considered. If it touches CSS, `CSS-1` through `CSS-6` should be considered. Only list rules that are actually relevant — don't list all of them just to be safe.
