@@ -162,10 +162,54 @@ ${failures}
 fi
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 3. Report & Exit
+# 3. Migration Prefix Collision Check
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Purpose: reject commits that introduce a new numeric-prefix collision in
+# database/migrations/ (schema_migrations keys on filename, so two files
+# sharing a prefix like "045_*" can both apply and silently shadow each
+# other's intent). See setup/ISSUES/issues.md #203.
+#
+# The repo already has one known, deliberate collision — 008_* — documented
+# with header comments in both files as a MIG-2 exception (see
+# vibe-coding-review-2026-08-08.md §4). That pair is explicitly allowlisted
+# below so this check can be a simple "any duplicate prefix" scan over the
+# full directory (not just staged files) without breaking on repo state that
+# already exists and is intentionally grandfathered in.
+
+migrations_dir="database/migrations"
+migration_blocked=0
+migration_report=""
+
+if [ -d "$migrations_dir" ]; then
+    # Prefix = everything before the first underscore, so "004b_reconcile...sql"
+    # (a deliberate distinct suffix, not a collision with "004_...") is its own
+    # prefix "004b" rather than being folded into "004".
+    duplicate_prefixes=$(ls "$migrations_dir" | grep -E '^[0-9]' | sed -E 's/^([^_]+)_.*/\1/' | sort | uniq -d)
+
+    if [ -n "$duplicate_prefixes" ]; then
+        for prefix in $duplicate_prefixes; do
+            # Known, deliberate exception — see comment above.
+            if [ "$prefix" = "008" ]; then
+                continue
+            fi
+            colliding_files=$(ls "$migrations_dir" | grep -E "^${prefix}_")
+            migration_blocked=1
+            migration_report="${migration_report}  Prefix ${prefix} used by multiple files:
+"
+            for f in $colliding_files; do
+                migration_report="${migration_report}    $migrations_dir/$f
+"
+            done
+        done
+    fi
+fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. Report & Exit
 # ═══════════════════════════════════════════════════════════════════════════════
 
-if [ $blocked -eq 0 ] && [ $map_blocked -eq 0 ]; then
+if [ $blocked -eq 0 ] && [ $map_blocked -eq 0 ] && [ $migration_blocked -eq 0 ]; then
     exit 0
 fi
 
@@ -204,6 +248,18 @@ if [ $map_blocked -ne 0 ]; then
     echo "If you intended to replace a map SVG with a new hand-drawn version,"
     echo "verify the file you staged is the correct hand-authored file, not an"
     echo "export from a GIS tool or illustration app."
+    echo ""
+fi
+
+if [ $migration_blocked -ne 0 ]; then
+    echo "── Migration Prefix Collision ────────────────────────────────────"
+    echo ""
+    echo "The following migration number prefix(es) are used by more than one"
+    echo "file in $migrations_dir/. schema_migrations keys on filename, so"
+    echo "colliding prefixes can both apply and shadow each other's intent."
+    echo ""
+    printf '%s' "$migration_report"
+    echo "Fix: renumber the new migration to the next unused prefix."
     echo ""
 fi
 
