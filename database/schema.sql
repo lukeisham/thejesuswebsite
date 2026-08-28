@@ -679,6 +679,8 @@ CREATE INDEX idx_challenges_published         ON challenges (published_draft, ac
 CREATE INDEX idx_wikipedia_articles_published ON wikipedia_articles (published_draft, wikipedia_article_rank_number);
 CREATE INDEX idx_collections_published        ON collections (published_draft, created_at);
 CREATE INDEX idx_identifiers_published        ON identifiers (published_draft, id);
+-- Resources listing (migration 045)
+CREATE INDEX idx_resources_list_published_holding_sort ON resources (list_key, published_draft, in_holding_pen, sort_order, id);
 -- Arbor edges
 CREATE INDEX idx_arbor_edges_source        ON arbor_edges (source_id);
 CREATE INDEX idx_arbor_edges_target        ON arbor_edges (target_id);
