@@ -87,7 +87,10 @@ def run_family(
             t_fire, passion_margin,
         )
         return result
-    except Exception:
+    except (ValueError, KeyError, IndexError, TypeError, RuntimeError):
+        # Malformed article/label data, a family's score() signature
+        # mismatch, or a vector-store/ONNX inference failure — one
+        # family's failure shouldn't stop scoring the rest.
         logger.exception("Family '%s' failed for article.", family_name)
         return {"contribution": 0, "error": True}
 
@@ -245,7 +248,7 @@ def export_batch(
                 if family_name == "balanced-debate":
                     balanced_debate_score = contribution
 
-            except Exception:
+            except (ValueError, KeyError, IndexError, TypeError, RuntimeError):
                 logger.exception(
                     "Failed to score family '%s' for article '%s'.",
                     family_name, article_id,
@@ -283,6 +286,6 @@ def _load_thresholds(path: Path) -> dict:
     except ImportError:
         logger.warning("PyYAML not installed. Using default thresholds.")
         return {}
-    except Exception:
+    except (OSError, yaml.YAMLError):
         logger.exception("Failed to load thresholds from %s.", path)
         return {}

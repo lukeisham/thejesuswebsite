@@ -2,9 +2,9 @@
 """Generate additional literary-analysis exemplars and append to existing JSONL files."""
 
 import json
-import os
+from pathlib import Path
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = Path(__file__).resolve().parent
 
 # ──────────────────────────────────────────────
 # POSITIVE EXEMPLARS (literary analysis)
@@ -526,7 +526,7 @@ def append_exemplars(path, existing, new):
     return len(to_append)
 
 # Positive file
-pos_path = os.path.join(BASE, "literary-analysis-positive.jsonl")
+pos_path = BASE / "literary-analysis-positive.jsonl"
 pos_existing = load_existing(pos_path)
 print(f"Positive file: existing entries = {len(pos_existing)}")
 n_pos_added = append_exemplars(pos_path, pos_existing, positive_exemplars)
@@ -534,7 +534,7 @@ pos_new_total = load_existing(pos_path)
 print(f"  Added {n_pos_added} new positive entries → total = {len(pos_new_total)}")
 
 # Negative file
-neg_path = os.path.join(BASE, "literary-analysis-negative.jsonl")
+neg_path = BASE / "literary-analysis-negative.jsonl"
 neg_existing = load_existing(neg_path)
 print(f"Negative file: existing entries = {len(neg_existing)}")
 n_neg_added = append_exemplars(neg_path, neg_existing, negative_exemplars)

@@ -77,7 +77,7 @@ TIER_CONTRIBUTION = {
 }
 
 # Reverse: contribution → state name (handles the 0 collision by context).
-def _contribution_to_state(tier: int, labels: list[str] = None) -> str:
+def _contribution_to_state(tier: int, labels: list[str] | None = None) -> str:
     """Map a tier contribution integer to its state name.
 
     Thin wrapper over classifier.scorer._tier_state_name — delegates rather
@@ -189,10 +189,11 @@ def bootstrap_ci(
         return (0.0, 1.0)
     rng = np.random.default_rng(42)
     data = np.array([1] * correct + [0] * (total - correct))
-    means = np.empty(n_bootstrap)
-    for i in range(n_bootstrap):
-        sample = rng.choice(data, size=total, replace=True)
-        means[i] = sample.mean()
+    # Vectorized bootstrap: one (n_bootstrap, total) draw of the same
+    # rng.choice(..., replace=True) calls the loop made, then a single
+    # axis-1 mean. Same statistic, same seed — just no Python loop.
+    samples = rng.choice(data, size=(n_bootstrap, total), replace=True)
+    means = samples.mean(axis=1)
     lower = np.percentile(means, 100 * alpha / 2)
     upper = np.percentile(means, 100 * (1 - alpha / 2))
     return (round(float(lower), 4), round(float(upper), 4))
@@ -325,7 +326,9 @@ def precompute_classifications(
             if (i + 1) % 10 == 0:
                 logger.info("  Precomputed %d/%d articles (%s)",
                            i + 1, len(records), scoring_rule)
-        except Exception:
+        except (ValueError, KeyError, IndexError, RuntimeError):
+            # Malformed article data, or an ONNX/FAISS inference failure —
+            # one article's failure shouldn't stop the rest of the sweep.
             logger.exception("Precompute failed: %s", title)
 
     logger.info("Precomputed %d articles for scoring_rule=%s",
@@ -406,144 +409,9 @@ def evaluate_tiers_from_cache(
                 "correct": pred_state == gold_state,
             })
 
-        except Exception:
+        except (KeyError, ValueError, TypeError, IndexError, ZeroDivisionError):
             logger.exception("Failed (from cache): %s", title)
             skipped.append({"title": title, "reason": "exception during eval"})
-
-    for s in skipped:
-        logger.warning("SKIPPED: %s — %s", s["title"], s["reason"])
-
-    accuracy = correct / max(total, 1)
-    ci_lower, ci_upper = bootstrap_ci(correct, total)
-
-    tier_stats = {}
-    for s in all_states:
-        tp = per_tier["tp"][s]
-        fp = per_tier["fp"][s]
-        fn = per_tier["fn"][s]
-        precision = tp / max(tp + fp, 1)
-        recall = tp / max(tp + fn, 1)
-        f1 = 2 * precision * recall / max(precision + recall, 1e-9)
-        tier_stats[s] = {
-            "precision": round(precision, 3),
-            "recall": round(recall, 3),
-            "f1": round(f1, 3),
-        }
-
-    return {
-        "t_data": t_data,
-        "t_close": t_close,
-        "t_interp": t_interp,
-        "t_sep": t_sep,
-        "t_register": t_reg,
-        "scoring_rule": scoring_rule,
-        "separation_mode": separation_mode,
-        "tier_accuracy": round(accuracy, 4),
-        "ci_lower": ci_lower,
-        "ci_upper": ci_upper,
-        "correct": correct,
-        "total": total,
-        "tier_stats": tier_stats,
-        "details": details,
-        "skipped": skipped,
-    }
-
-
-def evaluate_tiers(
-    records: list[dict],
-    store_manager: StoreManager,
-    t_data: float,
-    t_close: float = 0.45,
-    t_interp: float = 0.50,
-    t_sep: float = 0.60,
-    t_reg: Optional[float] = None,
-    scoring_rule: str = "mean-cosine",
-    separation_mode: str = "adjacency",
-) -> dict:
-    """Classify all articles and measure tier accuracy (full pipeline).
-
-    Prefer evaluate_tiers_from_cache() when scores are pre-computed.
-    This function exists for backward compatibility and one-off evals.
-    """
-    import classifier.config as cfg
-
-    if t_reg is None:
-        t_reg = t_data
-
-    orig = (cfg.t_data, cfg.t_close, cfg.t_interp, cfg.t_sep, cfg.t_register,
-            cfg.SEPARATION_MODE)
-
-    correct = 0
-    total = 0
-    skipped: list[dict] = []
-
-    per_tier = {"tp": {}, "fp": {}, "fn": {}}
-    all_states = ["clear_split", "muddled", "one_sided", "unclassifiable"]
-    for s in all_states:
-        per_tier["tp"][s] = 0
-        per_tier["fp"][s] = 0
-        per_tier["fn"][s] = 0
-
-    details: list[dict] = []
-
-    for record in records:
-        if not record.get("paragraphs"):
-            skipped.append({"title": record["title"],
-                           "reason": "no paragraphs fetched"})
-            continue
-
-        try:
-            cfg.t_data = t_data
-            cfg.t_close = t_close
-            cfg.t_interp = t_interp
-            cfg.t_register = t_reg
-            cfg.SEPARATION_MODE = separation_mode
-
-            article_text = "\n\n".join(record["paragraphs"])
-            labelled = classify_paragraphs(article_text, store_manager,
-                                           scoring_rule=scoring_rule)
-            pred_labels = get_labels_only(labelled)
-
-            cfg.t_data, cfg.t_close, cfg.t_interp, cfg.t_sep, cfg.t_register = orig[:5]
-            cfg.SEPARATION_MODE = orig[5]
-
-            if separation_mode == "block":
-                separation = compute_separation_blocks(pred_labels)
-            else:
-                separation = compute_separation_ratio(pred_labels)
-
-            pred_tier = assign_tier(pred_labels, separation, t_sep, N_min)
-            gold_state = record["gold_tier_state"]
-            pred_state = _contribution_to_state(pred_tier, pred_labels)
-
-            total += 1
-            if pred_state == gold_state:
-                correct += 1
-
-            for s in all_states:
-                gold_has = (gold_state == s)
-                pred_has = (pred_state == s)
-                if gold_has and pred_has:
-                    per_tier["tp"][s] += 1
-                elif pred_has and not gold_has:
-                    per_tier["fp"][s] += 1
-                elif gold_has and not pred_has:
-                    per_tier["fn"][s] += 1
-
-            details.append({
-                "title": record["title"],
-                "gold_tier": gold_state,
-                "pred_tier": pred_state,
-                "separation": round(float(separation), 3),
-                "data_count": pred_labels.count("data"),
-                "interp_count": pred_labels.count("interpretation"),
-                "correct": pred_state == gold_state,
-            })
-
-        except Exception:
-            logger.exception("Failed: %s", record["title"])
-            skipped.append({"title": record["title"],
-                           "reason": "exception during classification"})
 
     for s in skipped:
         logger.warning("SKIPPED: %s — %s", s["title"], s["reason"])
@@ -669,7 +537,7 @@ def choose_best(results: list[dict]) -> dict:
     return best
 
 
-def update_config(t_data: float, t_close: float, t_interp: float, t_sep: float, t_register: float) -> None:
+def update_config(t_data: float, t_close: float, t_interp: float, t_sep: float, t_register: float, separation_mode: str) -> None:
     """Write calibrated thresholds to config.py."""
     config_path = Path(__file__).resolve().parent / "classifier" / "config.py"
     content = config_path.read_text(encoding="utf-8")
@@ -683,6 +551,9 @@ def update_config(t_data: float, t_close: float, t_interp: float, t_sep: float, 
                      content, flags=re.MULTILINE)
     content = re.sub(r"^t_register: float = [\d.]+",
                      f"t_register: float = {t_register:.2f}",
+                     content, flags=re.MULTILINE)
+    content = re.sub(r'^SEPARATION_MODE: str = "\w+"',
+                     f'SEPARATION_MODE: str = "{separation_mode}"',
                      content, flags=re.MULTILINE)
     config_path.write_text(content, encoding="utf-8")
     logger.info("Updated %s", config_path)
@@ -1541,7 +1412,8 @@ def main() -> None:
     # Write calibrated thresholds from the winner.
     update_config(overall_best["t_data"], overall_best["t_close"],
                   overall_best["t_interp"],
-                  overall_best["t_sep"], overall_best["t_register"])
+                  overall_best["t_sep"], overall_best["t_register"],
+                  overall_best["separation_mode"])
 
     # Write docs.
     write_docs(overall_best, bakeoff_results)

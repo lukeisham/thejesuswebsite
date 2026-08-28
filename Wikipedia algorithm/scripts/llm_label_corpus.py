@@ -155,7 +155,7 @@ def ensure_full_corpus_cached() -> dict:
         title, url = row["title"], row["url"]
         try:
             cache[title] = fetch_article_paragraphs(url)
-        except Exception as exc:  # noqa: BLE001 — log and continue; re-run to retry failures
+        except (OSError, json.JSONDecodeError) as exc:
             print(f"  ERROR fetching {title!r}: {exc}", file=sys.stderr)
             continue
         time.sleep(8.0)  # be polite to Wikipedia's API — 0.5s and 2s both tripped 429s in testing
@@ -250,6 +250,8 @@ def _run_one_request(client, request: dict) -> dict:
     not just on hard exceptions — an early corpus run found 44 articles
     with 0 labels because only exception-based retry existed.
     """
+    import openai
+
     last_exc = None
     for attempt in range(1, MAX_RETRIES + 1):
         try:
@@ -286,7 +288,7 @@ def _run_one_request(client, request: dict) -> dict:
                     "output_tokens": usage.completion_tokens or 0,
                 },
             }
-        except Exception as exc:  # noqa: BLE001 — retry any transient failure
+        except openai.OpenAIError as exc:
             last_exc = exc
             if attempt < MAX_RETRIES:
                 time.sleep(2 ** attempt)

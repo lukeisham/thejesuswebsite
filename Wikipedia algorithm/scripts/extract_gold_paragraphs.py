@@ -105,7 +105,7 @@ def fetch_article_paragraphs(title: str) -> list[str]:
     try:
         with urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-    except Exception as exc:
+    except (OSError, json.JSONDecodeError) as exc:
         logger.error("Failed to fetch '%s': %s", title, exc)
         return []
 

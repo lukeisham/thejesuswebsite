@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Tests for placement-aware scoring functions (Plan 4 — paragraph-label reuse)."""
-import sys, os, unittest
+import sys, unittest
+from pathlib import Path
 
 # Add rank_engine.py's directory to the import path
-_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-_RANK_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(_SCRIPT_DIR)),
-    "setup", "SKILLS", "!TheJesusWebsite-Wikipedia", "scripts",
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_RANK_DIR = (
+    _SCRIPT_DIR.parent.parent
+    / "setup" / "SKILLS" / "!TheJesusWebsite-Wikipedia" / "scripts"
 )
-sys.path.insert(0, _RANK_DIR)
+sys.path.insert(0, str(_RANK_DIR))
 
 import rank_engine
 

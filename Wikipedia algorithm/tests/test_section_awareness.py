@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Tests for section-awareness gating (Plan 4 — rows 20/22/23)."""
-import sys, os, unittest
+import sys, unittest
+from pathlib import Path
 
-_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-_RANK_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(_SCRIPT_DIR)),
-    "setup", "SKILLS", "!TheJesusWebsite-Wikipedia", "scripts",
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_RANK_DIR = (
+    _SCRIPT_DIR.parent.parent
+    / "setup" / "SKILLS" / "!TheJesusWebsite-Wikipedia" / "scripts"
 )
-sys.path.insert(0, _RANK_DIR)
+sys.path.insert(0, str(_RANK_DIR))
 
 import rank_engine
 

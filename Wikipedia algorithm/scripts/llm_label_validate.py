@@ -130,6 +130,8 @@ def label_paragraphs_batch(
             lines.append(f"[{j}] {text}")
         user_message = "\n".join(lines)
 
+        import openai
+
         try:
             pred_labels: list[str] = []
             for retry_attempt in range(2):  # one retry on empty/unparseable response
@@ -167,7 +169,7 @@ def label_paragraphs_batch(
             for j in range(len(pred_labels), len(batch)):
                 batch[j]["pred_label"] = "other"
 
-        except Exception as exc:
+        except openai.OpenAIError as exc:
             print(f"  ERROR batch {i // batch_size + 1}: {exc}", file=sys.stderr)
             for p in batch:
                 p["pred_label"] = "error"
