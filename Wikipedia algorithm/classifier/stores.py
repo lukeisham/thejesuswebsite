@@ -79,11 +79,9 @@ class Embedder:
         )
         self._tokenizer = WordPieceTokenizer()
 
-        # Verify model input/output names.
         self._input_names = [inp.name for inp in self._session.get_inputs()]
         self._output_name = self._session.get_outputs()[0].name
 
-        # Determine embedding dimension from the output shape.
         output_shape = self._session.get_outputs()[0].shape
         self._dim = output_shape[-1] if output_shape else 384
 
@@ -220,7 +218,6 @@ class VectorStore:
         # Metadata: list of dicts, one per vector.
         self._metadata: list[dict] = []
 
-        # Load existing store if it exists.
         if self._index_path.exists():
             self._index = faiss.read_index(str(self._index_path))
             self._load_sidecar()
@@ -355,7 +352,7 @@ class VectorStore:
 
 
 # ---------------------------------------------------------------------------
-# Store manager — builds all three stores from exemplar files.
+# Store manager — builds all four stores from exemplar files.
 # ---------------------------------------------------------------------------
 
 

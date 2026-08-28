@@ -61,7 +61,6 @@ def calibrate_family(
     """
     logger.info("Calibrating '%s'...", family_name)
 
-    # Build the family's store.
     store = build_family_store(family_name, embedder)
     if store is None:
         logger.warning("  No store built for '%s' — precision = 0.", family_name)

@@ -211,7 +211,6 @@ def main() -> None:
         json.dump(output, f, ensure_ascii=False, indent=2)
     logger.info("Wrote %d articles to %s", len(output), OUTPUT_PATH)
 
-    # Save cache.
     save_cache(cache, cache_path)
     logger.info("Cache saved to %s (%d entries)", cache_path, len(cache))
 

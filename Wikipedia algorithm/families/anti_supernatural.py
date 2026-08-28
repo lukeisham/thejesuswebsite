@@ -29,6 +29,8 @@ from .config import (
 from .stores import load_family_store
 from .similarity_mapper import score_span
 from .passive_voice import passive_ratio, passive_asymmetry
+from .text_utils import split_paragraphs
+from .positional_bias import compute_positional_bias
 
 logger = logging.getLogger(__name__)
 
@@ -89,10 +91,6 @@ def score(
     # Stage A: Label spans (simplified — in a full implementation, this would
     # split the article into sentence-level spans and classify each).
     # For the MVP, we score the full article text against the store.
-    # NOTE: this whole-article embedding cannot be reused for the two
-    # positional-bias half-article calls below — Embedder.embed() mean-pools
-    # the token sequence (truncated at MAX_SEQ_LENGTH), so a span's vector is
-    # not derivable from another span's vector; each span needs its own embed.
     span_result = score_span(article_text, store, embedder, k=TOP_K,
                              t_fire=t_fire)
 
@@ -110,7 +108,7 @@ def score(
 
     # Dimension 3 — Granularity (computed: word-count ratio of supernatural
     # vs naturalistic text — simplified to paragraph-length asymmetry).
-    paragraphs = _split_paragraphs(article_text)
+    paragraphs = split_paragraphs(article_text)
     half = len(paragraphs) // 2
     first_half_len = sum(len(p) for p in paragraphs[:half])
     second_half_len = sum(len(p) for p in paragraphs[half:])
@@ -132,20 +130,8 @@ def score(
 
     # Dimension 6 — Positional bias (computed: are biased patterns
     # concentrated in the first half of the article?).
-    first_half_text = " ".join(paragraphs[:half])
-    second_half_text = " ".join(paragraphs[half:])
-    if store and store.is_built:
-        # Two fresh embeddings here (plus the whole-article one above): each
-        # half is mean-pooled over its own token sequence, so neither half's
-        # vector can be derived from the whole-article vector — 3 calls is
-        # inherent to per-span embedding, not a caching oversight.
-        first_score = score_span(first_half_text, store, embedder,
-                                 k=TOP_K, t_fire=t_fire)
-        second_score = score_span(second_half_text, store, embedder,
-                                  k=TOP_K, t_fire=t_fire)
-        positional_bias = abs(first_score["score"] - second_score["score"])
-    else:
-        positional_bias = 0.0
+    positional_bias = compute_positional_bias(paragraphs, store, embedder,
+                                              t_fire=t_fire, k=TOP_K)
     dimensions["6_positional_bias"] = {
         "fires": positional_bias > 0.2,
         "score": round(positional_bias, 4),
@@ -172,7 +158,6 @@ def score(
     if is_passion and passion_margin != 0:
         total += passion_margin
 
-    # Apply cap.
     total = max(total, ANTI_SUPERNATURAL_MAX)
 
     return {
@@ -208,9 +193,3 @@ def _fallback() -> dict:
         "fallback": True,
     }
 
-
-def _split_paragraphs(text: str) -> list[str]:
-    """Split text into paragraphs."""
-    import re
-    parts = re.split(r"\n\s*\n", text.strip())
-    return [p.strip() for p in parts if p.strip()]

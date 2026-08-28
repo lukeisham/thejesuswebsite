@@ -68,7 +68,6 @@ def score(
     if not interpretation_paragraphs:
         return _zero_result()
 
-    # Score each interpretation paragraph against the store.
     span_scores = score_spans(
         interpretation_paragraphs, store, embedder, k=TOP_K,
         t_fire=t_fire, t_strong=t_strong,

@@ -8,4 +8,13 @@ existing keyword detector.
 This package is an offline developer-machine tool. The VPS never runs it.
 """
 
+import sys
+from pathlib import Path
+
+# Make the sibling classifier package importable for the modules below that
+# need it (stores.py re-exports classifier.stores.Embedder/VectorStore). Runs
+# exactly once — the first time anything under families/ is imported — instead
+# of once per module that used to carry this same insert at its own top level.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 __version__ = "0.1.0"

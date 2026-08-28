@@ -53,54 +53,12 @@ MODEL_PRICING = {
     "deepseek-v4-pro": {"input_hit": 0.003625, "input_miss": 0.435, "output": 0.87},
 }
 
-# System prompt (same as llm_label_validate.py — keep in sync).
-SYSTEM_PROMPT = """You are labelling Wikipedia paragraphs about Jesus and the New Testament.
+# Shared labelling prompts — single source of truth so this script and
+# llm_label_validate.py cannot drift apart (llm_prompts.py).
+if str(ALGO_DIR) not in sys.path:
+    sys.path.insert(0, str(ALGO_DIR))
+from scripts.llm_prompts import SYSTEM_PROMPT, RUBRIC
 
-For each paragraph, assign exactly one of these three labels:
-- "data": The paragraph reports verifiable facts, events, geography, dates,
-  manuscript evidence, or archaeological findings. It describes what is known
-  or what sources say, without evaluating theological meaning.
-- "close": The paragraph performs literary, textual, or source-critical
-  analysis — comparing manuscripts, noting narrative structure, discussing
-  authorship or redaction, analysing language or genre. It examines HOW the
-  text works, not what it means theologically.
-- "interpretation": The paragraph discusses theological meaning, religious
-  significance, doctrinal implications, or what a passage "means" for faith.
-  It engages with the content's truth, message, or spiritual import.
-
-Respond with a JSON object only: {"labels": [...]}, one label per paragraph,
-in the same order as the paragraphs were provided. Do not include any
-reasoning, explanation, or text outside the JSON object."""
-
-RUBRIC = """Label each of the following paragraphs as "data", "close", or "interpretation" using these criteria:
-
-DATA — reports a single verifiable fact, event, geography, date, or finding
-as settled, without comparing it against another source or account. E.g. "The
-crucifixion occurred in Judaea, most likely in AD 30 or AD 33."
-
-CLOSE — compares two or more manuscripts, gospels, or textual witnesses
-against each other, or discusses authorship, redaction, structure, or genre.
-The key signal is COMPARISON or textual mechanics, not just multiple facts:
-"The Synoptics place the event near Bethsaida, while John locates it on the
-eastern shore" is CLOSE (comparing what different gospel accounts say),
-even though both halves individually read like data. "Matthew and Luke agree
-that Jesus was born in Bethlehem... but differ on many details" is CLOSE for
-the same reason. If a paragraph names two-or-more sources/gospels and states
-where they agree or disagree, that is CLOSE even if no interpretive language
-appears.
-
-INTERPRETATION — discusses theological meaning, religious significance,
-doctrinal implications, or what a passage "means" for faith. Engages with
-content's truth, message, or spiritual import. This includes paragraphs that
-report scholarly debate, disagreement, or uncertainty about what a passage
-means or whether an event is historical (e.g. "scholars debate...",
-"the historicity of X is questioned...", "most theologians view X as...") —
-reporting that a meaning or historicity claim is contested is itself an
-interpretive move, not a data statement, even though it describes what
-sources say rather than asserting the claim directly.
-
-Respond with a JSON object: {"labels": ["data", "close", ...]} — exactly one
-label per paragraph, in order, with no additional text or explanation."""
 
 # Max paragraphs per request (~500 tokens each, well under context limits).
 MAX_PARAGRAPHS_PER_REQUEST = 100
@@ -139,8 +97,6 @@ def ensure_full_corpus_cached() -> dict:
     the same Wikipedia parse API calibrate.py uses) and extends the same
     cache file, so calibrate.py's own gold-set entries are unaffected.
     """
-    if str(ALGO_DIR) not in sys.path:
-        sys.path.insert(0, str(ALGO_DIR))
     from calibrate import fetch_article_paragraphs  # local import: avoid calibrate's argparse setup on --stale/--run paths
 
     cache = load_fetch_cache()
@@ -197,7 +153,6 @@ def prepare_requests(model_id: str, output_path: Path) -> dict:
             full_text = "\n\n".join(paragraphs)
             chash = content_hash(full_text)
 
-            # Split into chunks of MAX_PARAGRAPHS_PER_REQUEST.
             for chunk_idx in range(0, len(paragraphs), MAX_PARAGRAPHS_PER_REQUEST):
                 chunk = paragraphs[chunk_idx : chunk_idx + MAX_PARAGRAPHS_PER_REQUEST]
 

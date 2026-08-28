@@ -1,10 +1,6 @@
 """Unit tests for the passive-voice detector."""
 
 import unittest
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from families.passive_voice import (
     count_passive_patterns,

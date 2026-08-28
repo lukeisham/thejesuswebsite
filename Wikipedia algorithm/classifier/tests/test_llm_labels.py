@@ -12,14 +12,9 @@ Covers:
 """
 
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
-
-_ALGO_DIR = Path(__file__).resolve().parent.parent.parent
-if str(_ALGO_DIR) not in sys.path:
-    sys.path.insert(0, str(_ALGO_DIR))
 
 from classifier.export import validate_bucket_labels
 from classifier.llm_labels import build_llm_bucket_entry, load_llm_corpus

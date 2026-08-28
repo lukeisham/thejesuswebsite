@@ -8,10 +8,6 @@ matching the fast, dependency-free style of the rest of classifier/tests/.
 """
 
 import unittest
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from scripts.paragraph_eval import (
     collapse_label,

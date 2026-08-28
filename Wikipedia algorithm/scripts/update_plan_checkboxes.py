@@ -12,7 +12,6 @@ from pathlib import Path
 
 PLAN_PATH = Path(__file__).resolve().parent.parent.parent / "setup" / "PLANS" / "New" / "wikipedia-signal-3-llm-label-activation.md"
 
-# Task headings whose checkboxes should be ticked.
 COMPLETED_SECTIONS = [
     "### Classifier — conversion and wiring",
     "### Classifier — tests",
