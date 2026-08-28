@@ -63,3 +63,16 @@
     font-weight: 600;
     font-variant: small-caps;
 }
+
+/* -------------------------------------------------------------------------
+   Print
+   ------------------------------------------------------------------------- */
+
+@media print {
+    .verse-block {
+        margin-left: 1.5cm;
+        background: none;
+        border-left: 2px solid var(--border-strong);
+        page-break-inside: avoid;
+    }
+}

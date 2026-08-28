@@ -113,7 +113,7 @@
     saveBtn.id = "btn-save-all";
     saveBtn.textContent = "Save All Changes";
     const statusEl = document.createElement("span");
-    statusEl.id = "resource-status";
+    statusEl.className = "resource-status";
     statusEl.setAttribute("role", "status");
     statusEl.setAttribute("aria-live", "polite");
     statusBar.appendChild(saveBtn);

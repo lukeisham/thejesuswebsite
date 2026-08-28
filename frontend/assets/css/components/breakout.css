@@ -62,3 +62,14 @@
   max-height: 2000px;
   opacity: 1;
 }
+
+/* -------------------------------------------------------------------------
+   Print — inline indented, no background
+   ------------------------------------------------------------------------- */
+
+@media print {
+  .breakout {
+    background: none;
+    border-left: 3px solid var(--border-strong);
+  }
+}

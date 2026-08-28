@@ -140,3 +140,43 @@ figure.figure-standard {
     max-height: var(--figure-mobile-max-height);
   }
 }
+
+/* -------------------------------------------------------------------------
+   Print
+   ------------------------------------------------------------------------- */
+
+@media print {
+  img {
+    display: inline;
+    max-width: 100%;
+  }
+
+  /* Paged output is unconstrained by the 720x480 display box above. */
+  .figure-standard img {
+    width: auto;
+    max-width: 100%;
+    max-height: none;
+  }
+
+  figure {
+    border: none;
+    border-radius: 0;
+    page-break-inside: avoid;
+  }
+
+  /* Floated figures — unfloat so they span full page width on print */
+  .figure-align-left,
+  .figure-align-right {
+    float: none;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  figcaption {
+    font-size: 9pt;
+    font-style: italic;
+    color: var(--color-black);
+  }
+}
