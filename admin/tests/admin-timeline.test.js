@@ -386,6 +386,35 @@ describe("totalWidth", function () {
   });
 });
 
+// ── Axis.renderAxis DOM output ──────────────────────────────────────────────
+// Regression test for the inline `style.height = "1px"` that used to silently
+// override the CSS class's counter-scaled `height` declaration (issue #197).
+
+describe("Axis.renderAxis DOM output", function () {
+  test("does not set an inline height on the axis line (CSS governs thickness)", function () {
+    var appendedChildren = [];
+    var fakeContainer = {
+      innerHTML: "",
+      style: {},
+      appendChild: function (child) {
+        appendedChildren.push(child);
+      },
+    };
+
+    axisSandbox.window.AdminTimelineAxis.init(fakeContainer);
+
+    var axisLine = appendedChildren.filter(function (child) {
+      return child.className === "admin-timeline-axis-line";
+    })[0];
+
+    assert.ok(
+      axisLine,
+      "axis line element should be appended to the container",
+    );
+    assert.equal(axisLine.style.height, undefined);
+  });
+});
+
 // ── Mirror-consistency: period ordering ───────────────────────────────────────
 // These tests verify the admin timeline axis produces results that mirror
 // the public timeline rendering, so a dragged event lands in the same place.
