@@ -51,7 +51,7 @@ FAMILY_STORE_MAP: dict[str, str] = {
     "mythicist-framing": "mythicist-framing",
     "jesus-seminar": "jesus-seminar",
     "secular-materialist": "secular-materialist",
-    "confessional-balance": "balanced-debate",  # Reuses balanced-debate's store.
+    "confessional-balance": "balanced-debate",
     "literary-analysis": "literary-analysis",
     "gnostic-over-emphasis": "gnostic-over-emphasis",
 }
@@ -90,7 +90,7 @@ N_min: int = 3
 BALANCED_DEBATE_CAP: int = 6
 BALANCED_DEBATE_REPRESENTATIVE_BONUS: int = 2
 
-# Anti-supernatural: max −8 (2 dimensions × 4 points each).
+# Anti-supernatural: max −8 (4 firing dimensions × −2 points each).
 ANTI_SUPERNATURAL_MAX: int = -8
 
 # OT-NT-discontinuity: max −6 (3 dimensions × 2 points).

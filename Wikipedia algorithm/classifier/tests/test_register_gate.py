@@ -18,11 +18,6 @@ These tests assert:
 
 import unittest
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-
 # We test _label_paragraph directly since it encapsulates the gate logic.
 from classifier.labeler import _label_paragraph
 

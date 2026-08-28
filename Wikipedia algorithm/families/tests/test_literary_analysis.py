@@ -1,10 +1,6 @@
 """Unit tests for the literary-analysis family."""
 
 import unittest
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from families.literary_analysis import score
 from families.tests.fixtures import FakeEmbedder, FakeStore

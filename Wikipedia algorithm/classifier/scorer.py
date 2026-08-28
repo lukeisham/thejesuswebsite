@@ -141,7 +141,6 @@ def compute_separation_blocks(labels: list[str]) -> float:
     if n < 2:
         return 0.0
 
-    # Count contiguous blocks (runs of the same collapsed class label).
     block_count = 1
     for i in range(1, n):
         if class_labels[i] != class_labels[i - 1]:
@@ -186,7 +185,6 @@ def _tier_state_name(tier: int, data_count: int = 0, close_count: int = 0,
     class_count = data_count + close_count + interp_count
     if class_count < n_min:
         return "unclassifiable"
-    # Check how many of the three tiers are present.
     present = sum(1 for c in (data_count, close_count, interp_count) if c > 0)
     if present <= 1:
         return "one_sided"
@@ -234,12 +232,10 @@ def assign_tier(
         logger.warning("assign_tier called with empty labels; returning 0.")
         return TIER_UNCLASSIFIABLE
 
-    # Count per-tier paragraphs.
     data_count = labels.count(LABEL_DATA)
     close_count = labels.count(LABEL_CLOSE_ANALYSIS)
     interp_count = labels.count(LABEL_INTERPRETATION)
 
-    # Descriptive = Tier 1 + Tier 2.
     desc_count = data_count + close_count
     class_count = desc_count + interp_count
 
@@ -249,11 +245,9 @@ def assign_tier(
     has_desc = desc_count > 0
     has_interp = interp_count > 0
 
-    # Only one class (descriptive or interpretive) present.
     if has_desc != has_interp:  # XOR — exactly one is true
         return TIER_ONE_SIDED
 
-    # Both descriptive and interpretive present.
     if has_desc and has_interp:
         if separation >= t_sep_threshold:
             return TIER_CLEAR

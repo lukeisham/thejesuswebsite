@@ -187,7 +187,6 @@ class WordPieceTokenizer:
         Chinese/Japanese/Korean characters are each treated as a separate
         token (consistent with BERT's BasicTokenizer).
         """
-        # Split on whitespace first.
         words: list[str] = []
         for word in text.split():
             # Handle CJK characters — each is its own token.

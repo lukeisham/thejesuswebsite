@@ -22,6 +22,8 @@ from .config import (
     t_fire_default,
 )
 
+from .text_utils import find_names
+
 logger = logging.getLogger(__name__)
 
 FAMILY_NAME = "confessional-balance"
@@ -53,8 +55,8 @@ def score(
     """
     text_lower = article_text.lower()
 
-    critical_found = [n for n in CRITICAL_SCHOLAR_NAMES if n in text_lower]
-    evangelical_found = [n for n in EVANGELICAL_NAMES if n in text_lower]
+    critical_found = find_names(text_lower, CRITICAL_SCHOLAR_NAMES)
+    evangelical_found = find_names(text_lower, EVANGELICAL_NAMES)
 
     if not critical_found:
         return _zero_result()

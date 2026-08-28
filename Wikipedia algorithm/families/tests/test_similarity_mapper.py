@@ -1,10 +1,6 @@
 """Unit tests for the similarity-to-contribution mapper."""
 
 import unittest
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from families.similarity_mapper import (
     nearest_neighbour_score,

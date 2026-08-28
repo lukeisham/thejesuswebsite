@@ -8,12 +8,8 @@ File-based interface handoff — no live call between this plan and Plan 6.
 
 import json
 import logging
-import sys
 from pathlib import Path
 from typing import Optional
-
-# Ensure the parent v2 directory is importable.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from .config import (
     BUCKET_LABELS_PATH,
@@ -26,6 +22,7 @@ from .config import (
 )
 from .stores import load_family_store, Embedder
 from .registry import FAMILIES, FALLBACK_SIGNAL_KEYS, FAMILY_DISPLAY_NAMES
+from .text_utils import split_paragraphs
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +73,6 @@ def run_family(
     if module is None:
         return {"contribution": 0, "error": f"Unknown family: {family_name}"}
 
-    # Load the family's vector store.
     store = load_family_store(family_name, embedder)
 
     try:
@@ -108,10 +104,8 @@ def _dispatch_family(
     passion_margin: int,
 ) -> dict:
     """Dispatch to the correct family score function based on family name."""
-    import re
 
     if family_name == "balanced-debate":
-        # Extract interpretation paragraphs from labels.
         interp_texts = _extract_interpretation_paragraphs(article_text, paragraph_labels)
         return module.score(article_text, interp_texts, embedder, store, t_fire)
 
@@ -154,9 +148,7 @@ def _extract_interpretation_paragraphs(
     paragraph_labels: list[str],
 ) -> list[str]:
     """Extract paragraphs labelled 'interpretation' from article text."""
-    import re
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", article_text.strip())
-                  if p.strip()]
+    paragraphs = split_paragraphs(article_text)
     if not paragraph_labels or len(paragraph_labels) != len(paragraphs):
         return paragraphs  # Fallback: return all paragraphs.
 
@@ -186,7 +178,6 @@ def export_batch(
     if thresholds_path is None:
         thresholds_path = THRESHOLDS_YAML_PATH
 
-    # Load thresholds.
     thresholds = _load_thresholds(thresholds_path)
 
     # Surface, once and loudly, how many families are currently dormant

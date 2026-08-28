@@ -80,7 +80,6 @@ def compute_rankings(rows: list[dict], weights: dict[str, int]) -> list[dict]:
 
         new_s3 = signal3_contribution(row, weights)
 
-        # Recompute: remove the old Signal 3 contribution, add the new one.
         net_score = csv_net_score - csv_s3 + new_s3
 
         scored.append({
@@ -92,7 +91,6 @@ def compute_rankings(rows: list[dict], weights: dict[str, int]) -> list[dict]:
             "csv_s3_contribution": csv_s3,
         })
 
-    # Sort by net_score descending, tie-break alphabetically by title.
     scored.sort(key=lambda a: (-a["net_score"], a["title"].lower()))
 
     for i, article in enumerate(scored, start=1):
@@ -221,17 +219,14 @@ def main() -> None:
 
     baseline_weights = PRIOR_WEIGHTS if args.prior else CURRENT_WEIGHTS
 
-    # Load articles.
     rows = load_scoring_detail()
     if not rows:
         print("ERROR: No articles found in Scoring Detail CSV.", file=sys.stderr)
         sys.exit(1)
 
-    # Compute before/after rankings.
     before = compute_rankings(rows, baseline_weights)
     after = compute_rankings(rows, candidate_weights)
 
-    # Diff.
     diff = diff_rankings(before, after, args.weight)
 
     if args.json:

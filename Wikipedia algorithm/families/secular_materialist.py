@@ -10,7 +10,6 @@ Max −2×4 = −8. Placement multiplier does NOT apply.
 """
 
 import logging
-import re
 from typing import Optional
 
 from .config import (
@@ -22,6 +21,7 @@ from .config import (
 from .stores import load_family_store
 from .similarity_mapper import score_span
 from .passive_voice import passive_ratio
+from .text_utils import split_paragraphs
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,6 @@ def score(
     # Split into paragraphs and exclude known scholarly/skeptical headings.
     paragraphs = _filter_paragraphs(article_text)
 
-    # Score each paragraph.
     from .similarity_mapper import score_spans, count_distinct_fires
     span_scores = score_spans(paragraphs, store, embedder, k=TOP_K, t_fire=t_fire)
     distinct = count_distinct_fires(span_scores)
@@ -92,12 +91,8 @@ def _filter_paragraphs(text: str) -> list[str]:
         "criticism", "historical", "scholarly", "skeptical",
         "naturalistic", "scientific", "academic",
     }
-    parts = re.split(r"\n\s*\n", text.strip())
     filtered: list[str] = []
-    for p in parts:
-        stripped = p.strip()
-        if not stripped:
-            continue
+    for stripped in split_paragraphs(text):
         first_line = stripped.split("\n")[0].strip().rstrip(".:").lower()
         if first_line in SKIP_HEADINGS:
             continue

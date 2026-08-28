@@ -23,6 +23,7 @@ from .config import (
 from .stores import load_family_store
 from .similarity_mapper import score_span
 from .combination_functions.shape_b import shape_b_score
+from .text_utils import find_names
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,8 @@ def score(
     """
     # Count named mythicist authors in the text.
     text_lower = article_text.lower()
-    name_count = sum(1 for name in MYTHICIST_NAMES if name in text_lower)
+    names_found = find_names(text_lower, MYTHICIST_NAMES)
+    name_count = len(names_found)
 
     if name_count == 0:
         return _zero_result()
@@ -93,13 +95,12 @@ def score(
     if is_passion and passion_margin != 0:
         contribution += passion_margin
 
-    # Apply cap.
     contribution = max(contribution, MYTHICIST_MAX)
 
     return {
         "contribution": contribution,
         "name_count": name_count,
-        "names_found": [n for n in MYTHICIST_NAMES if n in text_lower],
+        "names_found": names_found,
         "placement_multiplier": multiplier,
         "framing_store_fires": framing_fires,
         "imbalance_applied": sb["imbalance_applied"],

@@ -24,6 +24,7 @@ from .config import (
 from .stores import load_family_store
 from .similarity_mapper import score_span
 from .combination_functions.shape_b import shape_b_score
+from .text_utils import find_names
 
 logger = logging.getLogger(__name__)
 
@@ -52,12 +53,12 @@ def score(
         Dict with contribution and breakdown.
     """
     text_lower = article_text.lower()
-    name_count = sum(1 for name in JESUS_SEMINAR_NAMES if name in text_lower)
+    names_found = find_names(text_lower, JESUS_SEMINAR_NAMES)
+    name_count = len(names_found)
 
     if name_count == 0:
         return _zero_result()
 
-    # Determine placement multiplier.
     multiplier = _compute_placement_multiplier(paragraph_labels)
 
     # Query vector store.
@@ -85,7 +86,7 @@ def score(
     return {
         "contribution": contribution,
         "name_count": name_count,
-        "names_found": [n for n in JESUS_SEMINAR_NAMES if n in text_lower],
+        "names_found": names_found,
         "placement_multiplier": multiplier,
         "framing_store_fires": framing_fires,
         "imbalance_applied": sb["imbalance_applied"],

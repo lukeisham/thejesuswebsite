@@ -8,11 +8,6 @@ Tests cover the three cases specified in the plan:
 
 import unittest
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-
 from classifier.labeler import split_paragraphs, _is_reference_heading
 from classifier.config import LABEL_OTHER, LABEL_DATA, LABEL_INTERPRETATION
 

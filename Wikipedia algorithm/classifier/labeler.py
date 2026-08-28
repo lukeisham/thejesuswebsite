@@ -121,13 +121,11 @@ def _apply_nearest_neighbour_rule(results: list[dict]) -> float:
     if not results:
         return 0.0
 
-    # Nearest-neighbour check with threshold.
     nearest = results[0]
     if (nearest.get("type") == "negative"
             and nearest.get("similarity", 0) >= NN_NEGATIVE_THRESHOLD):
         return 0.0
 
-    # Mean cosine of positive exemplars in top-k.
     positives = [r["similarity"] for r in results if r.get("type") == "positive"]
     if not positives:
         return 0.0
@@ -170,7 +168,6 @@ def _centroid_score(
             and nearest.get("similarity", 0) >= NN_NEGATIVE_THRESHOLD):
         return 0.0
 
-    # Collect positive exemplar embeddings.
     pos_embeddings = []
     for r in results:
         if r.get("type") == "positive" and r.get("embedding") is not None:
@@ -181,10 +178,8 @@ def _centroid_score(
     if not pos_embeddings:
         return 0.0
 
-    # Centroid = mean of positive exemplar embeddings.
     centroid = np.mean(pos_embeddings, axis=0)
 
-    # Cosine similarity between query embedding and centroid.
     query_norm = np.linalg.norm(query_embedding)
     centroid_norm = np.linalg.norm(centroid)
 
@@ -255,7 +250,6 @@ def _label_paragraph(
     is_close = close_score >= t_close_threshold
     is_interp = interp_score >= t_interp_threshold
 
-    # Collect all classes whose threshold is met.
     met: list[tuple[str, float]] = []
     if is_data:
         met.append((LABEL_DATA, data_score))
@@ -306,7 +300,6 @@ def classify_paragraphs(
     if not paragraphs:
         return []
 
-    # Extract text for batch embedding.
     texts = [p["text"] for p in paragraphs]
 
     # Batch-query all stores; get embeddings when using centroid rule.

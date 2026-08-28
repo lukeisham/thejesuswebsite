@@ -1,10 +1,6 @@
 """Unit tests for the balanced-debate family."""
 
 import unittest
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from families.balanced_debate import score, FAMILY_NAME
 

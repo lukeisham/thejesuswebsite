@@ -21,8 +21,6 @@ from . import (
 
 logger = logging.getLogger(__name__)
 
-# Map family name → module.
-#
 # ORDERING CONSTRAINT: "balanced-debate" must stay FIRST. export.py's scoring
 # loop records balanced_debate_score only when it encounters the
 # "balanced-debate" entry, and "mythicist-framing"/"jesus-seminar" consume that

@@ -1,10 +1,6 @@
 """Unit tests for the combination functions (Shapes A/B/C/D)."""
 
 import unittest
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from families.combination_functions.shape_a import shape_a_score
 from families.combination_functions.shape_b import shape_b_score

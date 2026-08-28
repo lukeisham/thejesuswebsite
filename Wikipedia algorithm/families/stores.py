@@ -29,8 +29,6 @@ from .config import (
 logger = logging.getLogger(__name__)
 
 # Import Plan 4's embedder and tokenizer — the shared infrastructure.
-import sys
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from classifier.stores import Embedder, VectorStore
 
 

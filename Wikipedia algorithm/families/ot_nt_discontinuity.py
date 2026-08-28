@@ -18,14 +18,16 @@ from .config import (
     TOP_K,
 )
 from .stores import load_family_store
-from .similarity_mapper import score_span, count_distinct_fires
+from .similarity_mapper import count_distinct_fires
 from .passive_voice import passive_ratio
+from .text_utils import split_paragraphs
+from .positional_bias import compute_positional_bias
 
 logger = logging.getLogger(__name__)
 
 FAMILY_NAME = "ot-nt-discontinuity"
 
-# Dimension weights (lighter caps than anti-supernatural — max −3 per dimension).
+# Dimension weights (lighter caps than anti-supernatural — −1 per dimension).
 DIMENSION_WEIGHTS: dict[str, int] = {
     "1_attribution_asymmetry": -1,
     "2_epistemic_marking": -1,
@@ -67,13 +69,10 @@ def score(
         return _fallback()
 
     # Split article into paragraphs and score each.
-    import re
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", article_text.strip())
-                  if p.strip()]
+    paragraphs = split_paragraphs(article_text)
     if not paragraphs:
         return _zero_result()
 
-    # Score each paragraph.
     from .similarity_mapper import score_spans
     span_scores = score_spans(paragraphs, store, embedder, k=TOP_K, t_fire=t_fire)
 
@@ -90,19 +89,8 @@ def score(
     pv_ratio = passive_ratio(article_text)
 
     # Compute positional bias between halves.
-    first_half_text = " ".join(paragraphs[:half])
-    second_half_text = " ".join(paragraphs[half:])
-    if store and store.is_built:
-        # Two fresh embeddings for the two halves: each is mean-pooled over
-        # its own token sequence (truncated at MAX_SEQ_LENGTH), so neither
-        # half's vector is derivable from the other's or from any of the
-        # per-paragraph embeddings above — separate calls are inherent to
-        # per-span embedding, not a caching oversight.
-        fs = score_span(first_half_text, store, embedder, k=TOP_K, t_fire=t_fire)
-        ss = score_span(second_half_text, store, embedder, k=TOP_K, t_fire=t_fire)
-        positional_bias = abs(fs["score"] - ss["score"])
-    else:
-        positional_bias = 0.0
+    positional_bias = compute_positional_bias(paragraphs, store, embedder,
+                                              t_fire=t_fire, k=TOP_K)
 
     dimension_data = {
         "1_attribution_asymmetry": granularity > 0.25,
