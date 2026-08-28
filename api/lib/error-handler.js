@@ -24,7 +24,9 @@ function sendError(res, errorDef, context = {}) {
     },
   };
 
-  // Only append detail when it provides useful technical insight (JS-2).
+  // In production, error detail never reaches the client: technical detail is
+  // an information-disclosure risk (the same rule as stack traces), and the
+  // client only needs the stable code + message. Detail is a development aid.
   if (process.env.NODE_ENV !== "production" && errorDef.detail) {
     body.error.detail = errorDef.detail;
   }

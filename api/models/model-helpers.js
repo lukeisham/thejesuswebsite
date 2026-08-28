@@ -23,8 +23,9 @@ const SLUG_UNIQUE_TABLES = new Set([
 
 /**
  * Keep only whitelisted columns from an arbitrary input object.
- * Used by create() and update() in every model (JS-2: never let a stray
- * request-body field reach the database).
+ * Used by create() and update() in every model — the whitelist is the only
+ * thing standing between the request body and the database, so stray body
+ * fields never reach a SQL statement (JS-2).
  *
  * @param {object} data      - Raw input object (e.g. request body).
  * @param {string[]} columns  - Whitelist of permitted column names.
@@ -41,6 +42,8 @@ function pickWritable(data, columns) {
 
 /**
  * Build a slug guaranteed unique against a given table.
+ * The shared slug-collision handler used by every slug-carrying model on
+ * create/update.
  * If `baseSlug` is taken, append a number: `slug`, `slug-2`, `slug-3`, ...
  * `excludeId` lets an update keep its own slug without colliding with itself.
  *

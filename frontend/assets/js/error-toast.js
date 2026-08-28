@@ -109,6 +109,10 @@ export function showErrorToast(message, details = '') {
 
   const messageEl = document.createElement('p');
   messageEl.className = 'error-toast__message';
+  // Toast text is set via textContent, never innerHTML: `detail` strings can
+  // carry user-influenced content, and this assignment is the only thing
+  // standing between that and an XSS vector. The details element below follows
+  // the same rule.
   messageEl.textContent = message;
 
   const dismissX = document.createElement('button');

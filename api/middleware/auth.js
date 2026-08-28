@@ -13,6 +13,8 @@ const SESSION_COOKIE = "sid";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
 // token -> { userHandle, createdAt, expiresAt }
+// Sessions live in this in-memory Map with a 12 h TTL — nothing is persisted,
+// so an API restart logs the admin out.
 const sessions = new Map();
 
 /** Evict every session whose expiresAt has passed. */

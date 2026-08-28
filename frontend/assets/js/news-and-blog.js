@@ -107,7 +107,10 @@ function buildRow({ title, meta, thumbnail, excerpt, url }) {
   a.className = 'news-blog-row';
   a.href = url || '#';
 
-  // Thumbnail
+  // Thumbnail — a null/empty thumbnail must never reach an <img src>: an
+  // empty or broken src fires a real 404 request and paints the browser's
+  // broken-image glyph. The branch exists so a missing thumbnail renders the
+  // placeholder <div> below instead.
   if (thumbnail) {
     const img = document.createElement('img');
     img.className = 'news-blog-row-thumb';

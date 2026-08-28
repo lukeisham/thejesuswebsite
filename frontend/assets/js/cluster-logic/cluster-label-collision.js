@@ -109,7 +109,11 @@ export function resolveLabelCollisions(descriptors) {
             tier = MAX_TIER;
             break;
           }
-          // Compute net shift from origin based on final tier.
+          // A label's above/below side was fixed by its starting position and
+          // must never flip once escalation begins — flip-flopping reads as
+          // jitter to the eye, and it fails silently: no error, just a
+          // visually unstable page under certain data. Alternating the push
+          // direction fans labels out to both sides.
           // Tier 1: negative, Tier 2: positive, Tier 3: negative, etc.
           const direction = tier % 2 === 1 ? -1 : 1;
           const netShift = direction * item.primaryStep * Math.ceil(tier / 2);

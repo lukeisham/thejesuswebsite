@@ -35,6 +35,12 @@ const FAN_SPREAD = 6;
 /**
  * Compute dot positions for every event, keyed by period.
  *
+ * The returned positions are DEFAULTS: callers apply stored
+ * `timeline_offset_x` / `timeline_offset_y` overrides on top when present.
+ * Those overrides are the admin's manual-correction escape hatch and must
+ * win over the computed value — a change that forgets to check them
+ * silently discards admin edits.
+ *
  * Each period's events form a vertical stack centred on the spine. The stack
  * offset is computed so the column is centred: the first dot sits at the spine
  * when there's an odd number of events, or the spine bisects the gap when even.

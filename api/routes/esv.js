@@ -17,7 +17,9 @@ const cache = new Map();
 router.get("/passage", async (req, res) => {
   const reference = String(req.query.q || "").trim();
 
-  // Book names, chapter:verse, ranges — nothing else needs to pass through.
+  // Allowlist the reference BEFORE it is interpolated into the upstream URL —
+  // book names, chapter:verse, ranges only. Without this gate the `q` param
+  // would make this route an open proxy for arbitrary upstream requests.
   if (!reference || reference.length > 60 || !/^[\w\s.:,–-]+$/.test(reference)) {
     return res.status(400).json({ error: "Invalid passage reference." });
   }
@@ -41,6 +43,9 @@ router.get("/passage", async (req, res) => {
       "include-passage-references": "false",
     });
     const upstream = await fetch(`${ESV_ENDPOINT}?${params}`, {
+      // The key is attached here, server-side only. It must never reach the
+      // client — a client-side fetch of the ESV API would embed this
+      // credential in view-source for anyone to scrape.
       headers: { Authorization: `Token ${process.env.ESV_API_KEY}` },
     });
 

@@ -58,7 +58,9 @@ def run_family(
     t_fire = family_thresholds.get("t_fire", t_fire_default)
     passion_margin = thresholds.get("passion_margin", PASSION_MARGIN_DEFAULT)
 
-    # Check precision floor — fall back to keyword detector if below 0.8.
+    # A vector family only activates its keyword fallback below the calibrated
+    # precision floor. The gate is load-bearing: an unconditional fallback
+    # reintroduces the false-positive behaviour the vector refactor eliminated.
     if precision < PRECISION_FLOOR:
         logger.warning(
             "Family '%s' precision %.3f < %.2f floor. Using keyword fallback.",

@@ -1,3 +1,4 @@
+// Re-export only — no logic here. See ARCHITECTURE/node-cluster-logic.md.
 /**
  * Admin timeline cluster-labels bridge.
  *

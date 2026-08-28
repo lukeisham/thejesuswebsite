@@ -69,11 +69,14 @@ router.get('/:slug', (req, res) => {
     }
 });
 
-// POST /wikipedia/signal-check — classify free text against a signal family's
-// live vector store via the Python sidecar. Public, unauthenticated: this is
-// a live version of the offline scoring step (Wikipedia_alogrithm_refractor.md
-// §3.4.1's nearest-neighbour-label rule), not a lookup of any article data —
-// no admin-only fields, no slug, nothing article-specific is involved.
+// POST /wikipedia/signal-check — classify arbitrary free text against a signal
+// family's calibration exemplars via the Python sidecar. Public,
+// unauthenticated: this is a live version of the offline scoring step
+// (Wikipedia_alogrithm_refractor.md §3.4.1's nearest-neighbour-label rule),
+// not an article lookup — the FAISS stores hold calibration exemplars, not
+// per-article embeddings, so a caller expecting "related articles" is misusing
+// this endpoint. No admin-only fields, no slug, nothing article-specific is
+// involved.
 router.post('/signal-check', signalCheckLimit, async (req, res) => {
     const { family, text } = req.body || {};
 
