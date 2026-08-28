@@ -137,9 +137,17 @@ main {
 
 /* ── Axis ──────────────────────────────────────────────────────────────── */
 
+/* Counter-scaled: this line is a child of #timeline-axis, which lives
+   inside .admin-timeline-world, so it inherits its scale() transform and
+   would otherwise grow/shrink with zoom exactly like the era dividers did
+   before this fix — unlike the spine (.admin-timeline-canvas::after), which
+   lives on the un-transformed viewport and needs no counter-scaling.
+   Dividing by the live --timeline-zoom-scale (set in
+   admin-timeline/timeline-zoom.js's onChange) cancels that out; max(1px, ...)
+   stops it collapsing to nothing at high zoom. — setup/ISSUES/Issues_111_to_200.md #197 */
 .admin-timeline-axis-line {
     background: var(--border-strong);
-    height: 2px;
+    height: max(1px, calc(2px / var(--timeline-zoom-scale, 1)));
 }
 
 /* ── Era Dividers (matching frontend: no bands, no ticks) ───────────────── */

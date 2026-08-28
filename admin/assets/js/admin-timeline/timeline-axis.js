@@ -175,7 +175,6 @@ Axis.renderAxis = function () {
   axisLine.style.left = "0";
   axisLine.style.width = totalWidth + "px";
   axisLine.style.top = "60px";
-  axisLine.style.height = "1px";
   axisContainer.appendChild(axisLine);
 };
 
