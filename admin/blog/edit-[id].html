@@ -29,7 +29,12 @@
         <script type="module" src="../assets/js/admin-toasts.js"></script>
     </head>
     <body>
-        <div class="admin-shell" id="admin-shell"></div>
+        <h1 class="sr-only">Edit Blog Post</h1>
+        <div class="admin-shell" id="admin-shell">
+            <main class="admin-main" id="edit-content">
+                <div class="admin-loading" role="status">Loading blog post…</div>
+            </main>
+        </div>
 
         <script>
             document.addEventListener("DOMContentLoaded", async function () {
@@ -42,11 +47,7 @@
                     "Blog",
                 );
 
-                var main = document.createElement("main");
-                main.className = "admin-main";
-                main.id = "edit-content";
-                main.innerHTML =
-                    '<div class="admin-loading" role="status">Loading blog post…</div>';
+                var main = document.getElementById("edit-content");
                 shell.appendChild(main);
 
                 await AdminEditorScaffold.initializeEditor({
