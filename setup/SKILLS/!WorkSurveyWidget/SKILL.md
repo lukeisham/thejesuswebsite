@@ -1,5 +1,5 @@
 ---
-name: "!WorkSurveyWidget"
+name: work-survey-widget
 description: >
   Regenerate the work-survey widget — a self-contained HTML page summarising
   this repo's commit/plan/issue history: a cadence-by-module grid, an

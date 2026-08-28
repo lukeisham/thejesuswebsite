@@ -1,5 +1,5 @@
 ---
-name: "!OpenWorkSurveyWidget"
+name: open-work-survey-widget
 description: >
   Open the already-generated work-survey widget in a new Chrome tab. Read
   this when Luke asks to "open the work survey", "show me the work widget",
