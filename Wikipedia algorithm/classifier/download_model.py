@@ -95,7 +95,7 @@ def export_via_optimum(model_dir: Path) -> bool:
 
     except ImportError:
         return False
-    except Exception:
+    except (OSError, subprocess.SubprocessError):
         logger.exception("Export via optimum failed.")
         return False
 
@@ -112,7 +112,9 @@ def _copy_vocab(model_dir: Path) -> None:
                 shutil.copy(str(src), str(model_dir / "vocab.txt"))
                 logger.info("Copied vocab.txt from sentence-transformers cache.")
                 return
-    except Exception:
+    except (ImportError, OSError, RuntimeError):
+        # Best-effort local cache lookup; any failure here just falls
+        # through to the direct download below.
         pass
 
     # Fallback: download directly.
@@ -144,7 +146,7 @@ def download_direct(model_dir: Path) -> bool:
 
         return True
 
-    except Exception:
+    except OSError:
         logger.exception("Direct download failed.")
         return False
 

@@ -183,7 +183,10 @@ def export_batch(
                 record["separation"],
                 len(record["paragraphs"]),
             )
-        except Exception:
+        except (ValueError, KeyError, IndexError, RuntimeError):
+            # ValueError/KeyError/IndexError: malformed article data or
+            # missing fields; RuntimeError: ONNX/FAISS inference failure.
+            # One bad article shouldn't stop the rest of the batch.
             logger.exception("Failed to classify article '%s'; skipping.", article_id)
             fallback_count += 1
             output[article_id] = {

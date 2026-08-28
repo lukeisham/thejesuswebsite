@@ -24,32 +24,30 @@ Does not decide WHICH candidates to add or exclude — the pool-building (Stage 
 exclusion judgment (Stage 2) in ALGORITHM_GUIDE_the_what.md are the calling agent's job. This
 script only does the deterministic part: harvest signals, compute the weighted score, sort, write files.
 """
-import csv, json, re as _re, subprocess, sys, os, argparse, time as _time
+import csv, json, re as _re, subprocess, sys, argparse, time as _time
 from html.parser import HTMLParser
+from pathlib import Path
 from urllib.request import urlopen, Request
 from urllib.parse import unquote
 
-_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-ALGORITHM_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPT_DIR)))),
-    "Wikipedia algorithm",
-)
+_SCRIPT_DIR = Path(__file__).resolve().parent
+ALGORITHM_DIR = _SCRIPT_DIR.parents[3] / "Wikipedia algorithm"
 
 # Headless Chrome browser skill path (Dropbox — external tool, not a deliverable).
 BROWSER = "/Users/lukeishammacbookair/Library/CloudStorage/Dropbox/_Lukeatron/.claude/skills/!HeadlessChromeBrowser/scripts/browser.py"
-EXTRACT_JS = os.path.join(_SCRIPT_DIR, "extract.js")
+EXTRACT_JS = _SCRIPT_DIR / "extract.js"
 
-MAIN_CSV = os.path.join(ALGORITHM_DIR, "Wikipedia Articles.csv")
-DETAIL_CSV = os.path.join(ALGORITHM_DIR, "Wikipedia Articles - Scoring Detail.csv")
-EXCLUDED_TXT = os.path.join(ALGORITHM_DIR, "excluded-titles.txt")
-BULK_PASTE_TXT = os.path.join(ALGORITHM_DIR, "wiki-bulk-paste.txt")
+MAIN_CSV = ALGORITHM_DIR / "Wikipedia Articles.csv"
+DETAIL_CSV = ALGORITHM_DIR / "Wikipedia Articles - Scoring Detail.csv"
+EXCLUDED_TXT = ALGORITHM_DIR / "excluded-titles.txt"
+BULK_PASTE_TXT = ALGORITHM_DIR / "wiki-bulk-paste.txt"
 
 # Two file-based interfaces this script reads directly: the section
 # classifier's per-paragraph labels and the vector family scorer's
 # per-signal contributions. Both live in ALGORITHM_DIR alongside this
 # script's own deliverables.
-BUCKET_LABELS_JSON = os.path.join(ALGORITHM_DIR, "bucket-labels.json")
-VECTOR_FAMILY_SCORES_JSON = os.path.join(ALGORITHM_DIR, "vector-family-scores.json")
+BUCKET_LABELS_JSON = ALGORITHM_DIR / "bucket-labels.json"
+VECTOR_FAMILY_SCORES_JSON = ALGORITHM_DIR / "vector-family-scores.json"
 
 # Vector family name (the family scorer's registry.py keys) -> the §9 signal key it feeds.
 # confessional-balance's family score already encodes the -3/-1/0 tiering
@@ -86,11 +84,11 @@ DETAIL_FIELDS = [
 ]
 
 
-def load_bucket_labels():
+def load_bucket_labels() -> dict:
     """Section classifier output — per-article paragraph labels and row-3
     tier. Fails loudly (raises) if missing or malformed rather than silently
     scoring data_interp_split as 0 for every article (JS-2 equivalent)."""
-    if not os.path.exists(BUCKET_LABELS_JSON):
+    if not BUCKET_LABELS_JSON.exists():
         raise FileNotFoundError(
             f"bucket-labels.json not found at {BUCKET_LABELS_JSON} — the "
             "section classifier must be run before scoring/ranking (§11.4 "
@@ -103,13 +101,13 @@ def load_bucket_labels():
     return data
 
 
-def load_vector_family_scores():
+def load_vector_family_scores() -> dict:
     """Family-scorer output — one contribution per article per vector
     family, keyed by article id. A family absent from an article's record
     means that family fell back to its dormant keyword detector (§11.4) —
     the caller, not this loader, resolves that fallback. Fails loudly if
     the file is missing or malformed."""
-    if not os.path.exists(VECTOR_FAMILY_SCORES_JSON):
+    if not VECTOR_FAMILY_SCORES_JSON.exists():
         raise FileNotFoundError(
             f"vector-family-scores.json not found at {VECTOR_FAMILY_SCORES_JSON} — "
             "the family export.py must be run before scoring/ranking."
@@ -121,7 +119,9 @@ def load_vector_family_scores():
     return data
 
 
-def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
+def merge_upstream_signals(
+    article_id: str, sig: dict, bucket_labels: dict | None, family_scores: dict | None
+) -> None:
     """Merge the section classifier's row-3 tier and the vector-family
     contributions onto a freshly-harvested `sig` dict, in place. `article_id` must match
     the key convention the two upstream exports use (Wikipedia title).
@@ -166,7 +166,7 @@ def merge_upstream_signals(article_id, sig, bucket_labels, family_scores):
             sig[f"__vector_{signal_key}"] = family_entry[family_name]
 
 
-def _resolve_placement_into_sig(sig, article_id, bucket_labels):
+def _resolve_placement_into_sig(sig: dict, article_id: str | None, bucket_labels: dict | None) -> None:
     """Pre-compute placement-aware multipliers and flags into sig.
     Stores bucket_labels reference and article_id so placement_mult() and
     per-signal gating can access placement data without threading through
@@ -210,7 +210,7 @@ def _resolve_placement_into_sig(sig, article_id, bucket_labels):
         labels, miracle_hits, {"data", "close"}) if miracle_hits else False
 
 
-def _compute_placement(labels, hits):
+def _compute_placement(labels: list[str] | None, hits: list[bool] | None) -> float:
     """x2 if any hit in data/close, x0.5 if all hits in interpretation, else x1."""
     if hits is None or not any(hits) or labels is None:
         return 1.0
@@ -236,7 +236,7 @@ def _compute_placement(labels, hits):
     return 1.0
 
 
-def _is_outside_interpretation(labels, hits):
+def _is_outside_interpretation(labels: list[str] | None, hits: list[bool] | None) -> bool:
     """True if any hit falls outside interpretation paragraphs."""
     if hits is None or labels is None:
         return False
@@ -247,7 +247,9 @@ def _is_outside_interpretation(labels, hits):
     return False
 
 
-def _any_hit_in_labels(labels, hits, target_labels):
+def _any_hit_in_labels(
+    labels: list[str] | None, hits: list[bool] | None, target_labels: set[str]
+) -> bool:
     """True if any hit falls in a paragraph with one of the target labels."""
     if hits is None or labels is None:
         return False
@@ -264,7 +266,7 @@ def _any_hit_in_labels(labels, hits, target_labels):
 ROW_KEYS = (set(DETAIL_FIELDS) - {"ranking", "no_bible_verse"}) | {"url"}
 
 
-def load_main():
+def load_main() -> list[dict]:
     rows = []
     with open(MAIN_CSV, encoding="utf-8") as f:
         f.readline()  # header
@@ -288,19 +290,21 @@ def load_main():
     return rows
 
 
-def load_detail():
+def load_detail() -> list[dict]:
     with open(DETAIL_CSV, encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
-def load_excluded():
-    if not os.path.exists(EXCLUDED_TXT):
+def load_excluded() -> set[str]:
+    if not EXCLUDED_TXT.exists():
         return set()
     with open(EXCLUDED_TXT, encoding="utf-8") as f:
         return {line.strip() for line in f if line.strip()}
 
 
-def placement_mult(sig, prefix, bucket_labels=None, article_id=None):
+def placement_mult(
+    sig: dict, prefix: str, bucket_labels: dict | None = None, article_id: str | None = None
+) -> float:
     """Section-placement multiplier for a negative-weight-author signal.
 
     Uses per-paragraph keyword-hit positions (from harvest_one_with_paragraphs)
@@ -360,7 +364,7 @@ def placement_mult(sig, prefix, bucket_labels=None, article_id=None):
     return 1.0
 
 
-def vec(sig, signal_key, fallback):
+def vec(sig: dict, signal_key: str, fallback: float) -> float:
     """Read a vector-family contribution merged onto `sig` by
     merge_upstream_signals() (as `__vector_<signal_key>`); fall back to the
     dormant keyword-detector value when the family hasn't shipped or its
@@ -369,7 +373,7 @@ def vec(sig, signal_key, fallback):
     return v if v is not None else fallback
 
 
-def net_score_from_signals(sig):
+def net_score_from_signals(sig: dict) -> float:
     """Sum all 25 §9 signal contributions. Mirrors contributions_from_row() exactly — the export
     path verifies Σcontributions == net_score and refuses to write on mismatch (JS-2)."""
     s = 0
@@ -532,7 +536,7 @@ def net_score_from_signals(sig):
     return s
 
 
-def row_from_signals(title, url, sig):
+def row_from_signals(title: str, url: str, sig: dict) -> dict:
     """Build the internal row persisted to the Scoring Detail CSV and re-loaded on every later
     run (detail_row_to_internal). Pure-formula (non-vector) signals store their raw, pre-cap
     harvested counts — contributions_from_row() re-derives the capped points from these on export.
@@ -765,13 +769,13 @@ def _fetch_article_paragraphs(url: str, article_id: str = None) -> list[str]:
 _FETCH_CACHE = None
 
 
-def _load_fetch_cache():
+def _load_fetch_cache() -> dict | None:
     """Load the calibrator's paragraph fetch cache (lazy, once per process)."""
     global _FETCH_CACHE
     if _FETCH_CACHE is not None:
         return _FETCH_CACHE
-    cache_path = os.path.join(ALGORITHM_DIR, ".calibrate-fetch-cache.json")
-    if os.path.exists(cache_path):
+    cache_path = ALGORITHM_DIR / ".calibrate-fetch-cache.json"
+    if cache_path.exists():
         with open(cache_path, encoding="utf-8") as f:
             _FETCH_CACHE = json.load(f)
         return _FETCH_CACHE
@@ -914,7 +918,9 @@ def harvest_one(url: str) -> dict:
     return json.loads(r.stdout)
 
 
-def harvest_one_with_paragraphs(url, bucket_labels=None, article_id=None):
+def harvest_one_with_paragraphs(
+    url: str, bucket_labels: dict | None = None, article_id: str | None = None
+) -> dict:
     """Harvest an article with both Headless Chrome signals AND per-paragraph keyword detection.
 
     Extends harvest_one() by also fetching the article's paragraphs via the parse API,
@@ -981,15 +987,15 @@ def harvest_one_with_paragraphs(url, bucket_labels=None, article_id=None):
     return sig
 
 
-def to_output_title(title):
+def to_output_title(title: str) -> str:
     return title.replace(",", " -") if "," in title else title
 
 
-def to_output_url(url):
+def to_output_url(url: str) -> str:
     return url.replace(",", "%2C") if "," in url else url
 
 
-def write_bulk_paste_file(rows):
+def write_bulk_paste_file(rows: list[dict]) -> None:
     """rows must already be sorted/ranked (index+1 == final ranking).
     A complete, always-current plain-text view of the same data — "title, url, rank" per line,
     comma-space delimited. Uses the same hyphen/percent-encoding convention as the main CSV, so
@@ -1001,7 +1007,7 @@ def write_bulk_paste_file(rows):
         f.write("\n".join(lines) + "\n")
 
 
-def write_files(rows):
+def write_files(rows: list[dict]) -> None:
     # §12.2: sort by net_score descending; the only tie-break is the raw title, alphabetically —
     # no verse_count/ref_count secondary keys. The rank order is fixed here, at rank-assignment
     # time, from the raw (pre comma->hyphen) title.
@@ -1064,9 +1070,9 @@ def write_files(rows):
 
 
 # --- JSON export (for The Jesus Website visualization widget) ---------------------------------
-EXPORT_JSON = os.path.join(ALGORITHM_DIR, "scoring-export.json")
-_REPO_ROOT = os.path.dirname(ALGORITHM_DIR)
-EXPORT_REPO_JSON = os.path.join(_REPO_ROOT, "database", "scoring-export.json")
+EXPORT_JSON = ALGORITHM_DIR / "scoring-export.json"
+_REPO_ROOT = ALGORITHM_DIR.parent
+EXPORT_REPO_JSON = _REPO_ROOT / "database" / "scoring-export.json"
 
 # label, weight description, caveat — the embedded data dictionary for the widget. 25 signals,
 # §9 of ALGORITHM_GUIDE_the_how.md.
@@ -1099,7 +1105,7 @@ SIGNAL_DICTIONARY = {
 }
 
 
-def contributions_from_row(r):
+def contributions_from_row(r: dict) -> dict:
     """Per-signal POINT contributions (caps and category conditionals applied) for one internal
     row. Must mirror net_score_from_signals exactly — cmd/auto export verifies the sum equals the
     stored net_score for every article and refuses to write a mismatched export.
@@ -1137,7 +1143,7 @@ def contributions_from_row(r):
     }
 
 
-def _ref_quality_weight(refs):
+def _ref_quality_weight(refs: int) -> int:
     """referencing_quality's tier weight, derived from ref_count alone — the single source of
     truth both net_score_from_signals() and contributions_from_row() call this with, so a
     harvested article's refQualityTier string (extract.js) never needs to be trusted or
@@ -1151,7 +1157,7 @@ def _ref_quality_weight(refs):
     return 0
 
 
-def _religious_art_contribution(r):
+def _religious_art_contribution(r: dict) -> int:
     if r["is_parable"] or r["is_teaching"]:
         return 0
     has_picture = r["has_picture_wide"] if r["is_passion"] else r["has_picture_narrow"]
@@ -1160,7 +1166,7 @@ def _religious_art_contribution(r):
     return 1 if r["has_diagram_or_map"] else -1
 
 
-def write_export(rows):
+def write_export(rows: list[dict]) -> bool:
     """rows: sorted internal rows (index+1 == ranking). Writes scoring-export.json beside the
     CSVs and copies it into the thejesuswebsite repo's database/ folder (skipped with a warning
     if that folder is absent, e.g. on another machine)."""
@@ -1233,8 +1239,8 @@ def write_export(rows):
     payload = json.dumps(doc, ensure_ascii=False, indent=1)
     with open(EXPORT_JSON, "w", encoding="utf-8", newline="\n") as f:
         f.write(payload + "\n")
-    repo_dir = os.path.dirname(EXPORT_REPO_JSON)
-    if os.path.isdir(repo_dir):
+    repo_dir = EXPORT_REPO_JSON.parent
+    if repo_dir.is_dir():
         with open(EXPORT_REPO_JSON, "w", encoding="utf-8", newline="\n") as f:
             f.write(payload + "\n")
         print(f"Export written: {EXPORT_JSON} and {EXPORT_REPO_JSON} ({len(articles)} articles).")
@@ -1244,7 +1250,7 @@ def write_export(rows):
     return True
 
 
-def cmd_export():
+def cmd_export() -> None:
     main_rows = load_main()
     url_lookup = {r["title"]: r["url"] for r in main_rows}
     internal = [detail_row_to_internal(d, url_lookup) for d in load_detail()]
@@ -1254,7 +1260,7 @@ def cmd_export():
         sys.exit(1)
 
 
-def detail_row_to_internal(d, url_lookup):
+def detail_row_to_internal(d: dict, url_lookup: dict[str, str]) -> dict:
     return {
         "title": d["title"], "url": url_lookup.get(d["title"], ""),
         "net_score": int(d["net_score"]), "verse_count": int(d["verse_count"]), "ref_count": int(d["ref_count"]),
@@ -1309,7 +1315,7 @@ def detail_row_to_internal(d, url_lookup):
     }
 
 
-def cmd_check():
+def cmd_check() -> None:
     main_rows = load_main()
     detail_rows = load_detail()
     excluded = load_excluded()
@@ -1338,7 +1344,7 @@ def cmd_check():
                 f'{expected_rank.get(r["title"])}'
             )
 
-    if os.path.exists(BULK_PASTE_TXT):
+    if BULK_PASTE_TXT.exists():
         expected_bulk = "\n".join(
             f"{to_output_title(r['title'])}, {to_output_url(r['url'])}, {r['ranking']}" for r in main_rows
         ) + "\n"
@@ -1356,7 +1362,7 @@ def cmd_check():
     sys.exit(0)
 
 
-def cmd_remove(titles_to_remove):
+def cmd_remove(titles_to_remove: list[str]) -> None:
     """One-off removal WITHOUT permanent denylisting — the title could be re-added by a later
     top-up. Use `exclude` instead when it should never come back."""
     detail_rows = load_detail()
@@ -1378,7 +1384,7 @@ def cmd_remove(titles_to_remove):
     print(f"Count: {before} → {after}")
 
 
-def cmd_exclude(titles_to_add):
+def cmd_exclude(titles_to_add: list[str]) -> None:
     excluded = load_excluded()
     new_ones = [t for t in titles_to_add if t not in excluded]
     if new_ones:
@@ -1402,7 +1408,7 @@ def cmd_exclude(titles_to_add):
     print(f"Count: {before} → {after}")
 
 
-def cmd_rescore():
+def cmd_rescore() -> None:
     """Full re-harvest of every CURRENTLY-PRESENT article under the CURRENT weight table (not a
     merge of stale signals — use this after a weight-table change so every row is scored on the
     same, current rubric). Resumable: progress is written to .rescore-progress.jsonl as it goes,
@@ -1431,7 +1437,7 @@ def cmd_rescore():
 
     done = {}
     stale = 0
-    if os.path.exists(RESCORE_PROGRESS):
+    if RESCORE_PROGRESS.exists():
         with open(RESCORE_PROGRESS, encoding="utf-8") as f:
             for line in f:
                 entry = json.loads(line)
@@ -1467,11 +1473,11 @@ def cmd_rescore():
             prog.flush()
 
     write_files(list(done.values()))
-    os.remove(RESCORE_PROGRESS)
+    RESCORE_PROGRESS.unlink()
     print(f"Rescore complete — {total} article(s) written.")
 
 
-def cmd_add(input_path):
+def cmd_add(input_path: str) -> None:
     """Reads bucket-labels.json and vector-family-scores.json when present —
     see cmd_rescore()'s docstring for the pending-state handling when either is absent."""
     try:
@@ -1527,7 +1533,7 @@ def cmd_add(input_path):
     print(f"Total: {len(internal)} articles.")
 
 
-RESCORE_PROGRESS = os.path.join(ALGORITHM_DIR, ".rescore-progress.jsonl")
+RESCORE_PROGRESS = ALGORITHM_DIR / ".rescore-progress.jsonl"
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()

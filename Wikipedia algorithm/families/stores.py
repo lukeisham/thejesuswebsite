@@ -138,7 +138,10 @@ def build_all_family_stores(
         try:
             store = build_family_store(name, embedder, exemplars_dir, force)
             stores[name] = store
-        except Exception:
+        except (OSError, RuntimeError, ValueError):
+            # OSError: disk I/O (mkdir, open); RuntimeError: FAISS index
+            # read/write/add failures; ValueError: malformed embeddings.
+            # One family's failure shouldn't stop the rest of the batch.
             logger.exception("Failed to build store for family '%s'.", name)
             stores[name] = None
     return stores
