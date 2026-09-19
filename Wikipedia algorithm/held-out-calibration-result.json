@@ -4,9 +4,9 @@
   "separation_mode": "adjacency",
   "train_n": 181,
   "test_n": 85,
-  "train_accuracy": 0.6354,
-  "test_accuracy": 0.6235,
-  "train_test_gap": 0.0119,
+  "train_accuracy": 0.6685,
+  "test_accuracy": 0.6706,
+  "train_test_gap": -0.0021,
   "best_config": {
     "t_data": 0.4,
     "t_close": 0.4,
@@ -17,7 +17,7 @@
   "test_details": [
     {
       "title": "Bargain of Judas",
-      "gold_tier": "unclassifiable",
+      "gold_tier": "one_sided",
       "pred_tier": "clear_split",
       "separation": 0.6,
       "data_count": 1,
@@ -28,7 +28,7 @@
     {
       "title": "Al-Maghtas",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 34,
       "close_count": 2,
@@ -58,7 +58,7 @@
     {
       "title": "Beatitudes",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 18,
       "close_count": 8,
@@ -98,7 +98,7 @@
     {
       "title": "Census of Quirinius",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 17,
       "close_count": 1,
@@ -108,7 +108,7 @@
     {
       "title": "Calvary",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 24,
       "close_count": 1,
@@ -128,7 +128,7 @@
     {
       "title": "Capernaum",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 23,
       "close_count": 4,
@@ -158,7 +158,7 @@
     {
       "title": "Decapolis",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 15,
       "close_count": 1,
@@ -197,8 +197,8 @@
     },
     {
       "title": "Ephraim in the wilderness",
-      "gold_tier": "unclassifiable",
-      "pred_tier": "unclassifiable",
+      "gold_tier": "one_sided",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 2,
       "close_count": 1,
@@ -247,8 +247,8 @@
     },
     {
       "title": "Gennesaret (Kinneret archaeological site)",
-      "gold_tier": "unclassifiable",
-      "pred_tier": "unclassifiable",
+      "gold_tier": "one_sided",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 13,
       "close_count": 2,
@@ -288,7 +288,7 @@
     {
       "title": "Healing the two blind men in Galilee",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 4,
       "close_count": 1,
@@ -307,7 +307,7 @@
     },
     {
       "title": "Jerusalem during the Second Temple period",
-      "gold_tier": "unclassifiable",
+      "gold_tier": "one_sided",
       "pred_tier": "clear_split",
       "separation": 0.979,
       "data_count": 93,
@@ -378,7 +378,7 @@
     {
       "title": "Kidron Valley",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 16,
       "close_count": 4,
@@ -407,18 +407,18 @@
     },
     {
       "title": "Mary - mother of James",
-      "gold_tier": "unclassifiable",
+      "gold_tier": "one_sided",
       "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 6,
       "close_count": 0,
       "interp_count": 0,
-      "correct": false
+      "correct": true
     },
     {
       "title": "Martha",
-      "gold_tier": "unclassifiable",
-      "pred_tier": "unclassifiable",
+      "gold_tier": "one_sided",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 29,
       "close_count": 3,
@@ -427,8 +427,8 @@
     },
     {
       "title": "Mary of Clopas",
-      "gold_tier": "unclassifiable",
-      "pred_tier": "unclassifiable",
+      "gold_tier": "one_sided",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 19,
       "close_count": 1,
@@ -467,8 +467,8 @@
     },
     {
       "title": "Mount Tabor",
-      "gold_tier": "unclassifiable",
-      "pred_tier": "unclassifiable",
+      "gold_tier": "one_sided",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 24,
       "close_count": 1,
@@ -477,13 +477,13 @@
     },
     {
       "title": "Mount of Beatitudes",
-      "gold_tier": "unclassifiable",
+      "gold_tier": "one_sided",
       "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 3,
       "close_count": 0,
       "interp_count": 0,
-      "correct": false
+      "correct": true
     },
     {
       "title": "Lazarus of Bethany",
@@ -538,7 +538,7 @@
     {
       "title": "Outer darkness",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 4,
       "close_count": 3,
@@ -618,7 +618,7 @@
     {
       "title": "Parable of the Two Sons",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 1,
       "close_count": 4,
@@ -668,7 +668,7 @@
     {
       "title": "Penitent thief",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 14,
       "close_count": 10,
@@ -697,13 +697,13 @@
     },
     {
       "title": "Philip the Apostle",
-      "gold_tier": "unclassifiable",
+      "gold_tier": "one_sided",
       "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 17,
       "close_count": 0,
       "interp_count": 0,
-      "correct": false
+      "correct": true
     },
     {
       "title": "Return of Jesus to Galilee",
@@ -727,8 +727,8 @@
     },
     {
       "title": "Salt and light",
-      "gold_tier": "unclassifiable",
-      "pred_tier": "unclassifiable",
+      "gold_tier": "one_sided",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 3,
       "close_count": 4,
@@ -757,13 +757,13 @@
     },
     {
       "title": "Sea of Galilee",
-      "gold_tier": "unclassifiable",
+      "gold_tier": "one_sided",
       "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 33,
       "close_count": 0,
       "interp_count": 0,
-      "correct": false
+      "correct": true
     },
     {
       "title": "Sign of Jonah",
@@ -798,7 +798,7 @@
     {
       "title": "Shechem (Sychar)",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 28,
       "close_count": 2,
@@ -827,8 +827,8 @@
     },
     {
       "title": "True Vine",
-      "gold_tier": "unclassifiable",
-      "pred_tier": "unclassifiable",
+      "gold_tier": "one_sided",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 2,
       "close_count": 4,
@@ -858,7 +858,7 @@
     {
       "title": "True Cross",
       "gold_tier": "clear_split",
-      "pred_tier": "unclassifiable",
+      "pred_tier": "one_sided",
       "separation": 1.0,
       "data_count": 45,
       "close_count": 3,
@@ -866,8 +866,8 @@
       "correct": false
     }
   ],
-  "test_correct": 53,
+  "test_correct": 57,
   "test_total": 85,
-  "test_ci_lower": 0.5176,
-  "test_ci_upper": 0.7294
+  "test_ci_lower": 0.5647,
+  "test_ci_upper": 0.7647
 }

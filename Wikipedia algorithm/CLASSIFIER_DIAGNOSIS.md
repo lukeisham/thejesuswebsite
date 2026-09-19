@@ -133,10 +133,10 @@ below is measured on articles the sweep never saw.
 
 | Metric | Value |
 |---|---|
-| Train accuracy (in-sample, train split) | 0.635 |
-| Test accuracy (held-out) | 0.624 |
-| Train − test gap | 0.012 |
-| Test accuracy 95% CI (bootstrap) | [0.518, 0.729] |
+| Train accuracy (in-sample, train split) | 0.668 |
+| Test accuracy (held-out) | 0.671 |
+| Train − test gap | -0.002 |
+| Test accuracy 95% CI (bootstrap) | [0.565, 0.765] |
 
 ### Best train-split configuration
 

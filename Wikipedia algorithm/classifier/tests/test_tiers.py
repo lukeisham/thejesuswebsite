@@ -243,6 +243,12 @@ class TestTierAssignment(unittest.TestCase):
                            n_min=self.N_MIN)
         self.assertEqual(tier, TIER_ONE_SIDED)
 
+        # Regression (issue #231): data + close with no interpretation was
+        # named "unclassifiable" instead of "one_sided".
+        result = score_article(labels, t_sep_threshold=self.T_SEP,
+                               n_min=self.N_MIN)
+        self.assertEqual(result["tier_state"], "one_sided")
+
     def test_descriptive_vs_interpretive_clear_split(self) -> None:
         """Data+Close block separated from Interpretation block → +10."""
         # Descriptive block (data+close) followed by interpretive block.
