@@ -110,11 +110,20 @@ function boxesOverlap(a, b, gap) {
 
 /**
  * Find the first y at or below `startY` where a heading box overlaps none
- * of the `obstacles`. Returns null when no row fits inside `maxY`.
+ * of the `obstacles`. Tries `startY` first, then the spot just below each
+ * obstacle, so a gap narrower than one heading row is still found. Returns
+ * null when no spot fits inside `maxY`.
  */
 function findFreeStackY(x, startY, width, height, obstacles, gap, maxY) {
-  const step = height + gap;
-  for (let y = startY; y + height <= maxY; y += step) {
+  const EPSILON = 0.01; // keeps float rounding from counting as an overlap
+  const candidates = [startY];
+  for (const o of obstacles) {
+    const below = o.y + o.height + gap + EPSILON;
+    if (below > startY) candidates.push(below);
+  }
+  candidates.sort((a, b) => a - b);
+  for (const y of candidates) {
+    if (y + height > maxY) break;
     const box = { x, y, width, height };
     if (!obstacles.some((o) => boxesOverlap(box, o, gap))) return y;
   }
@@ -260,7 +269,9 @@ function computeEraHeadingPositions(eraBoundaries, eventBounds, zoomScale, conta
         );
       }
 
-      if (item.tierIndex >= MAX_TIER) {
+      const finalBox = { x: clampedX, y: topLeftY, width: item._headingWidth, height: item._headingHeight };
+      const touchesObstacle = placedBoxes.some((o) => boxesOverlap(finalBox, o, VERTICAL_STACK_GAP));
+      if (item.tierIndex >= MAX_TIER || touchesObstacle) {
         verticalStackCount += 1;
         const freeY = findFreeStackY(
           clampedX, topLeftY, item._headingWidth, item._headingHeight,
@@ -582,6 +593,40 @@ describe("EraHeadingPlacement — heading height includes CSS padding (issue 239
       const overlapsX = h.x < label.x + label.width && label.x < h.x + 200;
       const overlapsY = h.y < label.y + label.height && label.y < h.y + 31.4;
       assert.ok(!(overlapsX && overlapsY && h.tier >= 10), h.era + " box touches the label");
+    }
+  });
+});
+
+describe("EraHeadingPlacement — headings never sit on labels (issue 239)", () => {
+  test("a label under the top row pushes the heading to a free row", () => {
+    // Label sits exactly where the Old Testament heading would land.
+    const label = { era: "OldTestament", kind: "label", x: 141, y: 10, width: 100, height: 36 };
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [label], 1.0, 3800, 280, false);
+    const ot = result.find((r) => r.era === "OldTestament");
+    const box = { x: ot.x, y: ot.y, width: 203, height: 31.4 };
+    const hit = box.x < label.x + label.width && label.x < box.x + box.width &&
+      box.y < label.y + label.height && label.y < box.y + box.height;
+    assert.strictEqual(hit, false, "heading box must not overlap the label, y=" + ot.y);
+  });
+});
+
+describe("EraHeadingPlacement — narrow gap between labels (issue 239, live data)", () => {
+  test("a heading finds a gap that is narrower than one grid row", () => {
+    // Positions measured on the live timeline. No evenly spaced row is free,
+    // but there is a gap between the first two labels.
+    const L = (x, y, w, h) => ({ era: "OldTestament", kind: "label", x, y, width: w, height: h });
+    const labels = [
+      L(141.66, 61.9, 100, 36),
+      L(144.09, 145.11, 100, 36),
+      L(144.33, 280.06, 100, 36),
+      L(111.38, 235.41, 97.16, 18),
+    ];
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, labels, 1.0, 3800, 280, false);
+    const ot = result.find((r) => r.era === "OldTestament");
+    for (const l of labels) {
+      const hit = ot.x < l.x + l.width && l.x < ot.x + 203 &&
+        ot.y < l.y + l.height && l.y < ot.y + 31.4;
+      assert.strictEqual(hit, false, "heading at y=" + ot.y + " overlaps label at y=" + l.y);
     }
   });
 });

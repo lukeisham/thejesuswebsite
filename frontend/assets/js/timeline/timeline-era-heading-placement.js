@@ -65,11 +65,20 @@ function boxesOverlap(a, b, gap) {
 
 /**
  * Find the first y at or below `startY` where a heading box overlaps none
- * of the `obstacles`. Returns null when no row fits inside `maxY`.
+ * of the `obstacles`. Tries `startY` first, then the spot just below each
+ * obstacle, so a gap narrower than one heading row is still found. Returns
+ * null when no spot fits inside `maxY`.
  */
 function findFreeStackY(x, startY, width, height, obstacles, gap, maxY) {
-  const step = height + gap;
-  for (let y = startY; y + height <= maxY; y += step) {
+  const EPSILON = 0.01; // keeps float rounding from counting as an overlap
+  const candidates = [startY];
+  for (const o of obstacles) {
+    const below = o.y + o.height + gap + EPSILON;
+    if (below > startY) candidates.push(below);
+  }
+  candidates.sort((a, b) => a - b);
+  for (const y of candidates) {
+    if (y + height > maxY) break;
     const box = { x, y, width, height };
     if (!obstacles.some((o) => boxesOverlap(box, o, gap))) return y;
   }
@@ -297,9 +306,10 @@ export function computeEraHeadingPositions(
   // ── Filter back to only heading descriptors, convert to top-left output ──
   // Vertical stacking fallback (Notes: "if an era is narrow and heavily
   // clustered, headings may stack and escalate vertically as a fallback").
-  // Triggers only when horizontal escalation is fully exhausted (tier hit
+  // Triggers when horizontal escalation is fully exhausted (tier hit
   // MAX_TIER) — narrow single/double-period eras whose real label width
-  // exceeds their own span can never resolve purely by x-nudging within it.
+  // exceeds their own span can never resolve purely by x-nudging within it —
+  // and when the final heading box still touches a label or earlier heading.
   const VERTICAL_STACK_GAP = 4;
   let verticalStackCount = 0;
 
@@ -369,9 +379,19 @@ export function computeEraHeadingPositions(
         );
       }
 
-      if (item.tierIndex >= MAX_TIER) {
+      // A heading must never sit on label text or on an earlier heading, even
+      // when horizontal nudging stopped early (issue #239). Test the final box.
+      const finalBox = {
+        x: clampedX, y: topLeftY, width: item._headingWidth, height: item._headingHeight,
+      };
+      const touchesObstacle = placedBoxes.some((o) =>
+        boxesOverlap(finalBox, o, VERTICAL_STACK_GAP),
+      );
+
+      if (item.tierIndex >= MAX_TIER || touchesObstacle) {
         // Horizontal escalation exhausted without clearing the collision
-        // (era too narrow for its own label) — stack downward instead.
+        // (era too narrow for its own label), or the heading still touches a
+        // label — stack downward to the first free row instead.
         verticalStackCount += 1;
         const freeY = findFreeStackY(
           clampedX, topLeftY, item._headingWidth, item._headingHeight,
