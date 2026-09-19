@@ -37,7 +37,7 @@ import {
 } from "../cluster-logic/cluster-labels.js";
 import { periodX, periodY, BASE_PX_PER_PERIOD } from "./timeline-geometry.js";
 import { getScale, mountZoomControls } from "./timeline-zoom.js";
-import { resolveLabelCollisions as resolveCollisionsShared } from "../cluster-logic/cluster-label-collision.js";
+import { resolveLabelCollisions as resolveCollisionsShared, tierShift } from "../cluster-logic/cluster-label-collision.js";
 import { computeEraHeadingPositions } from "./timeline-era-heading-placement.js";
 
 // ─── Era Headings ───────────────────────────────────────────────────────────
@@ -629,8 +629,11 @@ function resolveLabelCollisions(descriptors) {
   if (!descriptors || descriptors.length === 0) return;
 
   const axis = descriptors[0].axis;
+  // The shared resolver fans labels out across the axis that is NOT the
+  // timeline axis: up and down in horizontal mode ("x"), left and right in
+  // vertical mode ("y"). Horizontal labels move in `top` (%). Vertical labels
+  // move in `left`, which is `calc(50% + Npx)`, so only the px part changes.
   const primaryStep = axis === "x" ? TIER_STEP_PCT : TIER_STEP_PX;
-  const primaryKey = axis === "x" ? "left" : "top";
 
   // Build collision descriptors with measured DOM rects
   const collisionDescs = descriptors.map((d) => {
@@ -653,11 +656,15 @@ function resolveLabelCollisions(descriptors) {
   // Apply resolved positions back to the DOM.
   for (const item of resolved) {
     if (item.tierIndex <= 0) continue;
-    const direction = item.tierIndex % 2 === 1 ? -1 : 1;
-    const shift = direction * primaryStep * Math.ceil(item.tierIndex / 2);
-    const currentVal = parseFloat(item.el.style[primaryKey]);
-    const newVal = (Number.isFinite(currentVal) ? currentVal : 0) + shift;
-    item.el.style[primaryKey] = newVal + (axis === "x" ? "%" : "px");
+    const shift = tierShift(item.tierIndex, primaryStep);
+    if (axis === "x") {
+      const currentTop = parseFloat(item.el.style.top);
+      item.el.style.top = (Number.isFinite(currentTop) ? currentTop : 50) + shift + "%";
+    } else {
+      const match = /calc\(50%\s*\+\s*(-?[\d.]+)px\)/.exec(item.el.style.left);
+      const baseLeft = match ? parseFloat(match[1]) : 0;
+      item.el.style.left = "calc(50% + " + (baseLeft + shift) + "px)";
+    }
   }
 }
 

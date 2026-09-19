@@ -27,6 +27,21 @@ export const LABEL_GAP_PX = 8;
 export const MAX_TIER = 10;
 
 /**
+ * Net shift for a label that sits at a given escalation tier.
+ * Tier 1 is negative, tier 2 is positive, tier 3 is negative, and so on.
+ * Each pair of tiers moves one more step from the start position.
+ *
+ * @param {number} tierIndex - escalation tier (0 means no shift)
+ * @param {number} step      - shift per tier, in the caller's unit
+ * @returns {number} signed shift in the caller's unit
+ */
+export function tierShift(tierIndex, step) {
+  if (tierIndex <= 0) return 0;
+  const direction = tierIndex % 2 === 1 ? -1 : 1;
+  return direction * step * Math.ceil(tierIndex / 2);
+}
+
+/**
  * Descriptor for a single label to be collision-resolved.
  *
  * @typedef {Object} LabelDescriptor
@@ -115,8 +130,7 @@ export function resolveLabelCollisions(descriptors) {
           // visually unstable page under certain data. Alternating the push
           // direction fans labels out to both sides.
           // Tier 1: negative, Tier 2: positive, Tier 3: negative, etc.
-          const direction = tier % 2 === 1 ? -1 : 1;
-          const netShift = direction * item.primaryStep * Math.ceil(tier / 2);
+          const netShift = tierShift(tier, item.primaryStep);
           // axis='x' (horizontal): shift along y (labels fan out vertically)
           // axis='y' (vertical): shift along x (labels fan out horizontally)
           if (axis === "x") {
