@@ -633,7 +633,16 @@ function resolveLabelCollisions(descriptors) {
   // timeline axis: up and down in horizontal mode ("x"), left and right in
   // vertical mode ("y"). Horizontal labels move in `top` (%). Vertical labels
   // move in `left`, which is `calc(50% + Npx)`, so only the px part changes.
-  const primaryStep = axis === "x" ? TIER_STEP_PCT : TIER_STEP_PX;
+  const domStep = axis === "x" ? TIER_STEP_PCT : TIER_STEP_PX;
+
+  // The resolver compares measured rects, which are in screen px. Give it the
+  // step in screen px too, or it checks positions that a label never reaches
+  // (12% of the timeline height is about 34px, not 12px). Issue #238.
+  const parent = descriptors[0].el.offsetParent;
+  const parentH = parent ? parent.offsetHeight : 0;
+  const scale = parentH > 0 ? parent.getBoundingClientRect().height / parentH : 1;
+  const primaryStep =
+    (axis === "x" ? (TIER_STEP_PCT / 100) * parentH : TIER_STEP_PX) * (scale || 1);
 
   // Build collision descriptors with measured DOM rects
   const collisionDescs = descriptors.map((d) => {
@@ -656,7 +665,7 @@ function resolveLabelCollisions(descriptors) {
   // Apply resolved positions back to the DOM.
   for (const item of resolved) {
     if (item.tierIndex <= 0) continue;
-    const shift = tierShift(item.tierIndex, primaryStep);
+    const shift = tierShift(item.tierIndex, domStep);
     if (axis === "x") {
       const currentTop = parseFloat(item.el.style.top);
       item.el.style.top = (Number.isFinite(currentTop) ? currentTop : 50) + shift + "%";

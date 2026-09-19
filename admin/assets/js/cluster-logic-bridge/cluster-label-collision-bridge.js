@@ -28,6 +28,17 @@ window.AdminTimelineClusterLabelCollision = {
   resolve: function (labelEls, axis, primaryStep) {
     if (!labelEls || labelEls.length === 0) return;
 
+    // The resolver compares measured rects (screen px), so it needs the step
+    // in screen px. In horizontal mode primaryStep is a percentage of the
+    // parent height: 12% is about 34px, not 12px (issue #238).
+    var stepPx = primaryStep || 12;
+    if (axis === "x") {
+      var parent = labelEls[0].offsetParent;
+      var parentH = parent ? parent.offsetHeight : 0;
+      var scale = parentH > 0 ? parent.getBoundingClientRect().height / parentH : 1;
+      stepPx = ((primaryStep || 12) / 100) * parentH * (scale || 1);
+    }
+
     // Build descriptors with measured rects
     var descriptors = [];
     for (var i = 0; i < labelEls.length; i++) {
@@ -41,7 +52,7 @@ window.AdminTimelineClusterLabelCollision = {
         height: rect.height,
         tierIndex: parseInt(el.dataset.tierIndex || "0", 10),
         axis: axis,
-        primaryStep: primaryStep || 12,
+        primaryStep: stepPx,
       });
     }
 
@@ -75,7 +86,7 @@ window.AdminTimelineClusterLabelCollision = {
           var shift = 0;
           if (item.tierIndex > 0) {
             var direction = item.tierIndex % 2 === 1 ? -1 : 1;
-            shift = direction * primaryStep * Math.ceil(item.tierIndex / 2);
+            shift = direction * (primaryStep || 12) * Math.ceil(item.tierIndex / 2);
           }
           el.style.top = (baseTop + shift) + "%";
         }
