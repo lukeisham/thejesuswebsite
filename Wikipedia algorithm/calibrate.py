@@ -563,6 +563,19 @@ def update_config(t_data: float, t_close: float, t_interp: float, t_sep: float, 
 # Held-out calibration (requires LLM-labelled corpus)
 # ---------------------------------------------------------------------------
 
+def _title_split_fraction(title: str, seed: int) -> float:
+    """Map a title to a stable number in [0, 1).
+
+    The number depends only on the title and the seed, never on the other
+    articles in the corpus. An article is in the train split when this
+    number is below `train_frac`, and in the test split otherwise.
+    """
+    import hashlib
+
+    digest = hashlib.sha256(f"{seed}:{title}".encode("utf-8")).digest()
+    return int.from_bytes(digest[:8], "big") / 2**64
+
+
 def calibrate_with_held_out(
     records: list[dict],
     cached_scores: dict[str, dict],
@@ -590,14 +603,14 @@ def calibrate_with_held_out(
         llm_labels: article_title -> list of LLM labels (data/close/interpretation).
         scoring_rule: "mean-cosine" or "centroid".
         separation_mode: "adjacency" or "block".
-        train_frac: Fraction of articles for training (default 0.70).
-        random_seed: Seed for reproducible splits.
+        train_frac: Approximate fraction of articles for training (default
+            0.70). Each article is assigned by a hash of its title, so the
+            split sizes vary a little around this fraction.
+        random_seed: Seed mixed into the title hash for reproducible splits.
 
     Returns:
         Dict with train_accuracy, test_accuracy, best_config, and details.
     """
-    import random
-
     # Only include records that have LLM labels.
     labelled_records = []
     for r in records:
@@ -615,13 +628,24 @@ def calibrate_with_held_out(
             "reason": f"only {len(labelled_records)} labelled articles (need >= 20)",
         }
 
-    # Shuffle deterministically and split.
-    rng = random.Random(random_seed)
-    shuffled = list(labelled_records)
-    rng.shuffle(shuffled)
-    split_idx = int(len(shuffled) * train_frac)
-    train_records = shuffled[:split_idx]
-    test_records = shuffled[split_idx:]
+    # Split by a hash of each title, not by list position, so a corpus edit
+    # moves only the affected articles between splits (issue #230).
+    train_records = [
+        r for r in labelled_records
+        if _title_split_fraction(r["title"], random_seed) < train_frac
+    ]
+    test_records = [
+        r for r in labelled_records
+        if _title_split_fraction(r["title"], random_seed) >= train_frac
+    ]
+    if not train_records or not test_records:
+        return {
+            "status": "skipped",
+            "reason": (
+                f"split left {len(train_records)} train / "
+                f"{len(test_records)} test articles (need both non-empty)"
+            ),
+        }
 
     logger.info(
         "Held-out calibration: %d train / %d test articles "

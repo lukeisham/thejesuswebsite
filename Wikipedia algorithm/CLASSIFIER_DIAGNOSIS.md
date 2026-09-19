@@ -119,7 +119,8 @@ At n=36 gold-set articles, a Wilson-score 95% CI band for a proportion near 0.5 
 
 Validates `calibrate.py`'s `calibrate_with_held_out()` against the
 266-article LLM-labelled corpus (`labels-corpus.json`, 4 articles excluded for empty label arrays — see issue #226), replacing §D.4's
-in-sample-only estimate with an honest 70/30 train/test split (seed=42).
+in-sample-only estimate with an honest ~70/30 train/test split (seed=42,
+assigned per article by a hash of its title).
 Thresholds are swept on the train split only; the reported test accuracy
 below is measured on articles the sweep never saw.
 
@@ -127,23 +128,23 @@ below is measured on articles the sweep never saw.
 |---|---|
 | Scoring rule | centroid |
 | Separation mode | adjacency |
-| Train articles | 186 |
-| Test articles | 80 |
+| Train articles | 181 |
+| Test articles | 85 |
 
 | Metric | Value |
 |---|---|
-| Train accuracy (in-sample, train split) | 0.586 |
-| Test accuracy (held-out) | 0.450 |
-| Train − test gap | 0.136 |
-| Test accuracy 95% CI (bootstrap) | [0.338, 0.562] |
+| Train accuracy (in-sample, train split) | 0.635 |
+| Test accuracy (held-out) | 0.624 |
+| Train − test gap | 0.012 |
+| Test accuracy 95% CI (bootstrap) | [0.518, 0.729] |
 
 ### Best train-split configuration
 
 | Parameter | Value |
 |---|---|
-| t_data | 0.55 |
+| t_data | 0.40 |
 | t_close | 0.40 |
-| t_interp | 0.65 |
+| t_interp | 0.60 |
 | t_sep | 0.50 |
 | t_register | 0.15 |
 
