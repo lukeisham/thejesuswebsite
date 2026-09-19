@@ -161,9 +161,10 @@ def _tier_state_name(tier: int, data_count: int = 0, close_count: int = 0,
     (they collide at 0 for one_sided/unclassifiable even under the settled
     +10/−5/0/0 weighting):
       - clear_split: tier == TIER_CLEAR (+10).
-      - muddled: both descriptive and interpretive present (class_count
-        >= n_min, multiple tiers present).
-      - one_sided: only one tier present (class_count >= n_min).
+      - muddled: both descriptive (data or close) and interpretive present
+        (class_count >= n_min).
+      - one_sided: only descriptive or only interpretive present
+        (class_count >= n_min).
       - unclassifiable: class_count < n_min or no class paragraphs.
 
     Args:
@@ -185,16 +186,15 @@ def _tier_state_name(tier: int, data_count: int = 0, close_count: int = 0,
     class_count = data_count + close_count + interp_count
     if class_count < n_min:
         return "unclassifiable"
-    present = sum(1 for c in (data_count, close_count, interp_count) if c > 0)
-    if present <= 1:
-        return "one_sided"
-    # Multiple tiers present → both descriptive and interpretive must be
-    # present (assign_tier returns TIER_MUDDLED when both are present
-    # but separation < t_sep).
+    # data and close both count as descriptive (see assign_tier), so an
+    # article with data + close but no interpretation is one_sided, not
+    # muddled. Compare descriptive vs interpretive, not the three counts.
     desc_count = data_count + close_count
     if desc_count > 0 and interp_count > 0:
+        # assign_tier returns TIER_MUDDLED when both are present but
+        # separation < t_sep.
         return "muddled"
-    return "unclassifiable"
+    return "one_sided"
 
 
 def assign_tier(
