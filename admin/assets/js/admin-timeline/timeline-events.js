@@ -249,18 +249,37 @@ Events.renderEvents = function () {
     }
   }
 
+  // Attach left- and right-click drag listeners to all dots
+  if (window.AdminTimelineNodeDrag && window.AdminTimelineNodeDrag.attachDragListeners) {
+    window.AdminTimelineNodeDrag.attachDragListeners();
+  }
+
+  // Run collision resolution on all sibling labels
+  if (window.AdminTimelineClusterLabelCollision && window.AdminTimelineClusterLabelCollision.resolve) {
+    var labelEls = axisEl.querySelectorAll(".admin-timeline-event-label");
+    window.AdminTimelineClusterLabelCollision.resolve(
+      Array.prototype.slice.call(labelEls),
+      "x",
+      12 // TIER_STEP_PCT matching frontend
+    );
+  }
+
   // Render era headings (SR-4: shared placement module, see
   // cluster-logic-bridge/timeline-era-heading-placement-bridge.js).
   // Admin is desktop-only — isMobile is always false.
+  // Runs after label collision resolution so headings avoid the final label
+  // positions, not just the dots (issue #221).
   if (window.AdminTimelineEraHeadingPlacement && window.AdminTimelineEraHeadingPlacement.compute) {
     var eraBoundaries = window.AdminTimelineGeometry.ERA_BOUNDARIES;
     var eraScale = window.AdminTimelineZoom ? window.AdminTimelineZoom.getScale() : 1.0;
     var canvasWidth = window.AdminTimelineAxis.totalWidth(100);
     var canvasHeight = 280;
 
+    var allBounds = eventBounds.concat(Events.measureLabelBounds(axisEl));
+
     var headings = window.AdminTimelineEraHeadingPlacement.compute(
       eraBoundaries,
-      eventBounds,
+      allBounds,
       eraScale,
       canvasWidth,
       canvasHeight,
@@ -282,21 +301,37 @@ Events.renderEvents = function () {
       axisEl.appendChild(headingEl);
     }
   }
+};
 
-  // Attach left- and right-click drag listeners to all dots
-  if (window.AdminTimelineNodeDrag && window.AdminTimelineNodeDrag.attachDragListeners) {
-    window.AdminTimelineNodeDrag.attachDragListeners();
-  }
+/**
+ * Measure each visible event label in world coordinates (the space of the
+ * axis element), so era headings can avoid label text. Labels must already
+ * be attached and their collision shifts applied.
+ *
+ * @param {HTMLElement} axisEl
+ * @returns {Array<{era:string,x:number,y:number,width:number,height:number}>}
+ */
+Events.measureLabelBounds = function (axisEl) {
+  var axisRect = axisEl.getBoundingClientRect();
+  // Screen size divided by layout size gives the current zoom scale.
+  var scale = axisEl.offsetWidth > 0 ? axisRect.width / axisEl.offsetWidth : 0;
+  if (!isFinite(scale) || scale <= 0) return [];
 
-  // Run collision resolution on all sibling labels
-  if (window.AdminTimelineClusterLabelCollision && window.AdminTimelineClusterLabelCollision.resolve) {
-    var labelEls = axisEl.querySelectorAll(".admin-timeline-event-label");
-    window.AdminTimelineClusterLabelCollision.resolve(
-      Array.prototype.slice.call(labelEls),
-      "x",
-      12 // TIER_STEP_PCT matching frontend
-    );
+  var bounds = [];
+  var labelEls = axisEl.querySelectorAll(".admin-timeline-event-label");
+  for (var i = 0; i < labelEls.length; i++) {
+    var rect = labelEls[i].getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
+    bounds.push({
+      era: "",
+      kind: "label",
+      x: (rect.left - axisRect.left) / scale,
+      y: (rect.top - axisRect.top) / scale,
+      width: rect.width / scale,
+      height: rect.height / scale,
+    });
   }
+  return bounds;
 };
 
 /**
