@@ -54,3 +54,26 @@
     justify-content: flex-end;
     gap: var(--space-sm);
 }
+
+/* ── Form fields inside a modal ───────────────────────────────────────────── */
+
+.admin-modal .admin-form-group {
+    margin-bottom: var(--space-md);
+}
+
+.admin-modal .admin-checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.admin-modal .admin-checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--admin-accent);
+}
+
+.admin-modal .admin-checkbox-group label {
+    font-size: 14px;
+    cursor: pointer;
+}
