@@ -183,3 +183,29 @@ describe("cluster-label-collision — axis='y' vertical mode", () => {
     assert.notStrictEqual(resolved[1].x, 50);
   });
 });
+
+// ── tierShift (inlined to match cluster-label-collision.js) ──────────────────
+
+function tierShift(tierIndex, step) {
+  if (tierIndex <= 0) return 0;
+  const direction = tierIndex % 2 === 1 ? -1 : 1;
+  return direction * step * Math.ceil(tierIndex / 2);
+}
+
+describe("cluster-label-collision — tierShift", () => {
+  test("tier 0 gives no shift", () => {
+    assert.strictEqual(tierShift(0, 12), 0);
+  });
+
+  test("odd tiers move negative, even tiers move positive", () => {
+    assert.strictEqual(tierShift(1, 12), -12);
+    assert.strictEqual(tierShift(2, 12), 12);
+    assert.strictEqual(tierShift(3, 12), -24);
+    assert.strictEqual(tierShift(4, 12), 24);
+  });
+
+  test("the shift stays small at the maximum tier", () => {
+    // Issue 238: a shift of hundreds of units put labels off screen.
+    assert.strictEqual(Math.abs(tierShift(MAX_TIER, 12)), 60);
+  });
+});
