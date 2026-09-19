@@ -36,6 +36,14 @@ const MAX_FONT_SIZE_REM = 1.375;
 /** Line-height multiplier for bounding-box height estimation. */
 const LINE_HEIGHT = 1.3;
 
+/**
+ * Vertical padding of a heading, top and bottom each (px). Matches
+ * `padding: var(--space-xs) ...` in timeline-era-headings.css (frontend and
+ * admin). The box must include it, or headings sit about 8px too close to
+ * labels and touch them (issue #239).
+ */
+const HEADING_PADDING_Y = 4;
+
 /** Default vertical margin from the top of the container (world pixels). */
 const TOP_MARGIN = 8;
 
@@ -150,7 +158,7 @@ export function computeEraHeadingPositions(
   // ── Estimate heading height from font-size (rem → px conversion is rough;
   //     we approximate by assuming 1rem ≈ 16px for bounding-box math). ──────
   const fontSizePx = fontSizeRem * 16;
-  const headingHeightPx = fontSizePx * LINE_HEIGHT;
+  const headingHeightPx = fontSizePx * LINE_HEIGHT + HEADING_PADDING_Y * 2;
 
   // ── Build initial heading descriptors ────────────────────────────────────
   const eraKeys = Object.keys(eraBoundaries);
