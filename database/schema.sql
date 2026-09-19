@@ -116,6 +116,9 @@ CREATE TABLE responses (
     response_headings  TEXT,
     published_draft    INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
     metadata_keywords  TEXT,
+    two_column         INTEGER DEFAULT 0 CHECK (two_column IN (0, 1)),
+    doi                TEXT,
+    author_bio         TEXT,
     created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
     CHECK (published_draft = 0 OR challenge_id IS NOT NULL)
@@ -132,6 +135,9 @@ CREATE TABLE context_essays (
     essay_headings   TEXT,
     published_draft  INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
     metadata_keywords TEXT,
+    two_column       INTEGER DEFAULT 0 CHECK (two_column IN (0, 1)),
+    doi              TEXT,
+    author_bio       TEXT,
     created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -333,9 +339,12 @@ CREATE TABLE credentials (
     public_key     TEXT NOT NULL,
     user_handle    TEXT NOT NULL,
     sign_count     INTEGER DEFAULT 0,
+    last_used_at   TEXT,
     created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_credentials_user_handle ON credentials(user_handle);
 
 CREATE TABLE analytics (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,

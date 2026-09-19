@@ -17,30 +17,9 @@ const SCHEMA_PATH = path.resolve(
   "database",
   "schema.sql",
 );
-const MIGRATION_PATH = path.resolve(
-  __dirname,
-  "..",
-  "..",
-  "database",
-  "migrations",
-  "003_journal_article_metadata.sql",
-);
-
 const db = require("../config");
 const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
 db.exec(schema);
-
-// Migration 003 also adds two_column/doi/author_bio to `historiography`, but
-// schema.sql now defines those columns directly on that table — re-applying
-// migration 003 unfiltered would fail with "duplicate column name". Apply it
-// only for the two tables (context_essays, responses) still stale in
-// schema.sql.
-const migration = fs
-  .readFileSync(MIGRATION_PATH, "utf8")
-  .split("\n")
-  .filter((line) => !line.startsWith("ALTER TABLE historiography"))
-  .join("\n");
-db.exec(migration);
 
 const responseModel = require("../models/response.model");
 const essayModel = require("../models/essay.model");
