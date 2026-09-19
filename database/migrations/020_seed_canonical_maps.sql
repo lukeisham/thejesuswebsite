@@ -2,12 +2,12 @@
 --
 -- Two things, both idempotent:
 --
--- 1. Seed the canonical map rows. database/seed.sql inserts these five
---    rows, but nothing in the deploy pipeline ever runs seed.sql, so a
---    database created from schema.sql alone has an empty maps table —
---    the admin editor and public maps pages then correctly render their
---    "No maps available" empty states, which presents as "maps not
---    showing up". INSERT OR IGNORE keys off the maps.map_key UNIQUE
+-- 1. Seed the canonical map rows. A database created from schema.sql alone
+--    has an empty maps table — the admin editor and public maps pages then
+--    correctly render their "No maps available" empty states, which
+--    presents as "maps not showing up". (A separate database/seed.sql once
+--    held these rows, but nothing ran it, so it was deleted.)
+--    INSERT OR IGNORE keys off the maps.map_key UNIQUE
 --    constraint, so databases that already have the rows are untouched
 --    (their admin-edited names/descriptions are preserved).
 --
