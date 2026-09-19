@@ -255,7 +255,7 @@
     // ── Modal for Add / Edit ─────────────────────────────────────────────
 
     var modalOverlay = document.createElement('div');
-    modalOverlay.className = 'admin-modal-overlay';
+    modalOverlay.className = 'admin-modal-backdrop';
     modalOverlay.id = 'news-modal';
     modalOverlay.style.display = 'none';
     document.body.appendChild(modalOverlay);
@@ -266,23 +266,14 @@
       var modal = document.createElement('div');
       modal.className = 'admin-modal';
 
-      var header = document.createElement('div');
-      header.className = 'admin-modal__header';
-
       var modalTitle = document.createElement('h2');
       modalTitle.className = 'admin-modal__title';
       modalTitle.textContent = title;
-      header.appendChild(modalTitle);
+      modal.appendChild(modalTitle);
 
-      var closeBtn = document.createElement('button');
-      closeBtn.type = 'button';
-      closeBtn.className = 'admin-modal__close';
-      closeBtn.textContent = '✕';
-      closeBtn.setAttribute('aria-label', 'Close modal');
-      closeBtn.addEventListener('click', function () { modalOverlay.style.display = 'none'; });
-      header.appendChild(closeBtn);
-
-      modal.appendChild(header);
+      var modalBody = document.createElement('div');
+      modalBody.className = 'admin-modal__body';
+      modal.appendChild(modalBody);
 
       function field(label, id, type, placeholder, value) {
         var div = document.createElement('div');
@@ -320,11 +311,11 @@
         return div;
       }
 
-      modal.appendChild(field('Title', 'modal-title', 'text', 'e.g. New Discovery in Jerusalem', articleData ? articleData.news_article_title : ''));
-      modal.appendChild(field('Slug', 'modal-slug', 'text', 'e.g. new-discovery-jerusalem', articleData ? articleData.slug : ''));
-      modal.appendChild(field('Article URL', 'modal-url', 'url', 'https://example.com/article', articleData ? articleData.news_article_url : ''));
-      modal.appendChild(field('Publisher', 'modal-publisher', 'text', 'e.g. The Times of Israel', articleData ? articleData.news_article_publisher : ''));
-      modal.appendChild(field('Author', 'modal-author', 'text', 'e.g. John Smith', articleData ? articleData.news_article_author : ''));
+      modalBody.appendChild(field('Title', 'modal-title', 'text', 'e.g. New Discovery in Jerusalem', articleData ? articleData.news_article_title : ''));
+      modalBody.appendChild(field('Slug', 'modal-slug', 'text', 'e.g. new-discovery-jerusalem', articleData ? articleData.slug : ''));
+      modalBody.appendChild(field('Article URL', 'modal-url', 'url', 'https://example.com/article', articleData ? articleData.news_article_url : ''));
+      modalBody.appendChild(field('Publisher', 'modal-publisher', 'text', 'e.g. The Times of Israel', articleData ? articleData.news_article_publisher : ''));
+      modalBody.appendChild(field('Author', 'modal-author', 'text', 'e.g. John Smith', articleData ? articleData.news_article_author : ''));
 
       // Thumbnail picker
       var thumbnailGroup = document.createElement('div');
@@ -336,21 +327,21 @@
       var thumbnailContainer = document.createElement('div');
       thumbnailContainer.id = 'modal-thumbnail-picker';
       thumbnailGroup.appendChild(thumbnailContainer);
-      modal.appendChild(thumbnailGroup);
+      modalBody.appendChild(thumbnailGroup);
 
-      modal.appendChild(field('Date', 'modal-date', 'date', '', articleData ? (articleData.news_article_date ? articleData.news_article_date.slice(0, 10) : '') : ''));
-      modal.appendChild(field('Keywords', 'modal-keywords', 'text', 'e.g. archaeology, jerusalem', articleData ? articleData.metadata_keywords : ''));
-      modal.appendChild(checkbox('Show on Landing Page', 'modal-landing', articleData ? articleData.landing_page_display : false));
-      modal.appendChild(checkbox('Published', 'modal-publish', articleData ? articleData.published_draft : false));
+      modalBody.appendChild(field('Date', 'modal-date', 'date', '', articleData ? (articleData.news_article_date ? articleData.news_article_date.slice(0, 10) : '') : ''));
+      modalBody.appendChild(field('Keywords', 'modal-keywords', 'text', 'e.g. archaeology, jerusalem', articleData ? articleData.metadata_keywords : ''));
+      modalBody.appendChild(checkbox('Show on Landing Page', 'modal-landing', articleData ? articleData.landing_page_display : false));
+      modalBody.appendChild(checkbox('Published', 'modal-publish', articleData ? articleData.published_draft : false));
 
       var errorEl = document.createElement('div');
       errorEl.className = 'admin-error';
       errorEl.style.display = 'none';
       errorEl.setAttribute('role', 'alert');
-      modal.appendChild(errorEl);
+      modalBody.appendChild(errorEl);
 
       var actions = document.createElement('div');
-      actions.className = 'admin-modal-actions';
+      actions.className = 'admin-modal__actions';
 
       var saveBtn = document.createElement('button');
       saveBtn.type = 'button';
