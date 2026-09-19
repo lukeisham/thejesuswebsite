@@ -709,6 +709,50 @@ function measureLabelBounds(inner, descriptors) {
   return bounds;
 }
 
+/** Label sizes at the last render, used to detect a late layout change. */
+let renderedLabelSignature = "";
+
+/** True once the one-time re-check after the page settles is scheduled. */
+let settleArmed = false;
+
+/**
+ * Sizes of all labels as text, for a cheap "did the layout change" test.
+ * @returns {string}
+ */
+function labelSignature() {
+  if (!container) return "";
+  return Array.from(container.querySelectorAll(".timeline-label"))
+    .map((el) => el.offsetWidth + "x" + el.offsetHeight)
+    .join(",");
+}
+
+/**
+ * Labels and headings are measured at the first render. If the stylesheet or
+ * web fonts are not ready then, the boxes are wrong and headings can land on
+ * labels (issue #239). Once the page and fonts have loaded, render again if
+ * any label changed size. This runs at most once per page load.
+ */
+function armSettleRerender() {
+  if (settleArmed || typeof document === "undefined") return;
+  settleArmed = true;
+
+  const recheck = () => {
+    if (!container || !lastGroupedEvents) return;
+    if (labelSignature() === renderedLabelSignature) return;
+    renderTimeline(lastGroupedEvents, lastActiveEra);
+  };
+  const afterFonts = () => {
+    const ready = document.fonts && document.fonts.ready;
+    (ready || Promise.resolve()).then(recheck);
+  };
+
+  if (document.readyState === "complete") {
+    afterFonts();
+  } else {
+    window.addEventListener("load", afterFonts, { once: true });
+  }
+}
+
 /**
  * Build the complete timeline DOM and inject it into the container.
  * Chooses horizontal or vertical layout based on the current viewport.
@@ -759,6 +803,9 @@ export function renderTimeline(groupedEvents, activeEra) {
       built.vertical,
       measureLabelBounds(innerEl, built.labelDescriptors),
     );
+
+    renderedLabelSignature = labelSignature();
+    armSettleRerender();
 
     // ── State visibility ──────────────────────────────────────────────────
     if (loadingEl) loadingEl.hidden = true;
