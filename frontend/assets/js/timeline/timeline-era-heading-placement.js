@@ -45,6 +45,29 @@ const REGION_PADDING = 8;
 /** Dot size in world pixels for collision estimation. */
 const DOT_SIZE = 10;
 
+/** Box overlap test (top-left boxes) with a gap between the two boxes. */
+function boxesOverlap(a, b, gap) {
+  return (
+    a.x < b.x + b.width + gap &&
+    b.x < a.x + a.width + gap &&
+    a.y < b.y + b.height + gap &&
+    b.y < a.y + a.height + gap
+  );
+}
+
+/**
+ * Find the first y at or below `startY` where a heading box overlaps none
+ * of the `obstacles`. Returns null when no row fits inside `maxY`.
+ */
+function findFreeStackY(x, startY, width, height, obstacles, gap, maxY) {
+  const step = height + gap;
+  for (let y = startY; y + height <= maxY; y += step) {
+    const box = { x, y, width, height };
+    if (!obstacles.some((o) => boxesOverlap(box, o, gap))) return y;
+  }
+  return null;
+}
+
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
@@ -52,9 +75,11 @@ const DOT_SIZE = 10;
  *
  * @param {Object<string,{start:number,end:number}>} eraBoundaries
  *   Era key → { start, end } period indices (inclusive).
- * @param {Array<{era:string, x:number, y:number, width:number, height:number}>} eventBounds
- *   Bounding boxes of event dots in world coordinates.  Pass [] or null
- *   if no events are rendered yet.
+ * @param {Array<{era:string, x:number, y:number, width:number, height:number, kind?:string}>} eventBounds
+ *   Bounding boxes of event dots and event label text in world coordinates
+ *   (top-left based).  Label boxes carry `kind: "label"`; headings that
+ *   stack vertically also avoid those.  Pass [] or null if no events are
+ *   rendered yet.
  * @param {number} zoomScale
  *   Current zoom scale (0.3–3.0).  Affects only font-size (sizing), not
  *   positioning (which is in world coordinates).
@@ -270,6 +295,17 @@ export function computeEraHeadingPositions(
   const VERTICAL_STACK_GAP = 4;
   let verticalStackCount = 0;
 
+  // Label text is an obstacle for stacked headings. Headings already placed
+  // are obstacles too, so two stacked headings never share a row.
+  const placedBoxes = evBounds
+    .filter(
+      (b) =>
+        b && b.kind === "label" &&
+        Number.isFinite(b.x) && Number.isFinite(b.y) &&
+        b.width > 0 && b.height > 0,
+    )
+    .map((b) => ({ x: b.x, y: b.y, width: b.width, height: b.height }));
+
   const results = [];
   for (const item of resolved) {
     if (item._isEvent) continue;
@@ -329,8 +365,21 @@ export function computeEraHeadingPositions(
         // Horizontal escalation exhausted without clearing the collision
         // (era too narrow for its own label) — stack downward instead.
         verticalStackCount += 1;
-        clampedY = topLeftY + verticalStackCount * (item._headingHeight + VERTICAL_STACK_GAP);
+        const freeY = findFreeStackY(
+          clampedX, topLeftY, item._headingWidth, item._headingHeight,
+          placedBoxes, VERTICAL_STACK_GAP, containerHeight,
+        );
+        // No free row inside the container: use the plain stacked row.
+        clampedY = freeY !== null
+          ? freeY
+          : topLeftY + verticalStackCount * (item._headingHeight + VERTICAL_STACK_GAP);
       }
+    }
+
+    if (!item._isMobile) {
+      placedBoxes.push({
+        x: clampedX, y: clampedY, width: item._headingWidth, height: item._headingHeight,
+      });
     }
 
     results.push({

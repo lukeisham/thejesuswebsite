@@ -97,6 +97,29 @@ const TOP_MARGIN = 8;
 const REGION_PADDING = 8;
 const DOT_SIZE = 10;
 
+/** Box overlap test (top-left boxes) with a gap between the two boxes. */
+function boxesOverlap(a, b, gap) {
+  return (
+    a.x < b.x + b.width + gap &&
+    b.x < a.x + a.width + gap &&
+    a.y < b.y + b.height + gap &&
+    b.y < a.y + a.height + gap
+  );
+}
+
+/**
+ * Find the first y at or below `startY` where a heading box overlaps none
+ * of the `obstacles`. Returns null when no row fits inside `maxY`.
+ */
+function findFreeStackY(x, startY, width, height, obstacles, gap, maxY) {
+  const step = height + gap;
+  for (let y = startY; y + height <= maxY; y += step) {
+    const box = { x, y, width, height };
+    if (!obstacles.some((o) => boxesOverlap(box, o, gap))) return y;
+  }
+  return null;
+}
+
 function computeEraHeadingPositions(eraBoundaries, eventBounds, zoomScale, containerWidth, containerHeight, isMobile) {
   if (!eraBoundaries || typeof eraBoundaries !== "object") {
     return [];
@@ -189,6 +212,15 @@ function computeEraHeadingPositions(eraBoundaries, eventBounds, zoomScale, conta
   const VERTICAL_STACK_GAP = 4;
   let verticalStackCount = 0;
 
+  const placedBoxes = evBounds
+    .filter(
+      (b) =>
+        b && b.kind === "label" &&
+        Number.isFinite(b.x) && Number.isFinite(b.y) &&
+        b.width > 0 && b.height > 0,
+    )
+    .map((b) => ({ x: b.x, y: b.y, width: b.width, height: b.height }));
+
   const results = [];
   for (const item of resolved) {
     if (item._isEvent) continue;
@@ -229,8 +261,20 @@ function computeEraHeadingPositions(eraBoundaries, eventBounds, zoomScale, conta
 
       if (item.tierIndex >= MAX_TIER) {
         verticalStackCount += 1;
-        clampedY = topLeftY + verticalStackCount * (item._headingHeight + VERTICAL_STACK_GAP);
+        const freeY = findFreeStackY(
+          clampedX, topLeftY, item._headingWidth, item._headingHeight,
+          placedBoxes, VERTICAL_STACK_GAP, containerHeight,
+        );
+        clampedY = freeY !== null
+          ? freeY
+          : topLeftY + verticalStackCount * (item._headingHeight + VERTICAL_STACK_GAP);
       }
+    }
+
+    if (!item._isMobile) {
+      placedBoxes.push({
+        x: clampedX, y: clampedY, width: item._headingWidth, height: item._headingHeight,
+      });
     }
 
     results.push({
@@ -358,6 +402,83 @@ describe("EraHeadingPlacement — collision with event node", () => {
     const pre = result.find((r) => r.era === "PreIncarnation");
     assert.ok(pre);
     assert.strictEqual(pre.tier, 0);
+  });
+});
+
+describe("EraHeadingPlacement — collision with event label text (issue #221)", () => {
+  // A wide label overlaps the right end of the PassionWeek heading, while a
+  // dot at the label's centre-x does not. Boxes are top-left based.
+  const wideLabel = { era: "PassionWeek", x: 1950, y: 8, width: 100, height: 14 };
+  const centreDot = { era: "PassionWeek", x: 2000, y: 8, width: 10, height: 10 };
+
+  test("a dot at the label centre does not move the heading", () => {
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [centreDot], 1.0, 3800, 280, false);
+    assert.strictEqual(result.find((r) => r.era === "PassionWeek").tier, 0);
+  });
+
+  test("the wide label box moves the heading away", () => {
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [wideLabel], 1.0, 3800, 280, false);
+    const pw = result.find((r) => r.era === "PassionWeek");
+    assert.ok(pw.tier > 0, "expected tier > 0, got " + pw.tier);
+  });
+
+  test("dot and label for the same event together still resolve", () => {
+    const result = computeEraHeadingPositions(
+      ERA_BOUNDARIES, [centreDot, wideLabel], 1.0, 3800, 280, false,
+    );
+    const pw = result.find((r) => r.era === "PassionWeek");
+    assert.ok(pw.tier > 0);
+    assert.ok(pw.x >= 1800 && pw.x <= 3400, "heading x within era bounds, got " + pw.x);
+  });
+
+  test("a label far from every heading changes nothing", () => {
+    const farLabel = { era: "PassionWeek", x: 3000, y: 200, width: 100, height: 14 };
+    const baseline = computeEraHeadingPositions(ERA_BOUNDARIES, [], 1.0, 3800, 280, false);
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [farLabel], 1.0, 3800, 280, false);
+    assert.deepStrictEqual(result, baseline);
+  });
+});
+
+describe("EraHeadingPlacement — stacked headings avoid label text (issue #221)", () => {
+  // Production case: the "For to us a child is born" label sits under the
+  // Pre-Incarnation / Old Testament headings, and those two single-period
+  // eras must stack vertically because neither fits its own 100px span.
+  const label = { era: "OldTestament", kind: "label", x: 92, y: 62, width: 100, height: 54 };
+
+  function overlaps(a, b) {
+    return a.x < b.x + b.width && b.x < a.x + a.width &&
+           a.y < b.y + b.height && b.y < a.y + a.height;
+  }
+
+  test("stacked headings do not overlap the label or each other", () => {
+    // Dots as the renderer estimates them (row y=0 at each period centre).
+    const dots = [
+      { era: "PreIncarnation", x: 50, y: 0, width: 10, height: 10 },
+      { era: "OldTestament", x: 150, y: 0, width: 10, height: 10 },
+    ];
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [...dots, label], 1.0, 3800, 280, false);
+    const height = 18 * 1.3; // base font-size in px x line-height
+    const boxes = ["PreIncarnation", "OldTestament"].map((era) => {
+      const r = result.find((x) => x.era === era);
+      assert.strictEqual(r.tier, 10, era + " should be stacked");
+      return { x: r.x, y: r.y, width: 150, height: height };
+    });
+    for (const b of boxes) assert.ok(!overlaps(b, label), "heading overlaps label: " + JSON.stringify(b));
+    assert.ok(!overlaps(boxes[0], boxes[1]), "headings overlap each other");
+  });
+
+  test("dot-only bounds keep the old behaviour (label kind is what counts)", () => {
+    const dot = { era: "OldTestament", x: 92, y: 62, width: 100, height: 54 };
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [dot], 1.0, 3800, 280, false);
+    const old = result.find((r) => r.era === "OldTestament");
+    // Without kind: "label" the stacking scan ignores the box.
+    assert.ok(old.y < 62 + 54);
+  });
+
+  test("with no free row inside the container, falls back to the plain stacked row", () => {
+    const wall = { era: "OldTestament", kind: "label", x: 0, y: 0, width: 3800, height: 280 };
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [wall], 1.0, 3800, 280, false);
+    assert.ok(result.every((r) => Number.isFinite(r.y)));
   });
 });
 

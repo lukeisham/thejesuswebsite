@@ -51,8 +51,11 @@ import { computeEraHeadingPositions } from "./timeline-era-heading-placement.js"
  * @param {Map} positions — clustered dot positions from computeDotPositions
  * @param {number} effectivePx — effective px-per-period
  * @param {boolean} isMobile — true for vertical/mobile mode
+ * @param {Array<{era:string,x:number,y:number,width:number,height:number}>} labelBounds
+ *   measured label boxes in world coordinates, so headings avoid label text
+ *   as well as dots
  */
-function renderEraHeadings(inner, positions, effectivePx, isMobile) {
+function renderEraHeadings(inner, positions, effectivePx, isMobile, labelBounds) {
   if (!computeEraHeadingPositions) return;
 
   // ── Collect event bounding boxes in world coordinates ────────────────
@@ -77,6 +80,8 @@ function renderEraHeadings(inner, positions, effectivePx, isMobile) {
       });
     }
   }
+
+  eventBounds.push(...labelBounds);
 
   // ── Compute heading positions ─────────────────────────────────────────
   const zoomScale = typeof getScale === "function" ? getScale() : 1.0;
@@ -425,7 +430,7 @@ function layoutEraMarkersVertical(inner, slotHeight) {
  *
  * @param {Map<string, Array>} groupedEvents
  * @param {string|null} activeEra
- * @returns {{innerEl: HTMLElement, hasEvents: boolean, labelDescriptors: Array}}
+ * @returns {{innerEl: HTMLElement, hasEvents: boolean, labelDescriptors: Array, positions: Map, effectivePx: number, vertical: boolean}}
  */
 function buildHorizontalLayout(groupedEvents, activeEra) {
   const totalWidth = TIMELINE_PERIODS.length * BASE_PX_PER_PERIOD;
@@ -508,16 +513,14 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
         tierIndex: clusterIndex,
         axis: "x",
         originalTop: labelStyle,
+        era: event.timeline_era || "",
       });
 
       hasEvents = true;
     });
   }
 
-  // ── Render era headings after dots are placed ──────────────────────────
-  renderEraHeadings(inner, positions, effectivePx, false);
-
-  return { innerEl: inner, hasEvents, labelDescriptors };
+  return { innerEl: inner, hasEvents, labelDescriptors, positions, effectivePx, vertical: false };
 }
 
 /**
@@ -526,7 +529,7 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
  *
  * @param {Map<string, Array>} groupedEvents
  * @param {string|null} activeEra
- * @returns {{innerEl: HTMLElement, hasEvents: boolean, labelDescriptors: Array}}
+ * @returns {{innerEl: HTMLElement, hasEvents: boolean, labelDescriptors: Array, positions: Map, effectivePx: number, vertical: boolean}}
  */
 function buildVerticalLayout(groupedEvents, activeEra) {
   const totalHeight = TIMELINE_PERIODS.length * BASE_PX_PER_PERIOD;
@@ -606,16 +609,14 @@ function buildVerticalLayout(groupedEvents, activeEra) {
         tierIndex: clusterIndex,
         axis: "y",
         originalLeft: labelStyle,
+        era: event.timeline_era || "",
       });
 
       hasEvents = true;
     });
   }
 
-  // ── Render era headings (mobile: pass true for vertical mode) ─────────
-  renderEraHeadings(inner, positions, effectivePx, true);
-
-  return { innerEl: inner, hasEvents, labelDescriptors };
+  return { innerEl: inner, hasEvents, labelDescriptors, positions, effectivePx, vertical: true };
 }
 
 /**
@@ -661,6 +662,38 @@ function resolveLabelCollisions(descriptors) {
 }
 
 /**
+ * Measure each visible label in world coordinates (the space of the
+ * `.timeline-inner` element), so era headings can avoid label text.
+ * Labels must already be attached to the document, and their collision
+ * shifts must already be applied, or the boxes are wrong or empty.
+ *
+ * @param {HTMLElement} inner — the attached .timeline-inner element
+ * @param {Array<{el: HTMLElement, era?: string}>} descriptors
+ * @returns {Array<{era:string,kind:string,x:number,y:number,width:number,height:number}>}
+ */
+function measureLabelBounds(inner, descriptors) {
+  const innerRect = inner.getBoundingClientRect();
+  // Screen size divided by layout size gives the current zoom scale.
+  const scale = inner.offsetWidth > 0 ? innerRect.width / inner.offsetWidth : 0;
+  if (!Number.isFinite(scale) || scale <= 0) return [];
+
+  const bounds = [];
+  for (const d of descriptors) {
+    const rect = d.el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
+    bounds.push({
+      era: d.era || "",
+      kind: "label",
+      x: (rect.left - innerRect.left) / scale,
+      y: (rect.top - innerRect.top) / scale,
+      width: rect.width / scale,
+      height: rect.height / scale,
+    });
+  }
+  return bounds;
+}
+
+/**
  * Build the complete timeline DOM and inject it into the container.
  * Chooses horizontal or vertical layout based on the current viewport.
  *
@@ -701,6 +734,15 @@ export function renderTimeline(groupedEvents, activeEra) {
 
     // ── Resolve collisions once, after elements are attached ───────────────
     resolveLabelCollisions(built.labelDescriptors);
+
+    // ── Era headings last: they avoid the final label positions ────────────
+    renderEraHeadings(
+      innerEl,
+      built.positions,
+      built.effectivePx,
+      built.vertical,
+      measureLabelBounds(innerEl, built.labelDescriptors),
+    );
 
     // ── State visibility ──────────────────────────────────────────────────
     if (loadingEl) loadingEl.hidden = true;
