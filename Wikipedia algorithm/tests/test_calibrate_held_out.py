@@ -9,6 +9,7 @@ _ALGO_DIR = Path(__file__).resolve().parent.parent
 if str(_ALGO_DIR) not in sys.path:
     sys.path.insert(0, str(_ALGO_DIR))
 
+import calibrate
 import calibrate_held_out
 from classifier.scorer import score_article
 
@@ -51,6 +52,39 @@ class TestBuildHeldOutRecords(unittest.TestCase):
 
     def test_empty_inputs_produce_no_records(self):
         self.assertEqual(calibrate_held_out.build_held_out_records({}, {}), [])
+
+
+class TestTitleSplitFraction(unittest.TestCase):
+    """Tests for the stable per-title split used by calibrate_with_held_out()
+    (issue #230)."""
+
+    def test_same_title_and_seed_give_same_fraction(self):
+        a = calibrate._title_split_fraction("Pontius Pilate", 42)
+        b = calibrate._title_split_fraction("Pontius Pilate", 42)
+        self.assertEqual(a, b)
+        self.assertTrue(0.0 <= a < 1.0)
+
+    def test_fraction_does_not_depend_on_other_articles(self):
+        """Removing articles from the corpus must not move the others."""
+        titles = [f"Article {i}" for i in range(100)]
+        train_frac = 0.70
+
+        def train_set(subset):
+            return {
+                t for t in subset
+                if calibrate._title_split_fraction(t, 42) < train_frac
+            }
+
+        full = train_set(titles)
+        reduced = train_set(titles[4:])
+        self.assertEqual(reduced, full - set(titles[:4]))
+
+    def test_split_is_close_to_train_fraction(self):
+        titles = [f"Article {i}" for i in range(1000)]
+        n_train = sum(
+            calibrate._title_split_fraction(t, 42) < 0.70 for t in titles
+        )
+        self.assertTrue(650 <= n_train <= 750)
 
 
 class TestMainExitsOnInsufficientCorpus(unittest.TestCase):

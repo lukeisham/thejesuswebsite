@@ -88,8 +88,9 @@ def _build_diagnosis_section(result: dict, ci_lower: float, ci_upper: float) -> 
     body = f"""{DIAGNOSIS_D5_HEADER}
 
 Validates `calibrate.py`'s `calibrate_with_held_out()` against the
-270-article LLM-labelled corpus (`labels-corpus.json`), replacing §D.4's
-in-sample-only estimate with an honest 70/30 train/test split (seed=42).
+266-article LLM-labelled corpus (`labels-corpus.json`, 4 articles excluded for empty label arrays — see issue #226), replacing §D.4's
+in-sample-only estimate with an honest ~70/30 train/test split (seed=42,
+assigned per article by a hash of its title).
 Thresholds are swept on the train split only; the reported test accuracy
 below is measured on articles the sweep never saw.
 
