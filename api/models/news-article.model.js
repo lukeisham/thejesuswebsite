@@ -41,6 +41,7 @@ function getAllPublished(filters = {}) {
 /**
  * Published news articles marked for landing page display, newest first.
  * Used for featured/promoted articles on the home page.
+ * No LIMIT on purpose: an admin ticks landing_page_display by hand, so the list stays small.
  */
 function getLandingPageArticles() {
     return db
