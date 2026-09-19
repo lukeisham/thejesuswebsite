@@ -21,6 +21,14 @@ function rectsOverlap(a, b) {
   );
 }
 
+// ── tierShift (inlined to match cluster-label-collision.js) ──────────────────
+
+function tierShift(tierIndex, step) {
+  if (tierIndex <= 0) return 0;
+  const direction = tierIndex % 2 === 1 ? -1 : 1;
+  return direction * step * Math.ceil(tierIndex / 2);
+}
+
 function resolveLabelCollisions(descriptors) {
   if (!descriptors || descriptors.length === 0) return [];
   const items = descriptors
@@ -34,6 +42,14 @@ function resolveLabelCollisions(descriptors) {
     const origX = item.x;
     const origY = item.y;
     let tier = item.tierIndex;
+    if (tier > 0) {
+      const startShift = tierShift(tier, item.primaryStep);
+      if (axis === "x") {
+        item.y = origY + startShift;
+      } else {
+        item.x = origX + startShift;
+      }
+    }
     let rect = { x: item.x, y: item.y, w: item.width, h: item.height };
     let collides = false;
 
@@ -44,8 +60,7 @@ function resolveLabelCollisions(descriptors) {
           collides = true;
           tier++;
           if (tier > MAX_TIER) { tier = MAX_TIER; break; }
-          const direction = tier % 2 === 1 ? -1 : 1;
-          const netShift = direction * item.primaryStep * Math.ceil(tier / 2);
+          const netShift = tierShift(tier, item.primaryStep);
           if (axis === "x") {
             item.y = origY + netShift;
           } else {
@@ -184,14 +199,6 @@ describe("cluster-label-collision — axis='y' vertical mode", () => {
   });
 });
 
-// ── tierShift (inlined to match cluster-label-collision.js) ──────────────────
-
-function tierShift(tierIndex, step) {
-  if (tierIndex <= 0) return 0;
-  const direction = tierIndex % 2 === 1 ? -1 : 1;
-  return direction * step * Math.ceil(tierIndex / 2);
-}
-
 describe("cluster-label-collision — tierShift", () => {
   test("tier 0 gives no shift", () => {
     assert.strictEqual(tierShift(0, 12), 0);
@@ -207,5 +214,26 @@ describe("cluster-label-collision — tierShift", () => {
   test("the shift stays small at the maximum tier", () => {
     // Issue 238: a shift of hundreds of units put labels off screen.
     assert.strictEqual(Math.abs(tierShift(MAX_TIER, 12)), 60);
+  });
+});
+
+describe("cluster-label-collision — labels that start at a higher tier", () => {
+  // Issue 238 (live timeline): cluster placement gives a label a start tier
+  // that the DOM draws shifted. The resolver must test that shifted position.
+  test("a label drawn at tier 1 is tested at its shifted position", () => {
+    const resolved = resolveLabelCollisions([
+      { x: 100, y: 100, width: 100, height: 36, tierIndex: 0, axis: "x", primaryStep: 34 },
+      // Tier 0 position 46px lower: no overlap. Shifted 34px up, it overlaps.
+      { x: 100, y: 146, width: 100, height: 36, tierIndex: 1, axis: "x", primaryStep: 34 },
+    ]);
+    assert.ok(resolved[1].tierIndex > 1, "the label must escalate past its start tier");
+  });
+
+  test("a label at a higher tier that does not overlap keeps its tier", () => {
+    const resolved = resolveLabelCollisions([
+      { x: 100, y: 100, width: 100, height: 36, tierIndex: 0, axis: "x", primaryStep: 34 },
+      { x: 100, y: 300, width: 100, height: 36, tierIndex: 1, axis: "x", primaryStep: 34 },
+    ]);
+    assert.strictEqual(resolved[1].tierIndex, 1);
   });
 });

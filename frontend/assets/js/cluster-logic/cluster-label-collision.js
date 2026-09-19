@@ -111,6 +111,16 @@ export function resolveLabelCollisions(descriptors) {
     const origX = item.x;
     const origY = item.y;
     let tier = item.tierIndex;
+    // x/y are the label's tier-0 position. A label that starts at a higher
+    // tier is drawn shifted by that tier, so test it there, not at tier 0.
+    if (tier > 0) {
+      const startShift = tierShift(tier, item.primaryStep);
+      if (axis === "x") {
+        item.y = origY + startShift;
+      } else {
+        item.x = origX + startShift;
+      }
+    }
     let rect = { x: item.x, y: item.y, w: item.width, h: item.height };
     let collides = false;
 
