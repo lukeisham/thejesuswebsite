@@ -93,6 +93,7 @@ const BASE_FONT_SIZE_REM = 1.125;
 const MIN_FONT_SIZE_REM = 0.875;
 const MAX_FONT_SIZE_REM = 1.375;
 const LINE_HEIGHT = 1.3;
+const HEADING_PADDING_Y = 4; // matches the CSS padding (issue 239)
 const TOP_MARGIN = 8;
 const REGION_PADDING = 8;
 const DOT_SIZE = 10;
@@ -134,7 +135,7 @@ function computeEraHeadingPositions(eraBoundaries, eventBounds, zoomScale, conta
   const fontSizeRem = Math.max(MIN_FONT_SIZE_REM, Math.min(MAX_FONT_SIZE_REM, rawFontSize));
   const fontSizeStr = fontSizeRem.toFixed(3) + "rem";
   const fontSizePx = fontSizeRem * 16;
-  const headingHeightPx = fontSizePx * LINE_HEIGHT;
+  const headingHeightPx = fontSizePx * LINE_HEIGHT + HEADING_PADDING_Y * 2;
 
   const eraKeys = Object.keys(eraBoundaries);
   const descriptors = [];
@@ -568,5 +569,19 @@ describe("EraHeadingPlacement — edge case: empty era", () => {
     const pre = result.find((r) => r.era === "PreIncarnation");
     assert.ok(pre);
     assert.strictEqual(pre.tier, 0);
+  });
+});
+
+describe("EraHeadingPlacement — heading height includes CSS padding (issue 239)", () => {
+  test("a stacked heading clears a label by the rendered height, not the text height", () => {
+    // The rendered heading is 18 * 1.3 + 8 = 31.4px tall. A label right under
+    // the free row must not touch the heading box.
+    const label = { era: "OldTestament", kind: "label", x: 100, y: 100, width: 100, height: 14 };
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [label], 1.0, 3800, 280, false);
+    for (const h of result) {
+      const overlapsX = h.x < label.x + label.width && label.x < h.x + 200;
+      const overlapsY = h.y < label.y + label.height && label.y < h.y + 31.4;
+      assert.ok(!(overlapsX && overlapsY && h.tier >= 10), h.era + " box touches the label");
+    }
   });
 });
