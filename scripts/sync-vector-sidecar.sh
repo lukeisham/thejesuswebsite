@@ -24,11 +24,13 @@
 #      load from before it can start successfully.
 #   3. Run this script (./scripts/sync-vector-sidecar.sh) from your local
 #      machine. It SSHs in, creates the venv if missing, installs
-#      requirements.txt, and starts (or restarts) the pm2 process.
+#      requirements.txt, and (re)creates the pm2 process.
 #
-# SUBSEQUENT RUNS: just re-run this script after `requirements.txt` changes
-# or after a fresh deploy updated vector-sidecar/'s code — it detects the
-# existing pm2 process and restarts it instead of starting a new one.
+# SUBSEQUENT RUNS: re-run this script after `requirements.txt` changes or
+# after the sidecar folder moves. It deletes the existing pm2 process and
+# starts a new one, so the cwd, env and flags are always current. A normal
+# deploy already restarts the sidecar (api/routes/deploy-webhook.js), so code
+# changes alone do not need this script.
 #
 # Env vars — same convention as sync-vector-stores.sh (read from shell env or
 # a local .env; this script is run manually, not through GitHub Actions):
@@ -60,23 +62,28 @@ echo "[sync-vector-sidecar] Setting up venv + pm2 process on the VPS ..."
 set -euo pipefail
 cd "$REMOTE_SIDECAR_DIR"
 
-if [ ! -d venv ]; then
+# The venv lives with the data, outside the git tree: no space in its path
+# (which breaks script shebangs), and a folder move in git cannot strand it.
+VENV="$REMOTE_DATA_ROOT/venv"
+if [ ! -d "\$VENV" ]; then
   echo "[sync-vector-sidecar] No venv found — creating one (first run)."
-  python3 -m venv venv
+  python3 -m venv "\$VENV"
 fi
-./venv/bin/pip install -q -r requirements.txt
+"\$VENV/bin/pip" install -q -r requirements.txt
 
 export VECTOR_STORE_DIR="$REMOTE_DATA_ROOT/vector-stores"
 export MODEL_DIR="$REMOTE_DATA_ROOT/model"
 
-if pm2 describe "$PM2_APP_NAME" >/dev/null 2>&1; then
-  echo "[sync-vector-sidecar] Restarting existing pm2 process..."
-  pm2 restart "$PM2_APP_NAME"
-else
-  echo "[sync-vector-sidecar] No existing pm2 process — starting it now (first run)."
-  pm2 start venv/bin/uvicorn --name "$PM2_APP_NAME" --cwd "$REMOTE_SIDECAR_DIR" --interpreter none -- app:app --host 127.0.0.1 --port $SIDECAR_PORT
-  pm2 save
-fi
+# Always delete and start again, never only restart. A restart keeps the old
+# cwd, env and flags: after the code moved to "Wikipedia algorithm/", the old
+# process kept its old cwd, could not import app.py, and pm2 restarted it
+# about 3 times a second for 11 weeks (issue #249). The backoff delay slows
+# any future crash loop.
+pm2 delete "$PM2_APP_NAME" >/dev/null 2>&1 || true
+pm2 start "\$VENV/bin/python" --name "$PM2_APP_NAME" --cwd "$REMOTE_SIDECAR_DIR" \
+  --interpreter none --exp-backoff-restart-delay=1000 \
+  -- -m uvicorn app:app --host 127.0.0.1 --port $SIDECAR_PORT
+pm2 save
 REMOTE_SCRIPT
 
 echo "[sync-vector-sidecar] Done."
