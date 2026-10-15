@@ -7,6 +7,7 @@ building is exclusively an offline, developer-machine activity.
 """
 
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -15,6 +16,11 @@ try:
     import faiss
 except ImportError:
     faiss = None  # type: ignore[assignment]
+
+# The stores hold a few dozen vectors each, so one thread is enough. The
+# FAISS default uses every core (issue #240).
+if faiss is not None:
+    faiss.omp_set_num_threads(int(os.environ.get("VECTOR_SIDECAR_THREADS", "1")))
 
 
 class VectorStore:

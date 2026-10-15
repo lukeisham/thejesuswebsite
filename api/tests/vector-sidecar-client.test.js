@@ -129,4 +129,61 @@ describe("vector-sidecar-client", () => {
     assert.deepEqual(second, SAMPLE_RESPONSE);
     assert.equal(callCount, 1);
   });
+
+  test("caps concurrent sidecar calls and refuses past the queue with VECTOR_SIDECAR_BUSY", async () => {
+    let active = 0;
+    let peak = 0;
+    const pending = [];
+    globalThis.fetch = () =>
+      new Promise((resolve) => {
+        active += 1;
+        peak = Math.max(peak, active);
+        pending.push(() => {
+          active -= 1;
+          resolve({ ok: true, status: 200, json: async () => SAMPLE_RESPONSE });
+        });
+      });
+
+    const capacity = client.MAX_IN_FLIGHT + client.MAX_QUEUED;
+    const accepted = [];
+    for (let i = 0; i < capacity; i += 1) {
+      accepted.push(client.queryFamily("register", `burst text ${i}`, 5));
+    }
+
+    await assert.rejects(
+      () => client.queryFamily("register", "one too many", 5),
+      (err) => {
+        assert.ok(err instanceof client.VectorSidecarError);
+        assert.equal(err.errorCode, "VECTOR_SIDECAR_BUSY");
+        return true;
+      },
+    );
+
+    // Finish the calls one by one; each finish lets one waiter start.
+    while (pending.length > 0 || active > 0) {
+      await new Promise((r) => setImmediate(r));
+      const finish = pending.shift();
+      if (finish) finish();
+    }
+
+    const results = await Promise.all(accepted);
+    assert.equal(results.length, capacity);
+    assert.equal(peak, client.MAX_IN_FLIGHT);
+
+    // All slots are free again, so a new call runs at once.
+    globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => SAMPLE_RESPONSE });
+    assert.deepEqual(await client.queryFamily("register", "after the burst", 5), SAMPLE_RESPONSE);
+  });
+
+  test("frees the slot when a sidecar call fails", async () => {
+    globalThis.fetch = async () => {
+      throw new Error("connect ECONNREFUSED 127.0.0.1:8901");
+    };
+    for (let i = 0; i < client.MAX_IN_FLIGHT + client.MAX_QUEUED + 2; i += 1) {
+      await assert.rejects(() => client.queryFamily("register", `fail ${i}`, 5), (err) => {
+        assert.equal(err.errorCode, "VECTOR_SIDECAR_UNREACHABLE");
+        return true;
+      });
+    }
+  });
 });
