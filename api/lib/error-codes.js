@@ -852,6 +852,16 @@ const CATEGORY_3 = {
       "A fetch() to the localhost vector sidecar was aborted after exceeding its timeout.",
     severity: "error",
   },
+
+  VECTOR_SIDECAR_BUSY: {
+    code: "E-PERSIST-028",
+    category: 3,
+    httpStatus: 503,
+    message: "The signal-classification service is busy. Try again shortly.",
+    detail:
+      "The global cap on sidecar requests was full (all slots running and the wait queue full), so the request was refused without calling the sidecar.",
+    severity: "warning",
+  },
 };
 
 // ── Category 4: Egress Boundaries (Response & Output) ─────────────────────

@@ -50,12 +50,15 @@ class WordPieceTokenizer:
 
         token_ids = [self._vocab.get(t, self.unk_id) for t in tokens]
 
+        # No padding: the model has a dynamic sequence axis, and with batch
+        # size 1 every token is real. The old code padded to max_length, so a
+        # short sentence cost a full 256-token pass. Masked mean pooling
+        # ignores pad positions, so the vectors are the same either way.
         seq_len = len(token_ids)
-        pad_len = max_length - seq_len
 
-        input_ids = token_ids + [self.pad_id] * pad_len
-        attention_mask = [1] * seq_len + [0] * pad_len
-        token_type_ids = [0] * max_length
+        input_ids = token_ids
+        attention_mask = [1] * seq_len
+        token_type_ids = [0] * seq_len
 
         return {
             "input_ids": np.array([input_ids], dtype=np.int64),
@@ -134,7 +137,7 @@ class WordPieceTokenizer:
 class Embedder:
     """Loads the vendored MiniLM ONNX model and embeds text into vectors."""
 
-    def __init__(self, model_path: Path, vocab_path: Path, max_seq_length: int) -> None:
+    def __init__(self, model_path: Path, vocab_path: Path, max_seq_length: int, num_threads: int = 1) -> None:
         if ort is None:
             raise ImportError("onnxruntime is not installed. Run 'pip install -r requirements.txt'.")
 
@@ -143,7 +146,19 @@ class Embedder:
 
         ort.set_default_logger_severity(3)
 
-        self._session = ort.InferenceSession(str(model_path), providers=["CPUExecutionProvider"])
+        # The ONNX Runtime defaults use one thread per core and let idle
+        # threads spin-wait after each run. On the shared VPS this made every
+        # request take all cores and keep them busy (issue #240).
+        options = ort.SessionOptions()
+        options.intra_op_num_threads = num_threads
+        options.inter_op_num_threads = 1
+        options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+        options.add_session_config_entry("session.intra_op.allow_spinning", "0")
+        options.add_session_config_entry("session.inter_op.allow_spinning", "0")
+
+        self._session = ort.InferenceSession(
+            str(model_path), sess_options=options, providers=["CPUExecutionProvider"]
+        )
         self._tokenizer = WordPieceTokenizer(vocab_path)
         self._max_seq_length = max_seq_length
 

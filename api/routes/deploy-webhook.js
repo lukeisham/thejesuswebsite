@@ -50,7 +50,16 @@ function logToFile(message) {
 function restartServers() {
   const restart = spawn(
     "bash",
-    ["-c", "pm2 restart thejesuswebsite-api && pm2 restart thejesuswebsite-mcp && pm2 save"],
+    // The vector sidecar's code also ships with each deploy, so restart it
+    // too when it exists; otherwise its code changes never go live. It is
+    // optional (installed by scripts/sync-vector-sidecar.sh), so a missing
+    // process is not an error.
+    [
+      "-c",
+      "pm2 restart thejesuswebsite-api && pm2 restart thejesuswebsite-mcp && " +
+        "{ ! pm2 describe thejesuswebsite-vector-sidecar >/dev/null 2>&1 || pm2 restart thejesuswebsite-vector-sidecar; } && " +
+        "pm2 save",
+    ],
     { cwd: PROJECT_DIR, detached: true, stdio: ["ignore", "pipe", "pipe"] },
   );
   let restartOutput = "";

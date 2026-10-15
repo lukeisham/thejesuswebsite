@@ -31,21 +31,34 @@ explicitly when starting the pm2 process.
                           correct in production — see above)
   MODEL_DIR               default <this file's dir>/../model (same caveat)
   MAX_TEXT_LENGTH         default 2000 (characters; bounds embedding cost)
+  VECTOR_SIDECAR_THREADS  default 1 (CPU threads per embedding; issue #240)
+  VECTOR_SIDECAR_MAX_CONCURRENT
+                          default 2 (embeddings that run at the same time;
+                          other requests wait their turn; issue #242)
 """
 
-import logging
 import os
-import threading
 
-from pathlib import Path
-from typing import Literal
+# Limit the OpenMP/BLAS thread pools of numpy and FAISS. These variables are
+# read only when those libraries load, so they must be set before the imports
+# below. setdefault lets the pm2 environment override them (issue #240).
+_THREADS = os.environ.get("VECTOR_SIDECAR_THREADS", "1")
+for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ.setdefault(_var, _THREADS)
+os.environ.setdefault("OMP_WAIT_POLICY", "PASSIVE")
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+import logging  # noqa: E402
+import threading  # noqa: E402
 
-from embedder import Embedder
-from families import FAMILY_STORE_MAP, FLAT_STORES, NN_NEGATIVE_THRESHOLD, T_FIRE, T_STRONG
-from store import VectorStore
+from pathlib import Path  # noqa: E402
+from typing import Literal  # noqa: E402
+
+from fastapi import FastAPI, HTTPException  # noqa: E402
+from pydantic import BaseModel, Field  # noqa: E402
+
+from embedder import Embedder  # noqa: E402
+from families import FAMILY_STORE_MAP, FLAT_STORES, NN_NEGATIVE_THRESHOLD, T_FIRE, T_STRONG  # noqa: E402
+from store import VectorStore  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("vector_sidecar")
@@ -55,6 +68,8 @@ VECTOR_STORE_DIR = Path(os.environ.get("VECTOR_STORE_DIR", THIS_DIR.parent / "ve
 MODEL_DIR = Path(os.environ.get("MODEL_DIR", THIS_DIR.parent / "model"))
 MAX_TEXT_LENGTH = int(os.environ.get("MAX_TEXT_LENGTH", "2000"))
 MAX_SEQ_LENGTH = 256  # Must match the value used when the stores were built.
+NUM_THREADS = int(_THREADS)
+MAX_CONCURRENT = int(os.environ.get("VECTOR_SIDECAR_MAX_CONCURRENT", "2"))
 
 app = FastAPI(title="thejesuswebsite vector sidecar")
 
@@ -69,6 +84,11 @@ _stores: dict[str, VectorStore] = {}
 # this request volume (a held lock costs microseconds after warm-up).
 _init_lock = threading.Lock()
 
+# Caps how many embed+search runs happen at the same time. /query runs in a
+# threadpool of about 40 threads, so without this cap a burst of requests ran
+# in parallel and fought for the same cores (issue #242).
+_compute_slots = threading.BoundedSemaphore(MAX_CONCURRENT)
+
 
 def get_embedder() -> Embedder:
     global _embedder
@@ -79,6 +99,7 @@ def get_embedder() -> Embedder:
                 model_path=MODEL_DIR / "model.onnx",
                 vocab_path=MODEL_DIR / "vocab.txt",
                 max_seq_length=MAX_SEQ_LENGTH,
+                num_threads=NUM_THREADS,
             )
             logger.info("Embedding model loaded (dim=%d).", _embedder.dim)
         return _embedder
@@ -175,8 +196,9 @@ def query(req: QueryRequest):
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     embedder = get_embedder()
-    vector = embedder.embed(req.text)
-    results = store.search(vector, req.k)
+    with _compute_slots:
+        vector = embedder.embed(req.text)
+        results = store.search(vector, req.k)
 
     if not results:
         raise HTTPException(status_code=503, detail=f"Store '{store_name}' has no vectors loaded.")
