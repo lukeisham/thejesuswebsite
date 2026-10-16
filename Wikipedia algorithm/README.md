@@ -25,7 +25,7 @@ pip install -r requirements.txt
 ### 2. Download the MiniLM ONNX model
 
 ```bash
-cd setup/Wikipedia\ algorithm\ v2/classifier
+cd Wikipedia\ algorithm/classifier
 python download_model.py
 ```
 
