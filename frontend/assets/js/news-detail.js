@@ -181,18 +181,6 @@ function applySEO(article) {
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
 
-function escapeHTML(str) {
-  if (typeof str !== "string") return "";
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}
-
 function truncateText(text, maxLen) {
   if (text.length <= maxLen) return text;
   return text.slice(0, maxLen - 1).trimEnd() + "\u2026";

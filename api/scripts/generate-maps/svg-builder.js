@@ -11,6 +11,8 @@
  * @module generate-maps/svg-builder
  */
 
+const { escapeHTML } = require("../../lib/escape-html");
+
 // ── Style palette (agreed design, 2026-07-10) ─────────────────────────────────
 
 const PALETTE = {
@@ -35,16 +37,6 @@ const PALETTE = {
   labelHill: "#8B7A6D",
   labelRiver: "#6B8B9A",
 };
-
-// ── SVG escape ─────────────────────────────────────────────────────────────────
-
-function esc(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 // ── Build helpers ──────────────────────────────────────────────────────────────
 
@@ -90,7 +82,7 @@ function buildSVG(cfg, projected, overlaySVG) {
   if (projected.land && projected.land.length) {
     for (const points of projected.land) {
       parts.push(
-        `<polygon points="${esc(points)}" fill="${PALETTE.parchmentLand}" stroke="none"/>`,
+        `<polygon points="${escapeHTML(points)}" fill="${PALETTE.parchmentLand}" stroke="none"/>`,
       );
     }
   } else {
@@ -104,7 +96,7 @@ function buildSVG(cfg, projected, overlaySVG) {
   if (projected.lakes && projected.lakes.length) {
     for (const points of projected.lakes) {
       parts.push(
-        `<polygon points="${esc(points)}" fill="${PALETTE.waterLight}" stroke="${PALETTE.waterDark}" stroke-width="1" stroke-linejoin="round"/>`,
+        `<polygon points="${escapeHTML(points)}" fill="${PALETTE.waterLight}" stroke="${PALETTE.waterDark}" stroke-width="1" stroke-linejoin="round"/>`,
       );
     }
   }
@@ -113,7 +105,7 @@ function buildSVG(cfg, projected, overlaySVG) {
   if (projected.rivers && projected.rivers.length) {
     for (const points of projected.rivers) {
       parts.push(
-        `<polyline points="${esc(points)}" fill="none" stroke="${PALETTE.waterDark}" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+        `<polyline points="${escapeHTML(points)}" fill="none" stroke="${PALETTE.waterDark}" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`,
       );
     }
   }
@@ -122,7 +114,7 @@ function buildSVG(cfg, projected, overlaySVG) {
   if (projected.land && projected.land.length) {
     for (const points of projected.land) {
       parts.push(
-        `<polygon points="${esc(points)}" fill="none" stroke="${PALETTE.strokeWarm}" stroke-width="1.5" stroke-linejoin="round"/>`,
+        `<polygon points="${escapeHTML(points)}" fill="none" stroke="${PALETTE.strokeWarm}" stroke-width="1.5" stroke-linejoin="round"/>`,
       );
     }
   }
@@ -135,7 +127,7 @@ function buildSVG(cfg, projected, overlaySVG) {
       );
       if (hill.label) {
         parts.push(
-          `<text x="${hill.cx}" y="${hill.cy - hill.r - 5}" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="${PALETTE.labelHill}">${esc(hill.label)}</text>`,
+          `<text x="${hill.cx}" y="${hill.cy - hill.r - 5}" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="${PALETTE.labelHill}">${escapeHTML(hill.label)}</text>`,
         );
       }
     }
@@ -241,7 +233,7 @@ function buildLabelElement(label) {
     transform = ` transform="rotate(${label.angle}, ${label.x}, ${label.y})"`;
   }
 
-  return `<text x="${label.x}" y="${label.y}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="${fontSize}" font-style="${fontStyle}" font-weight="${fontWeight}" letter-spacing="${letterSpacing}" fill="${color}"${transform}>${esc(label.text)}</text>`;
+  return `<text x="${label.x}" y="${label.y}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="${fontSize}" font-style="${fontStyle}" font-weight="${fontWeight}" letter-spacing="${letterSpacing}" fill="${color}"${transform}>${escapeHTML(label.text)}</text>`;
 }
 
 /**
@@ -262,8 +254,8 @@ function buildCartouche(cfg) {
 
   let html = "";
   html += `<rect x="${boxX}" y="${boxY}" width="${boxW}" height="${boxH}" rx="4" fill="${PALETTE.cartoucheBg}" stroke="${PALETTE.cartoucheStroke}" stroke-width="1"/>`;
-  html += `<text x="${vb.width / 2}" y="${boxY + 22}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-weight="bold" fill="${PALETTE.strokeDark}">${esc(ct.title)}</text>`;
-  html += `<text x="${vb.width / 2}" y="${boxY + 40}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-style="italic" fill="${PALETTE.accentLight}">${esc(ct.subtitle)}</text>`;
+  html += `<text x="${vb.width / 2}" y="${boxY + 22}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-weight="bold" fill="${PALETTE.strokeDark}">${escapeHTML(ct.title)}</text>`;
+  html += `<text x="${vb.width / 2}" y="${boxY + 40}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-style="italic" fill="${PALETTE.accentLight}">${escapeHTML(ct.subtitle)}</text>`;
   return html;
 }
 
@@ -306,7 +298,7 @@ function buildAttribution(cfg) {
   const boxY = vb.height - 70; // matches cartouche bottom
   const attrY = vb.height - 14; // just below the cartouche
 
-  return `<text x="${vb.width / 2}" y="${attrY}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="7" font-style="italic" fill="${PALETTE.accentLight}">${esc(cfg.attribution)}</text>`;
+  return `<text x="${vb.width / 2}" y="${attrY}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="7" font-style="italic" fill="${PALETTE.accentLight}">${escapeHTML(cfg.attribution)}</text>`;
 }
 
 module.exports = {

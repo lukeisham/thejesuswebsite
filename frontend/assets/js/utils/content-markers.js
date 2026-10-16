@@ -1,5 +1,6 @@
 import { FIGURE_SHORTCODE_PATTERN } from "./figure-shortcodes.js";
 import { renderMarkdown } from "./markdown.js";
+import { escapeHTML } from "./escape-html.js";
 
 /**
  * Shared content-marker parser for body text across all five content types
@@ -373,24 +374,3 @@ function formatMlaAuthor(source) {
   );
 }
 
-// ─── HTML escaping ───────────────────────────────────────────────────────────
-
-/**
- * Escape HTML special characters. Mirrors the local escapeHTML in every
- * detail script. The shared parser includes its own so callers don't need
- * to pass one in.
- *
- * @param {string} str
- * @returns {string}
- */
-function escapeHTML(str) {
-  if (typeof str !== "string") return "";
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}

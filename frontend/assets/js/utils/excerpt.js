@@ -15,16 +15,7 @@
  * @module utils/excerpt
  */
 
-function escapeHTML(str) {
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}
+import { escapeHTML } from "./escape-html.js";
 
 /**
  * Strip block-level shortcodes/markers and markdown block syntax, leaving

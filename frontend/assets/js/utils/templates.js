@@ -4,18 +4,7 @@
  * @module utils/templates
  */
 
-const ESCAPE_MAP = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#x27;",
-};
-
-function escapeHTML(str) {
-  if (typeof str !== "string") str = String(str ?? "");
-  return str.replace(/[&<>"']/g, (c) => ESCAPE_MAP[c]);
-}
+import { escapeHTML } from "./escape-html.js";
 
 /**
  * Marker class for strings that are already safe HTML.
