@@ -36,30 +36,47 @@ describe("deploy-step-cache", () => {
     assert.equal(isUnchanged(stateDir, "api-npm", [input]), false);
   });
 
-  test("record then check reports unchanged", () => {
-    recordStep(stateDir, "api-npm", [input]);
+  test("check, record, then check again reports unchanged", () => {
+    isUnchanged(stateDir, "api-npm", [input]);
+    recordStep(stateDir, "api-npm");
     assert.equal(isUnchanged(stateDir, "api-npm", [input]), true);
   });
 
   test("one changed byte in an input counts as changed", () => {
-    recordStep(stateDir, "api-npm", [input]);
+    isUnchanged(stateDir, "api-npm", [input]);
+    recordStep(stateDir, "api-npm");
     fs.writeFileSync(input, '{"lockfileVersion":4}');
     assert.equal(isUnchanged(stateDir, "api-npm", [input]), false);
   });
 
-  test("a missing input file counts as changed, and cannot be recorded", () => {
-    recordStep(stateDir, "api-npm", [input]);
+  // npm install can rewrite package-lock.json, and the next deploy's git reset
+  // puts the committed copy back. The marker must hold the pre-step hash.
+  test("record keeps the hash from check time, not the inputs after the step", () => {
+    const committed = fs.readFileSync(input);
+    isUnchanged(stateDir, "api-npm", [input]);
+    fs.writeFileSync(input, '{"lockfileVersion":3,"rewritten":true}');
+    recordStep(stateDir, "api-npm");
+    fs.writeFileSync(input, committed);
+    assert.equal(isUnchanged(stateDir, "api-npm", [input]), true);
+  });
+
+  test("record without a check first throws", () => {
+    assert.throws(() => recordStep(stateDir, "api-npm"), /no pending hash/);
+  });
+
+  test("a missing input file counts as changed", () => {
+    isUnchanged(stateDir, "api-npm", [input]);
+    recordStep(stateDir, "api-npm");
     fs.rmSync(input);
     assert.equal(isUnchanged(stateDir, "api-npm", [input]), false);
-    assert.throws(() => recordStep(stateDir, "api-npm", [input]), /unreadable/);
   });
 
   test("FORCE_FULL_DEPLOY=1 makes check report changed", () => {
     process.env.FORCE_FULL_DEPLOY = "1";
-    assert.equal(main(["check", "api-npm", input]), EXIT_CHANGED);
+    assert.equal(main(["check", "api-npm", input], stateDir), EXIT_CHANGED);
   });
 
   test("a bad step name is a usage error", () => {
-    assert.equal(main(["check", "../escape", input]), 2);
+    assert.equal(main(["check", "../escape", input], stateDir), 2);
   });
 });

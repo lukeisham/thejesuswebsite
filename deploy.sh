@@ -37,19 +37,22 @@ MCP_DIR="$PROJECT_DIR/mcp-server"
 # same for the next deploy.
 STEP_CACHE="$API_DIR/scripts/deploy-step-cache.js"
 inputs_unchanged() { node "$STEP_CACHE" check "$@"; }
-record_step() { node "$STEP_CACHE" record "$@"; }
+record_step() { node "$STEP_CACHE" record "$1"; }
+
+# record_step needs the pending hash that inputs_unchanged saves, so every step
+# calls inputs_unchanged first, even when another reason forces it to run.
 
 # $1 = step name, $2 = package directory. A missing node_modules/ always installs.
 install_dependencies() {
   local step="$1" dir="$2"
   local inputs=("$dir/package.json" "$dir/package-lock.json")
-  if [ -d "$dir/node_modules" ] && inputs_unchanged "$step" "${inputs[@]}"; then
+  if inputs_unchanged "$step" "${inputs[@]}" && [ -d "$dir/node_modules" ]; then
     echo "[deploy] $step: package files unchanged — skipping npm install (FORCE_FULL_DEPLOY=1 to force)."
     return
   fi
   echo "[deploy] $step: installing dependencies..."
   (cd "$dir" && npm install --production)
-  record_step "$step" "${inputs[@]}"
+  record_step "$step"
 }
 
 # ---- 1. Install dependencies ------------------------------------------------
@@ -120,13 +123,13 @@ GEOIP_CSV="$API_DIR/data/geoip/GeoLite2-Country-Blocks-IPv4.csv"
 GEOIP_INPUTS=("$GEOIP_CSV" "$API_DIR/data/geoip/GeoLite2-Country-Locations-en.csv" "$API_DIR/scripts/import-geoip.js")
 if [ -f "$GEOIP_CSV" ]; then
   geoip_has_rows=$(sqlite3 "$DB_FILE" "SELECT 1 FROM geoip_blocks LIMIT 1;" 2>/dev/null || true)
-  if [ "$DB_IS_NEW" = false ] && [ -n "$geoip_has_rows" ] && inputs_unchanged geoip "${GEOIP_INPUTS[@]}"; then
+  if inputs_unchanged geoip "${GEOIP_INPUTS[@]}" && [ "$DB_IS_NEW" = false ] && [ -n "$geoip_has_rows" ]; then
     echo "[deploy] GeoIP inputs unchanged — skipping import (FORCE_FULL_DEPLOY=1 to force)."
   else
     echo "[deploy] Importing GeoIP country data..."
     cd "$API_DIR"
     npm run import-geoip
-    record_step geoip "${GEOIP_INPUTS[@]}"
+    record_step geoip
   fi
 else
   echo "[deploy] WARNING: GeoIP CSV not found at $GEOIP_CSV — country data will remain 'Unknown' until the CSV is placed and a deploy re-runs."
@@ -136,13 +139,13 @@ fi
 SCORING_EXPORT="$PROJECT_DIR/database/scoring-export.json"
 SCORING_INPUTS=("$SCORING_EXPORT" "$API_DIR/scripts/import-wikipedia-scoring.js")
 if [ -f "$SCORING_EXPORT" ]; then
-  if [ "$DB_IS_NEW" = false ] && inputs_unchanged wikipedia-scoring "${SCORING_INPUTS[@]}"; then
+  if inputs_unchanged wikipedia-scoring "${SCORING_INPUTS[@]}" && [ "$DB_IS_NEW" = false ]; then
     echo "[deploy] Wikipedia scoring inputs unchanged — skipping import (FORCE_FULL_DEPLOY=1 to force)."
   else
     echo "[deploy] Importing Wikipedia scoring data..."
     cd "$API_DIR"
     npm run import-wikipedia-scoring -- --publish --purge-missing
-    record_step wikipedia-scoring "${SCORING_INPUTS[@]}"
+    record_step wikipedia-scoring
   fi
 else
   echo "[deploy] WARNING: Wikipedia scoring export not found at $SCORING_EXPORT — Wikipedia reliability data will remain stale until the file is placed and a deploy re-runs."
