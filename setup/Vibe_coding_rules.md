@@ -204,11 +204,6 @@ is safe for text and quoted attributes only — never for a URL, an inline scrip
 event delegation for dynamic elements. Remove listeners when elements are removed. Cache
 repeated DOM queries.
 
-Known defect: six local copies of `escapeHTML()` exist (`frontend/assets/js/news-detail.js`,
-`frontend/assets/js/utils/` `excerpt.js`, `templates.js`, `content-markers.js`, `markdown.js`,
-and `api/services/page-generator.js`) plus `esc()` in `api/scripts/generate-maps/svg-builder.js`.
-They are to be merged into one module for the browser and one for `api/`.
-
 **JS-7** — Types on Exports
 Every exported function carries JSDoc `@param {Type}` and `@returns {Type}`, so that a later
 agent can call it correctly without reading the body.

@@ -13,6 +13,7 @@ const path = require("path");
 const db = require("../config");
 const { CONTENT_PAGES } = require("../config/content-pages");
 const { safeReadFile, safeMkdir, safeWriteFile } = require("../lib/io-guard");
+const { escapeHTML } = require("../lib/escape-html");
 
 const BASE_URL = "https://thejesuswebsite.org";
 
@@ -30,25 +31,6 @@ function getSettings() {
     cachedSettings = db.prepare("SELECT * FROM site_settings WHERE id = 1").get();
   }
   return cachedSettings;
-}
-
-// ── HTML escaping ────────────────────────────────────────────────────────────
-
-const ESCAPE_MAP = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#x27;",
-};
-
-/**
- * Escape a value for safe interpolation into HTML attributes and text content.
- * Mirrors the frontend templates.js escape discipline.
- */
-function escapeHTML(str) {
-  if (typeof str !== "string") str = String(str ?? "");
-  return str.replace(/[&<>"']/g, (c) => ESCAPE_MAP[c]);
 }
 
 /**

@@ -29,25 +29,8 @@
  * @module utils/markdown
  */
 
-/**
- * Escape HTML special characters but preserve bracket shortcode markers
- * ([figure ...], [mla:N], [id:N], [pullquote]...[/pullquote]) so that
- * content-markers.js can resolve them later.
- *
- * @param {string} str
- * @returns {string}
- */
-function escapeHTML(str) {
-  if (typeof str !== "string") return "";
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-  };
-  return str.replace(/[&<>"']/g, (c) => map[c]);
-}
+import { escapeHTML } from "./escape-html.js";
+
 
 /**
  * Extract bracket shortcode markers, escape the remaining text, then
