@@ -24,13 +24,15 @@
 #      load from before it can start successfully.
 #   3. Run this script (./scripts/sync-vector-sidecar.sh) from your local
 #      machine. It SSHs in, creates the venv if missing, installs
-#      requirements.txt, and (re)creates the pm2 process.
+#      requirements.txt, and (re)creates the pm2 process from
+#      ecosystem.config.js (via scripts/pm2-apply.js).
 #
 # SUBSEQUENT RUNS: re-run this script after `requirements.txt` changes or
 # after the sidecar folder moves. It deletes the existing pm2 process and
 # starts a new one, so the cwd, env and flags are always current. A normal
 # deploy already restarts the sidecar (api/routes/deploy-webhook.js), so code
-# changes alone do not need this script.
+# changes alone do not need this script. The sidecar's start settings (port,
+# cwd, env, crash limits) live in ecosystem.config.js, not here.
 #
 # Env vars — same convention as sync-vector-stores.sh (read from shell env or
 # a local .env; this script is run manually, not through GitHub Actions):
@@ -39,10 +41,10 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-REMOTE_SIDECAR_DIR="/var/www/thejesuswebsite/Wikipedia algorithm/vector-sidecar"
+REMOTE_PROJECT_DIR="/var/www/thejesuswebsite"
+REMOTE_SIDECAR_DIR="$REMOTE_PROJECT_DIR/Wikipedia algorithm/vector-sidecar"
 REMOTE_DATA_ROOT="/var/www/thejesuswebsite-vector-store"
 PM2_APP_NAME="thejesuswebsite-vector-sidecar"
-SIDECAR_PORT="8901"
 
 if [ -f "$PROJECT_DIR/.env" ]; then
   set -a
@@ -71,19 +73,15 @@ if [ ! -d "\$VENV" ]; then
 fi
 "\$VENV/bin/pip" install -q -r requirements.txt
 
-export VECTOR_STORE_DIR="$REMOTE_DATA_ROOT/vector-stores"
-export MODEL_DIR="$REMOTE_DATA_ROOT/model"
-
-# Always delete and start again, never only restart. A restart keeps the old
-# cwd, env and flags: after the code moved to "Wikipedia algorithm/", the old
-# process kept its old cwd, could not import app.py, and pm2 restarted it
-# about 3 times a second for 11 weeks (issue #249). The backoff delay slows
-# any future crash loop.
-pm2 delete "$PM2_APP_NAME" >/dev/null 2>&1 || true
-pm2 start "\$VENV/bin/python" --name "$PM2_APP_NAME" --cwd "$REMOTE_SIDECAR_DIR" \
-  --interpreter none --exp-backoff-restart-delay=1000 \
-  -- -m uvicorn app:app --host 127.0.0.1 --port $SIDECAR_PORT
-pm2 save
+# Start the sidecar from ecosystem.config.js, the one place that sets its
+# cwd, env (VECTOR_STORE_DIR, MODEL_DIR) and crash limits. pm2-apply.js
+# deletes and starts the process, never only restarts it: a restart keeps the
+# old cwd, env and flags. After the code moved to "Wikipedia algorithm/", the
+# old process kept its old cwd, could not import app.py, and pm2 restarted it
+# about 3 times a second for 11 weeks (issue #249). It then waits for
+# /health and fails if the sidecar does not answer.
+cd "$REMOTE_PROJECT_DIR"
+node scripts/pm2-apply.js --only "$PM2_APP_NAME"
 REMOTE_SCRIPT
 
 echo "[sync-vector-sidecar] Done."

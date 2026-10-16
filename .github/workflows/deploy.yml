@@ -17,6 +17,7 @@ jobs:
       # deploy.sh sequence the old SSH step ran (api/routes/deploy-webhook.js),
       # synchronously, so this step still fails the job when the deploy fails.
       - name: Deploy via webhook
+        id: webhook
         run: |
           set -euo pipefail
 
@@ -37,6 +38,56 @@ jobs:
           fi
 
           echo "✅ Deploy webhook succeeded" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "deploy_id=$(jq -r '.deployId // empty' response.json)" >> "$GITHUB_OUTPUT"
+
+      # The webhook replies BEFORE it restarts pm2 (the restart kills the
+      # process that sends the reply), so the step above cannot see whether
+      # the new processes came up. scripts/pm2-apply.js restarts them from
+      # ecosystem.config.js, polls each health route for ~30s, and writes the
+      # result to deploy-status.json. Poll it here and turn the job red on
+      # "failed" or when no result for this deployId arrives in time.
+      - name: Check restart and health
+        env:
+          DEPLOY_ID: ${{ steps.webhook.outputs.deploy_id }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$DEPLOY_ID" ]]; then
+            echo "❌ Webhook response has no deployId" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          # 30 tries x 5s = 150s: pm2 start + up to 30s health checks, with
+          # room for a slow sidecar model load. While the API restarts, the
+          # route returns errors; keep polling.
+          for i in $(seq 1 30); do
+            sleep 5
+            body=$(curl -sS --max-time 10 \
+              "https://thejesuswebsite.org/api/deploy-status?id=$DEPLOY_ID" \
+              -H "X-Deploy-Token: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}" \
+              -H "Cache-Control: no-cache" 2>/dev/null || true)
+            id=$(echo "$body" | jq -r '.id // empty' 2>/dev/null || true)
+            state=$(echo "$body" | jq -r '.state // empty' 2>/dev/null || true)
+            echo "try $i: id=${id:-none} state=${state:-none}"
+            [[ "$id" == "$DEPLOY_ID" ]] || continue
+            if [[ "$state" == "ok" ]]; then
+              echo "✅ All processes restarted and healthy" | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            if [[ "$state" == "failed" ]]; then
+              {
+                echo "❌ Restart or health check FAILED (see deploy-webhook.log on the VPS)"
+                echo "$body"
+              } | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+          done
+
+          {
+            echo "❌ No restart result for deploy $DEPLOY_ID after 150s"
+            echo "Last response: ${body:-none}"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
 
       # Purge Cloudflare's edge cache so the deploy is visible immediately,
       # instead of waiting out the HTML edge cache's max-age=60 window. Must
