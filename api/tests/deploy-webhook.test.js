@@ -96,4 +96,69 @@ describe("POST /deploy-webhook", () => {
     const res = await makeRequest(app, "/deploy-webhook", { token: "short" });
     assert.equal(res.status, 401);
   });
+
+  // Issue #244: only one deploy at a time. spawn is replaced by a fake child
+  // that never runs git or deploy.sh. The test decides when it exits.
+  test("409 when a deploy is already in progress, then free again after a failed deploy", async () => {
+    process.env.DEPLOY_WEBHOOK_SECRET = "correct-horse-battery-staple";
+    const childProcess = require("child_process");
+    const { EventEmitter } = require("events");
+    const realSpawn = childProcess.spawn;
+    const children = [];
+    childProcess.spawn = () => {
+      const child = new EventEmitter();
+      child.stdout = new EventEmitter();
+      child.stderr = new EventEmitter();
+      children.push(child);
+      return child;
+    };
+
+    const { createTestServer } = require("./helpers/test-server");
+    const fs = require("fs");
+    const realAppend = fs.appendFileSync;
+    fs.appendFileSync = () => {};
+    const app = buildApp();
+    const { server, port } = await createTestServer(app);
+
+    const post = () =>
+      new Promise((resolve, reject) => {
+        const req = http.request(
+          {
+            hostname: "127.0.0.1",
+            port,
+            path: "/deploy-webhook",
+            method: "POST",
+            headers: { "X-Deploy-Token": "correct-horse-battery-staple" },
+          },
+          (res) => {
+            let data = "";
+            res.on("data", (c) => (data += c));
+            res.on("end", () => resolve({ status: res.statusCode, body: JSON.parse(data) }));
+          },
+        );
+        req.on("error", reject);
+        req.end();
+      });
+
+    try {
+      const first = post();
+      while (children.length === 0) await new Promise((r) => setTimeout(r, 5));
+
+      const second = await post();
+      assert.equal(second.status, 409);
+      assert.equal(children.length, 1);
+
+      children[0].emit("close", 1);
+      assert.equal((await first).status, 500);
+
+      const third = post();
+      while (children.length === 1) await new Promise((r) => setTimeout(r, 5));
+      children[1].emit("close", 1);
+      assert.equal((await third).status, 500);
+    } finally {
+      childProcess.spawn = realSpawn;
+      fs.appendFileSync = realAppend;
+      await closeTestServer(server);
+    }
+  });
 });

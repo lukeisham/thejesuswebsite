@@ -5,6 +5,13 @@ on:
     branches: [main]
   workflow_dispatch: {}
 
+# One deploy at a time (issue #244). A second push waits for the running
+# deploy to finish instead of starting a second deploy.sh on the VPS. The
+# webhook also returns 409 while a deploy runs (api/routes/deploy-webhook.js).
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

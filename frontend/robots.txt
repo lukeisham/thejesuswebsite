@@ -1,6 +1,20 @@
 User-agent: *
 Allow: /
 
+# Keep crawlers out of pages and routes that cost CPU and have no search value
+# (issue #246). Search results run 6 FTS queries for each request. The
+# SearchAction in index.html points crawlers at search.html?q=. The read-only
+# content API (/api/evidence, /api/essays and more) stays allowed because
+# llms.txt lists it for agents.
+Disallow: /admin/
+Disallow: /api/search
+Disallow: /api/analytics
+Disallow: /api/auth
+Disallow: /api/passkey
+Disallow: /api/deploy-webhook
+Disallow: /api/deploy-status
+Disallow: /*?q=
+
 # Advisory crawl delay — honored by Bing/Yandex/others, ignored by Google.
 # This is a polite-bot hint only. Real flood protection lives in
 # the nginx rate-limiting layer (see setup/nginx-hardening.md) and the

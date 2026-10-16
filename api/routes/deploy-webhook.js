@@ -15,6 +15,12 @@
 // Auth: a shared secret sent as X-Deploy-Token, compared with
 // crypto.timingSafeEqual (lib/deploy-token.js, same pattern as
 // routes/passkey.js).
+//
+// One deploy at a time (issue #244): while a deploy runs, a second POST gets
+// 409. Two deploy.sh runs at the same time would both hold the CPU and the
+// SQLite write lock. After a good deploy the lock stays set until the restart
+// kills this process. RESTART_LOCK_MS clears it if the restart does not
+// happen, so a failed restart cannot block all later deploys.
 
 const express = require("express");
 const crypto = require("crypto");
@@ -27,6 +33,9 @@ const router = express.Router();
 
 const PROJECT_DIR = path.resolve(__dirname, "..", "..");
 const LOG_FILE = path.join(PROJECT_DIR, "deploy-webhook.log");
+const RESTART_LOCK_MS = 3 * 60 * 1000;
+
+let deployInProgress = false;
 
 function logToFile(message) {
   fs.appendFileSync(LOG_FILE, message);
@@ -70,6 +79,11 @@ router.post("/", (req, res) => {
     return res.status(401).json({ error: "Unauthorized." });
   }
 
+  if (deployInProgress) {
+    return res.status(409).json({ error: "A deploy is already in progress." });
+  }
+  deployInProgress = true;
+
   const child = spawn(
     "bash",
     [
@@ -88,6 +102,7 @@ router.post("/", (req, res) => {
   });
 
   child.on("error", (err) => {
+    deployInProgress = false;
     logToFile(
       `\n--- deploy ${new Date().toISOString()} spawn error ---\n${err.stack}\n`,
     );
@@ -100,6 +115,13 @@ router.post("/", (req, res) => {
     logToFile(
       `\n--- deploy ${new Date().toISOString()} exit=${code} ---\n${output}\n`,
     );
+    if (code !== 0) {
+      deployInProgress = false;
+    } else {
+      setTimeout(() => {
+        deployInProgress = false;
+      }, RESTART_LOCK_MS).unref();
+    }
     if (res.headersSent) return;
 
     if (code !== 0) {
