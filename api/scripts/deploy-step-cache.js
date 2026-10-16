@@ -6,6 +6,12 @@
 // changed, then calls `record` after the step succeeds. A step that fails is
 // never recorded, so it runs again on the next deploy.
 //
+// Every `check` saves the hash it computed as <step>.pending, and `record` promotes
+// that file to the marker. The marker therefore holds the inputs as they were
+// before the step ran. This matters because `npm install` can rewrite
+// package-lock.json: a hash taken after the step would never match the
+// committed lockfile that the next `git reset --hard` puts back.
+//
 // The marker is a SHA-256 over the input files plus the Node version, because
 // a Node upgrade must rebuild native modules (better-sqlite3, sharp) even when
 // package-lock.json is unchanged. Markers live in .deploy-state/ at the repo
@@ -17,7 +23,7 @@
 //
 // Usage (from deploy.sh):
 //   node api/scripts/deploy-step-cache.js check  <step> <file...>   exit 0 = unchanged, 10 = changed
-//   node api/scripts/deploy-step-cache.js record <step> <file...>
+//   node api/scripts/deploy-step-cache.js record <step>
 // FORCE_FULL_DEPLOY=1 makes `check` report "changed" for every step.
 
 const crypto = require("crypto");
@@ -58,7 +64,23 @@ function markerPath(stateDir, step) {
   return path.join(stateDir, `${step}.sha256`);
 }
 
+function pendingPath(stateDir, step) {
+  return path.join(stateDir, `${step}.pending`);
+}
+
+function readMarker(stateDir, step) {
+  try {
+    return fs.readFileSync(markerPath(stateDir, step), "utf8").trim();
+  } catch {
+    return null;
+  }
+}
+
 /**
+ * Also saves the hash as the pending marker that recordStep() promotes after
+ * the step succeeds. It saves it even when the inputs are unchanged, because
+ * deploy.sh can still run the step for another reason (a new database).
+ *
  * @param {string} stateDir
  * @param {string} step
  * @param {string[]} files
@@ -67,43 +89,41 @@ function markerPath(stateDir, step) {
 function isUnchanged(stateDir, step, files) {
   const current = hashInputs(files);
   if (current === null) return false;
-  try {
-    return fs.readFileSync(markerPath(stateDir, step), "utf8").trim() === current;
-  } catch {
-    return false;
-  }
+  fs.mkdirSync(stateDir, { recursive: true });
+  fs.writeFileSync(pendingPath(stateDir, step), `${current}\n`);
+  return readMarker(stateDir, step) === current;
 }
 
 /**
- * Writes the marker for a step that just succeeded.
+ * Promotes the pending marker that isUnchanged() saved, after the step
+ * succeeded. Throws when there is none, because then no `check` ran first.
  *
  * @param {string} stateDir
  * @param {string} step
- * @param {string[]} files
  */
-function recordStep(stateDir, step, files) {
-  const current = hashInputs(files);
-  if (current === null) {
-    throw new Error(`cannot record step "${step}": an input file is unreadable`);
+function recordStep(stateDir, step) {
+  const pending = pendingPath(stateDir, step);
+  if (!fs.existsSync(pending)) {
+    throw new Error(`cannot record step "${step}": no pending hash (run check first)`);
   }
-  fs.mkdirSync(stateDir, { recursive: true });
-  fs.writeFileSync(markerPath(stateDir, step), `${current}\n`);
+  fs.renameSync(pending, markerPath(stateDir, step));
 }
 
-function main(argv) {
+function main(argv, stateDir = STATE_DIR) {
   const [command, step, ...files] = argv;
-  if (!["check", "record"].includes(command) || !STEP_NAME.test(step || "") || files.length === 0) {
-    console.error("Usage: deploy-step-cache.js check|record <step> <file...>");
+  const validStep = STEP_NAME.test(step || "");
+  if (command === "record" && validStep) {
+    recordStep(stateDir, step);
+    return 0;
+  }
+  if (command !== "check" || !validStep || files.length === 0) {
+    console.error("Usage: deploy-step-cache.js check <step> <file...> | record <step>");
     return 2;
   }
 
-  if (command === "record") {
-    recordStep(STATE_DIR, step, files);
-    return 0;
-  }
-
+  const unchanged = isUnchanged(stateDir, step, files);
   if (process.env.FORCE_FULL_DEPLOY === "1") return EXIT_CHANGED;
-  return isUnchanged(STATE_DIR, step, files) ? EXIT_UNCHANGED : EXIT_CHANGED;
+  return unchanged ? EXIT_UNCHANGED : EXIT_CHANGED;
 }
 
 if (require.main === module) {
