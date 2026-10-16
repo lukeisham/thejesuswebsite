@@ -37,6 +37,19 @@ navboxes — only prose paragraphs under headings, plus the lede), assign one of
 A paragraph can read as topically "historical" and still be `interpretation` if it's making an
 argument about what the history means, and vice versa — topic is a weak signal next to register.
 
+**Reception and culture are `interpretation`** (rule added 2026-09-20, after the issue #231
+audit; see `audit/`). The site is about Biblical data. Material about how a figure or story is
+used or received later is not that data, so label it `interpretation`. This covers art, painting,
+literature, poetry, film, television, music, theatre, actors, and use in liturgy. The register
+of the sentence does not matter. "Dante places Caiaphas in the eighth circle of Hell" has
+concrete, factive wording, and it is still `interpretation`.
+
+- A list or one-line lead-in takes the label of what it introduces. "Actors who have portrayed
+  Caiaphas include:" is `interpretation`, not `neither`.
+- Exception: an article about a parable or a teaching of Jesus. Do not apply this rule there
+  without a decision from the project owner. The exact meaning of the exception is not settled
+  (see issue #231).
+
 **Headings are never consulted for the label itself** — only used afterward, in the `notes`
 field, to flag when they mislead (a heading that says "Historical account" over paragraphs that
 are actually pure interpretation, or an un-headed section that's pure narrative). This is

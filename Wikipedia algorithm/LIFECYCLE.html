@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wikipedia Algorithm — Pipeline Lifecycle</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-border: #2a2e38;
+    --text: #e6e8ec;
+    --muted: #9aa1ae;
+    --accent: #5b9dff;
+    --accent-dim: #2c4a7c;
+    --good: #4caf82;
+    --warn: #e0a940;
+    --bad: #e0615a;
+    --code-bg: #1e222b;
+    --code-text: #c9d4e8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 96px; }
+  header { margin-bottom: 40px; }
+  header .kicker {
+    color: var(--accent);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  h1 { font-size: 32px; margin: 8px 0 12px; line-height: 1.25; }
+  header p { color: var(--muted); font-size: 16px; max-width: 640px; }
+  h2 {
+    font-size: 22px;
+    margin: 56px 0 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  .section-intro { color: var(--muted); font-size: 15px; margin: 12px 0 24px; }
+  code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  /* Stage timeline */
+  .stages { position: relative; margin-top: 24px; }
+  .stages::before {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--panel-border);
+  }
+  .stage {
+    position: relative;
+    padding-left: 56px;
+    margin-bottom: 28px;
+  }
+  .stage:last-child { margin-bottom: 0; }
+  .stage .marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--panel);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .stage .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .stage h3 { margin: 0 0 4px; font-size: 17px; }
+  .stage .tag {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--panel-border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-bottom: 8px;
+  }
+  .stage ul { margin: 8px 0 0; padding-left: 20px; }
+  .stage li { margin-bottom: 5px; font-size: 14.5px; }
+  .stage li.caution { color: var(--warn); }
+
+  /* Key moments timeline */
+  .moments { margin-top: 24px; }
+  .moment {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 18px;
+    padding: 16px 0;
+    border-top: 1px solid var(--panel-border);
+  }
+  .moment:first-child { border-top: none; }
+  .moment .when {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 13.5px;
+    padding-top: 2px;
+  }
+  .moment .what h3 { margin: 0 0 6px; font-size: 16px; }
+  .moment .what p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  .moment .flag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .flag.good { background: rgba(76,175,130,0.15); color: var(--good); }
+  .flag.warn { background: rgba(224,169,64,0.15); color: var(--warn); }
+  .flag.bad { background: rgba(224,97,90,0.15); color: var(--bad); }
+
+  /* Open issues */
+  .issues { margin-top: 24px; display: grid; gap: 12px; }
+  .issue {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-left: 3px solid var(--bad);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .issue .id {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    color: var(--bad);
+    font-size: 13px;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+  .issue p { margin: 6px 0 0; font-size: 14.5px; color: var(--muted); }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--panel-border);
+    color: var(--muted);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">thejesuswebsite &middot; Wikipedia algorithm</div>
+    <h1>Pipeline lifecycle and key moments</h1>
+    <p>
+      This page shows how the Wikipedia algorithm pipeline moves an article
+      from a raw candidate to a scored, ranked entry on the site. It also
+      lists the key moments in the pipeline's history, and the open problems
+      still tracked in <code>setup/issues.md</code>.
+    </p>
+  </header>
+
+  <h2><span class="num">1</span>Lifecycle stages</h2>
+  <p class="section-intro">
+    Nine stages carry an article from discovery to a live entry on
+    <code>frontend/debate/wikipedia.html</code>.
+  </p>
+
+  <div class="stages">
+
+    <div class="stage">
+      <div class="marker">1</div>
+      <div class="card">
+        <span class="tag">Discovery</span>
+        <h3>Candidate pool</h3>
+        <ul>
+          <li>A headless browser crawls <code>Category:Jesus</code>, <code>Category:Gospels</code>, and linked place pages, one to two hops deep.</li>
+          <li>No judgment happens at this stage. Every link goes into the pool.</li>
+          <li>Output: <code>candidate-pool.tsv</code> (513 cached links).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="marker">2</div>
+      <div class="card">
+        <span class="tag">Judgment</span>
+        <h3>Selection</h3>
+        <ul>
+          <li>An agent checks each candidate against an inclusion/exclusion table.</li>
+          <li>Apocryphal gospels, doctrine pages, and pop-culture pages are out.</li>
+          <li>Miracles, parables, and lesser-known Passion events are in.</li>
+          <li>Permanent bans go into <code>excluded-titles.txt</code> (37 titles).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="marker">3</div>
+      <div class="card">
+        <span class="tag">Human gate</span>
+        <h3>Luke review gate</h3>
+        <ul>
+          <li>The selected candidates go to Luke in chat before anything is written.</li>
+          <li>Luke can remove titles, or ask for more rounds of selection.</li>
+          <li>This gate is mandatory. If Luke is unreachable, the pipeline stops.</li>
+          <li>Defined in <code>skill.md</code>, step 3b.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="marker">4</div>
+      <div class="card">
+        <span class="tag">Extraction</span>
+        <h3>Harvest</h3>
+        <ul>
+          <li>A headless browser and <code>scripts/extract.js</code> read the live page for each article.</li>
+          <li>This step produces the raw signals: verse counts, keyword hits, and category flags.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="marker">5</div>
+      <div class="card">
+        <span class="tag">Offline, dev machine only</span>
+        <h3>Classify</h3>
+        <ul>
+          <li>The <code>classifier/</code> module (a MiniLM model plus FAISS search) sorts each paragraph into a bucket: data, close analysis, interpretation, or register.</li>
+          <li>Output: <code>bucket-labels.json</code>.</li>
+          <li>The <code>families/</code> module scores each article across nine signal families into <code>vector-family-scores.json</code>.</li>
+          <li>A separate pipeline uses an LLM (DeepSeek) to label the same corpus into <code>labels-corpus.json</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="marker">6</div>
+      <div class="card">
+        <span class="tag">Ranking</span>
+        <h3>Score</h3>
+        <ul>
+          <li><code>rank_engine.py</code> merges the harvested signals with the classified ones.</li>
+          <li>It sums 25 weighted signals into one <code>net_score</code> per article.</li>
+          <li>It sorts every article by <code>net_score</code> and writes <code>scoring-export.json</code>, two CSV files, and <code>wiki-bulk-paste.txt</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="marker">7</div>
+      <div class="card">
+        <span class="tag">Quality gate</span>
+        <h3>Calibration and validation</h3>
+        <ul>
+          <li><code>calibrate.py</code> tests different thresholds against the frozen gold-set CSV files.</li>
+          <li>A gold-set label never changes to match a store's output. Only the store's threshold moves.</li>
+          <li>The target bar is 0.85 tier accuracy (see <code>VALIDATION_REPORT.md</code>, section 11.2).</li>
+          <li>Results are logged in <code>CLASSIFIER_DIAGNOSIS.md</code> and <code>VALIDATION_REPORT.md</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="marker">8</div>
+      <div class="card">
+        <span class="tag">Only step that touches the VPS</span>
+        <h3>Deploy</h3>
+        <ul>
+          <li><code>git push</code> triggers <code>deploy.sh</code> on the VPS.</li>
+          <li><code>deploy.sh</code> runs <code>import-wikipedia-scoring.js --publish --purge-missing</code>.</li>
+          <li>The importer checks that all 255 &times; 25 signal values sum to <code>net_score</code>, in one transaction, before it writes anything.</li>
+          <li class="caution">CAUTION: the deploy path is <code>scoring-export.json</code>. It is never <code>wiki-bulk-paste.txt</code> — see key moment 4 below.</li>
+          <li>The result renders as a 5&times;5 grid on <code>frontend/debate/wikipedia.html</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="marker">9</div>
+      <div class="card">
+        <span class="tag">Standing loop</span>
+        <h3>Operate</h3>
+        <ul>
+          <li>The <code>!TheJesusWebsite-Wikipedia</code> skill is the entry point: <code>check</code>, <code>add</code>, <code>exclude</code>, <code>rescore</code>.</li>
+          <li>The article list is fixed. A <code>check</code> run never adds or removes articles on its own.</li>
+          <li>Every outcome is logged to <code>setup/issues.md</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <h2><span class="num">2</span>Key moments</h2>
+  <p class="section-intro">
+    Nine turning points in the pipeline's history, in date order where a date
+    is known.
+  </p>
+
+  <div class="moments">
+
+    <div class="moment">
+      <div class="when">2026-07-28</div>
+      <div class="what">
+        <h3>Gold-set pilot frozen</h3>
+        <p>Fourteen agents label 40 articles from real, fetched Wikipedia text. This locks in the ground truth that every later classifier is measured against.</p>
+      </div>
+    </div>
+
+    <div class="moment">
+      <div class="when">Baseline</div>
+      <div class="what">
+        <h3>First classifier scores 0.303 tier accuracy<span class="flag bad">Failed</span></h3>
+        <p>The original three-store classifier cannot tell close analysis apart from interpretation. Tier 1 and tier 2 content collapse into each other.</p>
+      </div>
+    </div>
+
+    <div class="moment">
+      <div class="when">2026-07-30</div>
+      <div class="what">
+        <h3>Architecture fix raises accuracy to 0.667<span class="flag warn">Still below gate</span></h3>
+        <p>A fourth "close-analysis" store is added, and a bug is fixed: the register gate had silently used the data store's threshold instead of its own. Accuracy improves but stays under the 0.85 gate.</p>
+      </div>
+    </div>
+
+    <div class="moment">
+      <div class="when">2026-07-30</div>
+      <div class="what">
+        <h3>Production incident<span class="flag bad">Data loss</span></h3>
+        <p>Someone deletes every row in the <code>wikipedia_articles</code> table and pastes <code>wiki-bulk-paste.txt</code>, believing it is the deploy step. Every score is lost. A manual database migration restores it. <code>skill.md</code> now carries a standing warning about this exact mistake.</p>
+      </div>
+    </div>
+
+    <div class="moment">
+      <div class="when">2026-07-31</div>
+      <div class="what">
+        <h3>LLM labels become the primary source<span class="flag good">Promoted</span></h3>
+        <p>Row 3 (the dominant scoring signal) goes live. A DeepSeek-based labelling pipeline reaches 0.926 agreement with human labels, and becomes the primary source. The embedding classifier (0.641–0.667 accuracy) becomes a secondary check — tracked as issue #163.</p>
+      </div>
+    </div>
+
+    <div class="moment">
+      <div class="when">2026-07-31</div>
+      <div class="what">
+        <h3>First vector family goes live<span class="flag good">Activated</span></h3>
+        <p>Row 10, literary analysis, is the first of nine vector families to clear its 0.80 precision floor. It fires on about 19% of the corpus.</p>
+      </div>
+    </div>
+
+    <div class="moment">
+      <div class="when">2026-08-28</div>
+      <div class="what">
+        <h3>Documents disagree on what ships<span class="flag warn">Needs a check</span></h3>
+        <p><code>VALIDATION_REPORT.md</code> still states that row 3 ships from the classifier's own tier score (0.667), not the LLM label. This does not match the record of key moment 5, and the two documents need reconciling.</p>
+      </div>
+    </div>
+
+    <div class="moment">
+      <div class="when">Issue #231</div>
+      <div class="what">
+        <h3>Trained paragraph head reaches 0.776–0.788<span class="flag warn">Not active</span></h3>
+        <p>A linear probe trained on raw embeddings beats the 0.671 store-scoring baseline, but still falls short of the 0.85 gate. It is not turned on. A decision on its scope is still open.</p>
+      </div>
+    </div>
+
+    <div class="moment">
+      <div class="when">2026-09-20</div>
+      <div class="what">
+        <h3>Gold-set labelling rule changes<span class="flag good">Spec update</span></h3>
+        <p>After an issue #231 audit, content about art, film, and worship is now labelled "interpretation" regardless of its register. The rule evolves after production use finds the edge case.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <h2><span class="num">3</span>Open problems</h2>
+  <p class="section-intro">
+    Tracked in <code>setup/issues.md</code> and the guide documents, as of the last read.
+  </p>
+
+  <div class="issues">
+
+    <div class="issue">
+      <span class="id">#163</span>
+      <strong>Classifier accuracy still fails its gate.</strong>
+      <p>The classifier's own tier accuracy (0.641–0.667) stays under the 0.85 gate. <code>ALGORITHM_GUIDE_the_what.md</code> and <code>ALGORITHM_GUIDE_the_how.md</code> call this resolved by the LLM-label switch, but <code>VALIDATION_REPORT.md</code> and <code>OPERATOR_GUIDE.md</code> still describe the classifier as what ships. These documents need to agree.</p>
+    </div>
+
+    <div class="issue">
+      <span class="id">#161</span>
+      <strong>Five keyword fallbacks are broken.</strong>
+      <p>Marked pending in <code>PENDING_SIGNAL_KEYS</code>. A grey cell on one of these signals in the scoring grid is expected, not a new bug.</p>
+    </div>
+
+    <div class="issue">
+      <span class="id">no number</span>
+      <strong>Eight of nine vector families run on their fallback, not their score.</strong>
+      <p>Only literary analysis (row 10) clears its precision floor. The other eight sit at precision 0.0 in <code>rank_engine.py</code> and fire from their dormant keyword fallback instead.</p>
+    </div>
+
+    <div class="issue">
+      <span class="id">#231</span>
+      <strong>Parable and teaching exception is unsettled.</strong>
+      <p>Whether a parable or a teaching passage should follow the new "reception is interpretation" rule is still an open question. The trained paragraph head from this same issue is not active.</p>
+    </div>
+
+  </div>
+
+  <footer>
+    Sources: <code>README.md</code>, <code>OPERATOR_GUIDE.md</code>,
+    <code>ALGORITHM_GUIDE_the_what.md</code>, <code>ALGORITHM_GUIDE_the_how.md</code>,
+    <code>GOLD_SET_LABELLING_PROCEDURE.md</code>, <code>CLASSIFIER_SPEC.md</code>,
+    <code>CLASSIFIER_DIAGNOSIS.md</code>, <code>VALIDATION_REPORT.md</code>, and
+    <code>setup/SKILLS/!TheJesusWebsite-Wikipedia/skill.md</code>, all in this
+    repository. Generated for local reference; not deployed to the site.
+  </footer>
+
+</div>
+</body>
+</html>
