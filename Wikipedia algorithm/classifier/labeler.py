@@ -10,6 +10,8 @@ Scoring rules:
     of each class's positive exemplar embeddings, using the embeddings already
     produced by the stores. No new dependency — operates on the embedding
     vectors already returned by StoreManager.query_all_batch().
+  - head (trained): A linear classifier on the paragraph embedding. It does
+    not query the stores. See classifier/paragraph_head.py.
 """
 
 import logging
@@ -32,6 +34,7 @@ from .config import (
     POSITIONAL_OTHER_PATTERNS,
     NN_NEGATIVE_THRESHOLD,
 )
+from .paragraph_head import load_paragraph_head
 
 logger = logging.getLogger(__name__)
 
@@ -269,6 +272,67 @@ def _label_paragraph(
     return met[0][0]
 
 
+def positional_flags(paragraphs: list[dict]) -> list[bool]:
+    """Mark the paragraphs that the positional rules label 'other'.
+
+    The lede is always positional. The first reference-style heading and
+    every paragraph after it are positional too. The classifier and the
+    head training script both call this function, so they skip the same
+    paragraphs.
+
+    Args:
+        paragraphs: Output from split_paragraphs().
+
+    Returns:
+        One bool per paragraph. True means the paragraph is positional.
+    """
+    flags: list[bool] = []
+    seen_reference_start = False
+    for para in paragraphs:
+        if para["is_lede"]:
+            flags.append(True)
+            continue
+        if not seen_reference_start and _is_reference_heading(para["text"]):
+            seen_reference_start = True
+        flags.append(seen_reference_start)
+    return flags
+
+
+def _classify_with_head(
+    paragraphs: list[dict],
+    flags: list[bool],
+    store_manager,
+) -> list[dict]:
+    """Label paragraphs with the trained head.
+
+    The stores are not queried. Body paragraphs get the most likely of the
+    head's classes. The 'scores' dict holds the head's class probabilities.
+    """
+    head = load_paragraph_head()
+    labelled: list[dict] = [dict(para) for para in paragraphs]
+    body_idx = [i for i, is_positional in enumerate(flags) if not is_positional]
+
+    body_labels: list[str] = []
+    body_proba = np.empty((0, len(head.classes)))
+    if body_idx:
+        texts = [paragraphs[i]["text"] for i in body_idx]
+        embeddings = store_manager.embedder.embed_batch(texts)
+        body_proba = head.predict_proba(embeddings)
+        body_labels = head.predict_labels(embeddings)
+
+    for entry, is_positional in zip(labelled, flags):
+        entry["scores"] = {}
+        entry["is_positional"] = is_positional
+        if is_positional:
+            entry["label"] = LABEL_OTHER
+    for i, label, proba in zip(body_idx, body_labels, body_proba):
+        labelled[i]["label"] = label
+        labelled[i]["scores"] = {
+            cls: float(p) for cls, p in zip(head.classes, proba)
+        }
+    return labelled
+
+
 def classify_paragraphs(
     article_text: str,
     store_manager,
@@ -288,8 +352,9 @@ def classify_paragraphs(
         article_text: Full article body text.
         store_manager: Initialised StoreManager with built stores.
         top_k: Number of nearest exemplars to retrieve per store per paragraph.
-        scoring_rule: "mean-cosine" (original) or "centroid" (numpy-only
-            centroid decision rule).
+        scoring_rule: "mean-cosine" (original), "centroid" (numpy-only
+            centroid decision rule), or "head" (trained linear head on the
+            paragraph embedding; needs classifier/paragraph-head.json).
 
     Returns:
         List of dicts, one per paragraph, with keys:
@@ -300,6 +365,10 @@ def classify_paragraphs(
     if not paragraphs:
         return []
 
+    flags = positional_flags(paragraphs)
+    if scoring_rule == "head":
+        return _classify_with_head(paragraphs, flags, store_manager)
+
     texts = [p["text"] for p in paragraphs]
 
     # Batch-query all stores; get embeddings when using centroid rule.
@@ -308,9 +377,8 @@ def classify_paragraphs(
                                                    include_embeddings=include_embeddings)
 
     labelled: list[dict] = []
-    seen_reference_start = False
 
-    for para, results in zip(paragraphs, batch_results):
+    for para, results, is_positional in zip(paragraphs, batch_results, flags):
         label_data = dict(para)  # copy positional metadata
         label_data["scores"] = {}
         label_data["is_positional"] = False
@@ -351,25 +419,9 @@ def classify_paragraphs(
             "register": register_score,
         }
 
-        para_text = para["text"]
-
         # --- Positional rules (§3.1.1) ---
-
-        # Lede is always 'other'.
-        if para["is_lede"]:
-            label_data["label"] = LABEL_OTHER
-            label_data["is_positional"] = True
-            labelled.append(label_data)
-            continue
-
-        # Reference / bibliography section boundary detection.
-        # A heading-like paragraph (short, matching known patterns)
-        # triggers the reference section. Once triggered, all subsequent
-        # paragraphs are 'other'.
-        if not seen_reference_start and _is_reference_heading(para_text):
-            seen_reference_start = True
-
-        if seen_reference_start:
+        # The lede and the reference section are always 'other'.
+        if is_positional:
             label_data["label"] = LABEL_OTHER
             label_data["is_positional"] = True
             labelled.append(label_data)

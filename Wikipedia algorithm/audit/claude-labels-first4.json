@@ -1,0 +1,9 @@
+{
+ "note": "Claude's own labels for the first four audit articles, made from the paragraph text. R = register rubric (GOLD_SET_LABELLING_PROCEDURE.md: data / interpretation / neither). L = LLM three-tier rubric (data / close / interpretation).",
+ "articles": {
+  "Healing the paralytic at Bethesda": {"1":["data","close"],"2":["data","data"],"3":["data","data"],"4":["data","data"],"5":["interpretation","close"],"6":["interpretation","interpretation"],"7":["interpretation","close"]},
+  "Healing of the centurion's servant": {"1":["data","data"],"2":["neither","data"],"3":["data","data"],"4":["data","data"],"5":["interpretation","close"],"6":["interpretation","close"],"7":["interpretation","close"],"8":["interpretation","data"],"9":["interpretation","close"],"10":["interpretation","interpretation"],"11":["interpretation","interpretation"],"12":["interpretation","interpretation"],"13":["data","data"]},
+  "Caiaphas": {"1":["data","close"],"2":["neither","data"],"3":["interpretation","data"],"4":["interpretation","interpretation"],"5":["data","data"],"6":["data","data"],"7":["data","data"],"8":["data","data"],"9":["interpretation","interpretation"],"10":["data","data"],"11":["data","close"],"12":["data","data"],"13":["data","close"],"14":["interpretation","interpretation"],"15":["data","data"],"16":["data","data"],"17":["data","data"],"18":["data","data"],"19":["data","data"],"20":["neither","data"],"21":["neither","data"],"22":["data","data"],"23":["data","data"],"24":["data","data"],"25":["neither","data"]},
+  "Parable of the Lost Coin": {"1":["data","data"],"2":["neither","data"],"3":["neither","data"],"4":["interpretation","interpretation"],"5":["interpretation","interpretation"],"6":["neither","interpretation"],"7":["interpretation","interpretation"],"8":["data","data"]}
+ }
+}

@@ -155,6 +155,15 @@ POSITIONAL_OTHER_PATTERNS: tuple[str, ...] = (
 )
 
 # ---------------------------------------------------------------------------
+# Trained paragraph head
+# ---------------------------------------------------------------------------
+# Weights of the linear head that classify_paragraphs(scoring_rule="head")
+# loads. scripts/train_paragraph_head.py writes this file. The head is not
+# the default scoring rule: the activation gate in CLASSIFIER_DIAGNOSIS.md
+# is not met yet (issue #231).
+PARAGRAPH_HEAD_PATH = CLASSIFIER_DIR / "paragraph-head.json"
+
+# ---------------------------------------------------------------------------
 # Export
 # ---------------------------------------------------------------------------
 BUCKET_LABELS_PATH = CLASSIFIER_DIR.parent / "bucket-labels.json"

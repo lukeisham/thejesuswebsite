@@ -1,0 +1,901 @@
+<title>Gospel Paragraph Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root {
+  --ground: #edf0ee;
+  --surface: #f8faf8;
+  --ink: #18211e;
+  --ink-2: #4b5752;
+  --line: #d2d9d5;
+  --accent: #1f5a55;
+  --accent-ink: #ffffff;
+  --data: #2c5da3;
+  --data-bg: #dce7f6;
+  --close: #94560a;
+  --close-bg: #f5e3c8;
+  --interp: #7b3877;
+  --interp-bg: #ecd7eb;
+  --unsure: #56615c;
+  --unsure-bg: #dde1de;
+  --ok: #2a7a4b;
+  --warn: #a8480f;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #111615;
+    --surface: #19201e;
+    --ink: #e7ece9;
+    --ink-2: #a2aea8;
+    --line: #2b3531;
+    --accent: #6fc1b8;
+    --accent-ink: #0c1614;
+    --data: #90b7ef;
+    --data-bg: #1c2d47;
+    --close: #e6ae63;
+    --close-bg: #3a2c12;
+    --interp: #dba4d7;
+    --interp-bg: #3c2440;
+    --unsure: #aab4af;
+    --unsure-bg: #2a3330;
+    --ok: #6cc38f;
+    --warn: #eb9a63;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #111615;
+  --surface: #19201e;
+  --ink: #e7ece9;
+  --ink-2: #a2aea8;
+  --line: #2b3531;
+  --accent: #6fc1b8;
+  --accent-ink: #0c1614;
+  --data: #90b7ef;
+  --data-bg: #1c2d47;
+  --close: #e6ae63;
+  --close-bg: #3a2c12;
+  --interp: #dba4d7;
+  --interp-bg: #3c2440;
+  --unsure: #aab4af;
+  --unsure-bg: #2a3330;
+  --ok: #6cc38f;
+  --warn: #eb9a63;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 15px/1.5 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, summary:focus-visible, textarea:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; }
+
+/* Top bar */
+.top {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 20;
+  background: var(--ground);
+  border-bottom: 1px solid var(--line);
+}
+.top .wrap { display: flex; align-items: center; gap: 16px; min-height: 56px; flex-wrap: wrap; padding-block: 8px; }
+.brand { font: 600 15px/1.2 var(--sans); letter-spacing: 0.01em; margin-right: auto; }
+.brand small { display: block; font: 400 12px/1.3 var(--sans); color: var(--ink-2); margin-top: 2px; }
+.overall { font: 500 13px/1 var(--mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
+.sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-2); display: inline-block; }
+.sync[data-state="ok"] i { background: var(--ok); }
+.sync[data-state="busy"] i { background: var(--accent); }
+.sync[data-state="warn"] i { background: var(--warn); }
+.list-toggle {
+  display: none;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+/* Two columns */
+.cols { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 32px; padding-block: 20px 200px; align-items: start; }
+.list {
+  position: sticky;
+  top: calc(72px + env(safe-area-inset-top, 0px));
+  max-height: calc(100vh - 210px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.list h3 {
+  margin: 18px 0 6px;
+  font: 500 11.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  display: flex;
+  justify-content: space-between;
+}
+.list h3:first-child { margin-top: 0; }
+.item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  padding: 8px 8px 8px 0;
+  border-radius: 0;
+}
+.item:hover .t { text-decoration: underline; }
+.item .t { font-size: 14px; line-height: 1.3; display: block; }
+.item .m { display: flex; align-items: center; gap: 8px; margin-top: 4px; font: 400 11.5px/1 var(--mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.item .bar { flex: 1; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.item .bar b { display: block; height: 100%; width: 0; background: var(--accent); }
+.item[aria-current="true"] .t { font-weight: 600; color: var(--accent); }
+.item[data-done="true"] .m::after { content: "done"; color: var(--ok); }
+
+/* Article */
+.art { max-width: 760px; }
+.eyebrow { font: 500 11.5px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 6px; }
+.art h1 { font: 600 32px/1.15 var(--serif); margin: 0 0 8px; text-wrap: balance; }
+.art-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); margin-bottom: 16px; }
+.art-meta a { color: var(--accent); }
+
+.guide { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; margin-bottom: 20px; }
+.guide summary { padding: 10px 14px; cursor: pointer; font-weight: 500; }
+.guide .body { padding: 0 14px 14px; display: grid; gap: 10px; font-size: 14px; }
+.guide dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; }
+.guide dt { font: 500 12px/1.6 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.guide dd { margin: 0; }
+.guide p { margin: 0; color: var(--ink-2); }
+dt.k-data { color: var(--data); } dt.k-close { color: var(--close); } dt.k-interpretation { color: var(--interp); } dt.k-unsure { color: var(--unsure); }
+
+.ctx { border-top: 1px solid var(--line); }
+.ctx > summary { padding: 10px 0; cursor: pointer; font-size: 13px; color: var(--ink-2); }
+.ctx .ctx-text { font: 400 15px/1.6 var(--serif); color: var(--ink-2); padding: 0 0 12px; }
+.ctx .ctx-text p { margin: 0 0 10px; }
+
+.para {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 8px 14px 0;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+  scroll-margin: 140px 0 220px;
+}
+.para .gut { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 3px; }
+.para .num { font: 500 12px/1 var(--mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.para .chip {
+  font: 500 11px/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 6px;
+  border-radius: 3px;
+  min-width: 52px;
+  text-align: center;
+  border: 1px dashed var(--line);
+  color: var(--ink-2);
+}
+.para p { margin: 0; font: 400 17.5px/1.6 var(--serif); max-width: 66ch; overflow-wrap: anywhere; }
+.para[data-l="data"] { background: color-mix(in srgb, var(--data-bg) 55%, transparent); }
+.para[data-l="close"] { background: color-mix(in srgb, var(--close-bg) 55%, transparent); }
+.para[data-l="interpretation"] { background: color-mix(in srgb, var(--interp-bg) 55%, transparent); }
+.para[data-l="unsure"] { background: color-mix(in srgb, var(--unsure-bg) 70%, transparent); }
+.para[data-l="data"] .chip { background: var(--data-bg); color: var(--data); border: 1px solid var(--data); }
+.para[data-l="close"] .chip { background: var(--close-bg); color: var(--close); border: 1px solid var(--close); }
+.para[data-l="interpretation"] .chip { background: var(--interp-bg); color: var(--interp); border: 1px solid var(--interp); }
+.para[data-l="unsure"] .chip { background: var(--unsure-bg); color: var(--unsure); border: 1px solid var(--unsure); }
+.para[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--accent); padding-left: 8px; margin-left: -8px; background-color: var(--surface); }
+.para[aria-current="true"][data-l] { background: color-mix(in srgb, var(--surface) 55%, transparent); }
+
+.pbody { min-width: 0; }
+.claude {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font: 400 12px/1.4 var(--sans);
+  color: var(--ink-2);
+}
+.claude .who { font: 500 11px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.claude .tag { display: inline-flex; gap: 5px; align-items: center; }
+.claude .tag em { font-style: normal; color: var(--ink-2); }
+.claude .c {
+  font: 500 11px/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--unsure);
+  color: var(--unsure);
+  background: var(--unsure-bg);
+}
+.claude .c-data { border-color: var(--data); color: var(--data); background: var(--data-bg); }
+.claude .c-close { border-color: var(--close); color: var(--close); background: var(--close-bg); }
+.claude .c-interpretation { border-color: var(--interp); color: var(--interp); background: var(--interp-bg); }
+.claude .dtext { font-weight: 500; }
+.claude[data-diff="true"] .dtext { color: var(--warn); }
+.claude[data-diff="false"] .dtext { color: var(--ok); }
+body.hide-claude .claude { display: none; }
+.pill-toggle {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+.pill-toggle[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.claude-note { font-size: 12.5px; color: var(--ink-2); margin: 0 0 14px; }
+
+.notes { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 16px; }
+.notes label { display: block; font-weight: 500; margin-bottom: 6px; }
+.notes textarea {
+  width: 100%;
+  min-height: 72px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font: 400 14px/1.5 var(--sans);
+  resize: vertical;
+}
+.finish {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.btn {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 0;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-weight: 500;
+}
+.btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+
+/* Dock */
+.dock {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 30;
+  background: var(--ground);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.dock-inner { padding-block: 10px 12px; display: grid; gap: 8px; }
+.dock-row { display: flex; align-items: center; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+.dock-pos { font: 500 13px/1.2 var(--mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dock-nav { display: flex; gap: 6px; }
+.dock-nav button, .dock-clear {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 13px;
+}
+.dock-clear { border-style: dashed; color: var(--ink-2); }
+.choices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  text-align: left;
+}
+.choice kbd { font: 500 11px/1 var(--mono); color: var(--ink-2); }
+.choice span { font-weight: 600; font-size: 14.5px; }
+.choice[data-k="data"] span { color: var(--data); }
+.choice[data-k="close"] span { color: var(--close); }
+.choice[data-k="interpretation"] span { color: var(--interp); }
+.choice[data-k="unsure"] span { color: var(--unsure); }
+.choice[aria-pressed="true"][data-k="data"] { background: var(--data-bg); border-color: var(--data); }
+.choice[aria-pressed="true"][data-k="close"] { background: var(--close-bg); border-color: var(--close); }
+.choice[aria-pressed="true"][data-k="interpretation"] { background: var(--interp-bg); border-color: var(--interp); }
+.choice[aria-pressed="true"][data-k="unsure"] { background: var(--unsure-bg); border-color: var(--unsure); }
+.choice:disabled { opacity: 0.5; cursor: not-allowed; }
+.hint { font-size: 12px; color: var(--ink-2); }
+.hint kbd { font: 500 11px/1 var(--mono); border: 1px solid var(--line); border-radius: 3px; padding: 1px 4px; background: var(--surface); }
+
+@media (max-width: 899px) {
+  .cols { grid-template-columns: minmax(0, 1fr); gap: 0; padding-bottom: 240px; }
+  .list-toggle { display: inline-block; }
+  .list {
+    display: none;
+    position: fixed;
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    left: 0; right: 0;
+    bottom: 0;
+    max-height: none;
+    z-index: 25;
+    background: var(--ground);
+    padding: 12px 16px 200px;
+  }
+  body.list-open .list { display: block; }
+  .art h1 { font-size: 26px; }
+  .para { grid-template-columns: 58px minmax(0, 1fr); gap: 10px; }
+  .para .chip { min-width: 48px; font-size: 10px; }
+  .para p { font-size: 16.5px; }
+  .hint { display: none; }
+  .choice { padding: 8px 8px; }
+  .choice span { font-size: 13.5px; }
+}
+@media (min-width: 900px) {
+  .dock-inner { margin-left: 312px; max-width: 760px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; transition: none !important; }
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">Gospel paragraph audit<small>Label each paragraph yourself. The earlier labels stay hidden.</small></div>
+    <span class="overall" id="overall" aria-live="polite"></span>
+    <span class="sync" id="sync" data-state="busy"><i></i><span id="syncText">Connecting…</span></span>
+    <button class="pill-toggle" id="claudeToggle" type="button" aria-pressed="true">Claude's labels: on</button>
+    <button class="list-toggle" id="listToggle" type="button" aria-expanded="false">Articles</button>
+  </div>
+</header>
+
+<div class="wrap cols">
+  <nav class="list" id="list" aria-label="Sample articles"></nav>
+  <main class="art" id="main"></main>
+</div>
+
+<div class="dock">
+  <div class="wrap">
+    <div class="dock-inner">
+      <div class="dock-row">
+        <span class="dock-pos" id="dockPos"></span>
+        <span class="hint"><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> label · <kbd>0</kbd> clear · <kbd>↑</kbd> <kbd>↓</kbd> move · <kbd>N</kbd> next article</span>
+        <span class="dock-nav">
+          <button type="button" id="prevBtn" aria-label="Previous paragraph">↑ Prev</button>
+          <button type="button" id="nextBtn" aria-label="Next paragraph">Next ↓</button>
+        </span>
+      </div>
+      <div class="choices" id="choices"></div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="audit-data">/*__DATA__*/</script>
+<script>
+(function () {
+  "use strict";
+
+  var ARTICLES = JSON.parse(document.getElementById("audit-data").textContent).articles;
+  var CHOICES = [
+    { key: "data", short: "Data", name: "Data", hot: "1" },
+    { key: "close", short: "Close", name: "Close", hot: "2" },
+    { key: "interpretation", short: "Interp", name: "Interpretation", hot: "3" },
+    { key: "unsure", short: "Unsure", name: "Unsure", hot: "4" }
+  ];
+  var CHOICE = {};
+  CHOICES.forEach(function (c) { CHOICE[c.key] = c; });
+  var LS_STATE = "gpa-state-v1";
+  var LS_LAST = "gpa-last-v1";
+  var LS_GUIDE = "gpa-guide-v1";
+
+  // ---------- helpers ----------
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function lsSet(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* storage can be blocked */ } }
+  function hash(str) {
+    var h = 5381;
+    for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+  function slug(title) { return title.replace(/[^A-Za-z0-9_\-.~:@+]/g, "_").slice(0, 120) + "-" + hash(title); }
+
+  ARTICLES.forEach(function (a) {
+    a.slug = slug(a.title);
+    a.body = a.paragraphs.filter(function (p) { return !p.positional; });
+    a.lede = a.paragraphs.filter(function (p) { return p.positional && p.i === 0; });
+    a.refs = a.paragraphs.filter(function (p) { return p.positional && p.i !== 0; });
+    a.byIndex = {};
+    a.body.forEach(function (p, k) { p.k = k; a.byIndex[p.i] = p; });
+  });
+  var BY_TITLE = {};
+  ARTICLES.forEach(function (a) { BY_TITLE[a.title] = a; });
+
+  // ---------- state ----------
+  var labels = {};   // title -> { paragraphIndex: choice key }
+  var notes = {};    // title -> text
+  var db = null;
+  var ready = false;
+  var cur = { title: null, i: null };
+
+  function labelsOf(a) { return labels[a.title] || (labels[a.title] = {}); }
+  function doneCount(a) {
+    var m = labels[a.title] || {};
+    return a.body.reduce(function (n, p) { return n + (m[p.i] ? 1 : 0); }, 0);
+  }
+
+  // ---------- saving ----------
+  var timers = {};
+  var inflight = {};
+  var again = {};
+  var saveFailed = false;
+
+  function setSync(state, text) {
+    var s = document.getElementById("sync");
+    s.setAttribute("data-state", state);
+    document.getElementById("syncText").textContent = text;
+  }
+  function idle() { return !Object.keys(timers).length && !Object.keys(inflight).length; }
+
+  function queueSave(a) {
+    if (!db) {
+      lsSet(LS_STATE, JSON.stringify({ labels: labels, notes: notes }));
+      return;
+    }
+    setSync("busy", "Saving…");
+    clearTimeout(timers[a.title]);
+    timers[a.title] = setTimeout(function () { delete timers[a.title]; flush(a); }, 500);
+  }
+  function flush(a) {
+    if (inflight[a.title]) { again[a.title] = true; return; }
+    inflight[a.title] = true;
+    var doc = {
+      title: a.title,
+      batch: a.batch,
+      bodyCount: a.body.length,
+      labels: Object.assign({}, labels[a.title] || {}),
+      note: notes[a.title] || "",
+      updatedAt: Date.now()
+    };
+    db.doc("labels/" + a.slug).set(doc).then(function () {
+      saveFailed = false;
+    }, function (err) {
+      saveFailed = true;
+      setSync("warn", "Save failed (" + ((err && err.code) || "error") + "). Labels stay in this tab.");
+    }).then(function () {
+      delete inflight[a.title];
+      if (again[a.title]) { delete again[a.title]; flush(a); }
+      else if (idle() && !saveFailed) setSync("ok", "Saved");
+    });
+  }
+  function flushAll() {
+    Object.keys(timers).forEach(function (t) {
+      clearTimeout(timers[t]);
+      delete timers[t];
+      flush(BY_TITLE[t]);
+    });
+  }
+  document.addEventListener("visibilitychange", function () { if (document.hidden) flushAll(); });
+  window.addEventListener("pagehide", flushAll);
+
+  // ---------- list ----------
+  var listEl = document.getElementById("list");
+  var itemRefs = {};
+  var batchRefs = {};
+
+  function buildList() {
+    listEl.textContent = "";
+    var last = null;
+    ARTICLES.forEach(function (a) {
+      if (a.batch !== last) {
+        last = a.batch;
+        var h = el("h3");
+        h.appendChild(el("span", null, "Batch " + a.batch));
+        var c = el("span", null, "");
+        h.appendChild(c);
+        batchRefs[a.batch] = c;
+        listEl.appendChild(h);
+      }
+      var b = el("button", "item");
+      b.type = "button";
+      b.appendChild(el("span", "t", a.title));
+      var m = el("span", "m");
+      var count = el("span", null, "");
+      var bar = el("span", "bar");
+      var fill = el("b");
+      bar.appendChild(fill);
+      m.appendChild(count);
+      m.appendChild(bar);
+      b.appendChild(m);
+      b.addEventListener("click", function () {
+        openArticle(a.title);
+        document.body.classList.remove("list-open");
+        document.getElementById("listToggle").setAttribute("aria-expanded", "false");
+      });
+      listEl.appendChild(b);
+      itemRefs[a.title] = { btn: b, count: count, fill: fill };
+    });
+  }
+  function paintList() {
+    var perBatch = {};
+    var total = 0, done = 0;
+    ARTICLES.forEach(function (a) {
+      var d = doneCount(a), n = a.body.length;
+      total += n; done += d;
+      var r = itemRefs[a.title];
+      r.count.textContent = d + "/" + n;
+      r.fill.style.width = (n ? (100 * d / n) : 0) + "%";
+      r.btn.setAttribute("data-done", d === n && n > 0 ? "true" : "false");
+      r.btn.setAttribute("aria-current", a.title === cur.title ? "true" : "false");
+      var pb = perBatch[a.batch] || (perBatch[a.batch] = { d: 0, n: 0 });
+      pb.d += d; pb.n += n;
+    });
+    Object.keys(perBatch).forEach(function (b) {
+      batchRefs[b].textContent = perBatch[b].d + "/" + perBatch[b].n;
+    });
+    document.getElementById("overall").textContent = done + " of " + total + " paragraphs";
+  }
+
+  // ---------- article ----------
+  var mainEl = document.getElementById("main");
+  var rowRefs = {};
+  var finishEl = null;
+
+  function guidePanel() {
+    var d = el("details", "guide");
+    d.id = "guide";
+    if (lsGet(LS_GUIDE) !== "closed") d.open = true;
+    d.addEventListener("toggle", function () { lsSet(LS_GUIDE, d.open ? "open" : "closed"); });
+    d.appendChild(el("summary", null, "Label guide"));
+    var body = el("div", "body");
+    var dl = el("dl");
+    [
+      ["data", "Data", "Biblical data: what the text or the record says happened. Narrative retelling, sources, dates, places, names and finds."],
+      ["close", "Close", "Compares two or more manuscripts, gospels or witnesses, or discusses authorship, redaction, structure or genre."],
+      ["interpretation", "Interpretation", "Scholarly analysis, meaning, significance and debate. Also reception and culture: how a figure or story is used later, in art, literature, film, music, theatre or liturgy. A lead-in line or list takes the label of what it introduces. Exception: articles about a parable or teaching (rule not settled yet)."],
+      ["unsure", "Unsure", "You cannot decide, or the text is not prose (a caption or a citation line). Give a best guess instead when you can."]
+    ].forEach(function (r) {
+      dl.appendChild(el("dt", "k-" + r[0], r[1]));
+      dl.appendChild(el("dd", null, r[2]));
+    });
+    body.appendChild(dl);
+    body.appendChild(el("p", null, "Label what the paragraph does, not what the article is about. The lede and the reference section are shown for context and are not labelled."));
+    d.appendChild(body);
+    return d;
+  }
+
+  // Claude's own labels, made before the 2026-09-20 reception rule.
+  // c[0] = register rubric (data / interpretation / neither),
+  // c[1] = the LLM's three-tier rubric (data / close / interpretation).
+  function claudeLine(c) {
+    var d = el("div", "claude");
+    d.setAttribute("data-diff", "none");
+    d.appendChild(el("span", "who", "Claude"));
+    [["register", c[0]], ["three-tier", c[1]]].forEach(function (pair) {
+      var t = el("span", "tag");
+      t.appendChild(el("em", null, pair[0]));
+      t.appendChild(el("span", "c c-" + pair[1], pair[1]));
+      d.appendChild(t);
+    });
+    d.appendChild(el("span", "dtext", ""));
+    return d;
+  }
+  function registerOf(human) {
+    if (human === "interpretation") return "interpretation";
+    if (human === "data" || human === "close") return "data";
+    return null;
+  }
+
+  function openArticle(title, keepPos) {
+    var a = BY_TITLE[title];
+    if (!a) return;
+    lsSet(LS_LAST, title);
+    cur.title = title;
+    mainEl.textContent = "";
+    rowRefs = {};
+
+    var idx = ARTICLES.indexOf(a);
+    mainEl.appendChild(el("p", "eyebrow", "Batch " + a.batch + " · article " + (idx + 1) + " of " + ARTICLES.length));
+    mainEl.appendChild(el("h1", null, a.title));
+    var meta = el("div", "art-meta");
+    var link = el("a", null, "Open on Wikipedia");
+    link.href = a.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+    meta.appendChild(link);
+    meta.appendChild(el("span", null, a.body.length + " paragraphs to label"));
+    mainEl.appendChild(meta);
+    if (a.claude) {
+      mainEl.appendChild(el("p", "claude-note", "Claude labelled this article before the 2026-09-20 reception rule, so its labels on art, literature and theatre paragraphs follow the older rubric. \"Register\" uses your procedure. \"Three-tier\" uses the LLM's prompt. The comparison uses the register label."));
+    }
+    mainEl.appendChild(guidePanel());
+
+    if (a.lede.length) {
+      var ld = el("details", "ctx");
+      ld.appendChild(el("summary", null, "Lede (context only, not labelled)"));
+      var lt = el("div", "ctx-text");
+      a.lede.forEach(function (p) { lt.appendChild(el("p", null, p.text)); });
+      ld.appendChild(lt);
+      mainEl.appendChild(ld);
+    }
+
+    var wrap = el("section");
+    a.body.forEach(function (p) {
+      var row = el("article", "para");
+      row.id = "p" + p.i;
+      var gut = el("div", "gut");
+      gut.appendChild(el("span", "num", "#" + (p.k + 1)));
+      var chip = el("span", "chip", "—");
+      gut.appendChild(chip);
+      row.appendChild(gut);
+      var bodyEl = el("div", "pbody");
+      bodyEl.appendChild(el("p", null, p.text));
+      var cl = null;
+      if (a.claude && a.claude[p.i]) {
+        cl = claudeLine(a.claude[p.i]);
+        bodyEl.appendChild(cl);
+      }
+      row.appendChild(bodyEl);
+      row.addEventListener("click", function () { setCurrent(p.i, false); });
+      wrap.appendChild(row);
+      rowRefs[p.i] = { row: row, chip: chip, claude: cl };
+      paintRow(a, p.i);
+    });
+    mainEl.appendChild(wrap);
+
+    if (a.refs.length) {
+      var rd = el("details", "ctx");
+      rd.appendChild(el("summary", null, "References and notes: " + a.refs.length + " paragraphs (not labelled)"));
+      var rt = el("div", "ctx-text");
+      a.refs.forEach(function (p) { rt.appendChild(el("p", null, p.text)); });
+      rd.appendChild(rt);
+      mainEl.appendChild(rd);
+    }
+
+    var nb = el("section", "notes");
+    var lab = el("label", null, "Notes on this article (optional)");
+    lab.setAttribute("for", "articleNote");
+    var ta = el("textarea");
+    ta.id = "articleNote";
+    ta.placeholder = "For example: paragraph #6 is really a caption, or the split looks odd because…";
+    ta.value = notes[a.title] || "";
+    ta.addEventListener("input", function () {
+      notes[a.title] = ta.value;
+      queueSave(a);
+    });
+    nb.appendChild(lab);
+    nb.appendChild(ta);
+    mainEl.appendChild(nb);
+
+    finishEl = el("div", "finish");
+    finishEl.hidden = true;
+    mainEl.appendChild(finishEl);
+
+    var start = null;
+    if (keepPos != null && a.byIndex[keepPos]) start = keepPos;
+    else {
+      var m = labels[a.title] || {};
+      var first = a.body.filter(function (p) { return !m[p.i]; })[0];
+      start = first ? first.i : (a.body[0] ? a.body[0].i : null);
+    }
+    cur.i = null;
+    if (start != null) setCurrent(start, true);
+    paintList();
+    paintDock();
+    paintFinish();
+    if (start == null || a.body[0] && start === a.body[0].i) window.scrollTo(0, 0);
+  }
+
+  function paintRow(a, i) {
+    var r = rowRefs[i];
+    if (!r) return;
+    var l = (labels[a.title] || {})[i];
+    if (l) r.row.setAttribute("data-l", l); else r.row.removeAttribute("data-l");
+    r.chip.textContent = l ? CHOICE[l].short : "—";
+    r.row.setAttribute("aria-current", cur.title === a.title && cur.i === i ? "true" : "false");
+    if (r.claude) {
+      var given = l && l !== "unsure";
+      var differs = given && a.claude[i][0] !== registerOf(l);
+      r.claude.setAttribute("data-diff", given ? (differs ? "true" : "false") : "none");
+      r.claude.querySelector(".dtext").textContent = given
+        ? (differs ? "differs from your label" : "matches your label") : "";
+    }
+  }
+
+  function setCurrent(i, scroll) {
+    var a = BY_TITLE[cur.title];
+    var prev = cur.i;
+    cur.i = i;
+    if (prev != null) paintRow(a, prev);
+    paintRow(a, i);
+    paintDock();
+    if (scroll && rowRefs[i]) {
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      rowRefs[i].row.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+    }
+  }
+
+  function paintFinish() {
+    var a = BY_TITLE[cur.title];
+    if (!a || !finishEl) return;
+    var complete = doneCount(a) === a.body.length && a.body.length > 0;
+    finishEl.hidden = !complete;
+    if (!complete) return;
+    finishEl.textContent = "";
+    finishEl.appendChild(el("span", null, "All " + a.body.length + " paragraphs are labelled."));
+    var idx = ARTICLES.indexOf(a);
+    if (idx < ARTICLES.length - 1) {
+      var b = el("button", "btn", "Next article →");
+      b.type = "button";
+      b.addEventListener("click", nextArticle);
+      finishEl.appendChild(b);
+    } else {
+      finishEl.appendChild(el("span", null, "That was the last article in this sample."));
+    }
+  }
+
+  function nextArticle() {
+    var a = BY_TITLE[cur.title];
+    var idx = ARTICLES.indexOf(a);
+    // Prefer the next article that still has unlabelled paragraphs.
+    for (var k = 1; k <= ARTICLES.length; k++) {
+      var b = ARTICLES[(idx + k) % ARTICLES.length];
+      if (doneCount(b) < b.body.length) { openArticle(b.title); return; }
+    }
+    if (idx < ARTICLES.length - 1) openArticle(ARTICLES[idx + 1].title);
+  }
+
+  // ---------- dock ----------
+  var choicesEl = document.getElementById("choices");
+  var choiceBtns = {};
+  CHOICES.forEach(function (c) {
+    var b = el("button", "choice");
+    b.type = "button";
+    b.setAttribute("data-k", c.key);
+    b.appendChild(el("kbd", null, c.hot));
+    b.appendChild(el("span", null, c.name));
+    b.addEventListener("click", function () { applyLabel(c.key); });
+    choicesEl.appendChild(b);
+    choiceBtns[c.key] = b;
+  });
+  var clearBtn = el("button", "dock-clear", "Clear label (0)");
+  clearBtn.type = "button";
+  clearBtn.addEventListener("click", function () { applyLabel(null); });
+  document.querySelector(".dock-nav").insertBefore(clearBtn, document.getElementById("prevBtn"));
+  document.getElementById("prevBtn").addEventListener("click", function () { step(-1); });
+  document.getElementById("nextBtn").addEventListener("click", function () { step(1); });
+
+  function paintDock() {
+    var a = BY_TITLE[cur.title];
+    var pos = document.getElementById("dockPos");
+    if (!a || cur.i == null) { pos.textContent = ""; return; }
+    var p = a.byIndex[cur.i];
+    pos.textContent = "Paragraph " + (p.k + 1) + " of " + a.body.length;
+    var l = (labels[a.title] || {})[cur.i] || null;
+    CHOICES.forEach(function (c) {
+      choiceBtns[c.key].setAttribute("aria-pressed", l === c.key ? "true" : "false");
+      choiceBtns[c.key].disabled = !ready;
+    });
+    clearBtn.disabled = !ready || !l;
+  }
+
+  function applyLabel(key) {
+    if (!ready || cur.i == null) return;
+    var a = BY_TITLE[cur.title];
+    var m = labelsOf(a);
+    if (key) m[cur.i] = key; else delete m[cur.i];
+    paintRow(a, cur.i);
+    queueSave(a);
+    paintList();
+    paintFinish();
+    if (key) step(1); else paintDock();
+  }
+
+  function step(dir) {
+    var a = BY_TITLE[cur.title];
+    if (!a || cur.i == null) return;
+    var k = a.byIndex[cur.i].k + dir;
+    if (k < 0 || k >= a.body.length) { paintDock(); return; }
+    setCurrent(a.body[k].i, true);
+  }
+
+  document.addEventListener("keydown", function (e) {
+    var t = e.target;
+    if (t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k >= "1" && k <= "4") { e.preventDefault(); applyLabel(CHOICES[+k - 1].key); }
+    else if (k === "0" || k === "Backspace" || k === "Delete") { e.preventDefault(); applyLabel(null); }
+    else if (k === "ArrowDown" || k === "j") { e.preventDefault(); step(1); }
+    else if (k === "ArrowUp" || k === "k") { e.preventDefault(); step(-1); }
+    else if (k === "n" || k === "N") { e.preventDefault(); nextArticle(); }
+  });
+
+  var LS_CLAUDE = "gpa-claude-v1";
+  var claudeBtn = document.getElementById("claudeToggle");
+  function paintClaudeToggle(on) {
+    document.body.classList.toggle("hide-claude", !on);
+    claudeBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    claudeBtn.textContent = "Claude's labels: " + (on ? "on" : "off");
+  }
+  paintClaudeToggle(lsGet(LS_CLAUDE) !== "off");
+  claudeBtn.addEventListener("click", function () {
+    var on = claudeBtn.getAttribute("aria-pressed") !== "true";
+    lsSet(LS_CLAUDE, on ? "on" : "off");
+    paintClaudeToggle(on);
+  });
+
+  document.getElementById("listToggle").addEventListener("click", function () {
+    var open = document.body.classList.toggle("list-open");
+    this.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+
+  // ---------- start ----------
+  buildList();
+  paintList();
+
+  function firstOpen() {
+    var last = lsGet(LS_LAST);
+    if (last && BY_TITLE[last]) return last;
+    for (var i = 0; i < ARTICLES.length; i++) {
+      if (doneCount(ARTICLES[i]) < ARTICLES[i].body.length) return ARTICLES[i].title;
+    }
+    return ARTICLES.length ? ARTICLES[0].title : null;
+  }
+
+  function begin(mode) {
+    ready = true;
+    if (mode === "db") setSync("ok", "Saved to the shared store");
+    else setSync("warn", "Local only: labels stay in this browser");
+    var t = firstOpen();
+    if (t) openArticle(t);
+  }
+
+  function loadLocal() {
+    try {
+      var s = JSON.parse(lsGet(LS_STATE) || "{}");
+      labels = s.labels || {};
+      notes = s.notes || {};
+    } catch (e) { labels = {}; notes = {}; }
+  }
+
+  var claudeApi = window.claude;
+  if (!claudeApi || typeof claudeApi.use !== "function") {
+    loadLocal();
+    begin("local");
+  } else {
+    var mode = "local";
+    claudeApi.use("db").then(function (handle) {
+      if (!handle) throw new Error("db unavailable");
+      db = handle;
+      return db.collection("labels").get();
+    }).then(function (snap) {
+      snap.docs.forEach(function (d) {
+        var v = d.data() || {};
+        if (v.title && BY_TITLE[v.title]) {
+          labels[v.title] = v.labels || {};
+          notes[v.title] = v.note || "";
+        }
+      });
+      mode = "db";
+    }).catch(function () {
+      db = null;
+      loadLocal();
+    }).then(function () { begin(mode); });
+  }
+})();
+</script>
