@@ -67,8 +67,9 @@ describe("rate-limit middleware", () => {
     const limiter = createRateLimiter({ maxAttempts: 3, windowMs: 60_000 });
     const result = callTimes(limiter, "1.2.3.4", 4);
     assert.equal(result.status, 429);
+    assert.equal(result.body.error.code, "E-INPUT-019");
     assert.equal(
-      result.body.error,
+      result.body.error.message,
       "Too many requests. Please wait before trying again.",
     );
     assert.equal(result.calledNext, false);

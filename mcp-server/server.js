@@ -50,11 +50,14 @@ export async function apiRequest(path) {
   const res = await fetch(url);
 
   if (!res.ok) {
-    // 404s are returned as { error: "..." } JSON, so parse the body if possible.
+    // API errors are JSON, either { error: "..." } or the sendError shape
+    // { error: { code, message } } from api/lib/error-handler.js.
     let detail = "";
     try {
       const body = await res.json();
-      detail = body.error || "";
+      const err = body.error;
+      if (typeof err === "string") detail = err;
+      else if (err && typeof err.message === "string") detail = `${err.code} ${err.message}`;
     } catch {
       // ignore — fall through with status-only message.
     }
