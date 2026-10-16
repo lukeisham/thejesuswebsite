@@ -299,3 +299,25 @@ it", which had no clear scope. Asking Luke before each move, which adds a stop f
 change.
 
 **Where it lives:** "Touch rule" under Core Rules in `setup/Vibe_coding_rules.md`.
+
+### D-012 — The Wikipedia list is fixed, and the vector classifier is the only section classifier
+
+- **Type:** Decision
+- **Date:** by 2026-07-31 (moved here from `setup/ARCHITECTURE/wikipedia-ranking-pipeline.md` under D-011)
+- **By:** Luke
+- **Applies to:** `setup/SKILLS/!TheJesusWebsite-Wikipedia/`, `Wikipedia algorithm/`
+- **Rule:** none
+- **Status:** Active
+
+**Decision:** The `/debate/wikipedia/` page ranks a fixed list of articles. An article is added or
+removed only when Luke names it. The vector classifier's paragraph labels are the only section
+buckets for placement-sensitive signals. There is no heading-based fallback.
+
+**Why:** An automatic top-up re-pools and re-scores articles that nobody asked to touch. Two
+classifiers give two definitions of "data" and "interpretation".
+
+**Rejected:** The earlier automatic top-up to a ceiling size, and the earlier heading-based
+section classifier.
+
+**Where it lives:** "Invariants" in `setup/ARCHITECTURE/wikipedia-ranking-pipeline.md`; the skill
+`setup/SKILLS/!TheJesusWebsite-Wikipedia/skill.md`.

@@ -105,9 +105,9 @@ Used on evidence cards and detail pages to label category, timeline period, and 
 - **Era Headings**: prominent `<h3 class="timeline-era-heading">` elements anchored at the **top-left** of each era's spatial region (not centred above the spine, unlike the era markers above). Bold, uppercase, `letter-spacing: 0.08em`, coloured via the era's `--era-*` token, `pointer-events: none`.
   - **Zoom scaling**: font-size scales linearly with zoom from a `--text-h4` (1.125rem) base at 1×, clamped to `[--text-small, --text-h3]` (0.875rem–1.375rem) so headings stay readable at extremes (0.3×–3.0×). Position is computed once in world coordinates and does not recompute on zoom — only the rendering scale changes.
   - **Collision avoidance**: when an event node would overlap a heading's initial position, the heading nudges away — tier 1 shifts left, tier 2 shifts right, alternating per further tier (up to `MAX_TIER`, matching the shared cluster-label-collision escalation). Nudging never leaves the heading's own era's horizontal span; if clamping would undo a left nudge, the heading shifts right instead.
-  - **Mobile (vertical mode, <768px)**: headings reposition to the **left of the vertical spine** rather than above it, anchored at the era's start y-coordinate; collision escalation still nudges horizontally (away from the fixed left offset) since the eras are now stacked top-to-bottom.
+  - **Mobile (vertical mode, <768px)**: headings reposition to the **left of the vertical spine** rather than above it, anchored at the era's start y-coordinate; collision escalation still nudges horizontally (away from the fixed left offset) because the eras are stacked top-to-bottom.
   - Placement is computed by a pure, DOM-free module (`timeline-era-heading-placement.js`) shared between frontend and the admin timeline diagram editor (SR-4) — admin is desktop-only and always passes `isMobile: false`.
-  - Implementations: `frontend/assets/css/components/timeline-era-headings.css`, `admin/assets/css/admin-diagrams/timeline-era-headings.css`. Replaces the old centred `.timeline-era-label` element (removed).
+  - Implementations: `frontend/assets/css/components/timeline-era-headings.css`, `admin/assets/css/admin-diagrams/timeline-era-headings.css`.
 - **Filter/zoom**: 
   - Era filter chips above the timeline to isolate periods (e.g., "All Eras", "Ministry Begins", "Passion Week")
   - Timeline remains continuous; filtered eras show their dots while others fade to `opacity: 0.3`
@@ -171,7 +171,7 @@ Used on both frontend and admin to filter timeline events, evidence, and other l
 - Placeholder text: `--text-muted`
 
 ### Status Badges (Admin only — frontend only shows published content)
-Admin-use only — the public frontend never shows draft or publish state. One shared colour scheme across every admin surface that shows publish state — arbor's holding-pen/canvas badges previously used a separate brown/grey scheme; both now match the table badge below.
+Admin-use only — the public frontend never shows draft or publish state. One shared colour scheme across every admin surface that shows publish state, including the arbor holding-pen and canvas badges.
 
 - **Published**: green background (light tint, `rgba(40, 167, 69, 0.12)`), `--admin-success` text
 - **Draft**: `--admin-draft-bg` background, `--admin-draft-color` text (yellow-grey)
