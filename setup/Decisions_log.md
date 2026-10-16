@@ -273,3 +273,29 @@ that, and agents on any copy of the repo must be able to read them.
 **Rejected:** A local-only file in `setup/`, and a new `docs/` folder at the repo root.
 
 **Where it lives:** this file.
+
+### D-011 — Touch rule, and agents move decisions into this log without asking
+
+- **Type:** Decision and Permission
+- **Date:** 2026-10-17
+- **By:** Luke, in chat
+- **Applies to:** every file in the repo; `setup/Decisions_log.md`
+- **Rule:** CORE-1 to CORE-4, AG-1
+- **Status:** Active
+
+**Decision:** The Core Rules are applied file by file. When an agent edits a file, it brings that
+whole file into line with the Core Rules in the same change. Docs keep only purpose, navigation
+and cross-module behaviour. Decisions go only in this log, and open problems only in
+`setup/ISSUES/Issues.md`.
+
+**Permission:** When an agent cleans a touched doc, it can move a decision from that doc into
+this log without asking Luke first. The agent names the new entries in its reply.
+
+**Why:** The repo moves to self-documenting code and short docs without a rewrite of every file.
+The scope is the files that a task edits, so a cleanup never grows into a repo-wide change.
+
+**Rejected:** A rewrite of the whole repo in one pass, which is too large. "Fix it when you see
+it", which had no clear scope. Asking Luke before each move, which adds a stop for a low-risk
+change.
+
+**Where it lives:** "Touch rule" under Core Rules in `setup/Vibe_coding_rules.md`.

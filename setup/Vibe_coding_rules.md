@@ -13,6 +13,7 @@ Here* at the end.
 
 | # | Check | Rule |
 | :-- | :--- | :--- |
+| 0 | Clean the whole of each file you edit, and only those files. | Touch rule |
 | 1 | Code explains itself. Comments hold only the *why*, for a future AI. | CORE-1, CORE-2 |
 | 2 | No history, dates, names, decisions or issue numbers in a comment. | CORE-2 |
 | 3 | Behaviour that crosses modules is in the right guide. | CORE-3 |
@@ -31,8 +32,16 @@ Here* at the end.
 
 ## Core Rules
 
-These four rules apply without exception. A breach is a defect. Fix it when you see it, even
-outside the lines that the task touches. This is the one exception to AG-1.
+These four rules apply without exception. A breach is a defect.
+
+**Touch rule.** When you edit a file (code, guide, style guide or README), bring that whole file
+into line with the Core Rules in the same change. Do not open or edit a file only to clean it.
+This is the one exception to AG-1.
+
+In a touched doc, keep only purpose, navigation and cross-module behaviour. Delete history,
+dates, status notes and permissions. Move a decision to `setup/Decisions_log.md` and an open
+problem to `setup/ISSUES/Issues.md`, then delete it from the doc. You can move a decision into
+the log without asking first (D-011). Say in your reply which entries you added.
 
 Each kind of information has exactly one home:
 
@@ -40,6 +49,7 @@ Each kind of information has exactly one home:
 | :--- | :--- | :--- |
 | **The code** | What it does and how, through names and structure (CORE-1). Comments: the non-obvious *why* and the connections (CORE-2). | History, decisions, permissions, or a restatement of a line. |
 | **`setup/ARCHITECTURE/` guides** (`Website_guide.md` first) | Purpose, navigation, and every behaviour that crosses a module, process or file boundary (CORE-3). Present tense, edited in place. | History, status, or anything the code already says. |
+| **`setup/STYLE_GUIDE/`** | Visual conventions that apply across the site, and navigation to them. | History, status, or decisions. |
 | **This file** | Each rule exception, named under its rule (CORE-4). | Exceptions that nobody granted. |
 | **`setup/Decisions_log.md`** | The dated record of each important decision and standing permission: who, when, why, and what was rejected (CORE-4). Append only. | Routine edits, how the code works, secrets. |
 | **`setup/ISSUES/Issues.md`, `setup/PLANS/`** | Open problems and planned work. | How the current code works. |
