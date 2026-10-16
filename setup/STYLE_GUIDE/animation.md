@@ -57,11 +57,11 @@ Never use `linear` or bouncy/spring easings for UI transitions.
 #### Score panel & copy
 
 - `.wikipedia-score-panel` sits right of the grid: solid colour band by `net_score` — green `≥ 50`, yellow `25–49`, red `≤ 24`.
-- Copy button (unchanged glyph/behaviour from the prior widget) reads the agent-data `<script>` block at click time and writes the §6 plain-text format via `navigator.clipboard.writeText`, with a `showToast` on failure — never silent (JS-5).
+- Copy button reads the agent-data `<script>` block at click time and writes the §6 plain-text format via `navigator.clipboard.writeText`, with a `showToast` on failure — never silent (JS-5).
 
 #### Implementation Reference
 
-- **CSS**: `frontend/assets/css/pages/wikipedia-quality-grid.css` — `.wikipedia-grid`, `.wikipedia-cell` (`--empty`, `--blue-1..4`, `--negative`), `.wikipedia-score-panel` (`--green`/`--yellow`/`--red`), `.wikipedia-tooltip`. Token-only values (CSS-2), no `!important` (CSS-5).
+- **CSS**: `frontend/assets/css/pages/wikipedia-quality-grid.css`.
 - **JS**: `frontend/assets/js/wikipedia.js` + shared `frontend/assets/js/utils/wikipedia-signals.js`:
   - `SIGNAL_DICTIONARY` (25 × `{ key, name, capMagnitude, polarity }`) — single source of truth for §9 ordering, names, tooltips.
   - Per-article data: `/wikipedia` and `/wikipedia/:slug` attach `signals` (`{ signal_key, contribution, cap }`) from the `wikipedia_article_signals` table.
