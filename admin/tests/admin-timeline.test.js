@@ -59,9 +59,8 @@ vm.runInNewContext(geometrySource, axisSandbox);
 
 // ── Load cluster modules (density, placement, labels) ─────────────────────────
 //
-// These now live as canonical ES modules under frontend/assets/js/cluster-logic/
-// (unified with admin via cluster-logic-bridge/*.js — see
-// setup/PLANS/Completed/shared-cluster-logic-module.md). vm.runInNewContext
+// These are canonical ES modules under frontend/assets/js/cluster-logic/,
+// shared with admin through cluster-logic-bridge/*.js. vm.runInNewContext
 // can't execute `export`/`import` syntax directly, so each canonical source
 // is stripped of its ESM keywords before evaluation, then wrapped into the
 // same window.AdminTimelineCluster* shape the real bridge files build — i.e.
@@ -242,7 +241,7 @@ describe("periodToX", function () {
   });
 
   test("dot and era label at same period index resolve to same transformed position", function () {
-    // Since zoom is now a CSS transform (not a coordinate change), both
+    // Zoom is a CSS transform, not a coordinate change, so both
     // periodToX and eraStartX always use the same fixed world scale.
     // A dot at GalileeCallingTwelve and the GalileeMinistry era label
     // (which starts at the same period) must map to identical X.
@@ -387,8 +386,8 @@ describe("totalWidth", function () {
 });
 
 // ── Axis.renderAxis DOM output ──────────────────────────────────────────────
-// Regression test for the inline `style.height = "1px"` that used to silently
-// override the CSS class's counter-scaled `height` declaration (issue #197).
+// An inline `style.height` on the axis line overrides the CSS class's
+// counter-scaled `height`, so the line thickness changes with zoom.
 
 describe("Axis.renderAxis DOM output", function () {
   test("does not set an inline height on the axis line (CSS governs thickness)", function () {
@@ -515,7 +514,7 @@ describe("era-for-period mapping matches schema CHECK groupings", function () {
 
 describe("drag-snap round-trip identity for every period", function () {
   test("periodToX then xToPeriod returns the same period for all periods", function () {
-    // Verify round-trip for ALL periods — zoom is now a CSS transform,
+    // Verify round-trip for ALL periods — zoom is a CSS transform,
     // so world coordinates are always at the fixed BASE_PX_PER_PERIOD = 100.
     var periods = [
       "PreIncarnation",

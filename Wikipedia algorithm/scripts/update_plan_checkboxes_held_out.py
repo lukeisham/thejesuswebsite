@@ -4,8 +4,7 @@
 Per the plan's Completion Protocol, markdown edits must be scripted, not
 manual. Ticks every '- [ ] ' line under the task groups (all of them, since
 every task in this plan is complete by the time this runs) but leaves the
-header 'Status:' line alone — that is updated separately once the file is
-also moved to setup/PLANS/Completed/.
+header 'Status:' line alone — that is updated separately.
 """
 
 from pathlib import Path

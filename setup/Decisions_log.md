@@ -321,3 +321,26 @@ section classifier.
 
 **Where it lives:** "Invariants" in `setup/ARCHITECTURE/wikipedia-ranking-pipeline.md`; the skill
 `setup/SKILLS/!TheJesusWebsite-Wikipedia/skill.md`.
+
+### D-013 — Cloudflare caches HTML at the edge for 60 seconds
+
+- **Type:** Decision
+- **Date:** 2026-07-11 (moved here from a completed plan under D-011)
+- **By:** Luke
+- **Applies to:** `deploy/nginx.conf`, the Cloudflare dashboard (Caching → Cache Rules)
+- **Rule:** SR-3
+- **Status:** Active
+
+**Decision:** A Cache Rule in the Cloudflare dashboard caches HTML at the edge. It excludes
+`/api/*` and `/admin/*`, and it obeys the origin `Cache-Control`. nginx sends HTML with
+`public, max-age=60`, so a deploy is visible within 60 seconds on the edge and at the origin.
+
+**Why:** Without the rule, every page went to the VPS, with a time to first byte of 280–900 ms.
+With the rule, a cached page takes about 50–70 ms. The 60-second limit keeps deploys quick to
+appear. The rule is not in the repo, so an agent that reads only the code cannot see it.
+
+**Rejected:** No edge caching for HTML, which sends every request to the VPS. The plan recorded
+no other options.
+
+**Where it lives:** the HTML `Cache-Control` comment in `deploy/nginx.conf`; the cache policy
+section of `setup/ARCHITECTURE/Website_guide.md`.

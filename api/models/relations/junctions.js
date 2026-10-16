@@ -9,8 +9,7 @@ const db = require("../../config");
 // hardcoded whitelists, never from caller-supplied variables, so a future
 // caller can never turn `table`/`sourceColumn`/etc. into an injection vector.
 // Derived from every call site across evidence/response/essay/historiography/
-// blog-post/academic-challenges/popular-challenges models (see
-// setup/PLANS/Completed/sql-identifier-whitelisting.md for the audit).
+// blog-post/academic-challenges/popular-challenges models.
 const JUNCTION_TABLES = new Set([
   "evidence_mla_sources",
   "evidence_identifiers",
