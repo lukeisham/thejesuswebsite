@@ -79,6 +79,13 @@ app.use(
   rateLimit({ maxAttempts: 5, windowMs: 60_000 }),
   require("./routes/deploy-webhook"),
 );
+// Polled by the GitHub Actions job after a deploy, so it gets more headroom
+// than the webhook itself.
+app.use(
+  "/deploy-status",
+  rateLimit({ maxAttempts: 30, windowMs: 60_000 }),
+  require("./routes/deploy-status"),
+);
 
 // Dev-only auth bypass: only mount the route when the flag is explicitly set.
 // Hard-exit in production regardless of the flag — this guard is load-bearing

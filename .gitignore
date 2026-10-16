@@ -43,6 +43,8 @@ public/uploads/*
 
 # Logs
 *.log
+# Last pm2 restart + health check result (scripts/pm2-apply.js)
+deploy-status.json
 logs/
 
 # OS generated files

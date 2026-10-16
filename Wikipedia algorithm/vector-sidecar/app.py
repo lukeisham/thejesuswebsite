@@ -17,13 +17,14 @@ exemplar it's nearest to and whether that would fire the signal.
 
 Environment variables — VECTOR_STORE_DIR and MODEL_DIR MUST be set
 explicitly in production. This code (Wikipedia algorithm/vector-sidecar/) is a git-tracked
-directory that deploys to /var/www/thejesuswebsite/vector-sidecar/ via the
+directory that deploys to
+"/var/www/thejesuswebsite/Wikipedia algorithm/vector-sidecar/" via the
 normal git-based deploy; the vector-stores data + model are NOT in git
 (rsynced instead, see scripts/sync-vector-stores.sh) and live in a sibling
 path, /var/www/thejesuswebsite-vector-store/{vector-stores,model}/ — NOT a
 sibling of this file, so the relative defaults below are a local-dev
-convenience only. scripts/sync-vector-sidecar.sh sets both env vars
-explicitly when starting the pm2 process.
+convenience only. ecosystem.config.js (repo root) sets both env vars for
+the pm2 process.
   VECTOR_SIDECAR_PORT     default 8901 (informational only — actually set via
                           the uvicorn --port flag at start time)
   VECTOR_STORE_DIR        default <this file's dir>/../vector-stores

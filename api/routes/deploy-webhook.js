@@ -13,67 +13,48 @@
 // one dying.
 //
 // Auth: a shared secret sent as X-Deploy-Token, compared with
-// crypto.timingSafeEqual (same pattern as routes/passkey.js).
+// crypto.timingSafeEqual (lib/deploy-token.js, same pattern as
+// routes/passkey.js).
 
 const express = require("express");
 const crypto = require("crypto");
 const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+const { isAuthorized } = require("../lib/deploy-token");
 
 const router = express.Router();
 
 const PROJECT_DIR = path.resolve(__dirname, "..", "..");
 const LOG_FILE = path.join(PROJECT_DIR, "deploy-webhook.log");
 
-function isAuthorized(req) {
-  const secret = process.env.DEPLOY_WEBHOOK_SECRET;
-  if (!secret) return false;
-
-  const provided = req.get("X-Deploy-Token") || "";
-  const providedBuf = Buffer.from(provided);
-  const secretBuf = Buffer.from(secret);
-
-  return (
-    providedBuf.length === secretBuf.length &&
-    crypto.timingSafeEqual(providedBuf, secretBuf)
-  );
-}
-
 function logToFile(message) {
   fs.appendFileSync(LOG_FILE, message);
 }
 
-// Restarts pm2 as a detached, unref'd process so it outlives this one (it is
-// about to be killed by the very restart it issues). Only called after the
-// HTTP response has finished sending — see the 'finish' handler below.
-function restartServers() {
+// Restarts pm2 from ecosystem.config.js and runs the health checks
+// (scripts/pm2-apply.js). Only called after the HTTP response has finished
+// sending — see the 'finish' handler below.
+//
+// The outer bash puts the node script in the background and exits at once, so
+// the script is no longer a child of this API process. pm2 kills the whole
+// process tree of the API when it stops it, and it would otherwise kill the
+// script half-way. The script writes straight to the log file, not to a pipe
+// into this process, because this process is about to die.
+function restartServers(deployId) {
+  const logFd = fs.openSync(LOG_FILE, "a");
+  fs.writeSync(logFd, `\n--- restart ${new Date().toISOString()} id=${deployId} ---\n`);
   const restart = spawn(
     "bash",
-    // The vector sidecar's code also ships with each deploy, so restart it
-    // too when it exists; otherwise its code changes never go live. It is
-    // optional (installed by scripts/sync-vector-sidecar.sh), so a missing
-    // process is not an error.
-    [
-      "-c",
-      "pm2 restart thejesuswebsite-api && pm2 restart thejesuswebsite-mcp && " +
-        "{ ! pm2 describe thejesuswebsite-vector-sidecar >/dev/null 2>&1 || pm2 restart thejesuswebsite-vector-sidecar; } && " +
-        "pm2 save",
-    ],
-    { cwd: PROJECT_DIR, detached: true, stdio: ["ignore", "pipe", "pipe"] },
+    ["-c", "node scripts/pm2-apply.js || echo \"[pm2-apply] exit=$?\" &"],
+    {
+      cwd: PROJECT_DIR,
+      detached: true,
+      stdio: ["ignore", logFd, logFd],
+      env: { ...process.env, DEPLOY_ID: deployId },
+    },
   );
-  let restartOutput = "";
-  restart.stdout.on("data", (chunk) => {
-    restartOutput += chunk;
-  });
-  restart.stderr.on("data", (chunk) => {
-    restartOutput += chunk;
-  });
-  restart.on("close", (code) => {
-    logToFile(
-      `--- restart ${new Date().toISOString()} exit=${code} ---\n${restartOutput}\n`,
-    );
-  });
+  fs.closeSync(logFd);
   restart.unref();
 }
 
@@ -127,11 +108,14 @@ router.post("/", (req, res) => {
     }
 
     // Restart only after the response has actually finished sending — this
-    // process is about to be killed by that restart.
+    // process is about to be killed by that restart. The caller polls
+    // GET /deploy-status for this deployId to learn the restart and health
+    // check result (routes/deploy-status.js).
+    const deployId = crypto.randomUUID();
     res.once("finish", () => {
-      setTimeout(restartServers, 250);
+      setTimeout(() => restartServers(deployId), 250);
     });
-    res.status(200).json({ status: "ok", output });
+    res.status(200).json({ status: "ok", deployId, output });
   });
 });
 

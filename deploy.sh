@@ -137,30 +137,20 @@ npm run version-assets
 # that endpoint runs on the very API process a pm2 restart would kill, which
 # would sever the HTTP connection to the caller mid-response. The webhook
 # runs deploy.sh with SKIP_RESTART=1 so this script can still report a real
-# exit code for the build steps above, then issues the restart itself as a
-# separate detached step after the HTTP response has been sent.)
+# exit code for the build steps above, then runs scripts/pm2-apply.js itself
+# as a separate detached step after the HTTP response has been sent.)
 
 if [ "${SKIP_RESTART:-}" = "1" ]; then
   echo "[deploy] SKIP_RESTART=1 — leaving process restart to the caller."
 else
   case "$PROCESS_MANAGER" in
     pm2)
-      echo "[deploy] Managing API (pm2)..."
-      cd "$API_DIR"
-      if pm2 list | grep -q "$APP_NAME"; then
-        pm2 restart "$APP_NAME"
-      else
-        pm2 start server.js --name "$APP_NAME"
-      fi
-
-      echo "[deploy] Managing MCP server (pm2)..."
-      cd "$MCP_DIR"
-      if pm2 list | grep -q "$MCP_APP_NAME"; then
-        pm2 restart "$MCP_APP_NAME"
-      else
-        pm2 start server.js --name "$MCP_APP_NAME"
-      fi
-      pm2 save
+      # All three processes come from ecosystem.config.js, so cwd, env and
+      # crash limits are always the ones in the repo (issue #249).
+      # scripts/pm2-apply.js deletes and starts them, saves the list, and
+      # exits non-zero if a health route does not answer within ~30s.
+      echo "[deploy] Applying ecosystem.config.js (pm2) and checking health..."
+      node "$PROJECT_DIR/scripts/pm2-apply.js"
       ;;
     systemd)
       echo "[deploy] Restarting systemd service..."
