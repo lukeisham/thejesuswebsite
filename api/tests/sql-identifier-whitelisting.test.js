@@ -2,8 +2,7 @@
 // in api/models/relations/junctions.js, api/models/relations/child-rows.js,
 // api/models/model-helpers.js (generateUniqueSlug), and api/models/drafts.model.js
 // (getDraftsFor/getDraftCounts) accept known table/column names and throw a
-// clear error for anything else. Structural SQL-injection hardening — see
-// setup/PLANS/Completed/sql-identifier-whitelisting.md.
+// clear error for anything else. Structural SQL-injection hardening (SQL-4).
 
 const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
