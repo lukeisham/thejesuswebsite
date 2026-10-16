@@ -6,6 +6,9 @@
 //   const rateLimit = require('../middleware/rate-limit');
 //   router.post('/endpoint', rateLimit({ maxAttempts: 5, windowMs: 60_000 }), handler);
 
+const ERRORS = require("../lib/error-codes");
+const { sendError } = require("../lib/error-handler");
+
 /**
  * Create a rate-limiter middleware that tracks requests per IP.
  *
@@ -43,9 +46,7 @@ function createRateLimiter({ maxAttempts, windowMs }) {
     entry.count += 1;
 
     if (entry.count > maxAttempts) {
-      return res.status(429).json({
-        error: "Too many requests. Please wait before trying again.",
-      });
+      return sendError(res, ERRORS.RATE_LIMITED);
     }
 
     next();
