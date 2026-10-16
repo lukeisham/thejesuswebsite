@@ -1,6 +1,7 @@
 // ESV passage proxy. Fetches passage text from the Crossway ESV API
 // (https://api.esv.org) server-side so the ESV_API_KEY never reaches the
-// browser. Responses are cached in-memory — passage text never changes.
+// browser. The in-memory cache has no expiry or invalidation, because passage
+// text never changes.
 
 const express = require("express");
 const ERRORS = require("../lib/error-codes");
@@ -79,7 +80,6 @@ router.get("/passage", async (req, res) => {
       return sendError(res, ERRORS.JSON_PARSE_FAILURE);
     }
 
-    // Unexpected errors: generic upstream failure
     sendError(res, ERRORS.EXTERNAL_API_UPSTREAM_ERROR);
   }
 });

@@ -268,7 +268,7 @@ Full spec for the 5×5 signal grid introduced above. See §6 "Wikipedia Quality 
 
 - Fixed 5×5 CSS Grid (`grid-template-columns: repeat(5, 1fr)`), never reflows to a different column count at any viewport.
 - Cell size: `26px` square, `3px` gap at `≥768px`; `22px` square, `2px` gap below `768px`. Only cell/gap size changes across breakpoints — column count is constant.
-- **Cell order is load-bearing.** Row-major, left-to-right, top-to-bottom, in exactly the §9 row order of the scoring rubric (strongest positive signal first, strongest negative signal last — `Wikipedia_alogrithm_refractor.md` §9). The grid reads as a gradient: top-left cells earn score, bottom-right cells lose it. The order is read once from `SIGNAL_DICTIONARY` (`frontend/assets/js/utils/wikipedia-signals.js`) and must never be re-sorted.
+- **Cell order** comes from `SIGNAL_DICTIONARY` in `frontend/assets/js/utils/wikipedia-signals.js`, row-major. The grid reads as a gradient: top-left cells earn score, bottom-right cells lose it.
 - All 25 cells always render for every scored article, even when a signal never fired for that article — an unfired signal renders as an empty cell, not a missing one (JS-2).
 
 **Cell rendering**
@@ -323,9 +323,6 @@ Resources pages are curated ranked/sorted lists covering one category each (para
   - `resource_description` below: `0.875rem`, `--text-secondary`, max 3 lines
 - **Infinite scroll**: standard (§8) — batches continue whichever section was last open rather than restarting the count.
 
-**Donation Portal**:
-The donation portal is a separately-provided widget dropped into `about.html` at a future stage. A `<div id="donation-portal">` placeholder in the HTML reserves the slot. Styles are provided by the widget — no further spec here.
-
 **About Page**:
 The About page is a simple, warm informational page — no academic formatting, no article structure.
 
@@ -357,7 +354,7 @@ The About page is a simple, warm informational page — no academic formatting, 
 - **Bottom bar**: fixed strip at the bottom of the diagram canvas (above the page footer). Contains zoom in (`+`), zoom out (`−`), and reset buttons. Background `--bg-surface`, top border `1px solid var(--border)`, padding `var(--space-sm) var(--space-md)`. Buttons use the secondary button style.
 - Zoom: transform `scale()` on the diagram container.
   - **Frontend** (`arbor-interactions.js`): min `0.05×`, max `1.0×`, button step `×1.25` per click (`+`/`−`).
-  - **Admin editor** (`admin-arbor/arbor-canvas.js`): same bounds, min `0.05×`, max `1.0×`; buttons step `×1.25`; mouse-wheel zoom also available, factor `×1.1` per scroll-in tick, `×0.9` per scroll-out tick.
+  - **Admin editor** (`admin-arbor/arbor-canvas.js`): same bounds and button step as the frontend, plus mouse-wheel zoom.
   - Pan via mouse drag or touch drag on the canvas.
   - Note: these ranges are deliberately different from the Timeline's zoom range (`0.3×`–`3.0×`, see Timeline View above) — Arbor and Timeline are separate diagram types with independently tuned zoom bounds, not a shared constant. Do not treat one as the source of truth for the other.
 - Hover on a node: shadow strengthens, cursor changes to `pointer`; tooltip shows full description.

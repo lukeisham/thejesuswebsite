@@ -38,10 +38,10 @@ A predictable display box for a figure's rendered size, currently opted into by 
 - **Tokens**: `--figure-standard-width: 720px`, `--figure-standard-height: 480px`, `--figure-mobile-max-height: 70vh` (`variables.css`)
 - **The box**: `720 × 480` maximum. A 3:2 landscape lands exactly on `720 × 480`; a 2:3 portrait is height-bound and lands on `320 × 480` — both orientations occupy a similar vertical footprint rather than one towering over the other.
 - **How orientation is resolved without JS**: `width: auto` + `max-width: 720px` together with `height: auto` + `max-height: 480px` *is* the orientation check. With both dimensions `auto`, the browser picks whichever cap is binding (width or height) and derives the other dimension from the intrinsic ratio, so landscape and portrait both size correctly — before any JS runs, or if JS fails entirely (progressive enhancement, JS-2). This only works because *both* dimensions are `auto`: giving `width` a definite value (e.g. `min(100%, 720px)`) instead of `max-width` breaks it — the browser clips the used height to the cap without recomputing width, and the image's default `object-fit: fill` then stretches it to fit the mismatched box.
-- **Explicit orientation classes**: `figure-orientation.js`'s `applyFigureOrientation()` reads the loaded image's `naturalWidth`/`naturalHeight` and stamps `figure--landscape` / `figure--portrait` / `figure--square` on the parent `<figure>`. A square image counts as portrait for sizing (at `720px` wide it would be `720px` tall, violating the height cap, so it is height-bound like a portrait). This class is what the mobile rule below hooks onto.
+- **Explicit orientation classes**: `figure-orientation.js`'s `applyFigureOrientation()` reads the loaded image's `naturalWidth`/`naturalHeight` and stamps `figure--landscape` / `figure--portrait` / `figure--square` on the parent `<figure>`. Squares size like portraits. The mobile rule below hooks onto these classes.
 - **Mobile** (`≤767px`): the `720px` width cap is irrelevant once the column itself is narrower, so portraits (and squares) instead get the `--figure-mobile-max-height: 70vh` viewport-relative cap — a tall picture can never fill an entire phone screen.
 - **Mutually exclusive with side-floats**: `.figure-standard` and the breakout/align float classes (`.figure-align-left/-right`, `.figure-breakout-left/-right`) are never combined on the same `<figure>` — a figure is either a standard box or a floated aside, never both.
-- **Print**: the standard box is screen-only. Print output uses `width: auto; max-width: 100%; max-height: none` so paged figures are unconstrained by the display box (print.css loads before figures.css, so this rule must target `.figure-standard img` specifically — an unqualified `img` rule would lose the cascade, see setup/ISSUES/Issues_30_to_110.md #108).
+- **Print**: the standard box is screen-only. Print output uses `width: auto; max-width: 100%; max-height: none` so paged figures are unconstrained by the display box (print.css loads before figures.css, so this rule must target `.figure-standard img` specifically — an unqualified `img` rule would lose the cascade).
 - **Upload standard**: see §12 — every image accepted through `/uploads` is standardised server-side to a `1440 × 960` bounding box (2× the display box, for retina sharpness) before it ever reaches this component.
 
 ### News & Blog Row Layout
@@ -138,7 +138,7 @@ Used on both frontend and admin to filter timeline events, evidence, and other l
 - Padding: `0.375rem 0.75rem` (frontend) / `var(--space-xs) var(--space-sm)` = `4px 8px` (admin)
 - Font-size: `--text-xs` (`0.8125rem`)
 - Font-weight: `500` normal, `600` active/selected
-- Border-radius: `999px` (pill) — both frontend and admin filter chips, including the admin timeline era filter (standardised from admin's prior `6px` convention to match the frontend pill shape)
+- Border-radius: `999px` (pill) — both frontend and admin filter chips, including the admin timeline era filter
 - Min-height: `36px` (touch-target minimum for keyboard/pointer interaction)
 - Border: `1px solid` a neutral border token, changing to the accent colour on active
 - **States**:
