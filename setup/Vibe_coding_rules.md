@@ -41,6 +41,7 @@ Each kind of information has exactly one home:
 | **The code** | What it does and how, through names and structure (CORE-1). Comments: the non-obvious *why* and the connections (CORE-2). | History, decisions, permissions, or a restatement of a line. |
 | **`setup/ARCHITECTURE/` guides** (`Website_guide.md` first) | Purpose, navigation, and every behaviour that crosses a module, process or file boundary (CORE-3). Present tense, edited in place. | History, status, or anything the code already says. |
 | **This file** | Each rule exception, named under its rule (CORE-4). | Exceptions that nobody granted. |
+| **`setup/Decisions_log.md`** | The dated record of each important decision and standing permission: who, when, why, and what was rejected (CORE-4). Append only. | Routine edits, how the code works, secrets. |
 | **`setup/ISSUES/Issues.md`, `setup/PLANS/`** | Open problems and planned work. | How the current code works. |
 | **Commit message** | What changed and why, for this change. Issue numbers go here. | — |
 
@@ -90,16 +91,20 @@ own `README.md` (`mcp-server/`, `Wikipedia algorithm/`) keeps its setup steps th
 
 **CORE-4 — Important decisions and exceptions are logged, never commented.**
 A decision is important when a future agent, who reads only the code and the guides, would
-likely undo it or do it differently.
+likely undo it or do it differently. `setup/Decisions_log.md` gives the full test, and the
+definition of a standing permission.
 
-- A rule exception is named in this file, under its rule, with where it applies and why. See
-  PY-1, CSS-1, CSS-3 and SVG-1 for the pattern.
-- Any other important decision goes in the guide for its area in `setup/ARCHITECTURE/`.
+- Every important decision and every standing permission gets an entry in
+  `setup/Decisions_log.md`.
+- A rule exception is also named in this file, under its rule, with where it applies and why.
+  See PY-1, CSS-1, CSS-3 and SVG-1 for the pattern.
+- The guide for the area in `setup/ARCHITECTURE/` describes the resulting design, in the
+  present tense.
 - A minor or easily guessed choice is not logged. It lives in the commit message.
 
-A rule exception needs Luke's explicit sign-off. Until it is granted and named here, a break
-from a rule is a defect. After it is named here, code that matches it is intentional. Before you
-"fix" a rule break, read the rule's exceptions.
+A rule exception or a permission needs Luke's explicit sign-off. Until it is granted and logged,
+a break from a rule is a defect. After it is logged, code that matches it is intentional. Before
+you "fix" a rule break, read the rule's exceptions and search the decisions log.
 
 ---
 
@@ -179,7 +184,8 @@ Use current JS features. Keep functions small and focused. Avoid unnecessary cla
 In new files in `frontend/` and `admin/`:
 
 - ES modules only: `import` / `export`, loaded with `<script type="module">`. Put nothing on
-  `window`, and use no IIFE wrappers.
+  `window`, and use no IIFE wrappers. Exception: `admin/` keeps its shared `window.Admin`
+  namespace from `admin.js`, and a new admin file follows that pattern (D-009, SR-8).
 - `const` by default, `let` when the value changes, never `var`.
 - A `class` only when it holds both state and behaviour that change together.
 - Current features are welcome: `?.`, `??`, `structuredClone`, `Array.prototype.at`,

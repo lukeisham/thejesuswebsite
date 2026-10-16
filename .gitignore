@@ -8,6 +8,7 @@ node_modules/
 !/setup/SKILLS
 !/setup/SKILLS/**
 !/setup/Vibe_coding_rules.md
+!/setup/Decisions_log.md
 !/setup/STYLE_GUIDE
 !/setup/STYLE_GUIDE/**
 !/setup/plan_template.md
