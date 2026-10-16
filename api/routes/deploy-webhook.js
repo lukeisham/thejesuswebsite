@@ -1,7 +1,7 @@
 // POST /deploy-webhook — triggers a VPS deploy over HTTPS.
 //
 // Exists because inbound SSH (port 22) from GitHub-hosted Actions runners is
-// unreliable on this host (see setup/Issues.md) while HTTPS (443) is not.
+// unreliable on this host while HTTPS (443) is not.
 // The GitHub Actions workflow calls this route instead of SSHing in.
 //
 // deploy.sh's own pm2-restart step would kill this very Express process
@@ -16,7 +16,7 @@
 // crypto.timingSafeEqual (lib/deploy-token.js, same pattern as
 // routes/passkey.js).
 //
-// One deploy at a time (issue #244): while a deploy runs, a second POST gets
+// One deploy at a time: while a deploy runs, a second POST gets
 // 409. Two deploy.sh runs at the same time would both hold the CPU and the
 // SQLite write lock. After a good deploy the lock stays set until the restart
 // kills this process. RESTART_LOCK_MS clears it if the restart does not

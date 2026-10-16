@@ -1,8 +1,8 @@
 User-agent: *
 Allow: /
 
-# Keep crawlers out of pages and routes that cost CPU and have no search value
-# (issue #246). Search results run 6 FTS queries for each request. The
+# Keep crawlers out of pages and routes that cost CPU and have no search value.
+# Search results run 6 FTS queries for each request. The
 # SearchAction in index.html points crawlers at search.html?q=. The read-only
 # content API (/api/evidence, /api/essays and more) stays allowed because
 # llms.txt lists it for agents.

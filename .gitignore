@@ -32,6 +32,10 @@ __pycache__/
 # Environment
 .env
 
+# deploy.sh step-cache markers (api/scripts/deploy-step-cache.js). Untracked,
+# so `git reset --hard` on the VPS keeps them between deploys.
+/.deploy-state/
+
 # Database files
 *.db
 *.db-journal
