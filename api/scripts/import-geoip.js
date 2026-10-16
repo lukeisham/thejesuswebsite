@@ -140,13 +140,10 @@ async function importGeoip() {
     VALUES (?, ?, ?, ?, ?)
   `);
 
-  // Clear existing data
-  db.exec("DELETE FROM geoip_blocks");
-
+  // The DELETE is inside the transaction so that analytics lookups never see
+  // an empty table while the import runs.
   const importTxn = db.transaction(() => {
-    const blocksRl = readline.createInterface({
-      input: fs.createReadStream(BLOCKS_CSV),
-    });
+    db.exec("DELETE FROM geoip_blocks");
 
     let header = null;
     let count = 0;

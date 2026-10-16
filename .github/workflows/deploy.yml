@@ -5,7 +5,7 @@ on:
     branches: [main]
   workflow_dispatch: {}
 
-# One deploy at a time (issue #244). A second push waits for the running
+# One deploy at a time. A second push waits for the running
 # deploy to finish instead of starting a second deploy.sh on the VPS. The
 # webhook also returns 409 while a deploy runs (api/routes/deploy-webhook.js).
 concurrency:
@@ -18,7 +18,7 @@ jobs:
     steps:
       # Deploy over HTTPS, not SSH: GitHub-hosted Actions runners live on
       # Azure datacenter IP ranges that get silently dropped by this VPS
-      # host's network-edge protection on port 22 (see setup/Issues.md), even
+      # host's network-edge protection on port 22, even
       # though SSH works fine from every other network. HTTPS/443 does not
       # have this problem. This endpoint runs the identical git-reset +
       # deploy.sh sequence the old SSH step ran (api/routes/deploy-webhook.js),
@@ -104,8 +104,8 @@ jobs:
       # A purge failure is EXPECTED AND INTENDED to turn the job red and
       # trigger GitHub's failure notification. The SSH deploy step above has
       # already completed and is unaffected. Do NOT add `continue-on-error:
-      # true` here — that would silently swallow purge failures and reintroduce
-      # the issue this step is designed to prevent (row #73 in setup/Issues.md).
+      # true` here — that would silently swallow purge failures, and visitors
+      # would get stale pages from the edge with no signal that the purge failed.
       - name: Purge Cloudflare cache
         id: purge
         run: |

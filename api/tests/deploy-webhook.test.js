@@ -97,7 +97,7 @@ describe("POST /deploy-webhook", () => {
     assert.equal(res.status, 401);
   });
 
-  // Issue #244: only one deploy at a time. spawn is replaced by a fake child
+  // Only one deploy at a time. spawn is replaced by a fake child
   // that never runs git or deploy.sh. The test decides when it exits.
   test("409 when a deploy is already in progress, then free again after a failed deploy", async () => {
     process.env.DEPLOY_WEBHOOK_SECRET = "correct-horse-battery-staple";

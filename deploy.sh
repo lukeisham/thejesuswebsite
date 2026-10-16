@@ -28,14 +28,33 @@ APP_NAME="thejesuswebsite-api"
 MCP_APP_NAME="thejesuswebsite-mcp"
 MCP_DIR="$PROJECT_DIR/mcp-server"
 
-# ---- 1. Install dependencies ------------------------------------------------
-echo "[deploy] Installing API dependencies..."
-cd "$API_DIR"
-npm install --production
+# ---- Step cache ---------------------------------------------------------------
+# The slow steps below (npm install, GeoIP import, Wikipedia scoring import)
+# depend only on files in the repo. api/scripts/deploy-step-cache.js hashes
+# those files, and a step runs only when the hash differs from the one recorded
+# after its last success. A push that changes only code or content then skips
+# them. FORCE_FULL_DEPLOY=1 runs every step; removing .deploy-state/ does the
+# same for the next deploy.
+STEP_CACHE="$API_DIR/scripts/deploy-step-cache.js"
+inputs_unchanged() { node "$STEP_CACHE" check "$@"; }
+record_step() { node "$STEP_CACHE" record "$@"; }
 
-echo "[deploy] Installing MCP server dependencies..."
-cd "$MCP_DIR"
-npm install --production
+# $1 = step name, $2 = package directory. A missing node_modules/ always installs.
+install_dependencies() {
+  local step="$1" dir="$2"
+  local inputs=("$dir/package.json" "$dir/package-lock.json")
+  if [ -d "$dir/node_modules" ] && inputs_unchanged "$step" "${inputs[@]}"; then
+    echo "[deploy] $step: package files unchanged — skipping npm install (FORCE_FULL_DEPLOY=1 to force)."
+    return
+  fi
+  echo "[deploy] $step: installing dependencies..."
+  (cd "$dir" && npm install --production)
+  record_step "$step" "${inputs[@]}"
+}
+
+# ---- 1. Install dependencies ------------------------------------------------
+install_dependencies api-npm "$API_DIR"
+install_dependencies mcp-npm "$MCP_DIR"
 
 # ---- 2. Apply database schema and migrations --------------------------------
 echo "[deploy] Applying database schema..."
@@ -95,27 +114,45 @@ else
   echo "[deploy] No migrations directory found — skipping."
 fi
 
-# ---- 3. Import GeoIP data (idempotent, runs on every deploy) -----------------
+# ---- 3. Import GeoIP data (only when its inputs changed) ----------------------
+# An empty geoip_blocks table always imports, so a lost or new table refills.
 GEOIP_CSV="$API_DIR/data/geoip/GeoLite2-Country-Blocks-IPv4.csv"
+GEOIP_INPUTS=("$GEOIP_CSV" "$API_DIR/data/geoip/GeoLite2-Country-Locations-en.csv" "$API_DIR/scripts/import-geoip.js")
 if [ -f "$GEOIP_CSV" ]; then
-  echo "[deploy] Importing GeoIP country data..."
-  cd "$API_DIR"
-  npm run import-geoip
+  geoip_has_rows=$(sqlite3 "$DB_FILE" "SELECT 1 FROM geoip_blocks LIMIT 1;" 2>/dev/null || true)
+  if [ "$DB_IS_NEW" = false ] && [ -n "$geoip_has_rows" ] && inputs_unchanged geoip "${GEOIP_INPUTS[@]}"; then
+    echo "[deploy] GeoIP inputs unchanged — skipping import (FORCE_FULL_DEPLOY=1 to force)."
+  else
+    echo "[deploy] Importing GeoIP country data..."
+    cd "$API_DIR"
+    npm run import-geoip
+    record_step geoip "${GEOIP_INPUTS[@]}"
+  fi
 else
   echo "[deploy] WARNING: GeoIP CSV not found at $GEOIP_CSV — country data will remain 'Unknown' until the CSV is placed and a deploy re-runs."
 fi
 
-# ---- 4. Import Wikipedia scoring data (idempotent, runs on every deploy) -------
+# ---- 4. Import Wikipedia scoring data (only when its inputs changed) ----------
 SCORING_EXPORT="$PROJECT_DIR/database/scoring-export.json"
+SCORING_INPUTS=("$SCORING_EXPORT" "$API_DIR/scripts/import-wikipedia-scoring.js")
 if [ -f "$SCORING_EXPORT" ]; then
-  echo "[deploy] Importing Wikipedia scoring data..."
-  cd "$API_DIR"
-  npm run import-wikipedia-scoring -- --publish --purge-missing
+  if [ "$DB_IS_NEW" = false ] && inputs_unchanged wikipedia-scoring "${SCORING_INPUTS[@]}"; then
+    echo "[deploy] Wikipedia scoring inputs unchanged — skipping import (FORCE_FULL_DEPLOY=1 to force)."
+  else
+    echo "[deploy] Importing Wikipedia scoring data..."
+    cd "$API_DIR"
+    npm run import-wikipedia-scoring -- --publish --purge-missing
+    record_step wikipedia-scoring "${SCORING_INPUTS[@]}"
+  fi
 else
   echo "[deploy] WARNING: Wikipedia scoring export not found at $SCORING_EXPORT — Wikipedia reliability data will remain stale until the file is placed and a deploy re-runs."
 fi
 
 # ---- 5. Generate sitemap and static pages ------------------------------------
+# These run on every deploy, so they are not in the step cache. They read the
+# production database, which the admin changes without a push. Their outputs
+# are tracked files, so `git reset --hard` puts the committed copies back, and
+# the asset and date stamps must be applied again after each reset.
 echo "[deploy] Generating sitemap..."
 cd "$API_DIR"
 npm run sitemap
@@ -146,7 +183,7 @@ else
   case "$PROCESS_MANAGER" in
     pm2)
       # All three processes come from ecosystem.config.js, so cwd, env and
-      # crash limits are always the ones in the repo (issue #249).
+      # crash limits are always the ones in the repo.
       # scripts/pm2-apply.js deletes and starts them, saves the list, and
       # exits non-zero if a health route does not answer within ~30s.
       echo "[deploy] Applying ecosystem.config.js (pm2) and checking health..."
@@ -174,7 +211,7 @@ fi
 # deploy/nginx.conf into place. That path must be a symlink to this repo's
 # deploy/nginx.conf (see the one-time setup note at the top of that file) or
 # committed nginx.conf changes reload "successfully" while staying completely
-# inert, as they silently did until Issues.md #68 (2026-07-19). Use sudo -n
+# inert. Use sudo -n
 # (never prompt) and treat reload failure as a warning: a deploy must not die
 # because the deploy user lacks the sudo grant. Grant it with:
 #   echo "$USER ALL=(root) NOPASSWD: /usr/sbin/nginx -s reload" | sudo tee /etc/sudoers.d/deploy-nginx-reload
