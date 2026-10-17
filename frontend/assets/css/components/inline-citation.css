@@ -76,7 +76,8 @@
 
 /* -------------------------------------------------------------------------
    Floated Figures (≥1024px)
-   Breakout behaviour per Style guide §9 Figures. Full-width below 1024px.
+   Breakout for [figure align="left|right"], per STYLE_GUIDE/content_shortcodes.md §14.
+   Full-width below 1024px.
    ------------------------------------------------------------------------- */
 
 .figure-align-left,

@@ -1,6 +1,8 @@
 # The Jesus Website — UI/UX & Style Guide (Index)
 
-**Purpose**: Consistent, professional, archival-style website for historical evidence about Jesus. Clean, readable, serious, scholarly tone. High information density with excellent readability.
+This file is the map of the style guide. Read it first for any visual or CSS task, then open only the section file that the table below names. It holds the design aims and the section map. The rules themselves are in the section files.
+
+**Design aim**: Consistent, professional, archival-style website for historical evidence about Jesus. Clean, readable, serious, scholarly tone. High information density with excellent readability.
 
 **Target Users**: Curious readers seeking structured historical data.
 
@@ -17,7 +19,7 @@
 
 ## How this guide is organized
 
-The guide is split across files in this directory (`setup/STYLE_GUIDE/`). Section numbers (**§1–§13**) are stable across files. A citation like "§9" or "Style_guide.md §9" always means the same section. Use the table below to find the right file; don't open all of them for a small change.
+The guide is split across files in this directory (`setup/STYLE_GUIDE/`). Section numbers (**§1–§14**) are stable across files. A citation like "§9" or "Style_guide.md §9" always means the same section. Use the table below to find the right file; don't open all of them for a small change.
 
 | File | Sections | Covers | Read when... |
 |---|---|---|---|
@@ -25,7 +27,7 @@ The guide is split across files in this directory (`setup/STYLE_GUIDE/`). Sectio
 | [animation.md](animation.md) | §6 | Animation & transition timing, easing curves, reduced-motion rules | Adding or changing any hover state, transition, or animation |
 | [components.md](components.md) | §8 | Buttons, cards, badges, timeline, map, filters, modals, tables, forms, toasts, breadcrumbs, infinite scroll | Building or styling a reusable UI component |
 | [content-patterns.md](content-patterns.md) | §9 | Per-page-type layout rules: home, evidence detail, essays/responses/historiography, blog, news, Wikipedia list, resources, about, arbor diagram, verse blocks | Building or editing a specific page template |
-| [content_shortcodes.md](content_shortcodes.md) | §9 | Inline-marker syntax for body text: `[figure]`, `[mla:N]`, `[id:N]`, `[pullquote]` — parser contract, junction-table rules, rendering behaviour per content type | Authoring body content with markers, or changing the shortcode parser |
+| [content_shortcodes.md](content_shortcodes.md) | §14 | Inline-marker syntax for body text: `[figure]`, `[mla:N]`, `[id:N]`, `[pullquote]` — parser contract, junction-table rules, rendering behaviour per content type | Authoring body content with markers, or changing the shortcode parser |
 | [pages-and-admin.md](pages-and-admin.md) | §10–13 | UX interaction patterns, accessibility/technical notes, print styles, admin page layouts | Working on UX flows, a11y, print CSS, or any admin page |
 
 **For agents**: read this INDEX first, then only the file(s) whose sections your task touches. If a reference points at `setup/Style_guide.md`, point it at this directory instead.
