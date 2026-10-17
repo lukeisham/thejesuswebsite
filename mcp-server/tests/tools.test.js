@@ -322,4 +322,36 @@ describe("HTTP server", () => {
     assert.equal(response.headers["content-type"], "application/json");
     assert.deepEqual(JSON.parse(response.body), { status: "ok" });
   });
+
+  // A POST with a real JSON-RPC message must reach the tool registry. The
+  // server once passed the body as a string, so every POST failed to parse.
+  function postMcp(rawBody) {
+    return fetch(`http://localhost:${TEST_PORT}/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+      },
+      body: rawBody,
+    });
+  }
+
+  it("answers a tools/list POST with the tool names", async () => {
+    const res = await postMcp(
+      JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+    );
+    const text = await res.text();
+
+    assert.equal(res.status, 200);
+    assert.match(text, /searchEvidence/);
+    assert.match(text, /getMapData/);
+  });
+
+  it("rejects a POST body that is not JSON with 400", async () => {
+    const res = await postMcp("{not json");
+    const body = await res.json();
+
+    assert.equal(res.status, 400);
+    assert.equal(body.error.code, -32700);
+  });
 });

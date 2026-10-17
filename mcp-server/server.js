@@ -156,7 +156,22 @@ if (process.argv.includes("--stdio")) {
         for await (const chunk of req) {
           chunks.push(chunk);
         }
-        const body = Buffer.concat(chunks).toString();
+        // The transport needs the parsed JSON object. A raw string is rejected
+        // with a JSON-RPC parse error, so every tool call would fail.
+        let body;
+        try {
+          body = JSON.parse(Buffer.concat(chunks).toString());
+        } catch {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              error: { code: -32700, message: "Parse error: body is not valid JSON" },
+              id: null,
+            }),
+          );
+          return;
+        }
         await transport.handleRequest(req, res, body);
       } else if (req.method === "GET" || req.method === "DELETE") {
         // GET: SSE stream or session lookup. DELETE: session teardown.
