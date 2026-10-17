@@ -72,10 +72,8 @@ function showContent() {
 // ─── Render functions ────────────────────────────────────────────────────────
 
 function renderHeader(article) {
-  // Title
   if ($title) $title.textContent = article.title || "Untitled";
 
-  // Meta row: publisher, author, date
   if ($meta) {
     const parts = [];
     if (article.publisher) parts.push(article.publisher);
@@ -197,8 +195,15 @@ async function init() {
   const { data, error } = await getNewsArticleBySlug(slug);
 
   if (error) {
-    showError("Failed to load this news article.");
-    showToast("Failed to load news article", "error");
+    // The route sends E-PERSIST-004 for a missing slug. This page has no empty
+    // state, so "not found" reuses the error state, without the failure toast.
+    const is404 = typeof error === "object" && error.code === "E-PERSIST-004";
+    if (is404) {
+      showError("News article not found.");
+    } else {
+      showError("Failed to load this news article.");
+      showToast("Failed to load news article", "error");
+    }
     return;
   }
 
@@ -207,16 +212,11 @@ async function init() {
     return;
   }
 
-  // Render all sections
   renderHeader(data);
   renderExternalLink(data);
   renderSummary(data);
   renderKeywords(data);
-
-  // Apply SEO metadata
   applySEO(data);
-
-  // Show content
   showContent();
 }
 

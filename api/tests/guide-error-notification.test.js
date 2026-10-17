@@ -76,8 +76,8 @@ describe(`${GUIDE} row 1: routes use sendError()`, () => {
 const NOT_FOUND_CODE = "E-PERSIST-004";
 const NOT_FOUND_COMPARE = `error.code === "${NOT_FOUND_CODE}"`;
 
-// The six detail-page scripts that the guide names, and the routes that
-// serve each one.
+// The detail-page scripts that the guide names, and the routes that serve
+// each one.
 const DETAIL_PAGES = {
   "evidence-detail.js": ["evidence.js"],
   "essay-detail.js": ["essays.js"],
@@ -85,13 +85,11 @@ const DETAIL_PAGES = {
   "response-detail.js": ["responses.js"],
   "historiography-detail.js": ["historiography.js"],
   "challenge-detail.js": ["academic-challenges.js", "popular-challenges.js"],
+  "news-detail.js": ["news-articles.js"],
 };
 
 // Detail pages that do not compare the not-found code, with the reason.
-const DETAIL_PAGE_EXCEPTIONS = {
-  "news-detail.js":
-    "Known gap: a missing slug shows a load-failure toast. Remove this line when it is fixed.",
-};
+const DETAIL_PAGE_EXCEPTIONS = {};
 
 describe(`${GUIDE} row 2: not-found code ${NOT_FOUND_CODE}`, () => {
   test(`error-codes.js defines SQL_RECORD_NOT_FOUND as ${NOT_FOUND_CODE}`, () => {
