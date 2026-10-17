@@ -1,16 +1,16 @@
 # Technical Summary
 
-This is a modular full-stack web application built with **vanilla HTML, CSS, and JavaScript** — no frameworks and no build step. The browser code uses no third-party libraries except display assets (the Feather SVG sprite). The server side keeps a short dependency list: each Node package lists its own in its `package.json`, and the Wikipedia ranking runs a Python sidecar (`wikipedia-ranking-pipeline.md`). A new dependency needs sign-off (SR-2). The public frontend and admin panel use separate design systems optimised for their respective audiences.
+This is a modular full-stack web application built with **vanilla HTML, CSS, and JavaScript** — no frameworks and no build step. The browser code uses no third-party libraries except display assets (the Feather SVG sprite). Each Node package lists its own dependencies in its `package.json`, and the Wikipedia ranking runs a Python sidecar (`wikipedia-ranking-pipeline.md`). A new dependency needs sign-off (SR-2). The public frontend and the admin panel are two separate design systems (D-017).
 
-The public frontend prioritises clarity, precision, and performance (desktop and mobile). It presents historical data about Jesus through static pages, interactive timelines, arbor (network) diagrams, and geographic maps. All published content is fully public and accessible to both guests and automated agents.
+The public frontend presents historical data about Jesus through static pages, interactive timelines, arbor (network) diagrams, and geographic maps. Published content is public to guests and automated agents.
 
-Content creation and management is handled through a dedicated admin interface that communicates with a Node.js/Express API backed by SQLite. The admin panel includes visual editors for timelines, arbor diagrams, and maps, and uses its own distinct interface optimised for data management tasks. Administrative access is secured exclusively via WebAuthn using Apple Passkeys.
+Content is managed through an admin interface that talks to a Node.js/Express API backed by SQLite. The admin panel has visual editors for timelines, arbor diagrams, and maps. Admin access uses WebAuthn passkeys only (D-016).
 
-The project also includes an MCP (Model Context Protocol) server that exposes database content as tools for AI agents. The codebase itself is edited by both Claude (Claude Code) and Zed (DeepSeek), which can use these same tools to navigate the content.
+An MCP (Model Context Protocol) server exposes published content as read-only tools for AI agents.
 
 **How to use this document:** read it before starting any refactor, bug fix, or new feature. The *Project Map* and *Cross-module patterns* sections show what lives where and how the parts connect; the *Feature & Refactoring Guide* tells you the workflow and checklists to follow.
 
-**This is a map, not a reference manual.** It holds purpose, navigation, and behaviour that crosses modules. Code rules are in `setup/Vibe_coding_rules.md`, and the dated record of each decision is in `setup/Decisions_log.md`. It does not restate what the code already says — no HTML templates, no CSS pixel values, no function walkthroughs, no counts that drift the moment someone adds a row. Feature-level mechanics live in `setup/ARCHITECTURE/` (see the index below). When you're tempted to add a long feature walkthrough here, add it there and link it instead.
+**This is a map, not a reference manual.** It holds purpose, navigation, and behaviour that crosses modules. Code rules are in `setup/Vibe_coding_rules.md`, and the dated record of each decision is in `setup/Decisions_log.md`. It does not restate what the code already says — no HTML templates, no CSS pixel values, no function walkthroughs, no counts that drift the moment someone adds a row. Feature-level mechanics live in `setup/ARCHITECTURE/` (see its `INDEX.md`). When you're tempted to add a long feature walkthrough here, add it there and link it instead.
 
 ---
 
@@ -20,31 +20,32 @@ The project also includes an MCP (Model Context Protocol) server that exposes da
 thejesuswebsite/
 │
 ├── setup/                  # Project docs, plans, coding rules, agent skills, tests specs
-│   └── ARCHITECTURE/       # Feature-level deep docs (see INDEX.md)
+│   └── ARCHITECTURE/       # Cross-file subsystem docs (see INDEX.md)
 ├── frontend/               # Public website — static HTML, CSS, JS (no build step)
 │   ├── evidence/           # Core content: detail pages, search, arbor, timeline, maps
 │   ├── contextual-essays/  # Long-form journal essays
 │   ├── debate/             # Challenges, responses, historiography, Wikipedia rankings
 │   ├── resources/          # Curated ranked resource lists
 │   ├── news-and-blog/      # Blog posts and external news
-│   └── assets/             # CSS (base/components/layout/pages), JS (ES modules), images
+│   └── assets/             # CSS (base/components/layout/pages), JS (ES modules), images, data
 ├── admin/                  # CMS — passkey auth, CRUD, visual editors
 │   ├── index.html          # Dashboard — aggregates pending drafts
-│   ├── resources/          # Per-category drag-to-reorder list management
 │   ├── diagrams/           # Visual editors for Arbor, Timeline, Maps pins
-│   ├── essays/, debate/, blog/, news/, wikipedia/, evidence/,
-│   │   historiography/, collections/, settings/, auth/, analytics.html
+│   ├── <entity>/           # One CRUD directory per content type; also auth/, settings/
 │   ├── tests/              # Admin JS tests (node --test)
 │   └── assets/             # Admin-specific CSS and JS
-├── api/                    # Express + better-sqlite3 — routes, models, middleware,
+├── api/                    # Express + better-sqlite3 — routes, models, middleware, config,
 │                           #   lib (guards, error codes), services (page-generator), scripts, tests
-├── database/               # SQLite schema, migrations, seed data, the .db file itself
+├── database/               # SQLite schema, migrations, seeds, scoring-export.json, the .db file itself
 ├── mcp-server/             # Read-only MCP tools that call the HTTP API
-├── Wikipedia algorithm/    # Section-classifier pipeline — gold set, calibration, LLM labels
+├── Wikipedia algorithm/    # Wikipedia scoring data — gold sets, calibration, vector stores
 │   └── vector-sidecar/     # Python FastAPI sidecar for FAISS vector queries (localhost only)
 ├── public/                 # Runtime-served files — uploads/ (admin image uploads)
-├── deploy/                 # nginx.conf (HTTPS) + nginx-http.conf — serve static
-│                           #   files, proxy /api/ to Express; deploy.sh at repo root
+├── deploy/                 # nginx.conf (HTTPS) + nginx-http.conf + nginx-realip.conf
+├── deploy.sh               # VPS deploy steps
+├── ecosystem.config.js     # pm2 process definitions (VPS paths)
+├── scripts/                # pm2-apply.js (restart + health check), vector store/sidecar sync scripts
+├── .github/workflows/      # deploy.yml — webhook deploy, health poll, Cloudflare purge
 └── dev-proxy.js            # Local-only static server + /api proxy (mimics nginx)
 ```
 
@@ -64,11 +65,11 @@ Admin browser  ──GET──▶ admin/   (static HTML/JS) ──Admin.api.*─
 AI agents ──MCP tools──▶ mcp-server/ ──HTTP──▶ api/ ───────────────────┘
 ```
 
-Both frontends fetch **relative** `/api/...` URLs — in production, nginx (`deploy/nginx.conf`) serves the static files and proxies `/api/` to Express. The MCP server does **not** touch the database directly; its tools call the same public HTTP API (`API_BASE_URL`, default `http://localhost:3000/api`), so it obeys the API's publishing rules.
+Both frontends fetch **relative** `/api/...` URLs. In production, nginx (`deploy/nginx.conf`) serves the static files and proxies `/api/` to Express. nginx strips the `/api` prefix, so Express mounts its routes without it. `dev-proxy.js` does the same locally. The MCP server does **not** touch the database directly. Its tools call the same public HTTP API (`API_BASE_URL`), so they obey the API's publishing rules.
 
 ### Cross-module patterns
 
-- **Draft to publish.** Every content row starts with `published_draft = 0`. The admin dashboard lists drafts through `api/routes/drafts.js`. Publishing is a separate action in `api/routes/publish.js`, which then regenerates that row's static page. Public routes return published rows only (API-5).
+- **Draft to publish.** Every content row starts with `published_draft = 0`. The admin dashboard lists drafts through `api/routes/drafts.js`. Publishing is a separate action in `api/routes/publish.js`, which then regenerates that row's static page. If page generation fails, the publish still succeeds and only a log line records the failure. `npm run pages` repairs the page. Public routes return published rows only (API-5).
 - **One URL, one HTML file.** There is no JS router. Each section has a `[slug].html` template, and `api/services/page-generator.js` writes a real file per slug, with its SEO `<head>`, at publish and at deploy. `api/config/content-pages.js` lists the content types it covers. A new content type is added there, not in a new generator.
 - **Allowed values live in the database.** Categories, eras and timeline periods are `CHECK (... IN (...))` constraints in `database/schema.sql`. Frontend and admin lists follow the schema, so a new value needs a migration first.
 - **Public visuals are split in three.** Arbor, timeline and maps each have `*-data.js`, `*-render.js` and `*-interactions.js` in `frontend/assets/js/<visual>/`. A new public visual uses the same split. The admin editors in `admin/assets/js/admin-*/` are split by task instead (canvas, nodes, edges, zoom).
@@ -78,10 +79,11 @@ Both frontends fetch **relative** `/api/...` URLs — in production, nginx (`dep
 ### Running locally
 
 1. `cd api && npm install`
-2. Start the API: `npm run dev` (port 3000 by default, override with `PORT`)
-3. Serve `frontend/` (and `admin/`) with a static server that proxies `/api/` to port 3000 — `node dev-proxy.js` does this locally, or use the nginx configs in `deploy/`
-4. Open `/admin/` and register a passkey on first visit
-5. Run tests: `cd api && npm test` (Node's built-in test runner; also `mcp-server/tests/`)
+2. Create `.env` at the repo root with `NODE_ENV=development`. The API refuses to boot without an explicit `NODE_ENV` (`api/config/load-env.js`).
+3. Start the API: `cd api && npm run dev` (port 3000, override with `PORT`).
+4. Serve a static root with the proxy: `node dev-proxy.js frontend` or `node dev-proxy.js admin` (default root `admin`, default port 4174). It forwards `/api/*` to port 3000 and strips the prefix.
+5. First passkey registration needs `SETUP_TOKEN` in `.env` and no enrolled credential (`api/routes/passkey.js`). Agents that test the admin locally use the `ADMIN_DEV_BYPASS` route instead (`api/routes/dev-bypass.js`).
+6. Run tests: `cd api && npm test` and `cd mcp-server && npm test` (Node's built-in test runner). Admin and frontend tests sit beside their code (`admin/tests/`, `frontend/**/tests/`). Run them with `node --test <path>`.
 
 Useful scripts: `npm run sitemap` (regenerate sitemap.xml), `npm run pages` (regenerate all static SEO pages).
 
@@ -89,22 +91,23 @@ Useful scripts: `npm run sitemap` (regenerate sitemap.xml), `npm run pages` (reg
 
 **Local → GitHub → VPS.** Nothing you change locally is live until it is both
 pushed *and* deployed. This matters most for security and auth fixes: only the
-code running on the VPS has real effect. Pushing to `main` triggers `.github/workflows/deploy.yml`,
-which calls the HTTPS deploy webhook (`api/routes/deploy-webhook.js`). The
-webhook does `git reset --hard origin/main` and runs `deploy.sh` (migrations,
-`npm run pages`, `npm run sitemap`, asset stamping, pm2 restart) — roughly
-15 s end to end. Only one deploy runs at a time: the workflow has a
-`concurrency` group and the webhook returns 409 while a deploy runs.
+code running on the VPS has real effect. Pushing to `main` triggers `.github/workflows/deploy.yml`:
+
+1. The workflow calls the HTTPS deploy webhook (`api/routes/deploy-webhook.js`). The webhook runs `git reset --hard origin/main`, then `deploy.sh` with `SKIP_RESTART=1`.
+2. The webhook replies, then starts `scripts/pm2-apply.js` detached. A pm2 restart inside `deploy.sh` would kill the process that serves the webhook.
+3. The workflow polls `/api/deploy-status` until the restart and health checks pass.
+4. The workflow purges the Cloudflare cache.
+
+Only one deploy runs at a time: the workflow has a `concurrency` group, and the webhook returns 409 while a deploy runs.
 
 `deploy.sh` skips its slow, repo-only steps (`npm install` for `api/` and
 `mcp-server/`, the GeoIP import, the Wikipedia scoring import) when their input
-files are unchanged since the step last succeeded. `api/scripts/deploy-step-cache.js`
-keeps one hash per step in `.deploy-state/` at the repo root, which git ignores
-and the reset keeps. `FORCE_FULL_DEPLOY=1` runs every step. Sitemap, static
-pages, data embedding and asset stamping always run: they read the production
-database, and the reset restores their tracked outputs. The one-way rule also
-applies in reverse — anything hot-fixed directly on the VPS must be mirrored back into the
-local tree and pushed. Files ignored by git (most of `setup/`, `.env`, `*.db`) never
+files are unchanged since the step last succeeded. `FORCE_FULL_DEPLOY=1` runs every step.
+The sitemap, static pages, about-page date stamps, data embedding and asset stamping always run. They read the production
+database, and the reset restores their tracked outputs.
+
+The one-way rule applies in reverse too. The reset erases anything hot-fixed directly on the VPS, so mirror
+every VPS fix into the local tree and push it. Files ignored by git (most of `setup/`, `.env`, `*.db`) never
 reach GitHub or the VPS at all. `.gitignore` lists the `setup/` files that are tracked.
 
 ### Binding documents (read before writing code)
@@ -119,17 +122,6 @@ reach GitHub or the VPS at all. `.gitignore` lists the `setup/` files that are t
 | `setup/plan_template.md` | Template for new implementation plans (`setup/PLANS/New/`) |
 | `setup/TESTS/*.md` | Manual/automated test specs per module |
 | `deploy.sh` + `deploy/` | Production deploy steps (migrations, `npm run pages`, `npm run sitemap`, nginx configs) |
-
-### Architecture reference (`setup/ARCHITECTURE/`)
-
-| File | Covers |
-|---|---|
-| `image-display.md` | Figures vs thumbnails — the two image patterns and their rules |
-| `esv-api.md` | ESV Bible verse proxy + progressive-enhancement client |
-| `node-cluster-logic.md` | Timeline/map/arbor cluster placement, labels, edge routing |
-| `error-notification.md` | The 4-category error code system and the error toast |
-| `wikipedia-ranking-pipeline.md` | Vector-embedding scoring pipeline, import path, VPS sidecar |
-| `wikipedia-quality-grid.md` | Signal grid, score panel, tooltip and copy button on the Wikipedia list |
 
 ---
 
@@ -176,7 +168,7 @@ This section governs future vibe-coding sessions. Follow it in order.
 1. Reproduce first; for API bugs write a failing test in `api/tests/` when practical.
 2. Fix at the correct layer — a bad value in the UI is usually a model/validation bug, not a render patch. `pickWritable` whitelists and CHECK constraints are the usual suspects for "field not saving" bugs.
 3. Check the blast radius of shared code: `model-helpers.js`, `relations/`, `api.js`, `admin.js`, `page-generator.js`, and the utils are used everywhere — run the full test suite after touching them.
-4. Log known issues and their status in `setup/ISSUES/issues.md` (the active log; older rows are archived to `Issues_30_to_110.md` / `Issues_111_to_200.md` in the same directory).
+4. Log known issues and their status in `setup/ISSUES/issues.md`.
 
 ### Definition of done
 
@@ -191,68 +183,41 @@ This section governs future vibe-coding sessions. Follow it in order.
 
 ## Performance & caching
 
-### Optimisation priority order
+### Performance rules
 
-When speed-testing or optimising the public site, work in this order:
-
-1. **Optimise the critical rendering path — load what matters first.** The first paint should depend only on the HTML and the CSS it needs. ES modules stay `defer`red at the bottom of `<body>` (HTML-4), non-critical CSS and images load lazily (`utils/lazy-load.js`), and nothing above the fold waits on an API call — the static pages already carry their content and SEO `<head>`.
-2. **Reduce asset payloads — ship less data.** No frameworks means the JS baseline is already small; keep it that way. Compress and correctly size images before they enter `public/uploads/`, prefer SVG (Feather sprite, map SVGs) over raster where possible, and don't add per-page CSS/JS that duplicates a shared component file.
-3. **Leverage network caching — serve it closer and faster.** Static files are nginx's job; the cache policy below is the contract.
-
-Measure before and after (Lighthouse or WebPageTest against the deployed VPS, not local) — an optimisation that doesn't move a measured number isn't done.
+- ES modules stay `defer`red at the bottom of `<body>` (HTML-4).
+- Images use native `loading="lazy"` or `data-src`, which `utils/lazy-load.js` swaps in (`image-display.md`).
+- List and visual pages get an embedded first-paint snapshot at deploy (`npm run embed-data`). `utils/data-revalidation.js` then fetches live data and re-renders only if it differs.
+- Do not add per-page CSS or JS that duplicates a shared component file.
+- Measure with Lighthouse or WebPageTest against the deployed VPS, not local. An optimisation that does not move a measured number is not done.
 
 ### Cache policy
 
-One policy per path class, each guaranteeing freshness a different way. The HTML edge-cache choice is D-013 in `setup/Decisions_log.md`.
+Each `Cache-Control` value lives where it is set: `deploy/nginx.conf` for static assets and HTML, `api/middleware/security-headers.js` for public `/api/` reads, and `api/middleware/auth.js` (`no-store`) for authenticated responses. Read the values there. The shape of the policy:
 
-Per-path `Cache-Control` values live where they are set — `deploy/nginx.conf`
-for static assets and HTML, `api/middleware/security-headers.js` for `/api/`
-responses — read them there, not here. The shape of the policy: versioned
-JS/CSS are cached immutable for a year (their URLs change every deploy),
-HTML is `max-age=60` with a Cloudflare purge at the end of each deploy,
-`/admin/` is always revalidated, and embedded snapshots revalidate in the
-background.
-
-There are four caching layers in play: **Cloudflare edge** (honours the origin's HTML `max-age=60` via a Cache Rule scoped to exclude `/api/*` and `/admin/*`; purged wholesale at the end of every deploy), **nginx** (per-location headers in `deploy/nginx.conf`), **API middleware** (`security-headers.js` for public reads, `auth.js` forcing `no-store` on authenticated ones), and an **in-memory sidecar cache** (`api/lib/vector-sidecar-client.js`, 10 min TTL keyed on `family::text::k`, swept by an interval timer).
+- Versioned JS and CSS (`/assets/js/`, `/assets/css/`) are cached immutable for a year. Their URLs change every deploy.
+- Other `/assets/` files, such as images, are also cached immutable for a year at stable URLs. A replaced image needs a new filename. The exception is `/assets/images/maps/`, which revalidates and uses `?v=`.
+- HTML is `max-age=60` (D-013). A Cloudflare Cache Rule honours that value for everything except `/api/*` and `/admin/*`. Each deploy purges the edge.
+- `/admin/` always revalidates.
 
 ### Cache busting — the deploy-order invariant
 
-**Stamp → pm2 restart → nginx reload → Cloudflare purge.** That order is the invariant. The purge must run *last*, after the origin is already serving new content — purging first just lets the edge re-cache stale bytes on the next request. Purge failures are deliberately not swallowed; they turn the CI job red.
+Production order: **asset stamp → nginx reload (both inside `deploy.sh`) → pm2 restart and health check → Cloudflare purge.** The purge runs last, after the origin serves new content. A purge before that lets the edge re-cache stale bytes. A purge failure turns the CI job red on purpose. Never add `continue-on-error` to the purge step. A failed restart or health check also turns the job red.
 
-`api/scripts/version-assets.js` runs at deploy time only, on the VPS working copy — never in the committed tree. It rewrites local `.js`/`.css` references in `.html` and `.js` files to carry `?v=<short-commit-hash>`, replacing any existing `?v=` (idempotent). Each `git reset --hard origin/main` wipes the previous stamp and the stamper immediately re-applies it, so local dev and the committed tree always carry clean, unstamped references. Because the URL changes every deploy, nginx can cache JS/CSS for a year with `immutable` — there is nothing to revalidate away.
+`api/scripts/version-assets.js` runs at deploy time only, on the VPS working copy. It never runs in the committed tree. Each `git reset --hard origin/main` removes the stamp, and the next deploy applies it again. Local dev and the committed tree carry unstamped references.
 
-**VPS prerequisite for `nginx.conf` changes to take effect:** `deploy.sh`'s reload step only re-reads whatever file is already at `/etc/nginx/sites-available/thejesuswebsite` — it never copies `deploy/nginx.conf` into place. That path must be symlinked to the repo's `deploy/nginx.conf` (one-time setup, see the comment at the top of that file), or committed header changes reload "successfully" while staying completely inert.
+**VPS prerequisite for `nginx.conf` changes to take effect:** the `deploy.sh` reload step re-reads whatever file is already at `/etc/nginx/sites-available/thejesuswebsite`. It never copies `deploy/nginx.conf` into place. That path must be a symlink to the repo's `deploy/nginx.conf` (one-time setup, see the comment at the top of that file). Without the symlink, committed header changes reload "successfully" and have no effect.
 
 ---
 
 ## Accessibility
 
-Target: **WCAG** (W3C Web Accessibility Initiative — see the [WAI WCAG overview](https://www.w3.org/WAI/standards-guidelines/wcag/)). Test against it and implement fixes **without sacrificing speed, data integrity, or security** — semantic HTML and ARIA attributes cost nothing at runtime, so there is rarely a real trade-off. WCAG's four principles (**POUR**):
+Target: **WCAG** ([WAI overview](https://www.w3.org/WAI/standards-guidelines/wcag/)). Project-specific rules:
 
-**1. Perceivable** — users can see and hear the content.
-
-- Every meaningful image gets descriptive `alt` text (decorative images get `alt=""`). Alt text for uploaded images is content — store it alongside the image reference, not hard-coded.
-- Videos get accurate captions; audio-only content gets a transcript.
-- Text/background contrast meets WCAG ratios — check any new colour pairing against `variables.css` tokens rather than eyeballing it.
-- Never rely on colour alone to convey meaning: pair error states, timeline eras, arbor node types, and map pin categories with a label, icon, or pattern as well.
-
-**2. Operable** — users can navigate and interact with everything.
-
-- Every link, button, and form works with keyboard alone (Tab, Enter, arrows). This especially applies to the interactive visuals — arbor, timeline, and maps interactions must have keyboard equivalents, not just pointer handlers.
-- Keyboard focus is always visible — the global `:focus-visible` outline lives in `frontend/assets/css/base/reset.css`; any component CSS that removes it must provide a replacement.
-- No content flashes more than three times per second.
-- Any timed behaviour (auto-dismissing toasts, session expiry warnings) is adjustable or long enough to act on — durations and the no-dismiss option live in `frontend/assets/js/utils/toasts.js`.
-- Each page provides a "Skip to main content" link before the sidebar/navigation — implemented in `frontend/assets/css/base/invisible-header.css` plus the page templates.
-
-**3. Understandable** — users can comprehend the interface.
-
-- Navigation, search, and layout stay consistent across pages (the shared sidebar/footer scripts already enforce this — don't fork them per page).
-- Form fields have real `<label>` elements, not placeholder-only labelling. Error messages are specific and actionable ("Slug must be lowercase letters and hyphens", not "Invalid input").
-- Public-facing prose uses plain language where scholarship allows.
-
-**4. Robust** — assistive technologies can parse it.
-
-- Semantic HTML first: `<button>` for actions, `<a>` for navigation, one `<h1>` per page with properly nested headings, `<nav>`/`<main>`/`<figure>` landmarks. This is HTML-1..5 territory — the rules already point this way.
-- Valid, parseable markup: templates and the page-generator must emit HTML that works in NVDA, JAWS, and VoiceOver, which mostly means no divs-as-buttons and no ARIA where a native element would do.
-
-When auditing, test with keyboard only and with a screen reader (VoiceOver is available on this machine), plus an automated pass (Lighthouse accessibility score) — automated tools catch at most half of real issues.
+- Alt text for an uploaded image is stored next to the image reference in a `*_alt` column, not hard-coded (`image-display.md`).
+- Each page's `<h1>` sits in the visually hidden header (`.sr-only` in `frontend/assets/css/base/invisible-header.css`). Visible headings start at `<h2>` (HTML-3).
+- The global `:focus-visible` outline is in `frontend/assets/css/base/reset.css`. Component CSS that removes it must supply a replacement.
+- The skip link (`.skip-link`) is styled in `invisible-header.css`. Each page template carries the `<a class="skip-link" href="#main-content">` element.
+- Arbor, timeline, and maps interactions need keyboard equivalents. Their `*-interactions.js` files handle keys, and `*-keyboard.test.js` files cover them.
+- Auto-dismiss durations for toasts are in `frontend/assets/js/utils/toasts.js`. `{ duration: 0 }` disables auto-dismiss.
+- Test with the keyboard alone and with VoiceOver, plus a Lighthouse accessibility pass. Automated tools catch only part of the issues.

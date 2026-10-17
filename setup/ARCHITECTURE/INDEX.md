@@ -2,9 +2,9 @@
 
 Load-bearing decisions that span more than one file.
 
-`setup/ARCHITECTURE/Website_guide.md` is the entry point — the project map, the stack rules,
-and the workflow. This directory holds the subsystems that were too big to sit
-inside it without drowning it. Same doctrine applies to both.
+`setup/ARCHITECTURE/Website_guide.md` is the entry point: the project map, the
+cross-module patterns, and the workflow. The other files in this directory each cover one
+subsystem. The same gate applies to all of them.
 
 ---
 
@@ -20,8 +20,7 @@ A sentence may live in this directory only if it passes **both** tests:
    question, that file is the documentation; link to it instead.
 
 Everything that passes is a *constraint on future edits*. Everything that fails
-is either code's job or trivia. When in doubt, cut it — a thin accurate doc
-beats a thick one nobody trusts.
+is either code's job or trivia. When in doubt, cut it.
 
 ## The ban list
 
@@ -94,9 +93,8 @@ If you can't fill it in, the row fails test 1 — cut the row.
 
 ## Keeping it true
 
-Staleness is not fixed by periodic review — reviews get skipped, and a doc
-nobody re-reads is a doc nobody trusts. It is fixed by tying the update to the
-edit that invalidates it.
+Periodic review does not keep a doc true, because reviews get skipped. Tie each
+update to the edit that invalidates it.
 
 **1. The checker.** Run it whenever you touch documented code:
 
@@ -110,9 +108,7 @@ node setup/scripts/check-architecture-docs.js
 - With `--touched`, reads your uncommitted changes and prints which docs claim
   something about the files you just edited — your re-read list.
 
-It cannot verify that a *claim* is true, only that its anchors resolve. That is
-still most of the value: a doc whose paths all resolve is usually a doc someone
-maintained.
+It cannot verify that a *claim* is true. It verifies only that the anchors resolve.
 
 **2. The workflow hook.** `Website_guide.md`'s *Definition of done* requires
 running the checker before you call work finished. That is the enforcement
@@ -132,12 +128,12 @@ git already is one.
 
 | File | Covers |
 |---|---|
-| [`Website_guide.md`](Website_guide.md) | Entry point — project map, stack decisions, security, workflow, caching, accessibility |
-| [`image-display.md`](image-display.md) | Figures vs thumbnails — the two image patterns |
-| [`esv-api.md`](esv-api.md) | ESV verse proxy + progressive-enhancement client |
+| [`Website_guide.md`](Website_guide.md) | Entry point — project map, cross-module patterns, deploy flow, workflow, caching, accessibility |
+| [`image-display.md`](image-display.md) | Figures vs thumbnails — the two image patterns, figure numbering, lazy loading |
+| [`esv-api.md`](esv-api.md) | ESV verse proxy and the `data-esv-ref` client contract |
 | [`node-cluster-logic.md`](node-cluster-logic.md) | Timeline/map/arbor cluster placement, labels, edge routing |
-| [`error-notification.md`](error-notification.md) | The four-category error code system and the error toast |
-| [`wikipedia-ranking-pipeline.md`](wikipedia-ranking-pipeline.md) | Scoring pipeline, import path, vector sidecar |
+| [`error-notification.md`](error-notification.md) | Route error codes, the not-found code contract, and how pages show failures |
+| [`wikipedia-ranking-pipeline.md`](wikipedia-ranking-pipeline.md) | Scoring pipeline, deploy-time import, vector sidecar and store sync |
 | [`wikipedia-quality-grid.md`](wikipedia-quality-grid.md) | Signal grid, score panel, tooltip and copy button on the Wikipedia list |
 
 Adding a subsystem: new file on the template, new row here. Never a new section

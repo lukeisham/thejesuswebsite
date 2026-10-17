@@ -4,15 +4,15 @@ _Part of the [Style Guide](INDEX.md) — §14: content shortcodes & inline marke
 
 ## 14. Content Shortcodes & Inline Markers
 
-The five long-form content types (contextual essays, responses, historiography articles, blog posts, and evidence descriptions) share a single inline-marker system for positioning pictures, MLA citations, and unique identifiers at exact points inside body text.
+Evidence descriptions, contextual essays, responses, historiography articles, blog posts and challenge bodies share one inline-marker system. It places pictures, MLA citations and identifiers at exact points in body text. The parser is `frontend/assets/js/utils/content-markers.js`. The grammar for `[figure]` is in `utils/figure-shortcodes.js`.
 
 ### Standard Layout Mapping
 
-Body text is plain text split into paragraphs on blank lines (double-newline).
+Body text splits into paragraphs on blank lines. Inside a paragraph, a single line break becomes `<br>` (plain-text bodies). Blog, essay, response, historiography and challenge bodies also accept Markdown (§9).
 
 #### Block-level markers
 
-Block-level markers occupy their own paragraph (a line surrounded by blank lines) and render as a block element at exactly that point in the text flow.
+A block-level marker sits in its own paragraph and renders as a block at that point in the text.
 
 ##### Figure shortcode
 
@@ -27,13 +27,23 @@ Optionally floats right or left on screens ≥1024px:
 [figure src="/assets/images/coin.webp" caption="A first-century coin." align="left"]
 ```
 
-- `src` — path to the image, e.g. `/assets/images/example.webp`
-- `caption` — alt text and visible caption (required for accessibility)
-- `align` — optional; `"left"` or `"right"` to float the figure as a 320px breakout on desktop screens
+- Write the attributes in this order, with double quotes: `src`, `caption`, `align`.
+- `src` — path to the image, for example `/assets/images/example.webp`.
+- `caption` — the visible caption and the image's alt text. The parser accepts a figure without one, but then the alt text is empty. Always write a caption.
+- `align` — optional. `"left"` or `"right"` floats the figure as a 320px breakout on screens ≥1024px (§8 Pictures / Figures).
+- Evidence descriptions: figures move to the Pictures section above the description, in the standard figure box (§9, Evidence Detail Page). Aligned figures keep their float.
+
+##### Pull quote — `[pullquote]`
+
+```
+[pullquote]A memorable passage extracted from the article text.[/pullquote]
+```
+
+Blog posts only. Look: §9 Blog Posts.
 
 #### Inline markers
 
-Inline markers may occur anywhere inside a paragraph's prose text.
+An inline marker can sit anywhere inside a paragraph.
 
 ##### MLA citation — `[mla:N]`
 
@@ -41,10 +51,10 @@ Inline markers may occur anywhere inside a paragraph's prose text.
 According to recent scholarship[mla:7], the inscription dates...
 ```
 
-- `N` is the `id` of an MLA source already linked to the content item via its junction table (e.g. `context_essay_mla_sources`).
-- Renders as a superscript citation link jumping to that entry in the bibliography (for essays, responses, historiography, and evidence).
-- On blog posts, renders as an inline parenthetical `(Author)` — blogs have no footnote system (see [§9](content-patterns.md), Blog Posts).
-- A marker referencing a source **not linked** to the item renders nothing.
+- `N` is the `id` of an MLA source that is linked to the item (junction tables below).
+- Essays, responses, historiography, challenges and evidence: a superscript link to that entry in the bibliography (`#mla-N`). The link text is the source's author, or `N` when the source has no author.
+- Blog posts: an inline `(Author)`, or `(Source N)` when the source has no author. Blogs have no footnotes.
+- A marker for a source that is not linked renders nothing.
 
 ##### Identifier — `[id:N]`
 
@@ -52,28 +62,28 @@ According to recent scholarship[mla:7], the inscription dates...
 ...the Nazareth inscription[id:12], which was discovered...
 ```
 
-- `N` is the `id` of an identifier linked to the content item via its junction table (e.g. `context_essay_identifiers`).
-- Renders as an inline badge showing the identifier's most meaningful label (manuscript number, IAA number, Pleiades name, etc.).
-- A marker referencing an identifier **not linked** to the item renders nothing.
+- `N` is the `id` of an identifier that is linked to the item.
+- Renders as an inline badge. Label, first one that exists: `title`, manuscript number, IAA number, Pleiades name, source title, event name, individual, ISBN book title. With an `external_url`, the badge is a link with a small external-link icon.
+- A marker for an identifier that is not linked, or that has no label, renders nothing.
 
-#### Evidence descriptions
+### Junction tables
 
-The evidence pictures grid above the description is separate from these markers. The `description` field supports `[mla:N]` and `[id:N]` inline markers exactly like the four long-form body fields. Markers resolve against that evidence row's own `evidence_mla_sources` and `evidence_identifiers` junction rows.
+A marker resolves only against rows linked to the same item.
 
-#### Blog pull-quote shortcode
-
-Blog posts also support a pull-quote block shortcode (no other content type uses this):
-
-```
-[pullquote]A memorable passage extracted from the article text.[/pullquote]
-```
+| Content type | MLA sources table | Identifiers table |
+|---|---|---|
+| Evidence | `evidence_mla_sources` | `evidence_identifiers` |
+| Contextual essay | `context_essay_mla_sources` | `context_essay_identifiers` |
+| Response | `response_mla_sources` | `response_identifiers` |
+| Historiography | `historiography_mla_sources` | `historiography_identifiers` |
+| Blog post | `blog_post_mla_sources` | `blog_post_identifiers` |
+| Challenge | `challenge_mla_sources` | `challenge_identifiers` |
 
 ### Rules
 
-1. **Markers reference existing linked rows only.** `[mla:N]` must match an `mla_sources.id` already linked to the item; `[id:N]` must match an `identifiers.id` already linked. Unlinked markers render nothing.
-2. **Marker resolution is client-side at render time.** The stored body text stays plain Markdown-like syntax. Ids remain stable even if source text is edited later.
-3. **Figure numbering** is injected automatically by the frontend after body rendering — floated figures participate in the sequential count.
-4. **Markers need no columns of their own.** They live in the body text fields and are parsed at render time.
+1. **Markers reference linked rows only.** `[mla:N]` must match an `mla_sources.id` linked to the item. `[id:N]` must match an `identifiers.id` linked to the item. Anything else renders nothing.
+2. **Markers resolve in the browser, at render time.** The database stores the body text unchanged. A marker holds a row `id`, not a position, so reordering the bibliography does not change what a marker points to.
+3. **Figure numbering** runs after the body renders. Every `<figure>` in the container counts, including floated figures (§8 Pictures / Figures).
 
 ### Examples
 

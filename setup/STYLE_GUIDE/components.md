@@ -4,232 +4,217 @@ _Part of the [Style Guide](INDEX.md) — §8: core components._
 
 ## 8. Core Components
 
-### Buttons
-- Primary: `--accent` bg, white text, subtle shadow
-- Secondary: outline with `--accent`
-- Ghost: text only with hover underline
-- Size variants:
-  - **sm**: padding `0.375rem 0.75rem`, font-size `0.8125rem`
-  - **md** (default): padding `--space-sm --space-md`, font-size `0.875rem`
-  - **lg**: padding `--space-md --space-lg`, font-size `1rem`
-- Border-radius: `4px` (all sizes)
-- Font-weight: `500`
-- Disabled: muted colors + `not-allowed` cursor
+The frontend and the admin keep separate stylesheets (D-017). Where a component exists in both, each side writes the same look in its own tokens.
 
-### Cards (Evidence, Blog, etc.)
-- White background
-- Subtle shadow: `0 2px 8px rgba(0,0,0,0.08)`
-- Rounded corners: `8px`
-- Padding: `1.5rem`
-- Hover: lift + stronger shadow (subtle, `--duration-fast`)
-- Image top (if present) → content below
+### Buttons
+- Primary: `--accent` background, white text, `--shadow-sm`. Hover: `--link-hover` background, `--shadow-md`.
+- Secondary: transparent, `1px solid var(--accent)`, `--accent` text. Hover: `--bg-surface-alt` background.
+- Ghost: transparent, `--text-secondary` text. Hover: underline and `--link-hover` text.
+- Hover lift: `translateY(-1px)` (ghost: none).
+- Sizes:
+  - **sm**: padding `0.375rem 0.75rem`, `--text-xs`, `min-height: 36px`
+  - **md** (default): padding `--space-sm --space-md`, `--text-small`, `min-height: 44px`
+  - **lg**: padding `--space-md --space-lg`, `--text-body`
+- Border-radius `4px`. Font-weight `500`.
+- Disabled: `0.5` opacity, `not-allowed` cursor, no shadow, no lift.
+
+### Cards
+- `--bg-surface` background, `--shadow-card`, `8px` radius, `1.5rem` padding.
+- Hover: lift and `--shadow-card-hover` (see §6).
+- Optional top image (`.card-image-top`): the image runs edge to edge. The text sits below it with `1.5rem` padding.
 
 ### Pictures / Figures
-- **Border**: `1px solid var(--border)` with `4px` border-radius — matches card/form field styling
-- **Caption**: directly below the image with `--space-sm` gap, `0.875rem` italic, `--text-secondary` color — consistent with the Small type scale
-- **Figure numbering**: sequential per page, reset per page (not per section), injected by JS at render time so HTML stays clean and numbering remains correct if pictures are added/removed
-- **Semantic markup**: `<figure>` / `<figcaption>` required, `alt` attribute required on all images
-- **Infinite scroll**: figure numbering must re-run after each new batch of content is inserted into the DOM — call the numbering function from the infinite scroll callback, not just on initial page load
-- **Print**: border removed, `9pt` italic, inline at full width — consistent with the academic paper print rules in §12
+- **Image**: `1px solid var(--border)` border and `4px` radius. Same look as form fields.
+- **Caption**: `--space-sm` below the image, `--text-small`, italic, `--text-secondary`.
+- **Figure numbering**: JS (`utils/figures.js`) prefixes each caption with a bold `Fig. N — `. It counts every `<figure>` in one container. The count restarts per page, not per section. Lists that load more items (infinite scroll) number again after each batch.
+- **Markup**: `<figure>` / `<figcaption>`. Every `<img>` needs an `alt` attribute.
+- **Side-floated figures** (`.figure-align-left` / `.figure-align-right`, from `[figure align="…"]`, §14): from `1024px` they float outside the reading column, `320px` wide at most. Below `1024px` they are full width.
+- **Print**: caption `9pt` italic black. A figure never splits across pages. Side-floated figures become full-width blocks.
 
 #### Standard figure box (`.figure-standard`)
 A predictable display box for a figure's rendered size. The Evidence module uses it (see §9).
 
 - **Tokens**: `--figure-standard-width: 720px`, `--figure-standard-height: 480px`, `--figure-mobile-max-height: 70vh` (`variables.css`)
-- **The box**: `720 × 480` maximum. A 3:2 landscape fills `720 × 480`. A 2:3 portrait is height-bound at `320 × 480`, so both orientations take a similar vertical space. The box works without JS — `figures.css` explains how.
+- **The box**: `720 × 480` maximum. A 3:2 landscape fills `720 × 480`. A 2:3 portrait is height-bound at `320 × 480`, so both orientations take a similar vertical space.
 - **Mobile** (`≤767px`): the width cap no longer matters, so portraits and squares get the `70vh` height cap. A tall picture never fills a whole phone screen.
-- **Never combined with side-floats**: a figure is either a standard box or a floated aside (`.figure-align-*`, `.figure-breakout-*`), never both.
+- **Never combined with side-floats**: a figure is either a standard box or a side-floated figure, never both.
 - **Print**: the box is screen-only. Printed figures are unconstrained, up to the page width.
-- **Upload standard**: see §12 — every image accepted through `/uploads` is standardised server-side to a `1440 × 960` bounding box (2× the display box, for retina sharpness) before it reaches this component.
+- **Upload bound**: see §11.
 
 ### News & Blog Row Layout
-The landing page and both endless-feed pages (News, Blog) share a consistent horizontal row layout. Each row is an `<a>` link containing an 80×80px thumbnail on the left and a text body on the right.
+The News & Blog landing page and both feed pages (News, Blog) share one row layout. Each row is a link, not a card.
 
-- **Row element**: `.news-blog-row` — `display: flex; flex-direction: row; gap: var(--space-md); align-items: flex-start`
-- **Hover**: subtle `var(--bg-surface-alt)` background tint, no lift, no shadow, no border-radius change — rows are not cards
-- **Separator**: `border-bottom: 1px solid var(--border)` between rows, no border on last row
-- **Container**: `.news-blog-list` — `max-width: var(--measure-narrow); margin: auto` (single column, no grid)
-- **Thumbnail**: `.news-blog-row-thumb` — `width: 80px; height: 80px; object-fit: cover; flex-shrink: 0; border-radius: var(--radius-sm)`
-- **Empty thumbnail**: `.news-blog-row-thumb--empty` — `var(--bg-surface-alt)` fill with `1px dashed var(--border)`
-- **Text body**: `.news-blog-row-body` — `flex: 1; min-width: 0`
-- **Title**: `.news-blog-row-title` — `font-size: var(--text-body); font-weight: 600`
-- **Meta line**: `.news-blog-row-meta` — `font-size: var(--text-xs); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis` — format is `Author · Publisher · Date` (no "By" or "in" prefixes)
-- **Excerpt** (blog only): `.news-blog-row-excerpt` — `font-size: var(--text-small); color: var(--text-secondary); margin-top: var(--space-xs)` — first ~150 characters of `blog_content` stripped of HTML
-- **Breadcrumb**: `.news-blog-back-link` — inline-flex with `← Back to News & Blog`, present on both feed pages
-- **Semantic markup**: `aria-hidden="true"` on empty-placeholder divs; real thumbnails use `alt=""` with `loading="lazy"`
-- **Admin**: uses the shared `AdminImagePicker` widget for news thumbnails and blog hero images, uploading through the `/uploads` endpoint
+- **Layout**: thumbnail left, text right, `--space-md` gap. The list is one column at every width, centered, `--measure-narrow` (760px) wide.
+- **Separator**: `1px solid var(--border)` between rows. No border under the last row.
+- **Hover**: `--bg-surface-alt` background tint. No lift, no shadow.
+- **Thumbnail**: `80 × 80px`, cropped to fill (`object-fit: cover`), `--radius-sm`. With no image: `--bg-surface-alt` fill and a `1px dashed var(--border)` outline.
+- **Title**: `--text-body`, weight 600.
+- **Meta line**: `--text-xs`, `--text-muted`, one line with an ellipsis. News: `Author · Publisher · Date`, publisher in italic. Blog: the date only.
+- **Excerpt** (blog only): `--text-small`, `--text-secondary`. Plain text from the post, at most 150 characters, cut at a word boundary and ended with `…`. Bold and italic from the post stay.
+- **Back link** on the feed pages: `← Back to News & Blog`, `--text-small`, `--text-muted`.
 
-### Evidence Card
-- Title (h3)
-- Short description
-- Primary verse (styled)
-- Badges: category, timeline period, location (see Content Badges below)
-- "View Details" button
+### Evidence List Row
+The Evidence index is a list of rows, not cards.
+
+- One link per row: thumbnail left, text right, `--space-md` gap, `--space-md` padding.
+- Rows are divided by `1px solid var(--border)`, including a line above the first row. Hover: `--bg-surface-alt`.
+- Thumbnail: `64 × 64px` (`56px` below `768px`), cropped to fill, `--radius-sm`. With no image: `--bg-surface-alt` fill and a `1px dashed var(--border)` outline.
+- Title: `--text-body`, weight 500 (`--text-small` below `768px`). Primary verse below it: monospace, `--text-small`, `--text-muted`.
 
 ### Content Badges (public-facing)
-Used on evidence cards and detail pages to label category, timeline period, and map location. Distinct from admin Status Badges — see the Chip Type Classification table below for how all chip variants compare.
+Labels for keywords, search result types and the timeline tooltip category. Distinct from admin Status Badges — see the Chip Type Classification table below.
 
 - Display: `inline-flex`, items centered
-- Background: `--bg-surface-alt` (`#F1EDE4`)
+- Background: `--bg-surface-alt`
 - Border: `1px solid var(--border)`
-- Text: `--text-secondary`, `0.75rem` (`--text-2xs`), weight 500
-- Border radius: `4px` (`--radius-sm`)
+- Text: `--text-secondary`, `--text-2xs`, weight 500
+- Border radius: `--radius-sm`
 - Padding: `2px 8px`
-- No uppercase — use the value as-is from the database (e.g. "Galilee", "beginning", "event")
-- Displayed inline, wrapping if multiple badges present
-- No hover state — badges are labels, not links
-- No era colour highlight — era tints are reserved for Filter Chips, below
+- No uppercase — show the value as stored.
+- No hover state — badges are labels, not links.
+- No era colour — era tints belong to Filter Chips only.
 
-**CSS `[hidden]` conflict warning**: Any component class that sets a non-none `display` value (e.g. `display: flex`, `display: inline-flex`) must include a matching `[hidden]` selector to restore the browser’s native hidden behavior: `.component[hidden] { display: none; }`. This prevents the class’s `display` value from overriding the `hidden` attribute via author-vs-user-agent cascade priority. See `badges.css` line 24 for an example.
+**CSS `[hidden]` rule**: a component class that sets `display` to anything but `none` needs a matching `.component[hidden] { display: none; }`. Otherwise the class overrides the `hidden` attribute. Example: `badges.css`.
 
 ### Timeline
-**Linear dot-style timeline with clustered events:**
-- **Main axis**: horizontal line (timeline spine) spanning the full viewport width, positioned at vertical center
-- **Visual spine**: thin line (`1px solid var(--border)`) representing chronological progression
-- **Dots**: event markers positioned along the timeline spine, sized by importance or density
-  - Standard dot: `10px`, `2px solid var(--bg-surface)` ring, fill per era (below); default fill `var(--accent)` when no era
-  - Hover state: `scale(1.3)` with soft `box-shadow` halo
-- **Colour coordination (shared with Map pins)** — one scheme across timeline dots and map pins:
-  - **Era colour**: fill from the `--era-*` tokens in `variables.css` (e.g. `--era-passion-week`), applied via `era--<kebab>` classes. Never the only signal — labels/tooltips carry the meaning (WCAG).
-  - **People & places roundel**: `gospel_category` of `people` or `places` overrides era colour with a white roundel — `var(--color-white)` fill, `var(--color-black)` ring (`dot-cat--person` / `dot-cat--place`). Objects use `var(--text-muted)` fill (`dot-cat--object`). Category overrides come after era rules in the cascade (CSS-5).
-  - Implementations: `frontend/assets/css/pages/timeline/timeline-dots.css` and `frontend/assets/css/pages/maps-pins.css` — keep them mirrored.
-- **Clustering**: when multiple events occur in same era, dots stack vertically above/below the spine in a compact cluster (staggered pattern)
-- **Labels**: event title appears above or below the dot (depending on space); smaller secondary text below title shows date range and location
-- **Interactions**:
-  - Click a dot → open modal or navigate to evidence detail page
-  - Hover a dot → show tooltip with full event name, date, and category badge
-  - Hover near a cluster → highlight all dots in the cluster together
-- **Era markers**: subtle vertical divisions at major era boundaries (e.g., "Birth", "Ministry", "Passion Week")
-- **Era Headings**: prominent `<h3 class="timeline-era-heading">` elements anchored at the **top-left** of each era's spatial region (not centred above the spine, unlike the era markers above). Bold, uppercase, `letter-spacing: 0.08em`, coloured via the era's `--era-*` token, `pointer-events: none`.
-  - **Zoom scaling**: font-size scales linearly with zoom from a `--text-h4` (1.125rem) base at 1×, clamped to `[--text-small, --text-h3]` (0.875rem–1.375rem) so headings stay readable at extremes (0.3×–3.0×). Position is computed once in world coordinates and does not recompute on zoom — only the rendering scale changes.
-  - **Collision avoidance**: when an event node would overlap a heading's initial position, the heading nudges away — tier 1 shifts left, tier 2 shifts right, alternating per further tier (up to `MAX_TIER`, matching the shared cluster-label-collision escalation). Nudging never leaves the heading's own era's horizontal span; if clamping would undo a left nudge, the heading shifts right instead.
-  - **Mobile (vertical mode, <768px)**: headings reposition to the **left of the vertical spine** rather than above it, anchored at the era's start y-coordinate; collision escalation still nudges horizontally (away from the fixed left offset) because the eras are stacked top-to-bottom.
-  - Placement is computed by a pure, DOM-free module (`timeline-era-heading-placement.js`) shared between frontend and the admin timeline diagram editor (SR-4) — admin is desktop-only and always passes `isMobile: false`.
-  - Implementations: `frontend/assets/css/components/timeline-era-headings.css`, `admin/assets/css/admin-diagrams/timeline-era-headings.css`.
-- **Filter/zoom**: 
-  - Era filter chips above the timeline to isolate periods (e.g., "All Eras", "Ministry Begins", "Passion Week")
-  - Timeline remains continuous; filtered eras show their dots while others fade to `opacity: 0.3`
-  - **Chip clicks have a dual effect**: filter/fade (as above) AND navigate — the chip also jumps the viewport to centre that era at normal zoom (`scale=1.0`), via `jumpToEra()` (`timeline-nav.js` / pure math in `timeline-transform.js`). The "All Eras" chip resets to `scale=1.0, pan=(0,0)`. Programmatic navigation uses the same `--duration-fast` / `--ease-out` timing as the manual zoom controls, and respects `prefers-reduced-motion: reduce` (transform applied instantly, no transition, when the user has requested reduced motion). On mobile (<768px), zoom/pan is disabled entirely, so a chip click instead scrolls the era's first dot horizontally into view (`scrollIntoView()`). Mirrored in the admin diagram editor (`admin-timeline/timeline-nav.js`) minus reduced-motion and mobile handling, since admin is desktop-only and transforms are always instantaneous there.
-  - Desktop: transform-based zoom (buttons) and pan (mouse/touch drag), no horizontal scrollbar or `overflow-x: auto`
-- **Scrolling**: zoom/pan transform is disabled entirely below 768px; the timeline instead flows with natural vertical page scroll like the rest of the page
-- **Empty state**: if no events in selected era, show centered message "No events in this period"
-- **Line stability (desktop only)**: spine and era-marker lines keep a constant apparent thickness (2px spine / 1px marker) at every zoom level, and never go below `1px`. Drag-pan follows the pointer with no transition. Zoom buttons keep the `--duration-fast` transition. The admin diagram editor matches this. `timeline/timeline-line-stability.css` explains how.
+One horizontal timeline on `/evidence/timeline/`, plus one page per era (`/evidence/timeline/<era>.html`, which starts with that era active). On narrow screens it becomes vertical.
+
+- **Canvas**: `min-height: 600px`, `--bg-primary` with the Arbor dot grid (`24px` spacing, `--border` dots). The cursor is a grab hand.
+- **Spine**: `2px` line, `--border-strong`, at vertical center.
+- **Era markers**: `1px` vertical lines at each era boundary, `--border` at `0.6` opacity, no label (Era Headings carry the labels). Spine and markers keep their thickness at every zoom level and never go thinner than `1px`.
+- **Dots**: `10px` circles with a `1px solid var(--bg-surface)` ring. Fill: the era token (`era--<kebab>` class); `--accent` when no era. Hover: `scale(1.3)` and a `4px` halo. Every dot of the same period glows with it.
+- **Colour scheme** (shared with Map pins):
+  - Era colour: fill from the `--era-*` tokens. A label or tooltip always carries the meaning too (WCAG).
+  - People and places: `gospel_category` of `people` or `places` gives a white roundel (`--color-white` fill, `--color-black` ring). Objects use `--text-muted` fill. Category rules come after era rules (CSS-5).
+  - Keep `timeline/timeline-dots.css` and `maps-pins.css` identical in look.
+- **Labels**: event title (`--text-2xs`, weight 500, two lines at most) above or below the dot, with a muted meta line. In a dense cluster a label shrinks to one line or hides.
+- **Tooltip** (after a 200ms hover): title, location, category badge, verse.
+- **Detail panel** (click, or `Enter` / `Space` on a focused dot): see Detail Panel below.
+- **Zoom** (≥768px): two icon buttons, zoom in and zoom out, no reset. Range `0.3×` to `3.0×`, step `1.25×`. Drag with mouse or touch to pan. No scrollbar.
+- **Era chips** (Filter Chips, below) do two things at once. They fade dots and labels outside the era to `0.15` opacity, and they move the view to center that era at `1.0×`. "All Eras" clears the fade and resets to `1.0×`, unpanned.
+- **Mobile** (<768px): the spine runs top to bottom, labels sit left and right of it, and the page scrolls normally. No zoom controls and no pan. A chip click scrolls the first dot of that era into view.
+- **Empty state**: "No events in this period."
+- **Admin**: the timeline editor (§13) uses the same look in admin tokens, on desktop only.
+
+#### Era Headings
+- `<h3 class="timeline-era-heading">` at the **top-left** of each era's region. Bold, uppercase, `letter-spacing: 0.08em`, coloured with the era's `--era-*` token, no pointer events.
+- **Zoom**: the on-screen size is `--text-h4` × zoom, held between `--text-small` and `--text-h3` (0.875rem–1.375rem) at every zoom level.
+- **Collisions**: a heading moves sideways to clear dots and labels. It never leaves its own era's span.
+- **Mobile** (<768px): headings sit to the **left** of the vertical spine, at the era's start.
+- **Print**: black.
 
 ### Map
-- Clean base map
-- Pins with labels: `16px` circle, `2px solid var(--bg-surface)` ring, label chip below
-- Pin colouring mirrors the Timeline scheme above — era-token fill, people/places as white-with-black-ring roundels, objects muted (`maps-pins.css`)
-- Hover: highlight evidence card
-- Click pin: navigate to evidence detail page
+- **Overview**: a grid of map cards, `repeat(auto-fill, minmax(280px, 1fr))`, gap `--card-gap`. One column below `768px`.
+- **Detail**: the map image sits in a viewport with a `1px solid var(--border)` border, `--radius-md`, and a `--bg-surface-alt` fill.
+- **Pins**: `16px` circle, `2px solid var(--bg-surface)` ring, label chip below (`--text-2xs`, `--bg-surface`, `1px` border, `--radius-sm`). Colouring follows the Timeline scheme above: era-token fill, people and places as white roundels with a black ring, objects muted (`maps-pins.css`). Hover: `scale(1.3)` and a `4px` halo.
+- **Zoom**: buttons zoom in, zoom out and reset; keys `+` and `-` also zoom. Range `0.5×` to `3.0×`, step `0.25×`. Drag to pan.
+- **Tooltip** (after a 200ms hover): pin label and the linked evidence title.
+- **Click a pin**: opens the evidence page in a new tab.
 
 ### Filters
-- Filter bar sits at the top of the main content area, below the page heading
-- Chips for categories, eras, locations — displayed in a single wrapping row
-- Multi-select supported
-- Clear filters button (ghost style, only visible when a filter is active)
-- Live results count updates as filters change
+- The filter bar (`.filter-bar`) sits below the page heading. A "Filters" toggle button, `36px` high, collapses and expands the chip row over `--duration-base`.
+- The Evidence list has chips for "All", the eight eras (`timeline_era`) and the gospel categories (`gospel_category`). "All" clears the filter.
+- The URL query holds the active filter, so a filtered view can be shared.
+- The Search page uses one chip per result type (§10).
 
 ### Filter Chips
-Used on both frontend and admin to filter timeline events, evidence, and other lists by category or era. Distinct from Content Badges: chips are interactive (clickable, hoverable, focusable); badges are static labels.
+Used on the frontend and in the admin to filter lists by category, type or era. Distinct from Content Badges: chips are interactive; badges are static labels.
 
 - Display: `inline-flex`, items centered, `white-space: nowrap`
 - Padding: `0.375rem 0.75rem` (frontend) / `var(--space-xs) var(--space-sm)` = `4px 8px` (admin)
-- Font-size: `--text-xs` (`0.8125rem`)
-- Font-weight: `500` normal, `600` active/selected
-- Border-radius: `999px` (pill) — both frontend and admin filter chips, including the admin timeline era filter
-- Min-height: `36px` (touch-target minimum for keyboard/pointer interaction)
-- Border: `1px solid` a neutral border token, changing to the accent colour on active
+- Font-size: `--text-xs` (frontend `0.8125rem`; admin `11px`)
+- Font-weight: `500`; `600` when active
+- Border-radius: `999px` (pill), frontend and admin
+- Min-height: `36px` (frontend) / `32px` (admin)
+- Border: `1px solid` the neutral border token; the accent colour when active
 - **States**:
-  - Hover: background shifts to the surface-alt/hover token, `150ms ease-out` transition (admin: `var(--admin-transition)`)
-  - Active/selected: background shifts to surface-alt (admin: hover surface), border and text become the accent colour, font-weight `600`
-  - Focus-visible: `2px solid` accent-colour outline, `2px` offset
-- **Era colour highlight** (timeline era filters only, both systems):
-  - Inactive: `3px` left border tinted with the matching `--era-*` token; the rest of the chip stays neutral
-  - Active: the full era-token colour fills the chip background, and the border (including the left edge) also becomes the era colour
-  - Applied via an `.era--<kebab-era>` class alongside `.filter-chip` (frontend) / `.admin-timeline-era-filter__chip` (admin) — e.g. `.era--passion-week`. Never the sole signal of the era — label text still carries the meaning (WCAG)
-  - Implementations: `frontend/assets/css/components/filters/filter-chips.css` and `admin/assets/css/admin-diagrams/timeline-era-filter.css`. Each system hooks the same `.era--*` classes into its own token set — they do not share a stylesheet (see the No Cross-Import rule in the Website Guide)
+  - Hover: background shifts to the surface-alt token (`--duration-fast`)
+  - Active: surface-alt background, accent border and text, weight `600`
+  - Focus-visible: `2px solid` accent outline, `2px` offset
+- **Era colour** (timeline era chips, both systems):
+  - Inactive: `3px` left border in the matching `--era-*` token. The rest of the chip stays neutral.
+  - Active: the whole chip fills with the era token, and the border takes the same colour.
+  - The `.era--<kebab-era>` class sits next to `.filter-chip` (frontend) / `.admin-timeline-era-filter__chip` (admin). Label text still carries the meaning (WCAG).
+  - Each system has its own stylesheet (`filters/filter-chips.css`, `admin-diagrams/timeline-era-filter.css`) because the two systems stay separate (D-017).
 
-### Modals / Drawers
-- Centered modal for evidence details
-- Slide-in drawer for mobile
-- Close on backdrop click or ESC
-- Open: fade-in + scale `0.97 → 1` over `--duration-base`
+### Detail Panel
+The only public overlay. The Timeline uses it.
+
+- Fixed to the bottom-right, `--space-lg` from the edges. `320px` wide (`100vw − --space-2xl` at most). Below `768px` it spans the width with `--space-sm` insets.
+- `--bg-surface`, `1px solid var(--border)`, `--radius-md`, `--shadow-card-hover`, `--space-lg` padding.
+- Content: title (`--text-h4`), location, verse (monospace), "View Details" link, ghost close button.
+- Closes on the close button, a click outside, `Esc`, or an era chip click. Focus returns to the dot that opened it.
 
 ### Tables
-- Clean borders
-- Alternating row colors (subtle)
-- Sticky header on scroll
-- Responsive: horizontal scroll or card conversion on mobile
+- **Body tables** (`.content-table`, from Markdown pipe tables, §9): `1px solid var(--border)` cell borders, `--space-xs --space-sm` cell padding, top-aligned text. Header cells: `--bg-surface-alt` fill, weight 600, `2px solid var(--border-strong)` underline. Below `768px` the table scrolls sideways and each cell is at least `120px` wide. In print the borders are solid black.
+- **Data tables** (`.table`, `components/tables.css`): sticky header, even rows tinted `--bg-surface-alt`, row hover tint. With `.table-responsive`, rows become stacked cards below `768px`. No public page uses `.table` today.
 
 ### Forms
-- Clean inputs with labels
-- Focus ring: `2px solid var(--accent)` with `2px offset`
-- Error states: `--error` border + message below field
-- Disabled: `0.5` opacity + `not-allowed` cursor
-- Placeholder text: `--text-muted`
+- The only public form control is the Search input (§10): `min-height: 56px`, `--text-h3` text, `2px solid var(--border)` border, `--radius-md`. Focus: `--accent` border plus a `2px --accent` ring. Placeholder: `--text-muted`.
+- Everywhere else the global focus ring applies: `2px solid var(--accent)`, `2px` offset (`:focus-visible` in `reset.css`).
+- Admin forms are in §13.
 
 ### Status Badges (Admin only — frontend only shows published content)
-Admin-use only — the public frontend never shows draft or publish state. One shared colour scheme across every admin surface that shows publish state, including the arbor holding-pen and canvas badges.
+One shared colour scheme for every admin surface that shows publish state, including the Arbor holding-pen and canvas badges.
 
-- **Published**: green background (light tint, `rgba(40, 167, 69, 0.12)`), `--admin-success` text
-- **Draft**: `--admin-draft-bg` background, `--admin-draft-color` text (yellow-grey)
-- Font-size: `--text-xs` (`0.8125rem`)
-- Font-weight: `600`
-- Border radius: `6px`
-- Padding: `2px 8px`
-- No uppercase text-transform
-- Used in: admin tables (`.admin-badge--*`), arbor holding pen (`.admin-arbor-pen__badge--*`), draft lists, publish confirmation UI
+- **Published**: `rgba(40, 167, 69, 0.12)` background, `--admin-success` text
+- **Draft**: `--admin-draft-bg` background, `--admin-draft-color` text
+- Font-size: `--text-xs`. Weight `600`. Radius `6px`. Padding `2px 8px`. No uppercase.
+- Classes: `.admin-badge--*` (tables), `.admin-arbor-pen__badge--*` (holding pen).
 
 #### Chip Type Classification
-All four chip/badge variants at a glance — see the individual sections above for full detail.
+All four chip and badge variants at a glance. Admin `--text-xs` is `11px`; admin `--text-small` is `12px`.
 
 | Type | Font-size | Padding | Radius | Font-weight | Frontend selector | Admin selector |
 |---|---|---|---|---|---|---|
-| Content badge | `0.75rem` (`--text-2xs`) | `2px 8px` | `4px` | `500` | `.badge` | — (frontend-only) |
-| Filter chip | `0.8125rem` (`--text-xs`) | `0.375rem 0.75rem` (frontend) / `4px 8px` (admin) | `999px` (pill) | `500` / `600` active | `.filter-chip` | `.admin-timeline-era-filter__chip` |
-| Pen / holding chip | `0.875rem` (`--text-small`) | `4px 8px` | `4px` | `500` | — (admin-only) | `.admin-arbor-pen__chip`, `.holding-pen__chip`, `.admin-resources-pen__chip` |
-| Status badge | `0.8125rem` (`--text-xs`) | `2px 8px` | `6px` | `600` | — (admin-only) | `.admin-badge--*`, `.admin-arbor-pen__badge--*` |
+| Content badge | `--text-2xs` (`0.75rem`) | `2px 8px` | `4px` | `500` | `.badge` | — (frontend-only) |
+| Filter chip | `--text-xs` | `0.375rem 0.75rem` (frontend) / `4px 8px` (admin) | `999px` (pill) | `500` / `600` active | `.filter-chip` | `.admin-timeline-era-filter__chip` |
+| Pen / holding chip | `--text-small` | `4px 8px` | `4px` | — | — (admin-only) | `.admin-arbor-pen__chip`, `.holding-pen__chip`, `.admin-resources-pen__chip` |
+| Status badge | `--text-xs` | `2px 8px` | `6px` | `600` | — (admin-only) | `.admin-badge--*`, `.admin-arbor-pen__badge--*` |
 
 ### Breadcrumbs
-- Font size: `0.875rem` (small)
-- Text color: `--text-muted` for ancestors, `--text-primary` for current page
-- Separator: `/` in `--text-muted`, margin `0 0.5rem`
-- Hover on ancestor links: `--link-hover` color, no underline by default → underline on hover
-- No truncation on desktop; truncate middle segments on mobile if > 4 levels
+Detail pages only (evidence, essay, response, historiography, blog, challenge): `Home / Section / Page title`.
+
+- Font size `--text-small` (`--text-xs` below `768px`). Padding `--space-md 0`. Items wrap.
+- Ancestors: `--text-muted`, no underline. Hover: `--link-hover` and underline.
+- Current page: `--text-primary`.
+- Separator: `/` in `--text-muted`, margin `0 --space-sm`.
 
 ### Breakout / Side Content
-Used for supplementary information within long-form content (timelines, sidebars, call-outs).
+Supplementary information inside long-form content.
 
-- Background: `--bg-surface-alt` (`#F1EDE4`)
+- Background: `--bg-surface-alt`
 - Left border: `3px solid var(--accent-gold)`
-- Border radius: `4px`
+- Border radius: `--radius-sm`
 - Padding: `var(--space-md) var(--space-lg)`
 - Margin: `var(--space-lg) 0`
-- Title: `h4` sizing, `--accent` color
-- Body text: standard body, `--text-secondary`
-- Collapsible variant: chevron icon right-aligned, `--duration-base` expand animation
+- Title: `--text-h4`, weight 600, `--accent`
+- Body text: `--text-body`, `--text-secondary`
+- Collapsible variant: right-aligned chevron that turns 180° when open. The body expands over `--duration-base`.
+- Print: no background; left border `3px solid var(--border-strong)`.
 
 ### Infinite Scroll
-Used on all long list pages (resources, challenges, blog, news, evidence list).
+Used on the Evidence, Essays, Responses, Historiography, Challenges, Blog, News, Resources and Wikipedia lists.
 
-- Load next page automatically when user scrolls within `300px` of bottom
-- Show a single centered loading spinner (`--text-muted` color, 24px Feather `loader` icon, spinning)
-- When all items are loaded: show "All [N] items loaded" in `--text-muted` small text, centered
-- No numbered pagination anywhere on the public site
-- Maintain scroll position on browser back (use `sessionStorage` to cache loaded items + position)
+- The next batch loads when the reader is within `300px` of the list end.
+- A single centered spinner shows while loading.
+- When the list ends: "All N items loaded" (the noun fits the list) in `--text-small`, `--text-muted`, centered.
+- No numbered pagination on the public site.
+- The Evidence, News and Blog lists keep loaded items and scroll position in `sessionStorage`. Back navigation restores them.
 
 ### Toasts / Notifications
-- **Position**: bottom-center of viewport, `24px` above bottom edge
-- **Width**: `min(360px, calc(100vw - 2rem))` — fits mobile and desktop
-- **Stacking**: new toasts appear above older ones (stack upward), max 3 visible at once; oldest auto-dismissed when limit exceeded
-- **Auto-dismiss**: 4 seconds for success/info; 7 seconds for warning/error (longer because action may be needed)
-- **Animation**: slide up from bottom + fade in on appear (`--duration-base`); fade out on dismiss (`--duration-fast`)
-- **Manual dismiss**: ✕ button (Feather `x` icon, 16px) on every toast
-- **Variants**:
-  - Success: `--success` left border (4px), `--bg-surface` background
-  - Error: `--error` left border, `--bg-surface` background
-  - Warning: `--warning` left border, `--bg-surface` background
-  - Info: `--info` left border, `--bg-surface` background
-- Shadow: `0 4px 16px rgba(0,0,0,0.12)`
-- Border radius: `8px`
-- Padding: `var(--space-md) var(--space-lg)`
+- **Position**: bottom-center, `24px` above the bottom edge.
+- **Width**: `min(360px, calc(100vw - 2rem))`
+- **Stacking**: new toasts appear above older ones. Three show at once; further toasts wait in a queue until a slot frees.
+- **Auto-dismiss**: 4 seconds for success and info; 7 seconds for warning and error.
+- **Animation**: see §6.
+- **Manual dismiss**: an `x` button (Feather `x` icon) on every toast.
+- **Variants**: a `4px` left border on a `--bg-surface` background — `--success`, `--error`, `--warning`, `--info` (default).
+- `--shadow-toast`, `--radius-md`, padding `var(--space-md) var(--space-lg)`.
+
+#### Error Toast
+For errors that carry details a reader can copy.
+
+- Bottom-right, `16px` from the edges (`8px` and full width below `480px`). `min(280px, calc(100vw - 2rem))` wide.
+- Background: `--error` mixed 5% into `--bg-surface`. `4px solid var(--error)` left border, `--radius-md`.
+- Actions: Copy (message and details to the clipboard), Dismiss, and an `x` in the top-right corner. It never auto-dismisses.

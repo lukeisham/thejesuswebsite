@@ -4,6 +4,8 @@ _Part of the [Style Guide](INDEX.md) — §1–5, §7: color palette, typography
 
 ## 1. Color Palette
 
+Source of truth for the values: `frontend/assets/css/base/variables.css`. Admin values: `admin/assets/css/admin-base/variables.css`.
+
 **Primary Background**
 `--bg-primary: #F8F5F0` (warm off-white / parchment)
 
@@ -41,9 +43,26 @@ _Part of the [Style Guide](INDEX.md) — §1–5, §7: color palette, typography
 `--border: #D4C9B8`
 `--border-strong: #B8A48A`
 
+**Era tints** (timeline dots, map pins, era chips, era headings; a label always carries the meaning too)
+`--era-pre-incarnation: #C4ACD4`
+`--era-old-testament: #D0BC94`
+`--era-early-life: #A8C8B4`
+`--era-life: #9CBCCC`
+`--era-galilee-ministry: #9CCCC0`
+`--era-judean-ministry: #D4A8A8`
+`--era-passion-week: #D4A0A0`
+`--era-post-passion: #D4C0A0`
+
+**Fixed colors**
+`--color-white: #FFFFFF`, `--color-black: #000000` (roundel dots, print, text on dark fills).
+
+**Shadows**
+`--shadow-card: 0 2px 8px rgba(0,0,0,0.08)`, `--shadow-card-hover: 0 4px 16px rgba(0,0,0,0.12)`, `--shadow-toast: 0 4px 16px rgba(0,0,0,0.12)`, `--shadow-sm`, `--shadow-md`.
+
 **Admin Panel**
 `--admin-bg: #F4F6F8`
 `--admin-sidebar-bg: #2C3E50`
+`--admin-sidebar-hover: #16213E`
 `--admin-sidebar-text: #ECF0F1`
 `--admin-sidebar-active: #3D5A78`
 `--admin-accent: #3D5A78` (slate blue)
@@ -57,45 +76,48 @@ _Part of the [Style Guide](INDEX.md) — §1–5, §7: color palette, typography
 
 ## 2. Typography
 
-**Font Stack**:
-- Headings: `Georgia, serif` or system serif
+**Font Stack** (tokens `--font-heading`, `--font-body`, `--font-mono`):
+- Headings: `Georgia, serif`
 - Body: `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
-- Monospace (verses, code): `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas`
+- Monospace (verses, code): `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`
 
-**Scale** (rem):
-- `h1`: 2.25rem (36px) — weight 700
-- `h2`: 1.75rem (28px) — weight 600
-- `h3`: 1.375rem (22px) — weight 600
-- `h4`: 1.125rem (18px) — weight 600
-- Body: 1rem (16px) — weight 400, line-height 1.65
-- Small: 0.875rem (14px) — weight 400, line-height 1.5
-- Links: inherit size from context — weight 500
+**Scale** (tokens `--text-*`):
 
-**Admin Typography** (condensed for data-dense UI):
-- Headings: same sans-serif as body (`system-ui` stack) — no serif in admin
-- Body: 0.9375rem (15px) — weight 400, line-height 1.5
-- Small / Labels: 0.8125rem (13px) — weight 500, uppercase tracking for section labels
+| Token | Size | Weight | Line height |
+|---|---|---|---|
+| `--text-h1` | 2.25rem (36px) | 700 | 1.25 |
+| `--text-h2` | 1.75rem (28px) | 600 | 1.3 |
+| `--text-h3` | 1.375rem (22px) | 600 | 1.35 |
+| `--text-h4` | 1.125rem (18px) | 600 | 1.4 |
+| `--text-body` | 1rem (16px) | 400 | `--leading-body` 1.65 |
+| `--text-small` | 0.875rem (14px) | 400 | `--leading-small` 1.5 |
+| `--text-xs` | 0.8125rem (13px) | — | — |
+| `--text-2xs` | 0.75rem (12px) | — | — |
 
-**Rules**:
-- Max line length: 70–75 characters
-- Generous line height on long text
-- Verse references: bold + small caps or distinct styling
+- Long-form reading text (essays, blog, evidence) uses `--leading-long` (1.7).
+- Links: colour `--link`, weight 500, underline on hover (colour `--link-hover`).
+- Reading widths (tokens `--measure-*`): `--measure-reading` 680px, `--measure-reading-wide` 720px, `--measure-narrow` 760px, `--measure-list` 800px, `--measure-list-wide` 1100px.
+- Verse references (`.verse-ref`): monospace, weight 600, small caps.
+
+**Admin Typography** (the admin root is `14px`; admin tokens are in px):
+- Headings use the same `system-ui` stack as body, never serif. Weight 600. `h1` 1.5rem, `h2` 1.25rem, `h3` 1.1rem, `h4` 1rem.
+- Body: 14px, line-height 1.5.
+- `--text-small` 12px, `--text-xs` 11px, `--text-2xs` 9px.
+- Section labels in the admin sidebar: 11px, weight 600, uppercase, `letter-spacing: 0.05em`.
 
 ---
 
 ## 3. Layout & Spacing
 
-**Container**:
-- Max-width: `1280px`
-- Padding: `1rem` (mobile), `1.5rem` (tablet), `2rem` (desktop)
-- Centered with side margins
+**Container** (`.container`):
+- Max-width `--container-max` (`1280px`), centered.
+- Side padding: `1rem` below `768px`, `1.5rem` from `768px`, `2rem` from `1280px`.
 
 **Grid**:
-- 12-column CSS Grid or Flexbox
-- Gutter: `1.5rem`
-- Card gap: `1.5rem`
+- `.grid`: 12 columns. Gutter `--grid-gutter` (`1.5rem`). Columns span 12 below `768px`.
+- `.card-grid`: 1 column, 2 columns from `768px`, 3 columns from `1024px`. Gap `--card-gap` (`1.5rem`).
 
-**Spacing Scale** (use consistently):
+**Spacing Scale**:
 - `--space-xs`: 0.25rem
 - `--space-sm`: 0.5rem
 - `--space-md`: 1rem
@@ -104,108 +126,70 @@ _Part of the [Style Guide](INDEX.md) — §1–5, §7: color palette, typography
 - `--space-2xl`: 3rem
 - `--space-3xl`: 4rem
 
-**Sections**:
-- Generous vertical padding (`3rem`–`4rem`)
-- Clear visual separation with subtle borders or background tints
+**Radii**: `--radius-sm` 4px, `--radius-md` 8px, `--radius-lg` 16px, `--radius-round` 50%.
 
 ---
 
 ## 4. Responsive Breakpoints
 
-Mobile-first: base styles target smallest screens; breakpoints add complexity upward.
+Mobile-first: base styles target the smallest screen. Each `@media` rule adds layout upward.
 
-```css
-/* xs — small phones */
-@media (min-width: 360px) { }
+| Name | Min width | Token | Role |
+|---|---|---|---|
+| xs | 360px | none | Guideline only. No media query uses it. |
+| sm | 480px | `--bp-sm` | Large and landscape phones |
+| md | 768px | `--bp-md` | Tablets portrait. The sidebar opens by default from here. |
+| lg | 1024px | `--bp-lg` | Multi-column layouts. Side-floated figures start here. |
+| xl | 1280px | `--bp-xl` | Desktop. Container side padding becomes `2rem`. |
+| 2xl | 1536px | `--bp-2xl` | Wide monitors |
 
-/* sm — large phones, landscape phones */
-@media (min-width: 480px) { }
-
-/* md — tablets portrait */
-@media (min-width: 768px) { }
-
-/* lg — tablets landscape, small laptops */
-@media (min-width: 1024px) { }
-
-/* xl — desktops */
-@media (min-width: 1280px) { }
-
-/* 2xl — wide / high-res monitors */
-@media (min-width: 1536px) { }
-```
-
-**Breakpoint tokens**: The canonical breakpoint values are defined as custom properties in
-`frontend/assets/css/base/variables.css` and should be referenced by name in all component
-CSS:
-
-- `--bp-sm`: 480px (large phones, landscape phones)
-- `--bp-md`: 768px (tablets portrait, sidebar in-flow)
-- `--bp-lg`: 1024px (tablets landscape, multi-column layouts)
-- `--bp-xl`: 1280px (desktops, max-width container)
-- `--bp-2xl`: 1536px (wide / high-res monitors)
-
-The `xs` / 360px breakpoint is a guideline-only reference (no actual media queries use it)
-and is not tokenised. Two additional undocumented values are used for specific responsive
-adjustments and are documented for reference as `--bp-md-max` (max-width: 767px) and
-`--bp-admin-sm` (max-width: 600px) in `variables.css`.
+- Max-width tokens: `--bp-sm-max` (480px), `--bp-md-max` (767px), `--bp-admin-sm` (600px).
+- CSS cannot use custom properties inside `@media`. Each `@media` rule writes the literal number from `variables.css` (D-005).
 
 **Key layout shifts**:
-- `< 768px`: single column, hamburger button visible, nav sidebar hidden off-canvas, cards full width
-- `≥ 768px`: nav sidebar in-flow and expanded with labels (no separate icon-only tier: one sidebar behavior spans tablet portrait through desktop), card columns and overall density increase with width
-- `≥ 1280px`: max-width container kicks in, no further layout changes
+- `< 768px`: single column. The sidebar is closed on load. When open, it stacks above the page content in normal flow (no overlay, no backdrop). Timeline and Arbor drop zoom controls and flow with page scroll.
+- `≥ 768px`: the sidebar is open on load and pushes `main` and the footer right by `--sidebar-width` + `1.5rem`.
 
-**Touch targets**: minimum `44px × 44px` for all interactive elements on touch devices.
+**Touch targets**: buttons and nav links have `min-height: 44px`. `.btn--sm` and `.filter-chip` are `36px`. Small visual targets (timeline dots, map pins) get a transparent 44px hit area.
 
 ---
 
 ## 5. Navigation
 
-**Sidebar**:
-- **Width**: `260px`
-- **Background**: `--bg-surface`
-- **Hover state**: `--bg-surface-alt` background on hovered item
-- **Active state**: `--accent` left border (`3px`) + `--bg-surface-alt` background
-- **Sub-navigation**: Evidence, Timeline, Maps, and Debate expand on click (not hover) to reveal nested sub-pages
-- Hamburger menu toggle (default closed on `index.html` and backend, default open everywhere else)
-- Sections:
-  - The Jesus website (returns to `index.html`)
-  - Evidence
-  - Search
-  - Arbor diagram
-  - Timeline
-  - Maps
-  - Context
-  - Debate
-  - News
-  - About
+**Sidebar** (`.sidebar`):
+- **Width**: `--sidebar-width` (`260px`). Fixed to the left edge, `--bg-surface`, `1px solid var(--border)` right edge.
+- **Toggle button** (`#sidebar-toggle`): fixed top-left (`--space-md` inset), `44px × 44px`, visible at every width. `Esc` closes the sidebar and returns focus to the button.
+- **Default state**: open from `768px`, closed below. This holds on every page, including the home page.
+- **Motion**: slides in over `--duration-base` / `--ease-in-out`.
+- **Hover**: `--bg-surface-alt` background on the hovered item.
+- **Active** (current page or its parent path): `--accent` text, weight 500, `3px solid var(--accent)` left border, `--bg-surface-alt` background.
+- **Home link**: on hover or focus it scales to `0.985` and shows a 1px `--accent-gold` underline.
+- **Items, in order**: The Jesus Website (`/`), Evidence, Search, Arbor Diagram, Timeline, Maps, Context, Debate, Resources, News, About, then Admin. Admin is pinned to the bottom behind a top border.
 
-**Footer** (universal, not present on index.html/home page):
-- Left aligned: copyright ©, licence info, date of most recent update
-- Right aligned: Print, Copy Contents, Copy URL buttons
+**Footer** (`<footer class="site-footer">`; not on `index.html`):
+- Left: 20px favicon, "© year The Jesus Website.", link "CC BY-NC".
+- Right: Print, Copy Contents, Copy URL ghost buttons. Copy Contents and Copy URL show a toast.
+- Essay, response, blog and About pages also show an italic `--text-xs` `--text-muted` line directly above the footer: `Created: <date>[, Edited: <date>]`. "Edited" appears only when the update day is later than the creation day.
 
 **Invisible Header (SEO & Accessibility)**:
-There is no visible top header bar. All pages use a visually hidden `<header>` for document structure and accessibility only.
-- Styled with `.sr-only` (`position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap`) — zero visual footprint.
-- Contains a **skip-navigation link** (`<a class="skip-link" href="#main-content">Skip to content</a>`): appears at the top-left of the viewport on keyboard focus only, using `--accent` background and white text, `--duration-fast` transition.
-- Contains the true `<h1>` for each page. Visible headings begin at `<h2>` so heading hierarchy is correct for SEO without visible duplication.
-- Contains **breadcrumb JSON-LD** (`schema.org/BreadcrumbList`) injected by `seo.js` — not visible to sighted users.
-- CSS in `base/invisible-header.css`: defines `.sr-only` utility and the skip-link focus state only.
+Every page has a visually hidden `<header class="sr-only">`. No visible top header bar exists.
+- It holds the page's only `h1` and the skip link. Visible headings start at `h2`.
+- Skip link (`<a class="skip-link" href="#main-content">Skip to content</a>`): off-screen until keyboard focus. Then it shows top-left on `--accent` with white text. It slides in over `--duration-fast`.
+- Both rules live in `base/invisible-header.css`.
 
 ---
 
 ## 7. Icon System
 
-**Library**: Feather Icons (MIT, SVG-based, clean minimal stroke style)
-- Matches the scholarly, uncluttered tone of the site
-- Consistent 24px artboard, 2px stroke weight
+**Library**: Feather Icons (MIT, SVG-based, 24px artboard, 2px stroke).
 
-**Delivery**: Download the Feather icon set and build a single SVG sprite file at `frontend/assets/images/feather-sprite.svg`. Reference icons via `<use href="/assets/images/feather-sprite.svg#icon-name">`. No CDN, no font files, no runtime JS dependency — one HTTP request cached for the session (SR-2, SR-3).
+**Delivery**: All icons come from one SVG sprite at `frontend/assets/images/feather-sprite.svg`. Reference icons via `<use href="/assets/images/feather-sprite.svg#icon-name">`. No CDN, no font files, no runtime JS dependency — one HTTP request cached for the session (SR-2, SR-3).
 
-**Sizing**:
-- `--icon-sm: 16px` — inline with text, badges, breadcrumb separators
-- `--icon-md: 20px` — buttons, nav items, form field icons (default)
-- `--icon-lg: 24px` — standalone actions, empty state illustrations
-- `--icon-xl: 32px` — feature icons on landing/about page
+**Sizing** (tokens, classes `.icon-sm` … `.icon-xl`):
+- `--icon-sm: 16px` — inline with text, badges
+- `--icon-md: 20px` — buttons, nav items (default)
+- `--icon-lg: 24px` — standalone actions
+- `--icon-xl: 32px` — feature icons
 
 **Color**:
 - Icons inside buttons: inherit button text color
@@ -214,9 +198,7 @@ There is no visible top header bar. All pages use a visually hidden `<header>` f
 - Muted / disabled icons: `--text-muted`
 
 **Usage rules**:
-- Always pair an icon with a visible text label on public-facing UI (accessibility)
-- Icon-only controls must have `aria-label` or `title`
-- Never scale icons with `font-size`; use `width` / `height` on the SVG
+- Icon-only controls must have `aria-label` or `title`.
+- Never scale icons with `font-size`; use `width` / `height` on the SVG.
 
-**Custom glyphs**: when no Feather icon fits, a bespoke inline-SVG line-art glyph is allowed — same stroke weight/style as Feather so it reads as part of the set, same sizing tokens and colour rules as above. Current custom glyphs:
-- **Stacked ashlar** (3 offset rectangles) — Wikipedia reliability stone-wall toggle (see [§6, animation.md](animation.md))
+**Custom glyphs**: when no Feather icon fits, use a bespoke inline-SVG line-art glyph with the same stroke weight, sizing tokens and colour rules.

@@ -1,40 +1,37 @@
 # Node cluster logic
 
-When multiple events, evidence items, or map pins share a spatial coordinate,
-they form a **cluster**. Timeline, arbor edges, and map pins all solve the same
-problem — position dots/pins and labels so nothing overlaps while every item
-stays visibly connected to its anchor — through one canonical implementation.
+When several events, evidence items or map pins share a spatial coordinate, they
+form a **cluster**. The timeline, the arbor edges and the map pins all place dots
+and labels so that nothing overlaps and every item stays linked to its anchor.
+They use one canonical implementation.
 
 **Source of truth:** `frontend/assets/js/cluster-logic/` — wins any disagreement with this doc.
-**Spans:** `frontend/assets/js/cluster-logic/*.js` (canonical) and `admin/assets/js/cluster-logic-bridge/*-bridge.js` (admin re-export layer); consumers in `frontend/assets/js/timeline/`, `frontend/assets/js/arbor/arbor-render.js`, `frontend/assets/js/maps/`, and their `admin/` counterparts.
+**Spans:** `frontend/assets/js/cluster-logic/*.js` (canonical), `admin/assets/js/cluster-logic-bridge/*-bridge.js` (admin wrappers), `frontend/assets/js/timeline/timeline-era-heading-placement.js`, `frontend/assets/js/timeline/timeline-render.js`, `frontend/assets/js/arbor/arbor-render.js`, `frontend/assets/js/maps/maps-render.js`, `admin/assets/js/admin-timeline/timeline-events.js`, `admin/assets/js/admin-timeline/timeline-node-drag.js`, `admin/assets/js/admin-arbor/arbor-edges.js`, `admin/assets/js/admin-maps/maps-pins.js`, `admin/diagrams/timeline.html`, `admin/diagrams/arbor.html`, `admin/diagrams/maps.html`.
 
 ## Invariants
 
 | Must hold | Why | Breaks silently if violated |
 |---|---|---|
-| All cluster math lives in `frontend/assets/js/cluster-logic/`; nothing is reimplemented under `admin/` | One source of truth means the frontend and admin cannot drift apart | A second copy under `admin/` drifts from the first, and the two editors place nodes differently |
-| Each `admin/assets/js/cluster-logic-bridge/*-bridge.js` only re-exports the matching canonical module as a `window.Admin*` global — it adds no logic of its own | Classic (non-module) admin scripts need a global, not an ES import; the bridge exists solely to reshape the export, not to compute anything | A bridge quietly grows its own logic and becomes a second implementation with the extra step of pretending not to be one |
-| A bridge script loads before any classic script that reads its global | Classic admin scripts read `window.Admin*` at top level, synchronously | A load-order slip makes the admin editor throw "not available" at runtime with no compile-time warning |
-| `timeline_offset_x`/`timeline_offset_y` and `arbor_edges.waypoints`, when present, override computed placement/routing identically on frontend and admin | The admin's escape hatch for pathological layouts | The per-file rule lives in the comments in `cluster-placement.js` and `edge-path.js` — this row is the cross-module pointer recording that both sides honour it |
+| Cluster math lives only in `frontend/assets/js/cluster-logic/`. Admin scripts reach it through a bridge | The public pages and the admin editors must place nodes the same way | A copy under `admin/` drifts. The editor shows positions that the public page does not |
+| A constant that a bridge or an admin script repeats equals the canonical value: `LABEL_CLEARANCE_PCT` in `timeline-render.js` and `clearance` in `cluster-label-collision-bridge.js` | The bridge rebuilds label positions from the clearance after collision resolution | Admin labels sit at a different distance from their dots than public labels. No error appears |
+| `timeline_offset_x` and `timeline_offset_y` convert to pixels with the same two scales on both sides: the world scale (`BASE_PX_PER_PERIOD` in `timeline-geometry.js`) and the canvas height. `timeline-events.js` and `timeline-node-drag.js` repeat both as literals | A stored offset is a fraction of the canvas. The editor and the public page must read it the same way | A node dragged to one spot in the editor shows at another spot on the public timeline |
+| Both arbor callers pass `edge.waypoints` to `computeEdgePath()`: `arbor-render.js` and `arbor-edges.js` (through the `window.AdminArborComputeEdgePath` bridge) | A present `waypoints` array replaces the computed parallel-edge offset | An edge shows one route in the editor and another route on the public page |
+| In each `admin/diagrams/*.html` page, a bridge `<script>` comes before the classic script that reads its `window.Admin*` global | Scripts run in document order | `timeline-events.js` throws on a missing global. It guards `AdminTimelineClusterLabelCollision`, so a late collision bridge silently turns label collision resolution off |
 
 ## Shape
 
-- **`cluster-density.js`** — zoom-level (px-per-period) → density tier (compact/normal/spread).
-- **`cluster-placement.js`** — same-tier events stack around the spine; spread density also fans horizontally.
-- **`cluster-labels.js`** + **`cluster-label-collision.js`** — tier + cluster size → full/truncated/hidden, then collision escalation pushes overlapping labels further out.
-- **`cluster-map-pins.js`** — the map-pin equivalent of density/placement for geo-coordinate clusters (fans pins radially rather than vertically, since pins have no spine).
-- **`edge-path.js`** (`computeEdgePath`) — orthogonal arbor edge routing, parallel-edge offsetting, waypoint override.
-- Each has a same-named `*-bridge.js` under `admin/assets/js/cluster-logic-bridge/`, whose only job is exposing it as a `window.Admin*` global for classic scripts (`timeline-events.js`, `timeline-axis.js`, `arbor-edges.js`, etc.) — see the bridge-pattern precedent noted in those files (`admin-toasts.js`).
-- Frontend consumers (`frontend/assets/js/timeline/`, `arbor/arbor-render.js`, `maps/`) import the canonical modules directly and are read-only; admin editors add drag-to-override/re-route on top via the bridges.
+- **Canonical:** `frontend/assets/js/cluster-logic/` holds density, placement, labels, label collision, map pins and edge path. Era-heading placement is canonical in `frontend/assets/js/timeline/timeline-era-heading-placement.js`.
+- **Public consumers** import the canonical modules directly: `timeline-render.js`, `arbor-render.js`, `maps-render.js` and `timeline-era-heading-placement.js`.
+- **Admin consumers** are classic scripts. Each canonical module has a same-named `*-bridge.js` that publishes it as a `window.Admin*` global.
+- **Bridges that do more than re-export:** `cluster-placement-bridge.js` converts `Map` to plain object, `cluster-label-collision-bridge.js` measures and writes DOM positions, and `cluster-map-pins-bridge.js` fixes the zoom level. A bridge stays an adapter and holds no placement rules.
 
 ## Extending it
 
-- **Tuning existing behaviour** (spacing, thresholds, tier boundaries): edit the single canonical module. Nothing else needs to change — that's the point of the bridge pattern.
-- **Changing a module's exported shape** (new export, renamed function): update the matching `*-bridge.js` re-export in the same commit, and grep for the `window.Admin*` global name across `admin/assets/js/` to catch every classic-script consumer.
-- **New cluster-affected visual**: add a module here rather than inventing a parallel implementation elsewhere, then add its bridge if admin needs a classic-script-facing global.
+- **Tuning behaviour** (spacing, thresholds, tier boundaries): edit the canonical module. Then check the repeated constants in the second Invariants row.
+- **Changing a module's exports:** update the matching bridge in the same commit. Search `admin/assets/js/` for the `window.Admin*` name to find every classic-script reader.
+- **New cluster-affected visual:** add a module under `cluster-logic/`. Add a bridge only if an admin classic script needs it, and load that bridge in the admin page before its reader.
 
 ## Not documented here
 
-Exact pixel spacings per density tier, the collision-escalation tier count, and
-the horizontal-offset distance for parallel edges — all in the modules
-themselves, and they're the numbers most likely to get tuned.
+Spacing values per density tier, the collision tier count and the offset distance
+for parallel edges are in the canonical modules. They change most often.

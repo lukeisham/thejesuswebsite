@@ -5,363 +5,224 @@ _Part of the [Style Guide](INDEX.md) — §9: content-specific patterns._
 ## 9. Content-Specific Patterns
 
 **Markdown Pipe Tables (Body Content)**:
-Pipe tables (`| A | B |`) are available in any body content rendered through `renderMarkdown()` — blog posts, and (via `parseContentBody({ useMarkdown: true })`) essays, responses, historiography, and academic/popular challenges. Rendered as `.content-table` (see §8 Tables for visual treatment).
+Pipe tables (`| A | B |`) work in blog, essay, response, historiography and challenge bodies. Evidence descriptions are plain text. Tables render as `.content-table` (look: §8 Tables).
 
-- **Column alignment**: standard markdown syntax in the separator row — `:---` left, `:---:` center, `---:` right.
-- **Column widths (`{w:N}` tokens)**: authors may optionally set proportional column widths by adding a `{w:N}` token to a separator cell, where `N` is a positive number (decimals allowed), e.g. `|{w:1}---|{w:3}---|`. The token can combine with an alignment marker in either order, e.g. `---:{w:2}` or `{w:2}---:`.
-  - Weights are converted to percentages proportional to their sum. Columns with no `{w:N}` token default to an implicit weight of `1` — e.g. `{w:2}---|---|---` across three columns gives 50% / 25% / 25%.
-  - Adding any `{w:N}` token to a table switches it to `table-layout: fixed` (class `.content-table--fixed`) so the percentages take effect; tables with no width tokens keep the default `table-layout: auto` and render exactly as before.
-  - Invalid tokens (non-numeric, negative, or zero) are ignored — that column falls back to `auto` width, same as if no token were present.
-  - **Mobile**: the existing `min-width: 120px` floor under `max-width: 767px` still applies regardless of layout mode — very narrow explicit weights on many columns may still produce horizontal scroll, which is expected.
-  - Example:
-    ```
-    | Era | Years | Notes |
-    |{w:1}---|{w:1}---|{w:2}---|
-    | Bronze Age | 3300–1200 BC | Longest era by duration |
-    ```
-- **Merged cells (`{colspan:N}` / `{rowspan:N}` tokens)**: authors may merge a header or body cell with adjacent cells by adding `{colspan:N}` (merge rightward, across columns) and/or `{rowspan:N}` (merge downward, across rows) to that cell, where `N` is a whole number greater than `1`.
-  - Every grid position being swallowed by the merge must contain the placeholder `{continue}` and nothing else. This keeps every row's cell count matching the header's column count at all times — there's no implicit cell-omission to miscount by hand.
-  - The declared `N` clamps to however many consecutive `{continue}` cells are actually present — `{colspan:5}` followed by only two `{continue}` cells produces an effective colspan of 3, not 5, and never swallows real content.
-  - **A single cell cannot use both tokens at once** (no rectangular block merges): if a cell declares `{colspan:N}` and `{rowspan:M}` together, the colspan applies and the rowspan is silently dropped.
-  - `{rowspan:N}` is body-rows-only — there is only ever one header row, so a header rowspan is meaningless and is ignored if present. `{colspan:N}` works on both header and body cells.
-  - A stray `{continue}` with no adjacent merge to claim it (e.g. a typo) simply renders as an ordinary empty cell — never broken markup.
-  - Combines with `{w:N}`: a colspanned cell's rendered width is the sum of the percentages of every column it spans.
-  - Example — a full-width section-header row inside a table:
-    ```
-    | Era | Years | Notes |
-    |---|---|---|
-    | {colspan:3}Bronze Age | {continue} | {continue} |
-    | Early | 3300–2100 BC | Copper-bronze transition |
-    | Late | 1550–1200 BC | Collapse and migration |
-    ```
-  - Example — a label spanning multiple rows:
-    ```
-    | Category | Item |
-    |---|---|
-    | {rowspan:2}Metals | Bronze |
-    | {continue} | Iron |
-    ```
+- **Column alignment**: standard markdown in the separator row — `:---` left, `:---:` center, `---:` right.
+- **Column widths (`{w:N}`)**: add `{w:N}` to a separator cell, where `N` is a positive number (decimals allowed). A column without a token has weight `1`. Weights become percentages of their sum, so `{w:2}---|---|---` gives 50% / 25% / 25%. The token combines with an alignment marker in either order, for example `---:{w:2}`.
+  ```
+  | Era | Years | Notes |
+  |{w:1}---|{w:1}---|{w:2}---|
+  | Bronze Age | 3300–1200 BC | Longest era by duration |
+  ```
+- **Merged cells (`{colspan:N}` / `{rowspan:N}`)**: put the token on a header or body cell, where `N` is a whole number greater than `1`. `{colspan}` merges to the right; `{rowspan}` merges downward in body rows. Every cell that the merge covers holds `{continue}` and nothing else. A cell takes one token, not both.
+  Example — a full-width section row:
+  ```
+  | Era | Years | Notes |
+  |---|---|---|
+  | {colspan:3}Bronze Age | {continue} | {continue} |
+  | Early | 3300–2100 BC | Copper-bronze transition |
+  | Late | 1550–1200 BC | Collapse and migration |
+  ```
+  Example — a label spanning two rows:
+  ```
+  | Category | Item |
+  |---|---|
+  | {rowspan:2}Metals | Bronze |
+  | {continue} | Iron |
+  ```
 
 **Home / index.html**:
-- Single column, centre-aligned text throughout
-- Hero image at the top (full-width, no border-radius, image fills the width)
-- Below hero: site title and tagline in large serif, centred
-- Content sections stack vertically with generous vertical spacing (`--space-3xl` between sections)
-- No footer on this page; nav sidebar is closed by default
-- No breadcrumbs
+- One centered column. The sidebar follows the default rule in §5 (open from `768px`).
+- Hero: a figure at most `--measure-reading` wide, with a numbered caption.
+- Title block: site title (`--text-h1`, serif, 700; `--text-h2` below `768px`) and tagline (`--text-h3`, `--text-secondary`).
+- Sections: centered title (`--text-h2`), body at most `--measure-reading` wide, justified, `--text-secondary`. Each section has `--space-3xl` vertical padding (`--space-2xl` below `768px`) and a `1px solid var(--border)` rule above it (except the first).
+- No footer. No breadcrumbs.
 
 **Evidence Detail Page**:
-- Hero: title + primary verse
-- Main content column (wide), single column layout
-- Sections in order: Description, Timeline Context, Pictures, Sources
-- **Page info row**: a full-width row above the footer containing metadata panels — related evidence, identifiers, map location, timeline period, categories. Uses a multi-column horizontal layout on desktop, stacked on mobile. Background: `--bg-surface-alt`, top border: `1px solid var(--border)`, padding: `var(--space-xl) var(--space-lg)`.
-- Arbor diagram rendered inline within the content column where relevant
-- **Pictures**: both the dedicated Pictures-section figures (primary image + non-aligned `[figure]` shortcodes) and non-aligned inline `[figure]` shortcodes within the Description use the §8 standard figure box (`.figure-standard`), centred within the `1280px` content column. Aligned figures (`align="left"`/`"right"`) keep their side-float behaviour instead and never receive the standard box. Only this module uses the standard box (see §8). Essays, responses, historiography, blog and challenge bodies share the same `[figure]` parser but render at their default (unboxed) size.
+- Content column: at most `--container-max`, one column. Breadcrumbs above it.
+- Order: hero (title in `--text-h1`; primary verse in monospace `--text-h4`, `--text-secondary`), Pictures, Description, Bibliography, then a muted `--text-small` dates line. Sections are divided by `1px solid var(--border)`. The Pictures and Description headings are hidden.
+- **Pictures**: the primary image and every `[figure]` shortcode in the description render in the Pictures section, above the description. Non-aligned figures use the §8 standard figure box (`.figure-standard`). Aligned figures (`align="left"` / `"right"`) keep their side float instead. Only this module uses the standard box. Essays, responses, historiography, blog and challenge bodies render figures at their natural size.
+- **Page info row**: a full-width band below the article. It has `--bg-surface-alt` fill, a `1px solid var(--border)` top edge, and `--space-xl --space-lg` padding. Its content aligns with the article column. Panels sit side by side and wrap. Panel headings: `--text-small`, weight 600, `--text-secondary`. The Identifiers panel is the only panel. The whole row is hidden when it is empty.
+- Arbor diagram: see Arbor Diagram below.
 
 **Contextual Essays (Journal Article Format)**:
-Essays render as professional peer-reviewed journal articles. Every essay page uses `<article>` as its root element (HTML-1) with `schema.org/ScholarlyArticle` markup for SEO and structured data (see §11).
+Essays render as journal articles. The root element is `<article class="journal-article">` (HTML-1) with `schema.org/ScholarlyArticle` JSON-LD.
 
-**Shared stylesheet**: Contextual Essays, Response Pages, and Historiography Pages all share a single `journal.css` stylesheet. The sections for Response Pages and Historiography Pages below note only what differs from Essays.
+**Shared styles**: Essays, Responses and Historiography detail pages share the `journal-header.css`, `journal-body.css`, `journal-footer.css` and `journal-two-column.css` style sheets. The sections for Responses and Historiography list only what differs from Essays.
 
-- **Page header — title block**: centred, no hero image. Contains, in order:
-  - **Title**: `h1`, serif (`Georgia` stack), `--text-primary`, centred. No subtitle.
-  - **Byline**: `--text-secondary`, `0.9375rem`, centred. Format: "Luke Isham" on its own line, line-height `1.4`. If an author bio exists in the essay row, render it below the name in `0.8125rem`, `--text-muted`, italic, up to 2 lines then truncate with ellipsis.
-  - **Publication date**: `--text-muted`, `0.8125rem`, centred. Format: "Published 15 June 2025" (long-form date, localised). If the essay has a `version_update` column, append " · Revised 22 March 2026" in the same style.
-  - **DOI / citation line** (optional): `0.75rem`, `--text-muted`, centred, above the abstract. Format: "DOI: 10.xxxx/xxxx" or a suggested citation string. Rendered only if the essay row supplies this data.
-  - **Abstract**: visually distinct block after the byline/DOI. Full-width, `--bg-surface-alt` background, `1px solid var(--border)`, `8px` border-radius, padding `var(--space-lg)`. Label "Abstract" as `h4`, weight `600`, `--text-primary`. Abstract body in `0.9375rem`, `--text-secondary`, line-height `1.65`. Max-width matches the reading column. No italics — read like the journal itself.
-  - **Keywords**: below the abstract. Label "Keywords:" in `0.75rem`, weight `600`, `--text-secondary`, followed by comma-separated keyword badges using the Content Badge component (see §8). Keywords come from the essay's `metadata_keywords` column (semicolon-delimited in the database — split and render each as a badge). Displayed inline on one line, wrapping if needed. No row displayed if `metadata_keywords` is empty.
+- **Title block**: centered, no hero image, `--space-2xl` top and `--space-xl` bottom padding.
+  - **Title**: `h2` (the page `h1` is the hidden header, §5), serif, `--text-h1`, weight 700, `--text-primary` (`--text-h2` below `768px`). No subtitle.
+  - **Byline**: author name, `0.9375rem`, `--text-secondary`. An optional author bio sits below it: `--text-xs`, italic, `--text-muted`, at most `400px` wide.
+  - **Date**: `--text-xs`, `--text-muted`, long form such as "15 June 2025". It shows the publish date, or the creation date when none exists. No "Published" prefix. No revision date.
+  - **DOI line** (optional): `DOI: <value>`, `--text-2xs`, `--text-muted`. Hidden when the row has no DOI.
+  - **Abstract**: a block at most `--measure-reading` wide, `--bg-surface-alt` fill, `1px solid var(--border)`, `--radius-md`, `--space-lg` padding. Label "Abstract" at `--text-h4`, weight 600. Body `0.9375rem`, `--text-secondary`, `--leading-body`. No database column feeds the abstract today, so the block stays hidden.
+  - **Keywords**: label "Keywords:" (`--text-2xs`, weight 600, `--text-secondary`) followed by Content Badges (§8) on one wrapping line. The list comes from the `metadata_keywords` column, split on commas. Hidden when empty.
+- **Reading column**: `--measure-reading` (680px), centered, `--space-md` side padding. Body text `1rem` (`0.9375rem` below `768px`), `--leading-long` (1.7), `--text-primary`, paragraphs spaced by `--space-md`.
+- **Two-column layout** (≥1280px): set per row by the `two_column = 1` flag on essays, responses and historiography (admin checkbox). The body gets 2 columns, `--space-2xl` gap and a `1px solid var(--border)` rule between them, and it drops the column width cap. Figures and block quotes span both columns. The title block, abstract and keywords stay single column. Below `1280px` the body is one column.
+- **Section headings**: numbered by CSS counters, never by hand:
+  - `h2`: "1", "2", … Serif, `--text-h2`, weight 600, `--text-primary`. Margin top `--space-2xl`, bottom `--space-md`.
+  - `h3`: "1.1", "1.2", … Serif, `--text-h3`, weight 600. Margin top `--space-xl`, bottom `--space-sm`.
+  - `h4`: "1.1.1", … Serif, `--text-h4`, weight 600, `--text-secondary`. Margin top `--space-lg`, bottom `--space-xs`.
+  - The number comes before the text, separated by two non-breaking spaces, in `--accent`. Example: "2.3  Manuscript Evidence".
+  - `h2.unnumbered` skips the counter. The "References" heading uses it.
+- **Block quotes**: distinct from verse blocks (Verse & Code Blocks, below).
+  - Left border `3px solid var(--accent-light)`; transparent background.
+  - Italic, `--text-secondary`. Padding `--space-md --space-lg`. Margin `--space-lg 0`.
+  - A `<footer>` or `<cite>` inside the quote shows the attribution: `--text-xs`, `--text-muted`, not italic, on its own line.
+- **Figures**: the Pictures / Figures component (§8). Numbering runs through the whole essay.
+- **Footnotes**: a `1px solid var(--border)` rule with `--space-lg` margin above and below, then an ordered list in `--text-xs`, `--text-secondary`, `--leading-small`. No content field supplies footnotes today, so the section stays hidden. Citations use `[mla:N]` markers (§14).
+- **References**: `h2.unnumbered` "References". Hanging-indent list: `--text-small`, `--text-secondary`, line height `1.6`, no bullets, `1.5rem` indent. Entries are the linked MLA sources, formatted in MLA style. An `[mla:N]` marker links to its entry. Hidden when no source is linked.
+- **Empty state**: "This essay is forthcoming." in `--text-muted`, centered.
+- **Listing page**: a `journal-header` heading block, then `.card-grid.essays-card-grid` (at most `--measure-reading` wide). Each card shows a type badge.
 
-- **Reading column**: single-column, max-width `680px` (72–78 characters per line), centred on the page with auto margins. On screens ≥ `1536px`, the column widens slightly to `720px` to use available space without losing readability. All body content sits within this column.
+**Timeline View** (`/evidence/timeline/`):
+Header block (`h2` "Timeline" plus a description at most `--measure-reading` wide), then the era filter chips, then the canvas. The canvas is at least `600px` high. Dots, labels, zoom, chips, era headings and the detail panel are in §8 Timeline.
 
-- **Two-column layout (≥1280px)**: optional upgrade for dense academic text. When enabled (essay row flag `two_column = 1`), the reading area switches to a two-column CSS `column-count: 2` layout with `column-gap: var(--space-2xl)` and `column-rule: 1px solid var(--border)`. Abstract and header remain single-column. Figures and block quotes span both columns (`column-span: all`). Headings stay in the natural column flow. Turned off below `1280px` — reverts to single column.
-
-- **Section headings**: numbered hierarchically. Render numbering via CSS counters, not hardcoded in content:
-  - Top-level sections: `h2`, numbered "1", "2", "3"… (`counter-reset` on the article, `counter-increment` on each `h2`). Font: serif (`Georgia`), `1.75rem`, weight `600`, `--text-primary`. Margin-top `var(--space-2xl)`, margin-bottom `var(--space-md)`.
-  - Subsections: `h3`, numbered "1.1", "1.2", "2.1"… (nested counter). Font: serif, `1.375rem`, weight `600`, `--text-primary`. Margin-top `var(--space-xl)`, margin-bottom `var(--space-sm)`.
-  - Sub-subsections: `h4`, numbered "1.1.1", "1.1.2"… Font: serif, `1.125rem`, weight `600`, `--text-secondary`. Margin-top `var(--space-lg)`, margin-bottom `var(--space-xs)`.
-  - A "References" or "Bibliography" heading at the end is never numbered — use the class `.unnumbered` to skip the counter.
-  - Numbering appears before the heading text, separated by a tab or en-space, in `--accent` color. Example: "1 Introduction", "2.3 Manuscript Evidence".
-
-- **Body text**: `1rem`, `system-ui` stack, line-height `1.7` (slightly more generous than the default `1.65` for long-form academic reading), `--text-primary`. Paragraphs separated by `margin-bottom: var(--space-md)`. First paragraph after a heading has no indent.
-
-- **Block quotes**: distinct from verse blocks (§9, Verse & Code Blocks). Block quotes use:
-  - Left border: `3px solid var(--accent-light)` (not the gold verse border).
-  - Italic body text, `--text-secondary`.
-  - Padding: `var(--space-md) var(--space-lg)`.
-  - Margin: `var(--space-lg) 0`.
-  - Background: transparent (no fill — journals rarely fill block quotes).
-  - Attribution line below: `— Source Name, Title` in `0.8125rem`, `--text-muted`, not italic, preceded by an em-dash.
-  - Semantic markup: `<blockquote>` with an optional `<footer>` or `<cite>` for the attribution.
-
-- **Figures**: use the Pictures / Figures component (§8) with journal-style caption placement. Figure numbering is sequential across the entire essay (not per section), matching the `fig.` counter pattern from the content guide. Figures can optionally float to the side (`--breakout-right` or `--breakout-left`) on screens ≥ `1024px` with a max-width of `320px` — the breakout component (§8, Breakout / Side Content) handles this.
-
-- **Footnotes**: 
-  - Inline markers: superscript numbers (`<sup>`) linked via `id`/`href` to the footnote list at the bottom. Rendered by the `templates.js` utility from essay body content containing footnote anchors (e.g., `[^1]` or a custom marker format in the essay text).
-  - Footnote list: at the bottom of the article, inside a `<footer>` element before the bibliography. Rendered as an ordered list with `0.8125rem`, `--text-secondary`, line-height `1.5`. Each item is a `<li>` with an `id` matching the superscript link, allowing click-to-return navigation.
-  - Divider: a `1px solid var(--border)` horizontal rule separates the essay body from the footnote section, with `var(--space-lg)` margin above and below.
-
-- **Bibliography / References**: 
-  - Heading: `h2.unnumbered` — "References" or "Bibliography".
-  - Entries: hanging-indent list. Each entry in `0.875rem`, `--text-secondary`, line-height `1.6`. Use `text-indent: -1.5rem` with `padding-left: 1.5rem` on each `<li>` to create the hanging indent. No bullets or numbers.
-  - Entry format: MLA-style as stored in the database (`mla_sources` table linked to the essay). Italicise book/journal titles, quote article titles. Separate author, title, publisher, date with periods and spaces as per MLA conventions.
-  - If the essay has no linked sources, omit the entire references section.
-
-- **Print** (see §12 for full print rules):
-  - Two-column layout preserved if the essay uses it.
-  - Abstract loses its background fill — border remains.
-  - Figures span full page width.
-  - Footnotes become true page-footnotes (CSS `footnote` not widely supported — fall back to endnotes at the article's end).
-  - Bibliography entries reduce to `0.75rem` / `9pt`.
-
-- **Empty state**: if the essay body is null or empty, show a centred message: "This essay is forthcoming." in `--text-muted`, centred in the reading column.
-
-**Timeline View**:
-- **Page header**: title "Timeline", description explaining the linear visualization
-- **Filter section**: era filter chips above the timeline (all eras shown by default; clicking a chip highlights/isolates that era, others fade to 30% opacity)
-- **Main timeline container**: 
-  - Horizontal scrollable container with `overflow-x: auto` and momentum scrolling on mobile
-  - Full height `200px` or `280px` (accounting for label space above/below dots)
-  - Background: `var(--bg-primary)` with subtle dot grid (see Arbor Diagram pattern for grid overlay)
-  - Vertical center line: `1px solid var(--border)` representing chronological progression
-- **Zoom controls**: interactive Arbor-style zoom. See the **Arbor Diagram** entry above for the shared mechanism — same `transform: scale()` model applied to the timeline container. Key differences from the Arbor Diagram:
-  - 2 buttons only: zoom in (`+`) and zoom out (`−`); no reset button.
-  - Drag-pan via mouse drag or touch drag on the canvas.
-  - Scale range: `0.3×` to `3.0×`, matching the [30, 300] effective px-per-period range. Increment step: `1.25×` per click.
-- **Event dots**: positioned along the center line
-  - Standard: `12px` diameter, centered on timeline spine
-  - Clustered events: dots stack vertically at small offsets (e.g., ±8px, ±16px from center) to avoid overlap
-  - Each dot is clickable; cursor becomes pointer on hover
-  - Tooltip on hover shows: event title, date range, location badge
-- **Era markers**: vertical dividing lines at major era boundaries, with no label (Era Headings below carry the labels)
-- **Era Headings**: each era's name renders as an `h3` anchored at the **top-left** of that era's spatial region (not centred above the spine). Scales with zoom (`--text-h4` base, clamped `--text-small`–`--text-h3`) and nudges away from event nodes on collision, without leaving its own era's span. On mobile (<768px, vertical mode) headings reposition to the **left of the vertical spine** instead of above it. See the **Timeline** entry in `components.md` §8 for the full collision/zoom model.
-- **Bottom detail panel** (optional, revealed on hover or click):
-  - Appears below the timeline as a floating card
-  - Shows selected event's title, date, location, primary verse, and "View Details" button
-  - Positioned fixed at bottom of viewport or inline below timeline depending on available space
-  - Dismisses when clicking elsewhere or pressing ESC
-- **Responsive**: 
-  - Desktop: horizontal timeline with labels above/below dots, full width
-  - Tablet (< 1024px): timeline remains horizontal, fonts reduce to `0.85rem`
-  - Mobile (< 768px): timeline scrolls horizontally; dots `10px` diameter; labels stack or abbreviate (e.g., "Birth 5 BCE" instead of full text)
-
-**Map View**:
-- Full-width map
-- Filterable pins
-- Linked evidence opens in a new tab
+**Map View** (`/evidence/maps/`):
+An overview grid of map cards links to each map. Pins, zoom and tooltips are in §8 Map.
 
 **Popular Challenges & Academic Challenges (Ranked Lists)**:
+Two ranked list pages (`popular-challenges.html`, `academic-challenges.html`) share one layout.
 
-Two separate ranked list pages (`popular-challenges.html` and `academic-challenges.html`) using the same layout.
+- **Header**: page title, then a description in `--text-secondary`.
+- **Filter bar**: category filter chips (§8 Filters).
+- **List**: one column, at most `--measure-list` (800px), centered, infinite scroll (§8). Each row has:
+  - **Rank number**: `2rem`, weight 300, `--text-muted`, right-aligned in a `2.5rem` column.
+  - **Title**: link to the challenge, `--text-h3`, weight 600.
+  - **Summary**: rendered Markdown, `--text-small`, `--text-secondary`, cut at 3 lines.
+  - **Footer**: response count ("3 responses") in `--text-xs`, `--text-muted`, and the category badge.
+  - A `1px solid var(--border)` rule under each row.
 
-- **Page header**: `h1` page title, brief descriptive paragraph in `--text-secondary` below.
-- **Filter bar**: category filter chips (§8 Filters) immediately below the header.
-- **Ranked list**: single column, max-width `800px`, centred. Each card:
-  - **Rank number**: `2rem`, `--text-muted`, `font-weight: 300`, left-aligned
-  - **Title** (`h3`, linked to challenge detail), **Summary** (up to 3 lines, `line-clamp: 3`, `--text-secondary`)
-  - **Category badge** bottom-left; **response count** bottom-right (`0.8125rem`, `--text-muted`, e.g. "3 responses")
-  - **Ranking indicators**: `+` pluses / `−` minuses counts in `--success` / `--error`, `0.8125rem`
-- **Infinite scroll**: standard (§8)
-
-*Challenge detail page*: title as `h1`, category badge below, body text in a single reading column (`680px` max-width). A linked list of associated responses appears at the bottom under an `h2` "Responses" heading, each as a compact card (title, author, date, "Read response" link).
+*Challenge detail page*: breadcrumbs, then a column at most `--measure-reading` wide. Title in `--text-h1`, category badge, optional picture, body (Markdown, with `[figure]`, `[mla:N]` and `[id:N]` markers, §14), then "References" as on essays. Below, a "Responses" section (`h2`, `--text-h2`, `1px` rule above): one entry per response with a bold title link, the date and the author. Empty state: "This challenge is forthcoming."
 
 *Response Pages (Journal Article Format)*:
-Responses share `journal.css` and render identically to Contextual Essays. Every response page uses `<article>` as its root element with `schema.org/ScholarlyArticle` markup. The following rules are **identical** to Contextual Essays and apply in full: reading column, two-column layout option, section headings, body text, block quotes, figures, footnotes, bibliography, and print rules.
+Responses render exactly like Essays, with these additions.
 
-- **Page header — title block**: identical to Essays — centred, no hero image. Title (`h1`, serif, centred), byline, publication date, optional DOI/citation line, abstract block, keywords row — all in the same format and sizing as Essays.
-
-- **Challenge reference**: directly below the keywords row (or below the byline if no abstract exists), a labelled inset row reading "In response to:" followed by a linked card showing the challenge title and a brief excerpt. Background: `--bg-surface-alt`, border: `1px solid var(--border)`, `4px` border-radius, padding: `var(--space-sm) var(--space-md)`. The challenge title is a `--link`-colored link. Margin-bottom: `var(--space-xl)` before the article body begins.
-
-- **Strength indicator**: if a scholarly weight or rating score is stored, render it below the challenge reference row — label "Strength:" followed by a 5-point dot indicator (filled dots in `--accent`, unfilled in `--border`). Font: `0.8125rem`, `--text-muted`. Omit the row if no rating data exists.
-
-- **Reading column, headings, body text, block quotes, figures, footnotes, bibliography**: identical to the Contextual Essays specification above — no deviations.
-
-- **Print**: same rules as Essays.
-
-- **Empty state**: "This response is forthcoming." centred in `--text-muted` within the reading column.
+- **Challenge reference**: a bar below the keywords, at most `--measure-reading` wide: "In response to:" (weight 600) and a `--link` link to the challenge. `--bg-surface-alt` fill, `1px solid var(--border)`, `--radius-sm`, `--space-sm --space-md` padding, `--text-small`. Margin below: `--space-xl`.
+- **Strength indicator**: the label "Strength of response:" and 5 dots (`8px`; filled `--accent`, empty `--border`), `--text-xs`, `--text-muted`. No database column supplies the rating today, so the row stays hidden.
+- **Empty state**: "This response is forthcoming."
 
 **Historiography Pages (Journal Article Format)**:
-Historiography pages share `journal.css` and render identically to Contextual Essays in every structural and typographic respect. Apply every rule from the Contextual Essays section in full — page header/title block, reading column, two-column layout option, numbered section headings, body text, block quotes, figures, footnotes, bibliography, and print rules.
+Detail pages render exactly like Essays. The JSON-LD adds an `about` property for the subject.
 
-- **Listing page**: the historiography index (`frontend/debate/historiography/index.html`) matches the Contextual Essays listing pattern exactly — a `journal-header` page header, then a flat `.card-grid.essays-card-grid` of cards (no rank numbers, no period sections), each card carrying a "Historiography" type badge (same pattern as the Essays "Essay" badge). It does **not** use `journal.css`. Only the individual *detail* pages use the journal-article format described below.
-
-- **Page header — title block**: centred, no hero image. Title (`h1`, serif, centred), byline, publication date, optional DOI/citation line, abstract block, keywords row — all in the same format and sizing as Essays.
-
-- **Schema markup**: `schema.org/ScholarlyArticle` with an additional `about` property pointing to the relevant subject (`Person`, `Event`, or `Place`) where schema data is available.
-
-- **Reading column, headings, body text, block quotes, figures, footnotes, bibliography**: identical to the Contextual Essays specification — no deviations. The page is visually indistinguishable from an essay to the reader.
-
-- **Print**: same rules as Essays.
-
-- **Empty state**: "This historiography article is forthcoming." centred in `--text-muted` within the reading column.
+- **Listing page** (`debate/historiography/index.html`): the same pattern as the Essays listing. Each card carries a "Historiography" badge.
+- **Empty state**: "This historiography article is forthcoming."
 
 **Blog Posts**:
-Blog posts use a warmer, magazine-style layout — less formal than Essays, Responses, or Historiography pages. No `schema.org/ScholarlyArticle` markup; use `schema.org/BlogPosting` instead.
+A looser, magazine-style layout. Schema type: `schema.org/BlogPosting`.
 
-- **Page header**: left-aligned (not centred). Contains, in order:
-  - **Title**: `h1`, serif (`Georgia` stack), `--text-primary`, left-aligned, `2.25rem` (same scale as Essays but left-aligned, not centred).
-  - **Date row**: publication date below the title. `--text-secondary`, `0.875rem`.
+- **Header**: left-aligned. Title in serif `--text-h1` (`--text-h2` below `768px`), then the date in `--text-small`, `--text-secondary`.
+- **Reading column**: `--measure-reading-wide` (720px), centered.
+- **Section headings**: `h2` and `h3`, serif, not numbered. `h2` margin top `--space-xl`; `h3` margin top `--space-lg`.
+- **Body text**: `1rem`, `--leading-long`, `--text-primary`.
+- **Pull quotes** (`[pullquote]`, §14): centered, `1.25rem`, italic, `--accent`, no border, margin `--space-xl --space-md`. Blog only.
+- **Citations**: `[mla:N]` shows as `(Author)`, not a superscript. No footnotes.
+- **Bibliography**: `h2.unnumbered` "Bibliography", ordered list in the `.journal-references` style (same as Essay References). Hidden when no source is linked.
+- **Empty state**: "This post is coming soon."
 
-- **Reading column**: `720px` max-width (wider than essay — blog prose is less dense). Centred with auto margins.
-
-- **Section headings**: `h2` and `h3` only — **not numbered**. Same serif font as Essays. Generous top margin (`var(--space-xl)`); no hierarchical counter system.
-
-- **Body text**: `1rem`, `system-ui` stack, line-height `1.7`, `--text-primary`. Same as Essays.
-
-- **Pull quotes**: distinct callout for emphasis — centred text, `1.25rem`, `--accent` color, italic, no border, margin `var(--space-xl) var(--space-md)`. Used sparingly. Distinct from block quotes and not used in Essays.
-
-- **Block quotes**: same as Essays (left border `3px solid var(--accent-light)`, italic, `--text-secondary`, transparent background).
-
-- **Images**: same Figure component (§8); images may appear anywhere in the content, not only as a top hero.
-
-- **No footnotes**: use inline parenthetical references if needed; no superscript footnote system, no footnote list.
-
-- **Bibliography / References**: 
-  - Heading: `h2.unnumbered` — "Bibliography".
-  - Entries: hanging-indent ordered list. Each entry in `0.875rem`, `--text-secondary`, line-height `1.6`. Uses `.journal-references` styling (shared with Essays/Responses/Historiography). Use `text-indent: -1.5rem` with `padding-left: 1.5rem` on each `<li>` to create the hanging indent.
-  - Entry format: MLA-style as produced by `formatMlaCitation()` from `mla.js` — same formatter as Essays. Italicise book/journal titles, quote article titles. Separate author, title, publisher, date with periods and spaces as per MLA conventions.
-  - If the blog post has no linked mla_sources, omit the entire bibliography section.
-  - Further Reading: a separate `h2` "Further Reading" section with a simple unordered list for non-MLA source links — `0.875rem`, `--text-secondary`, no hanging indent. Omit if empty.
-
-- **Empty state**: "This post is coming soon." centred in `--text-muted`.
-
-**News & Blog Landing**:
-The `news-and-blog/index.html` page is a mixed landing page aggregating blog posts and news articles.
-
-- **Page header**: `h1` "News & Blog". Below it, three toggle chips: "All", "Blog", "News" — filtering the list without a page reload. Active chip: `--bg-surface-alt` background, `1px solid var(--accent)` border.
-- **Card list**: single column, max-width `760px`, centred, infinite scroll (§8). Each card:
-  - **Type badge** — "Blog" or "News" — Content Badge (§8) top-left of the card, before the title
-  - Title (`h3`, linked), author/publisher + date row in `--text-muted`, `0.8125rem`
-  - First 2 lines of body excerpt (blog) or "from [publisher]" (news), `--text-secondary`
-- **Hero promotion**: items with `landing_page_display = 1` render as a full-width hero card at the top of the list — larger title (`h2`), hero image at full card width if present. Maximum one hero at a time.
-- **Empty state**: "Nothing here yet." centred
+**News & Blog Landing** (`news-and-blog/index.html`):
+- `h2` "News & Blog".
+- Two sections, News first, then Blog. Each section heading (`--text-h3`, weight 600, `1px` rule below) links to that section's full feed. The heading turns `--accent` on hover.
+- News shows the 5 latest articles. Blog shows the 3 latest posts. Both use the §8 News & Blog Row Layout.
+- Loading shows a spinner. A failed load shows an error message with a "Try again" button.
 
 **News Articles**:
-News articles are curated external links. The individual `[slug].html` page presents article metadata and routes the reader to the original source — it is not a reading destination itself.
+News articles are curated external links. The `[slug].html` page shows the article's details and sends the reader to the original source. It is not a reading page.
 
-- **Layout**: single-column, `760px` max-width, centred.
-- **Page header**: title (`h1`, serif, `--text-primary`), publisher + author + date row in `--text-muted`, `0.875rem`.
-- **External link row**: a `--bg-surface-alt` inset block (Breakout component styling, §8) containing the source URL as a prominent link with a Feather `external-link` icon. Label: "Read at [publisher name]". This is the primary action on the page.
-- **Summary**: brief description as standard body text, if stored. Omitted if empty.
-- **Keywords**: Content badge row (§8) if `metadata_keywords` is present.
-- **Back link**: "← Back to News" ghost link above the header.
-- **No footnotes, no bibliography, no journal formatting.**
+- **Layout**: one column, `--measure-narrow` (760px), centered.
+- **Header**: `← Back to News & Blog` link above. Title in serif `--text-h1` (`--text-h2` below `768px`). Meta line below: author, publisher and date, `--text-small`, `--text-muted`.
+- **Source link** (the main action): a bar with `--bg-surface-alt` fill, `1px solid var(--border)`, `--radius-sm`, `--space-md --space-lg` padding. It holds the label "Read the full article:" and a link with the source name and a Feather `external-link` icon. The link opens in a new tab.
+- **Summary**: body text in `--text-secondary`. Hidden when empty.
+- **Keywords**: Content Badge row (§8). Hidden when empty.
+- No footnotes, no bibliography, no journal formatting.
 
 **Wikipedia Ranked List**:
-A single ranked list page (`debate/wikipedia.html`) showing Wikipedia articles about Jesus, ranked for quality and relevance.
+A single ranked list page (`debate/wikipedia.html`) of Wikipedia articles about Jesus, ordered by reliability score.
 
-- **Page header**: heading "Wikipedia Rankings", then a single **page-level** "Scores last updated: <date>" line (`.wikipedia-revised-line`, `--text-xs`, `--text-muted`) showing when the scoring data was most recently uploaded to this site (derived from the newest `created_at` across the dataset, not the Wikipedia articles' own revision dates) — hidden entirely if no article has a valid date. Brief explanatory paragraph follows.
-- **Column header row**: `RANK | ARTICLE | SIGNALS | SCORE` (copy column unlabelled), `≥768px` only, sits outside the `<ol>` as an `aria-hidden` `<div>` matching the row grid's columns.
-- **Ranked list**: five-column row layout, max-width `1100px`, centred, with responsive stacking below `768px` (§9.1). Each row:
-  - **Rank number**: `2rem`, `--text-muted`, `font-weight: 300`, right-aligned
-  - **Article title** (`h3`), linked to the external Wikipedia URL with a Feather `external-link` icon inline
-  - **5×5 signal grid and document score panel** (§9.1) for articles that have signal data, plus a copy button
-  - No per-article date is shown — see the page-level line above
-  - Rank 1 renders with no visual emphasis — identical markup and styling at every rank
-- **Infinite scroll**: standard (§8)
-- **No filter bar** — all articles are homogeneous
+- **Page header**: `h2` "Wikipedia Rankings", then one line "Scores last updated: <date>" (`.wikipedia-revised-line`, `--text-xs`, italic, `--text-muted`). The date is the newest `scored_at` across the articles, which is when the scoring data last changed on this site. It is not a Wikipedia revision date. The line is hidden when no article has a date. A paragraph follows.
+- **Column header row**: `RANK | ARTICLE | SIGNALS | SCORE`, uppercase, `--text-2xs`, weight 500, `--text-muted`, `1px solid var(--border-strong)` underline. It shows from `768px` and is `aria-hidden`. It sits outside the `<ol>` and shares the row's columns.
+- **Ranked list**: `<ol>` at most `--measure-list-wide` (1100px), centered. Each row is a five-column grid with `--space-lg` gaps and a `1px solid var(--border)` rule below:
+  - **Rank number**: `--wikipedia-rank-number-size` (2rem), weight 300, `--text-muted`, right-aligned. The column is `--wikipedia-rank-col` (2.5rem), or `--wikipedia-rank-col-sm` (1.5rem) below `1024px`.
+  - **Article title**: `--text-h3`, weight 600, `--text-primary`. It links to the Wikipedia article in a new tab, with a 14px Feather `external-link` icon.
+  - **Signal grid, score panel and copy button** (§9.1) for scored articles.
+  - Below `768px` the row has two lines. The rank spans both. The title is on top. The grid, score and copy button sit below.
+- **Infinite scroll**: standard (§8). **No filter bar**: all articles are alike.
 
 ### 9.1 Wikipedia Grid Details
 
-Full spec for the 5×5 signal grid introduced above. The tooltip motion is in §6. How the page, script and style sheet must agree is in `setup/ARCHITECTURE/wikipedia-quality-grid.md`.
+The visual spec for the 5×5 signal grid. The tooltip motion is in §6. How the page, script and style sheet must agree is in `setup/ARCHITECTURE/wikipedia-quality-grid.md`.
 
 **Layout**
 
-- Fixed 5×5 CSS Grid (`grid-template-columns: repeat(5, var(--grid-cell-size))`), never reflows to a different column count at any viewport.
-- Cell size: `--grid-cell-size` square with `--grid-cell-gap` gap at `≥768px`; `--grid-cell-size-sm` square with `--grid-cell-gap-sm` gap below `768px`. Only cell/gap size changes across breakpoints — column count is constant.
-- **Cell order** comes from `SIGNAL_DICTIONARY` in `frontend/assets/js/utils/wikipedia-signals.js`, row-major. The grid reads as a gradient: top-left cells earn score, bottom-right cells lose it.
-- All 25 cells always render for every scored article, even when a signal never fired for that article — an unfired signal renders as an empty cell, not a missing one (JS-2).
+- Always 5 columns, at every viewport. Only cell and gap size change: `--grid-cell-size` (26px) with `--grid-cell-gap` (3px) from `768px`; `--grid-cell-size-sm` (22px) with `--grid-cell-gap-sm` (2px) below.
+- **Cell order** follows the signal dictionary, row by row. The grid reads as a gradient: top-left cells earn score, bottom-right cells lose it.
+- All 25 cells render for every scored article. A signal that did not fire shows as an empty cell, not a missing one.
+- Cell: `--radius-sm`, `--text-2xs`, tabular numbers, `--bg-surface-alt` fill. A focused cell gets a `2px solid var(--text-primary)` outline.
 
-**Cell rendering**
+**Cell colours**
 
-- **Positive, fired**: text colour is one of four blue intensity tiers (`--grid-blue-1` dimmest → `--grid-blue-4` boldest/bold-weight), chosen by fulfilment ratio (`|contribution| / |cap|`): tier 1 `< 0.30`, tier 2 `0.30–0.59`, tier 3 `0.60–0.94`, tier 4 `≥ 0.95`.
-- **Negative, fired**: `--error` text, bold, contribution shown with its minus sign — negative signals get one visual treatment regardless of magnitude, not four tiers.
-- **Empty** (`contribution: 0`, whether or not the signal was applicable): `--bg-surface` fill with a faint `--border` outline — visually present but clearly inert.
-- **No inline styles, no per-cell SVG.** Colour is applied as a class (`.wikipedia-cell--blue-1`…`--blue-4`, `--negative`, `--empty`) — see SR-3, CSS-2.
-- **Tooltips**: hover/focus on a cell shows `"<signal name>: <contribution>"` or `"<signal name>: not scored"` via the single shared tooltip element (§6). Pointer devices only; the tooltip text is also each cell's `aria-label`.
+- **Positive, fired**: the cell shows its contribution number in one of four blue tiers. The tier comes from the fulfilment ratio `|contribution| / |cap|`:
+
+  | Tier | Token | Ratio |
+  |---|---|---|
+  | 1 | `--grid-blue-1` | below 0.30 |
+  | 2 | `--grid-blue-2` | 0.30 to 0.59 |
+  | 3 | `--grid-blue-3` | 0.60 to 0.94 |
+  | 4 | `--grid-blue-4`, bold | 0.95 and above |
+
+- **Negative, fired**: `--error` text, bold, with its minus sign. One treatment at every size.
+- **Empty** (contribution 0): `--bg-surface` fill with a `1px solid var(--border)` outline, no number.
+- **Tooltip**: on a cell, `"<signal name>: <contribution>"` or `"<signal name>: not scored"`. On the score panel, `"Document score: <net score>"`. The tooltip is a `--text-primary` box with `--bg-primary` text, `--text-2xs`, `--shadow-md`. It shows on pointer devices only. The same text is each cell's `aria-label`.
 
 **Score panel**
 
-- One `.wikipedia-score-panel` per article, right of the grid: `net_score` in a solid colour band — green `≥ 50`, yellow `25–49`, red `≤ 24`. No suffix, no "/100" — the number and its band colour are the whole signal.
+- `.wikipedia-score-panel` sits right of the grid. It shows `net_score` in a solid band with white text, weight 600. The band colour is `--success` at 50 and above, `--warning` from 25 to 49, `--error` at 24 and below. No suffix and no "/100".
 
-**Copy button and format**
+**Copy button**
 
-The button sits right of the score panel, `--signal-btn-size` square. It reads the article's JSON block when you click and writes the text below with `navigator.clipboard.writeText`. A failed copy shows a `showToast` error, never silence (JS-5). The format:
-
-```
-<Article title> — reliability score <net_score>
-
-Scored signals:
-<name>  <+/-contribution>   (one line per non-zero signal, §9 order, name column aligned)
-
-Not scored:
-<name>                       (one line per unfired signal, §9 order)
-
-Net score: <net_score> of a possible <max>
-                              (max = every positive cap at full credit, every negative at 0 —
-                               already category-aware since `cap` is stored per article/signal)
-
-Source: thejesuswebsite.org/debate/wikipedia
-```
+- A ghost button, `--signal-btn-size` (34px) square, right of the score panel. It copies a plain-text summary of that article. The summary lists the title and score, each scored signal with its contribution, and the signals that did not score. It ends with the net score against the highest possible score, and a source line. The exact layout is in `wikipedia.js`. A failed copy shows an error toast. After a copy, the icon turns into a check in `--success` for 1.5 seconds.
 
 **Accessibility**
 
-- Grid exposed as `role="table"`, cells as `role="gridcell"`, each with an `aria-label` of the same form as its tooltip text — exposed to assistive technology independent of the (pointer-only) tooltip layer.
-- **Roving tabindex**: one tab stop enters a given article's grid (`tabindex="0"` on its first cell only, `"-1"` on the rest); arrow keys move focus between that grid's own 25 cells; tabbing again leaves to the next focusable element. Keyboard users never hit 25 tab stops per row.
-- The page-level column header row (`RANK | ARTICLE | SIGNALS | SCORE`) is `aria-hidden` and sits outside the `<ol>` — it labels the row layout visually without affecting the list's semantics or the grid's own table structure.
-
-**Performance**
-
-- No per-cell SVG, no per-cell event listener. At the full 255-article dataset (6,375 cells), colour comes from a class on each cell and both the tooltip and keyboard-navigation listeners are single delegated listeners at the document level (JS-6), not one per cell.
+- The grid has `role="table"` and each cell `role="gridcell"` with an `aria-label`.
+- `Tab` enters a grid once. The arrow keys move between its cells.
 
 **Resources Lists**:
-Resources pages are curated ranked/sorted lists covering one category each (parables, manuscripts, people, sites, etc.).
+Curated lists, one page per category (parables, manuscripts, people, sites and others).
 
-- **Landing page** (`resources/index.html`): `h2` "Resources", brief description, then a static card grid (§8 Cards, `.card-grid`) — one card per resource category, title + one-sentence description, whole card linking to that category's dedicated page (`/resources/<key>.html`). No chip row on the landing page and no fetch — the 15 categories are fixed by the schema `CHECK` constraint.
-- **Per-category pages** (`/resources/<key>.html`, one per `list_key`): `h1`/`h2` category title (e.g. "Parables", "External Witnesses"), brief description. No category-navigation chip row — the landing page's card grid already navigates laterally between categories.
-- **Subheadings**: a list can contain section-break rows (`item_type: 'subheading'`) that group items underneath them. Rendered as a `<section>` per subheading: an `<h3 class="resource-subheading">` followed by its own `<ol>`, so item numbering restarts at 1 inside each section. Items before the first subheading render in a leading, unlabelled section. Subheadings are never numbered themselves, and a subheading with nothing under it (trailing, or immediately followed by another subheading) renders no `<h3>` at all.
-- **List items**: ordered list (not a card grid). Each item:
-  - Subtle ordinal number left of the title (`--text-muted`, `font-weight: 300`, `2rem`) — same visual weight as challenge/Wikipedia rank numbers
-  - `resource_title` as primary text (`1rem`, `--text-primary`), linked if `resource_url` is present (Feather `external-link` icon inline for external URLs)
-  - `resource_description` below: `0.875rem`, `--text-secondary`, max 3 lines
-- **Infinite scroll**: standard (§8) — batches continue whichever section was last open rather than restarting the count.
+- **Landing page** (`resources/index.html`): `h2` "Resources", a description, then a card grid (`.card-grid`, §8 Cards). Each card has a title and a one-sentence description and links to that category's page (`/resources/<key>.html`).
+- **Category pages**: category title and a short description. There is no chip row. The landing page navigates between categories.
+- **Sections**: a list can hold subheadings that group items. Each subheading is an `h3` (`--text-h3`, weight 600) above its own numbered list. Numbering restarts at 1 under each subheading. Items before the first subheading form an unlabelled section. Sections are `--space-2xl` apart.
+- **List**: ordered list, at most `--measure-list` (800px), centered. Each item:
+  - **Number**: `2rem`, weight 300, `--text-muted`, right-aligned in a `2.5rem` column (same as challenge ranks).
+  - **Title**: `--text-body`, weight 500, `--text-primary`. It links to the resource when it has a URL.
+  - **Description**: `--text-small`, `--text-secondary`, cut at 3 lines.
+  - A `1px solid var(--border)` rule under each item.
+- **Infinite scroll**: standard (§8). Later batches continue the numbering.
 
 **About Page**:
-The About page is a simple, warm informational page — no academic formatting, no article structure.
+A warm information page with no article structure.
 
-- **Layout**: single-column, `800px` max-width, centred with auto margins. Page flows directly on `--bg-primary` (no card container).
-
-- **Page header**: centred `h1` title (`--text-primary`), no byline, no abstract, no date.
-
-- **Portrait / image** (optional): centred, `200px × 200px`, `border-radius: 50%`, `2px solid var(--border)`, displayed below the title with `var(--space-lg)` gap.
-
-- **Prose sections**: `h2` headings (not numbered, not serif — use the `system-ui` stack at `1.75rem`, weight `600`, `--text-primary`), standard body text at `1rem` / `1.65` line-height. No footnotes, no bibliography, no abstract.
-
-- **Contact row**: at the bottom of the page, a row of ghost-style button components (§8) for email and/or external links. Centred, `margin-top: var(--space-2xl)`.
-
-- **No print-specific rules** — the About page is not expected to be printed; standard browser print behaviour applies.
-
-**Breakouts / Side Content**:
-- Collapsible sections or separate cards
-- Clear visual distinction from main content (see Breakout component above)
+- **Layout**: one column, `--measure-list` (800px), centered, `--space-2xl --space-md` padding, directly on `--bg-primary`.
+- **Title**: centered, serif, `--text-h1`, weight 700. No byline, abstract or date.
+- **Portrait** (optional): centered `200px` circle, `2px solid var(--border)`, cropped to fill, `--space-lg` below.
+- **Prose sections**: `h2` in the body (`system-ui`) font, `--text-h2`, weight 600. Text in `--text-body`, `--text-secondary`, `--leading-body`. Paragraphs are `--space-lg` apart; sections are `--space-2xl` apart.
+- **Contact row**: ghost buttons (§8) for email and external links, centered, wrapping, `--space-2xl` above.
 
 **Arbor Diagram**:
-- Canvas background: `--bg-primary` with a subtle dot grid overlay — dots at `24px` spacing, `--border` color, `1px` diameter, `0.4` opacity. Achieved with a CSS `radial-gradient` background pattern (no canvas API needed for the grid itself).
-- Nodes: white (`--bg-surface`) rounded rectangles, `8px` border-radius, `1px solid var(--border)` border, `var(--space-sm) var(--space-md)` padding, subtle shadow `0 2px 6px rgba(0,0,0,0.08)`. Each node shows the evidence **title** (h4 size, `--text-primary`) and **primary verse** (small, `--text-muted`, italic) below it.
-- Node types:
-  - **Root**: border `2px solid var(--accent)`, background `--bg-surface-alt`
-  - **Supports / leads_to**: standard white node, `1px solid var(--border)`
-  - **Related**: standard white node, border dashed `1px solid var(--border-strong)`
-- Edges (connecting lines): SVG `<line>` or `<path>`, `1.5px` stroke, `--border-strong` color. Drawn behind nodes using SVG `z-index` layering.
-- Flow direction: top-to-bottom and left-to-right. Root node at top-centre; child nodes arranged below and to the right.
-- **Bottom bar**: fixed strip at the bottom of the diagram canvas (above the page footer). Contains zoom in (`+`), zoom out (`−`), and reset buttons. Background `--bg-surface`, top border `1px solid var(--border)`, padding `var(--space-sm) var(--space-md)`. Buttons use the secondary button style.
-- Zoom: transform `scale()` on the diagram container.
-  - **Frontend** (`arbor-interactions.js`): min `0.05×`, max `1.0×`, button step `×1.25` per click (`+`/`−`).
-  - **Admin editor** (`admin-arbor/arbor-canvas.js`): same bounds and button step as the frontend, plus mouse-wheel zoom.
-  - Pan via mouse drag or touch drag on the canvas.
-  - Note: these ranges are deliberately different from the Timeline's zoom range (`0.3×`–`3.0×`, see Timeline View above) — Arbor and Timeline are separate diagram types with independently tuned zoom bounds, not a shared constant. Do not treat one as the source of truth for the other.
-- Hover on a node: shadow strengthens, cursor changes to `pointer`; tooltip shows full description.
-- Click a node: navigates to that evidence detail page.
+- **Canvas**: `--bg-primary` with a dot grid (`24px` spacing, `--border` dots, `1px`), `min-height: 600px`.
+- **Node**: `--bg-surface`, `1px solid var(--border)`, `--radius-md`, `--space-sm --space-md` padding, `--shadow-card`. At most `200px` wide, at least `80px` high, centered text. It shows the evidence **title** (`--text-h4`, weight 600, `--text-primary`) and the **primary verse** below it (`--text-small`, italic, `--text-muted`).
+- **Node types**:
+  - **Root**: `2px solid var(--accent)` border, `--bg-surface-alt` fill.
+  - **Supports / leads_to**: the standard node.
+  - **Related**: dashed `--border-strong` border.
+- **Edges**: behind the nodes, `1.5px`, `--border-strong`, round caps. Root-to-child edges are `2px` in `--accent`. Related edges are dashed (`6 4`).
+- **Hover** on a node: `--shadow-card-hover` and `scale(1.02)`. After 300ms a tooltip shows title, verse and description. **Click** opens the evidence page.
+- **Zoom**: two icon buttons, zoom in and zoom out, in a bar fixed to the bottom of the canvas (`--bg-surface`, `1px solid var(--border)` top edge, centered). Range `0.05×` to `1.0×`, step `1.25×`. Drag to pan. These bounds differ from the Timeline's (`0.3×`–`3.0×`).
+- **Mobile** (<768px): nodes stack top to bottom at full width. The page scrolls. No zoom bar and no pan.
 
 **Verse & Code Blocks**:
-- Verse references: monospace font stack, `--bg-surface-alt` background, `--border` border (1px), `8px` border-radius, `0.75rem 1rem` padding, `--accent-gold` left border (3px)
-- Code (if any): same treatment as verse, additionally `--text-secondary` color, no line numbers (content is short snippets, not multi-line code)
+- **`.verse-block`**: monospace, `--text-small`, `--bg-surface-alt` fill, `1px solid var(--border)` border, `3px solid var(--accent-gold)` left border, `--radius-md`, padding `0.75rem 1rem`, margin `--space-lg 0`.
+- **`.verse-block--subtle`**: transparent, no border, `2px solid var(--border)` left border, `--text-secondary`, padding `0.5rem 0.75rem`.
+- **`.code-block`**: the verse block with `--text-secondary` text and wrapped lines. No line numbers.
+- **`.verse-ref`** (inline reference): monospace, `--text-small`, weight 600, small caps.
