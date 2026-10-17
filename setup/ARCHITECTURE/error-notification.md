@@ -23,7 +23,11 @@ Four categories, each owned by a different guard layer:
 
 - **Ingestion** (`E-INPUT-*`) — request bodies, query params, URL segments, uploads, WebAuthn ceremonies. Thrown before business logic runs.
 - **Transformation** (`E-TRANSFORM-*`) — string ops, date parsing, division, JSON decoding, slugging, sort comparisons. `safe-transform.js` / `date-format.js` prevent `TypeError`/`NaN`/`"Invalid Date"` from reaching rendered output.
-- **Persistence & I/O** (`E-PERSIST-*`) — DB, filesystem, external calls (ESV, vector sidecar), env validation. `db-guard.js` maps SQLite errors; `io-guard.js` maps `errno`; `env-check.js` fails fast at startup.
+- **Persistence & I/O** (`E-PERSIST-*`) — DB, filesystem, external calls (ESV, vector sidecar), env validation.
+  - `io-guard.js` maps `errno`. It is the only path for server file writes: `routes/uploads.js` and `services/page-generator.js` both use it. Callers choose their own `E-*` code or message rather than forwarding the guard code.
+  - `safeWriteFile` writes a `.<name>.tmp-<timestamp>` sibling and renames it. A crash leaves that file in the target directory (`public/uploads/` or the generated-page output directory), and nothing removes it.
+  - `db-guard.js` maps SQLite errors, but only `api/tests/db-guard.test.js` calls it. Routes call the models directly and report failures with `sendError()`.
+  - `env-check.js` has no caller. Startup checks run in `validateProdEnv` (`api/config/load-env.js`), called from `api/server.js`. `api/routes/esv.js` reads `ESV_API_KEY` on each request, so a missing key does not stop the boot.
 - **Egress** (`E-EGRESS-*` or similar) — response formatting, headers, cookies, page-generation sync, client-side display fallbacks. `error-fallback.js` guarantees an error surfaces somehow even when the expected DOM element is missing.
 
 The error toast is a fixed-position, stacking, dismissible/copyable notification
